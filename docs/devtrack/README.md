@@ -18,3 +18,4 @@
 
 *This file is automatically updated by the `devtrack.yml` GitHub Actions workflow when a PR is merged.*
 *To manually trigger documentation for a past PR, use the `workflow_dispatch` input in the Actions tab.*
+| [#66](https://github.com/RatLoopz/sahidawa-india/pull/66) | 2026-05-12 | Backend | 6 | @dipexplorer | [View Doc](devtrack/2026-05/PR-66-test-api-add-supabase-backend-connection-test.md) |
