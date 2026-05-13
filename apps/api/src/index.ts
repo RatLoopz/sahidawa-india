@@ -4,7 +4,9 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
-// Load environment variables
+import logger from './utils/logger.js';
+import { errorHandler } from './middleware/errorHandler.js';
+
 dotenv.config();
 
 const app: Express = express();
@@ -14,21 +16,41 @@ const port = process.env.PORT || 4000;
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
-app.use(morgan('dev'));
 
-// --- ADDED ROUTES ---
+// HTTP request logging with Winston
+app.use(
+  morgan('combined', {
+    stream: {
+      write: (message: string) => {
+        const trimmed = message.trim();
+        if (trimmed.includes(' 4')) {
+          logger.warn(trimmed);
+        } else if (trimmed.includes(' 5')) {
+          logger.error(trimmed);
+        } else {
+          logger.info(trimmed);
+        }
+      },
+    },
+  })
+);
 
-// 1. Root Route (This fixes the "Cannot GET /" error)
+// --- Routes ---
+
 app.get('/', (req: Request, res: Response) => {
+  logger.info('Root route accessed');
   res.send('SahiDawa-India API is running successfully!');
 });
 
-// 2. Health Check Route
 app.get('/health', (req: Request, res: Response) => {
+  logger.info('Health check endpoint accessed');
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Centralized error handler
+app.use(errorHandler);
+
 // Start the server
 app.listen(port, () => {
-  console.log(`[API Server]: SahiDawa API is running at http://localhost:${port}`);
+  logger.info(`SahiDawa API is running at http://localhost:${port}`);
 });
