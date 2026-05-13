@@ -11,7 +11,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.105.3",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
+    "dotenv": "^17.4.2",
     "express": "^5.0.0",
     "helmet": "^7.1.0",
     "morgan": "^1.10.0",
