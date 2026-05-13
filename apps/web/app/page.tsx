@@ -14,6 +14,7 @@ import {
   Search,
 } from "lucide-react";
 import Link from "next/link";
+import Footer from "./components/Footer";
 
 export default function SahiDawaHome() {
   return (
@@ -297,6 +298,7 @@ export default function SahiDawaHome() {
           <span className="text-[11px] font-semibold">Profile</span>
         </button>
       </nav>
+      <Footer />
     </div>
   );
 }
