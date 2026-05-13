@@ -15,7 +15,8 @@
     "express": "^5.0.0",
     "helmet": "^7.1.0",
     "morgan": "^1.10.0",
-    "redis": "^4.7.0"
+    "redis": "^4.7.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

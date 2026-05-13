@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import verifyRouter from './routes/verify';
 
 // Load environment variables
 dotenv.config();
@@ -16,7 +17,10 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
-// --- ADDED ROUTES ---
+// --- ROUTES ---
+
+// Medicine Verification Endpoint
+app.use('/api/verify', verifyRouter);
 
 // 1. Root Route (This fixes the "Cannot GET /" error)
 app.get('/', (req: Request, res: Response) => {
