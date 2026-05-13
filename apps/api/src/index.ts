@@ -12,30 +12,30 @@ dotenv.config();
 const app: Express = express();
 const port = process.env.PORT || 4000;
 
-// Middleware
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
-// HTTP request logging with Winston
+morgan.token('status', (req: Request, res: Response) => {
+  const status = res.statusCode;
+  if (status >= 500) return 'error';
+  if (status >= 400) return 'warn';
+  return 'info';
+});
+
 app.use(
-  morgan('combined', {
-    stream: {
-      write: (message: string) => {
-        const trimmed = message.trim();
-        if (trimmed.includes(' 4')) {
-          logger.warn(trimmed);
-        } else if (trimmed.includes(' 5')) {
-          logger.error(trimmed);
-        } else {
-          logger.info(trimmed);
-        }
-      },
-    },
-  })
+  morgan(':method :url :status - :response-time ms'),
 );
 
-// --- Routes ---
+morgan((tokens, req: Request, res: Response) => {
+  const status = res.statusCode;
+  const level = status >= 500 ? 'error' : status >= 400 ? 'warn' : 'info';
+  logger.log({
+    level,
+    message: `${tokens.method(req, res)} ${tokens.url(req, res)} ${status} - ${tokens['response-time'](req, res)} ms`,
+  });
+  return undefined;
+});
 
 app.get('/', (req: Request, res: Response) => {
   logger.info('Root route accessed');
@@ -47,10 +47,8 @@ app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Centralized error handler
 app.use(errorHandler);
 
-// Start the server
 app.listen(port, () => {
   logger.info(`SahiDawa API is running at http://localhost:${port}`);
 });
