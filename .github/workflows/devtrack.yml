@@ -1,0 +1,305 @@
+name: "SahiDawa DevTrack — PR Knowledge Engine"
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to manually document (for backfill)"
+        required: true
+        type: number
+
+# Only one run at a time to prevent race conditions on index commits
+concurrency:
+  group: devtrack-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  analyze-and-document:
+    # Only run on actual merges (not closed-without-merge), or manual dispatch
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
+    name: "📚 Analyze & Document PR"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write    # to commit generated docs back to repo
+      pull-requests: write # to create PRs if branch protection prevents direct commit
+
+    steps:
+      # ── 1. Checkout ───────────────────────────────────────────────────────────
+      - name: "⬇️ Checkout full history"
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 2. Setup Node.js ──────────────────────────────────────────────────────
+      - name: "⚙️ Setup Node.js 24"
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      # ── 3. Extract PR metadata ────────────────────────────────────────────────
+      - name: "🔍 Extract PR metadata"
+        id: pr_meta
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Determine PR number (event or manual input)
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            PR_NUM="${{ inputs.pr_number }}"
+          else
+            PR_NUM="${{ github.event.pull_request.number }}"
+          fi
+
+          echo "pr_number=$PR_NUM" >> $GITHUB_OUTPUT
+
+          # Fetch full PR data via GitHub CLI
+          PR_JSON=$(gh pr view "$PR_NUM" --repo "$REPO" \
+            --json title,body,author,mergedAt,labels,files,commits)
+
+          PR_TITLE=$(echo "$PR_JSON" | jq -r '.title')
+          PR_BODY=$(echo "$PR_JSON"  | jq -r '.body // "No description."')
+          PR_AUTHOR=$(echo "$PR_JSON" | jq -r '.author.login')
+          PR_MERGED_AT=$(echo "$PR_JSON" | jq -r '.mergedAt // empty')
+          PR_LABELS=$(echo "$PR_JSON" | jq -r '[.labels[].name] | join(",")')
+
+          # Files changed (newline separated)
+          FILES_CHANGED=$(echo "$PR_JSON" | jq -r '.files[].path' | head -200)
+
+          # Commit messages (newline separated)
+          COMMIT_MSGS=$(echo "$PR_JSON" | jq -r '.commits[].messageHeadline' | head -50)
+
+          # Count lines changed
+          LINES_CHANGED=$(gh pr diff "$PR_NUM" --repo "$REPO" 2>/dev/null | \
+            grep -c '^[+-]' || echo "0")
+
+          # Linked issue (first closing keyword match in body)
+          LINKED_ISSUE=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | \
+            grep -oE '#[0-9]+' | head -1 || echo "")
+
+          # Write to GITHUB_OUTPUT safely (handle multiline)
+          {
+            echo "pr_title=$PR_TITLE"
+            echo "pr_author=$PR_AUTHOR"
+            echo "pr_merged_at=${PR_MERGED_AT:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
+            echo "pr_labels=$PR_LABELS"
+            echo "linked_issue=$LINKED_ISSUE"
+            echo "lines_changed=$LINES_CHANGED"
+          } >> $GITHUB_OUTPUT
+
+          # Multiline values need delimiter syntax
+          echo "pr_body<<ENDBODY" >> $GITHUB_OUTPUT
+          echo "$PR_BODY" >> $GITHUB_OUTPUT
+          echo "ENDBODY" >> $GITHUB_OUTPUT
+
+          echo "files_changed<<ENDFILES" >> $GITHUB_OUTPUT
+          echo "$FILES_CHANGED" >> $GITHUB_OUTPUT
+          echo "ENDFILES" >> $GITHUB_OUTPUT
+
+          echo "commit_msgs<<ENDCOMMITS" >> $GITHUB_OUTPUT
+          echo "$COMMIT_MSGS" >> $GITHUB_OUTPUT
+          echo "ENDCOMMITS" >> $GITHUB_OUTPUT
+
+          echo "✅ Metadata extracted for PR #$PR_NUM: $PR_TITLE"
+
+      # ── 4. Run Impact Scorer (NO AI — deterministic) ──────────────────────────
+      - name: "🧠 Score PR impact (no AI)"
+        id: score
+        env:
+          FILES_CHANGED:  ${{ steps.pr_meta.outputs.files_changed }}
+          COMMIT_MESSAGES: ${{ steps.pr_meta.outputs.commit_msgs }}
+          PR_LABELS:      ${{ steps.pr_meta.outputs.pr_labels }}
+          LINES_CHANGED:  ${{ steps.pr_meta.outputs.lines_changed }}
+          PR_TITLE:       ${{ steps.pr_meta.outputs.pr_title }}
+          PR_AUTHOR:      ${{ steps.pr_meta.outputs.pr_author }}
+        run: |
+          node .github/scripts/score-impact.mjs
+          echo "Scoring complete. Verdict: $verdict"
+
+      # ── 5. Early exit if SKIP ─────────────────────────────────────────────────
+      - name: "🚦 Check if docs should be generated"
+        if: steps.score.outputs.verdict == 'SKIP'
+        run: |
+          echo "⏭️  DevTrack SKIP — Reason: ${{ steps.score.outputs.reason }}"
+          echo "   PR #${{ steps.pr_meta.outputs.pr_number }} does not meet the impact threshold."
+          echo "   No AI called. No docs generated. No cost incurred."
+          exit 0
+
+      # ── 6. Extract Git Diff (for AI context) ─────────────────────────────────
+      - name: "📄 Extract git diff"
+        id: diff
+        if: steps.score.outputs.verdict != 'SKIP'
+        run: |
+          PR_NUM="${{ steps.pr_meta.outputs.pr_number }}"
+          # Get the diff, truncated to stay within AI context limits
+          DIFF=$(gh pr diff "$PR_NUM" --repo "${{ github.repository }}" 2>/dev/null | \
+            head -c 140000 || echo "Diff unavailable")
+
+          echo "git_diff<<ENDDIFF" >> $GITHUB_OUTPUT
+          echo "$DIFF" >> $GITHUB_OUTPUT
+          echo "ENDDIFF" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 7. Generate knowledge docs via Gemini ─────────────────────────────────
+      - name: "🤖 Generate knowledge doc (Gemini 1.5 Flash)"
+        id: generate
+        if: steps.score.outputs.verdict != 'SKIP'
+        env:
+          GEMINI_API_KEY:   ${{ secrets.GEMINI_API_KEY }}
+          PR_NUMBER:        ${{ steps.pr_meta.outputs.pr_number }}
+          PR_TITLE:         ${{ steps.pr_meta.outputs.pr_title }}
+          PR_BODY:          ${{ steps.pr_meta.outputs.pr_body }}
+          PR_AUTHOR:        ${{ steps.pr_meta.outputs.pr_author }}
+          PR_MERGED_AT:     ${{ steps.pr_meta.outputs.pr_merged_at }}
+          FILES_CHANGED:    ${{ steps.pr_meta.outputs.files_changed }}
+          COMMIT_MESSAGES:  ${{ steps.pr_meta.outputs.commit_msgs }}
+          LINKED_ISSUE:     ${{ steps.pr_meta.outputs.linked_issue }}
+          PR_LABELS:        ${{ steps.pr_meta.outputs.pr_labels }}
+          IMPACT_SCORE:     ${{ steps.score.outputs.score }}
+          IMPACT_AREA:      ${{ steps.score.outputs.area }}
+          VERDICT:          ${{ steps.score.outputs.verdict }}
+          GIT_DIFF:         ${{ steps.diff.outputs.git_diff }}
+          REPO_SLUG:        ${{ github.repository }}
+        run: node .github/scripts/generate-doc.mjs
+
+      # ── 8. Commit generated docs back to repo (via GitHub API — bypasses branch protection) ──
+      - name: "💾 Commit knowledge docs"
+        if: steps.score.outputs.verdict != 'SKIP'
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require("fs");
+            const path = require("path");
+
+            const PR_NUM    = "${{ steps.pr_meta.outputs.pr_number }}";
+            const VERDICT   = "${{ steps.score.outputs.verdict }}";
+            const AREA      = "${{ steps.score.outputs.area }}";
+            const SCORE     = "${{ steps.score.outputs.score }}";
+
+            const commitMsg = VERDICT === "GENERATE+ADR"
+              ? `docs(devtrack): add PR-#${PR_NUM} doc + ADR (${AREA}, score ${SCORE}) [skip ci]`
+              : `docs(devtrack): add PR-#${PR_NUM} knowledge doc [skip ci]`;
+
+            // Collect all generated files under docs/devtrack/
+            function collectFiles(dir, base = "") {
+              const results = [];
+              if (!fs.existsSync(dir)) return results;
+              for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+                const rel = base ? `${base}/${entry.name}` : entry.name;
+                const full = path.join(dir, entry.name);
+                if (entry.isDirectory()) {
+                  results.push(...collectFiles(full, rel));
+                } else {
+                  results.push({ rel, full });
+                }
+              }
+              return results;
+            }
+
+            const filesToCommit = collectFiles("docs/devtrack");
+            if (!filesToCommit.length) {
+              console.log("No files to commit.");
+              return;
+            }
+
+            const owner = context.repo.owner;
+            const repo  = context.repo.repo;
+
+            // Get the current HEAD SHA for the main branch
+            const { data: ref } = await github.rest.git.getRef({
+              owner, repo, ref: "heads/main"
+            });
+            const parentSha = ref.object.sha;
+
+            // Get the current tree
+            const { data: parentCommit } = await github.rest.git.getCommit({
+              owner, repo, commit_sha: parentSha
+            });
+            const baseTreeSha = parentCommit.tree.sha;
+
+            // Build blobs for each file
+            const treeItems = [];
+            for (const { rel, full } of filesToCommit) {
+              const content = fs.readFileSync(full, "utf8");
+              const { data: blob } = await github.rest.git.createBlob({
+                owner, repo, content, encoding: "utf-8"
+              });
+              treeItems.push({
+                path: `docs/devtrack/${rel}`,
+                mode: "100644",
+                type: "blob",
+                sha: blob.sha,
+              });
+            }
+
+            // Create new tree
+            const { data: newTree } = await github.rest.git.createTree({
+              owner, repo, base_tree: baseTreeSha, tree: treeItems
+            });
+
+            // Create commit
+            const { data: newCommit } = await github.rest.git.createCommit({
+              owner, repo,
+              message: commitMsg,
+              tree: newTree.sha,
+              parents: [parentSha],
+              author: {
+                name: "sahidawa-devtrack[bot]",
+                email: "devtrack@sahidawa.noreply",
+              }
+            });
+
+            // Update main branch ref or create a PR if protected
+            try {
+              await github.rest.git.updateRef({
+                owner, repo,
+                ref: "heads/main",
+                sha: newCommit.sha,
+              });
+              console.log(`✅ DevTrack docs committed via GitHub API: ${newCommit.sha}`);
+              console.log(`   Files committed: ${filesToCommit.map(f => f.rel).join(", ")}`);
+            } catch (err) {
+              if (err.status === 422 || err.status === 403) {
+                console.log("⛔ Branch is protected. Creating a PR instead...");
+                const branchName = `devtrack/docs-pr-${PR_NUM}-${Date.now()}`;
+                
+                await github.rest.git.createRef({
+                  owner, repo,
+                  ref: `refs/heads/${branchName}`,
+                  sha: newCommit.sha
+                });
+                
+                const pr = await github.rest.pulls.create({
+                  owner, repo,
+                  title: commitMsg,
+                  head: branchName,
+                  base: "main",
+                  body: "DevTrack automatically generated documentation for PR #" + PR_NUM + ".\\n\\nSince `main` is a protected branch, this PR was automatically created to merge the documentation."
+                });
+                console.log(`✅ Pull request opened: #${pr.data.number}`);
+              } else {
+                throw err;
+              }
+            }
+
+
+      # ── 9. Summary ────────────────────────────────────────────────────────────
+      - name: "📊 DevTrack Summary"
+        if: always()
+        run: |
+          echo "## 📚 DevTrack Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| PR | #${{ steps.pr_meta.outputs.pr_number }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Impact Score | ${{ steps.score.outputs.score }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Area | ${{ steps.score.outputs.area }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Verdict | ${{ steps.score.outputs.verdict }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Reason | ${{ steps.score.outputs.reason }} |" >> $GITHUB_STEP_SUMMARY

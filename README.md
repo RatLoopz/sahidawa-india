@@ -18,7 +18,7 @@ _Built for Bharat. Not just India._
 
 <br/>
 
-[**Report a Bug**](https://github.com/RatLoopz/sahidawa-india/issues/new?template=bug_report.md) · [**Request a Feature**](https://github.com/RatLoopz/sahidawa-india/issues/new?template=feature_request.md) · [**Join Discord**](#community) · [**Read the Docs**](./docs/)
+[**Report a Bug**](https://github.com/RatLoopz/sahidawa-india/issues/new?template=bug_report.md) · [**Request a Feature**](https://github.com/RatLoopz/sahidawa-india/issues/new?template=feature_request.md) · [**Join Discord**](https://discord.gg/6Qa6VuE6) · [**Read the Docs**](./docs/)
 
 </div>
 

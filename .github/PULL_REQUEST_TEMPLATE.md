@@ -1,12 +1,13 @@
 ## 📋 PR Summary
 
-<!-- One line: what does this PR do? -->
+<!-- A clear and concise description of what this PR does.-->
 
 ## 🔗 Related Issue
 
-<!-- REQUIRED: Link the issue this PR closes. Without a linked issue, this PR may not be reviewed. -->
+<!--REQUIRED: Link any related issues using the format below.  
+This will **auto-close** the issue when merged. Without a linked issue, this PR may not be reviewed.-->
 
-Closes #<!-- issue number -->
+> Fixes #<issue_number>
 
 ## 🏷️ PR Type
 
@@ -36,11 +37,14 @@ Closes #<!-- issue number -->
 
 ## 📝 What Was Done
 
-<!-- Bullet points of actual changes made -->
+<!-- List all the key changes made in this PR:
 
--
--
--
+- Added a new feature to ...
+- Refactored ...
+- Fixed a bug in ...
+- Improved documentation for ...
+
+ -->
 
 ## 📸 Screenshots / Demo
 
@@ -64,9 +68,3 @@ Closes #<!-- issue number -->
 - [ ] I am a GSSoC 2026 participant
 
 ---
-
-<!--
-  Thank you for contributing to SahiDawa! 🩺
-  Built for 1.4 billion Indians — your work matters.
-  A maintainer will review within 48 hours.
--->

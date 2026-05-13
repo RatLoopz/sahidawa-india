@@ -1,0 +1,22 @@
+{
+  "Home": {
+    "title": "Your Health, Verified & Protected.",
+    "subtitle": "India's open-source citizen platform to instantly verify medicine authenticity, find safe pharmacies, and receive critical health alerts.",
+    "scan_button": "Scan Medicine",
+    "scan_subtitle": "Point camera at packaging or barcode",
+    "upload_photo": "Upload Photo",
+    "upload_subtitle": "Select from gallery",
+    "voice_triage": "Voice Triage",
+    "voice_subtitle": "Speak symptoms",
+    "pharmacy_map": "Pharmacy Map",
+    "pharmacy_subtitle": "Find verified stores",
+    "search_placeholder": "Search medicine or batch...",
+    "search_button": "Search"
+  },
+  "Navigation": {
+    "how_it_works": "How it Works",
+    "alerts": "Alerts",
+    "pharmacy_map": "Pharmacy Map",
+    "language": "English"
+  }
+}

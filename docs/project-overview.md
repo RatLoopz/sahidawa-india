@@ -162,20 +162,20 @@ gantt
     Polish & Accessibility         :        f5, 2026-07, 1M
 ```
 
-Based on the project’s own roadmap and current status, recommended next steps are:
+Our immediate focus centers around these key milestones:
 
-1. **Implement Core Features (Phase 1 Completion):** Finish the barcode scanner functionality. In the API, code the `/verify` endpoint to query `medicines` by `barcode_id` and return results. Populate the database by importing CDSCO data (the `data/seeds/medicines.csv` is currently empty). Complete the Supabase integration so the frontend can call `supabase.from('medicines').select()`.
+1. **Implement Core Features (Phase 1 Completion):** Finish the barcode scanner functionality. In the API, code the `/verify` endpoint to query `medicines` by `barcode_id` and return results. Populate the database by importing CDSCO data. Complete the Supabase integration so the frontend can query data natively.
 
-2. **Multilingual & Mapping (Phase 2):** Add i18n JSON files for Indian languages and wire up `next-intl` in the client. Integrate Leaflet so the Map page shows real pharmacy data: fetch `pharmacies` from the API, using PostGIS queries (see geo-pattern) to find nearby stores/ASHA workers. Implement the “Pharmacy & ASHA Map” feature using Jan Aushadhi data. Also integrate Cloudinary for user-uploaded drug images and set up Workbox strategies for offline caching.
+2. **Multilingual & Mapping (Phase 2):** Add i18n JSON files for Indian languages and wire up `next-intl` in the client. Integrate Leaflet so the Map page shows real pharmacy data: fetch `pharmacies` from the API, using PostGIS queries to find nearby stores and ASHA workers. Implement the “Pharmacy & ASHA Map” feature using Jan Aushadhi data. Integrate Cloudinary for user-uploaded drug images and set up Workbox strategies for offline caching.
 
 3. **AI Health Assistant (Phase 3):** Develop the FastAPI ML endpoints: 
    - **OCR/ASR:** `/voice` route that accepts an audio file, runs Whisper, and returns text. `/ocr` for extracting text from images.
-   - **Image Classifier:** Use TensorFlow Lite to distinguish real vs fake packaging (if model available).
-   - **RAG QA:** `/ai-triage` route: feed user symptoms (in any supported language) into Sarvam AI via LangChain, augmented with NHP (National Health Portal) docs for evidence-based answers.
+   - **Image Classifier:** Use TensorFlow Lite to distinguish real vs fake packaging.
+   - **RAG QA:** `/ai-triage` route to feed user symptoms into Sarvam AI via LangChain, augmented with NHP (National Health Portal) docs for evidence-based answers.
    - Build the CDSCO agent in LangChain to watch drug recall announcements and flag any affected medicines in DB.
 
-4. **Reporting & Visualization:** Enable users to submit counterfeit reports (upload photo + location). Implement `/reports` endpoint saving to `counterfeit_reports`. Build the counterfeit-heatmap (using D3.js or Leaflet layer) to visualize reports by district. Add push notifications or alerts for newly identified fakes.
+4. **Reporting & Visualization:** Enable users to submit counterfeit reports (upload photo + location). Implement `/reports` endpoint saving to `counterfeit_reports`. Build the counterfeit-heatmap to visualize reports by district. Add push notifications or alerts for newly identified fakes.
 
-5. **Polish & Launch (Phase 4):** Conduct WCAG accessibility testing and performance audits (Lighthouse CI). Finalize Docker Compose for easy deployment. Add complete Swagger/OpenAPI documentation for all APIs. Optionally integrate ABHA e-health ID features. Then publicly launch.
+5. **Polish & Launch (Phase 4):** Conduct WCAG accessibility testing and performance audits (Lighthouse CI). Finalize Docker Compose for easy deployment. Add complete Swagger/OpenAPI documentation for all APIs. Optionally integrate ABHA e-health ID features prior to public launch.
 
-Throughout, prioritize writing unit/integration tests and setting up CI (GitHub Actions) to ensure code quality. Continue filling out documentation and tutorials. Given that the project is part of GSSoC 2026, hitting the labeled issues in order will naturally advance this roadmap.
+Throughout these phases, we prioritize writing unit/integration tests and enforcing CI/CD (GitHub Actions) to maintain code quality. Contributions are strongly encouraged to help us hit these milestones and complete the roadmap for GSSoC 2026.
