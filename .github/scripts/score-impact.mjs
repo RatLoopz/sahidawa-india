@@ -21,8 +21,11 @@ const prTitle       = (process.env.PR_TITLE        || "").toLowerCase();
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
+/** PR author — Dependabot PRs are always skipped (dependency bumps = no architectural value) */
+const prAuthor = (process.env.PR_AUTHOR || "").toLowerCase();
+
 /** Commit type prefixes that always trigger a skip */
-const SKIP_COMMIT_TYPES = ["docs:", "style:", "chore:", "ci:", "build:", "test:"];
+const SKIP_COMMIT_TYPES = ["docs:", "style:", "chore:", "chore(deps):", "chore(deps-dev):", "ci:", "build:", "test:"];
 
 /** File patterns that, when ALL changes are in these, trigger a skip */
 const DOCS_ONLY_PATTERNS = [
@@ -91,6 +94,11 @@ function score() {
 
   if (prLabels.includes("skip-devtrack")) {
     return { score: 0, verdict: "SKIP", reason: "Label 'skip-devtrack' applied by maintainer", area: "N/A" };
+  }
+
+  // Skip Dependabot PRs — dependency bumps have no architectural documentation value
+  if (prAuthor === "app/dependabot" || prAuthor === "dependabot[bot]" || prAuthor === "dependabot") {
+    return { score: 0, verdict: "SKIP", reason: "Dependabot dependency update — no architectural docs needed", area: "N/A" };
   }
 
   if (linesChanged < 20) {
