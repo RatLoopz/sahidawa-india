@@ -284,7 +284,7 @@ export default function SahiDawaHome() {
                     <History size={20} strokeWidth={2.5} />
                   </div>
                   <div className="flex-1">
-                    <div className="flex justify-between items-start">
+                    <div className="flex justify-between items="start">
                       <h4 className="font-bold text-slate-800 leading-tight">
                         System Update
                       </h4>
