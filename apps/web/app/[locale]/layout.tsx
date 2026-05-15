@@ -6,8 +6,22 @@ import { routing } from '../../i18n/routing';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'SahiDawa',
-  description: 'India\'s First Open-Source Citizen Medicine Verifier & Rural Health Bridge',
+  title: 'SahiDawa — Verify Your Medicine',
+  description:
+    "India's first open-source medicine verification platform. Scan, verify, and trust your medicines.",
+  openGraph: {
+    title: 'SahiDawa — Verify Your Medicine',
+    description:
+      "India's first open-source medicine verification platform. Scan, verify, and trust your medicines.",
+    url: 'https://sahidawa.in',
+    siteName: 'SahiDawa',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SahiDawa — Verify Your Medicine',
+    description:
+      "India's first open-source medicine verification platform. Scan, verify, and trust your medicines.",
+  },
 };
 
 export default async function RootLayout({
