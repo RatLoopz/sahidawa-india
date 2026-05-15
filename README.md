@@ -220,14 +220,21 @@ docker compose up --build
 cd apps/api
 npm install
 npm run dev
+```
 
-# ML Service (Python)
+### ML Service (Python)
+
+For detailed setup instructions, see: [ML Setup Guide](./docs/SETUP_ML.md)
+
+Quick start:
+```bash
 cd apps/ml
 python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
+source venv/bin/activate
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
+
 
 ---
 
