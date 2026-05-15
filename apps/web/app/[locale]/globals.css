@@ -79,3 +79,20 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+/* Dark mode support */
+.dark body {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
