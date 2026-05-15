@@ -1,16 +1,29 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '../../i18n/routing';
 import './globals.css';
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: 'SahiDawa',
-  description: 'India\'s First Open-Source Citizen Medicine Verifier & Rural Health Bridge',
+  description:
+    "India's First Open-Source Citizen Medicine Verifier & Rural Health Bridge",
+
+  manifest: '/manifest.json',
+
+  icons: {
+    icon: '/icons/icon-192.png',
+    apple: '/icons/icon-192.png',
+  },
 };
 
-export default async function RootLayout({
+export const viewport: Viewport = {
+  themeColor: '#10b981',
+};
+
+export default async function LocaleLayout({
   children,
   params
 }: {
@@ -18,14 +31,11 @@ export default async function RootLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  
-  // Ensure that the incoming `locale` is valid
+
   if (!routing.locales.includes(locale as any)) {
     notFound();
   }
 
-  // Providing all messages to the client
-  // side is the easiest way to get started
   const messages = await getMessages();
 
   return (
@@ -34,6 +44,7 @@ export default async function RootLayout({
         <NextIntlClientProvider messages={messages}>
           {children}
         </NextIntlClientProvider>
+        <Toaster richColors position="top-center"/>
       </body>
     </html>
   );

@@ -5,7 +5,7 @@
 <img src="https://img.shields.io/badge/PRs-Welcome-brightgreen?style=for-the-badge" alt="PRs Welcome"/>
 <img src="https://img.shields.io/badge/Languages-22%20Indian-blue?style=for-the-badge" alt="22 Languages"/>
 <img src="https://img.shields.io/badge/Powered%20by-Cloudinary-purple?style=for-the-badge" alt="Cloudinary"/>
-
+<img src="https://img.shields.io/github/actions/workflow/status/RatLoopz/sahidawa-india/ci.yml?branch=main&style=for-the-badge&label=CI" alt="CI Status"/>
 <br/><br/>
 
 # 🩺 SahiDawa — सही दवा
@@ -220,14 +220,21 @@ docker compose up --build
 cd apps/api
 npm install
 npm run dev
+```
 
-# ML Service (Python)
+### ML Service (Python)
+
+For detailed setup instructions, see: [ML Setup Guide](./docs/SETUP_ML.md)
+
+Quick start:
+```bash
 cd apps/ml
 python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
+source venv/bin/activate
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
+
 
 ---
 

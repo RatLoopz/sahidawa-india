@@ -2,8 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { ShieldCheck, Info, AlertCircle, Layers } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Camera, ShieldCheck, Info, AlertCircle, Layers, Copy, Check } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
+import { Home, Share2 } from "lucide-react";
+import { toast } from "sonner";
 
 // Simple Skeleton component
 function LoadingSkeleton() {
@@ -46,6 +50,25 @@ export default function ScanPage() {
   const [isScanning, setIsScanning] = useState(true);
   const [showResult, setShowResult] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyBatch = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText("AUG625D");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = "AUG625D";
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }, []);
 
   useEffect(() => {
     if (isScanning) {
@@ -75,6 +98,49 @@ export default function ScanPage() {
     setShowResult(false);
     setUploadedImage(null);
   };
+  const handleShare = async () => {
+    if(!result) return;
+
+    const shareText = `
+    Medicine: Authentic Medicine
+    Batch No: AUG625D
+    Expiry: 12/2027
+    Status: Verified by CDSCO Database
+    `.trim();
+
+    const shareData = {
+      title: "Medicine Verification Result",
+      text: `${shareText}\n\n`,
+      url: window.location.href,
+    };
+
+    try {
+      if (
+      typeof navigator !== "undefined" &&
+      navigator.share &&
+      (!navigator.canShare || navigator.canShare(shareData))) {
+        
+        await navigator.share(shareData);
+
+        toast.success("Verification result shared successfully");
+      } else {
+
+        await navigator.clipboard.writeText(
+          `${shareText}\n\n${window.location.href}`);
+
+        toast.success("Verification result copied to clipboard");
+      }
+    } catch (error: any) {
+      if (
+        error?.name === "AbortError" || 
+        String(error).includes("Share canceled") || 
+        String(error).includes("AbortError")
+      ) {
+        return; 
+      }
+      toast.error("Failed to share result");
+    }
+  }
 
   return (
     <div className="min-h-screen bg-black text-white font-sans relative flex flex-col">
@@ -138,6 +204,39 @@ export default function ScanPage() {
                   <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
                     <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Batch No.</span>
                     <span className="font-bold text-slate-700">AUG625D</span>
+               <div className="absolute top-0 left-0 right-0 h-2 bg-emerald-500"></div>
+               
+               <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="w-20 h-20 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-inner">
+                    <ShieldCheck size={40} strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-black tracking-tight">Authentic Medicine</h3>
+                    <p className="text-slate-500 font-medium">Verified by CDSCO Database</p>
+                  </div>
+
+                  <div className="w-full grid grid-cols-2 gap-3 pt-2">
+                    <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 relative">
+                       <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Batch No.</span>
+                       <div className="flex items-center justify-between gap-1">
+                         <span className="font-bold text-slate-700">AUG625D</span>
+                         <button
+                           onClick={handleCopyBatch}
+                           aria-label="Copy batch number"
+                           className={`p-1 rounded-lg transition-all duration-200 shrink-0 ${
+                             copied
+                               ? "bg-emerald-100 text-emerald-600"
+                               : "bg-slate-200/60 text-slate-400 hover:bg-slate-200 hover:text-slate-600"
+                           }`}
+                         >
+                           {copied ? <Check size={14} strokeWidth={3} /> : <Copy size={14} />}
+                         </button>
+                       </div>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                       <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Expiry</span>
+                       <span className="font-bold text-slate-700">12/2027</span>
+                    </div>
                   </div>
                   <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
                     <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Expiry</span>
@@ -162,6 +261,40 @@ export default function ScanPage() {
                   Back to Home
                 </Link>
               </div>
+
+                  <button 
+                    onClick={() => {setScanning(true); setResult(null);}}
+                    className="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/20"
+                  >
+                    Scan Another
+                  </button>
+                  <div className="w-full grid grid-cols-2 gap-3 pt-1">
+                    <Link
+                      href="/"
+                      className="group flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-slate-100 border border-slate-200 text-slate-700 font-semibold hover:bg-slate-200 hover:border-slate-300 active:scale-[0.98] transition-all duration-200"
+                    >
+                       <Home
+                        size={19}
+                        className="transition-transform duration-200 group-hover:-translate-x-0.5"
+                      />
+                      <span>Home</span>
+                     
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={handleShare}
+                      className="group flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-slate-100 border border-slate-200 text-slate-700 font-semibold hover:bg-slate-200 hover:border-slate-300 active:scale-[0.98] transition-all duration-200"
+                    >
+                      <Share2
+                        size={19}
+                        className="transition-transform duration-200 group-hover:-translate-x-0.5"
+                      />
+                      <span>Share</span>
+                      
+                    </button>
+                  </div>
+               </div>
             </div>
           </div>
         )}

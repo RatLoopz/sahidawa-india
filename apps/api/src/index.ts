@@ -4,31 +4,51 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
-// Load environment variables
+import logger from './utils/logger.js';
+import { errorHandler } from './middleware/errorHandler.js';
+
 dotenv.config();
 
 const app: Express = express();
 const port = process.env.PORT || 4000;
 
-// Middleware
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
-app.use(morgan('dev'));
 
-// --- ADDED ROUTES ---
+morgan.token('status', (req: Request, res: Response) => {
+  const status = res.statusCode;
+  if (status >= 500) return 'error';
+  if (status >= 400) return 'warn';
+  return 'info';
+});
 
-// 1. Root Route (This fixes the "Cannot GET /" error)
+app.use(
+  morgan(':method :url :status - :response-time ms'),
+);
+
+morgan((tokens, req: Request, res: Response) => {
+  const status = res.statusCode;
+  const level = status >= 500 ? 'error' : status >= 400 ? 'warn' : 'info';
+  logger.log({
+    level,
+    message: `${tokens.method(req, res)} ${tokens.url(req, res)} ${status} - ${tokens['response-time'](req, res)} ms`,
+  });
+  return undefined;
+});
+
 app.get('/', (req: Request, res: Response) => {
+  logger.info('Root route accessed');
   res.send('SahiDawa-India API is running successfully!');
 });
 
-// 2. Health Check Route
 app.get('/health', (req: Request, res: Response) => {
+  logger.info('Health check endpoint accessed');
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Start the server
+app.use(errorHandler);
+
 app.listen(port, () => {
-  console.log(`[API Server]: SahiDawa API is running at http://localhost:${port}`);
+  logger.info(`SahiDawa API is running at http://localhost:${port}`);
 });
