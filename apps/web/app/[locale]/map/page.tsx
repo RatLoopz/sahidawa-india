@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { MapPin, Search, Navigation, Filter, Star, Phone, Globe, Map as MapIcon, Layers } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
 
 export default function PharmacyMapPage() {

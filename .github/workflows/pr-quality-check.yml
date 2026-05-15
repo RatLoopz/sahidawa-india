@@ -1,0 +1,109 @@
+name: 🛡️ PR Quality Check
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - edited
+      - synchronize
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: write
+
+concurrency:
+  group: pr-quality-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run PR Quality Checker
+        uses: peakoss/anti-slop@v0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+          # ─────────────────────────────────────────────
+          # PR Requirements
+          # ─────────────────────────────────────────────
+          require-description: true
+          require-linked-issue: true
+          require-pr-template: true
+          require-maintainer-can-modify: true
+
+          # ─────────────────────────────────────────────
+          # Conventional Commits
+          # ─────────────────────────────────────────────
+          require-conventional-title: true
+          require-conventional-commits: false
+
+          # ─────────────────────────────────────────────
+          # Size Limits (Generous for beginners)
+          # ─────────────────────────────────────────────
+          max-changed-files: 50
+          max-changed-lines: 5000
+          max-description-length: 3000
+          max-commit-message-length: 300
+
+          # ─────────────────────────────────────────────
+          # PR Template Enforcement
+          # ─────────────────────────────────────────────
+          strict-pr-template-sections: |
+            checklist
+
+          # ─────────────────────────────────────────────
+          # AI / Spam Detection (Tuned Down)
+          # ─────────────────────────────────────────────
+          max-emoji-count: 10
+          max-code-references: 20
+          detect-spam-usernames: true
+          require-public-profile: false
+          
+          # ❌ BLOCKED TERMS REMOVED: 
+          # SahiDawa allows AI assistance and actively uses 
+          # terms like "OpenAI" and "Whisper" in its docs.
+
+          # ─────────────────────────────────────────────
+          # Prevent Dangerous Source Branches
+          # ─────────────────────────────────────────────
+          blocked-source-branches: |
+            main
+            master
+
+          # ─────────────────────────────────────────────
+          # Exemptions
+          # ─────────────────────────────────────────────
+          exempt-author-association: |
+            OWNER,MEMBER,COLLABORATOR
+
+          exempt-bots: |
+            github-actions[bot]
+            dependabot[bot]
+
+          # ─────────────────────────────────────────────
+          # Failure Actions
+          # ─────────────────────────────────────────────
+          failure-add-pr-labels: |
+            needs-updates
+
+          failure-pr-message: |
+            ## ⚠️ PR Needs a Few Updates
+
+            Thank you for contributing to SahiDawa! 💙 
+            Our automated quality checks noticed a few missing details in this Pull Request.
+
+            **Please check if you have:**
+            - [ ] Followed the PR template structure
+            - [ ] Filled out the checklist
+            - [ ] Linked the related issue (e.g., `fixes #123` or `closes #123`)
+            - [ ] Used a conventional commit title (e.g., `feat(ui): add button` or `fix(api): ...`)
+
+            Beginners often miss these, and that's perfectly okay! Just update your PR description or title, and this check will automatically re-run.
+
+          # Crucial Fix: NEVER auto-close PRs to maintain a welcoming environment
+          close-pr: false
+          lock-pr: false

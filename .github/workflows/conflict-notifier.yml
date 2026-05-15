@@ -1,0 +1,37 @@
+name: ⚔️ Merge Conflict Notifier
+
+on:
+  push:
+    branches:
+      - main
+  pull_request_target:
+    types: [synchronize, opened, reopened]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  triage-conflicts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for merge conflicts
+        uses: eps1lon/actions-label-merge-conflict@v3
+        with:
+          dirtyLabel: "has-conflicts"
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          commentOnDirty: |
+            ## ⚠️ Merge Conflict Detected
+
+            Hi @${{ github.event.pull_request.user.login }}! 👋 Thank you for your pull request.
+
+            It looks like some changes were recently merged into the `main` branch that conflict with your code. 
+
+            **To get this merged, you need to resolve the conflicts:**
+            1. Update your local `main` branch.
+            2. Merge `main` into your feature branch (or rebase).
+            3. Fix the conflicting files in your code editor.
+            4. Commit and push the changes to this PR.
+
+            Let us know if you are stuck or need help resolving them! 💙
+          commentOnClean: "✅ Merge conflicts have been resolved! Thanks for fixing that, ${{ github.event.pull_request.user.login }}."

@@ -18,7 +18,7 @@ _Built for Bharat. Not just India._
 
 <br/>
 
-[**Report a Bug**](https://github.com/RatLoopz/sahidawa-india/issues/new?template=bug_report.md) · [**Request a Feature**](https://github.com/RatLoopz/sahidawa-india/issues/new?template=feature_request.md) · [**Join Discord**](#community) · [**Read the Docs**](./docs/)
+[**Report a Bug**](https://github.com/RatLoopz/sahidawa-india/issues/new?template=bug_report.md) · [**Request a Feature**](https://github.com/RatLoopz/sahidawa-india/issues/new?template=feature_request.md) · [**Join Discord**](https://discord.gg/6Qa6VuE6) · [**Read the Docs**](./docs/)
 
 </div>
 
@@ -220,14 +220,21 @@ docker compose up --build
 cd apps/api
 npm install
 npm run dev
+```
 
-# ML Service (Python)
+### ML Service (Python)
+
+For detailed setup instructions, see: [ML Setup Guide](./docs/SETUP_ML.md)
+
+Quick start:
+```bash
 cd apps/ml
 python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
+source venv/bin/activate
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
+
 
 ---
 

@@ -1,99 +1,154 @@
-/mnt/data2/gssoc/LegalHuB/.github/workflows/detect-duplicate-issue.ymlname: Duplicate Issue Checker
+name: 🛡️ Issue Quality & Duplicate Guard
 
 on:
   issues:
-    types: [opened, reopened, edited]
+    types:
+      - opened
+      - edited
 
 permissions:
-  issues: write
   contents: read
+  issues: write
+
+concurrency:
+  group: issue-guard-${{ github.event.issue.number }}
+  cancel-in-progress: false
 
 jobs:
-  check-duplicate:
-    name: Check for Duplicate Issues
+  validate-issue:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check for duplicate issues with logging
-        uses: actions/github-script@v7
+      - name: Validate Issue Quality and Duplicates
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            function similarity(s1, s2) {
-              const longer = s1.length > s2.length ? s1 : s2;
-              const shorter = s1.length > s2.length ? s2 : s1;
-              const longerLength = longer.length;
-              if (longerLength === 0) return 1.0;
-              return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
+            const issue = context.payload.issue;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = issue.number;
+            const username = issue.user.login;
+            const title = (issue.title || '').trim();
+            const body = (issue.body || '').trim();
+
+            // ─────────────────────────────────────────────
+            // 1. Ignore bots
+            // ─────────────────────────────────────────────
+            if (issue.user.type === 'Bot') {
+              core.info('Ignoring bot issue.');
+              return;
             }
 
-            function editDistance(s1, s2) {
-              s1 = s1.toLowerCase();
-              s2 = s2.toLowerCase();
-
-              const costs = [];
-              for (let i = 0; i <= s1.length; i++) {
-                let lastValue = i;
-                for (let j = 0; j <= s2.length; j++) {
-                  if (i === 0) {
-                    costs[j] = j;
-                  } else if (j > 0) {
-                    let newValue = costs[j - 1];
-                    if (s1.charAt(i - 1) !== s2.charAt(j - 1)) {
-                      newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
-                    }
-                    costs[j - 1] = lastValue;
-                    lastValue = newValue;
-                  }
-                }
-                if (i > 0) costs[s2.length] = lastValue;
-              }
-              return costs[s2.length];
+            // ─────────────────────────────────────────────
+            // 2. Ignore research/exempt issues
+            // ─────────────────────────────────────────────
+            const labels = (issue.labels || []).map(l => l.name.toLowerCase());
+            if (labels.includes('research')) {
+              core.info('Research issue detected. Skipping validation.');
+              return;
             }
 
-            const issueTitle = context.payload.issue.title.toLowerCase();
-            const issueNumber = context.payload.issue.number;
-            const repoOwner = context.repo.owner;
-            const repoName = context.repo.repo;
+            // ─────────────────────────────────────────────
+            // 3. Issue Quality Check 
+            //    (No more AI Keyword Bans. Just check detail depth)
+            // ─────────────────────────────────────────────
+            if (title.length < 10 || body.length < 30) {
+              core.info('Issue lacks minimum quality details.');
 
-            console.log(`Checking for duplicates of issue #${issueNumber}: "${issueTitle}"`);
-
-            const { data: issues } = await github.rest.issues.listForRepo({
-              owner: repoOwner,
-              repo: repoName,
-              state: 'open',
-              per_page: 100
-            });
-
-            const possibleDuplicates = issues.filter(issue => {
-              if (issue.number === issueNumber) return false;
-
-              const title = issue.title.toLowerCase();
-              const score = similarity(issueTitle, title);
-
-              console.log(`Compared with #${issue.number}: "${title}", similarity: ${score}`);
-
-              return score >= 0.6;
-            });
-
-            if (possibleDuplicates.length > 0) {
-              const commentBody = [
-                "🔍 **Possible duplicate issues found:**",
-                "",
-                ...possibleDuplicates.slice(0, 5).map(issue =>
-                  `- [#${issue.number}](${issue.html_url}) - ${issue.title}`
-                ),
-                "",
-                "Please review the above issues to see if your problem has already been reported. If so, consider adding more info to the existing thread instead of creating a new one."
-              ].join('\n');
-
-              console.log("Posting comment with duplicates...");
-
-              await github.rest.issues.createComment({
-                owner: repoOwner,
-                repo: repoName,
-                issue_number: issueNumber,
-                body: commentBody
+              // Check if we already warned
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner, repo, issue_number, per_page: 100
               });
-            } else {
-              console.log("✅ No duplicates found.");
+              const alreadyWarned = comments.some(c => c.user.type === 'Bot' && c.body.includes('Issue quality check failed'));
+
+              if (!alreadyWarned) {
+                await github.rest.issues.createComment({
+                  owner, repo, issue_number,
+                  body: `## ⚠️ Issue quality check failed\n\n` +
+                        `Hi @${username}, thank you for opening this issue! However, it currently lacks sufficient detail for our maintainers to take action.\n\n` +
+                        `**Please edit your issue description to provide:**\n` +
+                        `- Clearer explanation or reproduction steps\n` +
+                        `- Expected behavior vs actual behavior\n` +
+                        `- Technical implementation details or context\n\n`
+                });
+
+                await github.rest.issues.addLabels({
+                  owner, repo, issue_number, labels: ['needs-details']
+                });
+              }
             }
+
+            // ─────────────────────────────────────────────
+            // 4. Smart Duplicate Detection (Jaccard Similarity)
+            // ─────────────────────────────────────────────
+            // Fetch ALL issues (open AND closed)
+            const allIssues = await github.paginate(github.rest.issues.listForRepo, {
+              owner, repo, state: 'all', per_page: 100
+            });
+
+            // Normalization: Extract words > 2 chars
+            const getWords = str => str.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().split(/\s+/).filter(w => w.length > 2);
+            
+            // Jaccard similarity algorithm (Bag of Words)
+            function calculateSimilarity(wordsA, wordsB) {
+              if (wordsA.length === 0 || wordsB.length === 0) return 0;
+              const setA = new Set(wordsA);
+              const setB = new Set(wordsB);
+              const intersection = new Set([...setA].filter(x => setB.has(x)));
+              const union = new Set([...setA, ...setB]);
+              return intersection.size / union.size;
+            }
+
+            const currentWords = getWords(title);
+            let duplicateIssue = null;
+            let highestSimilarity = 0;
+
+            for (const existing of allIssues) {
+              if (existing.number === issue_number) continue;
+              if (existing.pull_request) continue; // Ignore PRs
+
+              const existingLabels = (existing.labels || []).map(l => l.name.toLowerCase());
+              if (existingLabels.includes('research')) continue;
+
+              const existingWords = getWords(existing.title || '');
+              
+              // Exact match
+              if (existingWords.join(' ') === currentWords.join(' ') && currentWords.length > 0) {
+                duplicateIssue = existing;
+                break;
+              }
+
+              // Semantic Similarity Check (75% word overlap required)
+              const sim = calculateSimilarity(currentWords, existingWords);
+              if (sim > 0.75 && sim > highestSimilarity) {
+                highestSimilarity = sim;
+                duplicateIssue = existing;
+              }
+            }
+
+            if (duplicateIssue) {
+              core.info(`Duplicate detected: #${duplicateIssue.number} (Similarity: ${highestSimilarity.toFixed(2)})`);
+
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner, repo, issue_number, per_page: 100
+              });
+              const alreadyFlagged = comments.some(c => c.user.type === 'Bot' && c.body.includes('Possible Duplicate Issue Detected'));
+
+              if (!alreadyFlagged) {
+                await github.rest.issues.createComment({
+                  owner, repo, issue_number,
+                  body: `## 🔁 Possible Duplicate Issue Detected\n\n` +
+                        `Hi @${username}, this issue seems very similar to an existing one:\n\n` +
+                        `➡️ #${duplicateIssue.number} (${duplicateIssue.state})\n\n` +
+                        `Please review it to see if your request is already being tracked or has been resolved. ` +
+                        `If you believe your issue is completely different, please update the title and description to clarify the distinction.`
+                });
+
+                await github.rest.issues.addLabels({
+                  owner, repo, issue_number, labels: ['duplicate']
+                });
+              }
+            }
+
+            core.info('Issue validation complete.');
