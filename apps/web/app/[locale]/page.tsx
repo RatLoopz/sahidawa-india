@@ -14,38 +14,50 @@ import {
   Search,
 } from "lucide-react";
 import { Link } from "@/i18n/routing";
+import { useTranslations } from 'next-intl';
 
 export default function SahiDawaHome() {
+  const t = useTranslations('Index');
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-emerald-200">
+      {/* Navigation */}
       {/* Navigation */}
       <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-lg">
         <div className="container mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-sm">
+            <div
+              className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-sm"
+              aria-label="SahiDawa Logo"
+            >
               <ShieldCheck size={24} strokeWidth={2.5} />
             </div>
-            <h1 className="text-2xl font-extrabold tracking-tight text-slate-800">
+            <h1 className="text-xl md:text-2xl font-extrabold tracking-tight text-slate-800">
               SahiDawa
             </h1>
           </div>
 
-          <div className="flex items-center gap-4">
-            <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
+          <div className="flex items-center gap-2 md:gap-4">
+            <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold text-slate-600">
               <button className="hover:text-emerald-600 transition-colors">
-                How it Works
+                {/* Fixed: Now uses translation keys */}
+                {t('nav.howItWorks')}
               </button>
               <button className="hover:text-emerald-600 transition-colors">
-                Alerts
+                {t('nav.alerts')}
               </button>
               <button className="hover:text-emerald-600 transition-colors">
-                Pharmacy Map
+                {t('nav.pharmacyMap')}
               </button>
             </nav>
-            <button className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 bg-slate-100 border border-slate-200 text-slate-700 rounded-full hover:bg-slate-200 transition-colors shadow-sm">
+
+            {/* Accessibility: Added aria-label to language toggle */}
+            <button
+              aria-label="Toggle Language"
+              className="flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 md:px-4 md:py-2 bg-slate-100 border border-slate-200 text-slate-700 rounded-full hover:bg-slate-200 transition-colors shadow-sm"
+            >
               <Globe size={16} className="text-emerald-600" />
-              <span className="hidden sm:inline">English</span>
-              <span className="sm:hidden">EN</span>
+              <span className="hidden xs:inline">{t('nav.languageName')}</span>
+              <span className="xs:hidden">EN</span>
             </button>
           </div>
         </div>
