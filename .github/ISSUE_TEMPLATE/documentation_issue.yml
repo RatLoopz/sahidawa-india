@@ -1,0 +1,75 @@
+name: 📚 Documentation Issue
+description: Report problems or suggest improvements to the documentation
+title: "[Documentation Update]: "
+labels: [documentation]
+body:
+    - type: checkboxes
+      id: existing-issue
+      attributes:
+          label: 🔍 Is there an existing issue for this?
+          description: Please search to ensure your documentation issue hasn’t already been reported.
+          options:
+              - label: I have searched the existing issues
+                required: true
+
+    - type: dropdown
+      id: doc-type
+      attributes:
+          label: 📄 Type of documentation issue
+          description: What kind of documentation issue are you reporting?
+          options:
+              - Typo or grammar mistake
+              - Broken or outdated link
+              - Missing explanation or steps
+              - Incorrect or misleading information
+              - Suggesting new documentation
+              - Other
+          default: 0
+      validations:
+          required: true
+
+    - type: textarea
+      id: description
+      attributes:
+          label: 📝 Description
+          description: Describe the issue with the documentation or what you'd like to improve.
+          placeholder: Clearly describe what’s wrong, unclear, or missing.
+      validations:
+          required: true
+
+    - type: textarea
+      id: suggested-change
+      attributes:
+          label: 💡 Suggested fix or improvement
+          description: Optional – Suggest what the documentation should say instead.
+          placeholder: Propose corrected text or a better explanation, if possible.
+
+    - type: textarea
+      id: screenshots
+      attributes:
+          label: 📸 Screenshots (optional)
+          description: Add any screenshots or visuals to explain the issue more clearly.
+
+    - type: dropdown
+      id: priority
+      attributes:
+          label: 🚦 Priority Level
+          description: How important is this feature to you?
+          options:
+              - High
+              - Medium
+              - Low
+          default: 0
+      validations:
+          required: true
+
+    - type: checkboxes
+      id: terms
+      attributes:
+          label: ✅ Confirmation
+          options:
+              - label: "I have read the Contributing Guidelines"
+                required: true
+              - label: "I'm a GSSoC'24 contributor"
+              - label: "I have starred the repository"
+                required: true

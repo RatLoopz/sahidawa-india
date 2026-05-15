@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { Mic, X, Globe, MessageSquare, Volume2, Sparkles, ChevronLeft, Send } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
+import { PageHeader } from "../components/PageHeader";
 
 export default function VoiceTriagePage() {
   const [isListening, setIsListening] = useState(false);
@@ -29,16 +30,13 @@ export default function VoiceTriagePage() {
       <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-100/40 rounded-full blur-3xl -ml-20 -mb-20"></div>
 
       {/* Header */}
-      <header className="relative z-10 p-6 flex items-center justify-between">
-        <Link href="/" className="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors">
-          <ChevronLeft size={24} className="text-slate-600" />
-        </Link>
-        <div className="flex items-center gap-2 px-4 py-1.5 bg-white rounded-full border border-slate-200 shadow-sm">
-          <Globe size={16} className="text-emerald-600" />
-          <span className="text-sm font-bold text-slate-700">{language}</span>
-        </div>
-        <div className="w-10 h-10"></div> {/* Spacer */}
-      </header>
+      <PageHeader 
+        title="Voice Search" 
+        subtitle="Speak medicine name" 
+        backHref="/" 
+        variant="light"
+        showLanguage={true}
+      />
 
       {/* Main Content Area */}
       <main className="flex-1 relative z-10 flex flex-col items-center justify-center px-6">

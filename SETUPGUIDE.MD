@@ -1,4 +1,4 @@
-# SahiDawa — Complete Setup & GSSoC Application Guide
+# SahiDawa — Complete Setup Guide
 
 ---
 

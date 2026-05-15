@@ -20,6 +20,10 @@ __pycache__/
 htmlcov/
 .tox/
 
+
+.agents/
+.agent/
+
 # Environment variables (Crucial for security!)
 .env
 .env.*

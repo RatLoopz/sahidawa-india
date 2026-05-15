@@ -18,7 +18,7 @@ _Built for Bharat. Not just India._
 
 <br/>
 
-[**Report a Bug**](https://github.com/RatLoopz/sahidawa-india/issues/new?template=bug_report.md) · [**Request a Feature**](https://github.com/RatLoopz/sahidawa-india/issues/new?template=feature_request.md) · [**Join Discord**](#community) · [**Read the Docs**](./docs/)
+[**Report a Bug**](https://github.com/RatLoopz/sahidawa-india/issues/new?template=bug_report.md) · [**Request a Feature**](https://github.com/RatLoopz/sahidawa-india/issues/new?template=feature_request.md) · [**Join Discord**](https://discord.gg/6Qa6VuE6) · [**Read the Docs**](./docs/)
 
 </div>
 
@@ -47,7 +47,6 @@ India has a three-layer healthcare crisis that **no existing platform solves sim
 - **📱 Scan Medicine** ➔ 🔍 **AI Verifies (CDSCO)** ➔ ✅ **Real** / ⚠️ **Suspicious** / ❌ **Fake**
 - **🗣️ Speak Symptoms** ➔ 🤖 **AI Triage (22 Languages)** ➔ 🏥 **Find Nearest Pharmacy**
 - **📸 Report Fakes** ➔ 🗺️ **Community Heatmap** ➔ 📢 **District-Level Alerts**
-
 
 ### Core Features _(Currently in active development)_
 
@@ -81,14 +80,13 @@ flowchart TD
     J -->|Update Alerts| D
 ```
 
-
 ---
 
 ## 🛠️ Tech Stack
 
 ### Frontend
 
-- **[Next.js 15](https://nextjs.org/)** — React 19 framework with App Router + SSR
+- **[Next.js 16](https://nextjs.org/)** — React 19 framework with App Router + SSR
 - **[Tailwind CSS 4.0](https://tailwindcss.com/)** — High-performance utility-first CSS
 - **[shadcn/ui](https://ui.shadcn.com/)** — UI components
 - **[Workbox](https://developer.chrome.com/docs/workbox/)** — PWA offline caching
@@ -303,30 +301,30 @@ We love contributions! SahiDawa is built entirely by the community.
 
 SahiDawa aims to support all 22 Indian scheduled languages. (We are just getting started! Help us translate.)
 
-| Language           | Status         | Contributor           |
-| ------------------ | -------------- | --------------------- |
-| English            | 🚧 In Progress | Core Team             |
-| Hindi (हिन्दी)     | 🔜 Open        | —                     |
-| Tamil (தமிழ்)      | 🔜 Open        | —                     |
-| Telugu (తెలుగు)    | 🔜 Open        | —                     |
-| Kannada (ಕನ್ನಡ)    | 🔜 Open        | —                     |
-| Malayalam (മലയാളം) | 🔜 Open        | —                     |
-| Bengali (বাংলা)    | 🔜 Open        | —                     |
-| Gujarati (ગુજરાતી) | 🔜 Open        | —                     |
-| Marathi (मराठी)    | 🔜 Open        | —                     |
-| Punjabi (ਪੰਜਾਬੀ)   | 🔜 Open        | —                     |
-| Odia (ଓଡ଼ିଆ)       | 🔜 Open        | —                     |
-| Assamese (অসমীয়া) | 🔜 Open        | —                     |
-| Urdu (اردو)        | 🔜 Open        | —                     |
-| Sanskrit (संस्कृत) | 🔜 Open        | —                     |
-| Maithili           | 🔜 Open        | —                     |
-| Kashmiri           | 🔜 Open        | —                     |
-| Konkani            | 🔜 Open        | —                     |
-| Sindhi             | 🔜 Open        | —                     |
-| Dogri              | 🔜 Open        | —                     |
-| Bodo               | 🔜 Open        | —                     |
-| Manipuri           | 🔜 Open        | —                     |
-| Santali            | 🔜 Open        | —                     |
+| Language           | Status         | Contributor |
+| ------------------ | -------------- | ----------- |
+| English            | 🚧 In Progress | Core Team   |
+| Hindi (हिन्दी)     | 🔜 Open        | —           |
+| Tamil (தமிழ்)      | 🔜 Open        | —           |
+| Telugu (తెలుగు)    | 🔜 Open        | —           |
+| Kannada (ಕನ್ನಡ)    | 🔜 Open        | —           |
+| Malayalam (മലയാളം) | 🔜 Open        | —           |
+| Bengali (বাংলা)    | 🔜 Open        | —           |
+| Gujarati (ગુજરાતી) | 🔜 Open        | —           |
+| Marathi (मराठी)    | 🔜 Open        | —           |
+| Punjabi (ਪੰਜਾਬੀ)   | 🔜 Open        | —           |
+| Odia (ଓଡ଼ିଆ)       | 🔜 Open        | —           |
+| Assamese (অসমীয়া) | 🔜 Open        | —           |
+| Urdu (اردو)        | 🔜 Open        | —           |
+| Sanskrit (संस्कृत) | 🔜 Open        | —           |
+| Maithili           | 🔜 Open        | —           |
+| Kashmiri           | 🔜 Open        | —           |
+| Konkani            | 🔜 Open        | —           |
+| Sindhi             | 🔜 Open        | —           |
+| Dogri              | 🔜 Open        | —           |
+| Bodo               | 🔜 Open        | —           |
+| Manipuri           | 🔜 Open        | —           |
+| Santali            | 🔜 Open        | —           |
 
 ---
 

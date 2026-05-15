@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Camera, X, Zap, ShieldCheck, Info, AlertCircle, Layers, Image } from "lucide-react";
-import Link from "next/link";
+import { Camera, ShieldCheck, Info, AlertCircle, Layers } from "lucide-react";
+import { Link } from "@/i18n/routing";
+import { PageHeader } from "../components/PageHeader";
 
 export default function ScanPage() {
   const [scanning, setScanning] = useState(true);
@@ -43,21 +44,13 @@ export default function ScanPage() {
         onChange={handleFileUpload}
       />
 
-      {/* Header Overly */}
-      <div className="absolute top-0 left-0 right-0 z-20 p-6 flex items-center justify-between bg-linear-to-b from-black/70 to-transparent">
-        <Link href="/" className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition-colors">
-          <X size={24} />
-        </Link>
-        <div className="flex flex-col items-center text-center">
-          <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">
-            {uploadedImage ? "Analyzing Upload" : "Scanner Mode"}
-          </span>
-          <span className="text-sm font-medium">Position the Barcode</span>
-        </div>
-        <button className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition-colors">
-          <Zap size={20} className="text-amber-400" />
-        </button>
-      </div>
+      {/* Header component */}
+      <PageHeader 
+        title="Scanner Mode" 
+        subtitle="Position the Barcode" 
+        backHref="/" 
+        variant="dark" 
+      />
 
       {/* Viewfinder Area */}
       <div className="flex-1 relative flex items-center justify-center overflow-hidden">

@@ -1,6 +1,6 @@
 name: 🐛 Bug Report
-description: Report a bug to help SahiDawa improve.
-title: "[BUG] <Brief description of the issue>"
+description: Report a bug or broken functionality in SahiDawa.
+title: "[BUG] <Brief description>"
 labels: ["bug", "needs-triage"]
 assignees: []
 
@@ -8,20 +8,24 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## Thank you for taking the time to report a bug! 🩺
-        Before submitting, please check the [existing issues](https://github.com/RatLoopz/sahidawa-india/issues) to ensure this hasn't already been reported.
+        ## Thank you for reporting a bug! 🩺
+        Please check [existing issues](https://github.com/RatLoopz/sahidawa-india/issues) first to avoid duplicates.
+        > **GSSoC 2026 contributors:** Comment on the issue to get it assigned before starting work.
 
   - type: dropdown
-    id: component
+    id: area
     attributes:
-      label: Which component does this bug affect?
-      description: Select the part of the SahiDawa stack that has the issue.
+      label: Which part of SahiDawa is broken?
+      description: Select the area where you found the bug.
       options:
-        - "Frontend (Next.js PWA)"
-        - "Backend API (Node.js/Express)"
-        - "ML Service (Python/FastAPI)"
-        - "Medicine Scanner/Verification"
+        - "Frontend — Next.js UI (apps/web)"
+        - "Backend — Express API (apps/api)"
+        - "ML Service — FastAPI / Python (apps/ml)"
+        - "Medicine Scanner / Verification"
+        - "Pharmacy Map"
+        - "Voice / Multilingual"
         - "Translation / i18n"
+        - "Database / Supabase"
         - "Other / Unknown"
     validations:
       required: true
@@ -30,21 +34,8 @@ body:
     id: description
     attributes:
       label: Bug Description
-      description: A clear and concise description of what the bug is.
+      description: Clearly describe what went wrong.
       placeholder: "When I scan a medicine barcode, the app crashes instead of showing the verification result..."
-    validations:
-      required: true
-
-  - type: textarea
-    id: reproduction
-    attributes:
-      label: Steps to Reproduce
-      description: How can the maintainers reproduce the bug?
-      value: |
-        1. Go to '...'
-        2. Click on '....'
-        3. Scroll down to '....'
-        4. See error
     validations:
       required: true
 
@@ -52,22 +43,28 @@ body:
     id: expected
     attributes:
       label: Expected Behavior
-      description: What did you expect to happen?
-      placeholder: "The app should display a green verification checkmark."
+      placeholder: "The app should display a green ✅ verification result."
     validations:
       required: true
 
-  - type: input
-    id: environment
+  - type: textarea
+    id: screenshots
     attributes:
-      label: Environment Info
-      description: Browser, OS, or Node/Python version.
-      placeholder: "e.g., Chrome 120 on Android 14, Node v18.17.0"
+      label: Screenshots
+      description: Attach screenshots.
     validations:
       required: false
 
   - type: checkboxes
-    id: terms
+    id: gssoc
+    attributes:
+      label: GSSoC 2026
+      options:
+        - label: I am a GSSoC 2026 participant and would like to fix this bug.
+          required: false
+
+  - type: checkboxes
+    id: conduct
     attributes:
       label: Code of Conduct
       options:

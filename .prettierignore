@@ -1,0 +1,15 @@
+# Ignore artifacts
+node_modules/
+.next/
+dist/
+build/
+coverage/
+.cache/
+
+# Ignore Python and Data
+apps/ml/
+data/seeds/
+*.csv
+
+# Ignore Supabase config
+supabase/

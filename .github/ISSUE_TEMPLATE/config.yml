@@ -1,1 +1,12 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
+
+contact_links:
+  - name: 💬 Ask a Question (Discord)
+    url: https://discord.gg/dvbDuJVwNa
+    about: Got a question? Join our Discord — faster response than GitHub issues.
+  - name: 📖 Read the Docs
+    url: https://github.com/RatLoopz/sahidawa-india/tree/main/docs
+    about: Check our developer guides before opening an issue.
+  - name: 🤝 Contributing Guide
+    url: https://github.com/RatLoopz/sahidawa-india/blob/main/CONTRIBUTING.md
+    about: New to the project? Read this first.

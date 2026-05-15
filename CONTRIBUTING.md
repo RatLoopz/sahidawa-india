@@ -110,6 +110,7 @@ git push origin feat/your-feature-name
 | Python  | >= 3.10    | [python.org](https://python.org)   |
 | Docker  | >= 24.0    | [docker.com](https://docker.com)   |
 | Git     | Any recent | [git-scm.com](https://git-scm.com) |
+| Supabase CLI | Latest | [supabase.com](https://supabase.com/docs/guides/cli/getting-started) |
 
 ### Environment Variables
 
@@ -143,7 +144,11 @@ docker compose -f docker-compose.dev.yml up --build
 ### Running manually
 
 ```bash
-# Terminal 1 — Frontend
+# Terminal 1 — Local Database (Supabase)
+# Ensure Docker is running in the background first
+npx supabase start
+
+# Terminal 2 — Frontend
 cd apps/web
 npm install
 npm run dev          # http://localhost:3000
@@ -378,6 +383,7 @@ test(api): add unit tests for medicine verification endpoint
 ### Before submitting
 
 - [ ] My branch is up-to-date with `main` (`git pull upstream main`)
+- [ ] I have formatted my code using Prettier (`npx prettier --write .`)
 - [ ] All tests pass (`npm run test` and/or `pytest`)
 - [ ] Lint passes (`npm run lint`)
 - [ ] I have tested on mobile viewport (Chrome DevTools)
