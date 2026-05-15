@@ -47,7 +47,7 @@ export default function ScanPage() {
 
     const shareData = {
       title: "Medicine Verification Result",
-      text: shareText,
+      text: `${shareText}\n\n`,
       url: window.location.href,
     };
 
@@ -67,10 +67,15 @@ export default function ScanPage() {
 
         toast.success("Verification result copied to clipboard");
       }
-    } catch (error) {
-    console.error(error);
-
-    toast.error("Failed to share result");
+    } catch (error: any) {
+      if (
+        error?.name === "AbortError" || 
+        String(error).includes("Share canceled") || 
+        String(error).includes("AbortError")
+      ) {
+        return; 
+      }
+      toast.error("Failed to share result");
     }
   }
 
