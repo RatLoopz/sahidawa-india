@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Camera,
   Mic,
@@ -12,10 +14,19 @@ import {
   ChevronRight,
   Activity,
   Search,
+  MessageCircle,
 } from "lucide-react";
-import { Link } from "@/i18n/routing";
+import { useRouter, useParams } from "next/navigation";
 
 export default function SahiDawaHome() {
+  const router = useRouter();
+  const params = useParams();
+  const locale = params.locale;
+
+  const handleNavigation = (path: string) => {
+    router.push(`/${locale}/${path}`);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-emerald-200">
       {/* Navigation */}
@@ -42,6 +53,17 @@ export default function SahiDawaHome() {
                 Pharmacy Map
               </button>
             </nav>
+            
+            {/* AI Health Assistant Button */}
+            <button
+              onClick={() => handleNavigation('health')}
+              className="flex items-center gap-2 text-sm font-semibold px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full hover:shadow-lg hover:scale-105 transition-all duration-200"
+            >
+              <MessageCircle size={16} />
+              <span className="hidden sm:inline">AI Health Assistant</span>
+              <span className="sm:hidden">AI Chat</span>
+            </button>
+            
             <button className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 bg-slate-100 border border-slate-200 text-slate-700 rounded-full hover:bg-slate-200 transition-colors shadow-sm">
               <Globe size={16} className="text-emerald-600" />
               <span className="hidden sm:inline">English</span>
@@ -80,18 +102,15 @@ export default function SahiDawaHome() {
             </div>
 
             {/* Primary Action - Scan Barcode */}
-            <Link href="/scan" className="w-full sm:w-auto min-w-[300px] group relative overflow-hidden rounded-4xl bg-emerald-600 text-white p-8 shadow-xl shadow-emerald-600/20 transition-all active:scale-[0.98] hover:shadow-emerald-600/40 border border-emerald-500 text-left flex items-center justify-between">
+            <button
+              onClick={() => handleNavigation('scan')}
+              className="w-full sm:w-auto min-w-[300px] group relative overflow-hidden rounded-4xl bg-emerald-600 text-white p-8 shadow-xl shadow-emerald-600/20 transition-all active:scale-[0.98] hover:shadow-emerald-600/40 border border-emerald-500 text-left flex items-center justify-between"
+            >
               <div className="absolute inset-0 bg-linear-to-tr from-emerald-700 to-emerald-500 z-0"></div>
-
-              {/* Decorative circles */}
               <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-
               <div className="relative z-10 flex items-center gap-6">
                 <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-md group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-inner">
-                  <Camera
-                    className="text-white drop-shadow-md w-8 h-8 md:w-10 md:h-10"
-                    strokeWidth={2}
-                  />
+                  <Camera className="text-white drop-shadow-md w-8 h-8 md:w-10 md:h-10" strokeWidth={2} />
                 </div>
                 <div>
                   <span className="block text-2xl md:text-3xl font-bold tracking-wide drop-shadow-sm">
@@ -102,15 +121,15 @@ export default function SahiDawaHome() {
                   </span>
                 </div>
               </div>
-              <ChevronRight
-                size={32}
-                className="relative z-10 text-emerald-200 opacity-50 group-hover:opacity-100 group-hover:translate-x-2 transition-all hidden sm:block"
-              />
-            </Link>
+              <ChevronRight size={32} className="relative z-10 text-emerald-200 opacity-50 group-hover:opacity-100 group-hover:translate-x-2 transition-all hidden sm:block" />
+            </button>
 
             {/* Secondary Actions Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Link href="/scan" className="flex items-center gap-5 bg-white border border-slate-200 p-6 rounded-3xl active:scale-95 transition-all group hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-100/50 text-left">
+              <button
+                onClick={() => handleNavigation('scan')}
+                className="flex items-center gap-5 bg-white border border-slate-200 p-6 rounded-3xl active:scale-95 transition-all group hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-100/50 text-left w-full"
+              >
                 <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-colors duration-300 shrink-0">
                   <Globe size={28} strokeWidth={2.5} />
                 </div>
@@ -122,9 +141,12 @@ export default function SahiDawaHome() {
                     Select from gallery
                   </p>
                 </div>
-              </Link>
+              </button>
 
-              <Link href="/voice" className="flex items-center gap-5 bg-white border border-slate-200 p-6 rounded-3xl active:scale-95 transition-all group hover:border-blue-200 hover:shadow-lg hover:shadow-blue-100/50 text-left">
+              <button
+                onClick={() => handleNavigation('voice')}
+                className="flex items-center gap-5 bg-white border border-slate-200 p-6 rounded-3xl active:scale-95 transition-all group hover:border-blue-200 hover:shadow-lg hover:shadow-blue-100/50 text-left w-full"
+              >
                 <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-colors duration-300 shrink-0">
                   <Mic size={28} strokeWidth={2.5} />
                 </div>
@@ -136,9 +158,12 @@ export default function SahiDawaHome() {
                     Speak symptoms
                   </p>
                 </div>
-              </Link>
+              </button>
 
-              <Link href="/map" className="flex items-center gap-5 bg-white border border-slate-200 p-6 rounded-3xl active:scale-95 transition-all group hover:border-amber-200 hover:shadow-lg hover:shadow-amber-100/50 text-left">
+              <button
+                onClick={() => handleNavigation('map')}
+                className="flex items-center gap-5 bg-white border border-slate-200 p-6 rounded-3xl active:scale-95 transition-all group hover:border-amber-200 hover:shadow-lg hover:shadow-amber-100/50 text-left w-full"
+              >
                 <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors duration-300 shrink-0">
                   <MapPin size={28} strokeWidth={2.5} />
                 </div>
@@ -150,9 +175,33 @@ export default function SahiDawaHome() {
                     Find verified stores
                   </p>
                 </div>
-              </Link>
+              </button>
             </div>
 
+            {/* AI Health Assistant CTA Card */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-6 border border-blue-100">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center shadow-lg">
+                    <MessageCircle size={28} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-800 text-lg">
+                      AI Health Assistant
+                    </h3>
+                    <p className="text-slate-600 text-sm">
+                      Get instant health advice and symptom checking
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleNavigation('health')}
+                  className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200"
+                >
+                  Chat Now →
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Right Column: Live Data & Alerts */}
@@ -187,7 +236,6 @@ export default function SahiDawaHome() {
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/30">
-                {/* Alert Item 1 */}
                 <div className="bg-white border border-red-100 rounded-2xl p-4 shadow-sm flex items-start gap-4 relative overflow-hidden group hover:shadow-md transition-shadow cursor-pointer">
                   <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-red-500"></div>
                   <div className="w-10 h-10 rounded-full bg-red-50 text-red-500 flex items-center justify-center shrink-0 group-hover:bg-red-100 transition-colors">
@@ -203,14 +251,11 @@ export default function SahiDawaHome() {
                       </span>
                     </div>
                     <p className="text-sm text-slate-500 mt-1 font-medium leading-snug">
-                      Batch No.{" "}
-                      <span className="font-bold text-slate-700">B23059</span>{" "}
-                      reported suspicious by 12 users.
+                      Batch No. <span className="font-bold text-slate-700">B23059</span> reported suspicious by 12 users.
                     </p>
                   </div>
                 </div>
 
-                {/* Alert Item 2 */}
                 <div className="bg-white border border-orange-100 rounded-2xl p-4 shadow-sm flex items-start gap-4 relative overflow-hidden group hover:shadow-md transition-shadow cursor-pointer">
                   <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-orange-400"></div>
                   <div className="w-10 h-10 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center shrink-0 group-hover:bg-orange-100 transition-colors">
@@ -226,13 +271,11 @@ export default function SahiDawaHome() {
                       </span>
                     </div>
                     <p className="text-sm text-slate-500 mt-1 font-medium leading-snug">
-                      Substandard quality detected in UP region. Batch{" "}
-                      <span className="font-bold text-slate-700">UP992</span>.
+                      Substandard quality detected in UP region. Batch <span className="font-bold text-slate-700">UP992</span>.
                     </p>
                   </div>
                 </div>
 
-                {/* Alert Item 3 */}
                 <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm flex items-start gap-4 relative overflow-hidden group hover:shadow-md transition-shadow cursor-pointer">
                   <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-400"></div>
                   <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0 group-hover:bg-blue-100 transition-colors">
@@ -266,7 +309,7 @@ export default function SahiDawaHome() {
       {/* Footer Constraint for Mobile Nav Space */}
       <div className="h-16 md:hidden"></div>
 
-      {/* Mobile Bottom Navigation (Visible only on small screens) */}
+      {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200/60 flex justify-around px-2 py-3 items-center z-50 pb-safe">
         <button className="flex flex-col items-center gap-1.5 w-16 group">
           <div className="text-emerald-600 group-hover:-translate-y-1 transition-transform">
