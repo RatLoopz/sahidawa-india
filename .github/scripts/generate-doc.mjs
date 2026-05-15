@@ -72,7 +72,7 @@ async function callGemini(prompt) {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
       temperature: 0.3,
-      maxOutputTokens: 2048,
+      // No maxOutputTokens — let Gemini use its full default limit
     },
     safetySettings: [
       { category: "HARM_CATEGORY_HARASSMENT",        threshold: "BLOCK_NONE" },
