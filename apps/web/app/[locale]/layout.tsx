@@ -1,14 +1,18 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '../../i18n/routing';
-import './globals.css';
 
 export const metadata: Metadata = {
   title: 'SahiDawa — Verify Your Medicine',
   description:
     "India's first open-source medicine verification platform. Scan, verify, and trust your medicines.",
+  manifest: '/manifest.json',
+  icons: {
+    icon: '/icons/icon-192.png',
+    apple: '/icons/icon-192.png',
+  },
   openGraph: {
     title: 'SahiDawa — Verify Your Medicine',
     description:
@@ -24,7 +28,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export const viewport: Viewport = {
+  themeColor: '#10b981',
+};
+
+export default async function LocaleLayout({
   children,
   params
 }: {
@@ -32,23 +40,16 @@ export default async function RootLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  
-  // Ensure that the incoming `locale` is valid
+
   if (!routing.locales.includes(locale as any)) {
     notFound();
   }
 
-  // Providing all messages to the client
-  // side is the easiest way to get started
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
-      <body>
-        <NextIntlClientProvider messages={messages}>
-          {children}
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <NextIntlClientProvider messages={messages}>
+      {children}
+    </NextIntlClientProvider>
   );
 }
