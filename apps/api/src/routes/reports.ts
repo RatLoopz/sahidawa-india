@@ -50,6 +50,10 @@ reportsRouter.post('/', requireAuth, async (req: AuthenticatedRequest, res: Resp
       report_location: buildReportLocation(latitude, longitude),
       district,
       status: 'pending',
+      // `requireAuth` guarantees `req.user` is set; the `?? null` fallback is
+      // a safety net so the column accepts the historical anonymous shape if
+      // the middleware contract is ever relaxed.
+      reporter_id: req.user?.id ?? null,
     })
     .select()
     .single();
@@ -60,6 +64,28 @@ reportsRouter.post('/', requireAuth, async (req: AuthenticatedRequest, res: Resp
   }
 
   res.status(201).json({ report: data, submittedBy: req.user?.id });
+});
+
+// Must be registered BEFORE the admin-only GET '/' so Express matches /mine first.
+reportsRouter.get('/mine', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    res.status(401).json({ error: 'Unauthenticated' });
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from('counterfeit_reports')
+    .select('id, reported_brand_name, scanned_barcode, photo_url, district, status, created_at')
+    .eq('reporter_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    res.status(500).json({ error: 'Failed to fetch your reports' });
+    return;
+  }
+
+  res.json({ reports: data ?? [] });
 });
 
 reportsRouter.get('/', requireAuth, requireRole('admin'), async (_req, res: Response) => {
