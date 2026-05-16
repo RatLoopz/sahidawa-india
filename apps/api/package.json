@@ -6,16 +6,20 @@
   "scripts": {
     "start": "node dist/index.js",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "test": "tsc -p tsconfig.test.json && node --test \".tmp/test-dist/**/*.test.js\""
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.4",
     "cors": "^2.8.5",
     "dotenv": "^17.4.2",
     "express": "^5.0.0",
+    "express-rate-limit": "^8.5.1",
     "helmet": "^8.1.0",
     "morgan": "^1.10.0",
-    "redis": "^5.12.1"
+    "redis": "^5.12.1",
+    "zod": "^4.4.3",
+    "winston": "^3.19.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

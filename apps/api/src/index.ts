@@ -1,34 +1,116 @@
 import express, { Express, Request, Response } from 'express';
 import dotenv from 'dotenv';
+
+// Load environment variables before other imports use process.env
+dotenv.config();
+
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import adminRoutes from './routes/admin.routes';
+import { limiter } from './middleware/rateLimit';
+import reportsRouter from './routes/reports';
+import pharmaciesRouter from './routes/pharmacies';
+import verifyRouter from './routes/verify';
+import analyticsRoutes from './routes/analytics';
+import { supabase } from './db/client';
 
-// Load environment variables
-dotenv.config();
+import logger from './utils/logger';
+import { errorHandler } from './middleware/errorHandler';
 
 const app: Express = express();
 const port = process.env.PORT || 4000;
 
-// Middleware
 app.use(helmet());
-app.use(cors());
-app.use(express.json());
-app.use(morgan('dev'));
 
-// --- ADDED ROUTES ---
+// Security: restrict CORS to known origins instead of wildcard
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:4000',
+  'http://localhost:8000',
+];
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
 
-// 1. Root Route (This fixes the "Cannot GET /" error)
+app.use(express.json({ limit: '1mb' }));
+app.use(limiter);
+
+morgan.token('status', (req: Request, res: Response) => {
+  const status = res.statusCode;
+  if (status >= 500) return 'error';
+  if (status >= 400) return 'warn';
+  return 'info';
+});
+
+app.use(
+  morgan(':method :url :status - :response-time ms'),
+);
+
+morgan((tokens, req: Request, res: Response) => {
+  const status = res.statusCode;
+  const level = status >= 500 ? 'error' : status >= 400 ? 'warn' : 'info';
+  logger.log({
+    level,
+    message: `${tokens.method(req, res)} ${tokens.url(req, res)} ${status} - ${tokens['response-time'](req, res)} ms`,
+  });
+  return undefined;
+});
+
 app.get('/', (req: Request, res: Response) => {
+  logger.info('Root route accessed');
   res.send('SahiDawa-India API is running successfully!');
 });
 
-// 2. Health Check Route
-app.get('/health', (req: Request, res: Response) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+// Admin Routes
+app.use('/api/v1/admin', adminRoutes);
+
+app.get('/health', async (req: Request, res: Response) => {
+  logger.info('Health check endpoint accessed');
+  
+  try {
+    const { error } = await supabase
+      .from('medicines')
+      .select('id')
+      .limit(1);
+
+    if (error) {
+      return res.status(503).json({
+        status: 'degraded',
+        db: 'unreachable',
+        error: error.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    return res.json({
+      status: 'ok',
+      db: 'connected',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    return res.status(500).json({
+      status: 'error',
+      db: 'unreachable',
+      error: message,
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
-// Start the server
-app.listen(port, () => {
-  console.log(`[API Server]: SahiDawa API is running at http://localhost:${port}`);
-});
+app.use('/reports', reportsRouter);
+app.use('/api/pharmacies', pharmaciesRouter);
+app.use('/api/verify', verifyRouter);
+app.use('/api/analytics', analyticsRoutes);
+
+app.use(errorHandler);
+
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, () => {
+    logger.info(`SahiDawa API is running at http://localhost:${port}`);
+  });
+}
+
+export default app;

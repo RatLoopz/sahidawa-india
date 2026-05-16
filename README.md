@@ -5,7 +5,7 @@
 <img src="https://img.shields.io/badge/PRs-Welcome-brightgreen?style=for-the-badge" alt="PRs Welcome"/>
 <img src="https://img.shields.io/badge/Languages-22%20Indian-blue?style=for-the-badge" alt="22 Languages"/>
 <img src="https://img.shields.io/badge/Powered%20by-Cloudinary-purple?style=for-the-badge" alt="Cloudinary"/>
-
+<img src="https://img.shields.io/github/actions/workflow/status/RatLoopz/sahidawa-india/ci.yml?branch=main&style=for-the-badge&label=CI" alt="CI Status"/>
 <br/><br/>
 
 # 🩺 SahiDawa — सही दवा

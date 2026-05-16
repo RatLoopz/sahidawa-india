@@ -49,7 +49,30 @@ CREATE TABLE IF NOT EXISTS counterfeit_reports (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 4. Audit Logs (Transparency for Admin Actions)
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    admin_id UUID REFERENCES auth.users(id),
+    action VARCHAR(100) NOT NULL, -- e.g., 'VERIFIED_FAKE', 'UPDATE_MEDICINE'
+    target_type VARCHAR(50) NOT NULL, -- e.g., 'REPORT', 'MEDICINE'
+    target_id UUID NOT NULL,
+    details JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 5. District Level Alerts
+CREATE TABLE IF NOT EXISTS district_alerts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    district VARCHAR(100) NOT NULL,
+    state VARCHAR(100),
+    alert_level VARCHAR(20) DEFAULT 'medium', -- 'low', 'medium', 'high'
+    medicine_name VARCHAR(255),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_medicines_barcode ON medicines(barcode_id);
 CREATE INDEX IF NOT EXISTS idx_pharmacies_location ON pharmacies USING GIST(location);
 CREATE INDEX IF NOT EXISTS idx_counterfeit_location ON counterfeit_reports USING GIST(report_location);
+CREATE INDEX IF NOT EXISTS idx_audit_target ON audit_logs(target_id);
