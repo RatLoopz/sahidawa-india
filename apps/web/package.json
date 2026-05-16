@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "leaflet": "^1.9.4",
     "lucide-react": "^1.14.0",
     "next": "^16.2.6",
     "next-intl": "^4.12.0",
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.0",
+    "@types/leaflet": "^1.9.21",
     "@types/node": "^25.7.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

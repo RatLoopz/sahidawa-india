@@ -171,6 +171,7 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+
 }
 /* Dark mode support */
 .dark body {
@@ -188,4 +189,5 @@
 
 .dark ::-webkit-scrollbar-thumb:hover {
   background: #64748b;
+
 }
