@@ -77,3 +77,25 @@ By locking the versions:
 - Tailwind CSS: `v4.x`
 
 *Happy Coding! 🚀*
+
+---
+
+## Database Schema
+
+The primary verification table is defined in [data/seeds/001_medicines_schema.sql](data/seeds/001_medicines_schema.sql). It is the lookup source used by barcode verification and public medicine checks.
+
+### `medicines`
+
+- `id` UUID primary key with `gen_random_uuid()` default.
+- `name` text, required.
+- `manufacturer` text, required.
+- `batch_number` text, required and unique.
+- `expiry_date` date, required.
+- `is_verified` boolean with a default of `true`.
+- `category` text for groups such as antibiotic, painkiller, or vitamin.
+- `created_at` timestamptz with a default of `now()`.
+
+### Row-Level Security
+
+- RLS is enabled on `medicines`.
+- Public read access is allowed with the `public read` policy for `SELECT`.
