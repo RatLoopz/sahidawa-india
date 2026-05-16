@@ -1,3 +1,5 @@
+"use client";
+
 export default function Loading() {
   return (
     <div className="min-h-screen bg-zinc-100 p-6">
@@ -10,7 +12,7 @@ export default function Loading() {
         <div className="relative overflow-hidden rounded-3xl border border-zinc-200 bg-zinc-300">
           <div className="h-[70vh] w-full animate-pulse bg-zinc-300" />
           {/* Shimmer effect */}
-          <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+          <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-linear-to-r from-transparent via-white/40 to-transparent" />
         </div>
       </div>
 
