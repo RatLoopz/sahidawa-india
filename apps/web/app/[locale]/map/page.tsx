@@ -534,7 +534,7 @@ export default function PharmacyMapPage() {
       </div>
 
       {/* Safe Area Footer */}
-      <div className="h-4 bg-white md:hidden"></div>
+      <div className="h-4 bg-white md:hidden" aria-hidden="true"></div>
     </div>
   );
 }

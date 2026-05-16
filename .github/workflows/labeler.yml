@@ -4,7 +4,7 @@ on:
   issues:
     types: [opened]
   pull_request_target:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, closed]
 
 permissions:
   issues: write
@@ -14,7 +14,7 @@ permissions:
 jobs:
   auto-label-pr-files:
     name: "Auto-label PRs based on changed files"
-    if: github.event_name == 'pull_request_target'
+    if: github.event_name == 'pull_request_target' && github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/labeler@v6
@@ -24,6 +24,7 @@ jobs:
 
   apply-gssoc-label:
     name: "Apply default GSSoC 2026 label"
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v9
@@ -49,3 +50,19 @@ jobs:
                 labels: [label]
               });
             }
+
+  apply-gssoc-approved:
+    name: "Apply gssoc-approved on merge from fork"
+    if: github.event_name == 'pull_request_target' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              labels: ['gssoc-approved']
+            });

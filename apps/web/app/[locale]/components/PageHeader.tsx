@@ -28,11 +28,13 @@ export const PageHeader = ({
       <div className="flex items-center justify-between gap-2">
         <Link 
           href={backHref} 
+          aria-label="Go back to previous page"
           className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center transition-colors ${
             isDark ? "bg-white/10 backdrop-blur-md hover:bg-white/20" : "bg-slate-100 hover:bg-slate-200"
           }`}
         >
-          <ArrowLeft size={24} className={isDark ? "text-white" : "text-slate-600"} />
+          <ArrowLeft size={24} aria-hidden="true" className={isDark ? "text-white" : "text-slate-600"} />
+          <span className="sr-only">Go back</span>
         </Link>
 
         {children ? (
@@ -50,18 +52,19 @@ export const PageHeader = ({
 
         <div className="flex items-center justify-end shrink-0">
           {showLanguage ? (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-slate-200 shadow-sm">
-              <Globe size={14} className="text-emerald-600" />
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-slate-200 shadow-sm" role="status" aria-label={`Current language: ${languageName || "English"}`}>
+              <Globe size={14} aria-hidden="true" className="text-emerald-600" />
               <span className="text-xs font-bold text-slate-700 sm:inline hidden">
                 {languageName || "English"}
               </span>
-              <span className="text-xs font-bold text-slate-700 sm:hidden">
+              <span className="text-xs font-bold text-slate-700 sm:hidden" aria-hidden="true">
                 {languageName ? languageName.substring(0, 2).toUpperCase() : "EN"}
               </span>
             </div>
           ) : isDark ? (
-            <button className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition-colors">
-              <Zap size={20} className="text-amber-400" />
+            <button aria-label="Quick actions" className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition-colors">
+              <Zap size={20} aria-hidden="true" className="text-amber-400" />
+              <span className="sr-only">Quick actions</span>
             </button>
           ) : (
             <div className="w-10" />
