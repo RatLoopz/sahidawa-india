@@ -2,7 +2,7 @@ import { GitBranch } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="sticky bottom-0 border-t border-slate-800 bg-slate-950 text-slate-400">
+    <footer className="border-t border-slate-800 bg-slate-950 text-slate-400 mt-auto">
       <div className="container mx-auto px-4 md:px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
 
         <div className="flex items-center gap-4 flex-wrap justify-center">

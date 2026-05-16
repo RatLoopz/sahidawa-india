@@ -28,7 +28,7 @@ jobs:
                       const repoOwner = context.repo.owner;
                       const repoName = context.repo.repo;
 
-                      const restrictedLabels = ['level:beginner', 'level:intermediate', 'level:advanced'];
+                      const restrictedLabels = ['level:beginner', 'level:intermediate', 'level:advanced','level:critical', 'gssoc:approved',];
 
                       if (!restrictedLabels.includes(label)) {
                         console.log(`✅ Label "${label}" is not restricted. Allowed for actor @${actor}`);
