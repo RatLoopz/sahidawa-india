@@ -6,6 +6,7 @@ import { routing } from '../../i18n/routing';
 
 
 import { ThemeProvider } from './components/ThemeProvider';
+import Chatbot from './components/Chatbot';
 import './globals.css';
 import { Toaster } from "sonner";
 
@@ -54,14 +55,17 @@ export default async function LocaleLayout({
 
   const messages = await getMessages();
 
-return (
-  <ThemeProvider>
-    <NextIntlClientProvider messages={messages}>
-      {children}
-    </NextIntlClientProvider>
-
-    <Toaster richColors position="top-center" />
-  </ThemeProvider>
-);
-
+  return (
+    <html lang={locale} suppressHydrationWarning>
+      <body>
+        <ThemeProvider>
+          <NextIntlClientProvider messages={messages}>
+            {children}
+            <Chatbot />
+          </NextIntlClientProvider>
+          <Toaster richColors position="top-center" />
+        </ThemeProvider>
+      </body>
+    </html>
+  );
 }
