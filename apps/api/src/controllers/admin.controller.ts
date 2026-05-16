@@ -31,7 +31,7 @@ export const getPendingReports = async (req: Request, res: Response): Promise<vo
 };
 
 export const updateReportStatus = async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
+  const id = String(req.params.id);
   const parsed = reportStatusSchema.safeParse(req.body);
 
   if (!parsed.success) {
