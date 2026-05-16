@@ -1,5 +1,3 @@
-
-'use client';
 export default function Loading() {
   return (
     <div className="min-h-screen bg-zinc-100 p-6">
