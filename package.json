@@ -20,5 +20,11 @@
     "cdsco"
   ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "sarvamai": "^1.1.7"
+  },
+  "devDependencies": {
+    "supabase": "^2.98.2"
+  }
 }
