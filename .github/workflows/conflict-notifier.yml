@@ -23,7 +23,7 @@ jobs:
           commentOnDirty: |
             ## ⚠️ Merge Conflict Detected
 
-            Hi @${author}! 👋 Thank you for your pull request.
+            Hi @${{ github.event.pull_request.user.login }}! 👋 Thank you for your pull request.
 
             It looks like some changes were recently merged into the `main` branch that conflict with your code. 
 
@@ -34,4 +34,4 @@ jobs:
             4. Commit and push the changes to this PR.
 
             Let us know if you are stuck or need help resolving them! 💙
-          commentOnClean: "✅ Merge conflicts have been resolved! Thanks for fixing that, @${author}."
+          commentOnClean: "✅ Merge conflicts have been resolved! Thanks for fixing that, ${{ github.event.pull_request.user.login }}."
