@@ -1,0 +1,14 @@
+# Dependency directories
+node_modules
+apps/*/node_modules
+packages/*/node_modules
+
+# Next.js build output
+.next
+apps/web/.next
+
+# Misc
+.git
+npm-debug.log
+README.md
+docs/
