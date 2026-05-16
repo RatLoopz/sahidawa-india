@@ -9,6 +9,99 @@
   .animate-scan {
     animation: scan 2.5s ease-in-out infinite;
   }
+
+  /* Leaflet Popup Overrides — match SahiDawa design */
+  .sahidawa-popup .leaflet-popup-content-wrapper {
+    border-radius: 20px !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 0 !important;
+    overflow: hidden;
+  }
+
+  .sahidawa-popup .leaflet-popup-content {
+    margin: 0 !important;
+    line-height: 1.5;
+  }
+
+  .sahidawa-popup .leaflet-popup-close-button {
+    top: 8px !important;
+    right: 8px !important;
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 18px !important;
+    color: #94a3b8 !important;
+    background: #f8fafc !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    z-index: 10;
+    transition: all 0.15s ease;
+  }
+
+  .sahidawa-popup .leaflet-popup-close-button:hover {
+    color: #1e293b !important;
+    background: #e2e8f0 !important;
+  }
+
+  .sahidawa-popup .leaflet-popup-tip {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  /* User location pulse animation */
+  @keyframes sahidawa-pulse {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(2.5);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 0;
+    }
+  }
+
+  /* Remove default Leaflet marker icon outline */
+  .sahidawa-marker {
+    background: transparent !important;
+    border: none !important;
+  }
+
+  .user-location-marker {
+    background: transparent !important;
+    border: none !important;
+  }
+
+  /* No scrollbar utility */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Animate-in for toasts */
+  @keyframes slide-in-from-top-2 {
+    from {
+      transform: translateY(-8px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  .animate-in.slide-in-from-top-2 {
+    animation: slide-in-from-top-2 0.3s ease-out;
+  }
 }
 
 @theme {
@@ -78,6 +171,7 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+
 }
 /* Dark mode support */
 .dark body {
@@ -95,4 +189,5 @@
 
 .dark ::-webkit-scrollbar-thumb:hover {
   background: #64748b;
+
 }
