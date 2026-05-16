@@ -663,3 +663,56 @@ export default function ReportWizard() {
     </FormProvider>
   );
 }
+
+
+// ===== EXPIRY BADGE COMPONENT =====
+// Added for issue: [Frontend] Add expiry date warning badge to scan result card
+
+type ExpiryStatus = "valid" | "near-expiry" | "expired" | "unknown";
+
+function getExpiryStatus(expiryDate?: string): ExpiryStatus {
+  if (!expiryDate) return "unknown";
+  const [month, year] = expiryDate.split("/").map(Number);
+  if (!month || !year) return "unknown";
+  const expiry = new Date(year, month - 1, 1);
+  const today = new Date();
+  const soon = new Date();
+  soon.setDate(today.getDate() + 30);
+  if (expiry < today) return "expired";
+  if (expiry <= soon) return "near-expiry";
+  return "valid";
+}
+
+export function ExpiryBadge({ expiryDate }: { expiryDate?: string }) {
+  const status = getExpiryStatus(expiryDate);
+
+  const config = {
+    valid:        { label: "Valid",          icon: "✓", style: "background:#dcfce7;color:#166534;border:1px solid #bbf7d0" },
+    "near-expiry":{ label: "Expiring Soon",  icon: "⚠", style: "background:#fef9c3;color:#854d0e;border:1px solid #fef08a" },
+    expired:      { label: "Expired",        icon: "✕", style: "background:#fee2e2;color:#991b1b;border:1px solid #fecaca" },
+    unknown:      { label: "Expiry Unknown", icon: "?", style: "background:#f3f4f6;color:#4b5563;border:1px solid #e5e7eb" },
+  }[status];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <span style={{ fontSize: 12, color: "#6b7280" }}>Expiry Date</span>
+      <span
+        role="status"
+        aria-label={`Expiry status: ${config.label}`}
+        style={{
+          ...Object.fromEntries(config.style.split(";").map(s => s.split(":").map(x => x.trim())).filter(x => x.length === 2)),
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+          padding: "4px 12px",
+          borderRadius: 999,
+          fontSize: 13,
+          fontWeight: 500,
+          width: "fit-content",
+        }}
+      >
+        {config.icon} {expiryDate ?? "Unknown"} — {config.label}
+      </span>
+    </div>
+  );
+}
