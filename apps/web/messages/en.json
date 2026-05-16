@@ -14,7 +14,9 @@
     "search_button": "Search"
   },
   "Navigation": {
+    "home": "Home",
     "how_it_works": "How it Works",
+    "about": "About",
     "alerts": "Alerts",
     "pharmacy_map": "Pharmacy Map",
     "language": "English"

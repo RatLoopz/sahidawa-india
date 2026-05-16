@@ -14,7 +14,9 @@
     "search_button": "தேடு"
   },
   "Navigation": {
+    "home": "முகப்பு",
     "how_it_works": "எப்படி வேலை செய்கிறது",
+    "about": "பற்றி",
     "alerts": "எச்சரிக்கைகள்",
     "pharmacy_map": "மருந்தகம் வரைபடம்",
     "language": "தமிழ்"

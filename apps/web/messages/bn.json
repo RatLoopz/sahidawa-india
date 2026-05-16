@@ -14,7 +14,9 @@
     "search_button": "অনুসন্ধান"
   },
   "Navigation": {
+    "home": "হোম",
     "how_it_works": "কিভাবে কাজ করে",
+    "about": "সম্পর্কে",
     "alerts": "সতর্কতা",
     "pharmacy_map": "ফার্মেসি ম্যাপ",
     "language": "বাংলা"

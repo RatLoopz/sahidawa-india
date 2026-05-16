@@ -4,6 +4,8 @@ import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '../../i18n/routing';
 import { ThemeProvider } from './components/ThemeProvider';
+import Header from './components/Header';
+import Footer from './components/Footer';
 import './globals.css';
 import { Toaster } from "sonner";
 
@@ -51,15 +53,13 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <body>
-        <ThemeProvider>
-          <NextIntlClientProvider messages={messages}>
-            {children}
-          </NextIntlClientProvider>
-          <Toaster richColors position="top-center"/>
-        </ThemeProvider>
-      </body>
-    </html>
+    <ThemeProvider>
+      <NextIntlClientProvider messages={messages}>
+        <Header />
+        {children}
+        <Footer />
+      </NextIntlClientProvider>
+      <Toaster richColors position="top-center"/>
+    </ThemeProvider>
   );
 }

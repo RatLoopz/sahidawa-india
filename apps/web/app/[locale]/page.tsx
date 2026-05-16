@@ -18,54 +18,12 @@ import {
 } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from 'next-intl';
-import { useRouter, useParams } from "next/navigation";
-import LanguageSwitcher from "./LanguageSwitcher";
-import Footer from "./components/Footer";
 
 export default function SahiDawaHome() {
-  const router = useRouter();
-  const params = useParams();
-  const locale = params.locale;
   const tHome = useTranslations('Home');
-  const tNav = useTranslations('Navigation');
-
-  const handleNavigation = (path: string) => {
-    router.push(`/${locale}/${path}`);
-  };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-emerald-200">
-      {/* Navigation */}
-      <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-lg">
-        <div className="container mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div
-              className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-sm"
-              aria-label="SahiDawa Logo"
-            >
-              <ShieldCheck size={24} strokeWidth={2.5} />
-            </div>
-            <h1 className="text-xl md:text-2xl font-extrabold tracking-tight text-slate-800">
-              SahiDawa
-            </h1>
-          </div>
-
-          <div className="flex items-center gap-2 md:gap-4">
-            <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold text-slate-600" aria-label="Main navigation">
-              <button className="hover:text-emerald-600 transition-colors">
-                {tNav('how_it_works')}
-              </button>
-              <button className="hover:text-emerald-600 transition-colors">
-                {tNav('alerts')}
-              </button>
-              <Link href="/map" className="hover:text-emerald-600 transition-colors">
-                {tNav('pharmacy_map')}
-              </Link>
-            </nav>
-            <LanguageSwitcher />
-          </div>
-        </div>
-      </header>
 
       <main className="container mx-auto px-4 pt-8 pb-24 md:pb-12 max-w-6xl">
         {/* Hero Section */}
@@ -286,7 +244,6 @@ export default function SahiDawaHome() {
           <span className="text-[11px] font-semibold">Profile</span>
         </button>
       </nav>
-      <Footer />
     </div>
   );
 }
