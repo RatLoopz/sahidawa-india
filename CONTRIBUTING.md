@@ -166,6 +166,27 @@ pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
+## ⚠️ Troubleshooting npm install Failures
+
+If you encounter `No matching version found` errors while running `npm install`, it may be caused by the canary package versions currently used in this project.
+
+Try running:
+
+```bash
+npm install --legacy-peer-deps
+```
+
+or:
+
+```bash
+npm install --force
+```
+
+If the issue still persists, you may temporarily downgrade package versions locally to get the project running on your machine.
+
+> ⚠️ Important:
+> Do not commit modified `package.json` or `package-lock.json` files created during local downgrades. Revert those changes before pushing your PR.
+
 ---
 
 ## Contribution Types

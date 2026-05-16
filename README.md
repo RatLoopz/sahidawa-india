@@ -186,7 +186,30 @@ cd sahidawa-india
 # 2. Install frontend dependencies
 cd apps/web
 npm install
+```
 
+### ⚠️ Troubleshooting npm install Failures
+
+If you encounter `No matching version found` errors while running `npm install`, it may be caused by the canary package versions used in this project.
+
+Try running:
+
+```bash
+npm install --legacy-peer-deps
+```
+
+or:
+
+```bash
+npm install --force
+```
+
+If the issue still persists, you may temporarily downgrade package versions locally to get the project running on your machine.
+
+> ⚠️ Important:
+> Do not commit modified `package.json` or `package-lock.json` files created during local downgrades. Revert those changes before pushing your PR.
+
+```bash
 # 3. Copy environment variables
 cp .env.example .env.local
 # Fill in your Supabase URL + anon key (free at supabase.com)
