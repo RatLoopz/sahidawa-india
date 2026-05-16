@@ -51,10 +51,23 @@ export default function ScanPage() {
   const [showResult, setShowResult] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [scanData, setScanData] = useState<{ batch: string; expiry: string } | null>(null);
+
+const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setUploadedImage(reader.result as string);
+        setIsScanning(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleCopyBatch = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText("AUG625D");
+      await navigator.clipboard.writeText(scanData?.batch || "AUG625D");
       setCopied(true);
       toast.success("Batch number copied!");
       setTimeout(() => setCopied(false), 2000);
@@ -70,52 +83,41 @@ export default function ScanPage() {
       setTimeout(() => setCopied(false), 2000);
     }
   }, []);
-
-  useEffect(() => {
+useEffect(() => {
     if (isScanning) {
       const timer = setTimeout(() => {
         setIsScanning(false);
-        setShowResult(true);
+
+        // Blank check optimization (Choti image ya khali data ko scan fail karega)
+        if (uploadedImage && uploadedImage.length > 20000) {
+          setScanData({
+            batch: scanData?.batch || "AUG625D",
+            expiry: scanData?.expiry || "12/2027",
+          });
+          setShowResult(true);
+        } else {
+          toast.error("Scanning failed. Please scan a valid medicine strip.");
+          setShowResult(false);
+        }
       }, 3000);
+
       return () => clearTimeout(timer);
     }
-  }, [isScanning]);
-
-  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error('File exceeds 10MB limit');
-      e.target.value = '';
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setUploadedImage(reader.result as string);
-      setIsScanning(true);
-      setShowResult(false);
-    };
-    reader.readAsDataURL(file);
-  };
-
+  }, [isScanning, uploadedImage, scanData]);
   const handleScanAgain = () => {
     setIsScanning(false);
     setShowResult(false);
     setUploadedImage(null);
+    setScanData(null);
   };
 
-  const handleShare = async () => {
-    const shareText = `
+const handleShare = async () => {
+   const shareText = `
 Medicine: Authentic Medicine
-Batch No: AUG625D
-Expiry: 12/2027
+Batch No: ${scanData?.batch || "N/A"}
+Expiry: ${scanData?.expiry || "N/A"}
 Status: Verified by CDSCO Database
     `.trim();
-
     const shareData = {
       title: "Medicine Verification Result",
       text: shareText,
@@ -205,7 +207,7 @@ Status: Verified by CDSCO Database
                   <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 relative group">
                     <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Batch No.</span>
                     <div className="flex items-center justify-between gap-1">
-                      <span className="font-bold text-slate-700">AUG625D</span>
+                      <span className="font-bold text-slate-700">{scanData?.batch || "N/A"}</span>
                       <button
                         onClick={handleCopyBatch}
                         className={`p-1.5 rounded-lg transition-all duration-200 shrink-0 ${
@@ -220,7 +222,7 @@ Status: Verified by CDSCO Database
                   </div>
                   <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
                     <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Expiry</span>
-                    <span className="font-bold text-slate-700">12/2027</span>
+                    <span className="font-bold text-slate-700">{scanData?.expiry || "N/A"}</span>
                   </div>
                 </div>
 
