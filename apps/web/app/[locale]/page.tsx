@@ -20,7 +20,7 @@ import {
 import { useRouter, useParams } from "next/navigation";
 
 import { Link } from "@/i18n/routing";
-import { useTranslations } from 'next-intl';
+import { useTranslations } from "next-intl";
 import LanguageSwitcher from "./LanguageSwitcher";
 import Footer from "./components/Footer";
 
@@ -314,59 +314,83 @@ const locale = params?.locale || "en";
 
       <div className="h-16 md:hidden"></div>
 
-      {/* Mobile Bottom Navigation */}
-
-      <nav
+ {/* ── Mobile Bottom Navigation ── */}
+<nav
   className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200/60 flex justify-around px-2 py-3 items-center z-50 pb-[env(safe-area-inset-bottom)]"
   aria-label="Mobile navigation"
 >
-   <Link href="/" className="flex flex-col items-center gap-1.5 w-16 group" aria-label="Go to home">
-          <div className="text-emerald-600 group-hover:-translate-y-1 transition-transform">
-            <Home size={24} strokeWidth={2.5} />
-          </div>
-          <span className="text-[11px] font-bold text-emerald-600">Home</span>
-        </Link>
-        <Link href="/scan" className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-slate-600 transition-colors" aria-label="Go to scan history">
-          <div className="group-hover:-translate-y-1 transition-transform">
-            <History size={24} strokeWidth={2} />
-          </div>
-          <span className="text-[11px] font-semibold">Scans</span>
-        </Link>
-        <Link href="/map" className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-amber-600 transition-colors" aria-label="Go to pharmacy map">
-          <div className="group-hover:-translate-y-1 transition-transform">
-            <MapPin size={24} strokeWidth={2} />
-          </div>
-          <span className="text-[11px] font-semibold">Map</span>
-        </Link>
-        <Link
-  href="/alerts"
-  className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-red-500 transition-colors"
-  aria-label="Go to alerts"
->
-  <div className="relative group-hover:-translate-y-1 transition-transform">
-    <Bell size={24} strokeWidth={2} />
-    
-    <span className="absolute top-0 right-0.5 w-2 h-2 bg-red-500 border border-white rounded-full animate-pulse"></span>
-  </div>
+  <Link
+    href="/"
+    className="flex flex-col items-center gap-1.5 w-16 group"
+    aria-label="Home"
+  >
+    <div className="text-emerald-600 group-hover:-translate-y-1 transition-transform">
+      <Home size={24} strokeWidth={2.5} />
+    </div>
 
-  <span className="text-[11px] font-semibold">
-    Alerts
-  </span>
-</Link>
-        <Link
-  href="/profile"
-  className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-emerald-600 transition-colors"
-  aria-label="Go to profile"
->
-  <div className="group-hover:-translate-y-1 transition-transform">
-    <User size={24} strokeWidth={2} />
-  </div>
+    <span className="text-[11px] font-bold text-emerald-600">
+      Home
+    </span>
+  </Link>
 
-  <span className="text-[11px] font-semibold">
-    Profile
-  </span>
-</Link>
-      </nav>
+  <Link
+    href="/scan"
+    className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-slate-600 transition-colors"
+    aria-label="Scans"
+  >
+    <div className="group-hover:-translate-y-1 transition-transform">
+      <History size={24} strokeWidth={2} />
+    </div>
+
+    <span className="text-[11px] font-semibold">
+      Scans
+    </span>
+  </Link>
+
+  <Link
+    href="/map"
+    className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-amber-600 transition-colors"
+    aria-label="Map"
+  >
+    <div className="group-hover:-translate-y-1 transition-transform">
+      <MapPin size={24} strokeWidth={2} />
+    </div>
+
+    <span className="text-[11px] font-semibold">
+      Map
+    </span>
+  </Link>
+
+  <Link
+    href="/alerts"
+    className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-red-500 transition-colors"
+    aria-label="Alerts"
+  >
+    <div className="relative group-hover:-translate-y-1 transition-transform">
+      <Bell size={24} strokeWidth={2} />
+
+      <span className="absolute top-0 right-0.5 w-2 h-2 bg-red-500 border border-white rounded-full animate-pulse"></span>
+    </div>
+
+    <span className="text-[11px] font-semibold">
+      Alerts
+    </span>
+  </Link>
+
+  <Link
+    href="/profile"
+    className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-emerald-600 transition-colors"
+    aria-label="Profile"
+  >
+    <div className="group-hover:-translate-y-1 transition-transform">
+      <User size={24} strokeWidth={2} />
+    </div>
+
+    <span className="text-[11px] font-semibold">
+      Profile
+    </span>
+  </Link>
+</nav>
       <Footer />
     </div>
   );
