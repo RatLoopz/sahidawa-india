@@ -53,6 +53,7 @@ export default async function LocaleLayout({
   }
 
   const messages = await getMessages();
+
 return (
   <ThemeProvider>
     <NextIntlClientProvider messages={messages}>
@@ -62,4 +63,5 @@ return (
     <Toaster richColors position="top-center" />
   </ThemeProvider>
 );
+
 }

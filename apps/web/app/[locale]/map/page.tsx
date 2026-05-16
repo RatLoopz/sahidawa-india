@@ -1,104 +1,93 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import dynamic from "next/dynamic";
-import { 
-  Search, Navigation, Filter, Star, Phone, Globe, 
-  Layers, Clock, Shield, Heart, 
-  AlertCircle, Store, X, MapPin, ChevronUp, ChevronDown
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import {
+  Search,
+  Navigation,
+  Filter,
+  Star,
+  Phone,
+  Globe,
+  Layers,
+  Clock,
+  Shield,
+  Heart,
+  AlertCircle,
+  X,
+  MapPin,
+  ChevronUp,
+  ChevronDown,
+  RefreshCw,
+  Loader2,
+  Store,
 } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
+import PharmacyMap, { type Pharmacy, type MapBounds } from "./PharmacyMap";
+import {
+  fetchPharmacies,
+  fetchPharmaciesInBounds,
+  type OverpassPharmacy,
+} from "./overpassApi";
 
-const Map = dynamic(() => import("@/app/components/Map"), { 
-  ssr: false,
-  loading: () => (
-    <div className="absolute inset-0 flex items-center justify-center overflow-hidden"
-      style={{ background: 'linear-gradient(135deg, #e8f4f0 0%, #dbeafe 50%, #e8f4f0 100%)' }}
-    >
-      <div className="relative z-10 text-center">
-        <div className="relative w-14 h-14 mx-auto mb-3">
-          <div className="absolute inset-0 border-3 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" style={{ borderWidth: 3 }}></div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Store size={20} className="text-emerald-600" />
-          </div>
-        </div>
-        <p className="text-slate-600 text-sm font-semibold tracking-tight">Loading map…</p>
-      </div>
-    </div>
-  )
-});
+// ── Constants ────────────────────────────────────────────────────────────────
+const DEFAULT_CENTER = { lat: 28.6139, lng: 77.209 }; // New Delhi
+const DEFAULT_ZOOM = 13;
 
-const pharmaciesData = [
-  { 
-    id: 1, name: "Jan Aushadhi Kendra", distance: "0.8 km", rating: 4.8, 
-    status: "Govt. Verified", type: "govt",
-    coordinates: [28.6139, 77.2090] as [number, number],
-    address: "Connaught Place, New Delhi", isOpen: true, emergencyAvailable: true,
-    medicinesAvailable: 95, openHours: "8 AM – 10 PM", phone: "+91-11-23456789"
-  },
-  { 
-    id: 2, name: "Apollo Pharmacy", distance: "1.2 km", rating: 4.5, 
-    status: "Premium", type: "private",
-    coordinates: [19.0760, 72.8777] as [number, number],
-    address: "Andheri West, Mumbai", isOpen: true, emergencyAvailable: true,
-    medicinesAvailable: 88, openHours: "24 hours", phone: "+91-22-98765432"
-  },
-  { 
-    id: 3, name: "Wellness Forever", distance: "2.5 km", rating: 4.2, 
-    status: "Trusted", type: "private",
-    coordinates: [12.9716, 77.5946] as [number, number],
-    address: "Indiranagar, Bangalore", isOpen: false, emergencyAvailable: false,
-    medicinesAvailable: 76, openHours: "9 AM – 9 PM", phone: "+91-80-34567890"
-  },
-  { 
-    id: 4, name: "MedPlus Pharmacy", distance: "1.5 km", rating: 4.6, 
-    status: "Verified", type: "private",
-    coordinates: [17.3850, 78.4867] as [number, number],
-    address: "Jubilee Hills, Hyderabad", isOpen: true, emergencyAvailable: true,
-    medicinesAvailable: 92, openHours: "24 hours", phone: "+91-40-45678901"
-  },
-  { 
-    id: 5, name: "Netmeds Express", distance: "3.0 km", rating: 4.4, 
-    status: "Trusted", type: "private",
-    coordinates: [13.0827, 80.2707] as [number, number],
-    address: "T Nagar, Chennai", isOpen: true, emergencyAvailable: false,
-    medicinesAvailable: 82, openHours: "8 AM – 11 PM", phone: "+91-44-56789012"
-  },
-  { 
-    id: 6, name: "1mg Pharmacy", distance: "1.8 km", rating: 4.7, 
-    status: "Verified", type: "private",
-    coordinates: [22.5726, 88.3639] as [number, number],
-    address: "Salt Lake, Kolkata", isOpen: true, emergencyAvailable: true,
-    medicinesAvailable: 96, openHours: "24 hours", phone: "+91-33-67890123"
-  }
-];
+// ── Data adapter ─────────────────────────────────────────────────────────────
+function toPharmacy(op: OverpassPharmacy & { _distanceFormatted?: string }): Pharmacy {
+  return {
+    id: op.id,
+    name: op.name,
+    distance: (op as any)._distanceFormatted || "—",
+    rating: 0,
+    status: op.type === "govt" ? "Govt. Verified" : "OSM Verified",
+    type: op.type,
+    coordinates: { lat: op.lat, lng: op.lng },
+    address: op.address,
+    phone: op.phone,
+  };
+}
 
-// Floating Bottom Drawer Component
-function BottomDrawer({ children, isOpen, onClose, onHeightChange, count, selectedId }: {
+// ── Draggable Bottom Drawer (PR #144 signature component) ────────────────────
+function BottomDrawer({
+  children,
+  isOpen,
+  onClose,
+  onHeightChange,
+  count,
+  isLoading,
+}: {
   children: React.ReactNode;
   isOpen: boolean;
   onClose: () => void;
   onHeightChange?: (h: number) => void;
   count: number;
-  selectedId: number | null;
+  isLoading: boolean;
 }) {
-  const [drawerHeight, setDrawerHeight] = useState(0.35);
+  const [drawerHeight, setDrawerHeight] = useState(0.38);
   const drawerRef = useRef<HTMLDivElement>(null);
   const startY = useRef(0);
   const startHeight = useRef(0);
 
-  const expandDrawer = () => setDrawerHeight(0.7);
-  const collapseDrawer = () => setDrawerHeight(0.35);
+  const expandDrawer = () => {
+    setDrawerHeight(0.7);
+    onHeightChange?.(0.7);
+  };
+
+  const collapseDrawer = () => {
+    setDrawerHeight(0.38);
+    onHeightChange?.(0.38);
+  };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     startY.current = e.touches[0].clientY;
     startHeight.current = drawerHeight;
-    if (drawerRef.current) drawerRef.current.style.transition = 'none';
+    if (drawerRef.current) drawerRef.current.style.transition = "none";
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     const delta = (startY.current - e.touches[0].clientY) / window.innerHeight;
-    const newHeight = Math.min(0.85, Math.max(0.2, startHeight.current + delta));
+    const newHeight = Math.min(0.85, Math.max(0.18, startHeight.current + delta));
     setDrawerHeight(newHeight);
     if (drawerRef.current) {
       drawerRef.current.style.transform = `translateY(${(1 - newHeight) * 100}%)`;
@@ -107,13 +96,13 @@ function BottomDrawer({ children, isOpen, onClose, onHeightChange, count, select
   };
 
   const handleTouchEnd = () => {
-    const snapPoint = drawerHeight > 0.55 ? 0.7 : 0.35;
+    const snapPoint = drawerHeight > 0.55 ? 0.7 : 0.38;
     setDrawerHeight(snapPoint);
     if (drawerRef.current) {
       drawerRef.current.style.transform = `translateY(${(1 - snapPoint) * 100}%)`;
-      drawerRef.current.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
+      drawerRef.current.style.transition = "transform 0.3s cubic-bezier(0.32,0.72,0,1)";
       setTimeout(() => {
-        if (drawerRef.current) drawerRef.current.style.transition = '';
+        if (drawerRef.current) drawerRef.current.style.transition = "";
       }, 300);
     }
     onHeightChange?.(snapPoint);
@@ -129,65 +118,68 @@ function BottomDrawer({ children, isOpen, onClose, onHeightChange, count, select
 
   return (
     <>
-      <div 
-        className="absolute inset-0 bg-black/30 transition-opacity duration-300 z-[900]"
-        style={{ opacity: drawerHeight > 0.5 ? 0.5 : 0.2 }}
+      {/* Dim overlay */}
+      <div
+        className="absolute inset-0 bg-black/20 transition-opacity duration-300 z-[900]"
+        style={{ opacity: drawerHeight > 0.55 ? 0.4 : 0.1 }}
         onClick={onClose}
       />
-      
+
+      {/* Drawer */}
       <div
         ref={drawerRef}
         className="absolute bottom-0 left-0 right-0 z-[1000] pointer-events-auto"
-        style={{ height: '75vh' }}
+        style={{ height: "80vh" }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         <div className="max-w-lg mx-auto h-full flex flex-col">
-          <div className="bg-white/95 backdrop-blur-xl rounded-t-3xl shadow-2xl flex flex-col h-full overflow-hidden border-t border-white/20">
+          <div className="bg-white/96 backdrop-blur-xl rounded-t-3xl shadow-2xl flex flex-col h-full overflow-hidden border-t border-white/20">
+            {/* Handle + Header */}
             <div className="flex-shrink-0 pt-3 pb-2">
               <div className="flex justify-center">
-                <div className="w-12 h-1.5 bg-slate-300 rounded-full" />
+                <div className="w-10 h-1.5 bg-slate-300 rounded-full cursor-grab active:cursor-grabbing" />
               </div>
-              
               <div className="flex items-center justify-between px-5 mt-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                    <Store size={14} className="text-emerald-600" />
+                  <div className="w-7 h-7 bg-emerald-100 rounded-full flex items-center justify-center">
+                    <Store size={13} className="text-emerald-600" />
                   </div>
-                  <h3 className="font-semibold text-slate-800 text-base">
+                  <h3 className="font-semibold text-slate-800 text-sm">
                     Nearby Pharmacies
-                    <span className="text-xs font-normal text-slate-400 ml-1.5">({count})</span>
+                    <span className="text-xs font-normal text-slate-400 ml-1.5">
+                      {isLoading ? "…" : `(${count})`}
+                    </span>
                   </h3>
                 </div>
                 <div className="flex items-center gap-1">
-                  {drawerHeight === 0.35 && (
-                    <button 
+                  {drawerHeight < 0.55 ? (
+                    <button
                       onClick={expandDrawer}
                       className="p-1.5 rounded-full hover:bg-slate-100 transition-colors"
                     >
-                      <ChevronUp size={16} className="text-slate-500" />
+                      <ChevronUp size={15} className="text-slate-500" />
                     </button>
-                  )}
-                  {drawerHeight === 0.7 && (
-                    <button 
+                  ) : (
+                    <button
                       onClick={collapseDrawer}
                       className="p-1.5 rounded-full hover:bg-slate-100 transition-colors"
                     >
-                      <ChevronDown size={16} className="text-slate-500" />
+                      <ChevronDown size={15} className="text-slate-500" />
                     </button>
                   )}
-                  <button 
+                  <button
                     onClick={onClose}
                     className="p-1.5 rounded-full hover:bg-slate-100 transition-colors"
                   >
-                    <X size={14} className="text-slate-500" />
+                    <X size={13} className="text-slate-500" />
                   </button>
                 </div>
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-2">
+            <div className="flex-1 overflow-y-auto px-4 pb-6 space-y-2">
               {children}
             </div>
           </div>
@@ -197,374 +189,421 @@ function BottomDrawer({ children, isOpen, onClose, onHeightChange, count, select
   );
 }
 
-// Compact Pharmacy Card
-function PharmacyCard({ pharmacy, isSelected, onClick }: {
-  pharmacy: typeof pharmaciesData[0];
+// ── Compact Pharmacy Card (PR #144 design) ───────────────────────────────────
+function PharmacyCard({
+  pharmacy,
+  isSelected,
+  onClick,
+}: {
+  pharmacy: Pharmacy;
   isSelected: boolean;
   onClick: () => void;
 }) {
   return (
     <div
       onClick={onClick}
-      className={`
-        rounded-xl p-3 cursor-pointer transition-all duration-200
-        border
-        ${isSelected 
-          ? 'border-emerald-300 bg-emerald-50/60 shadow-md shadow-emerald-100/30' 
-          : 'border-slate-100 bg-white hover:border-slate-200 hover:shadow-sm'
-        }
-      `}
+      className={`rounded-xl p-3 cursor-pointer transition-all duration-200 border ${
+        isSelected
+          ? "border-emerald-300 bg-emerald-50/60 shadow-md shadow-emerald-100/30"
+          : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-sm"
+      }`}
     >
       <div className="flex items-start gap-2.5">
-        <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-          pharmacy.type === 'govt' ? 'bg-emerald-100' : 'bg-blue-50'
-        }`}>
-          <span className="text-sm">{pharmacy.type === 'govt' ? '🏥' : '💊'}</span>
+        <div
+          className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-sm ${
+            pharmacy.type === "govt" ? "bg-emerald-100" : "bg-blue-50"
+          }`}
+        >
+          {pharmacy.type === "govt" ? "🏥" : "💊"}
         </div>
-        
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
-            <h4 className="text-sm font-semibold text-slate-800 truncate">
-              {pharmacy.name}
-            </h4>
-            <div className="flex items-center gap-0.5 shrink-0">
-              <Star size={10} className="text-amber-400 fill-amber-400" />
-              <span className="text-[11px] font-bold text-slate-700">{pharmacy.rating}</span>
+            <h4 className="text-sm font-semibold text-slate-800 truncate">{pharmacy.name}</h4>
+            {pharmacy.rating > 0 && (
+              <div className="flex items-center gap-0.5 shrink-0">
+                <Star size={10} className="text-amber-400 fill-amber-400" />
+                <span className="text-[11px] font-bold text-slate-700">{pharmacy.rating}</span>
+              </div>
+            )}
+          </div>
+
+          {pharmacy.address && (
+            <div className="flex items-center gap-1 mt-0.5">
+              <MapPin size={8} className="text-slate-300 shrink-0" />
+              <p className="text-[10px] text-slate-400 truncate">{pharmacy.address}</p>
             </div>
-          </div>
-          
-          <div className="flex items-center gap-1 mt-0.5">
-            <MapPin size={8} className="text-slate-300 shrink-0" />
-            <p className="text-[10px] text-slate-400 truncate">{pharmacy.address}</p>
-          </div>
+          )}
         </div>
       </div>
 
-      <div className="flex items-center gap-2 mt-2 ml-11">
-        <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
-          pharmacy.isOpen ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'
-        }`}>
-          <span className={`w-1 h-1 rounded-full ${pharmacy.isOpen ? 'bg-green-500' : 'bg-red-400'}`} />
-          {pharmacy.isOpen ? pharmacy.openHours : 'Closed'}
+      {/* Meta row */}
+      <div className="flex items-center gap-2 mt-2 ml-11 flex-wrap">
+        <span
+          className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
+            pharmacy.distance !== "—"
+              ? "bg-slate-50 text-slate-600"
+              : "bg-slate-50 text-slate-400"
+          }`}
+        >
+          {pharmacy.distance !== "—" ? `${pharmacy.distance} away` : "Distance —"}
         </span>
-        <span className="text-[10px] text-slate-300">•</span>
-        <span className="text-[10px] text-slate-400">{pharmacy.distance}</span>
       </div>
 
+      {/* Badge row */}
       <div className="flex flex-wrap gap-1 mt-1.5 ml-11">
         <span className="inline-flex items-center gap-0.5 text-[9px] font-medium bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full">
           <Shield size={6} />
           {pharmacy.status}
         </span>
-        {pharmacy.emergencyAvailable && (
-          <span className="inline-flex items-center gap-0.5 text-[9px] font-medium bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full">
-            <AlertCircle size={6} />
-            24/7
-          </span>
-        )}
-        <span className="inline-flex items-center gap-0.5 text-[9px] font-medium bg-violet-50 text-violet-700 px-1.5 py-0.5 rounded-full">
+        <span
+          className={`inline-flex items-center gap-0.5 text-[9px] font-medium px-1.5 py-0.5 rounded-full ${
+            pharmacy.type === "govt"
+              ? "bg-emerald-50 text-emerald-700"
+              : "bg-blue-50 text-blue-700"
+          }`}
+        >
           <Heart size={6} />
-          {pharmacy.medicinesAvailable}%
+          {pharmacy.type === "govt" ? "Jan Aushadhi" : "Private"}
         </span>
       </div>
 
-      <div className="mt-2 ml-11">
-        <a
-          href={`tel:${pharmacy.phone}`}
-          onClick={(e) => e.stopPropagation()}
-          className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 active:bg-slate-200 px-2.5 py-1 rounded-lg transition-colors"
-        >
-          <Phone size={9} className="text-emerald-600" />
-          Call
-        </a>
-      </div>
+      {/* Call button */}
+      {pharmacy.phone && (
+        <div className="mt-2 ml-11">
+          <a
+            href={`tel:${pharmacy.phone}`}
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 active:bg-slate-200 px-2.5 py-1 rounded-lg transition-colors"
+          >
+            <Phone size={9} className="text-emerald-600" />
+            Call
+          </a>
+        </div>
+      )}
     </div>
   );
 }
 
-// Main Page
+// ── Main Page ─────────────────────────────────────────────────────────────────
 export default function PharmacyMapPage() {
-  const [activeFilter, setActiveFilter] = useState("all");
+  const [activeFilter, setActiveFilter] = useState<"all" | "govt" | "named">("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedPharmacyId, setSelectedPharmacyId] = useState<number | null>(null);
   const [showBottomSheet, setShowBottomSheet] = useState(true);
-  const [drawerHeight, setDrawerHeight] = useState(0.35);
-  const [mounted, setMounted] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
-  useEffect(() => { setMounted(true); }, []);
+  // Live data state (PR #147 engine)
+  const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [showSearchArea, setShowSearchArea] = useState(false);
+  const [pharmacyCount, setPharmacyCount] = useState(0);
 
-  const getFilteredPharmacies = () => {
-    let f = pharmaciesData;
-    if (activeFilter === "govt") f = f.filter(p => p.type === "govt");
-    else if (activeFilter === "top-rated") f = f.filter(p => p.rating >= 4.5);
-    else if (activeFilter === "open") f = f.filter(p => p.isOpen);
+  const pendingBoundsRef = useRef<MapBounds | null>(null);
+  const initialFetchDone = useRef(false);
+
+  // Fetch from Overpass API
+  const fetchNearby = useCallback(async (lat: number, lng: number, radius = 10000) => {
+    setIsLoading(true);
+    setFetchError(null);
+    setShowSearchArea(false);
+    try {
+      const results = await fetchPharmacies(lat, lng, radius);
+      const mapped = results.map(toPharmacy);
+      setPharmacies(mapped);
+      setPharmacyCount(mapped.length);
+      initialFetchDone.current = true;
+    } catch {
+      setFetchError("Could not load pharmacies. Try again.");
+      setTimeout(() => setFetchError(null), 5000);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const fetchInBounds = useCallback(async (bounds: MapBounds) => {
+    setIsLoading(true);
+    setFetchError(null);
+    setShowSearchArea(false);
+    try {
+      const results = await fetchPharmaciesInBounds(bounds);
+      const mapped = results.map(toPharmacy);
+      setPharmacies(mapped);
+      setPharmacyCount(mapped.length);
+    } catch {
+      setFetchError("Could not load pharmacies. Try again.");
+      setTimeout(() => setFetchError(null), 5000);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const handleMapReady = useCallback(
+    (bounds: MapBounds) => {
+      if (!initialFetchDone.current && !userLocation) {
+        fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
+      }
+    },
+    [fetchNearby, userLocation]
+  );
+
+  const handleMapMoveEnd = useCallback((bounds: MapBounds) => {
+    if (initialFetchDone.current) {
+      pendingBoundsRef.current = bounds;
+      setShowSearchArea(true);
+    }
+  }, []);
+
+  const handleSearchThisArea = useCallback(() => {
+    if (pendingBoundsRef.current) fetchInBounds(pendingBoundsRef.current);
+  }, [fetchInBounds]);
+
+  // Filtered list
+  const filteredPharmacies = useMemo(() => {
+    let list = pharmacies;
+    if (activeFilter === "govt") list = list.filter((p) => p.type === "govt");
+    else if (activeFilter === "named") list = list.filter((p) => p.name && p.name !== "Pharmacy");
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      f = f.filter(p => p.name.toLowerCase().includes(q) || p.address.toLowerCase().includes(q));
+      list = list.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          (p.address || "").toLowerCase().includes(q)
+      );
     }
-    return f;
-  };
+    return list;
+  }, [pharmacies, activeFilter, searchQuery]);
 
-  const filteredPharmacies = getFilteredPharmacies();
-  const selectedPharmacyCoords = selectedPharmacyId !== null
-    ? pharmaciesData.find(p => p.id === selectedPharmacyId)?.coordinates ?? null
-    : null;
-
-  const handlePharmacyClick = (id: number) => {
-    setSelectedPharmacyId(id);
-    setShowBottomSheet(true);
-  };
+  // Geolocation
+  const handleLocateUser = useCallback(() => {
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation is not supported by your browser");
+      setTimeout(() => setLocationError(null), 3000);
+      return;
+    }
+    setIsLocating(true);
+    setLocationError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setUserLocation(loc);
+        setIsLocating(false);
+        fetchNearby(loc.lat, loc.lng);
+      },
+      (err) => {
+        setIsLocating(false);
+        const messages: Record<number, string> = {
+          1: "Location access denied. Please enable it in browser settings.",
+          2: "Location information unavailable.",
+          3: "Location request timed out.",
+        };
+        setLocationError(messages[err.code] || "Unable to get your location.");
+        setTimeout(() => setLocationError(null), 4000);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  }, [fetchNearby]);
 
   const filters = [
-    { id: "all", label: "All", icon: null, activeClass: "bg-slate-900 text-white" },
-    { id: "govt", label: "Jan Aushadhi", icon: <Globe size={11} />, activeClass: "bg-emerald-600 text-white" },
-    { id: "top-rated", label: "Top Rated", icon: <Star size={11} className="fill-current" />, activeClass: "bg-amber-500 text-white" },
-    { id: "open", label: "Open Now", icon: <Clock size={11} />, activeClass: "bg-emerald-600 text-white" },
-  ];
+    { id: "all", label: "All Stores", activeClass: "bg-slate-900 text-white shadow-md" },
+    { id: "govt", label: "Jan Aushadhi", icon: <Globe size={11} />, activeClass: "bg-emerald-600 text-white shadow-md shadow-emerald-200" },
+    { id: "named", label: "Named Only", icon: <Star size={11} className="fill-current" />, activeClass: "bg-amber-500 text-white shadow-md shadow-amber-200" },
+    { id: "more", label: "Filters", icon: <Filter size={11} />, activeClass: "bg-slate-100 text-slate-500" },
+  ] as const;
 
   return (
-
-    <div className="h-screen bg-slate-50 flex flex-col overflow-hidden">
-
-      {/* Header */}
-      <PageHeader backHref="/" variant="light">
-        <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search pharmacy..."
-            className="w-full bg-slate-100 rounded-xl pl-9 pr-8 py-2 text-[13px] font-medium placeholder:text-slate-400 focus:bg-white focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition-all"
-
     <div className="h-screen bg-slate-50 font-sans flex flex-col overflow-hidden">
       <h1 className="sr-only">Pharmacy Map — Find Verified Pharmacies Near You</h1>
-      
-      <PageHeader backHref="/" variant="light">
-        <div className="flex-1 bg-slate-100 rounded-2xl flex items-center px-4 py-2 border border-slate-200 focus-within:bg-white focus-within:border-emerald-500 transition-all" role="search">
-          <Search size={18} aria-hidden="true" className="text-slate-400" />
-          <label htmlFor="pharmacy-search" className="sr-only">Search verified pharmacies</label>
-          <input 
-              id="pharmacy-search"
-              type="text" 
-              placeholder="Search verified pharmacies..." 
-              aria-label="Search verified pharmacies"
-              className="bg-transparent border-none outline-none px-3 py-1.5 w-full text-sm font-medium text-slate-700"
 
+      {/* ── Header with search ── */}
+      <PageHeader backHref="/" variant="light">
+        <div
+          className="flex-1 bg-slate-100 rounded-2xl flex items-center px-4 py-2 border border-slate-200 focus-within:bg-white focus-within:border-emerald-500 transition-all"
+          role="search"
+        >
+          <Search size={17} className="text-slate-400 shrink-0" aria-hidden />
+          <input
+            type="text"
+            placeholder="Search verified pharmacies..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="bg-transparent border-none outline-none px-3 py-1.5 w-full text-sm font-medium text-slate-700 placeholder:text-slate-400"
+            aria-label="Search verified pharmacies"
           />
           {searchQuery && (
-            <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2">
-              <X size={12} className="text-slate-400" />
+            <button
+              onClick={() => setSearchQuery("")}
+              className="text-slate-400 hover:text-slate-600 transition-colors shrink-0"
+            >
+              <X size={15} />
             </button>
           )}
         </div>
       </PageHeader>
 
-
-      {/* Filter Chips */}
-      <div className="bg-white/95 backdrop-blur-sm border-b border-slate-100 z-20">
-        <div className="px-3 py-2">
-          <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
-            {filters.map(f => (
-              <button
-                key={f.id}
-                onClick={() => setActiveFilter(f.id)}
-                className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-all ${
-                  activeFilter === f.id
-                    ? f.activeClass + ' shadow-sm'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                {f.icon}
-                {f.label}
-              </button>
-            ))}
-            <button className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600">
-              <Filter size={11} />
-              More
-
-      <div className="bg-white p-4 pt-0 pb-6 shadow-sm z-20 border-b border-slate-100">
-        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar" role="group" aria-label="Filter pharmacies by type">
-            <button 
-              onClick={() => setActiveFilter("all")}
-              aria-pressed={activeFilter === "all"}
-              className={`whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold transition-all ${activeFilter === "all" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
+      {/* ── Filter chips ── */}
+      <div className="bg-white p-4 pt-0 pb-4 shadow-sm z-20 border-b border-slate-100">
+        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar" role="group" aria-label="Filter pharmacies">
+          {filters.map((f) => (
+            <button
+              key={f.id}
+              onClick={() => f.id !== "more" && setActiveFilter(f.id as any)}
+              aria-pressed={activeFilter === f.id}
+              className={`whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${
+                activeFilter === f.id
+                  ? f.activeClass
+                  : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+              }`}
             >
-                All Stores
+              {("icon" in f) && f.icon}
+              {f.label}
             </button>
-            <button 
-              onClick={() => setActiveFilter("govt")}
-              aria-pressed={activeFilter === "govt"}
-              className={`whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${activeFilter === "govt" ? "bg-emerald-600 text-white" : "bg-emerald-50 text-emerald-700 border border-emerald-100"}`}
-            >
-                <Globe size={12} aria-hidden="true" />
-                Jan Aushadhi
-            </button>
-            <button aria-label="Filter by top rated pharmacies" className="whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-slate-100 text-slate-500 flex items-center gap-1.5">
-                <Star size={12} aria-hidden="true" />
-                Top Rated
-            </button>
-            <button aria-label="Open additional pharmacy filters" className="whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-slate-100 text-slate-500 flex items-center gap-1.5">
-                <Filter size={12} aria-hidden="true" />
-                Filters
+          ))}
+        </div>
 
-            </button>
-          </div>
+        {/* Results count bar */}
+        <div className="flex items-center gap-2 mt-2 px-1">
+          <p className="text-[11px] font-medium text-slate-400">
+            {isLoading ? (
+              <span className="flex items-center gap-1.5">
+                <Loader2 size={10} className="animate-spin" />
+                Fetching pharmacies from OpenStreetMap…
+              </span>
+            ) : (
+              <>
+                {filteredPharmacies.length} pharmacies found
+                {searchQuery && <> for &ldquo;{searchQuery}&rdquo;</>}
+                {pharmacyCount > 0 && (
+                  <span className="text-emerald-600"> • Live from OSM</span>
+                )}
+              </>
+            )}
+          </p>
         </div>
       </div>
 
+      {/* ── Map + overlays ── */}
+      <div className="flex-1 relative overflow-hidden">
+        {/* Real Leaflet Map (PR #147) */}
+        <PharmacyMap
+          pharmacies={filteredPharmacies}
+          selectedPharmacyId={selectedPharmacyId}
+          userLocation={userLocation}
+          onMapMoveEnd={handleMapMoveEnd}
+          onMapReady={handleMapReady}
+          autoFitBounds={!isLoading && filteredPharmacies.length > 0}
+          initialCenter={userLocation || DEFAULT_CENTER}
+          initialZoom={DEFAULT_ZOOM}
+        />
 
-      {/* Map Container - FIXED: Map fills remaining space properly */}
-      <div className="relative flex-1 min-h-0">
-        {mounted && (
-          <div className="absolute inset-0">
-            <Map
-              pharmacies={filteredPharmacies}
-              selectedPharmacy={selectedPharmacyCoords}
-              selectedPharmacyId={selectedPharmacyId}
-              onMarkerClick={handlePharmacyClick}
-            />
+        {/* "Search this area" pill */}
+        {showSearchArea && !isLoading && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000]">
+            <button
+              onClick={handleSearchThisArea}
+              className="flex items-center gap-2 px-5 py-2.5 bg-white text-slate-700 rounded-full shadow-xl border border-slate-200 text-xs font-bold hover:bg-slate-50 hover:shadow-2xl transition-all active:scale-95"
+            >
+              <RefreshCw size={13} className="text-emerald-600" />
+              Search this area
+            </button>
           </div>
         )}
 
-        {/* Floating Controls */}
-        <div className="absolute right-3 top-3 z-[400]">
-          <div className="bg-white/95 backdrop-blur-md rounded-xl shadow-lg overflow-hidden">
-            <button
-              onClick={() => setShowBottomSheet(!showBottomSheet)}
-              className="w-9 h-9 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors"
-            >
-              <Layers size={16} />
-            </button>
-            <div className="h-px bg-slate-200 mx-2" />
-            <button
-              onClick={() => {
-                if ("geolocation" in navigator) {
-                  navigator.geolocation.getCurrentPosition(
-                    () => alert("📍 Location found!"),
-                    () => alert("Please enable location services")
-                  );
-                }
-              }}
-              className="w-9 h-9 flex items-center justify-center text-emerald-600 hover:bg-slate-100 transition-colors"
-            >
-              <Navigation size={16} />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Drawer */}
-      <BottomDrawer
-        isOpen={showBottomSheet}
-        onClose={() => setShowBottomSheet(false)}
-        onHeightChange={setDrawerHeight}
-        count={filteredPharmacies.length}
-        selectedId={selectedPharmacyId}
-      >
-        {filteredPharmacies.length > 0 ? (
-          filteredPharmacies.map(pharmacy => (
-            <PharmacyCard
-              key={pharmacy.id}
-              pharmacy={pharmacy}
-              isSelected={selectedPharmacyId === pharmacy.id}
-              onClick={() => handlePharmacyClick(pharmacy.id)}
-            />
-          ))
-        ) : (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-3 text-xl">
-              🔍
+        {/* Loading pill */}
+        {isLoading && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000]">
+            <div className="flex items-center gap-2 px-5 py-2.5 bg-white text-slate-600 rounded-full shadow-xl border border-slate-200 text-xs font-bold">
+              <Loader2 size={13} className="animate-spin text-emerald-600" />
+              Fetching pharmacies…
             </div>
-            <p className="text-sm font-medium text-slate-700">No pharmacies found</p>
-            <p className="text-xs text-slate-400 mt-1">Try adjusting your filters</p>
           </div>
         )}
-      </BottomDrawer>
-
-      {/* Map View Area (Mock) */}
-      <main className="flex-1 relative bg-slate-200 overflow-hidden" aria-label="Pharmacy map view">
-        {/* Mock Map Background */}
-        <div className="absolute inset-0 bg-[#e5e7eb] overflow-hidden" role="img" aria-label="Map showing nearby verified pharmacies">
-            {/* Simulated map grid lines */}
-            <div className="absolute inset-0 opacity-10 bg-[linear-gradient(rgba(0,0,0,.1)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,.1)_1px,transparent_1px)] bg-size-[40px_40px]" aria-hidden="true"></div>
-            
-            {/* Simulated Pins */}
-            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-bounce" aria-hidden="true">
-                <div className="relative">
-                    <div className="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center text-white shadow-xl shadow-emerald-600/40 border-4 border-white">
-                        <MapPin size={24} aria-hidden="true" />
-                    </div>
-                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-white px-3 py-1 rounded-full shadow-lg border border-slate-100 whitespace-nowrap">
-                        <span className="text-[10px] font-black text-slate-800">PM Jan Aushadhi</span>
-                    </div>
-                </div>
-            </div>
-
-            <div className="absolute top-1/2 right-1/4 animate-pulse" aria-hidden="true">
-                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white shadow-lg border-4 border-white">
-                    <MapPin size={20} aria-hidden="true" />
-                </div>
-            </div>
-
-            <div className="absolute bottom-1/4 left-1/4" aria-hidden="true">
-                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white shadow-lg border-4 border-white">
-                    <MapPin size={20} aria-hidden="true" />
-                </div>
-            </div>
-        </div>
 
         {/* Map Controls */}
-        <div className="absolute right-4 top-4 flex flex-col gap-2">
-            <button aria-label="Toggle map layers" className="w-10 h-10 bg-white rounded-xl shadow-md flex items-center justify-center text-slate-600 hover:text-slate-900">
-                <Layers size={20} aria-hidden="true" />
-                <span className="sr-only">Toggle map layers</span>
-            </button>
-            <button aria-label="Center map on my location" className="w-10 h-10 bg-white rounded-xl shadow-md flex items-center justify-center text-emerald-600 hover:text-emerald-900 font-bold">
-                <Navigation size={20} aria-hidden="true" />
-                <span className="sr-only">Center map on my location</span>
-            </button>
+        <div className="absolute right-4 top-4 flex flex-col gap-2 z-[1000]">
+          <button
+            className="w-10 h-10 bg-white rounded-xl shadow-lg flex items-center justify-center text-slate-600 hover:text-slate-900 hover:shadow-xl transition-all border border-slate-100"
+            title="Toggle pharmacy list"
+            onClick={() => setShowBottomSheet((b) => !b)}
+          >
+            <Layers size={20} />
+          </button>
+          <button
+            onClick={handleLocateUser}
+            disabled={isLocating}
+            className={`w-10 h-10 rounded-xl shadow-lg flex items-center justify-center transition-all border border-slate-100 ${
+              isLocating
+                ? "bg-emerald-50 text-emerald-600 animate-pulse"
+                : userLocation
+                ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                : "bg-white text-emerald-600 hover:text-emerald-900 hover:shadow-xl"
+            }`}
+            title="Find my location"
+          >
+            <Navigation size={20} />
+          </button>
         </div>
 
-        {/* Bottom List Sheet (Mock) */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 space-y-3 max-h-80 overflow-y-auto no-scrollbar" role="list" aria-label="Nearby pharmacies">
-            {pharmacies.map((pharmacy) => (
-                <div key={pharmacy.id} role="listitem" className="bg-white rounded-3xl p-5 shadow-xl border border-slate-100 flex items-center justify-between group hover:scale-[1.02] transition-all">
-                    <div className="flex items-start gap-4">
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${pharmacy.type === 'govt' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>
-                            <MapIcon size={24} aria-hidden="true" />
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-2">
+        {/* Error toast */}
+        {(locationError || fetchError) && (
+          <div className="absolute top-4 left-4 right-16 z-[1000] bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl shadow-lg text-xs font-semibold animate-in slide-in-from-top-2 duration-300">
+            {locationError || fetchError}
+          </div>
+        )}
 
-                                <h2 className="font-bold text-slate-800 text-sm">{pharmacy.name}</h2>
-                                <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-md">Verified</span>
+        {/* ── PR #144 Draggable Bottom Sheet ── */}
+        <BottomDrawer
+          isOpen={showBottomSheet}
+          onClose={() => setShowBottomSheet(false)}
+          count={filteredPharmacies.length}
+          isLoading={isLoading}
+        >
+          {isLoading ? (
+            <div className="text-center py-10">
+              <Loader2 size={26} className="mx-auto text-emerald-600 animate-spin mb-3" />
+              <p className="text-sm font-bold text-slate-400">Finding nearby pharmacies…</p>
+              <p className="text-xs text-slate-300 mt-1">Powered by OpenStreetMap</p>
+            </div>
+          ) : filteredPharmacies.length === 0 ? (
+            <div className="text-center py-10">
+              <MapPin size={30} className="mx-auto text-slate-300 mb-2" />
+              <p className="text-sm font-bold text-slate-400">No pharmacies found</p>
+              <p className="text-xs text-slate-300 mt-1">
+                Try panning the map and pressing &ldquo;Search this area&rdquo;
+              </p>
+            </div>
+          ) : (
+            filteredPharmacies.map((pharmacy) => (
+              <PharmacyCard
+                key={pharmacy.id}
+                pharmacy={pharmacy}
+                isSelected={selectedPharmacyId === pharmacy.id}
+                onClick={() => {
+                  setSelectedPharmacyId(pharmacy.id);
+                  setShowBottomSheet(true);
+                }}
+              />
+            ))
+          )}
+        </BottomDrawer>
 
-                                <h4 className="font-bold text-slate-800 text-sm">{pharmacy.name}</h4>
-                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${pharmacy.status === 'Verified' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>{pharmacy.status}</span>
+        {/* Floating toggle when sheet is closed */}
+        {!showBottomSheet && (
+          <button
+            onClick={() => setShowBottomSheet(true)}
+            className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-full shadow-xl text-xs font-bold hover:bg-slate-800 transition-all active:scale-95"
+          >
+            <ChevronUp size={14} />
+            {filteredPharmacies.length} Pharmacies
+          </button>
+        )}
+      </div>
 
-                            </div>
-                            <div className="flex items-center gap-3 mt-1">
-                                <span className="text-xs text-slate-400 font-medium">{pharmacy.distance} away</span>
-                                <div className="flex items-center gap-1">
-                                    <Star size={10} aria-hidden="true" className="text-amber-400 fill-amber-400" />
-                                    <span className="text-xs text-slate-600 font-bold" aria-label={`Rating: ${pharmacy.rating} out of 5`}>{pharmacy.rating}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <button aria-label={`Call ${pharmacy.name}`} className="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800 shadow-md">
-                        <Phone size={18} aria-hidden="true" />
-                        <span className="sr-only">Call {pharmacy.name}</span>
-                    </button>
-                </div>
-            ))}
-        </div>
-      </main>
-      
-      {/* Safe Area Footer */}
-      <div className="h-4 bg-white md:hidden" aria-hidden="true"></div>
-
+      {/* Safe-area footer */}
+      <div className="h-4 bg-white md:hidden" aria-hidden="true" />
     </div>
   );
 }
