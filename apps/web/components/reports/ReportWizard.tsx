@@ -14,14 +14,8 @@ import { z } from "zod";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 
 // ─── Cloudinary env ────────────────────────────────────────────────────────────
-// ⚠️ SECURITY NOTE: These credentials use an "unsigned" Cloudinary upload preset.
-// This means the upload goes directly from the browser to Cloudinary without
-// server-side validation. Anyone who inspects the source code could extract these
-// values and upload arbitrary files to the Cloudinary account.
-// For production, migrate to a "signed" upload flow via a server-side API route
-// (e.g. /api/upload) that signs each request with CLOUDINARY_API_SECRET.
-const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? "";
-const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ?? "";
+// Uploads are now securely routed through our backend API (/api/upload),
+// eliminating the need to expose unsigned presets or API keys in the client.
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB per file
@@ -247,21 +241,17 @@ function Step2({
 
   const imgErr = errors.images?.message as string | undefined;
 
-  // Upload one file to Cloudinary
+  // Upload one file to Cloudinary securely via our API route
   const uploadOne = async (file: File): Promise<string> => {
-    if (!CLOUD_NAME || !UPLOAD_PRESET)
-      throw new Error("Cloudinary env vars missing — check .env.local");
     const fd = new FormData();
     fd.append("file", file);
-    fd.append("upload_preset", UPLOAD_PRESET);
-    const res = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-      { method: "POST", body: fd }
-    );
+    const res = await fetch("/api/upload", { method: "POST", body: fd });
+    
     if (!res.ok) {
-      const e = await res.json().catch(() => ({})) as { error?: { message?: string } };
-      throw new Error(e.error?.message ?? `HTTP ${res.status}`);
+      const e = await res.json().catch(() => ({})) as { error?: string };
+      throw new Error(e.error ?? `HTTP ${res.status}`);
     }
+    
     return ((await res.json()) as { secure_url: string }).secure_url;
   };
 
@@ -514,8 +504,26 @@ export default function ReportWizard() {
     setSubmitting(true);
     setSubmitErr(null);
     try {
-      await new Promise<void>(r => setTimeout(r, 1600)); // simulate API
-      console.log("🚨 Fake Medicine Report:", JSON.stringify(data, null, 2));
+      const token = typeof window !== 'undefined' ? localStorage.getItem('sb-access-token') : null;
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+      
+      const res = await fetch(`${API_BASE}/reports`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          reportedBrandName: data.medicineName,
+          photoUrl: data.images[0] ?? null,
+          district: data.city || data.state,
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error(`API error: ${res.status}`);
+      }
+
       setDone(true);
     } catch {
       setSubmitErr("Submission failed. Please check your connection and try again.");

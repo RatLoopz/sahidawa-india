@@ -25,8 +25,8 @@ import Footer from "./components/Footer";
 
 export default function SahiDawaHome() {
   const router = useRouter();
-  const params = useParams();
-  const locale = params.locale;
+ const params = useParams<{ locale: string }>();
+const locale = params?.locale || "en";
 
   const tHome = useTranslations("Home");
   const tNav = useTranslations("Navigation");
@@ -63,6 +63,9 @@ export default function SahiDawaHome() {
               </button>
               <Link href="/map" className="hover:text-emerald-600 transition-colors">
                 {tNav("pharmacy_map")}
+              </Link>
+              <Link href="/reports/me" className="hover:text-emerald-600 transition-colors flex items-center gap-1">
+                <History size={14} /> My Reports
               </Link>
             </nav>
 
@@ -125,8 +128,8 @@ export default function SahiDawaHome() {
           <ChevronRight size={32} className="relative z-10 text-emerald-200 opacity-50 group-hover:opacity-100 group-hover:translate-x-2 transition-all hidden sm:block shrink-0" />
         </button>
 
-        {/* ── Secondary Action Cards — Horizontal (icon + text) ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+        {/* ── Secondary Action Cards ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
 
           {/* Upload Photo */}
           <button
@@ -170,6 +173,21 @@ export default function SahiDawaHome() {
             <div>
               <h3 className="font-bold text-slate-800 text-lg">{tHome("pharmacy_map")}</h3>
               <p className="text-slate-500 text-sm mt-0.5 font-medium leading-snug">{tHome("pharmacy_subtitle")}</p>
+            </div>
+          </button>
+
+          {/* Report Fake Medicine */}
+          <button
+            onClick={() => handleNavigation("report")}
+            className="flex items-center gap-5 bg-white border border-slate-200 p-6 rounded-3xl active:scale-95 transition-all group hover:border-red-200 hover:shadow-lg hover:shadow-red-100/50 text-left w-full"
+            aria-label="Report fake medicine"
+          >
+            <div className="w-14 h-14 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center group-hover:bg-red-500 group-hover:text-white transition-colors duration-300 shrink-0">
+              <AlertTriangle size={28} strokeWidth={2.5} />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-800 text-lg">Report Fake</h3>
+              <p className="text-slate-500 text-sm mt-0.5 font-medium leading-snug">Report suspicious medicine</p>
             </div>
           </button>
         </div>
@@ -310,48 +328,83 @@ export default function SahiDawaHome() {
       {/* Spacer for mobile nav */}
       <div className="h-16 md:hidden"></div>
 
-      {/* ── Mobile Bottom Navigation ── */}
-      <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200/60 flex justify-around px-2 py-3 items-center z-50 pb-[env(safe-area-inset-bottom)]"
-        aria-label="Mobile navigation"
-      >
-        <Link href="/" className="flex flex-col items-center gap-1.5 w-16 group" aria-label="Home">
-          <div className="text-emerald-600 group-hover:-translate-y-1 transition-transform">
-            <Home size={24} strokeWidth={2.5} />
-          </div>
-          <span className="text-[11px] font-bold text-emerald-600">Home</span>
-        </Link>
+ {/* ── Mobile Bottom Navigation ── */}
+<nav
+  className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200/60 flex justify-around px-2 py-3 items-center z-50 pb-[env(safe-area-inset-bottom)]"
+  aria-label="Mobile navigation"
+>
+  <Link
+    href="/"
+    className="flex flex-col items-center gap-1.5 w-16 group"
+    aria-label="Home"
+  >
+    <div className="text-emerald-600 group-hover:-translate-y-1 transition-transform">
+      <Home size={24} strokeWidth={2.5} />
+    </div>
 
-        <Link href="/scan" className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-slate-600 transition-colors" aria-label="Scans">
-          <div className="group-hover:-translate-y-1 transition-transform">
-            <History size={24} strokeWidth={2} />
-          </div>
-          <span className="text-[11px] font-semibold">Scans</span>
-        </Link>
+    <span className="text-[11px] font-bold text-emerald-600">
+      Home
+    </span>
+  </Link>
 
-        <Link href="/map" className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-amber-600 transition-colors" aria-label="Map">
-          <div className="group-hover:-translate-y-1 transition-transform">
-            <MapPin size={24} strokeWidth={2} />
-          </div>
-          <span className="text-[11px] font-semibold">Map</span>
-        </Link>
+  <Link
+    href="/scan"
+    className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-slate-600 transition-colors"
+    aria-label="Scans"
+  >
+    <div className="group-hover:-translate-y-1 transition-transform">
+      <History size={24} strokeWidth={2} />
+    </div>
 
-        <button className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-slate-600 transition-colors" aria-label="Alerts">
-          <div className="relative group-hover:-translate-y-1 transition-transform">
-            <Bell size={24} strokeWidth={2} />
-            <span className="absolute top-0 right-0.5 w-2 h-2 bg-red-500 border border-white rounded-full"></span>
-          </div>
-          <span className="text-[11px] font-semibold">Alerts</span>
-        </button>
+    <span className="text-[11px] font-semibold">
+      Scans
+    </span>
+  </Link>
 
-        <button className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-slate-600 transition-colors" aria-label="Profile">
-          <div className="group-hover:-translate-y-1 transition-transform">
-            <User size={24} strokeWidth={2} />
-          </div>
-          <span className="text-[11px] font-semibold">Profile</span>
-        </button>
-      </nav>
+  <Link
+    href="/map"
+    className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-amber-600 transition-colors"
+    aria-label="Map"
+  >
+    <div className="group-hover:-translate-y-1 transition-transform">
+      <MapPin size={24} strokeWidth={2} />
+    </div>
 
+    <span className="text-[11px] font-semibold">
+      Map
+    </span>
+  </Link>
+
+  <Link
+    href="/alerts"
+    className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-red-500 transition-colors"
+    aria-label="Alerts"
+  >
+    <div className="relative group-hover:-translate-y-1 transition-transform">
+      <Bell size={24} strokeWidth={2} />
+
+      <span className="absolute top-0 right-0.5 w-2 h-2 bg-red-500 border border-white rounded-full animate-pulse"></span>
+    </div>
+
+    <span className="text-[11px] font-semibold">
+      Alerts
+    </span>
+  </Link>
+
+  <Link
+    href="/profile"
+    className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-emerald-600 transition-colors"
+    aria-label="Profile"
+  >
+    <div className="group-hover:-translate-y-1 transition-transform">
+      <User size={24} strokeWidth={2} />
+    </div>
+
+    <span className="text-[11px] font-semibold">
+      Profile
+    </span>
+  </Link>
+</nav>
       <Footer />
     </div>
   );

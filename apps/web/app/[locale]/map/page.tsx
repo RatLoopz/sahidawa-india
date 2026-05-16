@@ -120,7 +120,7 @@ function BottomDrawer({
     <>
       {/* Dim overlay */}
       <div
-        className="absolute inset-0 bg-black/20 transition-opacity duration-300 z-[900]"
+        className="absolute inset-0 bg-black/20 transition-opacity duration-300 z-900"
         style={{ opacity: drawerHeight > 0.55 ? 0.4 : 0.1 }}
         onClick={onClose}
       />
@@ -128,7 +128,7 @@ function BottomDrawer({
       {/* Drawer */}
       <div
         ref={drawerRef}
-        className="absolute bottom-0 left-0 right-0 z-[1000] pointer-events-auto"
+        className="absolute bottom-0 left-0 right-0 z-1000 pointer-events-auto"
         style={{ height: "80vh" }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -137,7 +137,7 @@ function BottomDrawer({
         <div className="max-w-lg mx-auto h-full flex flex-col">
           <div className="bg-white/96 backdrop-blur-xl rounded-t-3xl shadow-2xl flex flex-col h-full overflow-hidden border-t border-white/20">
             {/* Handle + Header */}
-            <div className="flex-shrink-0 pt-3 pb-2">
+            <div className="shrink-0 pt-3 pb-2">
               <div className="flex justify-center">
                 <div className="w-10 h-1.5 bg-slate-300 rounded-full cursor-grab active:cursor-grabbing" />
               </div>
@@ -329,7 +329,7 @@ export default function PharmacyMapPage() {
     setFetchError(null);
     setShowSearchArea(false);
     try {
-      const results = await fetchPharmaciesInBounds(bounds);
+      const results = await fetchPharmaciesInBounds(bounds.south, bounds.west, bounds.north, bounds.east);
       const mapped = results.map(toPharmacy);
       setPharmacies(mapped);
       setPharmacyCount(mapped.length);
@@ -501,7 +501,7 @@ export default function PharmacyMapPage() {
 
         {/* "Search this area" pill */}
         {showSearchArea && !isLoading && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000]">
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-1000">
             <button
               onClick={handleSearchThisArea}
               className="flex items-center gap-2 px-5 py-2.5 bg-white text-slate-700 rounded-full shadow-xl border border-slate-200 text-xs font-bold hover:bg-slate-50 hover:shadow-2xl transition-all active:scale-95"
@@ -514,7 +514,7 @@ export default function PharmacyMapPage() {
 
         {/* Loading pill */}
         {isLoading && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000]">
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-1000">
             <div className="flex items-center gap-2 px-5 py-2.5 bg-white text-slate-600 rounded-full shadow-xl border border-slate-200 text-xs font-bold">
               <Loader2 size={13} className="animate-spin text-emerald-600" />
               Fetching pharmacies…
@@ -523,7 +523,7 @@ export default function PharmacyMapPage() {
         )}
 
         {/* Map Controls */}
-        <div className="absolute right-4 top-4 flex flex-col gap-2 z-[1000]">
+        <div className="absolute right-4 top-4 flex flex-col gap-2 z-1000">
           <button
             className="w-10 h-10 bg-white rounded-xl shadow-lg flex items-center justify-center text-slate-600 hover:text-slate-900 hover:shadow-xl transition-all border border-slate-100"
             title="Toggle pharmacy list"
@@ -549,7 +549,7 @@ export default function PharmacyMapPage() {
 
         {/* Error toast */}
         {(locationError || fetchError) && (
-          <div className="absolute top-4 left-4 right-16 z-[1000] bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl shadow-lg text-xs font-semibold animate-in slide-in-from-top-2 duration-300">
+          <div className="absolute top-4 left-4 right-16 z-1000 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl shadow-lg text-xs font-semibold animate-in slide-in-from-top-2 duration-300">
             {locationError || fetchError}
           </div>
         )}
@@ -594,7 +594,7 @@ export default function PharmacyMapPage() {
         {!showBottomSheet && (
           <button
             onClick={() => setShowBottomSheet(true)}
-            className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-full shadow-xl text-xs font-bold hover:bg-slate-800 transition-all active:scale-95"
+            className="absolute bottom-6 left-1/2 -translate-x-1/2 z-1000 flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-full shadow-xl text-xs font-bold hover:bg-slate-800 transition-all active:scale-95"
           >
             <ChevronUp size={14} />
             {filteredPharmacies.length} Pharmacies

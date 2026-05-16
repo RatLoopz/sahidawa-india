@@ -54,16 +54,14 @@ export default async function LocaleLayout({
 
   const messages = await getMessages();
 
-  return (
-    <html lang={locale} suppressHydrationWarning>
-      <body>
-        <ThemeProvider>
-          <NextIntlClientProvider messages={messages}>
-            {children}
-          </NextIntlClientProvider>
-          <Toaster richColors position="top-center" />
-        </ThemeProvider>
-      </body>
-    </html>
-  );
+return (
+  <ThemeProvider>
+    <NextIntlClientProvider messages={messages}>
+      {children}
+    </NextIntlClientProvider>
+
+    <Toaster richColors position="top-center" />
+  </ThemeProvider>
+);
+
 }
