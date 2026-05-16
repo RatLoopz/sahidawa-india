@@ -64,6 +64,9 @@ const locale = params?.locale || "en";
               <Link href="/map" className="hover:text-emerald-600 transition-colors">
                 {tNav("pharmacy_map")}
               </Link>
+              <Link href="/reports/me" className="hover:text-emerald-600 transition-colors flex items-center gap-1">
+                <History size={14} /> My Reports
+              </Link>
             </nav>
 
             <button
@@ -125,8 +128,8 @@ const locale = params?.locale || "en";
           <ChevronRight size={32} className="relative z-10 text-emerald-200 opacity-50 group-hover:opacity-100 group-hover:translate-x-2 transition-all hidden sm:block shrink-0" />
         </button>
 
-        {/* ── Secondary Action Cards — Horizontal (icon + text) ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+        {/* ── Secondary Action Cards ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
 
           {/* Upload Photo */}
           <button
@@ -170,6 +173,21 @@ const locale = params?.locale || "en";
             <div>
               <h3 className="font-bold text-slate-800 text-lg">{tHome("pharmacy_map")}</h3>
               <p className="text-slate-500 text-sm mt-0.5 font-medium leading-snug">{tHome("pharmacy_subtitle")}</p>
+            </div>
+          </button>
+
+          {/* Report Fake Medicine */}
+          <button
+            onClick={() => handleNavigation("report")}
+            className="flex items-center gap-5 bg-white border border-slate-200 p-6 rounded-3xl active:scale-95 transition-all group hover:border-red-200 hover:shadow-lg hover:shadow-red-100/50 text-left w-full"
+            aria-label="Report fake medicine"
+          >
+            <div className="w-14 h-14 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center group-hover:bg-red-500 group-hover:text-white transition-colors duration-300 shrink-0">
+              <AlertTriangle size={28} strokeWidth={2.5} />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-800 text-lg">Report Fake</h3>
+              <p className="text-slate-500 text-sm mt-0.5 font-medium leading-snug">Report suspicious medicine</p>
             </div>
           </button>
         </div>
