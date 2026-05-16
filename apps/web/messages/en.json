@@ -18,5 +18,18 @@
     "alerts": "Alerts",
     "pharmacy_map": "Pharmacy Map",
     "language": "English"
+  },
+  "ReportWizard": {
+    "errors": {
+      "medicineName": "At least 2 characters required for medicine name",
+      "manufacturer": "At least 2 characters required for manufacturer",
+      "description": "Please provide a detailed description (min 20 characters)",
+      "images": "At least one photo is required",
+      "pharmacyName": "Required (min 2 characters)",
+      "address": "Required (min 5 characters)",
+      "city": "Required",
+      "state": "Required",
+      "pincode": "Must be a valid 6-digit pincode"
+    }
   }
 }

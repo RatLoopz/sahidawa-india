@@ -12,6 +12,7 @@ import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence, Variants } from "framer-motion";
+import { useTranslations } from "next-intl";
 
 // ─── Cloudinary env ────────────────────────────────────────────────────────────
 // ⚠️ SECURITY NOTE: These credentials use an "unsigned" Cloudinary upload preset.
@@ -31,16 +32,16 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB per file
 const sanitize = (v: string) => v.replace(/<[^>]*>/g, "").trim();
 
 // ─── Zod schema ────────────────────────────────────────────────────────────────
-const schema = z.object({
-  medicineName: z.string().transform(sanitize).pipe(z.string().min(2, "At least 2 characters required")),
-  manufacturer: z.string().transform(sanitize).pipe(z.string().min(2, "At least 2 characters required")),
-  description: z.string().transform(sanitize).pipe(z.string().min(20, "Please provide at least 20 characters")),
-  images: z.array(z.string().url()).min(1, "At least one photo is required"),
-  pharmacyName: z.string().transform(sanitize).pipe(z.string().min(2, "Required")),
-  address: z.string().transform(sanitize).pipe(z.string().min(5, "Required")),
-  city: z.string().transform(sanitize).pipe(z.string().min(2, "Required")),
-  state: z.string().transform(sanitize).pipe(z.string().min(2, "Required")),
-  pincode: z.string().transform(sanitize).pipe(z.string().regex(/^\d{6}$/, "Must be exactly 6 digits")),
+const createSchema = (t: any) => z.object({
+  medicineName: z.string().transform(sanitize).pipe(z.string().min(2, t('errors.medicineName'))),
+  manufacturer: z.string().transform(sanitize).pipe(z.string().min(2, t('errors.manufacturer'))),
+  description: z.string().transform(sanitize).pipe(z.string().min(20, t('errors.description'))),
+  images: z.array(z.string().url()).min(1, t('errors.images')),
+  pharmacyName: z.string().transform(sanitize).pipe(z.string().min(2, t('errors.pharmacyName'))),
+  address: z.string().transform(sanitize).pipe(z.string().min(5, t('errors.address'))),
+  city: z.string().transform(sanitize).pipe(z.string().min(2, t('errors.city'))),
+  state: z.string().transform(sanitize).pipe(z.string().min(2, t('errors.state'))),
+  pincode: z.string().transform(sanitize).pipe(z.string().regex(/^\d{6}$/, t('errors.pincode'))),
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -493,11 +494,10 @@ export default function ReportWizard() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
+  const t = useTranslations('Report Wizard');
   const methods = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: EMPTY,
-    mode: "onTouched",
+    resolver: zodResolver(createSchema(t)),
+    defaultValues: EMPTY
   });
   const { trigger, handleSubmit, reset } = methods;
 
@@ -539,118 +539,118 @@ export default function ReportWizard() {
     <FormProvider {...methods}>
       {/* Semantic form wrapper — enables Enter-to-submit and screen reader identification */}
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
-      {/* Card */}
-      <div className="w-full max-w-2xl mx-auto bg-white rounded-2xl
+        {/* Card */}
+        <div className="w-full max-w-2xl mx-auto bg-white rounded-2xl
         shadow-xl shadow-slate-200/50 border border-slate-200
         overflow-hidden flex flex-col font-sans">
 
-        {/* ── Header band ── */}
-        <div className="bg-slate-900 px-8 pt-8 pb-7 relative overflow-hidden">
-          {/* Decorative blur */}
-          <div className="absolute -right-10 -top-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-3xl"></div>
+          {/* ── Header band ── */}
+          <div className="bg-slate-900 px-8 pt-8 pb-7 relative overflow-hidden">
+            {/* Decorative blur */}
+            <div className="absolute -right-10 -top-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-3xl"></div>
 
-          {/* Top rule */}
-          <div className="relative z-10 flex items-center gap-2.5 mb-4">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-              <Icon.ShieldCheck />
-            </div>
-            <span className="text-xs font-bold tracking-wider uppercase text-emerald-400">
-              MedWatch Report
-            </span>
-          </div>
-          <h2 className="relative z-10 text-3xl font-extrabold text-white tracking-tight leading-tight">
-            {done ? "Report Received" : STEPS[step - 1].title}
-          </h2>
-          {!done && (
-            <p className="relative z-10 text-base text-slate-400 font-medium mt-2">
-              {step === 1 && "Identify the suspicious product"}
-              {step === 2 && "Upload clear photos as evidence"}
-              {step === 3 && "Where was the product purchased?"}
-            </p>
-          )}
-        </div>
-
-        {/* ── Body ── */}
-        <div className="px-8 py-8 bg-white flex-1">
-          {done ? (
-            <Success onReset={handleReset} />
-          ) : (
-            <>
-              <Progress current={step} />
-
-              {/* Animated step content */}
-              <div className="overflow-hidden min-h-[300px]">
-                <AnimatePresence mode="wait" custom={dir}>
-                  <motion.div key={step} custom={dir}
-                    variants={PAGE} initial="enter" animate="show" exit="exit"
-                    className="pb-2"
-                  >
-                    {step === 1 && <Step1 />}
-                    {step === 2 && <Step2 images={images} setImages={setImages} />}
-                    {step === 3 && <Step3 />}
-                  </motion.div>
-                </AnimatePresence>
+            {/* Top rule */}
+            <div className="relative z-10 flex items-center gap-2.5 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                <Icon.ShieldCheck />
               </div>
+              <span className="text-xs font-bold tracking-wider uppercase text-emerald-400">
+                MedWatch Report
+              </span>
+            </div>
+            <h2 className="relative z-10 text-3xl font-extrabold text-white tracking-tight leading-tight">
+              {done ? "Report Received" : STEPS[step - 1].title}
+            </h2>
+            {!done && (
+              <p className="relative z-10 text-base text-slate-400 font-medium mt-2">
+                {step === 1 && "Identify the suspicious product"}
+                {step === 2 && "Upload clear photos as evidence"}
+                {step === 3 && "Where was the product purchased?"}
+              </p>
+            )}
+          </div>
 
-              {/* Submit-level error */}
-              <AnimatePresence>
-                {submitErr && (
-                  <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="mt-6 flex gap-3 items-start bg-red-50 border border-red-200
+          {/* ── Body ── */}
+          <div className="px-8 py-8 bg-white flex-1">
+            {done ? (
+              <Success onReset={handleReset} />
+            ) : (
+              <>
+                <Progress current={step} />
+
+                {/* Animated step content */}
+                <div className="overflow-hidden min-h-[300px]">
+                  <AnimatePresence mode="wait" custom={dir}>
+                    <motion.div key={step} custom={dir}
+                      variants={PAGE} initial="enter" animate="show" exit="exit"
+                      className="pb-2"
+                    >
+                      {step === 1 && <Step1 />}
+                      {step === 2 && <Step2 images={images} setImages={setImages} />}
+                      {step === 3 && <Step3 />}
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+
+                {/* Submit-level error */}
+                <AnimatePresence>
+                  {submitErr && (
+                    <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="mt-6 flex gap-3 items-start bg-red-50 border border-red-200
                       rounded-xl px-5 py-4 text-sm font-medium text-red-600 shadow-sm">
-                    <span className="mt-0.5"><Icon.Alert /></span>
-                    <span>{submitErr}</span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                      <span className="mt-0.5"><Icon.Alert /></span>
+                      <span>{submitErr}</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-              {/* ── Nav buttons ── */}
-              <div className="mt-10 pt-6 border-t border-slate-100 flex items-center justify-between">
-                {/* Back */}
-                <button type="button" onClick={back} disabled={step === 1 || submitting}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold
+                {/* ── Nav buttons ── */}
+                <div className="mt-10 pt-6 border-t border-slate-100 flex items-center justify-between">
+                  {/* Back */}
+                  <button type="button" onClick={back} disabled={step === 1 || submitting}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold
                     text-slate-500 hover:text-slate-800 hover:bg-slate-50 border border-transparent
                     hover:border-slate-200 transition-all duration-200 active:scale-95
                     disabled:opacity-0 disabled:pointer-events-none">
-                  <Icon.Arrow left />Back
-                </button>
+                    <Icon.Arrow left />Back
+                  </button>
 
-                {/* Mobile count */}
-                <span className="text-xs font-bold text-slate-400 sm:hidden">{step}/{STEPS.length}</span>
+                  {/* Mobile count */}
+                  <span className="text-xs font-bold text-slate-400 sm:hidden">{step}/{STEPS.length}</span>
 
-                {/* Next / Submit */}
-                {step < 3 ? (
-                  <button type="button" onClick={next} disabled={submitting}
-                    className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800
+                  {/* Next / Submit */}
+                  {step < 3 ? (
+                    <button type="button" onClick={next} disabled={submitting}
+                      className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800
                       text-white font-bold text-sm px-7 py-3 rounded-xl
                       transition-all duration-200 active:scale-95 shadow-md shadow-slate-900/10
                       disabled:opacity-50 disabled:cursor-not-allowed">
-                    Continue <Icon.Arrow />
-                  </button>
-                ) : (
-                  <button type="button" onClick={handleSubmit(onSubmit)} disabled={submitting}
-                    className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700
+                      Continue <Icon.Arrow />
+                    </button>
+                  ) : (
+                    <button type="button" onClick={handleSubmit(onSubmit)} disabled={submitting}
+                      className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700
                       text-white font-bold text-sm px-7 py-3 rounded-xl
                       transition-all duration-200 active:scale-95
                       shadow-lg shadow-emerald-600/20
                       disabled:opacity-60 disabled:cursor-not-allowed border border-emerald-500">
-                    {submitting ? (
-                      <>
-                        <span className="w-5 h-5 border-[3px] border-white/30 border-t-white
+                      {submitting ? (
+                        <>
+                          <span className="w-5 h-5 border-[3px] border-white/30 border-t-white
                           rounded-full animate-spin" />
-                        Submitting…
-                      </>
-                    ) : (
-                      <>Submit Report <Icon.Send /></>
-                    )}
-                  </button>
-                )}
-              </div>
-            </>
-          )}
+                          Submitting…
+                        </>
+                      ) : (
+                        <>Submit Report <Icon.Send /></>
+                      )}
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         </div>
-      </div>
       </form>
     </FormProvider>
   );
