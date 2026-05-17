@@ -216,7 +216,11 @@ docker compose up --build
 ### Manual Backend Setup
 
 ```bash
-# API Server
+# Ensure environment variables are set at the project root
+cp .env.example .env
+# Edit .env with your keys
+
+# Start API Server
 cd apps/api
 npm install
 npm run dev
