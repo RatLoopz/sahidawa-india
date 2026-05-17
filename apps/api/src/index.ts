@@ -1,8 +1,22 @@
 import express, { Express, Request, Response } from 'express';
 import dotenv from 'dotenv';
+import path from 'path';
 
 // Load environment variables before other imports use process.env
-dotenv.config();
+const rootEnvPath = path.resolve(__dirname, '../../../.env');
+dotenv.config({ path: rootEnvPath });
+
+// Fallback to local .env if root doesn't exist
+if (!process.env.SUPABASE_URL) {
+  dotenv.config();
+}
+
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+  console.error('\n❌ CRITICAL: Missing SUPABASE_URL or SUPABASE_ANON_KEY environment variables.');
+  console.error('Please ensure you have a .env file at the repository root.');
+  console.error(`Attempted locations:\n- ${rootEnvPath}\n- ${process.cwd()}/.env\n`);
+  process.exit(1);
+}
 
 import cors from 'cors';
 import helmet from 'helmet';
