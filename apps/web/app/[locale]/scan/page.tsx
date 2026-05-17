@@ -6,6 +6,7 @@ import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
 import { toast } from "sonner";
 import Footer from "../components/Footer";
+import { ExpiryBadge } from "@/components/scanner/ExpiryBadge";
 
 // Sleek Skeleton component for loading states
 function LoadingSkeleton() {
@@ -218,10 +219,12 @@ Status: Verified by CDSCO Database
                       </button>
                     </div>
                   </div>
-                  <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                    <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Expiry</span>
-                    <span className="font-bold text-slate-700">12/2027</span>
-                  </div>
+                  
+                  <ExpiryBadge expiryDate="12/2027" />
+
+
+
+                  
                 </div>
 
                 <div className="w-full bg-emerald-50 border border-emerald-100 p-4 rounded-2xl flex items-start gap-3 text-left">

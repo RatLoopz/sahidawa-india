@@ -74,6 +74,20 @@
     border: none !important;
   }
 
+  .sahidawa-marker-shell {
+    transition: transform 0.18s ease, filter 0.18s ease;
+    transform-origin: 50% 100%;
+  }
+
+  .sahidawa-marker-hover .sahidawa-marker-shell {
+    filter: drop-shadow(0 10px 16px rgba(15, 23, 42, 0.22));
+    transform: scale(1.16) translateY(-4px);
+  }
+
+  .sahidawa-marker-hover {
+    z-index: 1000 !important;
+  }
+
   .user-location-marker {
     background: transparent !important;
     border: none !important;
