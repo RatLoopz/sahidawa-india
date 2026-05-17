@@ -186,6 +186,14 @@ cd sahidawa-india
 # 2. Install frontend dependencies
 cd apps/web
 npm install
+
+# 3. Copy environment variables
+cp .env.example .env.local
+# Fill in your Supabase URL + anon key (free at supabase.com)
+
+# 4. Run development server
+npm run dev
+# Open http://localhost:3000
 ```
 
 ### ⚠️ Troubleshooting npm install Failures
@@ -208,16 +216,6 @@ If the issue still persists, you may temporarily downgrade package versions loca
 
 > ⚠️ Important:
 > Do not commit modified `package.json` or `package-lock.json` files created during local downgrades. Revert those changes before pushing your PR.
-
-```bash
-# 3. Copy environment variables
-cp .env.example .env.local
-# Fill in your Supabase URL + anon key (free at supabase.com)
-
-# 4. Run development server
-npm run dev
-# Open http://localhost:3000
-```
 
 ### Full Stack with Docker
 
@@ -250,6 +248,7 @@ npm run dev
 For detailed setup instructions, see: [ML Setup Guide](./docs/SETUP_ML.md)
 
 Quick start:
+
 ```bash
 cd apps/ml
 python -m venv venv
