@@ -1,18 +1,28 @@
 import { Router, Response } from 'express';
+import { z } from 'zod';
 import { supabase } from '../db/client';
-import { AuthenticatedRequest, requireAuth, requireRole } from '../middleware/auth';
+import {
+  AuthenticatedRequest,
+  optionalAuth,
+  requireAuth,
+  requireRole,
+} from '../middleware/auth';
 
 const reportsRouter = Router();
 
-interface CreateReportBody {
-  medicineId?: string;
-  scannedBarcode?: string;
-  reportedBrandName?: string;
-  photoUrl?: string;
-  latitude?: number;
-  longitude?: number;
-  district?: string;
-}
+const createReportSchema = z.object({
+  medicineName: z.string().min(2),
+  manufacturer: z.string().min(2),
+  description: z.string().min(20),
+  images: z.array(z.string().url()).min(1),
+  pharmacyName: z.string().min(2),
+  address: z.string().min(5),
+  city: z.string().min(2),
+  state: z.string().min(2),
+  pincode: z.string().regex(/^\d{6}$/),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+});
 
 const buildReportLocation = (latitude?: number, longitude?: number) => {
   if (typeof latitude !== 'number' || typeof longitude !== 'number') {
@@ -22,38 +32,36 @@ const buildReportLocation = (latitude?: number, longitude?: number) => {
   return `POINT(${longitude} ${latitude})`;
 };
 
-reportsRouter.post('/', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-  const {
-    medicineId,
-    scannedBarcode,
-    reportedBrandName,
-    photoUrl,
-    latitude,
-    longitude,
-    district,
-  } = req.body as CreateReportBody;
+reportsRouter.post('/', optionalAuth, async (req: AuthenticatedRequest, res: Response) => {
+  const parsed = createReportSchema.safeParse(req.body);
 
-  if (!scannedBarcode && !reportedBrandName && !medicineId) {
+  if (!parsed.success) {
     res.status(400).json({
-      error: 'At least one medicine identifier is required',
+      error: 'Invalid report payload',
+      issues: parsed.error.issues,
     });
     return;
   }
 
-  const { data, error } = await supabase
+  const data = parsed.data;
+
+  const { data: report, error } = await supabase
     .from('counterfeit_reports')
     .insert({
-      medicine_id: medicineId,
-      scanned_barcode: scannedBarcode,
-      reported_brand_name: reportedBrandName,
-      photo_url: photoUrl,
-      report_location: buildReportLocation(latitude, longitude),
-      district,
-      status: 'pending',
-      // `requireAuth` guarantees `req.user` is set; the `?? null` fallback is
-      // a safety net so the column accepts the historical anonymous shape if
-      // the middleware contract is ever relaxed.
+      reported_brand_name: data.medicineName,
+      manufacturer: data.manufacturer,
+      description: data.description,
+      photo_url: data.images[0],
+      photo_urls: data.images,
+      pharmacy_name: data.pharmacyName,
+      address: data.address,
+      city: data.city,
+      state: data.state,
+      pincode: data.pincode,
+      district: data.city,
+      report_location: buildReportLocation(data.latitude, data.longitude),
       reporter_id: req.user?.id ?? null,
+      status: 'pending',
     })
     .select()
     .single();
@@ -63,7 +71,7 @@ reportsRouter.post('/', requireAuth, async (req: AuthenticatedRequest, res: Resp
     return;
   }
 
-  res.status(201).json({ report: data, submittedBy: req.user?.id });
+  res.status(201).json({ report });
 });
 
 // Must be registered BEFORE the admin-only GET '/' so Express matches /mine first.

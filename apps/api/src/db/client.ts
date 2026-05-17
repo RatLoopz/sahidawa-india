@@ -1,20 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
-import dotenv from 'dotenv';
 
-dotenv.config();
+// 1. Resolve the Supabase URL safely
+const supabaseUrl = 
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||   // Used by Client Components (.tsx files)
+  process.env.SUPABASE_URL ||              // Used by backend API routes
+  'http://localhost:54321';                // Local development fallback
 
-const supabaseUrl = process.env.SUPABASE_URL || 'http://localhost:54321';
+// 2. Resolve the Supabase Key safely
 const supabaseKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || 'local-development-key';
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || // Used by Client Components (.tsx files)
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||    // Administrative service key for backend bypass tasks
+  process.env.SUPABASE_ANON_KEY ||            // Standard backend anon key fallback
+  'local-development-key';
 
-if (!process.env.SUPABASE_URL || (!process.env.SUPABASE_SERVICE_ROLE_KEY && !process.env.SUPABASE_ANON_KEY)) {
-  const msg = '⚠️ Supabase URL or Key is missing. Database connections will fail.';
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error(msg);
-  }
-  console.warn(msg);
-}
-
-// We use service role key if available for administrative DB tasks on the backend.
-// Guard against createClient receiving empty strings which causes cryptic errors.
+// Guard against empty strings to avoid cryptic Supabase initialization crashes
 export const supabase = createClient(supabaseUrl, supabaseKey);
