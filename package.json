@@ -24,6 +24,8 @@
     "license": "MIT",
     "dependencies": {
         "@supabase/supabase-js": "^2.105.4",
+        "@swc/core": "^1.15.33",
+        "@swc/core-win32-x64-msvc": "^1.15.33",
         "cors": "^2.8.6",
         "dotenv": "^17.4.2",
         "express": "^5.2.1",
