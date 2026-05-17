@@ -25,12 +25,13 @@ import Footer from "./components/Footer";
 
 export default function SahiDawaHome() {
   const router = useRouter();
- const params = useParams<{ locale: string }>();
-const locale = params?.locale || "en";
+  const params = useParams<{ locale: string }>();
+  const locale = params?.locale || "en";
 
   const tHome = useTranslations("Home");
   const tNav = useTranslations("Navigation");
 
+  // Single helper — always navigates with the locale prefix
   const handleNavigation = (path: string) => {
     router.push(`/${locale}/${path}`);
   };
@@ -41,6 +42,7 @@ const locale = params?.locale || "en";
       {/* ── Top Navigation ── */}
       <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-lg">
         <div className="container mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
+          {/* Logo */}
           <div className="flex items-center gap-2">
             <div
               className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-sm"
@@ -53,18 +55,36 @@ const locale = params?.locale || "en";
             </h1>
           </div>
 
+          {/* Desktop nav */}
           <div className="flex items-center gap-2 md:gap-4">
-            <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold text-slate-600" aria-label="Main navigation">
-              <button className="hover:text-emerald-600 transition-colors">
+            <nav
+              className="hidden lg:flex items-center gap-6 text-sm font-semibold text-slate-600"
+              aria-label="Main navigation"
+            >
+              {/* FIX: was a plain <button> with no handler — now navigates */}
+              <button
+                onClick={() => handleNavigation("scan")}
+                className="hover:text-emerald-600 transition-colors"
+              >
                 {tNav("how_it_works")}
               </button>
-              <button className="hover:text-emerald-600 transition-colors">
+
+              {/* FIX: was a plain <button> with no handler — now navigates */}
+              <button
+                onClick={() => handleNavigation("alerts")}
+                className="hover:text-emerald-600 transition-colors"
+              >
                 {tNav("alerts")}
               </button>
+
               <Link href="/map" className="hover:text-emerald-600 transition-colors">
                 {tNav("pharmacy_map")}
               </Link>
-              <Link href="/reports/me" className="hover:text-emerald-600 transition-colors flex items-center gap-1">
+
+              <Link
+                href="/reports/me"
+                className="hover:text-emerald-600 transition-colors flex items-center gap-1"
+              >
                 <History size={14} /> My Reports
               </Link>
             </nav>
@@ -295,7 +315,11 @@ const locale = params?.locale || "en";
             </div>
 
             <div className="p-4 bg-white border-t border-slate-100">
-              <button className="w-full py-3 bg-slate-50 text-slate-700 font-bold rounded-xl hover:bg-slate-100 transition-colors">
+              {/* FIX: was a plain button with no handler */}
+              <button
+                onClick={() => handleNavigation("alerts")}
+                className="w-full py-3 bg-slate-50 text-slate-700 font-bold rounded-xl hover:bg-slate-100 transition-colors"
+              >
                 View Full Alert Log
               </button>
             </div>
@@ -328,83 +352,75 @@ const locale = params?.locale || "en";
       {/* Spacer for mobile nav */}
       <div className="h-16 md:hidden"></div>
 
- {/* ── Mobile Bottom Navigation ── */}
-<nav
-  className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200/60 flex justify-around px-2 py-3 items-center z-50 pb-[env(safe-area-inset-bottom)]"
-  aria-label="Mobile navigation"
->
-  <Link
-    href="/"
-    className="flex flex-col items-center gap-1.5 w-16 group"
-    aria-label="Home"
-  >
-    <div className="text-emerald-600 group-hover:-translate-y-1 transition-transform">
-      <Home size={24} strokeWidth={2.5} />
-    </div>
+      {/* ── Mobile Bottom Navigation ── */}
+      {/*
+        FIX: All mobile nav items now use handleNavigation() so they always
+        include the locale prefix (e.g. /en/scan, /ta/map).
+        Previously they used bare <Link href="/scan"> which would break on
+        non-default locales or simply not match the App Router's [locale]
+        segment, causing silent no-ops.
+      */}
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200/60 flex justify-around px-2 py-3 items-center z-50 pb-[env(safe-area-inset-bottom)]"
+        aria-label="Mobile navigation"
+      >
+        <button
+          onClick={() => router.push(`/${locale}`)}
+          className="flex flex-col items-center gap-1.5 w-16 group"
+          aria-label="Home"
+        >
+          <div className="text-emerald-600 group-hover:-translate-y-1 transition-transform">
+            <Home size={24} strokeWidth={2.5} />
+          </div>
+          <span className="text-[11px] font-bold text-emerald-600">Home</span>
+        </button>
 
-    <span className="text-[11px] font-bold text-emerald-600">
-      Home
-    </span>
-  </Link>
+        <button
+          onClick={() => handleNavigation("scan")}
+          className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-slate-600 transition-colors"
+          aria-label="Scans"
+        >
+          <div className="group-hover:-translate-y-1 transition-transform">
+            <History size={24} strokeWidth={2} />
+          </div>
+          <span className="text-[11px] font-semibold">Scans</span>
+        </button>
 
-  <Link
-    href="/scan"
-    className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-slate-600 transition-colors"
-    aria-label="Scans"
-  >
-    <div className="group-hover:-translate-y-1 transition-transform">
-      <History size={24} strokeWidth={2} />
-    </div>
+        <button
+          onClick={() => handleNavigation("map")}
+          className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-amber-600 transition-colors"
+          aria-label="Map"
+        >
+          <div className="group-hover:-translate-y-1 transition-transform">
+            <MapPin size={24} strokeWidth={2} />
+          </div>
+          <span className="text-[11px] font-semibold">Map</span>
+        </button>
 
-    <span className="text-[11px] font-semibold">
-      Scans
-    </span>
-  </Link>
+        <button
+          onClick={() => handleNavigation("alerts")}
+          className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-red-500 transition-colors"
+          aria-label="Alerts"
+        >
+          <div className="relative group-hover:-translate-y-1 transition-transform">
+            <Bell size={24} strokeWidth={2} />
+            <span className="absolute top-0 right-0.5 w-2 h-2 bg-red-500 border border-white rounded-full animate-pulse"></span>
+          </div>
+          <span className="text-[11px] font-semibold">Alerts</span>
+        </button>
 
-  <Link
-    href="/map"
-    className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-amber-600 transition-colors"
-    aria-label="Map"
-  >
-    <div className="group-hover:-translate-y-1 transition-transform">
-      <MapPin size={24} strokeWidth={2} />
-    </div>
+        <button
+          onClick={() => handleNavigation("profile")}
+          className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-emerald-600 transition-colors"
+          aria-label="Profile"
+        >
+          <div className="group-hover:-translate-y-1 transition-transform">
+            <User size={24} strokeWidth={2} />
+          </div>
+          <span className="text-[11px] font-semibold">Profile</span>
+        </button>
+      </nav>
 
-    <span className="text-[11px] font-semibold">
-      Map
-    </span>
-  </Link>
-
-  <Link
-    href="/alerts"
-    className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-red-500 transition-colors"
-    aria-label="Alerts"
-  >
-    <div className="relative group-hover:-translate-y-1 transition-transform">
-      <Bell size={24} strokeWidth={2} />
-
-      <span className="absolute top-0 right-0.5 w-2 h-2 bg-red-500 border border-white rounded-full animate-pulse"></span>
-    </div>
-
-    <span className="text-[11px] font-semibold">
-      Alerts
-    </span>
-  </Link>
-
-  <Link
-    href="/profile"
-    className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-emerald-600 transition-colors"
-    aria-label="Profile"
-  >
-    <div className="group-hover:-translate-y-1 transition-transform">
-      <User size={24} strokeWidth={2} />
-    </div>
-
-    <span className="text-[11px] font-semibold">
-      Profile
-    </span>
-  </Link>
-</nav>
       <Footer />
     </div>
   );
