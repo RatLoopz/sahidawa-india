@@ -1,6 +1,5 @@
 "use client";
 
-<<<<<<< HEAD
 import { useState, useEffect, useCallback } from "react";
 import { Camera, ShieldCheck, Info, AlertCircle, Layers, Copy, Check, Home, Share2 } from "lucide-react";
 import { Link } from "@/i18n/routing";
@@ -55,26 +54,8 @@ export default function ScanPage() {
   const params = useParams();
   const locale = params.locale as string;
   
-  const [isScanning, setIsScanning] = useState(false);
+  const [isScanning, setIsScanning] = useState(true);
   const [showResult, setShowResult] = useState(false);
-=======
-import { useState, useEffect } from "react";
-import { Camera, ShieldCheck, Info, AlertCircle, Layers, Lock } from "lucide-react";
-import { Link } from "@/i18n/routing";
-import { PageHeader } from "../components/PageHeader";
-import { useSession } from "next-auth/react";
-import { useParams, useRouter } from "next/navigation";
-import ProtectedRoute from "@/components/ProtectedRoute";
-
-export default function ScanPage() {
-  const { data: session, status } = useSession();
-  const params = useParams();
-  const router = useRouter();
-  const locale = params.locale as string;
-  
-  const [scanning, setScanning] = useState(true);
-  const [result, setResult] = useState<null | "valid" | "invalid">(null);
->>>>>>> 0d70be1 (Create login and signup pages with i18n support)
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -104,9 +85,7 @@ export default function ScanPage() {
     }
   }, []);
 
-  // Redirect if not authenticated
   useEffect(() => {
-<<<<<<< HEAD
     if (isScanning && session) {
       const timer = setTimeout(() => {
         setIsScanning(false);
@@ -119,24 +98,6 @@ export default function ScanPage() {
   }, [isScanning, session]);
 
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-=======
-    if (status === "unauthenticated") {
-      router.push(`/${locale}/login`);
-    }
-  }, [status, router, locale]);
-
-  useEffect(() => {
-    if (scanning && session) {
-      const timer = setTimeout(() => {
-        setScanning(false);
-        setResult("valid");
-        // Here you would save the scan to database with session.user.id
-        console.log("Scan saved for user:", session.user?.email);
-      }, 3500);
-      return () => clearTimeout(timer);
-    }
-  }, [scanning, session]);
->>>>>>> 0d70be1 (Create login and signup pages with i18n support)
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -158,7 +119,7 @@ export default function ScanPage() {
   };
 
   const handleScanAgain = () => {
-    setIsScanning(false);
+    setIsScanning(true);
     setShowResult(false);
     setUploadedImage(null);
   };
@@ -171,15 +132,13 @@ Expiry: 12/2027
 Status: Verified by CDSCO Database
     `.trim();
 
-    const shareData = {
-      title: "Medicine Verification Result",
-      text: shareText,
-      url: window.location.href,
-    };
-
     try {
       if (navigator.share) {
-        await navigator.share(shareData);
+        await navigator.share({
+          title: "Medicine Verification Result",
+          text: shareText,
+          url: window.location.href,
+        });
         toast.success("Result shared successfully");
       } else {
         await navigator.clipboard.writeText(`${shareText}\n\n${window.location.href}`);
@@ -192,11 +151,7 @@ Status: Verified by CDSCO Database
     }
   };
 
-<<<<<<< HEAD
   // Show loading while checking authentication
-=======
-  // Show loading state
->>>>>>> 0d70be1 (Create login and signup pages with i18n support)
   if (status === "loading") {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -236,10 +191,6 @@ Status: Verified by CDSCO Database
         <span>Scanning as: {session.user?.email?.split('@')[0] || 'User'}</span>
       </div>
 
-<<<<<<< HEAD
-=======
-      {/* Viewfinder Area */}
->>>>>>> 0d70be1 (Create login and signup pages with i18n support)
       <div className="flex-1 relative flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-slate-900 overflow-hidden">
           {uploadedImage ? (
@@ -269,12 +220,9 @@ Status: Verified by CDSCO Database
           )}
         </div>
 
-<<<<<<< HEAD
         {/* Loading Skeleton */}
         {isScanning && <LoadingSkeleton />}
 
-=======
->>>>>>> 0d70be1 (Create login and signup pages with i18n support)
         {/* Result Overlay */}
         {showResult && (
           <div className="absolute inset-0 z-30 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-in fade-in zoom-in duration-300">
@@ -327,7 +275,6 @@ Status: Verified by CDSCO Database
                   >
                     Scan Another
                   </button>
-<<<<<<< HEAD
                   <div className="grid grid-cols-2 gap-3">
                     <Link
                       href="/"
@@ -346,12 +293,6 @@ Status: Verified by CDSCO Database
                   </div>
                 </div>
               </div>
-=======
-                  <Link href={`/${locale}`} className="text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors">
-                    Back to Home
-                  </Link>
-               </div>
->>>>>>> 0d70be1 (Create login and signup pages with i18n support)
             </div>
           </div>
         )}
