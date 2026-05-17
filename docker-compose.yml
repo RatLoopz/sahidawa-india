@@ -4,9 +4,13 @@ services:
     working_dir: /app/apps/web
     volumes:
       - .:/app
-    command: sh -c "npm install && npm run dev"
+      - /app/node_modules
+      - /app/apps/web/node_modules
+    command: sh -c "npm install && exec npm run dev"
     ports:
       - "3000:3000"
+    tty: true
+    stdin_open: true
     environment:
       - NODE_ENV=development
     depends_on:
@@ -17,6 +21,8 @@ services:
     working_dir: /app/apps/api
     volumes:
       - .:/app
+      - /app/node_modules
+      - /app/apps/api/node_modules
     command: sh -c "npm install && npm run dev"
     ports:
       - "4000:4000"
@@ -28,11 +34,12 @@ services:
       - ml
 
   ml:
-    image: python:3.10-slim
-    working_dir: /app/apps/ml
+    build:
+      context: ./apps/ml
+    working_dir: /app
     volumes:
-      - .:/app
-    command: sh -c "pip install -r requirements.txt && uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+      - ./apps/ml:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     ports:
       - "8000:8000"
 
