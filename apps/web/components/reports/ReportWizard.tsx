@@ -12,6 +12,7 @@ import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence, Variants } from "framer-motion";
+import { submitReport, geocodePincode } from "@/lib/api";
 
 // ─── Cloudinary env ────────────────────────────────────────────────────────────
 // Uploads are now securely routed through our backend API (/api/upload),
@@ -424,8 +425,10 @@ function Step3() {
 // ─────────────────────────────────────────────────────────────────────────────
 // SUCCESS
 // ─────────────────────────────────────────────────────────────────────────────
-function Success({ onReset }: { onReset: () => void }) {
-  const ref = `RPT-${crypto.randomUUID().split("-")[0].toUpperCase()}`;
+function Success({ onReset, reportId }: { onReset: () => void; reportId: string | null }) {
+  const ref = reportId
+    ? `RPT-${reportId.slice(0, 8).toUpperCase()}`
+    : "RPT-PENDING";
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
@@ -475,6 +478,7 @@ export default function ReportWizard() {
   const [submitting, setSubmitting] = useState(false);
   const [submitErr, setSubmitErr] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [reportId, setReportId] = useState<string | null>(null);
 
   // Cleanup blob URLs on unmount to prevent memory leaks
   useEffect(() => {
@@ -504,29 +508,23 @@ export default function ReportWizard() {
     setSubmitting(true);
     setSubmitErr(null);
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('sb-access-token') : null;
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
-      
-      const res = await fetch(`${API_BASE}/reports`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({
-          reportedBrandName: data.medicineName,
-          photoUrl: data.images[0] ?? null,
-          district: data.city || data.state,
-        })
-      });
-
-      if (!res.ok) {
-        throw new Error(`API error: ${res.status}`);
-      }
-
+      const token =
+        typeof window !== 'undefined'
+          ? localStorage.getItem('sb-access-token') ?? undefined
+          : undefined;
+      const geo = await geocodePincode(data.pincode);
+      const { report } = await submitReport(
+        { ...data, ...(geo ?? {}) },
+        token,
+      );
+      setReportId(report.id);
       setDone(true);
-    } catch {
-      setSubmitErr("Submission failed. Please check your connection and try again.");
+    } catch (e) {
+      setSubmitErr(
+        e instanceof Error
+          ? e.message
+          : "Submission failed. Please check your connection and try again.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -539,6 +537,7 @@ export default function ReportWizard() {
     reset(EMPTY);
     setSubmitErr(null);
     setDone(false);
+    setReportId(null);
     setStep(1);
     setDir(1);
   };
@@ -581,7 +580,7 @@ export default function ReportWizard() {
         {/* ── Body ── */}
         <div className="px-8 py-8 bg-white flex-1">
           {done ? (
-            <Success onReset={handleReset} />
+            <Success onReset={handleReset} reportId={reportId} />
           ) : (
             <>
               <Progress current={step} />
