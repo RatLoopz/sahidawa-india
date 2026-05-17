@@ -12,16 +12,11 @@ import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence, Variants } from "framer-motion";
+import { submitReport, geocodePincode } from "@/lib/api";
 
 // ─── Cloudinary env ────────────────────────────────────────────────────────────
-// ⚠️ SECURITY NOTE: These credentials use an "unsigned" Cloudinary upload preset.
-// This means the upload goes directly from the browser to Cloudinary without
-// server-side validation. Anyone who inspects the source code could extract these
-// values and upload arbitrary files to the Cloudinary account.
-// For production, migrate to a "signed" upload flow via a server-side API route
-// (e.g. /api/upload) that signs each request with CLOUDINARY_API_SECRET.
-const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? "";
-const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ?? "";
+// Uploads are now securely routed through our backend API (/api/upload),
+// eliminating the need to expose unsigned presets or API keys in the client.
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB per file
@@ -247,21 +242,17 @@ function Step2({
 
   const imgErr = errors.images?.message as string | undefined;
 
-  // Upload one file to Cloudinary
+  // Upload one file to Cloudinary securely via our API route
   const uploadOne = async (file: File): Promise<string> => {
-    if (!CLOUD_NAME || !UPLOAD_PRESET)
-      throw new Error("Cloudinary env vars missing — check .env.local");
     const fd = new FormData();
     fd.append("file", file);
-    fd.append("upload_preset", UPLOAD_PRESET);
-    const res = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-      { method: "POST", body: fd }
-    );
+    const res = await fetch("/api/upload", { method: "POST", body: fd });
+    
     if (!res.ok) {
-      const e = await res.json().catch(() => ({})) as { error?: { message?: string } };
-      throw new Error(e.error?.message ?? `HTTP ${res.status}`);
+      const e = await res.json().catch(() => ({})) as { error?: string };
+      throw new Error(e.error ?? `HTTP ${res.status}`);
     }
+    
     return ((await res.json()) as { secure_url: string }).secure_url;
   };
 
@@ -434,8 +425,10 @@ function Step3() {
 // ─────────────────────────────────────────────────────────────────────────────
 // SUCCESS
 // ─────────────────────────────────────────────────────────────────────────────
-function Success({ onReset }: { onReset: () => void }) {
-  const ref = `RPT-${crypto.randomUUID().split("-")[0].toUpperCase()}`;
+function Success({ onReset, reportId }: { onReset: () => void; reportId: string | null }) {
+  const ref = reportId
+    ? `RPT-${reportId.slice(0, 8).toUpperCase()}`
+    : "RPT-PENDING";
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
@@ -485,6 +478,7 @@ export default function ReportWizard() {
   const [submitting, setSubmitting] = useState(false);
   const [submitErr, setSubmitErr] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [reportId, setReportId] = useState<string | null>(null);
 
   // Cleanup blob URLs on unmount to prevent memory leaks
   useEffect(() => {
@@ -514,11 +508,23 @@ export default function ReportWizard() {
     setSubmitting(true);
     setSubmitErr(null);
     try {
-      await new Promise<void>(r => setTimeout(r, 1600)); // simulate API
-      console.log("🚨 Fake Medicine Report:", JSON.stringify(data, null, 2));
+      const token =
+        typeof window !== 'undefined'
+          ? localStorage.getItem('sb-access-token') ?? undefined
+          : undefined;
+      const geo = await geocodePincode(data.pincode);
+      const { report } = await submitReport(
+        { ...data, ...(geo ?? {}) },
+        token,
+      );
+      setReportId(report.id);
       setDone(true);
-    } catch {
-      setSubmitErr("Submission failed. Please check your connection and try again.");
+    } catch (e) {
+      setSubmitErr(
+        e instanceof Error
+          ? e.message
+          : "Submission failed. Please check your connection and try again.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -531,6 +537,7 @@ export default function ReportWizard() {
     reset(EMPTY);
     setSubmitErr(null);
     setDone(false);
+    setReportId(null);
     setStep(1);
     setDir(1);
   };
@@ -573,7 +580,7 @@ export default function ReportWizard() {
         {/* ── Body ── */}
         <div className="px-8 py-8 bg-white flex-1">
           {done ? (
-            <Success onReset={handleReset} />
+            <Success onReset={handleReset} reportId={reportId} />
           ) : (
             <>
               <Progress current={step} />
