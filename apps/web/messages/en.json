@@ -1,4 +1,26 @@
 {
+  "Auth": {
+    "welcomeBack": "Welcome Back",
+    "loginToAccount": "Login to your account",
+    "email": "Email",
+    "password": "Password",
+    "login": "Login",
+    "loggingIn": "Logging in...",
+    "continueWithGoogle": "Continue with Google",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign Up",
+    "invalidCredentials": "Invalid email or password",
+    "createAccount": "Create Account",
+    "joinSahiDawa": "Join SahiDawa for personalized health tracking",
+    "fullName": "Full Name",
+    "namePlaceholder": "John Doe",
+    "passwordPlaceholder": "Create a password",
+    "passwordHint": "At least 6 characters",
+    "creatingAccount": "Creating account...",
+    "signupError": "Something went wrong. Please try again.",
+    "loginAfterSignupError": "Account created! Please login.",
+    "haveAccount": "Already have an account?"
+  },
   "Home": {
     "title": "Your Health, Verified & Protected.",
     "subtitle": "India's open-source citizen platform to instantly verify medicine authenticity, find safe pharmacies, and receive critical health alerts.",

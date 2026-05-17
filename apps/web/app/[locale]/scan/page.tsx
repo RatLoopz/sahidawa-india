@@ -6,6 +6,8 @@ import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
 import { toast } from "sonner";
 import Footer from "../components/Footer";
+import { useSession } from "next-auth/react";
+import { useRouter, useParams } from "next/navigation";
 
 // Sleek Skeleton component for loading states
 function LoadingSkeleton() {
@@ -47,10 +49,22 @@ function LoadingSkeleton() {
 }
 
 export default function ScanPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string;
+  
   const [isScanning, setIsScanning] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push(`/${locale}/login`);
+    }
+  }, [status, router, locale]);
 
   const handleCopyBatch = useCallback(async () => {
     try {
@@ -72,14 +86,16 @@ export default function ScanPage() {
   }, []);
 
   useEffect(() => {
-    if (isScanning) {
+    if (isScanning && session) {
       const timer = setTimeout(() => {
         setIsScanning(false);
         setShowResult(true);
+        // Here you would save the scan to database with session.user.id
+        console.log("Scan saved for user:", session.user?.email);
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [isScanning]);
+  }, [isScanning, session]);
 
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -137,6 +153,23 @@ Status: Verified by CDSCO Database
     }
   };
 
+  // Show loading while checking authentication
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white/70">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated (will redirect)
+  if (!session) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-black text-white font-sans relative flex flex-col">
       <input 
@@ -153,6 +186,12 @@ Status: Verified by CDSCO Database
         backHref="/" 
         variant="dark" 
       />
+
+      {/* User indicator - shows who is scanning */}
+      <div className="absolute top-20 right-4 z-20 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs text-white/70 flex items-center gap-2">
+        <ShieldCheck size={12} className="text-emerald-400" />
+        <span>Scanning as: {session.user?.email?.split('@')[0] || 'User'}</span>
+      </div>
 
       <div className="flex-1 relative flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-slate-900 overflow-hidden">
