@@ -9,6 +9,7 @@ const languages = [
   { code: "en", label: "English", native: "English" },
   { code: "ta", label: "Tamil", native: "தமிழ்" },
   { code: "bn", label: "Bengali", native: "বাংলা" },
+  { code: "te", label: "Telugu", native: "తెలుగు" }
 ];
 
 export default function LanguageSwitcher() {

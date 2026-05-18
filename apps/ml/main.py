@@ -26,6 +26,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Import and include routers
+from routers import ocr
+app.include_router(ocr.router)
+
 @app.get("/")
 def read_root():
     return {"message": "Welcome to SahiDawa ML API"}

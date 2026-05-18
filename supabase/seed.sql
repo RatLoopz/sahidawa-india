@@ -18,3 +18,9 @@ VALUES
   ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '8901234567891', 'Augmentin 625 Duo', 'Amoxicillin + Clavulanate', 'GSK', 'approved'),
   ('cccccccc-cccc-cccc-cccc-cccccccccccc', '8901234567892', 'Fake-O-Cin', 'Spurious Antibiotic', 'Unknown', 'banned')
 ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.medicines (barcode_id, brand_name, generic_name, manufacturer, batch_number, cdsco_approval_status, is_counterfeit_alert, composition) VALUES
+('8901111111111', 'Augmentin 625 Duo', 'Amoxicillin + Clavulanic Acid', 'GlaxoSmithKline plc', 'B23059', 'recalled', true, 'Reported suspicious by 12 individual community mobile scanning units.'),
+('8902222222222', 'Pan 40', 'Pantoprazole', 'Alkem Laboratories Ltd', 'UP992', 'recalled', false, 'Substandard active compound concentrations detected by regional inspectors.'),
+('8903333333333', 'Paracetamol 500mg', 'Paracetamol', 'Cipla Ltd', 'HR4410', 'banned', true, 'Slight packaging variations and unapproved manufacturing batches observed.')
+ON CONFLICT (id) DO NOTHING;

@@ -106,15 +106,13 @@ export default function Map({ pharmacies, selectedPharmacy, selectedPharmacyId, 
   return (
     <MapContainer
       key={containerId.current}
-  return (
-    <MapContainer
       center={[20.5937, 78.9629]}
       zoom={5}
       style={{ height: "100%", width: "100%" }}
       zoomControl={false}
       scrollWheelZoom={true}
       className="z-0"
-      ref={(map) => {
+      ref={(map: LeafletMap | null) => {
         if (map) {
           mapRef.current = map;
         }
