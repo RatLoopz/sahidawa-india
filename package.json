@@ -20,5 +20,8 @@
     "cdsco"
   ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "express-rate-limit": "^8.5.2"
+  }
 }
