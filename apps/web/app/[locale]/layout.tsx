@@ -6,7 +6,6 @@ import { routing } from '../../i18n/routing';
 
 
 import { ThemeProvider } from './components/ThemeProvider';
-import Header from './components/Header';
 import Footer from './components/Footer';
 import './globals.css';
 import { Toaster } from "sonner";
@@ -59,7 +58,6 @@ export default async function LocaleLayout({
   return (
     <ThemeProvider>
       <NextIntlClientProvider messages={messages}>
-        <Header />
         {children}
         <Footer />
       </NextIntlClientProvider>
