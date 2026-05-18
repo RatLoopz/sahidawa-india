@@ -88,16 +88,15 @@ export default function SahiDawaHome() {
         {/* Quick Actions Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
           {/* Scan Action */}
-          <Link 
-            href="/scan" 
-            className="group p-8 rounded-[2.5rem] bg-slate-900 text-white shadow-xl shadow-slate-900/20 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden"
-            aria-label="Scan medicine"
+          <Link
+            href="/scan"
+            className="group p-8 rounded-[2.5rem] bg-slate-900 text-white shadow-xl shadow-slate-900/20 hover:-translate-y-2 focus-visible:-translate-y-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50 transition-all duration-300 relative overflow-hidden"
           >
-            <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform">
+            <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform" aria-hidden="true">
               <Camera size={120} />
             </div>
             <div className="relative z-10 space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg" aria-hidden="true">
                 <Camera size={28} />
               </div>
               <div>
@@ -105,22 +104,21 @@ export default function SahiDawaHome() {
                 <p className="text-slate-400 font-medium mt-1">{tHome('scan_subtitle')}</p>
               </div>
               <div className="flex items-center gap-2 text-emerald-400 font-bold pt-2">
-                Launch Scanner <ChevronRight size={18} />
+                Launch Scanner <ChevronRight size={18} aria-hidden="true" />
               </div>
             </div>
           </Link>
 
           {/* Voice Action */}
-          <Link 
-            href="/voice" 
-            className="group p-8 rounded-[2.5rem] bg-white border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-2 transition-all duration-300 relative overflow-hidden"
-            aria-label="Voice triage"
+          <Link
+            href="/voice"
+            className="group p-8 rounded-[2.5rem] bg-white border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-2 focus-visible:-translate-y-2 focus-visible:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50 transition-all duration-300 relative overflow-hidden"
           >
-             <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform">
+             <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform" aria-hidden="true">
               <Mic size={120} />
             </div>
             <div className="relative z-10 space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center">
+              <div className="w-14 h-14 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center" aria-hidden="true">
                 <Mic size={28} />
               </div>
               <div>
@@ -128,22 +126,21 @@ export default function SahiDawaHome() {
                 <p className="text-slate-500 font-medium mt-1">{tHome('voice_subtitle')}</p>
               </div>
               <div className="flex items-center gap-2 text-blue-600 font-bold pt-2">
-                Start Consultation <ChevronRight size={18} />
+                Start Consultation <ChevronRight size={18} aria-hidden="true" />
               </div>
             </div>
           </Link>
 
           {/* Map Action */}
-          <Link 
-            href="/map" 
-            className="group p-8 rounded-[2.5rem] bg-white border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-2 transition-all duration-300 relative overflow-hidden"
-            aria-label="Find pharmacy map"
+          <Link
+            href="/map"
+            className="group p-8 rounded-[2.5rem] bg-white border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-2 focus-visible:-translate-y-2 focus-visible:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50 transition-all duration-300 relative overflow-hidden"
           >
-             <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform">
+             <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform" aria-hidden="true">
               <MapPin size={120} />
             </div>
             <div className="relative z-10 space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center">
+              <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center" aria-hidden="true">
                 <MapPin size={28} />
               </div>
               <div>
@@ -151,7 +148,7 @@ export default function SahiDawaHome() {
                 <p className="text-slate-500 font-medium mt-1">{tHome('pharmacy_subtitle')}</p>
               </div>
               <div className="flex items-center gap-2 text-amber-600 font-bold pt-2">
-                Open Map <ChevronRight size={18} />
+                Open Map <ChevronRight size={18} aria-hidden="true" />
               </div>
             </div>
           </Link>
