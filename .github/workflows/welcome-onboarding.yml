@@ -1,0 +1,64 @@
+name: 🌟 First-Time Contributor Onboarding Welcome
+
+on:
+    issues:
+        types: [opened]
+
+permissions:
+    issues: write
+    pull-requests: write
+    contents: read
+
+jobs:
+    welcome-onboard:
+        runs-on: ubuntu-latest
+        steps:
+            # ── 1. Checkout repository to read onboarding template ───────────────────
+            - name: Checkout Code
+              uses: actions/checkout@v6
+
+            # ── 2. Run welcoming script via GitHub Script ─────────────────────────────
+            - name: 💬 Comment Welcome Message
+              uses: actions/github-script@v9
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  script: |
+                      const fs = require('fs');
+                      const path = require('path');
+
+                      const issue = context.payload.issue;
+                      const pr = context.payload.pull_request;
+                      const item = issue || pr;
+
+                      if (!item) {
+                        core.info('No issue or pull request payload found. Skipping.');
+                        return;
+                      }
+
+                      const username = item.user.login;
+                      const association = item.author_association;
+                      core.info(`User: ${username} | Association: ${association}`);
+
+                      // Only run for actual first-time contributors
+                      if (association === 'FIRST_TIME_CONTRIBUTOR') {
+                        const onboardingPath = path.join(process.env.GITHUB_WORKSPACE, '.github/onboarding.md');
+                        
+                        if (fs.existsSync(onboardingPath)) {
+                          let template = fs.readFileSync(onboardingPath, 'utf8');
+                          // Replace template placeholder with actual username
+                          const welcomeMessage = template.replace(/{author}/g, username);
+
+                          await github.rest.issues.createComment({
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            issue_number: item.number,
+                            body: welcomeMessage
+                          });
+
+                          core.info(`✅ Successfully posted first-time onboarding guide for @${username}`);
+                        } else {
+                          core.setFailed(`❌ Onboarding template not found at: ${onboardingPath}`);
+                        }
+                      } else {
+                        core.info(`User @${username} has association ${association}. Skipping welcome message.`);
+                      }

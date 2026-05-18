@@ -1,13 +1,43 @@
 @import "tailwindcss";
 
 @layer base {
+  /* Scanner sweep animation */
   @keyframes scan {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(280px); }
   }
-  
+
   .animate-scan {
     animation: scan 2.5s ease-in-out infinite;
+  }
+
+  /* Chat UI animations */
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes bounce {
+    0%, 60%, 100% {
+      transform: translateY(0);
+    }
+    30% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-slideIn {
+    animation: slideIn 0.3s ease-out forwards;
+  }
+
+  .animate-bounce {
+    animation: bounce 1.4s ease-in-out infinite;
   }
 
   /* Leaflet Popup Overrides — match SahiDawa design */
@@ -74,6 +104,29 @@
     border: none !important;
   }
 
+  .sahidawa-marker-shell {
+    transition: transform 0.2s ease-out, filter 0.2s ease-out;
+    transform-origin: 50% 100%;
+  }
+
+  /* iOS-style spring bounce on marker hover */
+  @keyframes marker-bounce-in {
+    0%   { transform: scale(1) translateY(0); }
+    30%  { transform: scale(1.22) translateY(-8px); }
+    55%  { transform: scale(1.06) translateY(-2px); }
+    80%  { transform: scale(1.14) translateY(-5px); }
+    100% { transform: scale(1.12) translateY(-4px); }
+  }
+
+  .sahidawa-marker-hover .sahidawa-marker-shell {
+    animation: marker-bounce-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    filter: drop-shadow(0 10px 16px rgba(15, 23, 42, 0.22));
+  }
+
+  .sahidawa-marker-hover {
+    z-index: 1000 !important;
+  }
+
   .user-location-marker {
     background: transparent !important;
     border: none !important;
@@ -108,52 +161,6 @@
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
-@import "tailwindcss";
-
-@layer base {
-  @keyframes scan {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(280px); }
-  }
-  
-  .animate-scan {
-    animation: scan 2.5s ease-in-out infinite;
-  }
-
-  /* Add these new animations for the chat UI */
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  @keyframes bounce {
-    0%, 60%, 100% {
-      transform: translateY(0);
-    }
-    30% {
-      transform: translateY(-10px);
-    }
-  }
-
-  .animate-slideIn {
-    animation: slideIn 0.3s ease-out forwards;
-  }
-  
-  .animate-bounce {
-    animation: bounce 1.4s ease-in-out infinite;
-  }
-}
-
-@theme {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-}
-
 /* Custom scrollbar for chat */
 ::-webkit-scrollbar {
   width: 6px;
@@ -171,8 +178,8 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
-
 }
+
 /* Dark mode support */
 .dark body {
   background-color: #0f172a;
@@ -189,5 +196,4 @@
 
 .dark ::-webkit-scrollbar-thumb:hover {
   background: #64748b;
-
 }

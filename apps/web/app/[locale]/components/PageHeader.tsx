@@ -54,12 +54,9 @@ export const PageHeader = ({
           {showLanguage ? (
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-slate-200 shadow-sm" role="status" aria-label={`Current language: ${languageName || "English"}`}>
               <Globe size={14} aria-hidden="true" className="text-emerald-600" />
-              <span className="text-xs font-bold text-slate-700 sm:inline hidden">
-                {languageName || "English"}
-              </span>
-              <span className="text-xs font-bold text-slate-700 sm:hidden" aria-hidden="true">
-                {languageName ? languageName.substring(0, 2).toUpperCase() : "EN"}
-              </span>
+             <span className="text-xs font-bold text-slate-700">
+  {languageName || "English"}
+</span>
             </div>
           ) : isDark ? (
             <button aria-label="Quick actions" className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition-colors">

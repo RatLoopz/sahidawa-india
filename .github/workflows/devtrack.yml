@@ -3,7 +3,7 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 on:
-  pull_request:
+  pull_request_target:
     types: [closed]
     branches: [main]
   workflow_dispatch:
@@ -147,7 +147,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # ── 7. Generate knowledge docs via Gemini ─────────────────────────────────
-      - name: "🤖 Generate knowledge doc (Gemini 1.5 Flash)"
+      - name: "🤖 Generate knowledge doc (Gemini 2.5 Flash)"
         id: generate
         if: steps.score.outputs.verdict != 'SKIP'
         env:

@@ -1,0 +1,43 @@
+name-template: 'v$RESOLVED_VERSION 🩺'
+tag-template: 'v$RESOLVED_VERSION'
+
+categories:
+  - title: '🚀 Features'
+    labels:
+      - 'feature'
+      - 'feat'
+      - 'enhancement'
+  - title: '🐛 Bug Fixes'
+    labels:
+      - 'bug'
+      - 'fix'
+      - 'bugfix'
+  - title: '📝 Documentation'
+    labels:
+      - 'documentation'
+      - 'docs'
+  - title: '⚙️ Infrastructure & DevOps'
+    labels:
+      - 'ci'
+      - 'docker'
+      - 'devops'
+      - 'infrastructure'
+      - 'chore'
+  - title: '🌐 Internationalization (i18n)'
+    labels:
+      - 'i18n'
+      - 'translation'
+  - title: '🛡️ Security'
+    labels:
+      - 'security'
+
+change-template: '* $TITLE (#$NUMBER) by @$AUTHOR'
+
+template: |
+  ## What's Changed 🩺
+
+  $CHANGES
+
+  ---
+  
+  **Full Changelog**: https://github.com/RatLoopz/sahidawa-india/compare/$PREVIOUS_TAG...$NEXT_TAG

@@ -58,7 +58,7 @@ export const updateReportStatus = async (req: Request, res: Response): Promise<v
     return;
   }
 
-  await logAdminAction(req.user.id, `STATUS_${status.toUpperCase()}`, 'REPORT', id, { status });
+  await logAdminAction(req.user.id, `STATUS_${status.toUpperCase()}`, 'REPORT', id as string, { status });
 
   if (status === 'verified_fake' && data.district) {
     const { count } = await supabase

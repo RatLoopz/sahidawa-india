@@ -22,6 +22,10 @@ This guide explains how to set up and run the FastAPI-based ML service locally.
 Before starting, make sure you have the following installed:
 - Python 3.11 or higher
 - pip (Python package manager)
+- **Tesseract OCR** (System dependency for OCR features)
+  - Ubuntu: `sudo apt install tesseract-ocr`
+  - macOS: `brew install tesseract`
+  - Windows: Download installer from [UB Mannheim](https://github.com/UB-Mannheim/tesseract/wiki)
 
 Check your versions:
 

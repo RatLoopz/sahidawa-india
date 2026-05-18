@@ -1,0 +1,96 @@
+"""
+SahiDawa — Full ETL Pipeline Runner
+======================================
+This script runs the complete pipeline in one command:
+
+    SCRAPE → NORMALIZE → LOAD
+
+Usage:
+    cd apps/ml
+    python run_pipeline.py
+
+    # Or skip scraping (use existing raw file):
+    python run_pipeline.py --skip-scrape
+
+    # Or only scrape (don't load to DB):
+    python run_pipeline.py --scrape-only
+
+Prerequisite (one-time):
+    pip install -r requirements.txt
+    playwright install chromium
+
+After running this script, your Supabase 'medicines' table will have
+all 2,400+ Jan Aushadhi medicines loaded.
+"""
+
+import asyncio
+import argparse
+from pathlib import Path
+
+from scrapers.janaushadhi import JanAushadhiScraper
+from etl.normalizer import JanAushadhiNormalizer, normalize_latest
+from etl.loader import SupabaseLoader
+
+
+async def run_full_pipeline(skip_scrape: bool = False, scrape_only: bool = False):
+    print("\n" + "="*60)
+    print("  SahiDawa ETL Pipeline — Jan Aushadhi")
+    print("="*60 + "\n")
+
+    # ── STEP 1: SCRAPE ─────────────────────────────────────────────────────────
+    raw_csv_path = None
+
+    if not skip_scrape:
+        print("📡 STEP 1/3: Scraping Jan Aushadhi website...")
+        print("   (This opens a headless browser — may take 30-60 seconds)\n")
+        scraper = JanAushadhiScraper()
+        raw_csv_path = await scraper.scrape()
+    else:
+        print("⏭️  STEP 1/3: Skipping scrape (--skip-scrape flag set)")
+        # Use the most recent raw file
+        raw_dir = Path("../../data/raw/janaushadhi")
+        files = sorted(raw_dir.glob("janaushadhi_raw_*.csv"))
+        if files:
+            raw_csv_path = files[-1]
+            print(f"   Using existing raw file: {raw_csv_path.name}")
+        else:
+            print("❌ No existing raw file found. Remove --skip-scrape flag.")
+            return
+
+    if scrape_only:
+        print(f"\n✅ Scrape complete. Raw file: {raw_csv_path}")
+        print("   (--scrape-only flag set — skipping normalize and load)")
+        return
+
+    # ── STEP 2: NORMALIZE ──────────────────────────────────────────────────────
+    print("\n🔧 STEP 2/3: Normalizing raw data...")
+    normalizer = JanAushadhiNormalizer()
+    clean_df = normalizer.normalize(raw_csv_path)
+    print(f"   Normalized {len(clean_df)} records")
+
+    # ── STEP 3: LOAD ───────────────────────────────────────────────────────────
+    print("\n☁️  STEP 3/3: Loading into Supabase...")
+    loader = SupabaseLoader()
+    stats = loader.load(clean_df)
+
+    # ── SUMMARY ────────────────────────────────────────────────────────────────
+    print("\n" + "="*60)
+    print("  Pipeline Complete!")
+    print(f"  Total processed : {stats['total']}")
+    print(f"  Successfully loaded : {stats['inserted']}")
+    print(f"  Failed : {stats['failed']}")
+    print("="*60 + "\n")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="SahiDawa Jan Aushadhi ETL Pipeline")
+    parser.add_argument("--skip-scrape", action="store_true",
+                        help="Skip scraping and use the latest existing raw file")
+    parser.add_argument("--scrape-only", action="store_true",
+                        help="Only scrape — don't normalize or load to DB")
+    args = parser.parse_args()
+
+    asyncio.run(run_full_pipeline(
+        skip_scrape=args.skip_scrape,
+        scrape_only=args.scrape_only,
+    ))

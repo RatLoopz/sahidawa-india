@@ -14,178 +14,238 @@ import { AlertCircle, Loader2 } from "lucide-react";
  */
 
 export interface Pharmacy {
-  id: number;
-  name: string;
-  distance: string;
-  rating: number;
-  status: string;
-  type: "govt" | "private";
-  coordinates: { lat: number; lng: number };
-  address?: string;
-  phone?: string;
+    id: number;
+    name: string;
+    distance: string;
+    distanceKm?: number;
+    rating: number;
+    status: string;
+    type: "govt" | "private";
+    coordinates: { lat: number; lng: number };
+    address?: string;
+    phone?: string;
 }
 
 export interface MapBounds {
-  south: number;
-  west: number;
-  north: number;
-  east: number;
-  center: { lat: number; lng: number };
+    south: number;
+    west: number;
+    north: number;
+    east: number;
+    center: { lat: number; lng: number };
+}
+
+export type HeatmapMode = "none" | "density" | "counterfeit" | "combined";
+
+export interface RiskHotspot {
+    id: string;
+    label: string;
+    coordinates: { lat: number; lng: number };
+    intensity: number;
+    category: "density" | "counterfeit";
+    details?: string;
 }
 
 interface PharmacyMapProps {
-  pharmacies: Pharmacy[];
-  selectedPharmacyId?: number | null;
-  onLocateUser?: () => void;
-  userLocation?: { lat: number; lng: number } | null;
-  onMapMoveEnd?: (bounds: MapBounds) => void;
-  onMapReady?: (bounds: MapBounds) => void;
-  autoFitBounds?: boolean;
-  initialCenter?: { lat: number; lng: number };
-  initialZoom?: number;
+    pharmacies: Pharmacy[];
+    selectedPharmacyId?: number | null;
+    onLocateUser?: () => void;
+    userLocation?: { lat: number; lng: number } | null;
+    onMapMoveEnd?: (bounds: MapBounds) => void;
+    onMapReady?: (bounds: MapBounds) => void;
+    autoFitBounds?: boolean;
+    initialCenter?: { lat: number; lng: number };
+    initialZoom?: number;
+    heatmapMode?: HeatmapMode;
+    riskHotspots?: RiskHotspot[];
 }
 
 export default function PharmacyMap({
-  pharmacies,
-  selectedPharmacyId,
-  userLocation,
-  onMapMoveEnd,
-  onMapReady,
-  autoFitBounds = true,
-  initialCenter,
-  initialZoom,
+    pharmacies,
+    selectedPharmacyId,
+    userLocation,
+    onMapMoveEnd,
+    onMapReady,
+    autoFitBounds = true,
+    initialCenter,
+    initialZoom,
+    heatmapMode = "none",
+    riskHotspots = [],
 }: PharmacyMapProps) {
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<any>(null);
-  const layerGroup = useRef<any>(null);
-  const userMarker = useRef<any>(null);
-  const markersRef = useRef<Map<number, any>>(new Map());
-  const [mapError, setMapError] = useState(false);
-  const [isMapReady, setIsMapReady] = useState(false);
+    const mapContainer = useRef<HTMLDivElement>(null);
+    const map = useRef<any>(null);
+    const layerGroup = useRef<any>(null);
+    const heatLayerGroup = useRef<any>(null);
+    const userMarker = useRef<any>(null);
+    const markersRef = useRef<Map<number, any>>(new Map());
+    const [mapError, setMapError] = useState(false);
+    const [isMapReady, setIsMapReady] = useState(false);
 
-  // Initialize the map
-  useEffect(() => {
-    let mounted = true;
+    // Initialize the map
+    useEffect(() => {
+        let mounted = true;
 
-    const initMap = async () => {
-      try {
-        // Load Leaflet CSS and JS dynamically if not already present
-        if (!(window as any).L) {
-          const link = document.createElement("link");
-          link.rel = "stylesheet";
-          link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-          link.crossOrigin = "";
-          document.head.appendChild(link);
+        const initMap = async () => {
+            try {
+                // Load Leaflet CSS and JS dynamically if not already present
+                if (!(window as any).L) {
+                    const link = document.createElement("link");
+                    link.rel = "stylesheet";
+                    link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+                    link.crossOrigin = "";
+                    document.head.appendChild(link);
 
-          await new Promise<void>((resolve, reject) => {
-            const script = document.createElement("script");
-            script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-            script.onload = () => resolve();
-            script.onerror = () => reject(new Error("Failed to load Leaflet"));
-            document.head.appendChild(script);
-          });
+                    await new Promise<void>((resolve, reject) => {
+                        const script = document.createElement("script");
+                        script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+                        script.onload = () => resolve();
+                        script.onerror = () => reject(new Error("Failed to load Leaflet"));
+                        document.head.appendChild(script);
+                    });
 
-          // Small delay to let Leaflet fully initialize
-          await new Promise((r) => setTimeout(r, 100));
-        }
+                    // Small delay to let Leaflet fully initialize
+                    await new Promise((r) => setTimeout(r, 100));
+                }
 
-        if (!mounted || !mapContainer.current) return;
+                if (!mounted || !mapContainer.current) return;
+
+                const L = (window as any).L;
+
+                // Initialize Map (centered on India)
+                if (!map.current) {
+                    const center = initialCenter || { lat: 22.5937, lng: 78.9629 };
+                    const zoom = initialZoom || 5;
+
+                    map.current = L.map(mapContainer.current, {
+                        zoomControl: false,
+                    }).setView([center.lat, center.lng], zoom);
+
+                    // CARTO Voyager tiles — clean, free, no API key
+                    L.tileLayer(
+                        "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+                        {
+                            attribution:
+                                '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+                            maxZoom: 19,
+                        }
+                    ).addTo(map.current);
+
+                    // Add zoom control to bottom-right (away from our controls)
+                    L.control.zoom({ position: "bottomright" }).addTo(map.current);
+
+                    layerGroup.current = L.layerGroup().addTo(map.current);
+                    heatLayerGroup.current = L.layerGroup().addTo(map.current);
+
+                    // Fire moveend callback so the page can fetch initial data
+                    const getBounds = () => {
+                        const b = map.current.getBounds();
+                        const c = map.current.getCenter();
+                        return {
+                            south: b.getSouth(),
+                            west: b.getWest(),
+                            north: b.getNorth(),
+                            east: b.getEast(),
+                            center: { lat: c.lat, lng: c.lng },
+                        };
+                    };
+
+                    map.current.on("moveend", () => {
+                        if (onMapMoveEnd) onMapMoveEnd(getBounds());
+                    });
+
+                    // Notify parent that map is ready
+                    if (onMapReady) {
+                        setTimeout(() => onMapReady(getBounds()), 200);
+                    }
+                }
+
+                if (mounted) {
+                    setIsMapReady(true);
+                }
+            } catch (error) {
+                console.error("Error initializing Leaflet map:", error);
+                if (mounted) setMapError(true);
+            }
+        };
+
+        initMap();
+
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
+    // Update heatmap circles when risk layer changes
+    useEffect(() => {
+        if (!isMapReady || !map.current || !heatLayerGroup.current) return;
 
         const L = (window as any).L;
+        if (!L) return;
 
-        // Initialize Map (centered on India)
-        if (!map.current) {
-          const center = initialCenter || { lat: 22.5937, lng: 78.9629 };
-          const zoom = initialZoom || 5;
+        heatLayerGroup.current.clearLayers();
+        if (heatmapMode === "none") return;
 
-          map.current = L.map(mapContainer.current, {
-            zoomControl: false,
-          }).setView([center.lat, center.lng], zoom);
+        riskHotspots
+            .filter((hotspot) => heatmapMode === "combined" || hotspot.category === heatmapMode)
+            .forEach((hotspot) => {
+                const normalizedIntensity = Math.max(0.15, Math.min(1, hotspot.intensity));
+                const isCounterfeit = hotspot.category === "counterfeit";
+                const color = isCounterfeit ? "#dc2626" : "#0891b2";
+                const fillColor = isCounterfeit ? "#ef4444" : "#06b6d4";
+                const radius = isCounterfeit
+                    ? 1800 + normalizedIntensity * 4200
+                    : 900 + normalizedIntensity * 2600;
 
-          // CARTO Voyager tiles — clean, free, no API key
-          L.tileLayer(
-            "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-            {
-              attribution:
-                '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
-              maxZoom: 19,
-            }
-          ).addTo(map.current);
+                const circle = L.circle([hotspot.coordinates.lat, hotspot.coordinates.lng], {
+                    radius,
+                    color,
+                    weight: 1,
+                    opacity: 0.42,
+                    fillColor,
+                    fillOpacity: isCounterfeit ? 0.2 : 0.16,
+                    interactive: true,
+                }).addTo(heatLayerGroup.current);
 
-          // Add zoom control to bottom-right (away from our controls)
-          L.control.zoom({ position: "bottomright" }).addTo(map.current);
+                circle.bindTooltip(
+                    `<strong>${hotspot.label}</strong><br/>${hotspot.details || ""}`,
+                    {
+                        direction: "top",
+                        sticky: true,
+                        opacity: 0.92,
+                    }
+                );
+            });
+    }, [heatmapMode, riskHotspots, isMapReady]);
 
-          layerGroup.current = L.layerGroup().addTo(map.current);
+    // Update markers when pharmacies change
+    useEffect(() => {
+        if (!isMapReady || !map.current || !layerGroup.current) return;
 
-          // Fire moveend callback so the page can fetch initial data
-          const getBounds = () => {
-            const b = map.current.getBounds();
-            const c = map.current.getCenter();
-            return {
-              south: b.getSouth(),
-              west: b.getWest(),
-              north: b.getNorth(),
-              east: b.getEast(),
-              center: { lat: c.lat, lng: c.lng },
-            };
-          };
+        const L = (window as any).L;
+        if (!L) return;
 
-          map.current.on("moveend", () => {
-            if (onMapMoveEnd) onMapMoveEnd(getBounds());
-          });
+        // Clear existing markers
+        layerGroup.current.clearLayers();
+        markersRef.current.clear();
 
-          // Notify parent that map is ready
-          if (onMapReady) {
-            setTimeout(() => onMapReady(getBounds()), 200);
-          }
+        if (pharmacies.length === 0) {
+            map.current.setView([22.5937, 78.9629], 5);
+            return;
         }
 
-        if (mounted) {
-          setIsMapReady(true);
-        }
-      } catch (error) {
-        console.error("Error initializing Leaflet map:", error);
-        if (mounted) setMapError(true);
-      }
-    };
+        const bounds = L.latLngBounds([]);
 
-    initMap();
+        pharmacies.forEach((pharmacy) => {
+            bounds.extend([pharmacy.coordinates.lat, pharmacy.coordinates.lng]);
 
-    return () => {
-      mounted = false;
-    };
-  }, []);
+            // Custom marker with pharmacy-type-specific styling
+            const isGovt = pharmacy.type === "govt";
+            const markerColor = isGovt ? "#059669" : "#3b82f6";
+            const markerBorder = isGovt ? "#d1fae5" : "#dbeafe";
 
-  // Update markers when pharmacies change
-  useEffect(() => {
-    if (!isMapReady || !map.current || !layerGroup.current) return;
-
-    const L = (window as any).L;
-    if (!L) return;
-
-    // Clear existing markers
-    layerGroup.current.clearLayers();
-    markersRef.current.clear();
-
-    if (pharmacies.length === 0) {
-      map.current.setView([22.5937, 78.9629], 5);
-      return;
-    }
-
-    const bounds = L.latLngBounds([]);
-
-    pharmacies.forEach((pharmacy) => {
-      bounds.extend([pharmacy.coordinates.lat, pharmacy.coordinates.lng]);
-
-      // Custom marker with pharmacy-type-specific styling
-      const isGovt = pharmacy.type === "govt";
-      const markerColor = isGovt ? "#059669" : "#3b82f6";
-      const markerBorder = isGovt ? "#d1fae5" : "#dbeafe";
-
-      const customMarker = L.divIcon({
-        className: "sahidawa-marker",
-        html: `
-          <div style="
+            const customMarker = L.divIcon({
+                className: "sahidawa-marker",
+                html: `
+          <div class="sahidawa-marker-shell" style="
             position: relative;
             width: 36px;
             height: 36px;
@@ -204,34 +264,33 @@ export default function PharmacyMap({
             ">
               <svg style="transform: rotate(45deg); width: 16px; height: 16px; color: white;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 ${
-                  isGovt
-                    ? '<path d="M3 21h18"/><path d="M9 8h1"/><path d="M14 8h1"/><path d="M9 12h1"/><path d="M14 12h1"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/>'
-                    : '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>'
+                    isGovt
+                        ? '<path d="M3 21h18"/><path d="M9 8h1"/><path d="M14 8h1"/><path d="M9 12h1"/><path d="M14 12h1"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/>'
+                        : '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>'
                 }
               </svg>
             </div>
           </div>
         `,
-        iconSize: [36, 36],
-        iconAnchor: [18, 36],
-        popupAnchor: [0, -36],
-      });
+                iconSize: [36, 36],
+                iconAnchor: [18, 36],
+                popupAnchor: [0, -36],
+            });
 
-      const marker = L.marker(
-        [pharmacy.coordinates.lat, pharmacy.coordinates.lng],
-        { icon: customMarker }
-      ).addTo(layerGroup.current);
+            const marker = L.marker([pharmacy.coordinates.lat, pharmacy.coordinates.lng], {
+                icon: customMarker,
+            }).addTo(layerGroup.current);
 
-      // Store reference for programmatic access
-      markersRef.current.set(pharmacy.id, marker);
+            // Store reference for programmatic access
+            markersRef.current.set(pharmacy.id, marker);
 
-      // Rich popup matching SahiDawa's design
-      const statusColor =
-        pharmacy.status === "Verified"
-          ? "background:#d1fae5;color:#065f46"
-          : "background:#fef3c7;color:#92400e";
+            // Rich popup matching SahiDawa's design
+            const statusColor =
+                pharmacy.status === "Verified"
+                    ? "background:#d1fae5;color:#065f46"
+                    : "background:#fef3c7;color:#92400e";
 
-      const popupContent = `
+            const popupContent = `
         <div style="
           padding: 12px;
           min-width: 220px;
@@ -252,9 +311,9 @@ export default function PharmacyMap({
             ">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 ${
-                  isGovt
-                    ? '<path d="M3 21h18"/><path d="M9 8h1"/><path d="M14 8h1"/><path d="M9 12h1"/><path d="M14 12h1"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/>'
-                    : '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>'
+                    isGovt
+                        ? '<path d="M3 21h18"/><path d="M9 8h1"/><path d="M14 8h1"/><path d="M9 12h1"/><path d="M14 12h1"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/>'
+                        : '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>'
                 }
               </svg>
             </div>
@@ -274,14 +333,18 @@ export default function PharmacyMap({
           ${pharmacy.address ? `<p style="font-size:12px;color:#64748b;margin:0 0 8px 0;line-height:1.4;">${pharmacy.address}</p>` : ""}
           <div style="display:flex;align-items:center;gap:12px;font-size:12px;color:#94a3b8;margin-bottom:10px;">
             ${pharmacy.distance && pharmacy.distance !== "—" ? `<span style="font-weight:600;">${pharmacy.distance} away</span>` : ""}
-            ${pharmacy.rating > 0 ? `<span style="display:flex;align-items:center;gap:2px;">
+            ${
+                pharmacy.rating > 0
+                    ? `<span style="display:flex;align-items:center;gap:2px;">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="0"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
               <span style="font-weight:700;color:#475569;">${pharmacy.rating}</span>
-            </span>` : `<span style="font-weight:500;font-size:11px;color:#cbd5e1;">OpenStreetMap data</span>`}
+            </span>`
+                    : `<span style="font-weight:500;font-size:11px;color:#cbd5e1;">OpenStreetMap data</span>`
+            }
           </div>
           ${
-            pharmacy.phone
-              ? `<a href="tel:${pharmacy.phone}" style="
+              pharmacy.phone
+                  ? `<a href="tel:${pharmacy.phone}" style="
               display:flex;
               align-items:center;
               justify-content:center;
@@ -299,64 +362,73 @@ export default function PharmacyMap({
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
               Call ${pharmacy.phone}
             </a>`
-              : ""
+                  : ""
           }
         </div>
       `;
 
-      marker.bindPopup(popupContent, {
-        className: "sahidawa-popup",
-        closeButton: true,
-        maxWidth: 300,
-      });
-    });
+            marker.bindPopup(popupContent, {
+                className: "sahidawa-popup",
+                closeButton: true,
+                maxWidth: 300,
+            });
 
-    // Fit map to show all pharmacies (only if autoFitBounds is enabled)
-    if (autoFitBounds && pharmacies.length > 0) {
-      map.current.fitBounds(bounds, {
-        padding: [50, 50],
-        maxZoom: 15,
-      });
-    }
-  }, [pharmacies, isMapReady]);
+            if (window.matchMedia("(pointer: fine)").matches) {
+                marker.on("mouseover", () => {
+                    marker.openPopup();
+                    marker.getElement()?.classList.add("sahidawa-marker-hover");
+                });
+                marker.on("mouseout", () => {
+                    marker.closePopup();
+                    marker.getElement()?.classList.remove("sahidawa-marker-hover");
+                });
+            }
+        });
 
-  // Handle selected pharmacy changes
-  useEffect(() => {
-    if (!isMapReady || !map.current || selectedPharmacyId == null) return;
+        // Fit map to show all pharmacies (only if autoFitBounds is enabled)
+        if (autoFitBounds && pharmacies.length > 0) {
+            map.current.fitBounds(bounds, {
+                padding: [50, 50],
+                maxZoom: 15,
+            });
+        }
+    }, [pharmacies, isMapReady]);
 
-    const marker = markersRef.current.get(selectedPharmacyId);
-    if (marker) {
-      const pharmacy = pharmacies.find((p) => p.id === selectedPharmacyId);
-      if (pharmacy) {
-        map.current.flyTo(
-          [pharmacy.coordinates.lat, pharmacy.coordinates.lng],
-          15,
-          { duration: 0.8 }
-        );
-        // Small delay to let flyTo start before opening popup
-        setTimeout(() => {
-          marker.openPopup();
-        }, 400);
-      }
-    }
-  }, [selectedPharmacyId, isMapReady, pharmacies]);
+    // Handle selected pharmacy changes
+    useEffect(() => {
+        if (!isMapReady || !map.current || selectedPharmacyId == null) return;
 
-  // Handle user location marker
-  useEffect(() => {
-    if (!isMapReady || !map.current || !userLocation) return;
+        const marker = markersRef.current.get(selectedPharmacyId);
+        if (marker) {
+            const pharmacy = pharmacies.find((p) => p.id === selectedPharmacyId);
+            if (pharmacy) {
+                map.current.flyTo([pharmacy.coordinates.lat, pharmacy.coordinates.lng], 15, {
+                    duration: 0.8,
+                });
+                // Small delay to let flyTo start before opening popup
+                setTimeout(() => {
+                    marker.openPopup();
+                }, 400);
+            }
+        }
+    }, [selectedPharmacyId, isMapReady, pharmacies]);
 
-    const L = (window as any).L;
-    if (!L) return;
+    // Handle user location marker
+    useEffect(() => {
+        if (!isMapReady || !map.current || !userLocation) return;
 
-    // Remove old user marker
-    if (userMarker.current) {
-      map.current.removeLayer(userMarker.current);
-    }
+        const L = (window as any).L;
+        if (!L) return;
 
-    // Create pulsing blue dot for user location
-    const userIcon = L.divIcon({
-      className: "user-location-marker",
-      html: `
+        // Remove old user marker
+        if (userMarker.current) {
+            map.current.removeLayer(userMarker.current);
+        }
+
+        // Create pulsing blue dot for user location
+        const userIcon = L.divIcon({
+            className: "user-location-marker",
+            html: `
         <div style="position:relative;width:20px;height:20px;">
           <div style="
             position:absolute;
@@ -376,55 +448,50 @@ export default function PharmacyMap({
           "></div>
         </div>
       `,
-      iconSize: [20, 20],
-      iconAnchor: [10, 10],
-    });
+            iconSize: [20, 20],
+            iconAnchor: [10, 10],
+        });
 
-    userMarker.current = L.marker([userLocation.lat, userLocation.lng], {
-      icon: userIcon,
-      zIndexOffset: 1000,
-    }).addTo(map.current);
+        userMarker.current = L.marker([userLocation.lat, userLocation.lng], {
+            icon: userIcon,
+            zIndexOffset: 1000,
+        }).addTo(map.current);
 
-    map.current.flyTo([userLocation.lat, userLocation.lng], 14, {
-      duration: 1,
-    });
-  }, [userLocation, isMapReady]);
+        map.current.flyTo([userLocation.lat, userLocation.lng], 14, {
+            duration: 1,
+        });
+    }, [userLocation, isMapReady]);
 
-  // Error state
-  if (mapError) {
+    // Error state
+    if (mapError) {
+        return (
+            <div className="flex h-full min-h-[400px] w-full items-center justify-center rounded-2xl bg-slate-100">
+                <div className="space-y-3 p-6 text-center">
+                    <AlertCircle className="mx-auto text-slate-400" size={48} />
+                    <p className="text-lg font-bold text-slate-600">Map could not be loaded</p>
+                    <p className="text-sm font-medium text-slate-400">
+                        Please refresh the page or check your internet connection.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
     return (
-      <div className="w-full h-full min-h-[400px] bg-slate-100 rounded-2xl flex items-center justify-center">
-        <div className="text-center space-y-3 p-6">
-          <AlertCircle className="mx-auto text-slate-400" size={48} />
-          <p className="text-slate-600 font-bold text-lg">
-            Map could not be loaded
-          </p>
-          <p className="text-sm text-slate-400 font-medium">
-            Please refresh the page or check your internet connection.
-          </p>
+        <div className="relative h-full min-h-[400px] w-full">
+            {/* Loading Skeleton */}
+            {!isMapReady && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-slate-100">
+                    <div className="space-y-3 text-center">
+                        <Loader2 className="mx-auto animate-spin text-emerald-600" size={32} />
+                        <p className="animate-pulse text-sm font-semibold text-slate-500">
+                            Loading pharmacy map...
+                        </p>
+                    </div>
+                </div>
+            )}
+            {/* Map Container */}
+            <div ref={mapContainer} className="z-0 h-full min-h-[400px] w-full" />
         </div>
-      </div>
     );
-  }
-
-  return (
-    <div className="relative w-full h-full min-h-[400px]">
-      {/* Loading Skeleton */}
-      {!isMapReady && (
-        <div className="absolute inset-0 z-10 bg-slate-100 rounded-2xl flex items-center justify-center">
-          <div className="text-center space-y-3">
-            <Loader2
-              className="mx-auto text-emerald-600 animate-spin"
-              size={32}
-            />
-            <p className="text-slate-500 font-semibold text-sm animate-pulse">
-              Loading pharmacy map...
-            </p>
-          </div>
-        </div>
-      )}
-      {/* Map Container */}
-      <div ref={mapContainer} className="w-full h-full min-h-[400px] z-0" />
-    </div>
-  );
 }

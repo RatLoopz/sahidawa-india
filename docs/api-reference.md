@@ -18,6 +18,7 @@ The platform runs two backend services:
   * [GET /](#get-)
   * [GET /health](#get-health)
   * [POST /api/verify](#post-apiverify)
+  * [Recall Push Notifications](#recall-push-notifications)
 * [apps/ml — FastAPI ML Service](#appsml--fastapi-ml-service-port-8000)
 
   * [GET /](#get--1)
@@ -137,6 +138,36 @@ Verifies whether a medicine is genuine by checking its batch number against the 
   "details": "batch_number is required and must be at least 4 characters"
 }
 ```
+
+---
+
+## Recall Push Notifications
+
+Browser recall alerts are exposed under `/api/notifications`.
+
+| Method | Path | Purpose |
+| ------ | ---- | ------- |
+| `GET` | `/api/notifications/vapid-public-key` | Returns the public VAPID key and whether push is configured |
+| `POST` | `/api/notifications/subscriptions` | Stores a browser Push API subscription |
+| `DELETE` | `/api/notifications/subscriptions` | Removes a subscription by endpoint |
+| `GET` | `/api/notifications/recalls/mock` | Returns the mock CDSCO recall feed |
+| `POST` | `/api/notifications/recalls/mock/trigger` | Sends a recall notification to stored subscriptions |
+
+Subscription payload:
+
+```json
+{
+  "endpoint": "https://push.example.test/subscription/1",
+  "keys": {
+    "p256dh": "browser-public-key",
+    "auth": "browser-auth-secret"
+  }
+}
+```
+
+Recall trigger payloads include `medicineName` and `reason`; the push payload
+returns them as `medicineName` and `recallReason` so the service worker can show
+the safety alert clearly.
 
 ---
 
