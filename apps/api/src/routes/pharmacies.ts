@@ -82,6 +82,8 @@ router.get("/nearest", async (req: Request, res: Response, next: NextFunction) =
                 lat: p.lat,
                 lng: p.lng,
                 distance: `${Number(p.distance).toFixed(1)} km`,
+                is_verified: p.is_verified,
+                store_type: p.store_type,
             }));
 
             return res.json({ pharmacies });
@@ -155,7 +157,9 @@ router.get("/nearest", async (req: Request, res: Response, next: NextFunction) =
                     lng: pLng,
                     rawDistance: distanceKm,
                     distance: `${distanceKm.toFixed(1)} km`,
-                };
+                    is_verified: p.is_verified ?? false,
+                    store_type: p.store_type ?? "general",
+};
             })
             .filter((p) => p.lat !== 0 && p.lng !== 0) // Strip invalid parses
             .sort((a, b) => a.rawDistance - b.rawDistance)
