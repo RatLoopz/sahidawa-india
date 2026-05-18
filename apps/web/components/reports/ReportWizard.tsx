@@ -13,6 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { submitReport, geocodePincode } from "@/lib/api";
+import { preprocessMedicineImage } from "@/lib/imageEnhancer";
 
 // ─── Cloudinary env ────────────────────────────────────────────────────────────
 // Uploads are now securely routed through our backend API (/api/upload),
@@ -268,11 +269,24 @@ function Step2({
     setBusy(true);
     try {
       const entries: ImageEntry[] = await Promise.all(
-        imgs.map(async (f) => ({
-          preview: URL.createObjectURL(f),
-          cloudUrl: await uploadOne(f),
-          name: f.name,
-        }))
+        imgs.map(async (f) => {
+          let fileToProcess = f;
+          try {
+            const optimizedBlob = await preprocessMedicineImage(f);
+            fileToProcess = new File([optimizedBlob], f.name, {
+              type: optimizedBlob.type || 'image/jpeg',
+              lastModified: Date.now(),
+            });
+          } catch (error) {
+            console.error('Image enhancement failed, falling back to original:', error);
+          }
+
+          return {
+            preview: URL.createObjectURL(fileToProcess),
+            cloudUrl: await uploadOne(fileToProcess),
+            name: fileToProcess.name,
+          };
+        })
       );
       const next = [...images, ...entries];
       setImages(next);
