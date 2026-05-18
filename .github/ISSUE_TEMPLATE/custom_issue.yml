@@ -18,12 +18,16 @@ body:
     attributes:
       label: "🔍 Issue Description"
       description: "Describe the issue or suggestion in detail. Include any relevant context."
+    validations:
+      required: true
 
   - type: textarea
     id: expected
     attributes:
       label: "💡 Expected behavior"
       description: "Describe the expected behavior."
+    validations:
+      required: true
 
   - type: checkboxes
     id: checklist
