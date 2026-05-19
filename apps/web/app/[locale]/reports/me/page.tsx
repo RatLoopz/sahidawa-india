@@ -17,6 +17,8 @@ import {
 import { Link } from '@/i18n/routing';
 import { PageHeader } from '../../components/PageHeader';
 import Footer from '../../components/Footer';
+import Card from '@/components/Card';
+import LazyImage from '@/components/LazyImage';
 
 // `NEXT_PUBLIC_API_URL` must be the bare API origin with no path suffix
 // (e.g. `https://api.example.com`). The reports router is mounted at
@@ -103,13 +105,13 @@ function ReportCard({ report }: { report: MyReport }) {
     report.reported_brand_name?.trim() || report.scanned_barcode || 'Unnamed medicine';
 
   return (
-    <article className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col sm:flex-row">
+    <Card className="flex flex-col sm:flex-row">
       <div className="sm:w-32 sm:h-32 h-40 bg-slate-100 shrink-0 flex items-center justify-center">
         {isSafePhotoUrl(report.photo_url) ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <LazyImage
             src={report.photo_url}
             alt={`Photo of reported medicine: ${title}`}
+            wrapperClassName="w-full h-full"
             className="w-full h-full object-cover"
           />
         ) : (
@@ -150,7 +152,7 @@ function ReportCard({ report }: { report: MyReport }) {
           )}
         </dl>
       </div>
-    </article>
+    </Card>
   );
 }
 

@@ -3,6 +3,9 @@
         "target": "ES2022",
         "module": "NodeNext",
         "moduleResolution": "NodeNext",
+        "module": "CommonJS",
+        "moduleResolution": "node",
+        "ignoreDeprecations": "6.0",
         "rootDir": "./src",
         "outDir": "./dist",
 

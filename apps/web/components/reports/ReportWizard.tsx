@@ -13,6 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { submitReport, geocodePincode } from "@/lib/api";
+import LazyImage from "@/components/LazyImage";
 
 // ─── Cloudinary env ────────────────────────────────────────────────────────────
 // Uploads are now securely routed through our backend API (/api/upload),
@@ -350,8 +351,12 @@ function Step2({
                 exit={{ opacity: 0, scale: 0.88 }} transition={{ duration: 0.18 }}
                 className="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-sm"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={img.preview} alt={img.name} className="w-full h-full object-cover" />
+                <LazyImage
+                  src={img.preview}
+                  alt={img.name}
+                  wrapperClassName="w-full h-full"
+                  className="w-full h-full object-cover"
+                />
                 {/* Remove overlay */}
                 <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100
                   transition-opacity flex items-center justify-center">
