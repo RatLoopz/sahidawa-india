@@ -58,6 +58,18 @@ function CdscoStatusBadge({ status }: { status: string }) {
     );
 }
 
+function formatMedicineDetails(medicine: VerifiedMedicine) {
+    return [
+        `Medicine: ${medicine.brand_name}`,
+        `Generic: ${medicine.generic_name}`,
+        `Manufacturer: ${medicine.manufacturer}`,
+        `Batch No: ${medicine.batch_number}`,
+        `Expiry: ${formatExpiryForBadge(medicine.expiry_date) ?? "Unknown"}`,
+        `CDSCO Status: ${medicine.cdsco_approval_status}`,
+        medicine.is_counterfeit_alert ? "Status: Counterfeit alert" : "Status: Verified",
+    ].join("\n");
+}
+
 function LoadingSkeleton() {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6 backdrop-blur-md">
@@ -100,13 +112,13 @@ function VerifiedSafeResult({
     medicine,
     onScanAgain,
     onShare,
-    onCopyBatch,
+    onCopyMedicineDetails,
     copied,
 }: {
     medicine: VerifiedMedicine;
     onScanAgain: () => void;
     onShare: () => void;
-    onCopyBatch: () => void;
+    onCopyMedicineDetails: () => void;
     copied: boolean;
 }) {
     return (
@@ -133,7 +145,9 @@ function VerifiedSafeResult({
                                 {medicine.batch_number}
                             </span>
                             <button
-                                onClick={onCopyBatch}
+                                onClick={onCopyMedicineDetails}
+                                aria-label="Copy medicine details"
+                                title="Copy medicine details"
                                 className={`shrink-0 rounded-lg p-1.5 transition-all duration-200 ${
                                     copied
                                         ? "bg-emerald-100 text-emerald-600"
@@ -197,10 +211,14 @@ function CounterfeitAlertResult({
     medicine,
     onScanAgain,
     onShare,
+    onCopyMedicineDetails,
+    copied,
 }: {
     medicine: VerifiedMedicine;
     onScanAgain: () => void;
     onShare: () => void;
+    onCopyMedicineDetails: () => void;
+    copied: boolean;
 }) {
     return (
         <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] bg-white p-8 text-slate-900 shadow-2xl">
@@ -221,7 +239,21 @@ function CounterfeitAlertResult({
                         <span className="block text-[10px] font-bold tracking-wider text-red-400 uppercase">
                             Batch No.
                         </span>
-                        <span className="font-bold text-red-700">{medicine.batch_number}</span>
+                        <div className="flex items-center justify-between gap-1">
+                            <span className="font-bold text-red-700">{medicine.batch_number}</span>
+                            <button
+                                onClick={onCopyMedicineDetails}
+                                aria-label="Copy medicine details"
+                                title="Copy medicine details"
+                                className={`shrink-0 rounded-lg p-1.5 transition-all duration-200 ${
+                                    copied
+                                        ? "bg-red-100 text-red-600"
+                                        : "bg-red-200/60 text-red-400 hover:bg-red-200 hover:text-red-600"
+                                }`}
+                            >
+                                {copied ? <Check size={14} strokeWidth={3} /> : <Copy size={14} />}
+                            </button>
+                        </div>
                     </div>
                     <div className="rounded-2xl border border-red-100 bg-red-50 p-3">
                         <span className="block text-[10px] font-bold tracking-wider text-red-400 uppercase">
@@ -369,25 +401,39 @@ export default function ScanPage() {
         }
     }, []);
 
-    const handleCopyBatch = useCallback(async () => {
-        const batch = verifyResult?.verified ? verifyResult.medicine.batch_number : batchInput;
-        try {
-            await navigator.clipboard.writeText(batch);
+    const handleCopyMedicineDetails = useCallback(async () => {
+        if (!verifyResult?.verified) return;
+
+        const details = formatMedicineDetails(verifyResult.medicine);
+        const showCopied = () => {
             setCopied(true);
-            toast.success("Batch number copied!");
+            toast.success("Medicine details copied!");
             setTimeout(() => setCopied(false), 2000);
+        };
+
+        try {
+            if (!navigator.clipboard?.writeText) {
+                throw new Error("Clipboard API unavailable");
+            }
+            await navigator.clipboard.writeText(details);
+            showCopied();
         } catch {
             const textArea = document.createElement("textarea");
-            textArea.value = batch;
+            textArea.value = details;
+            textArea.setAttribute("readonly", "");
+            textArea.style.position = "fixed";
+            textArea.style.opacity = "0";
             document.body.appendChild(textArea);
             textArea.select();
-            document.execCommand("copy");
+            const copiedWithFallback = document.execCommand("copy");
             document.body.removeChild(textArea);
-            setCopied(true);
-            toast.success("Batch number copied!");
-            setTimeout(() => setCopied(false), 2000);
+            if (copiedWithFallback) {
+                showCopied();
+            } else {
+                toast.error("Unable to copy medicine details");
+            }
         }
-    }, [verifyResult, batchInput]);
+    }, [verifyResult]);
 
     const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
@@ -519,16 +565,7 @@ export default function ScanPage() {
     const handleShare = async () => {
         let shareText = "";
         if (verifyResult?.verified) {
-            const m = verifyResult.medicine;
-            shareText = [
-                `Medicine: ${m.brand_name}`,
-                `Generic: ${m.generic_name}`,
-                `Manufacturer: ${m.manufacturer}`,
-                `Batch No: ${m.batch_number}`,
-                `Expiry: ${formatExpiryForBadge(m.expiry_date) ?? "Unknown"}`,
-                `CDSCO Status: ${m.cdsco_approval_status}`,
-                m.is_counterfeit_alert ? "⚠ COUNTERFEIT ALERT" : "Status: Verified",
-            ].join("\n");
+            shareText = formatMedicineDetails(verifyResult.medicine);
         } else {
             shareText = `Medicine Verification: Unverified batch — ${batchInput}`;
         }
@@ -629,6 +666,8 @@ export default function ScanPage() {
                                     medicine={verifyResult.medicine}
                                     onScanAgain={handleScanAgain}
                                     onShare={handleShare}
+                                    onCopyMedicineDetails={handleCopyMedicineDetails}
+                                    copied={copied}
                                 />
                             )}
                         {!verifyError &&
@@ -638,7 +677,7 @@ export default function ScanPage() {
                                     medicine={verifyResult.medicine}
                                     onScanAgain={handleScanAgain}
                                     onShare={handleShare}
-                                    onCopyBatch={handleCopyBatch}
+                                    onCopyMedicineDetails={handleCopyMedicineDetails}
                                     copied={copied}
                                 />
                             )}
