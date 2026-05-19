@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { SearchBar } from "apps/web/app/src/components/SearchBar";
+import { SearchBar } from "@/app/src/components/SearchBar";
 import {
     Camera,
     ShieldCheck,
