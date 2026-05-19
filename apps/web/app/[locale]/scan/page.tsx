@@ -107,6 +107,7 @@ function VerifiedSafeResult({
     onScanAgain: () => void;
     onShare: () => void;
     onCopyBatch: () => void;
+    onCopyDetails: () => void;
     copied: boolean;
 }) {
     return (
@@ -187,9 +188,31 @@ function VerifiedSafeResult({
                     </div>
                 )}
 
-                <ResultActions onScanAgain={onScanAgain} onShare={onShare} />
-            </div>
-        </div>
+<button
+                    onClick={onCopyDetails}
+                    aria-label="Copy medicine details"
+                    className={`flex w-full items-center justify-center gap-2 rounded-2xl border py-3.5 font-semibold transition-all duration-200 ${
+                        copied
+                            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                            : "border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                >
+                    {copied ? <Check size={16} strokeWidth={3} /> : <Copy size={16} />}
+                    {copied ? "Copied!" : "Copy Medicine Details"}
+                </button>
+<button
+                    onClick={onCopyDetails}
+                    aria-label="Copy medicine details"
+                    className={`flex w-full items-center justify-center gap-2 rounded-2xl border py-3.5 font-semibold transition-all duration-200 ${
+                        copied
+                            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                            : "border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                >
+                    {copied ? <Check size={16} strokeWidth={3} /> : <Copy size={16} />}
+                    {copied ? "Copied!" : "Copy Medicine Details"}
+                </button>
+                <ResultActions onScanAgain={onScanAgain} onShare={onShare} />        </div>
     );
 }
 
@@ -368,7 +391,63 @@ export default function ScanPage() {
             setShowResult(true);
         }
     }, []);
+    const handleCopyDetails = useCallback(async () => {
+        if (!verifyResult?.verified) return;
+        const m = verifyResult.medicine;
+        const text = [
+            `Medicine: ${m.brand_name}`,
+            `Generic: ${m.generic_name}`,
+            `Manufacturer: ${m.manufacturer}`,
+            `Batch No: ${m.batch_number}`,
+            `Expiry: ${formatExpiryForBadge(m.expiry_date) ?? "Unknown"}`,
+            `CDSCO Status: ${m.cdsco_approval_status}`,
+        ].join("\n");
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopied(true);
+            toast.success("Medicine details copied!");
+            setTimeout(() => setCopied(false), 2000);
+        } catch {
+            const ta = document.createElement("textarea");
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand("copy");
+            document.body.removeChild(ta);
+            setCopied(true);
+            toast.success("Medicine details copied!");
+            setTimeout(() => setCopied(false), 2000);
+        }
+    }, [verifyResult]);
 
+const handleCopyDetails = useCallback(async () => {
+        if (!verifyResult?.verified) return;
+        const m = verifyResult.medicine;
+        const text = [
+            `Medicine: ${m.brand_name}`,
+            `Generic: ${m.generic_name}`,
+            `Manufacturer: ${m.manufacturer}`,
+            `Batch No: ${m.batch_number}`,
+            `Expiry: ${formatExpiryForBadge(m.expiry_date) ?? "Unknown"}`,
+            `CDSCO Status: ${m.cdsco_approval_status}`,
+        ].join("\n");
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopied(true);
+            toast.success("Medicine details copied!");
+            setTimeout(() => setCopied(false), 2000);
+        } catch {
+            const ta = document.createElement("textarea");
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand("copy");
+            document.body.removeChild(ta);
+            setCopied(true);
+            toast.success("Medicine details copied!");
+            setTimeout(() => setCopied(false), 2000);
+        }
+    }, [verifyResult]);
     const handleCopyBatch = useCallback(async () => {
         const batch = verifyResult?.verified ? verifyResult.medicine.batch_number : batchInput;
         try {
@@ -639,6 +718,7 @@ export default function ScanPage() {
                                     onScanAgain={handleScanAgain}
                                     onShare={handleShare}
                                     onCopyBatch={handleCopyBatch}
+                                    onCopyDetails={handleCopyDetails}
                                     copied={copied}
                                 />
                             )}
