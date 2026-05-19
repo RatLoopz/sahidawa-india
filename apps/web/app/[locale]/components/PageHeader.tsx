@@ -26,7 +26,7 @@ export const PageHeader = ({
   const isDark = variant === "dark";
   
   return (
-    <header className={`${isDark ? "absolute top-0 left-0 right-0 bg-gradient-to-b from-black/70 to-transparent text-white" : "relative bg-white border-b border-slate-100 shadow-sm text-slate-900"} z-50 p-4 flex flex-col gap-4`}>
+    <header className={`no-print ${isDark ? "absolute top-0 left-0 right-0 bg-gradient-to-b from-black/70 to-transparent text-white" : "relative bg-white border-b border-slate-100 shadow-sm text-slate-900"} z-50 p-4 flex flex-col gap-4`}>
       <div className="flex items-center justify-between gap-2">
         <Link 
           href={backHref} 
