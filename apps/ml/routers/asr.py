@@ -40,7 +40,7 @@ async def transcribe_audio(file: UploadFile = File(...)):
     Accepts any supported audio file upload and returns transcribed text.
 
     Supports: WAV, MP3, OGG, WebM, MP4, FLAC
-    Max Duration: 60 seconds (enforced to prevent resource exhaustion)
+    Max Duration: enforced by MAX_AUDIO_DURATION_SECONDS to prevent resource exhaustion
     Returns: transcription text, detected language code, language confidence,
              and echoed filename.
 
