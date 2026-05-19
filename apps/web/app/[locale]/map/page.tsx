@@ -195,16 +195,17 @@ function BottomDrawer({
         );
     }
 
-    return (
-        <div className="pointer-events-none absolute right-4 bottom-4 left-4 z-1000 md:left-auto md:max-w-sm">
-            <div className="pointer-events-auto max-h-[60vh] rounded-2xl border border-white/70 bg-white/96 shadow-2xl backdrop-blur-xl">
-                <div className="flex max-h-[60vh] flex-col overflow-hidden">
-                    {/* Handle + Header */}
-                    <div className="shrink-0 pt-3 pb-2">
-                        <div className="flex justify-center">
-                            <div className="h-1.5 w-10 rounded-full bg-slate-300" />
-                        </div>
-                        <div className="mt-2 flex items-center justify-between px-5">
+  return (
+    <div className="pointer-events-auto max-h-[60vh] rounded-2xl border border-white/70 bg-white/96 shadow-2xl backdrop-blur-xl">
+        <div className="flex max-h-[60vh] flex-col overflow-hidden">
+
+            {/* Handle + Header */}
+            <div className="shrink-0 pt-3 pb-2">
+                <div className="flex justify-center">
+                    <div className="h-1.5 w-10 rounded-full bg-slate-300" />
+                </div>
+
+                <div className="mt-2 flex items-center justify-between px-5">
                             <div className="flex items-center gap-2">
                                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100">
                                     <Store size={13} className="text-emerald-600" />
@@ -238,7 +239,7 @@ function BottomDrawer({
                     <div className="flex-1 space-y-2 overflow-y-auto px-4 pb-4">{children}</div>
                 </div>
             </div>
-        </div>
+      
     );
 }
 
