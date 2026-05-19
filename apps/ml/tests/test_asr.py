@@ -123,6 +123,42 @@ def test_missing_file_returns_422():
     assert response.status_code == 422
 
 
+def test_rejects_audio_exceeding_max_duration():
+    """Audio files longer than 60 seconds must return 400 Bad Request."""
+    # Create a 61-second audio file (exceeds 60-second max)
+    too_long_audio = make_silent_wav(duration_seconds=61, sample_rate=16000)
+    response = client.post(
+        "/asr/transcribe",
+        files={"file": ("long_audio.wav", too_long_audio, "audio/wav")},
+    )
+    assert response.status_code == 400
+    assert "exceeds maximum duration limit" in response.json()["detail"]
+    assert "60 seconds" in response.json()["detail"]
+
+
+def test_accepts_audio_at_max_duration_boundary():
+    """Audio files at exactly 60 seconds should be accepted."""
+    # Create a 60-second audio file (at the boundary)
+    boundary_audio = make_silent_wav(duration_seconds=60, sample_rate=16000)
+    response = client.post(
+        "/asr/transcribe",
+        files={"file": ("boundary_audio.wav", boundary_audio, "audio/wav")},
+    )
+    # Should not return 400 for duration (may return 200 or other, but not 400)
+    assert response.status_code != 400, "60-second audio incorrectly rejected at duration check"
+
+
+def test_accepts_audio_under_max_duration():
+    """Audio files under 60 seconds should pass duration validation."""
+    short_audio = make_silent_wav(duration_seconds=30, sample_rate=16000)
+    response = client.post(
+        "/asr/transcribe",
+        files={"file": ("short_audio.wav", short_audio, "audio/wav")},
+    )
+    # Should not return 400 for duration
+    assert response.status_code != 400, "30-second audio incorrectly rejected at duration check"
+
+
 # ── 4. Accepted MIME types — content-type validation only (NOT 400) ───────────
 # These tests verify that the content-type guard allows the format through.
 # FFmpeg handles actual decoding so we submit a WAV payload — the critical

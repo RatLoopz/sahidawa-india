@@ -30,6 +30,9 @@ ALLOWED_TYPES = {
     "audio/flac",
 }
 
+# Maximum audio duration limit to prevent CPU/GPU resource exhaustion
+MAX_AUDIO_DURATION_SECONDS = 60
+
 
 @router.post("/transcribe")
 async def transcribe_audio(file: UploadFile = File(...)):
@@ -37,6 +40,7 @@ async def transcribe_audio(file: UploadFile = File(...)):
     Accepts any supported audio file upload and returns transcribed text.
 
     Supports: WAV, MP3, OGG, WebM, MP4, FLAC
+    Max Duration: 60 seconds (enforced to prevent resource exhaustion)
     Returns: transcription text, detected language code, language confidence,
              and echoed filename.
 
@@ -66,6 +70,38 @@ async def transcribe_audio(file: UploadFile = File(...)):
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
             tmp.write(contents)
             tmp_path = tmp.name
+
+        # ── 2.5. Check audio duration with ffprobe (before FFmpeg normalization) ──
+        # Extract duration metadata quickly without full transcoding
+        ffprobe_result = subprocess.run(
+            [
+                "ffprobe",
+                "-v", "error",
+                "-show_entries", "format=duration",
+                "-of", "default=noprint_wrappers=1:nokey=1",
+                tmp_path,
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+
+        if ffprobe_result.returncode == 0:
+            try:
+                duration_seconds = float(ffprobe_result.stdout.decode().strip())
+                if duration_seconds > MAX_AUDIO_DURATION_SECONDS:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Audio file exceeds maximum duration limit of {MAX_AUDIO_DURATION_SECONDS} seconds. "
+                               f"Uploaded file duration: {duration_seconds:.1f} seconds. "
+                               f"Please upload a shorter recording."
+                    )
+                logger.info(f"Audio duration validated (early check) | {duration_seconds:.1f}s / {MAX_AUDIO_DURATION_SECONDS}s max")
+            except ValueError:
+                # FFprobe returned invalid duration, continue to FFmpeg which will validate
+                logger.warning("FFprobe could not extract duration, will validate after FFmpeg normalization")
+        else:
+            # FFprobe failed, continue to FFmpeg normalization (will fail if file is truly invalid)
+            logger.warning("FFprobe metadata extraction failed, proceeding to FFmpeg normalization")
 
         # ── 3. FFmpeg normalization → 16kHz mono WAV ──────────────────────────
         # soundfile/libsndfile does NOT natively decode MP3, WebM, or MP4
@@ -107,7 +143,7 @@ async def transcribe_audio(file: UploadFile = File(...)):
             warnings.simplefilter("ignore", RuntimeWarning)
             reduced_audio = nr.reduce_noise(y=audio_data, sr=sample_rate)
 
-        # ── 6. Transcribe with faster-whisper ─────────────────────────────────
+        # ── 6. Transcribe with faster-whisper (language detection & transcription) ─
         # language=None → auto-detect; task="transcribe" preserves native language
         # (no translation). beam_size=8 improves accuracy for regional languages.
         segments, info = model.transcribe(
