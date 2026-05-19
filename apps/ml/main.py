@@ -3,7 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 
+from services.telemetry import configure_telemetry_logging
+
 load_dotenv()
+configure_telemetry_logging()
 
 app = FastAPI(
     title="SahiDawa ML Service",

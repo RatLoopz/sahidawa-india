@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import Footer from "../components/Footer";
 import { ExpiryBadge } from "@/components/scanner/ExpiryBadge";
 import { verifyMedicine, VerifyResult, VerifiedMedicine, API_BASE } from "@/lib/api";
+import LazyImage from "@/components/LazyImage";
 
 function formatExpiryForBadge(isoDate: string | null | undefined): string | undefined {
     if (!isoDate) return undefined;
@@ -342,7 +343,7 @@ function ErrorResult({ message, onRetry }: { message: string; onRetry: () => voi
 
 function ResultActions({ onScanAgain, onShare }: { onScanAgain: () => void; onShare: () => void }) {
     return (
-        <div className="grid w-full grid-cols-1 gap-3">
+        <div className="no-print grid w-full grid-cols-1 gap-3">
             <button
                 onClick={onScanAgain}
                 className="w-full rounded-2xl bg-slate-900 py-4 font-bold text-white shadow-lg shadow-slate-900/20 transition-colors hover:bg-slate-800"
@@ -616,9 +617,10 @@ export default function ScanPage() {
             <div className="relative flex flex-1 items-center justify-center overflow-hidden">
                 <div className="absolute inset-0 overflow-hidden bg-slate-900">
                     {uploadedImage ? (
-                        <img
+                        <LazyImage
                             src={uploadedImage}
                             alt="Uploaded"
+                            wrapperClassName="h-full w-full"
                             className="h-full w-full object-cover opacity-60"
                         />
                     ) : (
