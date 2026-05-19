@@ -47,24 +47,38 @@ export async function preprocessMedicineImage(input: File | Blob | string): Prom
         }
         const data = imageData.data;
 
+        // --- NEW: Sample Scan Method (Digital Graphic / Clean Screenshot Check) ---
+        let extremeCount = 0;
+        let sampleCount = 0;
+        for (let i = 0; i < data.length; i += 16) {
+          const l = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+          if (l < 15 || l > 240) {
+            extremeCount++;
+          }
+          sampleCount++;
+        }
+        const isDigitalGraphic = (extremeCount / sampleCount) > 0.30;
+
         // 2. Exact Algorithmic Methods
         
-        // Contrast Method: Dynamic Linear Histogram Stretching
-        let minL = 255;
-        let maxL = 0;
-        for (let i = 0; i < data.length; i += 4) {
-          const l = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-          if (l < minL) minL = l;
-          if (l > maxL) maxL = l;
-        }
+        if (!isDigitalGraphic) {
+          // Contrast Method: Dynamic Linear Histogram Stretching
+          let minL = 255;
+          let maxL = 0;
+          for (let i = 0; i < data.length; i += 4) {
+            const l = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+            if (l < minL) minL = l;
+            if (l > maxL) maxL = l;
+          }
 
-        if (minL > 0 || maxL < 255) {
-          if (maxL > minL) { // Avoid division by zero
-            const stretchRatio = 255 / (maxL - minL);
-            for (let i = 0; i < data.length; i += 4) {
-              data[i] = Math.min(255, Math.max(0, (data[i] - minL) * stretchRatio));
-              data[i + 1] = Math.min(255, Math.max(0, (data[i + 1] - minL) * stretchRatio));
-              data[i + 2] = Math.min(255, Math.max(0, (data[i + 2] - minL) * stretchRatio));
+          if (minL > 0 || maxL < 255) {
+            if (maxL > minL) { // Avoid division by zero
+              const stretchRatio = 255 / (maxL - minL);
+              for (let i = 0; i < data.length; i += 4) {
+                data[i] = Math.min(255, Math.max(0, (data[i] - minL) * stretchRatio));
+                data[i + 1] = Math.min(255, Math.max(0, (data[i + 1] - minL) * stretchRatio));
+                data[i + 2] = Math.min(255, Math.max(0, (data[i + 2] - minL) * stretchRatio));
+              }
             }
           }
         }
@@ -159,53 +173,58 @@ export async function preprocessMedicineImage(input: File | Blob | string): Prom
 
         ctx.putImageData(imageData, 0, 0);
 
-        // Sharpness Method: 3x3 Laplacian Convolution Kernel Matrix
-        const sharpCanvas = document.createElement('canvas');
-        sharpCanvas.width = width;
-        sharpCanvas.height = height;
-        const sharpCtx = sharpCanvas.getContext('2d')!;
-        sharpCtx.drawImage(canvas, 0, 0);
-        
-        const sourceData = sharpCtx.getImageData(0, 0, width, height);
-        const destData = sharpCtx.createImageData(width, height);
-        
-        const src = sourceData.data;
-        const dst = destData.data;
-        
-        const w = width;
-        const h = height;
-        
-        for (let y = 1; y < h - 1; y++) {
-          for (let x = 1; x < w - 1; x++) {
-            const idx = (y * w + x) * 4;
-            for (let c = 0; c < 3; c++) {
-              let val = 5 * src[idx + c]
-                        - src[((y - 1) * w + x) * 4 + c]
-                        - src[((y + 1) * w + x) * 4 + c]
-                        - src[(y * w + (x - 1)) * 4 + c]
-                        - src[(y * w + (x + 1)) * 4 + c];
-              dst[idx + c] = Math.min(255, Math.max(0, val));
-            }
-            dst[idx + 3] = src[idx + 3];
-          }
-        }
-        
-        for (let y = 0; y < h; y++) {
-          for (let x = 0; x < w; x++) {
-            if (y === 0 || y === h - 1 || x === 0 || x === w - 1) {
+        let finalCanvasToBlob = canvas;
+
+        if (!isDigitalGraphic) {
+          // Sharpness Method: 3x3 Laplacian Convolution Kernel Matrix
+          const sharpCanvas = document.createElement('canvas');
+          sharpCanvas.width = width;
+          sharpCanvas.height = height;
+          const sharpCtx = sharpCanvas.getContext('2d')!;
+          sharpCtx.drawImage(canvas, 0, 0);
+          
+          const sourceData = sharpCtx.getImageData(0, 0, width, height);
+          const destData = sharpCtx.createImageData(width, height);
+          
+          const src = sourceData.data;
+          const dst = destData.data;
+          
+          const w = width;
+          const h = height;
+          
+          for (let y = 1; y < h - 1; y++) {
+            for (let x = 1; x < w - 1; x++) {
               const idx = (y * w + x) * 4;
-              dst[idx] = src[idx];
-              dst[idx + 1] = src[idx + 1];
-              dst[idx + 2] = src[idx + 2];
+              for (let c = 0; c < 3; c++) {
+                let val = 5 * src[idx + c]
+                          - src[((y - 1) * w + x) * 4 + c]
+                          - src[((y + 1) * w + x) * 4 + c]
+                          - src[(y * w + (x - 1)) * 4 + c]
+                          - src[(y * w + (x + 1)) * 4 + c];
+                dst[idx + c] = Math.min(255, Math.max(0, val));
+              }
               dst[idx + 3] = src[idx + 3];
             }
           }
+          
+          for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+              if (y === 0 || y === h - 1 || x === 0 || x === w - 1) {
+                const idx = (y * w + x) * 4;
+                dst[idx] = src[idx];
+                dst[idx + 1] = src[idx + 1];
+                dst[idx + 2] = src[idx + 2];
+                dst[idx + 3] = src[idx + 3];
+              }
+            }
+          }
+          
+          sharpCtx.putImageData(destData, 0, 0);
+          finalCanvasToBlob = sharpCanvas;
         }
-        
-        sharpCtx.putImageData(destData, 0, 0);
 
         // 4. Output Compression
-        sharpCanvas.toBlob(
+        finalCanvasToBlob.toBlob(
           (blob) => {
             if (blob) {
               resolve(blob);
