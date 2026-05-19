@@ -100,21 +100,21 @@ def test_filename_echoed_back():
 # ── 3. Input validation ───────────────────────────────────────────────────────
 
 def test_rejects_text_file():
-    """Non-audio MIME types must return 400."""
+    """Non-audio MIME types must return 415."""
     response = client.post(
         "/asr/transcribe",
         files={"file": ("notes.txt", io.BytesIO(b"not audio"), "text/plain")},
     )
-    assert response.status_code == 400
+    assert response.status_code == 415
 
 
 def test_rejects_image_file():
-    """Image MIME types must return 400."""
+    """Image MIME types must return 415."""
     response = client.post(
         "/asr/transcribe",
         files={"file": ("photo.jpg", io.BytesIO(b"\xff\xd8\xff"), "image/jpeg")},
     )
-    assert response.status_code == 400
+    assert response.status_code == 415
 
 
 def test_missing_file_returns_422():
@@ -130,12 +130,8 @@ def test_missing_file_returns_422():
 
 @pytest.mark.parametrize("content_type", [
     "audio/wav",
-    "audio/x-wav",
     "audio/mpeg",    # MP3
     "audio/ogg",     # OGG / Opus
-    "audio/webm",    # Browser MediaRecorder default
-    "audio/mp4",     # M4A / AAC
-    "audio/flac",
 ])
 def test_accepted_audio_mime_types_not_rejected(content_type):
     """

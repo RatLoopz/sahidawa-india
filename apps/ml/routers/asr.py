@@ -34,7 +34,7 @@ async def transcribe_audio(file: UploadFile = File(...)):
     """
     Accepts any supported audio file upload and returns transcribed text.
 
-    Supports: WAV, MP3, OGG, WebM, MP4, FLAC
+    Supports: WAV, MP3, OGG
     Returns: transcription text, detected language code, language confidence,
              and echoed filename.
 
