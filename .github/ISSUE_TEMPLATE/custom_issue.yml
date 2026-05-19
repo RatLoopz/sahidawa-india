@@ -1,7 +1,7 @@
 name: "🛠️ Custom Issue"
 description: "For requests or suggestions that don't fit into bug, feature, or docs"
 title: "[Custom] <short-title>"
-labels: ["custom", "needs-triage"]
+labels: ["type:feature"]
 assignees: []
 
 body:

@@ -1,7 +1,7 @@
 name: 📚 Documentation Issue
 description: Report problems or suggest improvements to the documentation
 title: "[Documentation Update]: "
-labels: [documentation]
+labels: ["type:docs"]
 body:
     - type: checkboxes
       id: existing-issue

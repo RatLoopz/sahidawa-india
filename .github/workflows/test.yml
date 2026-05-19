@@ -31,7 +31,6 @@ jobs:
 
             - name: 🧪 Run Tests
               run: npm run test
-              continue-on-error: true
 
     test-ml-service:
         name: 🐍 Test Python ML Service (FastAPI)

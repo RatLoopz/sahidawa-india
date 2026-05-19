@@ -1,7 +1,7 @@
 name: "⚡ Performance Issue"
 description: "Report performance issues such as lag or slowness"
 title: "[Performance] <short-title>"
-labels: ["performance", "needs-triage"]
+labels: ["type:performance"]
 assignees: []
 
 body:

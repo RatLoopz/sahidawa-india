@@ -6,20 +6,14 @@ import {
     Navigation,
     Filter,
     Star,
-    Phone,
     Globe,
     Layers,
-    Clock,
     Shield,
-    Heart,
-    AlertCircle,
     X,
-    MapPin,
     ChevronUp,
     ChevronDown,
     RefreshCw,
     Loader2,
-    Store,
 } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import PharmacyMap, {
@@ -28,6 +22,7 @@ import PharmacyMap, {
     type MapBounds,
     type RiskHotspot,
 } from "./PharmacyMap";
+import PharmacyPanels from "./PharmacyPanels";
 import { fetchPharmacies, fetchPharmaciesInBounds, type OverpassPharmacy } from "./overpassApi";
 import {
     fetchVerifiedPharmacies,
@@ -172,6 +167,12 @@ function BottomDrawer({
 }) {
     const [isExpanded, setIsExpanded] = useState(true);
 
+    useEffect(() => {
+        if (!isOpen) {
+            setIsExpanded(true);
+        }
+    }, [isOpen]);
+
     const expandDrawer = () => {
         setIsExpanded(true);
     };
@@ -186,7 +187,8 @@ function BottomDrawer({
         return (
             <button
                 onClick={expandDrawer}
-                className="pointer-events-auto absolute right-4 bottom-5 z-1000 flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-xs font-bold text-white shadow-xl transition-all hover:bg-slate-800 active:scale-95"
+                data-testid="mobile-pharmacy-pill"
+                className="pointer-events-auto absolute right-4 bottom-5 z-1000 flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-xs font-bold text-white shadow-xl transition-all hover:bg-slate-800 active:scale-95 md:hidden"
                 aria-label={`Show nearby pharmacies list with ${count} results`}
             >
                 <ChevronUp size={14} />
@@ -196,160 +198,37 @@ function BottomDrawer({
     }
 
     return (
-        <div className="pointer-events-none absolute right-4 bottom-4 left-4 z-1000 md:left-auto md:max-w-sm">
-            <div className="pointer-events-auto max-h-[60vh] rounded-2xl border border-white/70 bg-white/96 shadow-2xl backdrop-blur-xl">
-                <div className="flex max-h-[60vh] flex-col overflow-hidden">
-                    {/* Handle + Header */}
-                    <div className="shrink-0 pt-3 pb-2">
-                        <div className="flex justify-center">
+        <div
+            data-testid="mobile-pharmacy-drawer"
+            className="pointer-events-none absolute right-4 bottom-4 left-20 z-1000 md:hidden"
+        >
+            <div className="pointer-events-auto max-h-[68vh] rounded-[30px] border border-white/70 bg-white/85 p-2 shadow-2xl backdrop-blur-xl">
+                <div className="flex max-h-[calc(68vh-1rem)] flex-col overflow-hidden">
+                    <div className="shrink-0 pb-2">
+                        <div className="flex justify-center pt-2">
                             <div className="h-1.5 w-10 rounded-full bg-slate-300" />
                         </div>
-                        <div className="mt-2 flex items-center justify-between px-5">
-                            <div className="flex items-center gap-2">
-                                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100">
-                                    <Store size={13} className="text-emerald-600" />
-                                </div>
-                                <h3 className="text-sm font-semibold text-slate-800">
-                                    Nearby Pharmacies
-                                    <span className="ml-1.5 text-xs font-normal text-slate-400">
-                                        {isLoading ? "…" : `(${count})`}
-                                    </span>
-                                </h3>
-                            </div>
-                            <div className="flex items-center gap-1">
-                                <button
-                                    onClick={collapseDrawer}
-                                    className="rounded-full p-1.5 transition-colors hover:bg-slate-100"
-                                    aria-label="Collapse nearby pharmacies list"
-                                >
-                                    <ChevronDown size={15} className="text-slate-500" />
-                                </button>
-                                <button
-                                    onClick={onClose}
-                                    className="rounded-full p-1.5 transition-colors hover:bg-slate-100"
-                                    aria-label="Hide nearby pharmacies list"
-                                >
-                                    <X size={13} className="text-slate-500" />
-                                </button>
-                            </div>
+                        <div className="mt-2 flex items-center justify-end gap-1 px-2">
+                            <button
+                                onClick={collapseDrawer}
+                                className="rounded-full p-1.5 transition-colors hover:bg-slate-100"
+                                aria-label="Collapse nearby pharmacies list"
+                            >
+                                <ChevronDown size={15} className="text-slate-500" />
+                            </button>
+                            <button
+                                onClick={onClose}
+                                className="rounded-full p-1.5 transition-colors hover:bg-slate-100"
+                                aria-label="Hide nearby pharmacies list"
+                            >
+                                <X size={13} className="text-slate-500" />
+                            </button>
                         </div>
                     </div>
 
-                    <div className="flex-1 space-y-2 overflow-y-auto px-4 pb-4">{children}</div>
+                    <div className="min-h-0 flex-1">{children}</div>
                 </div>
             </div>
-        </div>
-    );
-}
-
-// ── Compact Pharmacy Card (PR #144 design) ───────────────────────────────────
-function PharmacyCard({
-    pharmacy,
-    isSelected,
-    onClick,
-}: {
-    pharmacy: Pharmacy;
-    isSelected: boolean;
-    onClick: () => void;
-}) {
-    return (
-        <div
-            onClick={onClick}
-            className={`cursor-pointer rounded-xl border p-3 transition-all duration-200 ${
-                isSelected
-                    ? "border-emerald-300 bg-emerald-50/60 shadow-md shadow-emerald-100/30"
-                    : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-sm"
-            }`}
-        >
-            <div className="flex items-start gap-2.5">
-                <div
-                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm ${
-                        pharmacy.isVerified
-                            ? "bg-emerald-200"
-                            : pharmacy.type === "govt"
-                              ? "bg-emerald-100"
-                              : "bg-blue-50"
-                    }`}
-                >
-                    {pharmacy.isVerified ? "🛡️" : pharmacy.type === "govt" ? "🏥" : "💊"}
-                </div>
-
-                <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                        <h4 className="truncate text-sm font-semibold text-slate-800">
-                            {pharmacy.name}
-                        </h4>
-                        {pharmacy.isVerified && (
-                            <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700">
-                                <Shield size={7} />
-                                Verified
-                            </span>
-                        )}
-                        {pharmacy.rating > 0 && (
-                            <div className="flex shrink-0 items-center gap-0.5">
-                                <Star size={10} className="fill-amber-400 text-amber-400" />
-                                <span className="text-[11px] font-bold text-slate-700">
-                                    {pharmacy.rating}
-                                </span>
-                            </div>
-                        )}
-                    </div>
-
-                    {pharmacy.address && (
-                        <div className="mt-0.5 flex items-center gap-1">
-                            <MapPin size={8} className="shrink-0 text-slate-300" />
-                            <p className="truncate text-[10px] text-slate-400">
-                                {pharmacy.address}
-                            </p>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Meta row */}
-            <div className="mt-2 ml-11 flex flex-wrap items-center gap-2">
-                <span
-                    className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
-                        pharmacy.distance !== "—"
-                            ? "bg-slate-50 text-slate-600"
-                            : "bg-slate-50 text-slate-400"
-                    }`}
-                >
-                    {pharmacy.distance !== "—" ? `${pharmacy.distance} away` : "Distance —"}
-                </span>
-            </div>
-
-            {/* Badge row */}
-            <div className="mt-1.5 ml-11 flex flex-wrap gap-1">
-                <span className="inline-flex items-center gap-0.5 rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-medium text-slate-600">
-                    <Shield size={6} />
-                    {pharmacy.status}
-                </span>
-                <span
-                    className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-medium ${
-                        pharmacy.type === "govt"
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "bg-blue-50 text-blue-700"
-                    }`}
-                >
-                    <Heart size={6} />
-                    {pharmacy.type === "govt" ? "Jan Aushadhi" : "Private"}
-                </span>
-            </div>
-
-            {/* Call button */}
-            {pharmacy.phone && (
-                <div className="mt-2 ml-11">
-                    <a
-                        href={`tel:${pharmacy.phone}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600 transition-colors hover:bg-slate-200 active:bg-slate-200"
-                    >
-                        <Phone size={9} className="text-emerald-600" />
-                        Call
-                    </a>
-                </div>
-            )}
         </div>
     );
 }
@@ -476,14 +355,11 @@ export default function PharmacyMapPage() {
         }
     }, []);
 
-    const handleMapReady = useCallback(
-        (bounds: MapBounds) => {
-            if (!initialFetchDone.current && !userLocation) {
-                fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
-            }
-        },
-        [fetchNearby, userLocation]
-    );
+    const handleMapReady = useCallback(() => {
+        if (!initialFetchDone.current && !userLocation) {
+            fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
+        }
+    }, [fetchNearby, userLocation]);
 
     const handleMapMoveEnd = useCallback((bounds: MapBounds) => {
         if (initialFetchDone.current) {
@@ -600,6 +476,30 @@ export default function PharmacyMapPage() {
         { id: "counterfeit", label: "Counterfeit", description: "Show report-risk clusters" },
         { id: "combined", label: "Combined", description: "Show density and report risk together" },
     ];
+
+    const riskSummaryText =
+        heatmapMode === "counterfeit"
+            ? `${COUNTERFEIT_REPORT_HOTSPOTS.length} report clusters`
+            : heatmapMode === "density"
+              ? `${densityHotspots.length} density clusters`
+              : heatmapMode === "combined"
+                ? `${riskHotspots.length} total clusters`
+                : "Markers only. Turn on a layer to inspect density or counterfeit-report signals.";
+
+    const handleSelectPharmacy = useCallback((pharmacyId: number) => {
+        setSelectedPharmacyId(pharmacyId);
+    }, []);
+
+    const pharmacyPanelProps = {
+        pharmacies: filteredPharmacies,
+        isLoading,
+        selectedPharmacyId,
+        heatmapMode,
+        heatmapOptions,
+        riskSummaryText,
+        onSelectPharmacy: handleSelectPharmacy,
+        onHeatmapModeChange: setHeatmapMode,
+    };
 
     return (
         <div className="flex h-screen flex-col overflow-hidden bg-slate-50 font-sans">
@@ -739,164 +639,105 @@ export default function PharmacyMapPage() {
                 </div>
             </div>
 
-            {/* ── Map + overlays ── */}
-            <div className="relative flex-1 overflow-hidden">
-                {/* Real Leaflet Map (PR #147) */}
-                <PharmacyMap
-                    pharmacies={filteredPharmacies}
-                    selectedPharmacyId={selectedPharmacyId}
-                    userLocation={userLocation}
-                    onMapMoveEnd={handleMapMoveEnd}
-                    onMapReady={handleMapReady}
-                    autoFitBounds={!isLoading && filteredPharmacies.length > 0}
-                    initialCenter={userLocation || DEFAULT_CENTER}
-                    initialZoom={DEFAULT_ZOOM}
-                    heatmapMode={heatmapMode}
-                    riskHotspots={riskHotspots}
-                />
-
-                {/* "Search this area" pill */}
-                {showSearchArea && !isLoading && (
-                    <div className="absolute top-4 left-1/2 z-1000 -translate-x-1/2">
-                        <button
-                            onClick={handleSearchThisArea}
-                            className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-xs font-bold text-slate-700 shadow-xl transition-all hover:bg-slate-50 hover:shadow-2xl active:scale-95"
-                        >
-                            <RefreshCw size={13} className="text-emerald-600" />
-                            Search this area
-                        </button>
-                    </div>
-                )}
-
-                {/* Loading pill */}
-                {isLoading && (
-                    <div className="absolute top-4 left-1/2 z-1000 -translate-x-1/2">
-                        <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-xs font-bold text-slate-600 shadow-xl">
-                            <Loader2 size={13} className="animate-spin text-emerald-600" />
-                            Fetching pharmacies…
-                        </div>
-                    </div>
-                )}
-
-                {/* Map Controls */}
-                <div className="absolute top-4 right-4 z-1000 flex flex-col gap-2">
-                    <button
-                        className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-100 bg-white text-slate-600 shadow-lg transition-all hover:text-slate-900 hover:shadow-xl"
-                        title="Toggle pharmacy list"
-                        onClick={() => setShowBottomSheet((b) => !b)}
-                    >
-                        <Layers size={20} />
-                    </button>
-                    <button
-                        onClick={handleLocateUser}
-                        disabled={isLocating}
-                        className={`flex h-10 w-10 items-center justify-center rounded-xl border border-slate-100 shadow-lg transition-all ${
-                            isLocating
-                                ? "animate-pulse bg-emerald-50 text-emerald-600"
-                                : userLocation
-                                  ? "bg-emerald-600 text-white hover:bg-emerald-700"
-                                  : "bg-white text-emerald-600 hover:text-emerald-900 hover:shadow-xl"
-                        }`}
-                        title="Find my location"
-                    >
-                        <Navigation size={20} />
-                    </button>
-                </div>
-
-                {/* Heatmap layer control */}
-                <div className="absolute top-28 right-4 z-1000 w-44 rounded-2xl border border-slate-100 bg-white/95 p-2 shadow-xl backdrop-blur">
-                    <div className="mb-1 flex items-center gap-1.5 px-1 text-[11px] font-bold text-slate-500">
-                        <AlertCircle size={12} className="text-red-500" />
-                        Risk layers
-                    </div>
-                    <div className="grid gap-1">
-                        {heatmapOptions.map((option) => (
-                            <button
-                                key={option.id}
-                                onClick={() => setHeatmapMode(option.id)}
-                                title={option.description}
-                                className={`rounded-xl px-3 py-2 text-left text-[11px] font-bold transition-all ${
-                                    heatmapMode === option.id
-                                        ? "bg-slate-900 text-white shadow-md"
-                                        : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-                                }`}
-                                aria-pressed={heatmapMode === option.id}
-                            >
-                                {option.label}
-                            </button>
-                        ))}
-                    </div>
-                    {heatmapMode !== "none" && (
-                        <p className="mt-2 px-1 text-[10px] leading-snug text-slate-400">
-                            {heatmapMode === "counterfeit"
-                                ? `${COUNTERFEIT_REPORT_HOTSPOTS.length} report clusters`
-                                : heatmapMode === "density"
-                                  ? `${densityHotspots.length} density clusters`
-                                  : `${riskHotspots.length} total clusters`}
-                        </p>
-                    )}
-                </div>
-
-                {/* Error toast */}
-                {(locationError || fetchError) && (
-                    <div className="animate-in slide-in-from-top-2 absolute top-4 right-16 left-4 z-1000 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700 shadow-lg duration-300">
-                        {locationError || fetchError}
-                    </div>
-                )}
-
-                {/* ── PR #144 Draggable Bottom Sheet ── */}
-                <BottomDrawer
-                    isOpen={showBottomSheet}
-                    onClose={() => setShowBottomSheet(false)}
-                    count={filteredPharmacies.length}
-                    isLoading={isLoading}
+            <div className="min-h-0 flex-1 overflow-hidden bg-slate-100/80 md:p-4">
+                <div
+                    data-testid="pharmacy-map-layout"
+                    className="relative flex h-full min-h-0 flex-col overflow-hidden md:grid md:grid-cols-[minmax(22rem,30rem)_minmax(0,1fr)] md:gap-4"
                 >
-                    {isLoading ? (
-                        <div className="py-10 text-center">
-                            <Loader2
-                                size={26}
-                                className="mx-auto mb-3 animate-spin text-emerald-600"
-                            />
-                            <p className="text-sm font-bold text-slate-400">
-                                Finding nearby pharmacies…
-                            </p>
-                            <p className="mt-1 text-xs text-slate-300">
-                                Verified stores + OpenStreetMap
-                            </p>
-                        </div>
-                    ) : filteredPharmacies.length === 0 ? (
-                        <div className="py-10 text-center">
-                            <MapPin size={30} className="mx-auto mb-2 text-slate-300" />
-                            <p className="text-sm font-bold text-slate-400">No pharmacies found</p>
-                            <p className="mt-1 text-xs text-slate-300">
-                                Try panning the map and pressing &ldquo;Search this area&rdquo;
-                            </p>
-                        </div>
-                    ) : (
-                        filteredPharmacies.map((pharmacy) => (
-                            <PharmacyCard
-                                key={pharmacy.id}
-                                pharmacy={pharmacy}
-                                isSelected={selectedPharmacyId === pharmacy.id}
-                                onClick={() => {
-                                    setSelectedPharmacyId(pharmacy.id);
-                                    setShowBottomSheet(true);
-                                }}
-                            />
-                        ))
-                    )}
-                </BottomDrawer>
-
-                {/* Floating toggle when sheet is closed */}
-                {!showBottomSheet && (
-                    <button
-                        onClick={() => setShowBottomSheet(true)}
-                        className="absolute right-4 bottom-5 z-1000 flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-xs font-bold text-white shadow-xl transition-all hover:bg-slate-800 active:scale-95"
+                    <aside
+                        data-testid="desktop-pharmacy-sidebar"
+                        className="hidden min-h-0 md:block"
                     >
-                        <ChevronUp size={14} />
-                        {filteredPharmacies.length} Pharmacies
-                    </button>
-                )}
+                        <PharmacyPanels
+                            {...pharmacyPanelProps}
+                            className="h-full border-white/80 bg-white/94 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.45)]"
+                        />
+                    </aside>
+
+                    <div
+                        data-testid="pharmacy-map-pane"
+                        className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden md:rounded-[32px] md:border md:border-white/80 md:bg-white md:shadow-[0_28px_80px_-40px_rgba(15,23,42,0.55)]"
+                    >
+                        <PharmacyMap
+                            pharmacies={filteredPharmacies}
+                            selectedPharmacyId={selectedPharmacyId}
+                            userLocation={userLocation}
+                            onMapMoveEnd={handleMapMoveEnd}
+                            onMapReady={handleMapReady}
+                            autoFitBounds={!isLoading && filteredPharmacies.length > 0}
+                            initialCenter={userLocation || DEFAULT_CENTER}
+                            initialZoom={DEFAULT_ZOOM}
+                            heatmapMode={heatmapMode}
+                            riskHotspots={riskHotspots}
+                        />
+
+                        {showSearchArea && !isLoading && (
+                            <div className="absolute top-4 left-1/2 z-1000 -translate-x-1/2">
+                                <button
+                                    onClick={handleSearchThisArea}
+                                    className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-xs font-bold text-slate-700 shadow-xl transition-all hover:bg-slate-50 hover:shadow-2xl active:scale-95"
+                                >
+                                    <RefreshCw size={13} className="text-emerald-600" />
+                                    Search this area
+                                </button>
+                            </div>
+                        )}
+
+                        {isLoading && (
+                            <div className="absolute top-4 left-1/2 z-1000 -translate-x-1/2">
+                                <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-xs font-bold text-slate-600 shadow-xl">
+                                    <Loader2 size={13} className="animate-spin text-emerald-600" />
+                                    Fetching pharmacies…
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="absolute top-4 right-4 z-1000 flex flex-col gap-2">
+                            <button
+                                data-testid="mobile-pharmacy-list-toggle"
+                                className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-100 bg-white text-slate-600 shadow-lg transition-all hover:text-slate-900 hover:shadow-xl md:hidden"
+                                aria-label="Toggle pharmacy list"
+                                title="Toggle pharmacy list"
+                                onClick={() => setShowBottomSheet((open) => !open)}
+                            >
+                                <Layers size={20} />
+                            </button>
+                            <button
+                                onClick={handleLocateUser}
+                                disabled={isLocating}
+                                className={`flex h-10 w-10 items-center justify-center rounded-xl border border-slate-100 shadow-lg transition-all ${
+                                    isLocating
+                                        ? "animate-pulse bg-emerald-50 text-emerald-600"
+                                        : userLocation
+                                          ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                                          : "bg-white text-emerald-600 hover:text-emerald-900 hover:shadow-xl"
+                                }`}
+                                aria-label="Find my location"
+                                title="Find my location"
+                            >
+                                <Navigation size={20} />
+                            </button>
+                        </div>
+
+                        {(locationError || fetchError) && (
+                            <div className="animate-in slide-in-from-top-2 absolute top-4 right-16 left-4 z-1000 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700 shadow-lg duration-300">
+                                {locationError || fetchError}
+                            </div>
+                        )}
+
+                        <BottomDrawer
+                            isOpen={showBottomSheet}
+                            onClose={() => setShowBottomSheet(false)}
+                            count={filteredPharmacies.length}
+                            isLoading={isLoading}
+                        >
+                            <PharmacyPanels
+                                {...pharmacyPanelProps}
+                                className="h-full border-white/80 bg-white/96 shadow-none"
+                            />
+                        </BottomDrawer>
+                    </div>
+                </div>
             </div>
 
             {/* Safe-area footer */}

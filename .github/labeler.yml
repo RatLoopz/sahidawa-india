@@ -1,66 +1,35 @@
 # GitHub Labeler Configuration
 # Automatically applies labels based on files changed in a PR.
-# Uses actions/labeler@v5 syntax.
+# Uses actions/labeler@v6 syntax.
 # Docs: https://github.com/actions/labeler
 
-# ── Area Labels ──────────────────────────────────────────────
-frontend:
-  - changed-files:
-      - any-glob-to-any-file:
-          - "apps/web/**"
-
-backend:
-  - changed-files:
-      - any-glob-to-any-file:
-          - "apps/api/**"
-
-ml:
-  - changed-files:
-      - any-glob-to-any-file:
-          - "apps/ml/**"
-
-database:
-  - changed-files:
-      - any-glob-to-any-file:
-          - "apps/api/src/db/**"
-          - "data/**"
-
 # ── Type Labels ──────────────────────────────────────────────
-documentation:
+type:docs:
   - changed-files:
       - any-glob-to-any-file:
           - "docs/**"
           - "*.md"
           - ".github/**/*.md"
 
-i18n:
-  - changed-files:
-      - any-glob-to-any-file:
-          - "apps/web/messages/**"
-
-ci-cd:
+type:devops:
   - changed-files:
       - any-glob-to-any-file:
           - ".github/workflows/**"
           - "docker-compose*.yml"
           - "**/Dockerfile"
-
-dependencies:
-  - changed-files:
-      - any-glob-to-any-file:
           - "package.json"
           - "package-lock.json"
           - "apps/*/package.json"
           - "apps/ml/requirements.txt"
 
-security:
+type:security:
   - changed-files:
       - any-glob-to-any-file:
           - "apps/api/src/middleware/**"
           - ".env.example"
 
 # ── GSSoC auto-labeled on Issues and PRs.
-gssoc-2026:
+gssoc:approved:
   - any-glob-to-any-file:
       - ".github/ISSUE_TEMPLATE/**"
       - ".github/PULL_REQUEST_TEMPLATE/**"
