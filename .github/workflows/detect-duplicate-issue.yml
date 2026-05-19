@@ -87,8 +87,24 @@ jobs:
               owner, repo, state: 'all', per_page: 100
             });
 
-            // Normalization: Extract words > 2 chars
-            const getWords = str => str.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().split(/\s+/).filter(w => w.length > 2);
+            // Normalization: Extract words > 2 chars, stripping standard prefixes and common boilerplate words
+            const getWords = str => {
+              let clean = str.toLowerCase();
+              // Remove brackets like [BUG], [FEATURE], [UI/UX]
+              clean = clean.replace(/\[[^\]]+\]/g, '');
+              // Remove prefix commit tags like feat:, fix:, docs:, etc.
+              clean = clean.replace(/^[a-z0-9\-_]+(\([^)]+\))?:/g, '');
+              
+              const words = clean.replace(/[^a-z0-9\s]/g, '').trim().split(/\s+/).filter(w => w.length > 2);
+              
+              // Filter out common boilerplate words that don't add semantic value
+              const stopwords = new Set([
+                'add', 'create', 'setup', 'implement', 'build', 'integrate', 'enforce', 'resolve',
+                'fix', 'bug', 'feature', 'page', 'issue', 'shows', 'error', 'fails', 'failing',
+                'broken', 'working', 'properly', 'incorrectly', 'incorrect'
+              ]);
+              return words.filter(w => !stopwords.has(w));
+            };
             
             // Jaccard similarity algorithm (Bag of Words)
             function calculateSimilarity(wordsA, wordsB) {
@@ -119,9 +135,9 @@ jobs:
                 break;
               }
 
-              // Semantic Similarity Check (75% word overlap required)
+              // Semantic Similarity Check (50% word overlap required after stripping boilerplate)
               const sim = calculateSimilarity(currentWords, existingWords);
-              if (sim > 0.75 && sim > highestSimilarity) {
+              if (sim > 0.50 && sim > highestSimilarity) {
                 highestSimilarity = sim;
                 duplicateIssue = existing;
               }
