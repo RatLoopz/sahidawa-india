@@ -73,11 +73,22 @@ function formatMedicineDetails(medicine: VerifiedMedicine) {
 
 function LoadingSkeleton() {
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6 backdrop-blur-md">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6 backdrop-blur-md"
+            role="status"
+            aria-live="polite"
+            aria-label="Verifying medicine, please wait"
+        >
             <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] bg-white p-8 text-slate-900 shadow-2xl">
-                <div className="absolute top-0 right-0 left-0 h-2 animate-pulse bg-emerald-500"></div>
+                <div
+                    className="absolute top-0 right-0 left-0 h-2 animate-pulse bg-emerald-500"
+                    aria-hidden="true"
+                ></div>
                 <div className="flex flex-col items-center space-y-4 text-center">
-                    <div className="flex h-20 w-20 animate-pulse items-center justify-center rounded-full bg-slate-100">
+                    <div
+                        className="flex h-20 w-20 animate-pulse items-center justify-center rounded-full bg-slate-100"
+                        aria-hidden="true"
+                    >
                         <ShieldCheck size={40} className="text-slate-200" />
                     </div>
                     <div className="w-full space-y-2">
@@ -123,10 +134,21 @@ function VerifiedSafeResult({
     copied: boolean;
 }) {
     return (
-        <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] bg-white p-8 text-slate-900 shadow-2xl">
-            <div className="absolute top-0 right-0 left-0 h-2 bg-emerald-500"></div>
+        <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Verification result: ${medicine.brand_name} is verified`}
+            className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] bg-white p-8 text-slate-900 shadow-2xl"
+        >
+            <div
+                className="absolute top-0 right-0 left-0 h-2 bg-emerald-500"
+                aria-hidden="true"
+            ></div>
             <div className="flex flex-col items-center space-y-4 text-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 shadow-inner">
+                <div
+                    className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 shadow-inner"
+                    aria-hidden="true"
+                >
                     <ShieldCheck size={40} strokeWidth={2.5} />
                 </div>
                 <div>
@@ -184,7 +206,11 @@ function VerifiedSafeResult({
                 {(medicine.cdsco_approval_status === "recalled" ||
                     medicine.cdsco_approval_status === "banned") && (
                     <div className="flex w-full items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-left">
-                        <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-600" />
+                        <AlertTriangle
+                            size={18}
+                            className="mt-0.5 shrink-0 text-amber-600"
+                            aria-hidden="true"
+                        />
                         <p className="text-xs leading-relaxed font-medium text-amber-800">
                             This medicine has been <strong>{medicine.cdsco_approval_status}</strong>{" "}
                             by CDSCO. Consult your pharmacist before use.
@@ -194,7 +220,11 @@ function VerifiedSafeResult({
 
                 {medicine.cdsco_approval_status === "approved" && (
                     <div className="flex w-full items-start gap-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-left">
-                        <Info size={18} className="mt-0.5 shrink-0 text-emerald-600" />
+                        <Info
+                            size={18}
+                            className="mt-0.5 shrink-0 text-emerald-600"
+                            aria-hidden="true"
+                        />
                         <p className="text-xs leading-relaxed font-medium text-emerald-800">
                             This medicine matches the official records. Always check the physical
                             seal before use.
@@ -222,10 +252,18 @@ function CounterfeitAlertResult({
     copied: boolean;
 }) {
     return (
-        <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] bg-white p-8 text-slate-900 shadow-2xl">
-            <div className="absolute top-0 right-0 left-0 h-2 bg-red-500"></div>
+        <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-label={`Counterfeit alert for ${medicine.brand_name}`}
+            className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] bg-white p-8 text-slate-900 shadow-2xl"
+        >
+            <div className="absolute top-0 right-0 left-0 h-2 bg-red-500" aria-hidden="true"></div>
             <div className="flex flex-col items-center space-y-4 text-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-100 text-red-600 shadow-inner">
+                <div
+                    className="flex h-20 w-20 items-center justify-center rounded-full bg-red-100 text-red-600 shadow-inner"
+                    aria-hidden="true"
+                >
                     <AlertTriangle size={40} strokeWidth={2.5} />
                 </div>
                 <div>
@@ -267,7 +305,11 @@ function CounterfeitAlertResult({
                 </div>
 
                 <div className="flex w-full items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-left">
-                    <AlertTriangle size={18} className="mt-0.5 shrink-0 text-red-600" />
+                    <AlertTriangle
+                        size={18}
+                        className="mt-0.5 shrink-0 text-red-600"
+                        aria-hidden="true"
+                    />
                     <p className="text-xs leading-relaxed font-bold text-red-800">
                         WARNING: This medicine has been flagged as counterfeit. Do NOT consume.
                         Report to your nearest pharmacy or call the CDSCO helpline immediately.
@@ -282,10 +324,21 @@ function CounterfeitAlertResult({
 
 function UnverifiedResult({ onScanAgain }: { onScanAgain: () => void }) {
     return (
-        <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] bg-white p-8 text-slate-900 shadow-2xl">
-            <div className="absolute top-0 right-0 left-0 h-2 bg-amber-500"></div>
+        <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Unverified medicine: no match found"
+            className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] bg-white p-8 text-slate-900 shadow-2xl"
+        >
+            <div
+                className="absolute top-0 right-0 left-0 h-2 bg-amber-500"
+                aria-hidden="true"
+            ></div>
             <div className="flex flex-col items-center space-y-4 text-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-amber-100 text-amber-600 shadow-inner">
+                <div
+                    className="flex h-20 w-20 items-center justify-center rounded-full bg-amber-100 text-amber-600 shadow-inner"
+                    aria-hidden="true"
+                >
                     <XCircle size={40} strokeWidth={2.5} />
                 </div>
                 <div>
@@ -296,7 +349,7 @@ function UnverifiedResult({ onScanAgain }: { onScanAgain: () => void }) {
                 </div>
 
                 <div className="flex w-full items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-left">
-                    <Info size={18} className="mt-0.5 shrink-0 text-amber-600" />
+                    <Info size={18} className="mt-0.5 shrink-0 text-amber-600" aria-hidden="true" />
                     <p className="text-xs leading-relaxed font-medium text-amber-800">
                         No matching record was found for this batch number. This does not
                         necessarily mean the medicine is fake. Try re-entering the batch number or
@@ -317,10 +370,21 @@ function UnverifiedResult({ onScanAgain }: { onScanAgain: () => void }) {
 
 function ErrorResult({ message, onRetry }: { message: string; onRetry: () => void }) {
     return (
-        <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] bg-white p-8 text-slate-900 shadow-2xl">
-            <div className="absolute top-0 right-0 left-0 h-2 bg-slate-400"></div>
+        <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-label="Verification failed"
+            className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] bg-white p-8 text-slate-900 shadow-2xl"
+        >
+            <div
+                className="absolute top-0 right-0 left-0 h-2 bg-slate-400"
+                aria-hidden="true"
+            ></div>
             <div className="flex flex-col items-center space-y-4 text-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-slate-500 shadow-inner">
+                <div
+                    className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-slate-500 shadow-inner"
+                    aria-hidden="true"
+                >
                     <AlertCircle size={40} strokeWidth={2.5} />
                 </div>
                 <div>
@@ -355,14 +419,15 @@ function ResultActions({ onScanAgain, onShare }: { onScanAgain: () => void; onSh
                     href="/"
                     className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-100 py-3.5 font-semibold text-slate-700 transition-all hover:bg-slate-200"
                 >
-                    <Home size={18} />
+                    <Home size={18} aria-hidden="true" />
                     <span>Home</span>
                 </Link>
                 <button
                     onClick={onShare}
+                    aria-label="Share verification result"
                     className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-100 py-3.5 font-semibold text-slate-700 transition-all hover:bg-slate-200"
                 >
-                    <Share2 size={18} />
+                    <Share2 size={18} aria-hidden="true" />
                     <span>Share</span>
                 </button>
             </div>
@@ -604,6 +669,7 @@ export default function ScanPage() {
                 id="medicine-upload"
                 className="hidden"
                 accept="image/*"
+                aria-label="Upload medicine photo for OCR batch extraction"
                 onChange={handleFileUpload}
             />
 
@@ -643,7 +709,11 @@ export default function ScanPage() {
 
                     {!isScanning && !showResult && (
                         <div className="absolute inset-0 flex items-center justify-center">
-                            <Camera size={48} className="animate-pulse text-emerald-500/30" />
+                            <Camera
+                                size={48}
+                                className="animate-pulse text-emerald-500/30"
+                                aria-hidden="true"
+                            />
                         </div>
                     )}
                 </div>
@@ -654,9 +724,10 @@ export default function ScanPage() {
                     <div className="animate-in fade-in zoom-in absolute inset-0 z-30 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm duration-300">
                         <button
                             onClick={handleDismissResult}
+                            aria-label="Dismiss result"
                             className="absolute top-4 right-4 z-40 rounded-full bg-white/10 p-2 text-white backdrop-blur-sm transition-colors hover:bg-white/20"
                         >
-                            <X size={24} />
+                            <X size={24} aria-hidden="true" />
                         </button>
                         {verifyError && (
                             <ErrorResult message={verifyError} onRetry={handleDismissResult} />
@@ -715,20 +786,34 @@ export default function ScanPage() {
             )}
 
             <div className="flex flex-col items-center gap-6 bg-linear-to-t from-black to-transparent p-8">
-                <form onSubmit={handleBatchSubmit} className="flex w-full max-w-sm gap-2">
+                <form
+                    onSubmit={handleBatchSubmit}
+                    className="flex w-full max-w-sm gap-2"
+                    aria-label="Batch number verification"
+                >
+                    <label htmlFor="batch-number-input" className="sr-only">
+                        Batch number
+                    </label>
                     <input
+                        id="batch-number-input"
                         type="text"
                         value={batchInput}
                         onChange={(e) => setBatchInput(e.target.value)}
                         placeholder="Enter batch number"
+                        aria-label="Enter batch number to verify"
+                        aria-describedby="batch-hint"
                         className="flex-1 rounded-full border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium text-white placeholder-white/40 focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     />
+                    <span id="batch-hint" className="sr-only">
+                        Enter the batch number printed on the medicine strip, then press Verify
+                    </span>
                     <button
                         type="submit"
                         disabled={isScanning}
+                        aria-label="Verify batch number"
                         className="flex items-center gap-2 rounded-full bg-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        <Search size={18} />
+                        <Search size={18} aria-hidden="true" />
                         Verify
                     </button>
                 </form>
@@ -742,10 +827,13 @@ export default function ScanPage() {
                         htmlFor="medicine-upload"
                         className="flex cursor-pointer items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black shadow-lg transition-colors hover:bg-slate-200"
                     >
-                        <Layers size={18} />
+                        <Layers size={18} aria-hidden="true" />
                         Upload Photo
                     </label>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+                    <div
+                        className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5"
+                        aria-hidden="true"
+                    >
                         <AlertCircle size={20} className="text-white/50" />
                     </div>
                 </div>
