@@ -64,7 +64,7 @@ export default function Chatbot() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 font-sans">
+    <div className="fixed bottom-20 md:bottom-6 right-6 z-50 font-sans">
       {isOpen && (
         <div className="absolute bottom-16 right-0 w-[350px] h-[450px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 text-gray-800 transition-all duration-300">
           {/* Header */}

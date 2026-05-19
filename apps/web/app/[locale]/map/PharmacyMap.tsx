@@ -13,6 +13,15 @@ import { AlertCircle, Loader2 } from "lucide-react";
  * - Zero API keys required (free CARTO tiles)
  */
 
+function escapeHtml(str: string): string {
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 export interface Pharmacy {
     id: number;
     name: string;
@@ -24,6 +33,7 @@ export interface Pharmacy {
     coordinates: { lat: number; lng: number };
     address?: string;
     phone?: string;
+    isVerified?: boolean;
 }
 
 export interface MapBounds {
@@ -132,6 +142,19 @@ export default function PharmacyMap({
                     // Add zoom control to bottom-right (away from our controls)
                     L.control.zoom({ position: "bottomright" }).addTo(map.current);
 
+                    // Inject verified marker glow animation
+                    if (!document.getElementById("sahidawa-verified-styles")) {
+                        const style = document.createElement("style");
+                        style.id = "sahidawa-verified-styles";
+                        style.textContent = `
+                          @keyframes sahidawa-verified-glow {
+                            0%, 100% { box-shadow: 0 0 8px 3px rgba(5,150,105,0.35); }
+                            50% { box-shadow: 0 0 18px 7px rgba(5,150,105,0.6); }
+                          }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
                     layerGroup.current = L.layerGroup().addTo(map.current);
                     heatLayerGroup.current = L.layerGroup().addTo(map.current);
 
@@ -237,14 +260,46 @@ export default function PharmacyMap({
         pharmacies.forEach((pharmacy) => {
             bounds.extend([pharmacy.coordinates.lat, pharmacy.coordinates.lng]);
 
-            // Custom marker with pharmacy-type-specific styling
+            const isVerified = pharmacy.isVerified === true;
             const isGovt = pharmacy.type === "govt";
-            const markerColor = isGovt ? "#059669" : "#3b82f6";
-            const markerBorder = isGovt ? "#d1fae5" : "#dbeafe";
+            const markerColor = isVerified ? "#059669" : isGovt ? "#059669" : "#3b82f6";
 
-            const customMarker = L.divIcon({
-                className: "sahidawa-marker",
-                html: `
+            let customMarker;
+
+            if (isVerified) {
+                // Glowing green shield marker for verified pharmacies
+                customMarker = L.divIcon({
+                    className: "sahidawa-verified-marker",
+                    html: `
+          <div style="position:relative;width:40px;height:40px;">
+            <div style="
+              width: 40px;
+              height: 40px;
+              background: linear-gradient(135deg, #059669, #047857);
+              border-radius: 6px 6px 50% 50%;
+              border: 3px solid #d1fae5;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              animation: sahidawa-verified-glow 2s ease-in-out infinite;
+            ">
+              <svg style="width:20px;height:20px;color:white;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+            </div>
+          </div>`,
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 40],
+                    popupAnchor: [0, -40],
+                });
+            } else {
+                // Standard teardrop marker (green for govt, blue for private)
+                const markerBorder = isGovt ? "#d1fae5" : "#dbeafe";
+
+                customMarker = L.divIcon({
+                    className: "sahidawa-marker",
+                    html: `
           <div class="sahidawa-marker-shell" style="
             position: relative;
             width: 36px;
@@ -270,12 +325,12 @@ export default function PharmacyMap({
                 }
               </svg>
             </div>
-          </div>
-        `,
-                iconSize: [36, 36],
-                iconAnchor: [18, 36],
-                popupAnchor: [0, -36],
-            });
+          </div>`,
+                    iconSize: [36, 36],
+                    iconAnchor: [18, 36],
+                    popupAnchor: [0, -36],
+                });
+            }
 
             const marker = L.marker([pharmacy.coordinates.lat, pharmacy.coordinates.lng], {
                 icon: customMarker,
@@ -285,10 +340,29 @@ export default function PharmacyMap({
             markersRef.current.set(pharmacy.id, marker);
 
             // Rich popup matching SahiDawa's design
-            const statusColor =
-                pharmacy.status === "Verified"
-                    ? "background:#d1fae5;color:#065f46"
-                    : "background:#fef3c7;color:#92400e";
+            const statusColor = isVerified
+                ? "background:#d1fae5;color:#065f46"
+                : pharmacy.status === "Verified" || pharmacy.status === "Govt. Verified"
+                  ? "background:#d1fae5;color:#065f46"
+                  : "background:#fef3c7;color:#92400e";
+
+            const verifiedBanner = isVerified
+                ? `<div style="
+                    background: linear-gradient(90deg, #059669, #047857);
+                    color: white;
+                    padding: 4px 10px;
+                    border-radius: 6px;
+                    font-size: 10px;
+                    font-weight: 800;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    margin-bottom: 8px;
+                  ">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+                    Verified Safe Store
+                  </div>`
+                : "";
 
             const popupContent = `
         <div style="
@@ -297,6 +371,7 @@ export default function PharmacyMap({
           max-width: 280px;
           font-family: ui-sans-serif, system-ui, sans-serif;
         ">
+          ${verifiedBanner}
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
             <div style="
               width: 36px;
@@ -318,7 +393,7 @@ export default function PharmacyMap({
               </svg>
             </div>
             <div style="flex:1;min-width:0;">
-              <div style="font-weight:800;color:#1e293b;font-size:13px;line-height:1.3;">${pharmacy.name}</div>
+              <div style="font-weight:800;color:#1e293b;font-size:13px;line-height:1.3;">${escapeHtml(pharmacy.name)}</div>
               <span style="
                 font-size:10px;
                 font-weight:700;
@@ -327,12 +402,12 @@ export default function PharmacyMap({
                 ${statusColor};
                 display:inline-block;
                 margin-top:2px;
-              ">${pharmacy.status}</span>
+              ">${escapeHtml(pharmacy.status)}</span>
             </div>
           </div>
-          ${pharmacy.address ? `<p style="font-size:12px;color:#64748b;margin:0 0 8px 0;line-height:1.4;">${pharmacy.address}</p>` : ""}
+          ${pharmacy.address ? `<p style="font-size:12px;color:#64748b;margin:0 0 8px 0;line-height:1.4;">${escapeHtml(pharmacy.address)}</p>` : ""}
           <div style="display:flex;align-items:center;gap:12px;font-size:12px;color:#94a3b8;margin-bottom:10px;">
-            ${pharmacy.distance && pharmacy.distance !== "—" ? `<span style="font-weight:600;">${pharmacy.distance} away</span>` : ""}
+            ${pharmacy.distance && pharmacy.distance !== "—" ? `<span style="font-weight:600;">${escapeHtml(pharmacy.distance)} away</span>` : ""}
             ${
                 pharmacy.rating > 0
                     ? `<span style="display:flex;align-items:center;gap:2px;">
@@ -344,7 +419,7 @@ export default function PharmacyMap({
           </div>
           ${
               pharmacy.phone
-                  ? `<a href="tel:${pharmacy.phone}" style="
+                  ? `<a href="tel:${escapeHtml(pharmacy.phone)}" style="
               display:flex;
               align-items:center;
               justify-content:center;
@@ -360,7 +435,7 @@ export default function PharmacyMap({
               transition: background 0.2s;
             ">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-              Call ${pharmacy.phone}
+              Call ${escapeHtml(pharmacy.phone)}
             </a>`
                   : ""
           }

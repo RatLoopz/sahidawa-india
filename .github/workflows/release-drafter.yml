@@ -1,0 +1,23 @@
+name: 📦 Auto Changelog & Release Drafter
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  update_release_draft:
+    name: "Draft Next Release"
+    runs-on: ubuntu-latest
+    steps:
+      # ── 1. Run Release Drafter ───────────────────────────────────────────────
+      - name: "✏️ Draft release notes"
+        uses: release-drafter/release-drafter@v6
+        with:
+          config-name: release-drafter.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

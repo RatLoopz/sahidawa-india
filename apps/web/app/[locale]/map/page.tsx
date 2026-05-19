@@ -29,6 +29,11 @@ import PharmacyMap, {
     type RiskHotspot,
 } from "./PharmacyMap";
 import { fetchPharmacies, fetchPharmaciesInBounds, type OverpassPharmacy } from "./overpassApi";
+import {
+    fetchVerifiedPharmacies,
+    fetchVerifiedPharmaciesInBounds,
+    type VerifiedPharmacy,
+} from "../../../lib/api";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const DEFAULT_CENTER = { lat: 28.6139, lng: 77.209 }; // New Delhi
@@ -117,6 +122,38 @@ function toPharmacy(op: OverpassPharmacy & { _distanceFormatted?: string }): Pha
         address: op.address,
         phone: op.phone,
     };
+}
+
+// ── Verified pharmacy adapter ────────────────────────────────────────────────
+function toVerifiedPharmacy(vp: VerifiedPharmacy, id: number): Pharmacy {
+    const verified = vp.is_verified === true;
+    return {
+        id,
+        name: vp.name,
+        distance: vp.distance,
+        distanceKm: parseFloat(vp.distance) || undefined,
+        rating: 0,
+        status: verified ? "Verified Safe Store" : "Unverified Partner",
+        type: verified ? "govt" : "private",
+        coordinates: { lat: vp.lat, lng: vp.lng },
+        address: vp.address,
+        phone: vp.phone_number || undefined,
+        isVerified: verified,
+    };
+}
+
+function deduplicateOsm(verified: Pharmacy[], osm: Pharmacy[]): Pharmacy[] {
+    if (verified.length === 0) return osm;
+    return osm.filter((osmP) => {
+        return !verified.some((vP) => {
+            const dlat = osmP.coordinates.lat - vP.coordinates.lat;
+            const dlng = osmP.coordinates.lng - vP.coordinates.lng;
+            const latScale = 111320;
+            const lngScale = 111320 * Math.cos((osmP.coordinates.lat * Math.PI) / 180);
+            const dist = Math.sqrt((dlat * latScale) ** 2 + (dlng * lngScale) ** 2);
+            return dist < 100;
+        });
+    });
 }
 
 // ── Draggable Bottom Drawer (PR #144 signature component) ────────────────────
@@ -227,10 +264,14 @@ function PharmacyCard({
             <div className="flex items-start gap-2.5">
                 <div
                     className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm ${
-                        pharmacy.type === "govt" ? "bg-emerald-100" : "bg-blue-50"
+                        pharmacy.isVerified
+                            ? "bg-emerald-200"
+                            : pharmacy.type === "govt"
+                              ? "bg-emerald-100"
+                              : "bg-blue-50"
                     }`}
                 >
-                    {pharmacy.type === "govt" ? "🏥" : "💊"}
+                    {pharmacy.isVerified ? "🛡️" : pharmacy.type === "govt" ? "🏥" : "💊"}
                 </div>
 
                 <div className="min-w-0 flex-1">
@@ -238,6 +279,12 @@ function PharmacyCard({
                         <h4 className="truncate text-sm font-semibold text-slate-800">
                             {pharmacy.name}
                         </h4>
+                        {pharmacy.isVerified && (
+                            <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700">
+                                <Shield size={7} />
+                                Verified
+                            </span>
+                        )}
                         {pharmacy.rating > 0 && (
                             <div className="flex shrink-0 items-center gap-0.5">
                                 <Star size={10} className="fill-amber-400 text-amber-400" />
@@ -315,7 +362,7 @@ type AdvancedFilters = {
 };
 
 export default function PharmacyMapPage() {
-    const [activeFilter, setActiveFilter] = useState<"all" | "govt" | "named">("all");
+    const [activeFilter, setActiveFilter] = useState<"all" | "verified" | "govt" | "named">("all");
     const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({
         hasAddress: false,
         hasPhone: false,
@@ -340,18 +387,42 @@ export default function PharmacyMapPage() {
     const pendingBoundsRef = useRef<MapBounds | null>(null);
     const initialFetchDone = useRef(false);
 
-    // Fetch from Overpass API
     const fetchNearby = useCallback(async (lat: number, lng: number, radius = 10000) => {
         setIsLoading(true);
         setFetchError(null);
         setShowSearchArea(false);
         try {
-            const results = await fetchPharmacies(lat, lng, radius);
-            const mapped = results.map(toPharmacy);
-            setPharmacies(mapped);
-            setPharmacyCount(mapped.length);
+            const radiusKm = Math.round(radius / 1000);
+            const [verifiedResult, osmResult] = await Promise.allSettled([
+                fetchVerifiedPharmacies(lat, lng, radiusKm),
+                fetchPharmacies(lat, lng, radius),
+            ]);
+
+            const verified =
+                verifiedResult.status === "fulfilled"
+                    ? verifiedResult.value.map((vp, i) => toVerifiedPharmacy(vp, -(i + 1)))
+                    : [];
+            const osm = osmResult.status === "fulfilled" ? osmResult.value.map(toPharmacy) : [];
+
+            const dedupedOsm = deduplicateOsm(verified, osm);
+            const merged = [...verified, ...dedupedOsm].sort((a, b) => {
+                if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
+                return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
+            });
+
+            if (osmResult.status === "rejected") {
+                setFetchError("Live search temporarily offline. Showing verified partners only.");
+                setTimeout(() => setFetchError(null), 6000);
+            } else if (merged.length === 0) {
+                setFetchError("No pharmacies found in this area. Try searching a wider region.");
+                setTimeout(() => setFetchError(null), 5000);
+            }
+
+            setPharmacies(merged);
+            setPharmacyCount(merged.length);
             initialFetchDone.current = true;
-        } catch {
+        } catch (err) {
+            console.error("Critical error in pharmacy rendering:", err);
             setFetchError("Could not load pharmacies. Try again.");
             setTimeout(() => setFetchError(null), 5000);
         } finally {
@@ -364,16 +435,40 @@ export default function PharmacyMapPage() {
         setFetchError(null);
         setShowSearchArea(false);
         try {
-            const results = await fetchPharmaciesInBounds(
-                bounds.south,
-                bounds.west,
-                bounds.north,
-                bounds.east
-            );
-            const mapped = results.map(toPharmacy);
-            setPharmacies(mapped);
-            setPharmacyCount(mapped.length);
-        } catch {
+            const [verifiedResult, osmResult] = await Promise.allSettled([
+                fetchVerifiedPharmaciesInBounds(
+                    bounds.south,
+                    bounds.west,
+                    bounds.north,
+                    bounds.east
+                ),
+                fetchPharmaciesInBounds(bounds.south, bounds.west, bounds.north, bounds.east),
+            ]);
+
+            const verified =
+                verifiedResult.status === "fulfilled"
+                    ? verifiedResult.value.map((vp, i) => toVerifiedPharmacy(vp, -(i + 1)))
+                    : [];
+            const osm = osmResult.status === "fulfilled" ? osmResult.value.map(toPharmacy) : [];
+
+            const dedupedOsm = deduplicateOsm(verified, osm);
+            const merged = [...verified, ...dedupedOsm].sort((a, b) => {
+                if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
+                return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
+            });
+
+            if (osmResult.status === "rejected") {
+                setFetchError("Live search temporarily offline. Showing verified partners only.");
+                setTimeout(() => setFetchError(null), 6000);
+            } else if (merged.length === 0) {
+                setFetchError("No pharmacies found in this area. Try searching a wider region.");
+                setTimeout(() => setFetchError(null), 5000);
+            }
+
+            setPharmacies(merged);
+            setPharmacyCount(merged.length);
+        } catch (err) {
+            console.error("Critical error in bound pharmacy rendering:", err);
             setFetchError("Could not load pharmacies. Try again.");
             setTimeout(() => setFetchError(null), 5000);
         } finally {
@@ -404,7 +499,8 @@ export default function PharmacyMapPage() {
     // Filtered list
     const filteredPharmacies = useMemo(() => {
         let list = pharmacies;
-        if (activeFilter === "govt") list = list.filter((p) => p.type === "govt");
+        if (activeFilter === "verified") list = list.filter((p) => p.isVerified === true);
+        else if (activeFilter === "govt") list = list.filter((p) => p.type === "govt");
         else if (activeFilter === "named")
             list = list.filter((p) => p.name && p.name !== "Pharmacy");
         if (advancedFilters.hasAddress) list = list.filter((p) => Boolean(p.address));
@@ -468,6 +564,12 @@ export default function PharmacyMapPage() {
 
     const filters = [
         { id: "all", label: "All Stores", activeClass: "bg-slate-900 text-white shadow-md" },
+        {
+            id: "verified",
+            label: "Verified Partners",
+            icon: <Shield size={11} className="text-current" />,
+            activeClass: "bg-emerald-600 text-white shadow-md shadow-emerald-200",
+        },
         {
             id: "govt",
             label: "Jan Aushadhi",
@@ -618,14 +720,18 @@ export default function PharmacyMapPage() {
                         {isLoading ? (
                             <span className="flex items-center gap-1.5">
                                 <Loader2 size={10} className="animate-spin" />
-                                Fetching pharmacies from OpenStreetMap…
+                                Fetching pharmacies…
                             </span>
                         ) : (
                             <>
                                 {filteredPharmacies.length} pharmacies found
                                 {searchQuery && <> for &ldquo;{searchQuery}&rdquo;</>}
                                 {pharmacyCount > 0 && (
-                                    <span className="text-emerald-600"> • Live from OSM</span>
+                                    <span className="text-emerald-600">
+                                        {pharmacies.some((p) => p.isVerified)
+                                            ? " • Verified + OSM"
+                                            : " • Live from OSM"}
+                                    </span>
                                 )}
                             </>
                         )}
@@ -754,7 +860,9 @@ export default function PharmacyMapPage() {
                             <p className="text-sm font-bold text-slate-400">
                                 Finding nearby pharmacies…
                             </p>
-                            <p className="mt-1 text-xs text-slate-300">Powered by OpenStreetMap</p>
+                            <p className="mt-1 text-xs text-slate-300">
+                                Verified stores + OpenStreetMap
+                            </p>
                         </div>
                     ) : filteredPharmacies.length === 0 ? (
                         <div className="py-10 text-center">

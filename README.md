@@ -261,7 +261,6 @@ pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
-
 ---
 
 ## 📁 Project Structure
@@ -396,6 +395,14 @@ We are also a **Cloudinary Bounty Partner project** — contributors who build f
 SahiDawa is licensed under the **MIT License** — free to use, modify, distribute, and deploy.
 
 See [LICENSE](./LICENSE) for full text.
+
+## 👥 Contributors
+
+Thank you to all the incredible people who have contributed to making SahiDawa a reality! 🙌
+
+<a href="https://github.com/RatLoopz/sahidawa-india/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=RatLoopz/sahidawa-india" alt="SahiDawa Contributors" />
+</a>
 
 ---
 

@@ -1,12 +1,19 @@
 services:
   web:
-    image: node:24-alpine
-    working_dir: /app/apps/web
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: development
+
+    working_dir: /app
+
     volumes:
       - .:/app
       - /app/node_modules
       - /app/apps/web/node_modules
-    command: sh -c "npm install && exec npm run dev"
+      - /app/apps/web/.next
+    command: npm run dev -w apps/web
+
     ports:
       - "3000:3000"
     tty: true
@@ -17,13 +24,18 @@ services:
       - api
 
   api:
-    image: node:24-alpine
-    working_dir: /app/apps/api
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: development
+
+    working_dir: /app
+
     volumes:
       - .:/app
       - /app/node_modules
       - /app/apps/api/node_modules
-    command: sh -c "npm install && npm run dev"
+    command: npm run dev -w apps/api
     ports:
       - "4000:4000"
     environment:
