@@ -1,34 +1,41 @@
 {
-  "name": "sahidawa-api",
-  "version": "1.0.0",
-  "private": true,
-  "main": "dist/index.js",
-  "scripts": {
-    "start": "node dist/index.js",
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "tsc",
-    "test": "tsc -p tsconfig.test.json && node --test \".tmp/test-dist/**/*.test.js\""
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.105.4",
-    "cors": "^2.8.5",
-    "dotenv": "^17.4.2",
-    "express": "^5.0.0",
-    "express-rate-limit": "^8.5.1",
-    "helmet": "^8.1.0",
-    "morgan": "^1.10.0",
-    "redis": "^5.12.1",
-    "web-push": "^3.6.7",
-    "winston": "^3.19.0",
-    "zod": "^4.4.3"
-  },
-  "devDependencies": {
-    "@types/cors": "^2.8.17",
-    "@types/express": "^5.0.0",
-    "@types/morgan": "^1.9.9",
-    "@types/node": "^25.7.0",
-    "@types/web-push": "^3.6.4",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^6.0.3"
-  }
+    "name": "sahidawa-api",
+    "version": "1.0.0",
+    "private": true,
+    "main": "dist/index.js",
+    "scripts": {
+        "start": "node dist/index.js",
+        "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+        "build": "tsc",
+        "test": "jest"
+    },
+    "dependencies": {
+        "@supabase/supabase-js": "^2.105.4",
+        "cors": "^2.8.5",
+        "dotenv": "^17.4.2",
+        "express": "^5.0.0",
+        "express-rate-limit": "^8.5.1",
+        "helmet": "^8.1.0",
+        "morgan": "^1.10.0",
+        "multer": "^2.1.1",
+        "redis": "^5.12.1",
+        "web-push": "^3.6.7",
+        "winston": "^3.19.0",
+        "zod": "^4.4.3"
+    },
+    "devDependencies": {
+        "@types/cors": "^2.8.17",
+        "@types/express": "^5.0.0",
+        "@types/jest": "^30.0.0",
+        "@types/morgan": "^1.9.9",
+        "@types/multer": "^2.1.0",
+        "@types/node": "^25.7.0",
+        "@types/supertest": "^7.2.0",
+        "@types/web-push": "^3.6.4",
+        "jest": "^30.4.2",
+        "supertest": "^7.2.2",
+        "ts-jest": "^29.4.9",
+        "ts-node-dev": "^2.0.0",
+        "typescript": "^6.0.3"
+    }
 }

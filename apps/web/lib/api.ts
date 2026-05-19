@@ -78,6 +78,55 @@ export type VerifyResult =
     | { verified: true; medicine: VerifiedMedicine }
     | { verified: false; message: string };
 
+export type VerifiedPharmacy = {
+    name: string;
+    address: string;
+    lat: number;
+    lng: number;
+    distance: string;
+    phone_number: string | null;
+    is_verified: boolean;
+    district: string | null;
+    state: string | null;
+};
+
+export async function fetchVerifiedPharmacies(
+    lat: number,
+    lng: number,
+    radiusKm: number = 50
+): Promise<VerifiedPharmacy[]> {
+    try {
+        const res = await fetch(
+            `${API_BASE}/api/pharmacies/nearest?lat=${lat}&lng=${lng}&radius=${radiusKm}`,
+            { signal: AbortSignal.timeout(8000) }
+        );
+        if (!res.ok) return [];
+        const body = await res.json();
+        return body.pharmacies ?? [];
+    } catch {
+        return [];
+    }
+}
+
+export async function fetchVerifiedPharmaciesInBounds(
+    south: number,
+    west: number,
+    north: number,
+    east: number
+): Promise<VerifiedPharmacy[]> {
+    try {
+        const res = await fetch(
+            `${API_BASE}/api/pharmacies/in-bounds?south=${south}&west=${west}&north=${north}&east=${east}`,
+            { signal: AbortSignal.timeout(8000) }
+        );
+        if (!res.ok) return [];
+        const body = await res.json();
+        return body.pharmacies ?? [];
+    } catch {
+        return [];
+    }
+}
+
 export async function verifyMedicine(batchNumber: string): Promise<VerifyResult> {
     const res = await fetch(`${API_BASE}/api/verify`, {
         method: "POST",

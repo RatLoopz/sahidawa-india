@@ -104,30 +104,21 @@ export default function SahiDawaHome() {
                         </h1>
                     </div>
 
-                    <div className="flex items-center gap-2 md:gap-4">
-                        <nav
-                            className="hidden items-center gap-6 text-sm font-semibold text-slate-600 lg:flex"
-                            aria-label="Main navigation"
-                        >
-                            <button className="transition-colors hover:text-emerald-600">
-                                {tNav("how_it_works")}
-                            </button>
-                            <Link
-                                href="/alerts"
-                                className="transition-colors hover:text-emerald-600"
-                            >
-                                {tNav("alerts")}
-                            </Link>
-                            <Link href="/map" className="transition-colors hover:text-emerald-600">
-                                {tNav("pharmacy_map")}
-                            </Link>
-                            <Link
-                                href="/reports/me"
-                                className="flex items-center gap-1 transition-colors hover:text-emerald-600"
-                            >
-                                <History size={14} /> My Reports
-                            </Link>
-                        </nav>
+          <div className="flex items-center gap-2 md:gap-4">
+            <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold text-slate-600" aria-label="Main navigation">
+              <Link href="/how-it-works" className="hover:text-emerald-600 transition-colors">
+                {tNav("how_it_works")}
+              </Link>
+              <Link href="/alerts" className="hover:text-emerald-600 transition-colors">
+                {tNav("alerts")}
+              </Link>
+              <Link href="/map" className="hover:text-emerald-600 transition-colors">
+                {tNav("pharmacy_map")}
+              </Link>
+              <Link href="/reports/me" className="hover:text-emerald-600 transition-colors flex items-center gap-1">
+                <History size={14} /> My Reports
+              </Link>
+            </nav>
 
                         <button
                             onClick={() => handleNavigation("health")}
@@ -311,90 +302,75 @@ export default function SahiDawaHome() {
                     </div>
                 </div>
 
-                <div className="mt-8 mb-20 grid grid-cols-1 gap-8 lg:grid-cols-2">
-                    {/* Live Alerts Panel */}
-                    <div className="flex h-[400px] flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-                        <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-6 py-5">
-                            <div className="flex items-center gap-2">
-                                <Activity size={20} className="text-red-500" />
-                                <h3 className="text-lg font-bold text-slate-800">
-                                    Live CDSCO Alerts
-                                </h3>
-                            </div>
-                            <span className="hidden rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold tracking-wider text-red-600 uppercase sm:block">
-                                India Region
-                            </span>
-                        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8 mb-20">
+          {/* Live Alerts Panel */}
+          <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden flex flex-col h-[400px]">
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-2">
+                <Activity size={20} className="text-red-500" />
+                <h3 className="text-lg font-bold text-slate-800">
+                  Live CDSCO Alerts
+                </h3>
+              </div>
+              <span className="text-xs font-bold bg-red-100 text-red-600 px-2.5 py-1 rounded-full uppercase tracking-wider hidden sm:block">
+                India Region
+              </span>
+            </div>
 
-                        <div className="flex-1 space-y-3 overflow-y-auto bg-slate-50/30 p-4">
-                            {/* Alert Item */}
-                            {homepageAlerts && homepageAlerts.length > 0 ? (
-                                homepageAlerts.map((alert) => (
-                                    <div
-                                        key={alert.id}
-                                        className="group relative flex cursor-pointer items-start gap-4 overflow-hidden rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
-                                    >
-                                        {/* Left edge colored strip */}
-                                        <div
-                                            className={`absolute top-0 bottom-0 left-0 w-1.5 ${
-                                                alert.brand_name === "SYSTEM_UPDATE"
-                                                    ? "bg-blue-500"
-                                                    : alert.cdsco_approval_status === "banned" ||
-                                                        alert.is_counterfeit_alert
-                                                      ? "bg-red-500"
-                                                      : "bg-orange-400"
-                                            }`}
-                                        ></div>
-
-                                        <div
-                                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${
-                                                alert.brand_name === "SYSTEM_UPDATE"
-                                                    ? "bg-blue-50 text-blue-500 group-hover:bg-blue-100"
-                                                    : alert.cdsco_approval_status === "banned" ||
-                                                        alert.is_counterfeit_alert
-                                                      ? "bg-red-50 text-red-500 group-hover:bg-red-100"
-                                                      : "bg-orange-50 text-orange-500 group-hover:bg-orange-100"
-                                            }`}
-                                        >
-                                            {alert.brand_name === "SYSTEM_UPDATE" ? (
-                                                <Globe size={20} strokeWidth={2.5} />
-                                            ) : (
-                                                <AlertTriangle size={20} strokeWidth={2.5} />
-                                            )}
-                                        </div>
-
-                                        <div className="flex-1">
-                                            <div className="flex items-start justify-between">
-                                                <h4 className="leading-tight font-bold text-slate-800">
-                                                    {alert.brand_name}
-                                                </h4>
-                                                <span className="text-[11px] font-medium text-slate-400">
-                                                    {formatRelativeTime(alert.created_at)}
-                                                </span>
-                                            </div>
-                                            <p className="mt-1 text-sm leading-snug font-medium text-slate-500">
-                                                {alert.composition} Batch{" "}
-                                                <span className="font-bold text-slate-700">
-                                                    {alert.batch_number}
-                                                </span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <p className="py-12 text-center text-sm text-slate-400">
-                                    No current regulatory alerts recorded.
-                                </p>
-                            )}
-                        </div>
-                        <div className="border-t border-slate-100 bg-white p-4">
-                            <Link href="/alerts" className="block w-full">
-                                <button className="w-full cursor-pointer rounded-xl bg-slate-50 py-3 font-bold text-slate-700 transition-colors hover:bg-slate-100">
-                                    View Full Alert Log
-                                </button>
-                            </Link>
-                        </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/30">
+              {/* Alert Item */}
+              {homepageAlerts && homepageAlerts.length > 0 ? (
+                homepageAlerts.map((alert) => (
+                  <div 
+                    key={alert.id} 
+                    className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm flex items-start gap-4 relative overflow-hidden group hover:shadow-md transition-shadow cursor-pointer"
+                  >
+                    {/* Left edge colored strip */}
+                    <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${
+                      alert.brand_name === 'SYSTEM_UPDATE' 
+                        ? 'bg-blue-500' 
+                        : (alert.cdsco_approval_status === 'banned' || alert.is_counterfeit_alert) 
+                        ? 'bg-red-500' : 'bg-orange-400'        
+                    }`}>
                     </div>
+
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                      alert.brand_name === 'SYSTEM_UPDATE' 
+                        ? 'bg-blue-50 text-blue-500 group-hover:bg-blue-100' 
+                        : (alert.cdsco_approval_status === 'banned' || alert.is_counterfeit_alert) 
+                          ? 'bg-red-50 text-red-500 group-hover:bg-red-100' 
+                          : 'bg-orange-50 text-orange-500 group-hover:bg-orange-100'
+                    }`}>
+                      {alert.brand_name === 'SYSTEM_UPDATE' ? (
+                        <Globe size={20} strokeWidth={2.5} />
+                      ) : (
+                        <AlertTriangle size={20} strokeWidth={2.5} />
+                      )}
+                    </div>
+
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <h4 className="font-bold text-slate-800 leading-tight">{alert.brand_name}</h4>
+                        <span className="text-[11px] font-medium text-slate-400">{formatRelativeTime(alert.created_at)}</span>
+                      </div>
+                      <p className="text-sm text-slate-500 mt-1 font-medium leading-snug">
+                        {alert.composition} Batch <span className="font-bold text-slate-700">{alert.batch_number}</span>
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-sm text-slate-400 py-12">No current regulatory alerts recorded.</p>
+              )}
+            </div>
+            <div className="p-4 bg-white border-t border-slate-100">
+              <Link href="/alerts" className="block w-full">
+                <button className="w-full py-3 bg-slate-50 text-slate-700 font-bold rounded-xl hover:bg-slate-100 transition-colors cursor-pointer">
+                  View Full Alert Log
+                </button>
+              </Link>
+            </div>
+          </div>
 
                     {/* AI Assistant Promo */}
                     <div className="relative overflow-hidden rounded-3xl bg-emerald-600 p-8 text-white shadow-xl shadow-emerald-600/20">
@@ -424,74 +400,83 @@ export default function SahiDawaHome() {
             {/* Spacer for mobile nav */}
             <div className="h-16 md:hidden"></div>
 
-            {/* ── Mobile Bottom Navigation ── */}
-            <nav
-                className="fixed right-0 bottom-0 left-0 z-50 flex items-center justify-around border-t border-slate-200/60 bg-white/90 px-2 py-3 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
-                aria-label="Mobile navigation"
-            >
-                <Link
-                    href="/"
-                    className="group flex w-16 flex-col items-center gap-1.5"
-                    aria-label="Home"
-                >
-                    <div className="text-emerald-600 transition-transform group-hover:-translate-y-1">
-                        <Home size={24} strokeWidth={2.5} />
-                    </div>
+      {/* ── Mobile Bottom Navigation ── */}
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200/60 flex justify-around px-2 py-3 items-center z-50 pb-[env(safe-area-inset-bottom)]"
+        aria-label="Mobile navigation"
+      >
+        <Link
+          href="/"
+          className="flex flex-col items-center gap-1.5 w-16 group"
+          aria-label="Home"
+        >
+          <div className="text-emerald-600 group-hover:-translate-y-1 transition-transform">
+            <Home size={24} strokeWidth={2.5} />
+          </div>
 
-                    <span className="text-[11px] font-bold text-emerald-600">Home</span>
-                </Link>
+          <span className="text-[11px] font-bold text-emerald-600">
+            Home
+          </span>
+        </Link>
 
-                <Link
-                    href="/scan"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-slate-400 transition-colors hover:text-slate-600"
-                    aria-label="Scans"
-                >
-                    <div className="transition-transform group-hover:-translate-y-1">
-                        <History size={24} strokeWidth={2} />
-                    </div>
+        <Link
+          href="/scan"
+          className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-slate-600 transition-colors"
+          aria-label="Scans"
+        >
+          <div className="group-hover:-translate-y-1 transition-transform">
+            <History size={24} strokeWidth={2} />
+          </div>
 
-                    <span className="text-[11px] font-semibold">Scans</span>
-                </Link>
+          <span className="text-[11px] font-semibold">
+            Scans
+          </span>
+        </Link>
 
-                <Link
-                    href="/map"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-slate-400 transition-colors hover:text-amber-600"
-                    aria-label="Map"
-                >
-                    <div className="transition-transform group-hover:-translate-y-1">
-                        <MapPin size={24} strokeWidth={2} />
-                    </div>
+        <Link
+          href="/map"
+          className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-amber-600 transition-colors"
+          aria-label="Map"
+        >
+          <div className="group-hover:-translate-y-1 transition-transform">
+            <MapPin size={24} strokeWidth={2} />
+          </div>
 
-                    <span className="text-[11px] font-semibold">Map</span>
-                </Link>
+          <span className="text-[11px] font-semibold">
+            Map
+          </span>
+        </Link>
 
-                <Link
-                    href="/alerts"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-slate-400 transition-colors hover:text-red-500"
-                    aria-label="Alerts"
-                >
-                    <div className="relative transition-transform group-hover:-translate-y-1">
-                        <Bell size={24} strokeWidth={2} />
+        <Link
+          href="/alerts"
+          className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-red-500 transition-colors"
+          aria-label="Alerts"
+        >
+          <div className="relative group-hover:-translate-y-1 transition-transform">
+            <Bell size={24} strokeWidth={2} />
+            <span className="absolute top-0 right-0.5 w-2 h-2 bg-red-500 border border-white rounded-full animate-pulse"></span>
+          </div>
 
-                        <span className="absolute top-0 right-0.5 h-2 w-2 animate-pulse rounded-full border border-white bg-red-500"></span>
-                    </div>
+          <span className="text-[11px] font-semibold">
+            Alerts
+          </span>
+        </Link>
 
-                    <span className="text-[11px] font-semibold">Alerts</span>
-                </Link>
+        <Link
+          href="/profile"
+          className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-emerald-600 transition-colors"
+          aria-label="Profile"
+        >
+          <div className="group-hover:-translate-y-1 transition-transform">
+            <User size={24} strokeWidth={2} />
+          </div>
 
-                <Link
-                    href="/profile"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-slate-400 transition-colors hover:text-emerald-600"
-                    aria-label="Profile"
-                >
-                    <div className="transition-transform group-hover:-translate-y-1">
-                        <User size={24} strokeWidth={2} />
-                    </div>
-
-                    <span className="text-[11px] font-semibold">Profile</span>
-                </Link>
-            </nav>
-            <Footer />
-        </div>
-    );
+          <span className="text-[11px] font-semibold">
+            Profile
+          </span>
+        </Link>
+      </nav>
+      <Footer />
+    </div>
+  );
 }

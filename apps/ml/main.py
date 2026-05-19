@@ -27,8 +27,9 @@ app.add_middleware(
 )
 
 # Import and include routers
-from routers import ocr
+from routers import ocr,asr 
 app.include_router(ocr.router)
+app.include_router(asr.router)
 
 @app.get("/")
 def read_root():
