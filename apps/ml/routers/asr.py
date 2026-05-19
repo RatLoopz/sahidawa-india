@@ -9,9 +9,16 @@ import logging
 import os
 
 from faster_whisper import WhisperModel
+from services.telemetry import (
+    get_audio_duration_seconds,
+    get_memory_usage_mb,
+    get_telemetry_logger,
+    log_transcription_finished,
+    start_timer,
+)
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+telemetry_logger = get_telemetry_logger()
 
 router = APIRouter(prefix="/asr", tags=["ASR"])
 
@@ -54,6 +61,9 @@ async def transcribe_audio(file: UploadFile = File(...)):
 
     tmp_path: str | None = None
     normalized_path: str | None = None
+    transcription_started_at: float | None = None
+    audio_duration_seconds = 0.0
+    memory_before_mb = 0.0
 
     try:
         # ── 2. Write raw upload to disk ───────────────────────────────────────
@@ -97,6 +107,7 @@ async def transcribe_audio(file: UploadFile = File(...)):
 
         # ── 4. Read normalized WAV with soundfile (always safe) ───────────────
         audio_data, sample_rate = sf.read(normalized_path)
+        audio_duration_seconds = get_audio_duration_seconds(audio_data, sample_rate)
 
         # Ensure float32 — required by noisereduce and faster-whisper
         audio_data = audio_data.astype(np.float32)
@@ -110,6 +121,8 @@ async def transcribe_audio(file: UploadFile = File(...)):
         # ── 6. Transcribe with faster-whisper ─────────────────────────────────
         # language=None → auto-detect; task="transcribe" preserves native language
         # (no translation). beam_size=8 improves accuracy for regional languages.
+        transcription_started_at = start_timer()
+        memory_before_mb = get_memory_usage_mb()
         segments, info = model.transcribe(
             reduced_audio,
             language=None,
@@ -124,6 +137,12 @@ async def transcribe_audio(file: UploadFile = File(...)):
         )
 
         transcript = " ".join(seg.text for seg in segments).strip()
+        log_transcription_finished(
+            started_at=transcription_started_at,
+            audio_duration_seconds=audio_duration_seconds,
+            memory_before_mb=memory_before_mb,
+            logger=telemetry_logger,
+        )
 
         logger.info(
             f"Transcription complete | lang={info.language} "

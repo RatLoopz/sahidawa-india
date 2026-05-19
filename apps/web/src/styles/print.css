@@ -1,0 +1,96 @@
+@media print {
+    @page {
+        margin: 14mm;
+    }
+
+    *,
+    *::before,
+    *::after {
+        background: transparent !important;
+        box-shadow: none !important;
+        color: #000 !important;
+        text-shadow: none !important;
+    }
+
+    html,
+    body {
+        width: 100%;
+        background: #fff !important;
+        font-size: 11pt;
+        line-height: 1.45;
+    }
+
+    body {
+        margin: 0 !important;
+    }
+
+    a {
+        color: #000 !important;
+        text-decoration: none !important;
+    }
+
+    img,
+    svg {
+        break-inside: avoid;
+        max-width: 100% !important;
+    }
+
+    button,
+    input,
+    select,
+    textarea,
+    .no-print {
+        display: none !important;
+    }
+
+    .print-page {
+        min-height: auto !important;
+        padding: 0 !important;
+    }
+
+    .print-container {
+        max-width: none !important;
+        width: 100% !important;
+        padding: 0 !important;
+    }
+
+    .print-receipt {
+        border: 1px solid #000 !important;
+        border-radius: 0 !important;
+        break-inside: avoid;
+        padding: 16pt !important;
+    }
+
+    .comparison-grid {
+        display: block !important;
+    }
+
+    .comparison-card {
+        width: 100% !important;
+        max-width: none !important;
+        break-inside: avoid;
+        border: 1px solid #000 !important;
+        border-radius: 0 !important;
+        margin: 0 0 12pt !important;
+        padding: 12pt !important;
+    }
+
+    .comparison-card table {
+        border-collapse: collapse !important;
+        width: 100% !important;
+    }
+
+    .comparison-card th,
+    .comparison-card td,
+    .print-table th,
+    .print-table td {
+        border: 1px solid #000 !important;
+        padding: 6pt !important;
+        text-align: left !important;
+        vertical-align: top !important;
+    }
+
+    .print-divider {
+        border-color: #000 !important;
+    }
+}
