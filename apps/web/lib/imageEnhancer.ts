@@ -2,11 +2,13 @@
  * Adaptive client-side data hygiene and image enhancement feature for sahidawa-india
  */
 
-export async function preprocessMedicineImage(file: File): Promise<Blob> {
+export async function preprocessMedicineImage(input: File | Blob | string): Promise<Blob | File | string> {
   return new Promise((resolve, reject) => {
     try {
       const img = new Image();
-      const url = URL.createObjectURL(file);
+      img.crossOrigin = "Anonymous";
+      const isString = typeof input === 'string';
+      const url = isString ? input : URL.createObjectURL(input);
 
       img.onload = () => {
         // 1. Resolution Bounds & Performance Downscaling
@@ -29,14 +31,20 @@ export async function preprocessMedicineImage(file: File): Promise<Blob> {
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         if (!ctx) {
-          URL.revokeObjectURL(url);
+          if (!isString) URL.revokeObjectURL(url);
           return reject(new Error('Canvas 2D context not available'));
         }
 
         ctx.drawImage(img, 0, 0, width, height);
-        URL.revokeObjectURL(url); // Explicitly free memory
+        if (!isString) URL.revokeObjectURL(url); // Explicitly free memory
 
-        const imageData = ctx.getImageData(0, 0, width, height);
+        let imageData: ImageData;
+        try {
+          imageData = ctx.getImageData(0, 0, width, height);
+        } catch (error) {
+          console.warn('Canvas getImageData failed (likely CORS). Falling back to original.', error);
+          return resolve(input);
+        }
         const data = imageData.data;
 
         // 2. Exact Algorithmic Methods
@@ -212,7 +220,7 @@ export async function preprocessMedicineImage(file: File): Promise<Blob> {
       };
 
       img.onerror = () => {
-        URL.revokeObjectURL(url);
+        if (!isString) URL.revokeObjectURL(url);
         reject(new Error('Image failed to load'));
       };
 

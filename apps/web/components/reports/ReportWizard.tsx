@@ -273,10 +273,12 @@ function Step2({
           let fileToProcess = f;
           try {
             const optimizedBlob = await preprocessMedicineImage(f);
-            fileToProcess = new File([optimizedBlob], f.name, {
-              type: optimizedBlob.type || 'image/jpeg',
-              lastModified: Date.now(),
-            });
+            if (typeof optimizedBlob !== 'string') {
+              fileToProcess = new File([optimizedBlob], f.name, {
+                type: optimizedBlob.type || 'image/jpeg',
+                lastModified: Date.now(),
+              });
+            }
           } catch (error) {
             console.error('Image enhancement failed, falling back to original:', error);
           }
