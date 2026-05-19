@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react"; 
+
+
 import {
     Camera,
     ShieldCheck,
@@ -346,6 +348,10 @@ export default function ScanPage() {
     const [verifyResult, setVerifyResult] = useState<VerifyResult | null>(null);
     const [verifyError, setVerifyError] = useState<string | null>(null);
 
+    const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+    const [showCamera, setShowCamera] = useState(false);
+    const videoRef = useRef<HTMLVideoElement>(null);
+
     const handleVerify = useCallback(async (batch: string) => {
         if (!batch.trim()) {
             toast.error("Please enter a batch number to verify");
@@ -425,6 +431,40 @@ export default function ScanPage() {
         setVerifyResult(null);
         setVerifyError(null);
     };
+
+    const handleOpenCamera = async () => {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" }, // use back camera on mobile
+        });
+        setCameraStream(stream);
+        setShowCamera(true);
+    } catch (err) {
+        toast.error("Camera access denied. Please allow camera permissions.");
+    }
+};
+
+const handleCloseCamera = () => {
+    cameraStream?.getTracks().forEach((track) => track.stop());
+    setCameraStream(null);
+    setShowCamera(false);
+};
+
+const handleCapture = () => {
+    if (!videoRef.current) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    canvas.getContext("2d")?.drawImage(videoRef.current, 0, 0);
+    const dataUrl = canvas.toDataURL("image/jpeg");
+    setUploadedImage(dataUrl);
+    handleCloseCamera();
+    if (!batchInput.trim()) {
+        toast.error("Please also enter a batch number to verify");
+        return;
+    }
+    handleVerify(batchInput);
+};
 
     const handleShare = async () => {
         let shareText = "";
@@ -555,7 +595,31 @@ export default function ScanPage() {
                         {!verifyError && verifyResult && !verifyResult.verified && (
                             <UnverifiedResult onScanAgain={handleDismissResult} />
                         )}
-                    </div>
+                {showCamera && (
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black">
+        <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            className="h-full w-full object-cover"
+            onCanPlay={() => { videoRef.current?.play(); }}
+        />
+        <div className="absolute bottom-8 flex gap-4">
+            <button
+                onClick={handleCapture}
+                className="rounded-full bg-white px-6 py-3 font-bold text-black"
+            >
+                Capture
+            </button>
+            <button
+                onClick={handleCloseCamera}
+                className="rounded-full bg-white/20 px-6 py-3 font-bold text-white"
+            >
+                Cancel
+            </button>
+        </div>
+    </div>
+)}    </div>
                 )}
             </div>
 
