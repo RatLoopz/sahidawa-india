@@ -73,9 +73,11 @@ async def transcribe_audio(file: UploadFile = File(...)):
 
         # ── 2.5. Check audio duration with ffprobe (before FFmpeg normalization) ──
         # Extract duration metadata quickly without full transcoding
+        # Use full path to ffprobe for Windows compatibility
+        ffprobe_path = "C:\\Program Files\\ffmpeg-master-latest-win64-gpl-shared\\bin\\ffprobe.exe"
         ffprobe_result = subprocess.run(
             [
-                "ffprobe",
+                ffprobe_path,
                 "-v", "error",
                 "-show_entries", "format=duration",
                 "-of", "default=noprint_wrappers=1:nokey=1",
@@ -109,9 +111,10 @@ async def transcribe_audio(file: UploadFile = File(...)):
         # through FFmpeg (already installed in Dockerfile) to a safe WAV stream.
         normalized_path = tmp_path + "_norm.wav"
 
+        ffmpeg_path = "C:\\Program Files\\ffmpeg-master-latest-win64-gpl-shared\\bin\\ffmpeg.exe"
         ffmpeg_result = subprocess.run(
             [
-                "ffmpeg",
+                ffmpeg_path,
                 "-y",           # Overwrite output file without prompting
                 "-i", tmp_path, # Raw uploaded audio (any format)
                 "-ar", "16000", # Resample to 16kHz (Whisper optimal rate)
