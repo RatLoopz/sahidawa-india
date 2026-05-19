@@ -13,6 +13,7 @@
         "@google/genai": "^2.3.0",
         "@hookform/resolvers": "^5.2.2",
         "@supabase/supabase-js": "^2.105.4",
+        "@zxing/library": "^0.23.0",
         "framer-motion": "^12.38.0",
         "leaflet": "^1.9.4",
         "lucide-react": "^1.16.0",
@@ -29,8 +30,8 @@
     },
     "devDependencies": {
         "@tailwindcss/postcss": "^4.3.0",
-        "@types/leaflet": "^1.9.21",
         "@types/jest": "^30.0.0",
+        "@types/leaflet": "^1.9.21",
         "@types/node": "^25.7.0",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
