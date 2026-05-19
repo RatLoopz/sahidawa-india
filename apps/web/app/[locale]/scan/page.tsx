@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { SearchBar } from "@/src/components/SearchBar";
 import {
     Camera,
     ShieldCheck,
@@ -674,24 +675,7 @@ export default function ScanPage() {
             )}
 
             <div className="flex flex-col items-center gap-6 bg-linear-to-t from-black to-transparent p-8">
-                <form onSubmit={handleBatchSubmit} className="flex w-full max-w-sm gap-2">
-                    <input
-                        type="text"
-                        value={batchInput}
-                        onChange={(e) => setBatchInput(e.target.value)}
-                        placeholder="Enter batch number"
-                        className="flex-1 rounded-full border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium text-white placeholder-white/40 focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                    />
-                    <button
-                        type="submit"
-                        disabled={isScanning}
-                        className="flex items-center gap-2 rounded-full bg-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                        <Search size={18} />
-                        Verify
-                    </button>
-                </form>
-
+               <SearchBar onSearch={handleVerify} placeholder="Enter batch number" />
                 <p className="max-w-xs text-center text-sm font-medium text-slate-400">
                     Enter the batch number from the medicine strip, or upload a photo from your
                     gallery.
