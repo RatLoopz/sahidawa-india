@@ -7,6 +7,7 @@ import { routing } from "../../i18n/routing";
 import { ThemeProvider } from "./components/ThemeProvider";
 import Chatbot from "./components/Chatbot";
 import "./globals.css";
+import "../../src/styles/print.css";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
@@ -58,9 +59,13 @@ export default async function LocaleLayout({
                 <ThemeProvider>
                     <NextIntlClientProvider messages={messages}>
                         {children}
-                        <Chatbot />
+                        <div className="no-print">
+                            <Chatbot />
+                        </div>
                     </NextIntlClientProvider>
-                    <Toaster richColors position="top-center" />
+                    <div className="no-print">
+                        <Toaster richColors position="top-center" />
+                    </div>
                 </ThemeProvider>
             </body>
         </html>
