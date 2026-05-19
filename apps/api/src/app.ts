@@ -32,19 +32,22 @@ import verifyRouter from "./routes/verify";
 import analyticsRoutes from "./routes/analytics";
 import notificationsRouter from "./routes/notifications";
 import scanRouter from "./routes/scan";
+import alertsRouter from "./routes/alerts";
 import { supabase } from "./db/client";
 
 import { errorHandler } from "./middleware/errorHandler";
 
 const app: Express = express();
 
-app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            connectSrc: ["'self'", process.env.SUPABASE_URL || ""],
+app.use(
+    helmet({
+        contentSecurityPolicy: {
+            directives: {
+                connectSrc: ["'self'", process.env.SUPABASE_URL || ""],
+            },
         },
-    },
-}));
+    })
+);
 
 // Security: restrict CORS to known origins instead of wildcard
 const allowedOrigins = ["http://localhost:3000", "http://localhost:4000", "http://localhost:8000"];
@@ -115,6 +118,7 @@ app.use("/api/verify", verifyRouter);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/v1/scan", scanRouter);
+app.use("/api/alerts", alertsRouter);
 
 app.use(errorHandler);
 
