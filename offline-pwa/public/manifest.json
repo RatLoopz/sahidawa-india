@@ -1,0 +1,15 @@
+{
+  "short_name": "MedicinePWA",
+  "name": "Offline Medicine Tracker",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0b1120",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

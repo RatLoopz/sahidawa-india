@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#0f172a" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/styles.css" />
+    <title>Offline Medicine Tracker</title>
+  </head>
+  <body>
+    <main class="page-shell">
+      <header>
+        <h1>Offline Medicine Tracker</h1>
+        <p>Save medicine checks, verify by SMS, and work offline.</p>
+        <div id="status" class="status offline">Offline ready</div>
+      </header>
+
+      <section class="card" aria-labelledby="verify-heading">
+        <h2 id="verify-heading">SMS Verification</h2>
+        <form id="phone-form" class="form-grid">
+          <label for="phone">Phone number</label>
+          <input id="phone" type="tel" placeholder="+911234567890" required />
+          <button type="submit">Request code</button>
+        </form>
+
+        <form id="otp-form" class="form-grid hidden">
+          <label for="otp">Enter OTP</label>
+          <input id="otp" type="text" inputmode="numeric" maxlength="6" placeholder="123456" required />
+          <button type="submit">Verify</button>
+        </form>
+
+        <div id="sms-message" class="message"></div>
+        <p class="note">Note: If Twilio is not configured, the app will show a mock OTP in the response so users can still verify in low-connectivity areas.</p>
+      </section>
+
+      <section class="card" aria-labelledby="history-heading">
+        <h2 id="history-heading">Medicine History</h2>
+        <form id="history-form" class="form-grid" autocomplete="off">
+          <label for="medicine-name">Medicine name</label>
+          <input id="medicine-name" type="text" placeholder="Paracetamol" required />
+          <label for="batch-number">Batch number</label>
+          <input id="batch-number" type="text" placeholder="ABC123" required />
+          <label for="expiry-date">Expiry date</label>
+          <input id="expiry-date" type="date" required />
+          <label for="notes">Notes</label>
+          <textarea id="notes" rows="3" placeholder="Store details, pharmacy, comments"></textarea>
+          <button type="submit">Save history</button>
+        </form>
+
+        <div class="actions">
+          <button id="sync-button" type="button">Sync history when online</button>
+          <button id="view-reports-button" type="button">View saved report</button>
+          <button id="export-button" type="button">Export report</button>
+          <button id="clear-button" type="button">Clear local history</button>
+        </div>
+
+        <div id="report-summary" class="report-summary">Your saved report appears below. Add records and then click above to view or export the report.</div>
+        <div id="history-list" class="history-list"></div>
+      </section>
+
+      <footer>
+        <p>Progressive Web App for rural users with caching, offline storage, and verification support.</p>
+      </footer>
+    </main>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

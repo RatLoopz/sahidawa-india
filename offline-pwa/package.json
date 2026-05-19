@@ -1,0 +1,17 @@
+{
+  "name": "offline-pwa",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Lightweight offline PWA for rural medicine history and SMS verification.",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "twilio": "^4.0.0"
+  }
+}
