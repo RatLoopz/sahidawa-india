@@ -1,3 +1,5 @@
+"use client";
+
 import { ArrowLeft, Globe, Zap } from "lucide-react";
 import { Link } from "@/i18n/routing";
 
@@ -24,7 +26,7 @@ export const PageHeader = ({
   const isDark = variant === "dark";
   
   return (
-    <header className={`${isDark ? "absolute top-0 left-0 right-0 bg-gradient-to-b from-black/70 to-transparent text-white" : "relative bg-white border-b border-slate-100 shadow-sm text-slate-900"} z-20 p-4 flex flex-col gap-4`}>
+    <header className={`${isDark ? "absolute top-0 left-0 right-0 bg-gradient-to-b from-black/70 to-transparent text-white" : "relative bg-white border-b border-slate-100 shadow-sm text-slate-900"} z-50 p-4 flex flex-col gap-4`}>
       <div className="flex items-center justify-between gap-2">
         <Link 
           href={backHref} 
@@ -55,11 +57,15 @@ export const PageHeader = ({
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-slate-200 shadow-sm" role="status" aria-label={`Current language: ${languageName || "English"}`}>
               <Globe size={14} aria-hidden="true" className="text-emerald-600" />
              <span className="text-xs font-bold text-slate-700">
-  {languageName || "English"}
-</span>
+              {languageName || "English"}
+            </span>
             </div>
           ) : isDark ? (
-            <button aria-label="Quick actions" className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition-colors">
+            <button 
+              onClick={() => console.log("Quick actions menu triggered!")}
+              aria-label="Quick actions" 
+              className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition-colors"
+            >
               <Zap size={20} aria-hidden="true" className="text-amber-400" />
               <span className="sr-only">Quick actions</span>
             </button>

@@ -1,39 +1,99 @@
+import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
 import { GitBranch } from "lucide-react";
 
 export default function Footer() {
-  return (
-    <footer className="border-t border-slate-800 bg-slate-950 text-slate-400 mt-auto">
-      <div className="container mx-auto px-4 md:px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
+    return (
+        <footer className="mt-auto border-t border-slate-800 bg-slate-950 text-slate-400">
+            <div className="container mx-auto px-4 py-10 md:px-6">
+                <div className="grid grid-cols-1 gap-8 border-b border-slate-800 pb-8 md:grid-cols-3">
+                    {/* Brand Section */}
+                    <div>
+                        <h2 className="mb-3 text-lg font-semibold text-white">SahiDawa</h2>
 
-        <div className="flex items-center gap-4 flex-wrap justify-center">
-          <a
-            href="https://github.com/RatLoopz/sahidawa-india"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1 hover:text-white transition-colors"
-          >
-            <GitBranch size={14} />
-            GitHub
-          </a>
+                        <p className="text-sm leading-relaxed text-slate-500">
+                            An open-source healthcare platform built with community collaboration
+                            and innovation in mind.
+                        </p>
 
-          <a
-            href="https://github.com/RatLoopz/sahidawa-india/blob/main/CONTRIBUTING.md"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-white transition-colors"
-          >
-            Contributing Guide
-          </a>
+                        <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
+                            ✨ Made for GSSoC 2026
+                        </div>
+                    </div>
 
-          <span className="px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            Made for GSSoC 2026
-          </span>
-        </div>
+                    {/* Quick Links */}
+                    <div>
+                        <h3 className="mb-4 text-sm font-semibold tracking-wide text-white uppercase">
+                            Quick Links
+                        </h3>
 
-        <p className="text-center md:text-right">
-          © 2026 SahiDawa. Open Source under MIT License.
-        </p>
-      </div>
-    </footer>
-  );
+                        <div className="flex flex-col gap-3 text-sm">
+                            <a
+                                href="https://github.com/RatLoopz/sahidawa-india"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 transition-all duration-200 hover:translate-x-1 hover:text-white"
+                            >
+                                <GitBranch size={16} />
+                                GitHub Repository
+                            </a>
+
+                            <a
+                                href="https://github.com/RatLoopz/sahidawa-india/blob/main/CONTRIBUTING.md"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="transition-all duration-200 hover:translate-x-1 hover:text-white"
+                            >
+                                Contributing Guide
+                            </a>
+                        </div>
+                    </div>
+
+                    {/* Social Links */}
+                    <div>
+                        <h3 className="mb-4 text-sm font-semibold tracking-wide text-white uppercase">
+                            Connect
+                        </h3>
+
+                        <div className="flex items-center gap-4">
+                            <a
+                                href="https://github.com/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:border-slate-600 hover:text-white"
+                            >
+                                <FaGithub size={18} />
+                            </a>
+
+                            <a
+                                href="https://linkedin.com/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:border-slate-600 hover:text-white"
+                            >
+                                <FaLinkedin size={18} />
+                            </a>
+
+                            <a
+                                href="https://twitter.com/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:border-slate-600 hover:text-white"
+                            >
+                                <FaXTwitter size={18} />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Bottom Footer */}
+                <div className="flex flex-col items-center justify-between gap-4 pt-6 text-xs text-slate-500 md:flex-row">
+                    <p>© 2026 SahiDawa. Open Source under MIT License.</p>
+
+                    <p className="text-center md:text-right">
+                        Built with ❤️ for the open-source community.
+                    </p>
+                </div>
+            </div>
+        </footer>
+    );
 }

@@ -3,16 +3,29 @@
         "target": "ES2022",
         "module": "CommonJS",
         "moduleResolution": "node",
-        "ignoreDeprecations": "6.0",
         "rootDir": "./src",
         "outDir": "./dist",
-        "esModuleInterop": true,
-        "forceConsistentCasingInFileNames": true,
+
         "strict": true,
-        "skipLibCheck": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+
+        "esModuleInterop": true,
         "resolveJsonModule": true,
-        "types": ["node"]
+
+        "forceConsistentCasingInFileNames": true,
+        "skipLibCheck": true,
+
+        "types": ["node"],
+
+        "sourceMap": true,
+
+        "declaration": true,
+
+        "removeComments": false
     },
+
     "include": ["src/**/*"],
-    "exclude": ["node_modules", "tests", "dist", ".tmp", "**/*.test.ts"]
+
+    "exclude": ["node_modules", "dist", "tests", ".tmp", "**/*.test.ts"]
 }

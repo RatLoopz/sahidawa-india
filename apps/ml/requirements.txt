@@ -23,3 +23,9 @@ pdfplumber>=0.11.0          # Extract tables from government PDFs
 
 # thefuzz for fuzzy string matching
 thefuzz==0.22.1
+
+# ASR (Speech-to-Text)
+faster-whisper>=1.1.0
+soundfile>=0.12.1
+noisereduce>=3.0.0
+numpy>=1.26.0

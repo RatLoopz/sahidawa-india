@@ -18,6 +18,8 @@ body:
       attributes:
           label: "🧠 What's Your Question?"
           description: "Be specific so others can help you quickly."
+      validations:
+          required: true
 
     - type: textarea
       id: context

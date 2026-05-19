@@ -15,8 +15,8 @@ export default function ProfilePage() {
         {/* Back Button */}
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-slate-500 hover:text-emerald-600 transition-colors mb-6"
-        >
+          className="mb-6 inline-flex items-center gap-2 rounded-xl px-3 py-2 font-medium text-slate-700 transition-all hover:bg-white hover:text-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+          >
           <ArrowLeft size={18} />
 
           <span className="font-medium">
@@ -31,7 +31,7 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <h1 className="text-3xl font-black text-slate-800">
+            <h1 className="text-2xl font-black text-slate-800 sm:text-3xl">
               Your Profile
             </h1>
 
