@@ -22,13 +22,11 @@ logger.info("Whisper model loaded ✅")
 
 ALLOWED_TYPES = {
     "audio/wav",
-    "audio/x-wav",
-    "audio/mpeg",       # MP3
-    "audio/ogg",        # OGG / Opus
-    "audio/mp4",        # M4A / MP4
-    "audio/webm",       # WebM (browser MediaRecorder default)
-    "audio/flac",
+    "audio/mpeg",  # MP3
+    "audio/ogg",   # OGG / Opus
 }
+
+ALLOWED_EXTS = {".wav", ".mp3", ".ogg"}
 
 
 @router.post("/transcribe")
@@ -44,12 +42,17 @@ async def transcribe_audio(file: UploadFile = File(...)):
     passing to faster-whisper — ensures compatibility across all container
     environments regardless of libsndfile codec availability.
     """
-    # ── 1. Validate content type ──────────────────────────────────────────────
-    if file.content_type not in ALLOWED_TYPES:
+    # ── 1. Validate content type and filename extension ──────────────────────
+    original_name = file.filename or ""
+    ext = os.path.splitext(original_name)[1].lower()
+
+    if file.content_type not in ALLOWED_TYPES or ext not in ALLOWED_EXTS:
         raise HTTPException(
-            status_code=400,
-            detail=f"Unsupported audio format '{file.content_type}'. "
-                   f"Accepted: {', '.join(sorted(ALLOWED_TYPES))}"
+            status_code=415,
+            detail=(
+                f"Unsupported media type: content_type='{file.content_type}', "
+                f"extension='{ext or 'none'}'. Supported: audio/wav, audio/mpeg, audio/ogg"
+            )
         )
 
     tmp_path: str | None = None
@@ -59,9 +62,9 @@ async def transcribe_audio(file: UploadFile = File(...)):
         # ── 2. Write raw upload to disk ───────────────────────────────────────
         contents = await file.read()
 
-        # Guard against None filename (some clients omit it)
-        original_name = file.filename or "upload"
-        suffix = os.path.splitext(original_name)[-1].lower() or ".wav"
+        # Guard against missing filename and derive suffix for temp file
+        original_name = original_name or "upload"
+        suffix = ext or ".wav"
 
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
             tmp.write(contents)
