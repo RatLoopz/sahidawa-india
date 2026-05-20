@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
 import { NextFunction, Response } from 'express';
 import { AuthenticatedRequest, createAuthMiddleware, requireRole } from './auth';
 
@@ -31,8 +30,8 @@ const createClient = (user: unknown, error: unknown = null) => ({
 });
 
 describe('auth middleware', () => {
-  it('rejects requests without an authorization header', async () => {
-    const req = { headers: {} } as AuthenticatedRequest;
+  it('rejects requests without an access_token cookie', async () => {
+    const req = { cookies: {} } as unknown as AuthenticatedRequest;
     const res = createResponse();
     let nextCalled = false;
 
@@ -45,19 +44,8 @@ describe('auth middleware', () => {
     assert.equal(nextCalled, false);
   });
 
-  it('rejects malformed bearer tokens', async () => {
-    const req = { headers: { authorization: 'Token abc' } } as AuthenticatedRequest;
-    const res = createResponse();
-
-    await createAuthMiddleware(createClient(null) as never)(req, res, (() => {
-      assert.fail('next should not be called');
-    }) as NextFunction);
-
-    assert.equal(res.statusCode, 401);
-  });
-
-  it('rejects invalid Supabase tokens', async () => {
-    const req = { headers: { authorization: 'Bearer invalid-token' } } as AuthenticatedRequest;
+  it('rejects invalid Supabase tokens from cookie', async () => {
+    const req = { cookies: { access_token: 'invalid-token' } } as unknown as AuthenticatedRequest;
     const res = createResponse();
 
     await createAuthMiddleware(createClient(null, new Error('invalid')) as never)(
@@ -72,8 +60,8 @@ describe('auth middleware', () => {
     assert.deepEqual(res.body, { error: 'Invalid or expired authentication token' });
   });
 
-  it('attaches authenticated user details for valid user tokens', async () => {
-    const req = { headers: { authorization: 'Bearer valid-token' } } as AuthenticatedRequest;
+  it('attaches authenticated user details for valid access_token cookie', async () => {
+    const req = { cookies: { access_token: 'valid-token' } } as unknown as AuthenticatedRequest;
     const res = createResponse();
     let nextCalled = false;
 
@@ -95,7 +83,7 @@ describe('auth middleware', () => {
   });
 
   it('allows admin-only handlers for admin users', () => {
-    const req = { user: { role: 'admin' } } as AuthenticatedRequest;
+    const req = { user: { role: 'admin' } } as unknown as AuthenticatedRequest;
     const res = createResponse();
     let nextCalled = false;
 
@@ -108,7 +96,7 @@ describe('auth middleware', () => {
   });
 
   it('rejects user role requests for admin-only handlers', () => {
-    const req = { user: { role: 'user' } } as AuthenticatedRequest;
+    const req = { user: { role: 'user' } } as unknown as AuthenticatedRequest;
     const res = createResponse();
 
     requireRole('admin')(req, res, (() => {

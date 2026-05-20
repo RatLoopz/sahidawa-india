@@ -17,20 +17,6 @@ export interface AuthenticatedRequest extends Request {
 
 type SupabaseAuthClient = Pick<SupabaseClient, "auth">;
 
-const getBearerToken = (authorization?: string): string | null => {
-    if (!authorization) {
-        return null;
-    }
-
-    const [scheme, token] = authorization.split(" ");
-
-    if (scheme !== "Bearer" || !token) {
-        return null;
-    }
-
-    return token;
-};
-
 const getUserRole = (user: User): AuthRole => {
     const metadataRole = user.app_metadata?.role || user.user_metadata?.role;
     return metadataRole === "admin" ? "admin" : "user";
@@ -39,10 +25,10 @@ const getUserRole = (user: User): AuthRole => {
 export const createAuthMiddleware =
     (client: SupabaseAuthClient = supabase) =>
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-        const token = getBearerToken(req.headers.authorization);
+        const token: string | undefined = req.cookies?.access_token;
 
         if (!token) {
-            res.status(401).json({ error: "Authorization bearer token is required" });
+            res.status(401).json({ error: "Access token cookie is required" });
             return;
         }
 
@@ -68,21 +54,11 @@ export const requireAuth = createAuthMiddleware();
 export const createOptionalAuthMiddleware =
     (client: SupabaseAuthClient = supabase) =>
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-        // No Authorization header → anonymous flow (citizens without accounts).
-        if (!req.headers.authorization) {
-            return next();
-        }
+        const token: string | undefined = req.cookies?.access_token;
 
-        const token = getBearerToken(req.headers.authorization);
-
-        // Header present but malformed: fail loud rather than silently dropping
-        // attribution. A signed-in user with a corrupted header should re-auth,
-        // not have the report anonymized and disappear from /reports/me.
+        // No access_token cookie → anonymous flow (citizens without accounts).
         if (!token) {
-            res.status(401).json({
-                error: 'Malformed Authorization header — expected "Bearer <token>"',
-            });
-            return;
+            return next();
         }
 
         const { data, error } = await client.auth.getUser(token);

@@ -24,6 +24,7 @@ if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
+import cookieParser from "cookie-parser";
 import adminRoutes from "./routes/admin.routes";
 import { limiter } from "./middleware/rateLimit";
 import reportsRouter from "./routes/reports";
@@ -50,6 +51,7 @@ app.use(
 );
 
 app.use(express.json({ limit: "1mb" }));
+app.use(cookieParser());
 app.use(limiter);
 
 app.use(
