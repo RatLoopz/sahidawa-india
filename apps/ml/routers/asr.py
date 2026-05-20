@@ -22,10 +22,16 @@ telemetry_logger = get_telemetry_logger()
 
 router = APIRouter(prefix="/asr", tags=["ASR"])
 
-# Load model once at startup — avoids per-request cold start latency (~3-5s)
-logger.info("Loading Whisper model...")
-model = WhisperModel("medium", device="cpu", compute_type="int8")
-logger.info("Whisper model loaded ✅")
+# Load model lazily on first request — prevents blocking startup of FastAPI microservice
+model = None
+
+def get_model():
+    global model
+    if model is None:
+        logger.info("Loading Whisper model lazily...")
+        model = WhisperModel("medium", device="cpu", compute_type="int8")
+        logger.info("Whisper model loaded ✅")
+    return model
 
 ALLOWED_TYPES = {
     "audio/wav",
@@ -123,7 +129,7 @@ async def transcribe_audio(file: UploadFile = File(...)):
         # (no translation). beam_size=8 improves accuracy for regional languages.
         transcription_started_at = start_timer()
         memory_before_mb = get_memory_usage_mb()
-        segments, info = model.transcribe(
+        segments, info = get_model().transcribe(
             reduced_audio,
             language=None,
             task="transcribe",

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type { ConfidenceMeta } from "./lib/confidence";
 import type { VoiceErrorState, VoiceTriageResult } from "./types";
+import { VoiceAudioVisualizer } from "./VoiceAudioVisualizer";
 
 const CONFIDENCE_STYLES: Record<ConfidenceMeta["tone"], { badge: string; text: string }> = {
     positive: {
@@ -77,31 +78,45 @@ export function VoiceIntroPanel({
 export function VoiceListeningPanel({
     transcript,
     statusLabel,
+    stream,
+    isListening,
+    isFading,
+    animationsEnabled,
+    visualizerLabel,
+    volumeLabel,
+    liveVolumeLabel,
+    stillVolumeLabel,
+    visualizerUnavailableLabel,
 }: {
     transcript: string;
     statusLabel: string;
+    stream: MediaStream | null;
+    isListening: boolean;
+    isFading: boolean;
+    animationsEnabled: boolean;
+    visualizerLabel: string;
+    volumeLabel: string;
+    liveVolumeLabel: string;
+    stillVolumeLabel: string;
+    visualizerUnavailableLabel: string;
 }) {
-    const barHeights = [45, 65, 80, 55, 92, 72, 58, 88];
-
     return (
         <div
-            className="animate-in fade-in zoom-in flex flex-col items-center space-y-12 duration-300"
+            className="animate-in fade-in zoom-in flex w-full max-w-md flex-col items-center space-y-8 duration-300"
             role="status"
             aria-live="polite"
         >
-            <div className="flex h-16 items-end gap-1.5" aria-hidden="true">
-                {barHeights.map((height, index) => (
-                    <div
-                        key={height + index}
-                        className="w-2 animate-bounce rounded-full bg-emerald-500"
-                        style={{
-                            height: `${height}%`,
-                            animationDelay: `${index * 0.08}s`,
-                            animationDuration: "0.85s",
-                        }}
-                    />
-                ))}
-            </div>
+            <VoiceAudioVisualizer
+                stream={stream}
+                isActive={isListening}
+                isFading={isFading}
+                animationsEnabled={animationsEnabled}
+                visualizerLabel={visualizerLabel}
+                volumeLabel={volumeLabel}
+                liveVolumeLabel={liveVolumeLabel}
+                stillVolumeLabel={stillVolumeLabel}
+                visualizerUnavailableLabel={visualizerUnavailableLabel}
+            />
             <p className="text-center text-2xl font-bold text-slate-800 italic">
                 {transcript || "…"}
             </p>

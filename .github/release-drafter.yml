@@ -4,32 +4,36 @@ tag-template: 'v$RESOLVED_VERSION'
 categories:
   - title: '🚀 Features'
     labels:
-      - 'feature'
-      - 'feat'
-      - 'enhancement'
+      - 'type:feature'
+      - 'type:refactor'
   - title: '🐛 Bug Fixes'
     labels:
-      - 'bug'
-      - 'fix'
-      - 'bugfix'
+      - 'type:bug'
+  - title: '🎨 UI & Design'
+    labels:
+      - 'type:design'
   - title: '📝 Documentation'
     labels:
-      - 'documentation'
-      - 'docs'
+      - 'type:docs'
   - title: '⚙️ Infrastructure & DevOps'
     labels:
-      - 'ci'
-      - 'docker'
-      - 'devops'
-      - 'infrastructure'
-      - 'chore'
+      - 'type:devops'
+      - 'ci-cd'
   - title: '🌐 Internationalization (i18n)'
     labels:
       - 'i18n'
-      - 'translation'
   - title: '🛡️ Security'
     labels:
-      - 'security'
+      - 'type:security'
+  - title: '⚡ Performance'
+    labels:
+      - 'type:performance'
+  - title: '🧪 Testing'
+    labels:
+      - 'type:testing'
+  - title: '♿ Accessibility'
+    labels:
+      - 'type:accessibility'
 
 change-template: '* $TITLE (#$NUMBER) by @$AUTHOR'
 

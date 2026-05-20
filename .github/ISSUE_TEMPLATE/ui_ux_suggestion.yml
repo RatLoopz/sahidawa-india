@@ -1,7 +1,7 @@
 name: "🎨 UI/UX Suggestion"
 description: "Suggest improvements for the user interface or experience"
 title: "[UI/UX] <short-title>"
-labels: ["design", "needs-triage"]
+labels: ["type:design"]
 assignees: []
 
 body:

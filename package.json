@@ -11,7 +11,8 @@
         "dev": "npm run dev --workspaces --if-present",
         "build": "npm run build --workspaces --if-present",
         "test": "npm run test --workspaces --if-present",
-        "prepare": "command -v husky >/dev/null 2>&1 && husky || true"
+        "prepare": "command -v husky >/dev/null 2>&1 && husky || true",
+        "check:migrations": "node scripts/check-migrations.js"
     },
     "keywords": [
         "medicine",
@@ -30,10 +31,12 @@
         "helmet": "^8.1.0",
         "morgan": "^1.10.1",
         "redis": "^5.12.1",
+        "winston-daily-rotate-file": "^5.0.0",
         "zod": "^4.4.3"
     },
     "devDependencies": {
         "@parcel/watcher": "^2.5.6",
+        "@types/winston": "^2.4.4",
         "husky": "^9.1.7",
         "lint-staged": "^17.0.5",
         "prettier": "^3.8.3",

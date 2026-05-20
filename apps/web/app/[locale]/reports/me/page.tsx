@@ -267,10 +267,10 @@ export default function MyReportsPage() {
               {state.message}
             </p>
             <Link
-              href="/"
+              href="/login"
               className="inline-flex items-center justify-center gap-2 mt-5 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition"
             >
-              Go to homepage
+              Go to Login
             </Link>
           </div>
         )}

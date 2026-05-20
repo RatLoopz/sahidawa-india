@@ -1,0 +1,94 @@
+{
+  "tables": {
+    "medicines": {
+      "columns": [
+        "id",
+        "barcode_id",
+        "brand_name",
+        "generic_name",
+        "manufacturer",
+        "batch_number",
+        "manufacturing_date",
+        "expiry_date",
+        "composition",
+        "cdsco_approval_status",
+        "is_counterfeit_alert",
+        "created_at",
+        "updated_at"
+      ],
+      "rls": false,
+      "policies": []
+    },
+    "pharmacies": {
+      "columns": [
+        "id",
+        "name",
+        "address",
+        "district",
+        "state",
+        "phone_number",
+        "is_verified",
+        "location",
+        "created_at"
+      ],
+      "rls": false,
+      "policies": []
+    },
+    "counterfeit_reports": {
+      "columns": [
+        "id",
+        "medicine_id",
+        "scanned_barcode",
+        "reported_brand_name",
+        "photo_url",
+        "report_location",
+        "district",
+        "status",
+        "created_at",
+        "reporter_id",
+        "manufacturer",
+        "description",
+        "pharmacy_name",
+        "address",
+        "city",
+        "state",
+        "pincode",
+        "photo_urls"
+      ],
+      "rls": false,
+      "policies": []
+    },
+    "push_subscriptions": {
+      "columns": [
+        "id",
+        "endpoint",
+        "subscription",
+        "created_at",
+        "updated_at"
+      ],
+      "rls": false,
+      "policies": []
+    },
+    "etl_failed_rows": {
+      "columns": [
+        "id",
+        "pipeline_name",
+        "source_table",
+        "row_fingerprint",
+        "row_payload",
+        "medicine_name",
+        "unresolved_value",
+        "error_category",
+        "db_error_code",
+        "error_message",
+        "attempt_count",
+        "status",
+        "created_at",
+        "updated_at",
+        "last_attempt_at"
+      ],
+      "rls": false,
+      "policies": []
+    }
+  }
+}

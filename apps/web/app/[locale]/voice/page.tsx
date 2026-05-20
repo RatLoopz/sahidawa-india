@@ -28,9 +28,18 @@ import {
     VoiceResultPanel,
     VoiceReviewPanel,
 } from "./VoicePanels";
+import { VoiceAnimationToggle } from "./VoiceAnimationToggle";
+import {
+    resolveVoiceAnimationPreference,
+    stopMediaQueryChangeListener,
+    stopMediaStream,
+    subscribeToMediaQueryChange,
+    type StoredVoiceAnimationPreference,
+} from "./lib/audio";
 import type { VoiceErrorState, VoiceStep, VoiceTriageResult } from "./types";
 
 const DEFAULT_FLOW_CONFIDENCE = getConfidenceMeta(undefined);
+const VOICE_ANIMATION_STORAGE_KEY = "sahidawa.voice.animations";
 
 function getRecognitionErrorState(
     errorCode: string,
@@ -97,24 +106,94 @@ export default function VoiceTriagePage() {
     const [resultLanguageCode, setResultLanguageCode] = useState<string | null>(null);
     const [error, setError] = useState<VoiceErrorState | null>(null);
     const [emergencyMatches, setEmergencyMatches] = useState<string[]>([]);
+    const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
+    const [animationsEnabled, setAnimationsEnabled] = useState(true);
+    const [isVisualizerFading, setIsVisualizerFading] = useState(false);
 
     const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+    const audioStreamRef = useRef<MediaStream | null>(null);
     const latestTranscriptRef = useRef("");
     const latestDisplayedTranscriptRef = useRef("");
     const latestConfidenceRef = useRef<number | undefined>(undefined);
     const didHandleRecognitionEndRef = useRef(false);
     const manualStopRef = useRef(false);
+    const startSessionIdRef = useRef(0);
     const autoSpokenKeyRef = useRef("");
 
     const selectedLanguageOption = getVoiceLanguageOption(selectedLanguage);
     const resultLanguageOption = getVoiceLanguageOption(resultLanguageCode ?? selectedLanguage);
 
+    function detachRecognitionHandlers(recognition: SpeechRecognitionLike | null) {
+        if (!recognition) {
+            return;
+        }
+
+        recognition.onstart = null;
+        recognition.onresult = null;
+        recognition.onerror = null;
+        recognition.onend = null;
+    }
+
+    function setActiveAudioStream(stream: MediaStream | null) {
+        audioStreamRef.current = stream;
+        setAudioStream(stream);
+    }
+
+    function clearAudioStream() {
+        stopMediaStream(audioStreamRef.current);
+        setActiveAudioStream(null);
+    }
+
+    function readStoredAnimationPreference(): StoredVoiceAnimationPreference {
+        if (typeof window === "undefined") {
+            return null;
+        }
+
+        try {
+            const storedPreference = window.localStorage.getItem(VOICE_ANIMATION_STORAGE_KEY);
+            return storedPreference === "enabled" || storedPreference === "disabled"
+                ? storedPreference
+                : null;
+        } catch {
+            return null;
+        }
+    }
+
     useEffect(() => {
         return () => {
-            recognitionRef.current?.stop();
+            startSessionIdRef.current += 1;
+            const recognition = recognitionRef.current;
+            recognitionRef.current = null;
+            detachRecognitionHandlers(recognition);
+            recognition?.stop();
+            clearAudioStream();
             if (typeof window !== "undefined") {
                 stopSpeaking(window);
             }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+        function applyMotionPreference() {
+            setAnimationsEnabled(
+                resolveVoiceAnimationPreference({
+                    storedPreference: readStoredAnimationPreference(),
+                    prefersReducedMotion: motionQuery.matches,
+                })
+            );
+        }
+
+        applyMotionPreference();
+        const subscription = subscribeToMediaQueryChange(motionQuery, applyMotionPreference);
+
+        return () => {
+            stopMediaQueryChangeListener(subscription);
         };
     }, []);
 
@@ -133,7 +212,12 @@ export default function VoiceTriagePage() {
     }, [result, resultLanguageOption.speechSynthesisLang, step]);
 
     function resetFlow(nextStep: VoiceStep = "initial") {
-        recognitionRef.current?.stop();
+        startSessionIdRef.current += 1;
+        const recognition = recognitionRef.current;
+        recognitionRef.current = null;
+        detachRecognitionHandlers(recognition);
+        recognition?.stop();
+        clearAudioStream();
         if (typeof window !== "undefined") {
             stopSpeaking(window);
         }
@@ -147,6 +231,7 @@ export default function VoiceTriagePage() {
 
         setIsListening(false);
         setIsSpeaking(false);
+        setIsVisualizerFading(false);
         setTranscript("");
         setConfidence(DEFAULT_FLOW_CONFIDENCE);
         setResult(null);
@@ -163,6 +248,8 @@ export default function VoiceTriagePage() {
 
         didHandleRecognitionEndRef.current = true;
         setIsListening(false);
+        setIsVisualizerFading(false);
+        clearAudioStream();
 
         const normalizedTranscript = nextTranscript.trim();
         if (!normalizedTranscript) {
@@ -352,10 +439,21 @@ export default function VoiceTriagePage() {
 
     function stopListening() {
         manualStopRef.current = true;
+        setIsListening(false);
+        setIsVisualizerFading(true);
+
+        if (!recognitionRef.current) {
+            startSessionIdRef.current += 1;
+            clearAudioStream();
+            setIsVisualizerFading(false);
+            setStep("initial");
+            return;
+        }
+
         recognitionRef.current?.stop();
     }
 
-    function startListening() {
+    async function startListening() {
         if (typeof window === "undefined") {
             return;
         }
@@ -369,6 +467,10 @@ export default function VoiceTriagePage() {
 
         handleStopSpeaking();
 
+        const sessionId = startSessionIdRef.current + 1;
+        startSessionIdRef.current = sessionId;
+        clearAudioStream();
+
         latestTranscriptRef.current = "";
         latestDisplayedTranscriptRef.current = "";
         latestConfidenceRef.current = undefined;
@@ -380,7 +482,27 @@ export default function VoiceTriagePage() {
         setResult(null);
         setError(null);
         setEmergencyMatches([]);
+        setIsVisualizerFading(false);
         setStep("listening");
+
+        if (navigator.mediaDevices?.getUserMedia) {
+            try {
+                const nextAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+                if (startSessionIdRef.current !== sessionId) {
+                    stopMediaStream(nextAudioStream);
+                    return;
+                }
+
+                setActiveAudioStream(nextAudioStream);
+            } catch {
+                setActiveAudioStream(null);
+            }
+        }
+
+        if (startSessionIdRef.current !== sessionId) {
+            return;
+        }
 
         const recognition = new SpeechRecognition();
         recognition.lang = selectedLanguageOption.speechRecognition;
@@ -390,6 +512,7 @@ export default function VoiceTriagePage() {
 
         recognition.onstart = () => {
             setIsListening(true);
+            setIsVisualizerFading(false);
             setStep("listening");
         };
 
@@ -429,12 +552,25 @@ export default function VoiceTriagePage() {
 
             didHandleRecognitionEndRef.current = true;
             setIsListening(false);
+            setIsVisualizerFading(false);
+            clearAudioStream();
+            if (recognitionRef.current === recognition) {
+                recognitionRef.current = null;
+            }
+            detachRecognitionHandlers(recognition);
             setError(getRecognitionErrorState(event.error || "generic", t));
             setStep("error");
         };
 
         recognition.onend = () => {
             setIsListening(false);
+            setIsVisualizerFading(false);
+            clearAudioStream();
+
+            if (recognitionRef.current === recognition) {
+                recognitionRef.current = null;
+            }
+            detachRecognitionHandlers(recognition);
 
             if (didHandleRecognitionEndRef.current) {
                 return;
@@ -451,6 +587,11 @@ export default function VoiceTriagePage() {
         try {
             recognition.start();
         } catch {
+            detachRecognitionHandlers(recognition);
+            if (recognitionRef.current === recognition) {
+                recognitionRef.current = null;
+            }
+            clearAudioStream();
             setError(getRecognitionErrorState("generic", t));
             setStep("error");
         }
@@ -462,7 +603,7 @@ export default function VoiceTriagePage() {
             return;
         }
 
-        startListening();
+        void startListening();
     }
 
     const showMicFooter = step === "initial" || step === "listening";
@@ -514,6 +655,23 @@ export default function VoiceTriagePage() {
                             </option>
                         ))}
                     </select>
+                    <VoiceAnimationToggle
+                        label={t("animation_toggle_label")}
+                        liveLabel={t("animation_live_label")}
+                        reducedMotionLabel={t("animation_reduced_motion_label")}
+                        enabled={animationsEnabled}
+                        onToggle={(nextPreference) => {
+                            setAnimationsEnabled(nextPreference);
+                            try {
+                                window.localStorage.setItem(
+                                    VOICE_ANIMATION_STORAGE_KEY,
+                                    nextPreference ? "enabled" : "disabled"
+                                );
+                            } catch {
+                                // Local storage is optional; the toggle still works for this session.
+                            }
+                        }}
+                    />
                 </div>
 
                 {step === "initial" && (
@@ -531,6 +689,15 @@ export default function VoiceTriagePage() {
                     <VoiceListeningPanel
                         transcript={transcript || t("listening_placeholder")}
                         statusLabel={t("listening_status")}
+                        stream={audioStream}
+                        isListening={isListening}
+                        isFading={isVisualizerFading}
+                        animationsEnabled={animationsEnabled}
+                        visualizerLabel={t("visualizer_label")}
+                        volumeLabel={t("volume_label")}
+                        liveVolumeLabel={t("volume_live_label")}
+                        stillVolumeLabel={t("volume_still_label")}
+                        visualizerUnavailableLabel={t("visualizer_unavailable")}
                     />
                 )}
 

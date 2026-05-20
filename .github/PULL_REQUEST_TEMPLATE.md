@@ -46,13 +46,17 @@ Closes #
 
 <!-- Provide a bulleted list of the exact changes made in this PR. -->
 
--
+- ***
 
----
+## 📸 Screenshots / Proof of Work (REQUIRED)
 
-## 📸 Screenshots / Demo (if applicable)
-
-<!-- If this is a UI change, please attach screenshots, GIFs, or video links. -->
+> [!IMPORTANT]
+> **No Pull Request will be merged without proof of testing!**
+>
+> - **Frontend/UI changes:** You MUST attach screenshots or screen recordings (GIFs/Videos) showing the UI changes.
+> - **Backend/API/ML changes:** You MUST attach terminal logs, curl/Postman outputs, or test run outputs proving the changes work.
+>
+> _Please drag & drop your screenshots/GIFs here, or paste terminal/console logs below:_
 
 ---
 
@@ -63,9 +67,9 @@ Closes #
 - [ ] My PR has a linked issue (see above)
 - [ ] I have pulled the latest `main` and rebased/merged before opening this PR
 - [ ] My code follows the patterns and conventions in `docs/code-guide.md`
-- [ ] I ran `npm run dev` locally and verified there are no compile/build errors
-- [ ] All backend responses return structured JSON `{ success: boolean, data?: any, error?: { message: string } }`
-- [ ] Screenshots/test output added (for UI or API changes)
+- [ ] I ran the project locally and verified there are no compile/build errors
+- [ ] I have attached screenshots, screen recordings, or terminal logs as proof of testing (MANDATORY)
+- [ ] My backend responses return structured JSON `{ success: boolean, data?: any, error?: { message: string } }` (if backend change)
 - [ ] I have performed a self-review of my own code
 
 ---

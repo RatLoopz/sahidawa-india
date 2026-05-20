@@ -20,6 +20,9 @@ services:
     stdin_open: true
     environment:
       - NODE_ENV=development
+      - NODE_OPTIONS=--max-old-space-size=4096
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - api
 
@@ -41,6 +44,9 @@ services:
     environment:
       - PORT=4000
       - REDIS_URL=redis://redis:6379
+      - ML_SERVICE_URL=http://ml:8000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - redis
       - ml
@@ -51,9 +57,11 @@ services:
     working_dir: /app
     volumes:
       - ./apps/ml:/app
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
     ports:
       - "8000:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   redis:
     image: redis:7-alpine

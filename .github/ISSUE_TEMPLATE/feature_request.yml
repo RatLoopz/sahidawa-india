@@ -1,7 +1,7 @@
 name: ✨ Feature Request
 description: Suggest a new feature or improvement for SahiDawa.
 title: "[FEATURE] <Brief description>"
-labels: ["enhancement", "needs-triage"]
+labels: ["type:feature"]
 assignees: []
 
 body:

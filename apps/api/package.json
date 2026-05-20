@@ -5,7 +5,7 @@
     "main": "dist/index.js",
     "scripts": {
         "start": "node dist/index.js",
-        "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+        "dev": "ts-node-dev --respawn --transpile-only -r ./ws-setup.js src/index.ts",
         "build": "tsc",
         "test": "jest"
     },
@@ -21,6 +21,7 @@
         "redis": "^5.12.1",
         "web-push": "^3.6.7",
         "winston": "^3.19.0",
+        "winston-daily-rotate-file": "^5.0.0",
         "zod": "^4.4.3"
     },
     "devDependencies": {

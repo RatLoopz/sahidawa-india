@@ -141,3 +141,38 @@ export async function verifyMedicine(batchNumber: string): Promise<VerifyResult>
 
     return res.json() as Promise<VerifyResult>;
 }
+
+export type FuzzyMatch = {
+    name: string;
+    score: number;
+};
+
+export async function fuzzyMatchBrand(query: string): Promise<FuzzyMatch[]> {
+    const res = await fetch(`${API_BASE}/api/v1/scan/match`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+    });
+
+    if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body.error ?? `Fuzzy match failed (${res.status})`);
+    }
+
+    return res.json() as Promise<FuzzyMatch[]>;
+}
+
+export async function verifyMedicineByBrand(brandName: string): Promise<VerifyResult> {
+    const res = await fetch(`${API_BASE}/api/v1/scan/verify-brand`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brandName }),
+    });
+
+    if (!res.ok && res.status !== 404) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body.error ?? `Verification by brand failed (${res.status})`);
+    }
+
+    return res.json() as Promise<VerifyResult>;
+}
