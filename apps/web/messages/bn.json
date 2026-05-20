@@ -11,13 +11,21 @@
         "pharmacy_map": "ফার্মেসি ম্যাপ",
         "pharmacy_subtitle": "যাচাইকৃত দোকান খুঁজুন",
         "search_placeholder": "ওষুধ বা ব্যাচ অনুসন্ধান করুন...",
-        "search_button": "অনুসন্ধান"
+        "search_button": "অনুসন্ধান",
+        "ai_health_assistant": "এআই হেলথ অ্যাসিস্ট্যান্ট",
+        "chat_now": "এখন চ্যাট করুন",
+        "report_fake": "নকল রিপোর্ট করুন",
+        "report_subtitle": "সন্দেহজনক ওষুধ রিপোর্ট করুন",
+        "live_alerts": "লাইভ CDSCO সতর্কতা",
+        "view_full_alert_log": "সম্পূর্ণ সতর্কতা লগ দেখুন",
+        "ai_chat": "এআই চ্যাট"
     },
     "Navigation": {
         "how_it_works": "কিভাবে কাজ করে",
         "alerts": "সতর্কতা",
         "pharmacy_map": "ফার্মেসি ম্যাপ",
-        "language": "বাংলা"
+        "language": "বাংলা",
+        "my_reports": "আমার রিপোর্ট"
     },
     "VoicePage": {
         "header_title": "ভয়েস ট্রায়াজ",

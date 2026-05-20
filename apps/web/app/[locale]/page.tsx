@@ -116,7 +116,7 @@ export default function SahiDawaHome() {
                                 {tNav("pharmacy_map")}
                             </Link>
                             <Link href="/reports/me" className="hover:text-emerald-600 transition-colors flex items-center gap-1">
-                                <History size={14} /> My Reports
+                                <History size={14} /> {tNav("my_reports")}
                             </Link>
                         </nav>
 
@@ -127,8 +127,7 @@ export default function SahiDawaHome() {
                         >
                             <MessageCircle size={16} />
                             <span className="hidden sm:inline">AI Health Assistant</span>
-                            <span className="sm:hidden">AI Chat</span>
-                        </button>
+                            <span className="sm:hidden">{tHome("ai_chat")}</span>                        </button>
 
                         <LanguageSwitcher />
                     </div>
@@ -253,9 +252,9 @@ export default function SahiDawaHome() {
                             <AlertTriangle size={28} strokeWidth={2.5} />
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold text-slate-800">Report Fake</h3>
+                            <h3 className="text-lg font-bold text-slate-800">{tHome("report_fake")}</h3>
                             <p className="mt-0.5 text-sm leading-snug font-medium text-slate-500">
-                                Report suspicious medicine
+                                {tHome("report_subtitle")}
                             </p>
                         </div>
                     </button>
@@ -278,7 +277,7 @@ export default function SahiDawaHome() {
                             <div className="space-y-1">
                                 <div className="flex items-center gap-2">
                                     <h3 className="text-xl font-extrabold tracking-tight text-slate-800 sm:text-2xl">
-                                        AI Health Assistant
+                                        {tHome("ai_health_assistant")}
                                     </h3>
                                     {/* Animated AI badge */}
                                     <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-purple-700 ring-1 ring-purple-200/60">
@@ -299,7 +298,7 @@ export default function SahiDawaHome() {
                             className="group/btn flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-purple-500 to-blue-600 px-8 py-3.5 text-base font-bold text-white shadow-md shadow-purple-500/25 transition-all duration-300 hover:scale-[1.04] hover:shadow-xl hover:shadow-purple-500/30 active:scale-[0.98] sm:w-auto"
                         >
                             <MessageCircle size={18} />
-                            Chat Now
+                            {tHome("chat_now")}
                             <ChevronRight size={18} className="transition-transform duration-200 group-hover/btn:translate-x-1" />
                         </button>
                     </div>
@@ -315,7 +314,7 @@ export default function SahiDawaHome() {
                             <div className="flex items-center gap-2">
                                 <Activity size={20} className="text-red-500" />
                                 <h3 className="text-lg font-bold text-slate-800">
-                                    Live CDSCO Alerts
+                                    {tHome("live_alerts")}
                                 </h3>
                             </div>
                             <span className="text-xs font-bold bg-red-100 text-red-600 px-2.5 py-1 rounded-full uppercase tracking-wider hidden sm:block">
@@ -380,7 +379,7 @@ export default function SahiDawaHome() {
                             <Link href="/alerts" className="block w-full">
                                 <button className="group/log flex w-full items-center justify-center gap-2 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-bold transition-all duration-200 hover:bg-slate-100 hover:border-slate-300 hover:shadow-sm hover:text-slate-900 cursor-pointer">
                                     <Activity size={15} className="text-slate-400 group-hover/log:text-red-500 transition-colors duration-200" />
-                                    View Full Alert Log
+                                    {tHome("view_full_alert_log")}
                                     <ChevronRight size={16} className="text-slate-400 transition-transform duration-200 group-hover/log:translate-x-1" />
                                 </button>
                             </Link>

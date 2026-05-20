@@ -11,13 +11,21 @@
         "pharmacy_map": "Pharmacy Map",
         "pharmacy_subtitle": "Find verified stores",
         "search_placeholder": "Search medicine or batch...",
-        "search_button": "Search"
+        "search_button": "Search",
+        "ai_health_assistant" : "AI Health Assistant",
+        "chat_now": "Chat Now",
+        "report_fake": "Report Fake",
+        "report_subtitle": "Report suspicious medicine",
+        "live_alerts": "Live CDSCO Alerts",
+        "view_full_alert_log": "View Full Alert Log",
+        "ai_chat": "AI Chat"
     },
     "Navigation": {
         "how_it_works": "How it Works",
         "alerts": "Alerts",
         "pharmacy_map": "Pharmacy Map",
-        "language": "English"
+        "language": "English",
+        "my_reports": "My Reports"
     },
     "VoicePage": {
         "header_title": "Voice Triage",
