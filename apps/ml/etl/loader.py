@@ -453,5 +453,22 @@ def load_commercial_mrp(commercial_csv_path: Path = None, janaushadhi_csv_path: 
     return stats
 
 
+
+
+def load_commercial_mrp(commercial_csv_path: Path = None, janaushadhi_csv_path: Path = None):
+    """Load commercial MRP data and merge with Jan Aushadhi data."""
+    from .commercial_normalizer import CommercialMRPNormalizer
+    if commercial_csv_path is None:
+        commercial_csv_path = PROCESSED_DIR / "commercial_mrp_processed.csv"
+    if janaushadhi_csv_path is None:
+        janaushadhi_csv_path = PROCESSED_DIR / "janaushadhi_processed.csv"
+    if not commercial_csv_path.exists() or not janaushadhi_csv_path.exists():
+        return None
+    normalizer = CommercialMRPNormalizer()
+    merged_df = normalizer.merge_with_janaushadhi(pd.read_csv(commercial_csv_path), pd.read_csv(janaushadhi_csv_path))
+    out = PROCESSED_DIR / "medicines_with_mrp.csv"
+    merged_df.to_csv(out, index=False)
+    return SupabaseLoader().load(merged_df)
+
 if __name__ == "__main__":
     load_processed_csv()
