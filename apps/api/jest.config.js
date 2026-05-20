@@ -1,5 +1,7 @@
+const path = require("path");
+
 module.exports = {
-    preset: "ts-jest",
+    preset: path.dirname(require.resolve("ts-jest/package.json")),
     testEnvironment: "node",
     testMatch: ["**/tests/**/*.test.ts"],
     clearMocks: true,
