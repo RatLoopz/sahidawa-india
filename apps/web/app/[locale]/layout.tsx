@@ -6,6 +6,7 @@ import { routing } from "../../i18n/routing";
 
 import { ThemeProvider } from "./components/ThemeProvider";
 import Chatbot from "./components/Chatbot";
+import ScrollToTopButton from "./components/ScrollToTopButton";
 import "./globals.css";
 import "../../src/styles/print.css";
 import { Toaster } from "sonner";
@@ -65,6 +66,7 @@ export default async function LocaleLayout({
                     </NextIntlClientProvider>
                     <div className="no-print">
                         <Toaster richColors position="top-center" />
+                        <ScrollToTopButton />
                     </div>
                 </ThemeProvider>
             </body>
