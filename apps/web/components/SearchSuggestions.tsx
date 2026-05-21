@@ -2,6 +2,8 @@
 
 import React from "react";
 import { Search } from "lucide-react";
+import { SkeletonLoader } from "@/components/ui/SkeletonLoader";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 export interface SearchSuggestionsProps {
   /** The list of suggestion strings to display */
@@ -12,6 +14,10 @@ export interface SearchSuggestionsProps {
   onSelect: (value: string) => void;
   /** Whether the dropdown should be visible */
   visible: boolean;
+  /** Whether suggestions are loading */
+  isLoading?: boolean;
+  /** The current search query */
+  query?: string;
 }
 
 /**
@@ -31,8 +37,34 @@ export default function SearchSuggestions({
   activeIndex,
   onSelect,
   visible,
+  isLoading,
+  query,
 }: SearchSuggestionsProps) {
-  if (!visible || suggestions.length === 0) return null;
+  if (!visible) return null;
+
+  if (isLoading) {
+    return (
+      <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 p-2">
+        <SkeletonLoader type="search" count={4} />
+      </div>
+    );
+  }
+
+  if (suggestions.length === 0 && query && query.trim().length > 0) {
+    return (
+      <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60">
+        <EmptyState 
+           icon="search" 
+           title="No matching medicines found" 
+           description={`No results found for "${query}". Try searching by brand name or batch number.`} 
+           wrapperClassName="py-6"
+           className="w-12 h-12 mb-2"
+        />
+      </div>
+    );
+  }
+
+  if (suggestions.length === 0) return null;
 
   return (
     <ul

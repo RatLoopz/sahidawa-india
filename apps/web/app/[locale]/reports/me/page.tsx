@@ -19,6 +19,8 @@ import { PageHeader } from '../../components/PageHeader';
 import Footer from '../../components/Footer';
 import Card from '@/components/Card';
 import LazyImage from '@/components/LazyImage';
+import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 // `NEXT_PUBLIC_API_URL` must be the bare API origin with no path suffix
 // (e.g. `https://api.example.com`). The reports router is mounted at
@@ -247,13 +249,9 @@ export default function MyReportsPage() {
         </div>
 
         {state.kind === 'loading' && (
-          <div
-            className="flex items-center justify-center py-20 text-slate-400"
-            role="status"
-            aria-live="polite"
-          >
-            <Loader2 size={20} className="animate-spin mr-2" />
-            <span className="text-sm font-medium">Loading your reports…</span>
+          <div className="py-2" role="status" aria-live="polite">
+            <span className="sr-only">Loading your reports…</span>
+            <SkeletonLoader type="generic" count={3} />
           </div>
         )}
 
@@ -292,23 +290,21 @@ export default function MyReportsPage() {
         )}
 
         {state.kind === 'ready' && state.reports.length === 0 && (
-          <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-10 text-center">
-            <div className="w-14 h-14 mx-auto rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4">
-              <CheckCircle2 size={26} />
-            </div>
-            <h2 className="text-lg font-bold text-slate-900">
-              You haven&apos;t filed any reports yet
-            </h2>
-            <p className="text-sm text-slate-500 mt-1 max-w-sm mx-auto">
-              Spotted a suspicious or counterfeit medicine? Reporting it helps
-              protect your community.
-            </p>
-            <Link
-              href="/report"
-              className="inline-flex items-center justify-center gap-2 mt-5 px-5 py-2.5 rounded-full bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition"
-            >
-              File your first report
-            </Link>
+          <div className="bg-white border border-dashed border-slate-300 rounded-2xl">
+            <EmptyState
+              icon={<CheckCircle2 size={26} className="text-emerald-600" />}
+              className="bg-emerald-50 text-emerald-600 ring-emerald-100"
+              title="You haven't filed any reports yet"
+              description="Spotted a suspicious or counterfeit medicine? Reporting it helps protect your community."
+              action={
+                <Link
+                  href="/report"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition"
+                >
+                  File your first report
+                </Link>
+              }
+            />
           </div>
         )}
 

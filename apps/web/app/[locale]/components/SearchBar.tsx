@@ -66,6 +66,7 @@ export default function SearchBar() {
     }
 
     setIsLoading(true);
+    setIsOpen(true);
     try {
       // Query both brand_name and batch_number columns for partial matches.
       const { data, error } = await supabase
@@ -79,13 +80,11 @@ export default function SearchBar() {
       if (error) {
         console.error("[SearchBar] Supabase suggestion error:", error.message);
         setSuggestions([]);
-        setIsOpen(false);
         return;
       }
 
       if (!data || data.length === 0) {
         setSuggestions([]);
-        setIsOpen(false);
         return;
       }
 
@@ -110,11 +109,9 @@ export default function SearchBar() {
 
       setSuggestions(results);
       setActiveIndex(-1);
-      setIsOpen(results.length > 0);
     } catch (err) {
       console.error("[SearchBar] Unexpected error fetching suggestions:", err);
       setSuggestions([]);
-      setIsOpen(false);
     } finally {
       setIsLoading(false);
     }
@@ -247,7 +244,7 @@ export default function SearchBar() {
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onFocus={() => {
-            if (suggestions.length > 0) setIsOpen(true);
+            if (query.trim().length > 0) setIsOpen(true);
           }}
           placeholder={tHome("search_placeholder")}
           className="w-full border-none bg-transparent px-4 py-3 font-medium text-slate-700 outline-none placeholder:text-slate-400"
@@ -269,6 +266,8 @@ export default function SearchBar() {
         activeIndex={activeIndex}
         onSelect={selectSuggestion}
         visible={isOpen}
+        isLoading={isLoading}
+        query={query}
       />
     </div>
   );
