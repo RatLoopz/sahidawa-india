@@ -17,10 +17,10 @@ import {
     X,
     ScanLine,
 } from "lucide-react";
-import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
 import { toast } from "sonner";
 import Footer from "../components/Footer";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { ExpiryBadge } from "@/components/scanner/ExpiryBadge";
 import {
     verifyMedicine,
@@ -381,21 +381,19 @@ function UnverifiedResult({
     onScanAgain: () => void;
 }) {
     return (
-        <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] bg-white p-8 text-slate-900 shadow-2xl">
+        <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] bg-white text-slate-900 shadow-2xl">
             <div className="absolute top-0 right-0 left-0 h-2 bg-amber-500"></div>
-            <div className="flex flex-col items-center space-y-4 text-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-amber-100 text-amber-600 shadow-inner">
-                    <XCircle size={40} strokeWidth={2.5} />
-                </div>
-                <div>
-                    <h3 className="text-2xl font-black tracking-tight text-amber-700">
-                        {brandName || "Unverified Medicine"}
-                    </h3>
-                    <p className="font-medium text-slate-500">No match found in CDSCO Database</p>
-                </div>
+            <div className="p-8">
+                <EmptyState
+                    icon={<XCircle size={40} strokeWidth={2.5} />}
+                    className="h-20 w-20 rounded-full bg-amber-100 text-amber-600 shadow-inner ring-0"
+                    wrapperClassName="py-0 px-0"
+                    title={brandName || "Unverified Medicine"}
+                    description="No match found in CDSCO Database"
+                />
 
                 {(batchNumber || expiryDate) && (
-                    <div className="grid w-full grid-cols-2 gap-3 pt-2">
+                    <div className="mt-4 grid w-full grid-cols-2 gap-3">
                         <div className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
                             <span className="block text-[10px] font-bold tracking-wider text-slate-400 uppercase">
                                 Batch No.
@@ -408,20 +406,22 @@ function UnverifiedResult({
                     </div>
                 )}
 
-                <div className="flex w-full items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-left">
+                <div className="mt-4 flex w-full items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-left">
                     <Info size={18} className="mt-0.5 shrink-0 text-amber-600" />
-                    <p className="text-xs leading-relaxed font-medium text-amber-800">
+                    <p className="text-xs font-medium leading-relaxed text-amber-800">
                         No matching record was found for this medicine batch in the CDSCO database.
                         Please verify the spelling or report it if suspicious.
                     </p>
                 </div>
 
-                <button
-                    onClick={onScanAgain}
-                    className="w-full rounded-2xl bg-slate-900 py-4 font-bold text-white shadow-lg shadow-slate-900/20 transition-colors hover:bg-slate-800"
-                >
-                    Try Again
-                </button>
+                <div className="mt-6">
+                    <button
+                        onClick={onScanAgain}
+                        className="w-full rounded-2xl bg-slate-900 py-4 font-bold text-white shadow-lg shadow-slate-900/20 transition-colors hover:bg-slate-800"
+                    >
+                        Try Again
+                    </button>
+                </div>
             </div>
         </div>
     );
@@ -429,25 +429,24 @@ function UnverifiedResult({
 
 function ErrorResult({ message, onRetry }: { message: string; onRetry: () => void }) {
     return (
-        <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] bg-white p-8 text-slate-900 shadow-2xl">
+        <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] bg-white text-slate-900 shadow-2xl">
             <div className="absolute top-0 right-0 left-0 h-2 bg-slate-400"></div>
-            <div className="flex flex-col items-center space-y-4 text-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-slate-500 shadow-inner">
-                    <AlertCircle size={40} strokeWidth={2.5} />
-                </div>
-                <div>
-                    <h3 className="text-2xl font-black tracking-tight text-slate-700">
-                        Verification Failed
-                    </h3>
-                    <p className="font-medium text-slate-500">{message}</p>
-                </div>
-
-                <button
-                    onClick={onRetry}
-                    className="w-full rounded-2xl bg-slate-900 py-4 font-bold text-white shadow-lg shadow-slate-900/20 transition-colors hover:bg-slate-800"
-                >
-                    Try Again
-                </button>
+            <div className="p-8">
+                <EmptyState
+                    icon={<AlertCircle size={40} strokeWidth={2.5} />}
+                    className="h-20 w-20 rounded-full bg-slate-100 text-slate-500 shadow-inner ring-0"
+                    wrapperClassName="py-0 px-0"
+                    title="Verification Failed"
+                    description={message}
+                    action={
+                        <button
+                            onClick={onRetry}
+                            className="w-full rounded-2xl bg-slate-900 px-10 py-4 font-bold text-white shadow-lg shadow-slate-900/20 transition-colors hover:bg-slate-800"
+                        >
+                            Try Again
+                        </button>
+                    }
+                />
             </div>
         </div>
     );

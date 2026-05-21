@@ -25,6 +25,8 @@ import { useTranslations } from "next-intl";
 import LanguageSwitcher from "./LanguageSwitcher";
 import Footer from "./components/Footer";
 import SearchBar from "./components/SearchBar";
+import { SkeletonLoader } from "@/components/ui/SkeletonLoader";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 function formatRelativeTime(dateString: string | null): string {
     if (!dateString) return "Recent";
@@ -353,7 +355,11 @@ export default function SahiDawaHome() {
 
                         <div className="flex-1 overflow-y-auto bg-slate-50/30 p-4">
                             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                {homepageAlerts && homepageAlerts.length > 0 ? (
+                                {loading ? (
+                                    <div className="sm:col-span-2">
+                                        <SkeletonLoader type="card" count={4} />
+                                    </div>
+                                ) : homepageAlerts && homepageAlerts.length > 0 ? (
                                     homepageAlerts.map((alert) => (
                                         <div
                                             key={alert.id}
@@ -409,18 +415,13 @@ export default function SahiDawaHome() {
                                         </div>
                                     ))
                                 ) : (
-                                    /* ── Improved Empty State ── */
-                                    <div className="flex flex-col items-center justify-center py-8 sm:col-span-2">
-                                        <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500 shadow-sm ring-1 ring-emerald-100">
-                                            <ShieldCheck size={26} strokeWidth={2} />
-                                        </div>
-                                        <p className="text-base font-bold text-slate-700">
-                                            All clear!
-                                        </p>
-                                        <p className="mt-1 max-w-xs text-center text-sm text-slate-400">
-                                            No active regulatory alerts right now. Stay safe and
-                                            verify your medicines.
-                                        </p>
+                                    <div className="sm:col-span-2">
+                                        <EmptyState
+                                            icon={<ShieldCheck size={26} className="text-emerald-500" />}
+                                            className="bg-emerald-50 ring-emerald-100"
+                                            title="All clear!"
+                                            description="No active regulatory alerts right now. Stay safe and verify your medicines."
+                                        />
                                     </div>
                                 )}
                             </div>

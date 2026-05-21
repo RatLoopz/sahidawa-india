@@ -3,6 +3,8 @@
 import { AlertCircle, Heart, Loader2, MapPin, Phone, Shield, Star, Store } from "lucide-react";
 
 import type { HeatmapMode, Pharmacy } from "./PharmacyMap";
+import { SkeletonLoader } from "@/components/ui/SkeletonLoader";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 export interface PharmacyPanelHeatmapOption {
     id: HeatmapMode;
@@ -203,23 +205,13 @@ export default function PharmacyPanels({
 
             <div className="flex-1 space-y-2 overflow-y-auto px-4 py-4">
                 {isLoading ? (
-                    <div className="py-10 text-center">
-                        <Loader2 size={26} className="mx-auto mb-3 animate-spin text-emerald-600" />
-                        <p className="text-sm font-bold text-slate-400">
-                            Finding nearby pharmacies…
-                        </p>
-                        <p className="mt-1 text-xs text-slate-300">
-                            Verified stores + OpenStreetMap
-                        </p>
-                    </div>
+                    <SkeletonLoader type="list" count={5} />
                 ) : pharmacies.length === 0 ? (
-                    <div className="py-10 text-center">
-                        <MapPin size={30} className="mx-auto mb-2 text-slate-300" />
-                        <p className="text-sm font-bold text-slate-400">No pharmacies found</p>
-                        <p className="mt-1 text-xs text-slate-300">
-                            Try panning the map and pressing &ldquo;Search this area&rdquo;
-                        </p>
-                    </div>
+                    <EmptyState
+                        icon="map"
+                        title="No pharmacies found"
+                        description="Try panning the map and pressing 'Search this area'"
+                    />
                 ) : (
                     pharmacies.map((pharmacy) => (
                         <PharmacyPanelRow
