@@ -10,7 +10,7 @@ export const metadata = {
 
 export default function ReportPage() {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-emerald-200 flex flex-col">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-emerald-200 flex flex-col overflow-hidden">
       {/* Header component */}
       <PageHeader 
         title="Report Incident" 
