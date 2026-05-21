@@ -31,10 +31,7 @@ interface BarcodeScannerProps {
  * hardware and turning off the camera indicator light.
  */
 function stopMediaStream(stream: MediaStream | null): void {
-    if (!stream) return;
-    for (const track of stream.getTracks()) {
-        track.stop();
-    }
+    stream?.getTracks()?.forEach(track => track.stop());
 }
 
 /**
@@ -64,6 +61,13 @@ export function BarcodeScanner({ onScan, debounceMs = 2000 }: BarcodeScannerProp
     const [errorMessage, setErrorMessage] = useState<string>("");
     const [hasTorch, setHasTorch] = useState(false);
     const [torchOn, setTorchOn] = useState(false);
+    const [retryCount, setRetryCount] = useState(0);
+
+    const handleRetry = useCallback(() => {
+        setStatus("initializing");
+        setErrorMessage("");
+        setRetryCount((prev) => prev + 1);
+    }, []);
 
     /**
      * Determines whether a scan result should be emitted based on the
@@ -109,13 +113,27 @@ export function BarcodeScanner({ onScan, debounceMs = 2000 }: BarcodeScannerProp
             });
 
             try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    const error = new Error("Camera access is not supported on this device/browser.");
+                    error.name = "NotSupportedError";
+                    throw error;
+                }
+
                 // Attempt to acquire the rear camera first; fall back to any camera.
                 let stream: MediaStream;
                 try {
                     stream = await navigator.mediaDevices.getUserMedia({
                         video: { facingMode: { ideal: "environment" } },
                     });
-                } catch {
+                } catch (err: any) {
+                    if (
+                        err.name === 'NotAllowedError' ||
+                        err.name === 'PermissionDeniedError' ||
+                        err.name === 'NotReadableError' ||
+                        err.name === 'TrackStartError'
+                    ) {
+                        throw err;
+                    }
                     // Fallback: any available camera
                     stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 }
@@ -175,17 +193,30 @@ export function BarcodeScanner({ onScan, debounceMs = 2000 }: BarcodeScannerProp
                     errorObj.name === "PermissionDeniedError"
                 ) {
                     setStatus("permission-denied");
-                    setErrorMessage("Camera access was denied. Please allow camera permissions.");
+                    setErrorMessage("Camera access denied. Please enable permission in browser settings.");
                 } else if (
                     errorObj.name === "NotFoundError" ||
                     errorObj.name === "DevicesNotFoundError" ||
                     errorObj.name === "OverconstrainedError"
                 ) {
                     setStatus("unavailable");
-                    setErrorMessage("No suitable camera was found on this device.");
+                    setErrorMessage("No camera device found.");
+                } else if (
+                    errorObj.name === "NotReadableError" ||
+                    errorObj.name === "TrackStartError"
+                ) {
+                    setStatus("error");
+                    setErrorMessage("Camera is already in use.");
+                } else if (errorObj.name === "NotSupportedError") {
+                    setStatus("error");
+                    setErrorMessage("Camera access is not supported on this device/browser.");
                 } else {
                     setStatus("error");
-                    setErrorMessage(errorObj.message || "Failed to start the barcode scanner.");
+                    setErrorMessage("Unable to access camera.");
+                }
+            } finally {
+                if (!cancelled) {
+                    setStatus((prev) => (prev === "initializing" ? "error" : prev));
                 }
             }
         };
@@ -204,7 +235,7 @@ export function BarcodeScanner({ onScan, debounceMs = 2000 }: BarcodeScannerProp
         // `onScan` and `shouldEmitScan` are stable via useCallback in the parent
         // and within this component respectively. Re-running the effect on every
         // render would restart the camera unnecessarily.
-    }, []);
+    }, [retryCount]);
 
     const toggleTorch = async () => {
         const stream = streamRef.current;
@@ -235,7 +266,7 @@ export function BarcodeScanner({ onScan, debounceMs = 2000 }: BarcodeScannerProp
                 <h3 className="text-lg font-bold text-white">Camera Permission Required</h3>
                 <p className="max-w-xs text-sm text-slate-400">{errorMessage}</p>
                 <button
-                    onClick={() => window.location.reload()}
+                    onClick={handleRetry}
                     className="rounded-full bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-emerald-400 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none"
                 >
                     Retry
@@ -252,6 +283,12 @@ export function BarcodeScanner({ onScan, debounceMs = 2000 }: BarcodeScannerProp
                 </div>
                 <h3 className="text-lg font-bold text-white">Camera Unavailable</h3>
                 <p className="max-w-xs text-sm text-slate-400">{errorMessage}</p>
+                <button
+                    onClick={handleRetry}
+                    className="rounded-full bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-emerald-400 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none"
+                >
+                    Retry
+                </button>
             </div>
         );
     }
@@ -265,7 +302,7 @@ export function BarcodeScanner({ onScan, debounceMs = 2000 }: BarcodeScannerProp
                 <h3 className="text-lg font-bold text-white">Scanner Error</h3>
                 <p className="max-w-xs text-sm text-slate-400">{errorMessage}</p>
                 <button
-                    onClick={() => window.location.reload()}
+                    onClick={handleRetry}
                     className="rounded-full bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-emerald-400 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none"
                 >
                     Retry
