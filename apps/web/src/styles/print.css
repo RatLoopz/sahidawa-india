@@ -8,14 +8,14 @@
     *::after {
         background: transparent !important;
         box-shadow: none !important;
-        color: #000 !important;
+        color: var(--color-print-ink) !important;
         text-shadow: none !important;
     }
 
     html,
     body {
         width: 100%;
-        background: #fff !important;
+        background: var(--color-surface-page) !important;
         font-size: 11pt;
         line-height: 1.45;
     }
@@ -25,7 +25,7 @@
     }
 
     a {
-        color: #000 !important;
+        color: var(--color-print-ink) !important;
         text-decoration: none !important;
     }
 
@@ -55,7 +55,7 @@
     }
 
     .print-receipt {
-        border: 1px solid #000 !important;
+        border: 1px solid var(--color-print-ink) !important;
         border-radius: 0 !important;
         break-inside: avoid;
         padding: 16pt !important;
@@ -69,7 +69,7 @@
         width: 100% !important;
         max-width: none !important;
         break-inside: avoid;
-        border: 1px solid #000 !important;
+        border: 1px solid var(--color-print-ink) !important;
         border-radius: 0 !important;
         margin: 0 0 12pt !important;
         padding: 12pt !important;
@@ -84,13 +84,13 @@
     .comparison-card td,
     .print-table th,
     .print-table td {
-        border: 1px solid #000 !important;
+        border: 1px solid var(--color-print-ink) !important;
         padding: 6pt !important;
         text-align: left !important;
         vertical-align: top !important;
     }
 
     .print-divider {
-        border-color: #000 !important;
+        border-color: var(--color-print-ink) !important;
     }
 }
