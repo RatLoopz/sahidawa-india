@@ -212,8 +212,12 @@ export default function PharmacyMap({
             .forEach((hotspot) => {
                 const normalizedIntensity = Math.max(0.15, Math.min(1, hotspot.intensity));
                 const isCounterfeit = hotspot.category === "counterfeit";
-                const color = isCounterfeit ? "#dc2626" : "#0891b2";
-                const fillColor = isCounterfeit ? "#ef4444" : "#06b6d4";
+                const color = isCounterfeit
+                    ? "var(--color-accent-danger)"
+                    : "var(--color-accent-cyan)";
+                const fillColor = isCounterfeit
+                    ? "var(--color-accent-danger-bright)"
+                    : "var(--color-accent-cyan-soft)";
                 const radius = isCounterfeit
                     ? 1800 + normalizedIntensity * 4200
                     : 900 + normalizedIntensity * 2600;
@@ -262,7 +266,13 @@ export default function PharmacyMap({
 
             const isVerified = pharmacy.isVerified === true;
             const isGovt = pharmacy.type === "govt";
-            const markerColor = isVerified ? "#059669" : isGovt ? "#059669" : "#3b82f6";
+            const markerColor = isVerified
+                ? "var(--color-brand-primary-hover)"
+                : isGovt
+                  ? "var(--color-brand-primary-hover)"
+                  : "var(--color-brand-secondary-bright)";
+            const markerShadowColor =
+                isVerified || isGovt ? "rgba(5,150,105,0.25)" : "rgba(59,130,246,0.25)";
 
             let customMarker;
 
@@ -275,9 +285,9 @@ export default function PharmacyMap({
             <div style="
               width: 40px;
               height: 40px;
-              background: linear-gradient(135deg, #059669, #047857);
+              background: linear-gradient(135deg, var(--color-brand-primary-hover), var(--color-brand-primary-dark));
               border-radius: 6px 6px 50% 50%;
-              border: 3px solid #d1fae5;
+              border: 3px solid var(--color-brand-primary-soft);
               display: flex;
               align-items: center;
               justify-content: center;
@@ -295,7 +305,9 @@ export default function PharmacyMap({
                 });
             } else {
                 // Standard teardrop marker (green for govt, blue for private)
-                const markerBorder = isGovt ? "#d1fae5" : "#dbeafe";
+                const markerBorder = isGovt
+                    ? "var(--color-brand-primary-soft)"
+                    : "var(--color-brand-secondary-soft)";
 
                 customMarker = L.divIcon({
                     className: "sahidawa-marker",
@@ -312,7 +324,7 @@ export default function PharmacyMap({
               border-radius: 50% 50% 50% 4px;
               transform: rotate(-45deg);
               border: 3px solid ${markerBorder};
-              box-shadow: 0 4px 12px ${markerColor}40, 0 2px 4px rgba(0,0,0,0.1);
+              box-shadow: 0 4px 12px ${markerShadowColor}, 0 2px 4px rgba(0,0,0,0.1);
               display: flex;
               align-items: center;
               justify-content: center;
@@ -341,14 +353,14 @@ export default function PharmacyMap({
 
             // Rich popup matching SahiDawa's design
             const statusColor = isVerified
-                ? "background:#d1fae5;color:#065f46"
+                ? "background:var(--color-brand-primary-soft);color:var(--color-brand-primary-text)"
                 : pharmacy.status === "Verified" || pharmacy.status === "Govt. Verified"
-                  ? "background:#d1fae5;color:#065f46"
-                  : "background:#fef3c7;color:#92400e";
+                  ? "background:var(--color-brand-primary-soft);color:var(--color-brand-primary-text)"
+                  : "background:var(--color-accent-warning-soft);color:var(--color-accent-warning-text)";
 
             const verifiedBanner = isVerified
                 ? `<div style="
-                    background: linear-gradient(90deg, #059669, #047857);
+                    background: linear-gradient(90deg, var(--color-brand-primary-hover), var(--color-brand-primary-dark));
                     color: white;
                     padding: 4px 10px;
                     border-radius: 6px;
@@ -377,7 +389,7 @@ export default function PharmacyMap({
               width: 36px;
               height: 36px;
               border-radius: 10px;
-              background: ${isGovt ? "#ecfdf5" : "#eff6ff"};
+              background: ${isGovt ? "var(--color-brand-primary-faint)" : "var(--color-brand-secondary-subtle)"};
               color: ${markerColor};
               display: flex;
               align-items: center;
@@ -393,7 +405,7 @@ export default function PharmacyMap({
               </svg>
             </div>
             <div style="flex:1;min-width:0;">
-              <div style="font-weight:800;color:#1e293b;font-size:13px;line-height:1.3;">${escapeHtml(pharmacy.name)}</div>
+              <div style="font-weight:800;color:var(--color-text-primary);font-size:13px;line-height:1.3;">${escapeHtml(pharmacy.name)}</div>
               <span style="
                 font-size:10px;
                 font-weight:700;
@@ -405,16 +417,16 @@ export default function PharmacyMap({
               ">${escapeHtml(pharmacy.status)}</span>
             </div>
           </div>
-          ${pharmacy.address ? `<p style="font-size:12px;color:#64748b;margin:0 0 8px 0;line-height:1.4;">${escapeHtml(pharmacy.address)}</p>` : ""}
-          <div style="display:flex;align-items:center;gap:12px;font-size:12px;color:#94a3b8;margin-bottom:10px;">
+          ${pharmacy.address ? `<p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 8px 0;line-height:1.4;">${escapeHtml(pharmacy.address)}</p>` : ""}
+          <div style="display:flex;align-items:center;gap:12px;font-size:12px;color:var(--color-text-muted);margin-bottom:10px;">
             ${pharmacy.distance && pharmacy.distance !== "—" ? `<span style="font-weight:600;">${escapeHtml(pharmacy.distance)} away</span>` : ""}
             ${
                 pharmacy.rating > 0
                     ? `<span style="display:flex;align-items:center;gap:2px;">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="0"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <span style="font-weight:700;color:#475569;">${pharmacy.rating}</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--color-accent-warning)" stroke="var(--color-accent-warning)" stroke-width="0"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <span style="font-weight:700;color:var(--color-dark-scrollbar);">${pharmacy.rating}</span>
             </span>`
-                    : `<span style="font-weight:500;font-size:11px;color:#cbd5e1;">OpenStreetMap data</span>`
+                    : `<span style="font-weight:500;font-size:11px;color:var(--color-scrollbar-thumb);">OpenStreetMap data</span>`
             }
           </div>
           ${
@@ -426,7 +438,7 @@ export default function PharmacyMap({
               gap:6px;
               width:100%;
               padding:8px;
-              background:#0f172a;
+              background:var(--color-dark-surface);
               color:white;
               border-radius:10px;
               text-decoration:none;
@@ -516,7 +528,7 @@ export default function PharmacyMap({
             position:absolute;
             top:4px;left:4px;
             width:12px;height:12px;
-            background:#3b82f6;
+            background:var(--color-brand-secondary-bright);
             border-radius:50%;
             border:3px solid white;
             box-shadow:0 2px 8px rgba(59,130,246,0.5);
