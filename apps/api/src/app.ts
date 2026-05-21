@@ -2,6 +2,8 @@ import express, { Express, Request, Response } from "express";
 import dotenv from "dotenv";
 import path from "path";
 import logger from "./utils/logger";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./utils/swagger";
 
 const rootEnvPath = path.resolve(__dirname, "../../../.env");
 dotenv.config({ path: rootEnvPath });
@@ -117,6 +119,32 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/v1/scan", scanRouter);
 app.use("/api/v1/alerts", alertsRouter);
+
+// ── Swagger UI (/api/docs) ──────────────────────────────────────────────────
+app.use(
+  "/api/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    customSiteTitle: "SahiDawa API Docs",
+    customCss: `
+      .topbar { background-color: #1a7f5a; }
+      .topbar-wrapper img { display: none; }
+      .topbar-wrapper::after {
+        content: "🩺 SahiDawa API";
+        color: white;
+        font-size: 1.4rem;
+        font-weight: bold;
+        padding-left: 1rem;
+      }
+    `,
+  })
+);
+
+// Also expose raw spec as JSON for tooling (Postman, etc.)
+app.get("/api/docs.json", (req: Request, res: Response) => {
+  res.setHeader("Content-Type", "application/json");
+  res.send(swaggerSpec);
+});
 
 app.use(errorHandler);
 
