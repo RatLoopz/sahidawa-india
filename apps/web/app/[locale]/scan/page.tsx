@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import {
     Camera,
     ShieldCheck,
@@ -371,6 +371,9 @@ function ResultActions({ onScanAgain, onShare }: { onScanAgain: () => void; onSh
 }
 
 export default function ScanPage() {
+    const galleryInputRef = useRef<HTMLInputElement>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
+
     const [isScanning, setIsScanning] = useState(false);
     const [showResult, setShowResult] = useState(false);
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -380,6 +383,9 @@ export default function ScanPage() {
     const [verifyError, setVerifyError] = useState<string | null>(null);
     const [ocrText, setOcrText] = useState<string | null>(null);
     const [ocrConfidence, setOcrConfidence] = useState<number | null>(null);
+    const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+    const [isCameraActive, setIsCameraActive] = useState(false);
+    const [cameraError, setCameraError] = useState<string | null>(null);
 
     const handleVerify = useCallback(async (batch: string) => {
         if (!batch.trim()) {
@@ -438,6 +444,143 @@ export default function ScanPage() {
 
     const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
+    const stopCamera = () => {
+        if (cameraStream) {
+            cameraStream.getTracks().forEach((track) => track.stop());
+            setCameraStream(null);
+        }
+        setIsCameraActive(false);
+    };
+
+    useEffect(() => {
+        return () => {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach((track) => track.stop());
+            }
+        };
+    }, [cameraStream]);
+
+    const processFile = async (file: File) => {
+        if (file.size > MAX_FILE_SIZE) {
+            toast.error("File exceeds 10MB limit");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setUploadedImage(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+
+        setIsScanning(true);
+        setShowResult(false);
+        setVerifyResult(null);
+        setVerifyError(null);
+        setOcrText(null);
+        setOcrConfidence(null);
+
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const res = await fetch(`${API_BASE}/api/v1/scan/extract`, {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!res.ok) {
+                if (res.status === 503) {
+                    toast.warning("OCR service is currently unavailable. Please verify manually.");
+                } else if (res.status === 400) {
+                    const body = (await res.json().catch(() => ({}))) as { error?: string };
+                    toast.error(body.error ?? "Invalid image file.");
+                } else {
+                    toast.error("Failed to extract text from image.");
+                }
+                setIsScanning(false);
+                return;
+            }
+
+            const data = (await res.json()) as { text?: string; confidence?: number };
+            if (data.text) {
+                setOcrText(data.text);
+                setOcrConfidence(data.confidence ?? 0);
+
+                const parsedBatch = extractBatchFromOcrText(data.text);
+                if (parsedBatch) {
+                    setBatchInput(parsedBatch);
+                    toast.success(`Batch detected: ${parsedBatch} — verifying…`);
+                    setTimeout(() => handleVerify(parsedBatch), 50);
+                } else {
+                    toast.success("OCR complete! Enter or confirm the batch number to verify.");
+                }
+            } else {
+                toast.warning("No clear text found in image. Please enter the batch number manually.");
+            }
+        } catch {
+            toast.warning("OCR service is currently unavailable. Please verify manually.");
+        } finally {
+            setIsScanning(false);
+        }
+    };
+
+    const startCamera = async () => {
+        setCameraError(null);
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: "environment" } },
+            });
+            setCameraStream(stream);
+            setIsCameraActive(true);
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+                await videoRef.current.play();
+            }
+        } catch (err) {
+            console.error(err);
+            setCameraError("Camera access denied or not available.");
+            toast.error("Camera access denied or not available.");
+        }
+    };
+
+    const capturePhoto = async () => {
+        if (!videoRef.current) return;
+        const video = videoRef.current;
+        const width = video.videoWidth;
+        const height = video.videoHeight;
+        if (!width || !height) {
+            toast.error("Camera preview is not ready yet.");
+            return;
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+            toast.error("Unable to capture image from camera.");
+            return;
+        }
+
+        ctx.drawImage(video, 0, 0, width, height);
+        canvas.toBlob(async (blob) => {
+            if (!blob) {
+                toast.error("Unable to capture camera image.");
+                return;
+            }
+            const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" });
+            stopCamera();
+            await processFile(file);
+        }, "image/jpeg", 0.95);
+    };
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        await processFile(file);
+        e.target.value = "";
+    };
+
     // ── OCR Batch Number Parser ──────────────────────────────────────────────
     // Extracts Indian medicine strip batch patterns (B.No / Batch / LOT)
     const extractBatchFromOcrText = (text: string): string | null => {
@@ -471,79 +614,6 @@ export default function ScanPage() {
             }
         }
         return null;
-    };
-
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        if (file.size > MAX_FILE_SIZE) {
-            toast.error("File exceeds 10MB limit");
-            e.target.value = "";
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setUploadedImage(reader.result as string);
-        };
-        reader.readAsDataURL(file);
-
-        setIsScanning(true);
-        setShowResult(false);
-        setVerifyResult(null);
-        setVerifyError(null);
-        setOcrText(null);
-        setOcrConfidence(null);
-
-        try {
-            const formData = new FormData();
-            formData.append("file", file);
-
-            const res = await fetch(`${API_BASE}/api/v1/scan/extract`, {
-                method: "POST",
-                body: formData,
-            });
-
-            if (!res.ok) {
-                // 🌟 Fix: always release the loading lock on error
-                if (res.status === 503) {
-                    toast.warning("OCR service is currently unavailable. Please verify manually.");
-                } else if (res.status === 400) {
-                    const body = (await res.json().catch(() => ({}))) as { error?: string };
-                    toast.error(body.error ?? "Invalid image file.");
-                } else {
-                    toast.error("Failed to extract text from image.");
-                }
-                setIsScanning(false);
-                return;
-            }
-
-            const data = (await res.json()) as { text?: string; confidence?: number };
-            if (data.text) {
-                setOcrText(data.text);
-                setOcrConfidence(data.confidence ?? 0);
-
-                // 🌟 Fix: auto-parse batch number from OCR output & trigger verification
-                const parsedBatch = extractBatchFromOcrText(data.text);
-                if (parsedBatch) {
-                    setBatchInput(parsedBatch);
-                    toast.success(`Batch detected: ${parsedBatch} — verifying…`);
-                    // Small tick so state update flushes before async call
-                    setTimeout(() => handleVerify(parsedBatch), 50);
-                } else {
-                    toast.success("OCR complete! Enter or confirm the batch number to verify.");
-                }
-            } else {
-                toast.warning(
-                    "No clear text found in image. Please enter the batch number manually."
-                );
-            }
-        } catch {
-            toast.warning("OCR service is currently unavailable. Please verify manually.");
-        } finally {
-            setIsScanning(false);
-        }
     };
 
     const handleScanAgain = () => {
@@ -600,13 +670,13 @@ export default function ScanPage() {
     return (
         <div className="relative flex min-h-screen flex-col bg-black font-sans text-white">
             <input
+                ref={galleryInputRef}
                 type="file"
                 id="medicine-upload"
                 className="hidden"
                 accept="image/*"
                 onChange={handleFileUpload}
             />
-
             <PageHeader
                 title="Scanner Mode"
                 subtitle="Position the Barcode"
@@ -641,9 +711,39 @@ export default function ScanPage() {
                         <div className="animate-scan absolute right-4 left-4 z-20 h-[2px] bg-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.8)]"></div>
                     )}
 
-                    {!isScanning && !showResult && (
+                    {!isScanning && !showResult && !isCameraActive && (
                         <div className="absolute inset-0 flex items-center justify-center">
                             <Camera size={48} className="animate-pulse text-emerald-500/30" />
+                        </div>
+                    )}
+
+                    {isCameraActive && !showResult && (
+                        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 rounded-3xl bg-black/80 p-4">
+                            <video
+                                ref={videoRef}
+                                className="h-full w-full rounded-3xl object-cover"
+                                playsInline
+                                muted
+                            />
+                            <div className="flex flex-wrap justify-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={capturePhoto}
+                                    className="rounded-full bg-emerald-500 px-6 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-400"
+                                >
+                                    Capture
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={stopCamera}
+                                    className="rounded-full border border-white/20 bg-white/10 px-6 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-white/20"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                            {cameraError && (
+                                <p className="mt-2 text-sm text-red-300">{cameraError}</p>
+                            )}
                         </div>
                     )}
                 </div>
@@ -734,10 +834,10 @@ export default function ScanPage() {
                 </form>
 
                 <p className="max-w-xs text-center text-sm font-medium text-slate-400">
-                    Enter the batch number from the medicine strip, or upload a photo from your
-                    gallery.
+                    Enter the batch number from the medicine strip, upload a photo from your
+                    gallery, or capture one with your camera.
                 </p>
-                <div className="flex gap-4">
+                <div className="flex flex-col gap-3 sm:flex-row">
                     <label
                         htmlFor="medicine-upload"
                         className="flex cursor-pointer items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black shadow-lg transition-colors hover:bg-slate-200"
@@ -745,9 +845,14 @@ export default function ScanPage() {
                         <Layers size={18} />
                         Upload Photo
                     </label>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-                        <AlertCircle size={20} className="text-white/50" />
-                    </div>
+                    <button
+                        type="button"
+                        onClick={startCamera}
+                        className="flex cursor-pointer items-center gap-2 rounded-full border border-white/10 bg-white/10 px-6 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-white/20"
+                    >
+                        <Camera size={18} />
+                        Use Camera
+                    </button>
                 </div>
             </div>
             <Footer />
