@@ -4,6 +4,8 @@ import path from "path";
 import logger from "./utils/logger";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./utils/swagger";
+import cookieParser from "cookie-parser";
+import authRouter from "./routes/auth";
 
 const rootEnvPath = path.resolve(__dirname, "../../../.env");
 dotenv.config({ path: rootEnvPath });
@@ -58,7 +60,9 @@ app.use(
     })
 );
 
+
 app.use(express.json({ limit: "1mb" }));
+app.use(cookieParser());
 app.use(limiter);
 
 app.use(
@@ -119,6 +123,7 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/v1/scan", scanRouter);
 app.use("/api/v1/alerts", alertsRouter);
+app.use("/api/auth", authRouter);
 
 // ── Swagger UI (/api/docs) ──────────────────────────────────────────────────
 app.use(

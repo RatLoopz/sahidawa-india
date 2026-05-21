@@ -11,11 +11,13 @@
     },
     "dependencies": {
         "@supabase/supabase-js": "^2.105.4",
+        "cookie-parser": "^1.4.7",
         "cors": "^2.8.5",
         "dotenv": "^17.4.2",
         "express": "^5.0.0",
         "express-rate-limit": "^8.5.1",
         "helmet": "^8.1.0",
+        "jsonwebtoken": "^9.0.3",
         "morgan": "^1.10.0",
         "multer": "^2.1.1",
         "redis": "^5.12.1",
@@ -27,9 +29,11 @@
         "zod": "^4.4.3"
     },
     "devDependencies": {
+        "@types/cookie-parser": "^1.4.10",
         "@types/cors": "^2.8.17",
         "@types/express": "^5.0.0",
         "@types/jest": "^30.0.0",
+        "@types/jsonwebtoken": "^9.0.10",
         "@types/morgan": "^1.9.9",
         "@types/multer": "^2.1.0",
         "@types/node": "^25.7.0",

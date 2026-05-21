@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { SupabaseClient, User } from "@supabase/supabase-js";
 import { supabase } from "../db/client";
+import { verifyAccessToken } from "../services/auth";
 
 export type AuthRole = "user" | "admin";
 
@@ -123,3 +124,35 @@ export const requireRole =
 
         next();
     };
+
+// ── JWT Access Token middleware (rotation-based auth) ─────────────────────────
+// Use this on routes that require our own issued JWT (not Supabase token directly).
+
+export const requireJwtAuth = (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+) => {
+    const token = getBearerToken(req.headers.authorization);
+
+    if (!token) {
+        res.status(401).json({ error: "Authorization bearer token is required" });
+        return;
+    }
+
+    try {
+        const payload = verifyAccessToken(token);
+        req.user = {
+            id: payload.sub,
+            email: payload.email,
+            role: (payload.role === "admin" ? "admin" : "user") as AuthRole,
+            raw: {} as User,
+        };
+        next();
+    } catch {
+        res.status(401).json({
+            error: "Access token is invalid or expired",
+            code: "TOKEN_EXPIRED",
+        });
+    }
+};
