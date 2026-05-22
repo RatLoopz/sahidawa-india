@@ -95,10 +95,17 @@ export default function SahiDawaHome() {
                 <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
                     <div className="flex items-center gap-2">
                         <div
-                            className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 shadow-sm"
+                            className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl shadow-sm"
                             aria-label="SahiDawa Logo"
                         >
-                            <ShieldCheck size={24} strokeWidth={2.5} />
+                            <img
+                                src="/favicon.ico"
+                                alt=""
+                                aria-hidden="true"
+                                className="h-7 w-7 object-contain"
+                                width={28}
+                                height={28}
+                            />
                         </div>
                         <h1 className="text-xl font-extrabold tracking-tight text-slate-800 md:text-2xl">
                             SahiDawa
