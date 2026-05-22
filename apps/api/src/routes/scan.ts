@@ -92,11 +92,84 @@ function calculateAdvancedMatchScore(ocrText: string, candidate: string): number
     return 0;
 }
 
-// ── POST /api/v1/scan/extract ────────────────────────────────────────────────
-// Receives a multipart image from the Next.js frontend, validates it, and
-// proxies it to the FastAPI ML OCR microservice.
-// Multer runs as an inner middleware callback so fileFilter errors are caught
-// and serialised as structured JSON instead of propagating uncaught.
+/**
+ * @openapi
+ * /api/v1/scan/extract:
+ *   post:
+ *     tags:
+ *       - Medicine Scanner
+ *     summary: Extract medicine text from a packaging photo via OCR
+ *     description: >
+ *       Accepts a medicine packaging image (JPEG, PNG, WEBP, GIF, BMP — max 10MB),
+ *       proxies it to the FastAPI ML OCR microservice, performs fuzzy brand/generic
+ *       name matching against the CDSCO medicines database, and returns parsed fields
+ *       (batch number, expiry date, brand name) alongside the full medicine record if matched.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - file
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: Medicine packaging image (JPEG/PNG/WEBP/GIF/BMP, max 10MB)
+ *     responses:
+ *       200:
+ *         description: OCR extraction successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 text:
+ *                   type: string
+ *                   example: "Dolo 650 Batch No. BN2024001 Exp 12/2026"
+ *                 confidence:
+ *                   type: number
+ *                   example: 0.94
+ *                 filename:
+ *                   type: string
+ *                   example: "medicine.jpg"
+ *                 parsed:
+ *                   type: object
+ *                   properties:
+ *                     batch:
+ *                       type: string
+ *                       example: "BN2024001"
+ *                     expiry:
+ *                       type: string
+ *                       example: "2026-12-01"
+ *                     brandName:
+ *                       type: string
+ *                       example: "Dolo 650"
+ *                 medicine:
+ *                   $ref: '#/components/schemas/Medicine'
+ *                 matched:
+ *                   type: boolean
+ *                   example: true
+ *       400:
+ *         description: Invalid or missing image file
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       503:
+ *         description: ML OCR service unavailable
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "OCR service is currently unavailable. Please verify manually."
+ *                 details:
+ *                   type: string
+ */
 router.post("/extract", (req: Request, res: Response) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (upload.single("file") as any)(req, res, async (multerErr: unknown) => {
