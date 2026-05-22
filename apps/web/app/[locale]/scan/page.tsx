@@ -6,8 +6,8 @@ import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
 import { toast } from "sonner";
 import Footer from "../components/Footer";
-import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
+import { createClient } from '@/lib/supabase/client';
 
 // Sleek Skeleton component for loading states
 function LoadingSkeleton() {
@@ -49,22 +49,41 @@ function LoadingSkeleton() {
 }
 
 export default function ScanPage() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
+  const supabase = createClient();
   
   const [isScanning, setIsScanning] = useState(true);
   const [showResult, setShowResult] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Get user session
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      setLoading(false);
+    };
+    getUser();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Redirect if not authenticated
   useEffect(() => {
-    if (status === "unauthenticated") {
+    if (!loading && !user) {
       router.push(`/${locale}/login`);
     }
-  }, [status, router, locale]);
+  }, [user, loading, router, locale]);
 
   const handleCopyBatch = useCallback(async () => {
     try {
@@ -86,16 +105,16 @@ export default function ScanPage() {
   }, []);
 
   useEffect(() => {
-    if (isScanning && session) {
+    if (isScanning && user) {
       const timer = setTimeout(() => {
         setIsScanning(false);
         setShowResult(true);
-        // Here you would save the scan to database with session.user.id
-        console.log("Scan saved for user:", session.user?.email);
+        // Here you would save the scan to Supabase database with user.id
+        console.log("Scan saved for user:", user.email);
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [isScanning, session]);
+  }, [isScanning, user]);
 
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -152,7 +171,7 @@ Status: Verified by CDSCO Database
   };
 
   // Show loading while checking authentication
-  if (status === "loading") {
+  if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
@@ -164,7 +183,7 @@ Status: Verified by CDSCO Database
   }
 
   // Don't render if not authenticated (will redirect)
-  if (!session) {
+  if (!user) {
     return null;
   }
 
@@ -188,7 +207,7 @@ Status: Verified by CDSCO Database
       {/* User indicator - shows who is scanning */}
       <div className="absolute top-20 right-4 z-20 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs text-white/70 flex items-center gap-2">
         <ShieldCheck size={12} className="text-emerald-400" />
-        <span>Scanning as: {session.user?.email?.split('@')[0] || 'User'}</span>
+        <span>Scanning as: {user.email?.split('@')[0] || 'User'}</span>
       </div>
 
       <div className="flex-1 relative flex items-center justify-center overflow-hidden">

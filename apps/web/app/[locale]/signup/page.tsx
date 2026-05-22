@@ -1,68 +1,60 @@
 'use client'
 
-import { useState } from "react"
-import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
-import { useTranslations } from "next-intl"
-import Link from "next/link"
-import { useParams } from "next/navigation"
+import { useState } from 'react'
+import { useRouter, useParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
 
 export default function SignupPage() {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const params = useParams()
   const locale = params.locale as string
   const t = useTranslations('Auth')
+  const supabase = createClient()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError("")
+    setError('')
     setLoading(true)
 
-    try {
-      const res = await fetch(`/api/auth/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
-      })
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: name,
+        },
+      },
+    })
 
-      const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.error || t('signupError'))
-        setLoading(false)
-        return
-      }
-
-      // Auto-login after signup
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      })
-
-      if (result?.error) {
-        setError(t('loginAfterSignupError'))
-        setLoading(false)
-      } else {
-        // Redirect to homepage instead of dashboard
-        router.push(`/${locale}`)
-        router.refresh()
-      }
-    } catch (error) {
-      setError(t('signupError'))
+    if (error) {
+      setError(error.message)
       setLoading(false)
+    } else {
+      router.push(`/${locale}`)
+      router.refresh()
     }
   }
 
   const handleGoogleSignIn = async () => {
     setLoading(true)
-    // Redirect to homepage after Google signup
-    await signIn("google", { callbackUrl: `/${locale}` })
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/${locale}/auth/callback`,
+      },
+    })
+
+    if (error) {
+      setError(error.message)
+      setLoading(false)
+    }
   }
 
   return (

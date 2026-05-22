@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 
 import { useRouter, useParams } from "next/navigation";
-import { supabase } from '../../../api/src/db/client';
+import { createClient } from '@/lib/supabase/client';
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -45,13 +45,11 @@ function formatRelativeTime(dateString: string | null): string {
   } else if (elapsed < msPerDay) {
     return `${Math.round(elapsed / msPerHour)}h ago`;
   } else {
-    // Fall back to a standard date view if it's older than 24 hours
     return past.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   }
 }
 
 export default function SahiDawaHome() {
-
   const router = useRouter();
   const params = useParams();
   const locale = params.locale;
@@ -60,7 +58,28 @@ export default function SahiDawaHome() {
 
   const [homepageAlerts, setHomepageAlerts] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [session, setSession] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState<boolean>(true);
+  const supabase = createClient();
 
+  // Fetch session on mount
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
+      setAuthLoading(false);
+
+      // Listen for auth changes
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setSession(session);
+      });
+
+      return () => subscription.unsubscribe();
+    };
+    getSession();
+  }, []);
+
+  // Fetch alerts
   useEffect(() => {
     async function fetchAlerts() {
       try {
@@ -97,7 +116,9 @@ export default function SahiDawaHome() {
   };
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: `/${locale}` });
+    await supabase.auth.signOut();
+    router.push(`/${locale}`);
+    router.refresh();
   };
 
   return (
@@ -117,9 +138,6 @@ export default function SahiDawaHome() {
 
           <div className="flex items-center gap-4">
             <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
-              <button className="hover:text-emerald-600 transition-colors">
-                How it Works
-              </button>
               <button className="hover:text-emerald-600 transition-colors">
                 {tNav("how_it_works")}
               </button>
@@ -145,6 +163,38 @@ export default function SahiDawaHome() {
             </button>
 
             <LanguageSwitcher />
+
+            {/* Auth Section */}
+            {authLoading ? (
+              <div className="w-24 h-9 bg-slate-100 rounded-full animate-pulse"></div>
+            ) : session ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleNavigation('profile')}
+                  className="flex items-center gap-2 text-sm font-semibold px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full hover:bg-emerald-200 transition-colors"
+                >
+                  <User size={16} />
+                  <span className="hidden sm:inline">
+                    {session.user.user_metadata?.full_name?.split(' ')[0] || session.user.email?.split('@')[0] || 'Account'}
+                  </span>
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 bg-red-50 text-red-600 rounded-full hover:bg-red-100 transition-colors"
+                >
+                  <LogOut size={16} />
+                  <span className="hidden sm:inline">Logout</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => handleNavigation('signup')}
+                className="flex items-center gap-2 text-sm font-semibold px-5 py-2 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 transition-colors shadow-md hover:shadow-lg"
+              >
+                <Rocket size={16} />
+                <span>Get Started</span>
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -171,7 +221,7 @@ export default function SahiDawaHome() {
 
         {/* ── Primary CTA — Full-width Scan Button ── */}
         <button
-          onClick={() => handleNavigation("scan")}
+          onClick={() => handleProtectedNavigation("scan")}
           className="w-full group relative overflow-hidden rounded-3xl bg-emerald-600 text-white p-7 md:p-8 shadow-xl shadow-emerald-600/20 transition-all active:scale-[0.99] hover:shadow-emerald-600/40 border border-emerald-500 text-left flex items-center justify-between"
           aria-label="Scan medicine"
         >
@@ -198,7 +248,7 @@ export default function SahiDawaHome() {
 
           {/* Upload Photo */}
           <button
-            onClick={() => handleNavigation("scan")}
+            onClick={() => handleProtectedNavigation("scan")}
             className="flex items-center gap-5 bg-white border border-slate-200 p-6 rounded-3xl active:scale-95 transition-all group hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-100/50 text-left w-full"
             aria-label="Upload photo"
           >
@@ -213,7 +263,7 @@ export default function SahiDawaHome() {
 
           {/* Voice Triage */}
           <button
-            onClick={() => handleNavigation("voice")}
+            onClick={() => handleProtectedNavigation("voice")}
             className="flex items-center gap-5 bg-white border border-slate-200 p-6 rounded-3xl active:scale-95 transition-all group hover:border-blue-200 hover:shadow-lg hover:shadow-blue-100/50 text-left w-full"
             aria-label="Voice triage"
           >
@@ -243,7 +293,7 @@ export default function SahiDawaHome() {
 
           {/* Report Fake Medicine */}
           <button
-            onClick={() => handleNavigation("report")}
+            onClick={() => handleProtectedNavigation("report")}
             className="flex items-center gap-5 bg-white border border-slate-200 p-6 rounded-3xl active:scale-95 transition-all group hover:border-red-200 hover:shadow-lg hover:shadow-red-100/50 text-left w-full"
             aria-label="Report fake medicine"
           >
@@ -295,87 +345,72 @@ export default function SahiDawaHome() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8 mb-20">
-            {/* Live Alerts Panel */}
-            <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden flex flex-col h-[400px]">
-              <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                <div className="flex items-center gap-2">
-                  <Activity size={20} className="text-red-500" />
-                  <h3 className="text-lg font-bold text-slate-800">
-                    Live CDSCO Alerts
-                  </h3>
-                </div>
-                <span className="text-xs font-bold bg-red-100 text-red-600 px-2.5 py-1 rounded-full uppercase tracking-wider hidden sm:block">
-                  India Region
-                </span>
+          {/* Live Alerts Panel */}
+          <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden flex flex-col h-[400px]">
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-2">
+                <Activity size={20} className="text-red-500" />
+                <h3 className="text-lg font-bold text-slate-800">
+                  Live CDSCO Alerts
+                </h3>
               </div>
+              <span className="text-xs font-bold bg-red-100 text-red-600 px-2.5 py-1 rounded-full uppercase tracking-wider hidden sm:block">
+                India Region
+              </span>
+            </div>
 
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/30">
-                {/* Alert Item */}
-                 {homepageAlerts && homepageAlerts.length > 0 ? (
-                  homepageAlerts.map((alert) => (
-                    
-                    <div 
-                      key={alert.id} 
-                      className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm flex items-start gap-4 relative overflow-hidden group hover:shadow-md transition-shadow cursor-pointer"
-                    >
-                      {/* Left edge colored strip */}
-                      <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${
-                        alert.brand_name === 'SYSTEM_UPDATE' 
-                          ? 'bg-blue-500' 
-                          : (alert.cdsco_approval_status === 'banned' || alert.is_counterfeit_alert) 
-                          ? 'bg-red-500' : 'bg-orange-400'        
-                        }`}>
-                        
-                        </div>
-
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors ${
-                        alert.brand_name === 'SYSTEM_UPDATE' 
-                          ? 'bg-blue-50 text-blue-500 group-hover:bg-blue-100' 
-                          : (alert.cdsco_approval_status === 'banned' || alert.is_counterfeit_alert) 
-                            ? 'bg-red-50 text-red-500 group-hover:bg-red-100' 
-                            : 'bg-orange-50 text-orange-500 group-hover:bg-orange-100'
-                      }`}>
-                        {alert.brand_name === 'SYSTEM_UPDATE' ? (
-                          <Globe size={20} strokeWidth={2.5} />
-                        ) : (
-                          <AlertTriangle size={20} strokeWidth={2.5} />
-                        )}
-                      </div>
- 
-                      <div className="flex-1">
-                        <div className="flex justify-between items-start">
-                          <h4 className="font-bold text-slate-800 leading-tight">{alert.brand_name}</h4>
-                          <span className="text-[11px] font-medium text-slate-400">{formatRelativeTime(alert.created_at)}</span>
-                        </div>
-                        <p className="text-sm text-slate-500 mt-1 font-medium leading-snug">
-                          {alert.composition} Batch <span className="font-bold text-slate-700">{alert.batch_number}</span>
-                        </p>
-                      </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/30">
+              {homepageAlerts && homepageAlerts.length > 0 ? (
+                homepageAlerts.map((alert) => (
+                  <div 
+                    key={alert.id} 
+                    className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm flex items-start gap-4 relative overflow-hidden group hover:shadow-md transition-shadow cursor-pointer"
+                  >
+                    <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${
+                      alert.brand_name === 'SYSTEM_UPDATE' 
+                        ? 'bg-blue-500' 
+                        : (alert.cdsco_approval_status === 'banned' || alert.is_counterfeit_alert) 
+                        ? 'bg-red-500' : 'bg-orange-400'        
+                    }`}>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-center text-sm text-slate-400 py-12">No current regulatory alerts recorded.</p>
-                )}
-              </div>
-              <div className="p-4 bg-white border-t border-slate-100">
-                <Link href="/alerts" className="block w-full">
+
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                      alert.brand_name === 'SYSTEM_UPDATE' 
+                        ? 'bg-blue-50 text-blue-500 group-hover:bg-blue-100' 
+                        : (alert.cdsco_approval_status === 'banned' || alert.is_counterfeit_alert) 
+                          ? 'bg-red-50 text-red-500 group-hover:bg-red-100' 
+                          : 'bg-orange-50 text-orange-500 group-hover:bg-orange-100'
+                    }`}>
+                      {alert.brand_name === 'SYSTEM_UPDATE' ? (
+                        <Globe size={20} strokeWidth={2.5} />
+                      ) : (
+                        <AlertTriangle size={20} strokeWidth={2.5} />
+                      )}
+                    </div>
+
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <h4 className="font-bold text-slate-800 leading-tight">{alert.brand_name}</h4>
+                        <span className="text-[11px] font-medium text-slate-400">{formatRelativeTime(alert.created_at)}</span>
+                      </div>
+                      <p className="text-sm text-slate-500 mt-1 font-medium leading-snug">
+                        {alert.composition} Batch <span className="font-bold text-slate-700">{alert.batch_number}</span>
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-sm text-slate-400 py-12">No current regulatory alerts recorded.</p>
+              )}
+            </div>
+            <div className="p-4 bg-white border-t border-slate-100">
+              <Link href="/alerts" className="block w-full">
                 <button className="w-full py-3 bg-slate-50 text-slate-700 font-bold rounded-xl hover:bg-slate-100 transition-colors cursor-pointer">
                   View Full Alert Log
                 </button>
-                </Link>
-              </div>
-            ) : (
-              <button
-                onClick={() => handleNavigation('signup')}
-                className="flex items-center gap-2 text-sm font-semibold px-5 py-2 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 transition-colors shadow-md hover:shadow-lg"
-              >
-                <Rocket size={16} />
-                <span>Get Started</span>
-              </button>
-            )}
+              </Link>
+            </div>
           </div>
-        </div>
-      </header>
 
           {/* AI Assistant Promo */}
           <div className="bg-emerald-600 rounded-3xl p-8 text-white relative overflow-hidden shadow-xl shadow-emerald-600/20">
@@ -404,83 +439,67 @@ export default function SahiDawaHome() {
       {/* Spacer for mobile nav */}
       <div className="h-16 md:hidden"></div>
 
- {/* ── Mobile Bottom Navigation ── */}
-<nav
-  className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200/60 flex justify-around px-2 py-3 items-center z-50 pb-[env(safe-area-inset-bottom)]"
-  aria-label="Mobile navigation"
->
-  <Link
-    href="/"
-    className="flex flex-col items-center gap-1.5 w-16 group"
-    aria-label="Home"
-  >
-    <div className="text-emerald-600 group-hover:-translate-y-1 transition-transform">
-      <Home size={24} strokeWidth={2.5} />
-    </div>
+      {/* ── Mobile Bottom Navigation ── */}
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200/60 flex justify-around px-2 py-3 items-center z-50 pb-[env(safe-area-inset-bottom)]"
+        aria-label="Mobile navigation"
+      >
+        <Link
+          href="/"
+          className="flex flex-col items-center gap-1.5 w-16 group"
+          aria-label="Home"
+        >
+          <div className="text-emerald-600 group-hover:-translate-y-1 transition-transform">
+            <Home size={24} strokeWidth={2.5} />
+          </div>
+          <span className="text-[11px] font-bold text-emerald-600">Home</span>
+        </Link>
 
-    <span className="text-[11px] font-bold text-emerald-600">
-      Home
-    </span>
-  </Link>
+        <button
+          onClick={() => handleProtectedNavigation("scan")}
+          className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-slate-600 transition-colors"
+          aria-label="Scans"
+        >
+          <div className="group-hover:-translate-y-1 transition-transform">
+            <History size={24} strokeWidth={2} />
+          </div>
+          <span className="text-[11px] font-semibold">Scans</span>
+        </button>
 
-  <Link
-    href="/scan"
-    className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-slate-600 transition-colors"
-    aria-label="Scans"
-  >
-    <div className="group-hover:-translate-y-1 transition-transform">
-      <History size={24} strokeWidth={2} />
-    </div>
+        <Link
+          href="/map"
+          className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-amber-600 transition-colors"
+          aria-label="Map"
+        >
+          <div className="group-hover:-translate-y-1 transition-transform">
+            <MapPin size={24} strokeWidth={2} />
+          </div>
+          <span className="text-[11px] font-semibold">Map</span>
+        </Link>
 
-    <span className="text-[11px] font-semibold">
-      Scans
-    </span>
-  </Link>
+        <Link
+          href="/alerts"
+          className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-red-500 transition-colors"
+          aria-label="Alerts"
+        >
+          <div className="relative group-hover:-translate-y-1 transition-transform">
+            <Bell size={24} strokeWidth={2} />
+            <span className="absolute top-0 right-0.5 w-2 h-2 bg-red-500 border border-white rounded-full animate-pulse"></span>
+          </div>
+          <span className="text-[11px] font-semibold">Alerts</span>
+        </Link>
 
-  <Link
-    href="/map"
-    className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-amber-600 transition-colors"
-    aria-label="Map"
-  >
-    <div className="group-hover:-translate-y-1 transition-transform">
-      <MapPin size={24} strokeWidth={2} />
-    </div>
-
-    <span className="text-[11px] font-semibold">
-      Map
-    </span>
-  </Link>
-
-  <Link
-    href="/alerts"
-    className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-red-500 transition-colors"
-    aria-label="Alerts"
-  >
-    <div className="relative group-hover:-translate-y-1 transition-transform">
-      <Bell size={24} strokeWidth={2} />
-
-      <span className="absolute top-0 right-0.5 w-2 h-2 bg-red-500 border border-white rounded-full animate-pulse"></span>
-    </div>
-
-    <span className="text-[11px] font-semibold">
-      Alerts
-    </span>
-  </Link>
-
-  <Link
-    href="/profile"
-    className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-emerald-600 transition-colors"
-    aria-label="Profile"
-  >
-    <div className="group-hover:-translate-y-1 transition-transform">
-      <User size={24} strokeWidth={2} />
-    </div>
-
-    <span className="text-[11px] font-semibold">
-      Profile
-    </span>
-  </Link>
-</nav>
+        <button
+          onClick={() => handleProtectedNavigation("profile")}
+          className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-emerald-600 transition-colors"
+          aria-label="Profile"
+        >
+          <div className="group-hover:-translate-y-1 transition-transform">
+            <User size={24} strokeWidth={2} />
+          </div>
+          <span className="text-[11px] font-semibold">Profile</span>
+        </button>
+      </nav>
       <Footer />
     </div>
   );
