@@ -1,0 +1,72 @@
+name: 🐛 Bug Report
+description: Report a bug or broken functionality in SahiDawa.
+title: "[BUG] <Brief description>"
+labels: ["type:bug"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Thank you for reporting a bug! 🩺
+        Please check [existing issues](https://github.com/RatLoopz/sahidawa-india/issues) first to avoid duplicates.
+        > **GSSoC 2026 contributors:** Comment on the issue to get it assigned before starting work.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of SahiDawa is broken?
+      description: Select the area where you found the bug.
+      options:
+        - "Frontend — Next.js UI (apps/web)"
+        - "Backend — Express API (apps/api)"
+        - "ML Service — FastAPI / Python (apps/ml)"
+        - "Medicine Scanner / Verification"
+        - "Pharmacy Map"
+        - "Voice / Multilingual"
+        - "Translation / i18n"
+        - "Database / Supabase"
+        - "Other / Unknown"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: Clearly describe what went wrong.
+      placeholder: "When I scan a medicine barcode, the app crashes instead of showing the verification result..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      placeholder: "The app should display a green ✅ verification result."
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Attach screenshots.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: gssoc
+    attributes:
+      label: GSSoC 2026
+      options:
+        - label: I am a GSSoC 2026 participant and would like to fix this bug.
+          required: false
+
+  - type: checkboxes
+    id: conduct
+    attributes:
+      label: Code of Conduct
+      options:
+        - label: I have read and agree to SahiDawa's [Code of Conduct](https://github.com/RatLoopz/sahidawa-india/blob/main/CODE_OF_CONDUCT.md).
+          required: true

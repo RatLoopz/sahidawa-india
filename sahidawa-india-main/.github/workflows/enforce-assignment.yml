@@ -1,0 +1,70 @@
+name: Enforce Issue Assignment
+
+on:
+  pull_request_target:
+    types: [opened, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  enforce:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { pull_request: pr } = context.payload;
+            const author = pr.user.login;
+
+            const match = (pr.body || "")
+              .match(/(?:closes|fixes|resolves)\s+#(\d+)/i);
+
+            if (!match) return;
+
+            const issueNumber = Number(match[1]);
+
+            const { data: issue } =
+              await github.rest.issues.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber
+              });
+
+            const { data: permission } =
+              await github.rest.repos
+                .getCollaboratorPermissionLevel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  username: author
+                });
+
+            if (
+              ["admin", "maintain", "write"]
+                .includes(permission.permission)
+            ) return;
+
+            const assigned =
+              issue.assignees.some(
+                a => a.login === author
+              );
+
+            if (assigned) return;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body:
+                "Thank you for your PR! However, to prevent duplicate work, we have a strict policy: you must be officially assigned to an issue before opening a PR. This PR is being automatically closed. Please request assignment on an open issue first."
+            });
+
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              state: "closed"
+            });

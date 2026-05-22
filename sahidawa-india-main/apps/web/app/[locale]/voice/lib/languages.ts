@@ -1,0 +1,60 @@
+export type VoiceLanguageOption = {
+    value: string;
+    label: string;
+    speechRecognition: string;
+    responseLanguage: string;
+    speechSynthesisLang: string;
+};
+
+export const DEFAULT_VOICE_LANGUAGE = "en-IN";
+
+export const VOICE_LANGUAGE_OPTIONS: VoiceLanguageOption[] = [
+    {
+        value: "en-IN",
+        label: "English",
+        speechRecognition: "en-IN",
+        responseLanguage: "English",
+        speechSynthesisLang: "en-IN",
+    },
+    {
+        value: "hi-IN",
+        label: "Hindi",
+        speechRecognition: "hi-IN",
+        responseLanguage: "Hindi",
+        speechSynthesisLang: "hi-IN",
+    },
+    {
+        value: "ta-IN",
+        label: "Tamil",
+        speechRecognition: "ta-IN",
+        responseLanguage: "Tamil",
+        speechSynthesisLang: "ta-IN",
+    },
+    {
+        value: "bn-IN",
+        label: "Bengali",
+        speechRecognition: "bn-IN",
+        responseLanguage: "Bengali",
+        speechSynthesisLang: "bn-IN",
+    },
+    {
+        value: "mr-IN",
+        label: "Marathi",
+        speechRecognition: "mr-IN",
+        responseLanguage: "Marathi",
+        speechSynthesisLang: "mr-IN",
+    },
+    {
+        value: "te-IN",
+        label: "Telugu",
+        speechRecognition: "te-IN",
+        responseLanguage: "Telugu",
+        speechSynthesisLang: "te-IN",
+    },
+];
+
+export function getVoiceLanguageOption(value: string): VoiceLanguageOption {
+    return (
+        VOICE_LANGUAGE_OPTIONS.find((option) => option.value === value) ?? VOICE_LANGUAGE_OPTIONS[0]
+    );
+}
