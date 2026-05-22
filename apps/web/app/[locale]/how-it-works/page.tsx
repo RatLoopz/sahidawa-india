@@ -2,6 +2,7 @@
 
 import { ShieldCheck, Search, Bot, Store, BellRing, AlertTriangle, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 const steps = [
     {
@@ -52,6 +53,13 @@ export default function HowItWorksPage() {
                 <div className="absolute right-0 bottom-0 h-96 w-96 rounded-full bg-blue-200/30 blur-3xl" />
 
                 <div className="relative mx-auto max-w-6xl text-center">
+                    <Link
+                        href="/"
+                        aria-label="Back to Home"
+                        className="absolute left-6 top-6 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 shadow-sm transition-all duration-300 hover:bg-slate-200 hover:scale-105"
+                    >
+                        <ArrowLeft size={22} className="text-slate-600" />
+                    </Link>
                     <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-5 py-2 text-sm font-medium text-emerald-700">
                         <span className="h-2 w-2 rounded-full bg-emerald-500" />
                         Safe Healthcare • AI Powered

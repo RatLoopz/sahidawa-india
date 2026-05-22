@@ -5,9 +5,11 @@ import numpy as np
 from fastapi.testclient import TestClient
 import sys
 import os
+from types import SimpleNamespace
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from main import app
+from routers import asr as asr_router
 
 client = TestClient(app)
 
@@ -121,6 +123,40 @@ def test_missing_file_returns_422():
     """FastAPI must return 422 when required 'file' field is absent."""
     response = client.post("/asr/transcribe")
     assert response.status_code == 422
+
+
+def test_language_hint_is_passed_to_whisper(monkeypatch):
+    captured = {}
+
+    class FakeModel:
+        def transcribe(self, audio, **kwargs):
+            captured["language"] = kwargs.get("language")
+            return [SimpleNamespace(text="வணக்கம்")], SimpleNamespace(
+                language="ta",
+                language_probability=0.97,
+            )
+
+    monkeypatch.setattr(asr_router, "get_model", lambda: FakeModel())
+    monkeypatch.setattr(
+        asr_router.subprocess,
+        "run",
+        lambda *args, **kwargs: SimpleNamespace(returncode=0, stderr=b""),
+    )
+    monkeypatch.setattr(
+        asr_router.sf,
+        "read",
+        lambda *args, **kwargs: (np.zeros(16000, dtype=np.float32), 16000),
+    )
+    monkeypatch.setattr(asr_router.nr, "reduce_noise", lambda y, sr: y)
+
+    response = client.post(
+        "/asr/transcribe",
+        files={"file": ("test.wav", make_silent_wav(), "audio/wav")},
+        data={"language": "ta-IN"},
+    )
+
+    assert response.status_code == 200
+    assert captured["language"] == "ta"
 
 
 # ── 4. Accepted MIME types — content-type validation only (NOT 400) ───────────

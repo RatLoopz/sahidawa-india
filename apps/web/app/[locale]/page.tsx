@@ -24,6 +24,8 @@ import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import LanguageSwitcher from "./LanguageSwitcher";
 import SearchBar from "./components/SearchBar";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 function formatRelativeTime(dateString: string | null): string {
     if (!dateString) return "Recent";
@@ -352,7 +354,26 @@ export default function SahiDawaHome() {
 
                         <div className="flex-1 overflow-y-auto bg-slate-50/30 p-4">
                             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                {homepageAlerts && homepageAlerts.length > 0 ? (
+                                {loading ? (
+                                    <>
+                                        {[1, 2, 3, 4].map((i) => (
+                                            <div
+                                                key={i}
+                                                className="relative flex items-start gap-4 overflow-hidden rounded-2xl border border-slate-100 bg-white p-4 shadow-sm"
+                                            >
+                                                <div className="absolute top-0 bottom-0 left-0 w-1.5 bg-slate-200" />
+                                                <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
+                                                <div className="flex-1 space-y-2">
+                                                    <div className="flex items-start justify-between">
+                                                        <Skeleton className="h-4 w-1/2" />
+                                                        <Skeleton className="h-3 w-12" />
+                                                    </div>
+                                                    <Skeleton className="h-3 w-3/4" />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </>
+                                ) : homepageAlerts && homepageAlerts.length > 0 ? (
                                     homepageAlerts.map((alert) => (
                                         <div
                                             key={alert.id}
@@ -409,17 +430,13 @@ export default function SahiDawaHome() {
                                     ))
                                 ) : (
                                     /* ── Improved Empty State ── */
-                                    <div className="flex flex-col items-center justify-center py-8 sm:col-span-2">
-                                        <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500 shadow-sm ring-1 ring-emerald-100">
-                                            <ShieldCheck size={26} strokeWidth={2} />
-                                        </div>
-                                        <p className="text-base font-bold text-slate-700">
-                                            All clear!
-                                        </p>
-                                        <p className="mt-1 max-w-xs text-center text-sm text-slate-400">
-                                            No active regulatory alerts right now. Stay safe and
-                                            verify your medicines.
-                                        </p>
+                                    <div className="sm:col-span-2">
+                                        <EmptyState
+                                            icon={<ShieldCheck size={26} strokeWidth={2} className="text-emerald-500" />}
+                                            title="All clear!"
+                                            description="No active regulatory alerts right now. Stay safe and verify your medicines."
+                                            className="border-none !bg-transparent p-6"
+                                        />
                                     </div>
                                 )}
                             </div>

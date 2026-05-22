@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 import noisereduce as nr
 import numpy as np
 import tempfile
@@ -44,8 +44,19 @@ ALLOWED_TYPES = {
 }
 
 
+def normalize_language_hint(language: str | None):
+    if not language:
+        return None
+
+    normalized = language.strip().lower()
+    if not normalized:
+        return None
+
+    return normalized.split("-")[0]
+
+
 @router.post("/transcribe")
-async def transcribe_audio(file: UploadFile = File(...)):
+async def transcribe_audio(file: UploadFile = File(...), language: str | None = Form(None)):
     """
     Accepts any supported audio file upload and returns transcribed text.
 
@@ -131,7 +142,7 @@ async def transcribe_audio(file: UploadFile = File(...)):
         memory_before_mb = get_memory_usage_mb()
         segments, info = get_model().transcribe(
             reduced_audio,
-            language=None,
+            language=normalize_language_hint(language),
             task="transcribe",
             beam_size=8,
             vad_filter=True,
