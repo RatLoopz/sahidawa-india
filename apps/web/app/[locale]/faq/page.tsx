@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, ShieldCheck, HelpCircle } from "lucide-react";
 import { Link } from "@/i18n/routing";
-import Footer from "../components/Footer";
 
 const faqs = [
     {
@@ -124,7 +123,6 @@ export default function FAQPage() {
                 </div>
             </section>
 
-            <Footer />
         </div>
     );
 }
