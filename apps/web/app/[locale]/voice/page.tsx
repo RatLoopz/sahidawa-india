@@ -91,7 +91,8 @@ function getConfidenceValueLabel(
         unavailable: "confidence_values.unavailable",
     };
 
-    return t(keyMap[confidence.id] as any);
+    const key = keyMap[confidence.id];
+    return t(key as any);
 }
 
 export default function VoiceTriagePage() {
@@ -352,7 +353,15 @@ export default function VoiceTriagePage() {
 
         stopSpeaking(window);
 
-        const utterance = new SpeechSynthesisUtterance(result.summary);
+        // Combine summary and recommendations for reading
+        let textToSpeak = result.summary;
+        
+        if (result.recommendations && result.recommendations.length > 0) {
+            textToSpeak += ". " + t("recommendations_label") + ": ";
+            textToSpeak += result.recommendations.join(". ") + ".";
+        }
+
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
         utterance.lang = resultLanguageOption.speechSynthesisLang;
         const bestVoice = findBestVoice(window, resultLanguageOption.speechSynthesisLang);
 
@@ -495,8 +504,12 @@ export default function VoiceTriagePage() {
                 }
 
                 setActiveAudioStream(nextAudioStream);
-            } catch {
-                setActiveAudioStream(null);
+            } catch (permissionError: any) {
+                didHandleRecognitionEndRef.current = true;
+                setIsListening(false);
+                setError(getRecognitionErrorState("not-allowed", t));
+                setStep("error");
+                return;
             }
         }
 
@@ -658,7 +671,7 @@ export default function VoiceTriagePage() {
                     <VoiceAnimationToggle
                         label={t("animation_toggle_label")}
                         liveLabel={t("animation_live_label")}
-                        reducedMotionLabel={t("animation_reduced_motion_label")}
+                        reducedMotionLabel={t("animation_reduced_motion_label")}  
                         enabled={animationsEnabled}
                         onToggle={(nextPreference) => {
                             setAnimationsEnabled(nextPreference);
@@ -681,7 +694,7 @@ export default function VoiceTriagePage() {
                         exampleLabel={t("example_label")}
                         exampleText={t("example_text")}
                         assistantLabel={t("assistant_label")}
-                        assistantValue={t("assistant_value")}
+                        assistantValue={t("assistant_value")}  
                     />
                 )}
 
@@ -697,14 +710,14 @@ export default function VoiceTriagePage() {
                         volumeLabel={t("volume_label")}
                         liveVolumeLabel={t("volume_live_label")}
                         stillVolumeLabel={t("volume_still_label")}
-                        visualizerUnavailableLabel={t("visualizer_unavailable")}
+                        visualizerUnavailableLabel={t("visualizer_unavailable")}  
                     />
                 )}
 
                 {step === "processing" && (
                     <VoiceProcessingPanel
                         title={t("processing_title")}
-                        subtitle={t("processing_subtitle")}
+                        subtitle={t("processing_subtitle")}  
                     />
                 )}
 
@@ -723,7 +736,7 @@ export default function VoiceTriagePage() {
                             void analyseTranscript(transcript, confidence, emergencyMatches)
                         }
                         emergencyTitle={t("emergency_title")}
-                        emergencyBody={t("emergency_body")}
+                        emergencyBody={t("emergency_body")}  
                         showEmergency={emergencyMatches.length > 0}
                     />
                 )}
@@ -731,7 +744,7 @@ export default function VoiceTriagePage() {
                 {step === "error" && error && (
                     <VoiceErrorPanel
                         error={error}
-                        retryLabel={t("retry_button")}
+                        retryLabel={t("retry_button")}  
                         onRetry={() => resetFlow()}
                     />
                 )}
@@ -752,7 +765,7 @@ export default function VoiceTriagePage() {
                         shareLabel={t("share_button")}
                         speakLabel={t("speak_button")}
                         stopSpeakingLabel={t("stop_speaking_button")}
-                        tryAgainLabel={t("try_again_button")}
+                        tryAgainLabel={t("try_again_button")}  
                         isSpeaking={isSpeaking}
                         onReplay={handleReplaySummary}
                         onStopSpeaking={handleStopSpeaking}
@@ -769,7 +782,7 @@ export default function VoiceTriagePage() {
                         aria-label={
                             step === "listening"
                                 ? t("stop_listening_aria")
-                                : t("start_listening_aria")
+                                : t("start_listening_aria")  
                         }
                         className={`relative flex h-24 w-24 items-center justify-center rounded-full transition-all duration-500 ${step === "listening" ? "scale-125 bg-red-500" : "bg-emerald-500 shadow-xl shadow-emerald-500/30 hover:scale-110"} `}
                     >
@@ -793,21 +806,21 @@ export default function VoiceTriagePage() {
                         <span className="sr-only">
                             {step === "listening"
                                 ? t("stop_listening_sr")
-                                : t("start_listening_sr")}
+                                : t("start_listening_sr")}  
                         </span>
                     </button>
                     <p
                         className="mt-6 text-sm font-bold tracking-widest text-slate-400 uppercase"
                         aria-hidden="true"
                     >
-                        {step === "listening" ? t("stop_listening_label") : t("tap_to_speak")}
+                        {step === "listening" ? t("stop_listening_label") : t("tap_to_speak")}    
                     </p>
                 </div>
             )}
 
             <footer className="p-8 text-center">
                 <p className="mx-auto max-w-xs text-[10px] font-bold tracking-widest text-slate-300 uppercase">
-                    {t("footer_note")}
+                    {t("footer_note")}  
                 </p>
             </footer>
         </div>
