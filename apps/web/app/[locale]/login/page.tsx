@@ -35,8 +35,6 @@ export default function LoginPage() {
             }
 
             if (data?.session?.access_token) {
-                localStorage.setItem("sb-access-token", data.session.access_token);
-
                 router.push("/reports/me");
             }
         } catch (err) {
