@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 :root {
-    --color-brand-primary: #10b981;
-    --color-brand-success: #16a34a;
-    --color-brand-primary-hover: #059669;
+    --color-brand-primary: #1a56db;
+    --color-brand-success: #1e429f;
+    --color-brand-primary-hover: #1c64f2;
     --color-brand-primary-dark: #047857;
     --color-brand-primary-soft: #d1fae5;
     --color-brand-primary-subtle: #dcfce7;
