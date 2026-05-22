@@ -1,4 +1,5 @@
 const EMERGENCY_PHRASES = [
+    // English phrases
     "chest pain",
     "breathing difficulty",
     "difficulty breathing",
@@ -8,8 +9,35 @@ const EMERGENCY_PHRASES = [
     "seizure",
     "stroke symptoms",
     "severe bleeding",
+    "heart attack",
+    "suffocating",
+    "cannot breathe",
+    "severe headache",
+    "loss of consciousness",
+    "heavy bleeding",
+    "choking",
+    
+    // Hindi phrases
     "behosh",
     "saans lene mein dikkat",
+    "saans nahi aa raha",
+    "chest mein dard",
+    "chati mein dard",
+    "dil mein dard",
+    "heart attack",
+    "nadi ka aata hona",
+    "seize",
+    "convulsion",
+    "tez bukhar",
+    "bahar se khoon",
+    "khun bahar ana",
+    "sakht khun bahar ana",
+    "choking ho gaya",
+    "sutli gaya",
+    "gira hua",
+    "gir gaya",
+    "dil tez chal raha",
+    "zyada bleeding",
 ] as const;
 
 export type EmergencyDetectionResult = {
