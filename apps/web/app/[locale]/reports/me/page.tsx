@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { PageHeader } from '../../components/PageHeader';
-import Footer from '../../components/Footer';
 import Card from '@/components/Card';
 import LazyImage from '@/components/LazyImage';
 
@@ -321,7 +320,6 @@ export default function MyReportsPage() {
         )}
       </main>
 
-      <Footer />
     </div>
   );
 }
