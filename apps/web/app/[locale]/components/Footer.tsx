@@ -1,5 +1,6 @@
 import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
 import { GitBranch } from "lucide-react";
+import { Link } from "@/i18n/routing";
 
 export default function Footer() {
     return (
@@ -45,6 +46,12 @@ export default function Footer() {
                             >
                                 Contributing Guide
                             </a>
+                            <Link
+                                href="/about"
+                                className="transition-all duration-200 hover:translate-x-1 hover:text-white"
+                            >
+                                About Us
+                            </Link>
                         </div>
                     </div>
 
