@@ -5,21 +5,32 @@ import {
     VOICE_LANGUAGE_OPTIONS,
     getVoiceLanguageOption,
 } from "../app/[locale]/voice/lib/languages";
+import {
+    getPreferredRecordingMimeType,
+    supportsAudioRecording,
+} from "../app/[locale]/voice/lib/recording";
 import { formatVoiceShareReport } from "../app/[locale]/voice/lib/report";
+import {
+    normalizeVoiceTranscriptionResponse,
+    shouldReviewTranscription,
+    transcribeRecordedAudio,
+} from "../app/[locale]/voice/lib/transcription";
 
 describe("detectEmergencyKeywords", () => {
-    it("finds emergency phrases in normalized speech transcripts", () => {
-        const result = detectEmergencyKeywords(
-            "My father has chest pain and trouble breathing right now"
-        );
+    it("re-exports the shared emergency detector through the app-local module", () => {
+        const result = detectEmergencyKeywords("My father has chest pain right now");
 
-        expect(result.isEmergency).toBe(true);
-        expect(result.matches).toEqual(expect.arrayContaining(["chest pain", "trouble breathing"]));
+        expect(result).toMatchObject({
+            isEmergency: true,
+            matchedGroups: ["chest_pain"],
+        });
+        expect(result.matches).toEqual(["chest pain"]);
     });
 
-    it("returns a safe result when no emergency terms are present", () => {
+    it("keeps non-emergency transcripts safe through the re-export shim", () => {
         expect(detectEmergencyKeywords("I have a mild cough and fever since yesterday")).toEqual({
             isEmergency: false,
+            matchedGroups: [],
             matches: [],
         });
     });
@@ -59,6 +70,104 @@ describe("voice language config", () => {
             value: "ta-IN",
             responseLanguage: "Tamil",
         });
+    });
+});
+
+describe("voice recording helpers", () => {
+    it("detects when MediaRecorder support exists", () => {
+        expect(supportsAudioRecording({ MediaRecorder: class {} } as Window)).toBe(true);
+        expect(supportsAudioRecording({} as Window)).toBe(false);
+    });
+
+    it("picks a supported recording mime type when available", () => {
+        const mediaRecorderMock = {
+            isTypeSupported: (value: string) => value === "audio/webm;codecs=opus",
+        };
+
+        expect(getPreferredRecordingMimeType(mediaRecorderMock)).toBe("audio/webm;codecs=opus");
+    });
+
+    it("falls back to an empty mime type when none of the preferred formats are supported", () => {
+        const mediaRecorderMock = {
+            isTypeSupported: () => false,
+        };
+
+        expect(getPreferredRecordingMimeType(mediaRecorderMock)).toBe("");
+    });
+});
+
+describe("voice transcription response normalization", () => {
+    const originalFetch = global.fetch;
+
+    afterEach(() => {
+        global.fetch = originalFetch;
+        jest.resetAllMocks();
+    });
+
+    it("normalizes transcript, language, and language confidence", () => {
+        expect(
+            normalizeVoiceTranscriptionResponse({
+                transcript: "  fever for two days  ",
+                language: "en",
+                languageConfidence: 0.61,
+            })
+        ).toEqual({
+            transcript: "fever for two days",
+            language: "en",
+            languageConfidence: 0.61,
+        });
+    });
+
+    it("propagates the selected language hint when uploading audio", async () => {
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({
+                transcript: "kaaychal irukku",
+                language: "ta",
+                languageConfidence: 0.78,
+            }),
+        }) as unknown as typeof fetch;
+
+        await transcribeRecordedAudio(
+            new File(["audio"], "voice.webm", { type: "audio/webm" }),
+            "ta-IN"
+        );
+
+        const requestBody = (global.fetch as jest.Mock).mock.calls[0][1].body as FormData;
+        expect(requestBody.get("language")).toBe("ta-IN");
+    });
+
+    it("returns a friendly error when the proxy sends invalid JSON", async () => {
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: false,
+            json: async () => {
+                throw new SyntaxError("Unexpected token <");
+            },
+        }) as unknown as typeof fetch;
+
+        await expect(
+            transcribeRecordedAudio(new File(["audio"], "voice.webm", { type: "audio/webm" }))
+        ).rejects.toThrow("Transcription failed.");
+    });
+
+    it("requests manual review for very short transcripts when ASR word confidence is unavailable", () => {
+        expect(shouldReviewTranscription("fever")).toBe(true);
+        expect(shouldReviewTranscription("I have fever and cough")).toBe(false);
+    });
+
+    it("requests review when the detected language does not match the selected language", () => {
+        expect(
+            shouldReviewTranscription("எனக்கு காய்ச்சல் இருக்கு", {
+                selectedLanguage: "ta-IN",
+                detectedLanguage: "en",
+            })
+        ).toBe(true);
+        expect(
+            shouldReviewTranscription("எனக்கு காய்ச்சல் இருக்கு", {
+                selectedLanguage: "ta-IN",
+                detectedLanguage: "ta",
+            })
+        ).toBe(false);
     });
 });
 

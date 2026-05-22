@@ -3,6 +3,8 @@
 import { AlertCircle, Heart, Loader2, MapPin, Phone, Shield, Star, Store } from "lucide-react";
 
 import type { HeatmapMode, Pharmacy } from "./PharmacyMap";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 export interface PharmacyPanelHeatmapOption {
     id: HeatmapMode;
@@ -203,23 +205,40 @@ export default function PharmacyPanels({
 
             <div className="flex-1 space-y-2 overflow-y-auto px-4 py-4">
                 {isLoading ? (
-                    <div className="py-10 text-center">
-                        <Loader2 size={26} className="mx-auto mb-3 animate-spin text-emerald-600" />
-                        <p className="text-sm font-bold text-slate-400">
-                            Finding nearby pharmacies…
-                        </p>
-                        <p className="mt-1 text-xs text-slate-300">
-                            Verified stores + OpenStreetMap
-                        </p>
+                    <div className="flex flex-col gap-2">
+                        <div className="py-2 text-center">
+                            <p className="text-sm font-bold text-slate-400">
+                                Finding nearby pharmacies…
+                            </p>
+                            <p className="mt-1 mb-3 text-xs text-slate-300">
+                                Verified stores + OpenStreetMap
+                            </p>
+                        </div>
+                        {[1, 2, 3, 4, 5].map((i) => (
+                            <div key={i} className="rounded-xl border border-slate-100 bg-white p-3">
+                                <div className="flex items-start gap-2.5">
+                                    <Skeleton className="h-9 w-9 shrink-0 rounded-lg" />
+                                    <div className="min-w-0 flex-1 space-y-2">
+                                        <div className="flex items-center justify-between gap-2">
+                                            <Skeleton className="h-4 w-1/2" />
+                                            <Skeleton className="h-3 w-12 rounded-full" />
+                                        </div>
+                                        <Skeleton className="h-3 w-3/4" />
+                                    </div>
+                                </div>
+                                <div className="mt-2 ml-11 flex flex-wrap items-center gap-2">
+                                    <Skeleton className="h-4 w-16 rounded-full" />
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 ) : pharmacies.length === 0 ? (
-                    <div className="py-10 text-center">
-                        <MapPin size={30} className="mx-auto mb-2 text-slate-300" />
-                        <p className="text-sm font-bold text-slate-400">No pharmacies found</p>
-                        <p className="mt-1 text-xs text-slate-300">
-                            Try panning the map and pressing &ldquo;Search this area&rdquo;
-                        </p>
-                    </div>
+                    <EmptyState
+                        icon={<MapPin size={26} className="text-slate-400" />}
+                        title="No pharmacies found"
+                        description="Try panning the map and pressing “Search this area”"
+                        className="border-none !bg-transparent p-6 shadow-none"
+                    />
                 ) : (
                     pharmacies.map((pharmacy) => (
                         <PharmacyPanelRow
