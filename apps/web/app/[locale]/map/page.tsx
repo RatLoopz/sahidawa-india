@@ -151,7 +151,7 @@ function deduplicateOsm(verified: Pharmacy[], osm: Pharmacy[]): Pharmacy[] {
     });
 }
 
-// ── Draggable Bottom Drawer (PR #144 signature component) ────────────────────
+// ── Draggable Bottom Drawer ────────────────────────────────────────────────────
 function BottomDrawer({
     children,
     isOpen,
@@ -188,7 +188,7 @@ function BottomDrawer({
             <button
                 onClick={expandDrawer}
                 data-testid="mobile-pharmacy-pill"
-                className="pointer-events-auto absolute right-4 bottom-5 z-1000 flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-xs font-bold text-white shadow-xl transition-all hover:bg-slate-800 active:scale-95 md:hidden"
+                className="pointer-events-auto absolute right-4 bottom-5 z-1000 flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-xs font-bold text-white shadow-xl transition-all hover:bg-slate-800 active:scale-95 md:hidden dark:bg-slate-700"
                 aria-label={`Show nearby pharmacies list with ${count} results`}
             >
                 <ChevronUp size={14} />
@@ -202,26 +202,29 @@ function BottomDrawer({
             data-testid="mobile-pharmacy-drawer"
             className="pointer-events-none absolute right-4 bottom-4 left-20 z-1000 md:hidden"
         >
-            <div className="pointer-events-auto max-h-[68vh] rounded-[30px] border border-white/70 bg-white/85 p-2 shadow-2xl backdrop-blur-xl">
+            <div className="pointer-events-auto max-h-[68vh] rounded-[30px] border border-white/70 bg-white/85 p-2 shadow-2xl backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/90">
                 <div className="flex max-h-[calc(68vh-1rem)] flex-col overflow-hidden">
                     <div className="shrink-0 pb-2">
                         <div className="flex justify-center pt-2">
-                            <div className="h-1.5 w-10 rounded-full bg-slate-300" />
+                            <div className="h-1.5 w-10 rounded-full bg-slate-300 dark:bg-slate-600" />
                         </div>
                         <div className="mt-2 flex items-center justify-end gap-1 px-2">
                             <button
                                 onClick={collapseDrawer}
-                                className="rounded-full p-1.5 transition-colors hover:bg-slate-100"
+                                className="rounded-full p-1.5 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
                                 aria-label="Collapse nearby pharmacies list"
                             >
-                                <ChevronDown size={15} className="text-slate-500" />
+                                <ChevronDown
+                                    size={15}
+                                    className="text-slate-500 dark:text-slate-400"
+                                />
                             </button>
                             <button
                                 onClick={onClose}
-                                className="rounded-full p-1.5 transition-colors hover:bg-slate-100"
+                                className="rounded-full p-1.5 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
                                 aria-label="Hide nearby pharmacies list"
                             >
-                                <X size={13} className="text-slate-500" />
+                                <X size={13} className="text-slate-500 dark:text-slate-400" />
                             </button>
                         </div>
                     </div>
@@ -255,7 +258,6 @@ export default function PharmacyMapPage() {
     const [isLocating, setIsLocating] = useState(false);
     const [locationError, setLocationError] = useState<string | null>(null);
 
-    // Live data state (PR #147 engine)
     const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [fetchError, setFetchError] = useState<string | null>(null);
@@ -439,30 +441,34 @@ export default function PharmacyMapPage() {
     }, [fetchNearby]);
 
     const filters = [
-        { id: "all", label: "All Stores", activeClass: "bg-slate-900 text-white shadow-md" },
+        {
+            id: "all",
+            label: "All Stores",
+            activeClass: "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-md",
+        },
         {
             id: "verified",
             label: "Verified Partners",
             icon: <Shield size={11} className="text-current" />,
-            activeClass: "bg-emerald-600 text-white shadow-md shadow-emerald-200",
+            activeClass: "bg-emerald-600 text-white shadow-md shadow-emerald-200/20",
         },
         {
             id: "govt",
             label: "Jan Aushadhi",
             icon: <Globe size={11} />,
-            activeClass: "bg-emerald-600 text-white shadow-md shadow-emerald-200",
+            activeClass: "bg-emerald-600 text-white shadow-md shadow-emerald-200/20",
         },
         {
             id: "named",
             label: "Named Only",
             icon: <Star size={11} className="fill-current" />,
-            activeClass: "bg-amber-500 text-white shadow-md shadow-amber-200",
+            activeClass: "bg-amber-500 text-white shadow-md shadow-amber-200/20",
         },
         {
             id: "more",
             label: "Filters",
             icon: <Filter size={11} />,
-            activeClass: "bg-slate-100 text-slate-500",
+            activeClass: "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300",
         },
     ] as const;
 
@@ -502,13 +508,13 @@ export default function PharmacyMapPage() {
     };
 
     return (
-        <div className="flex h-screen flex-col overflow-hidden bg-slate-50 font-sans">
+        <div className="flex h-screen flex-col overflow-hidden bg-slate-50 font-sans transition-colors duration-300 dark:bg-slate-950">
             <h1 className="sr-only">Pharmacy Map — Find Verified Pharmacies Near You</h1>
 
             {/* ── Header with search ── */}
             <PageHeader backHref="/" variant="light">
                 <div
-                    className="flex flex-1 items-center rounded-2xl border border-slate-200 bg-slate-100 px-4 py-2 transition-all focus-within:border-emerald-500 focus-within:bg-white"
+                    className="flex flex-1 items-center rounded-2xl border border-slate-200 bg-slate-100 px-4 py-2 transition-all focus-within:border-emerald-500 focus-within:bg-white dark:border-slate-800 dark:bg-slate-800 dark:focus-within:bg-slate-900"
                     role="search"
                 >
                     <Search size={17} className="shrink-0 text-slate-400" aria-hidden />
@@ -517,13 +523,13 @@ export default function PharmacyMapPage() {
                         placeholder="Search verified pharmacies..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full border-none bg-transparent px-3 py-1.5 text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400"
+                        className="w-full border-none bg-transparent px-3 py-1.5 text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400 dark:text-slate-100"
                         aria-label="Search verified pharmacies"
                     />
                     {searchQuery && (
                         <button
                             onClick={() => setSearchQuery("")}
-                            className="shrink-0 text-slate-400 transition-colors hover:text-slate-600"
+                            className="shrink-0 text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-300"
                         >
                             <X size={15} />
                         </button>
@@ -532,7 +538,7 @@ export default function PharmacyMapPage() {
             </PageHeader>
 
             {/* ── Filter chips ── */}
-            <div className="relative z-20 border-b border-slate-100 bg-white p-4 pt-0 pb-4 shadow-sm">
+            <div className="relative z-20 border-b border-slate-100 bg-white p-4 pt-0 pb-4 shadow-sm transition-colors duration-300 dark:border-slate-800 dark:bg-slate-900">
                 <div
                     className="no-scrollbar flex gap-2 overflow-x-auto pb-1"
                     role="group"
@@ -558,13 +564,13 @@ export default function PharmacyMapPage() {
                                         : activeFilter === f.id
                                 )
                                     ? f.activeClass
-                                    : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                                    : "bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700"
                             }`}
                         >
                             {"icon" in f && f.icon}
                             {f.label}
                             {f.id === "more" && activeAdvancedFilterCount > 0 && (
-                                <span className="ml-0.5 rounded-full bg-slate-900 px-1.5 py-0.5 text-[9px] text-white">
+                                <span className="ml-0.5 rounded-full bg-slate-900 px-1.5 py-0.5 text-[9px] text-white dark:bg-slate-100 dark:text-slate-900">
                                     {activeAdvancedFilterCount}
                                 </span>
                             )}
@@ -573,9 +579,11 @@ export default function PharmacyMapPage() {
                 </div>
 
                 {showFilterPanel && (
-                    <div className="absolute top-[calc(100%-0.5rem)] right-4 left-4 z-30 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl md:right-auto md:w-80">
+                    <div className="absolute top-[calc(100%-0.5rem)] right-4 left-4 z-30 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl md:right-auto md:w-80 dark:border-slate-800 dark:bg-slate-900">
                         <div className="mb-2 flex items-center justify-between">
-                            <p className="text-xs font-bold text-slate-700">Filters</p>
+                            <p className="text-xs font-bold text-slate-700 dark:text-slate-100">
+                                Filters
+                            </p>
                             <button
                                 onClick={() =>
                                     setAdvancedFilters({
@@ -584,7 +592,7 @@ export default function PharmacyMapPage() {
                                         withinFiveKm: false,
                                     })
                                 }
-                                className="text-[11px] font-semibold text-slate-400 transition-colors hover:text-slate-600"
+                                className="text-[11px] font-semibold text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-300"
                             >
                                 Clear
                             </button>
@@ -597,7 +605,7 @@ export default function PharmacyMapPage() {
                             ].map(([key, label]) => (
                                 <label
                                     key={key}
-                                    className="flex cursor-pointer items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                                    className="flex cursor-pointer items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                                 >
                                     <span>{label}</span>
                                     <input
@@ -627,7 +635,7 @@ export default function PharmacyMapPage() {
                                 {filteredPharmacies.length} pharmacies found
                                 {searchQuery && <> for &ldquo;{searchQuery}&rdquo;</>}
                                 {pharmacyCount > 0 && (
-                                    <span className="text-emerald-600">
+                                    <span className="text-emerald-600 dark:text-emerald-400">
                                         {pharmacies.some((p) => p.isVerified)
                                             ? " • Verified + OSM"
                                             : " • Live from OSM"}
@@ -639,7 +647,7 @@ export default function PharmacyMapPage() {
                 </div>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-hidden bg-slate-100/80 md:p-4">
+            <div className="min-h-0 flex-1 overflow-hidden bg-slate-100/80 md:p-4 dark:bg-slate-950/80">
                 <div
                     data-testid="pharmacy-map-layout"
                     className="relative flex h-full min-h-0 flex-col overflow-hidden md:grid md:grid-cols-[minmax(22rem,30rem)_minmax(0,1fr)] md:gap-4"
@@ -650,13 +658,13 @@ export default function PharmacyMapPage() {
                     >
                         <PharmacyPanels
                             {...pharmacyPanelProps}
-                            className="h-full border-white/80 bg-white/94 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.45)]"
+                            className="h-full border-white/80 bg-white/94 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.45)] dark:border-slate-800 dark:bg-slate-900"
                         />
                     </aside>
 
                     <div
                         data-testid="pharmacy-map-pane"
-                        className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden md:rounded-[32px] md:border md:border-white/80 md:bg-white md:shadow-[0_28px_80px_-40px_rgba(15,23,42,0.55)]"
+                        className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden md:rounded-[32px] md:border md:border-white/80 md:bg-white md:shadow-[0_28px_80px_-40px_rgba(15,23,42,0.55)] dark:md:border-slate-800 dark:md:bg-slate-900"
                     >
                         <PharmacyMap
                             pharmacies={filteredPharmacies}
@@ -675,9 +683,12 @@ export default function PharmacyMapPage() {
                             <div className="absolute top-4 left-1/2 z-1000 -translate-x-1/2">
                                 <button
                                     onClick={handleSearchThisArea}
-                                    className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-xs font-bold text-slate-700 shadow-xl transition-all hover:bg-slate-50 hover:shadow-2xl active:scale-95"
+                                    className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-xs font-bold text-slate-700 shadow-xl transition-all hover:bg-slate-50 hover:shadow-2xl active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                                 >
-                                    <RefreshCw size={13} className="text-emerald-600" />
+                                    <RefreshCw
+                                        size={13}
+                                        className="text-emerald-600 dark:text-emerald-400"
+                                    />
                                     Search this area
                                 </button>
                             </div>
@@ -685,8 +696,11 @@ export default function PharmacyMapPage() {
 
                         {isLoading && (
                             <div className="absolute top-4 left-1/2 z-1000 -translate-x-1/2">
-                                <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-xs font-bold text-slate-600 shadow-xl">
-                                    <Loader2 size={13} className="animate-spin text-emerald-600" />
+                                <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-xs font-bold text-slate-600 shadow-xl dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                                    <Loader2
+                                        size={13}
+                                        className="animate-spin text-emerald-600 dark:text-emerald-400"
+                                    />
                                     Fetching pharmacies…
                                 </div>
                             </div>
@@ -695,7 +709,7 @@ export default function PharmacyMapPage() {
                         <div className="absolute top-4 right-4 z-1000 flex flex-col gap-2">
                             <button
                                 data-testid="mobile-pharmacy-list-toggle"
-                                className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-100 bg-white text-slate-600 shadow-lg transition-all hover:text-slate-900 hover:shadow-xl md:hidden"
+                                className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-100 bg-white text-slate-600 shadow-lg transition-all hover:text-slate-900 hover:shadow-xl md:hidden dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white"
                                 aria-label="Toggle pharmacy list"
                                 title="Toggle pharmacy list"
                                 onClick={() => setShowBottomSheet((open) => !open)}
@@ -705,12 +719,12 @@ export default function PharmacyMapPage() {
                             <button
                                 onClick={handleLocateUser}
                                 disabled={isLocating}
-                                className={`flex h-10 w-10 items-center justify-center rounded-xl border border-slate-100 shadow-lg transition-all ${
+                                className={`flex h-10 w-10 items-center justify-center rounded-xl border border-slate-100 shadow-lg transition-all dark:border-slate-800 ${
                                     isLocating
-                                        ? "animate-pulse bg-emerald-50 text-emerald-600"
+                                        ? "animate-pulse bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
                                         : userLocation
                                           ? "bg-emerald-600 text-white hover:bg-emerald-700"
-                                          : "bg-white text-emerald-600 hover:text-emerald-900 hover:shadow-xl"
+                                          : "bg-white text-emerald-600 hover:text-emerald-900 hover:shadow-xl dark:bg-slate-900 dark:text-emerald-400 dark:hover:text-emerald-300"
                                 }`}
                                 aria-label="Find my location"
                                 title="Find my location"
@@ -720,7 +734,7 @@ export default function PharmacyMapPage() {
                         </div>
 
                         {(locationError || fetchError) && (
-                            <div className="animate-in slide-in-from-top-2 absolute top-4 right-16 left-4 z-1000 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700 shadow-lg duration-300">
+                            <div className="animate-in slide-in-from-top-2 absolute top-4 right-16 left-4 z-1000 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700 shadow-lg duration-300 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
                                 {locationError || fetchError}
                             </div>
                         )}
@@ -733,7 +747,7 @@ export default function PharmacyMapPage() {
                         >
                             <PharmacyPanels
                                 {...pharmacyPanelProps}
-                                className="h-full border-white/80 bg-white/96 shadow-none"
+                                className="h-full border-white/80 bg-white/96 shadow-none dark:border-slate-800 dark:bg-slate-900"
                             />
                         </BottomDrawer>
                     </div>
@@ -741,7 +755,7 @@ export default function PharmacyMapPage() {
             </div>
 
             {/* Safe-area footer */}
-            <div className="h-4 bg-white md:hidden" aria-hidden="true" />
+            <div className="h-4 bg-white md:hidden dark:bg-slate-900" aria-hidden="true" />
         </div>
     );
 }
