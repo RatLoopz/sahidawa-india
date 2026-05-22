@@ -808,7 +808,7 @@ export default function ScanPage() {
     };
 
     return (
-        <div className="relative flex min-h-screen flex-col overflow-hidden bg-black font-sans text-white">
+        <div className="relative flex min-h-screen flex-col overflow-x-hidden bg-black font-sans text-white">
             <input
                 type="file"
                 id="medicine-upload"

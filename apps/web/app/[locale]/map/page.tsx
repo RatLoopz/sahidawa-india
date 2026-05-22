@@ -741,7 +741,7 @@ export default function PharmacyMapPage() {
             </div>
 
             {/* Safe-area footer */}
-            <div className="bg-transparent md:hidden" aria-hidden="true" />
+            <div className="pb-[env(safe-area-inset-bottom)] bg-transparent md:hidden" aria-hidden="true" />
         </div>
     );
 }
