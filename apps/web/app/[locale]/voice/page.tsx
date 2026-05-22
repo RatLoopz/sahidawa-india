@@ -94,7 +94,8 @@ function getConfidenceValueLabel(
         unavailable: "confidence_values.unavailable",
     };
 
-    return t(keyMap[confidence.id] as any);
+    const key = keyMap[confidence.id];
+    return t(key as any);
 }
 
 export default function VoiceTriagePage() {
@@ -484,7 +485,15 @@ export default function VoiceTriagePage() {
 
         stopSpeaking(window);
 
-        const utterance = new SpeechSynthesisUtterance(result.summary);
+        // Combine summary and recommendations for reading
+        let textToSpeak = result.summary;
+
+        if (result.recommendations && result.recommendations.length > 0) {
+            textToSpeak += ". " + t("recommendations_label") + ": ";
+            textToSpeak += result.recommendations.join(". ") + ".";
+        }
+
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
         utterance.lang = resultLanguageOption.speechSynthesisLang;
         const bestVoice = findBestVoice(window, resultLanguageOption.speechSynthesisLang);
 
@@ -601,7 +610,6 @@ export default function VoiceTriagePage() {
             setStep("error");
             return;
         }
-
         const recognition = new SpeechRecognition();
         recognition.lang = selectedLanguageOption.speechRecognition;
         recognition.interimResults = true;
