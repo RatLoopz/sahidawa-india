@@ -12,6 +12,7 @@ import Chatbot from "./components/Chatbot";
 import "./globals.css";
 import "../../src/styles/print.css";
 import { Toaster } from "sonner";
+import Footer from "./components/Footer";
 
 export const metadata: Metadata = {
     title: "SahiDawa — Verify Your Medicine",
@@ -65,6 +66,7 @@ export default async function LocaleLayout({
                             <OfflineErrorBoundary>
                                 <OfflineBanner />
                                 {children}
+                                <Footer />
                                 <div className="no-print">
                                     <Chatbot />
                                 </div>
