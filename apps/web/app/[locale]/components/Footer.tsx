@@ -46,6 +46,9 @@ export default function Footer() {
                             >
                                 Contributing Guide
                             </a>
+                            <Link href="/faq" className="transition-all duration-200 hover:translate-x-1 hover:text-white">
+                             FAQ
+                          </Link>
                             <Link
                                 href="/about"
                                 className="transition-all duration-200 hover:translate-x-1 hover:text-white"
