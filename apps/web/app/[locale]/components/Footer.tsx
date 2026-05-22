@@ -48,6 +48,12 @@ export default function Footer() {
                             </a>
                             <Link href="/faq" className="transition-all duration-200 hover:translate-x-1 hover:text-white">
                              FAQ
+                          </Link>
+                            <Link
+                                href="/about"
+                                className="transition-all duration-200 hover:translate-x-1 hover:text-white"
+                            >
+                                About Us
                             </Link>
                         </div>
                     </div>

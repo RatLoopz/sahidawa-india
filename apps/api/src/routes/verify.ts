@@ -10,6 +10,76 @@ const verifySchema = z.object({
         .min(3, "batchNumber must be at least 3 characters long"),
 });
 
+/**
+ * @openapi
+ * /api/verify:
+ *   post:
+ *     tags:
+ *       - Medicine Verification
+ *     summary: Verify a medicine by batch number
+ *     description: >
+ *       Looks up a medicine in the CDSCO database using its batch number.
+ *       Returns full medicine details including approval status and counterfeit alert flag.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - batchNumber
+ *             properties:
+ *               batchNumber:
+ *                 type: string
+ *                 minLength: 3
+ *                 example: "BN2024001"
+ *                 description: The batch number printed on the medicine packaging
+ *     responses:
+ *       200:
+ *         description: Medicine found and verified
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 verified:
+ *                   type: boolean
+ *                   example: true
+ *                 medicine:
+ *                   $ref: '#/components/schemas/Medicine'
+ *       400:
+ *         description: Invalid request body
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Medicine not found in database
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 verified:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Medicine not found"
+ *       500:
+ *         description: Database lookup failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 verified:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Database lookup failed"
+ */
 router.post("/", async (req: Request, res: Response) => {
     const parsed = verifySchema.safeParse(req.body);
 
