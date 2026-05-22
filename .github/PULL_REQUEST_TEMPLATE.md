@@ -1,3 +1,9 @@
+### 🛑 STOP: Assignment Check
+
+- [ ] I am officially assigned to the issue this PR fixes.
+
+_(Warning: If you are not assigned, this PR will be immediately closed without review to prevent duplicate work)._
+
 ## 📋 PR Summary
 
 <!-- Provide a brief summary of the changes introduced by this PR. -->

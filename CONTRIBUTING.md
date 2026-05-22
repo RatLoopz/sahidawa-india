@@ -1,5 +1,8 @@
 # Contributing to SahiDawa 🩺
 
+> **⚠️ CRITICAL RULE FOR CONTRIBUTORS: We have a strict assignment policy. You MUST request assignment on an issue and wait for a maintainer to assign you before writing any code. Any Pull Requests submitted without assignment will be closed automatically to prevent duplicate work.**
+> 
+
 Thank you for wanting to contribute to SahiDawa! Every PR you submit helps protect a real person from a fake medicine. Read this guide fully before submitting your first contribution — it will save you time and help your PR get merged faster.
 
 ---

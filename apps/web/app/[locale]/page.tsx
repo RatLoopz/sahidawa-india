@@ -23,7 +23,6 @@ import { supabase } from "@/lib/supabase";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import LanguageSwitcher from "./LanguageSwitcher";
-import Footer from "./components/Footer";
 import SearchBar from "./components/SearchBar";
 
 function formatRelativeTime(dateString: string | null): string {
@@ -510,7 +509,6 @@ export default function SahiDawaHome() {
                     <span className="text-[11px] font-semibold">Profile</span>
                 </Link>
             </nav>
-            <Footer />
         </div>
     );
 }

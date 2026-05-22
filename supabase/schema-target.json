@@ -13,6 +13,8 @@
         "composition",
         "cdsco_approval_status",
         "is_counterfeit_alert",
+        "mrp",
+        "jan_aushadhi_price",
         "created_at",
         "updated_at"
       ],
