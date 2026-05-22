@@ -63,7 +63,7 @@ function parseExpiryDate(text: string): string | null {
     const genericRegex = /\b(0[1-9]|1[0-2])[/\s-](20[2-9][0-9]|[2-9][0-9])\b/g;
     let genericMatch;
     while ((genericMatch = genericRegex.exec(text)) !== null) {
-        let month = genericMatch[1];
+        const month = genericMatch[1];
         let year = genericMatch[2];
         if (year.length === 2) year = "20" + year;
         return `${month}/${year}`;
@@ -827,10 +827,7 @@ export default function ScanPage() {
             <div className="relative flex flex-1 items-center justify-center overflow-hidden">
                 <div className="absolute inset-0 overflow-hidden bg-slate-900">
                     {isCameraActive ? (
-                        <BarcodeScanner
-                            onScan={handleBarcodeScan}
-                            debounceMs={2500}
-                        />
+                        <BarcodeScanner onScan={handleBarcodeScan} debounceMs={2500} />
                     ) : uploadedImage ? (
                         <LazyImage
                             src={uploadedImage}

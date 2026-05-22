@@ -1,199 +1,266 @@
 @import "tailwindcss";
 
+:root {
+    --color-brand-primary: #10b981;
+    --color-brand-success: #16a34a;
+    --color-brand-primary-hover: #059669;
+    --color-brand-primary-dark: #047857;
+    --color-brand-primary-soft: #d1fae5;
+    --color-brand-primary-subtle: #dcfce7;
+    --color-brand-primary-text: #065f46;
+    --color-brand-primary-strong-text: #166534;
+    --color-brand-secondary: #2563eb;
+    --color-brand-secondary-bright: #3b82f6;
+    --color-brand-secondary-soft: #dbeafe;
+    --color-brand-secondary-subtle: #eff6ff;
+    --color-brand-primary-faint: #ecfdf5;
+    --color-accent-cyan: #0891b2;
+    --color-accent-cyan-soft: #06b6d4;
+    --color-accent-warning: #fbbf24;
+    --color-accent-warning-soft: #fef3c7;
+    --color-accent-warning-text: #92400e;
+    --color-accent-warning-strong-text: #b45309;
+    --color-accent-danger: #dc2626;
+    --color-accent-danger-soft: #fee2e2;
+    --color-accent-danger-bright: #ef4444;
+    --color-accent-danger-text: #991b1b;
+    --color-surface-page: #ffffff;
+    --color-surface-page-dark: #000000;
+    --color-surface-warm: #f8f7f4;
+    --color-surface-login: #f5f7fb;
+    --color-surface-muted: #f8fafc;
+    --color-surface-scrollbar: #f1f1f1;
+    --color-border-muted: #e2e8f0;
+    --color-text-primary: #1e293b;
+    --color-text-secondary: #64748b;
+    --color-text-muted: #94a3b8;
+    --color-text-subtle: #a1a1aa;
+    --color-text-neutral: #6b7280;
+    --color-text-inverse: #ffffff;
+    --color-print-ink: #000000;
+    --color-dark-surface: #0f172a;
+    --color-dark-surface-muted: #1e293b;
+    --color-dark-text: #e2e8f0;
+    --color-dark-scrollbar: #475569;
+    --color-dark-scrollbar-hover: #64748b;
+    --color-scrollbar-thumb: #cbd5e1;
+}
+
 @layer base {
-  /* Scanner sweep animation */
-  @keyframes scan {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(280px); }
-  }
-
-  .animate-scan {
-    animation: scan 2.5s ease-in-out infinite;
-  }
-
-  /* Chat UI animations */
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
+    /* Scanner sweep animation */
+    @keyframes scan {
+        0%,
+        100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(280px);
+        }
     }
-    to {
-      opacity: 1;
-      transform: translateY(0);
+
+    .animate-scan {
+        animation: scan 2.5s ease-in-out infinite;
     }
-  }
 
-  @keyframes bounce {
-    0%, 60%, 100% {
-      transform: translateY(0);
+    /* Chat UI animations */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
-    30% {
-      transform: translateY(-10px);
+
+    @keyframes bounce {
+        0%,
+        60%,
+        100% {
+            transform: translateY(0);
+        }
+        30% {
+            transform: translateY(-10px);
+        }
     }
-  }
 
-  .animate-slideIn {
-    animation: slideIn 0.3s ease-out forwards;
-  }
-
-  .animate-bounce {
-    animation: bounce 1.4s ease-in-out infinite;
-  }
-
-  /* Leaflet Popup Overrides — match SahiDawa design */
-  .sahidawa-popup .leaflet-popup-content-wrapper {
-    border-radius: 20px !important;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06) !important;
-    border: 1px solid #e2e8f0 !important;
-    padding: 0 !important;
-    overflow: hidden;
-  }
-
-  .sahidawa-popup .leaflet-popup-content {
-    margin: 0 !important;
-    line-height: 1.5;
-  }
-
-  .sahidawa-popup .leaflet-popup-close-button {
-    top: 8px !important;
-    right: 8px !important;
-    width: 24px !important;
-    height: 24px !important;
-    font-size: 18px !important;
-    color: #94a3b8 !important;
-    background: #f8fafc !important;
-    border-radius: 50% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 0 !important;
-    line-height: 1 !important;
-    z-index: 10;
-    transition: all 0.15s ease;
-  }
-
-  .sahidawa-popup .leaflet-popup-close-button:hover {
-    color: #1e293b !important;
-    background: #e2e8f0 !important;
-  }
-
-  .sahidawa-popup .leaflet-popup-tip {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-    border: 1px solid #e2e8f0 !important;
-  }
-
-  /* User location pulse animation */
-  @keyframes sahidawa-pulse {
-    0% {
-      transform: scale(1);
-      opacity: 1;
+    .animate-slideIn {
+        animation: slideIn 0.3s ease-out forwards;
     }
-    50% {
-      transform: scale(2.5);
-      opacity: 0;
+
+    .animate-bounce {
+        animation: bounce 1.4s ease-in-out infinite;
     }
-    100% {
-      transform: scale(1);
-      opacity: 0;
+
+    /* Leaflet Popup Overrides — match SahiDawa design */
+    .sahidawa-popup .leaflet-popup-content-wrapper {
+        border-radius: 20px !important;
+        box-shadow:
+            0 10px 40px rgba(0, 0, 0, 0.12),
+            0 2px 8px rgba(0, 0, 0, 0.06) !important;
+        border: 1px solid var(--color-border-muted) !important;
+        padding: 0 !important;
+        overflow: hidden;
     }
-  }
 
-  /* Remove default Leaflet marker icon outline */
-  .sahidawa-marker {
-    background: transparent !important;
-    border: none !important;
-  }
-
-  .sahidawa-marker-shell {
-    transition: transform 0.2s ease-out, filter 0.2s ease-out;
-    transform-origin: 50% 100%;
-  }
-
-  /* iOS-style spring bounce on marker hover */
-  @keyframes marker-bounce-in {
-    0%   { transform: scale(1) translateY(0); }
-    30%  { transform: scale(1.22) translateY(-8px); }
-    55%  { transform: scale(1.06) translateY(-2px); }
-    80%  { transform: scale(1.14) translateY(-5px); }
-    100% { transform: scale(1.12) translateY(-4px); }
-  }
-
-  .sahidawa-marker-hover .sahidawa-marker-shell {
-    animation: marker-bounce-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    filter: drop-shadow(0 10px 16px rgba(15, 23, 42, 0.22));
-  }
-
-  .sahidawa-marker-hover {
-    z-index: 1000 !important;
-  }
-
-  .user-location-marker {
-    background: transparent !important;
-    border: none !important;
-  }
-
-  /* No scrollbar utility */
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  /* Animate-in for toasts */
-  @keyframes slide-in-from-top-2 {
-    from {
-      transform: translateY(-8px);
-      opacity: 0;
+    .sahidawa-popup .leaflet-popup-content {
+        margin: 0 !important;
+        line-height: 1.5;
     }
-    to {
-      transform: translateY(0);
-      opacity: 1;
+
+    .sahidawa-popup .leaflet-popup-close-button {
+        top: 8px !important;
+        right: 8px !important;
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 18px !important;
+        color: var(--color-text-muted) !important;
+        background: var(--color-surface-muted) !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        line-height: 1 !important;
+        z-index: 10;
+        transition: all 0.15s ease;
     }
-  }
-  .animate-in.slide-in-from-top-2 {
-    animation: slide-in-from-top-2 0.3s ease-out;
-  }
+
+    .sahidawa-popup .leaflet-popup-close-button:hover {
+        color: var(--color-text-primary) !important;
+        background: var(--color-border-muted) !important;
+    }
+
+    .sahidawa-popup .leaflet-popup-tip {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+        border: 1px solid var(--color-border-muted) !important;
+    }
+
+    /* User location pulse animation */
+    @keyframes sahidawa-pulse {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(2.5);
+            opacity: 0;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 0;
+        }
+    }
+
+    /* Remove default Leaflet marker icon outline */
+    .sahidawa-marker {
+        background: transparent !important;
+        border: none !important;
+    }
+
+    .sahidawa-marker-shell {
+        transition:
+            transform 0.2s ease-out,
+            filter 0.2s ease-out;
+        transform-origin: 50% 100%;
+    }
+
+    /* iOS-style spring bounce on marker hover */
+    @keyframes marker-bounce-in {
+        0% {
+            transform: scale(1) translateY(0);
+        }
+        30% {
+            transform: scale(1.22) translateY(-8px);
+        }
+        55% {
+            transform: scale(1.06) translateY(-2px);
+        }
+        80% {
+            transform: scale(1.14) translateY(-5px);
+        }
+        100% {
+            transform: scale(1.12) translateY(-4px);
+        }
+    }
+
+    .sahidawa-marker-hover .sahidawa-marker-shell {
+        animation: marker-bounce-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        filter: drop-shadow(0 10px 16px rgba(15, 23, 42, 0.22));
+    }
+
+    .sahidawa-marker-hover {
+        z-index: 1000 !important;
+    }
+
+    .user-location-marker {
+        background: transparent !important;
+        border: none !important;
+    }
+
+    /* No scrollbar utility */
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    /* Animate-in for toasts */
+    @keyframes slide-in-from-top-2 {
+        from {
+            transform: translateY(-8px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    .animate-in.slide-in-from-top-2 {
+        animation: slide-in-from-top-2 0.3s ease-out;
+    }
 }
 
 @theme {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+    --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 /* Custom scrollbar for chat */
 ::-webkit-scrollbar {
-  width: 6px;
+    width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
+    background: var(--color-surface-scrollbar);
+    border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
+    background: var(--color-scrollbar-thumb);
+    border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+    background: var(--color-text-muted);
 }
 
 /* Dark mode support */
 .dark body {
-  background-color: #0f172a;
-  color: #e2e8f0;
+    background-color: var(--color-dark-surface);
+    color: var(--color-border-muted);
 }
 
 .dark ::-webkit-scrollbar-track {
-  background: #1e293b;
+    background: var(--color-text-primary);
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: #475569;
+    background: var(--color-dark-scrollbar);
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+    background: var(--color-text-secondary);
 }
