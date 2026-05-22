@@ -1,0 +1,94 @@
+name: ✨ Feature Request
+description: Suggest a new feature or improvement for SahiDawa.
+title: "[FEATURE] <Brief description>"
+labels: ["type:feature"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Suggest a Feature! 🚀
+        SahiDawa is community-built for 1.4 billion Indians. Every idea matters.
+        > **GSSoC 2026 contributors:** If you want to implement this, mention it below and a maintainer will assign it to you.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which area does this feature belong to?
+      options:
+        - "Frontend — UI / UX (apps/web)"
+        - "Backend — API / Express (apps/api)"
+        - "ML / AI — Voice, OCR, LangChain (apps/ml)"
+        - "Medicine Scanner / Barcode / QR"
+        - "Pharmacy & ASHA Map (PostGIS / Leaflet)"
+        - "Voice Health Assistant (Whisper + Sarvam)"
+        - "Counterfeit Heatmap"
+        - "Translation / i18n (22 Indian languages)"
+        - "Database / Supabase Schema"
+        - "DevOps / CI-CD / Docker"
+        - "Accessibility (WCAG)"
+        - "PWA / Offline Support"
+        - "Other"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: difficulty
+    attributes:
+      label: Estimated Difficulty
+      description: How complex is this feature to implement?
+      options:
+        - "🟢 Good First Issue — Beginner friendly"
+        - "🟡 Intermediate — Some experience needed"
+        - "🔴 Advanced — Complex implementation"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the user problem or gap this feature addresses.
+      placeholder: "Rural users can't verify medicines because they don't speak English and the current UI has no Hindi support..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the feature you'd like to see implemented.
+      placeholder: "Add a language switcher in the navbar that loads the i18n JSON file for the selected language..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: How will we know this feature is done? (Optional but very helpful)
+      placeholder: |
+        - [ ] User can select language from dropdown
+        - [ ] All UI text updates immediately
+        - [ ] Selection is persisted in localStorage
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: gssoc
+    attributes:
+      label: GSSoC 2026
+      options:
+        - label: I am a GSSoC 2026 participant and would like to implement this feature.
+          required: false
+        - label: This feature uses **Cloudinary** (eligible for GSSoC Cloudinary bounty 🏆).
+          required: false
+
+  - type: checkboxes
+    id: conduct
+    attributes:
+      label: Code of Conduct
+      options:
+        - label: I have read and agree to SahiDawa's [Code of Conduct](https://github.com/RatLoopz/sahidawa-india/blob/main/CODE_OF_CONDUCT.md).
+          required: true

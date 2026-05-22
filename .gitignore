@@ -1,0 +1,56 @@
+# Dependency directories
+node_modules/
+jspm_packages/
+venv/
+env/
+.venv/
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+
+# Python / ML Service
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+
+.agents/
+.agent/
+
+# Environment variables (Crucial for security!)
+.env
+.env.*
+!.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
+
+# OS Metadata
+.DS_Store
+Thumbs.db
+
+# IDE / Editor folders
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Coverage folders (for testing)
+coverage/
+.nyc_output/
+
+# Temporary files
+.tmp/
+.cache/
+.turbo/

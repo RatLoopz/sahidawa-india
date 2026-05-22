@@ -1,0 +1,71 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: development
+
+    working_dir: /app
+
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/web/node_modules
+      - /app/apps/web/.next
+    command: npm run dev -w apps/web
+
+    ports:
+      - "3000:3000"
+    tty: true
+    stdin_open: true
+    environment:
+      - NODE_ENV=development
+      - NODE_OPTIONS=--max-old-space-size=4096
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - api
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: development
+
+    working_dir: /app
+
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/api/node_modules
+    command: npm run dev -w apps/api
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - REDIS_URL=redis://redis:6379
+      - ML_SERVICE_URL=http://ml:8000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - redis
+      - ml
+
+  ml:
+    build:
+      context: ./apps/ml
+    working_dir: /app
+    volumes:
+      - ./apps/ml:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+# Note: For the database, please use `npx supabase start` in a separate terminal.

@@ -1,0 +1,162 @@
+name: 🔕 Auto Detect Ping Spam
+
+on:
+  issue_comment:
+    types:
+      - created
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+
+concurrency:
+  group: ping-spam-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  detect-ping-spam:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Detect and rate-limit spam pings
+        uses: actions/github-script@v9
+
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const issue = context.payload.issue;
+            const comment = context.payload.comment;
+            const sender = context.payload.sender;
+
+            const issue_number = issue.number;
+            const username = sender.login;
+
+            const body = (comment.body || '').toLowerCase();
+
+            // ─────────────────────────────────────────────
+            // Ignore bots
+            // ─────────────────────────────────────────────
+            if (sender.type === 'Bot') {
+              core.info('Ignoring bot.');
+              return;
+            }
+
+            // ─────────────────────────────────────────────
+            // Ignore maintainers/collaborators
+            // ─────────────────────────────────────────────
+            const association = comment.author_association || '';
+            const exemptRoles = ['OWNER', 'MEMBER', 'COLLABORATOR'];
+
+            if (exemptRoles.includes(association)) {
+              core.info('Ignoring maintainer/collaborator.');
+              return;
+            }
+
+            // ─────────────────────────────────────────────
+            // Detect aggressive spam pings
+            // ❌ REMOVED NORMAL OSS PHRASES: 'please assign', 'any updates', 'please review'
+            // ─────────────────────────────────────────────
+            const aggressivePatterns = [
+              'assign fast',
+              'assign me fast',
+              'assign me immediately',
+              'merge pls',
+              'please merge',
+              'merge fast',
+              'why no response',
+              'why not assigned',
+              'urgent review',
+              'ping ping',
+              'check this pr now'
+            ];
+
+            const matchedSpam = aggressivePatterns.some(pattern => body.includes(pattern));
+
+            if (!matchedSpam) {
+              core.info('No aggressive ping detected. (Normal comments are allowed)');
+              return;
+            }
+
+            // ─────────────────────────────────────────────
+            // Fetch contributor comments & Rate Limit Check
+            // ─────────────────────────────────────────────
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100
+            });
+
+            // Time window: Last 2 hours
+            const TWO_HOURS_AGO = new Date(Date.now() - 2 * 60 * 60 * 1000);
+
+            const recentAggressiveComments = comments.filter(c => {
+              if (c.user.login !== username) return false;
+              if (new Date(c.created_at) < TWO_HOURS_AGO) return false;
+
+              const text = (c.body || '').toLowerCase();
+              return aggressivePatterns.some(pattern => text.includes(pattern));
+            });
+
+            const spamCount = recentAggressiveComments.length;
+            core.info(`Aggressive pings by @${username} in the last 2 hours: ${spamCount}`);
+
+            // ─────────────────────────────────────────────
+            // Threshold Check (Wait for at least 4 pings in 2 hours)
+            // ─────────────────────────────────────────────
+            if (spamCount < 4) {
+              core.info(`Threshold not reached (${spamCount}/4). No action taken.`);
+              return;
+            }
+
+            // ─────────────────────────────────────────────
+            // Moderation Actions (Soft Warning & Silent Label)
+            // ─────────────────────────────────────────────
+            core.info(`Threshold exceeded! Moderating @${username}...`);
+
+            // Check if we already warned them today
+            const TWENTY_FOUR_HOURS_AGO = new Date(Date.now() - 24 * 60 * 60 * 1000);
+            const alreadyWarned = comments.some(c => 
+              c.user.type === 'Bot' && 
+              new Date(c.created_at) > TWENTY_FOUR_HOURS_AGO &&
+              c.body.includes('Friendly Request Regarding Pings')
+            );
+
+            if (!alreadyWarned) {
+              const warning = 
+                `## ⏳ Friendly Request Regarding Pings\n\n` +
+                `Hi @${username}, we love your enthusiasm! 💙\n\n` +
+                `We noticed multiple quick requests for assignment or review. Our maintainers are reviewing contributions in queue order as fast as possible. ` +
+                `Repeatedly pinging can actually slow down the review process for everyone.\n\n` +
+                `**Recommended waiting times:**\n` +
+                `- Assignments: 12–24 hours\n` +
+                `- PR reviews: 24–72 hours\n\n` +
+                `Thank you for your patience and for contributing to SahiDawa! 🚀`;
+
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body: warning
+              });
+            } else {
+              core.info('Already warned recently. Skipping comment to avoid bot spam.');
+            }
+
+            // Add silent moderation label for maintainers to notice
+            try {
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number,
+                labels: ['excessive-pings']
+              });
+              core.info('Added "excessive-pings" label successfully.');
+            } catch (err) {
+              core.warning(`Failed adding label: ${err.message}`);
+            }

@@ -1,0 +1,82 @@
+name: 🌏 Language Translation
+description: Claim one of the 22 Indian scheduled languages to translate SahiDawa.
+title: "[I18N] Add <Language Name> translation"
+labels: ["type:docs"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Help SahiDawa reach every Indian! 🇮🇳
+        SahiDawa targets all 22 official Indian scheduled languages. Each language translation is a separate `messages/<code>.json` file in `apps/web/messages/`.
+
+        **Before claiming:** Check that nobody else is working on this language. Search [open issues](https://github.com/RatLoopz/sahidawa-india/issues?q=is%3Aissue+label%3Ai18n) first.
+
+        **File to create:** `apps/web/messages/<language-code>.json` (e.g., `hi.json` for Hindi)
+        **Reference file:** Copy structure from `apps/web/messages/en.json`
+
+  - type: dropdown
+    id: language
+    attributes:
+      label: Which Indian language?
+      description: Select the language you are fluent in and want to translate.
+      options:
+        - "Hindi — hi (हिन्दी)"
+        - "Tamil — ta (தமிழ்)"
+        - "Telugu — te (తెలుగు)"
+        - "Kannada — kn (ಕನ್ನಡ)"
+        - "Malayalam — ml (മലയാളം)"
+        - "Bengali — bn (বাংলা)"
+        - "Gujarati — gu (ગુજરાતી)"
+        - "Marathi — mr (मराठी)"
+        - "Punjabi — pa (ਪੰਜਾਬੀ)"
+        - "Odia — or (ଓଡ଼ିଆ)"
+        - "Assamese — as (অসমীয়া)"
+        - "Urdu — ur (اردو)"
+        - "Sanskrit — sa (संस्कृत)"
+        - "Maithili — mai"
+        - "Kashmiri — ks"
+        - "Konkani — kok"
+        - "Sindhi — sd"
+        - "Dogri — doi"
+        - "Bodo — brx"
+        - "Manipuri — mni"
+        - "Santali — sat"
+    validations:
+      required: true
+
+  - type: textarea
+    id: proficiency
+    attributes:
+      label: Language Proficiency
+      description: Tell us your relationship with this language.
+      placeholder: "I am a native speaker of Tamil from Chennai. I have been speaking it my whole life."
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Contributor Confirmation
+      options:
+        - label: I have checked that no one else is already working on this language translation.
+          required: true
+        - label: I will translate all keys in `apps/web/messages/en.json` (technical terms like API, URL stay in English).
+          required: true
+
+  - type: checkboxes
+    id: gssoc
+    attributes:
+      label: GSSoC 2026
+      options:
+        - label: I am a GSSoC 2026 participant and would like to claim this translation task.
+          required: false
+
+  - type: checkboxes
+    id: conduct
+    attributes:
+      label: Code of Conduct
+      options:
+        - label: I have read and agree to SahiDawa's [Code of Conduct](https://github.com/RatLoopz/sahidawa-india/blob/main/CODE_OF_CONDUCT.md).
+          required: true

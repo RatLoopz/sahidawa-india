@@ -1,0 +1,6 @@
+barcode_id,brand_name,generic_name,manufacturer,batch_number,manufacturing_date,expiry_date,composition,cdsco_approval_status,is_counterfeit_alert
+8901234567890,Dolo 650,Paracetamol 650mg,Micro Labs Ltd,DL23X1,2025-01-10,2028-01-09,"Paracetamol IP 650mg",approved,false
+8902345678901,Augmentin 625 Duo,Amoxicillin + Clavulanic Acid,GSK,AUG625D,2025-02-15,2027-02-14,"Amoxicillin 500mg, Clavulanic Acid 125mg",approved,false
+8903456789012,Allegra 120,Fexofenadine 120mg,Sanofi India,ALG120M,2024-11-20,2026-11-19,"Fexofenadine Hydrochloride 120mg",approved,false
+8904567890123,Pan 40,Pantoprazole 40mg,Alkem Laboratories,PAN40T,2025-03-01,2027-02-28,"Pantoprazole Sodium 40mg",approved,false
+8905678901234,Fake Dolo 650,Paracetamol 650mg,Micro Labs Ltd,DL23X9,2025-01-10,2028-01-09,"Chalk Powder",banned,true

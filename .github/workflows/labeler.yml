@@ -1,0 +1,68 @@
+name: Label Issues and PRs
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review, closed]
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+
+jobs:
+  auto-label-pr-files:
+    name: "Auto-label PRs based on changed files"
+    if: github.event_name == 'pull_request_target' && github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/labeler@v6
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          sync-labels: true
+
+  apply-gssoc-label:
+    name: "Apply default GSSoC 2026 label"
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const label = 'gssoc:approved';
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            
+            if (context.eventName === 'issues') {
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: context.issue.number,
+                labels: [label]
+              });
+            } else if (context.eventName === 'pull_request_target') {
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: context.payload.pull_request.number,
+                labels: [label]
+              });
+            }
+
+  apply-gssoc-approved:
+    name: "Apply gssoc-approved on merge from fork"
+    if: github.event_name == 'pull_request_target' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              labels: ['gssoc:approved']
+            });

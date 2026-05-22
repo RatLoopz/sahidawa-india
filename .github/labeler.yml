@@ -1,0 +1,35 @@
+# GitHub Labeler Configuration
+# Automatically applies labels based on files changed in a PR.
+# Uses actions/labeler@v6 syntax.
+# Docs: https://github.com/actions/labeler
+
+# ── Type Labels ──────────────────────────────────────────────
+type:docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "*.md"
+          - ".github/**/*.md"
+
+type:devops:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+          - "docker-compose*.yml"
+          - "**/Dockerfile"
+          - "package.json"
+          - "package-lock.json"
+          - "apps/*/package.json"
+          - "apps/ml/requirements.txt"
+
+type:security:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "apps/api/src/middleware/**"
+          - ".env.example"
+
+# ── GSSoC auto-labeled on Issues and PRs.
+gssoc:approved:
+  - any-glob-to-any-file:
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/PULL_REQUEST_TEMPLATE/**"
