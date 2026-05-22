@@ -18,6 +18,8 @@ import { Link } from "@/i18n/routing";
 import { PageHeader } from "../../components/PageHeader";
 import Card from "@/components/Card";
 import LazyImage from "@/components/LazyImage";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 // `NEXT_PUBLIC_API_URL` must be the bare API origin with no path suffix
 // (e.g. `https://api.example.com`). The reports router is mounted at
@@ -245,69 +247,55 @@ export default function MyReportsPage() {
                 </div>
 
                 {state.kind === "loading" && (
-                    <div
-                        className="flex items-center justify-center py-20 text-slate-400"
-                        role="status"
-                        aria-live="polite"
-                    >
-                        <Loader2 size={20} className="mr-2 animate-spin" />
-                        <span className="text-sm font-medium">Loading your reports…</span>
+                    <div className="flex flex-col gap-3" aria-label="Loading your reports">
+                        {[1, 2, 3].map((i) => (
+                            <Card key={i} className="flex flex-col sm:flex-row">
+                                <Skeleton className="h-40 shrink-0 sm:h-32 sm:w-32 rounded-none bg-slate-200" />
+                                <div className="flex min-w-0 flex-1 flex-col gap-2 p-4">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <Skeleton className="h-5 w-1/2 bg-slate-200" />
+                                        <Skeleton className="h-6 w-24 rounded-full bg-slate-200" />
+                                    </div>
+                                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
+                                        <Skeleton className="h-4 w-20 bg-slate-200" />
+                                        <Skeleton className="h-4 w-24 bg-slate-200" />
+                                    </div>
+                                </div>
+                            </Card>
+                        ))}
                     </div>
                 )}
 
                 {state.kind === "authError" && (
-                    <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 text-amber-600">
-                            <LogIn size={26} />
-                        </div>
-                        <h2 className="text-lg font-bold text-slate-900">Sign in required</h2>
-                        <p className="mx-auto mt-1 max-w-sm text-sm text-slate-500">
-                            {state.message}
-                        </p>
-                        <Link
-                            href="/login"
-                            className="mt-5 inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
-                        >
-                            Go to Login
-                        </Link>
-                    </div>
+                    <EmptyState
+                        icon={<LogIn size={26} className="text-amber-600" />}
+                        title="Sign in required"
+                        description={state.message}
+                        actionLabel="Go to Login"
+                        actionHref="/login"
+                        className="border-slate-200 !bg-white"
+                    />
                 )}
 
                 {state.kind === "networkError" && (
-                    <div className="rounded-2xl border border-rose-200 bg-white p-6 text-center shadow-sm">
-                        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-rose-50 text-rose-600">
-                            <AlertTriangle size={22} />
-                        </div>
-                        <p className="text-sm font-medium text-slate-700">{state.message}</p>
-                        <button
-                            type="button"
-                            onClick={fetchMine}
-                            className="mt-4 inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-                        >
-                            <RefreshCw size={14} /> Try again
-                        </button>
-                    </div>
+                    <EmptyState
+                        icon={<AlertTriangle size={26} className="text-rose-600" />}
+                        title="Connection Error"
+                        description={state.message}
+                        actionLabel="Try again"
+                        onAction={fetchMine}
+                        className="border-rose-200 !bg-white"
+                    />
                 )}
 
                 {state.kind === "ready" && state.reports.length === 0 && (
-                    <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
-                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                            <CheckCircle2 size={26} />
-                        </div>
-                        <h2 className="text-lg font-bold text-slate-900">
-                            You haven&apos;t filed any reports yet
-                        </h2>
-                        <p className="mx-auto mt-1 max-w-sm text-sm text-slate-500">
-                            Spotted a suspicious or counterfeit medicine? Reporting it helps protect
-                            your community.
-                        </p>
-                        <Link
-                            href="/report"
-                            className="mt-5 inline-flex items-center justify-center gap-2 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700"
-                        >
-                            File your first report
-                        </Link>
-                    </div>
+                    <EmptyState
+                        icon={<CheckCircle2 size={26} className="text-emerald-600" />}
+                        title="You haven't filed any reports yet"
+                        description="Spotted a suspicious or counterfeit medicine? Reporting it helps protect your community."
+                        actionLabel="File your first report"
+                        actionHref="/report"
+                    />
                 )}
 
                 {state.kind === "ready" && state.reports.length > 0 && (
