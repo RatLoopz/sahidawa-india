@@ -1,3 +1,5 @@
+import { fetchWithRetry } from './apiWithRetry';
+
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 export type ReportPayload = {
@@ -24,13 +26,14 @@ export async function submitReport(
     payload: ReportPayload,
     accessToken?: string
 ): Promise<{ report: SubmittedReport }> {
-    const res = await fetch(`${API_BASE}/reports`, {
+    const res = await fetchWithRetry(`${API_BASE}/reports`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify(payload),
+        timeout: 10000,
     });
 
     if (!res.ok) {
@@ -96,9 +99,9 @@ export async function fetchVerifiedPharmacies(
     radiusKm: number = 50
 ): Promise<VerifiedPharmacy[]> {
     try {
-        const res = await fetch(
+        const res = await fetchWithRetry(
             `${API_BASE}/api/pharmacies/nearest?lat=${lat}&lng=${lng}&radius=${radiusKm}`,
-            { signal: AbortSignal.timeout(8000) }
+            { timeout: 8000 }
         );
         if (!res.ok) return [];
         const body = await res.json();
@@ -115,9 +118,9 @@ export async function fetchVerifiedPharmaciesInBounds(
     east: number
 ): Promise<VerifiedPharmacy[]> {
     try {
-        const res = await fetch(
+        const res = await fetchWithRetry(
             `${API_BASE}/api/pharmacies/in-bounds?south=${south}&west=${west}&north=${north}&east=${east}`,
-            { signal: AbortSignal.timeout(8000) }
+            { timeout: 8000 }
         );
         if (!res.ok) return [];
         const body = await res.json();
@@ -128,10 +131,11 @@ export async function fetchVerifiedPharmaciesInBounds(
 }
 
 export async function verifyMedicine(batchNumber: string): Promise<VerifyResult> {
-    const res = await fetch(`${API_BASE}/api/verify`, {
+    const res = await fetchWithRetry(`${API_BASE}/api/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ batchNumber }),
+        timeout: 10000,
     });
 
     if (!res.ok && res.status !== 404) {
@@ -148,10 +152,11 @@ export type FuzzyMatch = {
 };
 
 export async function fuzzyMatchBrand(query: string): Promise<FuzzyMatch[]> {
-    const res = await fetch(`${API_BASE}/api/v1/scan/match`, {
+    const res = await fetchWithRetry(`${API_BASE}/api/v1/scan/match`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query }),
+        timeout: 8000,
     });
 
     if (!res.ok) {
@@ -163,10 +168,11 @@ export async function fuzzyMatchBrand(query: string): Promise<FuzzyMatch[]> {
 }
 
 export async function verifyMedicineByBrand(brandName: string): Promise<VerifyResult> {
-    const res = await fetch(`${API_BASE}/api/v1/scan/verify-brand`, {
+    const res = await fetchWithRetry(`${API_BASE}/api/v1/scan/verify-brand`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ brandName }),
+        timeout: 10000,
     });
 
     if (!res.ok && res.status !== 404) {

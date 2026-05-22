@@ -193,3 +193,56 @@ Run the service on another port:
 ```bash
 python -m uvicorn main:app --reload --port 8001
 ```
+
+## Load Testing with Locust
+
+Locust is listed in `requirements.txt`, so install the ML dependencies before
+starting the load test. The test uploads the existing WAV fixture at
+`tests/fixtures/hindi_sample.wav` to `POST /asr/transcribe` as multipart form
+data.
+
+Start the ML/Whisper service with the setup instructions above. In a second
+terminal, run Locust from `apps/ml`:
+
+```bash
+cd apps/ml
+locust -f tests/locustfile.py
+```
+
+Open the Locust web UI at <http://localhost:8089>. Enter the service host
+running the ASR endpoint. For the local service default, use:
+
+```text
+http://localhost:8000
+```
+
+The user count controls the maximum concurrent Locust users. Spawn rate
+controls how quickly Locust starts those users per second. Start small so the
+local Whisper model and machine have time to warm up:
+
+| Profile | Users | Spawn Rate |
+| --- | ---: | ---: |
+| Smoke | 1 | 1 |
+| Small load | 5 | 1 |
+| Medium load | 10 | 2 |
+| Stress | Increase gradually | Match local capacity |
+
+For each run, record the configured concurrent users, requests per second
+(RPS), average response time, p95 response time when Locust reports it, and
+failure rate. The Locust Statistics view shows request counts, response times,
+RPS, and failures while the test is running.
+
+| Users | Spawn Rate | Duration | Avg Response Time | p95 Response Time | RPS | Failures | Notes |
+| ---: | ---: | --- | --- | --- | ---: | --- | --- |
+|  |  |  |  |  |  |  |  |
+
+Actual results depend on the local machine, Whisper model size, CPU or GPU
+availability, and WAV recording duration. Keep the table as a benchmark
+template unless a run has been measured locally.
+
+A headless smoke run is also available when the ML service is already running:
+
+```bash
+cd apps/ml
+locust -f tests/locustfile.py --host http://localhost:8000 --headless -u 1 -r 1 -t 30s
+```

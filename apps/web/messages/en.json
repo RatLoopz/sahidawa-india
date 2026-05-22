@@ -106,5 +106,20 @@
             "api_title": "SahiDawa AI is unavailable",
             "api_message": "We could not get medical guidance right now. Please try again in a moment."
         }
+    },
+    "offline": {
+        "bannerOffline": "You are offline",
+        "descriptionOffline": "Your changes will sync when connection returns",
+        "bannerOnline": "Back online",
+        "descriptionOnline": "Retrying failed requests...",
+        "dismiss": "Dismiss",
+        "title": "Offline Mode",
+        "description": "You don't have an internet connection right now.",
+        "subtitle": "Some features are unavailable while offline. Try to connect to the internet or browse cached content.",
+        "tryAgain": "Try Again",
+        "goHome": "Go to Home",
+        "footer": "SahiDawa will automatically sync when your connection returns.",
+        "cachedContent": "You can still access previously loaded content",
+        "noCache": "This page was not cached and is not available offline"
     }
 }
