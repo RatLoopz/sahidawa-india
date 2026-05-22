@@ -46,9 +46,12 @@ export default function Footer() {
                             >
                                 Contributing Guide
                             </a>
-                            <Link href="/about" className="transition-all duration-200 hover:translate-x-1 hover:text-white">
-                             About Us
-                             </Link>
+                            <Link
+                                href="/about"
+                                className="transition-all duration-200 hover:translate-x-1 hover:text-white"
+                            >
+                                About Us
+                            </Link>
                         </div>
                     </div>
 
