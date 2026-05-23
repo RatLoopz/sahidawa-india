@@ -85,8 +85,8 @@ const STEPS = [
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 interface ImageEntry {
-  preview: string; // blob URL
-  cloudUrl: string; // Cloudinary secure_url
+  preview: string; // blob URL of the original user file
+  cloudUrl: string; // Cloudinary secure_url from enhanced file
   name: string;
 }
 
@@ -263,11 +263,12 @@ function Progress({ current }: { current: number }) {
               key={s.n}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg border text-xs font-bold
                 transition-all duration-200 select-none
-                ${done
-                  ? "bg-emerald-50 border-emerald-100 text-emerald-600"
-                  : active
-                    ? "bg-slate-900 border-slate-900 text-white"
-                    : "bg-white border-slate-200 text-slate-400"
+                ${
+                  done
+                    ? "bg-emerald-50 border-emerald-100 text-emerald-600"
+                    : active
+                      ? "bg-slate-900 border-slate-900 text-white"
+                      : "bg-white border-slate-200 text-slate-400"
                 }`}
             >
               {done ? (
@@ -394,7 +395,8 @@ function Step2({
             let fileToProcess = f;
             try {
               const optimizedBlob = await preprocessMedicineImage(f);
-              if (typeof optimizedBlob !== "string") {
+              // Defensive structural check to verify a solid asset payload was returned
+              if (optimizedBlob && typeof optimizedBlob !== "string" && optimizedBlob instanceof Blob) {
                 fileToProcess = new File([optimizedBlob], f.name, {
                   type: optimizedBlob.type || "image/jpeg",
                   lastModified: Date.now(),
@@ -408,9 +410,10 @@ function Step2({
             }
 
             return {
-              preview: URL.createObjectURL(fileToProcess),
+              // UX optimization: Generate preview from original file to maintain visual comfort
+              preview: URL.createObjectURL(f),
               cloudUrl: await uploadOne(fileToProcess),
-              name: fileToProcess.name,
+              name: f.name,
             };
           })
         );
@@ -423,7 +426,7 @@ function Step2({
         );
       } catch (e) {
         setUpErr(e instanceof Error ? e.message : "Upload failed. Please retry.");
-      } finaly {
+      } finally {
         setBusy(false);
         if (ref.current) ref.current.value = "";
       }
