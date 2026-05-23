@@ -170,6 +170,7 @@ def test_language_hint_is_passed_to_whisper(monkeypatch):
     "audio/mpeg",    # MP3
     "audio/ogg",     # OGG / Opus
     "audio/webm",    # Browser MediaRecorder default
+    "audio/webm;codecs=opus",  # Chrome MediaRecorder common variant
     "audio/mp4",     # M4A / AAC
     "audio/flac",
 ])

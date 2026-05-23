@@ -1,5 +1,6 @@
 import { getConfidenceMeta } from "../app/[locale]/voice/lib/confidence";
 import { detectEmergencyKeywords } from "../app/[locale]/voice/lib/emergency";
+import { shouldAutoFocusVoicePanel } from "../app/[locale]/voice/lib/accessibility";
 import {
     DEFAULT_VOICE_LANGUAGE,
     VOICE_LANGUAGE_OPTIONS,
@@ -190,5 +191,22 @@ describe("formatVoiceShareReport", () => {
         expect(report).toContain("Emergency Alert: Yes");
         expect(report).toContain("1. Call 112 immediately");
         expect(report).toContain("Disclaimer: This is not a diagnosis. Consult a doctor.");
+    });
+});
+
+describe("shouldAutoFocusVoicePanel", () => {
+    it("keeps focus on the mic button while listening", () => {
+        expect(shouldAutoFocusVoicePanel("listening")).toBe(false);
+    });
+
+    it("moves focus to the active panel for review, processing, result, and error states", () => {
+        expect(shouldAutoFocusVoicePanel("review")).toBe(true);
+        expect(shouldAutoFocusVoicePanel("processing")).toBe(true);
+        expect(shouldAutoFocusVoicePanel("result")).toBe(true);
+        expect(shouldAutoFocusVoicePanel("error")).toBe(true);
+    });
+
+    it("does not auto-focus the panel on the initial state", () => {
+        expect(shouldAutoFocusVoicePanel("initial")).toBe(false);
     });
 });

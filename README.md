@@ -231,7 +231,7 @@ docker compose up --build
 # Frontend:  http://localhost:3000
 # API:       http://localhost:4000
 # ML service: http://localhost:8000
-# API Docs:  http://localhost:4000/api-docs
+# API Docs:  http://localhost:4000/api/docs
 ```
 
 ### Manual Backend Setup
@@ -245,6 +245,7 @@ cp .env.example .env
 cd apps/api
 npm install
 npm run dev
+# API Docs: http://localhost:4000/api/docs
 ```
 
 ### ML Service (Python)

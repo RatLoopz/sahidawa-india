@@ -12,7 +12,7 @@ _(Warning: If you are not assigned, this PR will be immediately closed without r
 
 ## 🔗 Related Issue
 
-<!-- Link the issue this PR resolves. For example: Closes #123 -->
+<!-- Link the issue this PR resolves. For example: Closes 123 -->
 
 Closes #
 

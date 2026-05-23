@@ -41,7 +41,7 @@ export default function LanguageSwitcher() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 bg-slate-100 border border-slate-200 text-slate-700 rounded-full hover:bg-slate-200 transition-colors shadow-sm"
+        className="flex h-9 items-center gap-1.5 text-sm font-semibold px-3 py-1.5 bg-slate-100 border border-slate-200 text-slate-700 rounded-full hover:bg-slate-200 transition-colors shadow-sm sm:h-10 sm:px-4 sm:py-2"
       >
         <Globe size={16} className="text-emerald-600" />
         <span className="hidden sm:inline">{current.native}</span>
@@ -58,7 +58,7 @@ export default function LanguageSwitcher() {
             <button
               key={lang.code}
               onClick={() => switchLanguage(lang.code)}
-              className={`w-full text-left px-4 py-3 text-sm font-semibold transition-colors hover:bg-emerald-50 hover:text-emerald-700 flex items-center justify-between
+              className={`w-full text-left px-3 py-1.5 text-sm font-semibold transition-colors hover:bg-emerald-50 hover:text-emerald-700 flex items-center justify-between sm:px-4 sm:py-2
                 ${locale === lang.code ? "bg-emerald-50 text-emerald-700" : "text-slate-700"}`}
             >
               <span>{lang.native}</span>

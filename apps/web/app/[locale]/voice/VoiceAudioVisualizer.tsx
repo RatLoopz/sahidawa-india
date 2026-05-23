@@ -170,6 +170,10 @@ export function VoiceAudioVisualizer({
 
             if (volumeFillRef.current) {
                 volumeFillRef.current.style.transform = `scaleX(${Math.max(0.08, volume)})`;
+                const progressbar = volumeFillRef.current.closest('[role="progressbar"]');
+                if (progressbar) {
+                    progressbar.setAttribute("aria-valuenow", String(Math.round(volume * 100)));
+                }
             }
 
             animationFrame = window.requestAnimationFrame(draw);
@@ -220,7 +224,14 @@ export function VoiceAudioVisualizer({
                 </div>
             )}
 
-            <div className="mt-3 w-full max-w-[13rem]">
+            <div
+                className="mt-3 w-full max-w-52"
+                role="progressbar"
+                aria-label={volumeLabel}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={0}
+            >
                 <div className="flex items-center justify-between text-[10px] font-bold tracking-widest text-emerald-700 uppercase">
                     <span>{volumeLabel}</span>
                     <span aria-hidden="true">
@@ -230,7 +241,7 @@ export function VoiceAudioVisualizer({
                 <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-emerald-100">
                     <div
                         ref={volumeFillRef}
-                        className="h-full origin-left rounded-full bg-gradient-to-r from-emerald-500 to-emerald-300 transition-transform duration-150"
+                        className="h-full origin-left rounded-full bg-linear-to-r from-emerald-500 to-emerald-300 transition-transform duration-150"
                         style={{ transform: showCanvas ? "scaleX(0.08)" : "scaleX(0.18)" }}
                         aria-hidden="true"
                     />

@@ -809,7 +809,7 @@ export default function ScanPage() {
     };
 
     return (
-        <div className="relative flex min-h-screen flex-col bg-black font-sans text-white">
+        <div className="relative flex min-h-screen flex-col overflow-x-clip bg-black font-sans text-white">
             <input
                 type="file"
                 id="medicine-upload"
@@ -825,7 +825,7 @@ export default function ScanPage() {
                 variant="dark"
             />
 
-            <div className="relative flex flex-1 items-center justify-center overflow-hidden">
+            <div className="relative flex flex-1 items-center justify-center">
                 <div className="absolute inset-0 overflow-hidden bg-slate-900">
                     {isCameraActive ? (
                         <BarcodeScanner onScan={handleBarcodeScan} debounceMs={2500} />
@@ -933,18 +933,18 @@ export default function ScanPage() {
             )}
 
             <div className="flex flex-col items-center gap-6 bg-linear-to-t from-black to-transparent p-8">
-                <form onSubmit={handleBatchSubmit} className="flex w-full max-w-sm gap-2">
+                <form onSubmit={handleBatchSubmit} className="flex w-full max-w-sm flex-col gap-3 sm:flex-row">
                     <input
                         type="text"
                         value={batchInput}
                         onChange={(e) => setBatchInput(e.target.value)}
                         placeholder="Enter batch number"
-                        className="flex-1 rounded-full border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium text-white placeholder-white/40 focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                        className="flex-1 text-center rounded-full border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium text-white placeholder-white/40 focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     />
                     <button
                         type="submit"
                         disabled={isScanning}
-                        className="flex items-center gap-2 rounded-full bg-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="flex items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <Search size={18} />
                         Verify
@@ -958,7 +958,7 @@ export default function ScanPage() {
                 <div className="flex gap-4">
                     <button
                         onClick={() => setIsCameraActive((prev) => !prev)}
-                        className={`flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-colors focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none ${
+                        className={`flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-colors focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none ${
                             isCameraActive
                                 ? "bg-red-500 text-white hover:bg-red-400"
                                 : "bg-emerald-500 text-white hover:bg-emerald-400"

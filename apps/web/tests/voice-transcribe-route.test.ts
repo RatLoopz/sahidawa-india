@@ -39,6 +39,7 @@ describe("POST /api/voice/transcribe", () => {
         expect(global.fetch).toHaveBeenCalledWith("http://ml-service.test/asr/transcribe", {
             method: "POST",
             body: expect.any(FormData),
+            signal: expect.any(AbortSignal),
         });
         expect(data).toEqual({
             transcript: "I have fever and cough",
@@ -130,5 +131,25 @@ describe("POST /api/voice/transcribe", () => {
 
         expect(response.status).toBe(502);
         expect(data.error).toBe("Transcription service returned an invalid response.");
+    });
+
+    it("returns 504 when the ML service times out", async () => {
+        const timeoutError = new Error("Timed out");
+        timeoutError.name = "AbortError";
+        global.fetch = jest.fn().mockRejectedValue(timeoutError) as unknown as typeof fetch;
+
+        const formData = new FormData();
+        formData.append("file", new File(["audio"], "voice.webm", { type: "audio/webm" }));
+
+        const request = new Request("http://localhost/api/voice/transcribe", {
+            method: "POST",
+            body: formData,
+        });
+
+        const response = await POST(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(504);
+        expect(data.error).toBe("Transcription service timed out.");
     });
 });

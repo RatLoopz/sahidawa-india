@@ -20,8 +20,8 @@ jobs:
             const { pull_request: pr } = context.payload;
             const author = pr.user.login;
 
-            const match = (pr.body || "")
-              .match(/(?:closes|fixes|resolves)\s+#(\d+)/i);
+            const cleanBody = (pr.body || "").replace(/<!--[\s\S]*?-->/g, "");
+            const match = cleanBody.match(/(?:closes|fixes|resolves)\s+#(\d+)/i);
 
             if (!match) return;
 

@@ -32,3 +32,4 @@
 | [#401](https://github.com/RatLoopz/sahidawa-india/pull/401) | 2026-05-21 | Frontend | 38 | @shashank03-dev | [View Doc](devtrack/2026-05/PR-401-feat-data-add-medicine-pricing-for-compare-flow.md) / [ADR](devtrack/adr/ADR-007-feat-data-add-medicine-pricing-for-compare-flow.md) |
 | [#455](https://github.com/RatLoopz/sahidawa-india/pull/455) | 2026-05-22 | Frontend | 5 | @Divyanshu3994 | [View Doc](devtrack/2026-05/PR-455-fix-improve-scanner-camera-permission-handling.md) |
 | [#431](https://github.com/RatLoopz/sahidawa-india/pull/431) | 2026-05-22 | Frontend | 10 | @ANISHA-RAWAT | [View Doc](devtrack/2026-05/PR-431-feat-add-faq-page-and-footer-quick-link.md) |
+| [#469](https://github.com/RatLoopz/sahidawa-india/pull/469) | 2026-05-23 | Frontend | 26 | @shashank03-dev | [View Doc](devtrack/2026-05/PR-469-feat-voice-improve-accessibility-and-assistive-fee.md) / [ADR](devtrack/adr/ADR-008-feat-voice-improve-accessibility-and-assistive-fee.md) |
