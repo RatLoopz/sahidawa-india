@@ -21,6 +21,8 @@ import {
     VOICE_LANGUAGE_OPTIONS,
 } from "./lib/languages";
 import { formatVoiceShareReport } from "./lib/report";
+import { getPreferredRecordingMimeType, supportsAudioRecording } from "./lib/recording";
+import { shouldReviewTranscription, transcribeRecordedAudio } from "./lib/transcription";
 import {
     VoiceErrorPanel,
     VoiceIntroPanel,
@@ -113,7 +115,9 @@ export default function VoiceTriagePage() {
     const [srAnnouncement, setSrAnnouncement] = useState("");
 
     const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioStreamRef = useRef<MediaStream | null>(null);
+    const recordingChunksRef = useRef<Blob[]>([]);
     const latestTranscriptRef = useRef("");
     const latestDisplayedTranscriptRef = useRef("");
     const latestConfidenceRef = useRef<number | undefined>(undefined);
@@ -135,6 +139,17 @@ export default function VoiceTriagePage() {
         recognition.onresult = null;
         recognition.onerror = null;
         recognition.onend = null;
+    }
+
+    function detachMediaRecorderHandlers(mediaRecorder: MediaRecorder | null) {
+        if (!mediaRecorder) {
+            return;
+        }
+
+        mediaRecorder.onstart = null;
+        mediaRecorder.ondataavailable = null;
+        mediaRecorder.onerror = null;
+        mediaRecorder.onstop = null;
     }
 
     function setActiveAudioStream(stream: MediaStream | null) {
@@ -169,6 +184,12 @@ export default function VoiceTriagePage() {
             recognitionRef.current = null;
             detachRecognitionHandlers(recognition);
             recognition?.stop();
+            const mediaRecorder = mediaRecorderRef.current;
+            mediaRecorderRef.current = null;
+            detachMediaRecorderHandlers(mediaRecorder);
+            if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                mediaRecorder.stop();
+            }
             clearAudioStream();
             if (typeof window !== "undefined") {
                 stopSpeaking(window);
@@ -267,11 +288,18 @@ export default function VoiceTriagePage() {
         recognitionRef.current = null;
         detachRecognitionHandlers(recognition);
         recognition?.stop();
+        const mediaRecorder = mediaRecorderRef.current;
+        mediaRecorderRef.current = null;
+        detachMediaRecorderHandlers(mediaRecorder);
+        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+            mediaRecorder.stop();
+        }
         clearAudioStream();
         if (typeof window !== "undefined") {
             stopSpeaking(window);
         }
 
+        recordingChunksRef.current = [];
         latestTranscriptRef.current = "";
         latestDisplayedTranscriptRef.current = "";
         latestConfidenceRef.current = undefined;
@@ -322,6 +350,60 @@ export default function VoiceTriagePage() {
         }
 
         void analyseTranscript(normalizedTranscript, confidenceMeta, emergencyResult.matches);
+    }
+
+    async function handleRecordedAudioStop(mediaBlob: Blob) {
+        if (!mediaBlob.size) {
+            setError(getRecognitionErrorState("no-speech", t));
+            setStep("error");
+            return;
+        }
+
+        setStep("processing");
+        setError(null);
+
+        try {
+            const file = new File([mediaBlob], "voice-triage.webm", {
+                type: mediaBlob.type || "audio/webm",
+            });
+            const transcription = await transcribeRecordedAudio(file, selectedLanguage);
+            const normalizedTranscript = transcription.transcript.trim();
+
+            if (!normalizedTranscript) {
+                setError(getRecognitionErrorState("no-speech", t));
+                setStep("error");
+                return;
+            }
+
+            const confidenceMeta = getConfidenceMeta(undefined);
+            const emergencyResult = detectEmergencyKeywords(normalizedTranscript);
+
+            setTranscript(normalizedTranscript);
+            setConfidence(confidenceMeta);
+            setEmergencyMatches(emergencyResult.matches);
+            setError(null);
+
+            if (
+                shouldReviewTranscription(normalizedTranscript, {
+                    selectedLanguage,
+                    detectedLanguage: transcription.language,
+                })
+            ) {
+                setStep("review");
+                return;
+            }
+
+            await analyseTranscript(normalizedTranscript, confidenceMeta, emergencyResult.matches);
+        } catch (transcriptionError) {
+            setError({
+                title: t("errors.generic_title"),
+                message:
+                    transcriptionError instanceof Error && transcriptionError.message
+                        ? transcriptionError.message
+                        : t("errors.generic_message"),
+            });
+            setStep("error");
+        }
     }
 
     async function analyseTranscript(
@@ -492,6 +574,15 @@ export default function VoiceTriagePage() {
         setIsListening(false);
         setIsVisualizerFading(true);
 
+        if (mediaRecorderRef.current) {
+            if (mediaRecorderRef.current.state !== "inactive") {
+                mediaRecorderRef.current.stop();
+                return;
+            }
+
+            mediaRecorderRef.current = null;
+        }
+
         if (!recognitionRef.current) {
             startSessionIdRef.current += 1;
             clearAudioStream();
@@ -503,54 +594,11 @@ export default function VoiceTriagePage() {
         recognitionRef.current?.stop();
     }
 
-    async function startListening() {
-        if (typeof window === "undefined") {
-            return;
-        }
-
+    function startSpeechRecognitionFallback() {
         const SpeechRecognition = getSpeechRecognitionConstructor(window);
         if (!SpeechRecognition) {
             setError(getRecognitionErrorState("unsupported", t));
             setStep("error");
-            return;
-        }
-
-        handleStopSpeaking();
-
-        const sessionId = startSessionIdRef.current + 1;
-        startSessionIdRef.current = sessionId;
-        clearAudioStream();
-
-        latestTranscriptRef.current = "";
-        latestDisplayedTranscriptRef.current = "";
-        latestConfidenceRef.current = undefined;
-        didHandleRecognitionEndRef.current = false;
-        manualStopRef.current = false;
-
-        setTranscript("");
-        setConfidence(DEFAULT_FLOW_CONFIDENCE);
-        setResult(null);
-        setError(null);
-        setEmergencyMatches([]);
-        setIsVisualizerFading(false);
-        setStep("listening");
-
-        if (navigator.mediaDevices?.getUserMedia) {
-            try {
-                const nextAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-                if (startSessionIdRef.current !== sessionId) {
-                    stopMediaStream(nextAudioStream);
-                    return;
-                }
-
-                setActiveAudioStream(nextAudioStream);
-            } catch {
-                setActiveAudioStream(null);
-            }
-        }
-
-        if (startSessionIdRef.current !== sessionId) {
             return;
         }
 
@@ -644,6 +692,149 @@ export default function VoiceTriagePage() {
             clearAudioStream();
             setError(getRecognitionErrorState("generic", t));
             setStep("error");
+        }
+    }
+
+    async function startListening() {
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        handleStopSpeaking();
+
+        const sessionId = startSessionIdRef.current + 1;
+        startSessionIdRef.current = sessionId;
+        clearAudioStream();
+
+        const recognition = recognitionRef.current;
+        recognitionRef.current = null;
+        detachRecognitionHandlers(recognition);
+        recognition?.stop();
+
+        const mediaRecorder = mediaRecorderRef.current;
+        mediaRecorderRef.current = null;
+        detachMediaRecorderHandlers(mediaRecorder);
+        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+            mediaRecorder.stop();
+        }
+
+        recordingChunksRef.current = [];
+        latestTranscriptRef.current = "";
+        latestDisplayedTranscriptRef.current = "";
+        latestConfidenceRef.current = undefined;
+        didHandleRecognitionEndRef.current = false;
+        manualStopRef.current = false;
+
+        setTranscript("");
+        setConfidence(DEFAULT_FLOW_CONFIDENCE);
+        setResult(null);
+        setError(null);
+        setEmergencyMatches([]);
+        setIsVisualizerFading(false);
+
+        const canRecordAudio =
+            typeof navigator !== "undefined" &&
+            Boolean(navigator.mediaDevices?.getUserMedia) &&
+            supportsAudioRecording(window);
+
+        if (!canRecordAudio) {
+            startSpeechRecognitionFallback();
+            return;
+        }
+
+        let nextAudioStream: MediaStream;
+        try {
+            nextAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        } catch (captureError) {
+            const errorName =
+                captureError instanceof DOMException ? captureError.name : "audio-capture";
+
+            if (errorName === "NotAllowedError" || errorName === "PermissionDeniedError") {
+                setError(getRecognitionErrorState("not-allowed", t));
+            } else if (errorName === "NotFoundError" || errorName === "DevicesNotFoundError") {
+                setError(getRecognitionErrorState("audio-capture", t));
+            } else {
+                setError(getRecognitionErrorState("generic", t));
+            }
+            setStep("error");
+            return;
+        }
+
+        if (startSessionIdRef.current !== sessionId) {
+            stopMediaStream(nextAudioStream);
+            return;
+        }
+
+        let mediaRecorderInstance: MediaRecorder;
+
+        try {
+            const mimeType = getPreferredRecordingMimeType(window.MediaRecorder);
+            mediaRecorderInstance = new MediaRecorder(
+                nextAudioStream,
+                mimeType ? { mimeType } : undefined
+            );
+        } catch {
+            stopMediaStream(nextAudioStream);
+            startSpeechRecognitionFallback();
+            return;
+        }
+
+        mediaRecorderRef.current = mediaRecorderInstance;
+        setActiveAudioStream(nextAudioStream);
+        setStep("listening");
+
+        mediaRecorderInstance.onstart = () => {
+            setIsListening(true);
+            setIsVisualizerFading(false);
+            setStep("listening");
+        };
+
+        mediaRecorderInstance.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+                recordingChunksRef.current.push(event.data);
+            }
+        };
+
+        mediaRecorderInstance.onerror = () => {
+            if (mediaRecorderRef.current === mediaRecorderInstance) {
+                mediaRecorderRef.current = null;
+            }
+            detachMediaRecorderHandlers(mediaRecorderInstance);
+            clearAudioStream();
+            setIsListening(false);
+            setIsVisualizerFading(false);
+            setError(getRecognitionErrorState("generic", t));
+            setStep("error");
+        };
+
+        mediaRecorderInstance.onstop = async () => {
+            if (mediaRecorderRef.current === mediaRecorderInstance) {
+                mediaRecorderRef.current = null;
+            }
+
+            const mediaBlob = new Blob(recordingChunksRef.current, {
+                type: mediaRecorderInstance.mimeType || "audio/webm",
+            });
+
+            recordingChunksRef.current = [];
+            detachMediaRecorderHandlers(mediaRecorderInstance);
+            clearAudioStream();
+            setIsListening(false);
+            setIsVisualizerFading(false);
+
+            await handleRecordedAudioStop(mediaBlob);
+        };
+
+        try {
+            mediaRecorderInstance.start();
+        } catch {
+            if (mediaRecorderRef.current === mediaRecorderInstance) {
+                mediaRecorderRef.current = null;
+            }
+            detachMediaRecorderHandlers(mediaRecorderInstance);
+            stopMediaStream(nextAudioStream);
+            setActiveAudioStream(null);
+            startSpeechRecognitionFallback();
         }
     }
 

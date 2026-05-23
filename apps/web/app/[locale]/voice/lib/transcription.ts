@@ -4,6 +4,10 @@ export type VoiceTranscriptionPayload = {
     languageConfidence: number | null;
 };
 
+type ReviewOptions = {
+    selectedLanguage?: string;
+    detectedLanguage?: string | null;
+};
 export function normalizeVoiceTranscriptionResponse(
     payload: VoiceTranscriptionPayload
 ): VoiceTranscriptionPayload {
@@ -13,11 +17,6 @@ export function normalizeVoiceTranscriptionResponse(
         languageConfidence: payload.languageConfidence,
     };
 }
-
-type ReviewOptions = {
-    selectedLanguage?: string;
-    detectedLanguage?: string | null;
-};
 
 function getPrimaryLanguageCode(language: string | null | undefined) {
     if (!language) {

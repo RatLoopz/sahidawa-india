@@ -84,27 +84,28 @@ sahidawa-india/               ← Root (always run npm commands from here)
 
 ## 4. Current Build Status (What Is Mock vs Real)
 
-| Feature | Status | File | Notes |
-|---|---|---|---|
-| Home Dashboard | ✅ Built | `apps/web/app/page.tsx` | Real UI, no backend calls |
-| Medicine Scanner UI | ✅ Built (mock) | `apps/web/app/scan/page.tsx` | `setTimeout` simulates scan |
-| Voice Triage UI | ✅ Built (mock) | `apps/web/app/voice/page.tsx` | `setTimeout` simulates voice |
-| Pharmacy Map UI | ✅ Built (mock) | `apps/web/app/map/page.tsx` | Static pins, no Leaflet yet |
-| Express API server | ✅ Scaffolded | `apps/api/src/index.ts` | Only `/` and `/health` routes |
-| Supabase DB schema | ✅ Written | `apps/api/src/db/schema.sql` | Not yet applied to Supabase |
-| Supabase client | ✅ Written | `apps/api/src/db/client.ts` | Ready to use |
-| FastAPI ML server | ✅ Scaffolded | `apps/ml/main.py` | Only `/` and `/health` routes |
-| Medicine data | ❌ Empty | `data/seeds/medicines.csv` | Needs CDSCO seed data |
-| API routes | ❌ Missing | `apps/api/src/routes/` | All route files needed |
-| OCR endpoint | ❌ Missing | `apps/ml/routers/ocr.py` | Needs pytesseract |
-| Voice endpoint | ❌ Missing | `apps/ml/routers/voice.py` | Needs openai-whisper |
-| Leaflet map | ❌ Missing | `apps/web/app/map/page.tsx` | Replace mock with real |
+| Feature             | Status               | File                                   | Notes                                                                                                             |
+| ------------------- | -------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Home Dashboard      | ✅ Built             | `apps/web/app/page.tsx`                | Real UI, no backend calls                                                                                         |
+| Medicine Scanner UI | ✅ Built (mock)      | `apps/web/app/scan/page.tsx`           | `setTimeout` simulates scan                                                                                       |
+| Voice Triage UI     | ✅ Built (connected) | `apps/web/app/[locale]/voice/page.tsx` | Records audio, proxies to ML ASR, and falls back to browser speech recognition only when recording is unavailable |
+| Pharmacy Map UI     | ✅ Built (mock)      | `apps/web/app/map/page.tsx`            | Static pins, no Leaflet yet                                                                                       |
+| Express API server  | ✅ Scaffolded        | `apps/api/src/index.ts`                | Only `/` and `/health` routes                                                                                     |
+| Supabase DB schema  | ✅ Written           | `apps/api/src/db/schema.sql`           | Not yet applied to Supabase                                                                                       |
+| Supabase client     | ✅ Written           | `apps/api/src/db/client.ts`            | Ready to use                                                                                                      |
+| FastAPI ML server   | ✅ Built             | `apps/ml/main.py`                      | Boots ASR by default, keeps OCR optional, and exposes `/asr/transcribe` for voice triage                          |
+| Medicine data       | ❌ Empty             | `data/seeds/medicines.csv`             | Needs CDSCO seed data                                                                                             |
+| API routes          | ❌ Missing           | `apps/api/src/routes/`                 | All route files needed                                                                                            |
+| OCR endpoint        | ❌ Missing           | `apps/ml/routers/ocr.py`               | Needs pytesseract                                                                                                 |
+| Voice endpoint      | ✅ Built             | `apps/ml/routers/asr.py`               | Faster-Whisper transcription with language hints, FFmpeg normalization, and preload support                       |
+| Leaflet map         | ❌ Missing           | `apps/web/app/map/page.tsx`            | Replace mock with real                                                                                            |
 
 ---
 
 ## 5. Tech Stack (Exact Versions — Do Not Downgrade)
 
 ### Frontend (`apps/web`)
+
 - **Next.js** `^16.2.4` with App Router
 - **React** `^19.2.5`
 - **Tailwind CSS** `^4.2.4` — uses `@tailwindcss/postcss`, NOT `tailwind.config.js`
@@ -114,6 +115,7 @@ sahidawa-india/               ← Root (always run npm commands from here)
 > ⚠️ Tailwind v4 breaking change: use `bg-linear-to-b` not `bg-gradient-to-b`. Use `bg-size-[...]` not `bg-[size:...]`.
 
 ### Backend (`apps/api`)
+
 - **Node.js** 22+
 - **Express** `^5.0.0`
 - **@supabase/supabase-js** `^2.105.3`
@@ -121,15 +123,17 @@ sahidawa-india/               ← Root (always run npm commands from here)
 - **ts-node-dev** for development hot-reload
 
 ### ML Service (`apps/ml`)
+
 - **Python** 3.12+
 - **FastAPI** `>=0.115.0`
 - **uvicorn** with standard extras
 - **pydantic** `>=2.9.0`
 
 ### Database
+
 - **Supabase** (managed PostgreSQL) with:
-  - **PostGIS** extension — pharmacy geo queries
-  - **pgvector** extension — RAG embeddings (Phase 3)
+    - **PostGIS** extension — pharmacy geo queries
+    - **pgvector** extension — RAG embeddings (Phase 3)
 - Tables: `medicines`, `pharmacies`, `counterfeit_reports`
 
 ---
@@ -137,6 +141,7 @@ sahidawa-india/               ← Root (always run npm commands from here)
 ## 6. Environment Variables
 
 All keys from `.env.example`:
+
 ```
 SUPABASE_URL          # Supabase project URL
 SUPABASE_ANON_KEY     # Public anon key (safe for client)
@@ -190,12 +195,12 @@ npm install <pkg> -w sahidawa-api  # also works (package.json "name")
 
 ## 9. Development Phase Roadmap
 
-| Phase | Timeline | Focus | Status |
-|---|---|---|---|
-| Phase 1 | Pre-GSSoC (May) | Scanner UI + DB schema + API scaffold | 🚧 In Progress |
-| Phase 2 | Mid-May | Leaflet map + i18n + Cloudinary + Redis | 🔜 Next |
-| Phase 3 | June | Whisper voice + Sarvam AI + LangChain RAG + CDSCO agent | 🔜 Planned |
-| Phase 4 | July | Accessibility + Docker + OpenAPI + Launch | 🔜 Planned |
+| Phase   | Timeline        | Focus                                                   | Status         |
+| ------- | --------------- | ------------------------------------------------------- | -------------- |
+| Phase 1 | Pre-GSSoC (May) | Scanner UI + DB schema + API scaffold                   | 🚧 In Progress |
+| Phase 2 | Mid-May         | Leaflet map + i18n + Cloudinary + Redis                 | 🔜 Next        |
+| Phase 3 | June            | Whisper voice + Sarvam AI + LangChain RAG + CDSCO agent | 🔜 Planned     |
+| Phase 4 | July            | Accessibility + Docker + OpenAPI + Launch               | 🔜 Planned     |
 
 ---
 

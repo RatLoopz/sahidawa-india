@@ -29,7 +29,13 @@ describe("Voice Triage accessibility semantics", () => {
                 title="Please review your transcript"
                 message="The microphone picked up low confidence audio."
                 transcript="I have cold and headache"
-                confidence={{ id: "low", score: 0.2, tone: "critical" }}
+                confidence={{
+                    id: "low",
+                    label: "Low",
+                    value: 0.2,
+                    tone: "critical",
+                    shouldReview: true,
+                }}
                 confidenceLabelPrefix="Confidence"
                 confidenceValueLabel="Low"
                 retryLabel="Try Again"
@@ -54,7 +60,6 @@ describe("Voice Triage accessibility semantics", () => {
                 error={{
                     title: "Access Denied",
                     message: "Microphone blocked",
-                    isRecoverable: true,
                 }}
                 retryLabel="Try Again"
                 onRetry={() => undefined}
@@ -73,10 +78,17 @@ describe("Voice Triage accessibility semantics", () => {
                 subheading="Clinical Assessment"
                 transcriptLabel="Transcript"
                 transcript="I have high fever"
-                confidence={{ id: "high", score: 0.95, tone: "positive" }}
+                confidence={{
+                    id: "high",
+                    label: "High",
+                    value: 0.95,
+                    tone: "positive",
+                    shouldReview: false,
+                }}
                 confidenceLabelPrefix="Confidence"
                 confidenceValueLabel="High"
                 result={{
+                    text: "I have high fever",
                     summary: "Fever needs monitoring.",
                     recommendations: ["Rest well", "Drink water"],
                     emergency: false,
@@ -124,6 +136,6 @@ describe("Voice Triage accessibility semantics", () => {
         expect(markup).toContain('aria-label="Volume"');
         expect(markup).toContain('aria-valuemin="0"');
         expect(markup).toContain('aria-valuemax="100"');
-        expect(markup).toContain('aria-valuenow="18"');
+        expect(markup).toContain('aria-valuenow="0"');
     });
 });

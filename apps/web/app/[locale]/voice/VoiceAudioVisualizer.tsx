@@ -230,7 +230,7 @@ export function VoiceAudioVisualizer({
                 aria-label={volumeLabel}
                 aria-valuemin={0}
                 aria-valuemax={100}
-                aria-valuenow={showCanvas ? 8 : 18}
+                aria-valuenow={0}
             >
                 <div className="flex items-center justify-between text-[10px] font-bold tracking-widest text-emerald-700 uppercase">
                     <span>{volumeLabel}</span>
