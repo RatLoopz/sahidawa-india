@@ -1,5 +1,5 @@
 @import "tailwindcss";
-
+@custom-variant dark (&:where(.dark, .dark *));
 :root {
     --color-brand-primary: #10b981;
     --color-brand-success: #16a34a;

@@ -5,14 +5,10 @@ import { notFound } from "next/navigation";
 import { routing } from "../../i18n/routing";
 
 import { ThemeProvider } from "./components/ThemeProvider";
-import { OfflineBanner } from "@/components/OfflineBanner";
-import { OfflineErrorBoundary } from "@/components/OfflineErrorBoundary";
-import { ServiceWorkerProvider } from "@/components/ServiceWorkerProvider";
 import Chatbot from "./components/Chatbot";
 import "./globals.css";
 import "../../src/styles/print.css";
 import { Toaster } from "sonner";
-import Footer from "./components/Footer";
 
 export const metadata: Metadata = {
     title: "SahiDawa — Verify Your Medicine",
@@ -60,23 +56,17 @@ export default async function LocaleLayout({
     return (
         <html lang={locale} suppressHydrationWarning>
             <body>
-                <ServiceWorkerProvider>
-                    <ThemeProvider>
-                        <NextIntlClientProvider messages={messages}>
-                            <OfflineErrorBoundary>
-                                <OfflineBanner />
-                                {children}
-                                <Footer />
-                                <div className="no-print">
-                                    <Chatbot />
-                                </div>
-                            </OfflineErrorBoundary>
-                        </NextIntlClientProvider>
+                <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+                    <NextIntlClientProvider messages={messages}>
+                        {children}
                         <div className="no-print">
-                            <Toaster richColors position="top-center" />
+                            <Chatbot />
                         </div>
-                    </ThemeProvider>
-                </ServiceWorkerProvider>
+                    </NextIntlClientProvider>
+                    <div className="no-print">
+                        <Toaster richColors position="top-center" />
+                    </div>
+                </ThemeProvider>
             </body>
         </html>
     );

@@ -96,7 +96,6 @@ export default function PharmacyMap({
 
         const initMap = async () => {
             try {
-                // Load Leaflet CSS and JS dynamically if not already present
                 if (!(window as any).L) {
                     const link = document.createElement("link");
                     link.rel = "stylesheet";
@@ -112,7 +111,6 @@ export default function PharmacyMap({
                         document.head.appendChild(script);
                     });
 
-                    // Small delay to let Leaflet fully initialize
                     await new Promise((r) => setTimeout(r, 100));
                 }
 
@@ -120,7 +118,6 @@ export default function PharmacyMap({
 
                 const L = (window as any).L;
 
-                // Initialize Map (centered on India)
                 if (!map.current) {
                     const center = initialCenter || { lat: 22.5937, lng: 78.9629 };
                     const zoom = initialZoom || 5;
@@ -129,8 +126,7 @@ export default function PharmacyMap({
                         zoomControl: false,
                     }).setView([center.lat, center.lng], zoom);
 
-                    // CARTO Voyager tiles — clean, free, no API key
-                    L.tileLayer(
+                    const tileLayer = L.tileLayer(
                         "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
                         {
                             attribution:
@@ -139,10 +135,17 @@ export default function PharmacyMap({
                         }
                     ).addTo(map.current);
 
-                    // Add zoom control to bottom-right (away from our controls)
+                    // Added dark mode support for map tiles
+                    if (
+                        typeof document !== "undefined" &&
+                        document.documentElement.classList.contains("dark")
+                    ) {
+                        tileLayer.getContainer().style.filter =
+                            "invert(90%) hue-rotate(180deg) brightness(95%) contrast(90%)";
+                    }
+
                     L.control.zoom({ position: "bottomright" }).addTo(map.current);
 
-                    // Inject verified marker glow animation
                     if (!document.getElementById("sahidawa-verified-styles")) {
                         const style = document.createElement("style");
                         style.id = "sahidawa-verified-styles";
@@ -158,7 +161,6 @@ export default function PharmacyMap({
                     layerGroup.current = L.layerGroup().addTo(map.current);
                     heatLayerGroup.current = L.layerGroup().addTo(map.current);
 
-                    // Fire moveend callback so the page can fetch initial data
                     const getBounds = () => {
                         const b = map.current.getBounds();
                         const c = map.current.getCenter();
@@ -175,7 +177,6 @@ export default function PharmacyMap({
                         if (onMapMoveEnd) onMapMoveEnd(getBounds());
                     });
 
-                    // Notify parent that map is ready
                     if (onMapReady) {
                         setTimeout(() => onMapReady(getBounds()), 200);
                     }
@@ -250,7 +251,6 @@ export default function PharmacyMap({
         const L = (window as any).L;
         if (!L) return;
 
-        // Clear existing markers
         layerGroup.current.clearLayers();
         markersRef.current.clear();
 
@@ -277,7 +277,6 @@ export default function PharmacyMap({
             let customMarker;
 
             if (isVerified) {
-                // Glowing green shield marker for verified pharmacies
                 customMarker = L.divIcon({
                     className: "sahidawa-verified-marker",
                     html: `
@@ -304,7 +303,6 @@ export default function PharmacyMap({
                     popupAnchor: [0, -40],
                 });
             } else {
-                // Standard teardrop marker (green for govt, blue for private)
                 const markerBorder = isGovt
                     ? "var(--color-brand-primary-soft)"
                     : "var(--color-brand-secondary-soft)";
@@ -348,10 +346,8 @@ export default function PharmacyMap({
                 icon: customMarker,
             }).addTo(layerGroup.current);
 
-            // Store reference for programmatic access
             markersRef.current.set(pharmacy.id, marker);
 
-            // Rich popup matching SahiDawa's design
             const statusColor = isVerified
                 ? "background:var(--color-brand-primary-soft);color:var(--color-brand-primary-text)"
                 : pharmacy.status === "Verified" || pharmacy.status === "Govt. Verified"
@@ -472,7 +468,6 @@ export default function PharmacyMap({
             }
         });
 
-        // Fit map to show all pharmacies (only if autoFitBounds is enabled)
         if (autoFitBounds && pharmacies.length > 0) {
             map.current.fitBounds(bounds, {
                 padding: [50, 50],
@@ -481,7 +476,6 @@ export default function PharmacyMap({
         }
     }, [pharmacies, isMapReady]);
 
-    // Handle selected pharmacy changes
     useEffect(() => {
         if (!isMapReady || !map.current || selectedPharmacyId == null) return;
 
@@ -492,7 +486,6 @@ export default function PharmacyMap({
                 map.current.flyTo([pharmacy.coordinates.lat, pharmacy.coordinates.lng], 15, {
                     duration: 0.8,
                 });
-                // Small delay to let flyTo start before opening popup
                 setTimeout(() => {
                     marker.openPopup();
                 }, 400);
@@ -500,19 +493,16 @@ export default function PharmacyMap({
         }
     }, [selectedPharmacyId, isMapReady, pharmacies]);
 
-    // Handle user location marker
     useEffect(() => {
         if (!isMapReady || !map.current || !userLocation) return;
 
         const L = (window as any).L;
         if (!L) return;
 
-        // Remove old user marker
         if (userMarker.current) {
             map.current.removeLayer(userMarker.current);
         }
 
-        // Create pulsing blue dot for user location
         const userIcon = L.divIcon({
             className: "user-location-marker",
             html: `
@@ -549,14 +539,15 @@ export default function PharmacyMap({
         });
     }, [userLocation, isMapReady]);
 
-    // Error state
     if (mapError) {
         return (
-            <div className="flex h-full min-h-[400px] w-full items-center justify-center rounded-2xl bg-slate-100">
+            <div className="flex h-full min-h-[400px] w-full items-center justify-center rounded-2xl bg-slate-100 transition-colors dark:bg-slate-900">
                 <div className="space-y-3 p-6 text-center">
-                    <AlertCircle className="mx-auto text-slate-400" size={48} />
-                    <p className="text-lg font-bold text-slate-600">Map could not be loaded</p>
-                    <p className="text-sm font-medium text-slate-400">
+                    <AlertCircle className="mx-auto text-slate-400 dark:text-slate-500" size={48} />
+                    <p className="text-lg font-bold text-slate-600 dark:text-slate-200">
+                        Map could not be loaded
+                    </p>
+                    <p className="text-sm font-medium text-slate-400 dark:text-slate-500">
                         Please refresh the page or check your internet connection.
                     </p>
                 </div>
@@ -566,18 +557,19 @@ export default function PharmacyMap({
 
     return (
         <div className="relative h-full min-h-[400px] w-full">
-            {/* Loading Skeleton */}
             {!isMapReady && (
-                <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-slate-100">
+                <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-slate-100 transition-colors dark:bg-slate-900">
                     <div className="space-y-3 text-center">
-                        <Loader2 className="mx-auto animate-spin text-emerald-600" size={32} />
-                        <p className="animate-pulse text-sm font-semibold text-slate-500">
+                        <Loader2
+                            className="mx-auto animate-spin text-emerald-600 dark:text-emerald-400"
+                            size={32}
+                        />
+                        <p className="animate-pulse text-sm font-semibold text-slate-500 dark:text-slate-400">
                             Loading pharmacy map...
                         </p>
                     </div>
                 </div>
             )}
-            {/* Map Container */}
             <div ref={mapContainer} className="z-0 h-full min-h-[400px] w-full" />
         </div>
     );
