@@ -63,12 +63,15 @@ describe("Voice Triage accessibility semantics", () => {
                 }}
                 retryLabel="Try Again"
                 onRetry={() => undefined}
+                textInputLabel="Use Text Input"
+                onTextInput={() => undefined}
             />
         );
 
         expect(markup).toContain("motion-reduce:animate-none");
         expect(markup).toContain("focus-visible:ring-2");
         expect(markup).toContain("focus-visible:ring-slate-950");
+        expect(markup).toContain("Use Text Input");
     });
 
     it("renders VoiceResultPanel with landmark semantics and focus states", () => {

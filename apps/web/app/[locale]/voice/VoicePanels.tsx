@@ -260,10 +260,14 @@ export function VoiceErrorPanel({
     error,
     retryLabel,
     onRetry,
+    textInputLabel,
+    onTextInput,
 }: {
     error: VoiceErrorState;
     retryLabel: string;
     onRetry: () => void;
+    textInputLabel: string;
+    onTextInput: () => void;
 }) {
     return (
         <div className="animate-in fade-in slide-in-from-bottom-8 w-full max-w-md rounded-[2.5rem] border border-red-100 bg-white p-8 shadow-xl duration-500 motion-reduce:animate-none">
@@ -282,6 +286,12 @@ export function VoiceErrorPanel({
                 className="w-full rounded-2xl bg-slate-900 py-4 font-bold text-white transition-all hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 focus-visible:outline-none"
             >
                 {retryLabel}
+            </button>
+            <button
+                onClick={onTextInput}
+                className="mt-3 w-full rounded-2xl bg-slate-100 py-3 font-bold text-slate-800 transition-colors hover:bg-slate-200 focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+            >
+                {textInputLabel}
             </button>
         </div>
     );

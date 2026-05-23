@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Mic } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { PageHeader } from "../components/PageHeader";
 import {
@@ -83,6 +83,31 @@ function getRecognitionErrorState(
     }
 }
 
+function getApiErrorState(
+    status: number,
+    fallbackMessage: string | undefined,
+    t: ReturnType<typeof useTranslations>
+): VoiceErrorState {
+    if (status === 503) {
+        return {
+            title: t("errors.server_load_title"),
+            message: t("errors.server_load_message"),
+        };
+    }
+
+    if (status === 504) {
+        return {
+            title: t("errors.timeout_title"),
+            message: t("errors.timeout_message"),
+        };
+    }
+
+    return {
+        title: t("errors.api_title"),
+        message: fallbackMessage || t("errors.api_message"),
+    };
+}
+
 function getConfidenceValueLabel(
     confidence: ConfidenceMeta,
     t: ReturnType<typeof useTranslations>
@@ -99,6 +124,7 @@ function getConfidenceValueLabel(
 
 export default function VoiceTriagePage() {
     const t = useTranslations("VoicePage");
+    const locale = useLocale();
     const [step, setStep] = useState<VoiceStep>("initial");
     const [selectedLanguage, setSelectedLanguage] = useState(DEFAULT_VOICE_LANGUAGE);
     const [isListening, setIsListening] = useState(false);
@@ -426,10 +452,18 @@ export default function VoiceTriagePage() {
                 }),
             });
 
-            const data = await response.json();
+            const data = await response.json().catch(() => ({}));
 
             if (!response.ok) {
-                throw new Error(data.error || t("errors.api_message"));
+                setError(
+                    getApiErrorState(
+                        response.status,
+                        typeof data.error === "string" ? data.error : undefined,
+                        t
+                    )
+                );
+                setStep("error");
+                return;
             }
 
             const nextResult: VoiceTriageResult = {
@@ -847,6 +881,12 @@ export default function VoiceTriagePage() {
         void startListening();
     }
 
+    function handleSwitchToTextInput() {
+        if (typeof window !== "undefined") {
+            window.location.href = `/${locale}/health`;
+        }
+    }
+
     const showMicFooter = step === "initial" || step === "listening";
 
     return (
@@ -983,6 +1023,8 @@ export default function VoiceTriagePage() {
                             error={error}
                             retryLabel={t("retry_button")}
                             onRetry={() => resetFlow()}
+                            textInputLabel={t("switch_to_text_button")}
+                            onTextInput={handleSwitchToTextInput}
                         />
                     )}
 
