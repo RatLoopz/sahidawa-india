@@ -55,6 +55,12 @@ export default function Footer() {
                             >
                                 About Us
                             </Link>
+                            <Link
+                             href="/privacy"
+                             className="transition-all duration-200 hover:translate-x-1 hover:text-white"
+                                >
+                             Privacy Policy
+                             </Link>
                         </div>
                     </div>
 
