@@ -74,12 +74,14 @@ export async function preprocessMedicineImage(
 
         if (!ctx) {
           if (!isString) URL.revokeObjectURL(url);
-          return reject(new Error("Canvas 2D context context initialization dropped."));
+          return reject(
+            new Error("Canvas 2D context context initialization dropped.")
+          );
         }
 
         // Draw standard clean buffer layout onto canvas plane
         ctx.drawImage(img, 0, 0, width, height);
-        if (!isString) URL.revokeObjectURL(url); // Clean up memory reference maps
+        if (!isString) URL.revokeObjectURL(url);
 
         let imageData: ImageData;
         try {
@@ -97,155 +99,132 @@ export async function preprocessMedicineImage(
         // 5. Context Aware Texture Complexity Parsing Check (Digital Graphic Filter Gate)
         let extremeCount = 0;
         let sampleCount = 0;
+        let sumLuminance = 0;
+
         for (let i = 0; i < data.length; i += 16) {
           const l = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+          sumLuminance += l;
           if (l < 15 || l > 240) {
             extremeCount++;
           }
           sampleCount++;
         }
-        const isDigitalGraphic = extremeCount / sampleCount > 0.3;
 
-        // 6. Variable-Driven Mathematical Adaptation Array Pipeline Execution
+        const isDigitalGraphic = extremeCount / sampleCount > 0.1;
+        const avgLuminance = sumLuminance / sampleCount;
+
+        // 6. Unified Mathematical Adaptation Pipeline (Optimized for Mobile Performance)
         if (!isDigitalGraphic) {
-          // Contrast Optimization Segment: Linear Histogram Stretch Boundaries
-          let minL = 255;
-          let maxL = 0;
-          for (let i = 0; i < data.length; i += 4) {
-            const l =
-              0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-            if (l < minL) minL = l;
-            if (l > maxL) maxL = l;
+          // Dynamic Gamma Tuning
+          let gamma = 1.0;
+          if (avgLuminance < 100) {
+            gamma = 0.8; // Gently brighten underexposed images
+          } else if (avgLuminance > 180) {
+            gamma = 1.15; // Gently darken overexposed glare
           }
 
-          if (minL > 0 || maxL < 255) {
-            if (maxL > minL) {
-              const stretchRatio = 255 / (maxL - minL);
-              for (let i = 0; i < data.length; i += 4) {
-                data[i] = Math.min(
-                  255,
-                  Math.max(0, (data[i] - minL) * stretchRatio)
-                );
-                data[i + 1] = Math.min(
-                  255,
-                  Math.max(0, (data[i + 1] - minL) * stretchRatio)
-                );
-                data[i + 2] = Math.min(
-                  255,
-                  Math.max(0, (data[i + 2] - minL) * stretchRatio)
-                );
+          // Mild Contrast Curve Parameters
+          const contrast = 12;
+          const contrastFactor =
+            (259 * (contrast + 255)) / (255 * (259 - contrast));
+
+          const clamp = (val: number) => Math.min(255, Math.max(0, val));
+
+          // Color Space Helpers
+          const rgbToHsl = (r: number, g: number, b: number) => {
+            r /= 255;
+            g /= 255;
+            b /= 255;
+            const max = Math.max(r, g, b),
+              min = Math.min(r, g, b);
+            let h = 0,
+              s = 0,
+              l = (max + min) / 2;
+            if (max !== min) {
+              const d = max - min;
+              s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+              switch (max) {
+                case r:
+                  h = (g - b) / d + (g < b ? 6 : 0);
+                  break;
+                case g:
+                  h = (b - r) / d + 2;
+                  break;
+                case b:
+                  h = (r - g) / d + 4;
+                  break;
               }
+              h /= 6;
             }
-          }
-        }
+            return [h, s, l];
+          };
 
-        // Color Space Transform Helpers: RGB to HSL Map Array
-        const rgbToHsl = (r: number, g: number, b: number) => {
-          r /= 255;
-          g /= 255;
-          b /= 255;
-          const max = Math.max(r, g, b),
-            min = Math.min(r, g, b);
-          let h = 0,
-            s = 0,
-            l = (max + min) / 2;
-          if (max !== min) {
-            const d = max - min;
-            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-            switch (max) {
-              case r:
-                h = (g - b) / d + (g < b ? 6 : 0);
-                break;
-              case g:
-                h = (b - r) / d + 2;
-                break;
-              case b:
-                h = (r - g) / d + 4;
-                break;
+          const hslToRgb = (h: number, s: number, l: number) => {
+            let r, g, b;
+            if (s === 0) {
+              r = g = b = l;
+            } else {
+              const hue2rgb = (p: number, q: number, t: number) => {
+                if (t < 0) t += 1;
+                if (t > 1) t -= 1;
+                if (t < 1 / 6) return p + (q - p) * 6 * t;
+                if (t < 1 / 2) return q;
+                if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+                return p;
+              };
+              const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+              const p = 2 * l - q;
+              r = hue2rgb(p, q, h + 1 / 3);
+              g = hue2rgb(p, q, h);
+              b = hue2rgb(p, q, h - 1 / 3);
             }
-            h /= 6;
-          }
-          return [h, s, l];
-        };
+            return [r * 255, g * 255, b * 255];
+          };
 
-        // Color Space Transform Helpers: HSL to RGB Array Map
-        const { clamp } = {
-          clamp: (val: number) => Math.min(255, Math.max(0, Math.round(val))),
-        };
-        const GeorgeHSLToRGB = (h: number, s: number, l: number) => {
-          let r, g, b;
-          if (s === 0) {
-            r = g = b = l;
-          } else {
-            const hue2rgb = (p: number, q: number, t: number) => {
-              if (t < 0) t += 1;
-              if (t > 1) t -= 1;
-              if (t < 1 / 6) return p + (q - p) * 6 * t;
-              if (t < 1 / 2) return q;
-              if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-              return p;
-            };
-            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-            const p = 2 * l - q;
-            r = hue2rgb(p, q, h + 1 / 3);
-            g = hue2rgb(p, q, h);
-            b = hue2rgb(p, q, h - 1 / 3);
-          }
-          return [clamp(r * 255), clamp(g * 255), clamp(b * 255)];
-        };
-
-        // Saturation Optimization Segment: Local Color Vibrance Map Matrix Lookups
-        const scaleFactor = 0.35; // Calibrated vibrance scale factor parameter values
-        for (let i = 0; i < data.length; i += 4) {
-          const [h, s, l] = rgbToHsl(data[i], data[i + 1], data[i + 2]);
-          let newS = s + (1.0 - s) * (1.0 - s) * scaleFactor;
-          newS = Math.min(1.0, Math.max(0.0, newS));
-          const [r, g, b] = GeorgeHSLToRGB(h, newS, l);
-          data[i] = r;
-          data[i + 1] = g;
-          data[i + 2] = b;
-        }
-
-        // Dynamic Range Optimization Segment: Mean Adaptive Gamma Compression Curve Line Filters
-        let sumLuminance = 0;
-        for (let i = 0; i < data.length; i += 4) {
-          sumLuminance +=
-            0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-        }
-        const avgLuminance = sumLuminance / (width * height);
-        let adaptiveGamma =
-          avgLuminance < 128
-            ? 0.75 + 0.25 * (avgLuminance / 128)
-            : 1.0 + 0.35 * ((avgLuminance - 128) / 127);
-
-        if (adaptiveGamma !== 1.0) {
+          // Single-Pass Pixel Loop for Gamma, Contrast, and Smart Saturation
           for (let i = 0; i < data.length; i += 4) {
-            data[i] = Math.pow(data[i] / 255, adaptiveGamma) * 255;
-            data[i + 1] = Math.pow(data[i + 1] / 255, adaptiveGamma) * 255;
-            data[i + 2] = Math.pow(data[i + 2] / 255, adaptiveGamma) * 255;
-          }
-        }
+            let r = data[i],
+              g = data[i + 1],
+              b = data[i + 2];
 
-        // Exposure Optimization Segment: Shadow Light Booster Tracking Map Boundaries
-        const shadowLiftThreshold = 80;
-        const liftFactor = 1.15;
-        for (let i = 0; i < data.length; i += 4) {
-          const l = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-          if (l < shadowLiftThreshold && l > 15) {
-            const ratio =
-              1 +
-              ((shadowLiftThreshold - l) / shadowLiftThreshold) *
-                (liftFactor - 1);
-            data[i] = Math.min(255, data[i] * ratio);
-            data[i + 1] = Math.min(255, data[i + 1] * ratio);
-            data[i + 2] = Math.min(255, data[i + 2] * ratio);
+            // A. Gamma Correction
+            if (gamma !== 1.0) {
+              r = 255 * Math.pow(r / 255, gamma);
+              g = 255 * Math.pow(g / 255, gamma);
+              b = 255 * Math.pow(b / 255, gamma);
+            }
+
+            // B. Mild Contrast Application
+            r = clamp(contrastFactor * (r - 128) + 128);
+            g = clamp(contrastFactor * (g - 128) + 128);
+            b = clamp(contrastFactor * (b - 128) + 128);
+
+            // C. Smart Saturation (Luminance Masked to prevent neon noise artifacts)
+            const [h, s, l] = rgbToHsl(r, g, b);
+
+            // Protect dark shadows (<0.15), bright glares (>0.85), and true grays (s<0.05)
+            if (l > 0.15 && l < 0.85 && s > 0.05) {
+              // The mask peaks at 1.0 for mid-tones and drops to 0 at the boundaries
+              const lumMask = 1.0 - Math.abs(l - 0.5) * 2.0;
+              let newS = s + s * (1.0 - s) * 0.3 * lumMask;
+              newS = Math.min(1.0, Math.max(0.0, newS));
+
+              const [nR, nG, nB] = hslToRgb(h, newS, l);
+              r = nR;
+              g = nG;
+              b = nB;
+            }
+
+            data[i] = r;
+            data[i + 1] = g;
+            data[i + 2] = b;
           }
         }
 
         ctx.putImageData(imageData, 0, 0);
         let finalCanvasToBlob = canvas;
 
-        // 7. Sharpness Optimization Segment: Softened Laplacian Matrix Implementation
+        // 7. Sharpness Optimization Segment: Softened Unsharp Mask
         if (!isDigitalGraphic) {
           const sharpCanvas = document.createElement("canvas");
           sharpCanvas.width = width;
@@ -261,24 +240,24 @@ export async function preprocessMedicineImage(
           const w = width;
           const h = height;
 
-          // Softened Kernel mapping profile parameters to protect thin characters
+          // Safe, dampened sharpening kernel to boost text without crunching boundaries
           for (let y = 1; y < h - 1; y++) {
             for (let x = 1; x < w - 1; x++) {
               const idx = (y * w + x) * 4;
               for (let c = 0; c < 3; c++) {
-                let val =
-                  4.6 * src[idx + c] -
-                  0.9 * src[((y - 1) * w + x) * 4 + c] -
-                  0.9 * src[((y + 1) * w + x) * 4 + c] -
-                  0.9 * src[(y * w + (x - 1)) * 4 + c] -
-                  0.9 * src[(y * w + (x + 1)) * 4 + c];
+                const val =
+                  3.0 * src[idx + c] -
+                  0.5 * src[((y - 1) * w + x) * 4 + c] -
+                  0.5 * src[((y + 1) * w + x) * 4 + c] -
+                  0.5 * src[(y * w + (x - 1)) * 4 + c] -
+                  0.5 * src[(y * w + (x + 1)) * 4 + c];
                 dst[idx + c] = Math.min(255, Math.max(0, val));
               }
-              dst[idx + 3] = src[idx + 3];
+              dst[idx + 3] = src[idx + 3]; // Preserve alpha
             }
           }
 
-          // Frame Boundary Padding Sync Loops
+          // Frame Boundary Padding Sync
           for (let y = 0; y < h; y++) {
             for (let x = 0; x < w; x++) {
               if (y === 0 || y === h - 1 || x === 0 || x === w - 1) {
@@ -294,7 +273,7 @@ export async function preprocessMedicineImage(
           finalCanvasToBlob = sharpCanvas;
         }
 
-        // 8. Output Serialization and Final Export Stream Linkage
+        // 8. Output Serialization
         finalCanvasToBlob.toBlob(
           (blob) => {
             if (blob) {
@@ -312,7 +291,7 @@ export async function preprocessMedicineImage(
         clearTimeout(executionTimeoutTracker);
         if (!isString) URL.revokeObjectURL(url);
         console.warn(
-          "Source resource parsing failed. Dropping compression mapping parameters."
+          "Source resource parsing failed. Dropping compression parameters."
         );
         resolve(input);
       };
