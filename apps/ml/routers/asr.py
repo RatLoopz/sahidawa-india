@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 import noisereduce as nr
 import numpy as np
 import tempfile
@@ -9,16 +9,29 @@ import logging
 import os
 
 from faster_whisper import WhisperModel
+from services.telemetry import (
+    get_audio_duration_seconds,
+    get_memory_usage_mb,
+    get_telemetry_logger,
+    log_transcription_finished,
+    start_timer,
+)
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+telemetry_logger = get_telemetry_logger()
 
 router = APIRouter(prefix="/asr", tags=["ASR"])
 
-# Load model once at startup — avoids per-request cold start latency (~3-5s)
-logger.info("Loading Whisper model...")
-model = WhisperModel("medium", device="cpu", compute_type="int8")
-logger.info("Whisper model loaded ✅")
+# Load model lazily on first request — prevents blocking startup of FastAPI microservice
+model = None
+
+def get_model():
+    global model
+    if model is None:
+        logger.info("Loading Whisper model lazily...")
+        model = WhisperModel("medium", device="cpu", compute_type="int8")
+        logger.info("Whisper model loaded ✅")
+    return model
 
 ALLOWED_TYPES = {
     "audio/wav",
@@ -31,8 +44,19 @@ ALLOWED_TYPES = {
 }
 
 
+def normalize_language_hint(language: str | None):
+    if not language:
+        return None
+
+    normalized = language.strip().lower()
+    if not normalized:
+        return None
+
+    return normalized.split("-")[0]
+
+
 @router.post("/transcribe")
-async def transcribe_audio(file: UploadFile = File(...)):
+async def transcribe_audio(file: UploadFile = File(...), language: str | None = Form(None)):
     """
     Accepts any supported audio file upload and returns transcribed text.
 
@@ -54,6 +78,9 @@ async def transcribe_audio(file: UploadFile = File(...)):
 
     tmp_path: str | None = None
     normalized_path: str | None = None
+    transcription_started_at: float | None = None
+    audio_duration_seconds = 0.0
+    memory_before_mb = 0.0
 
     try:
         # ── 2. Write raw upload to disk ───────────────────────────────────────
@@ -97,6 +124,7 @@ async def transcribe_audio(file: UploadFile = File(...)):
 
         # ── 4. Read normalized WAV with soundfile (always safe) ───────────────
         audio_data, sample_rate = sf.read(normalized_path)
+        audio_duration_seconds = get_audio_duration_seconds(audio_data, sample_rate)
 
         # Ensure float32 — required by noisereduce and faster-whisper
         audio_data = audio_data.astype(np.float32)
@@ -110,9 +138,11 @@ async def transcribe_audio(file: UploadFile = File(...)):
         # ── 6. Transcribe with faster-whisper ─────────────────────────────────
         # language=None → auto-detect; task="transcribe" preserves native language
         # (no translation). beam_size=8 improves accuracy for regional languages.
-        segments, info = model.transcribe(
+        transcription_started_at = start_timer()
+        memory_before_mb = get_memory_usage_mb()
+        segments, info = get_model().transcribe(
             reduced_audio,
-            language=None,
+            language=normalize_language_hint(language),
             task="transcribe",
             beam_size=8,
             vad_filter=True,
@@ -124,6 +154,12 @@ async def transcribe_audio(file: UploadFile = File(...)):
         )
 
         transcript = " ".join(seg.text for seg in segments).strip()
+        log_transcription_finished(
+            started_at=transcription_started_at,
+            audio_duration_seconds=audio_duration_seconds,
+            memory_before_mb=memory_before_mb,
+            logger=telemetry_logger,
+        )
 
         logger.info(
             f"Transcription complete | lang={info.language} "

@@ -1,9 +1,10 @@
 import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
 import { GitBranch } from "lucide-react";
+import { Link } from "@/i18n/routing";
 
 export default function Footer() {
     return (
-        <footer className="mt-auto border-t border-slate-800 bg-slate-950 text-slate-400">
+        <footer className="no-print mt-auto border-t border-slate-800 bg-slate-950 text-slate-400">
             <div className="container mx-auto px-4 py-10 md:px-6">
                 <div className="grid grid-cols-1 gap-8 border-b border-slate-800 pb-8 md:grid-cols-3">
                     {/* Brand Section */}
@@ -45,6 +46,15 @@ export default function Footer() {
                             >
                                 Contributing Guide
                             </a>
+                            <Link href="/faq" className="transition-all duration-200 hover:translate-x-1 hover:text-white">
+                             FAQ
+                          </Link>
+                            <Link
+                                href="/about"
+                                className="transition-all duration-200 hover:translate-x-1 hover:text-white"
+                            >
+                                About Us
+                            </Link>
                         </div>
                     </div>
 

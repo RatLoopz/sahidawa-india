@@ -3,7 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 
+from services.telemetry import configure_telemetry_logging
+
 load_dotenv()
+configure_telemetry_logging()
 
 app = FastAPI(
     title="SahiDawa ML Service",
@@ -11,16 +14,15 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Configure CORS
-origins = [
-    "http://localhost:3000",
-    "http://localhost:4000",
-    "http://localhost:8000",
-]
+# Configure CORS - load dynamically from environment variables
+allowed_origins = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:3000,http://localhost:4000,http://localhost:8000"
+).split(",")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

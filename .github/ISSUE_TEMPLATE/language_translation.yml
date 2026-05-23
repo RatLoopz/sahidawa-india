@@ -1,7 +1,7 @@
 name: 🌏 Language Translation
 description: Claim one of the 22 Indian scheduled languages to translate SahiDawa.
 title: "[I18N] Add <Language Name> translation"
-labels: ["i18n", "good first issue", "documentation"]
+labels: ["type:docs"]
 assignees: []
 
 body:

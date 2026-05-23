@@ -23,7 +23,9 @@ import { supabase } from "@/lib/supabase";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import LanguageSwitcher from "./LanguageSwitcher";
-import Footer from "./components/Footer";
+import SearchBar from "./components/SearchBar";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 function formatRelativeTime(dateString: string | null): string {
     if (!dateString) return "Recent";
@@ -43,7 +45,6 @@ function formatRelativeTime(dateString: string | null): string {
     } else if (elapsed < msPerDay) {
         return `${Math.round(elapsed / msPerHour)}h ago`;
     } else {
-        // Fall back to a standard date view if it's older than 24 hours
         return past.toLocaleDateString(undefined, { month: "short", day: "numeric" });
     }
 }
@@ -51,7 +52,8 @@ function formatRelativeTime(dateString: string | null): string {
 export default function SahiDawaHome() {
     const router = useRouter();
     const params = useParams();
-    const locale = params.locale;
+    // const locale = params.locale;
+    const locale = Array.isArray(params.locale) ? params.locale[0] : params.locale;
     const tHome = useTranslations("Home");
     const tNav = useTranslations("Navigation");
 
@@ -104,25 +106,48 @@ export default function SahiDawaHome() {
                         </h1>
                     </div>
 
-          <div className="flex items-center gap-2 md:gap-4">
-            <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold text-slate-600" aria-label="Main navigation">
-              <Link href="/how-it-works" className="hover:text-emerald-600 transition-colors">
-                {tNav("how_it_works")}
-              </Link>
-              <Link href="/alerts" className="hover:text-emerald-600 transition-colors">
-                {tNav("alerts")}
-              </Link>
-              <Link href="/map" className="hover:text-emerald-600 transition-colors">
-                {tNav("pharmacy_map")}
-              </Link>
-              <Link href="/reports/me" className="hover:text-emerald-600 transition-colors flex items-center gap-1">
-                <History size={14} /> My Reports
-              </Link>
-            </nav>
+                    <div className="flex items-center gap-2 md:gap-4">
+                        {/* <nav
+                            className="hidden items-center gap-6 text-sm font-semibold text-slate-600 lg:flex"
+                            aria-label="Main navigation"
+                        >
+                            <Link
+                                href="/how-it-works"
+                                className="transition-colors hover:text-emerald-600"
+                            >
+                                {tNav("how_it_works")}
+                            </Link> */}
+
+                        <nav
+                            className="hidden items-center gap-6 text-sm font-semibold text-slate-600 lg:flex"
+                            aria-label="Main navigation"
+                        >
+                            <Link
+                                href="/how-it-works"
+                                className="transition-colors hover:text-emerald-600"
+                            >
+                                {tNav("how_it_works")}
+                            </Link>
+                            <Link
+                                href="/alerts"
+                                className="transition-colors hover:text-emerald-600"
+                            >
+                                {tNav("alerts")}
+                            </Link>
+                            <Link href="/map" className="transition-colors hover:text-emerald-600">
+                                {tNav("pharmacy_map")}
+                            </Link>
+                            <Link
+                                href="/reports/me"
+                                className="flex items-center gap-1 transition-colors hover:text-emerald-600"
+                            >
+                                <History size={14} /> My Reports
+                            </Link>
+                        </nav>
 
                         <button
                             onClick={() => handleNavigation("health")}
-                            className="flex items-center gap-2 rounded-full bg-linear-to-r from-blue-500 to-purple-500 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                            className="flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25"
                             aria-label="Open AI Health Assistant"
                         >
                             <MessageCircle size={16} />
@@ -160,7 +185,7 @@ export default function SahiDawaHome() {
                     className="group relative flex w-full items-center justify-between overflow-hidden rounded-3xl border border-emerald-500 bg-emerald-600 p-7 text-left text-white shadow-xl shadow-emerald-600/20 transition-all hover:shadow-emerald-600/40 active:scale-[0.99] md:p-8"
                     aria-label="Scan medicine"
                 >
-                    <div className="absolute inset-0 z-0 bg-linear-to-tr from-emerald-700 to-emerald-500"></div>
+                    <div className="absolute inset-0 z-0 bg-gradient-to-tr from-emerald-700 to-emerald-500"></div>
                     <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-3xl"></div>
                     <div className="relative z-10 flex items-center gap-6">
                         <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white/20 shadow-inner backdrop-blur-md transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 md:h-20 md:w-20">
@@ -185,14 +210,14 @@ export default function SahiDawaHome() {
                 </button>
 
                 {/* ── Secondary Action Cards ── */}
-                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {/* Upload Photo */}
                     <button
                         onClick={() => handleNavigation("scan")}
-                        className="group flex w-full items-center gap-5 rounded-3xl border border-slate-200 bg-white p-6 text-left transition-all hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-100/50 active:scale-95"
+                        className="group flex w-full items-center gap-5 rounded-3xl border border-slate-200 bg-white p-6 text-left transition-all duration-300 hover:-translate-y-1.5 hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-100/60 active:translate-y-0 active:scale-[0.97]"
                         aria-label="Upload photo"
                     >
-                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 transition-colors duration-300 group-hover:bg-emerald-500 group-hover:text-white">
+                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-emerald-400/30">
                             <Globe size={28} strokeWidth={2.5} />
                         </div>
                         <div>
@@ -208,10 +233,10 @@ export default function SahiDawaHome() {
                     {/* Voice Triage */}
                     <button
                         onClick={() => handleNavigation("voice")}
-                        className="group flex w-full items-center gap-5 rounded-3xl border border-slate-200 bg-white p-6 text-left transition-all hover:border-blue-200 hover:shadow-lg hover:shadow-blue-100/50 active:scale-95"
+                        className="group flex w-full items-center gap-5 rounded-3xl border border-slate-200 bg-white p-6 text-left transition-all duration-300 hover:-translate-y-1.5 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-100/60 active:translate-y-0 active:scale-[0.97]"
                         aria-label="Voice triage"
                     >
-                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition-colors duration-300 group-hover:bg-blue-500 group-hover:text-white">
+                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-blue-400/30">
                             <Mic size={28} strokeWidth={2.5} />
                         </div>
                         <div>
@@ -227,10 +252,10 @@ export default function SahiDawaHome() {
                     {/* Pharmacy Map */}
                     <button
                         onClick={() => handleNavigation("map")}
-                        className="group flex w-full items-center gap-5 rounded-3xl border border-slate-200 bg-white p-6 text-left transition-all hover:border-amber-200 hover:shadow-lg hover:shadow-amber-100/50 active:scale-95"
+                        className="group flex w-full items-center gap-5 rounded-3xl border border-slate-200 bg-white p-6 text-left transition-all duration-300 hover:-translate-y-1.5 hover:border-amber-200 hover:shadow-xl hover:shadow-amber-100/60 active:translate-y-0 active:scale-[0.97]"
                         aria-label="Pharmacy map"
                     >
-                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 transition-colors duration-300 group-hover:bg-amber-500 group-hover:text-white">
+                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-amber-400/30">
                             <MapPin size={28} strokeWidth={2.5} />
                         </div>
                         <div>
@@ -246,10 +271,10 @@ export default function SahiDawaHome() {
                     {/* Report Fake Medicine */}
                     <button
                         onClick={() => handleNavigation("report")}
-                        className="group flex w-full items-center gap-5 rounded-3xl border border-slate-200 bg-white p-6 text-left transition-all hover:border-red-200 hover:shadow-lg hover:shadow-red-100/50 active:scale-95"
+                        className="group flex w-full items-center gap-5 rounded-3xl border border-slate-200 bg-white p-6 text-left transition-all duration-300 hover:-translate-y-1.5 hover:border-red-200 hover:shadow-xl hover:shadow-red-100/60 active:translate-y-0 active:scale-[0.97]"
                         aria-label="Report fake medicine"
                     >
-                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-600 transition-colors duration-300 group-hover:bg-red-500 group-hover:text-white">
+                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-600 transition-all duration-300 group-hover:bg-red-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-red-400/30">
                             <AlertTriangle size={28} strokeWidth={2.5} />
                         </div>
                         <div>
@@ -262,136 +287,176 @@ export default function SahiDawaHome() {
                 </div>
 
                 {/* ── AI Health Assistant CTA Banner ── */}
-                <div className="mt-6 rounded-3xl border border-blue-100 bg-linear-to-r from-blue-50 to-purple-50 p-6">
-                    <div className="flex flex-wrap items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-r from-blue-500 to-purple-500 shadow-lg">
-                                <MessageCircle size={28} className="text-white" />
+                <div className="group relative mt-8 overflow-hidden rounded-3xl border border-purple-200/60 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100/80 p-6 shadow-md shadow-purple-100/50 transition-all duration-300 hover:shadow-xl hover:shadow-purple-200/40 sm:p-8 md:p-10">
+                    {/* Decorative background orbs */}
+                    <div className="pointer-events-none absolute -top-16 -right-16 h-64 w-64 rounded-full bg-purple-300/20 blur-3xl transition-transform duration-700 group-hover:scale-110" />
+                    <div className="pointer-events-none absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-blue-300/20 blur-3xl transition-transform duration-700 group-hover:scale-110" />
+                    {/* Center glow */}
+                    <div className="pointer-events-none absolute top-1/2 left-1/2 h-40 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-200/30 blur-3xl" />
+
+                    <div className="relative z-10 flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                        <div className="flex items-center gap-4 sm:gap-5">
+                            {/* Icon container */}
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-blue-600 shadow-lg shadow-purple-500/30 transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl group-hover:shadow-purple-500/35 sm:h-16 sm:w-16">
+                                <MessageCircle size={28} className="text-white drop-shadow-sm" />
                             </div>
-                            <div>
-                                <h3 className="text-lg font-bold text-slate-800">
-                                    AI Health Assistant
-                                </h3>
-                                <p className="text-sm text-slate-600">
-                                    Get instant health advice and symptom checking
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <h3 className="text-xl font-extrabold tracking-tight text-slate-800 sm:text-2xl">
+                                        AI Health Assistant
+                                    </h3>
+                                    {/* Animated AI badge */}
+                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 px-2.5 py-0.5 text-[11px] font-bold tracking-wider text-purple-700 uppercase ring-1 ring-purple-200/60">
+                                        <span className="relative flex h-1.5 w-1.5">
+                                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-purple-500 opacity-60" />
+                                            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-purple-600" />
+                                        </span>
+                                        Live AI
+                                    </span>
+                                </div>
+                                <p className="text-sm leading-relaxed font-medium text-slate-500 sm:text-base">
+                                    Get instant health advice, symptom checking &amp; prescription
+                                    guidance
                                 </p>
                             </div>
                         </div>
                         <button
                             onClick={() => handleNavigation("health")}
-                            className="rounded-xl bg-linear-to-r from-blue-500 to-purple-500 px-6 py-2.5 font-bold text-white transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                            className="group/btn flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-purple-500 to-blue-600 px-8 py-3.5 text-base font-bold text-white shadow-md shadow-purple-500/25 transition-all duration-300 hover:scale-[1.04] hover:shadow-xl hover:shadow-purple-500/30 active:scale-[0.98] sm:w-auto"
                         >
-                            Chat Now →
+                            <MessageCircle size={18} />
+                            Chat Now
+                            <ChevronRight
+                                size={18}
+                                className="transition-transform duration-200 group-hover/btn:translate-x-1"
+                            />
                         </button>
                     </div>
                 </div>
 
                 {/* ── Global Search ── */}
-                <div className="mt-8 rounded-[3rem] border border-slate-200 bg-white p-4 shadow-sm transition-all focus-within:ring-2 focus-within:ring-emerald-500/20">
-                    <div className="flex items-center gap-2 px-2 sm:gap-4">
-                        <Search className="ml-2 shrink-0 text-slate-400" size={24} />
-                        <input
-                            type="text"
-                            placeholder={tHome("search_placeholder")}
-                            className="w-full border-none bg-transparent px-4 py-3 font-medium text-slate-700 outline-none placeholder:text-slate-400"
-                            aria-label="Search medicine or batch"
-                        />
-                        <button className="shrink-0 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-slate-800 sm:px-6 sm:text-base">
-                            {tHome("search_button")}
-                        </button>
-                    </div>
-                </div>
+                <SearchBar />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8 mb-20">
-          {/* Live Alerts Panel */}
-          <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden flex flex-col h-[400px]">
-            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <div className="flex items-center gap-2">
-                <Activity size={20} className="text-red-500" />
-                <h3 className="text-lg font-bold text-slate-800">
-                  Live CDSCO Alerts
-                </h3>
-              </div>
-              <span className="text-xs font-bold bg-red-100 text-red-600 px-2.5 py-1 rounded-full uppercase tracking-wider hidden sm:block">
-                India Region
-              </span>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/30">
-              {/* Alert Item */}
-              {homepageAlerts && homepageAlerts.length > 0 ? (
-                homepageAlerts.map((alert) => (
-                  <div 
-                    key={alert.id} 
-                    className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm flex items-start gap-4 relative overflow-hidden group hover:shadow-md transition-shadow cursor-pointer"
-                  >
-                    {/* Left edge colored strip */}
-                    <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${
-                      alert.brand_name === 'SYSTEM_UPDATE' 
-                        ? 'bg-blue-500' 
-                        : (alert.cdsco_approval_status === 'banned' || alert.is_counterfeit_alert) 
-                        ? 'bg-red-500' : 'bg-orange-400'        
-                    }`}>
-                    </div>
-
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors ${
-                      alert.brand_name === 'SYSTEM_UPDATE' 
-                        ? 'bg-blue-50 text-blue-500 group-hover:bg-blue-100' 
-                        : (alert.cdsco_approval_status === 'banned' || alert.is_counterfeit_alert) 
-                          ? 'bg-red-50 text-red-500 group-hover:bg-red-100' 
-                          : 'bg-orange-50 text-orange-500 group-hover:bg-orange-100'
-                    }`}>
-                      {alert.brand_name === 'SYSTEM_UPDATE' ? (
-                        <Globe size={20} strokeWidth={2.5} />
-                      ) : (
-                        <AlertTriangle size={20} strokeWidth={2.5} />
-                      )}
-                    </div>
-
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start">
-                        <h4 className="font-bold text-slate-800 leading-tight">{alert.brand_name}</h4>
-                        <span className="text-[11px] font-medium text-slate-400">{formatRelativeTime(alert.created_at)}</span>
-                      </div>
-                      <p className="text-sm text-slate-500 mt-1 font-medium leading-snug">
-                        {alert.composition} Batch <span className="font-bold text-slate-700">{alert.batch_number}</span>
-                      </p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-center text-sm text-slate-400 py-12">No current regulatory alerts recorded.</p>
-              )}
-            </div>
-            <div className="p-4 bg-white border-t border-slate-100">
-              <Link href="/alerts" className="block w-full">
-                <button className="w-full py-3 bg-slate-50 text-slate-700 font-bold rounded-xl hover:bg-slate-100 transition-colors cursor-pointer">
-                  View Full Alert Log
-                </button>
-              </Link>
-            </div>
-          </div>
-
-                    {/* AI Assistant Promo */}
-                    <div className="relative overflow-hidden rounded-3xl bg-emerald-600 p-8 text-white shadow-xl shadow-emerald-600/20">
-                        <div className="absolute -right-12 -bottom-12 rounded-full bg-emerald-500 p-12 opacity-50 blur-3xl"></div>
-                        <div className="relative z-10 space-y-6">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-md">
-                                <MessageCircle size={24} />
+                {/* ── Live Alerts Panel (full-width) ── */}
+                <div className="mt-8 mb-20">
+                    <div className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                        <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-6 py-5">
+                            <div className="flex items-center gap-2">
+                                <Activity size={20} className="text-red-500" />
+                                <h3 className="text-lg font-bold text-slate-800">
+                                    Live CDSCO Alerts
+                                </h3>
                             </div>
-                            <div>
-                                <h3 className="text-2xl font-black">AI Health Assistant</h3>
-                                <p className="mt-2 leading-relaxed font-medium text-emerald-100">
-                                    Have questions about your prescription or symptoms? Chat with
-                                    our AI assistant for instant, verified health guidance.
-                                </p>
+                            <span className="hidden rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold tracking-wider text-red-600 uppercase sm:block">
+                                India Region
+                            </span>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto bg-slate-50/30 p-4">
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                {loading ? (
+                                    <>
+                                        {[1, 2, 3, 4].map((i) => (
+                                            <div
+                                                key={i}
+                                                className="relative flex items-start gap-4 overflow-hidden rounded-2xl border border-slate-100 bg-white p-4 shadow-sm"
+                                            >
+                                                <div className="absolute top-0 bottom-0 left-0 w-1.5 bg-slate-200" />
+                                                <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
+                                                <div className="flex-1 space-y-2">
+                                                    <div className="flex items-start justify-between">
+                                                        <Skeleton className="h-4 w-1/2" />
+                                                        <Skeleton className="h-3 w-12" />
+                                                    </div>
+                                                    <Skeleton className="h-3 w-3/4" />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </>
+                                ) : homepageAlerts && homepageAlerts.length > 0 ? (
+                                    homepageAlerts.map((alert) => (
+                                        <div
+                                            key={alert.id}
+                                            className="group relative flex cursor-pointer items-start gap-4 overflow-hidden rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                                        >
+                                            {/* Left edge colored strip */}
+                                            <div
+                                                className={`absolute top-0 bottom-0 left-0 w-1.5 ${
+                                                    alert.brand_name === "SYSTEM_UPDATE"
+                                                        ? "bg-blue-500"
+                                                        : alert.cdsco_approval_status ===
+                                                                "banned" ||
+                                                            alert.is_counterfeit_alert
+                                                          ? "bg-red-500"
+                                                          : "bg-orange-400"
+                                                }`}
+                                            />
+
+                                            <div
+                                                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${
+                                                    alert.brand_name === "SYSTEM_UPDATE"
+                                                        ? "bg-blue-50 text-blue-500 group-hover:bg-blue-100"
+                                                        : alert.cdsco_approval_status ===
+                                                                "banned" ||
+                                                            alert.is_counterfeit_alert
+                                                          ? "bg-red-50 text-red-500 group-hover:bg-red-100"
+                                                          : "bg-orange-50 text-orange-500 group-hover:bg-orange-100"
+                                                }`}
+                                            >
+                                                {alert.brand_name === "SYSTEM_UPDATE" ? (
+                                                    <Globe size={20} strokeWidth={2.5} />
+                                                ) : (
+                                                    <AlertTriangle size={20} strokeWidth={2.5} />
+                                                )}
+                                            </div>
+
+                                            <div className="flex-1">
+                                                <div className="flex items-start justify-between">
+                                                    <h4 className="leading-tight font-bold text-slate-800">
+                                                        {alert.brand_name}
+                                                    </h4>
+                                                    <span className="text-[11px] font-medium text-slate-400">
+                                                        {formatRelativeTime(alert.created_at)}
+                                                    </span>
+                                                </div>
+                                                <p className="mt-1 text-sm leading-snug font-medium text-slate-500">
+                                                    {alert.composition} Batch{" "}
+                                                    <span className="font-bold text-slate-700">
+                                                        {alert.batch_number}
+                                                    </span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    /* ── Improved Empty State ── */
+                                    <div className="sm:col-span-2">
+                                        <EmptyState
+                                            icon={<ShieldCheck size={26} strokeWidth={2} className="text-emerald-500" />}
+                                            title="All clear!"
+                                            description="No active regulatory alerts right now. Stay safe and verify your medicines."
+                                            className="border-none !bg-transparent p-6"
+                                        />
+                                    </div>
+                                )}
                             </div>
-                            <button
-                                onClick={() => handleNavigation("health")}
-                                className="rounded-2xl bg-white px-6 py-3 font-bold text-emerald-600 transition-colors hover:bg-emerald-50"
-                            >
-                                Try Assistant
-                            </button>
+                        </div>
+
+                        {/* ── View Full Alert Log CTA ── */}
+                        <div className="border-t border-slate-100 bg-white p-4">
+                            <Link href="/alerts" className="block w-full">
+                                <button className="group/log flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 py-3 font-bold text-slate-700 transition-all duration-200 hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900 hover:shadow-sm">
+                                    <Activity
+                                        size={15}
+                                        className="text-slate-400 transition-colors duration-200 group-hover/log:text-red-500"
+                                    />
+                                    View Full Alert Log
+                                    <ChevronRight
+                                        size={16}
+                                        className="text-slate-400 transition-transform duration-200 group-hover/log:translate-x-1"
+                                    />
+                                </button>
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -400,83 +465,67 @@ export default function SahiDawaHome() {
             {/* Spacer for mobile nav */}
             <div className="h-16 md:hidden"></div>
 
-      {/* ── Mobile Bottom Navigation ── */}
-      <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200/60 flex justify-around px-2 py-3 items-center z-50 pb-[env(safe-area-inset-bottom)]"
-        aria-label="Mobile navigation"
-      >
-        <Link
-          href="/"
-          className="flex flex-col items-center gap-1.5 w-16 group"
-          aria-label="Home"
-        >
-          <div className="text-emerald-600 group-hover:-translate-y-1 transition-transform">
-            <Home size={24} strokeWidth={2.5} />
-          </div>
+            {/* ── Mobile Bottom Navigation ── */}
+            <nav
+                className="fixed right-0 bottom-0 left-0 z-50 flex items-center justify-around border-t border-slate-200/60 bg-white/90 px-2 py-3 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
+                aria-label="Mobile navigation"
+            >
+                <Link
+                    href="/"
+                    className="group flex w-16 flex-col items-center gap-1.5"
+                    aria-label="Home"
+                >
+                    <div className="text-emerald-600 transition-transform group-hover:-translate-y-1">
+                        <Home size={24} strokeWidth={2.5} />
+                    </div>
+                    <span className="text-[11px] font-bold text-emerald-600">Home</span>
+                </Link>
 
-          <span className="text-[11px] font-bold text-emerald-600">
-            Home
-          </span>
-        </Link>
+                <Link
+                    href="/scan"
+                    className="group flex w-16 flex-col items-center gap-1.5 text-slate-400 transition-colors hover:text-slate-600"
+                    aria-label="Scans"
+                >
+                    <div className="transition-transform group-hover:-translate-y-1">
+                        <History size={24} strokeWidth={2} />
+                    </div>
+                    <span className="text-[11px] font-semibold">Scans</span>
+                </Link>
 
-        <Link
-          href="/scan"
-          className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-slate-600 transition-colors"
-          aria-label="Scans"
-        >
-          <div className="group-hover:-translate-y-1 transition-transform">
-            <History size={24} strokeWidth={2} />
-          </div>
+                <Link
+                    href="/map"
+                    className="group flex w-16 flex-col items-center gap-1.5 text-slate-400 transition-colors hover:text-amber-600"
+                    aria-label="Map"
+                >
+                    <div className="transition-transform group-hover:-translate-y-1">
+                        <MapPin size={24} strokeWidth={2} />
+                    </div>
+                    <span className="text-[11px] font-semibold">Map</span>
+                </Link>
 
-          <span className="text-[11px] font-semibold">
-            Scans
-          </span>
-        </Link>
+                <Link
+                    href="/alerts"
+                    className="group flex w-16 flex-col items-center gap-1.5 text-slate-400 transition-colors hover:text-red-500"
+                    aria-label="Alerts"
+                >
+                    <div className="relative transition-transform group-hover:-translate-y-1">
+                        <Bell size={24} strokeWidth={2} />
+                        <span className="absolute top-0 right-0.5 h-2 w-2 animate-pulse rounded-full border border-white bg-red-500"></span>
+                    </div>
+                    <span className="text-[11px] font-semibold">Alerts</span>
+                </Link>
 
-        <Link
-          href="/map"
-          className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-amber-600 transition-colors"
-          aria-label="Map"
-        >
-          <div className="group-hover:-translate-y-1 transition-transform">
-            <MapPin size={24} strokeWidth={2} />
-          </div>
-
-          <span className="text-[11px] font-semibold">
-            Map
-          </span>
-        </Link>
-
-        <Link
-          href="/alerts"
-          className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-red-500 transition-colors"
-          aria-label="Alerts"
-        >
-          <div className="relative group-hover:-translate-y-1 transition-transform">
-            <Bell size={24} strokeWidth={2} />
-            <span className="absolute top-0 right-0.5 w-2 h-2 bg-red-500 border border-white rounded-full animate-pulse"></span>
-          </div>
-
-          <span className="text-[11px] font-semibold">
-            Alerts
-          </span>
-        </Link>
-
-        <Link
-          href="/profile"
-          className="flex flex-col items-center gap-1.5 w-16 group text-slate-400 hover:text-emerald-600 transition-colors"
-          aria-label="Profile"
-        >
-          <div className="group-hover:-translate-y-1 transition-transform">
-            <User size={24} strokeWidth={2} />
-          </div>
-
-          <span className="text-[11px] font-semibold">
-            Profile
-          </span>
-        </Link>
-      </nav>
-      <Footer />
-    </div>
-  );
+                <Link
+                    href="/profile"
+                    className="group flex w-16 flex-col items-center gap-1.5 text-slate-400 transition-colors hover:text-emerald-600"
+                    aria-label="Profile"
+                >
+                    <div className="transition-transform group-hover:-translate-y-1">
+                        <User size={24} strokeWidth={2} />
+                    </div>
+                    <span className="text-[11px] font-semibold">Profile</span>
+                </Link>
+            </nav>
+        </div>
+    );
 }

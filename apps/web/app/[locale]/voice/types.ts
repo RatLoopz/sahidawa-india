@@ -1,0 +1,24 @@
+import type { ConfidenceMeta } from "./lib/confidence";
+
+export type VoiceStep = "initial" | "listening" | "review" | "processing" | "result" | "error";
+
+export type VoiceTriageResult = {
+    text: string;
+    summary: string;
+    recommendations: string[];
+    disclaimer: string;
+    emergency: boolean;
+};
+
+export type VoiceErrorState = {
+    title: string;
+    message: string;
+};
+
+export type VoiceFlowState = {
+    transcript: string;
+    confidence: ConfidenceMeta;
+    result: VoiceTriageResult | null;
+    error: VoiceErrorState | null;
+    emergencyMatches: string[];
+};

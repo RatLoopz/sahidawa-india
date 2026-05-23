@@ -15,19 +15,110 @@ import {
     AlertTriangle,
     Search,
     X,
+    ScanLine,
 } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
 import { toast } from "sonner";
 import Footer from "../components/Footer";
 import { ExpiryBadge } from "@/components/scanner/ExpiryBadge";
-import { verifyMedicine, VerifyResult, VerifiedMedicine, API_BASE } from "@/lib/api";
+import {
+    verifyMedicine,
+    VerifyResult,
+    VerifiedMedicine,
+    API_BASE,
+    fuzzyMatchBrand,
+    verifyMedicineByBrand,
+} from "@/lib/api";
+import { BarcodeScanner } from "@/components/scanner/BarcodeScanner";
+import LazyImage from "@/components/LazyImage";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 function formatExpiryForBadge(isoDate: string | null | undefined): string | undefined {
     if (!isoDate) return undefined;
     const d = new Date(isoDate);
     if (isNaN(d.getTime())) return undefined;
     return `${String(d.getUTCMonth() + 1).padStart(2, "0")}/${d.getUTCFullYear()}`;
+}
+
+function expiryToIso(expiryStr: string): string {
+    const [month, year] = expiryStr.split("/");
+    return `${year}-${month.padStart(2, "0")}-01T00:00:00.000Z`;
+}
+
+function parseExpiryDate(text: string): string | null {
+    const expRegex =
+        /(?:exp|expiry|exp\.?date|e\.d\.|ed)[:.\s-]*([0-9]{1,2})[/\s-]([0-9]{4}|[0-9]{2})/i;
+    const match = text.match(expRegex);
+    if (match) {
+        let month = match[1];
+        let year = match[2];
+        if (month.length === 1) month = "0" + month;
+        if (year.length === 2) year = "20" + year;
+        const mNum = parseInt(month, 10);
+        if (mNum >= 1 && mNum <= 12) {
+            return `${month}/${year}`;
+        }
+    }
+
+    const genericRegex = /\b(0[1-9]|1[0-2])[/\s-](20[2-9][0-9]|[2-9][0-9])\b/g;
+    let genericMatch;
+    while ((genericMatch = genericRegex.exec(text)) !== null) {
+        const month = genericMatch[1];
+        let year = genericMatch[2];
+        if (year.length === 2) year = "20" + year;
+        return `${month}/${year}`;
+    }
+
+    return null;
+}
+
+function parseBatchNumber(text: string): string | null {
+    const batchRegex = /(?:batch|b\.?\s*no|b\.?\s*no\.|b\/no)[:.\s]*([A-Z0-9-]+)/i;
+    const match = text.match(batchRegex);
+    if (match && match[1]) {
+        const candidate = match[1].trim();
+        if (candidate.length >= 3) {
+            return candidate;
+        }
+    }
+
+    const lines = text.split("\n");
+    for (const line of lines) {
+        if (/(?:b\.?\s*no|batch|b\/no)/i.test(line)) {
+            const parts = line
+                .split(/[:.\s]/)
+                .map((p) => p.trim())
+                .filter(Boolean);
+            for (const part of parts) {
+                if (
+                    /^[A-Z0-9-]+$/i.test(part) &&
+                    !/(?:b\.?\s*no|batch|b\/no|exp|mfg)/i.test(part) &&
+                    part.length >= 3
+                ) {
+                    return part;
+                }
+            }
+        }
+    }
+    return null;
+}
+
+function extractBrandCandidate(text: string): string {
+    const lines = text
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean);
+    for (const line of lines) {
+        if (/(?:exp|expiry|batch|b\.?\s*no|mfg|date|composition|tablet|capsule|mg)/i.test(line)) {
+            continue;
+        }
+        const cleaned = line.replace(/[^a-zA-Z0-9\s-]/g, "").trim();
+        if (cleaned.length > 2) {
+            return cleaned;
+        }
+    }
+    return "";
 }
 
 function CdscoStatusBadge({ status }: { status: string }) {
@@ -58,35 +149,47 @@ function CdscoStatusBadge({ status }: { status: string }) {
     );
 }
 
+function formatMedicineDetails(medicine: VerifiedMedicine) {
+    return [
+        `Medicine: ${medicine.brand_name}`,
+        `Generic: ${medicine.generic_name}`,
+        `Manufacturer: ${medicine.manufacturer}`,
+        `Batch No: ${medicine.batch_number}`,
+        `Expiry: ${formatExpiryForBadge(medicine.expiry_date) ?? "Unknown"}`,
+        `CDSCO Status: ${medicine.cdsco_approval_status}`,
+        medicine.is_counterfeit_alert ? "Status: Counterfeit alert" : "Status: Verified",
+    ].join("\n");
+}
+
 function LoadingSkeleton() {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6 backdrop-blur-md">
             <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] bg-white p-8 text-slate-900 shadow-2xl">
-                <div className="absolute top-0 right-0 left-0 h-2 animate-pulse bg-emerald-500"></div>
+                <Skeleton className="absolute top-0 right-0 left-0 h-2 bg-emerald-500 rounded-none" />
                 <div className="flex flex-col items-center space-y-4 text-center">
-                    <div className="flex h-20 w-20 animate-pulse items-center justify-center rounded-full bg-slate-100">
+                    <Skeleton className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100">
                         <ShieldCheck size={40} className="text-slate-200" />
-                    </div>
+                    </Skeleton>
                     <div className="w-full space-y-2">
-                        <div className="mx-auto h-7 w-3/4 animate-pulse rounded-lg bg-slate-100"></div>
-                        <div className="mx-auto h-4 w-1/2 animate-pulse rounded-lg bg-slate-100"></div>
+                        <Skeleton className="mx-auto h-7 w-3/4 rounded-lg bg-slate-100" />
+                        <Skeleton className="mx-auto h-4 w-1/2 rounded-lg bg-slate-100" />
                     </div>
                     <div className="grid w-full grid-cols-2 gap-3 pt-2">
                         <div className="space-y-2 rounded-2xl border border-slate-100 bg-slate-50 p-3">
-                            <div className="mx-auto h-3 w-3/4 animate-pulse rounded bg-slate-200"></div>
-                            <div className="mx-auto h-5 w-1/2 animate-pulse rounded bg-slate-200"></div>
+                            <Skeleton className="mx-auto h-3 w-3/4 rounded bg-slate-200" />
+                            <Skeleton className="mx-auto h-5 w-1/2 rounded bg-slate-200" />
                         </div>
                         <div className="space-y-2 rounded-2xl border border-slate-100 bg-slate-50 p-3">
-                            <div className="mx-auto h-3 w-3/4 animate-pulse rounded bg-slate-200"></div>
-                            <div className="mx-auto h-5 w-1/2 animate-pulse rounded bg-slate-200"></div>
+                            <Skeleton className="mx-auto h-3 w-3/4 rounded bg-slate-200" />
+                            <Skeleton className="mx-auto h-5 w-1/2 rounded bg-slate-200" />
                         </div>
                     </div>
                     <div className="w-full space-y-2 rounded-2xl border border-emerald-100/50 bg-emerald-50/50 p-4">
-                        <div className="h-3 w-full animate-pulse rounded bg-emerald-200/50"></div>
-                        <div className="h-3 w-5/6 animate-pulse rounded bg-emerald-200/50"></div>
+                        <Skeleton className="h-3 w-full rounded bg-emerald-200/50" />
+                        <Skeleton className="h-3 w-5/6 rounded bg-emerald-200/50" />
                     </div>
-                    <div className="h-12 w-full animate-pulse rounded-2xl bg-slate-100 py-4"></div>
-                    <div className="mx-auto h-4 w-24 animate-pulse rounded bg-slate-100"></div>
+                    <Skeleton className="h-12 w-full rounded-2xl bg-slate-100" />
+                    <Skeleton className="mx-auto h-4 w-24 rounded bg-slate-100" />
                 </div>
                 <div className="mt-4 animate-pulse text-center text-sm font-medium text-slate-400">
                     Verifying with CDSCO Database...
@@ -100,13 +203,13 @@ function VerifiedSafeResult({
     medicine,
     onScanAgain,
     onShare,
-    onCopyBatch,
+    onCopyMedicineDetails,
     copied,
 }: {
     medicine: VerifiedMedicine;
     onScanAgain: () => void;
     onShare: () => void;
-    onCopyBatch: () => void;
+    onCopyMedicineDetails: () => void;
     copied: boolean;
 }) {
     return (
@@ -133,7 +236,9 @@ function VerifiedSafeResult({
                                 {medicine.batch_number}
                             </span>
                             <button
-                                onClick={onCopyBatch}
+                                onClick={onCopyMedicineDetails}
+                                aria-label="Copy medicine details"
+                                title="Copy medicine details"
                                 className={`shrink-0 rounded-lg p-1.5 transition-all duration-200 ${
                                     copied
                                         ? "bg-emerald-100 text-emerald-600"
@@ -197,10 +302,14 @@ function CounterfeitAlertResult({
     medicine,
     onScanAgain,
     onShare,
+    onCopyMedicineDetails,
+    copied,
 }: {
     medicine: VerifiedMedicine;
     onScanAgain: () => void;
     onShare: () => void;
+    onCopyMedicineDetails: () => void;
+    copied: boolean;
 }) {
     return (
         <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] bg-white p-8 text-slate-900 shadow-2xl">
@@ -221,7 +330,21 @@ function CounterfeitAlertResult({
                         <span className="block text-[10px] font-bold tracking-wider text-red-400 uppercase">
                             Batch No.
                         </span>
-                        <span className="font-bold text-red-700">{medicine.batch_number}</span>
+                        <div className="flex items-center justify-between gap-1">
+                            <span className="font-bold text-red-700">{medicine.batch_number}</span>
+                            <button
+                                onClick={onCopyMedicineDetails}
+                                aria-label="Copy medicine details"
+                                title="Copy medicine details"
+                                className={`shrink-0 rounded-lg p-1.5 transition-all duration-200 ${
+                                    copied
+                                        ? "bg-red-100 text-red-600"
+                                        : "bg-red-200/60 text-red-400 hover:bg-red-200 hover:text-red-600"
+                                }`}
+                            >
+                                {copied ? <Check size={14} strokeWidth={3} /> : <Copy size={14} />}
+                            </button>
+                        </div>
                     </div>
                     <div className="rounded-2xl border border-red-100 bg-red-50 p-3">
                         <span className="block text-[10px] font-bold tracking-wider text-red-400 uppercase">
@@ -247,7 +370,17 @@ function CounterfeitAlertResult({
     );
 }
 
-function UnverifiedResult({ onScanAgain }: { onScanAgain: () => void }) {
+function UnverifiedResult({
+    brandName,
+    batchNumber,
+    expiryDate,
+    onScanAgain,
+}: {
+    brandName?: string;
+    batchNumber?: string;
+    expiryDate?: string;
+    onScanAgain: () => void;
+}) {
     return (
         <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] bg-white p-8 text-slate-900 shadow-2xl">
             <div className="absolute top-0 right-0 left-0 h-2 bg-amber-500"></div>
@@ -257,17 +390,30 @@ function UnverifiedResult({ onScanAgain }: { onScanAgain: () => void }) {
                 </div>
                 <div>
                     <h3 className="text-2xl font-black tracking-tight text-amber-700">
-                        Unverified Medicine
+                        {brandName || "Unverified Medicine"}
                     </h3>
                     <p className="font-medium text-slate-500">No match found in CDSCO Database</p>
                 </div>
 
+                {(batchNumber || expiryDate) && (
+                    <div className="grid w-full grid-cols-2 gap-3 pt-2">
+                        <div className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
+                            <span className="block text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                                Batch No.
+                            </span>
+                            <span className="font-bold text-slate-700">
+                                {batchNumber || "Unknown"}
+                            </span>
+                        </div>
+                        <ExpiryBadge expiryDate={expiryDate} />
+                    </div>
+                )}
+
                 <div className="flex w-full items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-left">
                     <Info size={18} className="mt-0.5 shrink-0 text-amber-600" />
                     <p className="text-xs leading-relaxed font-medium text-amber-800">
-                        No matching record was found for this batch number. This does not
-                        necessarily mean the medicine is fake. Try re-entering the batch number or
-                        report it for investigation.
+                        No matching record was found for this medicine batch in the CDSCO database.
+                        Please verify the spelling or report it if suspicious.
                     </p>
                 </div>
 
@@ -310,7 +456,7 @@ function ErrorResult({ message, onRetry }: { message: string; onRetry: () => voi
 
 function ResultActions({ onScanAgain, onShare }: { onScanAgain: () => void; onShare: () => void }) {
     return (
-        <div className="grid w-full grid-cols-1 gap-3">
+        <div className="no-print grid w-full grid-cols-1 gap-3">
             <button
                 onClick={onScanAgain}
                 className="w-full rounded-2xl bg-slate-900 py-4 font-bold text-white shadow-lg shadow-slate-900/20 transition-colors hover:bg-slate-800"
@@ -347,6 +493,10 @@ export default function ScanPage() {
     const [verifyError, setVerifyError] = useState<string | null>(null);
     const [ocrText, setOcrText] = useState<string | null>(null);
     const [ocrConfidence, setOcrConfidence] = useState<number | null>(null);
+    const [parsedBrand, setParsedBrand] = useState<string>("");
+    const [parsedBatch, setParsedBatch] = useState<string>("");
+    const [parsedExpiry, setParsedExpiry] = useState<string>("");
+    const [isCameraActive, setIsCameraActive] = useState(false);
 
     const handleVerify = useCallback(async (batch: string) => {
         if (!batch.trim()) {
@@ -369,25 +519,39 @@ export default function ScanPage() {
         }
     }, []);
 
-    const handleCopyBatch = useCallback(async () => {
-        const batch = verifyResult?.verified ? verifyResult.medicine.batch_number : batchInput;
-        try {
-            await navigator.clipboard.writeText(batch);
+    const handleCopyMedicineDetails = useCallback(async () => {
+        if (!verifyResult?.verified) return;
+
+        const details = formatMedicineDetails(verifyResult.medicine);
+        const showCopied = () => {
             setCopied(true);
-            toast.success("Batch number copied!");
+            toast.success("Medicine details copied!");
             setTimeout(() => setCopied(false), 2000);
+        };
+
+        try {
+            if (!navigator.clipboard?.writeText) {
+                throw new Error("Clipboard API unavailable");
+            }
+            await navigator.clipboard.writeText(details);
+            showCopied();
         } catch {
             const textArea = document.createElement("textarea");
-            textArea.value = batch;
+            textArea.value = details;
+            textArea.setAttribute("readonly", "");
+            textArea.style.position = "fixed";
+            textArea.style.opacity = "0";
             document.body.appendChild(textArea);
             textArea.select();
-            document.execCommand("copy");
+            const copiedWithFallback = document.execCommand("copy");
             document.body.removeChild(textArea);
-            setCopied(true);
-            toast.success("Batch number copied!");
-            setTimeout(() => setCopied(false), 2000);
+            if (copiedWithFallback) {
+                showCopied();
+            } else {
+                toast.error("Unable to copy medicine details");
+            }
         }
-    }, [verifyResult, batchInput]);
+    }, [verifyResult]);
 
     const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
@@ -448,6 +612,9 @@ export default function ScanPage() {
         setVerifyError(null);
         setOcrText(null);
         setOcrConfidence(null);
+        setParsedBrand("");
+        setParsedBatch("");
+        setParsedExpiry("");
 
         try {
             const formData = new FormData();
@@ -462,42 +629,126 @@ export default function ScanPage() {
                 // 🌟 Fix: always release the loading lock on error
                 if (res.status === 503) {
                     toast.warning("OCR service is currently unavailable. Please verify manually.");
+                    setVerifyError(
+                        "OCR service is offline. Please enter the batch number manually below."
+                    );
                 } else if (res.status === 400) {
                     const body = (await res.json().catch(() => ({}))) as { error?: string };
                     toast.error(body.error ?? "Invalid image file.");
+                    setVerifyError(
+                        body.error ??
+                            "Invalid image file. Please upload a clear image of a medicine strip."
+                    );
                 } else {
                     toast.error("Failed to extract text from image.");
+                    setVerifyError(
+                        "Failed to read medicine text. Please ensure the image is clear or upload another one."
+                    );
                 }
-                setIsScanning(false);
+                setShowResult(true);
                 return;
             }
 
             const data = (await res.json()) as { text?: string; confidence?: number };
-            if (data.text) {
-                setOcrText(data.text);
-                setOcrConfidence(data.confidence ?? 0);
-
-                // 🌟 Fix: auto-parse batch number from OCR output & trigger verification
-                const parsedBatch = extractBatchFromOcrText(data.text);
-                if (parsedBatch) {
-                    setBatchInput(parsedBatch);
-                    toast.success(`Batch detected: ${parsedBatch} — verifying…`);
-                    // Small tick so state update flushes before async call
-                    setTimeout(() => handleVerify(parsedBatch), 50);
-                } else {
-                    toast.success("OCR complete! Enter or confirm the batch number to verify.");
-                }
-            } else {
-                toast.warning(
-                    "No clear text found in image. Please enter the batch number manually."
+            if (!data.text || !data.text.trim()) {
+                toast.warning("No clear text found in image.");
+                setVerifyError(
+                    "Failed to read medicine text. Please ensure the image is clear or upload another one."
                 );
+                setShowResult(true);
+                return;
             }
-        } catch {
-            toast.warning("OCR service is currently unavailable. Please verify manually.");
+
+            const rawText = data.text;
+            setOcrText(rawText);
+            setOcrConfidence(data.confidence ?? 0);
+            toast.success("OCR extraction complete!");
+
+            // Parse OCR Text using regex
+            const parsedBatchNum = parseBatchNumber(rawText);
+            const parsedExpiryStr = parseExpiryDate(rawText);
+            const brandCand = extractBrandCandidate(rawText);
+
+            if (parsedBatchNum) setParsedBatch(parsedBatchNum);
+            if (parsedExpiryStr) setParsedExpiry(parsedExpiryStr);
+            if (brandCand) setParsedBrand(brandCand);
+
+            if (parsedBatchNum) {
+                setBatchInput(parsedBatchNum);
+            }
+
+            // Database Lookup Strategy
+            let finalResult: VerifyResult | null = null;
+
+            // 1. Try Batch Number verification
+            if (parsedBatchNum) {
+                try {
+                    const batchRes = await verifyMedicine(parsedBatchNum);
+                    if (batchRes.verified) {
+                        finalResult = batchRes;
+                    }
+                } catch (err) {
+                    // Silent fallback
+                }
+            }
+
+            // 2. Fallback to Fuzzy Brand Name Matching + Verification by matched Brand Name
+            if (!finalResult && brandCand) {
+                try {
+                    const matchRes = await fuzzyMatchBrand(brandCand);
+                    if (matchRes && matchRes.length > 0) {
+                        // Find the top match with confidence >= 60
+                        const topMatch = matchRes[0];
+                        if (topMatch.score >= 60) {
+                            setParsedBrand(topMatch.name); // update brand name to the matched official one
+                            const brandRes = await verifyMedicineByBrand(topMatch.name);
+                            if (brandRes.verified) {
+                                finalResult = brandRes;
+                            }
+                        }
+                    }
+                } catch (err) {
+                    // Silent fallback
+                }
+            }
+
+            if (finalResult && finalResult.verified) {
+                // Merge OCR details
+                const updatedMedicine = { ...finalResult.medicine };
+                if (parsedBatchNum) {
+                    updatedMedicine.batch_number = parsedBatchNum;
+                }
+                if (parsedExpiryStr) {
+                    updatedMedicine.expiry_date = expiryToIso(parsedExpiryStr);
+                }
+                setVerifyResult({ verified: true, medicine: updatedMedicine });
+            } else {
+                setVerifyResult({
+                    verified: false,
+                    message: "No match found in CDSCO Database",
+                });
+            }
+        } catch (err) {
+            toast.error("Failed to connect to OCR service.");
+            setVerifyError(
+                "Failed to read medicine text. Please ensure the image is clear or upload another one."
+            );
         } finally {
             setIsScanning(false);
+            setShowResult(true);
         }
     };
+
+    /** Handles a barcode scanned via the live camera scanner. */
+    const handleBarcodeScan = useCallback(
+        (barcodeText: string) => {
+            setBatchInput(barcodeText);
+            setIsCameraActive(false);
+            toast.success(`Barcode detected: ${barcodeText} — verifying…`);
+            handleVerify(barcodeText);
+        },
+        [handleVerify]
+    );
 
     const handleScanAgain = () => {
         setIsScanning(false);
@@ -508,27 +759,25 @@ export default function ScanPage() {
         setBatchInput("");
         setOcrText(null);
         setOcrConfidence(null);
+        setParsedBrand("");
+        setParsedBatch("");
+        setParsedExpiry("");
+        setIsCameraActive(false);
     };
 
     const handleDismissResult = () => {
         setShowResult(false);
         setVerifyResult(null);
         setVerifyError(null);
+        setParsedBrand("");
+        setParsedBatch("");
+        setParsedExpiry("");
     };
 
     const handleShare = async () => {
         let shareText = "";
         if (verifyResult?.verified) {
-            const m = verifyResult.medicine;
-            shareText = [
-                `Medicine: ${m.brand_name}`,
-                `Generic: ${m.generic_name}`,
-                `Manufacturer: ${m.manufacturer}`,
-                `Batch No: ${m.batch_number}`,
-                `Expiry: ${formatExpiryForBadge(m.expiry_date) ?? "Unknown"}`,
-                `CDSCO Status: ${m.cdsco_approval_status}`,
-                m.is_counterfeit_alert ? "⚠ COUNTERFEIT ALERT" : "Status: Verified",
-            ].join("\n");
+            shareText = formatMedicineDetails(verifyResult.medicine);
         } else {
             shareText = `Medicine Verification: Unverified batch — ${batchInput}`;
         }
@@ -578,10 +827,13 @@ export default function ScanPage() {
 
             <div className="relative flex flex-1 items-center justify-center overflow-hidden">
                 <div className="absolute inset-0 overflow-hidden bg-slate-900">
-                    {uploadedImage ? (
-                        <img
+                    {isCameraActive ? (
+                        <BarcodeScanner onScan={handleBarcodeScan} debounceMs={2500} />
+                    ) : uploadedImage ? (
+                        <LazyImage
                             src={uploadedImage}
                             alt="Uploaded"
+                            wrapperClassName="h-full w-full"
                             className="h-full w-full object-cover opacity-60"
                         />
                     ) : (
@@ -629,6 +881,8 @@ export default function ScanPage() {
                                     medicine={verifyResult.medicine}
                                     onScanAgain={handleScanAgain}
                                     onShare={handleShare}
+                                    onCopyMedicineDetails={handleCopyMedicineDetails}
+                                    copied={copied}
                                 />
                             )}
                         {!verifyError &&
@@ -638,12 +892,17 @@ export default function ScanPage() {
                                     medicine={verifyResult.medicine}
                                     onScanAgain={handleScanAgain}
                                     onShare={handleShare}
-                                    onCopyBatch={handleCopyBatch}
+                                    onCopyMedicineDetails={handleCopyMedicineDetails}
                                     copied={copied}
                                 />
                             )}
                         {!verifyError && verifyResult && !verifyResult.verified && (
-                            <UnverifiedResult onScanAgain={handleDismissResult} />
+                            <UnverifiedResult
+                                brandName={parsedBrand}
+                                batchNumber={parsedBatch}
+                                expiryDate={parsedExpiry}
+                                onScanAgain={handleDismissResult}
+                            />
                         )}
                     </div>
                 )}
@@ -697,6 +956,17 @@ export default function ScanPage() {
                     gallery.
                 </p>
                 <div className="flex gap-4">
+                    <button
+                        onClick={() => setIsCameraActive((prev) => !prev)}
+                        className={`flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-colors focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none ${
+                            isCameraActive
+                                ? "bg-red-500 text-white hover:bg-red-400"
+                                : "bg-emerald-500 text-white hover:bg-emerald-400"
+                        }`}
+                    >
+                        <ScanLine size={18} />
+                        {isCameraActive ? "Stop Scanner" : "Scan Barcode"}
+                    </button>
                     <label
                         htmlFor="medicine-upload"
                         className="flex cursor-pointer items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black shadow-lg transition-colors hover:bg-slate-200"
@@ -704,9 +974,6 @@ export default function ScanPage() {
                         <Layers size={18} />
                         Upload Photo
                     </label>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-                        <AlertCircle size={20} className="text-white/50" />
-                    </div>
                 </div>
             </div>
             <Footer />

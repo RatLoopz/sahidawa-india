@@ -14,6 +14,7 @@ import { z } from "zod";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { submitReport, geocodePincode } from "@/lib/api";
 import { preprocessMedicineImage } from "@/lib/imageEnhancer";
+import LazyImage from "@/components/LazyImage";
 
 // ─── Cloudinary env ────────────────────────────────────────────────────────────
 // Uploads are now securely routed through our backend API (/api/upload),
@@ -536,10 +537,10 @@ function Step2({
                 transition={{ duration: 0.18 }}
                 className="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-sm"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <LazyImage
                   src={img.preview}
                   alt={img.name}
+                  wrapperClassName="w-full h-full"
                   className="w-full h-full object-cover"
                 />
                 {/* Remove overlay */}

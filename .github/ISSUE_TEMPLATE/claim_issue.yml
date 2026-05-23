@@ -1,7 +1,7 @@
 name: 🙋 Claim an Issue (GSSoC 2026)
 description: Express your intent to work on an existing open issue as a GSSoC 2026 contributor.
 title: "[CLAIM] I want to work on #<issue_number>"
-labels: ["gssoc-2026", "needs-triage"]
+labels: ["gssoc:approved"]
 assignees: []
 
 body:

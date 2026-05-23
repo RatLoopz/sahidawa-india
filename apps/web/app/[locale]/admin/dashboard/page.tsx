@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from "next/link";
 import {
   AlertTriangle, Database, History, Search,
   CheckCircle, XCircle, RefreshCw, Loader2,
@@ -177,6 +178,12 @@ export default function AdminDashboard() {
             <p className="text-slate-400 text-xs">Manage community-reported counterfeit medicines</p>
           </div>
           <div className="flex items-center gap-3">
+          <Link
+              href="/en/login"
+              className="px-4 py-2 rounded-full bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition"
+            >
+              Sign In
+            </Link>      
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
@@ -397,11 +404,23 @@ function ReportsTable({ reports, loading, authError, acting, onAction }: Readonl
         <span className="text-xs text-slate-400">{reports.length} pending</span>
       </div>
 
-      {authError && (
-        <div className="mx-6 my-4 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3 text-sm flex items-center gap-2">
-          <ShieldAlert className="w-4 h-4 shrink-0" />{authError}
-        </div>
-      )}
+{authError && (
+  <div className="mx-6 my-4 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-4 text-sm">
+    
+    <div className="flex items-center gap-2 mb-3">
+      <ShieldAlert className="w-4 h-4 shrink-0" />
+      {authError}
+    </div>
+
+    <Link
+      href="/en/login"
+      className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-white text-sm font-medium hover:bg-emerald-700 transition"
+    >
+      Go to Login
+    </Link>
+
+  </div>
+)}
 
       {loading && !authError && (
         <div className="flex items-center justify-center py-16 text-slate-400 gap-2">

@@ -15,6 +15,9 @@ Usage:
     # Or only scrape (don't load to DB):
     python run_pipeline.py --scrape-only
 
+    # Or retry only rows that previously failed during load:
+    python run_pipeline.py --retry-failed
+
 Prerequisite (one-time):
     pip install -r requirements.txt
     playwright install chromium
@@ -32,10 +35,30 @@ from etl.normalizer import JanAushadhiNormalizer, normalize_latest
 from etl.loader import SupabaseLoader
 
 
-async def run_full_pipeline(skip_scrape: bool = False, scrape_only: bool = False):
+async def run_full_pipeline(
+    skip_scrape: bool = False,
+    scrape_only: bool = False,
+    retry_failed: bool = False,
+):
     print("\n" + "="*60)
     print("  SahiDawa ETL Pipeline — Jan Aushadhi")
     print("="*60 + "\n")
+
+    if retry_failed:
+        print("🔁 RETRY MODE: Reprocessing previously failed ETL rows...")
+        loader = SupabaseLoader()
+        stats = loader.retry_failed_rows()
+
+        print("\n" + "="*60)
+        print("  Retry Complete!")
+        print(f"  Total processed : {stats['total']}")
+        print(f"  Successfully loaded : {stats['inserted']}")
+        print(f"  Failed : {stats['failed']}")
+        print(f"  Success rate : {stats['success_rate']}%")
+        if stats.get("failed_rows_csv"):
+            print(f"  Failed rows CSV : {stats['failed_rows_csv']}")
+        print("="*60 + "\n")
+        return stats
 
     # ── STEP 1: SCRAPE ─────────────────────────────────────────────────────────
     raw_csv_path = None
@@ -79,7 +102,12 @@ async def run_full_pipeline(skip_scrape: bool = False, scrape_only: bool = False
     print(f"  Total processed : {stats['total']}")
     print(f"  Successfully loaded : {stats['inserted']}")
     print(f"  Failed : {stats['failed']}")
+    print(f"  Success rate : {stats['success_rate']}%")
+    if stats.get("failed_rows_csv"):
+        print(f"  Failed rows CSV : {stats['failed_rows_csv']}")
     print("="*60 + "\n")
+
+    return stats
 
 
 if __name__ == "__main__":
@@ -88,9 +116,12 @@ if __name__ == "__main__":
                         help="Skip scraping and use the latest existing raw file")
     parser.add_argument("--scrape-only", action="store_true",
                         help="Only scrape — don't normalize or load to DB")
+    parser.add_argument("--retry-failed", action="store_true",
+                        help="Retry only rows saved in the ETL failed rows table")
     args = parser.parse_args()
 
     asyncio.run(run_full_pipeline(
         skip_scrape=args.skip_scrape,
         scrape_only=args.scrape_only,
+        retry_failed=args.retry_failed,
     ))

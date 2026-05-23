@@ -12,15 +12,36 @@ ON CONFLICT (id) DO NOTHING;
 
 -- 2. Insert Dummy Medicines
 -- Using brand_name, generic_name, manufacturer
-INSERT INTO public.medicines (id, barcode_id, brand_name, generic_name, manufacturer, cdsco_approval_status)
+INSERT INTO public.medicines (
+  id,
+  barcode_id,
+  brand_name,
+  generic_name,
+  manufacturer,
+  cdsco_approval_status,
+  mrp,
+  jan_aushadhi_price
+)
 VALUES
-  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '8901234567890', 'Dolo 650', 'Paracetamol 650mg', 'Micro Labs', 'approved'),
-  ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '8901234567891', 'Augmentin 625 Duo', 'Amoxicillin + Clavulanate', 'GSK', 'approved'),
-  ('cccccccc-cccc-cccc-cccc-cccccccccccc', '8901234567892', 'Fake-O-Cin', 'Spurious Antibiotic', 'Unknown', 'banned')
-ON CONFLICT (id) DO NOTHING;
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '8901234567890', 'Dolo 650', 'Paracetamol 650mg', 'Micro Labs', 'approved', 30.00, 15.00),
+  ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '8901234567891', 'Augmentin 625 Duo', 'Amoxicillin + Clavulanate', 'GSK', 'approved', 185.00, 96.50),
+  ('cccccccc-cccc-cccc-cccc-cccccccccccc', '8901234567892', 'Fake-O-Cin', 'Spurious Antibiotic', 'Unknown', 'banned', 79.00, NULL)
+ON CONFLICT (barcode_id) DO NOTHING;
 
-INSERT INTO public.medicines (barcode_id, brand_name, generic_name, manufacturer, batch_number, cdsco_approval_status, is_counterfeit_alert, composition) VALUES
-('8901111111111', 'Augmentin 625 Duo', 'Amoxicillin + Clavulanic Acid', 'GlaxoSmithKline plc', 'B23059', 'recalled', true, 'Reported suspicious by 12 individual community mobile scanning units.'),
-('8902222222222', 'Pan 40', 'Pantoprazole', 'Alkem Laboratories Ltd', 'UP992', 'recalled', false, 'Substandard active compound concentrations detected by regional inspectors.'),
-('8903333333333', 'Paracetamol 500mg', 'Paracetamol', 'Cipla Ltd', 'HR4410', 'banned', true, 'Slight packaging variations and unapproved manufacturing batches observed.')
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.medicines (
+  barcode_id,
+  brand_name,
+  generic_name,
+  manufacturer,
+  batch_number,
+  cdsco_approval_status,
+  is_counterfeit_alert,
+  composition,
+  mrp,
+  jan_aushadhi_price
+) VALUES
+('8901111111111', 'Augmentin 625 Duo', 'Amoxicillin + Clavulanic Acid', 'GlaxoSmithKline plc', 'B23059', 'recalled', true, 'Reported suspicious by 12 individual community mobile scanning units.', 189.50, 96.50),
+('8902222222222', 'Pan 40', 'Pantoprazole', 'Alkem Laboratories Ltd', 'UP992', 'recalled', false, 'Substandard active compound concentrations detected by regional inspectors.', 168.00, 31.50),
+('8903333333333', 'Paracetamol 500mg', 'Paracetamol', 'Cipla Ltd', 'HR4410', 'approved', false, 'Common fever and pain relief tablet for routine price comparison checks.', 20.00, 8.00),
+('8904444444444', 'Cetirizine 10mg', 'Cetirizine', 'Sun Pharmaceutical Industries Ltd', 'CT1010', 'approved', false, 'Common antihistamine stocked for local compare testing.', 25.00, 5.00)
+ON CONFLICT (barcode_id) DO NOTHING;

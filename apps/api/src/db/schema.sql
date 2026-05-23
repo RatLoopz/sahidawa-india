@@ -26,8 +26,17 @@ CREATE TABLE IF NOT EXISTS medicines (
     source VARCHAR(100) DEFAULT 'manual',
     cdsco_approval_status VARCHAR(50) DEFAULT 'approved', -- 'approved', 'recalled', 'banned'
     is_counterfeit_alert BOOLEAN DEFAULT FALSE,
+    mrp NUMERIC(10, 2),
+    jan_aushadhi_price NUMERIC(10, 2),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    CONSTRAINT medicines_mrp_non_negative CHECK (mrp IS NULL OR mrp >= 0),
+    CONSTRAINT medicines_jan_aushadhi_price_non_negative CHECK (jan_aushadhi_price IS NULL OR jan_aushadhi_price >= 0),
+    CONSTRAINT medicines_mrp_gte_jan_aushadhi_price CHECK (
+        mrp IS NULL
+        OR jan_aushadhi_price IS NULL
+        OR mrp >= jan_aushadhi_price
+    )
 );
 
 -- 2. Pharmacy Locations Table (Jan Aushadhi Stores)
@@ -49,7 +58,16 @@ CREATE TABLE IF NOT EXISTS counterfeit_reports (
     medicine_id UUID REFERENCES medicines(id),
     scanned_barcode VARCHAR(100),
     reported_brand_name VARCHAR(255),
+    reporter_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    manufacturer VARCHAR(255),
+    description TEXT,
+    pharmacy_name VARCHAR(255),
+    address TEXT,
+    city VARCHAR(100),
+    state VARCHAR(100),
+    pincode VARCHAR(10),
     photo_url TEXT, -- Cloudinary URL
+    photo_urls TEXT[] DEFAULT '{}'::text[],
     report_location geography(POINT, 4326),
     district VARCHAR(100),
     status VARCHAR(50) DEFAULT 'pending', -- 'pending', 'verified_fake', 'false_alarm'
@@ -80,8 +98,13 @@ CREATE TABLE IF NOT EXISTS district_alerts (
 
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_medicines_barcode ON medicines(barcode_id);
+CREATE INDEX IF NOT EXISTS idx_medicines_batch_number ON medicines(batch_number);
+CREATE INDEX IF NOT EXISTS idx_medicines_mrp ON medicines(mrp);
+CREATE INDEX IF NOT EXISTS idx_medicines_jan_aushadhi_price ON medicines(jan_aushadhi_price);
 CREATE INDEX IF NOT EXISTS idx_pharmacies_location ON pharmacies USING GIST(location);
 CREATE INDEX IF NOT EXISTS idx_counterfeit_location ON counterfeit_reports USING GIST(report_location);
+CREATE INDEX IF NOT EXISTS idx_counterfeit_reports_reporter_id ON counterfeit_reports(reporter_id);
+CREATE INDEX IF NOT EXISTS idx_counterfeit_reports_pincode ON counterfeit_reports(pincode);
 CREATE INDEX IF NOT EXISTS idx_audit_target ON audit_logs(target_id);
 CREATE INDEX IF NOT EXISTS idx_medicines_brand_name_trgm ON medicines USING gin (brand_name gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_medicines_generic_name_trgm ON medicines USING gin (generic_name gin_trgm_ops);
@@ -118,3 +141,36 @@ CREATE TABLE IF NOT EXISTS drug_alerts (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_drug_alerts_batch ON drug_alerts(batch_number);
+
+-- 6. Web Push Subscriptions
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    endpoint TEXT NOT NULL UNIQUE,
+    subscription JSONB NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_push_subscriptions_updated_at ON push_subscriptions(updated_at DESC);
+
+-- 7. ETL Failed Rows
+CREATE TABLE IF NOT EXISTS etl_failed_rows (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    pipeline_name VARCHAR(100) NOT NULL,
+    source_table VARCHAR(100) NOT NULL,
+    row_fingerprint VARCHAR(64) NOT NULL,
+    row_payload JSONB NOT NULL,
+    medicine_name VARCHAR(500),
+    unresolved_value TEXT,
+    error_category VARCHAR(100),
+    db_error_code VARCHAR(20),
+    error_message TEXT,
+    attempt_count INTEGER DEFAULT 1,
+    status VARCHAR(50) DEFAULT 'failed',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    last_attempt_at TIMESTAMP WITH TIME ZONE
+);
+CREATE INDEX IF NOT EXISTS idx_etl_failed_rows_status ON etl_failed_rows(status);
+CREATE INDEX IF NOT EXISTS idx_etl_failed_rows_pipeline_name ON etl_failed_rows(pipeline_name);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_etl_failed_rows_unique_logical_row
+    ON etl_failed_rows(pipeline_name, source_table, row_fingerprint);
