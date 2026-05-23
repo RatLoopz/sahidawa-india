@@ -130,15 +130,15 @@ export function VoiceListeningPanel({
 export function VoiceProcessingPanel({ title, subtitle }: { title: string; subtitle: string }) {
     return (
         <div
-            className="animate-in fade-in flex flex-col items-center space-y-6 duration-300"
+            className="animate-in fade-in flex flex-col items-center space-y-6 duration-300 motion-reduce:animate-none"
             role="status"
             aria-live="polite"
             aria-label={title}
         >
             <div className="relative" aria-hidden="true">
-                <div className="h-24 w-24 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-500"></div>
+                <div className="h-24 w-24 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-500 motion-reduce:animate-none"></div>
                 <Sparkles
-                    className="absolute inset-0 m-auto animate-pulse text-emerald-500"
+                    className="absolute inset-0 m-auto animate-pulse text-emerald-500 motion-reduce:animate-none"
                     size={32}
                     aria-hidden="true"
                 />
@@ -201,7 +201,7 @@ export function VoiceReviewPanel({
     showEmergency: boolean;
 }) {
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-8 w-full max-w-md rounded-[2.5rem] border border-slate-100 bg-white p-8 shadow-xl duration-500">
+        <div className="animate-in fade-in slide-in-from-bottom-8 w-full max-w-md rounded-[2.5rem] border border-slate-100 bg-white p-8 shadow-xl duration-500 motion-reduce:animate-none">
             {showEmergency && (
                 <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-left">
                     <div className="flex items-start gap-3">
@@ -241,13 +241,13 @@ export function VoiceReviewPanel({
             <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <button
                     onClick={onRetry}
-                    className="w-full rounded-2xl bg-slate-100 py-3 font-bold text-slate-800 transition-colors hover:bg-slate-200"
+                    className="w-full rounded-2xl bg-slate-100 py-3 font-bold text-slate-800 transition-colors hover:bg-slate-200 focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 focus-visible:outline-none"
                 >
                     {retryLabel}
                 </button>
                 <button
                     onClick={onAnalyse}
-                    className="w-full rounded-2xl bg-emerald-600 py-3 font-bold text-white transition-colors hover:bg-emerald-700"
+                    className="w-full rounded-2xl bg-emerald-600 py-3 font-bold text-white transition-colors hover:bg-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:outline-none"
                 >
                     {analyseLabel}
                 </button>
@@ -266,7 +266,7 @@ export function VoiceErrorPanel({
     onRetry: () => void;
 }) {
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-8 w-full max-w-md rounded-[2.5rem] border border-red-100 bg-white p-8 shadow-xl duration-500">
+        <div className="animate-in fade-in slide-in-from-bottom-8 w-full max-w-md rounded-[2.5rem] border border-red-100 bg-white p-8 shadow-xl duration-500 motion-reduce:animate-none">
             <div className="mb-6 flex items-start gap-3">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-600">
                     <AlertTriangle size={24} aria-hidden="true" />
@@ -279,7 +279,7 @@ export function VoiceErrorPanel({
 
             <button
                 onClick={onRetry}
-                className="w-full rounded-2xl bg-slate-900 py-4 font-bold text-white transition-all hover:bg-slate-800"
+                className="w-full rounded-2xl bg-slate-900 py-4 font-bold text-white transition-all hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 focus-visible:outline-none"
             >
                 {retryLabel}
             </button>
@@ -332,7 +332,7 @@ export function VoiceResultPanel({
 }) {
     return (
         <div
-            className="animate-in fade-in slide-in-from-bottom-8 w-full max-w-md rounded-[2.5rem] border border-slate-100 bg-white p-8 shadow-xl duration-500"
+            className="animate-in fade-in slide-in-from-bottom-8 w-full max-w-md rounded-[2.5rem] border border-slate-100 bg-white p-8 shadow-xl duration-500 motion-reduce:animate-none"
             role="region"
             aria-labelledby="voice-ai-analysis-heading"
         >
@@ -417,7 +417,7 @@ export function VoiceResultPanel({
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <button
                         onClick={onShare}
-                        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-100 py-3 font-bold text-slate-800 transition-colors hover:bg-slate-200"
+                        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-100 py-3 font-bold text-slate-800 transition-colors hover:bg-slate-200 focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 focus-visible:outline-none"
                     >
                         <Share2 size={18} aria-hidden="true" />
                         {shareLabel}
@@ -425,7 +425,7 @@ export function VoiceResultPanel({
                     {isSpeaking ? (
                         <button
                             onClick={onStopSpeaking}
-                            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-50 py-3 font-bold text-red-700 transition-colors hover:bg-red-100"
+                            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-50 py-3 font-bold text-red-700 transition-colors hover:bg-red-100 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:outline-none"
                         >
                             <Square size={18} aria-hidden="true" />
                             {stopSpeakingLabel}
@@ -433,7 +433,7 @@ export function VoiceResultPanel({
                     ) : (
                         <button
                             onClick={onReplay}
-                            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-50 py-3 font-bold text-blue-700 transition-colors hover:bg-blue-100"
+                            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-50 py-3 font-bold text-blue-700 transition-colors hover:bg-blue-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none"
                         >
                             <Play size={18} aria-hidden="true" />
                             {speakLabel}
@@ -443,7 +443,7 @@ export function VoiceResultPanel({
 
                 <button
                     onClick={onTryAgain}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 py-4 font-bold text-white transition-all hover:bg-slate-800"
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 py-4 font-bold text-white transition-all hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 focus-visible:outline-none"
                 >
                     <RotateCcw size={20} aria-hidden="true" />
                     {tryAgainLabel}

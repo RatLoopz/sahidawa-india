@@ -160,6 +160,7 @@ npm run dev          # http://localhost:3000
 cd apps/api
 npm install
 npm run dev          # http://localhost:4000
+                     # API Docs: http://localhost:4000/api/docs
 
 # Terminal 3 — ML Service (optional for Phase 1/2 work)
 cd apps/ml
@@ -265,6 +266,11 @@ Example:
 - Use TypeScript — no `any` types
 - Every route needs: input validation (Zod), error handling, rate limiting
 - Write tests in `apps/api/tests/`
+
+**Swagger/OpenAPI Documentation**
+- **Access Instructions:** You can open the interactive Swagger UI at `http://localhost:4000/api/docs` while the API is running.
+- **Backend Guidelines:** When adding new API routes to `apps/api/src/routes/`, use the `@openapi` JSDoc annotations to document the request/response schemas.
+- **Frontend Benefit:** Frontend developers can use this UI instead of Postman to explore and test endpoints directly from the browser.
 
 ---
 

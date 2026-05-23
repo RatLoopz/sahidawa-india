@@ -8,48 +8,53 @@
 ## FRONTEND — `apps/web/`
 
 ### Entry Points
-| File | Purpose | Status |
-|---|---|---|
-| `app/layout.tsx` | Root HTML shell, global fonts, metadata | ✅ Exists |
-| `app/globals.css` | Tailwind v4 CSS, custom `@keyframes scan` animation | ✅ Exists |
-| `app/page.tsx` | Home dashboard — 303 lines, full UI with nav/hero/feature cards | ✅ Built |
-| `app/scan/page.tsx` | Medicine scanner — camera viewfinder + file upload + result overlay | ✅ Built (mock) |
-| `app/voice/page.tsx` | Voice triage — pulsing mic + waveform + result card | ✅ Built (mock) |
-| `app/map/page.tsx` | Pharmacy map — static grid mockup, no real Leaflet | ✅ Built (mock) |
-| `next.config.mjs` | Next.js config (minimal, 92 bytes) | ✅ Exists |
-| `postcss.config.mjs` | Uses `@tailwindcss/postcss` plugin | ✅ Exists |
+
+| File                          | Purpose                                                                       | Status          |
+| ----------------------------- | ----------------------------------------------------------------------------- | --------------- |
+| `app/layout.tsx`              | Root HTML shell, global fonts, metadata                                       | ✅ Exists       |
+| `app/globals.css`             | Tailwind v4 CSS, custom `@keyframes scan` animation                           | ✅ Exists       |
+| `app/page.tsx`                | Home dashboard — 303 lines, full UI with nav/hero/feature cards               | ✅ Built        |
+| `app/scan/page.tsx`           | Medicine scanner — camera viewfinder + file upload + result overlay           | ✅ Built (mock) |
+| `app/[locale]/voice/page.tsx` | Voice triage — records audio, uploads it for ASR, and shows AI triage results | ✅ Built        |
+| `app/map/page.tsx`            | Pharmacy map — static grid mockup, no real Leaflet                            | ✅ Built (mock) |
+| `next.config.mjs`             | Next.js config (minimal, 92 bytes)                                            | ✅ Exists       |
+| `postcss.config.mjs`          | Uses `@tailwindcss/postcss` plugin                                            | ✅ Exists       |
 
 ### Directories That Are EMPTY (Need Contributors)
-| Directory | What Should Go Here |
-|---|---|
-| `components/health/` | Health score, medicine detail card components |
-| `components/map/` | Leaflet map wrapper, pharmacy card, pin components |
-| `components/reports/` | Counterfeit report form, photo upload |
-| `components/scanner/` | Barcode scanner component (ZXing), upload preview |
-| `hooks/` | `useTheme()`, `useGeolocation()`, `useScanner()`, `useVoice()` |
-| `lib/` | API client (`lib/api.ts`), Supabase browser client (`lib/supabase.ts`) |
-| `messages/` | i18n JSON files — `en.json`, `hi.json`, `ta.json` … (22 languages) |
-| `public/` | App icons, manifest.json, static images |
-| `app/not-found.tsx` | Custom 404 page |
-| `app/loading.tsx` | Global loading skeleton |
-| `app/error.tsx` | Error boundary |
+
+| Directory             | What Should Go Here                                                    |
+| --------------------- | ---------------------------------------------------------------------- |
+| `components/health/`  | Health score, medicine detail card components                          |
+| `components/map/`     | Leaflet map wrapper, pharmacy card, pin components                     |
+| `components/reports/` | Counterfeit report form, photo upload                                  |
+| `components/scanner/` | Barcode scanner component (ZXing), upload preview                      |
+| `hooks/`              | `useTheme()`, `useGeolocation()`, `useScanner()`, `useVoice()`         |
+| `lib/`                | API client (`lib/api.ts`), Supabase browser client (`lib/supabase.ts`) |
+| `messages/`           | i18n JSON files — `en.json`, `hi.json`, `ta.json` … (22 languages)     |
+| `public/`             | App icons, manifest.json, static images                                |
+| `app/not-found.tsx`   | Custom 404 page                                                        |
+| `app/loading.tsx`     | Global loading skeleton                                                |
+| `app/error.tsx`       | Error boundary                                                         |
 
 ### Key Patterns in Existing Pages
 
 **State machine pattern (scan/page.tsx):**
+
 ```ts
-const [scanning, setScanning] = useState(true)
-const [result, setResult] = useState<null | "valid" | "invalid">(null)
-const [uploadedImage, setUploadedImage] = useState<string | null>(null)
+const [scanning, setScanning] = useState(true);
+const [result, setResult] = useState<null | "valid" | "invalid">(null);
+const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 // setTimeout mocks the real API call — replace with fetch()
 ```
 
 **Dark scanner screen style:**
+
 ```tsx
 <div className="min-h-screen bg-black text-white font-sans relative flex flex-col">
 ```
 
 **Light home screen style:**
+
 ```tsx
 <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
 ```
@@ -59,24 +64,27 @@ const [uploadedImage, setUploadedImage] = useState<string | null>(null)
 ## BACKEND — `apps/api/`
 
 ### Existing Files
-| File | Purpose | Status |
-|---|---|---|
-| `src/index.ts` | Express server — only `GET /` and `GET /health` | ✅ Scaffolded |
-| `src/db/client.ts` | Supabase JS client singleton | ✅ Ready |
-| `src/db/schema.sql` | Full PostgreSQL schema (medicines, pharmacies, counterfeit_reports) | ✅ Written |
-| `src/db/migrations/` | Migration files directory | 🔜 Empty |
-| `package.json` | Express 5, Supabase, Redis, Helmet, Morgan | ✅ Exists |
-| `tsconfig.json` | TypeScript config | ✅ Exists |
-| `tests/` | Test directory | 🔜 Empty |
+
+| File                 | Purpose                                                             | Status        |
+| -------------------- | ------------------------------------------------------------------- | ------------- |
+| `src/index.ts`       | Express server — only `GET /` and `GET /health`                     | ✅ Scaffolded |
+| `src/db/client.ts`   | Supabase JS client singleton                                        | ✅ Ready      |
+| `src/db/schema.sql`  | Full PostgreSQL schema (medicines, pharmacies, counterfeit_reports) | ✅ Written    |
+| `src/db/migrations/` | Migration files directory                                           | 🔜 Empty      |
+| `package.json`       | Express 5, Supabase, Redis, Helmet, Morgan                          | ✅ Exists     |
+| `tsconfig.json`      | TypeScript config                                                   | ✅ Exists     |
+| `tests/`             | Test directory                                                      | 🔜 Empty      |
 
 ### Directories That Are EMPTY (Need Contributors)
-| Directory | What Belongs Here |
-|---|---|
-| `src/routes/` | `verify.ts`, `pharmacies.ts`, `reports.ts` |
-| `src/services/` | `medicineService.ts`, `pharmacyService.ts` |
+
+| Directory         | What Belongs Here                                           |
+| ----------------- | ----------------------------------------------------------- |
+| `src/routes/`     | `verify.ts`, `pharmacies.ts`, `reports.ts`                  |
+| `src/services/`   | `medicineService.ts`, `pharmacyService.ts`                  |
 | `src/middleware/` | `rateLimit.ts`, `validate.ts`, `auth.ts`, `errorHandler.ts` |
 
 ### How to Add a New Route
+
 ```ts
 // 1. Create: apps/api/src/routes/verify.ts
 import { Router } from 'express'
@@ -90,15 +98,16 @@ app.use('/api/verify', verifyRouter)
 ```
 
 ### Database Client Usage
+
 ```ts
 // Import in any service file:
-import supabase from '../db/client'
+import supabase from "../db/client";
 
 const { data, error } = await supabase
-  .from('medicines')
-  .select('*')
-  .eq('barcode_id', barcode)
-  .single()
+    .from("medicines")
+    .select("*")
+    .eq("barcode_id", barcode)
+    .single();
 ```
 
 ---
@@ -106,16 +115,19 @@ const { data, error } = await supabase
 ## ML SERVICE — `apps/ml/`
 
 ### Existing Files
-| File | Purpose | Status |
-|---|---|---|
-| `main.py` | FastAPI app with CORS, `/` and `/health` routes | ✅ Scaffolded |
-| `requirements.txt` | fastapi, uvicorn, pydantic, python-dotenv | ✅ Exists |
-| `routers/` | Empty — needs `ocr.py`, `voice.py` | 🔜 Empty |
-| `services/` | Empty — needs `whisper_service.py`, `matcher.py`, `langchain_rag.py` | 🔜 Empty |
-| `models/` | Empty — TF Lite `.tflite` model files | 🔜 Empty |
-| `agent/` | Empty — CDSCO monitoring LangChain agent | 🔜 Empty |
+
+| File                        | Purpose                                                                | Status    |
+| --------------------------- | ---------------------------------------------------------------------- | --------- |
+| `main.py`                   | FastAPI app with CORS, root routes, and router loading for ASR/OCR     | ✅ Built  |
+| `requirements.txt`          | fastapi, uvicorn, pydantic, python-dotenv                              | ✅ Exists |
+| `routers/asr.py`            | Faster-Whisper transcription endpoint used by Voice Triage             | ✅ Built  |
+| `routers/ocr.py`            | OCR extraction router                                                  | ✅ Exists |
+| `services/router_loader.py` | Optional router bootstrap helper so ASR can boot without OCR-only deps | ✅ Built  |
+| `models/`                   | Empty — TF Lite `.tflite` model files                                  | 🔜 Empty  |
+| `agent/`                    | Empty — CDSCO monitoring LangChain agent                               | 🔜 Empty  |
 
 ### How to Add a New Router
+
 ```python
 # 1. Create: apps/ml/routers/ocr.py
 from fastapi import APIRouter
@@ -137,6 +149,7 @@ app.include_router(ocr.router)
 ### Tables (defined in `apps/api/src/db/schema.sql`)
 
 **`medicines`** — Master drug data from CDSCO
+
 ```sql
 id UUID PRIMARY KEY
 barcode_id VARCHAR(100) UNIQUE    -- EAN/UPC barcode
@@ -152,6 +165,7 @@ is_counterfeit_alert BOOLEAN DEFAULT FALSE
 ```
 
 **`pharmacies`** — Jan Aushadhi stores with PostGIS coordinates
+
 ```sql
 id UUID PRIMARY KEY
 name, address, district, state TEXT
@@ -161,6 +175,7 @@ location geography(POINT, 4326)    -- PostGIS geo point
 ```
 
 **`counterfeit_reports`** — Community-reported fake medicines
+
 ```sql
 id UUID PRIMARY KEY
 medicine_id UUID REFERENCES medicines(id)
@@ -172,6 +187,7 @@ status VARCHAR(50)                 -- 'pending' | 'verified_fake' | 'false_alarm
 ```
 
 ### PostGIS Geo Query Pattern
+
 ```sql
 -- Find pharmacies within 5km of user
 SELECT *, ST_Distance(location, ST_MakePoint(lon, lat)::geography) AS dist
@@ -184,20 +200,21 @@ ORDER BY dist LIMIT 10;
 
 ## DATA — `data/`
 
-| File | Status | Notes |
-|---|---|---|
-| `data/seeds/medicines.csv` | ❌ Empty | Needs CDSCO medicine data |
-| `data/seeds/` | 🔜 Needs SQL files | `001_schema.sql`, `002_seed.sql` |
+| File                       | Status             | Notes                            |
+| -------------------------- | ------------------ | -------------------------------- |
+| `data/seeds/medicines.csv` | ❌ Empty           | Needs CDSCO medicine data        |
+| `data/seeds/`              | 🔜 Needs SQL files | `001_schema.sql`, `002_seed.sql` |
 
 ---
 
 ## CONFIG FILES
-| File | Purpose |
-|---|---|
-| `.env.example` | All required env vars documented |
-| `package.json` (root) | NPM workspaces config — `apps/*`, `packages/*` |
-| `apps/web/package.json` | Frontend deps with exact locked versions |
-| `apps/api/package.json` | Backend deps |
-| `apps/ml/requirements.txt` | Python deps |
-| `.github/ISSUE_TEMPLATE/` | Bug report + feature request templates |
-| `.github/workflows/` | Empty — CI pipeline needed |
+
+| File                       | Purpose                                        |
+| -------------------------- | ---------------------------------------------- |
+| `.env.example`             | All required env vars documented               |
+| `package.json` (root)      | NPM workspaces config — `apps/*`, `packages/*` |
+| `apps/web/package.json`    | Frontend deps with exact locked versions       |
+| `apps/api/package.json`    | Backend deps                                   |
+| `apps/ml/requirements.txt` | Python deps                                    |
+| `.github/ISSUE_TEMPLATE/`  | Bug report + feature request templates         |
+| `.github/workflows/`       | Empty — CI pipeline needed                     |

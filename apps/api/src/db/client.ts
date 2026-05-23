@@ -1,19 +1,194 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import logger from "../utils/logger";
 
-// 1. Resolve the Supabase URL safely (prioritize backend-specific URL)
+// ── Environment resolution ────────────────────────────────────────────────────
+
 const supabaseUrl =
-    process.env.SUPABASE_URL || // Used by backend API routes (e.g., host.docker.internal in containers)
-    process.env.NEXT_PUBLIC_SUPABASE_URL || // Used by Client Components (.tsx files)
-    "http://localhost:54321"; // Local development fallback
+    process.env.SUPABASE_URL ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    "http://localhost:54321";
 
-// 2. Resolve the Supabase Key safely (prioritize administrative/service keys)
 const supabaseKey =
-    process.env.SUPABASE_SERVICE_ROLE_KEY || // Administrative service key for backend bypass tasks
-    process.env.SUPABASE_ANON_KEY || // Standard backend anon key fallback
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || // Used by Client Components (.tsx files)
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
     "local-development-key";
 
-// Guard against empty strings to avoid cryptic Supabase initialization crashes
-// Note: globalThis.WebSocket is polyfilled by ws-setup.js (loaded via ts-node-dev -r)
-// before this module is ever imported, so the @supabase/realtime-js Node < 22 check passes.
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// ── Connection pool config ────────────────────────────────────────────────────
+// Supabase JS uses HTTP fetch under the hood (not raw pg sockets).
+// We simulate pool-like behaviour by:
+//   - Capping concurrent requests via a semaphore
+//   - Enforcing a hard per-request timeout (connectionTimeoutMillis equivalent)
+//   - Retrying transient network errors automatically
+
+const MAX_CONNECTIONS = 20;          // max concurrent DB requests
+const IDLE_TIMEOUT_MS = 30_000;      // 30 s — matches pg idleTimeoutMillis
+const CONNECTION_TIMEOUT_MS = 2_000; // 2 s  — matches pg connectionTimeoutMillis
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 500;
+
+// ── Semaphore (concurrency limiter) ──────────────────────────────────────────
+
+class ConnectionPool {
+    private active = 0;
+    private queue: Array<() => void> = [];
+    private readonly max: number;
+
+    constructor(max: number) {
+        this.max = max;
+    }
+
+    async acquire(): Promise<void> {
+        if (this.active < this.max) {
+            this.active++;
+            return;
+        }
+        // Queue the request with a timeout
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                const idx = this.queue.indexOf(resolver);
+                if (idx !== -1) this.queue.splice(idx, 1);
+                reject(
+                    new Error(
+                        `Database connection pool exhausted — waited ${IDLE_TIMEOUT_MS}ms for a free slot`
+                    )
+                );
+            }, IDLE_TIMEOUT_MS);
+
+            const resolver = () => {
+                clearTimeout(timeout);
+                this.active++;
+                resolve();
+            };
+
+            this.queue.push(resolver);
+        });
+    }
+
+    release(): void {
+        this.active = Math.max(0, this.active - 1);
+        const next = this.queue.shift();
+        if (next) next();
+    }
+
+    get stats() {
+        return { active: this.active, queued: this.queue.length, max: this.max };
+    }
+}
+
+export const pool = new ConnectionPool(MAX_CONNECTIONS);
+
+// ── Fetch wrapper with timeout + retry ───────────────────────────────────────
+
+async function fetchWithTimeout(
+    input: RequestInfo | URL,
+    init?: RequestInit
+): Promise<Response> {
+    const controller = new AbortController();
+    const timeout = setTimeout(
+        () => controller.abort(),
+        CONNECTION_TIMEOUT_MS
+    );
+
+    try {
+        const response = await fetch(input, {
+            ...init,
+            signal: controller.signal,
+        });
+        return response;
+    } catch (err) {
+        if ((err as Error).name === "AbortError") {
+            throw new Error(
+                `Database request timed out after ${CONNECTION_TIMEOUT_MS}ms`
+            );
+        }
+        throw err;
+    } finally {
+        clearTimeout(timeout);
+    }
+}
+
+async function fetchWithRetry(
+    input: RequestInfo | URL,
+    init?: RequestInit,
+    retries = MAX_RETRIES
+): Promise<Response> {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            return await fetchWithTimeout(input, init);
+        } catch (err) {
+            const isLast = attempt === retries;
+            const msg = err instanceof Error ? err.message : String(err);
+
+            if (isLast) {
+                logger.error(`DB fetch failed after ${retries} attempts: ${msg}`);
+                throw err;
+            }
+
+            logger.warn(
+                `DB fetch attempt ${attempt}/${retries} failed: ${msg}. Retrying in ${RETRY_DELAY_MS}ms...`
+            );
+            await new Promise((r) => setTimeout(r, RETRY_DELAY_MS * attempt));
+        }
+    }
+    // unreachable but satisfies TypeScript
+    throw new Error("Unexpected retry loop exit");
+}
+
+// ── Pool-aware fetch ──────────────────────────────────────────────────────────
+
+async function pooledFetch(
+    input: RequestInfo | URL,
+    init?: RequestInit
+): Promise<Response> {
+    await pool.acquire();
+    try {
+        return await fetchWithRetry(input, init);
+    } finally {
+        pool.release();
+    }
+}
+
+// ── Supabase client ───────────────────────────────────────────────────────────
+
+export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseKey, {
+    global: {
+        fetch: pooledFetch as typeof fetch,
+    },
+    auth: {
+        persistSession: false,   // server-side — no browser storage
+        autoRefreshToken: false,
+    },
+});
+
+// ── Graceful shutdown ─────────────────────────────────────────────────────────
+
+function gracefulShutdown(signal: string) {
+    logger.warn(`Received ${signal} — waiting for ${pool.stats.active} active DB connection(s) to drain...`);
+
+    const check = setInterval(() => {
+        if (pool.stats.active === 0) {
+            clearInterval(check);
+            logger.info("All DB connections drained. Shutting down.");
+            process.exit(0);
+        }
+    }, 200);
+
+    // Force exit after 10 s if connections don't drain
+    setTimeout(() => {
+        clearInterval(check);
+        logger.error("Forced shutdown — connections did not drain in time.");
+        process.exit(1);
+    }, 10_000);
+}
+
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT",  () => gracefulShutdown("SIGINT"));
+
+// Log pool exhaustion warnings
+setInterval(() => {
+    const { active, queued, max } = pool.stats;
+    if (queued > 0) {
+        logger.warn(`DB pool pressure: ${active}/${max} active, ${queued} queued`);
+    }
+}, 5_000);

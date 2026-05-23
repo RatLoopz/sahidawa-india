@@ -29,3 +29,6 @@ faster-whisper>=1.1.0
 soundfile>=0.12.1
 noisereduce>=3.0.0
 numpy>=1.26.0
+
+# Load testing
+locust>=2.31.8

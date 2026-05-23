@@ -32,6 +32,7 @@ import {
 } from "@/lib/api";
 import { BarcodeScanner } from "@/components/scanner/BarcodeScanner";
 import LazyImage from "@/components/LazyImage";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 function formatExpiryForBadge(isoDate: string | null | undefined): string | undefined {
     if (!isoDate) return undefined;
@@ -164,31 +165,31 @@ function LoadingSkeleton() {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6 backdrop-blur-md">
             <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] bg-white p-8 text-slate-900 shadow-2xl">
-                <div className="absolute top-0 right-0 left-0 h-2 animate-pulse bg-emerald-500"></div>
+                <Skeleton className="absolute top-0 right-0 left-0 h-2 bg-emerald-500 rounded-none" />
                 <div className="flex flex-col items-center space-y-4 text-center">
-                    <div className="flex h-20 w-20 animate-pulse items-center justify-center rounded-full bg-slate-100">
+                    <Skeleton className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100">
                         <ShieldCheck size={40} className="text-slate-200" />
-                    </div>
+                    </Skeleton>
                     <div className="w-full space-y-2">
-                        <div className="mx-auto h-7 w-3/4 animate-pulse rounded-lg bg-slate-100"></div>
-                        <div className="mx-auto h-4 w-1/2 animate-pulse rounded-lg bg-slate-100"></div>
+                        <Skeleton className="mx-auto h-7 w-3/4 rounded-lg bg-slate-100" />
+                        <Skeleton className="mx-auto h-4 w-1/2 rounded-lg bg-slate-100" />
                     </div>
                     <div className="grid w-full grid-cols-2 gap-3 pt-2">
                         <div className="space-y-2 rounded-2xl border border-slate-100 bg-slate-50 p-3">
-                            <div className="mx-auto h-3 w-3/4 animate-pulse rounded bg-slate-200"></div>
-                            <div className="mx-auto h-5 w-1/2 animate-pulse rounded bg-slate-200"></div>
+                            <Skeleton className="mx-auto h-3 w-3/4 rounded bg-slate-200" />
+                            <Skeleton className="mx-auto h-5 w-1/2 rounded bg-slate-200" />
                         </div>
                         <div className="space-y-2 rounded-2xl border border-slate-100 bg-slate-50 p-3">
-                            <div className="mx-auto h-3 w-3/4 animate-pulse rounded bg-slate-200"></div>
-                            <div className="mx-auto h-5 w-1/2 animate-pulse rounded bg-slate-200"></div>
+                            <Skeleton className="mx-auto h-3 w-3/4 rounded bg-slate-200" />
+                            <Skeleton className="mx-auto h-5 w-1/2 rounded bg-slate-200" />
                         </div>
                     </div>
                     <div className="w-full space-y-2 rounded-2xl border border-emerald-100/50 bg-emerald-50/50 p-4">
-                        <div className="h-3 w-full animate-pulse rounded bg-emerald-200/50"></div>
-                        <div className="h-3 w-5/6 animate-pulse rounded bg-emerald-200/50"></div>
+                        <Skeleton className="h-3 w-full rounded bg-emerald-200/50" />
+                        <Skeleton className="h-3 w-5/6 rounded bg-emerald-200/50" />
                     </div>
-                    <div className="h-12 w-full animate-pulse rounded-2xl bg-slate-100 py-4"></div>
-                    <div className="mx-auto h-4 w-24 animate-pulse rounded bg-slate-100"></div>
+                    <Skeleton className="h-12 w-full rounded-2xl bg-slate-100" />
+                    <Skeleton className="mx-auto h-4 w-24 rounded bg-slate-100" />
                 </div>
                 <div className="mt-4 animate-pulse text-center text-sm font-medium text-slate-400">
                     Verifying with CDSCO Database...
@@ -808,7 +809,7 @@ export default function ScanPage() {
     };
 
     return (
-        <div className="relative flex min-h-screen flex-col bg-black font-sans text-white">
+        <div className="relative flex min-h-screen flex-col overflow-x-clip bg-black font-sans text-white">
             <input
                 type="file"
                 id="medicine-upload"
@@ -824,7 +825,7 @@ export default function ScanPage() {
                 variant="dark"
             />
 
-            <div className="relative flex flex-1 items-center justify-center overflow-hidden">
+            <div className="relative flex flex-1 items-center justify-center">
                 <div className="absolute inset-0 overflow-hidden bg-slate-900">
                     {isCameraActive ? (
                         <BarcodeScanner onScan={handleBarcodeScan} debounceMs={2500} />
@@ -932,18 +933,18 @@ export default function ScanPage() {
             )}
 
             <div className="flex flex-col items-center gap-6 bg-linear-to-t from-black to-transparent p-8">
-                <form onSubmit={handleBatchSubmit} className="flex w-full max-w-sm gap-2">
+                <form onSubmit={handleBatchSubmit} className="flex w-full max-w-sm flex-col gap-3 sm:flex-row">
                     <input
                         type="text"
                         value={batchInput}
                         onChange={(e) => setBatchInput(e.target.value)}
                         placeholder="Enter batch number"
-                        className="flex-1 rounded-full border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium text-white placeholder-white/40 focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                        className="flex-1 text-center rounded-full border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium text-white placeholder-white/40 focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     />
                     <button
                         type="submit"
                         disabled={isScanning}
-                        className="flex items-center gap-2 rounded-full bg-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="flex items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <Search size={18} />
                         Verify
@@ -957,7 +958,7 @@ export default function ScanPage() {
                 <div className="flex gap-4">
                     <button
                         onClick={() => setIsCameraActive((prev) => !prev)}
-                        className={`flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-colors focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none ${
+                        className={`flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-colors focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none ${
                             isCameraActive
                                 ? "bg-red-500 text-white hover:bg-red-400"
                                 : "bg-emerald-500 text-white hover:bg-emerald-400"

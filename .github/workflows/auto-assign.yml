@@ -22,21 +22,12 @@ jobs:
             const repo = context.repo;
             const eventName = context.eventName;
             
-            // 1. Handle manual assignment event -> Lock conversation automatically
+            // 1. Handle manual assignment event
+            // NOTE: Auto-locking was intentionally removed. Locking conversations
+            // prevents all contributors from commenting, asking questions, or helping
+            // the assignee — which is harmful to open-source collaboration.
             if (eventName === 'issues' && context.payload.action === 'assigned') {
-              const issueNumber = context.payload.issue.number;
-              console.log(`Issue #${issueNumber} has been manually assigned. Auto-locking conversation to prevent spam...`);
-              
-              try {
-                await github.rest.issues.lock({
-                  owner: repo.owner,
-                  repo: repo.repo,
-                  issue_number: issueNumber
-                });
-                console.log(`Successfully locked conversation for Issue #${issueNumber}`);
-              } catch (error) {
-                console.error(`Error locking conversation: ${error.message}`);
-              }
+              core.info(`Issue #${context.payload.issue.number} assigned. No auto-lock applied.`);
               return;
             }
 

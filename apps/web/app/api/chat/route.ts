@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
+import { detectEmergencyKeywords } from "@/lib/voice/emergency";
 
 const DEFAULT_DISCLAIMER =
     "This guidance is for informational use only and is not a diagnosis. Consult a doctor or pharmacist, especially for severe or persistent symptoms.";
@@ -110,6 +111,7 @@ export async function POST(req: Request) {
         }
 
         if (mode === "voice-triage") {
+            const deterministicEmergency = detectEmergencyKeywords(latestMessageText);
             const response = await ai.models.generateContent({
                 model: "gemini-2.5-flash",
                 contents: buildVoiceTriagePrompt(
@@ -124,7 +126,12 @@ export async function POST(req: Request) {
                 },
             });
 
-            return NextResponse.json(parseVoiceTriageResponse(response.text ?? ""));
+            const parsedResponse = parseVoiceTriageResponse(response.text ?? "");
+
+            return NextResponse.json({
+                ...parsedResponse,
+                emergency: parsedResponse.emergency || deterministicEmergency.isEmergency,
+            });
         }
 
         const response = await ai.models.generateContent({
