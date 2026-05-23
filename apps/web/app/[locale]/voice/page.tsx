@@ -14,12 +14,15 @@ import {
 } from "./lib/browser";
 import { getConfidenceMeta, type ConfidenceMeta } from "./lib/confidence";
 import { detectEmergencyKeywords } from "./lib/emergency";
+import { shouldAutoFocusVoicePanel } from "./lib/accessibility";
 import {
     DEFAULT_VOICE_LANGUAGE,
     getVoiceLanguageOption,
     VOICE_LANGUAGE_OPTIONS,
 } from "./lib/languages";
 import { formatVoiceShareReport } from "./lib/report";
+import { getPreferredRecordingMimeType, supportsAudioRecording } from "./lib/recording";
+import { shouldReviewTranscription, transcribeRecordedAudio } from "./lib/transcription";
 import {
     VoiceErrorPanel,
     VoiceIntroPanel,
@@ -109,9 +112,12 @@ export default function VoiceTriagePage() {
     const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
     const [animationsEnabled, setAnimationsEnabled] = useState(true);
     const [isVisualizerFading, setIsVisualizerFading] = useState(false);
+    const [srAnnouncement, setSrAnnouncement] = useState("");
 
     const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioStreamRef = useRef<MediaStream | null>(null);
+    const recordingChunksRef = useRef<Blob[]>([]);
     const latestTranscriptRef = useRef("");
     const latestDisplayedTranscriptRef = useRef("");
     const latestConfidenceRef = useRef<number | undefined>(undefined);
@@ -119,6 +125,7 @@ export default function VoiceTriagePage() {
     const manualStopRef = useRef(false);
     const startSessionIdRef = useRef(0);
     const autoSpokenKeyRef = useRef("");
+    const panelRef = useRef<HTMLDivElement | null>(null);
 
     const selectedLanguageOption = getVoiceLanguageOption(selectedLanguage);
     const resultLanguageOption = getVoiceLanguageOption(resultLanguageCode ?? selectedLanguage);
@@ -132,6 +139,17 @@ export default function VoiceTriagePage() {
         recognition.onresult = null;
         recognition.onerror = null;
         recognition.onend = null;
+    }
+
+    function detachMediaRecorderHandlers(mediaRecorder: MediaRecorder | null) {
+        if (!mediaRecorder) {
+            return;
+        }
+
+        mediaRecorder.onstart = null;
+        mediaRecorder.ondataavailable = null;
+        mediaRecorder.onerror = null;
+        mediaRecorder.onstop = null;
     }
 
     function setActiveAudioStream(stream: MediaStream | null) {
@@ -166,6 +184,12 @@ export default function VoiceTriagePage() {
             recognitionRef.current = null;
             detachRecognitionHandlers(recognition);
             recognition?.stop();
+            const mediaRecorder = mediaRecorderRef.current;
+            mediaRecorderRef.current = null;
+            detachMediaRecorderHandlers(mediaRecorder);
+            if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                mediaRecorder.stop();
+            }
             clearAudioStream();
             if (typeof window !== "undefined") {
                 stopSpeaking(window);
@@ -211,17 +235,71 @@ export default function VoiceTriagePage() {
         handleReplaySummary();
     }, [result, resultLanguageOption.speechSynthesisLang, step]);
 
+    useEffect(() => {
+        if (step === "initial") {
+            setSrAnnouncement("");
+            return;
+        }
+
+        let announcement = "";
+
+        switch (step) {
+            case "listening":
+                announcement = t("listening_status");
+                break;
+            case "processing":
+                announcement = t("processing_subtitle");
+                break;
+            case "review":
+                announcement = `${t("review_title")}. ${t("review_message")}`;
+                break;
+            case "result":
+                if (result) {
+                    announcement = result.emergency
+                        ? `${t("result_heading")} - ${t("emergency_title")}. ${t("result_subheading")}`
+                        : `${t("result_heading")}. ${t("result_subheading")}`;
+                }
+                break;
+            case "error":
+                announcement = error
+                    ? `${t("errors.generic_title")} - ${error.title}. ${error.message}`
+                    : t("errors.generic_title");
+                break;
+        }
+
+        if (announcement) {
+            setSrAnnouncement(announcement);
+        }
+
+        if (!shouldAutoFocusVoicePanel(step)) {
+            return;
+        }
+
+        const focusTimer = window.setTimeout(() => {
+            panelRef.current?.focus();
+        }, 100);
+
+        return () => window.clearTimeout(focusTimer);
+    }, [error, result, step, t]);
+
     function resetFlow(nextStep: VoiceStep = "initial") {
         startSessionIdRef.current += 1;
         const recognition = recognitionRef.current;
         recognitionRef.current = null;
         detachRecognitionHandlers(recognition);
         recognition?.stop();
+        const mediaRecorder = mediaRecorderRef.current;
+        mediaRecorderRef.current = null;
+        detachMediaRecorderHandlers(mediaRecorder);
+        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+            mediaRecorder.stop();
+        }
         clearAudioStream();
         if (typeof window !== "undefined") {
             stopSpeaking(window);
         }
 
+        recordingChunksRef.current = [];
         latestTranscriptRef.current = "";
         latestDisplayedTranscriptRef.current = "";
         latestConfidenceRef.current = undefined;
@@ -272,6 +350,60 @@ export default function VoiceTriagePage() {
         }
 
         void analyseTranscript(normalizedTranscript, confidenceMeta, emergencyResult.matches);
+    }
+
+    async function handleRecordedAudioStop(mediaBlob: Blob) {
+        if (!mediaBlob.size) {
+            setError(getRecognitionErrorState("no-speech", t));
+            setStep("error");
+            return;
+        }
+
+        setStep("processing");
+        setError(null);
+
+        try {
+            const file = new File([mediaBlob], "voice-triage.webm", {
+                type: mediaBlob.type || "audio/webm",
+            });
+            const transcription = await transcribeRecordedAudio(file, selectedLanguage);
+            const normalizedTranscript = transcription.transcript.trim();
+
+            if (!normalizedTranscript) {
+                setError(getRecognitionErrorState("no-speech", t));
+                setStep("error");
+                return;
+            }
+
+            const confidenceMeta = getConfidenceMeta(undefined);
+            const emergencyResult = detectEmergencyKeywords(normalizedTranscript);
+
+            setTranscript(normalizedTranscript);
+            setConfidence(confidenceMeta);
+            setEmergencyMatches(emergencyResult.matches);
+            setError(null);
+
+            if (
+                shouldReviewTranscription(normalizedTranscript, {
+                    selectedLanguage,
+                    detectedLanguage: transcription.language,
+                })
+            ) {
+                setStep("review");
+                return;
+            }
+
+            await analyseTranscript(normalizedTranscript, confidenceMeta, emergencyResult.matches);
+        } catch (transcriptionError) {
+            setError({
+                title: t("errors.generic_title"),
+                message:
+                    transcriptionError instanceof Error && transcriptionError.message
+                        ? transcriptionError.message
+                        : t("errors.generic_message"),
+            });
+            setStep("error");
+        }
     }
 
     async function analyseTranscript(
@@ -442,6 +574,15 @@ export default function VoiceTriagePage() {
         setIsListening(false);
         setIsVisualizerFading(true);
 
+        if (mediaRecorderRef.current) {
+            if (mediaRecorderRef.current.state !== "inactive") {
+                mediaRecorderRef.current.stop();
+                return;
+            }
+
+            mediaRecorderRef.current = null;
+        }
+
         if (!recognitionRef.current) {
             startSessionIdRef.current += 1;
             clearAudioStream();
@@ -453,54 +594,11 @@ export default function VoiceTriagePage() {
         recognitionRef.current?.stop();
     }
 
-    async function startListening() {
-        if (typeof window === "undefined") {
-            return;
-        }
-
+    function startSpeechRecognitionFallback() {
         const SpeechRecognition = getSpeechRecognitionConstructor(window);
         if (!SpeechRecognition) {
             setError(getRecognitionErrorState("unsupported", t));
             setStep("error");
-            return;
-        }
-
-        handleStopSpeaking();
-
-        const sessionId = startSessionIdRef.current + 1;
-        startSessionIdRef.current = sessionId;
-        clearAudioStream();
-
-        latestTranscriptRef.current = "";
-        latestDisplayedTranscriptRef.current = "";
-        latestConfidenceRef.current = undefined;
-        didHandleRecognitionEndRef.current = false;
-        manualStopRef.current = false;
-
-        setTranscript("");
-        setConfidence(DEFAULT_FLOW_CONFIDENCE);
-        setResult(null);
-        setError(null);
-        setEmergencyMatches([]);
-        setIsVisualizerFading(false);
-        setStep("listening");
-
-        if (navigator.mediaDevices?.getUserMedia) {
-            try {
-                const nextAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-                if (startSessionIdRef.current !== sessionId) {
-                    stopMediaStream(nextAudioStream);
-                    return;
-                }
-
-                setActiveAudioStream(nextAudioStream);
-            } catch {
-                setActiveAudioStream(null);
-            }
-        }
-
-        if (startSessionIdRef.current !== sessionId) {
             return;
         }
 
@@ -597,6 +695,149 @@ export default function VoiceTriagePage() {
         }
     }
 
+    async function startListening() {
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        handleStopSpeaking();
+
+        const sessionId = startSessionIdRef.current + 1;
+        startSessionIdRef.current = sessionId;
+        clearAudioStream();
+
+        const recognition = recognitionRef.current;
+        recognitionRef.current = null;
+        detachRecognitionHandlers(recognition);
+        recognition?.stop();
+
+        const mediaRecorder = mediaRecorderRef.current;
+        mediaRecorderRef.current = null;
+        detachMediaRecorderHandlers(mediaRecorder);
+        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+            mediaRecorder.stop();
+        }
+
+        recordingChunksRef.current = [];
+        latestTranscriptRef.current = "";
+        latestDisplayedTranscriptRef.current = "";
+        latestConfidenceRef.current = undefined;
+        didHandleRecognitionEndRef.current = false;
+        manualStopRef.current = false;
+
+        setTranscript("");
+        setConfidence(DEFAULT_FLOW_CONFIDENCE);
+        setResult(null);
+        setError(null);
+        setEmergencyMatches([]);
+        setIsVisualizerFading(false);
+
+        const canRecordAudio =
+            typeof navigator !== "undefined" &&
+            Boolean(navigator.mediaDevices?.getUserMedia) &&
+            supportsAudioRecording(window);
+
+        if (!canRecordAudio) {
+            startSpeechRecognitionFallback();
+            return;
+        }
+
+        let nextAudioStream: MediaStream;
+        try {
+            nextAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        } catch (captureError) {
+            const errorName =
+                captureError instanceof DOMException ? captureError.name : "audio-capture";
+
+            if (errorName === "NotAllowedError" || errorName === "PermissionDeniedError") {
+                setError(getRecognitionErrorState("not-allowed", t));
+            } else if (errorName === "NotFoundError" || errorName === "DevicesNotFoundError") {
+                setError(getRecognitionErrorState("audio-capture", t));
+            } else {
+                setError(getRecognitionErrorState("generic", t));
+            }
+            setStep("error");
+            return;
+        }
+
+        if (startSessionIdRef.current !== sessionId) {
+            stopMediaStream(nextAudioStream);
+            return;
+        }
+
+        let mediaRecorderInstance: MediaRecorder;
+
+        try {
+            const mimeType = getPreferredRecordingMimeType(window.MediaRecorder);
+            mediaRecorderInstance = new MediaRecorder(
+                nextAudioStream,
+                mimeType ? { mimeType } : undefined
+            );
+        } catch {
+            stopMediaStream(nextAudioStream);
+            startSpeechRecognitionFallback();
+            return;
+        }
+
+        mediaRecorderRef.current = mediaRecorderInstance;
+        setActiveAudioStream(nextAudioStream);
+        setStep("listening");
+
+        mediaRecorderInstance.onstart = () => {
+            setIsListening(true);
+            setIsVisualizerFading(false);
+            setStep("listening");
+        };
+
+        mediaRecorderInstance.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+                recordingChunksRef.current.push(event.data);
+            }
+        };
+
+        mediaRecorderInstance.onerror = () => {
+            if (mediaRecorderRef.current === mediaRecorderInstance) {
+                mediaRecorderRef.current = null;
+            }
+            detachMediaRecorderHandlers(mediaRecorderInstance);
+            clearAudioStream();
+            setIsListening(false);
+            setIsVisualizerFading(false);
+            setError(getRecognitionErrorState("generic", t));
+            setStep("error");
+        };
+
+        mediaRecorderInstance.onstop = async () => {
+            if (mediaRecorderRef.current === mediaRecorderInstance) {
+                mediaRecorderRef.current = null;
+            }
+
+            const mediaBlob = new Blob(recordingChunksRef.current, {
+                type: mediaRecorderInstance.mimeType || "audio/webm",
+            });
+
+            recordingChunksRef.current = [];
+            detachMediaRecorderHandlers(mediaRecorderInstance);
+            clearAudioStream();
+            setIsListening(false);
+            setIsVisualizerFading(false);
+
+            await handleRecordedAudioStop(mediaBlob);
+        };
+
+        try {
+            mediaRecorderInstance.start();
+        } catch {
+            if (mediaRecorderRef.current === mediaRecorderInstance) {
+                mediaRecorderRef.current = null;
+            }
+            detachMediaRecorderHandlers(mediaRecorderInstance);
+            stopMediaStream(nextAudioStream);
+            setActiveAudioStream(null);
+            startSpeechRecognitionFallback();
+        }
+    }
+
     function handleMicAction() {
         if (step === "listening") {
             stopListening();
@@ -610,6 +851,10 @@ export default function VoiceTriagePage() {
 
     return (
         <div className="relative flex min-h-screen flex-col overflow-hidden bg-slate-50 font-sans">
+            <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+                {srAnnouncement}
+            </div>
+
             <div
                 className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-emerald-100/40 blur-3xl"
                 aria-hidden="true"
@@ -674,92 +919,98 @@ export default function VoiceTriagePage() {
                     />
                 </div>
 
-                {step === "initial" && (
-                    <VoiceIntroPanel
-                        title={t("title")}
-                        subtitle={t("subtitle")}
-                        exampleLabel={t("example_label")}
-                        exampleText={t("example_text")}
-                        assistantLabel={t("assistant_label")}
-                        assistantValue={t("assistant_value")}
-                    />
-                )}
+                <div
+                    ref={panelRef}
+                    tabIndex={-1}
+                    className="w-full max-w-md rounded-[2.5rem] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:ring-offset-2"
+                >
+                    {step === "initial" && (
+                        <VoiceIntroPanel
+                            title={t("title")}
+                            subtitle={t("subtitle")}
+                            exampleLabel={t("example_label")}
+                            exampleText={t("example_text")}
+                            assistantLabel={t("assistant_label")}
+                            assistantValue={t("assistant_value")}
+                        />
+                    )}
 
-                {step === "listening" && (
-                    <VoiceListeningPanel
-                        transcript={transcript || t("listening_placeholder")}
-                        statusLabel={t("listening_status")}
-                        stream={audioStream}
-                        isListening={isListening}
-                        isFading={isVisualizerFading}
-                        animationsEnabled={animationsEnabled}
-                        visualizerLabel={t("visualizer_label")}
-                        volumeLabel={t("volume_label")}
-                        liveVolumeLabel={t("volume_live_label")}
-                        stillVolumeLabel={t("volume_still_label")}
-                        visualizerUnavailableLabel={t("visualizer_unavailable")}
-                    />
-                )}
+                    {step === "listening" && (
+                        <VoiceListeningPanel
+                            transcript={transcript || t("listening_placeholder")}
+                            statusLabel={t("listening_status")}
+                            stream={audioStream}
+                            isListening={isListening}
+                            isFading={isVisualizerFading}
+                            animationsEnabled={animationsEnabled}
+                            visualizerLabel={t("visualizer_label")}
+                            volumeLabel={t("volume_label")}
+                            liveVolumeLabel={t("volume_live_label")}
+                            stillVolumeLabel={t("volume_still_label")}
+                            visualizerUnavailableLabel={t("visualizer_unavailable")}
+                        />
+                    )}
 
-                {step === "processing" && (
-                    <VoiceProcessingPanel
-                        title={t("processing_title")}
-                        subtitle={t("processing_subtitle")}
-                    />
-                )}
+                    {step === "processing" && (
+                        <VoiceProcessingPanel
+                            title={t("processing_title")}
+                            subtitle={t("processing_subtitle")}
+                        />
+                    )}
 
-                {step === "review" && (
-                    <VoiceReviewPanel
-                        title={t("review_title")}
-                        message={t("review_message")}
-                        transcript={transcript}
-                        confidence={confidence}
-                        confidenceLabelPrefix={t("confidence_label")}
-                        confidenceValueLabel={getConfidenceValueLabel(confidence, t)}
-                        retryLabel={t("retry_button")}
-                        analyseLabel={t("analyse_anyway_button")}
-                        onRetry={() => resetFlow()}
-                        onAnalyse={() =>
-                            void analyseTranscript(transcript, confidence, emergencyMatches)
-                        }
-                        emergencyTitle={t("emergency_title")}
-                        emergencyBody={t("emergency_body")}
-                        showEmergency={emergencyMatches.length > 0}
-                    />
-                )}
+                    {step === "review" && (
+                        <VoiceReviewPanel
+                            title={t("review_title")}
+                            message={t("review_message")}
+                            transcript={transcript}
+                            confidence={confidence}
+                            confidenceLabelPrefix={t("confidence_label")}
+                            confidenceValueLabel={getConfidenceValueLabel(confidence, t)}
+                            retryLabel={t("retry_button")}
+                            analyseLabel={t("analyse_anyway_button")}
+                            onRetry={() => resetFlow()}
+                            onAnalyse={() =>
+                                void analyseTranscript(transcript, confidence, emergencyMatches)
+                            }
+                            emergencyTitle={t("emergency_title")}
+                            emergencyBody={t("emergency_body")}
+                            showEmergency={emergencyMatches.length > 0}
+                        />
+                    )}
 
-                {step === "error" && error && (
-                    <VoiceErrorPanel
-                        error={error}
-                        retryLabel={t("retry_button")}
-                        onRetry={() => resetFlow()}
-                    />
-                )}
+                    {step === "error" && error && (
+                        <VoiceErrorPanel
+                            error={error}
+                            retryLabel={t("retry_button")}
+                            onRetry={() => resetFlow()}
+                        />
+                    )}
 
-                {step === "result" && result && (
-                    <VoiceResultPanel
-                        heading={t("result_heading")}
-                        subheading={t("result_subheading")}
-                        transcriptLabel={t("transcript_label")}
-                        transcript={transcript}
-                        confidence={confidence}
-                        confidenceLabelPrefix={t("confidence_label")}
-                        confidenceValueLabel={getConfidenceValueLabel(confidence, t)}
-                        result={result}
-                        emergencyTitle={t("emergency_title")}
-                        emergencyBody={t("emergency_body")}
-                        recommendationsLabel={t("recommendations_label")}
-                        shareLabel={t("share_button")}
-                        speakLabel={t("speak_button")}
-                        stopSpeakingLabel={t("stop_speaking_button")}
-                        tryAgainLabel={t("try_again_button")}
-                        isSpeaking={isSpeaking}
-                        onReplay={handleReplaySummary}
-                        onStopSpeaking={handleStopSpeaking}
-                        onShare={handleShare}
-                        onTryAgain={() => resetFlow()}
-                    />
-                )}
+                    {step === "result" && result && (
+                        <VoiceResultPanel
+                            heading={t("result_heading")}
+                            subheading={t("result_subheading")}
+                            transcriptLabel={t("transcript_label")}
+                            transcript={transcript}
+                            confidence={confidence}
+                            confidenceLabelPrefix={t("confidence_label")}
+                            confidenceValueLabel={getConfidenceValueLabel(confidence, t)}
+                            result={result}
+                            emergencyTitle={t("emergency_title")}
+                            emergencyBody={t("emergency_body")}
+                            recommendationsLabel={t("recommendations_label")}
+                            shareLabel={t("share_button")}
+                            speakLabel={t("speak_button")}
+                            stopSpeakingLabel={t("stop_speaking_button")}
+                            tryAgainLabel={t("try_again_button")}
+                            isSpeaking={isSpeaking}
+                            onReplay={handleReplaySummary}
+                            onStopSpeaking={handleStopSpeaking}
+                            onShare={handleShare}
+                            onTryAgain={() => resetFlow()}
+                        />
+                    )}
+                </div>
             </main>
 
             {showMicFooter && (
@@ -771,7 +1022,11 @@ export default function VoiceTriagePage() {
                                 ? t("stop_listening_aria")
                                 : t("start_listening_aria")
                         }
-                        className={`relative flex h-24 w-24 items-center justify-center rounded-full transition-all duration-500 ${step === "listening" ? "scale-125 bg-red-500" : "bg-emerald-500 shadow-xl shadow-emerald-500/30 hover:scale-110"} `}
+                        className={`relative flex h-24 w-24 items-center justify-center rounded-full transition-all duration-500 focus-visible:ring-4 focus-visible:ring-offset-4 focus-visible:outline-none ${
+                            step === "listening"
+                                ? "scale-125 bg-red-500 focus-visible:ring-red-500/50"
+                                : "bg-emerald-500 shadow-xl shadow-emerald-500/30 hover:scale-110 focus-visible:ring-emerald-500/50"
+                        } `}
                     >
                         {step === "listening" ? (
                             <div

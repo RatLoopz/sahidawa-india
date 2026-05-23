@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+const ML_TRANSCRIBE_TIMEOUT_MS = 45_000;
 function getMlServiceUrl() {
     return process.env.ML_SERVICE_URL ?? "http://localhost:8000";
 }
@@ -27,10 +28,13 @@ export async function POST(req: Request) {
         upstreamBody.append("language", language.trim());
     }
 
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), ML_TRANSCRIBE_TIMEOUT_MS);
     try {
         const upstreamResponse = await fetch(`${getMlServiceUrl()}/asr/transcribe`, {
             method: "POST",
             body: upstreamBody,
+            signal: abortController.signal,
         });
 
         const upstreamData = await readJsonSafely(upstreamResponse);
@@ -62,10 +66,19 @@ export async function POST(req: Request) {
                     ? upstreamData.language_probability
                     : null,
         });
-    } catch {
+    } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") {
+            return NextResponse.json(
+                { error: "Transcription service timed out." },
+                { status: 504 }
+            );
+        }
+
         return NextResponse.json(
             { error: "Could not reach the transcription service." },
             { status: 503 }
         );
+    } finally {
+        clearTimeout(timeoutId);
     }
 }
