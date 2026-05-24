@@ -11,6 +11,11 @@ export type SpeechRecognitionLike = {
     stop: () => void;
 };
 
+export type SpeechSynthesisVoiceMatch = {
+    voice?: SpeechSynthesisVoice;
+    supportLevel: "exact" | "language" | "fallback" | "unknown";
+};
+
 type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
 
 type WindowWithSpeechRecognition = Window & {
@@ -36,15 +41,35 @@ export function stopSpeaking(targetWindow: Window) {
     }
 }
 
+export function resolveSpeechSynthesisVoice(
+    targetWindow: Window,
+    preferredLanguage: string
+): SpeechSynthesisVoiceMatch {
+    const voices = targetWindow.speechSynthesis.getVoices();
+    if (!voices.length) {
+        return { voice: undefined, supportLevel: "unknown" };
+    }
+
+    const exactMatch = voices.find((voice) => voice.lang === preferredLanguage);
+    if (exactMatch) {
+        return { voice: exactMatch, supportLevel: "exact" };
+    }
+
+    const primaryLanguage =
+        preferredLanguage.split("-")[0]?.toLowerCase() ?? preferredLanguage.toLowerCase();
+    const languageMatch = voices.find((voice) =>
+        voice.lang.toLowerCase().startsWith(primaryLanguage)
+    );
+    if (languageMatch) {
+        return { voice: languageMatch, supportLevel: "language" };
+    }
+
+    return { voice: voices[0], supportLevel: "fallback" };
+}
+
 export function findBestVoice(
     targetWindow: Window,
     preferredLanguage: string
 ): SpeechSynthesisVoice | undefined {
-    const voices = targetWindow.speechSynthesis.getVoices();
-
-    return (
-        voices.find((voice) => voice.lang === preferredLanguage) ??
-        voices.find((voice) => voice.lang.startsWith(preferredLanguage.split("-")[0])) ??
-        voices[0]
-    );
+    return resolveSpeechSynthesisVoice(targetWindow, preferredLanguage).voice;
 }

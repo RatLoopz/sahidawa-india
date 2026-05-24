@@ -29,8 +29,17 @@
         "example_text": "\"I have fever and cough\"",
         "assistant_label": "AI Assistant",
         "assistant_value": "Listening 24/7",
+        "skip_to_main_content": "Skip to main content",
         "listening_placeholder": "Start speaking about your symptoms…",
         "listening_status": "Listening for symptoms",
+        "announcements": {
+            "recording_started": "Recording started",
+            "processing_started": "Processing your symptoms",
+            "results_ready": "Results ready"
+        },
+        "streaming_connecting_hint": "Connecting to live transcription…",
+        "streaming_live_hint": "Live transcript is updating",
+        "streaming_fallback_hint": "Connection is unstable. SahiDawa will finish processing after you stop speaking.",
         "animation_toggle_label": "Voice animations",
         "animation_live_label": "Live waveform",
         "animation_reduced_motion_label": "Reduced motion",
@@ -75,6 +84,7 @@
         "copy_success": "Report copied to clipboard",
         "share_failure": "Unable to share the report right now",
         "tts_not_supported": "Your browser does not support text-to-speech",
+        "tts_fallback_message": "Your browser may read this summary aloud in a different voice because {language} text-to-speech support is limited.",
         "fallback_summary": "SahiDawa could not structure the response clearly. Please consult a doctor if your symptoms continue.",
         "share_report": {
             "title": "SahiDawa Voice Triage Report",
@@ -93,6 +103,8 @@
         "errors": {
             "unsupported_title": "Voice input is unavailable",
             "unsupported_message": "This browser does not support speech recognition yet. Please try Chrome or Edge.",
+            "language_not_supported_title": "This browser cannot capture that voice language",
+            "language_not_supported_message": "{language} voice input is limited in this browser. Try Chrome or Edge, or start a new check with another voice language.",
             "permission_title": "Microphone access is blocked",
             "permission_message": "Please allow microphone permission in your browser settings and try again.",
             "microphone_title": "No microphone was detected",
