@@ -87,14 +87,14 @@ export default function ChatUI() {
     
     try {
       const history = [...messages, userMsg].filter(m => !m.isError).map(m => ({ role: m.role, content: m.content }));
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system: SYSTEM_PROMPT, messages: history }),
+        body: JSON.stringify({ messages: history }),
       });
       if (!res.ok) throw new Error();
       const data = await res.json();
-      const reply = data.content?.find((b: any) => b.type === "text")?.text || "I'm here to help! Could you rephrase that?";
+      const reply = data.text || "I'm here to help! Could you rephrase that?";
       setMessages(prev => [...prev, { id: genId(), role: "assistant", content: reply, timestamp: new Date() }]);
     } catch {
       setMessages(prev => [...prev, { id: genId(), role: "assistant", content: "", timestamp: new Date(), isError: true }]);
