@@ -34,3 +34,4 @@
 | [#431](https://github.com/RatLoopz/sahidawa-india/pull/431) | 2026-05-22 | Frontend | 10 | @ANISHA-RAWAT | [View Doc](devtrack/2026-05/PR-431-feat-add-faq-page-and-footer-quick-link.md) |
 | [#469](https://github.com/RatLoopz/sahidawa-india/pull/469) | 2026-05-23 | Frontend | 26 | @shashank03-dev | [View Doc](devtrack/2026-05/PR-469-feat-voice-improve-accessibility-and-assistive-fee.md) / [ADR](devtrack/adr/ADR-008-feat-voice-improve-accessibility-and-assistive-fee.md) |
 | [#545](https://github.com/RatLoopz/sahidawa-india/pull/545) | 2026-05-24 | Frontend | 10 | @harshitsaxena214 | [View Doc](devtrack/2026-05/PR-545-feat-add-loading-skeleton-for-compare-and-profile-.md) |
+| [#511](https://github.com/RatLoopz/sahidawa-india/pull/511) | 2026-05-24 | Frontend | 16 | @Abhii-afk | [View Doc](devtrack/2026-05/PR-511-feat-scanner-add-ocr-fallback-for-uploaded-medicin.md) / [ADR](devtrack/adr/ADR-009-feat-scanner-add-ocr-fallback-for-uploaded-medicin.md) |
