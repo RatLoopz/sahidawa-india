@@ -639,7 +639,7 @@ export default function PharmacyMapPage() {
                 </div>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-hidden bg-slate-100/80 md:p-4">
+            <div className="min-h-0 flex-1 overflow-hidden bg-slate-100/80 md:p-4 md:pb-0">
                 <div
                     data-testid="pharmacy-map-layout"
                     className="relative flex h-full min-h-0 flex-col overflow-hidden md:grid md:grid-cols-[minmax(22rem,30rem)_minmax(0,1fr)] md:gap-4"
@@ -741,7 +741,7 @@ export default function PharmacyMapPage() {
             </div>
 
             {/* Safe-area footer */}
-            <div className="h-4 bg-white md:hidden" aria-hidden="true" />
+            <div className="bg-transparent md:hidden" aria-hidden="true" />
         </div>
     );
 }

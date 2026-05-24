@@ -96,10 +96,17 @@ export default function SahiDawaHome() {
                 <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
                     <div className="flex items-center gap-2">
                         <div
-                            className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 shadow-sm"
+                            className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 shadow-sm sm:h-10 sm:w-10"
                             aria-label="SahiDawa Logo"
                         >
-                            <ShieldCheck size={24} strokeWidth={2.5} />
+                            <img
+                                src="/favicon.ico"
+                                alt=""
+                                aria-hidden="true"
+                                className="h-7 w-7 object-contain"
+                                width={28}
+                                height={28}
+                            />
                         </div>
                         <h1 className="text-xl font-extrabold tracking-tight text-slate-800 md:text-2xl">
                             SahiDawa
@@ -147,12 +154,12 @@ export default function SahiDawaHome() {
 
                         <button
                             onClick={() => handleNavigation("health")}
-                            className="flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25"
+                            className="flex h-9 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white px-3 py-1.5 text-sm font-semibold transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 sm:h-10 sm:px-4 sm:py-2"
                             aria-label="Open AI Health Assistant"
                         >
                             <MessageCircle size={16} />
                             <span className="hidden sm:inline">AI Health Assistant</span>
-                            <span className="sm:hidden">AI Chat</span>
+                            <span className="sm:hidden whitespace-nowrap">AI Chat</span>
                         </button>
 
                         <LanguageSwitcher />
@@ -297,7 +304,7 @@ export default function SahiDawaHome() {
                     <div className="relative z-10 flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
                         <div className="flex items-center gap-4 sm:gap-5">
                             {/* Icon container */}
-                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-blue-600 shadow-lg shadow-purple-500/30 transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl group-hover:shadow-purple-500/35 sm:h-16 sm:w-16">
+                            <div className="flex h-14 w-14 -translate-y-9 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-blue-600 shadow-lg shadow-purple-500/30 transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl group-hover:shadow-purple-500/35 sm:h-16 sm:w-16 sm:-translate-y-0">
                                 <MessageCircle size={28} className="text-white drop-shadow-sm" />
                             </div>
                             <div className="space-y-1">
@@ -306,7 +313,7 @@ export default function SahiDawaHome() {
                                         AI Health Assistant
                                     </h3>
                                     {/* Animated AI badge */}
-                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 px-2.5 py-0.5 text-[11px] font-bold tracking-wider text-purple-700 uppercase ring-1 ring-purple-200/60">
+                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 px-2.5 py-0.5 text-[11px] font-bold tracking-wider text-purple-700 uppercase ring-1 ring-purple-200/60 whitespace-nowrap">
                                         <span className="relative flex h-1.5 w-1.5">
                                             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-purple-500 opacity-60" />
                                             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-purple-600" />

@@ -225,7 +225,7 @@ export function VoiceAudioVisualizer({
             )}
 
             <div
-                className="mt-3 w-full max-w-[13rem]"
+                className="mt-3 w-full max-w-52"
                 role="progressbar"
                 aria-label={volumeLabel}
                 aria-valuemin={0}
@@ -241,7 +241,7 @@ export function VoiceAudioVisualizer({
                 <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-emerald-100">
                     <div
                         ref={volumeFillRef}
-                        className="h-full origin-left rounded-full bg-gradient-to-r from-emerald-500 to-emerald-300 transition-transform duration-150"
+                        className="h-full origin-left rounded-full bg-linear-to-r from-emerald-500 to-emerald-300 transition-transform duration-150"
                         style={{ transform: showCanvas ? "scaleX(0.08)" : "scaleX(0.18)" }}
                         aria-hidden="true"
                     />
