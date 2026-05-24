@@ -36,3 +36,4 @@
 | [#545](https://github.com/RatLoopz/sahidawa-india/pull/545) | 2026-05-24 | Frontend | 10 | @harshitsaxena214 | [View Doc](devtrack/2026-05/PR-545-feat-add-loading-skeleton-for-compare-and-profile-.md) |
 | [#511](https://github.com/RatLoopz/sahidawa-india/pull/511) | 2026-05-24 | Frontend | 16 | @Abhii-afk | [View Doc](devtrack/2026-05/PR-511-feat-scanner-add-ocr-fallback-for-uploaded-medicin.md) / [ADR](devtrack/adr/ADR-009-feat-scanner-add-ocr-fallback-for-uploaded-medicin.md) |
 | [#505](https://github.com/RatLoopz/sahidawa-india/pull/505) | 2026-05-24 | Frontend | 5 | @ANISHA-RAWAT | [View Doc](devtrack/2026-05/PR-505-feat-add-contact-us-page-with-email-placeholder-an.md) |
+| [#502](https://github.com/RatLoopz/sahidawa-india/pull/502) | 2026-05-24 | Frontend | 10 | @ANISHA-RAWAT | [View Doc](devtrack/2026-05/PR-502-feat-add-privacy-policy-page-with-responsive-card-.md) |
