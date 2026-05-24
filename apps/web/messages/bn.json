@@ -29,8 +29,17 @@
         "example_text": "\"আমার জ্বর আর কাশি আছে\"",
         "assistant_label": "AI সহায়ক",
         "assistant_value": "২৪/৭ শুনছে",
+        "skip_to_main_content": "মূল কনটেন্টে যান",
         "listening_placeholder": "আপনার উপসর্গ বলা শুরু করুন…",
         "listening_status": "উপসর্গ শোনা হচ্ছে",
+        "announcements": {
+            "recording_started": "রেকর্ডিং শুরু হয়েছে",
+            "processing_started": "আপনার উপসর্গ প্রক্রিয়া করা শুরু হয়েছে",
+            "results_ready": "ফলাফল প্রস্তুত"
+        },
+        "streaming_connecting_hint": "লাইভ ট্রান্সক্রিপশনের সাথে সংযোগ করা হচ্ছে…",
+        "streaming_live_hint": "লাইভ ট্রান্সক্রিপ্ট আপডেট হচ্ছে",
+        "streaming_fallback_hint": "সংযোগ অস্থির। আপনি বলা শেষ করলে SahiDawa প্রক্রিয়াকরণ সম্পূর্ণ করবে।",
         "animation_toggle_label": "ভয়েস অ্যানিমেশন",
         "animation_live_label": "লাইভ তরঙ্গরেখা",
         "animation_reduced_motion_label": "কম অ্যানিমেশন",

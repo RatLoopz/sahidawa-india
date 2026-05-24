@@ -118,10 +118,30 @@ if __name__ == "__main__":
                         help="Only scrape — don't normalize or load to DB")
     parser.add_argument("--retry-failed", action="store_true",
                         help="Retry only rows saved in the ETL failed rows table")
+    parser.add_argument("--commercial-mrp", action="store_true",
+                        help="Scrape commercial MRPs from 1mg and merge into medicines table")
+    parser.add_argument("--commercial-csv", type=str, default=None,
+                        help="Path to existing commercial MRP CSV (skips scraping)")
     args = parser.parse_args()
 
-    asyncio.run(run_full_pipeline(
-        skip_scrape=args.skip_scrape,
-        scrape_only=args.scrape_only,
-        retry_failed=args.retry_failed,
-    ))
+    if args.commercial_mrp or args.commercial_csv:
+        from scrapers.commercial_mrp import CommercialMRPScraper
+        from pathlib import Path
+
+        if args.commercial_csv:
+            csv_path = Path(args.commercial_csv)
+            print(f"[Pipeline] Using existing commercial MRP CSV: {csv_path}")
+        else:
+            print("[Pipeline] 🛒 Scraping commercial MRPs from 1mg...")
+            scraper = CommercialMRPScraper(max_pages_per_query=3)
+            csv_path = scraper.scrape()
+
+        loader = SupabaseLoader()
+        stats = loader.merge_commercial_mrp(csv_path)
+        print(f"\n✅ Commercial MRP merge complete: {stats['updated']} rows updated")
+    else:
+        asyncio.run(run_full_pipeline(
+            skip_scrape=args.skip_scrape,
+            scrape_only=args.scrape_only,
+            retry_failed=args.retry_failed,
+        ))

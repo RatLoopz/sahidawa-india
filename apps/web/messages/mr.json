@@ -29,8 +29,17 @@
         "example_text": "\"मला ताप आणि खोकला आहे\"",
         "assistant_label": "AI सहाय्यक",
         "assistant_value": "२४/७ ऐकत आहे",
+        "skip_to_main_content": "मुख्य मजकुरावर जा",
         "listening_placeholder": "तुमची लक्षणे सांगायला सुरुवात करा…",
         "listening_status": "लक्षणे ऐकली जात आहेत",
+        "announcements": {
+            "recording_started": "रेकॉर्डिंग सुरू झाले",
+            "processing_started": "तुमच्या लक्षणांची प्रक्रिया सुरू झाली",
+            "results_ready": "निकाल तयार आहेत"
+        },
+        "streaming_connecting_hint": "थेट ट्रान्सक्रिप्शनशी जोडले जात आहे…",
+        "streaming_live_hint": "थेट ट्रान्सक्रिप्ट अद्ययावत होत आहे",
+        "streaming_fallback_hint": "कनेक्शन अस्थिर आहे. तुम्ही बोलून झाल्यावर SahiDawa प्रक्रिया पूर्ण करेल.",
         "animation_toggle_label": "व्हॉइस अ‍ॅनिमेशन",
         "animation_live_label": "लाइव्ह तरंगरूप",
         "animation_reduced_motion_label": "कमी हालचाल",

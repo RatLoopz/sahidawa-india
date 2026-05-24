@@ -1,6 +1,7 @@
 "use client";
 
 import { Activity, Sparkles } from "lucide-react";
+import { VOICE_FOCUS_RING_CLASS } from "./lib/accessibility";
 
 export function VoiceAnimationToggle({
     label,
@@ -22,7 +23,7 @@ export function VoiceAnimationToggle({
                 role="switch"
                 aria-checked={enabled}
                 onClick={() => onToggle(!enabled)}
-                className="group flex w-full items-center justify-between gap-4 rounded-xl px-3 py-2.5 text-left transition-all duration-300 hover:bg-emerald-50/70 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:outline-none"
+                className={`group flex w-full items-center justify-between gap-4 rounded-xl px-3 py-2.5 text-left transition-all duration-300 hover:bg-emerald-50/70 ${VOICE_FOCUS_RING_CLASS}`}
             >
                 <span className="flex min-w-0 items-center gap-3">
                     <span

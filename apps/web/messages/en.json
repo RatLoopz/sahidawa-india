@@ -29,8 +29,17 @@
         "example_text": "\"I have fever and cough\"",
         "assistant_label": "AI Assistant",
         "assistant_value": "Listening 24/7",
+        "skip_to_main_content": "Skip to main content",
         "listening_placeholder": "Start speaking about your symptoms…",
         "listening_status": "Listening for symptoms",
+        "announcements": {
+            "recording_started": "Recording started",
+            "processing_started": "Processing your symptoms",
+            "results_ready": "Results ready"
+        },
+        "streaming_connecting_hint": "Connecting to live transcription…",
+        "streaming_live_hint": "Live transcript is updating",
+        "streaming_fallback_hint": "Connection is unstable. SahiDawa will finish processing after you stop speaking.",
         "animation_toggle_label": "Voice animations",
         "animation_live_label": "Live waveform",
         "animation_reduced_motion_label": "Reduced motion",

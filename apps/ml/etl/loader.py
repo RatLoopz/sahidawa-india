@@ -219,12 +219,90 @@ class SupabaseLoader:
         return inserted, failures
 
     def _upsert_payloads(self, payloads: list[dict], table: str) -> None:
-        # If a row with the same (generic_name, strength, dosage_form, source)
-        # already exists, Supabase updates it instead of duplicating it.
+        # For commercial MRP records, merge mrp into existing rows by generic_name + strength
+        # For janaushadhi records, upsert on full uniqueness key
         self.client.table(table).upsert(
             payloads,
             on_conflict="generic_name,strength,dosage_form,source",
         ).execute()
+
+    def merge_commercial_mrp(self, mrp_csv_path: "Path", table: str = "medicines") -> dict:
+        """
+        Merges commercial MRP data into existing medicine records.
+        Matches on generic_name (case-insensitive) and updates the mrp column.
+
+        Args:
+            mrp_csv_path: Path to the commercial_mrp_*.csv from CommercialMRPScraper
+            table:        Supabase table name (default: "medicines")
+
+        Returns:
+            dict with stats: updated, not_found, failed, total
+        """
+        import pandas as pd
+
+        print(f"[Loader] Reading commercial MRP CSV: {mrp_csv_path}")
+        df = pd.read_csv(mrp_csv_path)
+        total = len(df)
+        print(f"[Loader] Merging {total} commercial MRP records into '{table}'...")
+
+        updated = 0
+        not_found = 0
+        failed = 0
+
+        for _, row in df.iterrows():
+            generic_name = row.get("generic_name")
+            mrp = row.get("mrp")
+
+            if not generic_name or pd.isna(mrp):
+                not_found += 1
+                continue
+
+            try:
+                # Find existing records matching this generic name
+                response = (
+                    self.client.table(table)
+                    .select("id, generic_name, mrp")
+                    .ilike("generic_name", f"%{generic_name}%")
+                    .is_("mrp", "null")   # Only update rows where mrp is not yet set
+                    .limit(5)
+                    .execute()
+                )
+                matches = getattr(response, "data", None) or []
+
+                if not matches:
+                    not_found += 1
+                    continue
+
+                # Update mrp for all matching rows
+                for match in matches:
+                    self.client.table(table).update(
+                        {"mrp": float(mrp)}
+                    ).eq("id", match["id"]).execute()
+
+                updated += len(matches)
+                print(f"[Loader] Updated mrp={mrp} for '{generic_name}' ({len(matches)} row(s))")
+
+            except Exception as e:
+                print(f"[Loader] ❌ Failed to merge MRP for '{generic_name}': {e}")
+                failed += 1
+
+            time.sleep(0.1)  # Polite delay
+
+        stats = {
+            "total": total,
+            "updated": updated,
+            "not_found": not_found,
+            "failed": failed,
+            "success_rate": round((updated / total) * 100, 2) if total else 0.0,
+        }
+
+        print(f"\n[Loader] MRP Merge Summary:")
+        print(f"[Loader]   Total records  : {stats['total']}")
+        print(f"[Loader]   MRP updated    : {stats['updated']}")
+        print(f"[Loader]   Not found in DB: {stats['not_found']}")
+        print(f"[Loader]   Failed         : {stats['failed']}")
+        print(f"[Loader]   Success rate   : {stats['success_rate']}%")
+        return stats
 
     def _build_failure(self, payload: dict, row_index: int, error: Exception) -> dict:
         error_message = str(error)

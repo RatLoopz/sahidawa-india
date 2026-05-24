@@ -15,6 +15,8 @@ export type VoiceErrorState = {
     message: string;
 };
 
+export type VoiceStreamingStatus = "idle" | "connecting" | "streaming" | "fallback";
+
 export type VoiceFlowState = {
     transcript: string;
     confidence: ConfidenceMeta;
