@@ -10,6 +10,8 @@
         "voice_subtitle": "Speak symptoms",
         "pharmacy_map": "Pharmacy Map",
         "pharmacy_subtitle": "Find verified stores",
+        "report_fake": "Report Fake",
+        "report_fake_subtitle": "Report suspicious medicine",
         "search_placeholder": "Search medicine or batch...",
         "search_button": "Search"
     },

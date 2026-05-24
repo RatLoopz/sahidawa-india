@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import {
     AlertTriangle,
     Mic,
@@ -271,10 +272,14 @@ export function VoiceErrorPanel({
     retryLabel: string;
     onRetry: () => void;
 }) {
+    const errorMessageId = useId();
+
     return (
         <div
             className="animate-in fade-in slide-in-from-bottom-8 w-full max-w-md rounded-[2.5rem] border border-red-100 bg-white p-8 shadow-xl duration-500 motion-reduce:animate-none"
-            aria-describedby="voice-error-message"
+            role="alert"
+            aria-live="assertive"
+            aria-describedby={errorMessageId}
         >
             <div className="mb-6 flex items-start gap-3">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-600">
@@ -283,7 +288,7 @@ export function VoiceErrorPanel({
                 <div>
                     <h2 className="font-black text-slate-900">{error.title}</h2>
                     <p
-                        id="voice-error-message"
+                        id={errorMessageId}
                         className="mt-2 text-sm leading-relaxed text-slate-600"
                     >
                         {error.message}

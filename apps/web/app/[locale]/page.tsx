@@ -308,10 +308,10 @@ export default function SahiDawaHome() {
 
                         <div className="pt-4">
                             <h3 className="text-lg font-bold tracking-tight text-slate-800">
-                                Report Fake
+                                {tHome("report_fake")}
                             </h3>
                             <p className="mt-1 text-sm leading-snug font-medium text-slate-500">
-                                Report suspicious medicine
+                                {tHome("report_fake_subtitle")}
                             </p>
                         </div>
                     </button>

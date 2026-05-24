@@ -10,6 +10,8 @@
         "voice_subtitle": "அறிகுறிகளைப் பேசு",
         "pharmacy_map": "மருந்தகம் வரைபடம்",
         "pharmacy_subtitle": "சரிபார்க்கப்பட்ட கடைகளைக் கண்டறி",
+        "report_fake": "போலியை புகாரளிக்கவும்",
+        "report_fake_subtitle": "சந்தேகத்திற்கிடமான மருந்தை புகாரளிக்கவும்",
         "search_placeholder": "மருந்து அல்லது தொகுதியைத் தேடு...",
         "search_button": "தேடு"
     },

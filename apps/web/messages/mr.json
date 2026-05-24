@@ -10,6 +10,8 @@
         "voice_subtitle": "लक्षणे बोला",
         "pharmacy_map": "औषधालय नकाशा",
         "pharmacy_subtitle": "पडताळलेली दुकाने शोधा",
+        "report_fake": "बनावट औषधाची तक्रार करा",
+        "report_fake_subtitle": "संशयास्पद औषधाची तक्रार करा",
         "search_placeholder": "औषध किंवा बॅच शोधा...",
         "search_button": "शोधा"
     },

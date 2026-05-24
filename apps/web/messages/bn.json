@@ -10,6 +10,8 @@
         "voice_subtitle": "উপসর্গ বলুন",
         "pharmacy_map": "ফার্মেসি ম্যাপ",
         "pharmacy_subtitle": "যাচাইকৃত দোকান খুঁজুন",
+        "report_fake": "ভুয়া রিপোর্ট করুন",
+        "report_fake_subtitle": "সন্দেহজনক ওষুধ রিপোর্ট করুন",
         "search_placeholder": "ওষুধ বা ব্যাচ অনুসন্ধান করুন...",
         "search_button": "অনুসন্ধান"
     },
