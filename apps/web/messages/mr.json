@@ -29,8 +29,17 @@
         "example_text": "\"मला ताप आणि खोकला आहे\"",
         "assistant_label": "AI सहाय्यक",
         "assistant_value": "२४/७ ऐकत आहे",
+        "skip_to_main_content": "मुख्य मजकुरावर जा",
         "listening_placeholder": "तुमची लक्षणे सांगायला सुरुवात करा…",
         "listening_status": "लक्षणे ऐकली जात आहेत",
+        "announcements": {
+            "recording_started": "रेकॉर्डिंग सुरू झाले",
+            "processing_started": "तुमच्या लक्षणांची प्रक्रिया सुरू झाली",
+            "results_ready": "निकाल तयार आहेत"
+        },
+        "streaming_connecting_hint": "थेट ट्रान्सक्रिप्शनशी जोडले जात आहे…",
+        "streaming_live_hint": "थेट ट्रान्सक्रिप्ट अद्ययावत होत आहे",
+        "streaming_fallback_hint": "कनेक्शन अस्थिर आहे. तुम्ही बोलून झाल्यावर SahiDawa प्रक्रिया पूर्ण करेल.",
         "animation_toggle_label": "व्हॉइस अ‍ॅनिमेशन",
         "animation_live_label": "लाइव्ह तरंगरूप",
         "animation_reduced_motion_label": "कमी हालचाल",
@@ -75,6 +84,7 @@
         "copy_success": "अहवाल क्लिपबोर्डवर कॉपी झाला",
         "share_failure": "आत्ता अहवाल शेअर करता आला नाही",
         "tts_not_supported": "तुमचा ब्राउझर टेक्स्ट-टू-स्पीचला समर्थन देत नाही",
+        "tts_fallback_message": "{language} टेक्स्ट-टू-स्पीच समर्थन मर्यादित असल्यामुळे तुमचा ब्राउझर हा सारांश दुसऱ्या आवाजात वाचू शकतो.",
         "fallback_summary": "SahiDawa ला उत्तर स्पष्टपणे मांडता आले नाही. लक्षणे सुरू राहिल्यास डॉक्टरांचा सल्ला घ्या.",
         "share_report": {
             "title": "SahiDawa व्हॉइस ट्रायज अहवाल",
@@ -93,6 +103,8 @@
         "errors": {
             "unsupported_title": "व्हॉइस इनपुट उपलब्ध नाही",
             "unsupported_message": "हा ब्राउझर अजून स्पीच रिकग्निशनला समर्थन देत नाही. Chrome किंवा Edge वापरून पहा.",
+            "language_not_supported_title": "हा ब्राउझर ती व्हॉइस भाषा पकडू शकत नाही",
+            "language_not_supported_message": "या ब्राउझरमध्ये {language} व्हॉइस इनपुट मर्यादित आहे. Chrome किंवा Edge वापरून पहा, किंवा दुसरी व्हॉइस भाषा निवडून नवीन तपासणी सुरू करा.",
             "permission_title": "मायक्रोफोन प्रवेश बंद आहे",
             "permission_message": "तुमच्या ब्राउझर सेटिंगमध्ये मायक्रोफोन परवानगी द्या आणि पुन्हा प्रयत्न करा.",
             "microphone_title": "मायक्रोफोन सापडला नाही",

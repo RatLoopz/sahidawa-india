@@ -18,35 +18,35 @@ export const VOICE_LANGUAGE_OPTIONS: VoiceLanguageOption[] = [
     },
     {
         value: "hi-IN",
-        label: "Hindi",
+        label: "हिन्दी (Hindi)",
         speechRecognition: "hi-IN",
         responseLanguage: "Hindi",
         speechSynthesisLang: "hi-IN",
     },
     {
         value: "ta-IN",
-        label: "Tamil",
+        label: "தமிழ் (Tamil)",
         speechRecognition: "ta-IN",
         responseLanguage: "Tamil",
         speechSynthesisLang: "ta-IN",
     },
     {
         value: "bn-IN",
-        label: "Bengali",
+        label: "বাংলা (Bengali)",
         speechRecognition: "bn-IN",
         responseLanguage: "Bengali",
         speechSynthesisLang: "bn-IN",
     },
     {
         value: "mr-IN",
-        label: "Marathi",
+        label: "मराठी (Marathi)",
         speechRecognition: "mr-IN",
         responseLanguage: "Marathi",
         speechSynthesisLang: "mr-IN",
     },
     {
         value: "te-IN",
-        label: "Telugu",
+        label: "తెలుగు (Telugu)",
         speechRecognition: "te-IN",
         responseLanguage: "Telugu",
         speechSynthesisLang: "te-IN",
@@ -57,4 +57,16 @@ export function getVoiceLanguageOption(value: string): VoiceLanguageOption {
     return (
         VOICE_LANGUAGE_OPTIONS.find((option) => option.value === value) ?? VOICE_LANGUAGE_OPTIONS[0]
     );
+}
+
+export function resolveVoiceWorkflowLanguage(
+    sessionLanguage: string | null | undefined,
+    activeLanguage: string | null | undefined,
+    selectedLanguage: string
+) {
+    if (sessionLanguage?.trim()) {
+        return sessionLanguage;
+    }
+
+    return activeLanguage?.trim() ? activeLanguage : selectedLanguage;
 }
