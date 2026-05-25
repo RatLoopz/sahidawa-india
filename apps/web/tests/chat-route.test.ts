@@ -91,4 +91,39 @@ describe("POST /api/chat", () => {
             error: "Message text is required",
         });
     });
+
+    it("correctly formats and forwards chat history to standard chat", async () => {
+        generateContentMock.mockResolvedValue({
+            text: "Hello! I can help you with that.",
+        });
+
+        const response = await POST(
+            new Request("http://localhost/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    messages: [
+                        { role: "user", content: "Hello" },
+                        { role: "assistant", content: "Hi! How can I help you today?" },
+                        { role: "user", content: "What is paracetamol?" },
+                    ],
+                }),
+            })
+        );
+
+        expect(response.status).toBe(200);
+        await expect(response.json()).resolves.toMatchObject({
+            text: "Hello! I can help you with that.",
+        });
+
+        expect(generateContentMock).toHaveBeenCalledWith({
+            model: "gemini-2.5-flash",
+            contents: [
+                { role: "user", parts: [{ text: "Hello" }] },
+                { role: "model", parts: [{ text: "Hi! How can I help you today?" }] },
+                { role: "user", parts: [{ text: "What is paracetamol?" }] },
+            ],
+            config: expect.any(Object),
+        });
+    });
 });

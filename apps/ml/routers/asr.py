@@ -1,5 +1,7 @@
+import json
+from json import JSONDecodeError
 from contextlib import asynccontextmanager
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, WebSocket, WebSocketDisconnect
 import noisereduce as nr
 import numpy as np
 import tempfile
@@ -130,29 +132,39 @@ def normalize_requested_language(language: str | None) -> str | None:
     return None
 
 
-@router.post("/transcribe")
-async def transcribe_audio(file: UploadFile = File(...), language: str | None = Form(default=None)):
-    """
-    Accepts any supported audio file upload and returns transcribed text.
-
-    Supports: WAV, MP3, OGG, WebM, MP4, FLAC
-    Returns: transcription text, detected language code, language confidence,
-             and echoed filename.
-
-    Internally normalizes all formats to 16kHz mono WAV via FFmpeg before
-    passing to faster-whisper — ensures compatibility across all container
-    environments regardless of libsndfile codec availability.
-    """
-    # ── 1. Validate content type ──────────────────────────────────────────────
-    normalized_content_type = normalize_content_type(file.content_type)
+def transcribe_uploaded_bytes(
+    contents: bytes,
+    *,
+    original_name: str,
+    content_type: str | None,
+    language: str | None,
+):
+    normalized_content_type = normalize_content_type(content_type)
     if normalized_content_type not in ALLOWED_TYPES:
         raise HTTPException(
             status_code=400,
-            detail=f"Unsupported audio format '{file.content_type}'. "
+            detail=f"Unsupported audio format '{content_type}'. "
                    f"Accepted: {', '.join(sorted(ALLOWED_TYPES))}"
         )
 
     requested_language = normalize_requested_language(language)
+    suffix = os.path.splitext(original_name)[-1].lower() or ".wav"
+
+    return _transcribe_audio_bytes(
+        contents,
+        original_name=original_name,
+        suffix=suffix,
+        requested_language=requested_language,
+    )
+
+
+def _transcribe_audio_bytes(
+    contents: bytes,
+    *,
+    original_name: str,
+    suffix: str,
+    requested_language: str | None,
+):
     tmp_path: str | None = None
     normalized_path: str | None = None
     transcription_started_at: float | None = None
@@ -160,31 +172,20 @@ async def transcribe_audio(file: UploadFile = File(...), language: str | None = 
     memory_before_mb = 0.0
 
     try:
-        # ── 2. Write raw upload to disk ───────────────────────────────────────
-        contents = await file.read()
-
-        # Guard against None filename (some clients omit it)
-        original_name = file.filename or "upload"
-        suffix = os.path.splitext(original_name)[-1].lower() or ".wav"
-
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
             tmp.write(contents)
             tmp_path = tmp.name
 
-        # ── 3. FFmpeg normalization → 16kHz mono WAV ──────────────────────────
-        # soundfile/libsndfile does NOT natively decode MP3, WebM, or MP4
-        # containers in standard linux slim Docker images. We always transcode
-        # through FFmpeg (already installed in Dockerfile) to a safe WAV stream.
         normalized_path = tmp_path + "_norm.wav"
 
         ffmpeg_result = subprocess.run(
             [
                 "ffmpeg",
-                "-y",           # Overwrite output file without prompting
-                "-i", tmp_path, # Raw uploaded audio (any format)
-                "-ar", "16000", # Resample to 16kHz (Whisper optimal rate)
-                "-ac", "1",     # Convert stereo → mono
-                "-f", "wav",    # Force WAV container output
+                "-y",
+                "-i", tmp_path,
+                "-ar", "16000",
+                "-ac", "1",
+                "-f", "wav",
                 normalized_path,
             ],
             stdout=subprocess.PIPE,
@@ -199,23 +200,14 @@ async def transcribe_audio(file: UploadFile = File(...), language: str | None = 
                 detail="Could not process audio file. Ensure it is a valid, non-corrupted audio recording."
             )
 
-        # ── 4. Read normalized WAV with soundfile (always safe) ───────────────
         audio_data, sample_rate = sf.read(normalized_path)
         audio_duration_seconds = get_audio_duration_seconds(audio_data, sample_rate)
-
-        # Ensure float32 — required by noisereduce and faster-whisper
         audio_data = audio_data.astype(np.float32)
 
-        # ── 5. Noise reduction ────────────────────────────────────────────────
-        # Suppresses background noise and silence artifacts before ASR
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", RuntimeWarning)
             reduced_audio = nr.reduce_noise(y=audio_data, sr=sample_rate)
 
-        # ── 6. Transcribe with faster-whisper ─────────────────────────────────
-        # language=None → auto-detect; task="transcribe" preserves native language
-        # (no translation). Beam size stays configurable so deployments can tune
-        # accuracy vs latency without code changes.
         transcription_started_at = start_timer()
         memory_before_mb = get_memory_usage_mb()
         segments, info = get_model().transcribe(
@@ -253,7 +245,6 @@ async def transcribe_audio(file: UploadFile = File(...), language: str | None = 
         }
 
     except HTTPException:
-        # Re-raise FastAPI exceptions as-is (don't swallow them as 500)
         raise
 
     except Exception as e:
@@ -264,10 +255,174 @@ async def transcribe_audio(file: UploadFile = File(...), language: str | None = 
         )
 
     finally:
-        # ── 7. Cleanup both temp files regardless of outcome ──────────────────
         for path in (tmp_path, normalized_path):
             if path and os.path.exists(path):
                 try:
                     os.unlink(path)
                 except OSError:
-                    pass  # Non-fatal if cleanup fails
+                    pass
+
+
+class StreamingAsrSession:
+    def __init__(self) -> None:
+        self.chunks: list[bytes] = []
+        self.last_transcript = ""
+
+    def append_and_maybe_transcribe(
+        self,
+        chunk: bytes,
+        *,
+        mime_type: str,
+        language: str | None,
+    ):
+        self.chunks.append(chunk)
+        if len(self.chunks) < 2:
+            return None
+
+        payload = transcribe_uploaded_bytes(
+            b"".join(self.chunks),
+            original_name="stream.webm",
+            content_type=mime_type,
+            language=language,
+        )
+        transcript = str(payload["transcription"]).strip()
+        if not transcript or transcript == self.last_transcript:
+            return None
+
+        self.last_transcript = transcript
+        return {
+            "transcript": transcript,
+            "language": payload["language"],
+            "languageConfidence": payload["language_probability"],
+        }
+
+    def finalize(self, *, mime_type: str, language: str | None):
+        if not self.chunks:
+            return {
+                "transcript": "",
+                "language": None,
+                "languageConfidence": None,
+            }
+
+        payload = transcribe_uploaded_bytes(
+            b"".join(self.chunks),
+            original_name="stream.webm",
+            content_type=mime_type,
+            language=language,
+        )
+        return {
+            "transcript": str(payload["transcription"]).strip(),
+            "language": payload["language"],
+            "languageConfidence": payload["language_probability"],
+        }
+
+
+@router.post("/transcribe")
+async def transcribe_audio(file: UploadFile = File(...), language: str | None = Form(default=None)):
+    """
+    Accepts any supported audio file upload and returns transcribed text.
+
+    Supports: WAV, MP3, OGG, WebM, MP4, FLAC
+    Returns: transcription text, detected language code, language confidence,
+             and echoed filename.
+
+    Internally normalizes all formats to 16kHz mono WAV via FFmpeg before
+    passing to faster-whisper — ensures compatibility across all container
+    environments regardless of libsndfile codec availability.
+    """
+    contents = await file.read()
+    original_name = file.filename or "upload"
+    return transcribe_uploaded_bytes(
+        contents,
+        original_name=original_name,
+        content_type=file.content_type,
+        language=language,
+    )
+
+
+@router.websocket("/stream")
+async def stream_transcription(websocket: WebSocket):
+    await websocket.accept()
+
+    try:
+        start_message = await websocket.receive()
+        if "text" not in start_message or not start_message["text"]:
+            await websocket.send_json(
+                {"type": "error", "error": "Expected start message before audio chunks."}
+            )
+            await websocket.close(code=1003)
+            return
+
+        try:
+            payload = json.loads(start_message["text"])
+        except JSONDecodeError:
+            await websocket.send_json(
+                {"type": "error", "error": "Invalid JSON in start message."}
+            )
+            await websocket.close(code=1003)
+            return
+
+        if not isinstance(payload, dict):
+            await websocket.send_json(
+                {"type": "error", "error": "Start message must be a JSON object."}
+            )
+            await websocket.close(code=1003)
+            return
+
+        if payload.get("type") != "start":
+            await websocket.send_json(
+                {"type": "error", "error": "Expected start message before audio chunks."}
+            )
+            await websocket.close(code=1003)
+            return
+
+        session = StreamingAsrSession()
+        mime_type = payload.get("mimeType") or "audio/webm"
+        language = payload.get("language")
+        if not language:
+            language = websocket.query_params.get("language")
+
+        await websocket.send_json({"type": "ready"})
+
+        while True:
+            message = await websocket.receive()
+            if message.get("type") == "websocket.disconnect":
+                return
+
+            if message.get("bytes"):
+                partial = session.append_and_maybe_transcribe(
+                    message["bytes"],
+                    mime_type=mime_type,
+                    language=language,
+                )
+                if partial:
+                    await websocket.send_json({"type": "partial", **partial})
+                continue
+
+            if message.get("text"):
+                try:
+                    text_payload = json.loads(message["text"])
+                except JSONDecodeError:
+                    await websocket.send_json(
+                        {"type": "error", "error": "Invalid JSON in control message."}
+                    )
+                    await websocket.close(code=1003)
+                    return
+
+                if not isinstance(text_payload, dict):
+                    await websocket.send_json(
+                        {"type": "error", "error": "Control message must be a JSON object."}
+                    )
+                    await websocket.close(code=1003)
+                    return
+
+                if text_payload.get("type") == "stop":
+                    final = session.finalize(mime_type=mime_type, language=language)
+                    await websocket.send_json({"type": "final", **final})
+                    await websocket.close()
+                    return
+    except HTTPException as error:
+        await websocket.send_json({"type": "error", "error": error.detail})
+        await websocket.close(code=1011)
+    except WebSocketDisconnect:
+        return

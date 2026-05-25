@@ -42,18 +42,18 @@ Go to your repo → **Settings**:
 #### General tab
 
 - Under **Features**, enable:
-  - [x] Issues
-  - [x] Projects
-  - [x] Discussions
-  - [x] Sponsorships (optional)
+    - [x] Issues
+    - [x] Projects
+    - [x] Discussions
+    - [x] Sponsorships (optional)
 
 #### Branches tab
 
 - Set **Default branch** to `main`
 - Add **Branch protection rule** for `main`:
-  - [x] Require a pull request before merging
-  - [x] Require status checks to pass before merging
-  - [x] Require branches to be up to date before merging
+    - [x] Require a pull request before merging
+    - [x] Require status checks to pass before merging
+    - [x] Require branches to be up to date before merging
 
 ---
 

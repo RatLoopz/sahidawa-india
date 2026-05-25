@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
     Camera,
     ShieldCheck,
@@ -26,13 +26,18 @@ import {
     verifyMedicine,
     VerifyResult,
     VerifiedMedicine,
-    API_BASE,
     fuzzyMatchBrand,
     verifyMedicineByBrand,
 } from "@/lib/api";
 import { BarcodeScanner } from "@/components/scanner/BarcodeScanner";
 import LazyImage from "@/components/LazyImage";
 import { Skeleton } from "@/components/ui/Skeleton";
+import Tesseract from "tesseract.js";
+import {
+    extractExpiryDate,
+    extractBatchNumber,
+    extractMedicineName,
+} from "@/src/utils/medicineParser";
 
 function formatExpiryForBadge(isoDate: string | null | undefined): string | undefined {
     if (!isoDate) return undefined;
@@ -44,81 +49,6 @@ function formatExpiryForBadge(isoDate: string | null | undefined): string | unde
 function expiryToIso(expiryStr: string): string {
     const [month, year] = expiryStr.split("/");
     return `${year}-${month.padStart(2, "0")}-01T00:00:00.000Z`;
-}
-
-function parseExpiryDate(text: string): string | null {
-    const expRegex =
-        /(?:exp|expiry|exp\.?date|e\.d\.|ed)[:.\s-]*([0-9]{1,2})[/\s-]([0-9]{4}|[0-9]{2})/i;
-    const match = text.match(expRegex);
-    if (match) {
-        let month = match[1];
-        let year = match[2];
-        if (month.length === 1) month = "0" + month;
-        if (year.length === 2) year = "20" + year;
-        const mNum = parseInt(month, 10);
-        if (mNum >= 1 && mNum <= 12) {
-            return `${month}/${year}`;
-        }
-    }
-
-    const genericRegex = /\b(0[1-9]|1[0-2])[/\s-](20[2-9][0-9]|[2-9][0-9])\b/g;
-    let genericMatch;
-    while ((genericMatch = genericRegex.exec(text)) !== null) {
-        const month = genericMatch[1];
-        let year = genericMatch[2];
-        if (year.length === 2) year = "20" + year;
-        return `${month}/${year}`;
-    }
-
-    return null;
-}
-
-function parseBatchNumber(text: string): string | null {
-    const batchRegex = /(?:batch|b\.?\s*no|b\.?\s*no\.|b\/no)[:.\s]*([A-Z0-9-]+)/i;
-    const match = text.match(batchRegex);
-    if (match && match[1]) {
-        const candidate = match[1].trim();
-        if (candidate.length >= 3) {
-            return candidate;
-        }
-    }
-
-    const lines = text.split("\n");
-    for (const line of lines) {
-        if (/(?:b\.?\s*no|batch|b\/no)/i.test(line)) {
-            const parts = line
-                .split(/[:.\s]/)
-                .map((p) => p.trim())
-                .filter(Boolean);
-            for (const part of parts) {
-                if (
-                    /^[A-Z0-9-]+$/i.test(part) &&
-                    !/(?:b\.?\s*no|batch|b\/no|exp|mfg)/i.test(part) &&
-                    part.length >= 3
-                ) {
-                    return part;
-                }
-            }
-        }
-    }
-    return null;
-}
-
-function extractBrandCandidate(text: string): string {
-    const lines = text
-        .split("\n")
-        .map((l) => l.trim())
-        .filter(Boolean);
-    for (const line of lines) {
-        if (/(?:exp|expiry|batch|b\.?\s*no|mfg|date|composition|tablet|capsule|mg)/i.test(line)) {
-            continue;
-        }
-        const cleaned = line.replace(/[^a-zA-Z0-9\s-]/g, "").trim();
-        if (cleaned.length > 2) {
-            return cleaned;
-        }
-    }
-    return "";
 }
 
 function CdscoStatusBadge({ status }: { status: string }) {
@@ -161,11 +91,18 @@ function formatMedicineDetails(medicine: VerifiedMedicine) {
     ].join("\n");
 }
 
-function LoadingSkeleton() {
+function LoadingSkeleton({ ocrStatus, ocrProgress }: { ocrStatus: string; ocrProgress: number }) {
+    let message = "Verifying with CDSCO Database...";
+    if (ocrStatus === "scanning-barcode") {
+        message = "Scanning barcode...";
+    } else if (ocrStatus === "extracting-text") {
+        message = `Extracting text with OCR... ${ocrProgress}%`;
+    }
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6 backdrop-blur-md">
             <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] bg-white p-8 text-slate-900 shadow-2xl">
-                <Skeleton className="absolute top-0 right-0 left-0 h-2 bg-emerald-500 rounded-none" />
+                <Skeleton className="absolute top-0 right-0 left-0 h-2 rounded-none bg-emerald-500" />
                 <div className="flex flex-col items-center space-y-4 text-center">
                     <Skeleton className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100">
                         <ShieldCheck size={40} className="text-slate-200" />
@@ -192,8 +129,16 @@ function LoadingSkeleton() {
                     <Skeleton className="mx-auto h-4 w-24 rounded bg-slate-100" />
                 </div>
                 <div className="mt-4 animate-pulse text-center text-sm font-medium text-slate-400">
-                    Verifying with CDSCO Database...
+                    {message}
                 </div>
+                {ocrStatus === "extracting-text" && (
+                    <div className="mx-auto mt-3 h-1.5 w-3/4 overflow-hidden rounded-full bg-slate-200">
+                        <div
+                            className="h-full rounded-full bg-emerald-500 transition-all duration-300"
+                            style={{ width: `${ocrProgress}%` }}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -497,6 +442,23 @@ export default function ScanPage() {
     const [parsedBatch, setParsedBatch] = useState<string>("");
     const [parsedExpiry, setParsedExpiry] = useState<string>("");
     const [isCameraActive, setIsCameraActive] = useState(false);
+    const [ocrStatus, setOcrStatus] = useState<
+        "idle" | "scanning-barcode" | "extracting-text" | "done" | "error"
+    >("idle");
+    const [ocrProgress, setOcrProgress] = useState(0);
+
+    const ocrWorkerRef = useRef<Tesseract.Worker | null>(null);
+    const ocrCancelledRef = useRef(false);
+
+    useEffect(() => {
+        return () => {
+            ocrCancelledRef.current = true;
+            if (ocrWorkerRef.current) {
+                ocrWorkerRef.current.terminate();
+                ocrWorkerRef.current = null;
+            }
+        };
+    }, []);
 
     const handleVerify = useCallback(async (batch: string) => {
         if (!batch.trim()) {
@@ -555,41 +517,6 @@ export default function ScanPage() {
 
     const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-    // ── OCR Batch Number Parser ──────────────────────────────────────────────
-    // Extracts Indian medicine strip batch patterns (B.No / Batch / LOT)
-    const extractBatchFromOcrText = (text: string): string | null => {
-        const patterns = [
-            // Explicit labels with optional punctuation: "B.No: ABC123", "Batch No. X45"
-            /(?:B\.?\s*No\.?|Batch\s*(?:No\.?)?|LOT\s*No\.?|Lot\s*No\.?)\s*[:\-\.\s]*([A-Z0-9][A-Z0-9\-\/]{2,14})/i,
-            // Standalone uppercase alphanum tokens 4-14 chars (fallback)
-            /\b([A-Z]{1,3}[0-9]{3,10}[A-Z0-9]*)\b/,
-        ];
-
-        // Words that should never be treated as batch numbers
-        const BLOCKLIST = new Set([
-            "CDSCO",
-            "APPROVED",
-            "TABLET",
-            "EXPIRY",
-            "BATCH",
-            "MANUFACTURING",
-            "MRP",
-            "RS",
-            "INR",
-            "MFG",
-            "EXP",
-        ]);
-
-        for (const pattern of patterns) {
-            const match = text.match(pattern);
-            if (match?.[1]) {
-                const candidate = match[1].trim().toUpperCase();
-                if (!BLOCKLIST.has(candidate)) return candidate;
-            }
-        }
-        return null;
-    };
-
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -601,10 +528,12 @@ export default function ScanPage() {
         }
 
         const reader = new FileReader();
-        reader.onloadend = () => {
-            setUploadedImage(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+        const dataUrl = await new Promise<string>((resolve) => {
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(file);
+        });
+        setUploadedImage(dataUrl);
+        e.target.value = "";
 
         setIsScanning(true);
         setShowResult(false);
@@ -616,62 +545,95 @@ export default function ScanPage() {
         setParsedBatch("");
         setParsedExpiry("");
 
+        ocrCancelledRef.current = false;
+
         try {
-            const formData = new FormData();
-            formData.append("file", file);
+            // ── Step 1: Try ZXing barcode decode from uploaded image ──────────
+            setOcrStatus("scanning-barcode");
+            let barcodeFound = false;
 
-            const res = await fetch(`${API_BASE}/api/v1/scan/extract`, {
-                method: "POST",
-                body: formData,
-            });
+            try {
+                const { BrowserMultiFormatReader } = await import("@zxing/browser");
+                const { DecodeHintType, BarcodeFormat } = await import("@zxing/library");
 
-            if (!res.ok) {
-                // 🌟 Fix: always release the loading lock on error
-                if (res.status === 503) {
-                    toast.warning("OCR service is currently unavailable. Please verify manually.");
-                    setVerifyError(
-                        "OCR service is offline. Please enter the batch number manually below."
-                    );
-                } else if (res.status === 400) {
-                    const body = (await res.json().catch(() => ({}))) as { error?: string };
-                    toast.error(body.error ?? "Invalid image file.");
-                    setVerifyError(
-                        body.error ??
-                            "Invalid image file. Please upload a clear image of a medicine strip."
-                    );
-                } else {
-                    toast.error("Failed to extract text from image.");
-                    setVerifyError(
-                        "Failed to read medicine text. Please ensure the image is clear or upload another one."
-                    );
+                const hints = new Map();
+                hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+                    BarcodeFormat.CODE_128,
+                    BarcodeFormat.QR_CODE,
+                    BarcodeFormat.EAN_13,
+                    BarcodeFormat.EAN_8,
+                    BarcodeFormat.CODE_39,
+                    BarcodeFormat.DATA_MATRIX,
+                ]);
+                hints.set(DecodeHintType.TRY_HARDER, true);
+
+                const reader = new BrowserMultiFormatReader(hints);
+                const zxingResult = await reader.decodeFromImageUrl(dataUrl);
+                const barcodeText = zxingResult.getText().trim();
+                if (barcodeText) {
+                    barcodeFound = true;
+                    setBatchInput(barcodeText);
+                    setOcrStatus("done");
+                    toast.success(`Barcode detected: ${barcodeText} — verifying…`);
+                    await handleVerify(barcodeText);
+                    return;
                 }
-                setShowResult(true);
-                return;
+            } catch {
+                // ZXing failed — continue to OCR fallback
             }
 
-            const data = (await res.json()) as { text?: string; confidence?: number };
-            if (!data.text || !data.text.trim()) {
+            if (barcodeFound || ocrCancelledRef.current) return;
+
+            // ── Step 2: Tesseract.js OCR Fallback ────────────────────────────
+            setOcrStatus("extracting-text");
+            setOcrProgress(0);
+
+            if (!ocrWorkerRef.current) {
+                ocrWorkerRef.current = await Tesseract.createWorker("eng", 1, {
+                    logger: (m: { status: string; progress: number }) => {
+                        if (m.status === "recognizing text") {
+                            setOcrProgress(Math.round(m.progress * 100));
+                        }
+                    },
+                });
+            }
+
+            if (ocrCancelledRef.current) return;
+
+            const timeoutPromise = new Promise<never>((_, reject) => {
+                setTimeout(() => reject(new Error("OCR timed out")), 30000);
+            });
+
+            const ocrPromise = ocrWorkerRef.current.recognize(dataUrl);
+            const { data } = await Promise.race([ocrPromise, timeoutPromise]);
+
+            if (ocrCancelledRef.current) return;
+
+            const rawText = data.text;
+            if (!rawText || !rawText.trim()) {
                 toast.warning("No clear text found in image.");
                 setVerifyError(
                     "Failed to read medicine text. Please ensure the image is clear or upload another one."
                 );
+                setOcrStatus("error");
                 setShowResult(true);
+                setIsScanning(false);
                 return;
             }
 
-            const rawText = data.text;
             setOcrText(rawText);
-            setOcrConfidence(data.confidence ?? 0);
+            setOcrConfidence(data.confidence / 100);
+            setOcrStatus("done");
             toast.success("OCR extraction complete!");
 
-            // Parse OCR Text using regex
-            const parsedBatchNum = parseBatchNumber(rawText);
-            const parsedExpiryStr = parseExpiryDate(rawText);
-            const brandCand = extractBrandCandidate(rawText);
+            // Parse OCR Text using utility regex
+            const parsedBatchNum = extractBatchNumber(rawText);
+            const parsedExpiryStr = extractExpiryDate(rawText);
+            const medName = extractMedicineName(rawText);
 
             if (parsedBatchNum) setParsedBatch(parsedBatchNum);
             if (parsedExpiryStr) setParsedExpiry(parsedExpiryStr);
-            if (brandCand) setParsedBrand(brandCand);
+            if (medName) setParsedBrand(medName);
 
             if (parsedBatchNum) {
                 setBatchInput(parsedBatchNum);
@@ -680,40 +642,36 @@ export default function ScanPage() {
             // Database Lookup Strategy
             let finalResult: VerifyResult | null = null;
 
-            // 1. Try Batch Number verification
             if (parsedBatchNum) {
                 try {
                     const batchRes = await verifyMedicine(parsedBatchNum);
                     if (batchRes.verified) {
                         finalResult = batchRes;
                     }
-                } catch (err) {
+                } catch {
                     // Silent fallback
                 }
             }
 
-            // 2. Fallback to Fuzzy Brand Name Matching + Verification by matched Brand Name
-            if (!finalResult && brandCand) {
+            if (!finalResult && medName) {
                 try {
-                    const matchRes = await fuzzyMatchBrand(brandCand);
+                    const matchRes = await fuzzyMatchBrand(medName);
                     if (matchRes && matchRes.length > 0) {
-                        // Find the top match with confidence >= 60
                         const topMatch = matchRes[0];
                         if (topMatch.score >= 60) {
-                            setParsedBrand(topMatch.name); // update brand name to the matched official one
+                            setParsedBrand(topMatch.name);
                             const brandRes = await verifyMedicineByBrand(topMatch.name);
                             if (brandRes.verified) {
                                 finalResult = brandRes;
                             }
                         }
                     }
-                } catch (err) {
+                } catch {
                     // Silent fallback
                 }
             }
 
             if (finalResult && finalResult.verified) {
-                // Merge OCR details
                 const updatedMedicine = { ...finalResult.medicine };
                 if (parsedBatchNum) {
                     updatedMedicine.batch_number = parsedBatchNum;
@@ -729,13 +687,31 @@ export default function ScanPage() {
                 });
             }
         } catch (err) {
-            toast.error("Failed to connect to OCR service.");
-            setVerifyError(
-                "Failed to read medicine text. Please ensure the image is clear or upload another one."
-            );
+            if (ocrCancelledRef.current) return;
+
+            if (ocrWorkerRef.current) {
+                await ocrWorkerRef.current.terminate();
+                ocrWorkerRef.current = null;
+            }
+
+            const errorMsg = err instanceof Error ? err.message : String(err);
+            if (errorMsg === "OCR timed out") {
+                toast.error("OCR timed out. Please try again with a clearer image.");
+                setVerifyError(
+                    "The scan took too long. Please ensure the image is clear and try again."
+                );
+            } else {
+                toast.error("Failed to extract text from image.");
+                setVerifyError(
+                    "Unable to read text from this image. Please try a clearer photo or enter the batch number manually."
+                );
+            }
+            setOcrStatus("error");
         } finally {
-            setIsScanning(false);
-            setShowResult(true);
+            if (!ocrCancelledRef.current) {
+                setIsScanning(false);
+                setShowResult(true);
+            }
         }
     };
 
@@ -750,7 +726,12 @@ export default function ScanPage() {
         [handleVerify]
     );
 
-    const handleScanAgain = () => {
+    const handleScanAgain = async () => {
+        if (ocrWorkerRef.current) {
+            await ocrWorkerRef.current.terminate();
+            ocrWorkerRef.current = null;
+        }
+        ocrCancelledRef.current = true;
         setIsScanning(false);
         setShowResult(false);
         setUploadedImage(null);
@@ -763,15 +744,23 @@ export default function ScanPage() {
         setParsedBatch("");
         setParsedExpiry("");
         setIsCameraActive(false);
+        setOcrStatus("idle");
+        setOcrProgress(0);
     };
 
-    const handleDismissResult = () => {
+    const handleDismissResult = async () => {
+        if (ocrStatus === "error" && ocrWorkerRef.current) {
+            await ocrWorkerRef.current.terminate();
+            ocrWorkerRef.current = null;
+        }
         setShowResult(false);
         setVerifyResult(null);
         setVerifyError(null);
         setParsedBrand("");
         setParsedBatch("");
         setParsedExpiry("");
+        setOcrStatus("idle");
+        setOcrProgress(0);
     };
 
     const handleShare = async () => {
@@ -861,7 +850,7 @@ export default function ScanPage() {
                     )}
                 </div>
 
-                {isScanning && <LoadingSkeleton />}
+                {isScanning && <LoadingSkeleton ocrStatus={ocrStatus} ocrProgress={ocrProgress} />}
 
                 {showResult && (
                     <div className="animate-in fade-in zoom-in absolute inset-0 z-30 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm duration-300">
@@ -933,13 +922,16 @@ export default function ScanPage() {
             )}
 
             <div className="flex flex-col items-center gap-6 bg-linear-to-t from-black to-transparent p-8">
-                <form onSubmit={handleBatchSubmit} className="flex w-full max-w-sm flex-col gap-3 sm:flex-row">
+                <form
+                    onSubmit={handleBatchSubmit}
+                    className="flex w-full max-w-sm flex-col gap-3 sm:flex-row"
+                >
                     <input
                         type="text"
                         value={batchInput}
                         onChange={(e) => setBatchInput(e.target.value)}
                         placeholder="Enter batch number"
-                        className="flex-1 text-center rounded-full border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium text-white placeholder-white/40 focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                        className="flex-1 rounded-full border border-white/20 bg-white/10 px-4 py-3 text-center text-sm font-medium text-white placeholder-white/40 focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     />
                     <button
                         type="submit"

@@ -1,136 +1,115 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { WifiOff, Wifi } from "lucide-react";
+import { WifiOff, Wifi, X } from "lucide-react";
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
 
 /**
- * OfflineBanner - Displays connection status to user
- * Shows when offline, hides when online
- * Can be dismissed by user and reappears if connection is lost
+ * OfflineBanner — Sticky connectivity status banner.
+ *
+ * Behaviour:
+ * - Slides in from the top when the user loses connectivity.
+ * - Changes colour and icon when connectivity is restored.
+ * - Auto-dismisses 3 s after coming back online.
+ * - Can be manually dismissed by the user at any time.
+ * - Reappears automatically on subsequent disconnections.
  */
 export function OfflineBanner() {
     const { isOffline, isStatusDirty, isTestMode } = useOfflineStatus();
     const [isDismissed, setIsDismissed] = useState(false);
-    const [showAnimation, setShowAnimation] = useState(false);
+    const [isVisible, setIsVisible] = useState(false);
 
-    // Debug logging
-    useEffect(() => {
-        console.log("🔍 OfflineBanner state:", {
-            isOffline,
-            isStatusDirty,
-            isTestMode,
-            isDismissed,
-            showAnimation,
-            shouldRender: isOffline && !isDismissed,
-        });
-    }, [isOffline, isStatusDirty, isDismissed, showAnimation, isTestMode]);
-
-    // Reset dismissal state when status changes
+    // Reset dismissal whenever the connection status changes
     useEffect(() => {
         if (isStatusDirty) {
             setIsDismissed(false);
         }
     }, [isStatusDirty]);
 
-    // Trigger animation on state change
+    // Drive banner visibility
     useEffect(() => {
         if (isOffline && !isDismissed) {
-            console.log("✨ Triggering banner animation");
-            setShowAnimation(true);
-        } else {
-            setShowAnimation(false);
-        }
-    }, [isOffline, isDismissed]);
-
-    // Auto-hide banner 5 seconds after coming back online
-    useEffect(() => {
-        if (!isOffline && showAnimation) {
-            console.log("💚 Coming back online, auto-hiding banner in 3s");
+            setIsVisible(true);
+        } else if (!isOffline && isVisible) {
+            // Stay visible briefly to show "Back Online" message, then hide
             const timer = setTimeout(() => {
-                setShowAnimation(false);
+                setIsVisible(false);
                 setIsDismissed(true);
             }, 3000);
             return () => clearTimeout(timer);
+        } else if (!isOffline && !isVisible) {
+            // Nothing to show
         }
-    }, [isOffline, showAnimation]);
+    }, [isOffline, isDismissed, isVisible]);
 
     const handleDismiss = () => {
         setIsDismissed(true);
-        setShowAnimation(false);
+        setIsVisible(false);
     };
 
-    // Render nothing if online and not showing and not in test mode
-    if (!isOffline && !showAnimation && !isTestMode) {
-        return null;
-    }
+    // Don't mount the DOM node at all when not needed (unless in test mode)
+    if (!isVisible && !isTestMode) return null;
 
-    const bannerText = isOffline ? "⚠️ YOU ARE OFFLINE" : "✅ BACK ONLINE";
-    const bannerDescription = isOffline
-        ? "Changes will sync when connection returns" + (isTestMode ? " [TEST MODE]" : "")
-        : "Syncing data...";
+    const isCurrentlyOffline = isOffline || isTestMode;
 
     return (
         <div
-            className={`fixed top-20 right-0 left-0 z-40 transition-all duration-300 ${
-                showAnimation ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
-            } ${
-                isOffline
-                    ? "border-b-4 border-amber-700 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 shadow-2xl"
-                    : "border-b-4 border-emerald-700 bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 shadow-2xl"
-            }`}
-            style={{
-                backgroundColor: isOffline ? "#f59e0b" : "#10b981",
-                borderBottom: `4px solid ${isOffline ? "#b45309" : "#059669"}`,
-                top: "80px",
-            }}
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+            className={`
+                fixed left-0 right-0 z-50 transition-all duration-300 ease-in-out
+                ${isVisible || isTestMode ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"}
+                ${isCurrentlyOffline
+                    ? "border-b-2 border-amber-600 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500"
+                    : "border-b-2 border-emerald-600 bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500"
+                }
+                shadow-lg
+            `}
+            style={{ top: "64px" }}
         >
-            <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between gap-4">
-                    <div className="flex flex-1 items-center gap-4">
-                        {isOffline ? (
+            <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+                <div className="flex items-center justify-between gap-3">
+                    {/* Icon + message */}
+                    <div className="flex flex-1 items-center gap-3 min-w-0">
+                        {isCurrentlyOffline ? (
                             <WifiOff
-                                size={28}
-                                className="flex-shrink-0 animate-pulse text-white drop-shadow-lg"
+                                size={22}
+                                aria-hidden="true"
+                                className="flex-shrink-0 animate-pulse text-white drop-shadow"
                             />
                         ) : (
                             <Wifi
-                                size={28}
-                                className="flex-shrink-0 animate-pulse text-white drop-shadow-lg"
+                                size={22}
+                                aria-hidden="true"
+                                className="flex-shrink-0 text-white drop-shadow"
                             />
                         )}
-                        <div className="min-w-0 flex-1">
-                            <p className="text-base font-bold text-white drop-shadow-md md:text-lg">
-                                {bannerText}
+
+                        <div className="min-w-0">
+                            <p className="text-sm font-bold text-white drop-shadow-sm truncate">
+                                {isCurrentlyOffline
+                                    ? "You are offline"
+                                    : "Back online"}
                             </p>
-                            <p className="text-sm text-white/90 drop-shadow-sm">
-                                {bannerDescription}
+                            <p className="text-xs text-white/85 truncate">
+                                {isCurrentlyOffline
+                                    ? "Medicine search and AI chat are unavailable" +
+                                      (isTestMode ? " · Test mode" : "")
+                                    : "Your connection has been restored — syncing…"}
                             </p>
                         </div>
                     </div>
 
-                    {isOffline && (
+                    {/* Dismiss button (only shown when offline) */}
+                    {isCurrentlyOffline && (
                         <button
+                            id="offline-banner-dismiss"
                             onClick={handleDismiss}
-                            className="flex-shrink-0 transform rounded-lg border border-white/40 bg-white/20 px-6 py-2.5 text-base font-bold whitespace-nowrap text-white shadow-lg transition-all hover:scale-105 hover:bg-white/30"
-                            aria-label="Dismiss"
+                            aria-label="Dismiss offline notification"
+                            className="flex-shrink-0 rounded-md p-1.5 text-white/80 hover:text-white hover:bg-white/20 transition-colors"
                         >
-                            {isTestMode ? "Close Demo" : "Dismiss"}
-                        </button>
-                    )}
-
-                    {isTestMode && !isOffline && (
-                        <button
-                            onClick={() => {
-                                // Remove offline=true from URL and reload
-                                const url = new URL(window.location.href);
-                                url.searchParams.delete("offline");
-                                window.location.href = url.toString();
-                            }}
-                            className="flex-shrink-0 transform rounded-lg border border-white/40 bg-white/20 px-6 py-2.5 text-base font-bold whitespace-nowrap text-white shadow-lg transition-all hover:scale-105 hover:bg-white/30"
-                            aria-label="Exit test mode"
-                        >
-                            Exit Demo
+                            <X size={18} />
                         </button>
                     )}
                 </div>

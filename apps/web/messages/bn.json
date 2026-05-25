@@ -10,6 +10,8 @@
         "voice_subtitle": "উপসর্গ বলুন",
         "pharmacy_map": "ফার্মেসি ম্যাপ",
         "pharmacy_subtitle": "যাচাইকৃত দোকান খুঁজুন",
+        "report_fake": "ভুয়া রিপোর্ট করুন",
+        "report_fake_subtitle": "সন্দেহজনক ওষুধ রিপোর্ট করুন",
         "search_placeholder": "ওষুধ বা ব্যাচ অনুসন্ধান করুন...",
         "search_button": "অনুসন্ধান"
     },
@@ -29,8 +31,17 @@
         "example_text": "\"আমার জ্বর আর কাশি আছে\"",
         "assistant_label": "AI সহায়ক",
         "assistant_value": "২৪/৭ শুনছে",
+        "skip_to_main_content": "মূল কনটেন্টে যান",
         "listening_placeholder": "আপনার উপসর্গ বলা শুরু করুন…",
         "listening_status": "উপসর্গ শোনা হচ্ছে",
+        "announcements": {
+            "recording_started": "রেকর্ডিং শুরু হয়েছে",
+            "processing_started": "আপনার উপসর্গ প্রক্রিয়া করা শুরু হয়েছে",
+            "results_ready": "ফলাফল প্রস্তুত"
+        },
+        "streaming_connecting_hint": "লাইভ ট্রান্সক্রিপশনের সাথে সংযোগ করা হচ্ছে…",
+        "streaming_live_hint": "লাইভ ট্রান্সক্রিপ্ট আপডেট হচ্ছে",
+        "streaming_fallback_hint": "সংযোগ অস্থির। আপনি বলা শেষ করলে SahiDawa প্রক্রিয়াকরণ সম্পূর্ণ করবে।",
         "animation_toggle_label": "ভয়েস অ্যানিমেশন",
         "animation_live_label": "লাইভ তরঙ্গরেখা",
         "animation_reduced_motion_label": "কম অ্যানিমেশন",
@@ -75,6 +86,7 @@
         "copy_success": "রিপোর্ট ক্লিপবোর্ডে কপি হয়েছে",
         "share_failure": "এই মুহূর্তে রিপোর্ট শেয়ার করা যায়নি",
         "tts_not_supported": "আপনার ব্রাউজার টেক্সট-টু-স্পিচ সমর্থন করে না",
+        "tts_fallback_message": "{language} টেক্সট-টু-স্পিচ সমর্থন সীমিত হওয়ায় আপনার ব্রাউজার এই সারাংশটি অন্য কণ্ঠে পড়তে পারে।",
         "fallback_summary": "SahiDawa উত্তরটি পরিষ্কারভাবে সাজাতে পারেনি। উপসর্গ চলতে থাকলে ডাক্তারের পরামর্শ নিন।",
         "share_report": {
             "title": "SahiDawa ভয়েস ট্রায়াজ রিপোর্ট",
@@ -93,6 +105,8 @@
         "errors": {
             "unsupported_title": "ভয়েস ইনপুট উপলভ্য নয়",
             "unsupported_message": "এই ব্রাউজার এখনো স্পিচ রিকগনিশন সমর্থন করে না। Chrome বা Edge ব্যবহার করুন।",
+            "language_not_supported_title": "এই ব্রাউজার ওই ভয়েস ভাষা ধরতে পারছে না",
+            "language_not_supported_message": "এই ব্রাউজারে {language} ভয়েস ইনপুট সীমিত। Chrome বা Edge ব্যবহার করুন, অথবা অন্য ভয়েস ভাষা বেছে নতুন পরীক্ষা শুরু করুন।",
             "permission_title": "মাইক্রোফোন অ্যাক্সেস বন্ধ আছে",
             "permission_message": "ব্রাউজার সেটিংসে মাইক্রোফোন অনুমতি দিন এবং আবার চেষ্টা করুন।",
             "microphone_title": "কোনো মাইক্রোফোন পাওয়া যায়নি",
@@ -106,5 +120,41 @@
             "api_title": "SahiDawa AI এখন উপলভ্য নয়",
             "api_message": "এই মুহূর্তে চিকিৎসা নির্দেশনা পাওয়া যায়নি। একটু পরে আবার চেষ্টা করুন।"
         }
-    }
+    },
+    "contact": {
+    "badge": "GSSoC 2026 ওপেন সোর্স প্রজেক্ট",
+    "heroTitle": {
+      "prefix": "যোগাযোগ",
+      "highlight": "করুন"
+    },
+    "heroSubtitle": "প্রশ্ন, ধারণা বা অবদান রাখতে চান? আমরা আপনার কথা শুনতে চাই।",
+    "cards": {
+      "email": {
+        "title": "আমাদের ইমেইল করুন",
+        "description": "গোপনীয়তা সংক্রান্ত প্রশ্ন, অংশীদারিত্ব বা গুরুতর সমস্যার জন্য।"
+      },
+      "discord": {
+        "title": "Discord কমিউনিটি",
+        "description": "অবদানকারীদের সাথে যোগ দিন, প্রশ্ন করুন এবং ঘোষণা পান।",
+        "cta": "Discord-এ যোগ দিন"
+      },
+      "bug": {
+        "title": "বাগ রিপোর্ট করুন",
+        "description": "কোনো সমস্যা পেলে? GitHub issue খুলুন এবং আমরা দ্রুত ঠিক করব।",
+        "cta": "Issue খুলুন"
+      },
+      "contribute": {
+        "title": "অবদান রাখুন",
+        "description": "SahiDawa তৈরিতে সাহায্য করতে চান? আমাদের contributing guide পড়ুন।",
+        "cta": "গাইড পড়ুন"
+      }
+    },
+    "quickLinks": {
+      "title": "সহায়ক লিংক",
+      "about": "SahiDawa সম্পর্কে",
+      "privacy": "গোপনীয়তা নীতি",
+      "faq": "সাধারণ প্রশ্নাবলী"
+    },
+    "footer": "SahiDawa বিনামূল্যে, ওপেন-সোর্স এবং ১৪০ কোটি ভারতীয়ের জন্য তৈরি। কোনো বিজ্ঞাপন নেই। কোনো প্রিমিয়াম নেই। ডেটা কখনো বিক্রি হবে না।"
+  }
 }

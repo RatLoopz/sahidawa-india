@@ -46,14 +46,29 @@ export default function Footer() {
                             >
                                 Contributing Guide
                             </a>
-                            <Link href="/faq" className="transition-all duration-200 hover:translate-x-1 hover:text-white">
-                             FAQ
-                          </Link>
+                            <Link
+                                href="/faq"
+                                className="transition-all duration-200 hover:translate-x-1 hover:text-white"
+                            >
+                                FAQ
+                            </Link>
                             <Link
                                 href="/about"
                                 className="transition-all duration-200 hover:translate-x-1 hover:text-white"
                             >
                                 About Us
+                            </Link>
+                            <Link
+                                href="/privacy"
+                                className="transition-all duration-200 hover:translate-x-1 hover:text-white"
+                            >
+                                Privacy Policy
+                            </Link>
+                            <Link
+                                href="/contact"
+                                className="transition-all duration-200 hover:translate-x-1 hover:text-white"
+                            >
+                                Contact Us
                             </Link>
                         </div>
                     </div>

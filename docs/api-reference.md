@@ -25,6 +25,7 @@ The platform runs three HTTP services during local development:
     - [GET /](#get--1)
     - [GET /health](#get-health-1)
     - [POST /ocr/extract](#post-ocrextract)
+    - [WS /asr/stream](#ws-asrstream)
     - [POST /asr/transcribe](#post-asrtranscribe)
 - [Error Codes Summary](#error-codes-summary)
 - [Notes for Contributors](#notes-for-contributors)
@@ -37,7 +38,8 @@ The platform runs three HTTP services during local development:
 
 Server-side proxy used by the Voice Triage page. The browser records audio,
 uploads it to this route, and the web app forwards the file to the ML service
-at `/asr/transcribe`.
+at `/asr/transcribe`. This route remains the fallback path when realtime
+WebSocket streaming cannot complete.
 
 | Field         | Details                         |
 | ------------- | ------------------------------- |
@@ -103,6 +105,12 @@ curl -X POST http://localhost:3000/api/voice/transcribe \
     "error": "Transcription service timed out."
 }
 ```
+
+### Streaming Note
+
+The preferred realtime path for Voice Triage now connects the browser directly
+to `WS /asr/stream` on the ML service using `NEXT_PUBLIC_ML_SERVICE_URL`. The
+HTTP proxy above is still used as the graceful fallback path.
 
 ---
 
@@ -395,6 +403,83 @@ curl -X POST http://localhost:8000/asr/transcribe \
 }
 ```
 
+## WS /asr/stream
+
+Realtime ASR endpoint used by the Voice Triage page for progressive
+transcription updates while the citizen is still speaking.
+
+| Field         | Details                 |
+| ------------- | ----------------------- |
+| Method        | `WS`                    |
+| Path          | `/asr/stream`           |
+| Auth Required | No                      |
+| Transport     | WebSocket binary + JSON |
+
+### Client Messages
+
+Start message:
+
+```json
+{
+    "type": "start",
+    "mimeType": "audio/webm",
+    "language": "hi-IN"
+}
+```
+
+Binary frames:
+
+- Audio chunks from `MediaRecorder.ondataavailable`
+
+Stop message:
+
+```json
+{
+    "type": "stop"
+}
+```
+
+### Server Messages
+
+Ready:
+
+```json
+{
+    "type": "ready"
+}
+```
+
+Partial:
+
+```json
+{
+    "type": "partial",
+    "transcript": "I have fever",
+    "language": "en",
+    "languageConfidence": 0.72
+}
+```
+
+Final:
+
+```json
+{
+    "type": "final",
+    "transcript": "I have fever and cough",
+    "language": "en",
+    "languageConfidence": 0.91
+}
+```
+
+Error:
+
+```json
+{
+    "type": "error",
+    "error": "Expected start message before audio chunks."
+}
+```
+
 ---
 
 # Error Codes Summary
@@ -415,7 +500,7 @@ curl -X POST http://localhost:8000/asr/transcribe \
 
 # Notes for Contributors
 
-- The web Voice Triage flow records audio in the browser, posts it to `/api/voice/transcribe`, and only falls back to browser speech recognition when recording support is unavailable.
+- The web Voice Triage flow now prefers direct browser WebSocket streaming to `/asr/stream`, falls back to `/api/voice/transcribe` if the realtime path fails, and only falls back to browser speech recognition when recording support itself is unavailable.
 - The FastAPI ASR service is configurable through `WHISPER_MODEL_SIZE`, `WHISPER_DEVICE`, `WHISPER_COMPUTE_TYPE`, `WHISPER_BEAM_SIZE`, and `WHISPER_PRELOAD_ON_STARTUP`.
 - For CPU-first deployments, the recommended baseline is `WHISPER_MODEL_SIZE=tiny`, `WHISPER_DEVICE=cpu`, `WHISPER_COMPUTE_TYPE=int8`, `WHISPER_BEAM_SIZE=5`, and `WHISPER_PRELOAD_ON_STARTUP=true`.
 - Cold-start strategy matters: preload the Whisper model at service startup and keep the Hugging Face model cache warm or baked into the image so the first citizen request does not pay model download time.

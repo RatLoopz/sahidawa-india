@@ -73,6 +73,7 @@ describe("VoiceListeningPanel visualizer fallback", () => {
             <VoiceListeningPanel
                 transcript="Start speaking about your symptoms..."
                 statusLabel="Listening for symptoms"
+                helperLabel="Live transcript is updating"
                 stream={null}
                 isListening={true}
                 isFading={false}
@@ -89,6 +90,7 @@ describe("VoiceListeningPanel visualizer fallback", () => {
         expect(markup).toContain("Volume level");
         expect(markup).toContain("Live waveform unavailable");
         expect(markup).toContain("Start speaking about your symptoms...");
+        expect(markup).toContain("Live transcript is updating");
     });
 
     it("uses localized visualizer state labels", () => {
@@ -96,6 +98,7 @@ describe("VoiceListeningPanel visualizer fallback", () => {
             <VoiceListeningPanel
                 transcript="அறிகுறிகளை சொல்லுங்கள்"
                 statusLabel="கேட்கிறது"
+                helperLabel="நேரடி உரை புதுப்பிக்கப்படுகிறது"
                 stream={null}
                 isListening={true}
                 isFading={false}

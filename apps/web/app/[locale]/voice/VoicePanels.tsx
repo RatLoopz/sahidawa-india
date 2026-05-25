@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import {
     AlertTriangle,
     Mic,
@@ -11,6 +12,7 @@ import {
     Volume2,
 } from "lucide-react";
 import type { ConfidenceMeta } from "./lib/confidence";
+import { VOICE_FOCUS_RING_CLASS } from "./lib/accessibility";
 import type { VoiceErrorState, VoiceTriageResult } from "./types";
 import { VoiceAudioVisualizer } from "./VoiceAudioVisualizer";
 
@@ -78,6 +80,7 @@ export function VoiceIntroPanel({
 export function VoiceListeningPanel({
     transcript,
     statusLabel,
+    helperLabel,
     stream,
     isListening,
     isFading,
@@ -90,6 +93,7 @@ export function VoiceListeningPanel({
 }: {
     transcript: string;
     statusLabel: string;
+    helperLabel?: string;
     stream: MediaStream | null;
     isListening: boolean;
     isFading: boolean;
@@ -123,6 +127,9 @@ export function VoiceListeningPanel({
             <p className="text-sm font-bold tracking-widest text-emerald-600 uppercase">
                 {statusLabel}
             </p>
+            {helperLabel ? (
+                <p className="text-center text-sm font-medium text-slate-500">{helperLabel}</p>
+            ) : null}
         </div>
     );
 }
@@ -241,13 +248,13 @@ export function VoiceReviewPanel({
             <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <button
                     onClick={onRetry}
-                    className="w-full rounded-2xl bg-slate-100 py-3 font-bold text-slate-800 transition-colors hover:bg-slate-200 focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+                    className={`w-full rounded-2xl bg-slate-100 py-3 font-bold text-slate-800 transition-colors hover:bg-slate-200 ${VOICE_FOCUS_RING_CLASS}`}
                 >
                     {retryLabel}
                 </button>
                 <button
                     onClick={onAnalyse}
-                    className="w-full rounded-2xl bg-emerald-600 py-3 font-bold text-white transition-colors hover:bg-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+                    className={`w-full rounded-2xl bg-emerald-600 py-3 font-bold text-white transition-colors hover:bg-emerald-700 ${VOICE_FOCUS_RING_CLASS}`}
                 >
                     {analyseLabel}
                 </button>
@@ -265,21 +272,33 @@ export function VoiceErrorPanel({
     retryLabel: string;
     onRetry: () => void;
 }) {
+    const errorMessageId = useId();
+
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-8 w-full max-w-md rounded-[2.5rem] border border-red-100 bg-white p-8 shadow-xl duration-500 motion-reduce:animate-none">
+        <div
+            className="animate-in fade-in slide-in-from-bottom-8 w-full max-w-md rounded-[2.5rem] border border-red-100 bg-white p-8 shadow-xl duration-500 motion-reduce:animate-none"
+            role="alert"
+            aria-live="assertive"
+            aria-describedby={errorMessageId}
+        >
             <div className="mb-6 flex items-start gap-3">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-600">
                     <AlertTriangle size={24} aria-hidden="true" />
                 </div>
                 <div>
                     <h2 className="font-black text-slate-900">{error.title}</h2>
-                    <p className="mt-2 text-sm leading-relaxed text-slate-600">{error.message}</p>
+                    <p
+                        id={errorMessageId}
+                        className="mt-2 text-sm leading-relaxed text-slate-600"
+                    >
+                        {error.message}
+                    </p>
                 </div>
             </div>
 
             <button
                 onClick={onRetry}
-                className="w-full rounded-2xl bg-slate-900 py-4 font-bold text-white transition-all hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 focus-visible:outline-none"
+                className={`w-full rounded-2xl bg-slate-900 py-4 font-bold text-white transition-all hover:bg-slate-800 ${VOICE_FOCUS_RING_CLASS}`}
             >
                 {retryLabel}
             </button>
@@ -417,7 +436,7 @@ export function VoiceResultPanel({
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <button
                         onClick={onShare}
-                        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-100 py-3 font-bold text-slate-800 transition-colors hover:bg-slate-200 focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+                        className={`flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-100 py-3 font-bold text-slate-800 transition-colors hover:bg-slate-200 ${VOICE_FOCUS_RING_CLASS}`}
                     >
                         <Share2 size={18} aria-hidden="true" />
                         {shareLabel}
@@ -425,7 +444,7 @@ export function VoiceResultPanel({
                     {isSpeaking ? (
                         <button
                             onClick={onStopSpeaking}
-                            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-50 py-3 font-bold text-red-700 transition-colors hover:bg-red-100 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+                            className={`flex w-full items-center justify-center gap-2 rounded-2xl bg-red-50 py-3 font-bold text-red-700 transition-colors hover:bg-red-100 ${VOICE_FOCUS_RING_CLASS}`}
                         >
                             <Square size={18} aria-hidden="true" />
                             {stopSpeakingLabel}
@@ -433,7 +452,7 @@ export function VoiceResultPanel({
                     ) : (
                         <button
                             onClick={onReplay}
-                            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-50 py-3 font-bold text-blue-700 transition-colors hover:bg-blue-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+                            className={`flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-50 py-3 font-bold text-blue-700 transition-colors hover:bg-blue-100 ${VOICE_FOCUS_RING_CLASS}`}
                         >
                             <Play size={18} aria-hidden="true" />
                             {speakLabel}
@@ -443,7 +462,7 @@ export function VoiceResultPanel({
 
                 <button
                     onClick={onTryAgain}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 py-4 font-bold text-white transition-all hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 focus-visible:outline-none"
+                    className={`flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 py-4 font-bold text-white transition-all hover:bg-slate-800 ${VOICE_FOCUS_RING_CLASS}`}
                 >
                     <RotateCcw size={20} aria-hidden="true" />
                     {tryAgainLabel}

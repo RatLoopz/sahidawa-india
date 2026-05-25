@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useCallback } from 'react';
 import { useOfflineStatus } from './useOfflineStatus';
 import { offlineRequestQueue } from '@/lib/apiWithRetry';

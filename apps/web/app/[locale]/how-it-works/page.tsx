@@ -45,7 +45,7 @@ const steps = [
 
 export default function HowItWorksPage() {
     return (
-        <main className="min-h-screen overflow-hidden bg-gradient-to-b from-white via-emerald-50/30 to-white">
+        <main className="min-h-screen overflow-x-hidden bg-gradient-to-b from-white via-emerald-50/30 to-white">
             {/* Hero Section */}
             <section className="relative px-6 pt-24 pb-20">
                 {/* Glow Effects */}
@@ -56,7 +56,7 @@ export default function HowItWorksPage() {
                     <Link
                         href="/"
                         aria-label="Back to Home"
-                        className="absolute left-6 top-6 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 shadow-sm transition-all duration-300 hover:bg-slate-200 hover:scale-105"
+                        className="absolute top-6 left-6 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 shadow-sm transition-all duration-300 hover:scale-105 hover:bg-slate-200"
                     >
                         <ArrowLeft size={22} className="text-slate-600" />
                     </Link>
@@ -65,7 +65,7 @@ export default function HowItWorksPage() {
                         Safe Healthcare • AI Powered
                     </div>
 
-                    <h1 className="text-5xl leading-tight font-black tracking-tight text-slate-900 md:text-7xl">
+                    <h1 className="text-4xl leading-tight font-black tracking-tight text-slate-900 sm:text-5xl md:text-7xl">
                         How <span className="text-emerald-600">SahiDawa</span> Works
                     </h1>
 

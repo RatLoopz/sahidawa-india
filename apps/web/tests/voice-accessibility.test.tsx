@@ -49,9 +49,12 @@ describe("Voice Triage accessibility semantics", () => {
         );
 
         expect(markup).toContain("motion-reduce:animate-none");
-        expect(markup).toContain("focus-visible:ring-2");
-        expect(markup).toContain("focus-visible:ring-slate-500");
-        expect(markup).toContain("focus-visible:ring-emerald-500");
+        expect(markup).toContain("focus-visible:outline-[3px]");
+        expect(markup).toContain("focus-visible:outline-emerald-600");
+        expect(markup).toContain("focus-visible:outline-offset-2");
+        expect(markup).toContain("focus-visible:ring-[3px]");
+        expect(markup).toContain("focus-visible:ring-emerald-600");
+        expect(markup).toContain("focus-visible:ring-offset-2");
     });
 
     it("renders VoiceErrorPanel with retry focus styles and reduced-motion support", () => {
@@ -67,8 +70,12 @@ describe("Voice Triage accessibility semantics", () => {
         );
 
         expect(markup).toContain("motion-reduce:animate-none");
-        expect(markup).toContain("focus-visible:ring-2");
-        expect(markup).toContain("focus-visible:ring-slate-950");
+        expect(markup).toContain('aria-describedby="voice-error-message"');
+        expect(markup).toContain('id="voice-error-message"');
+        expect(markup).toContain("focus-visible:outline-[3px]");
+        expect(markup).toContain("focus-visible:outline-emerald-600");
+        expect(markup).toContain("focus-visible:ring-[3px]");
+        expect(markup).toContain("focus-visible:ring-emerald-600");
     });
 
     it("renders VoiceResultPanel with landmark semantics and focus states", () => {
@@ -111,10 +118,12 @@ describe("Voice Triage accessibility semantics", () => {
 
         expect(markup).toContain('role="region"');
         expect(markup).toContain('aria-labelledby="voice-ai-analysis-heading"');
-        expect(markup).toContain("focus-visible:ring-2");
-        expect(markup).toContain("focus-visible:ring-slate-500");
-        expect(markup).toContain("focus-visible:ring-blue-500");
-        expect(markup).toContain("focus-visible:ring-slate-950");
+        expect(markup).toContain("focus-visible:outline-[3px]");
+        expect(markup).toContain("focus-visible:outline-emerald-600");
+        expect(markup).toContain("focus-visible:outline-offset-2");
+        expect(markup).toContain("focus-visible:ring-[3px]");
+        expect(markup).toContain("focus-visible:ring-emerald-600");
+        expect(markup).toContain("focus-visible:ring-offset-2");
     });
 
     it("renders VoiceAudioVisualizer volume progressbar semantics", () => {

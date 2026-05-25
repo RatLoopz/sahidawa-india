@@ -115,6 +115,7 @@ For voice triage, the important variables are:
 
 ```bash
 ML_SERVICE_URL=http://localhost:8000
+NEXT_PUBLIC_ML_SERVICE_URL=http://localhost:8000
 WHISPER_MODEL_SIZE=tiny
 WHISPER_DEVICE=cpu
 WHISPER_COMPUTE_TYPE=int8
@@ -125,8 +126,10 @@ WHISPER_PRELOAD_ON_STARTUP=true
 Notes:
 
 - `ML_SERVICE_URL` is used by the Next.js proxy route at `/api/voice/transcribe`.
+- `NEXT_PUBLIC_ML_SERVICE_URL` is used by the Voice Triage page for direct browser WebSocket streaming to `ws://localhost:8000/asr/stream`.
 - `WHISPER_MODEL_SIZE` controls the Faster-Whisper model. `tiny` is the recommended CPU baseline for this feature.
 - `WHISPER_PRELOAD_ON_STARTUP=true` makes the service load Whisper during boot instead of delaying the first citizen request.
+- Make sure `ALLOWED_ORIGINS` includes the web app origin, typically `http://localhost:3000`, so local browser clients can connect cleanly to the ML service.
 
 ## Recommended Voice ASR Settings
 

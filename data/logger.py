@@ -1,9 +1,8 @@
-import logging
+# ⚠️  MIGRATED — do not add code here.
+#
+# The shared logger has been moved to:
+#   apps/etl/src/utils/logger.py
 
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
+raise ImportError(
+    "data/logger.py has been migrated to apps/etl/src/utils/logger.py"
 )
-
-logger = logging.getLogger(__name__)
