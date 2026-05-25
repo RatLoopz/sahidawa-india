@@ -8,6 +8,7 @@ from PIL import Image
 import io
 import time
 from pathlib import Path
+from urllib.parse import urlparse
 
 router = APIRouter()
 
@@ -28,8 +29,21 @@ class CompareResponse(BaseModel):
 SEEDS_DIR = Path(__file__).parent.parent.parent.parent / "data" / "seeds" / "medicines"
 
 
+def validate_cloudinary_url(url: str) -> None:
+    parsed = urlparse(url)
+
+    if parsed.scheme not in {"https"}:
+        raise ValueError("Only HTTPS Cloudinary URLs are allowed")
+
+    host = parsed.hostname or ""
+    if not host.endswith(".cloudinary.com"):
+        raise ValueError("Only Cloudinary URLs are allowed")
+
+
 def download_image(url: str) -> np.ndarray:
-    with httpx.Client(timeout=10.0) as client:
+    validate_cloudinary_url(url)
+
+    with httpx.Client(timeout=10.0, follow_redirects=False) as client:
         response = client.get(url)
         response.raise_for_status()
 
