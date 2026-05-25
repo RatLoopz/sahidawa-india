@@ -12,6 +12,8 @@ import {
     Lock,
     AlertTriangle,
     Users,
+    Unlock,
+    BadgeCheck,
 } from "lucide-react";
 import { Link } from "@/i18n/routing";
 
@@ -52,8 +54,8 @@ export default function AboutPage() {
             {/* Problem */}
             <section className="container mx-auto max-w-6xl px-4 py-16">
                 <div className="mb-12 text-center">
-                    <h2 className="mb-4 text-3xl font-black text-slate-900 md:text-4xl">
-                        🚨 The Problem We're Solving
+                    <h2 className="mb-4 flex items-center justify-center gap-2 text-3xl font-black text-slate-900 md:text-4xl">
+                        <AlertTriangle className="h-8 w-8 text-red-500" /> The Problem We're Solving
                     </h2>
                     <p className="mx-auto max-w-2xl font-medium text-slate-500">
                         India has a three-layer healthcare crisis that no existing platform solves
@@ -163,16 +165,16 @@ export default function AboutPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-6 text-center md:grid-cols-4">
                     {[
-                        { emoji: "🔓", title: "Open Source", desc: "MIT Licensed. Always." },
-                        { emoji: "🆓", title: "Free Forever", desc: "No hidden costs. Ever." },
-                        { emoji: "🌍", title: "Inclusive", desc: "22 languages. All of Bharat." },
-                        { emoji: "🔒", title: "Privacy First", desc: "No data sold. No ads." },
+                        { icon: <Unlock className="h-10 w-10 text-emerald-500" />, title: "Open Source", desc: "MIT Licensed. Always." },
+                        { icon: <BadgeCheck className="h-10 w-10 text-blue-500" />, title: "Free Forever", desc: "No hidden costs. Ever." },
+                        { icon: <Globe className="h-10 w-10 text-purple-500" />, title: "Inclusive", desc: "22 languages. All of Bharat." },
+                        { icon: <Lock className="h-10 w-10 text-slate-500" />, title: "Privacy First", desc: "No data sold. No ads." },
                     ].map((v, i) => (
                         <div
                             key={i}
                             className="rounded-3xl border border-slate-200 bg-slate-50 p-6"
                         >
-                            <div className="mb-3 text-4xl">{v.emoji}</div>
+                            <div className="mb-3 flex justify-center">{v.icon}</div>
                             <h3 className="mb-1 font-bold text-slate-800">{v.title}</h3>
                             <p className="text-sm font-medium text-slate-500">{v.desc}</p>
                         </div>
