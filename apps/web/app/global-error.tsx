@@ -21,7 +21,7 @@ export default function GlobalError({ error, unstable_retry }: GlobalErrorProps)
     return (
         <html lang="en">
             <body>
-                <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-950 via-emerald-950 to-slate-900 p-6 text-white">
+                <main className="flex min-h-screen items-center justify-center bg-linear-to-b from-slate-950 via-emerald-950 to-slate-900 p-6 text-white">
                     <LiveMessage
                         tone="critical"
                         describedBy={errorDescriptionId}
@@ -48,7 +48,7 @@ export default function GlobalError({ error, unstable_retry }: GlobalErrorProps)
                         {isDev && (error.message || error.digest) && (
                             <div className="mb-8 w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-left">
                                 {error.message && (
-                                    <p className="font-mono text-xs break-words text-slate-200">
+                                    <p className="font-mono text-xs wrap-break-word text-slate-200">
                                         {error.message}
                                     </p>
                                 )}

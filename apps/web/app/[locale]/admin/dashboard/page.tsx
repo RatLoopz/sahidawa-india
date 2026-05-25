@@ -84,9 +84,9 @@ export default function AdminDashboard() {
         barcode_id: "",
         cdsco_approval_status: "approved",
     });
-    const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+    const [toast, setToast] = useState<{ msg: React.ReactNode; ok: boolean } | null>(null);
 
-    const notify = (msg: string, ok = true) => {
+    const notify = (msg: React.ReactNode, ok = true) => {
         setToast({ msg, ok });
         setTimeout(() => setToast(null), 3000);
     };
@@ -146,12 +146,12 @@ export default function AdminDashboard() {
             setReports((prev) => prev.filter((r) => r.id !== reportId));
             notify(
                 status === "verified_fake"
-                    ? "⚠️ Marked as Verified Fake"
-                    : "✅ Marked as False Alarm",
+                    ? <><AlertTriangle className="inline h-4 w-4 mr-1" /> Marked as Verified Fake</>
+                    : <><CheckCircle className="inline h-4 w-4 mr-1" /> Marked as False Alarm</>,
                 status !== "verified_fake"
             );
         } catch {
-            notify("❌ Failed to update report", false);
+            notify(<><XCircle className="inline h-4 w-4 mr-1" /> Failed to update report</>, false);
         } finally {
             setActing(null);
         }
@@ -176,9 +176,9 @@ export default function AdminDashboard() {
                 cdsco_approval_status: "approved",
             });
             setShowForm(false);
-            notify("✅ Medicine added");
+            notify(<><CheckCircle className="inline h-4 w-4 mr-1" /> Medicine added</>);
         } catch {
-            notify("❌ Failed to add medicine", false);
+            notify(<><XCircle className="inline h-4 w-4 mr-1" /> Failed to add medicine</>, false);
         }
     };
 
