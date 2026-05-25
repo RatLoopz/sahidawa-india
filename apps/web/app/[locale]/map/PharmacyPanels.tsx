@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, Heart, Loader2, MapPin, Phone, Shield, Star, Store } from "lucide-react";
+import { AlertCircle, Heart, Loader2, MapPin, Phone, Shield, Star, Store, ShieldCheck, Hospital, Pill } from "lucide-react";
 
 import type { HeatmapMode, Pharmacy } from "./PharmacyMap";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -58,7 +58,7 @@ function PharmacyPanelRow({
                         }`}
                         aria-hidden="true"
                     >
-                        {pharmacy.isVerified ? "🛡️" : pharmacy.type === "govt" ? "🏥" : "💊"}
+                        {pharmacy.isVerified ? <ShieldCheck size={18} className="text-emerald-700" /> : pharmacy.type === "govt" ? <Hospital size={18} className="text-emerald-600" /> : <Pill size={18} className="text-blue-600" />}
                     </div>
 
                     <div className="min-w-0 flex-1">
