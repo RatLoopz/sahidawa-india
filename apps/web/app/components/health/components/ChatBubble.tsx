@@ -55,7 +55,9 @@ const ErrorContent = ({ onRetry, msgId }: { onRetry?: (id: string) => void; msgI
                 <path d="M12 2L1 21h22L12 2zm0 3.5L20.5 19h-17L12 5.5zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z" />
             </svg>
             <div>
-                <p className="text-sm leading-snug font-semibold text-red-700">AI Assistant Under Development</p>
+                <p className="text-sm leading-snug font-semibold text-red-700">
+                    AI Assistant Under Development
+                </p>
                 <p className="mt-0.5 text-sm leading-relaxed text-slate-600">
                     This feature is currently under development. Please check back soon!
                 </p>

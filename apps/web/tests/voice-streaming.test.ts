@@ -54,7 +54,7 @@ describe("voice streaming helper", () => {
             onmessage: null,
             onerror: null,
             onclose: null,
-            readyState: WebSocket.CONNECTING,
+            readyState: 0, // WebSocket.CONNECTING
         } as unknown as WebSocket;
 
         createVoiceStreamingSession({

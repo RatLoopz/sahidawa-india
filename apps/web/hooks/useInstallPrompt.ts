@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from "react";
 
 /**
  * Minimal type definition for the browser's BeforeInstallPromptEvent.
  * Not yet part of the official TypeScript lib types.
  */
 interface BeforeInstallPromptEvent extends Event {
-  readonly platforms: string[];
-  prompt(): Promise<void>;
-  readonly userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+    readonly platforms: string[];
+    prompt(): Promise<void>;
+    readonly userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 }
 
 /**
@@ -27,59 +27,59 @@ interface BeforeInstallPromptEvent extends Event {
  * - `promptInstall`: call this to trigger the native install dialog.
  */
 export function useInstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstallable, setIsInstallable] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
+    const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+    const [isInstallable, setIsInstallable] = useState(false);
+    const [isInstalled, setIsInstalled] = useState(false);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
+    useEffect(() => {
+        if (typeof window === "undefined") return;
 
-    // Check if already running as an installed PWA
-    const standalone =
-      window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+        // Check if already running as an installed PWA
+        const standalone =
+            window.matchMedia("(display-mode: standalone)").matches ||
+            (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
 
-    setIsInstalled(standalone);
+        setIsInstalled(standalone);
 
-    // Capture the deferred install prompt
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setIsInstallable(true);
-    };
+        // Capture the deferred install prompt
+        const handleBeforeInstallPrompt = (e: Event) => {
+            e.preventDefault();
+            setDeferredPrompt(e as BeforeInstallPromptEvent);
+            setIsInstallable(true);
+        };
 
-    // Hide the prompt if the app gets installed in another tab / session
-    const handleAppInstalled = () => {
-      setIsInstallable(false);
-      setIsInstalled(true);
-      setDeferredPrompt(null);
-    };
+        // Hide the prompt if the app gets installed in another tab / session
+        const handleAppInstalled = () => {
+            setIsInstallable(false);
+            setIsInstalled(true);
+            setDeferredPrompt(null);
+        };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', handleAppInstalled);
+        window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+        window.addEventListener("appinstalled", handleAppInstalled);
 
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
-    };
-  }, []);
+        return () => {
+            window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+            window.removeEventListener("appinstalled", handleAppInstalled);
+        };
+    }, []);
 
-  /**
-   * Trigger the native PWA install dialog.
-   * Returns the user's choice ('accepted' | 'dismissed') or null if unavailable.
-   */
-  const promptInstall = useCallback(async (): Promise<'accepted' | 'dismissed' | null> => {
-    if (!deferredPrompt) return null;
+    /**
+     * Trigger the native PWA install dialog.
+     * Returns the user's choice ('accepted' | 'dismissed') or null if unavailable.
+     */
+    const promptInstall = useCallback(async (): Promise<"accepted" | "dismissed" | null> => {
+        if (!deferredPrompt) return null;
 
-    await deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
+        await deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
 
-    // The prompt can only be used once; discard it afterwards
-    setDeferredPrompt(null);
-    setIsInstallable(false);
+        // The prompt can only be used once; discard it afterwards
+        setDeferredPrompt(null);
+        setIsInstallable(false);
 
-    return outcome;
-  }, [deferredPrompt]);
+        return outcome;
+    }, [deferredPrompt]);
 
-  return { isInstallable, isInstalled, promptInstall };
+    return { isInstallable, isInstalled, promptInstall };
 }

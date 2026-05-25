@@ -9,8 +9,11 @@ module.exports = {
     "^next-intl/navigation$": "<rootDir>/tests/mocks/next-intl-navigation.cjs",
     "^next-intl/middleware$": "<rootDir>/tests/mocks/next-intl-middleware.cjs",
   },
+  transformIgnorePatterns: [
+    "/node_modules/(?!(next-intl|use-intl|@formatjs|intl-messageformat)/)"
+  ],
   transform: {
-    "^.+\\.tsx?$": [
+    "^.+\\.[tj]sx?$": [
       "ts-jest",
       {
         tsconfig: "<rootDir>/tsconfig.test.json",

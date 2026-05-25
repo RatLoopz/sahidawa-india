@@ -22,10 +22,19 @@ import LazyImage from "@/components/LazyImage";
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB per file
+const WEBP_FILE_EXTENSION = ".webp";
 
 // ─── Input sanitisation ────────────────────────────────────────────────────────
 /** Strip HTML/script tags and trim whitespace to prevent stored XSS. */
 const sanitize = (v: string) => v.replace(/<[^>]*>/g, "").trim();
+
+const renameFileForMimeType = (fileName: string, mimeType: string) => {
+    if (mimeType !== "image/webp" || fileName.toLowerCase().endsWith(WEBP_FILE_EXTENSION)) {
+        return fileName;
+    }
+
+    return fileName.replace(/\.[^.]+$/, "") + WEBP_FILE_EXTENSION;
+};
 
 // ─── Zod schema ────────────────────────────────────────────────────────────────
 const schema = z.object({
@@ -388,10 +397,14 @@ function Step2({
                                 typeof optimizedBlob !== "string" &&
                                 optimizedBlob instanceof Blob
                             ) {
-                                fileToProcess = new File([optimizedBlob], f.name, {
-                                    type: optimizedBlob.type || "image/jpeg",
-                                    lastModified: Date.now(),
-                                });
+                                fileToProcess = new File(
+                                    [optimizedBlob],
+                                    renameFileForMimeType(f.name, optimizedBlob.type),
+                                    {
+                                        type: optimizedBlob.type || f.type,
+                                        lastModified: Date.now(),
+                                    }
+                                );
                             }
                         } catch (error) {
                             console.error(

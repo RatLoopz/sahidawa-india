@@ -5,8 +5,7 @@ const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "contact@sahidawa
 const DISCORD_URL = "https://discord.gg/dvbDuJVwNa";
 const GITHUB_ISSUES_URL =
     "https://github.com/RatLoopz/sahidawa-india/issues/new?template=bug_report.md";
-const CONTRIBUTING_URL =
-    "https://github.com/RatLoopz/sahidawa-india/blob/main/CONTRIBUTING.md";
+const CONTRIBUTING_URL = "https://github.com/RatLoopz/sahidawa-india/blob/main/CONTRIBUTING.md";
 
 export default function ContactPage() {
     const t = useTranslations("contact");
@@ -23,22 +22,21 @@ export default function ContactPage() {
                     {t("heroTitle.prefix")}{" "}
                     <span className="text-green-500">{t("heroTitle.highlight")}</span>
                 </h1>
-                <p className="mx-auto max-w-xl text-lg text-gray-500">
-                    {t("heroSubtitle")}
-                </p>
+                <p className="mx-auto max-w-xl text-lg text-gray-500">{t("heroSubtitle")}</p>
             </section>
 
             {/* Contact Cards */}
             <section className="bg-gray-50 px-4 py-16">
                 <div className="mx-auto grid max-w-3xl gap-6 sm:grid-cols-2">
-
                     {/* Email — whole card is clickable */}
                     <a
                         href={"mailto:" + CONTACT_EMAIL}
                         className="group rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
                     >
                         <div className="mb-3 text-3xl">✉️</div>
-                        <h3 className="mb-1 text-lg font-bold text-gray-900">{t("cards.email.title")}</h3>
+                        <h3 className="mb-1 text-lg font-bold text-gray-900">
+                            {t("cards.email.title")}
+                        </h3>
                         <p className="mb-4 text-sm text-gray-500">{t("cards.email.description")}</p>
                         <span className="inline-block rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white transition-colors group-hover:bg-green-600">
                             {CONTACT_EMAIL}
@@ -53,8 +51,12 @@ export default function ContactPage() {
                         className="group rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
                     >
                         <div className="mb-3 text-3xl">💬</div>
-                        <h3 className="mb-1 text-lg font-bold text-gray-900">{t("cards.discord.title")}</h3>
-                        <p className="mb-4 text-sm text-gray-500">{t("cards.discord.description")}</p>
+                        <h3 className="mb-1 text-lg font-bold text-gray-900">
+                            {t("cards.discord.title")}
+                        </h3>
+                        <p className="mb-4 text-sm text-gray-500">
+                            {t("cards.discord.description")}
+                        </p>
                         <span className="inline-block rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white transition-colors group-hover:bg-green-600">
                             {t("cards.discord.cta")}
                         </span>
@@ -68,7 +70,9 @@ export default function ContactPage() {
                         className="group rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
                     >
                         <div className="mb-3 text-3xl">🐛</div>
-                        <h3 className="mb-1 text-lg font-bold text-gray-900">{t("cards.bug.title")}</h3>
+                        <h3 className="mb-1 text-lg font-bold text-gray-900">
+                            {t("cards.bug.title")}
+                        </h3>
                         <p className="mb-4 text-sm text-gray-500">{t("cards.bug.description")}</p>
                         <span className="inline-block rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white transition-colors group-hover:bg-green-600">
                             {t("cards.bug.cta")}
@@ -83,20 +87,25 @@ export default function ContactPage() {
                         className="group rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
                     >
                         <div className="mb-3 text-3xl">🤝</div>
-                        <h3 className="mb-1 text-lg font-bold text-gray-900">{t("cards.contribute.title")}</h3>
-                        <p className="mb-4 text-sm text-gray-500">{t("cards.contribute.description")}</p>
+                        <h3 className="mb-1 text-lg font-bold text-gray-900">
+                            {t("cards.contribute.title")}
+                        </h3>
+                        <p className="mb-4 text-sm text-gray-500">
+                            {t("cards.contribute.description")}
+                        </p>
                         <span className="inline-block rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white transition-colors group-hover:bg-green-600">
                             {t("cards.contribute.cta")}
                         </span>
                     </a>
-
                 </div>
             </section>
 
             {/* Quick Links */}
             <section className="px-4 py-12">
                 <div className="mx-auto max-w-3xl text-center">
-                    <h2 className="mb-6 text-xl font-bold text-gray-900">{t("quickLinks.title")}</h2>
+                    <h2 className="mb-6 text-xl font-bold text-gray-900">
+                        {t("quickLinks.title")}
+                    </h2>
                     <div className="flex flex-wrap justify-center gap-3">
                         <Link
                             href="/about"
