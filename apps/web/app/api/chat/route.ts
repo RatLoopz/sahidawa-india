@@ -149,7 +149,7 @@ export async function POST(req: Request) {
 
         const formattedContents = mapMessagesToGeminiContents(messages || []);
 
-        const supportedLocales = ["en", "gu", "hi", "bn", "te", "ta", "mr"];
+        const supportedLocales = ["en", "gu", "bn", "te", "ta", "mr", "ur", "kn"];
         const finalLocale = supportedLocales.includes(locale) ? locale : "en";
         const localeMap = {
             en: "English",
