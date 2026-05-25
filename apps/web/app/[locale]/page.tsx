@@ -58,7 +58,6 @@ function formatRelativeTime(dateString: string | null): string {
 export default function SahiDawaHome() {
     const router = useRouter();
     const params = useParams();
-    // const locale = params.locale;
     const locale = Array.isArray(params.locale) ? params.locale[0] : params.locale;
     const tHome = useTranslations("Home");
     const tNav = useTranslations("Navigation");
@@ -96,13 +95,13 @@ export default function SahiDawaHome() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-emerald-200">
+        <div className="min-h-screen bg-[var(--color-surface-page)] font-sans text-[var(--color-text-primary)] transition-colors duration-300">
             {/* ── Top Navigation ── */}
-            <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-lg">
+            <header className="sticky top-0 z-50 w-full border-b border-[var(--color-border-muted)] bg-[var(--color-surface-page)]/80 backdrop-blur-lg">
                 <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
                     <div className="flex items-center gap-2">
                         <div
-                            className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 shadow-sm sm:h-10 sm:w-10"
+                            className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 shadow-sm sm:h-10 sm:w-10 dark:bg-emerald-950/30 dark:text-emerald-400"
                             aria-label="SahiDawa Logo"
                         >
                             <img
@@ -114,37 +113,20 @@ export default function SahiDawaHome() {
                                 height={28}
                             />
                         </div>
-                        <h1 className="text-xl font-extrabold tracking-tight text-slate-800 md:text-2xl">
+                        <h1 className="text-xl font-extrabold tracking-tight text-[var(--color-text-primary)] md:text-2xl">
                             SahiDawa
                         </h1>
                     </div>
 
                     <div className="flex items-center gap-2 md:gap-4">
-                        {/* <nav
-                            className="hidden items-center gap-6 text-sm font-semibold text-slate-600 lg:flex"
-                            aria-label="Main navigation"
-                        >
-                            <Link
-                                href="/how-it-works"
-                                className="transition-colors hover:text-emerald-600"
-                            >
-                                {tNav("how_it_works")}
-                            </Link> */}
-
                         <nav
-                            className="hidden items-center gap-6 text-sm font-semibold text-slate-600 lg:flex"
+                            className="hidden items-center gap-6 text-sm font-semibold text-[var(--color-text-secondary)] lg:flex"
                             aria-label="Main navigation"
                         >
-                            <Link
-                                href="/how-it-works"
-                                className={desktopNavLinkClassName}
-                            >
+                            <Link href="/how-it-works" className={desktopNavLinkClassName}>
                                 {tNav("how_it_works")}
                             </Link>
-                            <Link
-                                href="/alerts"
-                                className={desktopNavLinkClassName}
-                            >
+                            <Link href="/alerts" className={desktopNavLinkClassName}>
                                 {tNav("alerts")}
                             </Link>
                             <Link href="/map" className={desktopNavLinkClassName}>
@@ -172,7 +154,6 @@ export default function SahiDawaHome() {
                     </div>
                 </div>
             </header>
-
             {/* ── Main ── */}
             <main className="container mx-auto max-w-6xl px-4 pt-8 pb-24 md:pb-12">
                 {/* Hero */}
@@ -184,10 +165,12 @@ export default function SahiDawaHome() {
                         </span>
                         GSSoC 2026 Open Source Project
                     </div>
-                    <h2 className="text-4xl leading-[1.1] font-black tracking-tight text-slate-900 md:text-6xl">
+                    {/* UPDATED TITLE COLOR HERE */}
+                    <h2 className="text-4xl leading-[1.1] font-black tracking-tight text-[var(--color-text-primary)] md:text-6xl">
                         {tHome("title")}
                     </h2>
-                    <p className="mx-auto max-w-2xl text-lg leading-relaxed font-medium text-slate-500 md:text-xl">
+                    {/* UPDATED SUBTITLE COLOR HERE */}
+                    <p className="mx-auto max-w-2xl text-lg leading-relaxed font-medium text-[var(--color-text-secondary)] md:text-xl">
                         {tHome("subtitle")}
                     </p>
                 </div>
@@ -227,21 +210,21 @@ export default function SahiDawaHome() {
                     {/* Upload Photo */}
                     <button
                         onClick={() => handleNavigation("scan")}
-                        className="group flex min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/80 bg-white/95 p-6 text-left shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-100/50 active:scale-[0.99]"
+                        className="group flex min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-[var(--color-border-muted)] bg-[var(--color-surface-page)]/95 p-6 text-left shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-400/50 hover:shadow-xl active:scale-[0.99]"
                         aria-label="Upload photo"
                     >
                         <div className="flex items-start justify-between gap-4">
-                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 ring-1 ring-white/60 transition-colors duration-300 ring-inset group-hover:bg-emerald-500 group-hover:text-white">
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 ring-1 ring-white/60 transition-colors duration-300 ring-inset group-hover:bg-emerald-500 group-hover:text-white dark:bg-emerald-950/30 dark:text-emerald-400 dark:ring-white/10">
                                 <Camera size={28} strokeWidth={2.5} />
                             </div>
                             <ChevronRight className="mt-1 h-5 w-5 text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-emerald-400" />
                         </div>
 
                         <div className="pt-4">
-                            <h3 className="text-lg font-bold tracking-tight text-slate-800">
+                            <h3 className="text-lg font-bold tracking-tight text-[var(--color-text-primary)]">
                                 {tHome("upload_photo")}
                             </h3>
-                            <p className="mt-1 text-sm leading-snug font-medium text-slate-500">
+                            <p className="mt-1 text-sm leading-snug font-medium text-[var(--color-text-secondary)]">
                                 {tHome("upload_subtitle")}
                             </p>
                         </div>
@@ -250,21 +233,21 @@ export default function SahiDawaHome() {
                     {/* Voice Triage */}
                     <button
                         onClick={() => handleNavigation("voice")}
-                        className="group flex min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/80 bg-white/95 p-6 text-left shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-100/50 active:scale-[0.99]"
+                        className="group flex min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-[var(--color-border-muted)] bg-[var(--color-surface-page)]/95 p-6 text-left shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-400/50 hover:shadow-xl active:scale-[0.99]"
                         aria-label="Voice triage"
                     >
                         <div className="flex items-start justify-between gap-4">
-                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 ring-1 ring-white/60 transition-colors duration-300 ring-inset group-hover:bg-blue-500 group-hover:text-white">
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 ring-1 ring-white/60 transition-colors duration-300 ring-inset group-hover:bg-blue-500 group-hover:text-white dark:bg-blue-950/30 dark:text-blue-400 dark:ring-white/10">
                                 <Mic size={28} strokeWidth={2.5} />
                             </div>
                             <ChevronRight className="mt-1 h-5 w-5 text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-blue-400" />
                         </div>
 
                         <div className="pt-4">
-                            <h3 className="text-lg font-bold tracking-tight text-slate-800">
+                            <h3 className="text-lg font-bold tracking-tight text-[var(--color-text-primary)]">
                                 {tHome("voice_triage")}
                             </h3>
-                            <p className="mt-1 text-sm leading-snug font-medium text-slate-500">
+                            <p className="mt-1 text-sm leading-snug font-medium text-[var(--color-text-secondary)]">
                                 {tHome("voice_subtitle")}
                             </p>
                         </div>
@@ -273,21 +256,21 @@ export default function SahiDawaHome() {
                     {/* Pharmacy Map */}
                     <button
                         onClick={() => handleNavigation("map")}
-                        className="group flex min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/80 bg-white/95 p-6 text-left shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-200 hover:shadow-xl hover:shadow-amber-100/50 active:scale-[0.99]"
+                        className="group flex min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-[var(--color-border-muted)] bg-[var(--color-surface-page)]/95 p-6 text-left shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-400/50 hover:shadow-xl active:scale-[0.99]"
                         aria-label="Pharmacy map"
                     >
                         <div className="flex items-start justify-between gap-4">
-                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 ring-1 ring-white/60 transition-colors duration-300 ring-inset group-hover:bg-amber-500 group-hover:text-white">
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 ring-1 ring-white/60 transition-colors duration-300 ring-inset group-hover:bg-amber-500 group-hover:text-white dark:bg-amber-950/30 dark:text-amber-400 dark:ring-white/10">
                                 <MapPin size={28} strokeWidth={2.5} />
                             </div>
                             <ChevronRight className="mt-1 h-5 w-5 text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-amber-400" />
                         </div>
 
                         <div className="pt-4">
-                            <h3 className="text-lg font-bold tracking-tight text-slate-800">
+                            <h3 className="text-lg font-bold tracking-tight text-[var(--color-text-primary)]">
                                 {tHome("pharmacy_map")}
                             </h3>
-                            <p className="mt-1 text-sm leading-snug font-medium text-slate-500">
+                            <p className="mt-1 text-sm leading-snug font-medium text-[var(--color-text-secondary)]">
                                 {tHome("pharmacy_subtitle")}
                             </p>
                         </div>
@@ -296,21 +279,21 @@ export default function SahiDawaHome() {
                     {/* Report Fake Medicine */}
                     <button
                         onClick={() => handleNavigation("report")}
-                        className="group flex min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/80 bg-white/95 p-6 text-left shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-red-200 hover:shadow-xl hover:shadow-red-100/50 active:scale-[0.99]"
+                        className="group flex min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-[var(--color-border-muted)] bg-[var(--color-surface-page)]/95 p-6 text-left shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-red-400/50 hover:shadow-xl active:scale-[0.99]"
                         aria-label="Report fake medicine"
                     >
                         <div className="flex items-start justify-between gap-4">
-                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-600 ring-1 ring-white/60 transition-colors duration-300 ring-inset group-hover:bg-red-500 group-hover:text-white">
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-600 ring-1 ring-white/60 transition-colors duration-300 ring-inset group-hover:bg-red-500 group-hover:text-white dark:bg-red-950/30 dark:text-red-400 dark:ring-white/10">
                                 <AlertTriangle size={28} strokeWidth={2.5} />
                             </div>
                             <ChevronRight className="mt-1 h-5 w-5 text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-red-400" />
                         </div>
 
                         <div className="pt-4">
-                            <h3 className="text-lg font-bold tracking-tight text-slate-800">
+                            <h3 className="text-lg font-bold tracking-tight text-[var(--color-text-primary)]">
                                 {tHome("report_fake")}
                             </h3>
-                            <p className="mt-1 text-sm leading-snug font-medium text-slate-500">
+                            <p className="mt-1 text-sm leading-snug font-medium text-[var(--color-text-secondary)]">
                                 {tHome("report_fake_subtitle")}
                             </p>
                         </div>
@@ -318,12 +301,9 @@ export default function SahiDawaHome() {
                 </div>
 
                 {/* ── AI Health Assistant CTA Banner ── */}
-                <div className="group relative mt-8 overflow-hidden rounded-3xl border border-purple-200/60 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100/80 p-6 shadow-md shadow-purple-100/50 transition-all duration-300 hover:shadow-xl hover:shadow-purple-200/40 sm:p-8 md:p-10">
-                    {/* Decorative background orbs */}
-                    <div className="pointer-events-none absolute -top-16 -right-16 h-64 w-64 rounded-full bg-purple-300/20 blur-3xl transition-transform duration-700 group-hover:scale-110" />
-                    <div className="pointer-events-none absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-blue-300/20 blur-3xl transition-transform duration-700 group-hover:scale-110" />
-                    {/* Center glow */}
-                    <div className="pointer-events-none absolute top-1/2 left-1/2 h-40 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-200/30 blur-3xl" />
+                <div className="group relative mt-8 overflow-hidden rounded-3xl border border-[var(--color-border-muted)] bg-[var(--color-surface-muted)] p-6 shadow-md transition-all duration-300 hover:shadow-xl sm:p-8 md:p-10">
+                    <div className="pointer-events-none absolute -top-16 -right-16 h-64 w-64 rounded-full bg-purple-500/10 blur-3xl transition-transform duration-700 group-hover:scale-110" />
+                    <div className="pointer-events-none absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-blue-500/10 blur-3xl transition-transform duration-700 group-hover:scale-110" />
 
                     <div className="relative z-10 flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
                         <div className="flex items-center gap-4 sm:gap-5">
@@ -333,19 +313,19 @@ export default function SahiDawaHome() {
                             </div>
                             <div className="space-y-1">
                                 <div className="flex items-center gap-2">
-                                    <h3 className="text-xl font-extrabold tracking-tight text-slate-800 sm:text-2xl">
+                                    <h3 className="text-xl font-extrabold tracking-tight text-[var(--color-text-primary)] sm:text-2xl">
                                         AI Health Assistant
                                     </h3>
                                     {/* Animated AI badge */}
-                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 px-2.5 py-0.5 text-[11px] font-bold tracking-wider whitespace-nowrap text-purple-700 uppercase ring-1 ring-purple-200/60">
+                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-500/10 px-2.5 py-0.5 text-[11px] font-bold tracking-wider whitespace-nowrap text-purple-500 uppercase ring-1 ring-purple-500/20">
                                         <span className="relative flex h-1.5 w-1.5">
-                                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-purple-500 opacity-60" />
-                                            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-purple-600" />
+                                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-purple-400 opacity-60" />
+                                            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-purple-500" />
                                         </span>
                                         Live AI
                                     </span>
                                 </div>
-                                <p className="text-sm leading-relaxed font-medium text-slate-500 sm:text-base">
+                                <p className="text-sm leading-relaxed font-medium text-[var(--color-text-secondary)] sm:text-base">
                                     Get instant health advice, symptom checking &amp; prescription
                                     guidance
                                 </p>
@@ -353,7 +333,7 @@ export default function SahiDawaHome() {
                         </div>
                         <button
                             onClick={() => handleNavigation("health")}
-                            className="group/btn flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-purple-500 to-blue-600 px-8 py-3.5 text-base font-bold text-white shadow-md shadow-purple-500/25 transition-all duration-300 hover:scale-[1.04] hover:shadow-xl hover:shadow-purple-500/30 active:scale-[0.98] sm:w-auto"
+                            className="group/btn flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-purple-500 to-blue-600 px-8 py-3.5 text-base font-bold text-white shadow-md shadow-purple-500/25 transition-all duration-300 hover:scale-[1.04] sm:w-auto"
                         >
                             <MessageCircle size={18} />
                             Chat Now
@@ -370,29 +350,29 @@ export default function SahiDawaHome() {
 
                 {/* ── Live Alerts Panel (full-width) ── */}
                 <div className="mt-8 mb-20">
-                    <div className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-                        <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-6 py-5">
+                    <div className="flex flex-col overflow-hidden rounded-3xl border border-[var(--color-border-muted)] bg-[var(--color-surface-page)] shadow-sm">
+                        <div className="flex items-center justify-between border-b border-[var(--color-border-muted)] bg-[var(--color-surface-muted)] px-6 py-5">
                             <div className="flex items-center gap-2">
                                 <Activity size={20} className="text-red-500" />
-                                <h3 className="text-lg font-bold text-slate-800">
+                                <h3 className="text-lg font-bold text-[var(--color-text-primary)]">
                                     Live CDSCO Alerts
                                 </h3>
                             </div>
-                            <span className="hidden rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold tracking-wider text-red-600 uppercase sm:block">
+                            <span className="hidden rounded-full bg-red-500/10 px-2.5 py-1 text-xs font-bold tracking-wider text-red-500 uppercase sm:block">
                                 India Region
                             </span>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto bg-slate-50/30 p-4">
+                        <div className="flex-1 overflow-y-auto bg-[var(--color-surface-muted)]/30 p-4">
                             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                 {loading ? (
                                     <>
                                         {[1, 2, 3, 4].map((i) => (
                                             <div
                                                 key={i}
-                                                className="relative flex items-start gap-4 overflow-hidden rounded-2xl border border-slate-100 bg-white p-4 shadow-sm"
+                                                className="relative flex items-start gap-4 overflow-hidden rounded-2xl border border-[var(--color-border-muted)] bg-[var(--color-surface-page)] p-4 shadow-sm"
                                             >
-                                                <div className="absolute top-0 bottom-0 left-0 w-1.5 bg-slate-200" />
+                                                <div className="absolute top-0 bottom-0 left-0 w-1.5 bg-[var(--color-border-muted)]" />
                                                 <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
                                                 <div className="flex-1 space-y-2">
                                                     <div className="flex items-start justify-between">
@@ -408,7 +388,7 @@ export default function SahiDawaHome() {
                                     homepageAlerts.map((alert) => (
                                         <div
                                             key={alert.id}
-                                            className="group relative flex cursor-pointer items-start gap-4 overflow-hidden rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                                            className="group relative flex cursor-pointer items-start gap-4 overflow-hidden rounded-2xl border border-[var(--color-border-muted)] bg-[var(--color-surface-page)] p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-400/30 hover:shadow-md"
                                         >
                                             {/* Left edge colored strip */}
                                             <div
@@ -419,19 +399,19 @@ export default function SahiDawaHome() {
                                                                 "banned" ||
                                                             alert.is_counterfeit_alert
                                                           ? "bg-red-500"
-                                                          : "bg-orange-400"
+                                                          : "bg-orange-500"
                                                 }`}
                                             />
 
                                             <div
                                                 className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${
                                                     alert.brand_name === "SYSTEM_UPDATE"
-                                                        ? "bg-blue-50 text-blue-500 group-hover:bg-blue-100"
+                                                        ? "bg-blue-500/10 text-blue-500 group-hover:bg-blue-500/20"
                                                         : alert.cdsco_approval_status ===
                                                                 "banned" ||
                                                             alert.is_counterfeit_alert
-                                                          ? "bg-red-50 text-red-500 group-hover:bg-red-100"
-                                                          : "bg-orange-50 text-orange-500 group-hover:bg-orange-100"
+                                                          ? "bg-red-500/10 text-red-500 group-hover:bg-red-500/20"
+                                                          : "bg-orange-500/10 text-orange-500 group-hover:bg-orange-500/20"
                                                 }`}
                                             >
                                                 {alert.brand_name === "SYSTEM_UPDATE" ? (
@@ -443,16 +423,16 @@ export default function SahiDawaHome() {
 
                                             <div className="flex-1">
                                                 <div className="flex items-start justify-between">
-                                                    <h4 className="leading-tight font-bold text-slate-800">
+                                                    <h4 className="leading-tight font-bold text-[var(--color-text-primary)]">
                                                         {alert.brand_name}
                                                     </h4>
-                                                    <span className="text-[11px] font-medium text-slate-400">
+                                                    <span className="text-[11px] font-medium text-[var(--color-text-muted)]">
                                                         {formatRelativeTime(alert.created_at)}
                                                     </span>
                                                 </div>
-                                                <p className="mt-1 text-sm leading-snug font-medium text-slate-500">
+                                                <p className="mt-1 text-sm leading-snug font-medium text-[var(--color-text-secondary)]">
                                                     {alert.composition} Batch{" "}
-                                                    <span className="font-bold text-slate-700">
+                                                    <span className="font-bold text-[var(--color-text-primary)]">
                                                         {alert.batch_number}
                                                     </span>
                                                 </p>
@@ -460,7 +440,6 @@ export default function SahiDawaHome() {
                                         </div>
                                     ))
                                 ) : (
-                                    /* ── Improved Empty State ── */
                                     <div className="sm:col-span-2">
                                         <EmptyState
                                             icon={
@@ -480,17 +459,17 @@ export default function SahiDawaHome() {
                         </div>
 
                         {/* ── View Full Alert Log CTA ── */}
-                        <div className="border-t border-slate-100 bg-white p-4">
+                        <div className="border-t border-[var(--color-border-muted)] bg-[var(--color-surface-page)] p-4">
                             <Link href="/alerts" className="block w-full">
-                                <button className="group/log flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 py-3 font-bold text-slate-700 transition-all duration-200 hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900 hover:shadow-sm">
+                                <button className="group/log flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-[var(--color-border-muted)] bg-[var(--color-surface-muted)] py-3 font-bold text-[var(--color-text-primary)] transition-all duration-200 hover:border-slate-500/30 hover:shadow-sm">
                                     <Activity
                                         size={15}
-                                        className="text-slate-400 transition-colors duration-200 group-hover/log:text-red-500"
+                                        className="text-[var(--color-text-muted)] transition-colors duration-200 group-hover/log:text-red-500"
                                     />
                                     View Full Alert Log
                                     <ChevronRight
                                         size={16}
-                                        className="text-slate-400 transition-transform duration-200 group-hover/log:translate-x-1"
+                                        className="text-[var(--color-text-muted)] transition-transform duration-200 group-hover/log:translate-x-1"
                                     />
                                 </button>
                             </Link>
@@ -504,7 +483,7 @@ export default function SahiDawaHome() {
 
             {/* ── Mobile Bottom Navigation ── */}
             <nav
-                className="fixed right-0 bottom-0 left-0 z-50 flex items-center justify-around border-t border-slate-200/60 bg-white/90 px-2 py-3 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
+                className="fixed right-0 bottom-0 left-0 z-50 flex items-center justify-around border-t border-[var(--color-border-muted)]/60 bg-[var(--color-surface-page)]/90 px-2 py-3 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
                 aria-label="Mobile navigation"
             >
                 <Link
@@ -512,17 +491,19 @@ export default function SahiDawaHome() {
                     className="group flex w-16 flex-col items-center gap-1.5"
                     aria-label="Home"
                 >
-                    <div className="text-emerald-600 transition-transform group-hover:-translate-y-1">
+                    <div className="text-emerald-500 transition-transform group-hover:-translate-y-1">
                         <Home size={24} strokeWidth={2.5} />
                     </div>
-                    <span className={`${mobileNavLabelClassName} text-[11px] font-bold text-emerald-600`}>
+                    <span
+                        className={`${mobileNavLabelClassName} text-[11px] font-bold text-emerald-500`}
+                    >
                         Home
                     </span>
                 </Link>
 
                 <Link
                     href="/scan"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-slate-400 transition-colors hover:text-slate-600"
+                    className="group flex w-16 flex-col items-center gap-1.5 text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text-primary)]"
                     aria-label="Scans"
                 >
                     <div className="transition-transform group-hover:-translate-y-1">
@@ -535,7 +516,7 @@ export default function SahiDawaHome() {
 
                 <Link
                     href="/map"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-slate-400 transition-colors hover:text-amber-600"
+                    className="group flex w-16 flex-col items-center gap-1.5 text-[var(--color-text-muted)] transition-colors hover:text-amber-500"
                     aria-label="Map"
                 >
                     <div className="transition-transform group-hover:-translate-y-1">
@@ -548,12 +529,12 @@ export default function SahiDawaHome() {
 
                 <Link
                     href="/alerts"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-slate-400 transition-colors hover:text-red-500"
+                    className="group flex w-16 flex-col items-center gap-1.5 text-[var(--color-text-muted)] transition-colors hover:text-red-500"
                     aria-label="Alerts"
                 >
                     <div className="relative transition-transform group-hover:-translate-y-1">
                         <Bell size={24} strokeWidth={2} />
-                        <span className="absolute top-0 right-0.5 h-2 w-2 animate-pulse rounded-full border border-white bg-red-500"></span>
+                        <span className="absolute top-0 right-0.5 h-2 w-2 animate-pulse rounded-full border border-[var(--color-surface-page)] bg-red-500"></span>
                     </div>
                     <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
                         Alerts
@@ -562,7 +543,7 @@ export default function SahiDawaHome() {
 
                 <Link
                     href="/profile"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-slate-400 transition-colors hover:text-emerald-600"
+                    className="group flex w-16 flex-col items-center gap-1.5 text-[var(--color-text-muted)] transition-colors hover:text-emerald-500"
                     aria-label="Profile"
                 >
                     <div className="transition-transform group-hover:-translate-y-1">

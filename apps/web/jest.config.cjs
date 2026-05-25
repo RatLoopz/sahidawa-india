@@ -4,8 +4,11 @@ module.exports = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/$1",
   },
+  transformIgnorePatterns: [
+    "/node_modules/(?!(next-intl|use-intl|@formatjs|intl-messageformat)/)"
+  ],
   transform: {
-    "^.+\\.tsx?$": [
+    "^.+\\.[tj]sx?$": [
       "ts-jest",
       {
         tsconfig: "<rootDir>/tsconfig.test.json",

@@ -8,7 +8,7 @@ We have implemented a new, dedicated Privacy Policy page within our Next.js appl
 
 ## The Problem Being Solved
 
-Prior to this pull request, the SahiDawa platform lacked a formal and easily accessible privacy policy. This was a critical omission for an application dealing with user data, even if anonymized, and aiming to build trust within the Indian healthcare ecosystem. Without a clear privacy statement, users would be unaware of what data we collect (e.g., medicine scans, temporary location data), how it's used (e.g., CDSCO verification, counterfeit heatmap), and what we explicitly do *not* collect (e.g., Aadhaar, personal identifiers). This gap hindered transparency, potentially impacted user adoption, and posed a compliance risk, which was tracked by issue #409.
+Prior to this pull request, the SahiDawa platform lacked a formal and easily accessible privacy policy. This was a critical omission for an application dealing with user data, even if anonymized, and aiming to build trust within the Indian healthcare ecosystem. Without a clear privacy statement, users would be unaware of what data we collect (e.g., medicine scans, temporary location data), how it's used (e.g., CDSCO verification, counterfeit heatmap), and what we explicitly do _not_ collect (e.g., Aadhaar, personal identifiers). This gap hindered transparency, potentially impacted user adoption, and posed a compliance risk, which was tracked by issue #409.
 
 ## Files Modified
 
@@ -24,10 +24,10 @@ The page content is logically divided into three primary `section` elements:
 1.  **Hero Section:** This initial section is centrally aligned (`text-center`) with vertical padding (`py-16 px-4`) and a bottom border (`border-b border-gray-100`). It prominently features a "GSSoC 2026 Open Source Project" badge, styled with `bg-green-50 border border-green-200 text-green-700` and an `animate-pulse` green dot. The main heading `<h1>` displays "Privacy Policy" with the word "Policy" highlighted in `text-green-500`. An introductory paragraph and three informative chips (`🔒 No Data Sold. Ever.`, `🍪 No Tracking Cookies`, `⭐ Open Source MIT License`) provide a concise overview of our privacy principles.
 
 2.  **Content Section:** This section, styled with `bg-gray-50 py-16 px-4`, contains the detailed privacy policy information. It uses a `max-w-3xl mx-auto space-y-6` container to center the content and provide vertical spacing between policy cards. Each policy point is presented within a `div` element acting as a distinct card, uniformly styled with `bg-white rounded-2xl border border-gray-100 shadow-sm p-8`.
-    *   Each card begins with an emoji icon (e.g., `📋`, `🔍`, `🍪`) and an `<h2>` heading (`text-xl font-bold text-gray-900`) for clear topic identification.
-    *   Information is conveyed through paragraphs (`<p>`) and unordered lists (`<ul>`). List items (`<li>`) feature custom bullet points implemented as `span` elements (`w-2 h-2 rounded-full`). These bullets are color-coded: `bg-green-400` for data we collect or use, and `bg-red-400` for data we explicitly do *not* collect or share (e.g., "We do **not** collect your name, phone number, or Aadhaar").
-    *   The "Third-Party Services" card specifically uses a `grid grid-cols-2 gap-3` layout to display the names of integrated services (Cloudinary, Supabase, OpenStreetMap, Sarvam AI) within `div` chips styled with `bg-gray-50 rounded-xl px-4 py-3`.
-    *   The "Contact Us" card is visually emphasized with `border border-green-100` and includes a placeholder `[ADMIN_EMAIL]`, styled as an `inline-block bg-green-50 border border-green-200 text-green-700 text-sm font-semibold px-4 py-2 rounded-lg`, along with a link to our Discord community.
+    - Each card begins with an emoji icon (e.g., `📋`, `🔍`, `🍪`) and an `<h2>` heading (`text-xl font-bold text-gray-900`) for clear topic identification.
+    - Information is conveyed through paragraphs (`<p>`) and unordered lists (`<ul>`). List items (`<li>`) feature custom bullet points implemented as `span` elements (`w-2 h-2 rounded-full`). These bullets are color-coded: `bg-green-400` for data we collect or use, and `bg-red-400` for data we explicitly do _not_ collect or share (e.g., "We do **not** collect your name, phone number, or Aadhaar").
+    - The "Third-Party Services" card specifically uses a `grid grid-cols-2 gap-3` layout to display the names of integrated services (Cloudinary, Supabase, OpenStreetMap, Sarvam AI) within `div` chips styled with `bg-gray-50 rounded-xl px-4 py-3`.
+    - The "Contact Us" card is visually emphasized with `border border-green-100` and includes a placeholder `[ADMIN_EMAIL]`, styled as an `inline-block bg-green-50 border border-green-200 text-green-700 text-sm font-semibold px-4 py-2 rounded-lg`, along with a link to our Discord community.
 
 3.  **Bottom Section:** A final `text-center py-10 px-4 border-t border-gray-100` section reiterates SahiDawa's core mission statement: "SahiDawa is free, open-source, and built for 1.4 billion Indians. No ads. No premium. No data sold. Ever."
 
@@ -46,29 +46,29 @@ The `apps/web/app/[locale]/components/Footer.tsx` file was modified to integrate
 To re-implement the Privacy Policy page and its footer integration, a contributor would perform the following steps:
 
 1.  **Create the Privacy Policy Page File:**
-    *   Navigate to the `apps/web/app/[locale]/` directory.
-    *   Create a new sub-directory named `privacy`.
-    *   Inside `apps/web/app/[locale]/privacy/`, create a new file named `page.tsx`.
-    *   Populate `page.tsx` with the `PrivacyPolicyPage` functional component, ensuring it exports as default. The component should render the `main` element with `min-h-screen bg-white`.
-    *   Structure the content into three main `<section>` elements:
-        *   The **Hero Section** should include the GSSoC badge, the `<h1>` title "Privacy Policy" with `text-green-500` for "Policy", an introductory paragraph, and the three feature chips ("No Data Sold", "No Tracking Cookies", "Open Source MIT License").
-        *   The **Content Section** (`bg-gray-50 py-16 px-4`) should contain a `max-w-3xl mx-auto space-y-6` container. Within this container, create eight distinct `div` elements, each representing a policy card. Each card should have `bg-white rounded-2xl border border-gray-100 shadow-sm p-8`.
-            *   Each card needs an emoji icon and an `<h2>` heading.
-            *   Use `<p>` tags for descriptive text and `<ul>` with `<li>` for bullet points. For bullet points, use `span` elements (`w-2 h-2 rounded-full`) with `bg-green-400` or `bg-red-400` as appropriate.
-            *   For the "Third-Party Services" card, implement a `grid grid-cols-2 gap-3` for the service chips (`bg-gray-50 rounded-xl px-4 py-3`).
-            *   For the "Contact Us" card, ensure the `[ADMIN_EMAIL]` placeholder is present and styled as an `inline-block bg-green-50 border border-green-200 text-green-700 text-sm font-semibold px-4 py-2 rounded-lg`, and include the Discord link.
-        *   The **Bottom Section** (`text-center py-10 px-4 border-t border-gray-100`) should contain the SahiDawa mission statement.
+    - Navigate to the `apps/web/app/[locale]/` directory.
+    - Create a new sub-directory named `privacy`.
+    - Inside `apps/web/app/[locale]/privacy/`, create a new file named `page.tsx`.
+    - Populate `page.tsx` with the `PrivacyPolicyPage` functional component, ensuring it exports as default. The component should render the `main` element with `min-h-screen bg-white`.
+    - Structure the content into three main `<section>` elements:
+        - The **Hero Section** should include the GSSoC badge, the `<h1>` title "Privacy Policy" with `text-green-500` for "Policy", an introductory paragraph, and the three feature chips ("No Data Sold", "No Tracking Cookies", "Open Source MIT License").
+        - The **Content Section** (`bg-gray-50 py-16 px-4`) should contain a `max-w-3xl mx-auto space-y-6` container. Within this container, create eight distinct `div` elements, each representing a policy card. Each card should have `bg-white rounded-2xl border border-gray-100 shadow-sm p-8`.
+            - Each card needs an emoji icon and an `<h2>` heading.
+            - Use `<p>` tags for descriptive text and `<ul>` with `<li>` for bullet points. For bullet points, use `span` elements (`w-2 h-2 rounded-full`) with `bg-green-400` or `bg-red-400` as appropriate.
+            - For the "Third-Party Services" card, implement a `grid grid-cols-2 gap-3` for the service chips (`bg-gray-50 rounded-xl px-4 py-3`).
+            - For the "Contact Us" card, ensure the `[ADMIN_EMAIL]` placeholder is present and styled as an `inline-block bg-green-50 border border-green-200 text-green-700 text-sm font-semibold px-4 py-2 rounded-lg`, and include the Discord link.
+        - The **Bottom Section** (`text-center py-10 px-4 border-t border-gray-100`) should contain the SahiDawa mission statement.
 
 2.  **Modify the Footer Component:**
-    *   Open `apps/web/app/[locale]/components/Footer.tsx`.
-    *   Locate the `div` element that contains the "Quick Links" section (e.g., where "About Us" is listed).
-    *   Add a new `Link` component from `next/link` within this `div`, ensuring it is a sibling to existing links.
-    *   Set its `href` prop to `"/privacy"`.
-    *   Apply the standard footer link styling: `className="transition-all duration-200 hover:translate-x-1 hover:text-white"`.
-    *   The text content of the link should be "Privacy Policy".
+    - Open `apps/web/app/[locale]/components/Footer.tsx`.
+    - Locate the `div` element that contains the "Quick Links" section (e.g., where "About Us" is listed).
+    - Add a new `Link` component from `next/link` within this `div`, ensuring it is a sibling to existing links.
+    - Set its `href` prop to `"/privacy"`.
+    - Apply the standard footer link styling: `className="transition-all duration-200 hover:translate-x-1 hover:text-white"`.
+    - The text content of the link should be "Privacy Policy".
 
 3.  **Post-Merge Maintainer Action:**
-    *   After the code is merged and deployed, a maintainer *must* manually edit `apps/web/app/[locale]/privacy/page.tsx` to replace the `[ADMIN_EMAIL]` placeholder with the official SahiDawa administrative email address (e.g., `<span className="font-semibold text-green-600">hello@sahidawa.in</span>`). This is a critical step for legal and operational completeness.
+    - After the code is merged and deployed, a maintainer _must_ manually edit `apps/web/app/[locale]/privacy/page.tsx` to replace the `[ADMIN_EMAIL]` placeholder with the official SahiDawa administrative email address (e.g., `<span className="font-semibold text-green-600">hello@sahidawa.in</span>`). This is a critical step for legal and operational completeness.
 
 ## Impact on System Architecture
 

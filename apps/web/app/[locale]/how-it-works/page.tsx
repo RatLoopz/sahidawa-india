@@ -97,7 +97,7 @@ export default function HowItWorksPage() {
             {/* Timeline Section */}
             <section className="px-6 py-10">
                 <div className="mx-auto max-w-6xl">
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-5">
+                    <div className="flex flex-col gap-6 md:flex-row md:items-stretch md:justify-between">
                         {[
                             "Scan Medicine",
                             "Verify Instantly",
@@ -105,21 +105,19 @@ export default function HowItWorksPage() {
                             "Find Pharmacies",
                             "Stay Protected",
                         ].map((item, index) => (
-                            <div
-                                key={index}
-                                className="relative rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
-                            >
-                                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-xl font-bold text-emerald-600">
-                                    {index + 1}
+                            <div key={index} className="relative flex-1">
+                                <div className="h-full rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:border-emerald-300 hover:shadow-xl">
+                                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-xl font-bold text-emerald-600">
+                                        {index + 1}
+                                    </div>
+
+                                    <h3 className="text-lg font-bold text-slate-900">{item}</h3>
                                 </div>
 
-                                <h3 className="text-lg font-bold text-slate-900">{item}</h3>
-
                                 {index !== 4 && (
-                                    <ArrowRight
-                                        className="absolute top-1/2 -right-5 hidden -translate-y-1/2 text-emerald-400 md:block"
-                                        size={28}
-                                    />
+                                    <div className="absolute top-1/2 -right-5 z-10 hidden translate-x-1/2 -translate-y-1/2 text-emerald-400 md:block">
+                                        <ArrowRight size={24} />
+                                    </div>
                                 )}
                             </div>
                         ))}

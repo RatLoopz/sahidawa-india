@@ -54,7 +54,7 @@ describe("voice streaming helper", () => {
             onmessage: null,
             onerror: null,
             onclose: null,
-            readyState: WebSocket.CONNECTING,
+            readyState: 0, // WebSocket.CONNECTING
         } as unknown as WebSocket;
 
         createVoiceStreamingSession({
@@ -66,7 +66,7 @@ describe("voice streaming helper", () => {
             socketFactory: () => socket,
         });
 
-        socket.onclose?.(new CloseEvent("close"));
+        socket.onclose?.({} as CloseEvent);
 
         expect(onFallback).toHaveBeenCalledTimes(1);
     });
