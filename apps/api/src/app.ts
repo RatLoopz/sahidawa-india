@@ -35,6 +35,7 @@ import analyticsRoutes from "./routes/analytics";
 import notificationsRouter from "./routes/notifications";
 import scanRouter from "./routes/scan";
 import alertsRouter from "./routes/alerts";
+import imageVerifyRouter from "./routes/image-verify";
 import { supabase } from "./db/client";
 
 import { errorHandler } from "./middleware/errorHandler";
@@ -119,6 +120,7 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/v1/scan", scanRouter);
 app.use("/api/v1/alerts", alertsRouter);
+app.use("/api/image-verify", imageVerifyRouter);
 
 // ── Swagger UI (/api/docs) ──────────────────────────────────────────────────
 app.use(

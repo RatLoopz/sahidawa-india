@@ -6,6 +6,7 @@ import logging
 
 from services.telemetry import configure_telemetry_logging
 from services.router_loader import include_router_if_available
+from src.image_compare import router as image_compare_router
 
 load_dotenv()
 configure_telemetry_logging()
@@ -37,6 +38,8 @@ include_router_if_available(app, "routers.asr", required=True)
 ocr_loaded = include_router_if_available(app, "routers.ocr", required=False)
 if not ocr_loaded:
     logger.warning("OCR routes are disabled in this runtime.")
+
+app.include_router(image_compare_router, prefix="/api/v1", tags=["image-compare"])
 
 @app.get("/")
 def read_root():
