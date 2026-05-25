@@ -26,6 +26,7 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import SearchBar from "./components/SearchBar";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
+import MedicinePhotoUpload from "@/components/MedicinePhotoUpload";
 
 function formatRelativeTime(dateString: string | null): string {
     if (!dateString) return "Recent";
@@ -339,6 +340,30 @@ export default function SahiDawaHome() {
                             />
                         </button>
                     </div>
+                </div>
+
+                {/* ── Medicine Photo Upload ── */}
+                <div className="mt-8 overflow-hidden rounded-3xl border border-emerald-200/60 bg-gradient-to-br from-emerald-50 via-white to-teal-50/80 p-6 shadow-md shadow-emerald-100/50 sm:p-8">
+                    <div className="mb-6 flex items-center gap-3">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30">
+                            <Camera size={24} className="text-white" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-extrabold tracking-tight text-slate-800">
+                                Verify Medicine Photo
+                            </h3>
+                            <p className="text-sm font-medium text-slate-500">
+                                Upload packaging for AI-powered fake medicine detection
+                            </p>
+                        </div>
+                    </div>
+                    <MedicinePhotoUpload
+                        onUploadSuccess={(url) => {
+                            console.log("Medicine photo uploaded:", url);
+                            // TODO: pass url to ML service
+                        }}
+                        onUploadError={(err) => console.error("Upload error:", err)}
+                    />
                 </div>
 
                 {/* ── Global Search ── */}
