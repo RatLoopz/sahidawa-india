@@ -114,14 +114,17 @@ export default function Footer() {
                 {/* Bottom Footer */}
                 <div className="flex flex-col items-center justify-between gap-4 pt-6 text-xs text-slate-500 md:flex-row">
                     <div className="flex items-center gap-4">
-                        <p>© 2026 SahiDawa. Open Source under MIT License.</p>
+                        <p className="text-xs sm:text-sm md:text-base lg:text-lg">
+                            © 2026 SahiDawa. Open Source under MIT License.
+                        </p>
                         {/* THEME TOGGLE ADDED HERE */}
                         <ThemeToggle />
                     </div>
 
-                    <p className="text-center md:text-right">
-                        Built with ❤️ for the open-source community.
+                    <p className="text-xs sm:text-sm md:text-base lg:text-lg text-center md:text-right">
+                        Built with ❤️ during GSSoC 2026 for the open-source community.
                     </p>
+
                 </div>
             </div>
         </footer>
