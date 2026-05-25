@@ -15,9 +15,6 @@ requests>=2.32.0            # HTTP requests
 pandas>=2.2.0               # CSV/tabular data manipulation
 python-Levenshtein>=0.26.0  # Fuzzy string matching for normalization
 
-# Database
-supabase>=2.10.0            # Supabase Python client
-
 # PDF parsing (for CDSCO alerts - Step 3)
 pdfplumber>=0.11.0          # Extract tables from government PDFs
 

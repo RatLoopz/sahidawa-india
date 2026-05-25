@@ -3,7 +3,6 @@
 import { useCallback, useState } from "react";
 import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
-import Footer from "../components/Footer";
 import ComparisonGrid, { type Medicine } from "@/src/components/ComparisonGrid";
 import MedicineSearchSelect from "@/src/components/MedicineSearchSelect";
 import { COMPARE_SELECT_FIELDS } from "@/src/lib/compareSelectFields";
@@ -65,7 +64,6 @@ export default function ComparePage() {
                     </Link>
                 </p>
             </main>
-            <Footer />
         </div>
     );
 }

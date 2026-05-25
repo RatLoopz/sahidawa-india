@@ -27,6 +27,12 @@ import SearchBar from "./components/SearchBar";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 
+const desktopNavLinkClassName =
+    "relative inline-flex items-center pb-1 transition-colors duration-200 ease-out hover:text-emerald-600 focus-visible:text-emerald-600 after:absolute after:inset-x-0 after:-bottom-0.5 after:h-0.5 after:origin-center after:scale-x-0 after:rounded-full after:bg-current after:transition-transform after:duration-300 after:ease-out hover:after:scale-x-100 focus-visible:after:scale-x-100 motion-safe:after:will-change-transform";
+
+const mobileNavLabelClassName =
+    "relative inline-flex items-center pb-1 transition-colors duration-200 ease-out after:absolute after:inset-x-0 after:-bottom-0.5 after:h-0.5 after:origin-center after:scale-x-0 after:rounded-full after:bg-current after:transition-transform after:duration-300 after:ease-out group-hover:after:scale-x-100 group-active:after:scale-x-100 group-focus-visible:after:scale-x-100 motion-safe:after:will-change-transform";
+
 function formatRelativeTime(dateString: string | null): string {
     if (!dateString) return "Recent";
 
@@ -131,22 +137,22 @@ export default function SahiDawaHome() {
                         >
                             <Link
                                 href="/how-it-works"
-                                className="transition-colors hover:text-emerald-600"
+                                className={desktopNavLinkClassName}
                             >
                                 {tNav("how_it_works")}
                             </Link>
                             <Link
                                 href="/alerts"
-                                className="transition-colors hover:text-emerald-600"
+                                className={desktopNavLinkClassName}
                             >
                                 {tNav("alerts")}
                             </Link>
-                            <Link href="/map" className="transition-colors hover:text-emerald-600">
+                            <Link href="/map" className={desktopNavLinkClassName}>
                                 {tNav("pharmacy_map")}
                             </Link>
                             <Link
                                 href="/reports/me"
-                                className="flex items-center gap-1 transition-colors hover:text-emerald-600"
+                                className={`${desktopNavLinkClassName} flex items-center gap-1`}
                             >
                                 <History size={14} /> My Reports
                             </Link>
@@ -302,10 +308,10 @@ export default function SahiDawaHome() {
 
                         <div className="pt-4">
                             <h3 className="text-lg font-bold tracking-tight text-slate-800">
-                                Report Fake
+                                {tHome("report_fake")}
                             </h3>
                             <p className="mt-1 text-sm leading-snug font-medium text-slate-500">
-                                Report suspicious medicine
+                                {tHome("report_fake_subtitle")}
                             </p>
                         </div>
                     </button>
@@ -509,7 +515,9 @@ export default function SahiDawaHome() {
                     <div className="text-emerald-600 transition-transform group-hover:-translate-y-1">
                         <Home size={24} strokeWidth={2.5} />
                     </div>
-                    <span className="text-[11px] font-bold text-emerald-600">Home</span>
+                    <span className={`${mobileNavLabelClassName} text-[11px] font-bold text-emerald-600`}>
+                        Home
+                    </span>
                 </Link>
 
                 <Link
@@ -520,7 +528,9 @@ export default function SahiDawaHome() {
                     <div className="transition-transform group-hover:-translate-y-1">
                         <History size={24} strokeWidth={2} />
                     </div>
-                    <span className="text-[11px] font-semibold">Scans</span>
+                    <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
+                        Scans
+                    </span>
                 </Link>
 
                 <Link
@@ -531,7 +541,9 @@ export default function SahiDawaHome() {
                     <div className="transition-transform group-hover:-translate-y-1">
                         <MapPin size={24} strokeWidth={2} />
                     </div>
-                    <span className="text-[11px] font-semibold">Map</span>
+                    <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
+                        Map
+                    </span>
                 </Link>
 
                 <Link
@@ -543,7 +555,9 @@ export default function SahiDawaHome() {
                         <Bell size={24} strokeWidth={2} />
                         <span className="absolute top-0 right-0.5 h-2 w-2 animate-pulse rounded-full border border-white bg-red-500"></span>
                     </div>
-                    <span className="text-[11px] font-semibold">Alerts</span>
+                    <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
+                        Alerts
+                    </span>
                 </Link>
 
                 <Link
@@ -554,7 +568,9 @@ export default function SahiDawaHome() {
                     <div className="transition-transform group-hover:-translate-y-1">
                         <User size={24} strokeWidth={2} />
                     </div>
-                    <span className="text-[11px] font-semibold">Profile</span>
+                    <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
+                        Profile
+                    </span>
                 </Link>
             </nav>
         </div>

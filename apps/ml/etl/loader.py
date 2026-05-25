@@ -1,35 +1,6 @@
-"""
-SahiDawa — Supabase Data Loader
-=================================
-INPUT:  Clean pandas DataFrame from the normalizer
-OUTPUT: Records inserted into the Supabase 'medicines' table
-
-WHY A SEPARATE LOADER?
-    The loader only knows how to talk to the database.
-    Tomorrow if we switch from Supabase to a direct Postgres connection,
-    only THIS file changes — not the scraper or normalizer.
-
-UPSERT STRATEGY:
-    We use "upsert" (insert + update on conflict) instead of plain insert.
-    This means running the scraper twice won't create duplicate entries.
-    Conflict is detected on: (generic_name, strength, dosage_form, source)
-    
-    If a record already exists with those same values, we UPDATE it
-    (in case MRP or other details changed since last scrape).
-
-BATCH INSERTS:
-    Instead of inserting one row at a time (slow), we insert in batches of 100.
-    This reduces the number of network round-trips to Supabase from 2,400 to ~24.
-"""
-
-import json
-import os
-import re
-import time
-from collections import Counter
-from datetime import datetime, timezone
-from hashlib import sha256
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "apps" / "etl"))
 
 import pandas as pd
 from dotenv import load_dotenv
@@ -500,6 +471,6 @@ def load_processed_csv(csv_path: Path = None):
     stats = loader.load(df)
     return stats
 
+ 
 
-if __name__ == "__main__":
-    load_processed_csv()
+

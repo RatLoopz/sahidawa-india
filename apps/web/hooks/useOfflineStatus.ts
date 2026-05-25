@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useState, useCallback, useRef } from 'react';
 
 /**
@@ -21,7 +19,6 @@ export const useOfflineStatus = () => {
       setIsTestMode(testMode);
 
       if (testMode) {
-        console.log('🧪 OFFLINE TEST MODE ENABLED - Banner will show');
         setIsOffline(true);
         return; // Skip normal online/offline detection
       }

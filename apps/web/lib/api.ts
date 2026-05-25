@@ -182,3 +182,34 @@ export async function verifyMedicineByBrand(brandName: string): Promise<VerifyRe
 
     return res.json() as Promise<VerifyResult>;
 }
+
+export type LasaMatchType = "sound-alike" | "look-alike";
+
+export interface LasaMatch {
+    name: string;
+    type: LasaMatchType;
+    score: number;
+}
+
+export interface LasaCheckResult {
+    hasConflicts: boolean;
+    matches: LasaMatch[];
+}
+
+export async function checkLasaConflicts(medicineName: string): Promise<LasaCheckResult> {
+    const res = await fetchWithRetry(`${API_BASE}/api/v1/lasa/check`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ medicineName }),
+        timeout: 8000,
+    });
+
+    if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body.error ?? `LASA check failed (${res.status})`);
+    }
+
+    return res.json() as Promise<LasaCheckResult>;
+}

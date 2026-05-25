@@ -8,6 +8,7 @@ const DEFAULT_DISCLAIMER =
 type ChatMessage = {
     text?: string;
     content?: string;
+    role?: string;
 };
 
 type VoiceTriageResponse = {
@@ -25,6 +26,17 @@ function getLatestMessageText(messages: ChatMessage[] | undefined) {
 
     const lastMessage = messages[messages.length - 1];
     return lastMessage?.text?.trim() || lastMessage?.content?.trim() || "";
+}
+
+function mapMessagesToGeminiContents(messages: ChatMessage[]) {
+    return messages.map((msg) => {
+        const text = msg.text || msg.content || "";
+        const role = msg.role === "assistant" ? "model" : "user";
+        return {
+            role,
+            parts: [{ text }],
+        };
+    });
 }
 
 function extractJsonBlock(rawText: string) {
@@ -134,9 +146,11 @@ export async function POST(req: Request) {
             });
         }
 
+        const formattedContents = mapMessagesToGeminiContents(messages || []);
+
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
-            contents: latestMessageText,
+            contents: formattedContents,
             config: {
                 systemInstruction:
                     "You are the SahiDawa AI Assistant. SahiDawa is India's First Open-Source Citizen Medicine Verifier & Rural Health Bridge. You help users verify medicine information, understand their prescriptions, and navigate the app. Be concise, empathetic, and highly accurate in your medical guidance, but always remind users to consult a doctor for serious concerns.",

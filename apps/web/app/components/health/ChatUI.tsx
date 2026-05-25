@@ -59,12 +59,18 @@ export default function ChatUI() {
   const [isListening, setIsListening] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const lastUserText = useRef("");
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const recRef = useRef<any>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: "smooth",
+    });
   }, [messages, isTyping]);
 
   useEffect(() => {
@@ -87,14 +93,14 @@ export default function ChatUI() {
     
     try {
       const history = [...messages, userMsg].filter(m => !m.isError).map(m => ({ role: m.role, content: m.content }));
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system: SYSTEM_PROMPT, messages: history }),
+        body: JSON.stringify({ messages: history }),
       });
       if (!res.ok) throw new Error();
       const data = await res.json();
-      const reply = data.content?.find((b: any) => b.type === "text")?.text || "I'm here to help! Could you rephrase that?";
+      const reply = data.text || "I'm here to help! Could you rephrase that?";
       setMessages(prev => [...prev, { id: genId(), role: "assistant", content: reply, timestamp: new Date() }]);
     } catch {
       setMessages(prev => [...prev, { id: genId(), role: "assistant", content: "", timestamp: new Date(), isError: true }]);
@@ -159,7 +165,7 @@ export default function ChatUI() {
       </header>
 
       {/* Messages */}
-      <main className="flex-1 overflow-y-auto px-4 py-5">
+      <main ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-5">
         <div className="max-w-3xl mx-auto">
           {messages.map((msg) => (
             <ChatBubble key={msg.id} msg={msg} onRetry={handleRetry} />
@@ -187,7 +193,7 @@ export default function ChatUI() {
             </div>
           )}
           
-          <div ref={bottomRef} className="h-2" />
+          <div className="h-2" />
         </div>
       </main>
 

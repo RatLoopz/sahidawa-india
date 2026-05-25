@@ -1,12 +1,14 @@
-import json
-import sys
-from pathlib import Path
+# ⚠️  MIGRATED — do not add tests here.
+#
+# These tests have been moved to the unified ETL workspace:
+#   apps/etl/tests/test_loader.py
+#
+# Run them with:
+#   cd apps/etl && pytest tests/test_loader.py
 
-import pandas as pd
+import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-from etl.loader import SupabaseLoader
+pytest.skip("Migrated to apps/etl/tests/test_loader.py", allow_module_level=True)
 
 
 class FakeExecuteResponse:
