@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useId } from "react";
 import { Camera, AlertCircle, VideoOff, Zap, ZapOff } from "lucide-react";
+import { LiveMessage } from "@/components/ui/LiveMessage";
 
 /**
  * Status of the barcode scanner lifecycle.
@@ -11,12 +12,7 @@ import { Camera, AlertCircle, VideoOff, Zap, ZapOff } from "lucide-react";
  * - `unavailable`: No suitable camera device was found.
  * - `error`: An unexpected error occurred during setup.
  */
-type ScannerStatus =
-    | "initializing"
-    | "scanning"
-    | "permission-denied"
-    | "unavailable"
-    | "error";
+type ScannerStatus = "initializing" | "scanning" | "permission-denied" | "unavailable" | "error";
 
 /** Props accepted by the {@link BarcodeScanner} component. */
 interface BarcodeScannerProps {
@@ -65,6 +61,10 @@ export function BarcodeScanner({ onScan, debounceMs = 2000 }: BarcodeScannerProp
     const [hasTorch, setHasTorch] = useState(false);
     const [torchOn, setTorchOn] = useState(false);
     const [retryCount, setRetryCount] = useState(0);
+    const initializingMessageId = useId();
+    const permissionDeniedMessageId = useId();
+    const unavailableMessageId = useId();
+    const scannerErrorMessageId = useId();
 
     const handleRetry = () => {
         setStatus("initializing");
@@ -119,7 +119,9 @@ export function BarcodeScanner({ onScan, debounceMs = 2000 }: BarcodeScannerProp
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                     if (!cancelled) {
                         setStatus("unavailable");
-                        setErrorMessage("Camera access is not supported by this browser. Please use HTTPS or a compatible browser.");
+                        setErrorMessage(
+                            "Camera access is not supported by this browser. Please use HTTPS or a compatible browser."
+                        );
                     }
                     return;
                 }
@@ -147,7 +149,10 @@ export function BarcodeScanner({ onScan, debounceMs = 2000 }: BarcodeScannerProp
                 const controls = await reader.decodeFromStream(
                     stream,
                     videoRef.current,
-                    (result, error) => {
+                    (
+                        result: { getText(): string } | undefined,
+                        error: { name?: string } | undefined
+                    ) => {
                         if (result) {
                             const text = result.getText().trim();
                             if (text && shouldEmitScan(text)) {
@@ -190,7 +195,9 @@ export function BarcodeScanner({ onScan, debounceMs = 2000 }: BarcodeScannerProp
                     errorObj.name === "PermissionDeniedError"
                 ) {
                     setStatus("permission-denied");
-                    setErrorMessage("Camera access was denied. Please allow camera permissions in your browser settings and try again.");
+                    setErrorMessage(
+                        "Camera access was denied. Please allow camera permissions in your browser settings and try again."
+                    );
                 } else if (
                     errorObj.name === "NotFoundError" ||
                     errorObj.name === "DevicesNotFoundError" ||
@@ -249,59 +256,83 @@ export function BarcodeScanner({ onScan, debounceMs = 2000 }: BarcodeScannerProp
 
     if (status === "permission-denied") {
         return (
-            <div className="flex flex-col items-center justify-center gap-4 p-6 text-center">
+            <LiveMessage
+                tone="critical"
+                describedBy={permissionDeniedMessageId}
+                className="flex flex-col items-center justify-center gap-4 p-6 text-center"
+            >
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/20">
                     <AlertCircle size={32} className="text-red-400" />
                 </div>
                 <h3 className="text-lg font-bold text-white">Camera Permission Required</h3>
-                <p className="max-w-xs text-sm text-slate-400">{errorMessage}</p>
+                <p id={permissionDeniedMessageId} className="max-w-xs text-sm text-slate-400">
+                    {errorMessage}
+                </p>
                 <button
                     onClick={handleRetry}
                     className="rounded-full bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-emerald-400 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none"
                 >
                     Retry
                 </button>
-            </div>
+            </LiveMessage>
         );
     }
 
     if (status === "unavailable") {
         return (
-            <div className="flex flex-col items-center justify-center gap-4 p-6 text-center">
+            <LiveMessage
+                tone="critical"
+                describedBy={unavailableMessageId}
+                className="flex flex-col items-center justify-center gap-4 p-6 text-center"
+            >
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/20">
                     <VideoOff size={32} className="text-amber-400" />
                 </div>
                 <h3 className="text-lg font-bold text-white">Camera Unavailable</h3>
-                <p className="max-w-xs text-sm text-slate-400">{errorMessage}</p>
-            </div>
+                <p id={unavailableMessageId} className="max-w-xs text-sm text-slate-400">
+                    {errorMessage}
+                </p>
+            </LiveMessage>
         );
     }
 
     if (status === "error") {
         return (
-            <div className="flex flex-col items-center justify-center gap-4 p-6 text-center">
+            <LiveMessage
+                tone="critical"
+                describedBy={scannerErrorMessageId}
+                className="flex flex-col items-center justify-center gap-4 p-6 text-center"
+            >
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/20">
                     <AlertCircle size={32} className="text-red-400" />
                 </div>
                 <h3 className="text-lg font-bold text-white">Scanner Error</h3>
-                <p className="max-w-xs text-sm text-slate-400">{errorMessage}</p>
+                <p id={scannerErrorMessageId} className="max-w-xs text-sm text-slate-400">
+                    {errorMessage}
+                </p>
                 <button
                     onClick={handleRetry}
                     className="rounded-full bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-emerald-400 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none"
                 >
                     Retry
                 </button>
-            </div>
+            </LiveMessage>
         );
     }
 
     return (
         <div className="relative h-full w-full">
             {status === "initializing" && (
-                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3">
+                <LiveMessage
+                    tone="polite"
+                    describedBy={initializingMessageId}
+                    className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3"
+                >
                     <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/10 border-t-emerald-500" />
-                    <p className="text-sm font-medium text-slate-400">Starting camera…</p>
-                </div>
+                    <p id={initializingMessageId} className="text-sm font-medium text-slate-400">
+                        Starting camera…
+                    </p>
+                </LiveMessage>
             )}
             <video
                 ref={videoRef}
@@ -325,7 +356,7 @@ export function BarcodeScanner({ onScan, debounceMs = 2000 }: BarcodeScannerProp
                     aria-label={torchOn ? "Turn off flashlight" : "Turn on flashlight"}
                 >
                     {torchOn ? (
-                        <Zap className="h-5 w-5 text-amber-400 fill-amber-400" />
+                        <Zap className="h-5 w-5 fill-amber-400 text-amber-400" />
                     ) : (
                         <ZapOff className="h-5 w-5 text-white" />
                     )}

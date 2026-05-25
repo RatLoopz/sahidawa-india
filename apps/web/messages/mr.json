@@ -10,6 +10,8 @@
         "voice_subtitle": "लक्षणे बोला",
         "pharmacy_map": "औषधालय नकाशा",
         "pharmacy_subtitle": "पडताळलेली दुकाने शोधा",
+        "report_fake": "बनावट औषधाची तक्रार करा",
+        "report_fake_subtitle": "संशयास्पद औषधाची तक्रार करा",
         "search_placeholder": "औषध किंवा बॅच शोधा...",
         "search_button": "शोधा"
     },
@@ -29,8 +31,17 @@
         "example_text": "\"मला ताप आणि खोकला आहे\"",
         "assistant_label": "AI सहाय्यक",
         "assistant_value": "२४/७ ऐकत आहे",
+        "skip_to_main_content": "मुख्य मजकुरावर जा",
         "listening_placeholder": "तुमची लक्षणे सांगायला सुरुवात करा…",
         "listening_status": "लक्षणे ऐकली जात आहेत",
+        "announcements": {
+            "recording_started": "रेकॉर्डिंग सुरू झाले",
+            "processing_started": "तुमच्या लक्षणांची प्रक्रिया सुरू झाली",
+            "results_ready": "निकाल तयार आहेत"
+        },
+        "streaming_connecting_hint": "थेट ट्रान्सक्रिप्शनशी जोडले जात आहे…",
+        "streaming_live_hint": "थेट ट्रान्सक्रिप्ट अद्ययावत होत आहे",
+        "streaming_fallback_hint": "कनेक्शन अस्थिर आहे. तुम्ही बोलून झाल्यावर SahiDawa प्रक्रिया पूर्ण करेल.",
         "animation_toggle_label": "व्हॉइस अ‍ॅनिमेशन",
         "animation_live_label": "लाइव्ह तरंगरूप",
         "animation_reduced_motion_label": "कमी हालचाल",
@@ -44,6 +55,7 @@
         "review_title": "तुमचा ट्रान्सक्रिप्ट तपासा",
         "review_message": "मायक्रोफोनने तुमची लक्षणे कमी विश्वासार्हतेने टिपली. अधिक स्पष्ट निकालासाठी पुन्हा प्रयत्न करा किंवा हाच ट्रान्सक्रिप्ट विश्लेषित करा.",
         "retry_button": "पुन्हा प्रयत्न करा",
+        "switch_to_text_button": "Type Instead",
         "analyse_anyway_button": "तरीही विश्लेषण करा",
         "result_heading": "AI विश्लेषण",
         "result_subheading": "वैद्यकीय ट्रायज",
@@ -75,6 +87,7 @@
         "copy_success": "अहवाल क्लिपबोर्डवर कॉपी झाला",
         "share_failure": "आत्ता अहवाल शेअर करता आला नाही",
         "tts_not_supported": "तुमचा ब्राउझर टेक्स्ट-टू-स्पीचला समर्थन देत नाही",
+        "tts_fallback_message": "{language} टेक्स्ट-टू-स्पीच समर्थन मर्यादित असल्यामुळे तुमचा ब्राउझर हा सारांश दुसऱ्या आवाजात वाचू शकतो.",
         "fallback_summary": "SahiDawa ला उत्तर स्पष्टपणे मांडता आले नाही. लक्षणे सुरू राहिल्यास डॉक्टरांचा सल्ला घ्या.",
         "share_report": {
             "title": "SahiDawa व्हॉइस ट्रायज अहवाल",
@@ -93,6 +106,8 @@
         "errors": {
             "unsupported_title": "व्हॉइस इनपुट उपलब्ध नाही",
             "unsupported_message": "हा ब्राउझर अजून स्पीच रिकग्निशनला समर्थन देत नाही. Chrome किंवा Edge वापरून पहा.",
+            "language_not_supported_title": "हा ब्राउझर ती व्हॉइस भाषा पकडू शकत नाही",
+            "language_not_supported_message": "या ब्राउझरमध्ये {language} व्हॉइस इनपुट मर्यादित आहे. Chrome किंवा Edge वापरून पहा, किंवा दुसरी व्हॉइस भाषा निवडून नवीन तपासणी सुरू करा.",
             "permission_title": "मायक्रोफोन प्रवेश बंद आहे",
             "permission_message": "तुमच्या ब्राउझर सेटिंगमध्ये मायक्रोफोन परवानगी द्या आणि पुन्हा प्रयत्न करा.",
             "microphone_title": "मायक्रोफोन सापडला नाही",
@@ -103,8 +118,49 @@
             "no_speech_message": "शांत ठिकाणी पुन्हा प्रयत्न करा किंवा मायक्रोफोनजवळून बोला.",
             "generic_title": "काहीतरी चुकले",
             "generic_message": "यावेळी तुमचा व्हॉइस इनपुट प्रक्रिया करता आला नाही. कृपया पुन्हा प्रयत्न करा.",
+            "service_unavailable_title": "Voice service unavailable",
+            "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
+
+            "timeout_title": "Voice request timed out",
+            "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
             "api_title": "SahiDawa AI उपलब्ध नाही",
             "api_message": "सध्या वैद्यकीय मार्गदर्शन मिळू शकले नाही. थोड्या वेळाने पुन्हा प्रयत्न करा."
         }
+    },
+    "contact": {
+        "badge": "GSSoC 2026 ओपन सोर्स प्रकल्प",
+        "heroTitle": {
+            "prefix": "संपर्क",
+            "highlight": "साधा"
+        },
+        "heroSubtitle": "प्रश्न, कल्पना किंवा योगदान द्यायचे आहे? आम्हाला तुमच्याकडून ऐकायला आवडेल.",
+        "cards": {
+            "email": {
+                "title": "आम्हाला ईमेल करा",
+                "description": "गोपनीयतेचे प्रश्न, भागीदारी किंवा गंभीर समस्यांसाठी."
+            },
+            "discord": {
+                "title": "Discord समुदाय",
+                "description": "योगदानकर्त्यांशी जोडा, प्रश्न विचारा आणि घोषणा मिळवा.",
+                "cta": "Discord मध्ये सामील व्हा"
+            },
+            "bug": {
+                "title": "बग नोंदवा",
+                "description": "समस्या आढळली? GitHub issue उघडा आणि आम्ही लवकर दुरुस्त करू.",
+                "cta": "Issue उघडा"
+            },
+            "contribute": {
+                "title": "योगदान द्या",
+                "description": "SahiDawa तयार करण्यास मदत करायची आहे? आमची contributing guide वाचा.",
+                "cta": "मार्गदर्शिका वाचा"
+            }
+        },
+        "quickLinks": {
+            "title": "उपयुक्त दुवे",
+            "about": "SahiDawa बद्दल",
+            "privacy": "गोपनीयता धोरण",
+            "faq": "वारंवार विचारले जाणारे प्रश्न"
+        },
+        "footer": "SahiDawa विनामूल्य, ओपन-सोर्स आहे आणि 1.4 अब्ज भारतीयांसाठी बनवले आहे. जाहिराती नाहीत. प्रीमियम नाही. डेटा कधीही विकला जाणार नाही."
     }
 }

@@ -30,15 +30,15 @@ jobs:
               const labelNames = labels.map(l => (typeof l === 'string' ? l : l.name).toLowerCase());
               
               if (labelNames.includes('good first issue')) {
-                return { maxDays: 3, warnDays: 2 }; // Unassign after 3 days, Warn after 2 days
+                return { maxDays: 2, warnDays: 1 }; // Unassign after 2 days (48h), Warn after 1 day (24h)
               }
               if (labelNames.includes('advanced') || labelNames.includes('ml') || labelNames.includes('agent')) {
-                return { maxDays: 7, warnDays: 5 }; // Unassign after 7 days, Warn after 5 days
+                return { maxDays: 4, warnDays: 3 }; // Unassign after 4 days (96h), Warn after 3 days (72h)
               }
               if (labelNames.includes('intermediate')) {
-                return { maxDays: 5, warnDays: 3 }; // Unassign after 5 days, Warn after 3 days
+                return { maxDays: 3, warnDays: 2 }; // Unassign after 3 days (72h), Warn after 2 days (48h)
               }
-              return { maxDays: 5, warnDays: 3 }; // Default Fallback
+              return { maxDays: 3, warnDays: 2 }; // Default Fallback (72h unassign, 48h warn)
             }
 
             core.info(`Fetching open issues...`);

@@ -9,11 +9,15 @@ export type VoiceTriageResult = {
     disclaimer: string;
     emergency: boolean;
 };
+export type VoiceErrorType = "generic" | "timeout" | "service-unavailable";
 
 export type VoiceErrorState = {
     title: string;
     message: string;
+    type?: VoiceErrorType;
 };
+
+export type VoiceStreamingStatus = "idle" | "connecting" | "streaming" | "fallback";
 
 export type VoiceFlowState = {
     transcript: string;

@@ -45,7 +45,7 @@ const steps = [
 
 export default function HowItWorksPage() {
     return (
-        <main className="min-h-screen overflow-hidden bg-gradient-to-b from-white via-emerald-50/30 to-white">
+        <main className="min-h-screen overflow-x-hidden bg-gradient-to-b from-white via-emerald-50/30 to-white">
             {/* Hero Section */}
             <section className="relative px-6 pt-24 pb-20">
                 {/* Glow Effects */}
@@ -56,7 +56,7 @@ export default function HowItWorksPage() {
                     <Link
                         href="/"
                         aria-label="Back to Home"
-                        className="absolute left-6 top-6 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 shadow-sm transition-all duration-300 hover:bg-slate-200 hover:scale-105"
+                        className="absolute top-6 left-6 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 shadow-sm transition-all duration-300 hover:scale-105 hover:bg-slate-200"
                     >
                         <ArrowLeft size={22} className="text-slate-600" />
                     </Link>
@@ -65,7 +65,7 @@ export default function HowItWorksPage() {
                         Safe Healthcare • AI Powered
                     </div>
 
-                    <h1 className="text-5xl leading-tight font-black tracking-tight text-slate-900 md:text-7xl">
+                    <h1 className="text-4xl leading-tight font-black tracking-tight text-slate-900 sm:text-5xl md:text-7xl">
                         How <span className="text-emerald-600">SahiDawa</span> Works
                     </h1>
 
@@ -97,7 +97,7 @@ export default function HowItWorksPage() {
             {/* Timeline Section */}
             <section className="px-6 py-10">
                 <div className="mx-auto max-w-6xl">
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-5">
+                    <div className="flex flex-col gap-6 md:flex-row md:items-stretch md:justify-between">
                         {[
                             "Scan Medicine",
                             "Verify Instantly",
@@ -105,21 +105,19 @@ export default function HowItWorksPage() {
                             "Find Pharmacies",
                             "Stay Protected",
                         ].map((item, index) => (
-                            <div
-                                key={index}
-                                className="relative rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
-                            >
-                                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-xl font-bold text-emerald-600">
-                                    {index + 1}
+                            <div key={index} className="relative flex-1">
+                                <div className="h-full rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:border-emerald-300 hover:shadow-xl">
+                                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-xl font-bold text-emerald-600">
+                                        {index + 1}
+                                    </div>
+
+                                    <h3 className="text-lg font-bold text-slate-900">{item}</h3>
                                 </div>
 
-                                <h3 className="text-lg font-bold text-slate-900">{item}</h3>
-
                                 {index !== 4 && (
-                                    <ArrowRight
-                                        className="absolute top-1/2 -right-5 hidden -translate-y-1/2 text-emerald-400 md:block"
-                                        size={28}
-                                    />
+                                    <div className="absolute top-1/2 -right-5 z-10 hidden translate-x-1/2 -translate-y-1/2 text-emerald-400 md:block">
+                                        <ArrowRight size={24} />
+                                    </div>
                                 )}
                             </div>
                         ))}

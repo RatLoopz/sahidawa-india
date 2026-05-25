@@ -271,7 +271,7 @@ function updateIndex(docPath, adrPath) {
     current = readFileSync(indexPath, "utf8");
   }
 
-  if (current.includes("| PR |")) {
+  if (/\|\s*PR\s*\|/.test(current)) {
     writeFileSync(indexPath, current.trimEnd() + "\n" + newEntry + "\n", "utf8");
   } else {
     const header = `# SahiDawa DevTrack — Knowledge Index

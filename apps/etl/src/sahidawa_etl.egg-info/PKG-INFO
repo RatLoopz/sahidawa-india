@@ -1,0 +1,14 @@
+Metadata-Version: 2.4
+Name: sahidawa-etl
+Version: 0.1.0
+Summary: Unified ETL pipelines for SahiDawa — Jan Aushadhi scraper, CDSCO validator, Supabase loader
+Requires-Python: >=3.10
+Requires-Dist: playwright>=1.49.0
+Requires-Dist: requests>=2.32.0
+Requires-Dist: pandas>=2.2.0
+Requires-Dist: rapidfuzz>=3.0.0
+Requires-Dist: supabase>=2.10.0
+Requires-Dist: python-dotenv>=1.0.1
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.23.0; extra == "dev"

@@ -11,6 +11,7 @@
         "dev": "npm run dev --workspaces --if-present",
         "build": "npm run build --workspaces --if-present",
         "test": "npm run test --workspaces --if-present",
+        "test:a11y:voice": "npm run test:a11y:voice -w web",
         "prepare": "command -v husky >/dev/null 2>&1 && husky || true",
         "check:migrations": "node scripts/check-migrations.js"
     },

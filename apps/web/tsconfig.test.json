@@ -4,7 +4,19 @@
         "module": "node16",
         "moduleResolution": "node16",
         "rootDir": ".",
-        "types": ["node", "jest"]
+        "types": ["node", "jest"],
+        "baseUrl": ".",
+        "ignoreDeprecations": "6.0",
+        "paths": {
+            "@/*": ["./*"]
+        }
     },
-    "include": ["tests/**/*.ts", "app/**/*.ts", "app/**/*.tsx", "lib/**/*.ts"]
+    "include": [
+        "tests/**/*.ts",
+        "tests/**/*.tsx",
+        "app/**/*.ts",
+        "app/**/*.tsx",
+        "lib/**/*.ts",
+        "components/**/*.tsx"
+    ]
 }

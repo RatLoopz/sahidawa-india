@@ -1,10 +1,16 @@
 import { getConfidenceMeta } from "../app/[locale]/voice/lib/confidence";
+import { resolveSpeechSynthesisVoice } from "../app/[locale]/voice/lib/browser";
 import { detectEmergencyKeywords } from "../app/[locale]/voice/lib/emergency";
-import { shouldAutoFocusVoicePanel } from "../app/[locale]/voice/lib/accessibility";
+import {
+    getVoiceStepAnnouncement,
+    shouldHandleVoiceEscape,
+    shouldAutoFocusVoicePanel,
+} from "../app/[locale]/voice/lib/accessibility";
 import {
     DEFAULT_VOICE_LANGUAGE,
     VOICE_LANGUAGE_OPTIONS,
     getVoiceLanguageOption,
+    resolveVoiceWorkflowLanguage,
 } from "../app/[locale]/voice/lib/languages";
 import {
     getPreferredRecordingMimeType,
@@ -72,6 +78,15 @@ describe("voice language config", () => {
             responseLanguage: "Tamil",
         });
     });
+
+    it("keeps the active workflow language stable after capture starts", () => {
+        expect(resolveVoiceWorkflowLanguage(null, "bn-IN", "te-IN")).toBe("bn-IN");
+        expect(resolveVoiceWorkflowLanguage(null, null, "te-IN")).toBe("te-IN");
+    });
+
+    it("prefers the session snapshot over stale state on retry", () => {
+        expect(resolveVoiceWorkflowLanguage("te-IN", "bn-IN", "te-IN")).toBe("te-IN");
+    });
 });
 
 describe("voice recording helpers", () => {
@@ -94,6 +109,45 @@ describe("voice recording helpers", () => {
         };
 
         expect(getPreferredRecordingMimeType(mediaRecorderMock)).toBe("");
+    });
+});
+
+describe("speech synthesis voice fallback", () => {
+    it("returns an exact match when the browser supports the selected language", () => {
+        const matchingVoice = { lang: "bn-IN", name: "Bengali voice" } as SpeechSynthesisVoice;
+        const nonMatchingVoice = { lang: "en-US", name: "English voice" } as SpeechSynthesisVoice;
+
+        expect(
+            resolveSpeechSynthesisVoice(
+                {
+                    speechSynthesis: {
+                        getVoices: () => [nonMatchingVoice, matchingVoice],
+                    },
+                } as Window,
+                "bn-IN"
+            )
+        ).toMatchObject({
+            voice: matchingVoice,
+            supportLevel: "exact",
+        });
+    });
+
+    it("surfaces a fallback when no matching TTS voice is available", () => {
+        const fallbackVoice = { lang: "en-US", name: "English voice" } as SpeechSynthesisVoice;
+
+        expect(
+            resolveSpeechSynthesisVoice(
+                {
+                    speechSynthesis: {
+                        getVoices: () => [fallbackVoice],
+                    },
+                } as Window,
+                "te-IN"
+            )
+        ).toMatchObject({
+            voice: fallbackVoice,
+            supportLevel: "fallback",
+        });
     });
 });
 
@@ -208,5 +262,114 @@ describe("shouldAutoFocusVoicePanel", () => {
 
     it("does not auto-focus the panel on the initial state", () => {
         expect(shouldAutoFocusVoicePanel("initial")).toBe(false);
+    });
+});
+
+describe("getVoiceStepAnnouncement", () => {
+    const copy = {
+        emergencyTitle: "Seek immediate medical attention",
+        errorPrefix: "Something went wrong",
+        listeningStatus: "Listening for symptoms",
+        processingStarted: "Processing your symptoms",
+        processingSubtitle: "Checking your symptoms with SahiDawa AI…",
+        recordingStarted: "Recording started",
+        resultHeading: "AI Analysis",
+        resultSubheading: "Medical Triage",
+        resultsReady: "Results ready",
+        reviewMessage: "Please review the transcript before continuing.",
+        reviewTitle: "Review transcript",
+    };
+
+    it("announces the active voice flow state with explicit listening and result copy", () => {
+        expect(
+            getVoiceStepAnnouncement({
+                copy,
+                error: null,
+                hasResult: false,
+                isEmergency: false,
+                step: "listening",
+            })
+        ).toBe("Recording started. Listening for symptoms");
+
+        expect(
+            getVoiceStepAnnouncement({
+                copy,
+                error: null,
+                hasResult: true,
+                isEmergency: false,
+                step: "result",
+            })
+        ).toBe("Results ready. AI Analysis. Medical Triage");
+    });
+
+    it("includes emergency and error details when they are present", () => {
+        expect(
+            getVoiceStepAnnouncement({
+                copy,
+                error: null,
+                hasResult: true,
+                isEmergency: true,
+                step: "result",
+            })
+        ).toBe("Results ready. AI Analysis - Seek immediate medical attention. Medical Triage");
+
+        expect(
+            getVoiceStepAnnouncement({
+                copy,
+                error: {
+                    title: "Microphone blocked",
+                    message: "Please allow microphone access and try again.",
+                },
+                hasResult: false,
+                isEmergency: false,
+                step: "error",
+            })
+        ).toBe(
+            "Something went wrong - Microphone blocked. Please allow microphone access and try again."
+        );
+    });
+});
+
+describe("shouldHandleVoiceEscape", () => {
+    it("only handles escape inside the voice region for supported voice states", () => {
+        expect(
+            shouldHandleVoiceEscape({
+                activeElementTagName: "BUTTON",
+                activeWithinVoiceRegion: true,
+                isSpeaking: false,
+                step: "review",
+            })
+        ).toBe(true);
+
+        expect(
+            shouldHandleVoiceEscape({
+                activeElementTagName: "BUTTON",
+                activeWithinVoiceRegion: false,
+                isSpeaking: false,
+                step: "review",
+            })
+        ).toBe(false);
+    });
+
+    it("does not hijack escape for native form controls inside the voice region", () => {
+        expect(
+            shouldHandleVoiceEscape({
+                activeElementTagName: "SELECT",
+                activeWithinVoiceRegion: true,
+                isSpeaking: false,
+                step: "review",
+            })
+        ).toBe(false);
+    });
+
+    it("allows escape to stop speaking when focus is still inside the voice region", () => {
+        expect(
+            shouldHandleVoiceEscape({
+                activeElementTagName: "BUTTON",
+                activeWithinVoiceRegion: true,
+                isSpeaking: true,
+                step: "result",
+            })
+        ).toBe(true);
     });
 });

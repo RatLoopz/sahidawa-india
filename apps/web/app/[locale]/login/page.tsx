@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
+import { LiveMessage } from "@/components/ui/LiveMessage";
 export default function LoginPage() {
     const router = useRouter();
     const supabase = createClient(
@@ -73,9 +74,12 @@ export default function LoginPage() {
 
                     {/* Error */}
                     {error && (
-                        <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                        <LiveMessage
+                            tone="critical"
+                            className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
+                        >
                             {error}
-                        </div>
+                        </LiveMessage>
                     )}
 
                     <form onSubmit={handleLogin} className="space-y-5">

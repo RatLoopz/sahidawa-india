@@ -10,6 +10,8 @@
         "voice_subtitle": "அறிகுறிகளைப் பேசு",
         "pharmacy_map": "மருந்தகம் வரைபடம்",
         "pharmacy_subtitle": "சரிபார்க்கப்பட்ட கடைகளைக் கண்டறி",
+        "report_fake": "போலியை புகாரளிக்கவும்",
+        "report_fake_subtitle": "சந்தேகத்திற்கிடமான மருந்தை புகாரளிக்கவும்",
         "search_placeholder": "மருந்து அல்லது தொகுதியைத் தேடு...",
         "search_button": "தேடு"
     },
@@ -29,8 +31,17 @@
         "example_text": "\"எனக்கு காய்ச்சலும் இருமலும் உள்ளது\"",
         "assistant_label": "AI உதவி",
         "assistant_value": "24/7 கேட்கிறது",
+        "skip_to_main_content": "முக்கிய உள்ளடக்கத்திற்குச் செல்லவும்",
         "listening_placeholder": "உங்கள் அறிகுறிகளைப் பேசத் தொடங்குங்கள்…",
         "listening_status": "அறிகுறிகளை கேட்கிறது",
+        "announcements": {
+            "recording_started": "பதிவு தொடங்கியது",
+            "processing_started": "உங்கள் அறிகுறிகள் செயலாக்கப்படத் தொடங்கின",
+            "results_ready": "முடிவுகள் தயாராக உள்ளன"
+        },
+        "streaming_connecting_hint": "நேரடி உரை மாற்றத்துடன் இணைக்கப்படுகிறது…",
+        "streaming_live_hint": "நேரடி உரை புதுப்பிக்கப்படுகிறது",
+        "streaming_fallback_hint": "இணைப்பு நிலையற்றுள்ளது. நீங்கள் பேசித் தீரும் போது SahiDawa செயலாக்கத்தை முடிக்கும்.",
         "animation_toggle_label": "குரல் அசைவுகள்",
         "animation_live_label": "நேரடி அலைவடிவம்",
         "animation_reduced_motion_label": "குறைந்த அசைவு",
@@ -44,6 +55,7 @@
         "review_title": "உங்கள் உரையைச் சரிபார்க்கவும்",
         "review_message": "மைக்ரோஃபோன் உங்கள் அறிகுறிகளை குறைந்த நம்பகத்தன்மையுடன் பதிவு செய்தது. தெளிவான முடிவுக்காக மீண்டும் முயற்சிக்கலாம் அல்லது இதையே ஆய்வு செய்யலாம்.",
         "retry_button": "மீண்டும் முயற்சி",
+        "switch_to_text_button": "Type Instead",
         "analyse_anyway_button": "எப்படியும் ஆய்வு செய்",
         "result_heading": "AI பகுப்பாய்வு",
         "result_subheading": "மருத்துவ பரிசோதனை",
@@ -75,6 +87,7 @@
         "copy_success": "அறிக்கை கிளிப்போர்டுக்கு நகலெடுக்கப்பட்டது",
         "share_failure": "இப்போது அறிக்கையைப் பகிர முடியவில்லை",
         "tts_not_supported": "உங்கள் உலாவி உரையை ஒலியாக வாசிக்க ஆதரிக்கவில்லை",
+        "tts_fallback_message": "{language} குரலுக்கான உரை-ஒலி ஆதரவு குறைவாக இருப்பதால், உங்கள் உலாவி இந்த சுருக்கத்தை வேறு குரலில் வாசிக்கலாம்.",
         "fallback_summary": "SahiDawa பதிலை தெளிவாக அமைக்க முடியவில்லை. உங்கள் அறிகுறிகள் தொடர்ந்தால் மருத்துவரை அணுகவும்.",
         "share_report": {
             "title": "SahiDawa குரல் பரிசோதனை அறிக்கை",
@@ -93,6 +106,8 @@
         "errors": {
             "unsupported_title": "குரல் உள்ளீடு கிடைக்கவில்லை",
             "unsupported_message": "இந்த உலாவி இன்னும் குரல் அடையாளத்தை ஆதரிக்கவில்லை. Chrome அல்லது Edge முயற்சிக்கவும்.",
+            "language_not_supported_title": "இந்த உலாவி அந்த குரல் மொழியைப் பதிவு செய்ய முடியவில்லை",
+            "language_not_supported_message": "இந்த உலாவியில் {language} குரல் உள்ளீடு வரையறுக்கப்பட்டுள்ளது. Chrome அல்லது Edge முயற்சிக்கவும், அல்லது வேறு குரல் மொழியுடன் புதிய பரிசோதனையை தொடங்கவும்.",
             "permission_title": "மைக்ரோஃபோன் அணுகல் தடுக்கப்பட்டுள்ளது",
             "permission_message": "உங்கள் உலாவி அமைப்புகளில் மைக்ரோஃபோன் அனுமதி வழங்கி மீண்டும் முயற்சிக்கவும்.",
             "microphone_title": "மைக்ரோஃபோன் கண்டுபிடிக்கப்படவில்லை",
@@ -103,8 +118,49 @@
             "no_speech_message": "அமைதியான இடத்தில் மீண்டும் முயற்சிக்கவும் அல்லது மைக்ரோஃபோனுக்கு அருகில் பேசவும்.",
             "generic_title": "ஏதோ தவறு ஏற்பட்டது",
             "generic_message": "இந்த முறை உங்கள் குரல் உள்ளீட்டை செயலாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+            "service_unavailable_title": "Voice service unavailable",
+            "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
+
+            "timeout_title": "Voice request timed out",
+            "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
             "api_title": "SahiDawa AI கிடைக்கவில்லை",
             "api_message": "இப்போது மருத்துவ வழிகாட்டலை பெற முடியவில்லை. சிறிது நேரத்தில் மீண்டும் முயற்சிக்கவும்."
         }
+    },
+    "contact": {
+        "badge": "GSSoC 2026 திறந்த மூல திட்டம்",
+        "heroTitle": {
+            "prefix": "தொடர்பு",
+            "highlight": "கொள்ளுங்கள்"
+        },
+        "heroSubtitle": "கேள்விகள், யோசனைகள் அல்லது பங்களிக்க விரும்புகிறீர்களா? நாங்கள் உங்களிடமிருந்து கேட்க விரும்புகிறோம்.",
+        "cards": {
+            "email": {
+                "title": "எங்களுக்கு மின்னஞ்சல் அனுப்புங்கள்",
+                "description": "தனியுரிமை கேள்விகள், கூட்டாண்மை அல்லது தீவிர கவலைகளுக்கு."
+            },
+            "discord": {
+                "title": "Discord சமூகம்",
+                "description": "பங்களிப்பாளர்களுடன் இணையுங்கள், கேள்விகள் கேளுங்கள், அறிவிப்புகள் பெறுங்கள்.",
+                "cta": "Discord சேருங்கள்"
+            },
+            "bug": {
+                "title": "பிழையை புகாரளிக்கவும்",
+                "description": "சிக்கல் கண்டீர்களா? GitHub issue திறந்து நாங்கள் விரைவில் சரிசெய்வோம்.",
+                "cta": "Issue திறக்கவும்"
+            },
+            "contribute": {
+                "title": "பங்களிக்கவும்",
+                "description": "SahiDawa கட்டமைக்க உதவ விரும்புகிறீர்களா? எங்கள் பங்களிப்பு வழிகாட்டியை படிக்கவும்.",
+                "cta": "வழிகாட்டி படிக்கவும்"
+            }
+        },
+        "quickLinks": {
+            "title": "பயனுள்ள இணைப்புகள்",
+            "about": "SahiDawa பற்றி",
+            "privacy": "தனியுரிமை கொள்கை",
+            "faq": "அடிக்கடி கேட்கப்படும் கேள்விகள்"
+        },
+        "footer": "SahiDawa இலவசம், திறந்த மூலம், மற்றும் 1.4 பில்லியன் இந்தியர்களுக்காக கட்டப்பட்டது. விளம்பரங்கள் இல்லை. பிரீமியம் இல்லை. தரவு எப்போதும் விற்கப்படாது."
     }
 }

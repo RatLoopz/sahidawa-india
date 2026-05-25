@@ -52,11 +52,15 @@ export async function transcribeRecordedAudio(
     const data = await readJsonSafely(response);
 
     if (!response.ok) {
-        throw new Error(
+        const error = new Error(
             data && typeof data === "object" && typeof data.error === "string" && data.error.trim()
                 ? data.error
                 : "Transcription failed."
-        );
+        ) as Error & { status?: number };
+
+        error.status = response.status;
+
+        throw error;
     }
 
     return normalizeVoiceTranscriptionResponse({

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Bell, BellOff } from "lucide-react";
 import { API_BASE } from "@/lib/api";
+import { LiveMessage } from "@/components/ui/LiveMessage";
 
 type SubscribeState = "idle" | "subscribing" | "subscribed" | "unsupported" | "error";
 
@@ -93,13 +94,15 @@ export default function RecallPushSubscriber() {
                             avoid.
                         </p>
                         {message && (
-                            <p
+                            <LiveMessage
+                                as="p"
+                                tone={isSubscribed ? "polite" : "critical"}
                                 className={`mt-2 text-xs font-semibold ${
                                     isSubscribed ? "text-emerald-600" : "text-slate-500"
                                 }`}
                             >
                                 {message}
-                            </p>
+                            </LiveMessage>
                         )}
                     </div>
                 </div>

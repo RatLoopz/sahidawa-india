@@ -1,75 +1,179 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { WifiOff, Home, RefreshCw } from 'lucide-react';
+import { useEffect, useState, useCallback } from "react";
+import { WifiOff, Home, RefreshCw, Wifi, Pill, MapPin, ShieldCheck } from "lucide-react";
 
+/**
+ * OfflinePage — Premium offline fallback UI for SahiDawa.
+ * Automatically redirects to home when the connection is restored.
+ */
 export default function OfflinePage() {
-  const [isOnline, setIsOnline] = useState(true);
+    const [isOnline, setIsOnline] = useState(false);
+    const [isRetrying, setIsRetrying] = useState(false);
+    const [retryCount, setRetryCount] = useState(0);
+    const [showReconnected, setShowReconnected] = useState(false);
 
-  useEffect(() => {
-    setIsOnline(window.navigator.onLine);
+    // Sync initial state from navigator.onLine after mount
+    useEffect(() => {
+        setIsOnline(window.navigator.onLine);
 
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+        const handleOnline = () => {
+            setIsOnline(true);
+            setShowReconnected(true);
+            // Auto-redirect after a short confirmation delay
+            setTimeout(() => {
+                window.location.href = "/";
+            }, 1800);
+        };
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+        const handleOffline = () => {
+            setIsOnline(false);
+            setShowReconnected(false);
+        };
 
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
+        window.addEventListener("online", handleOnline);
+        window.addEventListener("offline", handleOffline);
 
-  if (isOnline) {
-    // Redirect to home if we're back online
-    typeof window !== 'undefined' && window.location.href === '/' ? null : null;
-  }
+        return () => {
+            window.removeEventListener("online", handleOnline);
+            window.removeEventListener("offline", handleOffline);
+        };
+    }, []);
 
-  return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-6">
-      <div className="text-center max-w-md">
-        <div className="w-20 h-20 rounded-full bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center mx-auto mb-6">
-          <WifiOff size={40} className="text-amber-600 dark:text-amber-400" />
-        </div>
+    const handleRetry = useCallback(() => {
+        setIsRetrying(true);
+        setRetryCount((c) => c + 1);
 
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-3">
-          Offline Mode
-        </h1>
+        // Give the browser time to attempt a real network check
+        setTimeout(() => {
+            if (navigator.onLine) {
+                window.location.reload();
+            } else {
+                setIsRetrying(false);
+            }
+        }, 1500);
+    }, []);
 
-        <p className="text-slate-600 dark:text-slate-400 mb-2">
-          You don't have an internet connection right now.
-        </p>
+    // ─── Reconnected state ───────────────────────────────────────────────────
+    if (showReconnected) {
+        return (
+            <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 p-6">
+                <div className="animate-fadeIn max-w-md text-center">
+                    {/* Animated checkmark ring */}
+                    <div className="relative mx-auto mb-8 h-28 w-28">
+                        <div className="absolute inset-0 animate-ping rounded-full bg-emerald-500/20" />
+                        <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-2xl shadow-emerald-500/40">
+                            <Wifi size={52} className="text-white" />
+                        </div>
+                    </div>
 
-        <p className="text-sm text-slate-500 dark:text-slate-500 mb-8">
-          Some features are unavailable while offline. Try to connect to the internet
-          or browse cached content.
-        </p>
+                    <h1 className="mb-3 text-3xl font-bold text-white">Back Online! 🎉</h1>
+                    <p className="mb-2 text-lg text-emerald-400">Connection restored</p>
+                    <p className="text-sm text-slate-400">Redirecting you to SahiDawa…</p>
 
-        <div className="space-y-3">
-          <button
-            onClick={() => window.location.reload()}
-            className="w-full inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
-          >
-            <RefreshCw size={18} />
-            Try Again
-          </button>
+                    {/* Progress bar */}
+                    <div className="mt-6 h-1.5 w-full overflow-hidden rounded-full bg-slate-700">
+                        <div className="animate-progress h-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400" />
+                    </div>
+                </div>
+            </main>
+        );
+    }
 
-          <a
-            href="/"
-            className="block bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-900 dark:text-white font-semibold py-3 px-4 rounded-lg transition-colors"
-          >
-            <span className="inline-flex items-center justify-center gap-2">
-              <Home size={18} />
-              Go to Home
-            </span>
-          </a>
-        </div>
+    // ─── Offline state ────────────────────────────────────────────────────────
+    return (
+        <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6">
+            {/* Background glow blobs */}
+            <div className="pointer-events-none absolute top-1/4 left-1/4 h-64 w-64 rounded-full bg-amber-500/5 blur-3xl" />
+            <div className="pointer-events-none absolute right-1/4 bottom-1/4 h-80 w-80 rounded-full bg-emerald-500/5 blur-3xl" />
 
-        <p className="text-xs text-slate-500 dark:text-slate-500 mt-6">
-          SahiDawa will automatically sync when your connection returns.
-        </p>
-      </div>
-    </main>
-  );
+            <div className="relative w-full max-w-lg text-center">
+                {/* Icon */}
+                <div className="relative mx-auto mb-8 h-28 w-28">
+                    <div className="absolute inset-0 animate-pulse rounded-full bg-amber-500/20" />
+                    <div className="relative flex h-28 w-28 items-center justify-center rounded-full border border-amber-500/30 bg-gradient-to-br from-amber-500/30 to-amber-600/20 backdrop-blur-sm">
+                        <WifiOff size={52} className="text-amber-400" />
+                    </div>
+                </div>
+
+                {/* Headline */}
+                <h1 className="mb-3 text-4xl font-bold tracking-tight text-white">
+                    You're Offline
+                </h1>
+                <p className="mb-2 text-lg leading-relaxed text-slate-400">
+                    SahiDawa needs an internet connection to verify medicines and locate pharmacies.
+                </p>
+                <p className="mb-10 text-sm leading-relaxed text-slate-500">
+                    Please check your Wi-Fi or mobile data and try again.
+                    {retryCount > 0 && (
+                        <span className="ml-1 text-amber-400">(Attempt {retryCount})</span>
+                    )}
+                </p>
+
+                {/* Action buttons */}
+                <div className="mb-10 space-y-3">
+                    <button
+                        id="offline-retry-btn"
+                        onClick={handleRetry}
+                        disabled={isRetrying}
+                        className="inline-flex w-full items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-6 py-3.5 font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:from-emerald-500 hover:to-emerald-400 hover:shadow-emerald-500/40 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                        <RefreshCw size={18} className={isRetrying ? "animate-spin" : ""} />
+                        {isRetrying ? "Checking connection…" : "Try Again"}
+                    </button>
+
+                    <a
+                        id="offline-home-btn"
+                        href="/"
+                        className="block w-full rounded-xl border border-slate-700 bg-slate-800 px-6 py-3.5 font-semibold text-slate-200 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-700"
+                    >
+                        <span className="inline-flex items-center justify-center gap-2.5">
+                            <Home size={18} />
+                            Go to Home
+                        </span>
+                    </a>
+                </div>
+
+                {/* Feature chips — reassure user what cached features they can still use */}
+                <div className="border-t border-slate-800 pt-8">
+                    <p className="mb-4 text-xs font-medium tracking-widest text-slate-500 uppercase">
+                        Previously visited pages may still be available
+                    </p>
+                    <div className="flex flex-wrap justify-center gap-2">
+                        {[
+                            { icon: ShieldCheck, label: "Cached Verifications" },
+                            { icon: MapPin, label: "Saved Pharmacies" },
+                            { icon: Pill, label: "Browsed Medicines" },
+                        ].map(({ icon: Icon, label }) => (
+                            <div
+                                key={label}
+                                className="flex items-center gap-1.5 rounded-full border border-slate-700/60 bg-slate-800/60 px-3 py-1.5 text-xs font-medium text-slate-400"
+                            >
+                                <Icon size={12} />
+                                {label}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Brand footer */}
+                <p className="mt-8 text-xs text-slate-600">
+                    SahiDawa will automatically sync when your connection returns.
+                </p>
+            </div>
+
+            <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(16px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes progress {
+          from { width: 0%; }
+          to   { width: 100%; }
+        }
+        .animate-fadeIn  { animation: fadeIn  0.5s ease-out forwards; }
+        .animate-progress { animation: progress 1.6s ease-in-out forwards; }
+      `}</style>
+        </main>
+    );
 }
