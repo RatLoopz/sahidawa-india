@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 
 const MAX_FILE_SIZE_MB = 5;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -23,7 +23,20 @@ export default function MedicinePhotoUpload({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [cloudinaryUrl, setCloudinaryUrl] = useState<string | null>(null);
 
+  // ── Fix 2: Revoke object URL on unmount to prevent memory leaks ──
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
   const resetState = () => {
+    // Revoke before clearing so we don't leak on manual reset
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
     setUploadState("idle");
     setProgress(0);
     setPreviewUrl(null);
@@ -60,7 +73,6 @@ export default function MedicinePhotoUpload({
       setProgress(0);
 
       try {
-        // Use XMLHttpRequest so we can track upload progress
         await new Promise<void>((resolve, reject) => {
           const xhr = new XMLHttpRequest();
 
@@ -107,71 +119,93 @@ export default function MedicinePhotoUpload({
 
       setUploadState("validating");
       setErrorMessage(null);
-      setPreviewUrl(null);
 
-      // Validate type
+      // Revoke previous preview URL before creating a new one
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(null);
+      }
+
       if (!ALLOWED_TYPES.includes(file.type)) {
         handleError("Invalid file type. Please upload a JPG, PNG, or WebP image.");
         return;
       }
 
-      // Validate size
       if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
         handleError(`File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.`);
         return;
       }
 
-      // Show local preview immediately
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
 
       await uploadToCloudinary(file);
     },
-    [handleError, uploadToCloudinary]
+    [handleError, uploadToCloudinary, previewUrl]
   );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleFileChange(e.target.files?.[0]);
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = (e: React.DragEvent<HTMLButtonElement>) => {
     e.preventDefault();
     handleFileChange(e.dataTransfer.files?.[0]);
   };
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragOver = (e: React.DragEvent<HTMLButtonElement>) => {
     e.preventDefault();
+  };
+
+  // ── Fix 1: Keyboard support — trigger file input on Space or Enter ──
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === " " || e.key === "Enter") {
+      e.preventDefault();
+      if (!isUploading) fileInputRef.current?.click();
+    }
   };
 
   const isUploading = uploadState === "uploading" || uploadState === "validating";
 
   return (
     <div className="w-full max-w-md mx-auto font-sans">
-      {/* Drop zone / trigger area */}
+      {/* ── Fix 1: button instead of div — keyboard & screen reader accessible ── */}
       {uploadState !== "success" && (
-        <div
+        <button
+          type="button"
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onClick={() => !isUploading && fileInputRef.current?.click()}
+          onKeyDown={handleKeyDown}
+          disabled={isUploading}
+          aria-label={
+            isUploading
+              ? uploadState === "validating"
+                ? "Checking file"
+                : `Uploading, ${progress} percent complete`
+              : "Select or capture a medicine photo to upload"
+          }
           className={`
-            relative flex flex-col items-center justify-center gap-3
-            rounded-2xl border-2 border-dashed p-8 text-center transition-colors cursor-pointer
+            relative flex w-full flex-col items-center justify-center gap-3
+            rounded-2xl border-2 border-dashed p-8 text-center transition-colors
+            outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2
             ${isUploading
-              ? "border-blue-300 bg-blue-50 cursor-not-allowed"
+              ? "cursor-not-allowed border-blue-300 bg-blue-50"
               : uploadState === "error"
-              ? "border-red-300 bg-red-50 hover:bg-red-100"
-              : "border-gray-300 bg-gray-50 hover:bg-gray-100 hover:border-blue-400"
+              ? "cursor-pointer border-red-300 bg-red-50 hover:bg-red-100"
+              : "cursor-pointer border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-gray-100"
             }
           `}
         >
-          {/* Camera icon */}
-          <div className="text-4xl select-none">
+          <div className="text-4xl select-none" aria-hidden="true">
             {isUploading ? "⏳" : uploadState === "error" ? "⚠️" : "📷"}
           </div>
 
           {isUploading ? (
-            <p className="text-sm text-blue-700 font-medium">
-              {uploadState === "validating" ? "Checking file…" : `Uploading… ${progress}%`}
+            <p className="text-sm font-medium text-blue-700">
+              {uploadState === "validating"
+                ? "Checking file…"
+                : `Uploading… ${progress}%`}
             </p>
           ) : (
             <>
@@ -184,7 +218,6 @@ export default function MedicinePhotoUpload({
             </>
           )}
 
-          {/* Hidden file input — accepts camera on mobile */}
           <input
             ref={fileInputRef}
             type="file"
@@ -193,21 +226,25 @@ export default function MedicinePhotoUpload({
             className="hidden"
             onChange={handleInputChange}
             disabled={isUploading}
-            aria-label="Upload medicine photo"
+            aria-hidden="true"
+            tabIndex={-1}
           />
-        </div>
+        </button>
       )}
 
       {/* Progress bar */}
       {uploadState === "uploading" && (
-        <div className="mt-3 w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+        <div
+          className="mt-3 w-full bg-gray-200 rounded-full h-2 overflow-hidden"
+          role="progressbar"
+          aria-valuenow={progress}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`Upload progress: ${progress}%`}
+        >
           <div
             className="h-2 bg-blue-500 rounded-full transition-all duration-200"
             style={{ width: `${progress}%` }}
-            role="progressbar"
-            aria-valuenow={progress}
-            aria-valuemin={0}
-            aria-valuemax={100}
           />
         </div>
       )}
@@ -223,20 +260,21 @@ export default function MedicinePhotoUpload({
 
           {uploadState === "success" && (
             <div className="mt-3 flex flex-col gap-2">
-              <div className="flex items-center gap-2 text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-2 text-sm font-medium">
-                <span>✅</span>
+              <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm font-medium text-green-700">
+                <span aria-hidden="true">✅</span>
                 <span>Photo uploaded successfully</span>
               </div>
 
               {cloudinaryUrl && (
-                <p className="text-xs text-gray-400 break-all px-1">
+                <p className="break-all px-1 text-xs text-gray-400">
                   {cloudinaryUrl}
                 </p>
               )}
 
               <button
+                type="button"
                 onClick={resetState}
-                className="mt-1 text-sm text-blue-600 underline hover:text-blue-800 text-left"
+                className="mt-1 text-left text-sm text-blue-600 underline hover:text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               >
                 Upload a different photo
               </button>
@@ -247,13 +285,17 @@ export default function MedicinePhotoUpload({
 
       {/* Error message */}
       {uploadState === "error" && errorMessage && (
-        <div className="mt-3 flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
-          <span className="mt-0.5">❌</span>
+        <div
+          role="alert"
+          className="mt-3 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+        >
+          <span aria-hidden="true" className="mt-0.5">❌</span>
           <div className="flex-1">
             <p className="font-medium">{errorMessage}</p>
             <button
+              type="button"
               onClick={resetState}
-              className="mt-1 text-red-600 underline hover:text-red-800 text-xs"
+              className="mt-1 text-xs text-red-600 underline hover:text-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
             >
               Try again
             </button>
