@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { WifiOff, Home, RefreshCw, Wifi, Pill, MapPin, ShieldCheck } from "lucide-react";
+import { WifiOff, Home, RefreshCw, Wifi, Pill, MapPin, ShieldCheck, PartyPopper } from "lucide-react";
 
 /**
  * OfflinePage — Premium offline fallback UI for SahiDawa.
@@ -67,7 +67,9 @@ export default function OfflinePage() {
                         </div>
                     </div>
 
-                    <h1 className="mb-3 text-3xl font-bold text-white">Back Online! 🎉</h1>
+                    <h1 className="mb-3 flex items-center justify-center gap-2 text-3xl font-bold text-white">
+                        Back Online! <PartyPopper className="h-8 w-8 text-emerald-400" />
+                    </h1>
                     <p className="mb-2 text-lg text-emerald-400">Connection restored</p>
                     <p className="text-sm text-slate-400">Redirecting you to SahiDawa…</p>
 

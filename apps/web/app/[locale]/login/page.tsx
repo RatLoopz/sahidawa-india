@@ -1,6 +1,6 @@
 "use client";
 
-import { Mail, Lock, ShieldCheck, ArrowRight } from "lucide-react";
+import { Mail, Lock, ShieldCheck, ArrowRight, Hand } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -65,7 +65,9 @@ export default function LoginPage() {
                 {/* Login Card */}
                 <div className="rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-8 shadow-xl">
                     <div className="mb-7">
-                        <h2 className="text-3xl font-bold text-(--color-text-primary)">Welcome Back 👋</h2>
+                        <h2 className="flex items-center gap-2 text-3xl font-bold text-(--color-text-primary)">
+                            Welcome Back <Hand className="h-8 w-8 text-amber-500 animate-bounce" />
+                        </h2>
 
                         <p className="mt-2 text-(--color-text-secondary)">
                             Sign in to access your reports and continue using SahiDawa.

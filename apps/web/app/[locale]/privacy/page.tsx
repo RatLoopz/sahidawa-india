@@ -1,3 +1,5 @@
+import { Lock, Cookie, Star, ClipboardList, Search, Link as LinkIcon, Cloud, Database, Map, Bot, ShieldCheck, Users, Mail, Calendar } from "lucide-react";
+
 export default function PrivacyPolicyPage() {
     return (
         <main className="min-h-screen bg-(--color-surface-page) text-(--color-text-primary)">
@@ -16,13 +18,13 @@ export default function PrivacyPolicyPage() {
                 </p>
                 <div className="flex flex-wrap justify-center gap-3">
                     <span className="rounded-full border border-(--color-border-muted) px-4 py-1.5 text-sm text-(--color-text-secondary)">
-                        🔒 No Data Sold. Ever.
+                        <Lock className="mr-2 inline h-4 w-4 text-emerald-600 dark:text-emerald-450" /> No Data Sold. Ever.
                     </span>
                     <span className="rounded-full border border-(--color-border-muted) px-4 py-1.5 text-sm text-(--color-text-secondary)">
-                        🍪 No Tracking Cookies
+                        <Cookie className="mr-2 inline h-4 w-4 text-emerald-600 dark:text-emerald-450" /> No Tracking Cookies
                     </span>
                     <span className="rounded-full border border-emerald-200 bg-emerald-50 dark:border-emerald-900/30 dark:bg-emerald-950/20 px-4 py-1.5 text-sm text-emerald-700 dark:text-emerald-400">
-                        ⭐ Open Source MIT License
+                        <Star className="mr-2 inline h-4 w-4" /> Open Source MIT License
                     </span>
                 </div>
             </section>
@@ -33,7 +35,7 @@ export default function PrivacyPolicyPage() {
                     {/* Card 1 */}
                     <div className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-8 shadow-sm">
                         <div className="mb-4 flex items-center gap-3">
-                            <span className="text-2xl">📋</span>
+                            <ClipboardList className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                             <h2 className="text-xl font-bold text-(--color-text-primary)">
                                 1. Information We Collect
                             </h2>
@@ -74,7 +76,7 @@ export default function PrivacyPolicyPage() {
                     {/* Card 2 */}
                     <div className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-8 shadow-sm">
                         <div className="mb-4 flex items-center gap-3">
-                            <span className="text-2xl">🔍</span>
+                            <Search className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                             <h2 className="text-xl font-bold text-(--color-text-primary)">
                                 2. How We Use Your Data
                             </h2>
@@ -104,7 +106,7 @@ export default function PrivacyPolicyPage() {
                     {/* Card 3 */}
                     <div className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-8 shadow-sm">
                         <div className="mb-4 flex items-center gap-3">
-                            <span className="text-2xl">🍪</span>
+                            <Cookie className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                             <h2 className="text-xl font-bold text-(--color-text-primary)">3. Cookies</h2>
                         </div>
                         <p className="text-sm text-(--color-text-secondary)">
@@ -117,7 +119,7 @@ export default function PrivacyPolicyPage() {
                     {/* Card 4 */}
                     <div className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-8 shadow-sm">
                         <div className="mb-4 flex items-center gap-3">
-                            <span className="text-2xl">🔗</span>
+                            <LinkIcon className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                             <h2 className="text-xl font-bold text-(--color-text-primary)">
                                 4. Third-Party Services
                             </h2>
@@ -128,16 +130,16 @@ export default function PrivacyPolicyPage() {
                         </p>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="rounded-xl bg-(--color-surface-muted) px-4 py-3 text-sm font-medium text-(--color-text-secondary)">
-                                ☁️ Cloudinary
+                                <Cloud className="mr-2 inline h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Cloudinary
                             </div>
                             <div className="rounded-xl bg-(--color-surface-muted) px-4 py-3 text-sm font-medium text-(--color-text-secondary)">
-                                🗄️ Supabase
+                                <Database className="mr-2 inline h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Supabase
                             </div>
                             <div className="rounded-xl bg-(--color-surface-muted) px-4 py-3 text-sm font-medium text-(--color-text-secondary)">
-                                🗺️ OpenStreetMap
+                                <Map className="mr-2 inline h-4 w-4 text-emerald-600 dark:text-emerald-400" /> OpenStreetMap
                             </div>
                             <div className="rounded-xl bg-(--color-surface-muted) px-4 py-3 text-sm font-medium text-(--color-text-secondary)">
-                                🤖 Sarvam AI
+                                <Bot className="mr-2 inline h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Sarvam AI
                             </div>
                         </div>
                     </div>
@@ -145,7 +147,7 @@ export default function PrivacyPolicyPage() {
                     {/* Card 5 */}
                     <div className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-8 shadow-sm">
                         <div className="mb-4 flex items-center gap-3">
-                            <span className="text-2xl">🔐</span>
+                            <ShieldCheck className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                             <h2 className="text-xl font-bold text-(--color-text-primary)">5. Data Security</h2>
                         </div>
                         <p className="text-sm text-(--color-text-secondary)">
@@ -158,7 +160,7 @@ export default function PrivacyPolicyPage() {
                     {/* Card 6 */}
                     <div className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-8 shadow-sm">
                         <div className="mb-4 flex items-center gap-3">
-                            <span className="text-2xl">👨‍👩‍👧</span>
+                            <Users className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                             <h2 className="text-xl font-bold text-(--color-text-primary)">
                                 6. Children&apos;s Privacy
                             </h2>
@@ -172,7 +174,7 @@ export default function PrivacyPolicyPage() {
                     {/* Card 7 — Contact */}
                     <div className="rounded-2xl border border-emerald-100 dark:border-emerald-900/30 bg-(--color-surface-page) p-8 shadow-sm">
                         <div className="mb-4 flex items-center gap-3">
-                            <span className="text-2xl">✉️</span>
+                            <Mail className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                             <h2 className="text-xl font-bold text-(--color-text-primary)">7. Contact Us</h2>
                         </div>
                         <p className="mb-3 text-sm text-(--color-text-secondary)">
@@ -197,7 +199,7 @@ export default function PrivacyPolicyPage() {
                     {/* Card 8 */}
                     <div className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-8 shadow-sm">
                         <div className="mb-4 flex items-center gap-3">
-                            <span className="text-2xl">📅</span>
+                            <Calendar className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                             <h2 className="text-xl font-bold text-(--color-text-primary)">
                                 8. Changes to This Policy
                             </h2>

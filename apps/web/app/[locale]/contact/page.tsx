@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { Mail, MessageCircle, Bug, Handshake } from "lucide-react";
 
 const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "contact@sahidawa.in";
 const DISCORD_URL = "https://discord.gg/dvbDuJVwNa";
@@ -33,7 +34,9 @@ export default function ContactPage() {
                         href={"mailto:" + CONTACT_EMAIL}
                         className="group rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 shadow-sm transition-shadow hover:shadow-md hover:shadow-emerald-500/5"
                     >
-                        <div className="mb-3 text-3xl">✉️</div>
+                        <div className="mb-3 text-emerald-600 dark:text-emerald-400">
+                            <Mail className="h-8 w-8" />
+                        </div>
                         <h3 className="mb-1 text-lg font-bold text-(--color-text-primary)">
                             {t("cards.email.title")}
                         </h3>
@@ -50,7 +53,9 @@ export default function ContactPage() {
                         rel="noopener noreferrer"
                         className="group rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 shadow-sm transition-shadow hover:shadow-md hover:shadow-emerald-500/5"
                     >
-                        <div className="mb-3 text-3xl">💬</div>
+                        <div className="mb-3 text-emerald-600 dark:text-emerald-400">
+                            <MessageCircle className="h-8 w-8" />
+                        </div>
                         <h3 className="mb-1 text-lg font-bold text-(--color-text-primary)">
                             {t("cards.discord.title")}
                         </h3>
@@ -69,7 +74,9 @@ export default function ContactPage() {
                         rel="noopener noreferrer"
                         className="group rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 shadow-sm transition-shadow hover:shadow-md hover:shadow-emerald-500/5"
                     >
-                        <div className="mb-3 text-3xl">🐛</div>
+                        <div className="mb-3 text-emerald-600 dark:text-emerald-400">
+                            <Bug className="h-8 w-8" />
+                        </div>
                         <h3 className="mb-1 text-lg font-bold text-(--color-text-primary)">
                             {t("cards.bug.title")}
                         </h3>
@@ -86,7 +93,9 @@ export default function ContactPage() {
                         rel="noopener noreferrer"
                         className="group rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 shadow-sm transition-shadow hover:shadow-md hover:shadow-emerald-500/5"
                     >
-                        <div className="mb-3 text-3xl">🤝</div>
+                        <div className="mb-3 text-emerald-600 dark:text-emerald-400">
+                            <Handshake className="h-8 w-8" />
+                        </div>
                         <h3 className="mb-1 text-lg font-bold text-(--color-text-primary)">
                             {t("cards.contribute.title")}
                         </h3>
