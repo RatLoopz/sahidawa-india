@@ -5,6 +5,7 @@ import { ChatBubble, type Message } from "./components/ChatBubble";
 import { ActionCard } from "./components/ActionCard";
 import { TypingIndicator } from "./components/TypingIndicator";
 import { TrustBar } from "./components/TrustBar";
+import { Camera, Pill, MapPin } from "lucide-react";
 
 const genId = () => Math.random().toString(36).slice(2, 10);
 
@@ -70,7 +71,7 @@ const ACTIONS = [
         id: "scan",
         label: "Scan Medicine",
         description: "Verify authenticity",
-        icon: "📷",
+        icon: <Camera className="h-5 w-5 text-emerald-500" />,
         prompt: "I'd like to verify a medicine.",
         accent: "emerald" as const,
     },
@@ -78,7 +79,7 @@ const ACTIONS = [
         id: "symptoms",
         label: "Check Symptoms",
         description: "AI-assisted guidance",
-        icon: "💊",
+        icon: <Pill className="h-5 w-5 text-sky-500" />,
         prompt: "I want to describe my symptoms.",
         accent: "sky" as const,
     },
@@ -86,7 +87,7 @@ const ACTIONS = [
         id: "pharmacy",
         label: "Find Pharmacy",
         description: "Locate verified stores",
-        icon: "📍",
+        icon: <MapPin className="h-5 w-5 text-amber-500" />,
         prompt: "Help me find a verified pharmacy nearby.",
         accent: "amber" as const,
     },
