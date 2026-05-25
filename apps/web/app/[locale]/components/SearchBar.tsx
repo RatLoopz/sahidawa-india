@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Search } from "lucide-react";
+import { Search, AlertCircle, RotateCcw } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import SearchSuggestions from "@/components/SearchSuggestions";
 
 /** Maximum number of suggestions shown at once */
@@ -20,6 +21,8 @@ const DEBOUNCE_MS = 250;
  *  - 250 ms debounced Supabase suggestions (brand_name + batch_number)
  *  - Keyboard navigation (↑ ↓ Enter Escape)
  *  - Click-outside to close
+ *  - Error handling with retry functionality
+ *  - Duplicate request prevention via AbortController
  *  - Selecting a suggestion navigates to the scan/verify flow
  */
 export default function SearchBar() {
@@ -34,11 +37,15 @@ export default function SearchBar() {
   const [activeIndex, setActiveIndex] = useState<number>(-1);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
+  const [lastQuery, setLastQuery] = useState<string>("");
 
   // ── Refs ───────────────────────────────────────────────────────────────────
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const errorToastIdRef = useRef<string | number | null>(null);
 
   // ── Close on click-outside ─────────────────────────────────────────────────
   useEffect(() => {
@@ -62,13 +69,25 @@ export default function SearchBar() {
       setSuggestions([]);
       setIsOpen(false);
       setIsLoading(false);
+      setError("");
       return;
     }
 
+    // Abort any previous ongoing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setIsLoading(true);
+    setError("");
+    setLastQuery(trimmed);
+
     try {
       // Query both brand_name and batch_number columns for partial matches.
-      const { data, error } = await supabase
+      const { data, error: supabaseError } = await supabase
         .from("medicines")
         .select("brand_name, batch_number")
         .or(
@@ -76,16 +95,34 @@ export default function SearchBar() {
         )
         .limit(MAX_SUGGESTIONS);
 
-      if (error) {
-        console.error("[SearchBar] Supabase suggestion error:", error.message);
+      // Check if request was cancelled
+      if (controller.signal.aborted) {
+        return;
+      }
+
+      if (supabaseError) {
+        console.error("[SearchBar] Supabase suggestion error:", supabaseError.message);
+        const errorMsg = "Failed to fetch suggestions. Please try again.";
+        setError(errorMsg);
         setSuggestions([]);
         setIsOpen(false);
+        // Show toast error
+        if (errorToastIdRef.current) {
+          toast.dismiss(errorToastIdRef.current);
+        }
+        errorToastIdRef.current = toast.error(errorMsg, {
+          action: {
+            label: "Retry",
+            onClick: () => fetchSuggestions(trimmed),
+          },
+        });
         return;
       }
 
       if (!data || data.length === 0) {
         setSuggestions([]);
         setIsOpen(false);
+        setError("");
         return;
       }
 
@@ -112,14 +149,30 @@ export default function SearchBar() {
       setActiveIndex(-1);
       setIsOpen(results.length > 0);
     } catch (err) {
+      // Check if the error is from abortion
+      if (err instanceof Error && err.name === "AbortError") {
+        // Request was cancelled, don't show error
+        return;
+      }
       console.error("[SearchBar] Unexpected error fetching suggestions:", err);
+      const errorMsg = "An unexpected error occurred. Please try again.";
+      setError(errorMsg);
       setSuggestions([]);
       setIsOpen(false);
+      // Show toast error
+      if (errorToastIdRef.current) {
+        toast.dismiss(errorToastIdRef.current);
+      }
+      errorToastIdRef.current = toast.error(errorMsg, {
+        action: {
+          label: "Retry",
+          onClick: () => fetchSuggestions(trimmed),
+        },
+      });
     } finally {
       setIsLoading(false);
     }
   }, []);
-
   // ── Debounce query changes ─────────────────────────────────────────────────
   useEffect(() => {
     const trimmed = query.trim();
@@ -131,6 +184,7 @@ export default function SearchBar() {
       setSuggestions([]);
       setIsOpen(false);
       setIsLoading(false);
+      setError("");
       return;
     }
 
@@ -160,13 +214,20 @@ export default function SearchBar() {
   const performSearch = useCallback(
     (value: string) => {
       const trimmed = value.trim();
-      if (!trimmed) return;
+      if (!trimmed || isLoading) return;
       setIsOpen(false);
       setActiveIndex(-1);
       router.push(`/${locale}/scan?q=${encodeURIComponent(trimmed)}`);
     },
-    [locale, router]
+    [locale, router, isLoading]
   );
+
+  // ── Retry handler ──────────────────────────────────────────────────────────
+  const handleRetry = useCallback(() => {
+    if (lastQuery) {
+      fetchSuggestions(lastQuery);
+    }
+  }, [lastQuery, fetchSuggestions]);
 
   // ── Keyboard navigation ────────────────────────────────────────────────────
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -256,19 +317,39 @@ export default function SearchBar() {
 
         <button
           onClick={() => performSearch(query)}
-          className="shrink-0 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-slate-800 sm:px-6 sm:text-base"
+          disabled={isLoading}
+          className="shrink-0 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed sm:px-6 sm:text-base"
           aria-label="Submit search"
         >
           {tHome("search_button")}
         </button>
       </div>
 
+      {/* Error message */}
+      {/* Error message */}
+      {error && isOpen && (
+        <div className="absolute left-4 right-4 top-full z-40 mt-2 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3">
+          <AlertCircle size={16} className="mt-0.5 shrink-0 text-red-600" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-red-900">{error}</p>
+            <button
+              type="button"
+              onClick={handleRetry}
+              className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-red-700 hover:text-red-900 transition-colors"
+            >
+              <RotateCcw size={12} />
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Suggestions dropdown */}
       <SearchSuggestions
         suggestions={suggestions}
         activeIndex={activeIndex}
         onSelect={selectSuggestion}
-        visible={isOpen}
+        visible={isOpen && !error}
       />
     </div>
   );

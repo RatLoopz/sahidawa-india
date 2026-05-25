@@ -14,18 +14,24 @@ async function searchMedicines(query: string): Promise<Medicine[]> {
     const q = query.trim();
     if (q.length < 2) return [];
 
-    const pattern = `%${q.replace(/[%_\\]/g, "\\$&")}%`;
-    const { data, error } = await supabase
-        .from("medicines")
-        .select(COMPARE_SELECT_FIELDS)
-        .or(`brand_name.ilike.${pattern},generic_name.ilike.${pattern}`)
-        .limit(25);
+    try {
+        const pattern = `%${q.replace(/[%_\\]/g, "\\$&")}%`;
+        const { data, error } = await supabase
+            .from("medicines")
+            .select(COMPARE_SELECT_FIELDS)
+            .or(`brand_name.ilike.${pattern},generic_name.ilike.${pattern}`)
+            .limit(25);
 
-    if (error) {
-        console.error(error.message);
-        return [];
+        if (error) {
+            console.error("[Compare Search] Error:", error.message);
+            throw new Error("Failed to search medicines. Please try again.");
+        }
+
+        return (data ?? []).map((row) => mapMedicineRow(row as Record<string, unknown>));
+    } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred while searching medicines";
+        throw new Error(errorMessage);
     }
-    return (data ?? []).map((row) => mapMedicineRow(row as Record<string, unknown>));
 }
 
 export default function ComparePage() {
