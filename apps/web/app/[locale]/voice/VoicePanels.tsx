@@ -66,7 +66,7 @@ export function VoiceIntroPanel({
                     <p className="mt-1 text-sm font-bold text-slate-700">{exampleText}</p>
                 </div>
                 <div className="rounded-3xl border border-slate-100 bg-white p-4 text-left shadow-sm">
-                    <Volume2 size={20} aria-hidden="true" className="mb-2 text-emerald-500" />
+                    <Volume2 size={20} aria-hidden="true" className="mb-2 text-emerald-600" />
                     <p className="text-xs font-bold tracking-tighter text-slate-400 uppercase">
                         {assistantLabel}
                     </p>
@@ -143,9 +143,9 @@ export function VoiceProcessingPanel({ title, subtitle }: { title: string; subti
             aria-label={title}
         >
             <div className="relative" aria-hidden="true">
-                <div className="h-24 w-24 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-500 motion-reduce:animate-none"></div>
+                <div className="h-24 w-24 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-600 motion-reduce:animate-none"></div>
                 <Sparkles
-                    className="absolute inset-0 m-auto animate-pulse text-emerald-500 motion-reduce:animate-none"
+                    className="absolute inset-0 m-auto animate-pulse text-emerald-600 motion-reduce:animate-none"
                     size={32}
                     aria-hidden="true"
                 />
@@ -417,7 +417,7 @@ export function VoiceResultPanel({
                                     key={`${recommendation}-${index}`}
                                     className="flex items-center gap-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-4"
                                 >
-                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white">
                                         <span className="font-bold">{index + 1}</span>
                                     </div>
                                     <p className="text-sm font-bold text-emerald-900">

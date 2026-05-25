@@ -1262,7 +1262,7 @@ export default function VoiceTriagePage() {
                         className={`relative flex h-24 w-24 items-center justify-center rounded-full transition-all duration-500 focus-visible:ring-[3px] focus-visible:ring-emerald-600 focus-visible:ring-offset-4 focus-visible:outline-[3px] focus-visible:outline-offset-4 focus-visible:outline-emerald-600 ${
                             step === "listening"
                                 ? "scale-125 bg-red-500"
-                                : "bg-emerald-500 shadow-xl shadow-emerald-500/30 hover:scale-110"
+                                : "bg-emerald-600 shadow-xl shadow-emerald-600/30 hover:scale-110"
                         } `}
                     >
                         {step === "listening" ? (
@@ -1272,7 +1272,7 @@ export default function VoiceTriagePage() {
                             ></div>
                         ) : (
                             <div
-                                className="absolute inset-0 animate-pulse rounded-full bg-emerald-500 opacity-20"
+                                className="absolute inset-0 animate-pulse rounded-full bg-emerald-600 opacity-20"
                                 aria-hidden="true"
                             ></div>
                         )}
