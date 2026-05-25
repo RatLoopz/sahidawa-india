@@ -7,7 +7,7 @@
  * Design: SahiDawa modern aesthetic — emerald accents, deep navy header, rounded corners
  */
 
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback, useEffect, useId } from "react";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -15,6 +15,7 @@ import { motion, AnimatePresence, Variants } from "framer-motion";
 import { submitReport, geocodePincode } from "@/lib/api";
 import { preprocessMedicineImage } from "@/lib/imageEnhancer";
 import LazyImage from "@/components/LazyImage";
+import { LiveMessage } from "@/components/ui/LiveMessage";
 
 // ─── Cloudinary env ────────────────────────────────────────────────────────────
 // Uploads are now securely routed through our backend API (/api/upload),
@@ -198,7 +199,7 @@ const Icon = {
 };
 
 // ─── Field error ───────────────────────────────────────────────────────────────
-function FieldError({ msg }: { msg?: string }) {
+function FieldError({ messageId, msg }: { messageId: string; msg?: string }) {
     return (
         <AnimatePresence>
             {msg && (
@@ -207,10 +208,16 @@ function FieldError({ msg }: { msg?: string }) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.15 }}
-                    className="mt-1.5 flex items-center gap-1.5 text-xs font-semibold text-red-500"
                 >
-                    <Icon.Alert />
-                    {msg}
+                    <LiveMessage
+                        as="span"
+                        tone="critical"
+                        id={messageId}
+                        className="mt-1.5 flex items-center gap-1.5 text-xs font-semibold text-red-500"
+                    >
+                        <Icon.Alert />
+                        {msg}
+                    </LiveMessage>
                 </motion.span>
             )}
         </AnimatePresence>
@@ -300,6 +307,10 @@ function Step1() {
         register,
         formState: { errors },
     } = useFormContext<FormValues>();
+    const medicineNameErrorId = useId();
+    const manufacturerErrorId = useId();
+    const descriptionErrorId = useId();
+
     return (
         <div className="space-y-5">
             <div>
@@ -308,8 +319,10 @@ function Step1() {
                     {...register("medicineName")}
                     placeholder="e.g. Augmentin 625 Duo"
                     className={inp(!!errors.medicineName)}
+                    aria-invalid={errors.medicineName ? "true" : undefined}
+                    aria-describedby={errors.medicineName ? medicineNameErrorId : undefined}
                 />
-                <FieldError msg={errors.medicineName?.message} />
+                <FieldError messageId={medicineNameErrorId} msg={errors.medicineName?.message} />
             </div>
             <div>
                 <FL req>Manufacturer</FL>
@@ -317,8 +330,10 @@ function Step1() {
                     {...register("manufacturer")}
                     placeholder="e.g. Cipla Ltd."
                     className={inp(!!errors.manufacturer)}
+                    aria-invalid={errors.manufacturer ? "true" : undefined}
+                    aria-describedby={errors.manufacturer ? manufacturerErrorId : undefined}
                 />
-                <FieldError msg={errors.manufacturer?.message} />
+                <FieldError messageId={manufacturerErrorId} msg={errors.manufacturer?.message} />
             </div>
             <div>
                 <FL req>Description of Concern</FL>
@@ -327,8 +342,10 @@ function Step1() {
                     rows={4}
                     placeholder="Describe unusual colour, smell, texture, packaging, reported side-effects…"
                     className={`${inp(!!errors.description)} resize-none`}
+                    aria-invalid={errors.description ? "true" : undefined}
+                    aria-describedby={errors.description ? descriptionErrorId : undefined}
                 />
-                <FieldError msg={errors.description?.message} />
+                <FieldError messageId={descriptionErrorId} msg={errors.description?.message} />
             </div>
         </div>
     );
@@ -352,6 +369,8 @@ function Step2({
     const [busy, setBusy] = useState(false);
     const [drag, setDrag] = useState(false);
     const [upErr, setUpErr] = useState<string | null>(null);
+    const uploadErrorId = useId();
+    const imageErrorId = useId();
 
     const imgErr = errors.images?.message as string | undefined;
 
@@ -475,6 +494,8 @@ function Step2({
                     className="hidden"
                     onChange={(e) => processFiles(Array.from(e.target.files ?? []))}
                     disabled={busy}
+                    aria-invalid={upErr || imgErr ? "true" : undefined}
+                    aria-describedby={upErr ? uploadErrorId : imgErr ? imageErrorId : undefined}
                 />
 
                 {busy ? (
@@ -511,18 +532,23 @@ function Step2({
                         initial={{ opacity: 0, y: -4 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
-                        className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600"
                     >
-                        <span className="mt-0.5">
-                            <Icon.Alert />
-                        </span>
-                        {upErr}
+                        <LiveMessage
+                            tone="critical"
+                            id={uploadErrorId}
+                            className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600"
+                        >
+                            <span className="mt-0.5">
+                                <Icon.Alert />
+                            </span>
+                            {upErr}
+                        </LiveMessage>
                     </motion.div>
                 )}
             </AnimatePresence>
 
             {/* Zod error (no images) */}
-            {!upErr && <FieldError msg={imgErr} />}
+            {!upErr && <FieldError messageId={imageErrorId} msg={imgErr} />}
 
             {/* Thumbnail grid */}
             {images.length > 0 && (
@@ -586,6 +612,12 @@ function Step3() {
         register,
         formState: { errors },
     } = useFormContext<FormValues>();
+    const pharmacyNameErrorId = useId();
+    const addressErrorId = useId();
+    const cityErrorId = useId();
+    const stateErrorId = useId();
+    const pincodeErrorId = useId();
+
     return (
         <div className="space-y-5">
             <div>
@@ -594,8 +626,10 @@ function Step3() {
                     {...register("pharmacyName")}
                     placeholder="e.g. Apollo Pharmacy, MG Road"
                     className={inp(!!errors.pharmacyName)}
+                    aria-invalid={errors.pharmacyName ? "true" : undefined}
+                    aria-describedby={errors.pharmacyName ? pharmacyNameErrorId : undefined}
                 />
-                <FieldError msg={errors.pharmacyName?.message} />
+                <FieldError messageId={pharmacyNameErrorId} msg={errors.pharmacyName?.message} />
             </div>
             <div>
                 <FL req>Street Address</FL>
@@ -603,8 +637,10 @@ function Step3() {
                     {...register("address")}
                     placeholder="e.g. 45, Park Street, Near Bus Stand"
                     className={inp(!!errors.address)}
+                    aria-invalid={errors.address ? "true" : undefined}
+                    aria-describedby={errors.address ? addressErrorId : undefined}
                 />
-                <FieldError msg={errors.address?.message} />
+                <FieldError messageId={addressErrorId} msg={errors.address?.message} />
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -613,8 +649,10 @@ function Step3() {
                         {...register("city")}
                         placeholder="Mumbai"
                         className={inp(!!errors.city)}
+                        aria-invalid={errors.city ? "true" : undefined}
+                        aria-describedby={errors.city ? cityErrorId : undefined}
                     />
-                    <FieldError msg={errors.city?.message} />
+                    <FieldError messageId={cityErrorId} msg={errors.city?.message} />
                 </div>
                 <div>
                     <FL req>State</FL>
@@ -622,8 +660,10 @@ function Step3() {
                         {...register("state")}
                         placeholder="Maharashtra"
                         className={inp(!!errors.state)}
+                        aria-invalid={errors.state ? "true" : undefined}
+                        aria-describedby={errors.state ? stateErrorId : undefined}
                     />
-                    <FieldError msg={errors.state?.message} />
+                    <FieldError messageId={stateErrorId} msg={errors.state?.message} />
                 </div>
             </div>
             <div className="max-w-[160px]">
@@ -634,8 +674,10 @@ function Step3() {
                     maxLength={6}
                     inputMode="numeric"
                     className={inp(!!errors.pincode)}
+                    aria-invalid={errors.pincode ? "true" : undefined}
+                    aria-describedby={errors.pincode ? pincodeErrorId : undefined}
                 />
-                <FieldError msg={errors.pincode?.message} />
+                <FieldError messageId={pincodeErrorId} msg={errors.pincode?.message} />
             </div>
         </div>
     );
@@ -716,6 +758,7 @@ export default function ReportWizard() {
     const [submitErr, setSubmitErr] = useState<string | null>(null);
     const [done, setDone] = useState(false);
     const [reportId, setReportId] = useState<string | null>(null);
+    const submitErrorId = useId();
 
     // Cleanup blob URLs on unmount to prevent memory leaks
     useEffect(() => {
@@ -847,12 +890,17 @@ export default function ReportWizard() {
                                             initial={{ opacity: 0, y: 4 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0 }}
-                                            className="mt-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-medium text-red-600 shadow-sm"
                                         >
-                                            <span className="mt-0.5">
-                                                <Icon.Alert />
-                                            </span>
-                                            <span>{submitErr}</span>
+                                            <LiveMessage
+                                                tone="critical"
+                                                id={submitErrorId}
+                                                className="mt-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-medium text-red-600 shadow-sm"
+                                            >
+                                                <span className="mt-0.5">
+                                                    <Icon.Alert />
+                                                </span>
+                                                <span>{submitErr}</span>
+                                            </LiveMessage>
                                         </motion.div>
                                     )}
                                 </AnimatePresence>

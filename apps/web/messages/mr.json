@@ -55,6 +55,7 @@
         "review_title": "तुमचा ट्रान्सक्रिप्ट तपासा",
         "review_message": "मायक्रोफोनने तुमची लक्षणे कमी विश्वासार्हतेने टिपली. अधिक स्पष्ट निकालासाठी पुन्हा प्रयत्न करा किंवा हाच ट्रान्सक्रिप्ट विश्लेषित करा.",
         "retry_button": "पुन्हा प्रयत्न करा",
+        "switch_to_text_button": "Type Instead",
         "analyse_anyway_button": "तरीही विश्लेषण करा",
         "result_heading": "AI विश्लेषण",
         "result_subheading": "वैद्यकीय ट्रायज",
@@ -117,6 +118,11 @@
             "no_speech_message": "शांत ठिकाणी पुन्हा प्रयत्न करा किंवा मायक्रोफोनजवळून बोला.",
             "generic_title": "काहीतरी चुकले",
             "generic_message": "यावेळी तुमचा व्हॉइस इनपुट प्रक्रिया करता आला नाही. कृपया पुन्हा प्रयत्न करा.",
+            "service_unavailable_title": "Voice service unavailable",
+            "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
+
+            "timeout_title": "Voice request timed out",
+            "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
             "api_title": "SahiDawa AI उपलब्ध नाही",
             "api_message": "सध्या वैद्यकीय मार्गदर्शन मिळू शकले नाही. थोड्या वेळाने पुन्हा प्रयत्न करा."
         }

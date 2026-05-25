@@ -266,12 +266,17 @@ export function VoiceReviewPanel({
 export function VoiceErrorPanel({
     error,
     retryLabel,
+    switchToTextLabel,
     onRetry,
+    onSwitchToText,
 }: {
     error: VoiceErrorState;
     retryLabel: string;
+    switchToTextLabel: string;
     onRetry: () => void;
+    onSwitchToText: () => void;
 }) {
+    const showTextFallback = error.type === "timeout" || error.type === "service-unavailable";
     return (
         <div
             className="animate-in fade-in slide-in-from-bottom-8 w-full max-w-md rounded-[2.5rem] border border-red-100 bg-white p-8 shadow-xl duration-500 motion-reduce:animate-none"
@@ -294,12 +299,23 @@ export function VoiceErrorPanel({
                 </div>
             </div>
 
-            <button
-                onClick={onRetry}
-                className={`w-full rounded-2xl bg-slate-900 py-4 font-bold text-white transition-all hover:bg-slate-800 ${VOICE_FOCUS_RING_CLASS}`}
-            >
-                {retryLabel}
-            </button>
+            <div className="flex flex-col gap-3">
+                <button
+                    onClick={onRetry}
+                    className={`w-full rounded-2xl bg-slate-900 py-4 font-bold text-white transition-all hover:bg-slate-800 ${VOICE_FOCUS_RING_CLASS}`}
+                >
+                    {retryLabel}
+                </button>
+
+                {showTextFallback ? (
+                    <button
+                        onClick={onSwitchToText}
+                        className={`w-full rounded-2xl border border-slate-200 bg-white py-4 font-bold text-slate-700 transition-all hover:bg-slate-50 ${VOICE_FOCUS_RING_CLASS}`}
+                    >
+                        {switchToTextLabel}
+                    </button>
+                ) : null}
+            </div>
         </div>
     );
 }

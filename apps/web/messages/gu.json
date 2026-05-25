@@ -44,6 +44,7 @@
         "review_title": "કૃપા કરીને તમારું ટ્રાન્સ્ક્રિપ્ટ તપાસો",
         "review_message": "માઇક્રોફોને તમારાં લક્ષણો ઓછા વિશ્વાસ સાથે ઉઠાવ્યાં. તમે વધુ સ્પષ્ટ પરિણામ માટે ફરી પ્રયાસ કરી શકો છો અથવા આ ટ્રાન્સ્ક્રિપ્ટ વિશ્લેષણ કરી શકો છો.",
         "retry_button": "ફરી પ્રયાસ કરો",
+        "switch_to_text_button": "Type Instead",
         "analyse_anyway_button": "છતાં વિશ્લેષણ કરો",
         "result_heading": "AI વિશ્લેષણ",
         "result_subheading": "તબીબી ટ્રાઇઍજ",
@@ -103,6 +104,11 @@
             "no_speech_message": "શાંત જગ્યાએ ફરી પ્રયાસ કરો અથવા માઇક્રોફોનની થોડી નજીક બોલો.",
             "generic_title": "કંઈક ખોટું થયું",
             "generic_message": "અમે આ વખતે તમારું વૉઇસ ઇનપુટ પ્રક્રિયા કરી શક્યા નહીં. કૃપા કરીને ફરી પ્રયાસ કરો.",
+            "service_unavailable_title": "Voice service unavailable",
+            "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
+
+            "timeout_title": "Voice request timed out",
+            "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
             "api_title": "SahiDawa AI અનુપલબ્ધ છે",
             "api_message": "અમે હમણાં તબીબી માર્ગદર્શન મેળવી શક્યા નહીં. કૃપા કરીને થોડીવાર પછી ફરી પ્રયાસ કરો."
         }

@@ -2,6 +2,7 @@
 
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Mic } from "lucide-react";
+import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { PageHeader } from "../components/PageHeader";
@@ -101,7 +102,33 @@ function getRecognitionErrorState(
             };
     }
 }
+function getServerErrorState(
+    status: number,
+    t: ReturnType<typeof useTranslations>
+): VoiceErrorState {
+    switch (status) {
+        case 503:
+            return {
+                type: "service-unavailable",
+                title: t("errors.service_unavailable_title"),
+                message: t("errors.service_unavailable_message"),
+            };
 
+        case 504:
+            return {
+                type: "timeout",
+                title: t("errors.timeout_title"),
+                message: t("errors.timeout_message"),
+            };
+
+        default:
+            return {
+                type: "generic",
+                title: t("errors.generic_title"),
+                message: t("errors.generic_message"),
+            };
+    }
+}
 function getConfidenceValueLabel(
     confidence: ConfidenceMeta,
     t: ReturnType<typeof useTranslations>
@@ -117,6 +144,9 @@ function getConfidenceValueLabel(
 }
 
 export default function VoiceTriagePage() {
+    const router = useRouter();
+    const params = useParams();
+    const locale = Array.isArray(params.locale) ? params.locale[0] : params.locale;
     const t = useTranslations("VoicePage");
     const [step, setStep] = useState<VoiceStep>("initial");
     const [selectedLanguage, setSelectedLanguage] = useState(DEFAULT_VOICE_LANGUAGE);
@@ -529,13 +559,25 @@ export default function VoiceTriagePage() {
         } catch (transcriptionError) {
             closeStreamingSession();
             setStreamingStatusValue("idle");
-            setError({
-                title: t("errors.generic_title"),
-                message:
-                    transcriptionError instanceof Error && transcriptionError.message
-                        ? transcriptionError.message
-                        : t("errors.generic_message"),
-            });
+
+            const errorStatus =
+                transcriptionError instanceof Error && "status" in transcriptionError
+                    ? Number(transcriptionError.status)
+                    : undefined;
+
+            if (errorStatus === 503 || errorStatus === 504) {
+                setError(getServerErrorState(errorStatus, t));
+            } else {
+                setError({
+                    type: "generic",
+                    title: t("errors.generic_title"),
+                    message:
+                        transcriptionError instanceof Error && transcriptionError.message
+                            ? transcriptionError.message
+                            : t("errors.generic_message"),
+                });
+            }
+
             setStep("error");
         }
     }
@@ -1219,7 +1261,9 @@ export default function VoiceTriagePage() {
                         <VoiceErrorPanel
                             error={error}
                             retryLabel={t("retry_button")}
+                            switchToTextLabel={t("switch_to_text_button")}
                             onRetry={() => resetFlow()}
+                            onSwitchToText={() => router.push(`/${locale}/health`)}
                         />
                     )}
 

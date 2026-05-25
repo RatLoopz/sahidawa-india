@@ -55,6 +55,7 @@
         "review_title": "మీ ట్రాన్స్‌క్రిప్ట్‌ను పరిశీలించండి",
         "review_message": "మైక్రోఫోన్ మీ లక్షణాలను తక్కువ నమ్మకంతో పట్టుకుంది. మరింత స్పష్టమైన ఫలితానికి మళ్లీ ప్రయత్నించండి లేదా ఇదే ట్రాన్స్‌క్రిప్ట్‌ను విశ్లేషించండి.",
         "retry_button": "మళ్లీ ప్రయత్నించండి",
+        "switch_to_text_button": "Type Instead",
         "analyse_anyway_button": "ఏమైనా విశ్లేషించండి",
         "result_heading": "AI విశ్లేషణ",
         "result_subheading": "మెడికల్ ట్రియాజ్",
@@ -117,6 +118,11 @@
             "no_speech_message": "శాంతమైన ప్రదేశంలో మళ్లీ ప్రయత్నించండి లేదా మైక్రోఫోన్‌కు దగ్గరగా మాట్లాడండి.",
             "generic_title": "ఏదో తప్పు జరిగింది",
             "generic_message": "ఈసారి మీ వాయిస్ ఇన్‌పుట్‌ను ప్రాసెస్ చేయలేకపోయాం. దయచేసి మళ్లీ ప్రయత్నించండి.",
+            "service_unavailable_title": "Voice service unavailable",
+            "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
+
+            "timeout_title": "Voice request timed out",
+            "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
             "api_title": "SahiDawa AI అందుబాటులో లేదు",
             "api_message": "ఇప్పుడే వైద్య మార్గదర్శకాన్ని పొందలేకపోయాం. కొద్దిసేపటికి మళ్లీ ప్రయత్నించండి."
         }

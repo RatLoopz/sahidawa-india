@@ -4,6 +4,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { Globe } from "lucide-react";
 import RecallPushSubscriber from "@/components/alerts/RecallPushSubscriber";
+import { LiveMessage } from "@/components/ui/LiveMessage";
 
 export const revalidate = 0;
 
@@ -81,9 +82,12 @@ export default async function FullAlertsLogPage() {
             </div>
 
             {error && (
-                <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800">
+                <LiveMessage
+                    tone="critical"
+                    className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800"
+                >
                     Database synchronization error encountered while fetching active logs.
-                </div>
+                </LiveMessage>
             )}
 
             <RecallPushSubscriber />

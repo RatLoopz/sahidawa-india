@@ -55,6 +55,7 @@
         "review_title": "உங்கள் உரையைச் சரிபார்க்கவும்",
         "review_message": "மைக்ரோஃபோன் உங்கள் அறிகுறிகளை குறைந்த நம்பகத்தன்மையுடன் பதிவு செய்தது. தெளிவான முடிவுக்காக மீண்டும் முயற்சிக்கலாம் அல்லது இதையே ஆய்வு செய்யலாம்.",
         "retry_button": "மீண்டும் முயற்சி",
+        "switch_to_text_button": "Type Instead",
         "analyse_anyway_button": "எப்படியும் ஆய்வு செய்",
         "result_heading": "AI பகுப்பாய்வு",
         "result_subheading": "மருத்துவ பரிசோதனை",
@@ -117,6 +118,11 @@
             "no_speech_message": "அமைதியான இடத்தில் மீண்டும் முயற்சிக்கவும் அல்லது மைக்ரோஃபோனுக்கு அருகில் பேசவும்.",
             "generic_title": "ஏதோ தவறு ஏற்பட்டது",
             "generic_message": "இந்த முறை உங்கள் குரல் உள்ளீட்டை செயலாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+            "service_unavailable_title": "Voice service unavailable",
+            "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
+
+            "timeout_title": "Voice request timed out",
+            "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
             "api_title": "SahiDawa AI கிடைக்கவில்லை",
             "api_message": "இப்போது மருத்துவ வழிகாட்டலை பெற முடியவில்லை. சிறிது நேரத்தில் மீண்டும் முயற்சிக்கவும்."
         }

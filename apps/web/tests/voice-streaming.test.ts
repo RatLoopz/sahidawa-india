@@ -3,6 +3,15 @@ import {
     getVoiceStreamingUrl,
 } from "../app/[locale]/voice/lib/streaming";
 
+global.WebSocket = {
+    CONNECTING: 0,
+    OPEN: 1,
+    CLOSING: 2,
+    CLOSED: 3,
+} as any;
+
+global.CloseEvent = class CloseEvent {} as any;
+
 describe("voice streaming helper", () => {
     const originalMlBaseUrl = process.env.NEXT_PUBLIC_ML_SERVICE_URL;
 

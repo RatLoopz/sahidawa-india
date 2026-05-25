@@ -55,6 +55,7 @@
         "review_title": "Please review your transcript",
         "review_message": "The microphone picked up your symptoms with low confidence. You can retry for a clearer result or analyse this transcript anyway.",
         "retry_button": "Try Again",
+        "switch_to_text_button": "Type Instead",
         "analyse_anyway_button": "Analyse Anyway",
         "result_heading": "AI Analysis",
         "result_subheading": "Medical Triage",
@@ -117,6 +118,11 @@
             "no_speech_message": "Try again in a quieter place or speak a little closer to the microphone.",
             "generic_title": "Something went wrong",
             "generic_message": "We could not process your voice input this time. Please try again.",
+            "service_unavailable_title": "Voice service unavailable",
+            "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
+
+            "timeout_title": "Voice request timed out",
+            "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
             "api_title": "SahiDawa AI is unavailable",
             "api_message": "We could not get medical guidance right now. Please try again in a moment."
         }
