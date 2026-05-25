@@ -81,7 +81,7 @@ export default function Footer() {
 
                         <div className="flex items-center gap-4">
                             <a
-                                href="https://github.com/"
+                                href="https://github.com/RatLoopz/sahidawa-india"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:border-slate-600 hover:text-white"

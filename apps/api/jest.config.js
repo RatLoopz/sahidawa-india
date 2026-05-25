@@ -11,5 +11,14 @@ module.exports = {
                 tsconfig: "tsconfig.test.json",
             },
         ],
+        "^.+\\.jsx?$": [
+            "ts-jest",
+            {
+                tsconfig: "tsconfig.test.json",
+            },
+        ],
     },
+    transformIgnorePatterns: [
+        "/node_modules/(?!(natural|afinn-165|apparatus|sylvester|uuid)/)"
+    ],
 };
