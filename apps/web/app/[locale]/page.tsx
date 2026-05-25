@@ -27,6 +27,7 @@ import SearchBar from "./components/SearchBar";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import MedicinePhotoUpload from "@/components/MedicinePhotoUpload";
+import HeroSection from "./components/HeroSection";
 
 function formatRelativeTime(dateString: string | null): string {
     if (!dateString) return "Recent";
@@ -171,7 +172,7 @@ export default function SahiDawaHome() {
             {/* ── Main ── */}
             <main className="container mx-auto max-w-6xl px-4 pt-8 pb-24 md:pb-12">
                 {/* Hero */}
-                <div className="space-y-6 py-12 text-center md:py-20">
+                {/* <div className="space-y-6 py-12 text-center md:py-20">
                     <div className="animate-in fade-in slide-in-from-bottom-4 inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 duration-700">
                         <span className="relative flex h-2 w-2">
                             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
@@ -185,7 +186,8 @@ export default function SahiDawaHome() {
                     <p className="mx-auto max-w-2xl text-lg leading-relaxed font-medium text-slate-500 md:text-xl">
                         {tHome("subtitle")}
                     </p>
-                </div>
+                </div> */}
+                <HeroSection />
 
                 {/* ── Primary CTA — Full-width Scan Button ── */}
                 <button
