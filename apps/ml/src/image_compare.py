@@ -9,6 +9,8 @@ import io
 import time
 from pathlib import Path
 from urllib.parse import urlparse
+import ipaddress
+import socket
 
 router = APIRouter()
 
@@ -29,22 +31,47 @@ class CompareResponse(BaseModel):
 SEEDS_DIR = Path(__file__).parent.parent.parent.parent / "data" / "seeds" / "medicines"
 
 
-def validate_cloudinary_url(url: str) -> None:
+def _is_public_host(hostname: str) -> bool:
+    try:
+        resolved = socket.getaddrinfo(hostname, None, type=socket.SOCK_STREAM)
+    except socket.gaierror as exc:
+        raise ValueError(f"Could not resolve host: {hostname}") from exc
+
+    for family, _, _, _, sockaddr in resolved:
+        ip = ipaddress.ip_address(sockaddr[0])
+        if ip.is_global and not ip.is_private and not ip.is_loopback and not ip.is_link_local:
+            return True
+
+    raise ValueError(f"Host resolves to a non-public address: {hostname}")
+
+
+def validate_cloudinary_url(url: str) -> httpx.URL:
     parsed = urlparse(url)
 
-    if parsed.scheme not in {"https"}:
+    if parsed.scheme != "https":
         raise ValueError("Only HTTPS Cloudinary URLs are allowed")
+
+    if parsed.username or parsed.password:
+        raise ValueError("Credentials are not allowed in Cloudinary URLs")
 
     host = parsed.hostname or ""
     if not host.endswith(".cloudinary.com"):
         raise ValueError("Only Cloudinary URLs are allowed")
 
+    _is_public_host(host)
+
+    normalized = httpx.URL(url)
+    if not normalized.host:
+        raise ValueError("Cloudinary URL must include a host")
+
+    return normalized
+
 
 def download_image(url: str) -> np.ndarray:
-    validate_cloudinary_url(url)
+    safe_url = validate_cloudinary_url(url)
 
     with httpx.Client(timeout=10.0, follow_redirects=False) as client:
-        response = client.get(url)
+        response = client.get(safe_url)
         response.raise_for_status()
 
     image = Image.open(io.BytesIO(response.content)).convert("RGB")
