@@ -1,5 +1,5 @@
 import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
-import { GitBranch } from "lucide-react";
+import { GitBranch, Sparkles, Heart } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { ThemeToggle } from "./ThemeToggle"; // <-- ADD THIS IMPORT
 
@@ -18,7 +18,7 @@ export default function Footer() {
                         </p>
 
                         <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
-                            ✨ Made for GSSoC 2026
+                            <Sparkles className="h-3 w-3" /> Made for GSSoC 2026
                         </div>
                     </div>
 
@@ -120,7 +120,7 @@ export default function Footer() {
                     </div>
 
                     <p className="text-center md:text-right">
-                        Built with ❤️ for the open-source community.
+                        Built with <Heart className="inline h-3 w-3 text-red-500" /> for the open-source community.
                     </p>
                 </div>
             </div>
