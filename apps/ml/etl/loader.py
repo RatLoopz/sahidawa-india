@@ -258,16 +258,19 @@ class SupabaseLoader:
                 continue
 
             try:
-                # Find existing records matching this generic name
-                response = (
+                
+                strength = row.get("strength")
+                query = (
                     self.client.table(table)
-                    .select("id, generic_name, mrp")
-                    .ilike("generic_name", f"%{generic_name}%")
-                    .is_("mrp", "null")   # Only update rows where mrp is not yet set
-                    .limit(5)
-                    .execute()
+                    .select("id, generic_name, strength, mrp")
+                    .ilike("generic_name", f"{generic_name}%")
+                    .is_("mrp", "null")
                 )
+                if strength and not pd.isna(strength):
+                    query = query.eq("strength", str(strength))
+                response = query.execute()
                 matches = getattr(response, "data", None) or []
+                
 
                 if not matches:
                     not_found += 1
