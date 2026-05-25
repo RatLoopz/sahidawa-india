@@ -35,19 +35,22 @@ import analyticsRoutes from "./routes/analytics";
 import notificationsRouter from "./routes/notifications";
 import scanRouter from "./routes/scan";
 import alertsRouter from "./routes/alerts";
+import lasaRouter from "./routes/lasa";
 import { supabase } from "./db/client";
 
 import { errorHandler } from "./middleware/errorHandler";
 
 const app: Express = express();
 
-app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            connectSrc: ["'self'", process.env.SUPABASE_URL || ""],
+app.use(
+    helmet({
+        contentSecurityPolicy: {
+            directives: {
+                connectSrc: ["'self'", process.env.SUPABASE_URL || ""],
+            },
         },
-    },
-}));
+    })
+);
 
 // Security: restrict CORS to known origins instead of wildcard
 const allowedOrigins = ["http://localhost:3000", "http://localhost:4000", "http://localhost:8000"];
@@ -118,15 +121,16 @@ app.use("/api/verify", verifyRouter);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/v1/scan", scanRouter);
+app.use("/api/v1/lasa", lasaRouter);
 app.use("/api/v1/alerts", alertsRouter);
 
 // ── Swagger UI (/api/docs) ──────────────────────────────────────────────────
 app.use(
-  "/api/docs",
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerSpec, {
-    customSiteTitle: "SahiDawa API Docs",
-    customCss: `
+    "/api/docs",
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec, {
+        customSiteTitle: "SahiDawa API Docs",
+        customCss: `
       .topbar { background-color: #1a7f5a; }
       .topbar-wrapper img { display: none; }
       .topbar-wrapper::after {
@@ -137,13 +141,13 @@ app.use(
         padding-left: 1rem;
       }
     `,
-  })
+    })
 );
 
 // Also expose raw spec as JSON for tooling (Postman, etc.)
 app.get("/api/docs.json", (req: Request, res: Response) => {
-  res.setHeader("Content-Type", "application/json");
-  res.send(swaggerSpec);
+    res.setHeader("Content-Type", "application/json");
+    res.send(swaggerSpec);
 });
 
 app.use(errorHandler);

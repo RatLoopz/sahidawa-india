@@ -23,12 +23,12 @@ python run_all.py
 
 ## CLI flags
 
-| Flag | Effect |
-|---|---|
-| `--skip-scrape` | Use the most recent existing raw CSV instead of scraping |
-| `--scrape-only` | Scrape only — skip validation and DB load |
-| `--retry-failed` | Retry rows saved in the `etl_failed_rows` table |
-| `--refresh-cdsco` | Force re-download of CDSCO reference data |
+| Flag              | Effect                                                   |
+| ----------------- | -------------------------------------------------------- |
+| `--skip-scrape`   | Use the most recent existing raw CSV instead of scraping |
+| `--scrape-only`   | Scrape only — skip validation and DB load                |
+| `--retry-failed`  | Retry rows saved in the `etl_failed_rows` table          |
+| `--refresh-cdsco` | Force re-download of CDSCO reference data                |
 
 ## See also
 

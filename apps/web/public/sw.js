@@ -8,13 +8,13 @@
  * @version 2.0.0
  */
 
-const CACHE_VERSION = 'v2';
-const OFFLINE_CACHE_NAME  = `sahidawa-offline-${CACHE_VERSION}`;
-const API_CACHE_NAME      = `sahidawa-api-${CACHE_VERSION}`;
-const STATIC_CACHE_NAME   = `sahidawa-static-${CACHE_VERSION}`;
+const CACHE_VERSION = "v2";
+const OFFLINE_CACHE_NAME = `sahidawa-offline-${CACHE_VERSION}`;
+const API_CACHE_NAME = `sahidawa-api-${CACHE_VERSION}`;
+const STATIC_CACHE_NAME = `sahidawa-static-${CACHE_VERSION}`;
 
 /** Pages to pre-cache on install so they are available offline immediately */
-const PRECACHE_PAGES = ['/', '/en', '/hi', '/en/offline', '/hi/offline'];
+const PRECACHE_PAGES = ["/", "/en", "/hi", "/en/offline", "/hi/offline"];
 
 /** Maximum age (ms) for a stale API response before forcing a network refresh */
 const API_CACHE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutes
@@ -22,109 +22,107 @@ const API_CACHE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutes
 // ---------------------------------------------------------------------------
 // INSTALL — precache core shell pages
 // ---------------------------------------------------------------------------
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(STATIC_CACHE_NAME).then((cache) =>
-      cache.addAll(PRECACHE_PAGES).catch(() => {
-        console.log('[SW] Some shell pages could not be precached; they will be cached on first visit.');
-      })
-    )
-  );
-  // Activate immediately so the new SW takes control without waiting for a reload
-  self.skipWaiting();
+self.addEventListener("install", (event) => {
+    event.waitUntil(
+        caches.open(STATIC_CACHE_NAME).then((cache) =>
+            cache.addAll(PRECACHE_PAGES).catch(() => {
+                console.log(
+                    "[SW] Some shell pages could not be precached; they will be cached on first visit."
+                );
+            })
+        )
+    );
+    // Activate immediately so the new SW takes control without waiting for a reload
+    self.skipWaiting();
 });
 
 // ---------------------------------------------------------------------------
 // ACTIVATE — purge stale caches from previous versions
 // ---------------------------------------------------------------------------
-self.addEventListener('activate', (event) => {
-  const validCaches = new Set([OFFLINE_CACHE_NAME, API_CACHE_NAME, STATIC_CACHE_NAME]);
+self.addEventListener("activate", (event) => {
+    const validCaches = new Set([OFFLINE_CACHE_NAME, API_CACHE_NAME, STATIC_CACHE_NAME]);
 
-  event.waitUntil(
-    caches.keys().then((cacheNames) =>
-      Promise.all(
-        cacheNames
-          .filter((name) => !validCaches.has(name))
-          .map((name) => {
-            console.log(`[SW] Deleting stale cache: ${name}`);
-            return caches.delete(name);
-          })
-      )
-    )
-  );
+    event.waitUntil(
+        caches.keys().then((cacheNames) =>
+            Promise.all(
+                cacheNames
+                    .filter((name) => !validCaches.has(name))
+                    .map((name) => {
+                        console.log(`[SW] Deleting stale cache: ${name}`);
+                        return caches.delete(name);
+                    })
+            )
+        )
+    );
 
-  // Claim all open clients immediately
-  self.clients.claim();
+    // Claim all open clients immediately
+    self.clients.claim();
 });
 
 // ---------------------------------------------------------------------------
 // FETCH — route requests to the appropriate caching strategy
 // ---------------------------------------------------------------------------
-self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  const url = new URL(request.url);
+self.addEventListener("fetch", (event) => {
+    const { request } = event;
+    const url = new URL(request.url);
 
-  // --- Skip cross-origin requests (analytics, CDN assets, etc.) ---
-  if (url.origin !== self.location.origin) return;
+    // --- Skip cross-origin requests (analytics, CDN assets, etc.) ---
+    if (url.origin !== self.location.origin) return;
 
-  // --- Skip Next.js HMR WebSocket / dev-only endpoints ---
-  if (
-    request.url.includes('webpack-hmr') ||
-    request.url.includes('_next/webpack-hmr') ||
-    request.url.includes('__nextjs')
-  ) {
-    return;
-  }
+    // --- Skip Next.js HMR WebSocket / dev-only endpoints ---
+    if (
+        request.url.includes("webpack-hmr") ||
+        request.url.includes("_next/webpack-hmr") ||
+        request.url.includes("__nextjs")
+    ) {
+        return;
+    }
 
-  // --- Skip service worker itself ---
-  if (request.url.endsWith('/sw.js')) return;
+    // --- Skip service worker itself ---
+    if (request.url.endsWith("/sw.js")) return;
 
-  // --- Skip manifest (let browser handle it natively) ---
-  if (request.url.endsWith('manifest.json')) return;
+    // --- Skip manifest (let browser handle it natively) ---
+    if (request.url.endsWith("manifest.json")) return;
 
-  // --- Dev mode: skip dynamic JS chunks so HMR keeps working ---
-  // (detect dev by checking if the origin is localhost / 127.0.0.1)
-  const isDev =
-    self.location.hostname === 'localhost' ||
-    self.location.hostname === '127.0.0.1' ||
-    self.location.hostname.startsWith('192.168.');
-  if (
-    isDev &&
-    request.url.includes('_next/static/chunks/') &&
-    request.destination === 'script'
-  ) {
-    return;
-  }
+    // --- Dev mode: skip dynamic JS chunks so HMR keeps working ---
+    // (detect dev by checking if the origin is localhost / 127.0.0.1)
+    const isDev =
+        self.location.hostname === "localhost" ||
+        self.location.hostname === "127.0.0.1" ||
+        self.location.hostname.startsWith("192.168.");
+    if (isDev && request.url.includes("_next/static/chunks/") && request.destination === "script") {
+        return;
+    }
 
-  // -------------------------------------------------------------------------
-  // Strategy 1 — API routes: Network-first, cache fallback
-  // -------------------------------------------------------------------------
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(networkFirstWithCache(request, API_CACHE_NAME));
-    return;
-  }
+    // -------------------------------------------------------------------------
+    // Strategy 1 — API routes: Network-first, cache fallback
+    // -------------------------------------------------------------------------
+    if (url.pathname.startsWith("/api/")) {
+        event.respondWith(networkFirstWithCache(request, API_CACHE_NAME));
+        return;
+    }
 
-  // -------------------------------------------------------------------------
-  // Strategy 2 — Navigation (HTML pages): Network-first, offline page fallback
-  // -------------------------------------------------------------------------
-  if (request.mode === 'navigate') {
-    event.respondWith(navigateWithOfflineFallback(request));
-    return;
-  }
+    // -------------------------------------------------------------------------
+    // Strategy 2 — Navigation (HTML pages): Network-first, offline page fallback
+    // -------------------------------------------------------------------------
+    if (request.mode === "navigate") {
+        event.respondWith(navigateWithOfflineFallback(request));
+        return;
+    }
 
-  // -------------------------------------------------------------------------
-  // Strategy 3 — Static assets: Stale-While-Revalidate
-  // -------------------------------------------------------------------------
-  if (
-    request.destination === 'style'  ||
-    request.destination === 'script' ||
-    request.destination === 'image'  ||
-    request.destination === 'font'   ||
-    request.destination === 'manifest'
-  ) {
-    event.respondWith(staleWhileRevalidate(request, STATIC_CACHE_NAME));
-    return;
-  }
+    // -------------------------------------------------------------------------
+    // Strategy 3 — Static assets: Stale-While-Revalidate
+    // -------------------------------------------------------------------------
+    if (
+        request.destination === "style" ||
+        request.destination === "script" ||
+        request.destination === "image" ||
+        request.destination === "font" ||
+        request.destination === "manifest"
+    ) {
+        event.respondWith(staleWhileRevalidate(request, STATIC_CACHE_NAME));
+        return;
+    }
 });
 
 // ---------------------------------------------------------------------------
@@ -138,38 +136,38 @@ self.addEventListener('fetch', (event) => {
  *   3. If not in cache, fetch from network and cache the result.
  */
 async function staleWhileRevalidate(request, cacheName) {
-  const cache = await caches.open(cacheName);
-  const cachedResponse = await cache.match(request);
+    const cache = await caches.open(cacheName);
+    const cachedResponse = await cache.match(request);
 
-  // Kick off a background network fetch regardless of cache hit
-  const networkFetch = fetch(request)
-    .then((networkResponse) => {
-      if (networkResponse && networkResponse.ok) {
-        cache.put(request, networkResponse.clone()).catch(() => {});
-      }
-      return networkResponse;
-    })
-    .catch(() => null);
+    // Kick off a background network fetch regardless of cache hit
+    const networkFetch = fetch(request)
+        .then((networkResponse) => {
+            if (networkResponse && networkResponse.ok) {
+                cache.put(request, networkResponse.clone()).catch(() => {});
+            }
+            return networkResponse;
+        })
+        .catch(() => null);
 
-  // Return cached response immediately, or wait for network
-  if (cachedResponse) {
-    // Return stale response right away; background update already in flight
-    return cachedResponse;
-  }
+    // Return cached response immediately, or wait for network
+    if (cachedResponse) {
+        // Return stale response right away; background update already in flight
+        return cachedResponse;
+    }
 
-  // Nothing in cache — wait for network response (may be null on failure)
-  const networkResponse = await networkFetch;
-  if (networkResponse) return networkResponse;
+    // Nothing in cache — wait for network response (may be null on failure)
+    const networkResponse = await networkFetch;
+    if (networkResponse) return networkResponse;
 
-  // Ultimate fallback for images
-  if (request.destination === 'image') {
-    return new Response(
-      '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#e0e0e0"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="12" fill="#9ca3af">Offline</text></svg>',
-      { headers: { 'Content-Type': 'image/svg+xml' } }
-    );
-  }
+    // Ultimate fallback for images
+    if (request.destination === "image") {
+        return new Response(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#e0e0e0"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="12" fill="#9ca3af">Offline</text></svg>',
+            { headers: { "Content-Type": "image/svg+xml" } }
+        );
+    }
 
-  return new Response('Offline', { status: 503 });
+    return new Response("Offline", { status: 503 });
 }
 
 /**
@@ -179,23 +177,26 @@ async function staleWhileRevalidate(request, cacheName) {
  *   3. On failure: serve from cache (if available) or return a 503 JSON.
  */
 async function networkFirstWithCache(request, cacheName) {
-  const cache = await caches.open(cacheName);
+    const cache = await caches.open(cacheName);
 
-  try {
-    const networkResponse = await fetch(request);
-    if (networkResponse.ok) {
-      cache.put(request, networkResponse.clone()).catch(() => {});
+    try {
+        const networkResponse = await fetch(request);
+        if (networkResponse.ok) {
+            cache.put(request, networkResponse.clone()).catch(() => {});
+        }
+        return networkResponse;
+    } catch {
+        const cachedResponse = await cache.match(request);
+        if (cachedResponse) return cachedResponse;
+
+        return new Response(
+            JSON.stringify({
+                error: "You are offline and this data is not cached.",
+                offline: true,
+            }),
+            { status: 503, headers: { "Content-Type": "application/json" } }
+        );
     }
-    return networkResponse;
-  } catch {
-    const cachedResponse = await cache.match(request);
-    if (cachedResponse) return cachedResponse;
-
-    return new Response(
-      JSON.stringify({ error: 'You are offline and this data is not cached.', offline: true }),
-      { status: 503, headers: { 'Content-Type': 'application/json' } }
-    );
-  }
 }
 
 /**
@@ -206,35 +207,35 @@ async function networkFirstWithCache(request, cacheName) {
  *   4. If no cache: serve the /offline page.
  */
 async function navigateWithOfflineFallback(request) {
-  const cache = await caches.open(OFFLINE_CACHE_NAME);
+    const cache = await caches.open(OFFLINE_CACHE_NAME);
 
-  try {
-    const networkResponse = await fetch(request);
-    if (networkResponse.ok) {
-      cache.put(request, networkResponse.clone()).catch(() => {});
-    }
-    return networkResponse;
-  } catch {
-    // Try the specific page from cache first
-    const cachedPage = await cache.match(request);
-    if (cachedPage) return cachedPage;
+    try {
+        const networkResponse = await fetch(request);
+        if (networkResponse.ok) {
+            cache.put(request, networkResponse.clone()).catch(() => {});
+        }
+        return networkResponse;
+    } catch {
+        // Try the specific page from cache first
+        const cachedPage = await cache.match(request);
+        if (cachedPage) return cachedPage;
 
-    // Try locale-aware offline pages
-    const url = new URL(request.url);
-    const pathParts = url.pathname.split('/').filter(Boolean);
-    const locale = ['en', 'hi'].includes(pathParts[0]) ? pathParts[0] : 'en';
+        // Try locale-aware offline pages
+        const url = new URL(request.url);
+        const pathParts = url.pathname.split("/").filter(Boolean);
+        const locale = ["en", "hi"].includes(pathParts[0]) ? pathParts[0] : "en";
 
-    const offlinePage =
-      (await cache.match(`/${locale}/offline`)) ||
-      (await cache.match('/en/offline')) ||
-      (await cache.match('/offline')) ||
-      (await cache.match('/'));
+        const offlinePage =
+            (await cache.match(`/${locale}/offline`)) ||
+            (await cache.match("/en/offline")) ||
+            (await cache.match("/offline")) ||
+            (await cache.match("/"));
 
-    if (offlinePage) return offlinePage;
+        if (offlinePage) return offlinePage;
 
-    // Absolute last resort: inline HTML
-    return new Response(
-      `<!DOCTYPE html>
+        // Absolute last resort: inline HTML
+        return new Response(
+            `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -255,66 +256,64 @@ async function navigateWithOfflineFallback(request) {
   </div>
 </body>
 </html>`,
-      { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
-    );
-  }
+            { status: 503, headers: { "Content-Type": "text/html; charset=utf-8" } }
+        );
+    }
 }
 
 // ---------------------------------------------------------------------------
 // PUSH NOTIFICATIONS — medicine recall alerts
 // ---------------------------------------------------------------------------
-self.addEventListener('push', (event) => {
-  const payload = event.data
-    ? event.data.json()
-    : {
-        title: 'Medicine Recall Alert',
-        body: 'A medicine recall alert was issued.',
-        url: '/en/alerts',
-      };
+self.addEventListener("push", (event) => {
+    const payload = event.data
+        ? event.data.json()
+        : {
+              title: "Medicine Recall Alert",
+              body: "A medicine recall alert was issued.",
+              url: "/en/alerts",
+          };
 
-  event.waitUntil(
-    self.registration.showNotification(payload.title || 'Medicine Recall Alert', {
-      body: payload.body || payload.recallReason,
-      icon: '/icons/icon-192.png',
-      badge: '/icons/icon-192.png',
-      data: {
-        url: payload.url || '/en/alerts',
-        medicineName: payload.medicineName,
-        recallReason: payload.recallReason,
-      },
-      tag: payload.medicineName ? `recall-${payload.medicineName}` : 'medicine-recall',
-      requireInteraction: payload.severity === 'critical',
-    })
-  );
+    event.waitUntil(
+        self.registration.showNotification(payload.title || "Medicine Recall Alert", {
+            body: payload.body || payload.recallReason,
+            icon: "/icons/icon-192.png",
+            badge: "/icons/icon-192.png",
+            data: {
+                url: payload.url || "/en/alerts",
+                medicineName: payload.medicineName,
+                recallReason: payload.recallReason,
+            },
+            tag: payload.medicineName ? `recall-${payload.medicineName}` : "medicine-recall",
+            requireInteraction: payload.severity === "critical",
+        })
+    );
 });
 
 // ---------------------------------------------------------------------------
 // NOTIFICATION CLICK — focus existing window or open new one
 // ---------------------------------------------------------------------------
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  const targetUrl = event.notification.data?.url || '/en/alerts';
+self.addEventListener("notificationclick", (event) => {
+    event.notification.close();
+    const targetUrl = event.notification.data?.url || "/en/alerts";
 
-  event.waitUntil(
-    self.clients
-      .matchAll({ type: 'window', includeUncontrolled: true })
-      .then((clients) => {
-        for (const client of clients) {
-          if ('focus' in client) {
-            client.navigate(targetUrl);
-            return client.focus();
-          }
-        }
-        return self.clients.openWindow(targetUrl);
-      })
-  );
+    event.waitUntil(
+        self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+            for (const client of clients) {
+                if ("focus" in client) {
+                    client.navigate(targetUrl);
+                    return client.focus();
+                }
+            }
+            return self.clients.openWindow(targetUrl);
+        })
+    );
 });
 
 // ---------------------------------------------------------------------------
 // MESSAGE — allow pages to communicate with the SW (e.g. skip waiting)
 // ---------------------------------------------------------------------------
-self.addEventListener('message', (event) => {
-  if (event.data?.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
+self.addEventListener("message", (event) => {
+    if (event.data?.type === "SKIP_WAITING") {
+        self.skipWaiting();
+    }
 });

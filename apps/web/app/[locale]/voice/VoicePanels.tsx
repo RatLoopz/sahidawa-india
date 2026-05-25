@@ -66,7 +66,7 @@ export function VoiceIntroPanel({
                     <p className="mt-1 text-sm font-bold text-slate-700">{exampleText}</p>
                 </div>
                 <div className="rounded-3xl border border-slate-100 bg-white p-4 text-left shadow-sm">
-                    <Volume2 size={20} aria-hidden="true" className="mb-2 text-emerald-500" />
+                    <Volume2 size={20} aria-hidden="true" className="mb-2 text-emerald-700" />
                     <p className="text-xs font-bold tracking-tighter text-slate-400 uppercase">
                         {assistantLabel}
                     </p>
@@ -124,7 +124,7 @@ export function VoiceListeningPanel({
             <p className="text-center text-2xl font-bold text-slate-800 italic">
                 {transcript || "…"}
             </p>
-            <p className="text-sm font-bold tracking-widest text-emerald-600 uppercase">
+            <p className="text-sm font-bold tracking-widest text-emerald-700 uppercase">
                 {statusLabel}
             </p>
             {helperLabel ? (
@@ -143,9 +143,9 @@ export function VoiceProcessingPanel({ title, subtitle }: { title: string; subti
             aria-label={title}
         >
             <div className="relative" aria-hidden="true">
-                <div className="h-24 w-24 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-500 motion-reduce:animate-none"></div>
+                <div className="h-24 w-24 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-600 motion-reduce:animate-none"></div>
                 <Sparkles
-                    className="absolute inset-0 m-auto animate-pulse text-emerald-500 motion-reduce:animate-none"
+                    className="absolute inset-0 m-auto animate-pulse text-emerald-700 motion-reduce:animate-none"
                     size={32}
                     aria-hidden="true"
                 />
@@ -272,14 +272,12 @@ export function VoiceErrorPanel({
     retryLabel: string;
     onRetry: () => void;
 }) {
-    const errorMessageId = useId();
-
     return (
         <div
             className="animate-in fade-in slide-in-from-bottom-8 w-full max-w-md rounded-[2.5rem] border border-red-100 bg-white p-8 shadow-xl duration-500 motion-reduce:animate-none"
             role="alert"
             aria-live="assertive"
-            aria-describedby={errorMessageId}
+            aria-describedby="voice-error-message"
         >
             <div className="mb-6 flex items-start gap-3">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-600">
@@ -288,7 +286,7 @@ export function VoiceErrorPanel({
                 <div>
                     <h2 className="font-black text-slate-900">{error.title}</h2>
                     <p
-                        id={errorMessageId}
+                        id="voice-error-message"
                         className="mt-2 text-sm leading-relaxed text-slate-600"
                     >
                         {error.message}
@@ -417,7 +415,7 @@ export function VoiceResultPanel({
                                     key={`${recommendation}-${index}`}
                                     className="flex items-center gap-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-4"
                                 >
-                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white">
                                         <span className="font-bold">{index + 1}</span>
                                     </div>
                                     <p className="text-sm font-bold text-emerald-900">

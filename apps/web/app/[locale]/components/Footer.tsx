@@ -1,6 +1,7 @@
 import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
 import { GitBranch } from "lucide-react";
 import { Link } from "@/i18n/routing";
+import { ThemeToggle } from "./ThemeToggle"; // <-- ADD THIS IMPORT
 
 export default function Footer() {
     return (
@@ -81,7 +82,7 @@ export default function Footer() {
 
                         <div className="flex items-center gap-4">
                             <a
-                                href="https://github.com/"
+                                href="https://github.com/RatLoopz/sahidawa-india"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:border-slate-600 hover:text-white"
@@ -112,7 +113,11 @@ export default function Footer() {
 
                 {/* Bottom Footer */}
                 <div className="flex flex-col items-center justify-between gap-4 pt-6 text-xs text-slate-500 md:flex-row">
-                    <p>© 2026 SahiDawa. Open Source under MIT License.</p>
+                    <div className="flex items-center gap-4">
+                        <p>© 2026 SahiDawa. Open Source under MIT License.</p>
+                        {/* THEME TOGGLE ADDED HERE */}
+                        <ThemeToggle />
+                    </div>
 
                     <p className="text-center md:text-right">
                         Built with ❤️ for the open-source community.

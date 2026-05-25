@@ -20,15 +20,19 @@ import {
 import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
 import { toast } from "sonner";
-import Footer from "../components/Footer";
 import { ExpiryBadge } from "@/components/scanner/ExpiryBadge";
 import {
+    submitReport,
     verifyMedicine,
-    VerifyResult,
-    VerifiedMedicine,
     fuzzyMatchBrand,
     verifyMedicineByBrand,
+    checkLasaConflicts,
+    type VerifyResult,
+    type LasaMatch,
+    type VerifiedMedicine,
+    API_BASE,
 } from "@/lib/api";
+import LasaConfirmation from "@/components/scanner/LasaConfirmation";
 import { BarcodeScanner } from "@/components/scanner/BarcodeScanner";
 import LazyImage from "@/components/LazyImage";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -460,6 +464,62 @@ export default function ScanPage() {
         };
     }, []);
 
+    // LASA Check State
+    const [lasaMatches, setLasaMatches] = useState<LasaMatch[]>([]);
+    const [showLasaConfirmation, setShowLasaConfirmation] = useState(false);
+    const [pendingVerifyResult, setPendingVerifyResult] = useState<VerifyResult | null>(null);
+
+    const processVerificationResult = async (result: VerifyResult, fallbackBrandName?: string) => {
+        if (!result.verified) {
+            setVerifyResult(result);
+            return;
+        }
+        try {
+            const medicineName = result.medicine.brand_name || fallbackBrandName;
+            if (!medicineName) {
+                setVerifyResult(result);
+                return;
+            }
+            const lasaRes = await checkLasaConflicts(medicineName);
+            if (lasaRes.hasConflicts && lasaRes.matches.length > 0) {
+                setLasaMatches(lasaRes.matches);
+                setPendingVerifyResult(result);
+                setShowLasaConfirmation(true);
+            } else {
+                setVerifyResult(result);
+            }
+        } catch (error) {
+            console.error("LASA check error:", error);
+            setVerifyResult(result);
+        }
+    };
+
+    const handleConfirmScanned = () => {
+        if (pendingVerifyResult) {
+            setVerifyResult(pendingVerifyResult);
+            setShowLasaConfirmation(false);
+            setPendingVerifyResult(null);
+        }
+    };
+
+    const handleSelectConflict = async (conflictName: string) => {
+        setShowLasaConfirmation(false);
+        setPendingVerifyResult(null);
+        setIsScanning(true);
+        setShowResult(false);
+
+        try {
+            const brandRes = await verifyMedicineByBrand(conflictName);
+            setParsedBrand(conflictName);
+            await processVerificationResult(brandRes, conflictName);
+        } catch (err) {
+            setVerifyError(err instanceof Error ? err.message : "Verification failed");
+        } finally {
+            setIsScanning(false);
+            setShowResult(true);
+        }
+    };
+
     const handleVerify = useCallback(async (batch: string) => {
         if (!batch.trim()) {
             toast.error("Please enter a batch number to verify");
@@ -472,7 +532,7 @@ export default function ScanPage() {
 
         try {
             const result = await verifyMedicine(batch.trim());
-            setVerifyResult(result);
+            await processVerificationResult(result);
         } catch (err) {
             setVerifyError(err instanceof Error ? err.message : "Verification failed");
         } finally {
@@ -679,12 +739,17 @@ export default function ScanPage() {
                 if (parsedExpiryStr) {
                     updatedMedicine.expiry_date = expiryToIso(parsedExpiryStr);
                 }
-                setVerifyResult({ verified: true, medicine: updatedMedicine });
+                await processVerificationResult(
+                    { verified: true, medicine: updatedMedicine },
+                    parsedBrand
+                );
             } else {
-                setVerifyResult({
-                    verified: false,
-                    message: "No match found in CDSCO Database",
-                });
+                setVerifyResult(
+                    finalResult || {
+                        verified: false,
+                        message: "No match found in CDSCO Database",
+                    }
+                );
             }
         } catch (err) {
             if (ocrCancelledRef.current) return;
@@ -854,44 +919,62 @@ export default function ScanPage() {
 
                 {showResult && (
                     <div className="animate-in fade-in zoom-in absolute inset-0 z-30 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm duration-300">
-                        <button
-                            onClick={handleDismissResult}
-                            className="absolute top-4 right-4 z-40 rounded-full bg-white/10 p-2 text-white backdrop-blur-sm transition-colors hover:bg-white/20"
-                        >
-                            <X size={24} />
-                        </button>
-                        {verifyError && (
-                            <ErrorResult message={verifyError} onRetry={handleDismissResult} />
-                        )}
-                        {!verifyError &&
-                            verifyResult?.verified &&
-                            verifyResult.medicine.is_counterfeit_alert && (
-                                <CounterfeitAlertResult
-                                    medicine={verifyResult.medicine}
-                                    onScanAgain={handleScanAgain}
-                                    onShare={handleShare}
-                                    onCopyMedicineDetails={handleCopyMedicineDetails}
-                                    copied={copied}
-                                />
-                            )}
-                        {!verifyError &&
-                            verifyResult?.verified &&
-                            !verifyResult.medicine.is_counterfeit_alert && (
-                                <VerifiedSafeResult
-                                    medicine={verifyResult.medicine}
-                                    onScanAgain={handleScanAgain}
-                                    onShare={handleShare}
-                                    onCopyMedicineDetails={handleCopyMedicineDetails}
-                                    copied={copied}
-                                />
-                            )}
-                        {!verifyError && verifyResult && !verifyResult.verified && (
-                            <UnverifiedResult
-                                brandName={parsedBrand}
-                                batchNumber={parsedBatch}
-                                expiryDate={parsedExpiry}
-                                onScanAgain={handleDismissResult}
+                        {showLasaConfirmation ? (
+                            <LasaConfirmation
+                                scannedName={
+                                    pendingVerifyResult?.verified
+                                        ? pendingVerifyResult.medicine.brand_name
+                                        : parsedBrand
+                                }
+                                matches={lasaMatches}
+                                onConfirmScanned={handleConfirmScanned}
+                                onSelectConflict={handleSelectConflict}
                             />
+                        ) : (
+                            <>
+                                <button
+                                    onClick={handleDismissResult}
+                                    className="absolute top-4 right-4 z-40 rounded-full bg-white/10 p-2 text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+                                >
+                                    <X size={24} />
+                                </button>
+                                {verifyError && (
+                                    <ErrorResult
+                                        message={verifyError}
+                                        onRetry={handleDismissResult}
+                                    />
+                                )}
+                                {!verifyError &&
+                                    verifyResult?.verified &&
+                                    verifyResult.medicine.is_counterfeit_alert && (
+                                        <CounterfeitAlertResult
+                                            medicine={verifyResult.medicine}
+                                            onScanAgain={handleScanAgain}
+                                            onShare={handleShare}
+                                            onCopyMedicineDetails={handleCopyMedicineDetails}
+                                            copied={copied}
+                                        />
+                                    )}
+                                {!verifyError &&
+                                    verifyResult?.verified &&
+                                    !verifyResult.medicine.is_counterfeit_alert && (
+                                        <VerifiedSafeResult
+                                            medicine={verifyResult.medicine}
+                                            onScanAgain={handleScanAgain}
+                                            onShare={handleShare}
+                                            onCopyMedicineDetails={handleCopyMedicineDetails}
+                                            copied={copied}
+                                        />
+                                    )}
+                                {!verifyError && verifyResult && !verifyResult.verified && (
+                                    <UnverifiedResult
+                                        brandName={parsedBrand}
+                                        batchNumber={parsedBatch}
+                                        expiryDate={parsedExpiry}
+                                        onScanAgain={handleDismissResult}
+                                    />
+                                )}
+                            </>
                         )}
                     </div>
                 )}
@@ -968,7 +1051,6 @@ export default function ScanPage() {
                     </label>
                 </div>
             </div>
-            <Footer />
         </div>
     );
 }

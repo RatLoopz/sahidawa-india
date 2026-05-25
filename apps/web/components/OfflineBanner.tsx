@@ -57,21 +57,17 @@ export function OfflineBanner() {
             role="alert"
             aria-live="assertive"
             aria-atomic="true"
-            className={`
-                fixed left-0 right-0 z-50 transition-all duration-300 ease-in-out
-                ${isVisible || isTestMode ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"}
-                ${isCurrentlyOffline
+            className={`fixed right-0 left-0 z-50 transition-all duration-300 ease-in-out ${isVisible || isTestMode ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"} ${
+                isCurrentlyOffline
                     ? "border-b-2 border-amber-600 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500"
                     : "border-b-2 border-emerald-600 bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500"
-                }
-                shadow-lg
-            `}
+            } shadow-lg`}
             style={{ top: "64px" }}
         >
             <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between gap-3">
                     {/* Icon + message */}
-                    <div className="flex flex-1 items-center gap-3 min-w-0">
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
                         {isCurrentlyOffline ? (
                             <WifiOff
                                 size={22}
@@ -87,12 +83,10 @@ export function OfflineBanner() {
                         )}
 
                         <div className="min-w-0">
-                            <p className="text-sm font-bold text-white drop-shadow-sm truncate">
-                                {isCurrentlyOffline
-                                    ? "You are offline"
-                                    : "Back online"}
+                            <p className="truncate text-sm font-bold text-white drop-shadow-sm">
+                                {isCurrentlyOffline ? "You are offline" : "Back online"}
                             </p>
-                            <p className="text-xs text-white/85 truncate">
+                            <p className="truncate text-xs text-white/85">
                                 {isCurrentlyOffline
                                     ? "Medicine search and AI chat are unavailable" +
                                       (isTestMode ? " · Test mode" : "")
@@ -107,7 +101,7 @@ export function OfflineBanner() {
                             id="offline-banner-dismiss"
                             onClick={handleDismiss}
                             aria-label="Dismiss offline notification"
-                            className="flex-shrink-0 rounded-md p-1.5 text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+                            className="flex-shrink-0 rounded-md p-1.5 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
                         >
                             <X size={18} />
                         </button>

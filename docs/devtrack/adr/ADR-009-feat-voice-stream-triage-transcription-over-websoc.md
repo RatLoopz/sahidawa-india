@@ -12,20 +12,22 @@ Real-time, incremental voice triage transcription was implemented using WebSocke
 
 ## Alternatives Considered
 
-| Alternative | Why Rejected |
-|---|---|
-| Periodic HTTP POST for audio chunks with polling for results | This approach would incur significant HTTP overhead for each audio chunk sent, leading to higher latency and less efficient resource utilization compared to a persistent WebSocket connection. Polling for results would further introduce delays and complexity in synchronizing client and server states for real-time updates. |
-| Client-side ASR (Automatic Speech Recognition) | While eliminating server latency, client-side ASR models are generally larger, less accurate, and more computationally intensive than server-side counterparts, especially for specialized domains like Indian medicine and diverse regional languages. This would limit device compatibility, increase client-side resource consumption, and potentially compromise the critical accuracy required for medical triage. |
+| Alternative                                                  | Why Rejected                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Periodic HTTP POST for audio chunks with polling for results | This approach would incur significant HTTP overhead for each audio chunk sent, leading to higher latency and less efficient resource utilization compared to a persistent WebSocket connection. Polling for results would further introduce delays and complexity in synchronizing client and server states for real-time updates.                                                                                      |
+| Client-side ASR (Automatic Speech Recognition)               | While eliminating server latency, client-side ASR models are generally larger, less accurate, and more computationally intensive than server-side counterparts, especially for specialized domains like Indian medicine and diverse regional languages. This would limit device compatibility, increase client-side resource consumption, and potentially compromise the critical accuracy required for medical triage. |
 
 ## Consequences
 
 **Positive:**
+
 - **Improved User Experience:** Real-time feedback with incremental transcription significantly reduces perceived latency, making the voice triage process feel more responsive and natural.
 - **Increased Efficiency:** Audio processing begins while the user is still speaking, potentially reducing the total time from utterance start to full transcription availability.
 - **Enhanced Accessibility:** Provides immediate visual confirmation of spoken words, aiding users with hearing impairments or those who wish to verify their input.
 - **Robustness:** The fallback to the existing HTTP upload ensures the system remains functional even if WebSocket streaming is not supported or fails due to network conditions.
 
 **Trade-offs:**
+
 - **Increased Complexity:** Introduced a new WebSocket communication layer on both frontend and ML service, requiring careful state management, error handling, and connection lifecycle management.
 - **Network Requirements:** Real-time streaming is more sensitive to network stability and latency compared to a single file upload.
 - **Resource Usage:** Maintaining persistent WebSocket connections can consume more server resources (memory, open connections) than stateless HTTP requests, especially with many concurrent users.

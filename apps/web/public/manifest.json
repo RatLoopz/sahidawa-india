@@ -1,57 +1,57 @@
 {
-  "name": "SahiDawa — Medicine Verifier",
-  "short_name": "SahiDawa",
-  "description": "India's First Open-Source Citizen Medicine Verifier & Rural Health Bridge. Scan, verify, and trust your medicines.",
-  "theme_color": "#10b981",
-  "background_color": "#000000",
-  "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
-  "start_url": "/",
-  "scope": "/",
-  "orientation": "portrait",
-  "lang": "en",
-  "dir": "ltr",
-  "categories": ["health", "medical", "utilities"],
-  "icons": [
-    {
-      "src": "/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-192-maskable.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/icons/icon-512-maskable.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Verify Medicine",
-      "short_name": "Verify",
-      "description": "Quickly verify the authenticity of a medicine",
-      "url": "/en/scan",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Find Pharmacy",
-      "short_name": "Pharmacy Map",
-      "description": "Find pharmacies near you",
-      "url": "/en/map",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
-    }
-  ]
+    "name": "SahiDawa — Medicine Verifier",
+    "short_name": "SahiDawa",
+    "description": "India's First Open-Source Citizen Medicine Verifier & Rural Health Bridge. Scan, verify, and trust your medicines.",
+    "theme_color": "#10b981",
+    "background_color": "#000000",
+    "display": "standalone",
+    "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+    "start_url": "/",
+    "scope": "/",
+    "orientation": "portrait",
+    "lang": "en",
+    "dir": "ltr",
+    "categories": ["health", "medical", "utilities"],
+    "icons": [
+        {
+            "src": "/icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/icon-192-maskable.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "/icons/icon-512-maskable.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Verify Medicine",
+            "short_name": "Verify",
+            "description": "Quickly verify the authenticity of a medicine",
+            "url": "/en/scan",
+            "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+        },
+        {
+            "name": "Find Pharmacy",
+            "short_name": "Pharmacy Map",
+            "description": "Find pharmacies near you",
+            "url": "/en/map",
+            "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+        }
+    ]
 }

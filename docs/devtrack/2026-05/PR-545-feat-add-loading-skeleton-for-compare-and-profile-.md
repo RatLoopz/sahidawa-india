@@ -23,11 +23,11 @@ Both `CompareLoading` and `ProfileLoading` are simple functional React component
 
 1.  **Layout Mimicry:** The `div` structure within each `loading.tsx` file is carefully designed to mirror the actual layout of the corresponding page. This includes mimicking the main sections, headers, input fields, cards, and buttons.
 2.  **Placeholder Styling:**
-    *   `animate-pulse`: This Tailwind class is applied to most skeleton elements to provide a subtle, continuous pulsating animation, indicating an active loading state.
-    *   `bg-slate-200` and `bg-slate-100`: These classes define the background color of the placeholder shapes, typically a light grey, consistent with modern loading patterns.
-    *   `h-[...]` and `w-[...]`: Explicit height and width utility classes are used to define the dimensions of the placeholder blocks, matching the expected size of the content they represent (e.g., `h-4 w-36` for a title, `h-10 w-full` for an input field).
-    *   `rounded-[...]`: Border-radius classes (e.g., `rounded-lg`, `rounded-xl`, `rounded-3xl`) are applied to match the curvature of the actual UI components, ensuring a visually consistent transition.
-    *   Flexbox and Grid utilities (`flex`, `grid`, `gap-X`, `space-y-X`, `items-center`, `justify-between`) are used to arrange the skeleton blocks in a way that closely replicates the page's structural flow.
+    - `animate-pulse`: This Tailwind class is applied to most skeleton elements to provide a subtle, continuous pulsating animation, indicating an active loading state.
+    - `bg-slate-200` and `bg-slate-100`: These classes define the background color of the placeholder shapes, typically a light grey, consistent with modern loading patterns.
+    - `h-[...]` and `w-[...]`: Explicit height and width utility classes are used to define the dimensions of the placeholder blocks, matching the expected size of the content they represent (e.g., `h-4 w-36` for a title, `h-10 w-full` for an input field).
+    - `rounded-[...]`: Border-radius classes (e.g., `rounded-lg`, `rounded-xl`, `rounded-3xl`) are applied to match the curvature of the actual UI components, ensuring a visually consistent transition.
+    - Flexbox and Grid utilities (`flex`, `grid`, `gap-X`, `space-y-X`, `items-center`, `justify-between`) are used to arrange the skeleton blocks in a way that closely replicates the page's structural flow.
 
 For `CompareLoading`, the skeleton includes placeholders for the page header (title, back arrow), the search section with two medicine input fields, an empty state card, and a "Find pharmacies" link.
 
@@ -71,14 +71,14 @@ To implement a loading skeleton for a new or existing route segment in `apps/web
     ```
 
 4.  **Structure the Skeleton UI:**
-    *   Analyze the layout of the actual page (`page.tsx`) you are creating the skeleton for.
-    *   Use `div` elements to represent the main structural blocks, such as headers, cards, input fields, text blocks, and buttons.
-    *   Apply Tailwind CSS utility classes to these `div`s:
-        *   `animate-pulse`: Essential for the visual loading effect.
-        *   `bg-slate-200` or `bg-slate-100`: For the background color of the placeholder shapes.
-        *   `h-[...]` and `w-[...]`: To set appropriate heights and widths that roughly match the content.
-        *   `rounded-[...]`: To match the border-radius of actual UI components.
-        *   Layout utilities (`flex`, `grid`, `space-y-X`, `gap-X`, `p-X`, `m-X`, `items-center`, `justify-between`) to replicate the page's flow and spacing.
+    - Analyze the layout of the actual page (`page.tsx`) you are creating the skeleton for.
+    - Use `div` elements to represent the main structural blocks, such as headers, cards, input fields, text blocks, and buttons.
+    - Apply Tailwind CSS utility classes to these `div`s:
+        - `animate-pulse`: Essential for the visual loading effect.
+        - `bg-slate-200` or `bg-slate-100`: For the background color of the placeholder shapes.
+        - `h-[...]` and `w-[...]`: To set appropriate heights and widths that roughly match the content.
+        - `rounded-[...]`: To match the border-radius of actual UI components.
+        - Layout utilities (`flex`, `grid`, `space-y-X`, `gap-X`, `p-X`, `m-X`, `items-center`, `justify-between`) to replicate the page's flow and spacing.
 5.  **Verification:** Run the application locally and navigate to the route. If data fetching is slow (e.g., by simulating slow network conditions in browser developer tools), you should observe your `loading.tsx` component rendering before the actual page content appears.
 
 The `loading.tsx` component will automatically be displayed by Next.js whenever data is being fetched for the corresponding route segment, including any `async` components or `fetch` calls within the `page.tsx` or its `layout.tsx`.
@@ -87,10 +87,10 @@ The `loading.tsx` component will automatically be displayed by Next.js whenever 
 
 This change primarily impacts the user experience layer of our `apps/web` frontend.
 
-*   **Enhanced User Experience:** The most significant impact is the direct improvement in user experience. By providing visual feedback during loading, the application feels more responsive, professional, and reliable, which is crucial for user retention and satisfaction on our rural health platform.
-*   **Frontend Consistency:** This PR establishes a clear pattern for implementing loading states across our Next.js App Router frontend. This promotes consistency in how we handle asynchronous operations, making it easier for future contributors to add similar UX enhancements to new or existing routes.
-*   **No Backend or Data Impact:** This is a purely client-side UI enhancement. It does not introduce any changes to our `apps/api` backend, `apps/ml` services, or database schemas. The data fetching mechanisms remain unchanged; only the visual representation during the fetching process is altered.
-*   **Scalability for Future Features:** The `loading.tsx` pattern is inherently scalable. As we introduce more data-intensive pages or features, we can easily create corresponding `loading.tsx` files to maintain a consistent and positive user experience without adding complexity to our state management.
+- **Enhanced User Experience:** The most significant impact is the direct improvement in user experience. By providing visual feedback during loading, the application feels more responsive, professional, and reliable, which is crucial for user retention and satisfaction on our rural health platform.
+- **Frontend Consistency:** This PR establishes a clear pattern for implementing loading states across our Next.js App Router frontend. This promotes consistency in how we handle asynchronous operations, making it easier for future contributors to add similar UX enhancements to new or existing routes.
+- **No Backend or Data Impact:** This is a purely client-side UI enhancement. It does not introduce any changes to our `apps/api` backend, `apps/ml` services, or database schemas. The data fetching mechanisms remain unchanged; only the visual representation during the fetching process is altered.
+- **Scalability for Future Features:** The `loading.tsx` pattern is inherently scalable. As we introduce more data-intensive pages or features, we can easily create corresponding `loading.tsx` files to maintain a consistent and positive user experience without adding complexity to our state management.
 
 ## Testing & Verification
 
@@ -101,7 +101,7 @@ The primary method of testing and verification for this change was manual inspec
 3.  **Screenshots:** Screenshots provided in the PR description serve as visual proof of the implemented skeletons, demonstrating that they appear as intended and closely match the final UI layout.
 4.  **Simulated Latency (Inferred):** While not explicitly documented, it is standard practice for frontend developers to simulate slower network conditions (e.g., using browser developer tools) to ensure that loading states are visible for a sufficient duration and provide the intended user experience.
 5.  **Edge Cases:**
-    *   **Fast Networks:** On very fast network connections, the skeletons might appear for only a fleeting moment or not at all, which is an acceptable outcome as the perceived performance is already high.
-    *   **Error States:** This implementation specifically addresses the *loading* state. It does not provide UI for *error* states during data fetching. Error handling and corresponding UI would typically be managed by the page component itself once a fetch operation fails.
-    *   **Accessibility:** Not documented in this PR. While `animate-pulse` provides visual feedback, considerations for users with motion sensitivities (e.g., providing an option to disable animations) were not addressed in this specific change.
-    *   **Internationalization:** The `loading.tsx` files are correctly placed within the `app/[locale]/` structure, ensuring they are part of the internationalized routing system, though the skeletons themselves are visual and do not contain translatable text.
+    - **Fast Networks:** On very fast network connections, the skeletons might appear for only a fleeting moment or not at all, which is an acceptable outcome as the perceived performance is already high.
+    - **Error States:** This implementation specifically addresses the _loading_ state. It does not provide UI for _error_ states during data fetching. Error handling and corresponding UI would typically be managed by the page component itself once a fetch operation fails.
+    - **Accessibility:** Not documented in this PR. While `animate-pulse` provides visual feedback, considerations for users with motion sensitivities (e.g., providing an option to disable animations) were not addressed in this specific change.
+    - **Internationalization:** The `loading.tsx` files are correctly placed within the `app/[locale]/` structure, ensuring they are part of the internationalized routing system, though the skeletons themselves are visual and do not contain translatable text.

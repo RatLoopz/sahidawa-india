@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@variant dark (&:where(.dark, .dark *));
 
 :root {
     --color-brand-primary: #10b981;
@@ -45,7 +46,22 @@
     --color-dark-scrollbar-hover: #64748b;
     --color-scrollbar-thumb: #cbd5e1;
 }
+:root {
+    --color-surface-page: #ffffff;
+    --color-text-primary: #1e293b;
+    /* ... your other light mode variables ... */
+}
 
+/* ADD THIS ENTIRE BLOCK: 
+   When the dark class is active, swap the variables to dark colors! */
+.dark {
+    --color-surface-page: #0f172a;
+    --color-surface-muted: #1e293b;
+    --color-border-muted: #334155;
+    --color-text-primary: #f8fafc;
+    --color-text-secondary: #cbd5e1;
+    --color-text-muted: #94a3b8;
+}
 @layer base {
     /* Scanner sweep animation */
     @keyframes scan {
