@@ -1,7 +1,6 @@
 import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
-import { GitBranch } from "lucide-react";
+import { GitBranch, Sparkles, Heart } from "lucide-react";
 import { Link } from "@/i18n/routing";
-
 export default function Footer() {
     return (
         <footer className="no-print mt-auto border-t border-slate-800 bg-slate-950 text-slate-400">
@@ -17,7 +16,7 @@ export default function Footer() {
                         </p>
 
                         <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
-                            ✨ Made for GSSoC 2026
+                            <Sparkles className="h-3 w-3" /> Made for GSSoC 2026
                         </div>
                     </div>
 
@@ -81,10 +80,10 @@ export default function Footer() {
 
                         <div className="flex items-center gap-4">
                             <a
-                                href="https://github.com/"
+                                href="https://github.com/RatLoopz/sahidawa-india"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:border-slate-600 hover:text-white"
+                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-600 hover:text-white hover:shadow-[0_4px_12px_rgba(255,255,255,0.1)] active:scale-95"
                             >
                                 <FaGithub size={18} />
                             </a>
@@ -93,7 +92,7 @@ export default function Footer() {
                                 href="https://linkedin.com/"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:border-slate-600 hover:text-white"
+                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500 hover:text-blue-400 hover:shadow-[0_4px_12px_rgba(37,99,235,0.2)] active:scale-95"
                             >
                                 <FaLinkedin size={18} />
                             </a>
@@ -102,7 +101,7 @@ export default function Footer() {
                                 href="https://twitter.com/"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:border-slate-600 hover:text-white"
+                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-500 hover:text-white hover:shadow-[0_4px_12px_rgba(255,255,255,0.1)] active:scale-95"
                             >
                                 <FaXTwitter size={18} />
                             </a>
@@ -112,10 +111,13 @@ export default function Footer() {
 
                 {/* Bottom Footer */}
                 <div className="flex flex-col items-center justify-between gap-4 pt-6 text-xs text-slate-500 md:flex-row">
-                    <p>© 2026 SahiDawa. Open Source under MIT License.</p>
+                    <div className="flex items-center gap-4">
+                        <p>© 2026 SahiDawa. Open Source under MIT License.</p>
+                    </div>
 
                     <p className="text-center md:text-right">
-                        Built with ❤️ for the open-source community.
+                        Built with <Heart className="inline h-3 w-3 text-red-500" /> for the
+                        open-source community.
                     </p>
                 </div>
             </div>

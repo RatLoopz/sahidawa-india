@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { Hospital } from "lucide-react";
+import { renderToString } from "react-dom/server";
 import L, { Map as LeafletMap } from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -42,8 +44,7 @@ const createCustomIcon = (type: string, isSelected: boolean = false) => {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: ${isSelected ? 14 : 11}px;
-    ">🏥</div></div>`,
+    ">${renderToString(<Hospital size={isSelected ? 16 : 14} color="white" />)}</div></div>`,
         iconSize: [size, size],
         iconAnchor: [size / 2, size],
         popupAnchor: [0, -size - 4],
@@ -164,11 +165,10 @@ export default function Map({
                                         display: "flex",
                                         alignItems: "center",
                                         justifyContent: "center",
-                                        fontSize: 16,
                                         flexShrink: 0,
                                     }}
                                 >
-                                    🏥
+                                    <Hospital size={18} className="text-emerald-700" />
                                 </div>
                                 <div>
                                     <p

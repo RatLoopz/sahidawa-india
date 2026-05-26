@@ -3,6 +3,15 @@ import {
     getVoiceStreamingUrl,
 } from "../app/[locale]/voice/lib/streaming";
 
+global.WebSocket = {
+    CONNECTING: 0,
+    OPEN: 1,
+    CLOSING: 2,
+    CLOSED: 3,
+} as any;
+
+global.CloseEvent = class CloseEvent {} as any;
+
 describe("voice streaming helper", () => {
     const originalMlBaseUrl = process.env.NEXT_PUBLIC_ML_SERVICE_URL;
 
@@ -54,7 +63,7 @@ describe("voice streaming helper", () => {
             onmessage: null,
             onerror: null,
             onclose: null,
-            readyState: WebSocket.CONNECTING,
+            readyState: 0, // WebSocket.CONNECTING
         } as unknown as WebSocket;
 
         createVoiceStreamingSession({
@@ -66,7 +75,7 @@ describe("voice streaming helper", () => {
             socketFactory: () => socket,
         });
 
-        socket.onclose?.(new CloseEvent("close"));
+        socket.onclose?.({} as CloseEvent);
 
         expect(onFallback).toHaveBeenCalledTimes(1);
     });

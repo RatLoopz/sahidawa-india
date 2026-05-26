@@ -11,6 +11,15 @@ jest.mock("next-intl/server", () => ({
     getTranslations: async () => (key: string) => key,
 }));
 
+jest.mock("next/navigation", () => ({
+    useRouter: () => ({
+        push: jest.fn(),
+    }),
+    useParams: () => ({
+        locale: "en",
+    }),
+}));
+
 jest.mock("sonner", () => ({
     toast: {
         error: jest.fn(),
