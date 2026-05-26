@@ -9,7 +9,11 @@ const languages = [
   { code: "en", label: "English", native: "English" },
   { code: "ta", label: "Tamil", native: "தமிழ்" },
   { code: "bn", label: "Bengali", native: "বাংলা" },
-  { code: "te", label: "Telugu", native: "తెలుగు" }
+  { code: "te", label: "Telugu", native: "తెలుగు" },
+  { code: "mr", label: "Marathi", native: "मराठी" },
+  { code: "gu", label: "Gujarati", native: "ગુજરાતી" },
+  { code: "ur", label: "Urdu", native: "اردو" },
+  { code: "od", label: "Odia", native: "ଓଡ଼ିଆ" }
 ];
 
 export default function LanguageSwitcher() {
