@@ -42,17 +42,17 @@ export default async function FullAlertsLogPage() {
         .order("created_at", { ascending: false });
 
     return (
-        <div className="mx-auto max-w-5xl px-4 py-8">
+        <div className="mx-auto max-w-5xl px-4 py-8 text-(--color-text-primary)">
             <div className="mb-6 flex flex-col items-start gap-4">
                 <Link
                     href="/"
-                    className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-800"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-(--color-text-secondary) transition-colors hover:text-(--color-text-primary)"
                 >
                     <ArrowLeft size={16} />
                     Back to Home Page
                 </Link>
 
-                <div className="animate-in fade-in slide-in-from-bottom-4 inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 duration-700">
+                <div className="animate-in fade-in slide-in-from-bottom-4 inline-flex items-center gap-2 rounded-full border border-emerald-100 dark:border-emerald-900/30 bg-emerald-50 dark:bg-emerald-950/20 px-4 py-2 text-sm font-bold text-emerald-700 dark:text-emerald-400 duration-700">
                     <span className="relative flex h-2 w-2">
                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                         <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
@@ -61,21 +61,21 @@ export default async function FullAlertsLogPage() {
                 </div>
             </div>
 
-            <div className="mb-8 flex flex-col justify-between gap-4 border-b border-slate-100 pb-6 md:flex-row md:items-center">
+            <div className="mb-8 flex flex-col justify-between gap-4 border-b border-(--color-border-muted) pb-6 md:flex-row md:items-center">
                 <div>
-                    <h1 className="flex items-center gap-3 text-3xl font-extrabold tracking-tight text-slate-900">
+                    <h1 className="flex items-center gap-3 text-3xl font-extrabold tracking-tight text-(--color-text-primary)">
                         <Activity className="text-red-500" size={28} />
                         Live CDSCO Alerts
                     </h1>
-                    <p className="mt-1 font-medium text-slate-500">
+                    <p className="mt-1 font-medium text-(--color-text-secondary)">
                         Complete historical safety logging stream directly mapped to the master
                         CDSCO registry.
                     </p>
                 </div>
-                <span className="hidden rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold tracking-wider text-red-600 uppercase sm:block">
+                <span className="hidden rounded-full bg-red-100 dark:bg-red-950/30 px-2.5 py-1 text-xs font-bold tracking-wider text-red-600 dark:text-red-400 uppercase sm:block">
                     India Region
                 </span>
-                <div className="inline-flex items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm md:self-auto">
+                <div className="inline-flex items-center gap-2 self-start rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) px-4 py-2 text-sm font-bold text-(--color-text-primary) shadow-sm md:self-auto">
                     <Filter size={16} />
                     Total Count: {allAlerts?.length || 0}
                 </div>
@@ -84,7 +84,7 @@ export default async function FullAlertsLogPage() {
             {error && (
                 <LiveMessage
                     tone="critical"
-                    className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800"
+                    className="mb-6 rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/20 p-4 text-sm font-medium text-red-800 dark:text-red-400"
                 >
                     Database synchronization error encountered while fetching active logs.
                 </LiveMessage>
@@ -102,7 +102,7 @@ export default async function FullAlertsLogPage() {
                         return (
                             <div
                                 key={alert.id}
-                                className="group relative flex cursor-pointer items-start gap-4 overflow-hidden rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+                                className="group relative flex cursor-pointer items-start gap-4 overflow-hidden rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-4 shadow-sm transition-shadow hover:shadow-md"
                             >
                                 {/* Left edge colored strip */}
                                 <div
@@ -119,10 +119,10 @@ export default async function FullAlertsLogPage() {
                                 <div
                                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${
                                         isSystem
-                                            ? "bg-blue-50 text-blue-500 group-hover:bg-blue-100"
+                                            ? "bg-blue-50 dark:bg-blue-950/30 text-blue-500 dark:text-blue-400 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30"
                                             : isCritical
-                                              ? "bg-red-50 text-red-500 group-hover:bg-red-100"
-                                              : "bg-orange-50 text-orange-500 group-hover:bg-orange-100"
+                                              ? "bg-red-50 dark:bg-red-950/30 text-red-500 dark:text-red-400 group-hover:bg-red-100 dark:group-hover:bg-red-900/30"
+                                              : "bg-orange-50 dark:bg-orange-950/30 text-orange-500 dark:text-orange-400 group-hover:bg-orange-100 dark:group-hover:bg-orange-900/30"
                                     }`}
                                 >
                                     {isSystem ? (
@@ -136,43 +136,43 @@ export default async function FullAlertsLogPage() {
                                 <div className="flex-1">
                                     <div className="flex items-start justify-between gap-2">
                                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                                            <h4 className="leading-tight font-bold text-slate-800">
+                                            <h4 className="leading-tight font-bold text-(--color-text-primary)">
                                                 {isSystem ? "System Update" : alert.brand_name}
                                             </h4>
                                             {!isSystem && (
                                                 <span
                                                     className={`w-fit rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase ${
                                                         isCritical
-                                                            ? "bg-red-50 text-red-600"
-                                                            : "bg-orange-50 text-orange-600"
+                                                            ? "bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-450"
+                                                            : "bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-450"
                                                     }`}
                                                 >
                                                     {alert.cdsco_approval_status}
                                                 </span>
                                             )}
                                         </div>
-                                        <span className="shrink-0 text-[11px] font-medium text-slate-400">
+                                        <span className="shrink-0 text-[11px] font-medium text-(--color-text-muted)">
                                             {formatRelativeTime(alert.created_at)}
                                         </span>
                                     </div>
 
-                                    <p className="mt-1 text-sm leading-snug font-medium text-slate-500">
+                                    <p className="mt-1 text-sm leading-snug font-medium text-(--color-text-secondary)">
                                         {alert.composition}
                                     </p>
 
                                     {/* Render metadata bottom line layout only if it's not a system update card */}
                                     {!isSystem && (
-                                        <div className="mt-2 flex items-center gap-3 text-[11px] font-semibold text-slate-400">
+                                        <div className="mt-2 flex items-center gap-3 text-[11px] font-semibold text-(--color-text-muted)">
                                             <span>
                                                 Batch:{" "}
-                                                <span className="font-bold text-slate-600">
+                                                <span className="font-bold text-(--color-text-primary)">
                                                     {alert.batch_number}
                                                 </span>
                                             </span>
                                             <span>•</span>
                                             <span>
                                                 Manufacturer:{" "}
-                                                <span className="font-bold text-slate-600">
+                                                <span className="font-bold text-(--color-text-primary)">
                                                     {alert.manufacturer}
                                                 </span>
                                             </span>
@@ -183,7 +183,7 @@ export default async function FullAlertsLogPage() {
                         );
                     })
                 ) : (
-                    <div className="rounded-2xl border border-slate-200 bg-white py-16 text-center font-medium text-slate-400">
+                    <div className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) py-16 text-center font-medium text-(--color-text-muted)">
                         No health alerts currently flagged inside the registry database.
                     </div>
                 )}

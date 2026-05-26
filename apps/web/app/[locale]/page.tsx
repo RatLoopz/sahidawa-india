@@ -23,6 +23,7 @@ import { supabase } from "@/lib/supabase";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import LanguageSwitcher from "./LanguageSwitcher";
+import { ThemeToggle } from "./components/ThemeToggle";
 import SearchBar from "./components/SearchBar";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -151,6 +152,7 @@ export default function SahiDawaHome() {
                         </button>
 
                         <LanguageSwitcher />
+                        <ThemeToggle />
                     </div>
                 </div>
             </header>
