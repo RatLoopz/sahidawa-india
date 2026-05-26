@@ -1,8 +1,6 @@
 import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
 import { GitBranch, Sparkles, Heart } from "lucide-react";
 import { Link } from "@/i18n/routing";
-import { ThemeToggle } from "./ThemeToggle"; // <-- ADD THIS IMPORT
-
 export default function Footer() {
     return (
         <footer className="no-print mt-auto border-t border-slate-800 bg-slate-950 text-slate-400">
@@ -115,8 +113,6 @@ export default function Footer() {
                 <div className="flex flex-col items-center justify-between gap-4 pt-6 text-xs text-slate-500 md:flex-row">
                     <div className="flex items-center gap-4">
                         <p>© 2026 SahiDawa. Open Source under MIT License.</p>
-                        {/* THEME TOGGLE ADDED HERE */}
-                        <ThemeToggle />
                     </div>
 
                     <p className="text-center md:text-right">

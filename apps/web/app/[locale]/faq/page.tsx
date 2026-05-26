@@ -47,10 +47,10 @@ export default function FAQPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#0f172a] font-sans text-slate-900 dark:text-slate-200 transition-colors duration-300">
+        <div className="min-h-screen bg-(--color-surface-muted) font-sans text-(--color-text-primary) transition-colors duration-300">
 
             {/* Hero */}
-            <section className="bg-white dark:bg-[#0f172a] border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
+            <section className="bg-(--color-surface-page) border-b border-(--color-border-muted) transition-colors duration-300">
                 <div className="container mx-auto max-w-4xl px-4 py-16 md:py-24 text-center space-y-6">
                     <div className="inline-flex items-center gap-2 rounded-full border border-emerald-100 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 text-sm font-bold text-emerald-700 dark:text-emerald-400">
                         <span className="relative flex h-2 w-2">
@@ -59,10 +59,10 @@ export default function FAQPage() {
                         </span>
                         GSSoC 2026 Open Source Project
                     </div>
-                    <h1 className="text-4xl md:text-6xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.1]">
-                        Frequently Asked <span className="text-emerald-600 dark:text-emerald-500">Questions</span>
+                    <h1 className="text-4xl md:text-6xl font-black tracking-tight text-(--color-text-primary) leading-[1.1]">
+                        Frequently Asked <span className="text-emerald-600 dark:text-emerald-400">Questions</span>
                     </h1>
-                    <p className="mx-auto max-w-2xl text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                    <p className="mx-auto max-w-2xl text-lg text-(--color-text-secondary) font-medium leading-relaxed">
                         Everything you need to know about SahiDawa — India's free, open-source medicine verification platform.
                     </p>
                 </div>
@@ -74,7 +74,7 @@ export default function FAQPage() {
                     {faqs.map((faq, i) => (
                         <div
                             key={i}
-                            className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md dark:hover:shadow-slate-800/50"
+                            className="rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md"
                         >
                             <button
                                 onClick={() => toggle(i)}
@@ -84,14 +84,14 @@ export default function FAQPage() {
                                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
                                         <HelpCircle size={16} strokeWidth={2.5} />
                                     </div>
-                                    <span className="font-bold text-slate-800 dark:text-slate-200">{faq.question}</span>
+                                    <span className="font-bold text-(--color-text-primary)">{faq.question}</span>
                                 </div>
-                                <div className="shrink-0 ml-4 text-slate-400 dark:text-slate-500">
+                                <div className="shrink-0 ml-4 text-(--color-text-muted)">
                                     {openIndex === i ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                                 </div>
                             </button>
                             {openIndex === i && (
-                                <div className="px-6 pb-5 text-slate-500 dark:text-slate-400 text-sm leading-relaxed font-medium border-t border-slate-100 dark:border-slate-800 pt-4">
+                                <div className="px-6 pb-5 text-(--color-text-secondary) text-sm leading-relaxed font-medium border-t border-(--color-border-muted) pt-4">
                                     {faq.answer}
                                 </div>
                             )}
@@ -100,7 +100,7 @@ export default function FAQPage() {
                 </div>
             </section>
 
-            {/* Still have questions CTA - (Left this mostly alone since it's already a dark green box, but adjusted the button slightly for dark mode contrast) */}
+            {/* Still have questions CTA */}
             <section className="container mx-auto max-w-4xl px-4 pb-16">
                 <div className="rounded-3xl bg-emerald-600 p-8 text-center text-white relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-tr from-emerald-700 to-emerald-500 z-0" />
