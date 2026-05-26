@@ -1,8 +1,8 @@
 import rateLimit from "express-rate-limit";
 
-export const limiter = rateLimit({
-    windowMs: 15 * 60 * 10000, // 15 mins
-    max: 100,
+export const verifyLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 mins
+    max: 20,
 
     standardHeaders: true,
     legacyHeaders: false,

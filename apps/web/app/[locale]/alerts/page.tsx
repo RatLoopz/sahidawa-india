@@ -52,7 +52,7 @@ export default async function FullAlertsLogPage() {
                     Back to Home Page
                 </Link>
 
-                <div className="animate-in fade-in slide-in-from-bottom-4 inline-flex items-center gap-2 rounded-full border border-emerald-100 dark:border-emerald-900/30 bg-emerald-50 dark:bg-emerald-950/20 px-4 py-2 text-sm font-bold text-emerald-700 dark:text-emerald-400 duration-700">
+                <div className="animate-in fade-in slide-in-from-bottom-4 inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 duration-700 dark:border-emerald-900/30 dark:bg-emerald-950/20 dark:text-emerald-400">
                     <span className="relative flex h-2 w-2">
                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                         <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
@@ -72,7 +72,7 @@ export default async function FullAlertsLogPage() {
                         CDSCO registry.
                     </p>
                 </div>
-                <span className="hidden rounded-full bg-red-100 dark:bg-red-950/30 px-2.5 py-1 text-xs font-bold tracking-wider text-red-600 dark:text-red-400 uppercase sm:block">
+                <span className="hidden rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold tracking-wider text-red-600 uppercase sm:block dark:bg-red-950/30 dark:text-red-400">
                     India Region
                 </span>
                 <div className="inline-flex items-center gap-2 self-start rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) px-4 py-2 text-sm font-bold text-(--color-text-primary) shadow-sm md:self-auto">
@@ -84,7 +84,7 @@ export default async function FullAlertsLogPage() {
             {error && (
                 <LiveMessage
                     tone="critical"
-                    className="mb-6 rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/20 p-4 text-sm font-medium text-red-800 dark:text-red-400"
+                    className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800 dark:border-red-900 dark:bg-red-950/20 dark:text-red-400"
                 >
                     Database synchronization error encountered while fetching active logs.
                 </LiveMessage>
@@ -92,7 +92,7 @@ export default async function FullAlertsLogPage() {
 
             <RecallPushSubscriber />
 
-            <div className="space-y-4">
+            <div role="feed" aria-busy="false" className="space-y-4">
                 {allAlerts && allAlerts.length > 0 ? (
                     allAlerts.map((alert) => {
                         const isSystem = alert.brand_name === "SYSTEM_UPDATE";
@@ -102,6 +102,7 @@ export default async function FullAlertsLogPage() {
                         return (
                             <div
                                 key={alert.id}
+                                role="article"
                                 className="group relative flex cursor-pointer items-start gap-4 overflow-hidden rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-4 shadow-sm transition-shadow hover:shadow-md"
                             >
                                 {/* Left edge colored strip */}
@@ -119,10 +120,10 @@ export default async function FullAlertsLogPage() {
                                 <div
                                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${
                                         isSystem
-                                            ? "bg-blue-50 dark:bg-blue-950/30 text-blue-500 dark:text-blue-400 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30"
+                                            ? "bg-blue-50 text-blue-500 group-hover:bg-blue-100 dark:bg-blue-950/30 dark:text-blue-400 dark:group-hover:bg-blue-900/30"
                                             : isCritical
-                                              ? "bg-red-50 dark:bg-red-950/30 text-red-500 dark:text-red-400 group-hover:bg-red-100 dark:group-hover:bg-red-900/30"
-                                              : "bg-orange-50 dark:bg-orange-950/30 text-orange-500 dark:text-orange-400 group-hover:bg-orange-100 dark:group-hover:bg-orange-900/30"
+                                              ? "bg-red-50 text-red-500 group-hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400 dark:group-hover:bg-red-900/30"
+                                              : "bg-orange-50 text-orange-500 group-hover:bg-orange-100 dark:bg-orange-950/30 dark:text-orange-400 dark:group-hover:bg-orange-900/30"
                                     }`}
                                 >
                                     {isSystem ? (
@@ -143,8 +144,8 @@ export default async function FullAlertsLogPage() {
                                                 <span
                                                     className={`w-fit rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase ${
                                                         isCritical
-                                                            ? "bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-450"
-                                                            : "bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-450"
+                                                            ? "dark:text-red-450 bg-red-50 text-red-600 dark:bg-red-950/30"
+                                                            : "dark:text-orange-450 bg-orange-50 text-orange-600 dark:bg-orange-950/30"
                                                     }`}
                                                 >
                                                     {alert.cdsco_approval_status}

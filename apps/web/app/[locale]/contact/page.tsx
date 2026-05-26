@@ -15,15 +15,19 @@ export default function ContactPage() {
         <main className="min-h-screen bg-(--color-surface-page) text-(--color-text-primary)">
             {/* Hero */}
             <section className="border-b border-(--color-border-muted) px-4 py-16 text-center">
-                <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 dark:border-emerald-900/30 dark:bg-emerald-950/20 px-4 py-1.5 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-950/20 dark:text-emerald-400">
                     <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
                     {t("badge")}
                 </div>
                 <h1 className="mb-4 text-5xl font-extrabold text-(--color-text-primary)">
                     {t("heroTitle.prefix")}{" "}
-                    <span className="text-emerald-600 dark:text-emerald-400">{t("heroTitle.highlight")}</span>
+                    <span className="text-emerald-600 dark:text-emerald-400">
+                        {t("heroTitle.highlight")}
+                    </span>
                 </h1>
-                <p className="mx-auto max-w-xl text-lg text-(--color-text-secondary)">{t("heroSubtitle")}</p>
+                <p className="mx-auto max-w-xl text-lg text-(--color-text-secondary)">
+                    {t("heroSubtitle")}
+                </p>
             </section>
 
             {/* Contact Cards */}
@@ -32,16 +36,18 @@ export default function ContactPage() {
                     {/* Email — whole card is clickable */}
                     <a
                         href={"mailto:" + CONTACT_EMAIL}
-                        className="group rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 shadow-sm transition-shadow hover:shadow-md hover:shadow-emerald-500/5"
+                        className="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/40 hover:shadow-md active:scale-[0.99] dark:border-slate-800 dark:bg-slate-900"
                     >
-                        <div className="mb-3 text-emerald-600 dark:text-emerald-400">
+                        <div className="mb-3 text-green-500">
                             <Mail className="h-8 w-8" />
                         </div>
-                        <h3 className="mb-1 text-lg font-bold text-(--color-text-primary)">
+                        <h3 className="mb-1 text-lg font-bold text-gray-900 dark:text-white">
                             {t("cards.email.title")}
                         </h3>
-                        <p className="mb-4 text-sm text-(--color-text-secondary)">{t("cards.email.description")}</p>
-                        <span className="inline-block rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors group-hover:bg-emerald-700 dark:bg-emerald-500 dark:text-slate-950 dark:group-hover:bg-emerald-400">
+                        <p className="mb-4 text-sm text-gray-500 dark:text-slate-400">
+                            {t("cards.email.description")}
+                        </p>
+                        <span className="inline-block rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white transition-colors group-hover:bg-green-600">
                             {CONTACT_EMAIL}
                         </span>
                     </a>
@@ -51,18 +57,18 @@ export default function ContactPage() {
                         href={DISCORD_URL}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 shadow-sm transition-shadow hover:shadow-md hover:shadow-emerald-500/5"
+                        className="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/40 hover:shadow-md active:scale-[0.99] dark:border-slate-800 dark:bg-slate-900"
                     >
-                        <div className="mb-3 text-emerald-600 dark:text-emerald-400">
+                        <div className="mb-3 text-green-500">
                             <MessageCircle className="h-8 w-8" />
                         </div>
-                        <h3 className="mb-1 text-lg font-bold text-(--color-text-primary)">
+                        <h3 className="mb-1 text-lg font-bold text-gray-900 dark:text-white">
                             {t("cards.discord.title")}
                         </h3>
-                        <p className="mb-4 text-sm text-(--color-text-secondary)">
+                        <p className="mb-4 text-sm text-gray-500 dark:text-slate-400">
                             {t("cards.discord.description")}
                         </p>
-                        <span className="inline-block rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors group-hover:bg-emerald-700 dark:bg-emerald-500 dark:text-slate-950 dark:group-hover:bg-emerald-400">
+                        <span className="inline-block rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white transition-colors group-hover:bg-green-600">
                             {t("cards.discord.cta")}
                         </span>
                     </a>
@@ -72,16 +78,18 @@ export default function ContactPage() {
                         href={GITHUB_ISSUES_URL}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 shadow-sm transition-shadow hover:shadow-md hover:shadow-emerald-500/5"
+                        className="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/40 hover:shadow-md active:scale-[0.99] dark:border-slate-800 dark:bg-slate-900"
                     >
-                        <div className="mb-3 text-emerald-600 dark:text-emerald-400">
+                        <div className="mb-3 text-green-500">
                             <Bug className="h-8 w-8" />
                         </div>
-                        <h3 className="mb-1 text-lg font-bold text-(--color-text-primary)">
+                        <h3 className="mb-1 text-lg font-bold text-gray-900 dark:text-white">
                             {t("cards.bug.title")}
                         </h3>
-                        <p className="mb-4 text-sm text-(--color-text-secondary)">{t("cards.bug.description")}</p>
-                        <span className="inline-block rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors group-hover:bg-emerald-700 dark:bg-emerald-500 dark:text-slate-950 dark:group-hover:bg-emerald-400">
+                        <p className="mb-4 text-sm text-gray-500 dark:text-slate-400">
+                            {t("cards.bug.description")}
+                        </p>
+                        <span className="inline-block rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white transition-colors group-hover:bg-green-600">
                             {t("cards.bug.cta")}
                         </span>
                     </a>
@@ -91,18 +99,18 @@ export default function ContactPage() {
                         href={CONTRIBUTING_URL}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 shadow-sm transition-shadow hover:shadow-md hover:shadow-emerald-500/5"
+                        className="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/40 hover:shadow-md active:scale-[0.99] dark:border-slate-800 dark:bg-slate-900"
                     >
-                        <div className="mb-3 text-emerald-600 dark:text-emerald-400">
+                        <div className="mb-3 text-green-500">
                             <Handshake className="h-8 w-8" />
                         </div>
-                        <h3 className="mb-1 text-lg font-bold text-(--color-text-primary)">
+                        <h3 className="mb-1 text-lg font-bold text-gray-900 dark:text-white">
                             {t("cards.contribute.title")}
                         </h3>
-                        <p className="mb-4 text-sm text-(--color-text-secondary)">
+                        <p className="mb-4 text-sm text-gray-500 dark:text-slate-400">
                             {t("cards.contribute.description")}
                         </p>
-                        <span className="inline-block rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors group-hover:bg-emerald-700 dark:bg-emerald-500 dark:text-slate-950 dark:group-hover:bg-emerald-400">
+                        <span className="inline-block rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white transition-colors group-hover:bg-green-600">
                             {t("cards.contribute.cta")}
                         </span>
                     </a>
