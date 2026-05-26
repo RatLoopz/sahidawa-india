@@ -1,6 +1,6 @@
 import rateLimit from "express-rate-limit";
 
-export const verifyLimiter = rateLimit({
+export const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 mins
     max: 20,
 
@@ -13,3 +13,5 @@ export const verifyLimiter = rateLimit({
         });
     },
 });
+
+export const verifyLimiter = limiter;

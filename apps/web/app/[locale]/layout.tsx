@@ -8,6 +8,7 @@ import { ThemeProvider } from "./components/ThemeProvider";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { OfflineErrorBoundary } from "@/components/OfflineErrorBoundary";
 import { ServiceWorkerProvider } from "@/components/ServiceWorkerProvider";
+import BackToTopButton from "./components/BackToTopButton";
 import Chatbot from "./components/Chatbot";
 import "./globals.css";
 import "../../src/styles/print.css";
@@ -69,6 +70,7 @@ export default async function LocaleLayout({
                                 {children}
                                 <Footer />
                                 <div className="no-print">
+                                    <BackToTopButton />
                                     <Chatbot />
                                 </div>
                             </OfflineErrorBoundary>
