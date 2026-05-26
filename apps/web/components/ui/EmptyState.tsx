@@ -11,17 +11,22 @@ export interface EmptyStateProps {
     className?: string;
 }
 
-export function EmptyState({
-    icon,
-    title,
-    description,
-    actionLabel,
-    actionHref,
-    onAction,
-    className = "",
-}: EmptyStateProps) {
+export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
+    (
+        {
+            icon,
+            title,
+            description,
+            actionLabel,
+            actionHref,
+            onAction,
+            className = "",
+        },
+        ref
+    ) => {
     return (
         <div
+            ref={ref}
             role="status"
             aria-live="polite"
             className={`animate-in fade-in slide-in-from-bottom-2 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center duration-300 dark:border-slate-800 dark:bg-slate-900 ${className}`}
@@ -37,7 +42,7 @@ export function EmptyState({
             {actionHref && actionLabel && (
                 <Link
                     href={actionHref as any}
-                    className="mt-5 inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+                    className="mt-5 inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-800 focus:ring-offset-2 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 dark:focus:ring-white dark:focus:ring-offset-slate-900"
                 >
                     {actionLabel}
                 </Link>
@@ -46,11 +51,13 @@ export function EmptyState({
             {!actionHref && actionLabel && onAction && (
                 <button
                     onClick={onAction}
-                    className="mt-5 inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+                    className="mt-5 inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-800 focus:ring-offset-2 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 dark:focus:ring-white dark:focus:ring-offset-slate-900"
                 >
                     {actionLabel}
                 </button>
             )}
         </div>
     );
-}
+});
+
+EmptyState.displayName = "EmptyState";
