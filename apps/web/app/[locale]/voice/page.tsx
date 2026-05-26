@@ -1123,17 +1123,17 @@ export default function VoiceTriagePage() {
                   : undefined;
 
     return (
-        <div className="relative flex min-h-screen flex-col overflow-hidden bg-slate-50 font-sans">
+        <div className="relative flex min-h-screen flex-col overflow-hidden bg-(--color-surface-muted) text-(--color-text-primary) font-sans">
             <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
                 {srAnnouncement}
             </div>
 
             <div
-                className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-emerald-100/40 blur-3xl"
+                className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-emerald-100/40 dark:bg-emerald-950/15 blur-3xl"
                 aria-hidden="true"
             ></div>
             <div
-                className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-blue-100/40 blur-3xl"
+                className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-blue-100/40 dark:bg-blue-950/15 blur-3xl"
                 aria-hidden="true"
             ></div>
 
@@ -1161,7 +1161,7 @@ export default function VoiceTriagePage() {
                 <div className="w-full max-w-md">
                     <label
                         htmlFor="voice-language"
-                        className="mb-2 block text-xs font-bold tracking-widest text-slate-500 uppercase"
+                        className="mb-2 block text-xs font-bold tracking-widest text-(--color-text-secondary) uppercase"
                     >
                         {t("language_selector")}
                     </label>
@@ -1170,7 +1170,7 @@ export default function VoiceTriagePage() {
                         value={selectedLanguage}
                         onChange={(event) => setSelectedLanguage(event.target.value)}
                         disabled={isLanguageSelectionLocked}
-                        className={`w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm disabled:cursor-not-allowed disabled:bg-slate-100 ${VOICE_FOCUS_RING_CLASS}`}
+                        className={`w-full rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) px-4 py-3 text-sm font-semibold text-(--color-text-primary) shadow-sm disabled:cursor-not-allowed disabled:bg-(--color-surface-muted) ${VOICE_FOCUS_RING_CLASS}`}
                     >
                         {VOICE_LANGUAGE_OPTIONS.map((option) => (
                             <option key={option.value} value={option.value}>
@@ -1333,7 +1333,7 @@ export default function VoiceTriagePage() {
                         </span>
                     </button>
                     <p
-                        className="mt-6 text-sm font-bold tracking-widest text-slate-400 uppercase"
+                        className="mt-6 text-sm font-bold tracking-widest text-(--color-text-muted) uppercase"
                         aria-hidden="true"
                     >
                         {step === "listening" ? t("stop_listening_label") : t("tap_to_speak")}
@@ -1342,7 +1342,7 @@ export default function VoiceTriagePage() {
             )}
 
             <footer className="p-8 text-center">
-                <p className="mx-auto max-w-xs text-[10px] font-bold tracking-widest text-slate-300 uppercase">
+                <p className="mx-auto max-w-xs text-[10px] font-bold tracking-widest text-(--color-text-muted) uppercase">
                     {t("footer_note")}
                 </p>
             </footer>
