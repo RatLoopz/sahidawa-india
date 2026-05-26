@@ -147,6 +147,9 @@ export default function ChatUI() {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ messages: history }),
                 });
+                if (res.status === 429) {
+                    throw new Error("Too many requests. Please try again in a few moments.");
+                }
                 if (!res.ok) throw new Error();
                 const data = await res.json();
                 const reply = data.text || "I'm here to help! Could you rephrase that?";
@@ -154,13 +157,13 @@ export default function ChatUI() {
                     ...prev,
                     { id: genId(), role: "assistant", content: reply, timestamp: new Date() },
                 ]);
-            } catch {
+            } catch (err: any) {
                 setMessages((prev) => [
                     ...prev,
                     {
                         id: genId(),
                         role: "assistant",
-                        content: "",
+                        content: err.message || "Something went wrong",
                         timestamp: new Date(),
                         isError: true,
                     },
