@@ -1,8 +1,6 @@
 import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
 import { GitBranch, Sparkles, Heart } from "lucide-react";
 import { Link } from "@/i18n/routing";
-import { ThemeToggle } from "./ThemeToggle"; // <-- ADD THIS IMPORT
-
 export default function Footer() {
     return (
         <footer className="no-print mt-auto border-t border-slate-800 bg-slate-950 text-slate-400">

@@ -102,13 +102,13 @@ export default function Chatbot() {
                     </div>
 
                     {/* Messages */}
-                    <div className="flex flex-1 flex-col gap-4 overflow-y-auto bg-gray-50 p-4">
+                    <div className="flex flex-1 flex-col gap-4 overflow-y-auto bg-(--color-surface-muted) p-4">
                         {messages.map((msg, idx) => (
                             <div
                                 key={idx}
                                 className={`max-w-[85%] rounded-2xl p-3 shadow-sm ${
                                     msg.isBot
-                                        ? "self-start rounded-tl-sm border border-gray-100 bg-white text-gray-800"
+                                        ? "self-start rounded-tl-sm border border-(--color-border-muted) bg-(--color-surface-page) text-(--color-text-primary)"
                                         : "self-end rounded-tr-sm bg-green-600 text-white"
                                 }`}
                             >
@@ -119,14 +119,14 @@ export default function Chatbot() {
                     </div>
 
                     {/* Input Area */}
-                    <div className="flex items-center gap-2 border-t border-gray-100 bg-white p-3">
+                    <div className="flex items-center gap-2 border-t border-(--color-border-muted) bg-(--color-surface-page) p-3">
                         <input
                             type="text"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && handleSend()}
                             placeholder="Ask me about a medicine..."
-                            className="flex-1 rounded-full bg-gray-100 px-4 py-3 text-sm text-gray-800 transition-all placeholder:text-gray-400 focus:ring-2 focus:ring-green-500/50 focus:outline-none"
+                            className="flex-1 rounded-full bg-(--color-surface-muted) px-4 py-3 text-sm text-(--color-text-primary) transition-all placeholder:text-(--color-text-muted) focus:ring-2 focus:ring-green-500/50 focus:outline-none"
                         />
                         <button
                             onClick={handleSend}

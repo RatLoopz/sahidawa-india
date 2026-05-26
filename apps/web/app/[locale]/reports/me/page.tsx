@@ -68,19 +68,19 @@ const STATUS_META: Record<
     pending: {
         label: "Pending Review",
         icon: Clock,
-        chip: "bg-amber-50 text-amber-700 border-amber-200",
+        chip: "bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/30",
         dot: "bg-amber-500",
     },
     verified_fake: {
         label: "Verified Fake",
         icon: ShieldCheck,
-        chip: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        chip: "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/30",
         dot: "bg-emerald-500",
     },
     false_alarm: {
         label: "False Alarm",
         icon: XCircle,
-        chip: "bg-slate-100 text-slate-600 border-slate-200",
+        chip: "bg-(--color-surface-muted) text-(--color-text-secondary) border-(--color-border-muted)",
         dot: "bg-slate-400",
     },
 };
@@ -106,8 +106,8 @@ function ReportCard({ report }: { report: MyReport }) {
         report.reported_brand_name?.trim() || report.scanned_barcode || "Unnamed medicine";
 
     return (
-        <Card className="flex flex-col sm:flex-row">
-            <div className="flex h-40 shrink-0 items-center justify-center bg-slate-100 sm:h-32 sm:w-32">
+        <Card className="flex flex-col sm:flex-row bg-(--color-surface-page) border-(--color-border-muted) shadow-sm overflow-hidden">
+            <div className="flex h-40 shrink-0 items-center justify-center bg-(--color-surface-muted) sm:h-32 sm:w-32 border-r border-(--color-border-muted)">
                 {isSafePhotoUrl(report.photo_url) ? (
                     <LazyImage
                         src={report.photo_url}
@@ -116,7 +116,7 @@ function ReportCard({ report }: { report: MyReport }) {
                         className="h-full w-full object-cover"
                     />
                 ) : (
-                    <div className="flex flex-col items-center text-slate-400">
+                    <div className="flex flex-col items-center text-(--color-text-muted)">
                         <ImageOff size={24} />
                         <span className="mt-1 text-[10px] font-medium tracking-wider uppercase">
                             No photo
@@ -127,26 +127,26 @@ function ReportCard({ report }: { report: MyReport }) {
 
             <div className="flex min-w-0 flex-1 flex-col gap-2 p-4">
                 <div className="flex items-start justify-between gap-3">
-                    <h3 className="truncate font-bold text-slate-900">{title}</h3>
+                    <h3 className="truncate font-bold text-(--color-text-primary)">{title}</h3>
                     <StatusBadge status={report.status} />
                 </div>
 
-                <dl className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
+                <dl className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-(--color-text-secondary)">
                     {report.district && (
                         <div className="flex items-center gap-1">
-                            <MapPin size={12} className="text-slate-400" />
+                            <MapPin size={12} className="text-(--color-text-muted)" />
                             <dt className="sr-only">District</dt>
                             <dd>{report.district}</dd>
                         </div>
                     )}
                     <div className="flex items-center gap-1">
-                        <Clock size={12} className="text-slate-400" />
+                        <Clock size={12} className="text-(--color-text-muted)" />
                         <dt className="sr-only">Submitted</dt>
                         <dd>{formatDate(report.created_at)}</dd>
                     </div>
                     {report.scanned_barcode && (
                         <div className="flex items-center gap-1">
-                            <FileText size={12} className="text-slate-400" />
+                            <FileText size={12} className="text-(--color-text-muted)" />
                             <dt className="sr-only">Batch</dt>
                             <dd className="font-mono">{report.scanned_barcode}</dd>
                         </div>
@@ -214,7 +214,7 @@ export default function MyReportsPage() {
     }, [fetchMine]);
 
     return (
-        <div className="flex min-h-screen flex-col bg-slate-50 font-sans text-slate-900">
+        <div className="flex min-h-screen flex-col bg-(--color-surface-muted) font-sans text-(--color-text-primary)">
             <PageHeader
                 title="My Reports"
                 subtitle="Status of reports you have filed"
@@ -225,10 +225,10 @@ export default function MyReportsPage() {
             <main className="container mx-auto w-full max-w-3xl flex-1 px-4 py-6 md:px-6 md:py-10">
                 <div className="mb-6 flex items-center justify-between gap-3">
                     <div>
-                        <h1 className="text-2xl font-black tracking-tight text-slate-900">
+                        <h1 className="text-2xl font-black tracking-tight text-(--color-text-primary)">
                             My Reports
                         </h1>
-                        <p className="mt-0.5 text-sm text-slate-500">
+                        <p className="mt-0.5 text-sm text-(--color-text-secondary)">
                             Track what happened to the counterfeit medicines you reported.
                         </p>
                     </div>
@@ -237,7 +237,7 @@ export default function MyReportsPage() {
                         onClick={fetchMine}
                         disabled={state.kind === "loading"}
                         aria-label="Refresh reports"
-                        className="rounded-full border border-slate-200 bg-white p-2.5 text-slate-500 shadow-sm transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+                        className="rounded-full border border-(--color-border-muted) bg-(--color-surface-page) p-2.5 text-(--color-text-secondary) shadow-sm transition hover:bg-(--color-surface-muted) hover:text-(--color-text-primary) disabled:opacity-50"
                     >
                         <RefreshCw
                             size={16}
@@ -249,16 +249,16 @@ export default function MyReportsPage() {
                 {state.kind === "loading" && (
                     <div className="flex flex-col gap-3" aria-label="Loading your reports">
                         {[1, 2, 3].map((i) => (
-                            <Card key={i} className="flex flex-col sm:flex-row">
-                                <Skeleton className="h-40 shrink-0 sm:h-32 sm:w-32 rounded-none bg-slate-200" />
+                            <Card key={i} className="flex flex-col sm:flex-row bg-(--color-surface-page) border-(--color-border-muted)">
+                                <Skeleton className="h-40 shrink-0 sm:h-32 sm:w-32 rounded-none bg-slate-200 dark:bg-slate-800" />
                                 <div className="flex min-w-0 flex-1 flex-col gap-2 p-4">
                                     <div className="flex items-start justify-between gap-3">
-                                        <Skeleton className="h-5 w-1/2 bg-slate-200" />
-                                        <Skeleton className="h-6 w-24 rounded-full bg-slate-200" />
+                                        <Skeleton className="h-5 w-1/2 bg-slate-200 dark:bg-slate-800" />
+                                        <Skeleton className="h-6 w-24 rounded-full bg-slate-200 dark:bg-slate-800" />
                                     </div>
                                     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
-                                        <Skeleton className="h-4 w-20 bg-slate-200" />
-                                        <Skeleton className="h-4 w-24 bg-slate-200" />
+                                        <Skeleton className="h-4 w-20 bg-slate-200 dark:bg-slate-800" />
+                                        <Skeleton className="h-4 w-24 bg-slate-200 dark:bg-slate-800" />
                                     </div>
                                 </div>
                             </Card>
@@ -273,7 +273,7 @@ export default function MyReportsPage() {
                         description={state.message}
                         actionLabel="Go to Login"
                         actionHref="/login"
-                        className="border-slate-200 !bg-white"
+                        className="border-(--color-border-muted) bg-(--color-surface-page)!"
                     />
                 )}
 
@@ -284,7 +284,7 @@ export default function MyReportsPage() {
                         description={state.message}
                         actionLabel="Try again"
                         onAction={fetchMine}
-                        className="border-rose-200 !bg-white"
+                        className="border-rose-200 dark:border-rose-950/40 bg-(--color-surface-page)!"
                     />
                 )}
 
@@ -295,6 +295,7 @@ export default function MyReportsPage() {
                         description="Spotted a suspicious or counterfeit medicine? Reporting it helps protect your community."
                         actionLabel="File your first report"
                         actionHref="/report"
+                        className="border-(--color-border-muted) bg-(--color-surface-page)!"
                     />
                 )}
 

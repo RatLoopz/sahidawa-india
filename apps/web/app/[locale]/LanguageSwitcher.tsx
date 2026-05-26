@@ -41,7 +41,7 @@ export default function LanguageSwitcher() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex h-9 items-center gap-1.5 text-sm font-semibold px-3 py-1.5 bg-slate-100 border border-slate-200 text-slate-700 rounded-full hover:bg-slate-200 transition-colors shadow-sm sm:h-10 sm:px-4 sm:py-2"
+        className="flex h-9 items-center gap-1.5 text-sm font-semibold px-3 py-1.5 bg-(--color-surface-muted) border border-(--color-border-muted) text-(--color-text-primary) rounded-full hover:bg-(--color-border-muted) transition-colors shadow-sm sm:h-10 sm:px-4 sm:py-2"
       >
         <Globe size={16} className="text-emerald-600" />
         <span className="hidden sm:inline">{current.native}</span>
@@ -53,13 +53,13 @@ export default function LanguageSwitcher() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-40 bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden z-50">
+        <div className="absolute right-0 mt-2 w-40 bg-(--color-surface-page) border border-(--color-border-muted) rounded-2xl shadow-lg overflow-hidden z-50">
           {languages.map((lang) => (
             <button
               key={lang.code}
               onClick={() => switchLanguage(lang.code)}
-              className={`w-full text-left px-3 py-1.5 text-sm font-semibold transition-colors hover:bg-emerald-50 hover:text-emerald-700 flex items-center justify-between sm:px-4 sm:py-2
-                ${locale === lang.code ? "bg-emerald-50 text-emerald-700" : "text-slate-700"}`}
+              className={`w-full text-left px-3 py-1.5 text-sm font-semibold transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:text-emerald-700 dark:hover:text-emerald-450 flex items-center justify-between sm:px-4 sm:py-2
+                ${locale === lang.code ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-450" : "text-(--color-text-primary)"}`}
             >
               <span>{lang.native}</span>
               {locale === lang.code && (

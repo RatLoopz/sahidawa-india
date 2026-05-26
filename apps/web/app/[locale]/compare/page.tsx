@@ -33,7 +33,7 @@ export default function ComparePage() {
     const handleSearch = useCallback((q: string) => searchMedicines(q), []);
 
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900">
+        <div className="min-h-screen bg-(--color-surface-muted) text-(--color-text-primary)">
             <PageHeader
                 title="Compare medicines"
                 subtitle="Brand vs generic side by side"
@@ -41,7 +41,7 @@ export default function ComparePage() {
                 variant="light"
             />
             <main className="container mx-auto max-w-4xl space-y-6 px-4 py-8">
-                <section className="rounded-xl border border-slate-200 bg-white p-5">
+                <section className="rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) p-5">
                     <div className="grid gap-4 sm:grid-cols-2">
                         <MedicineSearchSelect
                             label="First medicine"
@@ -58,8 +58,8 @@ export default function ComparePage() {
                     </div>
                 </section>
                 <ComparisonGrid medicine1={medicine1} medicine2={medicine2} />
-                <p className="text-center text-sm text-slate-500">
-                    <Link href="/map" className="text-emerald-700 hover:underline">
+                <p className="text-center text-sm text-(--color-text-secondary)">
+                    <Link href="/map" className="text-emerald-700 dark:text-emerald-400 hover:underline">
                         Find pharmacies
                     </Link>
                 </p>
