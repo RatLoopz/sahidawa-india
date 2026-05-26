@@ -57,6 +57,7 @@
 .dark {
     --color-surface-page: #0f172a;
     --color-surface-muted: #1e293b;
+    --color-surface-login: #090d16;
     --color-border-muted: #334155;
     --color-text-primary: #f8fafc;
     --color-text-secondary: #cbd5e1;

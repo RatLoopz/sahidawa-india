@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 import { detectEmergencyKeywords } from "@/lib/voice/emergency";
+import { rateLimit } from "@/lib/rateLimit";
 
 const DEFAULT_DISCLAIMER =
     "This guidance is for informational use only and is not a diagnosis. Consult a doctor or pharmacist, especially for severe or persistent symptoms.";
@@ -114,6 +115,16 @@ function getAiClient() {
 
 export async function POST(req: Request) {
     try {
+        const forwardedFor = req.headers.get("x-forwarded-for");
+        const realIp = req.headers.get("x-real-ip");
+        const ip = forwardedFor?.split(",")[0]?.trim() || realIp || "127.0.0.1";
+        const { success } = await rateLimit.limit(ip);
+        if (!success) {
+            return NextResponse.json(
+                { error: "Too many requests. Please try again in a few moments." },
+                { status: 429 }
+            );
+        }
         const ai = getAiClient();
         const { messages, mode, responseLanguage } = await req.json();
         const latestMessageText = getLatestMessageText(messages);
