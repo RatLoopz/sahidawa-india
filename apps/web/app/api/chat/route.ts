@@ -19,6 +19,38 @@ type VoiceTriageResponse = {
     emergency: boolean;
 };
 
+// ── Structured Logger ─────────────────────────────────────────────────────────
+
+interface LogEntry {
+    timestamp: string;
+    log_level: "info" | "warn" | "error";
+    route: string;
+    latency_ms?: number;
+    metrics?: {
+        input_tokens: number | undefined;
+        output_tokens: number | undefined;
+    };
+    error?: {
+        message: string;
+        code: number;
+        stack: string | undefined;
+    };
+    meta?: Record<string, unknown>;
+}
+
+function structuredLog(entry: LogEntry): void {
+    const line = JSON.stringify(entry);
+    if (entry.log_level === "error") {
+        console.error(line);
+    } else if (entry.log_level === "warn") {
+        console.warn(line);
+    } else {
+        console.log(line);
+    }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
 function getLatestMessageText(messages: ChatMessage[] | undefined) {
     if (!Array.isArray(messages) || messages.length === 0) {
         return "";
@@ -112,18 +144,30 @@ function getAiClient() {
     return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 }
 
+// ── Route Handler ─────────────────────────────────────────────────────────────
+
 export async function POST(req: Request) {
+    const ROUTE = "/api/chat";
+    const startTime = Date.now();
+
     try {
         const ai = getAiClient();
         const { messages, mode, responseLanguage } = await req.json();
         const latestMessageText = getLatestMessageText(messages);
 
         if (!latestMessageText) {
+            structuredLog({
+                timestamp: new Date().toISOString(),
+                log_level: "warn",
+                route: ROUTE,
+                meta: { reason: "empty_message_text", mode },
+            });
             return NextResponse.json({ error: "Message text is required" }, { status: 400 });
         }
 
         if (mode === "voice-triage") {
             const deterministicEmergency = detectEmergencyKeywords(latestMessageText);
+
             const response = await ai.models.generateContent({
                 model: "gemini-2.5-flash",
                 contents: buildVoiceTriagePrompt(
@@ -138,6 +182,20 @@ export async function POST(req: Request) {
                 },
             });
 
+            const latency_ms = Date.now() - startTime;
+
+            structuredLog({
+                timestamp: new Date().toISOString(),
+                log_level: "info",
+                route: ROUTE,
+                latency_ms,
+                metrics: {
+                    input_tokens: response.usageMetadata?.promptTokenCount,
+                    output_tokens: response.usageMetadata?.candidatesTokenCount,
+                },
+                meta: { mode: "voice-triage", responseLanguage },
+            });
+
             const parsedResponse = parseVoiceTriageResponse(response.text ?? "");
 
             return NextResponse.json({
@@ -145,6 +203,8 @@ export async function POST(req: Request) {
                 emergency: parsedResponse.emergency || deterministicEmergency.isEmergency,
             });
         }
+
+        // ── General chat mode ─────────────────────────────────────────────────
 
         const formattedContents = mapMessagesToGeminiContents(messages || []);
 
@@ -157,15 +217,50 @@ export async function POST(req: Request) {
             },
         });
 
+        const latency_ms = Date.now() - startTime;
+
+        structuredLog({
+            timestamp: new Date().toISOString(),
+            log_level: "info",
+            route: ROUTE,
+            latency_ms,
+            metrics: {
+                input_tokens: response.usageMetadata?.promptTokenCount,
+                output_tokens: response.usageMetadata?.candidatesTokenCount,
+            },
+            meta: { mode: "chat", messageCount: (messages || []).length },
+        });
+
         return NextResponse.json({ text: response.text });
+
     } catch (error: any) {
-        console.error("AI Generation Error:", error);
+        const latency_ms = Date.now() - startTime;
+        const statusCode: number = error?.status || 500;
+
+        structuredLog({
+            timestamp: new Date().toISOString(),
+            log_level: "error",
+            route: ROUTE,
+            latency_ms,
+            error: {
+                message:
+                    statusCode === 503
+                        ? "Google AI service unavailable (overloaded)"
+                        : statusCode === 429
+                          ? "Google AI rate limit exceeded"
+                          : "AI generation failed",
+                code: statusCode,
+                stack: error instanceof Error ? error.stack : undefined,
+            },
+        });
 
         const errorMessage =
-            error?.status === 503
+            statusCode === 503
                 ? "Google AI is currently experiencing high demand. Please try again in a few moments."
-                : "Failed to generate AI response";
+                : statusCode === 429
+                  ? "Request limit reached. Please wait a moment before trying again."
+                  : "Failed to generate AI response";
 
-        return NextResponse.json({ error: errorMessage }, { status: error?.status || 500 });
+        return NextResponse.json({ error: errorMessage }, { status: statusCode });
     }
 }

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
+const ROUTE = "/api/voice/transcribe";
 const ML_TRANSCRIBE_TIMEOUT_MS = 45_000;
+
 function getMlServiceUrl() {
     return process.env.ML_SERVICE_URL ?? "http://localhost:8000";
 }
@@ -13,12 +15,51 @@ async function readJsonSafely(response: Response) {
     }
 }
 
+// ── Structured Logger ─────────────────────────────────────────────────────────
+
+interface LogEntry {
+    timestamp: string;
+    log_level: "info" | "warn" | "error";
+    route: string;
+    latency_ms?: number;
+    metrics?: {
+        input_tokens: number | undefined;
+        output_tokens: number | undefined;
+    };
+    error?: {
+        message: string;
+        code: number;
+        stack: string | undefined;
+    };
+    meta?: Record<string, unknown>;
+}
+
+function structuredLog(entry: LogEntry): void {
+    const line = JSON.stringify(entry);
+    if (entry.log_level === "error") {
+        console.error(line);
+    } else if (entry.log_level === "warn") {
+        console.warn(line);
+    } else {
+        console.log(line);
+    }
+}
+
+// ── Route Handler ─────────────────────────────────────────────────────────────
+
 export async function POST(req: Request) {
+    const startTime = Date.now();
     const formData = await req.formData();
     const file = formData.get("file");
     const language = formData.get("language");
 
     if (!(file instanceof File)) {
+        structuredLog({
+            timestamp: new Date().toISOString(),
+            log_level: "warn",
+            route: ROUTE,
+            meta: { reason: "missing_audio_file" },
+        });
         return NextResponse.json({ error: "Audio file is required." }, { status: 400 });
     }
 
@@ -30,6 +71,7 @@ export async function POST(req: Request) {
 
     const abortController = new AbortController();
     const timeoutId = setTimeout(() => abortController.abort(), ML_TRANSCRIBE_TIMEOUT_MS);
+
     try {
         const upstreamResponse = await fetch(`${getMlServiceUrl()}/asr/transcribe`, {
             method: "POST",
@@ -37,9 +79,22 @@ export async function POST(req: Request) {
             signal: abortController.signal,
         });
 
+        const latency_ms = Date.now() - startTime;
         const upstreamData = await readJsonSafely(upstreamResponse);
 
         if (!upstreamData || typeof upstreamData !== "object") {
+            structuredLog({
+                timestamp: new Date().toISOString(),
+                log_level: "error",
+                route: ROUTE,
+                latency_ms,
+                error: {
+                    message: "Transcription service returned an invalid response",
+                    code: 502,
+                    stack: undefined,
+                },
+                meta: { language, fileSizeBytes: file.size, fileType: file.type },
+            });
             return NextResponse.json(
                 { error: "Transcription service returned an invalid response." },
                 { status: 502 }
@@ -47,16 +102,45 @@ export async function POST(req: Request) {
         }
 
         if (!upstreamResponse.ok) {
-            return NextResponse.json(
-                {
-                    error:
-                        typeof upstreamData.detail === "string" && upstreamData.detail.trim()
-                            ? upstreamData.detail
-                            : "Transcription failed.",
+            const statusCode = upstreamResponse.status;
+            const errorDetail =
+                typeof upstreamData.detail === "string" && upstreamData.detail.trim()
+                    ? upstreamData.detail
+                    : "Transcription failed.";
+
+            structuredLog({
+                timestamp: new Date().toISOString(),
+                log_level: statusCode === 503 || statusCode === 429 ? "error" : "warn",
+                route: ROUTE,
+                latency_ms,
+                error: {
+                    message: errorDetail,
+                    code: statusCode,
+                    stack: undefined,
                 },
-                { status: upstreamResponse.status }
-            );
+                meta: { language, fileSizeBytes: file.size, fileType: file.type },
+            });
+
+            return NextResponse.json({ error: errorDetail }, { status: statusCode });
         }
+
+        // Success
+        structuredLog({
+            timestamp: new Date().toISOString(),
+            log_level: "info",
+            route: ROUTE,
+            latency_ms,
+            meta: {
+                language: upstreamData.language ?? language,
+                languageConfidence: upstreamData.language_probability ?? null,
+                fileSizeBytes: file.size,
+                fileType: file.type,
+                transcriptLength:
+                    typeof upstreamData.transcription === "string"
+                        ? upstreamData.transcription.length
+                        : 0,
+            },
+        });
 
         return NextResponse.json({
             transcript: String(upstreamData.transcription ?? "").trim(),
@@ -66,13 +150,41 @@ export async function POST(req: Request) {
                     ? upstreamData.language_probability
                     : null,
         });
+
     } catch (error) {
+        const latency_ms = Date.now() - startTime;
+
         if (error instanceof Error && error.name === "AbortError") {
+            structuredLog({
+                timestamp: new Date().toISOString(),
+                log_level: "error",
+                route: ROUTE,
+                latency_ms,
+                error: {
+                    message: "Transcription service timed out",
+                    code: 504,
+                    stack: error.stack,
+                },
+                meta: { timeoutMs: ML_TRANSCRIBE_TIMEOUT_MS, language },
+            });
             return NextResponse.json(
                 { error: "Transcription service timed out." },
                 { status: 504 }
             );
         }
+
+        structuredLog({
+            timestamp: new Date().toISOString(),
+            log_level: "error",
+            route: ROUTE,
+            latency_ms,
+            error: {
+                message: "Could not reach the transcription service",
+                code: 503,
+                stack: error instanceof Error ? error.stack : undefined,
+            },
+            meta: { language },
+        });
 
         return NextResponse.json(
             { error: "Could not reach the transcription service." },
