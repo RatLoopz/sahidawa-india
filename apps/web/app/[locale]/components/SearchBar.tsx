@@ -39,6 +39,7 @@ export default function SearchBar() {
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // ── Close on click-outside ─────────────────────────────────────────────────
   useEffect(() => {
@@ -65,6 +66,22 @@ export default function SearchBar() {
       return;
     }
 
+    // Check if offline
+    if (typeof window !== "undefined" && !window.navigator.onLine) {
+      setSuggestions([]);
+      setIsOpen(false);
+      setIsLoading(false);
+      return;
+    }
+
+    // Abort previous suggestions request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setIsLoading(true);
     try {
       // Query both brand_name and batch_number columns for partial matches.
@@ -74,7 +91,12 @@ export default function SearchBar() {
         .or(
           `brand_name.ilike.%${trimmed}%,batch_number.ilike.%${trimmed}%`
         )
+        .abortSignal(controller.signal)
         .limit(MAX_SUGGESTIONS);
+
+      if (controller.signal.aborted) {
+        return;
+      }
 
       if (error) {
         console.error("[SearchBar] Supabase suggestion error:", error.message);
@@ -112,11 +134,17 @@ export default function SearchBar() {
       setActiveIndex(-1);
       setIsOpen(results.length > 0);
     } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        // Silently ignore aborted suggestions queries
+        return;
+      }
       console.error("[SearchBar] Unexpected error fetching suggestions:", err);
       setSuggestions([]);
       setIsOpen(false);
     } finally {
-      setIsLoading(false);
+      if (!controller.signal.aborted) {
+        setIsLoading(false);
+      }
     }
   }, []);
 
@@ -141,6 +169,7 @@ export default function SearchBar() {
     // Cleanup on unmount or next effect run
     return () => {
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      if (abortControllerRef.current) abortControllerRef.current.abort();
     };
   }, [query, fetchSuggestions]);
 
