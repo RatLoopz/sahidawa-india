@@ -1,7 +1,6 @@
 import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
 import { GitBranch, Sparkles, Heart } from "lucide-react";
 import { Link } from "@/i18n/routing";
-import { ThemeToggle } from "./ThemeToggle"; // <-- ADD THIS IMPORT
 
 export default function Footer() {
     return (
@@ -117,12 +116,10 @@ export default function Footer() {
                         <p className="text-xs sm:text-sm md:text-base lg:text-lg">
                             © 2026 SahiDawa. Open Source under MIT License.
                         </p>
-                        {/* THEME TOGGLE ADDED HERE */}
-                        <ThemeToggle />
                     </div>
 
                     <p className="text-xs sm:text-sm md:text-base lg:text-lg text-center md:text-right">
-                        Built with <Heart className="inline h-3 w-3 text-red-500" /> during GSSoC 2026 for the open-source community.
+                        Built with <Heart className="inline h-[1em] w-[1em] text-red-500" /> during GSSoC 2026 for the open-source community.
                     </p>
                 </div>
             </div>
