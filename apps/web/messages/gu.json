@@ -11,13 +11,18 @@
         "pharmacy_map": "ફાર્મસી નકશો",
         "pharmacy_subtitle": "ચકાસાયેલ સ્ટોર શોધો",
         "search_placeholder": "દવા અથવા બૅચ શોધો...",
-        "search_button": "શોધો"
+        "search_button": "શોધો",
+        "sign_in": "Sign In",
+        "get_started": "Get Started"
     },
     "Navigation": {
         "how_it_works": "તે કેવી રીતે કામ કરે છે",
         "alerts": "સૂચનાઓ",
         "pharmacy_map": "ફાર્મસી નકશો",
         "language": "ગુજરાતી"
+    },
+    "BackToTopButton": {
+        "label": "ઉપર જાઓ"
     },
     "VoicePage": {
         "header_title": "વૉઇસ ટ્રાઇઍજ",
@@ -106,7 +111,6 @@
             "generic_message": "અમે આ વખતે તમારું વૉઇસ ઇનપુટ પ્રક્રિયા કરી શક્યા નહીં. કૃપા કરીને ફરી પ્રયાસ કરો.",
             "service_unavailable_title": "Voice service unavailable",
             "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
-
             "timeout_title": "Voice request timed out",
             "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
             "api_title": "SahiDawa AI અનુપલબ્ધ છે",

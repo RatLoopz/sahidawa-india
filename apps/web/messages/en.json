@@ -13,13 +13,18 @@
         "report_fake": "Report Fake",
         "report_fake_subtitle": "Report suspicious medicine",
         "search_placeholder": "Search medicine or batch...",
-        "search_button": "Search"
+        "search_button": "Search",
+        "sign_in": "Sign In",
+        "get_started": "Get Started"
     },
     "Navigation": {
         "how_it_works": "How it Works",
         "alerts": "Alerts",
         "pharmacy_map": "Pharmacy Map",
         "language": "English"
+    },
+    "BackToTopButton": {
+        "label": "Back to top"
     },
     "VoicePage": {
         "header_title": "Voice Triage",
@@ -120,7 +125,6 @@
             "generic_message": "We could not process your voice input this time. Please try again.",
             "service_unavailable_title": "Voice service unavailable",
             "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
-
             "timeout_title": "Voice request timed out",
             "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
             "api_title": "SahiDawa AI is unavailable",

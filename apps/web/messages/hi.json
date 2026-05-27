@@ -13,13 +13,18 @@
         "report_fake": "नकली दवा की शिकायत करें",
         "report_fake_subtitle": "संदिग्ध दवा की रिपोर्ट करें",
         "search_placeholder": "दवा या बैच खोजें...",
-        "search_button": "खोजें"
+        "search_button": "खोजें",
+        "sign_in": "Sign In",
+        "get_started": "Get Started"
     },
     "Navigation": {
         "how_it_works": "यह कैसे काम करता है",
         "alerts": "अलर्ट",
         "pharmacy_map": "फार्मेसी मानचित्र",
         "language": "हिन्दी"
+    },
+    "BackToTopButton": {
+        "label": "ऊपर जाएँ"
     },
     "VoicePage": {
         "header_title": "वॉयस ट्रायज",
@@ -120,7 +125,6 @@
             "generic_message": "इस बार आपका वॉयस इनपुट संसाधित नहीं हो सका। कृपया पुनः प्रयास करें।",
             "service_unavailable_title": "Voice service unavailable",
             "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
-
             "timeout_title": "Voice request timed out",
             "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
             "api_title": "SahiDawa AI उपलब्ध नहीं है",

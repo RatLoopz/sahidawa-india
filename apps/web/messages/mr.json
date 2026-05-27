@@ -13,13 +13,18 @@
         "report_fake": "बनावट औषधाची तक्रार करा",
         "report_fake_subtitle": "संशयास्पद औषधाची तक्रार करा",
         "search_placeholder": "औषध किंवा बॅच शोधा...",
-        "search_button": "शोधा"
+        "search_button": "शोधा",
+        "sign_in": "Sign In",
+        "get_started": "Get Started"
     },
     "Navigation": {
         "how_it_works": "हे कसे कार्य करते",
         "alerts": "सूचना",
         "pharmacy_map": "औषधालय नकाशा",
         "language": "मराठी"
+    },
+    "BackToTopButton": {
+        "label": "वर जा"
     },
     "VoicePage": {
         "header_title": "व्हॉइस ट्रायज",
@@ -120,7 +125,6 @@
             "generic_message": "यावेळी तुमचा व्हॉइस इनपुट प्रक्रिया करता आला नाही. कृपया पुन्हा प्रयत्न करा.",
             "service_unavailable_title": "Voice service unavailable",
             "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
-
             "timeout_title": "Voice request timed out",
             "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
             "api_title": "SahiDawa AI उपलब्ध नाही",
