@@ -1,6 +1,18 @@
 "use client";
 
-import { AlertCircle, Heart, Loader2, MapPin, Phone, Shield, Star, Store, ShieldCheck, Hospital, Pill } from "lucide-react";
+import {
+    AlertCircle,
+    Heart,
+    Loader2,
+    MapPin,
+    Phone,
+    Shield,
+    Star,
+    Store,
+    ShieldCheck,
+    Hospital,
+    Pill,
+} from "lucide-react";
 
 import type { HeatmapMode, Pharmacy } from "./PharmacyMap";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -35,9 +47,9 @@ function PharmacyPanelRow({
 }) {
     return (
         <article
-            className={`rounded-xl border p-3 transition-all duration-200 ${
+            className={`rounded-xl border p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/30 hover:shadow-md active:scale-[0.99] ${
                 isSelected
-                    ? "border-emerald-300 dark:border-emerald-900 bg-emerald-50/60 dark:bg-emerald-950/20 shadow-md shadow-emerald-100/30 dark:shadow-emerald-950/10"
+                    ? "border-emerald-300 bg-emerald-50/60 shadow-md shadow-emerald-100/30 dark:border-emerald-900 dark:bg-emerald-950/20 dark:shadow-emerald-950/10"
                     : "border-(--color-border-muted) bg-(--color-surface-page) hover:border-(--color-text-muted) hover:shadow-sm"
             }`}
         >
@@ -58,7 +70,13 @@ function PharmacyPanelRow({
                         }`}
                         aria-hidden="true"
                     >
-                        {pharmacy.isVerified ? <ShieldCheck size={18} className="text-emerald-700" /> : pharmacy.type === "govt" ? <Hospital size={18} className="text-emerald-600" /> : <Pill size={18} className="text-blue-600" />}
+                        {pharmacy.isVerified ? (
+                            <ShieldCheck size={18} className="text-emerald-700" />
+                        ) : pharmacy.type === "govt" ? (
+                            <Hospital size={18} className="text-emerald-600" />
+                        ) : (
+                            <Pill size={18} className="text-blue-600" />
+                        )}
                     </div>
 
                     <div className="min-w-0 flex-1">
@@ -67,7 +85,7 @@ function PharmacyPanelRow({
                                 {pharmacy.name}
                             </h3>
                             {pharmacy.isVerified && (
-                                <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/30 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700 dark:text-emerald-450">
+                                <span className="dark:text-emerald-450 inline-flex shrink-0 items-center gap-0.5 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700 dark:bg-emerald-950/30">
                                     <Shield size={7} />
                                     Verified
                                 </span>
@@ -113,8 +131,8 @@ function PharmacyPanelRow({
                     <span
                         className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-medium ${
                             pharmacy.type === "govt"
-                                ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-450"
-                                : "bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-400"
+                                ? "dark:text-emerald-450 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20"
+                                : "bg-blue-50 text-blue-700 dark:bg-blue-950/20 dark:text-blue-400"
                         }`}
                     >
                         <Heart size={6} />
@@ -167,7 +185,9 @@ export default function PharmacyPanels({
                         <Store size={18} className="text-emerald-600" />
                     </div>
                     <div className="min-w-0">
-                        <h2 className="text-sm font-semibold text-(--color-text-primary)">Nearby Pharmacies</h2>
+                        <h2 className="text-sm font-semibold text-(--color-text-primary)">
+                            Nearby Pharmacies
+                        </h2>
                         <p className="text-xs text-(--color-text-secondary)">{subtitle}</p>
                     </div>
                 </div>
@@ -185,9 +205,9 @@ export default function PharmacyPanels({
                             type="button"
                             onClick={() => onHeatmapModeChange(option.id)}
                             title={option.description}
-                            className={`rounded-xl px-3 py-2 text-left text-[11px] font-bold transition-all ${
+                            className={`rounded-xl px-3 py-2 text-left text-[11px] font-bold transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98] ${
                                 heatmapMode === option.id
-                                    ? "bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white shadow-md"
+                                    ? "bg-slate-900 text-white shadow-md dark:bg-slate-100 dark:text-slate-900"
                                     : "bg-(--color-surface-muted) text-(--color-text-secondary) hover:bg-(--color-border-muted)"
                             }`}
                             aria-pressed={heatmapMode === option.id}
@@ -215,7 +235,10 @@ export default function PharmacyPanels({
                             </p>
                         </div>
                         {[1, 2, 3, 4, 5].map((i) => (
-                            <div key={i} className="rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) p-3">
+                            <div
+                                key={i}
+                                className="rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) p-3"
+                            >
                                 <div className="flex items-start gap-2.5">
                                     <Skeleton className="h-9 w-9 shrink-0 rounded-lg" />
                                     <div className="min-w-0 flex-1 space-y-2">

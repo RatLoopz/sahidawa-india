@@ -56,11 +56,11 @@ export default function HowItWorksPage() {
                     <Link
                         href="/"
                         aria-label="Back to Home"
-                        className="absolute top-6 left-6 flex h-12 w-12 items-center justify-center rounded-full bg-(--color-surface-muted) border border-(--color-border-muted) shadow-sm transition-all duration-300 hover:scale-105 hover:bg-(--color-border-muted)"
+                        className="absolute top-6 left-6 flex h-12 w-12 items-center justify-center rounded-full border border-(--color-border-muted) bg-(--color-surface-muted) shadow-sm transition-all duration-300 hover:scale-105 hover:bg-(--color-border-muted)"
                     >
                         <ArrowLeft size={22} className="text-(--color-text-secondary)" />
                     </Link>
-                    <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-emerald-100 dark:bg-emerald-950/30 px-5 py-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                    <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-5 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
                         <span className="h-2 w-2 rounded-full bg-emerald-500" />
                         Safe Healthcare • AI Powered
                     </div>
@@ -107,11 +107,13 @@ export default function HowItWorksPage() {
                         ].map((item, index) => (
                             <div key={index} className="relative flex-1">
                                 <div className="h-full rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:border-emerald-300 hover:shadow-xl">
-                                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-950/30 text-xl font-bold text-emerald-600 dark:text-emerald-450">
+                                    <div className="dark:text-emerald-450 mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-xl font-bold text-emerald-600 dark:bg-emerald-950/30">
                                         {index + 1}
                                     </div>
 
-                                    <h3 className="text-lg font-bold text-(--color-text-primary)">{item}</h3>
+                                    <h3 className="text-lg font-bold text-(--color-text-primary)">
+                                        {item}
+                                    </h3>
                                 </div>
 
                                 {index !== 4 && (
@@ -129,7 +131,9 @@ export default function HowItWorksPage() {
             <section className="px-6 py-20">
                 <div className="mx-auto max-w-7xl">
                     <div className="mb-16 text-center">
-                        <h2 className="text-4xl font-bold text-(--color-text-primary)">Platform Features</h2>
+                        <h2 className="text-4xl font-bold text-(--color-text-primary)">
+                            Platform Features
+                        </h2>
 
                         <p className="mt-4 text-lg text-(--color-text-secondary)">
                             Everything you need for safer healthcare decisions.
@@ -140,9 +144,9 @@ export default function HowItWorksPage() {
                         {steps.map((step, index) => (
                             <div
                                 key={index}
-                                className="group rounded-[32px] border border-(--color-border-muted) bg-(--color-surface-page) p-8 shadow-sm transition-all duration-500 hover:-translate-y-3 hover:border-emerald-300 hover:shadow-2xl"
+                                className="group rounded-[32px] border border-(--color-border-muted) bg-(--color-surface-page) p-8 shadow-sm transition-all duration-500 hover:-translate-y-3 hover:border-emerald-300/40 hover:shadow-2xl active:scale-[0.99]"
                             >
-                                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-100 dark:from-emerald-950/20 to-blue-100 dark:to-blue-950/20 text-emerald-600 dark:text-emerald-450 transition-transform duration-300 group-hover:scale-110">
+                                <div className="dark:text-emerald-450 mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-100 to-blue-100 text-emerald-600 transition-transform duration-300 group-hover:scale-110 dark:from-emerald-950/20 dark:to-blue-950/20">
                                     {step.icon}
                                 </div>
 

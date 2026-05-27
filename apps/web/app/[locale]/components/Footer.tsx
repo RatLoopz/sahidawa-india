@@ -84,7 +84,7 @@ export default function Footer() {
                                 href="https://github.com/RatLoopz/sahidawa-india"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:border-slate-600 hover:text-white"
+                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-600 hover:text-white hover:shadow-[0_4px_12px_rgba(255,255,255,0.1)] active:scale-95"
                             >
                                 <FaGithub size={18} />
                             </a>
@@ -93,7 +93,7 @@ export default function Footer() {
                                 href="https://linkedin.com/"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:border-slate-600 hover:text-white"
+                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500 hover:text-blue-400 hover:shadow-[0_4px_12px_rgba(37,99,235,0.2)] active:scale-95"
                             >
                                 <FaLinkedin size={18} />
                             </a>
@@ -102,7 +102,7 @@ export default function Footer() {
                                 href="https://twitter.com/"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:border-slate-600 hover:text-white"
+                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-500 hover:text-white hover:shadow-[0_4px_12px_rgba(255,255,255,0.1)] active:scale-95"
                             >
                                 <FaXTwitter size={18} />
                             </a>
@@ -117,9 +117,9 @@ export default function Footer() {
                             © 2026 SahiDawa. Open Source under MIT License.
                         </p>
                     </div>
-
+                    
                     <p className="text-xs sm:text-sm md:text-base lg:text-lg text-center md:text-right">
-                        Built with <Heart className="inline h-[1em] w-[1em] text-red-500" /> during GSSoC 2026 for the open-source community.
+                        Built with <Heart className="inline h-[1em] w-[1em] text-red-500" /> for the open-source community.
                     </p>
                 </div>
             </div>

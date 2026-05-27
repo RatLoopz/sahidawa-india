@@ -73,7 +73,7 @@ describe("Voice Triage accessibility semantics", () => {
 
         const describedByMatch = markup.match(/aria-describedby="([^"]+)"/);
         const messageIdMatch = markup.match(
-            /<p id="([^"]+)" class="mt-2 text-sm leading-relaxed text-slate-600">/
+            /<p id="([^"]+)" class="mt-2 text-sm leading-relaxed text-\(--color-text-secondary\)">/
         );
 
         expect(markup).toContain("motion-reduce:animate-none");
