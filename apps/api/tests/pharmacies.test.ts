@@ -20,6 +20,22 @@ const mockedSupabase = supabase as jest.Mocked<typeof supabase>;
 describe("GET /api/pharmacies/nearest", () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        // Set default mock for any from() calls
+        mockedSupabase.from.mockReturnValue({
+            select: jest.fn().mockReturnValue({
+                range: jest.fn().mockResolvedValue({
+                    data: [],
+                    error: null,
+                    count: 0,
+                }),
+                eq: jest.fn().mockReturnValue({
+                    eq: jest.fn().mockResolvedValue({
+                        data: [],
+                        error: null,
+                    }),
+                }),
+            }),
+        } as never);
     });
 
     afterEach(() => {
