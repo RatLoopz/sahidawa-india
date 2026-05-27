@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Mic } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -361,7 +361,7 @@ export default function VoiceTriagePage() {
         return () => window.clearTimeout(focusTimer);
     }, [error, result, step, t]);
 
-    const handleEscapeShortcut = useEffectEvent((event: KeyboardEvent) => {
+    const handleEscapeShortcut = useCallback((event: KeyboardEvent) => {
         if (event.key !== "Escape") {
             return;
         }
@@ -399,7 +399,7 @@ export default function VoiceTriagePage() {
             event.preventDefault();
             resetFlow();
         }
-    });
+    }, [isSpeaking, step]);
 
     useEffect(() => {
         if (typeof window === "undefined") {

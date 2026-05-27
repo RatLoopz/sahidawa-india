@@ -53,7 +53,9 @@ app.use(
 );
 
 // Security: restrict CORS to known origins instead of wildcard
-const allowedOrigins = ["http://localhost:3000", "http://localhost:4000", "http://localhost:8000"];
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+    : ["http://localhost:3000", "http://localhost:4000", "http://localhost:8000"];
 app.use(
     cors({
         origin: allowedOrigins,

@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { supabase } from "../db/client";
 import { verifyLimiter } from "../middleware/rateLimit";
+import logger from "../utils/logger";
 
 const router = Router();
 
@@ -109,7 +110,7 @@ router.post("/", verifyLimiter, async (req: Request, res: Response) => {
         .maybeSingle();
 
     if (error) {
-        console.error("Medicine lookup failed:", error);
+        logger.error("Medicine lookup failed:", { error: error.message });
         res.status(500).json({
             verified: false,
             message: "Database lookup failed",

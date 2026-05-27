@@ -402,11 +402,13 @@ router.post("/extract", (req: Request, res: Response) => {
             // 4. Query medicine database entry for matched brand name or generic name
             let medicineData: any = null;
             if (matchedName) {
+                // Escape double quotes to prevent SQL injection via .or() filter string
+                const escaped = matchedName.replace(/"/g, '\\"');
                 try {
                     const { data: dbMed, error: lookupError } = await supabase
                         .from("medicines")
                         .select("*")
-                        .or(`brand_name.ilike."${matchedName}",generic_name.ilike."${matchedName}"`)
+                        .or(`brand_name.ilike."${escaped}",generic_name.ilike."${escaped}"`)
                         .limit(1)
                         .maybeSingle();
 
