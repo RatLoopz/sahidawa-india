@@ -151,7 +151,8 @@ router.get("/nearest", async (req: Request, res: Response, next: NextFunction) =
 
         const { data: allPharmacies, error: fetchError } = await supabase
             .from("pharmacies")
-            .select("*");
+            .select("name, address, location, phone_number, is_verified, district, state")
+            .limit(3000);
 
         if (fetchError) {
             handleFetchError(fetchError, res);
@@ -222,7 +223,8 @@ router.get("/in-bounds", async (req: Request, res: Response, next: NextFunction)
 
         const { data: allPharmacies, error: fetchError } = await supabase
             .from("pharmacies")
-            .select("*");
+            .select("name, address, location, phone_number, is_verified, district, state")
+            .limit(3000);
 
         if (fetchError) {
             handleFetchError(fetchError, res);

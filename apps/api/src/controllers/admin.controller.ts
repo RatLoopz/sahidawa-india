@@ -1,7 +1,8 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { z } from 'zod';
 import { supabase } from '../db/client';
 import { logAdminAction } from '../services/audit.service';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 const reportStatusSchema = z.object({
   status: z.enum(['pending', 'verified_fake', 'false_alarm']),
@@ -15,7 +16,7 @@ const medicineSchema = z.object({
   cdsco_approval_status: z.enum(['approved', 'recalled', 'banned']).default('approved'),
 });
 
-export const getPendingReports = async (req: Request, res: Response): Promise<void> => {
+export const getPendingReports = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { data, error } = await supabase
     .from('counterfeit_reports')
     .select('*, medicines(brand_name, generic_name)')
@@ -30,7 +31,7 @@ export const getPendingReports = async (req: Request, res: Response): Promise<vo
   res.json({ reports: data });
 };
 
-export const updateReportStatus = async (req: Request, res: Response): Promise<void> => {
+export const updateReportStatus = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { id } = req.params;
   const parsed = reportStatusSchema.safeParse(req.body);
 
@@ -58,7 +59,7 @@ export const updateReportStatus = async (req: Request, res: Response): Promise<v
     return;
   }
 
-  await logAdminAction(req.user.id, `STATUS_${status.toUpperCase()}`, 'REPORT', id as string, { status });
+  await logAdminAction(req.user!.id, `STATUS_${status.toUpperCase()}`, 'REPORT', id as string, { status });
 
   if (status === 'verified_fake' && data.district) {
     const { count } = await supabase
@@ -79,7 +80,7 @@ export const updateReportStatus = async (req: Request, res: Response): Promise<v
   res.json({ message: 'Report updated', report: data });
 };
 
-export const getAllMedicines = async (_req: Request, res: Response): Promise<void> => {
+export const getAllMedicines = async (_req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { data, error } = await supabase.from('medicines').select('*').limit(50);
 
   if (error) {
@@ -90,7 +91,7 @@ export const getAllMedicines = async (_req: Request, res: Response): Promise<voi
   res.json(data);
 };
 
-export const createMedicine = async (req: Request, res: Response): Promise<void> => {
+export const createMedicine = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const parsed = medicineSchema.safeParse(req.body);
 
   if (!parsed.success) {
@@ -109,6 +110,6 @@ export const createMedicine = async (req: Request, res: Response): Promise<void>
     return;
   }
 
-  await logAdminAction(req.user.id, 'CREATE_MEDICINE', 'MEDICINE', data.id, parsed.data);
+  await logAdminAction(req.user!.id, 'CREATE_MEDICINE', 'MEDICINE', data.id, parsed.data);
   res.status(201).json(data);
 };

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { requireAuth, requireAdmin } from '../middleware/auth.middleware';
+import { requireAuth, requireRole } from '../middleware/auth';
 import {
   getPendingReports,
   updateReportStatus,
@@ -9,7 +9,7 @@ import {
 
 const router = Router();
 
-router.use(requireAuth, requireAdmin);
+router.use(requireAuth, requireRole('admin', 'moderator'));
 
 router.get('/reports', getPendingReports);
 router.patch('/reports/:id/status', updateReportStatus);
