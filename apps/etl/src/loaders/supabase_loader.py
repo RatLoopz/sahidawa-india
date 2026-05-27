@@ -358,3 +358,121 @@ class SupabaseLoader:
 
     def _utc_now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
+
+    # ── Commercial MRP merge ─────────────────────────────────────────────────
+
+    def merge_commercial_mrp(
+        self,
+        mrp_df: "pd.DataFrame",
+        table: str = "medicines",
+        page_size: int = 1000,
+    ) -> dict:
+        """
+        Back-fills ``mrp`` on rows in *table* where mrp IS NULL by matching
+        against the commercial MRP dataset produced by CommercialMRPScraper.
+
+        Matching strategy
+        -----------------
+        Records are matched on **both** ``generic_name`` (exact, case-insensitive)
+        **and** ``strength`` (exact, case-insensitive) simultaneously.  This
+        prevents assigning the same MRP to different strengths of the same drug
+        (e.g. Paracetamol 500 mg vs 650 mg) and avoids the false-positive
+        substring matches that plagued the old ``.ilike("%iron%")`` approach
+        (which would have touched *spironolactone*, *ferrous sulphate*, etc.).
+
+        Why no ``.limit()``?
+        --------------------
+        The previous implementation used ``.limit(5)`` which silently left
+        any drug with more than 5 null-mrp variants untouched.  Here we page
+        through all matching rows in batches of *page_size* (default 1 000)
+        and update every one of them.
+
+        Parameters
+        ----------
+        mrp_df:
+            DataFrame produced by CommercialMRPScraper — must contain at
+            least ``generic_name``, ``strength``, and ``mrp`` columns.
+        table:
+            Target Supabase table (default ``"medicines"``).
+        page_size:
+            Rows fetched per page when scanning for null-mrp records.
+
+        Returns
+        -------
+        dict with keys: ``checked``, ``updated``, ``skipped``, ``failed``.
+        """
+        if mrp_df.empty:
+            logger.warning("[Loader] merge_commercial_mrp: mrp_df is empty — nothing to merge.")
+            return {"checked": 0, "updated": 0, "skipped": 0, "failed": 0}
+
+        # Build a lookup: (generic_name_lower, strength_lower_or_none) → mrp
+        mrp_lookup: dict[tuple[str, str | None], float] = {}
+        for _, row in mrp_df.iterrows():
+            name = str(row.get("generic_name") or "").strip().lower()
+            strength_raw = row.get("strength")
+            strength = str(strength_raw).strip().lower() if strength_raw and not pd.isna(strength_raw) else None
+            mrp = row.get("mrp")
+            if name and mrp is not None and not pd.isna(mrp):
+                # Strength-specific key has priority; add both so we can fall
+                # back to (name, None) when the DB row has no strength.
+                key = (name, strength)
+                mrp_lookup.setdefault(key, float(mrp))
+                # Also register a strength-less fallback if not already set
+                fallback_key = (name, None)
+                mrp_lookup.setdefault(fallback_key, float(mrp))
+
+        checked = updated = skipped = failed = 0
+
+        while True:
+            # Always fetch from offset 0: each successful update removes a row
+            # from the is_null result set, so the window slides naturally.
+            # Using a fixed offset would skip rows as the pool shrinks.
+            response = (
+                self.client.table(table)
+                .select("id, generic_name, strength")
+                .is_("mrp", "null")
+                .range(0, page_size - 1)
+                .execute()
+            )
+            page: list[dict] = getattr(response, "data", None) or []
+            if not page:
+                break
+
+            for record in page:
+                checked += 1
+                record_id = record.get("id")
+                name_lower = str(record.get("generic_name") or "").strip().lower()
+                strength_raw = record.get("strength")
+                strength_lower = (
+                    str(strength_raw).strip().lower()
+                    if strength_raw else None
+                )
+
+                # Exact match: prefer (name, strength) then (name, None)
+                mrp = mrp_lookup.get((name_lower, strength_lower))
+                if mrp is None:
+                    mrp = mrp_lookup.get((name_lower, None))
+
+                if mrp is None:
+                    skipped += 1
+                    continue
+
+                try:
+                    self.client.table(table).update({"mrp": mrp}).eq("id", record_id).execute()
+                    updated += 1
+                except Exception as e:
+                    logger.warning(
+                        f"[Loader] merge_commercial_mrp: failed to update id={record_id}: {e}"
+                    )
+                    failed += 1
+
+            # If the page was smaller than page_size, we've exhausted the null set.
+            # (We don't increment offset — see comment above.)
+            if len(page) < page_size:
+                break
+
+        logger.info(
+            f"[Loader] merge_commercial_mrp — checked: {checked}, updated: {updated}, "
+            f"skipped: {skipped}, failed: {failed}"
+        )
+        return {"checked": checked, "updated": updated, "skipped": skipped, "failed": failed}

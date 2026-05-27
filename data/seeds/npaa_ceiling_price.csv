@@ -1,0 +1,371 @@
+generic_name,strength,mrp
+paracetamol,500mg,18.50
+paracetamol,650mg,22.00
+paracetamol,1000mg,32.00
+amoxicillin,250mg,52.00
+amoxicillin,500mg,85.00
+amoxicillin clavulanate,375mg,135.00
+amoxicillin clavulanate,625mg,185.00
+metformin,500mg,20.00
+metformin,850mg,25.00
+metformin,1000mg,30.00
+atorvastatin,10mg,75.00
+atorvastatin,20mg,95.00
+atorvastatin,40mg,135.00
+omeprazole,20mg,35.00
+omeprazole,40mg,55.00
+azithromycin,250mg,90.00
+azithromycin,500mg,120.00
+cetirizine,5mg,18.00
+cetirizine,10mg,25.00
+pantoprazole,20mg,40.00
+pantoprazole,40mg,55.00
+amlodipine,2.5mg,28.00
+amlodipine,5mg,38.00
+amlodipine,10mg,55.00
+losartan,25mg,48.00
+losartan,50mg,65.00
+losartan,100mg,90.00
+aspirin,75mg,12.00
+aspirin,150mg,18.00
+aspirin,325mg,25.00
+ibuprofen,200mg,22.00
+ibuprofen,400mg,32.00
+ibuprofen,600mg,48.00
+ciprofloxacin,250mg,55.00
+ciprofloxacin,500mg,75.00
+ciprofloxacin,750mg,95.00
+doxycycline,100mg,90.00
+fexofenadine,120mg,110.00
+fexofenadine,180mg,145.00
+montelukast,4mg,70.00
+montelukast,5mg,85.00
+montelukast,10mg,95.00
+levothyroxine,25mcg,30.00
+levothyroxine,50mcg,38.00
+levothyroxine,75mcg,42.00
+levothyroxine,100mcg,50.00
+metronidazole,200mg,22.00
+metronidazole,400mg,35.00
+ranitidine,150mg,22.00
+ranitidine,300mg,35.00
+vitamin d,60000iu,85.00
+vitamin d,1000iu,30.00
+vitamin b12,500mcg,45.00
+vitamin b12,1000mcg,60.00
+vitamin b12,1500mcg,75.00
+vitamin c,500mg,18.00
+vitamin c,1000mg,28.00
+iron,100mg,32.00
+iron,200mg,40.00
+calcium,500mg,40.00
+calcium,1000mg,55.00
+zinc,10mg,22.00
+zinc,20mg,30.00
+diclofenac,25mg,35.00
+diclofenac,50mg,48.00
+diclofenac,75mg,62.00
+aceclofenac,100mg,52.00
+sertraline,25mg,110.00
+sertraline,50mg,145.00
+sertraline,100mg,195.00
+fluoxetine,10mg,85.00
+fluoxetine,20mg,120.00
+fluoxetine,40mg,165.00
+clopidogrel,75mg,110.00
+rosuvastatin,5mg,75.00
+rosuvastatin,10mg,95.00
+rosuvastatin,20mg,125.00
+rosuvastatin,40mg,165.00
+telmisartan,20mg,50.00
+telmisartan,40mg,65.00
+telmisartan,80mg,85.00
+ramipril,1.25mg,45.00
+ramipril,2.5mg,55.00
+ramipril,5mg,68.00
+ramipril,10mg,85.00
+glimepiride,1mg,42.00
+glimepiride,2mg,55.00
+glimepiride,3mg,62.00
+glimepiride,4mg,75.00
+glibenclamide,2.5mg,18.00
+glibenclamide,5mg,28.00
+insulin,,320.00
+salbutamol,2mg,30.00
+salbutamol,4mg,45.00
+budesonide,100mcg,135.00
+budesonide,200mcg,185.00
+budesonide,400mcg,245.00
+prednisolone,5mg,22.00
+prednisolone,10mg,35.00
+prednisolone,20mg,48.00
+dexamethasone,0.5mg,18.00
+dexamethasone,4mg,28.00
+ondansetron,4mg,45.00
+ondansetron,8mg,65.00
+domperidone,10mg,38.00
+albendazole,400mg,22.00
+ivermectin,3mg,35.00
+ivermectin,6mg,55.00
+hydroxychloroquine,200mg,58.00
+hydroxychloroquine,400mg,80.00
+artemether,,120.00
+oseltamivir,30mg,500.00
+oseltamivir,45mg,625.00
+oseltamivir,75mg,750.00
+cefixime,100mg,110.00
+cefixime,200mg,145.00
+cefixime,400mg,195.00
+ceftriaxone,250mg,120.00
+ceftriaxone,500mg,155.00
+ceftriaxone,1000mg,180.00
+spironolactone,25mg,48.00
+spironolactone,50mg,70.00
+spironolactone,100mg,95.00
+enalapril,2.5mg,28.00
+enalapril,5mg,38.00
+enalapril,10mg,52.00
+lisinopril,2.5mg,30.00
+lisinopril,5mg,42.00
+lisinopril,10mg,58.00
+hydrochlorothiazide,12.5mg,18.00
+hydrochlorothiazide,25mg,28.00
+valsartan,40mg,55.00
+valsartan,80mg,72.00
+valsartan,160mg,95.00
+olmesartan,10mg,55.00
+olmesartan,20mg,72.00
+olmesartan,40mg,95.00
+bisoprolol,2.5mg,35.00
+bisoprolol,5mg,48.00
+bisoprolol,10mg,65.00
+carvedilol,3.125mg,38.00
+carvedilol,6.25mg,52.00
+carvedilol,12.5mg,68.00
+metoprolol,25mg,30.00
+metoprolol,50mg,42.00
+metoprolol,100mg,58.00
+propranolol,10mg,18.00
+propranolol,40mg,28.00
+diltiazem,30mg,32.00
+diltiazem,60mg,48.00
+nifedipine,5mg,22.00
+nifedipine,10mg,35.00
+nifedipine,30mg,55.00
+simvastatin,10mg,55.00
+simvastatin,20mg,72.00
+simvastatin,40mg,95.00
+pravastatin,10mg,62.00
+pravastatin,20mg,85.00
+pravastatin,40mg,110.00
+fenofibrate,67mg,55.00
+fenofibrate,145mg,75.00
+fenofibrate,160mg,85.00
+ezetimibe,10mg,95.00
+warfarin,1mg,18.00
+warfarin,2mg,25.00
+warfarin,5mg,38.00
+heparin,,120.00
+enoxaparin,,250.00
+atorvastatin + ezetimibe,10mg+10mg,145.00
+glibenclamide + metformin,2.5mg+500mg,35.00
+metformin + sitagliptin,500mg+50mg,65.00
+voglibose,0.2mg,35.00
+voglibose,0.3mg,45.00
+sitagliptin,25mg,75.00
+sitagliptin,50mg,95.00
+sitagliptin,100mg,125.00
+vildagliptin,50mg,85.00
+pioglitazone,15mg,48.00
+pioglitazone,30mg,65.00
+pioglitazone,45mg,85.00
+gliclazide,30mg,38.00
+gliclazide,60mg,55.00
+gliclazide,80mg,65.00
+repaglinide,0.5mg,35.00
+repaglinide,1mg,48.00
+repaglinide,2mg,62.00
+levofloxacin,250mg,75.00
+levofloxacin,500mg,95.00
+levofloxacin,750mg,125.00
+ofloxacin,100mg,48.00
+ofloxacin,200mg,62.00
+norfloxacin,400mg,48.00
+cephalexin,250mg,55.00
+cephalexin,500mg,75.00
+cefuroxime,250mg,95.00
+cefuroxime,500mg,125.00
+cefpodoxime,100mg,95.00
+cefpodoxime,200mg,125.00
+clarithromycin,250mg,95.00
+clarithromycin,500mg,135.00
+erythromycin,250mg,55.00
+erythromycin,500mg,75.00
+clindamycin,150mg,75.00
+clindamycin,300mg,110.00
+linezolid,600mg,350.00
+vancomycin,500mg,280.00
+meropenem,500mg,350.00
+meropenem,1000mg,450.00
+piperacillin tazobactam,2250mg,380.00
+fluconazole,50mg,48.00
+fluconazole,100mg,65.00
+fluconazole,150mg,85.00
+itraconazole,100mg,85.00
+ketoconazole,200mg,62.00
+terbinafine,250mg,75.00
+acyclovir,200mg,55.00
+acyclovir,400mg,85.00
+valacyclovir,500mg,120.00
+oseltamivir,75mg,750.00
+tenofovir,300mg,180.00
+lamivudine,150mg,65.00
+efavirenz,600mg,220.00
+nevirapine,200mg,85.00
+hydroxychloroquine,200mg,58.00
+chloroquine,250mg,25.00
+primaquine,2.5mg,18.00
+primaquine,7.5mg,30.00
+quinine,300mg,45.00
+diethylcarbamazine,100mg,18.00
+mebendazole,100mg,18.00
+praziquantel,600mg,35.00
+pantoprazole + domperidone,40mg+10mg,65.00
+rabeprazole,10mg,45.00
+rabeprazole,20mg,62.00
+esomeprazole,20mg,48.00
+esomeprazole,40mg,68.00
+lansoprazole,15mg,38.00
+lansoprazole,30mg,52.00
+famotidine,20mg,28.00
+famotidine,40mg,42.00
+sucralfate,1g,35.00
+metoclopramide,10mg,22.00
+ondansetron + pantoprazole,4mg+40mg,85.00
+loperamide,2mg,22.00
+oral rehydration salts,,18.00
+zinc + oral rehydration salts,,30.00
+bisacodyl,5mg,18.00
+lactulose,,55.00
+psyllium,,38.00
+ispaghula,,42.00
+alprazolam,0.25mg,28.00
+alprazolam,0.5mg,38.00
+clonazepam,0.25mg,25.00
+clonazepam,0.5mg,35.00
+clonazepam,1mg,45.00
+diazepam,2mg,18.00
+diazepam,5mg,25.00
+zolpidem,5mg,42.00
+zolpidem,10mg,58.00
+amitriptyline,10mg,22.00
+amitriptyline,25mg,32.00
+amitriptyline,75mg,55.00
+imipramine,10mg,18.00
+imipramine,25mg,28.00
+escitalopram,5mg,55.00
+escitalopram,10mg,75.00
+escitalopram,20mg,105.00
+paroxetine,10mg,65.00
+paroxetine,20mg,90.00
+venlafaxine,37.5mg,85.00
+venlafaxine,75mg,120.00
+duloxetine,20mg,75.00
+duloxetine,30mg,95.00
+duloxetine,60mg,135.00
+mirtazapine,7.5mg,55.00
+mirtazapine,15mg,75.00
+mirtazapine,30mg,105.00
+haloperidol,0.5mg,18.00
+haloperidol,1.5mg,28.00
+haloperidol,5mg,45.00
+olanzapine,2.5mg,55.00
+olanzapine,5mg,75.00
+olanzapine,10mg,105.00
+risperidone,0.5mg,48.00
+risperidone,1mg,65.00
+risperidone,2mg,90.00
+quetiapine,25mg,55.00
+quetiapine,100mg,110.00
+quetiapine,200mg,165.00
+aripiprazole,5mg,95.00
+aripiprazole,10mg,135.00
+lithium,300mg,22.00
+carbamazepine,100mg,18.00
+carbamazepine,200mg,28.00
+carbamazepine,400mg,45.00
+valproate,200mg,25.00
+valproate,500mg,48.00
+phenytoin,50mg,18.00
+phenytoin,100mg,28.00
+phenobarbital,30mg,12.00
+phenobarbital,60mg,18.00
+lamotrigine,25mg,55.00
+lamotrigine,50mg,75.00
+lamotrigine,100mg,100.00
+levetiracetam,250mg,75.00
+levetiracetam,500mg,110.00
+levetiracetam,1000mg,165.00
+gabapentin,100mg,35.00
+gabapentin,300mg,65.00
+gabapentin,400mg,85.00
+pregabalin,25mg,48.00
+pregabalin,75mg,75.00
+pregabalin,150mg,110.00
+topiramate,25mg,55.00
+topiramate,50mg,80.00
+donepezil,5mg,95.00
+donepezil,10mg,135.00
+memantine,5mg,85.00
+memantine,10mg,120.00
+tramadol,50mg,42.00
+tramadol,100mg,65.00
+morphine,10mg,35.00
+morphine,30mg,62.00
+codeine,15mg,28.00
+codeine,30mg,42.00
+fentanyl,25mcg,250.00
+fentanyl,50mcg,380.00
+celecoxib,100mg,65.00
+celecoxib,200mg,90.00
+etoricoxib,60mg,75.00
+etoricoxib,90mg,95.00
+naproxen,250mg,38.00
+naproxen,500mg,55.00
+meloxicam,7.5mg,45.00
+meloxicam,15mg,62.00
+colchicine,0.5mg,28.00
+allopurinol,100mg,18.00
+allopurinol,300mg,32.00
+febuxostat,40mg,75.00
+febuxostat,80mg,105.00
+calcitriol,0.25mcg,55.00
+cholecalciferol,1000iu,25.00
+cholecalciferol,60000iu,85.00
+folic acid,0.4mg,12.00
+folic acid,1mg,15.00
+folic acid,5mg,20.00
+ferrous sulphate,150mg,18.00
+ferrous sulphate,325mg,25.00
+ferrous fumarate,200mg,20.00
+ferrous ascorbate,100mg,35.00
+multivitamin,,28.00
+b complex,,22.00
+omega 3,500mg,45.00
+omega 3,1000mg,65.00
+methylcobalamin,500mcg,45.00
+methylcobalamin,1500mcg,75.00
+alpha lipoic acid,100mg,55.00
+alpha lipoic acid,200mg,80.00
+amlodipine + atorvastatin,5mg+10mg,95.00
+amlodipine + olmesartan,5mg+20mg,85.00
+telmisartan + hydrochlorothiazide,40mg+12.5mg,75.00
+losartan + hydrochlorothiazide,50mg+12.5mg,78.00
+metformin + glimepiride,500mg+1mg,45.00
+metformin + glimepiride,500mg+2mg,55.00
+metformin + voglibose,500mg+0.2mg,48.00
+amoxicillin + cloxacillin,250mg+250mg,55.00
+cetirizine + montelukast,10mg+10mg,55.00
+aceclofenac + paracetamol,100mg+325mg,45.00
+diclofenac + paracetamol,50mg+325mg,42.00
+ibuprofen + paracetamol,200mg+325mg,38.00
