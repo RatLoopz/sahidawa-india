@@ -403,7 +403,15 @@ function UnverifiedResult({
     );
 }
 
-function ErrorResult({ message, onRetry, isOffline }: { message: string; onRetry: () => void; isOffline?: boolean }) {
+function ErrorResult({
+    message,
+    onRetry,
+    isOffline,
+}: {
+    message: string;
+    onRetry: () => void;
+    isOffline?: boolean;
+}) {
     return (
         <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] border border-(--color-border-muted) bg-(--color-surface-page) p-8 text-(--color-text-primary) shadow-2xl">
             <div className="absolute top-0 right-0 left-0 h-2 bg-slate-400"></div>
@@ -415,7 +423,9 @@ function ErrorResult({ message, onRetry, isOffline }: { message: string; onRetry
                     <h3 className="text-2xl font-black tracking-tight text-(--color-text-primary)">
                         {isOffline ? "Connection Lost" : "Verification Failed"}
                     </h3>
-                    <p className="font-medium text-slate-500 text-sm whitespace-pre-wrap">{message}</p>
+                    <p className="text-sm font-medium whitespace-pre-wrap text-slate-500">
+                        {message}
+                    </p>
                     <h3 className="text-2xl font-black tracking-tight text-(--color-text-primary)">
                         Verification Failed
                     </h3>
@@ -425,9 +435,7 @@ function ErrorResult({ message, onRetry, isOffline }: { message: string; onRetry
                 <button
                     onClick={onRetry}
                     disabled={isOffline}
-                    className="w-full rounded-2xl bg-slate-900 py-4 font-bold text-white shadow-lg shadow-slate-900/20 transition-colors hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                    className="w-full rounded-2xl bg-slate-900 py-4 font-bold text-white shadow-lg shadow-slate-900/20 transition-all hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
-                    className="w-full rounded-2xl bg-slate-900 py-4 font-bold text-white shadow-lg shadow-slate-900/20 transition-all hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full rounded-2xl bg-slate-900 py-4 font-bold text-white shadow-lg shadow-slate-900/20 transition-all hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
                 >
                     {isOffline ? "Waiting for connection..." : "Try Again"}
                 </button>
@@ -496,7 +504,7 @@ export default function ScanPage() {
 
     useEffect(() => {
         isMountedRef.current = true;
-        
+
         const autoRetry = () => {
             if (isMountedRef.current && showResult && verifyError && batchInput) {
                 toast.info("Connection restored. Retrying verification...");
@@ -591,41 +599,44 @@ export default function ScanPage() {
         }
     };
 
-    const handleVerify = useCallback(async (batch: string) => {
-        if (!batch.trim()) {
-            toast.error("Please enter a batch number to verify");
-            return;
-        }
-
-        if (abortControllerRef.current) {
-            abortControllerRef.current.abort();
-        }
-        const controller = new AbortController();
-        abortControllerRef.current = controller;
-
-        setIsScanning(true);
-        setShowResult(false);
-        setVerifyResult(null);
-        setVerifyError(null);
-
-        try {
-            const result = await verifyMedicine(batch.trim(), controller.signal);
-            if (!isMountedRef.current || controller.signal.aborted) return;
-            await processVerificationResult(result);
-        } catch (err) {
-            if (!isMountedRef.current || controller.signal.aborted) return;
-            const errorMsg = err instanceof Error ? err.message : "Verification failed";
-            if (errorMsg === "Request was cancelled.") {
+    const handleVerify = useCallback(
+        async (batch: string) => {
+            if (!batch.trim()) {
+                toast.error("Please enter a batch number to verify");
                 return;
             }
-            setVerifyError(errorMsg);
-            setShowResult(true);
-        } finally {
-            if (isMountedRef.current && !controller.signal.aborted) {
-                setIsScanning(false);
+
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
             }
-        }
-    }, [processVerificationResult]);
+            const controller = new AbortController();
+            abortControllerRef.current = controller;
+
+            setIsScanning(true);
+            setShowResult(false);
+            setVerifyResult(null);
+            setVerifyError(null);
+
+            try {
+                const result = await verifyMedicine(batch.trim(), controller.signal);
+                if (!isMountedRef.current || controller.signal.aborted) return;
+                await processVerificationResult(result);
+            } catch (err) {
+                if (!isMountedRef.current || controller.signal.aborted) return;
+                const errorMsg = err instanceof Error ? err.message : "Verification failed";
+                if (errorMsg === "Request was cancelled.") {
+                    return;
+                }
+                setVerifyError(errorMsg);
+                setShowResult(true);
+            } finally {
+                if (isMountedRef.current && !controller.signal.aborted) {
+                    setIsScanning(false);
+                }
+            }
+        },
+        [processVerificationResult]
+    );
 
     // Keep handleVerifyRef current
     useEffect(() => {
@@ -757,7 +768,8 @@ export default function ScanPage() {
                 });
             }
 
-            if (!isMountedRef.current || controller.signal.aborted || ocrCancelledRef.current) return;
+            if (!isMountedRef.current || controller.signal.aborted || ocrCancelledRef.current)
+                return;
 
             const timeoutPromise = new Promise<never>((_, reject) => {
                 setTimeout(() => reject(new Error("OCR timed out")), 30000);
@@ -766,7 +778,8 @@ export default function ScanPage() {
             const ocrPromise = ocrWorkerRef.current.recognize(dataUrl);
             const { data } = await Promise.race([ocrPromise, timeoutPromise]);
 
-            if (!isMountedRef.current || controller.signal.aborted || ocrCancelledRef.current) return;
+            if (!isMountedRef.current || controller.signal.aborted || ocrCancelledRef.current)
+                return;
 
             const rawText = data.text;
             if (!rawText || !rawText.trim()) {
@@ -821,7 +834,10 @@ export default function ScanPage() {
                         const topMatch = matchRes[0];
                         if (topMatch.score >= 60) {
                             setParsedBrand(topMatch.name);
-                            const brandRes = await verifyMedicineByBrand(topMatch.name, controller.signal);
+                            const brandRes = await verifyMedicineByBrand(
+                                topMatch.name,
+                                controller.signal
+                            );
                             if (brandRes.verified) {
                                 finalResult = brandRes;
                             }
@@ -855,7 +871,8 @@ export default function ScanPage() {
                 );
             }
         } catch (err) {
-            if (!isMountedRef.current || controller.signal.aborted || ocrCancelledRef.current) return;
+            if (!isMountedRef.current || controller.signal.aborted || ocrCancelledRef.current)
+                return;
 
             if (ocrWorkerRef.current) {
                 await ocrWorkerRef.current.terminate();
@@ -1152,7 +1169,9 @@ export default function ScanPage() {
                         onClick={(e) => {
                             if (isOffline) {
                                 e.preventDefault();
-                                toast.error("You are currently offline. Please check your internet connection.");
+                                toast.error(
+                                    "You are currently offline. Please check your internet connection."
+                                );
                             }
                         }}
                         className={`flex cursor-pointer items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black shadow-lg transition-colors hover:bg-slate-200 ${
