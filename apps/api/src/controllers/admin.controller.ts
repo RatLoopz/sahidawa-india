@@ -13,7 +13,9 @@ const medicineSchema = z.object({
   generic_name: z.string().min(1),
   manufacturer: z.string().min(1),
   barcode_id: z.string().optional(),
-  cdsco_approval_status: z.enum(['approved', 'recalled', 'banned']).default('approved'),
+  cdsco_approval_status: z
+    .enum(['approved', 'recalled', 'banned'])
+    .default('approved'),
 });
 
 export const getPendingReports = async (
@@ -27,7 +29,9 @@ export const getPendingReports = async (
     .order('created_at', { ascending: false });
 
   if (error) {
-    res.status(500).json({ error: 'Failed to fetch reports' });
+    res.status(500).json({
+      error: 'Failed to fetch reports',
+    });
     return;
   }
 
@@ -39,6 +43,7 @@ export const updateReportStatus = async (
   res: Response
 ): Promise<void> => {
   const { id } = req.params;
+
   const parsed = reportStatusSchema.safeParse(req.body);
 
   if (!parsed.success) {
@@ -59,12 +64,16 @@ export const updateReportStatus = async (
     .single();
 
   if (error) {
-    res.status(500).json({ error: 'Failed to update report' });
+    res.status(500).json({
+      error: 'Failed to update report',
+    });
     return;
   }
 
   if (!data) {
-    res.status(404).json({ error: 'Report not found' });
+    res.status(404).json({
+      error: 'Report not found',
+    });
     return;
   }
 
@@ -84,11 +93,26 @@ export const updateReportStatus = async (
       .eq('status', 'verified_fake');
 
     if (count && count >= 3) {
-      await supabase.from('district_alerts').insert({
-        district: data.district,
-        medicine_name: data.reported_brand_name,
-        alert_level: count >= 10 ? 'high' : 'medium',
-      });
+      const alertLevel = count >= 10 ? 'high' : 'medium';
+
+      const { data: existingAlert } = await supabase
+        .from('district_alerts')
+        .select('id, alert_level')
+        .eq('district', data.district)
+        .maybeSingle();
+
+      if (!existingAlert) {
+        await supabase.from('district_alerts').insert({
+          district: data.district,
+          medicine_name: data.reported_brand_name,
+          alert_level: alertLevel,
+        });
+      } else if (existingAlert.alert_level !== alertLevel) {
+        await supabase
+          .from('district_alerts')
+          .update({ alert_level: alertLevel })
+          .eq('id', existingAlert.id);
+      }
     }
   }
 
@@ -108,7 +132,9 @@ export const getAllMedicines = async (
     .limit(50);
 
   if (error) {
-    res.status(500).json({ error: 'Failed to fetch medicines' });
+    res.status(500).json({
+      error: 'Failed to fetch medicines',
+    });
     return;
   }
 
@@ -136,7 +162,9 @@ export const createMedicine = async (
     .single();
 
   if (error) {
-    res.status(500).json({ error: 'Failed to create medicine' });
+    res.status(500).json({
+      error: 'Failed to create medicine',
+    });
     return;
   }
 
