@@ -1,14 +1,14 @@
 # TODO
-# implement fine-tuning on cloudary images
+# implement fine-tuning on cloudinary images
 
 def load_model():
-    pass
+    raise NotImplementedError("Load model functionality not implemented yet.")
 
 def fine_tune_model(model):
-    pass
+    raise NotImplementedError("Fine-tuning functionality not implemented yet.")
 
 def save_model(model):
-    pass
+    raise NotImplementedError("Save model functionality not implemented yet.")
 
 
 def main():
