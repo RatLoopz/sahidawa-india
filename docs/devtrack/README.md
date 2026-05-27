@@ -47,3 +47,4 @@
 | [#750](https://github.com/RatLoopz/sahidawa-india/pull/750) | 2026-05-27 | Frontend | 14 | @Subhra-Nandi | [View Doc](devtrack/2026-05/PR-750-feat-structured-ai-logging.md) |
 | [#744](https://github.com/RatLoopz/sahidawa-india/pull/744) | 2026-05-27 | i18n | 46 | @Dushyantcoder07 | [View Doc](devtrack/2026-05/PR-744-feat-web-add-back-to-top-button.md) / [ADR](devtrack/adr/ADR-010-feat-web-add-back-to-top-button.md) |
 | [#773](https://github.com/RatLoopz/sahidawa-india/pull/773) | 2026-05-27 | Frontend | 22 | @shashank03-dev | [View Doc](devtrack/2026-05/PR-773-fix-web-enable-kannada-and-punjabi-locales.md) / [ADR](devtrack/adr/ADR-011-fix-web-enable-kannada-and-punjabi-locales.md) |
+| [#778](https://github.com/RatLoopz/sahidawa-india/pull/778) | 2026-05-27 | i18n | 44 | @shashank03-dev | [View Doc](devtrack/2026-05/PR-778-fix-i18n-localize-homepage-navigation-strings.md) / [ADR](devtrack/adr/ADR-012-fix-i18n-localize-homepage-navigation-strings.md) |
