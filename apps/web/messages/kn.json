@@ -21,6 +21,9 @@
         "pharmacy_map": "ಔಷಧಾಲಯ ನಕ್ಷೆ",
         "language": "ಕನ್ನಡ"
     },
+    "BackToTopButton": {
+        "label": "ಮೇಲೆ ಹೋಗಿ"
+    },
     "VoicePage": {
         "header_title": "ಧ್ವನಿ ಟ್ರಯಾಜ್",
         "header_subtitle": "ನಿಮ್ಮ ರೋಗಲಕ್ಷಣಗಳನ್ನು ಹೇಳಿ",
