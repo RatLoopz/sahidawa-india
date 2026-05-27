@@ -16,7 +16,10 @@ const medicineSchema = z.object({
   cdsco_approval_status: z.enum(['approved', 'recalled', 'banned']).default('approved'),
 });
 
-export const getPendingReports = async (_req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const getPendingReports = async (
+  _req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
   const { data, error } = await supabase
     .from('counterfeit_reports')
     .select('*, medicines(brand_name, generic_name)')
@@ -31,12 +34,18 @@ export const getPendingReports = async (_req: AuthenticatedRequest, res: Respons
   res.json({ reports: data });
 };
 
-export const updateReportStatus = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const updateReportStatus = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
   const parsed = reportStatusSchema.safeParse(req.body);
 
   if (!parsed.success) {
-    res.status(400).json({ error: 'Invalid status', details: parsed.error.issues });
+    res.status(400).json({
+      error: 'Invalid status',
+      details: parsed.error.issues,
+    });
     return;
   }
 
@@ -59,7 +68,13 @@ export const updateReportStatus = async (req: AuthenticatedRequest, res: Respons
     return;
   }
 
-  await logAdminAction(req.user!.id, `STATUS_${status.toUpperCase()}`, 'REPORT', id as string, { status });
+  await logAdminAction(
+    req.user!.id,
+    `STATUS_${status.toUpperCase()}`,
+    'REPORT',
+    id as string,
+    { status }
+  );
 
   if (status === 'verified_fake' && data.district) {
     const { count } = await supabase
@@ -77,11 +92,20 @@ export const updateReportStatus = async (req: AuthenticatedRequest, res: Respons
     }
   }
 
-  res.json({ message: 'Report updated', report: data });
+  res.json({
+    message: 'Report updated',
+    report: data,
+  });
 };
 
-export const getAllMedicines = async (_req: AuthenticatedRequest, res: Response): Promise<void> => {
-  const { data, error } = await supabase.from('medicines').select('*').limit(50);
+export const getAllMedicines = async (
+  _req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  const { data, error } = await supabase
+    .from('medicines')
+    .select('*')
+    .limit(50);
 
   if (error) {
     res.status(500).json({ error: 'Failed to fetch medicines' });
@@ -91,11 +115,17 @@ export const getAllMedicines = async (_req: AuthenticatedRequest, res: Response)
   res.json(data);
 };
 
-export const createMedicine = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const createMedicine = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
   const parsed = medicineSchema.safeParse(req.body);
 
   if (!parsed.success) {
-    res.status(400).json({ error: 'Invalid data', details: parsed.error.issues });
+    res.status(400).json({
+      error: 'Invalid data',
+      details: parsed.error.issues,
+    });
     return;
   }
 
@@ -110,6 +140,13 @@ export const createMedicine = async (req: AuthenticatedRequest, res: Response): 
     return;
   }
 
-  await logAdminAction(req.user!.id, 'CREATE_MEDICINE', 'MEDICINE', data.id, parsed.data);
+  await logAdminAction(
+    req.user!.id,
+    'CREATE_MEDICINE',
+    'MEDICINE',
+    data.id,
+    parsed.data
+  );
+
   res.status(201).json(data);
 };
