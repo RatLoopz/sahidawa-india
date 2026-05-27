@@ -35,7 +35,7 @@ function PharmacyPanelRow({
 }) {
     return (
         <article
-            className={`rounded-xl border p-3 transition-all duration-200 ${
+            className={`rounded-xl border p-3 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-emerald-500/30 active:scale-[0.99] ${
                 isSelected
                     ? "border-emerald-300 dark:border-emerald-900 bg-emerald-50/60 dark:bg-emerald-950/20 shadow-md shadow-emerald-100/30 dark:shadow-emerald-950/10"
                     : "border-(--color-border-muted) bg-(--color-surface-page) hover:border-(--color-text-muted) hover:shadow-sm"
@@ -185,7 +185,7 @@ export default function PharmacyPanels({
                             type="button"
                             onClick={() => onHeatmapModeChange(option.id)}
                             title={option.description}
-                            className={`rounded-xl px-3 py-2 text-left text-[11px] font-bold transition-all ${
+                            className={`rounded-xl px-3 py-2 text-left text-[11px] font-bold transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98] ${
                                 heatmapMode === option.id
                                     ? "bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white shadow-md"
                                     : "bg-(--color-surface-muted) text-(--color-text-secondary) hover:bg-(--color-border-muted)"

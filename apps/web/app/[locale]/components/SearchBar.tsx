@@ -219,7 +219,7 @@ export default function SearchBar() {
   return (
     <div
       ref={containerRef}
-      className="relative mt-8 rounded-[3rem] border border-slate-200 bg-white p-4 shadow-sm transition-all focus-within:ring-2 focus-within:ring-emerald-500/20"
+      className="relative mt-8 rounded-[3rem] border border-slate-200 bg-white p-4 shadow-sm transition-all duration-300 focus-within:scale-[1.005] focus-within:ring-4 focus-within:ring-emerald-500/10 focus-within:border-emerald-500/30 focus-within:shadow-md"
     >
       <div className="flex items-center gap-2 px-2 sm:gap-4">
         {/* Search icon — shows a subtle spinner while fetching */}
@@ -256,7 +256,7 @@ export default function SearchBar() {
 
         <button
           onClick={() => performSearch(query)}
-          className="shrink-0 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-slate-800 sm:px-6 sm:text-base"
+          className="shrink-0 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition-all duration-300 hover:bg-slate-800 hover:-translate-y-0.5 active:scale-95 sm:px-6 sm:text-base"
           aria-label="Submit search"
         >
           {tHome("search_button")}

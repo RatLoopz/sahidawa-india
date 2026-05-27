@@ -140,7 +140,7 @@ export default function HowItWorksPage() {
                         {steps.map((step, index) => (
                             <div
                                 key={index}
-                                className="group rounded-[32px] border border-(--color-border-muted) bg-(--color-surface-page) p-8 shadow-sm transition-all duration-500 hover:-translate-y-3 hover:border-emerald-300 hover:shadow-2xl"
+                                className="group rounded-[32px] border border-(--color-border-muted) bg-(--color-surface-page) p-8 shadow-sm transition-all duration-500 hover:-translate-y-3 hover:border-emerald-300/40 hover:shadow-2xl active:scale-[0.99]"
                             >
                                 <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-100 dark:from-emerald-950/20 to-blue-100 dark:to-blue-950/20 text-emerald-600 dark:text-emerald-450 transition-transform duration-300 group-hover:scale-110">
                                     {step.icon}

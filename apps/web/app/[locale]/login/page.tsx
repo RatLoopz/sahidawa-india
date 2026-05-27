@@ -91,8 +91,8 @@ export default function LoginPage() {
                                 Email Address
                             </label>
 
-                            <div className="mt-2 flex items-center gap-3 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 transition focus-within:border-emerald-500 focus-within:bg-(--color-surface-page)">
-                                <Mail className="h-5 w-5 text-(--color-text-muted)" />
+                            <div className="mt-2 flex items-center gap-3 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 transition-all duration-350 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:bg-(--color-surface-page)">
+                                <Mail className="h-5 w-5 text-(--color-text-muted) transition-colors focus-within:text-emerald-500" />
 
                                 <input
                                     type="email"
@@ -109,8 +109,8 @@ export default function LoginPage() {
                         <div>
                             <label className="text-sm font-medium text-(--color-text-primary)">Password</label>
 
-                            <div className="mt-2 flex items-center gap-3 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 transition focus-within:border-emerald-500 focus-within:bg-(--color-surface-page)">
-                                <Lock className="h-5 w-5 text-(--color-text-muted)" />
+                            <div className="mt-2 flex items-center gap-3 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 transition-all duration-350 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:bg-(--color-surface-page)">
+                                <Lock className="h-5 w-5 text-(--color-text-muted) transition-colors focus-within:text-emerald-500" />
 
                                 <input
                                     type="password"
@@ -127,7 +127,7 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 font-semibold text-white shadow-lg shadow-emerald-250/20 dark:shadow-emerald-950/20 transition-all hover:bg-emerald-700"
+                            className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 font-semibold text-white shadow-lg shadow-emerald-250/20 dark:shadow-emerald-950/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-500/20 hover:bg-emerald-700 active:scale-[0.98]"
                         >
                             {loading ? "Signing In..." : "Sign In"}
 

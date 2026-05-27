@@ -118,7 +118,7 @@ export default function OfflinePage() {
                         id="offline-retry-btn"
                         onClick={handleRetry}
                         disabled={isRetrying}
-                        className="inline-flex w-full items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-6 py-3.5 font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:from-emerald-500 hover:to-emerald-400 hover:shadow-emerald-500/40 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="inline-flex w-full items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-6 py-3.5 font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.01] hover:from-emerald-500 hover:to-emerald-400 hover:shadow-emerald-500/40 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         <RefreshCw size={18} className={isRetrying ? "animate-spin" : ""} />
                         {isRetrying ? "Checking connection…" : "Try Again"}
@@ -127,7 +127,7 @@ export default function OfflinePage() {
                     <a
                         id="offline-home-btn"
                         href="/"
-                        className="block w-full rounded-xl border border-slate-700 bg-slate-800 px-6 py-3.5 font-semibold text-slate-200 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-700"
+                        className="block w-full rounded-xl border border-slate-700 bg-slate-800 px-6 py-3.5 font-semibold text-slate-200 transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.01] hover:border-slate-600 hover:bg-slate-700 active:scale-[0.99]"
                     >
                         <span className="inline-flex items-center justify-center gap-2.5">
                             <Home size={18} />

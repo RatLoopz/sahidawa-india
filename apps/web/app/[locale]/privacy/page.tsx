@@ -1,4 +1,19 @@
-import { Lock, Cookie, Star, ClipboardList, Search, Link as LinkIcon, Cloud, Database, Map, Bot, ShieldCheck, Users, Mail, Calendar } from "lucide-react";
+import {
+    ClipboardList,
+    Search,
+    Cookie,
+    Link as LinkIcon,
+    ShieldAlert,
+    Users,
+    Mail,
+    Calendar,
+    Cloud,
+    Database,
+    MapPin,
+    Map as MapIcon,
+    Bot,
+    ShieldCheck
+} from "lucide-react";
 
 export default function PrivacyPolicyPage() {
     return (
@@ -18,13 +33,13 @@ export default function PrivacyPolicyPage() {
                 </p>
                 <div className="flex flex-wrap justify-center gap-3">
                     <span className="rounded-full border border-(--color-border-muted) px-4 py-1.5 text-sm text-(--color-text-secondary)">
-                        <Lock className="mr-2 inline h-4 w-4 text-emerald-600 dark:text-emerald-450" /> No Data Sold. Ever.
+                        <ShieldAlert className="mr-2 inline h-4 w-4 text-emerald-600 dark:text-emerald-450" /> No Data Sold. Ever.
                     </span>
                     <span className="rounded-full border border-(--color-border-muted) px-4 py-1.5 text-sm text-(--color-text-secondary)">
                         <Cookie className="mr-2 inline h-4 w-4 text-emerald-600 dark:text-emerald-450" /> No Tracking Cookies
                     </span>
                     <span className="rounded-full border border-emerald-200 bg-emerald-50 dark:border-emerald-900/30 dark:bg-emerald-950/20 px-4 py-1.5 text-sm text-emerald-700 dark:text-emerald-400">
-                        <Star className="mr-2 inline h-4 w-4" /> Open Source MIT License
+                        <ShieldCheck className="mr-2 inline h-4 w-4" /> Open Source MIT License
                     </span>
                 </div>
             </section>
@@ -136,7 +151,7 @@ export default function PrivacyPolicyPage() {
                                 <Database className="mr-2 inline h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Supabase
                             </div>
                             <div className="rounded-xl bg-(--color-surface-muted) px-4 py-3 text-sm font-medium text-(--color-text-secondary)">
-                                <Map className="mr-2 inline h-4 w-4 text-emerald-600 dark:text-emerald-400" /> OpenStreetMap
+                                <MapIcon className="mr-2 inline h-4 w-4 text-emerald-600 dark:text-emerald-400" /> OpenStreetMap
                             </div>
                             <div className="rounded-xl bg-(--color-surface-muted) px-4 py-3 text-sm font-medium text-(--color-text-secondary)">
                                 <Bot className="mr-2 inline h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Sarvam AI

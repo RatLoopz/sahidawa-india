@@ -899,10 +899,10 @@ export default function ScanPage() {
                 </div>
 
                 <div className="relative z-10 h-72 w-72 md:h-96 md:w-96">
-                    <div className="absolute top-0 left-0 h-12 w-12 rounded-tl-2xl border-t-4 border-l-4 border-emerald-500"></div>
-                    <div className="absolute top-0 right-0 h-12 w-12 rounded-tr-2xl border-t-4 border-r-4 border-emerald-500"></div>
-                    <div className="absolute bottom-0 left-0 h-12 w-12 rounded-bl-2xl border-b-4 border-l-4 border-emerald-500"></div>
-                    <div className="absolute right-0 bottom-0 h-12 w-12 rounded-br-2xl border-r-4 border-b-4 border-emerald-500"></div>
+                    <div className="absolute top-0 left-0 h-12 w-12 rounded-tl-2xl border-t-4 border-l-4 border-emerald-500 animate-pulse shadow-[0_0_12px_rgba(16,185,129,0.3)]"></div>
+                    <div className="absolute top-0 right-0 h-12 w-12 rounded-tr-2xl border-t-4 border-r-4 border-emerald-500 animate-pulse shadow-[0_0_12px_rgba(16,185,129,0.3)]"></div>
+                    <div className="absolute bottom-0 left-0 h-12 w-12 rounded-bl-2xl border-b-4 border-l-4 border-emerald-500 animate-pulse shadow-[0_0_12px_rgba(16,185,129,0.3)]"></div>
+                    <div className="absolute right-0 bottom-0 h-12 w-12 rounded-br-2xl border-r-4 border-b-4 border-emerald-500 animate-pulse shadow-[0_0_12px_rgba(16,185,129,0.3)]"></div>
 
                     {isScanning && (
                         <div className="animate-scan absolute right-4 left-4 z-20 h-[2px] bg-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.8)]"></div>

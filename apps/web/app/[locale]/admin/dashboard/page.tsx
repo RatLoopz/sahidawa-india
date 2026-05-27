@@ -519,7 +519,7 @@ function StatCard({
     bg,
 }: Readonly<{ label: string; value: number; icon: any; color: string; bg: string }>) {
     return (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
             <div className={`inline-flex rounded-xl p-2.5 ${bg} ${color} mb-3`}>
                 <Icon className="h-5 w-5" />
             </div>

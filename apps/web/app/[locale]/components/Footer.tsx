@@ -83,7 +83,7 @@ export default function Footer() {
                                 href="https://github.com/RatLoopz/sahidawa-india"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:border-slate-600 hover:text-white"
+                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:border-slate-600 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(255,255,255,0.1)] hover:text-white active:scale-95"
                             >
                                 <FaGithub size={18} />
                             </a>
@@ -92,7 +92,7 @@ export default function Footer() {
                                 href="https://linkedin.com/"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:border-slate-600 hover:text-white"
+                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:border-blue-500 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(37,99,235,0.2)] hover:text-blue-400 active:scale-95"
                             >
                                 <FaLinkedin size={18} />
                             </a>
@@ -101,7 +101,7 @@ export default function Footer() {
                                 href="https://twitter.com/"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:border-slate-600 hover:text-white"
+                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:border-slate-500 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(255,255,255,0.1)] hover:text-white active:scale-95"
                             >
                                 <FaXTwitter size={18} />
                             </a>

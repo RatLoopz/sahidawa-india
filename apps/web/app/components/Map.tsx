@@ -44,7 +44,7 @@ const createCustomIcon = (type: string, isSelected: boolean = false) => {
       display: flex;
       align-items: center;
       justify-content: center;
-    ">${renderToString(<Hospital size={isSelected ? 16 : 14} color="white" />)}</div></div>`,
+    "><svg width="${isSelected ? 16 : 13}" height="${isSelected ? 16 : 13}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19V5"/></svg></div></div>`,
         iconSize: [size, size],
         iconAnchor: [size / 2, size],
         popupAnchor: [0, -size - 4],

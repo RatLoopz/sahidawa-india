@@ -276,10 +276,10 @@ export default function ChatUI() {
                     <div className="flex items-center gap-3">
                         <button
                             onClick={toggleVoice}
-                            className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
+                            className={`relative flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
                                 isListening
-                                    ? "bg-red-500 text-white"
-                                    : "border border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                    ? "bg-red-500 text-white animate-pulse"
+                                    : "border border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-200 hover:scale-105 active:scale-95"
                             }`}
                         >
                             {isListening ? <IconStop /> : <IconMic size={20} />}

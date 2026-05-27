@@ -41,7 +41,7 @@ export default function ComparePage() {
                 variant="light"
             />
             <main className="container mx-auto max-w-4xl space-y-6 px-4 py-8">
-                <section className="rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) p-5">
+                <section className="rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) p-5 transition-all duration-300 hover:shadow-md hover:border-emerald-500/20">
                     <div className="grid gap-4 sm:grid-cols-2">
                         <MedicineSearchSelect
                             label="First medicine"
