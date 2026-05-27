@@ -283,13 +283,15 @@
 }
 
 /* Accessibility: Focus visible states for interactive elements */
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
-[tabindex]:focus-visible {
-  outline: 2px solid #2563eb !important;
-  outline-offset: 2px !important;
+@layer base {
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    [tabindex]:focus-visible {
+        outline: 2px solid var(--color-brand-secondary);
+        outline-offset: 2px;
+    }
 }
 
