@@ -1,0 +1,16 @@
+[project]
+name = "ml-model-dev-pipeline"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "ipykernel>=7.2.0",
+    "jupyter>=1.1.1",
+    "matplotlib>=3.10.9",
+    "scikit-learn>=1.8.0",
+    "seaborn>=0.13.2",
+    "tensorflow>=2.21.0",
+    "tflite-runtime>=2.14.0",
+    "tqdm>=4.67.3",
+]
