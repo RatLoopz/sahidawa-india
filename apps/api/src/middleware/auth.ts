@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { SupabaseClient, User } from "@supabase/supabase-js";
 import { supabase } from "../db/client";
 
-export type AuthRole = "user" | "admin";
+export type AuthRole = "user" | "admin" | "moderator";
 
 export interface AuthenticatedUser {
     id: string;
@@ -32,8 +32,10 @@ const getBearerToken = (authorization?: string): string | null => {
 };
 
 const getUserRole = (user: User): AuthRole => {
-const metadataRole = user.app_metadata?.role;
-    return metadataRole === "admin" ? "admin" : "user";
+    const metadataRole = user.app_metadata?.role || user.user_metadata?.role;
+    if (metadataRole === "admin") return "admin";
+    if (metadataRole === "moderator") return "moderator";
+    return "user";
 };
 
 export const createAuthMiddleware =
