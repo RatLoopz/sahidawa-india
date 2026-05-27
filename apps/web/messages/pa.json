@@ -1,0 +1,227 @@
+{
+    "Home": {
+        "title": "ਤੁਹਾਡੀ ਸਿਹਤ, ਪ੍ਰਮਾਣਿਤ ਅਤੇ ਸੁਰੱਖਿਅਤ।",
+        "subtitle": "ਭਾਰਤ ਦਾ ਓਪਨ-ਸੋਰਸ ਪਲੇਟਫਾਰਮ ਜੋ ਦਵਾਈ ਦੀ ਅਸਲੀਅਤ ਦੀ ਜਾਂਚ ਕਰਦਾ ਹੈ, ਸੁਰੱਖਿਅਤ ਫਾਰਮੇਸੀ ਲੱਭਣ ਵਿੱਚ ਮਦਦ ਕਰਦਾ ਹੈ ਅਤੇ ਮਹੱਤਵਪੂਰਨ ਸਿਹਤ ਚੇਤਾਵਨੀਆਂ ਦਿੰਦਾ ਹੈ।",
+        "scan_button": "ਦਵਾਈ ਸਕੈਨ ਕਰੋ",
+        "scan_subtitle": "ਕੈਮਰਾ ਪੈਕਿੰਗ ਜਾਂ ਬਾਰਕੋਡ ਵੱਲ ਕਰੋ",
+        "upload_photo": "ਫੋਟੋ ਅੱਪਲੋਡ ਕਰੋ",
+        "upload_subtitle": "ਗੈਲਰੀ ਤੋਂ ਚੁਣੋ",
+        "voice_triage": "ਆਵਾਜ਼ ਸਹਾਇਤਾ",
+        "voice_subtitle": "ਆਪਣੇ ਲੱਛਣ ਬੋਲੋ",
+        "pharmacy_map": "ਫਾਰਮੇਸੀ ਨਕਸ਼ਾ",
+        "pharmacy_subtitle": "ਪ੍ਰਮਾਣਿਤ ਸਟੋਰ ਲੱਭੋ",
+        "report_fake": "ਨਕਲੀ ਦਵਾਈ ਰਿਪੋਰਟ ਕਰੋ",
+        "report_fake_subtitle": "ਸ਼ੱਕੀ ਦਵਾਈ ਦੀ ਰਿਪੋਰਟ ਕਰੋ",
+        "search_placeholder": "ਦਵਾਈ ਜਾਂ ਬੈਚ ਖੋਜੋ...",
+        "search_button": "ਖੋਜੋ"
+    },
+
+    "Navigation": {
+        "how_it_works": "ਇਹ ਕਿਵੇਂ ਕੰਮ ਕਰਦਾ ਹੈ",
+        "alerts": "ਚੇਤਾਵਨੀਆਂ",
+        "pharmacy_map": "ਫਾਰਮੇਸੀ ਨਕਸ਼ਾ",
+        "language": "ਪੰਜਾਬੀ"
+    },
+
+    "VoicePage": {
+        "header_title": "ਆਵਾਜ਼ ਸਹਾਇਤਾ",
+        "header_subtitle": "ਆਪਣੇ ਲੱਛਣ ਬੋਲੋ",
+        "title": "AI ਆਵਾਜ਼ ਸਹਾਇਤਾ",
+        "subtitle": "ਆਪਣੀ ਸਥਾਨਕ ਭਾਸ਼ਾ ਵਿੱਚ ਆਪਣੇ ਲੱਛਣ ਬੋਲੋ। SahiDawa AI ਤੁਹਾਨੂੰ ਅਗਲੇ ਕਦਮ ਸਮਝਣ ਵਿੱਚ ਮਦਦ ਕਰੇਗਾ।",
+        "language_selector": "ਆਵਾਜ਼ ਭਾਸ਼ਾ",
+        "example_label": "ਇਸ ਤਰ੍ਹਾਂ ਬੋਲੋ",
+        "example_text": "ਮੈਨੂੰ ਬੁਖਾਰ ਅਤੇ ਖੰਘ ਹੈ",
+        "assistant_label": "AI ਸਹਾਇਕ",
+        "assistant_value": "24/7 ਸੁਣ ਰਿਹਾ ਹੈ",
+        "skip_to_main_content": "ਮੁੱਖ ਸਮੱਗਰੀ ਵੱਲ ਜਾਓ",
+        "listening_placeholder": "ਆਪਣੇ ਲੱਛਣਾਂ ਬਾਰੇ ਬੋਲਣਾ ਸ਼ੁਰੂ ਕਰੋ…",
+        "listening_status": "ਲੱਛਣ ਸੁਣੇ ਜਾ ਰਹੇ ਹਨ",
+
+
+        "announcements": {
+        "recording_started": "ਰਿਕਾਰਡਿੰਗ ਸ਼ੁਰੂ ਹੋ ਗਈ",
+        "processing_started": "ਤੁਹਾਡੇ ਲੱਛਣ ਪ੍ਰੋਸੈਸ ਕੀਤੇ ਜਾ ਰਹੇ ਹਨ",
+        "results_ready": "ਨਤੀਜੇ ਤਿਆਰ ਹਨ"
+        },
+
+        "streaming_connecting_hint": "ਲਾਈਵ ਟ੍ਰਾਂਸਕ੍ਰਿਪਸ਼ਨ ਨਾਲ ਜੁੜਿਆ ਜਾ ਰਿਹਾ ਹੈ…",
+        "streaming_live_hint": "ਲਾਈਵ ਟ੍ਰਾਂਸਕ੍ਰਿਪਟ ਅੱਪਡੇਟ ਹੋ ਰਿਹਾ ਹੈ",
+        "streaming_fallback_hint": "ਕਨੈਕਸ਼ਨ ਅਸਥਿਰ ਹੈ। ਬੋਲਣਾ ਬੰਦ ਕਰਨ ਤੋਂ ਬਾਅਦ SahiDawa ਪ੍ਰਕਿਰਿਆ ਪੂਰੀ ਕਰੇਗਾ।",
+
+        "animation_toggle_label": "ਆਵਾਜ਼ ਐਨੀਮੇਸ਼ਨ",
+        "animation_live_label": "ਲਾਈਵ ਵੇਵਫਾਰਮ",
+        "animation_reduced_motion_label": "ਘੱਟ ਗਤੀ",
+        "visualizer_label": "ਮਾਈਕ੍ਰੋਫੋਨ ਵੇਵਫਾਰਮ",
+        "volume_label": "ਆਵਾਜ਼ ਪੱਧਰ",
+        "volume_live_label": "ਲਾਈਵ",
+        "volume_still_label": "ਸਥਿਰ",
+        "visualizer_unavailable": "ਲਾਈਵ ਵੇਵਫਾਰਮ ਉਪਲਬਧ ਨਹੀਂ",
+
+        "processing_title": "ਲੱਛਣਾਂ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ",
+        "processing_subtitle": "SahiDawa AI ਨਾਲ ਤੁਹਾਡੇ ਲੱਛਣਾਂ ਦੀ ਜਾਂਚ ਕੀਤੀ ਜਾ ਰਹੀ ਹੈ…",
+
+        "review_title": "ਕਿਰਪਾ ਕਰਕੇ ਆਪਣਾ ਟ੍ਰਾਂਸਕ੍ਰਿਪਟ ਵੇਖੋ",
+        "review_message": "ਮਾਈਕ੍ਰੋਫੋਨ ਨੇ ਤੁਹਾਡੇ ਲੱਛਣ ਘੱਟ ਭਰੋਸੇ ਨਾਲ ਪਕੜੇ ਹਨ। ਤੁਸੀਂ ਹੋਰ ਸਪਸ਼ਟ ਨਤੀਜੇ ਲਈ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰ ਸਕਦੇ ਹੋ ਜਾਂ ਇਸੇ ਟ੍ਰਾਂਸਕ੍ਰਿਪਟ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਕਰ ਸਕਦੇ ਹੋ।",
+
+        "retry_button": "ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰੋ",
+        "switch_to_text_button": "ਟਾਈਪ ਕਰੋ",
+        "analyse_anyway_button": "ਫਿਰ ਵੀ ਵਿਸ਼ਲੇਸ਼ਣ ਕਰੋ",
+
+        "result_heading": "AI ਵਿਸ਼ਲੇਸ਼ਣ",
+        "result_subheading": "ਮੈਡੀਕਲ ਜਾਂਚ",
+
+        "transcript_label": "ਤੁਹਾਡਾ ਟ੍ਰਾਂਸਕ੍ਰਿਪਟ",
+        "confidence_label": "ਭਰੋਸਾ ਪੱਧਰ",
+
+        "confidence_values": {
+        "high": "ਉੱਚ",
+        "medium": "ਦਰਮਿਆਨਾ",
+        "low": "ਘੱਟ",
+        "unavailable": "ਉਪਲਬਧ ਨਹੀਂ"
+        },
+
+        "recommendations_label": "ਸਿਫਾਰਸ਼ੀ ਕਦਮ",
+
+        "emergency_title": "ਤੁਰੰਤ ਡਾਕਟਰੀ ਸਹਾਇਤਾ ਲਵੋ",
+        "emergency_body": "ਇਹ ਲੱਛਣ ਤੁਰੰਤ ਇਲਾਜ ਦੀ ਲੋੜ ਹੋ ਸਕਦੇ ਹਨ। ਤੁਰੰਤ 112 ਜਾਂ 108 'ਤੇ ਕਾਲ ਕਰੋ ਜਾਂ ਨੇੜਲੇ ਐਮਰਜੈਂਸੀ ਕੇਂਦਰ ਵਿੱਚ ਜਾਓ।",
+
+        "disclaimer": "ਇਹ ਸਿਰਫ ਜਾਣਕਾਰੀ ਲਈ ਹੈ ਅਤੇ ਕੋਈ ਡਾਕਟਰੀ ਨਿਡਾਣ ਨਹੀਂ ਹੈ। ਗੰਭੀਰ ਜਾਂ ਵੱਧ ਰਹੇ ਲੱਛਣਾਂ ਲਈ ਡਾਕਟਰ ਜਾਂ ਫਾਰਮਾਸਿਸਟ ਨਾਲ ਸੰਪਰਕ ਕਰੋ।",
+
+        "share_button": "ਡਾਕਟਰ ਨਾਲ ਸਾਂਝਾ ਕਰੋ",
+        "speak_button": "ਉੱਚੀ ਆਵਾਜ਼ ਵਿੱਚ ਪੜ੍ਹੋ",
+        "stop_speaking_button": "ਆਡੀਓ ਰੋਕੋ",
+        "try_again_button": "ਨਵੀਂ ਜਾਂਚ ਸ਼ੁਰੂ ਕਰੋ",
+
+        "tap_to_speak": "ਬੋਲਣ ਲਈ ਟੈਪ ਕਰੋ",
+        "stop_listening_label": "ਰੋਕਣ ਲਈ ਦੁਬਾਰਾ ਟੈਪ ਕਰੋ",
+
+        "start_listening_aria": "ਆਪਣੇ ਲੱਛਣ ਬੋਲਣ ਲਈ ਟੈਪ ਕਰੋ",
+        "stop_listening_aria": "ਲੱਛਣ ਸੁਣੇ ਜਾ ਰਹੇ ਹਨ। ਰੋਕਣ ਲਈ ਟੈਪ ਕਰੋ।",
+
+        "start_listening_sr": "ਆਵਾਜ਼ ਇਨਪੁਟ ਸ਼ੁਰੂ ਕਰੋ",
+        "stop_listening_sr": "ਆਵਾਜ਼ ਇਨਪੁਟ ਰੋਕੋ",
+
+        "footer_note": "ਆਵਾਜ਼ ਸਹਾਇਤਾ ਸਿਰਫ ਜਾਣਕਾਰੀ ਲਈ ਹੈ। ਗੰਭੀਰ ਲੱਛਣਾਂ ਲਈ ਤੁਰੰਤ ਲਾਇਸੰਸਸ਼ੁਦਾ ਡਾਕਟਰ ਨਾਲ ਸੰਪਰਕ ਕਰੋ।",
+
+        "share_title": "SahiDawa ਆਵਾਜ਼ ਸਹਾਇਤਾ ਰਿਪੋਰਟ",
+        "share_success": "ਰਿਪੋਰਟ ਸਫਲਤਾਪੂਰਵਕ ਸਾਂਝੀ ਕੀਤੀ ਗਈ",
+        "copy_success": "ਰਿਪੋਰਟ ਕਲਿੱਪਬੋਰਡ ਵਿੱਚ ਕਾਪੀ ਹੋ ਗਈ",
+        "share_failure": "ਇਸ ਵੇਲੇ ਰਿਪੋਰਟ ਸਾਂਝੀ ਨਹੀਂ ਕੀਤੀ ਜਾ ਸਕੀ",
+
+        "tts_not_supported": "ਤੁਹਾਡਾ ਬ੍ਰਾਊਜ਼ਰ text-to-speech ਨੂੰ ਸਮਰਥਨ ਨਹੀਂ ਕਰਦਾ",
+
+        "tts_fallback_message": "ਤੁਹਾਡਾ ਬ੍ਰਾਊਜ਼ਰ ਇਹ ਸੰਖੇਪ ਕਿਸੇ ਹੋਰ ਆਵਾਜ਼ ਵਿੱਚ ਪੜ੍ਹ ਸਕਦਾ ਹੈ ਕਿਉਂਕਿ {language} text-to-speech ਸਮਰਥਨ ਸੀਮਿਤ ਹੈ।",
+
+        "fallback_summary": "SahiDawa ਜਵਾਬ ਨੂੰ ਸਪਸ਼ਟ ਤਰੀਕੇ ਨਾਲ ਤਿਆਰ ਨਹੀਂ ਕਰ ਸਕਿਆ। ਜੇ ਤੁਹਾਡੇ ਲੱਛਣ ਜਾਰੀ ਰਹਿੰਦੇ ਹਨ ਤਾਂ ਡਾਕਟਰ ਨਾਲ ਸੰਪਰਕ ਕਰੋ।",
+
+        "share_report": {
+            "title": "SahiDawa ਆਵਾਜ਼ ਸਹਾਇਤਾ ਰਿਪੋਰਟ",
+            "timestamp": "ਸਮਾਂ",
+            "language": "ਭਾਸ਼ਾ",
+            "transcript": "ਟ੍ਰਾਂਸਕ੍ਰਿਪਟ",
+            "confidence": "ਭਰੋਸਾ",
+            "emergency": "ਐਮਰਜੈਂਸੀ ਚੇਤਾਵਨੀ",
+            "yes": "ਹਾਂ",
+            "no": "ਨਹੀਂ",
+            "summary": "ਸੰਖੇਪ",
+            "recommendations": "ਸਿਫਾਰਸ਼ਾਂ",
+            "disclaimer": "ਅਸਵੀਕਰਨ",
+            "default_recommendation": "ਡਾਕਟਰ ਜਾਂ ਫਾਰਮਾਸਿਸਟ ਦੀ ਸਲਾਹ ਮਾਨੋ।"
+        },
+
+        "errors": {
+            "unsupported_title": "ਆਵਾਜ਼ ਇਨਪੁਟ ਉਪਲਬਧ ਨਹੀਂ",
+            "unsupported_message": "ਇਹ ਬ੍ਰਾਊਜ਼ਰ ਹਾਲੇ speech recognition ਨੂੰ ਸਮਰਥਨ ਨਹੀਂ ਕਰਦਾ। ਕਿਰਪਾ ਕਰਕੇ Chrome ਜਾਂ Edge ਵਰਤੋ।",
+
+            "language_not_supported_title": "ਇਹ ਬ੍ਰਾਊਜ਼ਰ ਇਸ ਭਾਸ਼ਾ ਨੂੰ ਸਮਰਥਨ ਨਹੀਂ ਕਰਦਾ",
+            "language_not_supported_message": "{language} ਆਵਾਜ਼ ਇਨਪੁਟ ਇਸ ਬ੍ਰਾਊਜ਼ਰ ਵਿੱਚ ਸੀਮਿਤ ਹੈ। Chrome ਜਾਂ Edge ਵਰਤੋ ਜਾਂ ਹੋਰ ਭਾਸ਼ਾ ਚੁਣੋ।",
+
+            "permission_title": "ਮਾਈਕ੍ਰੋਫੋਨ ਦੀ ਇਜਾਜ਼ਤ ਰੋਕੀ ਗਈ ਹੈ",
+            "permission_message": "ਕਿਰਪਾ ਕਰਕੇ ਬ੍ਰਾਊਜ਼ਰ ਸੈਟਿੰਗਜ਼ ਵਿੱਚ ਮਾਈਕ੍ਰੋਫੋਨ ਦੀ ਇਜਾਜ਼ਤ ਦਿਓ ਅਤੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+
+            "microphone_title": "ਕੋਈ ਮਾਈਕ੍ਰੋਫੋਨ ਨਹੀਂ ਮਿਲਿਆ",
+            "microphone_message": "ਯਕੀਨੀ ਬਣਾਓ ਕਿ ਮਾਈਕ੍ਰੋਫੋਨ ਜੁੜਿਆ ਹੋਇਆ ਹੈ ਅਤੇ ਇਸ ਟੈਬ ਲਈ ਉਪਲਬਧ ਹੈ।",
+
+            "network_title": "ਕਨੈਕਸ਼ਨ ਸਮੱਸਿਆ ਕਾਰਨ ਸੁਣਨ ਦੀ ਪ੍ਰਕਿਰਿਆ ਰੁਕ ਗਈ",
+            "network_message": "ਤੁਹਾਡਾ ਬ੍ਰਾਊਜ਼ਰ ਆਵਾਜ਼ ਕੈਪਚਰ ਪੂਰਾ ਨਹੀਂ ਕਰ ਸਕਿਆ। ਕਿਰਪਾ ਕਰਕੇ ਕਨੈਕਸ਼ਨ ਚੈਕ ਕਰੋ ਅਤੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+
+            "no_speech_title": "ਸਾਨੂੰ ਕੋਈ ਆਵਾਜ਼ ਨਹੀਂ ਸੁਣੀ",
+            "no_speech_message": "ਸ਼ਾਂਤ ਜਗ੍ਹਾ ਵਿੱਚ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ ਜਾਂ ਮਾਈਕ੍ਰੋਫੋਨ ਦੇ ਨੇੜੇ ਬੋਲੋ।",
+
+            "generic_title": "ਕੁਝ ਗਲਤ ਹੋ ਗਿਆ",
+            "generic_message": "ਅਸੀਂ ਇਸ ਵਾਰ ਤੁਹਾਡੀ ਆਵਾਜ਼ ਪ੍ਰਕਿਰਿਆ ਨਹੀਂ ਕਰ ਸਕੇ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+
+            "service_unavailable_title": "ਆਵਾਜ਼ ਸੇਵਾ ਉਪਲਬਧ ਨਹੀਂ",
+            "service_unavailable_message": "ਸਾਡੇ ਸਰਵਰ ਇਸ ਵੇਲੇ ਬਹੁਤ ਵੱਧ ਲੋਡ ਵਿੱਚ ਹਨ। ਕਿਰਪਾ ਕਰਕੇ ਬਾਅਦ ਵਿੱਚ ਕੋਸ਼ਿਸ਼ ਕਰੋ ਜਾਂ ਆਪਣੇ ਲੱਛਣ ਟਾਈਪ ਕਰੋ।",
+
+            "timeout_title": "ਆਵਾਜ਼ ਬੇਨਤੀ ਦਾ ਸਮਾਂ ਸਮਾਪਤ ਹੋ ਗਿਆ",
+            "timeout_message": "ਆਵਾਜ਼ ਸੇਵਾ ਉਮੀਦ ਨਾਲੋਂ ਵੱਧ ਸਮਾਂ ਲੈ ਰਹੀ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ ਜਾਂ ਟੈਕਸਟ ਇਨਪੁਟ ਵਰਤੋ।",
+
+            "api_title": "SahiDawa AI ਉਪਲਬਧ ਨਹੀਂ",
+            "api_message": "ਅਸੀਂ ਇਸ ਵੇਲੇ ਮੈਡੀਕਲ ਸਹਾਇਤਾ ਪ੍ਰਾਪਤ ਨਹੀਂ ਕਰ ਸਕੇ। ਕੁਝ ਸਮੇਂ ਬਾਅਦ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।"
+        }
+    },
+
+    "offline": {
+        "bannerOffline": "ਤੁਸੀਂ ਆਫਲਾਈਨ ਹੋ",
+        "descriptionOffline": "ਕਨੈਕਸ਼ਨ ਵਾਪਸ ਆਉਣ 'ਤੇ ਤੁਹਾਡੇ ਬਦਲਾਅ ਸਿੰਕ ਹੋ ਜਾਣਗੇ",
+        "bannerOnline": "ਮੁੜ ਆਨਲਾਈਨ",
+        "descriptionOnline": "ਅਸਫਲ ਬੇਨਤੀਆਂ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕੀਤੀਆਂ ਜਾ ਰਹੀਆਂ ਹਨ...",
+        "dismiss": "ਬੰਦ ਕਰੋ",
+        "title": "ਆਫਲਾਈਨ ਮੋਡ",
+        "description": "ਤੁਹਾਡੇ ਕੋਲ ਇਸ ਵੇਲੇ ਇੰਟਰਨੈੱਟ ਕਨੈਕਸ਼ਨ ਨਹੀਂ ਹੈ।",
+        "subtitle": "ਆਫਲਾਈਨ ਹੋਣ 'ਤੇ ਕੁਝ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ ਉਪਲਬਧ ਨਹੀਂ ਹਨ। ਇੰਟਰਨੈੱਟ ਨਾਲ ਜੁੜੋ ਜਾਂ cached ਸਮੱਗਰੀ ਵੇਖੋ।",
+        "tryAgain": "ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰੋ",
+        "goHome": "ਹੋਮ ਤੇ ਜਾਓ",
+        "footer": "ਕਨੈਕਸ਼ਨ ਵਾਪਸ ਆਉਣ 'ਤੇ SahiDawa ਆਪਣੇ ਆਪ ਸਿੰਕ ਕਰੇਗਾ।",
+        "cachedContent": "ਤੁਸੀਂ ਪਹਿਲਾਂ ਲੋਡ ਕੀਤੀ ਸਮੱਗਰੀ ਵੇਖ ਸਕਦੇ ਹੋ",
+        "noCache": "ਇਹ ਪੇਜ cached ਨਹੀਂ ਸੀ ਅਤੇ ਆਫਲਾਈਨ ਉਪਲਬਧ ਨਹੀਂ ਹੈ"
+    },
+
+    "contact": {
+        "badge": "GSSoC 2026 ਓਪਨ ਸੋਰਸ ਪ੍ਰੋਜੈਕਟ",
+
+        "heroTitle": {
+            "prefix": "ਸੰਪਰਕ",
+            "highlight": "ਕਰੋ"
+        },
+
+        "heroSubtitle": "ਕੋਈ ਸਵਾਲ, ਵਿਚਾਰ ਜਾਂ ਯੋਗਦਾਨ ਦੇਣਾ ਚਾਹੁੰਦੇ ਹੋ? ਅਸੀਂ ਤੁਹਾਡੀ ਗੱਲ ਸੁਣਨਾ ਚਾਹੁੰਦੇ ਹਾਂ।",
+
+        "cards": {
+            "email": {
+                "title": "ਸਾਨੂੰ ਈਮੇਲ ਕਰੋ",
+                "description": "ਪਰਾਈਵੇਸੀ ਸਵਾਲਾਂ, ਭਾਈਵਾਲੀ ਜਾਂ ਗੰਭੀਰ ਚਿੰਤਾਵਾਂ ਲਈ।"
+            },
+
+            "discord": {
+                "title": "Discord ਕਮਿਊਨਿਟੀ",
+                "description": "ਯੋਗਦਾਨਕਰਤਾਵਾਂ ਨਾਲ ਜੁੜੋ, ਸਵਾਲ ਪੁੱਛੋ ਅਤੇ ਐਲਾਨ ਪ੍ਰਾਪਤ ਕਰੋ।",
+                "cta": "Discord ਨਾਲ ਜੁੜੋ"
+            },
+
+            "bug": {
+                "title": "ਬੱਗ ਰਿਪੋਰਟ ਕਰੋ",
+                "description": "ਕੋਈ ਸਮੱਸਿਆ ਮਿਲੀ? GitHub issue ਖੋਲ੍ਹੋ ਅਤੇ ਅਸੀਂ ਇਸਨੂੰ ਜਲਦੀ ਠੀਕ ਕਰਾਂਗੇ।",
+                "cta": "Issue ਖੋਲ੍ਹੋ"
+            },
+
+            "contribute": {
+                "title": "ਯੋਗਦਾਨ ਦਿਓ",
+                "description": "SahiDawa ਬਣਾਉਣ ਵਿੱਚ ਮਦਦ ਕਰਨੀ ਚਾਹੁੰਦੇ ਹੋ? ਸਾਡੀ contributing guide ਪੜ੍ਹੋ।",
+                "cta": "ਗਾਈਡ ਪੜ੍ਹੋ"
+            }
+        },
+
+        "quickLinks": {
+            "title": "ਮਦਦਗਾਰ ਲਿੰਕ",
+            "about": "SahiDawa ਬਾਰੇ",
+            "privacy": "ਪਰਾਈਵੇਸੀ ਨੀਤੀ",
+            "faq": "ਅਕਸਰ ਪੁੱਛੇ ਜਾਣ ਵਾਲੇ ਸਵਾਲ"
+        },
+
+        "footer": "SahiDawa ਮੁਫ਼ਤ, ਓਪਨ-ਸੋਰਸ ਅਤੇ 1.4 ਬਿਲੀਅਨ ਭਾਰਤੀਆਂ ਲਈ ਬਣਾਇਆ ਗਿਆ ਹੈ। ਕੋਈ ਵਿਗਿਆਪਨ ਨਹੀਂ। ਕੋਈ ਪ੍ਰੀਮੀਅਮ ਨਹੀਂ। ਕੋਈ ਡਾਟਾ ਵੇਚਿਆ ਨਹੀਂ ਜਾਂਦਾ।"
+
+    }
+}
+
