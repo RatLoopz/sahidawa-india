@@ -119,7 +119,7 @@ export default function SahiDawaHome() {
                         </h1>
                     </div>
 
-                    <div className="flex items-center gap-2 md:gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4 md:gap-4">
                         <nav
                             className="hidden items-center gap-6 text-sm font-semibold text-(--color-text-secondary) lg:flex"
                             aria-label="Main navigation"
@@ -152,12 +152,11 @@ export default function SahiDawaHome() {
 
                         <button
                             onClick={() => handleNavigation("health")}
-                            className="flex h-9 items-center justify-center gap-2 rounded-full bg-linear-to-r from-blue-500 to-purple-500 px-3 py-1.5 text-sm font-semibold text-white transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 sm:h-10 sm:px-4 sm:py-2"
+                            className="flex h-9 w-9 items-center justify-center gap-2 rounded-full bg-linear-to-r from-blue-500 to-purple-500 px-3 py-1.5 text-sm font-semibold text-white transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 sm:h-10 sm:w-auto sm:px-4 sm:py-2"
                             aria-label="Open AI Health Assistant"
                         >
                             <MessageCircle size={16} />
-                            <span className="hidden sm:inline">AI Health Assistant</span>
-                            <span className="whitespace-nowrap sm:hidden">AI Chat</span>
+                           <span className="hidden sm:inline">AI Health Assistant</span>
                         </button>
 
                         <LanguageSwitcher />
