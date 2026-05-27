@@ -1,4 +1,5 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { AuthenticatedRequest } from '../middleware/auth';
 import { z } from 'zod';
 import { supabase } from '../db/client';
 import { logAdminAction } from '../services/audit.service';
@@ -15,7 +16,7 @@ const medicineSchema = z.object({
   cdsco_approval_status: z.enum(['approved', 'recalled', 'banned']).default('approved'),
 });
 
-export const getPendingReports = async (req: Request, res: Response): Promise<void> => {
+export const getPendingReports = async (_req: Request, res: Response): Promise<void> => {
   const { data, error } = await supabase
     .from('counterfeit_reports')
     .select('*, medicines(brand_name, generic_name)')
@@ -30,7 +31,7 @@ export const getPendingReports = async (req: Request, res: Response): Promise<vo
   res.json({ reports: data });
 };
 
-export const updateReportStatus = async (req: Request, res: Response): Promise<void> => {
+export const updateReportStatus = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { id } = req.params;
   const parsed = reportStatusSchema.safeParse(req.body);
 
@@ -90,7 +91,7 @@ export const getAllMedicines = async (_req: Request, res: Response): Promise<voi
   res.json(data);
 };
 
-export const createMedicine = async (req: Request, res: Response): Promise<void> => {
+export const createMedicine = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const parsed = medicineSchema.safeParse(req.body);
 
   if (!parsed.success) {
