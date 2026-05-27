@@ -19,6 +19,9 @@
         "pharmacy_map": "ફાર્મસી નકશો",
         "language": "ગુજરાતી"
     },
+    "BackToTopButton": {
+        "label": "ઉપર જાઓ"
+    },
     "VoicePage": {
         "header_title": "વૉઇસ ટ્રાઇઍજ",
         "header_subtitle": "તમારાં લક્ષણો બોલો",
