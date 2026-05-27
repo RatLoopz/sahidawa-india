@@ -16,7 +16,7 @@ const medicineSchema = z.object({
   cdsco_approval_status: z.enum(['approved', 'recalled', 'banned']).default('approved'),
 });
 
-export const getPendingReports = async (_req: Request, res: Response): Promise<void> => {
+export const getPendingReports = async (_req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { data, error } = await supabase
     .from('counterfeit_reports')
     .select('*, medicines(brand_name, generic_name)')
@@ -59,7 +59,7 @@ export const updateReportStatus = async (req: AuthenticatedRequest, res: Respons
     return;
   }
 
-  await logAdminAction(req.user.id, `STATUS_${status.toUpperCase()}`, 'REPORT', id as string, { status });
+  await logAdminAction(req.user!.id, `STATUS_${status.toUpperCase()}`, 'REPORT', id as string, { status });
 
   if (status === 'verified_fake' && data.district) {
     const { count } = await supabase
@@ -80,7 +80,7 @@ export const updateReportStatus = async (req: AuthenticatedRequest, res: Respons
   res.json({ message: 'Report updated', report: data });
 };
 
-export const getAllMedicines = async (_req: Request, res: Response): Promise<void> => {
+export const getAllMedicines = async (_req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { data, error } = await supabase.from('medicines').select('*').limit(50);
 
   if (error) {
@@ -110,6 +110,6 @@ export const createMedicine = async (req: AuthenticatedRequest, res: Response): 
     return;
   }
 
-  await logAdminAction(req.user.id, 'CREATE_MEDICINE', 'MEDICINE', data.id, parsed.data);
+  await logAdminAction(req.user!.id, 'CREATE_MEDICINE', 'MEDICINE', data.id, parsed.data);
   res.status(201).json(data);
 };
