@@ -31,6 +31,7 @@ export const getPendingReports = async (req: AuthenticatedRequest, res: Response
 
     res.json({ reports: data });
   } catch (err) {
+    console.error(err)
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -87,7 +88,7 @@ export const updateReportStatus = async (req: AuthenticatedRequest, res: Respons
           // Create new alert if none exists
           await supabase.from('district_alerts').insert({
             district: data.district,
-            medicine_name: data.reported || 'Unknown',
+            medicine_name: data.reported_brand_name,
             alert_level: alertLevel
           });
         } else if (existingAlert.alert_level !== alertLevel) {
@@ -101,6 +102,7 @@ export const updateReportStatus = async (req: AuthenticatedRequest, res: Respons
 
     res.json({ message: 'Status updated', report: data });
   } catch (err) {
+    console.error(err)
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -116,6 +118,7 @@ export const getAllMedicines = async (_req: AuthenticatedRequest, res: Response)
     
     res.json({ medicines: data });
   } catch (err) {
+    console.error(err)
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -143,6 +146,7 @@ export const createMedicine = async (req: AuthenticatedRequest, res: Response): 
     await logAdminAction(req.user!.id, 'CREATE_MEDICINE', 'MEDICINE', data.id, parsed.data);
     res.status(201).json(data);
   } catch (err) {
+    console.error(err)
     res.status(500).json({ error: 'Internal server error' });
   }
 };
