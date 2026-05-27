@@ -2,13 +2,13 @@
 # implement fine-tuning on cloudary images
 
 def load_model():
-    pass
+    raise NotImplementedError("load_model() is not implemented yet")
 
 def fine_tune_model(model):
-    pass
+    raise NotImplementedError("fine_tune_model() is not implemented yet")
 
 def save_model(model):
-    pass
+    raise NotImplementedError("save_model() is not implemented yet")
 
 
 def main():
