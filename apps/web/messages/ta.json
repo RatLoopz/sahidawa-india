@@ -21,6 +21,9 @@
         "pharmacy_map": "மருந்தகம் வரைபடம்",
         "language": "தமிழ்"
     },
+    "BackToTopButton": {
+        "label": "மேலே செல்லவும்"
+    },
     "VoicePage": {
         "header_title": "குரல் பரிசோதனை",
         "header_subtitle": "உங்கள் அறிகுறிகளைப் பேசுங்கள்",

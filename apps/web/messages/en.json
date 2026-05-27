@@ -21,6 +21,9 @@
         "pharmacy_map": "Pharmacy Map",
         "language": "English"
     },
+    "BackToTopButton": {
+        "label": "Back to top"
+    },
     "VoicePage": {
         "header_title": "Voice Triage",
         "header_subtitle": "Speak your symptoms",
