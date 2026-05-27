@@ -20,52 +20,6 @@ const mockedSupabase = supabase as jest.Mocked<typeof supabase>;
 describe("GET /api/pharmacies/nearest", () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        
-        // Create proper mock chain for district_alerts queries
-        const maybeSingleMock = jest.fn().mockResolvedValue({
-            data: null,
-            error: null,
-        });
-
-        const eqMock = jest.fn().mockReturnValue({
-            maybeSingle: maybeSingleMock,
-            eq: jest.fn().mockResolvedValue({
-                data: [],
-                error: null,
-            }),
-        });
-
-        const selectMock = jest.fn().mockReturnValue({
-            eq: eqMock,
-            range: jest.fn().mockResolvedValue({
-                data: [],
-                error: null,
-                count: 0,
-            }),
-        });
-
-        mockedSupabase.from.mockReturnValue({
-            select: selectMock,
-            insert: jest.fn().mockResolvedValue({
-                data: null,
-                error: null,
-            }),
-            update: jest.fn().mockReturnValue({
-                eq: jest.fn().mockResolvedValue({
-                    data: null,
-                    error: null,
-                }),
-            }),
-        } as never);
-    });
-
-    afterEach(() => {
-        jest.clearAllTimers();
-    });
-
-    afterAll(async () => {
-        jest.clearAllMocks();
-        await new Promise(resolve => setTimeout(resolve, 100));
     });
 
     it("returns 400 when latitude or longitude is missing", async () => {
