@@ -281,3 +281,17 @@
 .dark ::-webkit-scrollbar-thumb:hover {
     background: var(--color-text-secondary);
 }
+
+/* Accessibility: Focus visible states for interactive elements */
+@layer base {
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    [tabindex]:focus-visible {
+        outline: 2px solid var(--color-brand-secondary);
+        outline-offset: 2px;
+    }
+}
+

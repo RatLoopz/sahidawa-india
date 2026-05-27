@@ -13,7 +13,9 @@
         "report_fake": "ನಕಲಿ ವರದಿ ಮಾಡಿ",
         "report_fake_subtitle": "ಅನುಮಾನಾಸ್ಪದ ಔಷಧವನ್ನು ವರದಿ ಮಾಡಿ",
         "search_placeholder": "ಔಷಧ ಅಥವಾ ಬ್ಯಾಚ್ ಹುಡುಕಿ...",
-        "search_button": "ಹುಡುಕಿ"
+        "search_button": "ಹುಡುಕಿ",
+        "sign_in": "Sign In",
+        "get_started": "Get Started"
     },
     "Navigation": {
         "how_it_works": "ಹೇಗೆ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ",

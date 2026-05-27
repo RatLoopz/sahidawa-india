@@ -107,22 +107,41 @@ export const updateReportStatus = async (req: AuthenticatedRequest, res: Respons
   }
 };
 
-export const getAllMedicines = async (_req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const getAllMedicines = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const { data, error } = await supabase.from('medicines').select('*').limit(50);
+    // 1. Parse query parameters with fallbacks
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 50;
+    
+    // 2. Calculate the offset for Supabase
+    const offset = (page - 1) * limit;
+
+    // 3. Fetch data and total count using .range() instead of .limit()
+    const { data, error, count } = await supabase
+      .from('medicines')
+      .select('*', { count: 'exact' })
+      .range(offset, offset + limit - 1);
     
     if (error) {
       res.status(500).json({ error: 'Failed to fetch medicines' });
       return;
     }
     
-    res.json({ medicines: data });
+    // 4. Return data along with pagination metadata so the frontend knows what to do
+    res.json({ 
+      medicines: data,
+      meta: {
+        total: count || 0,
+        page,
+        limit,
+        totalPages: count ? Math.ceil(count / limit) : 0
+      }
+    });
   } catch (err) {
-    console.error(err)
+    console.error('Error in getAllMedicines:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
-
 export const createMedicine = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const parsed = medicineSchema.safeParse(req.body);

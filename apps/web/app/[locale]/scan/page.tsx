@@ -426,10 +426,6 @@ function ErrorResult({
                     <p className="text-sm font-medium whitespace-pre-wrap text-slate-500">
                         {message}
                     </p>
-                    <h3 className="text-2xl font-black tracking-tight text-(--color-text-primary)">
-                        Verification Failed
-                    </h3>
-                    <p className="font-medium text-(--color-text-secondary)">{message}</p>
                 </div>
 
                 <button
