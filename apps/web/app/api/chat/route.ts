@@ -2,6 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 import { detectEmergencyKeywords } from "@/lib/voice/emergency";
 import { rateLimit } from "@/lib/rateLimit";
+import { BASE_PROMPT } from "@/lib/chatPrompts";
 
 const DEFAULT_DISCLAIMER =
     "This guidance is for informational use only and is not a diagnosis. Consult a doctor or pharmacist, especially for severe or persistent symptoms.";
@@ -126,7 +127,7 @@ export async function POST(req: Request) {
             );
         }
         const ai = getAiClient();
-        const { messages, mode, responseLanguage } = await req.json();
+        const { messages, mode, responseLanguage, locale } = await req.json();
         const latestMessageText = getLatestMessageText(messages);
 
         if (!latestMessageText) {
@@ -159,12 +160,27 @@ export async function POST(req: Request) {
 
         const formattedContents = mapMessagesToGeminiContents(messages || []);
 
+        const supportedLocales = ["en", "gu", "bn", "te", "ta", "mr", "ur", "kn"];
+        const finalLocale = supportedLocales.includes(locale) ? locale : "en";
+        const localeMap = {
+            en: "English",
+            hi: "Hindi",
+            bn: "Bengali",
+            gu: "Gujarati",
+            kn: "Kannada",
+            mr: "Marathi",
+            ta: "Tamil",
+            te: "Telugu",
+            ur: "Urdu",
+        };
+        const language = localeMap[finalLocale as keyof typeof localeMap] || "English";
+        const systemPrompt = BASE_PROMPT.replace("{language}", language);
+
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
             contents: formattedContents,
             config: {
-                systemInstruction:
-                    "You are the SahiDawa AI Assistant. SahiDawa is India's First Open-Source Citizen Medicine Verifier & Rural Health Bridge. You help users verify medicine information, understand their prescriptions, and navigate the app. Be concise, empathetic, and highly accurate in your medical guidance, but always remind users to consult a doctor for serious concerns.",
+                systemInstruction: systemPrompt,
             },
         });
 
