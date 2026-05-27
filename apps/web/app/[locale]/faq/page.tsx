@@ -74,11 +74,11 @@ export default function FAQPage() {
                     {faqs.map((faq, i) => (
                         <div
                             key={i}
-                            className="rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md"
+                            className="rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md hover:border-emerald-500/30 hover:-translate-y-0.5 active:scale-[0.998]"
                         >
                             <button
                                 onClick={() => toggle(i)}
-                                className="w-full flex items-center justify-between px-6 py-5 text-left"
+                                className="w-full flex items-center justify-between px-6 py-5 text-left transition-colors duration-200 hover:bg-emerald-500/[0.01]"
                             >
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
