@@ -119,7 +119,9 @@ describe("GET /api/pharmacies/nearest", () => {
 
         expect(mockedSupabase.from).toHaveBeenCalledWith("pharmacies");
 
-        expect(select).toHaveBeenCalledWith("*");
+     expect(select).toHaveBeenCalledWith(
+    "name, address, location, phone_number, is_verified, district, state"
+);
 
         expect(limit).toHaveBeenCalled();
 
