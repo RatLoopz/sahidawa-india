@@ -11,7 +11,9 @@
         "pharmacy_map": "فارمیسی کا نقشہ",
         "pharmacy_subtitle": "تصدیق شدہ فارمیسیاں تلاش کریں",
         "search_placeholder": "دوا یا بیچ نمبر تلاش کریں…",
-        "search_button": "تلاش کریں"
+        "search_button": "تلاش کریں",
+        "sign_in": "Sign In",
+        "get_started": "Get Started"
     },
     "Navigation": {
         "how_it_works": "یہ کیسے کام کرتا ہے",
