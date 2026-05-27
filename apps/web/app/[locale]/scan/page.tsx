@@ -42,6 +42,7 @@ import {
     extractBatchNumber,
     extractMedicineName,
 } from "@/src/utils/medicineParser";
+import { useOfflineStatus } from "@/hooks/useOfflineStatus";
 
 function formatExpiryForBadge(isoDate: string | null | undefined): string | undefined {
     if (!isoDate) return undefined;
@@ -152,6 +153,7 @@ function LoadingSkeleton({ ocrStatus, ocrProgress }: { ocrStatus: string; ocrPro
     );
 }
 
+// Result views with dark/light mode surface tokens and variables support
 function VerifiedSafeResult({
     medicine,
     onScanAgain,
@@ -401,7 +403,7 @@ function UnverifiedResult({
     );
 }
 
-function ErrorResult({ message, onRetry }: { message: string; onRetry: () => void }) {
+function ErrorResult({ message, onRetry, isOffline }: { message: string; onRetry: () => void; isOffline?: boolean }) {
     return (
         <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] border border-(--color-border-muted) bg-(--color-surface-page) p-8 text-(--color-text-primary) shadow-2xl">
             <div className="absolute top-0 right-0 left-0 h-2 bg-slate-400"></div>
@@ -411,6 +413,10 @@ function ErrorResult({ message, onRetry }: { message: string; onRetry: () => voi
                 </div>
                 <div>
                     <h3 className="text-2xl font-black tracking-tight text-(--color-text-primary)">
+                        {isOffline ? "Connection Lost" : "Verification Failed"}
+                    </h3>
+                    <p className="font-medium text-slate-500 text-sm whitespace-pre-wrap">{message}</p>
+                    <h3 className="text-2xl font-black tracking-tight text-(--color-text-primary)">
                         Verification Failed
                     </h3>
                     <p className="font-medium text-(--color-text-secondary)">{message}</p>
@@ -418,9 +424,12 @@ function ErrorResult({ message, onRetry }: { message: string; onRetry: () => voi
 
                 <button
                     onClick={onRetry}
+                    disabled={isOffline}
+                    className="w-full rounded-2xl bg-slate-900 py-4 font-bold text-white shadow-lg shadow-slate-900/20 transition-colors hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
                     className="w-full rounded-2xl bg-slate-900 py-4 font-bold text-white shadow-lg shadow-slate-900/20 transition-all hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+                    className="w-full rounded-2xl bg-slate-900 py-4 font-bold text-white shadow-lg shadow-slate-900/20 transition-all hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    Try Again
+                    {isOffline ? "Waiting for connection..." : "Try Again"}
                 </button>
             </div>
         </div>
@@ -457,6 +466,10 @@ function ResultActions({ onScanAgain, onShare }: { onScanAgain: () => void; onSh
 }
 
 export default function ScanPage() {
+    const { isOffline, registerRetryCallback, unregisterRetryCallback } = useOfflineStatus();
+    const abortControllerRef = useRef<AbortController | null>(null);
+    const isMountedRef = useRef(true);
+
     const [isScanning, setIsScanning] = useState(false);
     const [showResult, setShowResult] = useState(false);
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -478,15 +491,34 @@ export default function ScanPage() {
     const ocrWorkerRef = useRef<Tesseract.Worker | null>(null);
     const ocrCancelledRef = useRef(false);
 
+    // Auto-retry when coming back online
+    const handleVerifyRef = useRef<(batch: string) => Promise<void>>(null as any);
+
     useEffect(() => {
+        isMountedRef.current = true;
+        
+        const autoRetry = () => {
+            if (isMountedRef.current && showResult && verifyError && batchInput) {
+                toast.info("Connection restored. Retrying verification...");
+                handleVerifyRef.current?.(batchInput);
+            }
+        };
+
+        registerRetryCallback(autoRetry);
+
         return () => {
+            isMountedRef.current = false;
             ocrCancelledRef.current = true;
             if (ocrWorkerRef.current) {
                 ocrWorkerRef.current.terminate();
                 ocrWorkerRef.current = null;
             }
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+            unregisterRetryCallback(autoRetry);
         };
-    }, []);
+    }, [showResult, verifyError, batchInput, registerRetryCallback, unregisterRetryCallback]);
 
     // LASA Check State
     const [lasaMatches, setLasaMatches] = useState<LasaMatch[]>([]);
@@ -529,18 +561,33 @@ export default function ScanPage() {
     const handleSelectConflict = async (conflictName: string) => {
         setShowLasaConfirmation(false);
         setPendingVerifyResult(null);
+
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+
         setIsScanning(true);
         setShowResult(false);
 
         try {
-            const brandRes = await verifyMedicineByBrand(conflictName);
+            const brandRes = await verifyMedicineByBrand(conflictName, controller.signal);
+            if (!isMountedRef.current || controller.signal.aborted) return;
             setParsedBrand(conflictName);
             await processVerificationResult(brandRes, conflictName);
         } catch (err) {
-            setVerifyError(err instanceof Error ? err.message : "Verification failed");
-        } finally {
-            setIsScanning(false);
+            if (!isMountedRef.current || controller.signal.aborted) return;
+            const errorMsg = err instanceof Error ? err.message : "Verification failed";
+            if (errorMsg === "Request was cancelled.") {
+                return;
+            }
+            setVerifyError(errorMsg);
             setShowResult(true);
+        } finally {
+            if (isMountedRef.current && !controller.signal.aborted) {
+                setIsScanning(false);
+            }
         }
     };
 
@@ -549,21 +596,41 @@ export default function ScanPage() {
             toast.error("Please enter a batch number to verify");
             return;
         }
+
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+
         setIsScanning(true);
         setShowResult(false);
         setVerifyResult(null);
         setVerifyError(null);
 
         try {
-            const result = await verifyMedicine(batch.trim());
+            const result = await verifyMedicine(batch.trim(), controller.signal);
+            if (!isMountedRef.current || controller.signal.aborted) return;
             await processVerificationResult(result);
         } catch (err) {
-            setVerifyError(err instanceof Error ? err.message : "Verification failed");
-        } finally {
-            setIsScanning(false);
+            if (!isMountedRef.current || controller.signal.aborted) return;
+            const errorMsg = err instanceof Error ? err.message : "Verification failed";
+            if (errorMsg === "Request was cancelled.") {
+                return;
+            }
+            setVerifyError(errorMsg);
             setShowResult(true);
+        } finally {
+            if (isMountedRef.current && !controller.signal.aborted) {
+                setIsScanning(false);
+            }
         }
-    }, []);
+    }, [processVerificationResult]);
+
+    // Keep handleVerifyRef current
+    useEffect(() => {
+        handleVerifyRef.current = handleVerify;
+    }, [handleVerify]);
 
     const handleCopyMedicineDetails = useCallback(async () => {
         if (!verifyResult?.verified) return;
@@ -619,6 +686,12 @@ export default function ScanPage() {
         setUploadedImage(dataUrl);
         e.target.value = "";
 
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+
         setIsScanning(true);
         setShowResult(false);
         setVerifyResult(null);
@@ -656,6 +729,7 @@ export default function ScanPage() {
                 const barcodeText = zxingResult.getText().trim();
                 if (barcodeText) {
                     barcodeFound = true;
+                    if (!isMountedRef.current || controller.signal.aborted) return;
                     setBatchInput(barcodeText);
                     setOcrStatus("done");
                     toast.success(`Barcode detected: ${barcodeText} — verifying…`);
@@ -666,6 +740,7 @@ export default function ScanPage() {
                 // ZXing failed — continue to OCR fallback
             }
 
+            if (!isMountedRef.current || controller.signal.aborted) return;
             if (barcodeFound || ocrCancelledRef.current) return;
 
             // ── Step 2: Tesseract.js OCR Fallback ────────────────────────────
@@ -682,7 +757,7 @@ export default function ScanPage() {
                 });
             }
 
-            if (ocrCancelledRef.current) return;
+            if (!isMountedRef.current || controller.signal.aborted || ocrCancelledRef.current) return;
 
             const timeoutPromise = new Promise<never>((_, reject) => {
                 setTimeout(() => reject(new Error("OCR timed out")), 30000);
@@ -691,7 +766,7 @@ export default function ScanPage() {
             const ocrPromise = ocrWorkerRef.current.recognize(dataUrl);
             const { data } = await Promise.race([ocrPromise, timeoutPromise]);
 
-            if (ocrCancelledRef.current) return;
+            if (!isMountedRef.current || controller.signal.aborted || ocrCancelledRef.current) return;
 
             const rawText = data.text;
             if (!rawText || !rawText.trim()) {
@@ -728,7 +803,7 @@ export default function ScanPage() {
 
             if (parsedBatchNum) {
                 try {
-                    const batchRes = await verifyMedicine(parsedBatchNum);
+                    const batchRes = await verifyMedicine(parsedBatchNum, controller.signal);
                     if (batchRes.verified) {
                         finalResult = batchRes;
                     }
@@ -737,14 +812,16 @@ export default function ScanPage() {
                 }
             }
 
+            if (!isMountedRef.current || controller.signal.aborted) return;
+
             if (!finalResult && medName) {
                 try {
-                    const matchRes = await fuzzyMatchBrand(medName);
+                    const matchRes = await fuzzyMatchBrand(medName, controller.signal);
                     if (matchRes && matchRes.length > 0) {
                         const topMatch = matchRes[0];
                         if (topMatch.score >= 60) {
                             setParsedBrand(topMatch.name);
-                            const brandRes = await verifyMedicineByBrand(topMatch.name);
+                            const brandRes = await verifyMedicineByBrand(topMatch.name, controller.signal);
                             if (brandRes.verified) {
                                 finalResult = brandRes;
                             }
@@ -754,6 +831,8 @@ export default function ScanPage() {
                     // Silent fallback
                 }
             }
+
+            if (!isMountedRef.current || controller.signal.aborted) return;
 
             if (finalResult && finalResult.verified) {
                 const updatedMedicine = { ...finalResult.medicine };
@@ -776,7 +855,7 @@ export default function ScanPage() {
                 );
             }
         } catch (err) {
-            if (ocrCancelledRef.current) return;
+            if (!isMountedRef.current || controller.signal.aborted || ocrCancelledRef.current) return;
 
             if (ocrWorkerRef.current) {
                 await ocrWorkerRef.current.terminate();
@@ -797,7 +876,7 @@ export default function ScanPage() {
             }
             setOcrStatus("error");
         } finally {
-            if (!ocrCancelledRef.current) {
+            if (isMountedRef.current && !controller.signal.aborted && !ocrCancelledRef.current) {
                 setIsScanning(false);
                 setShowResult(true);
             }
@@ -965,7 +1044,8 @@ export default function ScanPage() {
                                 {verifyError && (
                                     <ErrorResult
                                         message={verifyError}
-                                        onRetry={handleDismissResult}
+                                        onRetry={() => handleVerify(batchInput)}
+                                        isOffline={isOffline}
                                     />
                                 )}
                                 {!verifyError &&
@@ -1042,11 +1122,11 @@ export default function ScanPage() {
                     />
                     <button
                         type="submit"
-                        disabled={isScanning}
+                        disabled={isScanning || isOffline}
                         className="flex items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <Search size={18} />
-                        Verify
+                        {isOffline ? "Offline" : "Verify"}
                     </button>
                 </form>
 
@@ -1057,7 +1137,8 @@ export default function ScanPage() {
                 <div className="flex gap-4">
                     <button
                         onClick={() => setIsCameraActive((prev) => !prev)}
-                        className={`flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-colors focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none ${
+                        disabled={isOffline}
+                        className={`flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-colors focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
                             isCameraActive
                                 ? "bg-red-500 text-white hover:bg-red-400"
                                 : "bg-emerald-500 text-white hover:bg-emerald-400"
@@ -1067,8 +1148,16 @@ export default function ScanPage() {
                         {isCameraActive ? "Stop Scanner" : "Scan Barcode"}
                     </button>
                     <label
-                        htmlFor="medicine-upload"
-                        className="flex cursor-pointer items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black shadow-lg transition-colors hover:bg-slate-200"
+                        htmlFor={isOffline ? undefined : "medicine-upload"}
+                        onClick={(e) => {
+                            if (isOffline) {
+                                e.preventDefault();
+                                toast.error("You are currently offline. Please check your internet connection.");
+                            }
+                        }}
+                        className={`flex cursor-pointer items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black shadow-lg transition-colors hover:bg-slate-200 ${
+                            isOffline ? "cursor-not-allowed opacity-50" : ""
+                        }`}
                     >
                         <Layers size={18} />
                         Upload Photo
