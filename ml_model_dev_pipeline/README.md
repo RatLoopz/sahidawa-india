@@ -1,5 +1,9 @@
 ## ML Model Dev Pipeline
 
+setup -
+```python
+pip install -r requirements.txt 
+```
 ### Pretraining
 
 - Notebook: [pre_train_exp.ipynb](pre_train_exp.ipynb)
