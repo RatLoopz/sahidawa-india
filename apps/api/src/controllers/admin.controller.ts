@@ -68,10 +68,12 @@ export const updateReportStatus = async (req: AuthenticatedRequest, res: Respons
       .eq('district', data.district)
       .eq('status', 'verified_fake');
 
-    if (count && count >= 3) {
+   if (count && count >= 3) {
+  const alertLevel = count >= 10 ? 'high' : 'medium';
+
   const { data: existingAlert } = await supabase
     .from('district_alerts')
-    .select('id')
+    .select('id, alert_level')
     .eq('district', data.district)
     .maybeSingle();
 
@@ -79,8 +81,13 @@ export const updateReportStatus = async (req: AuthenticatedRequest, res: Respons
     await supabase.from('district_alerts').insert({
       district: data.district,
       medicine_name: data.reported_brand_name,
-      alert_level: count >= 10 ? 'high' : 'medium',
+      alert_level: alertLevel,
     });
+  } else if (existingAlert.alert_level !== alertLevel) {
+    await supabase
+      .from('district_alerts')
+      .update({ alert_level: alertLevel })
+      .eq('id', existingAlert.id);
   }
 }
 
