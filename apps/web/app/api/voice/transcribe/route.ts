@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { structuredLog } from "@/lib/structuredLogger";
 
 const ROUTE = "/api/voice/transcribe";
 const ML_TRANSCRIBE_TIMEOUT_MS = 45_000;
@@ -15,38 +16,6 @@ async function readJsonSafely(response: Response) {
     }
 }
 
-// ── Structured Logger ─────────────────────────────────────────────────────────
-
-interface LogEntry {
-    timestamp: string;
-    log_level: "info" | "warn" | "error";
-    route: string;
-    latency_ms?: number;
-    metrics?: {
-        input_tokens: number | undefined;
-        output_tokens: number | undefined;
-    };
-    error?: {
-        message: string;
-        code: number;
-        stack: string | undefined;
-    };
-    meta?: Record<string, unknown>;
-}
-
-function structuredLog(entry: LogEntry): void {
-    const line = JSON.stringify(entry);
-    if (entry.log_level === "error") {
-        console.error(line);
-    } else if (entry.log_level === "warn") {
-        console.warn(line);
-    } else {
-        console.log(line);
-    }
-}
-
-// ── Route Handler ─────────────────────────────────────────────────────────────
-
 export async function POST(req: Request) {
     const startTime = Date.now();
     const formData = await req.formData();
@@ -55,7 +24,6 @@ export async function POST(req: Request) {
 
     if (!(file instanceof File)) {
         structuredLog({
-            timestamp: new Date().toISOString(),
             log_level: "warn",
             route: ROUTE,
             meta: { reason: "missing_audio_file" },
@@ -84,7 +52,6 @@ export async function POST(req: Request) {
 
         if (!upstreamData || typeof upstreamData !== "object") {
             structuredLog({
-                timestamp: new Date().toISOString(),
                 log_level: "error",
                 route: ROUTE,
                 latency_ms,
@@ -109,7 +76,6 @@ export async function POST(req: Request) {
                     : "Transcription failed.";
 
             structuredLog({
-                timestamp: new Date().toISOString(),
                 log_level: statusCode === 503 || statusCode === 429 ? "error" : "warn",
                 route: ROUTE,
                 latency_ms,
@@ -120,13 +86,10 @@ export async function POST(req: Request) {
                 },
                 meta: { language, fileSizeBytes: file.size, fileType: file.type },
             });
-
             return NextResponse.json({ error: errorDetail }, { status: statusCode });
         }
 
-        // Success
         structuredLog({
-            timestamp: new Date().toISOString(),
             log_level: "info",
             route: ROUTE,
             latency_ms,
@@ -156,7 +119,6 @@ export async function POST(req: Request) {
 
         if (error instanceof Error && error.name === "AbortError") {
             structuredLog({
-                timestamp: new Date().toISOString(),
                 log_level: "error",
                 route: ROUTE,
                 latency_ms,
@@ -174,7 +136,6 @@ export async function POST(req: Request) {
         }
 
         structuredLog({
-            timestamp: new Date().toISOString(),
             log_level: "error",
             route: ROUTE,
             latency_ms,
@@ -185,7 +146,6 @@ export async function POST(req: Request) {
             },
             meta: { language },
         });
-
         return NextResponse.json(
             { error: "Could not reach the transcription service." },
             { status: 503 }

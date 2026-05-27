@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { detectEmergencyKeywords } from "@/lib/voice/emergency";
 import { rateLimit } from "@/lib/rateLimit";
 import { BASE_PROMPT } from "@/lib/chatPrompts";
+import { structuredLog } from "@/lib/structuredLogger";
 
 const DEFAULT_DISCLAIMER =
     "This guidance is for informational use only and is not a diagnosis. Consult a doctor or pharmacist, especially for severe or persistent symptoms.";
@@ -21,43 +22,10 @@ type VoiceTriageResponse = {
     emergency: boolean;
 };
 
-// ── Structured Logger ─────────────────────────────────────────────────────────
-
-interface LogEntry {
-    timestamp: string;
-    log_level: "info" | "warn" | "error";
-    route: string;
-    latency_ms?: number;
-    metrics?: {
-        input_tokens: number | undefined;
-        output_tokens: number | undefined;
-    };
-    error?: {
-        message: string;
-        code: number;
-        stack: string | undefined;
-    };
-    meta?: Record<string, unknown>;
-}
-
-function structuredLog(entry: LogEntry): void {
-    const line = JSON.stringify(entry);
-    if (entry.log_level === "error") {
-        console.error(line);
-    } else if (entry.log_level === "warn") {
-        console.warn(line);
-    } else {
-        console.log(line);
-    }
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
 function getLatestMessageText(messages: ChatMessage[] | undefined) {
     if (!Array.isArray(messages) || messages.length === 0) {
         return "";
     }
-
     const lastMessage = messages[messages.length - 1];
     return lastMessage?.text?.trim() || lastMessage?.content?.trim() || "";
 }
@@ -66,26 +34,18 @@ function mapMessagesToGeminiContents(messages: ChatMessage[]) {
     return messages.map((msg) => {
         const text = msg.text || msg.content || "";
         const role = msg.role === "assistant" ? "model" : "user";
-        return {
-            role,
-            parts: [{ text }],
-        };
+        return { role, parts: [{ text }] };
     });
 }
 
 function extractJsonBlock(rawText: string) {
     const fencedMatch = rawText.match(/```(?:json)?\s*([\s\S]*?)```/i);
-    if (fencedMatch) {
-        return fencedMatch[1].trim();
-    }
-
+    if (fencedMatch) return fencedMatch[1].trim();
     const startIndex = rawText.indexOf("{");
     const endIndex = rawText.lastIndexOf("}");
-
     if (startIndex >= 0 && endIndex > startIndex) {
         return rawText.slice(startIndex, endIndex + 1);
     }
-
     return rawText.trim();
 }
 
@@ -107,7 +67,6 @@ function parseVoiceTriageResponse(rawText: string): VoiceTriageResponse {
             typeof parsed.disclaimer === "string" && parsed.disclaimer.trim().length > 0
                 ? parsed.disclaimer.trim()
                 : DEFAULT_DISCLAIMER;
-
         return {
             text:
                 typeof parsed.text === "string" && parsed.text.trim().length > 0
@@ -146,8 +105,6 @@ function getAiClient() {
     return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 }
 
-// ── Route Handler ─────────────────────────────────────────────────────────────
-
 export async function POST(req: Request) {
     const ROUTE = "/api/chat";
     const startTime = Date.now();
@@ -163,13 +120,13 @@ export async function POST(req: Request) {
                 { status: 429 }
             );
         }
+
         const ai = getAiClient();
         const { messages, mode, responseLanguage, locale } = await req.json();
         const latestMessageText = getLatestMessageText(messages);
 
         if (!latestMessageText) {
             structuredLog({
-                timestamp: new Date().toISOString(),
                 log_level: "warn",
                 route: ROUTE,
                 meta: { reason: "empty_message_text", mode },
@@ -179,7 +136,6 @@ export async function POST(req: Request) {
 
         if (mode === "voice-triage") {
             const deterministicEmergency = detectEmergencyKeywords(latestMessageText);
-
             const response = await ai.models.generateContent({
                 model: "gemini-2.5-flash",
                 contents: buildVoiceTriagePrompt(
@@ -195,9 +151,7 @@ export async function POST(req: Request) {
             });
 
             const latency_ms = Date.now() - startTime;
-
             structuredLog({
-                timestamp: new Date().toISOString(),
                 log_level: "info",
                 route: ROUTE,
                 latency_ms,
@@ -209,14 +163,11 @@ export async function POST(req: Request) {
             });
 
             const parsedResponse = parseVoiceTriageResponse(response.text ?? "");
-
             return NextResponse.json({
                 ...parsedResponse,
                 emergency: parsedResponse.emergency || deterministicEmergency.isEmergency,
             });
         }
-
-        // ── General chat mode ─────────────────────────────────────────────────
 
         const formattedContents = mapMessagesToGeminiContents(messages || []);
 
@@ -245,9 +196,7 @@ export async function POST(req: Request) {
         });
 
         const latency_ms = Date.now() - startTime;
-
         structuredLog({
-            timestamp: new Date().toISOString(),
             log_level: "info",
             route: ROUTE,
             latency_ms,
@@ -263,9 +212,7 @@ export async function POST(req: Request) {
     } catch (error: any) {
         const latency_ms = Date.now() - startTime;
         const statusCode: number = error?.status || 500;
-
         structuredLog({
-            timestamp: new Date().toISOString(),
             log_level: "error",
             route: ROUTE,
             latency_ms,
