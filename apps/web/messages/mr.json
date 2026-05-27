@@ -21,6 +21,9 @@
         "pharmacy_map": "औषधालय नकाशा",
         "language": "मराठी"
     },
+    "BackToTopButton": {
+        "label": "वर जा"
+    },
     "VoicePage": {
         "header_title": "व्हॉइस ट्रायज",
         "header_subtitle": "तुमची लक्षणे बोला",

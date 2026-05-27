@@ -22,6 +22,9 @@
         "pharmacy_map": "ਫਾਰਮੇਸੀ ਨਕਸ਼ਾ",
         "language": "ਪੰਜਾਬੀ"
     },
+    "BackToTopButton": {
+        "label": "ਉੱਪਰ ਜਾਓ"
+    },
 
     "VoicePage": {
         "header_title": "ਆਵਾਜ਼ ਸਹਾਇਤਾ",
