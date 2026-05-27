@@ -19,6 +19,9 @@
         "pharmacy_map": "فارمیسی کا نقشہ",
         "language": "اردو"
     },
+    "BackToTopButton": {
+        "label": "اوپر جائیں"
+    },
     "VoicePage": {
         "header_title": "وائس ٹرئیج",
         "header_subtitle": "اپنی علامات بیان کریں",

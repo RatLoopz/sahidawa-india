@@ -21,6 +21,9 @@
         "pharmacy_map": "फार्मेसी मानचित्र",
         "language": "हिन्दी"
     },
+    "BackToTopButton": {
+        "label": "ऊपर जाएँ"
+    },
     "VoicePage": {
         "header_title": "वॉयस ट्रायज",
         "header_subtitle": "अपने लक्षण बोलें",
