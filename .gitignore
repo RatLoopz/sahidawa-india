@@ -54,3 +54,7 @@ coverage/
 .tmp/
 .cache/
 .turbo/
+
+# local model data 
+ml_model_dev_pipeline/.venv/*
+ml_model_dev_pipeline/data

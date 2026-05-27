@@ -13,13 +13,18 @@
         "report_fake": "ভুয়া রিপোর্ট করুন",
         "report_fake_subtitle": "সন্দেহজনক ওষুধ রিপোর্ট করুন",
         "search_placeholder": "ওষুধ বা ব্যাচ অনুসন্ধান করুন...",
-        "search_button": "অনুসন্ধান"
+        "search_button": "অনুসন্ধান",
+        "sign_in": "Sign In",
+        "get_started": "Get Started"
     },
     "Navigation": {
         "how_it_works": "কিভাবে কাজ করে",
         "alerts": "সতর্কতা",
         "pharmacy_map": "ফার্মেসি ম্যাপ",
         "language": "বাংলা"
+    },
+    "BackToTopButton": {
+        "label": "উপরে যান"
     },
     "VoicePage": {
         "header_title": "ভয়েস ট্রায়াজ",
@@ -120,7 +125,6 @@
             "generic_message": "এইবার আপনার ভয়েস ইনপুট প্রক্রিয়া করা যায়নি। আবার চেষ্টা করুন।",
             "service_unavailable_title": "ভয়েস সার্ভিস এখন ব্যস্ত",
             "service_unavailable_message": "আমাদের ভয়েস সার্ভার বর্তমানে অতিরিক্ত চাপে রয়েছে। আবার চেষ্টা করুন অথবা নিচে আপনার উপসর্গ টাইপ করুন।",
-
             "timeout_title": "ভয়েস অনুরোধের সময় শেষ হয়েছে",
             "timeout_message": "ভয়েস সার্ভিস প্রত্যাশার চেয়ে বেশি সময় নিচ্ছে। আবার চেষ্টা করুন অথবা টেক্সট ইনপুট ব্যবহার করুন।",
             "api_title": "SahiDawa AI এখন উপলভ্য নয়",
