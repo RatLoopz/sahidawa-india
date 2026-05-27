@@ -21,6 +21,9 @@
         "pharmacy_map": "ফার্মেসি ম্যাপ",
         "language": "বাংলা"
     },
+    "BackToTopButton": {
+        "label": "উপরে যান"
+    },
     "VoicePage": {
         "header_title": "ভয়েস ট্রায়াজ",
         "header_subtitle": "আপনার উপসর্গ বলুন",

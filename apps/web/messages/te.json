@@ -21,6 +21,9 @@
         "pharmacy_map": "ఫార్మసీ మ్యాప్",
         "language": "తెలుగు"
     },
+    "BackToTopButton": {
+        "label": "పైనికి వెళ్లండి"
+    },
     "VoicePage": {
         "header_title": "వాయిస్ ట్రియాజ్",
         "header_subtitle": "మీ లక్షణాలను చెప్పండి",

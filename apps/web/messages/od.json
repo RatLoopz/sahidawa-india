@@ -21,6 +21,9 @@
         "pharmacy_map": "ଔଷଧାଳୟ ମାନଚିତ୍ର",
         "language": "ଓଡ଼ିଆ"
     },
+    "BackToTopButton": {
+        "label": "ଉପରକୁ ଯାଆନ୍ତୁ"
+    },
     "VoicePage": {
         "header_title": "ଭଏସ୍ ଟ୍ରାଏଜ୍",
         "header_subtitle": "ଆପଣଙ୍କ ଲକ୍ଷଣ କୁହନ୍ତୁ",
