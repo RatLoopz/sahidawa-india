@@ -1,18 +1,14 @@
 "use client";
-
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useTranslations } from "next-intl";
 import SearchSuggestions from "@/components/SearchSuggestions";
-
 /** Maximum number of suggestions shown at once */
 const MAX_SUGGESTIONS = 8;
-
 /** Debounce delay in milliseconds */
 const DEBOUNCE_MS = 250;
-
 /**
  * SearchBar
  *
@@ -27,19 +23,17 @@ export default function SearchBar() {
   const params = useParams();
   const locale = params.locale as string;
   const tHome = useTranslations("Home");
-
   // ── State ──────────────────────────────────────────────────────────────────
   const [query, setQuery] = useState<string>("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [activeIndex, setActiveIndex] = useState<number>(-1);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-
   // ── Refs ───────────────────────────────────────────────────────────────────
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
+  const abortControllerRef = useRef<AbortController | null>(null);
   // ── Close on click-outside ─────────────────────────────────────────────────
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -51,11 +45,9 @@ export default function SearchBar() {
         setActiveIndex(-1);
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
   // ── Fetch suggestions from Supabase (debounced) ────────────────────────────
   const fetchSuggestions = useCallback(async (trimmed: string) => {
     if (!trimmed) {
@@ -64,7 +56,19 @@ export default function SearchBar() {
       setIsLoading(false);
       return;
     }
-
+    // Check if offline
+    if (typeof window !== "undefined" && !window.navigator.onLine) {
+      setSuggestions([]);
+      setIsOpen(false);
+      setIsLoading(false);
+      return;
+    }
+    // Abort previous suggestions request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
     setIsLoading(true);
     try {
       // Query both brand_name and batch_number columns for partial matches.
@@ -74,25 +78,25 @@ export default function SearchBar() {
         .or(
           `brand_name.ilike.%${trimmed}%,batch_number.ilike.%${trimmed}%`
         )
+        .abortSignal(controller.signal)
         .limit(MAX_SUGGESTIONS);
-
+      if (controller.signal.aborted) {
+        return;
+      }
       if (error) {
         console.error("[SearchBar] Supabase suggestion error:", error.message);
         setSuggestions([]);
         setIsOpen(false);
         return;
       }
-
       if (!data || data.length === 0) {
         setSuggestions([]);
         setIsOpen(false);
         return;
       }
-
       // Deduplicate and build a flat list of relevant strings.
       const seen = new Set<string>();
       const results: string[] = [];
-
       for (const row of data) {
         const candidates = [
           row.brand_name as string | null,
@@ -107,43 +111,43 @@ export default function SearchBar() {
         }
         if (results.length >= MAX_SUGGESTIONS) break;
       }
-
       setSuggestions(results);
       setActiveIndex(-1);
       setIsOpen(results.length > 0);
     } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        // Silently ignore aborted suggestions queries
+        return;
+      }
       console.error("[SearchBar] Unexpected error fetching suggestions:", err);
       setSuggestions([]);
       setIsOpen(false);
     } finally {
-      setIsLoading(false);
+      if (!controller.signal.aborted) {
+        setIsLoading(false);
+      }
     }
   }, []);
-
   // ── Debounce query changes ─────────────────────────────────────────────────
   useEffect(() => {
     const trimmed = query.trim();
-
     // Cancel any pending debounce
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
-
     if (!trimmed) {
       setSuggestions([]);
       setIsOpen(false);
       setIsLoading(false);
       return;
     }
-
     debounceTimer.current = setTimeout(() => {
       fetchSuggestions(trimmed);
     }, DEBOUNCE_MS);
-
     // Cleanup on unmount or next effect run
     return () => {
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      if (abortControllerRef.current) abortControllerRef.current.abort();
     };
   }, [query, fetchSuggestions]);
-
   // ── Select a suggestion ────────────────────────────────────────────────────
   const selectSuggestion = useCallback(
     (value: string) => {
@@ -155,7 +159,6 @@ export default function SearchBar() {
     },
     [locale, router]
   );
-
   // ── Perform search (Enter without active suggestion, or Search button) ─────
   const performSearch = useCallback(
     (value: string) => {
@@ -167,11 +170,9 @@ export default function SearchBar() {
     },
     [locale, router]
   );
-
   // ── Keyboard navigation ────────────────────────────────────────────────────
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isOpen && e.key !== "Enter") return;
-
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
@@ -179,14 +180,12 @@ export default function SearchBar() {
           prev < suggestions.length - 1 ? prev + 1 : 0
         );
         break;
-
       case "ArrowUp":
         e.preventDefault();
         setActiveIndex((prev) =>
           prev > 0 ? prev - 1 : suggestions.length - 1
         );
         break;
-
       case "Enter":
         e.preventDefault();
         if (activeIndex >= 0 && activeIndex < suggestions.length) {
@@ -195,42 +194,37 @@ export default function SearchBar() {
           performSearch(query);
         }
         break;
-
       case "Escape":
         e.preventDefault();
         setIsOpen(false);
         setActiveIndex(-1);
         inputRef.current?.blur();
         break;
-
       default:
         break;
     }
   };
-
   // ── Input change ───────────────────────────────────────────────────────────
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
     // Reset active index on every keystroke
     setActiveIndex(-1);
   };
-
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div
       ref={containerRef}
-      className="relative mt-8 rounded-[3rem] border border-slate-200 bg-white p-4 shadow-sm transition-all focus-within:ring-2 focus-within:ring-emerald-500/20"
+      className="relative mt-8 rounded-[3rem] border border-slate-200 bg-white p-4 shadow-sm transition-all duration-300 focus-within:scale-[1.005] focus-within:border-emerald-500/30 focus-within:shadow-md focus-within:ring-4 focus-within:ring-emerald-500/10"
     >
       <div className="flex items-center gap-2 px-2 sm:gap-4">
         {/* Search icon — shows a subtle spinner while fetching */}
         <Search
           className={`ml-2 shrink-0 transition-colors ${
-            isLoading ? "text-emerald-400 animate-pulse" : "text-slate-400"
+            isLoading ? "animate-pulse text-emerald-400" : "text-slate-400"
           }`}
           size={24}
           aria-hidden="true"
         />
-
         <input
           ref={inputRef}
           id="global-search-input"
@@ -253,16 +247,14 @@ export default function SearchBar() {
           className="w-full border-none bg-transparent px-4 py-3 font-medium text-slate-700 outline-none placeholder:text-slate-400"
           aria-label="Search medicine or batch"
         />
-
         <button
           onClick={() => performSearch(query)}
-          className="shrink-0 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-slate-800 sm:px-6 sm:text-base"
+          className="shrink-0 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 active:scale-95 sm:px-6 sm:text-base"
           aria-label="Submit search"
         >
           {tHome("search_button")}
         </button>
       </div>
-
       {/* Suggestions dropdown */}
       <SearchSuggestions
         suggestions={suggestions}

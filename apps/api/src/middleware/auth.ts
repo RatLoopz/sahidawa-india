@@ -32,7 +32,7 @@ const getBearerToken = (authorization?: string): string | null => {
 };
 
 const getUserRole = (user: User): AuthRole => {
-    const metadataRole = user.app_metadata?.role || user.user_metadata?.role;
+const metadataRole = user.app_metadata?.role;
     return metadataRole === "admin" ? "admin" : "user";
 };
 

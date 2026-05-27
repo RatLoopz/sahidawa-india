@@ -270,7 +270,7 @@ export function BarcodeScanner({ onScan, debounceMs = 2000 }: BarcodeScannerProp
                 </p>
                 <button
                     onClick={handleRetry}
-                    className="rounded-full bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-emerald-400 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none"
+                    className="rounded-full bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white transition-all duration-300 hover:scale-105 hover:bg-emerald-400 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none active:scale-95"
                 >
                     Retry
                 </button>
@@ -312,7 +312,7 @@ export function BarcodeScanner({ onScan, debounceMs = 2000 }: BarcodeScannerProp
                 </p>
                 <button
                     onClick={handleRetry}
-                    className="rounded-full bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-emerald-400 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none"
+                    className="rounded-full bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white transition-all duration-300 hover:scale-105 hover:bg-emerald-400 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none active:scale-95"
                 >
                     Retry
                 </button>
@@ -351,12 +351,12 @@ export function BarcodeScanner({ onScan, debounceMs = 2000 }: BarcodeScannerProp
                 <button
                     onClick={toggleTorch}
                     type="button"
-                    className="absolute top-4 right-4 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white backdrop-blur-md transition-all hover:bg-black/80 active:scale-95"
+                    className="absolute top-4 right-4 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white backdrop-blur-md transition-all duration-300 hover:scale-105 hover:bg-black/85 active:scale-95"
                     title={torchOn ? "Turn off flashlight" : "Turn on flashlight"}
                     aria-label={torchOn ? "Turn off flashlight" : "Turn on flashlight"}
                 >
                     {torchOn ? (
-                        <Zap className="h-5 w-5 fill-amber-400 text-amber-400" />
+                        <Zap className="h-5 w-5 animate-pulse fill-amber-400 text-amber-400" />
                     ) : (
                         <ZapOff className="h-5 w-5 text-white" />
                     )}

@@ -15,6 +15,8 @@
         "@hookform/resolvers": "^5.2.2",
         "@supabase/auth-helpers-nextjs": "^0.15.0",
         "@supabase/supabase-js": "^2.106.1",
+        "@upstash/ratelimit": "^2.0.8",
+        "@upstash/redis": "^1.38.0",
         "@zxing/browser": "^0.2.0",
         "@zxing/library": "^0.22.0",
         "framer-motion": "^12.39.0",

@@ -27,7 +27,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import adminRoutes from "./routes/admin.routes";
-import { limiter } from "./middleware/rateLimit";
+import { verifyLimiter } from "./middleware/rateLimit";
 import reportsRouter from "./routes/reports";
 import pharmaciesRouter from "./routes/pharmacies";
 import verifyRouter from "./routes/verify";
@@ -62,7 +62,7 @@ app.use(
 );
 
 app.use(express.json({ limit: "1mb" }));
-app.use(limiter);
+app.use(verifyLimiter);
 
 app.use(
     morgan((tokens, req: Request, res: Response) => {
