@@ -68,29 +68,29 @@ export const updateReportStatus = async (req: AuthenticatedRequest, res: Respons
       .eq('district', data.district)
       .eq('status', 'verified_fake');
 
-   if (count && count >= 3) {
-  const alertLevel = count >= 10 ? 'high' : 'medium';
+    if (count && count >= 3) {
+    const alertLevel = count >= 10 ? 'high' : 'medium';
 
-  const { data: existingAlert } = await supabase
-    .from('district_alerts')
-    .select('id, alert_level')
-    .eq('district', data.district)
-    .maybeSingle();
-
-  if (!existingAlert) {
-    await supabase.from('district_alerts').insert({
-      district: data.district,
-      medicine_name: data.reported_brand_name,
-      alert_level: alertLevel,
-    });
-  } else if (existingAlert.alert_level !== alertLevel) {
-    await supabase
+    const { data: existingAlert } = await supabase
       .from('district_alerts')
-      .update({ alert_level: alertLevel })
-      .eq('id', existingAlert.id);
+      .select('id, alert_level')
+      .eq('district', data.district)
+      .maybeSingle();
+
+    if (!existingAlert) {
+      await supabase.from('district_alerts').insert({
+        district: data.district,
+        medicine_name: data.reported_brand_name,
+        alert_level: alertLevel,
+      });
+    } else if (existingAlert.alert_level !== alertLevel) {
+      await supabase
+        .from('district_alerts')
+        .update({ alert_level: alertLevel })
+        .eq('id', existingAlert.id);
+    }
   }
-}
-}
+
   res.json({ message: 'Report updated', report: data });
 };
 
