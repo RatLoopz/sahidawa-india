@@ -43,3 +43,4 @@
 | [#636](https://github.com/RatLoopz/sahidawa-india/pull/636) | 2026-05-27 | Frontend | 14 | @0411-bokilshruti | [View Doc](devtrack/2026-05/PR-636-i18n-add-hindi-translation.md) |
 | [#629](https://github.com/RatLoopz/sahidawa-india/pull/629) | 2026-05-26 | Frontend | 14 | @subham146 | [View Doc](devtrack/2026-05/PR-629-i18n-od-added-odia-translation.md) |
 | [#712](https://github.com/RatLoopz/sahidawa-india/pull/712) | 2026-05-27 | Frontend | 14 | @harshitsaxena214 | [View Doc](devtrack/2026-05/PR-712-feat-chat-locale-support.md) |
+| [#765](https://github.com/RatLoopz/sahidawa-india/pull/765) | 2026-05-27 | Backend | 6 | @Midoriya-w | [View Doc](devtrack/2026-05/PR-765-feat-add-pagination-to-getallmedicines-endpoint.md) |
