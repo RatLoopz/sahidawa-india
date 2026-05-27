@@ -22,6 +22,14 @@ describe("GET /api/pharmacies/nearest", () => {
         jest.clearAllMocks();
     });
 
+    afterEach(() => {
+        jest.clearAllTimers();
+    });
+
+    afterAll(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
+    });
+
     it("returns 400 when latitude or longitude is missing", async () => {
         const missingLatitude = await request(app).get("/api/pharmacies/nearest?lng=77.5946");
         const missingLongitude = await request(app).get("/api/pharmacies/nearest?lat=12.9716");
