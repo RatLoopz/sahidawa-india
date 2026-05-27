@@ -425,8 +425,6 @@ function ErrorResult({ message, onRetry, isOffline }: { message: string; onRetry
                 <button
                     onClick={onRetry}
                     disabled={isOffline}
-                    className="w-full rounded-2xl bg-slate-900 py-4 font-bold text-white shadow-lg shadow-slate-900/20 transition-colors hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                    className="w-full rounded-2xl bg-slate-900 py-4 font-bold text-white shadow-lg shadow-slate-900/20 transition-all hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
                     className="w-full rounded-2xl bg-slate-900 py-4 font-bold text-white shadow-lg shadow-slate-900/20 transition-all hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {isOffline ? "Waiting for connection..." : "Try Again"}
