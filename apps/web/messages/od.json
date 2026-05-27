@@ -13,13 +13,18 @@
         "report_fake": "ନକଲି ଔଷଧ ଜଣାନ୍ତୁ",
         "report_fake_subtitle": "ସନ୍ଦେହଜନକ ଔଷଧ ବିଷୟରେ ଅଭିଯୋଗ କରନ୍ତୁ",
         "search_placeholder": "ଔଷଧ କିମ୍ବା ବ୍ୟାଚ ନମ୍ବର ଖୋଜନ୍ତୁ...",
-        "search_button": "ଖୋଜନ୍ତୁ"
+        "search_button": "ଖୋଜନ୍ତୁ",
+        "sign_in": "Sign In",
+        "get_started": "Get Started"
     },
     "Navigation": {
         "how_it_works": "ଏହା କିପରି କାର୍ଯ୍ୟ କରେ",
         "alerts": "ସତର୍କ ସୂଚନା",
         "pharmacy_map": "ଔଷଧାଳୟ ମାନଚିତ୍ର",
         "language": "ଓଡ଼ିଆ"
+    },
+    "BackToTopButton": {
+        "label": "ଉପରକୁ ଯାଆନ୍ତୁ"
     },
     "VoicePage": {
         "header_title": "ଭଏସ୍ ଟ୍ରାଏଜ୍",

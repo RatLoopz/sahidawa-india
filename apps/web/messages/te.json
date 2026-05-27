@@ -13,13 +13,18 @@
         "report_fake": "నకిలీని నివేదించండి",
         "report_fake_subtitle": "అనుమానాస్పద మందును నివేదించండి",
         "search_placeholder": "మందు లేదా బ్యాచ్‌ను వెతకండి...",
-        "search_button": "వెతకండి"
+        "search_button": "వెతకండి",
+        "sign_in": "Sign In",
+        "get_started": "Get Started"
     },
     "Navigation": {
         "how_it_works": "ఇది ఎలా పనిచేస్తుంది",
         "alerts": "హెచ్చరికలు",
         "pharmacy_map": "ఫార్మసీ మ్యాప్",
         "language": "తెలుగు"
+    },
+    "BackToTopButton": {
+        "label": "పైనికి వెళ్లండి"
     },
     "VoicePage": {
         "header_title": "వాయిస్ ట్రియాజ్",
@@ -120,7 +125,6 @@
             "generic_message": "ఈసారి మీ వాయిస్ ఇన్‌పుట్‌ను ప్రాసెస్ చేయలేకపోయాం. దయచేసి మళ్లీ ప్రయత్నించండి.",
             "service_unavailable_title": "Voice service unavailable",
             "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
-
             "timeout_title": "Voice request timed out",
             "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
             "api_title": "SahiDawa AI అందుబాటులో లేదు",

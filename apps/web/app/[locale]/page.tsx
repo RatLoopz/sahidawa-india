@@ -142,6 +142,15 @@ export default function SahiDawaHome() {
                         </nav>
 
                         <button
+                            onClick={() => handleNavigation("login")}
+                            className="hidden md:flex h-9 items-center justify-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-50/50 px-4 py-1.5 text-sm font-bold text-emerald-700 transition-all duration-200 hover:bg-emerald-100 hover:border-emerald-500/50 hover:scale-105 sm:h-10 sm:px-5 sm:py-2 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20"
+                            aria-label={tHome("sign_in")}
+                        >
+                            <User size={16} />
+                            <span>{tHome("sign_in")}</span>
+                        </button>
+
+                        <button
                             onClick={() => handleNavigation("health")}
                             className="flex h-9 items-center justify-center gap-2 rounded-full bg-linear-to-r from-blue-500 to-purple-500 px-3 py-1.5 text-sm font-semibold text-white transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 sm:h-10 sm:px-4 sm:py-2"
                             aria-label="Open AI Health Assistant"
@@ -175,6 +184,16 @@ export default function SahiDawaHome() {
                     <p className="mx-auto max-w-2xl text-lg leading-relaxed font-medium text-(--color-text-secondary) md:text-xl">
                         {tHome("subtitle")}
                     </p>
+
+                    <div className="pt-2 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                        <button
+                            onClick={() => handleNavigation("login")}
+                            className="group flex w-[220px] items-center justify-center gap-2 rounded-full bg-emerald-600 px-8 py-3.5 text-base font-bold text-white shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-500/40 hover:-translate-y-0.5 active:scale-95"
+                        >
+                            <User size={20} />
+                            {tHome("get_started")}
+                        </button>
+                    </div>
                 </div>
 
                 {/* ── Primary CTA — Full-width Scan Button ── */}

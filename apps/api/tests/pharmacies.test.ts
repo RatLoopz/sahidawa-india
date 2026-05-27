@@ -59,7 +59,7 @@ describe("GET /api/pharmacies/nearest", () => {
             error: { message: "RPC unavailable" },
         } as never);
 
-        const select = jest.fn().mockResolvedValueOnce({
+        const limit = jest.fn().mockResolvedValueOnce({
             data: [
                 {
                     name: "Nearby Pharmacy",
@@ -97,22 +97,45 @@ describe("GET /api/pharmacies/nearest", () => {
             error: null,
         });
 
+        const select = jest.fn().mockReturnValue({
+            limit,
+        });
+
         mockedSupabase.from.mockReturnValueOnce({ select } as never);
 
-        const response = await request(app).get("/api/pharmacies/nearest?lat=12.9716&lng=77.5946&radius=10");
+        const response = await request(app).get(
+            "/api/pharmacies/nearest?lat=12.9716&lng=77.5946&radius=10"
+        );
 
         expect(response.status).toBe(200);
-        expect(mockedSupabase.rpc).toHaveBeenCalledWith("get_nearest_pharmacies", {
-            query_lat: 12.9716,
-            query_lng: 77.5946,
-        });
+
+        expect(mockedSupabase.rpc).toHaveBeenCalledWith(
+            "get_nearest_pharmacies",
+            {
+                query_lat: 12.9716,
+                query_lng: 77.5946,
+            }
+        );
+
         expect(mockedSupabase.from).toHaveBeenCalledWith("pharmacies");
-        expect(select).toHaveBeenCalledWith("*");
+
+     expect(select).toHaveBeenCalledWith(
+    "name, address, location, phone_number, is_verified, district, state"
+);
+
+        expect(limit).toHaveBeenCalled();
+
         expect(response.body.pharmacies).toHaveLength(2);
-        expect(response.body.pharmacies.map((pharmacy: { name: string }) => pharmacy.name)).toEqual([
+
+        expect(
+            response.body.pharmacies.map(
+                (pharmacy: { name: string }) => pharmacy.name
+            )
+        ).toEqual([
             "Nearby Pharmacy",
             "Mid Pharmacy",
         ]);
+
         expect(response.body.pharmacies[0]).not.toHaveProperty("rawDistance");
     });
 });

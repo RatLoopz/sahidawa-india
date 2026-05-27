@@ -13,13 +13,18 @@
         "report_fake": "போலியை புகாரளிக்கவும்",
         "report_fake_subtitle": "சந்தேகத்திற்கிடமான மருந்தை புகாரளிக்கவும்",
         "search_placeholder": "மருந்து அல்லது தொகுதியைத் தேடு...",
-        "search_button": "தேடு"
+        "search_button": "தேடு",
+        "sign_in": "Sign In",
+        "get_started": "Get Started"
     },
     "Navigation": {
         "how_it_works": "எப்படி வேலை செய்கிறது",
         "alerts": "எச்சரிக்கைகள்",
         "pharmacy_map": "மருந்தகம் வரைபடம்",
         "language": "தமிழ்"
+    },
+    "BackToTopButton": {
+        "label": "மேலே செல்லவும்"
     },
     "VoicePage": {
         "header_title": "குரல் பரிசோதனை",
@@ -120,7 +125,6 @@
             "generic_message": "இந்த முறை உங்கள் குரல் உள்ளீட்டை செயலாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
             "service_unavailable_title": "Voice service unavailable",
             "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
-
             "timeout_title": "Voice request timed out",
             "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
             "api_title": "SahiDawa AI கிடைக்கவில்லை",
