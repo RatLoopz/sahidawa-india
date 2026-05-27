@@ -90,7 +90,7 @@ export const updateReportStatus = async (req: AuthenticatedRequest, res: Respons
       .eq('id', existingAlert.id);
   }
 }
-  }
+}
   res.json({ message: 'Report updated', report: data });
 };
 
