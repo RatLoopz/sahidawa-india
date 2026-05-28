@@ -112,11 +112,13 @@ export default function Footer() {
                 {/* Bottom Footer */}
                 <div className="flex flex-col items-center justify-between gap-4 pt-6 text-xs text-slate-500 md:flex-row">
                     <div className="flex items-center gap-4">
-                        <p>© 2026 SahiDawa. Open Source under MIT License.</p>
+                        <p className="text-xs md:text-sm">
+                            © 2026 SahiDawa. Open Source under MIT License.
+                        </p>
                     </div>
 
-                    <p className="text-center md:text-right">
-                        Built with <Heart className="inline h-3 w-3 text-red-500" /> for the
+                    <p className="text-xs md:text-sm text-center md:text-right">
+                        Built with <Heart className="inline h-[1em] w-[1em] text-red-500" /> for the
                         open-source community.
                     </p>
                 </div>

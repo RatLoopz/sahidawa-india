@@ -98,7 +98,7 @@ export default function MedicineSearchSelect({
             placeholder={placeholder}
             className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
             aria-expanded={open}
-            aria-controls={listId}
+            aria-controls={open && !value ? listId : undefined}
             autoComplete="off"
           />
         </div>
