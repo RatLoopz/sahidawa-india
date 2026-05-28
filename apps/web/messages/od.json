@@ -15,12 +15,27 @@
         "search_placeholder": "ଔଷଧ କିମ୍ବା ବ୍ୟାଚ ନମ୍ବର ଖୋଜନ୍ତୁ...",
         "search_button": "ଖୋଜନ୍ତୁ",
         "sign_in": "Sign In",
-        "get_started": "Get Started"
+        "get_started": "Get Started",
+        "open_ai_health_assistant": "AI ସ୍ୱାସ୍ଥ୍ୟ ସହାୟକ ଖୋଲନ୍ତୁ",
+        "ai_health_assistant": "AI ସ୍ୱାସ୍ଥ୍ୟ ସହାୟକ",
+        "ai_chat": "AI ଚାଟ୍",
+        "ai_health_assistant_description": "ତୁରନ୍ତ ସ୍ୱାସ୍ଥ୍ୟ ପରାମର୍ଶ, ଲକ୍ଷଣ ଯାଞ୍ଚ ଏବଂ ପ୍ରେସ୍କ୍ରିପ୍ସନ୍ ମାର୍ଗଦର୍ଶନ ପାଆନ୍ତୁ",
+        "chat_now": "ଏବେ ଚାଟ୍ କରନ୍ତୁ",
+        "live_cdsco_alerts": "ଲାଇଭ୍ CDSCO ସତର୍କ ସୂଚନା",
+        "india_region": "ଭାରତ ଅଞ୍ଚଳ",
+        "alerts_empty_title": "ସବୁ ଠିକ୍ ଅଛି!",
+        "alerts_empty_description": "ଏବେ କୌଣସି ସକ୍ରିୟ ନିୟାମକ ସତର୍କ ସୂଚନା ନାହିଁ । ସୁରକ୍ଷିତ ରୁହନ୍ତୁ ଏବଂ ଆପଣଙ୍କ ଔଷଧ ସତ୍ୟାପିତ କରନ୍ତୁ ।",
+        "view_full_alert_log": "ସମ୍ପୂର୍ଣ୍ଣ ସତର୍କ ସୂଚନା ଲଗ୍ ଦେଖନ୍ତୁ"
     },
     "Navigation": {
         "how_it_works": "ଏହା କିପରି କାର୍ଯ୍ୟ କରେ",
         "alerts": "ସତର୍କ ସୂଚନା",
         "pharmacy_map": "ଔଷଧାଳୟ ମାନଚିତ୍ର",
+        "my_reports": "ମୋର ରିପୋର୍ଟ",
+        "home": "ହୋମ୍",
+        "scans": "ସ୍କାନ୍",
+        "map": "ମାନଚିତ୍ର",
+        "profile": "ପ୍ରୋଫାଇଲ୍",
         "language": "ଓଡ଼ିଆ"
     },
     "BackToTopButton": {

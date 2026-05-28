@@ -15,12 +15,27 @@
         "search_placeholder": "औषध किंवा बॅच शोधा...",
         "search_button": "शोधा",
         "sign_in": "Sign In",
-        "get_started": "Get Started"
+        "get_started": "Get Started",
+        "open_ai_health_assistant": "AI आरोग्य सहाय्यक उघडा",
+        "ai_health_assistant": "AI आरोग्य सहाय्यक",
+        "ai_chat": "AI चॅट",
+        "ai_health_assistant_description": "त्वरित आरोग्य सल्ला, लक्षण तपासणी आणि प्रिस्क्रिप्शन मार्गदर्शन मिळवा",
+        "chat_now": "आता चॅट करा",
+        "live_cdsco_alerts": "लाइव्ह CDSCO सूचना",
+        "india_region": "भारत क्षेत्र",
+        "alerts_empty_title": "सर्व ठीक आहे!",
+        "alerts_empty_description": "सध्या कोणतीही सक्रिय नियामक सूचना नाही. सुरक्षित रहा आणि तुमची औषधे पडताळा.",
+        "view_full_alert_log": "पूर्ण सूचना लॉग पहा"
     },
     "Navigation": {
         "how_it_works": "हे कसे कार्य करते",
         "alerts": "सूचना",
         "pharmacy_map": "औषधालय नकाशा",
+        "my_reports": "माझे अहवाल",
+        "home": "मुख्यपृष्ठ",
+        "scans": "स्कॅन",
+        "map": "नकाशा",
+        "profile": "प्रोफाइल",
         "language": "मराठी"
     },
     "BackToTopButton": {

@@ -15,12 +15,27 @@
         "search_placeholder": "Search medicine or batch...",
         "search_button": "Search",
         "sign_in": "Sign In",
-        "get_started": "Get Started"
+        "get_started": "Get Started",
+        "open_ai_health_assistant": "Open AI Health Assistant",
+        "ai_health_assistant": "AI Health Assistant",
+        "ai_chat": "AI Chat",
+        "ai_health_assistant_description": "Get instant health advice, symptom checking & prescription guidance",
+        "chat_now": "Chat Now",
+        "live_cdsco_alerts": "Live CDSCO Alerts",
+        "india_region": "India Region",
+        "alerts_empty_title": "All clear!",
+        "alerts_empty_description": "No active regulatory alerts right now. Stay safe and verify your medicines.",
+        "view_full_alert_log": "View Full Alert Log"
     },
     "Navigation": {
         "how_it_works": "How it Works",
         "alerts": "Alerts",
         "pharmacy_map": "Pharmacy Map",
+        "my_reports": "My Reports",
+        "home": "Home",
+        "scans": "Scans",
+        "map": "Map",
+        "profile": "Profile",
         "language": "English"
     },
     "BackToTopButton": {

@@ -15,12 +15,27 @@
         "search_placeholder": "ಔಷಧ ಅಥವಾ ಬ್ಯಾಚ್ ಹುಡುಕಿ...",
         "search_button": "ಹುಡುಕಿ",
         "sign_in": "Sign In",
-        "get_started": "Get Started"
+        "get_started": "Get Started",
+        "open_ai_health_assistant": "AI ಆರೋಗ್ಯ ಸಹಾಯಕ ತೆರೆಯಿರಿ",
+        "ai_health_assistant": "AI ಆರೋಗ್ಯ ಸಹಾಯಕ",
+        "ai_chat": "AI ಚಾಟ್",
+        "ai_health_assistant_description": "ತಕ್ಷಣದ ಆರೋಗ್ಯ ಸಲಹೆ, ರೋಗಲಕ್ಷಣ ಪರಿಶೀಲನೆ ಮತ್ತು ಪ್ರಿಸ್ಕ್ರಿಪ್ಷನ್ ಮಾರ್ಗದರ್ಶನ ಪಡೆಯಿರಿ",
+        "chat_now": "ಈಗ ಚಾಟ್ ಮಾಡಿ",
+        "live_cdsco_alerts": "ಲೈವ್ CDSCO ಎಚ್ಚರಿಕೆಗಳು",
+        "india_region": "ಭಾರತ ಪ್ರದೇಶ",
+        "alerts_empty_title": "ಎಲ್ಲವೂ ಸರಿಯಾಗಿದೆ!",
+        "alerts_empty_description": "ಈಗ ಯಾವುದೇ ಸಕ್ರಿಯ ನಿಯಂತ್ರಣ ಎಚ್ಚರಿಕೆಗಳಿಲ್ಲ. ಸುರಕ್ಷಿತರಾಗಿರಿ ಮತ್ತು ನಿಮ್ಮ ಔಷಧಿಗಳನ್ನು ಪರಿಶೀಲಿಸಿ.",
+        "view_full_alert_log": "ಸಂಪೂರ್ಣ ಎಚ್ಚರಿಕೆ ಲಾಗ್ ನೋಡಿ"
     },
     "Navigation": {
         "how_it_works": "ಹೇಗೆ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ",
         "alerts": "ಎಚ್ಚರಿಕೆಗಳು",
         "pharmacy_map": "ಔಷಧಾಲಯ ನಕ್ಷೆ",
+        "my_reports": "ನನ್ನ ವರದಿಗಳು",
+        "home": "ಮುಖಪುಟ",
+        "scans": "ಸ್ಕ್ಯಾನ್‌ಗಳು",
+        "map": "ನಕ್ಷೆ",
+        "profile": "ಪ್ರೊಫೈಲ್",
         "language": "ಕನ್ನಡ"
     },
     "BackToTopButton": {

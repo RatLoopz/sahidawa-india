@@ -14,7 +14,6 @@ import {
     Globe,
     ChevronRight,
     Activity,
-    Search,
     MessageCircle,
 } from "lucide-react";
 
@@ -69,7 +68,7 @@ export default function SahiDawaHome() {
     useEffect(() => {
         async function fetchAlerts() {
             try {
-                const { data, error } = await supabase
+                const { data } = await supabase
                     .from("medicines")
                     .select("*")
                     .or(
@@ -137,13 +136,13 @@ export default function SahiDawaHome() {
                                 href="/reports/me"
                                 className={`${desktopNavLinkClassName} flex items-center gap-1`}
                             >
-                                <History size={14} /> My Reports
+                                <History size={14} /> {tNav("my_reports")}
                             </Link>
                         </nav>
 
                         <button
                             onClick={() => handleNavigation("login")}
-                            className="hidden md:flex h-9 items-center justify-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-50/50 px-4 py-1.5 text-sm font-bold text-emerald-700 transition-all duration-200 hover:bg-emerald-100 hover:border-emerald-500/50 hover:scale-105 sm:h-10 sm:px-5 sm:py-2 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20"
+                            className="hidden h-9 items-center justify-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-50/50 px-4 py-1.5 text-sm font-bold text-emerald-700 transition-all duration-200 hover:scale-105 hover:border-emerald-500/50 hover:bg-emerald-100 sm:h-10 sm:px-5 sm:py-2 md:flex dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20"
                             aria-label={tHome("sign_in")}
                         >
                             <User size={16} />
@@ -153,10 +152,10 @@ export default function SahiDawaHome() {
                         <button
                             onClick={() => handleNavigation("health")}
                             className="flex h-9 w-9 items-center justify-center gap-2 rounded-full bg-linear-to-r from-blue-500 to-purple-500 px-3 py-1.5 text-sm font-semibold text-white transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 sm:h-10 sm:w-auto sm:px-4 sm:py-2"
-                            aria-label="Open AI Health Assistant"
+                            aria-label={tHome("open_ai_health_assistant")}
                         >
                             <MessageCircle size={16} />
-                           <span className="hidden sm:inline">AI Health Assistant</span>
+                            <span className="hidden sm:inline">{tHome("ai_health_assistant")}</span>
                         </button>
 
                         <LanguageSwitcher />
@@ -184,10 +183,10 @@ export default function SahiDawaHome() {
                         {tHome("subtitle")}
                     </p>
 
-                    <div className="pt-2 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                    <div className="flex flex-col items-center justify-center gap-4 pt-2 sm:flex-row">
                         <button
                             onClick={() => handleNavigation("login")}
-                            className="group flex w-[220px] items-center justify-center gap-2 rounded-full bg-emerald-600 px-8 py-3.5 text-base font-bold text-white shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-500/40 hover:-translate-y-0.5 active:scale-95"
+                            className="group flex w-[220px] items-center justify-center gap-2 rounded-full bg-emerald-600 px-8 py-3.5 text-base font-bold text-white shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-500/40 active:scale-95"
                         >
                             <User size={20} />
                             {tHome("get_started")}
@@ -320,7 +319,7 @@ export default function SahiDawaHome() {
                     </button>
                 </div>
 
-                {/* ── AI Health Assistant CTA Banner ── */}
+                {/* ── Health Assistant CTA Banner ── */}
                 <div className="group relative mt-8 overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page)/95 p-6 shadow-md transition-all duration-300 hover:shadow-xl sm:p-8 md:p-10">
                     <div className="pointer-events-none absolute -top-16 -right-16 h-64 w-64 rounded-full bg-purple-500/10 blur-3xl transition-transform duration-700 group-hover:scale-110" />
                     <div className="pointer-events-none absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-blue-500/10 blur-3xl transition-transform duration-700 group-hover:scale-110" />
@@ -334,7 +333,7 @@ export default function SahiDawaHome() {
                             <div className="space-y-1">
                                 <div className="flex items-center gap-2">
                                     <h3 className="text-xl font-extrabold tracking-tight text-(--color-text-primary) sm:text-2xl">
-                                        AI Health Assistant
+                                        {tHome("ai_health_assistant")}
                                     </h3>
                                     {/* Animated AI badge */}
                                     <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-500/10 px-2.5 py-0.5 text-[11px] font-bold tracking-wider whitespace-nowrap text-purple-500 uppercase ring-1 ring-purple-500/20">
@@ -342,12 +341,11 @@ export default function SahiDawaHome() {
                                             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-purple-400 opacity-60" />
                                             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-purple-500" />
                                         </span>
-                                        Live AI
+                                        {tHome("ai_chat")}
                                     </span>
                                 </div>
                                 <p className="text-sm leading-relaxed font-medium text-(--color-text-secondary) sm:text-base">
-                                    Get instant health advice, symptom checking &amp; prescription
-                                    guidance
+                                    {tHome("ai_health_assistant_description")}
                                 </p>
                             </div>
                         </div>
@@ -356,7 +354,7 @@ export default function SahiDawaHome() {
                             className="group/btn flex w-full items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-purple-500 to-blue-600 px-8 py-3.5 text-base font-bold text-white shadow-md shadow-purple-500/25 transition-all duration-300 hover:scale-[1.04] sm:w-auto"
                         >
                             <MessageCircle size={18} />
-                            Chat Now
+                            {tHome("chat_now")}
                             <ChevronRight
                                 size={18}
                                 className="transition-transform duration-200 group-hover/btn:translate-x-1"
@@ -375,11 +373,11 @@ export default function SahiDawaHome() {
                             <div className="flex items-center gap-2">
                                 <Activity size={20} className="text-red-500" />
                                 <h3 className="text-lg font-bold text-(--color-text-primary)">
-                                    Live CDSCO Alerts
+                                    {tHome("live_cdsco_alerts")}
                                 </h3>
                             </div>
                             <span className="hidden rounded-full bg-red-500/10 px-2.5 py-1 text-xs font-bold tracking-wider text-red-500 uppercase sm:block">
-                                India Region
+                                {tHome("india_region")}
                             </span>
                         </div>
 
@@ -469,8 +467,8 @@ export default function SahiDawaHome() {
                                                     className="text-emerald-500"
                                                 />
                                             }
-                                            title="All clear!"
-                                            description="No active regulatory alerts right now. Stay safe and verify your medicines."
+                                            title={tHome("alerts_empty_title")}
+                                            description={tHome("alerts_empty_description")}
                                             className="border-none bg-transparent! p-6"
                                         />
                                     </div>
@@ -478,7 +476,7 @@ export default function SahiDawaHome() {
                             </div>
                         </div>
 
-                        {/* ── View Full Alert Log CTA ── */}
+                        {/* ── Alert Log CTA ── */}
                         <div className="border-t border-(--color-border-muted) bg-(--color-surface-page) p-4">
                             <Link href="/alerts" className="block w-full">
                                 <button className="group/log flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) py-3 font-bold text-(--color-text-primary) transition-all duration-200 hover:border-slate-500/30 hover:shadow-sm">
@@ -486,7 +484,7 @@ export default function SahiDawaHome() {
                                         size={15}
                                         className="text-(--color-text-muted) transition-colors duration-200 group-hover/log:text-red-500"
                                     />
-                                    View Full Alert Log
+                                    {tHome("view_full_alert_log")}
                                     <ChevronRight
                                         size={16}
                                         className="text-(--color-text-muted) transition-transform duration-200 group-hover/log:translate-x-1"
@@ -509,7 +507,7 @@ export default function SahiDawaHome() {
                 <Link
                     href="/"
                     className="group flex w-16 flex-col items-center gap-1.5"
-                    aria-label="Home"
+                    aria-label={tNav("home")}
                 >
                     <div className="text-emerald-500 transition-transform group-hover:-translate-y-1">
                         <Home size={24} strokeWidth={2.5} />
@@ -517,60 +515,60 @@ export default function SahiDawaHome() {
                     <span
                         className={`${mobileNavLabelClassName} text-[11px] font-bold text-emerald-500`}
                     >
-                        Home
+                        {tNav("home")}
                     </span>
                 </Link>
 
                 <Link
                     href="/scan"
                     className="group flex w-16 flex-col items-center gap-1.5 text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
-                    aria-label="Scans"
+                    aria-label={tNav("scans")}
                 >
                     <div className="transition-transform group-hover:-translate-y-1">
                         <History size={24} strokeWidth={2} />
                     </div>
                     <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
-                        Scans
+                        {tNav("scans")}
                     </span>
                 </Link>
 
                 <Link
                     href="/map"
                     className="group flex w-16 flex-col items-center gap-1.5 text-(--color-text-muted) transition-colors hover:text-amber-500"
-                    aria-label="Map"
+                    aria-label={tNav("map")}
                 >
                     <div className="transition-transform group-hover:-translate-y-1">
                         <MapPin size={24} strokeWidth={2} />
                     </div>
                     <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
-                        Map
+                        {tNav("map")}
                     </span>
                 </Link>
 
                 <Link
                     href="/alerts"
                     className="group flex w-16 flex-col items-center gap-1.5 text-(--color-text-muted) transition-colors hover:text-red-500"
-                    aria-label="Alerts"
+                    aria-label={tNav("alerts")}
                 >
                     <div className="relative transition-transform group-hover:-translate-y-1">
                         <Bell size={24} strokeWidth={2} />
                         <span className="absolute top-0 right-0.5 h-2 w-2 animate-pulse rounded-full border border-(--color-surface-page) bg-red-500"></span>
                     </div>
                     <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
-                        Alerts
+                        {tNav("alerts")}
                     </span>
                 </Link>
 
                 <Link
                     href="/profile"
                     className="group flex w-16 flex-col items-center gap-1.5 text-(--color-text-muted) transition-colors hover:text-emerald-500"
-                    aria-label="Profile"
+                    aria-label={tNav("profile")}
                 >
                     <div className="transition-transform group-hover:-translate-y-1">
                         <User size={24} strokeWidth={2} />
                     </div>
                     <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
-                        Profile
+                        {tNav("profile")}
                     </span>
                 </Link>
             </nav>

@@ -1,13 +1,100 @@
-# SahiDawa — Codebase Map
+# SahiDawa — System Design
+
+> **Single source of truth for how the system is architected and where every file lives.**  
+> High-level architecture diagrams are at the top; granular file/directory breakdowns follow.
+
+---
+
+## 🏗️ Monorepo Structure (NPM Workspaces)
+
+SahiDawa is structured as a **Monorepo** (Monolithic Repository). Instead of having separate repositories for the frontend and backend, everything lives here under one roof. We use **NPM Workspaces** to manage multiple independent sub-projects efficiently.
+
+### Directory Layout
+
+- **`apps/`**: Contains the actual runnable applications.
+  - **`apps/web`**: Next.js 16 Frontend (React 19, Tailwind CSS v4).
+  - **`apps/api`**: Node.js/Express Backend (will connect to Supabase).
+  - **`apps/ml`**: Python FastAPI service (for Machine Learning and Voice/Vision Processing).
+
+- **`packages/`**: Contains shared code that can be used across multiple apps.
+  - *Example*: If we build a shared UI component library or common database schemas in the future, they will live here. Even if this folder is currently empty, do not delete it, as it is pre-configured for future scalability.
+
+---
+
+## 🛠️ Installation & Setup Rules
+
+**CRITICAL: NEVER run `npm install` inside the `apps/web` or `apps/api` folders directly.**
+
+Because this is a workspace-enabled monorepo, NPM uses **Hoisting** to share common dependencies at the root level to save disk space.
+
+### 1. Initial Setup
+
+When you clone the repository, navigate to the **root folder (`sahidawa-india`)** and run:
+
+```bash
+npm install
+```
+
+*This will automatically install and link all dependencies for all apps and packages.*
+
+### 2. Adding New Packages
+
+If you need to install a new package for a specific app, stay in the **root folder** and use the `-w` (workspace) flag:
+
+- To add a package to the frontend:
+  ```bash
+  npm install <package-name> -w web
+  ```
+- To add a package to the backend:
+  ```bash
+  npm install <package-name> -w api
+  ```
+
+---
+
+## 🚀 Running the Apps
+
+You can start any app from the **root folder** using the workspace flag:
+
+- **Run Frontend (Next.js):**
+  ```bash
+  npm run dev -w web
+  ```
+- **Run Backend (Express):**
+  ```bash
+  npm run dev -w api
+  ```
+
+---
+
+## 📦 Versioning & Dependency Locking
+
+We strictly use exact versions or locked ranges (e.g., `^16.2.4`) in our `package.json` files instead of `"latest"`.
+
+**Why?**  
+If we used `"latest"`, two contributors cloning the repo on different days might get different versions of Next.js or React, leading to severe version mismatch errors and broken builds.
+
+By locking the versions:
+1. Every contributor runs the exact same environment.
+2. The `package-lock.json` at the root guarantees deterministic installations.
+
+**Current Tech Stack Versions (Locked):**
+- Next.js: `v16.2.4`
+- React: `v19.x`
+- Tailwind CSS: `v4.x`
+
+---
+
+## 🗺️ Codebase Map
 
 > **Use this to locate exactly which file to edit for any task.**  
 > Every file listed here has been verified to exist. Empty directories are noted.
 
 ---
 
-## FRONTEND — `apps/web/`
+### FRONTEND — `apps/web/`
 
-### Entry Points
+#### Entry Points
 
 | File                          | Purpose                                                                       | Status          |
 | ----------------------------- | ----------------------------------------------------------------------------- | --------------- |
@@ -20,7 +107,7 @@
 | `next.config.mjs`             | Next.js config (minimal, 92 bytes)                                            | ✅ Exists       |
 | `postcss.config.mjs`          | Uses `@tailwindcss/postcss` plugin                                            | ✅ Exists       |
 
-### Directories That Are EMPTY (Need Contributors)
+#### Directories That Are EMPTY (Need Contributors)
 
 | Directory             | What Should Go Here                                                    |
 | --------------------- | ---------------------------------------------------------------------- |
@@ -36,7 +123,7 @@
 | `app/loading.tsx`     | Global loading skeleton                                                |
 | `app/error.tsx`       | Error boundary                                                         |
 
-### Key Patterns in Existing Pages
+#### Key Patterns in Existing Pages
 
 **State machine pattern (scan/page.tsx):**
 
@@ -61,9 +148,9 @@ const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 
 ---
 
-## BACKEND — `apps/api/`
+### BACKEND — `apps/api/`
 
-### Existing Files
+#### Existing Files
 
 | File                 | Purpose                                                             | Status        |
 | -------------------- | ------------------------------------------------------------------- | ------------- |
@@ -75,7 +162,7 @@ const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 | `tsconfig.json`      | TypeScript config                                                   | ✅ Exists     |
 | `tests/`             | Test directory                                                      | 🔜 Empty      |
 
-### Directories That Are EMPTY (Need Contributors)
+#### Directories That Are EMPTY (Need Contributors)
 
 | Directory         | What Belongs Here                                           |
 | ----------------- | ----------------------------------------------------------- |
@@ -83,7 +170,7 @@ const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 | `src/services/`   | `medicineService.ts`, `pharmacyService.ts`                  |
 | `src/middleware/` | `rateLimit.ts`, `validate.ts`, `auth.ts`, `errorHandler.ts` |
 
-### How to Add a New Route
+#### How to Add a New Route
 
 ```ts
 // 1. Create: apps/api/src/routes/verify.ts
@@ -97,7 +184,7 @@ import verifyRouter from './routes/verify'
 app.use('/api/verify', verifyRouter)
 ```
 
-### Database Client Usage
+#### Database Client Usage
 
 ```ts
 // Import in any service file:
@@ -112,9 +199,9 @@ const { data, error } = await supabase
 
 ---
 
-## ML SERVICE — `apps/ml/`
+### ML SERVICE — `apps/ml/`
 
-### Existing Files
+#### Existing Files
 
 | File                        | Purpose                                                                | Status    |
 | --------------------------- | ---------------------------------------------------------------------- | --------- |
@@ -126,7 +213,7 @@ const { data, error } = await supabase
 | `models/`                   | Empty — TF Lite `.tflite` model files                                  | 🔜 Empty  |
 | `agent/`                    | Empty — CDSCO monitoring LangChain agent                               | 🔜 Empty  |
 
-### How to Add a New Router
+#### How to Add a New Router
 
 ```python
 # 1. Create: apps/ml/routers/ocr.py
@@ -144,9 +231,9 @@ app.include_router(ocr.router)
 
 ---
 
-## DATABASE — Supabase Schema
+### DATABASE — Supabase Schema
 
-### Tables (defined in `apps/api/src/db/schema.sql`)
+#### Tables (defined in `apps/api/src/db/schema.sql`)
 
 **`medicines`** — Master drug data from CDSCO
 
@@ -186,7 +273,7 @@ district VARCHAR(100)
 status VARCHAR(50)                 -- 'pending' | 'verified_fake' | 'false_alarm'
 ```
 
-### PostGIS Geo Query Pattern
+#### PostGIS Geo Query Pattern
 
 ```sql
 -- Find pharmacies within 5km of user
@@ -198,7 +285,7 @@ ORDER BY dist LIMIT 10;
 
 ---
 
-## DATA — `data/`
+### DATA — `data/`
 
 | File                       | Status             | Notes                            |
 | -------------------------- | ------------------ | -------------------------------- |
@@ -207,7 +294,7 @@ ORDER BY dist LIMIT 10;
 
 ---
 
-## CONFIG FILES
+### CONFIG FILES
 
 | File                       | Purpose                                        |
 | -------------------------- | ---------------------------------------------- |

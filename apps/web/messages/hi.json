@@ -15,12 +15,27 @@
         "search_placeholder": "दवा या बैच खोजें...",
         "search_button": "खोजें",
         "sign_in": "Sign In",
-        "get_started": "Get Started"
+        "get_started": "Get Started",
+        "open_ai_health_assistant": "AI स्वास्थ्य सहायक खोलें",
+        "ai_health_assistant": "AI स्वास्थ्य सहायक",
+        "ai_chat": "AI चैट",
+        "ai_health_assistant_description": "तुरंत स्वास्थ्य सलाह, लक्षण जाँच और प्रिस्क्रिप्शन मार्गदर्शन पाएं",
+        "chat_now": "अभी चैट करें",
+        "live_cdsco_alerts": "लाइव CDSCO अलर्ट",
+        "india_region": "भारत क्षेत्र",
+        "alerts_empty_title": "सब ठीक है!",
+        "alerts_empty_description": "अभी कोई सक्रिय नियामक अलर्ट नहीं है। सुरक्षित रहें और अपनी दवाएं सत्यापित करें।",
+        "view_full_alert_log": "पूरा अलर्ट लॉग देखें"
     },
     "Navigation": {
         "how_it_works": "यह कैसे काम करता है",
         "alerts": "अलर्ट",
         "pharmacy_map": "फार्मेसी मानचित्र",
+        "my_reports": "मेरी रिपोर्ट",
+        "home": "होम",
+        "scans": "स्कैन",
+        "map": "मानचित्र",
+        "profile": "प्रोफ़ाइल",
         "language": "हिन्दी"
     },
     "BackToTopButton": {

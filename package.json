@@ -25,11 +25,11 @@
     "author": "",
     "license": "MIT",
     "dependencies": {
-        "@supabase/supabase-js": "^2.106.1",
+        "@supabase/supabase-js": "^2.106.2",
         "cors": "^2.8.6",
         "dotenv": "^17.4.2",
         "express": "^5.2.1",
-        "helmet": "^8.1.0",
+        "helmet": "^8.2.0",
         "morgan": "^1.10.1",
         "redis": "^5.12.1",
         "winston-daily-rotate-file": "^5.0.0",

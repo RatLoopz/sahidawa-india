@@ -15,12 +15,27 @@
         "search_placeholder": "మందు లేదా బ్యాచ్‌ను వెతకండి...",
         "search_button": "వెతకండి",
         "sign_in": "Sign In",
-        "get_started": "Get Started"
+        "get_started": "Get Started",
+        "open_ai_health_assistant": "AI ఆరోగ్య సహాయకుడిని తెరవండి",
+        "ai_health_assistant": "AI ఆరోగ్య సహాయకుడు",
+        "ai_chat": "AI చాట్",
+        "ai_health_assistant_description": "తక్షణ ఆరోగ్య సలహా, లక్షణాల తనిఖీ మరియు ప్రిస్క్రిప్షన్ మార్గదర్శనం పొందండి",
+        "chat_now": "ఇప్పుడే చాట్ చేయండి",
+        "live_cdsco_alerts": "లైవ్ CDSCO హెచ్చరికలు",
+        "india_region": "భారత ప్రాంతం",
+        "alerts_empty_title": "అన్నీ సురక్షితం!",
+        "alerts_empty_description": "ప్రస్తుతం క్రియాశీల నియంత్రణ హెచ్చరికలు లేవు. సురక్షితంగా ఉండండి మరియు మీ మందులను ధృవీకరించండి.",
+        "view_full_alert_log": "పూర్తి హెచ్చరిక లాగ్ చూడండి"
     },
     "Navigation": {
         "how_it_works": "ఇది ఎలా పనిచేస్తుంది",
         "alerts": "హెచ్చరికలు",
         "pharmacy_map": "ఫార్మసీ మ్యాప్",
+        "my_reports": "నా నివేదికలు",
+        "home": "హోమ్",
+        "scans": "స్కాన్లు",
+        "map": "మ్యాప్",
+        "profile": "ప్రొఫైల్",
         "language": "తెలుగు"
     },
     "BackToTopButton": {
