@@ -1,24 +1,59 @@
-# Dependency directories (host symlinks will crash Docker context packaging)
+# ── Dependency directories (host symlinks will crash Docker context) ──
 node_modules
 **/node_modules
 
-# Build & compilation outputs
+# ── Build & compilation outputs ──
 .next
 out
 dist
 build
 *.log
 
-# Version control & metadata
+# ── Version control & metadata ──
 .git
 .github
 .idea
 .vscode
 .DS_Store
 
-# Environment files
+# ── Environment files (secrets must be injected at runtime) ──
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
+
+# ── Python artifacts ──
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+*.egg-info
+venv
+.venv
+
+# ── Documentation & non-runtime files ──
+docs
+*.md
+!apps/ml/README.md
+LICENSE
+CHANGELOG.md
+
+# ── Test suites (not needed in production images) ──
+**/tests
+**/*.test.ts
+**/*.test.tsx
+**/*.test.js
+**/*.spec.ts
+
+# ── CI/CD & tooling configs ──
+.husky
+.prettierrc
+.prettierignore
+.eslintrc*
+eslint.config.*
+jest.config.*
+
+# ── ML development pipeline (large model checkpoints) ──
+ml_model_dev_pipeline
+
+# ── Supabase local dev files ──
+supabase
