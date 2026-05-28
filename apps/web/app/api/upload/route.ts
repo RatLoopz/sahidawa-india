@@ -5,36 +5,49 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
-    
+
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    const cloudName = process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
     const apiKey = process.env.CLOUDINARY_API_KEY;
     const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
     if (!cloudName || !apiKey || !apiSecret) {
-      return NextResponse.json({ error: "Server is missing Cloudinary credentials." }, { status: 500 });
+      return NextResponse.json(
+        { error: "Server is missing Cloudinary credentials." },
+        { status: 500 }
+      );
     }
 
     const timestamp = Math.round(new Date().getTime() / 1000).toString();
-    const paramsToSign = `timestamp=${timestamp}${apiSecret}`;
-    const signature = crypto.createHash("sha1").update(paramsToSign).digest("hex");
+    const folder = "sahidawa/reports";
+
+    // correct signature format — sorted params + secret appended at end
+    const paramsToSign = `folder=${folder}&timestamp=${timestamp}${apiSecret}`;
+    const signature = crypto
+      .createHash("sha1")
+      .update(paramsToSign)
+      .digest("hex");
 
     const cloudinaryFormData = new FormData();
     cloudinaryFormData.append("file", file);
     cloudinaryFormData.append("api_key", apiKey);
     cloudinaryFormData.append("timestamp", timestamp);
     cloudinaryFormData.append("signature", signature);
+    cloudinaryFormData.append("folder", folder);
 
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-      method: "POST",
-      body: cloudinaryFormData,
-    });
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      {
+        method: "POST",
+        body: cloudinaryFormData,
+      }
+    );
 
     const data = await res.json();
-    
+
     if (!res.ok) {
       return NextResponse.json(
         { error: data.error?.message || "Failed to upload to Cloudinary" },
@@ -45,6 +58,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ secure_url: data.secure_url });
   } catch (error) {
     console.error("Upload route error:", error);
-    return NextResponse.json({ error: "Internal server error during upload" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error during upload" },
+      { status: 500 }
+    );
   }
 }
