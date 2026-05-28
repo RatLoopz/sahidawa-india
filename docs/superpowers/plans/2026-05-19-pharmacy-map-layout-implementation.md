@@ -245,7 +245,7 @@ export type HeatmapOption = {
 
 export function PharmacyResultsPanel(props: PharmacyResultsPanelProps) {
     return (
-        <div className="flex h-full flex-col rounded-[2rem] border border-slate-200 bg-white">
+        <div className="flex h-full flex-col rounded-4xl border border-slate-200 bg-white">
             <div className="border-b border-slate-100 p-4">
                 <div className="flex items-start justify-between gap-3">
                     <div>
@@ -359,7 +359,7 @@ Expected: FAIL because the current page still renders the floating risk card cla
 
 ```tsx
 <div className="flex-1 overflow-hidden md:flex md:gap-4 md:p-4">
-    <aside className="hidden md:flex md:w-[24rem] md:max-w-[26rem] md:min-w-[24rem]">
+    <aside className="hidden md:flex md:w-[24rem] md:max-w-104 md:min-w-[24rem]">
         <PharmacyResultsPanel
             count={filteredPharmacies.length}
             isLoading={isLoading}
@@ -373,7 +373,7 @@ Expected: FAIL because the current page still renders the floating risk card cla
         />
     </aside>
 
-    <div className="relative flex-1 overflow-hidden rounded-[2rem] md:border md:border-slate-200 md:bg-white md:shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+    <div className="relative flex-1 overflow-hidden rounded-4xl md:border md:border-slate-200 md:bg-white md:shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
         <PharmacyMap
             pharmacies={filteredPharmacies}
             selectedPharmacyId={selectedPharmacyId}

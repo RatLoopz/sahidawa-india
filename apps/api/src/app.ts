@@ -27,6 +27,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import adminRoutes from "./routes/admin.routes";
+import { requireAuth, requireRole } from "./middleware/auth";
 import { verifyLimiter } from "./middleware/rateLimit";
 import reportsRouter from "./routes/reports";
 import pharmaciesRouter from "./routes/pharmacies";
@@ -81,8 +82,8 @@ app.get("/", (req: Request, res: Response) => {
     res.send("SahiDawa-India API is running successfully!");
 });
 
-// Admin Routes
-app.use("/api/v1/admin", adminRoutes);
+// Admin Routes — protected: must be authenticated + have admin role
+app.use("/api/v1/admin", requireAuth, requireRole("admin"), adminRoutes);
 
 app.get("/health", async (req: Request, res: Response) => {
     logger.info("Health check endpoint accessed");
