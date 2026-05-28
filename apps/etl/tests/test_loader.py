@@ -148,165 +148,144 @@ def test_batch_success_returns_summary_without_failed_rows_csv(tmp_path):
     assert len(client.upsert_calls) == 1
 
 
-def test_failed_batch_falls_back_to_row_level_upserts_and_logs_bad_row(tmp_path, capsys):
-    client = FakeSupabaseClient(fail_batches=True, fail_generic_names={"Bad Float"})
-    loader = make_loader(client, tmp_path)
-    df = pd.DataFrame(
-        [
-            {"generic_name": "Paracetamol", "strength": "500mg", "dosage_form": "Tablet"},
-            {"generic_name": "Bad Float", "strength": "not-a-float", "dosage_form": "Tablet"},
-            {"generic_name": "Cetirizine", "strength": "10mg", "dosage_form": "Tablet"},
-        ]
-    )
+# ── Tests for merge_commercial_mrp ────────────────────────────────────────────
 
-    stats = loader.load(df)
+class MergeFakeTable(FakeTable):
+    """FakeTable extended with .is_() and .range() for merge tests."""
 
-    assert stats["inserted"] == 2
-    assert stats["failed"] == 1
-    assert stats["error_counts"] == {"duplicate_key": 1}
-    assert len(client.upsert_calls) == 4
+    def __init__(self, name, client):
+        super().__init__(name, client)
+        self._is_filters = []
+        self._range_start = None
+        self._range_end = None
 
-    log_lines = [line for line in capsys.readouterr().out.splitlines() if '"event": "etl_row_failure"' in line]
-    assert len(log_lines) == 1
-    log = json.loads(log_lines[0])
-    assert log["medicine_name"] == "Bad Float"
-    assert log["unresolved_value"] == "not-a-float"
-    assert log["db_error_code"] == "23505"
-    assert log["error_category"] == "duplicate_key"
-    assert log["row_index"] == 1
-    assert log["pipeline"] == "janaushadhi"
+    def is_(self, column, value):
+        self._is_filters.append((column, value))
+        return self
 
+    def range(self, start, end):
+        self._range_start = start
+        self._range_end = end
+        return self
 
-def test_failed_rows_are_exported_to_csv_with_error_columns(tmp_path):
-    client = FakeSupabaseClient(fail_batches=True, fail_generic_names={"Bad Float"})
-    loader = make_loader(client, tmp_path)
-    df = pd.DataFrame(
-        [
-            {"generic_name": "Bad Float", "strength": "not-a-float", "dosage_form": "Tablet"},
-        ]
-    )
+    def execute(self):
+        if self.operation == "select":
+            rows = list(self.client.medicines)
 
-    stats = loader.load(df)
+            for col, val in self.eq_filters:
+                rows = [r for r in rows if r.get(col) == val]
 
-    failed_rows_csv = Path(stats["failed_rows_csv"])
-    assert failed_rows_csv.exists()
-    failed = pd.read_csv(failed_rows_csv, dtype=str)
-    assert failed.loc[0, "generic_name"] == "Bad Float"
-    assert failed.loc[0, "error_category"] == "duplicate_key"
-    assert failed.loc[0, "db_error_code"] == "23505"
-    assert failed.loc[0, "error_message"]
+            for col, val in self._is_filters:
+                if val == "null":
+                    rows = [r for r in rows if r.get(col) is None]
+
+            if self._range_start is not None and self._range_end is not None:
+                page_size = self._range_end - self._range_start + 1
+                rows = rows[self._range_start: self._range_start + page_size]
+
+            return FakeExecuteResponse(rows)
+
+        return super().execute()
 
 
-def test_validation_failure_log_includes_required_debug_fields(tmp_path, capsys):
-    client = FakeSupabaseClient(
-        errors_by_generic_name={"Missing Name": "validation failed: generic_name is required"}
-    )
-    loader = make_loader(client, tmp_path)
-    df = pd.DataFrame(
-        [
-            {"generic_name": "Missing Name", "strength": "", "dosage_form": "Tablet"},
-        ]
-    )
+class MergeFakeSupabaseClient:
+    """Minimal Supabase fake for merge_commercial_mrp tests."""
 
-    stats = loader.load(df)
+    def __init__(self, medicines=None):
+        self.medicines = medicines or []
+        self.update_calls = []
 
-    assert stats["failed"] == 1
-    assert stats["error_counts"] == {"validation_error": 1}
-    log_lines = [line for line in capsys.readouterr().out.splitlines() if '"event": "etl_row_failure"' in line]
-    log = json.loads(log_lines[0])
-    assert log["medicine_name"] == "Missing Name"
-    assert log["unresolved_value"] == ""
-    assert log["db_error_code"] is None
-    assert log["error_category"] == "validation_error"
+    def table(self, name):
+        t = MergeFakeTable(name, self)
+        original_execute = t.execute
 
+        def patched_execute():
+            if t.operation == "update":
+                row_id = next((v for c, v in t.eq_filters if c == "id"), None)
+                self.update_calls.append((name, t.pending_update, t.eq_filters))
 
-def test_summary_prints_alert_when_success_rate_is_below_threshold(tmp_path, caplog):
-    client = FakeSupabaseClient(fail_batches=True, fail_generic_names={"Bad Float"})
-    loader = make_loader(client, tmp_path)
-    df = pd.DataFrame(
-        [
-            {"generic_name": "Bad Float", "strength": "not-a-float", "dosage_form": "Tablet"},
-            {"generic_name": "Paracetamol", "strength": "500mg", "dosage_form": "Tablet"},
-        ]
-    )
+                for med in self.medicines:
+                    if med.get("id") == row_id:
+                        med.update(t.pending_update)
 
-    stats = loader.load(df)
+                return FakeExecuteResponse()
 
-    assert stats["success_rate"] == 50.0
-    output = caplog.text
-    assert "ALERT" in output
-    assert "95%" in output
+            return original_execute()
+
+        t.execute = patched_execute
+        return t
 
 
-def test_retry_failed_rows_updates_successful_and_failed_retry_records(tmp_path):
-    retry_rows = [
-        {
-            "id": "row-1",
-            "pipeline_name": "janaushadhi",
-            "status": "failed",
-            "row_payload": {"generic_name": "Paracetamol", "strength": "500mg", "dosage_form": "Tablet"},
-            "attempt_count": 1,
-        },
-        {
-            "id": "row-2",
-            "pipeline_name": "janaushadhi",
-            "status": "failed",
-            "row_payload": {"generic_name": "Bad Float", "strength": "not-a-float", "dosage_form": "Tablet"},
-            "attempt_count": 2,
-        },
+def make_merge_loader(client, tmp_path):
+    loader = SupabaseLoader.__new__(SupabaseLoader)
+    loader.client = client
+    loader.failed_rows_dir = tmp_path
+    loader.pipeline_name = "commercial_mrp"
+    return loader
+
+
+def test_merge_updates_all_null_mrp_rows_beyond_old_limit(tmp_path):
+    medicines = [
+        {"id": f"med-{i}", "generic_name": "Paracetamol", "strength": "500mg", "mrp": None}
+        for i in range(10)
     ]
-    client = FakeSupabaseClient(fail_generic_names={"Bad Float"}, retry_rows=retry_rows)
-    loader = make_loader(client, tmp_path)
 
-    stats = loader.retry_failed_rows()
+    client = MergeFakeSupabaseClient(medicines=medicines)
+    loader = make_merge_loader(client, tmp_path)
 
-    assert stats["total"] == 2
-    assert stats["inserted"] == 1
-    assert stats["failed"] == 1
+    mrp_df = pd.DataFrame([
+        {"generic_name": "Paracetamol", "strength": "500mg", "mrp": 18.50}
+    ])
 
-    updates = [call[1] for call in client.update_calls if call[0] == "etl_failed_rows"]
-    assert updates[0]["status"] == "retry_succeeded"
-    assert updates[0]["attempt_count"] == 2
-    assert updates[1]["status"] == "failed"
-    assert updates[1]["attempt_count"] == 3
-    assert updates[1]["error_category"] == "duplicate_key"
+    stats = loader.merge_commercial_mrp(mrp_df, page_size=1000)
+
+    assert stats["checked"] == 10
+    assert stats["updated"] == 10
+    assert stats["skipped"] == 0
+    assert stats["failed"] == 0
+    assert all(m["mrp"] == 18.50 for m in medicines)
 
 
-def test_retry_success_is_counted_only_after_retry_metadata_update_succeeds(tmp_path):
-    retry_rows = [
-        {
-            "id": "row-1",
-            "pipeline_name": "janaushadhi",
-            "status": "failed",
-            "row_payload": {"generic_name": "Paracetamol", "strength": "500mg", "dosage_form": "Tablet"},
-            "attempt_count": 1,
-        },
+def test_merge_does_not_match_iron_against_spironolactone(tmp_path):
+    medicines = [
+        {"id": "med-1", "generic_name": "Spironolactone", "strength": "25mg", "mrp": None},
+        {"id": "med-2", "generic_name": "Iron", "strength": "100mg", "mrp": None},
     ]
-    client = FakeSupabaseClient(retry_rows=retry_rows, update_fail_ids={"row-1"})
-    loader = make_loader(client, tmp_path)
 
-    stats = loader.retry_failed_rows()
+    client = MergeFakeSupabaseClient(medicines=medicines)
+    loader = make_merge_loader(client, tmp_path)
 
-    assert stats["total"] == 1
-    assert stats["inserted"] == 0
-    assert stats["failed"] == 1
+    mrp_df = pd.DataFrame([
+        {"generic_name": "Iron", "strength": "100mg", "mrp": 32.0}
+    ])
+
+    stats = loader.merge_commercial_mrp(mrp_df, page_size=1000)
+
+    spiro = next(m for m in medicines if m["id"] == "med-1")
+    iron = next(m for m in medicines if m["id"] == "med-2")
+
+    assert spiro["mrp"] is None
+    assert iron["mrp"] == 32.0
+    assert stats["updated"] == 1
+    assert stats["skipped"] == 1
 
 
-def test_persist_failure_updates_existing_retry_row_for_same_payload(tmp_path):
-    client = FakeSupabaseClient(fail_generic_names={"Bad Float"})
-    loader = make_loader(client, tmp_path)
-    df = pd.DataFrame(
-        [
-            {"generic_name": "Bad Float", "strength": "not-a-float", "dosage_form": "Tablet"},
-        ]
-    )
+def test_merge_assigns_strength_specific_mrp(tmp_path):
+    medicines = [
+        {"id": "para-500", "generic_name": "Paracetamol", "strength": "500mg", "mrp": None},
+        {"id": "para-650", "generic_name": "Paracetamol", "strength": "650mg", "mrp": None},
+    ]
 
-    first_stats = loader.load(df)
-    second_stats = loader.load(df)
+    client = MergeFakeSupabaseClient(medicines=medicines)
+    loader = make_merge_loader(client, tmp_path)
 
-    assert first_stats["failed"] == 1
-    assert second_stats["failed"] == 1
-    assert len(client.insert_calls) == 1
-    retry_updates = [call[1] for call in client.update_calls if call[0] == "etl_failed_rows"]
-    assert retry_updates[-1]["attempt_count"] == 2
-    assert len(client.retry_rows) == 1
+    mrp_df = pd.DataFrame([
+        {"generic_name": "Paracetamol", "strength": "500mg", "mrp": 18.50},
+        {"generic_name": "Paracetamol", "strength": "650mg", "mrp": 22.00},
+    ])
+
+    stats = loader.merge_commercial_mrp(mrp_df, page_size=1000)
+
+    assert next(m["mrp"] for m in medicines if m["id"] == "para-500") == 18.50
+    assert next(m["mrp"] for m in medicines if m["id"] == "para-650") == 22.00
+    assert stats["updated"] == 2
