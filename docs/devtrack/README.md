@@ -43,3 +43,8 @@
 | [#636](https://github.com/RatLoopz/sahidawa-india/pull/636) | 2026-05-27 | Frontend | 14 | @0411-bokilshruti | [View Doc](devtrack/2026-05/PR-636-i18n-add-hindi-translation.md) |
 | [#629](https://github.com/RatLoopz/sahidawa-india/pull/629) | 2026-05-26 | Frontend | 14 | @subham146 | [View Doc](devtrack/2026-05/PR-629-i18n-od-added-odia-translation.md) |
 | [#712](https://github.com/RatLoopz/sahidawa-india/pull/712) | 2026-05-27 | Frontend | 14 | @harshitsaxena214 | [View Doc](devtrack/2026-05/PR-712-feat-chat-locale-support.md) |
+| [#765](https://github.com/RatLoopz/sahidawa-india/pull/765) | 2026-05-27 | Backend | 6 | @Midoriya-w | [View Doc](devtrack/2026-05/PR-765-feat-add-pagination-to-getallmedicines-endpoint.md) |
+| [#750](https://github.com/RatLoopz/sahidawa-india/pull/750) | 2026-05-27 | Frontend | 14 | @Subhra-Nandi | [View Doc](devtrack/2026-05/PR-750-feat-structured-ai-logging.md) |
+| [#744](https://github.com/RatLoopz/sahidawa-india/pull/744) | 2026-05-27 | i18n | 46 | @Dushyantcoder07 | [View Doc](devtrack/2026-05/PR-744-feat-web-add-back-to-top-button.md) / [ADR](devtrack/adr/ADR-010-feat-web-add-back-to-top-button.md) |
+| [#773](https://github.com/RatLoopz/sahidawa-india/pull/773) | 2026-05-27 | Frontend | 22 | @shashank03-dev | [View Doc](devtrack/2026-05/PR-773-fix-web-enable-kannada-and-punjabi-locales.md) / [ADR](devtrack/adr/ADR-011-fix-web-enable-kannada-and-punjabi-locales.md) |
+| [#778](https://github.com/RatLoopz/sahidawa-india/pull/778) | 2026-05-27 | i18n | 44 | @shashank03-dev | [View Doc](devtrack/2026-05/PR-778-fix-i18n-localize-homepage-navigation-strings.md) / [ADR](devtrack/adr/ADR-012-fix-i18n-localize-homepage-navigation-strings.md) |
