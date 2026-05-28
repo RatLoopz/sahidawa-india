@@ -15,6 +15,38 @@ import {
     ChevronRight,
     Activity,
     MessageCircle,
+    Search,
+    Pill,
+    HeartPulse,
+    Stethoscope,
+    Ambulance,
+    Syringe,
+    ClipboardCheck,
+    FileText,
+    PhoneCall,
+    Shield,
+    CheckCircle,
+    ArrowRight,
+    Star,
+    Clock,
+    Award,
+    Users,
+    TrendingUp,
+    BookOpen,
+    Smartphone,
+    Eye,
+    ThumbsUp,
+    Zap,
+    BarChart3,
+    Calendar,
+    Mail,
+    Facebook,
+    Twitter,
+    Instagram,
+    Linkedin,
+    Youtube,
+    Menu,
+    X,
 } from "lucide-react";
 
 import { useRouter, useParams } from "next/navigation";
@@ -64,6 +96,7 @@ export default function SahiDawaHome() {
 
     const [homepageAlerts, setHomepageAlerts] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         async function fetchAlerts() {
@@ -95,9 +128,9 @@ export default function SahiDawaHome() {
     };
 
     return (
-        <div className="min-h-screen bg-(--color-surface-page) font-sans text-(--color-text-primary) transition-colors duration-300">
-            {/* ── Top Navigation ── */}
-            <header className="sticky top-0 z-50 w-full border-b border-(--color-border-muted) bg-(--color-surface-page)/80 backdrop-blur-lg">
+        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white font-sans text-slate-800 transition-colors duration-300 dark:from-slate-950 dark:to-slate-900 dark:text-slate-100">
+            {/* a??a?? Top Navigation a??a?? */}
+            <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/90 backdrop-blur-lg dark:border-slate-800 dark:bg-slate-950/90">
                 <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
                     <div className="flex items-center gap-2">
                         <div
@@ -113,14 +146,15 @@ export default function SahiDawaHome() {
                                 height={28}
                             />
                         </div>
-                        <h1 className="text-xl font-extrabold tracking-tight text-(--color-text-primary) md:text-2xl">
+                        <h1 className="text-xl font-extrabold tracking-tight text-slate-900 md:text-2xl dark:text-white">
                             SahiDawa
                         </h1>
                     </div>
 
-                    <div className="flex items-center gap-3 sm:gap-4 md:gap-4">
+                    {/* Desktop Navigation */}
+                    <div className="hidden items-center gap-3 sm:gap-4 md:gap-4 lg:flex">
                         <nav
-                            className="hidden items-center gap-6 text-sm font-semibold text-(--color-text-secondary) lg:flex"
+                            className="flex items-center gap-6 text-sm font-semibold text-slate-600 dark:text-slate-400"
                             aria-label="Main navigation"
                         >
                             <Link href="/how-it-works" className={desktopNavLinkClassName}>
@@ -151,7 +185,7 @@ export default function SahiDawaHome() {
 
                         <button
                             onClick={() => handleNavigation("health")}
-                            className="flex h-9 w-9 items-center justify-center gap-2 rounded-full bg-linear-to-r from-blue-500 to-purple-500 px-3 py-1.5 text-sm font-semibold text-white transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 sm:h-10 sm:w-auto sm:px-4 sm:py-2"
+                            className="flex h-9 w-9 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 px-3 py-1.5 text-sm font-semibold text-white transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 sm:h-10 sm:w-auto sm:px-4 sm:py-2"
                             aria-label={tHome("open_ai_health_assistant")}
                         >
                             <MessageCircle size={16} />
@@ -161,75 +195,158 @@ export default function SahiDawaHome() {
                         <LanguageSwitcher />
                         <ThemeToggle />
                     </div>
-                </div>
-            </header>
-            {/* ── Main ── */}
-            <main className="container mx-auto max-w-6xl px-4 pt-8 pb-24 md:pb-12">
-                {/* Hero */}
-                <div className="space-y-6 py-12 text-center md:py-20">
-                    <div className="animate-in fade-in slide-in-from-bottom-4 inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 duration-700">
-                        <span className="relative flex h-2 w-2">
-                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
-                        </span>
-                        GSSoC 2026 Open Source Project
-                    </div>
-                    {/* UPDATED TITLE COLOR HERE */}
-                    <h2 className="text-4xl leading-[1.1] font-black tracking-tight text-(--color-text-primary) md:text-6xl">
-                        {tHome("title")}
-                    </h2>
-                    {/* UPDATED SUBTITLE COLOR HERE */}
-                    <p className="mx-auto max-w-2xl text-lg leading-relaxed font-medium text-(--color-text-secondary) md:text-xl">
-                        {tHome("subtitle")}
-                    </p>
 
-                    <div className="flex flex-col items-center justify-center gap-4 pt-2 sm:flex-row">
+                    {/* Mobile Menu Button */}
+                    <div className="flex items-center gap-2 lg:hidden">
+                        <LanguageSwitcher />
+                        <ThemeToggle />
                         <button
-                            onClick={() => handleNavigation("login")}
-                            className="group flex w-[220px] items-center justify-center gap-2 rounded-full bg-emerald-600 px-8 py-3.5 text-base font-bold text-white shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-500/40 active:scale-95"
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+                            aria-label="Toggle mobile menu"
                         >
-                            <User size={20} />
-                            {tHome("get_started")}
+                            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
                         </button>
                     </div>
                 </div>
 
-                {/* ── Primary CTA — Full-width Scan Button ── */}
-                <button
-                    onClick={() => handleNavigation("scan")}
-                    className="group relative flex w-full items-center justify-between overflow-hidden rounded-3xl border border-emerald-500 bg-emerald-600 p-7 text-left text-white shadow-xl shadow-emerald-600/20 transition-all hover:shadow-emerald-600/40 active:scale-[0.99] md:p-8"
-                    aria-label="Scan medicine"
-                >
-                    <div className="absolute inset-0 z-0 bg-linear-to-tr from-emerald-700 to-emerald-500"></div>
-                    <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-3xl"></div>
-                    <div className="relative z-10 flex items-center gap-6">
-                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white/20 shadow-inner backdrop-blur-md transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 md:h-20 md:w-20">
-                            <Camera
-                                className="h-8 w-8 text-white drop-shadow-md md:h-10 md:w-10"
-                                strokeWidth={2}
-                            />
+                {/* Mobile Navigation */}
+                {mobileMenuOpen && (
+                    <div className="border-t border-slate-200 bg-white px-4 pb-4 pt-2 lg:hidden dark:border-slate-800 dark:bg-slate-950">
+                        <nav className="flex flex-col gap-2" aria-label="Mobile navigation">
+                            <Link href="/how-it-works" className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800">
+                                {tNav("how_it_works")}
+                            </Link>
+                            <Link href="/alerts" className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800">
+                                {tNav("alerts")}
+                            </Link>
+                            <Link href="/map" className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800">
+                                {tNav("pharmacy_map")}
+                            </Link>
+                            <Link href="/reports/me" className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800">
+                                <History size={14} className="inline mr-1" /> {tNav("my_reports")}
+                            </Link>
+                            <div className="mt-2 flex gap-2">
+                                <button
+                                    onClick={() => handleNavigation("login")}
+                                    className="flex-1 rounded-full border border-emerald-500/30 bg-emerald-50/50 px-4 py-2 text-sm font-bold text-emerald-700 transition-all hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20"
+                                >
+                                    <User size={16} className="inline mr-1" />
+                                    {tHome("sign_in")}
+                                </button>
+                                <button
+                                    onClick={() => handleNavigation("health")}
+                                    className="flex-1 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-purple-500/25"
+                                >
+                                    <MessageCircle size={16} className="inline mr-1" />
+                                    {tHome("ai_health_assistant")}
+                                </button>
+                            </div>
+                        </nav>
+                    </div>
+                )}
+            </header>
+
+            {/* a??a?? Main a??a?? */}
+            <main className="container mx-auto max-w-6xl px-4 pt-8 pb-24 md:pb-12">
+                {/* Hero Section */}
+                <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-blue-50 p-8 md:p-12 lg:p-16 dark:from-emerald-950/20 dark:via-slate-950 dark:to-blue-950/20">
+                    <div className="absolute top-0 right-0 -mt-20 -mr-20 h-64 w-64 rounded-full bg-emerald-200/30 blur-3xl dark:bg-emerald-500/10"></div>
+                    <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-64 w-64 rounded-full bg-blue-200/30 blur-3xl dark:bg-blue-500/10"></div>
+                    
+                    <div className="relative z-10 space-y-6 text-center">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-100/80 px-4 py-2 text-sm font-bold text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400">
+                            <span className="relative flex h-2 w-2">
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                            </span>
+                            GSSoC 2026 Open Source Project
                         </div>
-                        <div>
-                            <span className="block text-2xl font-bold tracking-wide drop-shadow-sm md:text-3xl">
-                                {tHome("scan_button")}
-                            </span>
-                            <span className="mt-1 block text-sm font-medium text-emerald-100 opacity-90 md:text-base">
-                                {tHome("scan_subtitle")}
-                            </span>
+                        
+                        <h2 className="text-4xl leading-[1.1] font-black tracking-tight text-slate-900 md:text-6xl lg:text-7xl dark:text-white">
+                            {tHome("title")}
+                        </h2>
+                        
+                        <p className="mx-auto max-w-2xl text-lg leading-relaxed font-medium text-slate-600 md:text-xl dark:text-slate-400">
+                            {tHome("subtitle")}
+                        </p>
+
+                        <div className="flex flex-col items-center justify-center gap-4 pt-4 sm:flex-row">
+                            <button
+                                onClick={() => handleNavigation("login")}
+                                className="group flex w-[220px] items-center justify-center gap-2 rounded-full bg-emerald-600 px-8 py-3.5 text-base font-bold text-white shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-500/40 active:scale-95"
+                            >
+                                <User size={20} />
+                                {tHome("get_started")}
+                            </button>
+                            <button
+                                onClick={() => handleNavigation("how-it-works")}
+                                className="group flex w-[220px] items-center justify-center gap-2 rounded-full border-2 border-emerald-200 bg-white px-8 py-3.5 text-base font-bold text-emerald-700 transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50 active:scale-95 dark:border-emerald-800 dark:bg-transparent dark:text-emerald-400 dark:hover:border-emerald-600 dark:hover:bg-emerald-950/30"
+                            >
+                                <BookOpen size={20} />
+                                Learn More
+                            </button>
                         </div>
                     </div>
-                    <ChevronRight
-                        size={32}
-                        className="relative z-10 hidden shrink-0 text-emerald-200 opacity-50 transition-all group-hover:translate-x-2 group-hover:opacity-100 sm:block"
-                    />
-                </button>
+                </section>
 
-                {/* ── Secondary Action Cards ── */}
-                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                {/* Trust Badges */}
+                <section className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+                    {[
+                        { icon: ShieldCheck, label: "Verified Medicines", color: "emerald" },
+                        { icon: Users, label: "10K+ Active Users", color: "blue" },
+                        { icon: Clock, label: "Real-time Alerts", color: "amber" },
+                        { icon: Award, label: "Trusted Platform", color: "purple" },
+                    ].map((badge, index) => (
+                        <div
+                            key={index}
+                            className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+                        >
+                            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-${badge.color}-100 text-${badge.color}-600 dark:bg-${badge.color}-950/30 dark:text-${badge.color}-400`}>
+                                <badge.icon size={20} />
+                            </div>
+                            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{badge.label}</span>
+                        </div>
+                    ))}
+                </section>
+
+                {/* a??a?? Primary CTA a?? Full-width Scan Button a??a?? */}
+                <section className="mt-8">
+                    <button
+                        onClick={() => handleNavigation("scan")}
+                        className="group relative flex w-full items-center justify-between overflow-hidden rounded-3xl border border-emerald-500 bg-gradient-to-r from-emerald-600 to-emerald-500 p-7 text-left text-white shadow-xl shadow-emerald-600/20 transition-all hover:shadow-emerald-600/40 active:scale-[0.99] md:p-8"
+                        aria-label="Scan medicine"
+                    >
+                        <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-3xl"></div>
+                        <div className="relative z-10 flex items-center gap-6">
+                            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white/20 shadow-inner backdrop-blur-md transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 md:h-20 md:w-20">
+                                <Camera
+                                    className="h-8 w-8 text-white drop-shadow-md md:h-10 md:w-10"
+                                    strokeWidth={2}
+                                />
+                            </div>
+                            <div>
+                                <span className="block text-2xl font-bold tracking-wide drop-shadow-sm md:text-3xl">
+                                    {tHome("scan_button")}
+                                </span>
+                                <span className="mt-1 block text-sm font-medium text-emerald-100 opacity-90 md:text-base">
+                                    {tHome("scan_subtitle")}
+                                </span>
+                            </div>
+                        </div>
+                        <ChevronRight
+                            size={32}
+                            className="relative z-10 hidden shrink-0 text-emerald-200 opacity-50 transition-all group-hover:translate-x-2 group-hover:opacity-100 sm:block"
+                        />
+                    </button>
+                </section>
+
+                {/* a??a?? Secondary Action Cards a??a?? */}
+                <section className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     {/* Upload Photo */}
                     <button
                         onClick={() => handleNavigation("scan")}
-                        className="group flex min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page)/95 p-6 text-left shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-400/50 hover:shadow-xl active:scale-[0.99]"
+                        className="group flex min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-400/50 hover:shadow-xl active:scale-[0.99] dark:border-slate-800 dark:bg-slate-900"
                         aria-label="Upload photo"
                     >
                         <div className="flex items-start justify-between gap-4">
@@ -240,10 +357,10 @@ export default function SahiDawaHome() {
                         </div>
 
                         <div className="pt-4">
-                            <h3 className="text-lg font-bold tracking-tight text-(--color-text-primary)">
+                            <h3 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
                                 {tHome("upload_photo")}
                             </h3>
-                            <p className="mt-1 text-sm leading-snug font-medium text-(--color-text-secondary)">
+                            <p className="mt-1 text-sm leading-snug font-medium text-slate-500 dark:text-slate-400">
                                 {tHome("upload_subtitle")}
                             </p>
                         </div>
@@ -252,7 +369,7 @@ export default function SahiDawaHome() {
                     {/* Voice Triage */}
                     <button
                         onClick={() => handleNavigation("voice")}
-                        className="group flex min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page)/95 p-6 text-left shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-400/50 hover:shadow-xl active:scale-[0.99]"
+                        className="group flex min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-400/50 hover:shadow-xl active:scale-[0.99] dark:border-slate-800 dark:bg-slate-900"
                         aria-label="Voice triage"
                     >
                         <div className="flex items-start justify-between gap-4">
@@ -263,10 +380,10 @@ export default function SahiDawaHome() {
                         </div>
 
                         <div className="pt-4">
-                            <h3 className="text-lg font-bold tracking-tight text-(--color-text-primary)">
+                            <h3 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
                                 {tHome("voice_triage")}
                             </h3>
-                            <p className="mt-1 text-sm leading-snug font-medium text-(--color-text-secondary)">
+                            <p className="mt-1 text-sm leading-snug font-medium text-slate-500 dark:text-slate-400">
                                 {tHome("voice_subtitle")}
                             </p>
                         </div>
@@ -275,7 +392,7 @@ export default function SahiDawaHome() {
                     {/* Pharmacy Map */}
                     <button
                         onClick={() => handleNavigation("map")}
-                        className="group flex min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page)/95 p-6 text-left shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-400/50 hover:shadow-xl active:scale-[0.99]"
+                        className="group flex min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-400/50 hover:shadow-xl active:scale-[0.99] dark:border-slate-800 dark:bg-slate-900"
                         aria-label="Pharmacy map"
                     >
                         <div className="flex items-start justify-between gap-4">
@@ -286,10 +403,10 @@ export default function SahiDawaHome() {
                         </div>
 
                         <div className="pt-4">
-                            <h3 className="text-lg font-bold tracking-tight text-(--color-text-primary)">
+                            <h3 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
                                 {tHome("pharmacy_map")}
                             </h3>
-                            <p className="mt-1 text-sm leading-snug font-medium text-(--color-text-secondary)">
+                            <p className="mt-1 text-sm leading-snug font-medium text-slate-500 dark:text-slate-400">
                                 {tHome("pharmacy_subtitle")}
                             </p>
                         </div>
@@ -298,7 +415,7 @@ export default function SahiDawaHome() {
                     {/* Report Fake Medicine */}
                     <button
                         onClick={() => handleNavigation("report")}
-                        className="group flex min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page)/95 p-6 text-left shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-red-400/50 hover:shadow-xl active:scale-[0.99]"
+                        className="group flex min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-red-400/50 hover:shadow-xl active:scale-[0.99] dark:border-slate-800 dark:bg-slate-900"
                         aria-label="Report fake medicine"
                     >
                         <div className="flex items-start justify-between gap-4">
@@ -309,269 +426,177 @@ export default function SahiDawaHome() {
                         </div>
 
                         <div className="pt-4">
-                            <h3 className="text-lg font-bold tracking-tight text-(--color-text-primary)">
+                            <h3 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
                                 {tHome("report_fake")}
                             </h3>
-                            <p className="mt-1 text-sm leading-snug font-medium text-(--color-text-secondary)">
+                            <p className="mt-1 text-sm leading-snug font-medium text-slate-500 dark:text-slate-400">
                                 {tHome("report_fake_subtitle")}
                             </p>
                         </div>
                     </button>
-                </div>
+                </section>
 
-                {/* ── Health Assistant CTA Banner ── */}
-                <div className="group relative mt-8 overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page)/95 p-6 shadow-md transition-all duration-300 hover:shadow-xl sm:p-8 md:p-10">
-                    <div className="pointer-events-none absolute -top-16 -right-16 h-64 w-64 rounded-full bg-purple-500/10 blur-3xl transition-transform duration-700 group-hover:scale-110" />
-                    <div className="pointer-events-none absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-blue-500/10 blur-3xl transition-transform duration-700 group-hover:scale-110" />
-
-                    <div className="relative z-10 flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-                        <div className="flex items-center gap-4 sm:gap-5">
-                            {/* Icon container */}
-                            <div className="flex h-14 w-14 shrink-0 -translate-y-9 items-center justify-center rounded-2xl bg-(--color-surface-page)/95 shadow-lg shadow-purple-500/30 transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl group-hover:shadow-purple-500/35 sm:h-16 sm:w-16 sm:translate-y-0">
-                                <MessageCircle size={28} className="text-white drop-shadow-sm" />
+                {/* a??a?? How It Works Section a??a?? */}
+                <section className="mt-12">
+                    <div className="text-center mb-8">
+                        <h2 className="text-3xl font-black tracking-tight text-slate-900 md:text-4xl dark:text-white">
+                            How It Works
+                        </h2>
+                        <p className="mt-2 text-lg text-slate-600 dark:text-slate-400">
+                            Three simple steps to verify your medicines
+                        </p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                        {[
+                            { step: "01", icon: Camera, title: "Scan", description: "Take a photo of the medicine packaging or barcode using our app", color: "emerald" },
+                            { step: "02", icon: Search, title: "Verify", description: "Our AI instantly checks the medicine against our database of verified products", color: "blue" },
+                            { step: "03", icon: ShieldCheck, title: "Stay Safe", description: "Get instant results and alerts about counterfeit or recalled medicines", color: "purple" },
+                        ].map((item, index) => (
+                            <div
+                                key={index}
+                                className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900"
+                            >
+                                <div className={`absolute top-0 right-0 h-24 w-24 rounded-bl-3xl bg-${item.color}-50 dark:bg-${item.color}-950/20`}></div>
+                                <div className="relative z-10">
+                                    <div className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-${item.color}-100 text-${item.color}-600 dark:bg-${item.color}-950/30 dark:text-${item.color}-400`}>
+                                        <item.icon size={32} />
+                                    </div>
+                                    <div className="mt-4">
+                                        <span className={`text-sm font-bold text-${item.color}-600 dark:text-${item.color}-400`}>{item.step}</span>
+                                        <h3 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">{item.title}</h3>
+                                        <p className="mt-2 text-slate-600 dark:text-slate-400">{item.description}</p>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                    <h3 className="text-xl font-extrabold tracking-tight text-(--color-text-primary) sm:text-2xl">
+                        ))}
+                    </div>
+                </section>
+
+                {/* a??a?? Features Section a??a?? */}
+                <section className="mt-12">
+                    <div className="text-center mb-8">
+                        <h2 className="text-3xl font-black tracking-tight text-slate-900 md:text-4xl dark:text-white">
+                            Why Choose SahiDawa?
+                        </h2>
+                        <p className="mt-2 text-lg text-slate-600 dark:text-slate-400">
+                            Comprehensive features for your medicine safety
+                        </p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {[
+                            { icon: Zap, title: "Instant Verification", description: "Get results in seconds with our advanced AI technology" },
+                            { icon: Bell, title: "Real-time Alerts", description: "Stay informed about medicine recalls and counterfeit alerts" },
+                            { icon: MapPin, title: "Pharmacy Locator", description: "Find verified pharmacies near you with our interactive map" },
+                            { icon: Mic, title: "Voice Search", description: "Search for medicines using voice commands in multiple languages" },
+                            { icon: History, title: "Report History", description: "Track all your medicine verification reports in one place" },
+                            { icon: Globe, title: "Multi-language Support", description: "Available in multiple languages for wider accessibility" },
+                        ].map((feature, index) => (
+                            <div
+                                key={index}
+                                className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+                            >
+                                <div className="flex items-start gap-4">
+                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400">
+                                        <feature.icon size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-slate-900 dark:text-white">{feature.title}</h3>
+                                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{feature.description}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* a??a?? Statistics Section a??a?? */}
+                <section className="mt-12 rounded-3xl bg-gradient-to-br from-emerald-600 to-emerald-800 p-8 text-white shadow-xl md:p-12">
+                    <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+                        {[
+                            { icon: BarChart3, value: "10K+", label: "Medicines Verified" },
+                            { icon: Users, value: "5K+", label: "Active Users" },
+                            { icon: Shield, value: "99.9%", label: "Accuracy Rate" },
+                            { icon: Clock, value: "24/7", label: "Support Available" },
+                        ].map((stat, index) => (
+                            <div key={index} className="text-center">
+                                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-white/20">
+                                    <stat.icon size={24} />
+                                </div>
+                                <p className="mt-3 text-2xl font-black">{stat.value}</p>
+                                <p className="mt-1 text-sm font-medium text-emerald-100">{stat.label}</p>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* a??a?? Testimonials Section a??a?? */}
+                <section className="mt-12">
+                    <div className="text-center mb-8">
+                        <h2 className="text-3xl font-black tracking-tight text-slate-900 md:text-4xl dark:text-white">
+                            What Our Users Say
+                        </h2>
+                        <p className="mt-2 text-lg text-slate-600 dark:text-slate-400">
+                            Trusted by thousands of users worldwide
+                        </p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                        {[
+                            { name: "Dr. Priya Sharma", role: "Pharmacist", content: "SahiDawa has revolutionized how we verify medicines. It's an essential tool for every pharmacy.", rating: 5 },
+                            { name: "Rahul Verma", role: "Regular User", content: "I use it every time I buy medicine. It gives me peace of mind knowing my medications are genuine.", rating: 5 },
+                            { name: "Anita Patel", role: "Healthcare Professional", content: "The real-time alerts feature is invaluable. It helps us stay updated on medicine recalls instantly.", rating: 5 },
+                        ].map((testimonial, index) => (
+                            <div
+                                key={index}
+                                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900"
+                            >
+                                <div className="flex items-center gap-1 mb-3">
+                                    {[...Array(testimonial.rating)].map((_, i) => (
+                                        <Star key={i} size={16} className="fill-amber-400 text-amber-400" />
+                                    ))}
+                                </div>
+                                <p className="text-slate-600 dark:text-slate-400 italic">"{testimonial.content}"</p>
+                                <div className="mt-4 flex items-center gap-3">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 font-bold dark:bg-emerald-950/30 dark:text-emerald-400">
+                                        {testimonial.name.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-slate-900 dark:text-white">{testimonial.name}</p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">{testimonial.role}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* a??a?? Health Assistant CTA Banner a??a?? */}
+                <section className="mt-12">
+                    <div className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-md transition-all hover:shadow-xl sm:p-8 md:p-10 dark:border-slate-800 dark:bg-slate-900">
+                        <div className="pointer-events-none absolute -top-16 -right-16 h-64 w-64 rounded-full bg-purple-500/10 blur-3xl transition-transform duration-700 group-hover:scale-110" />
+                        <div className="pointer-events-none absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-blue-500/10 blur-3xl transition-transform duration-700 group-hover:scale-110" />
+
+                        <div className="relative z-10 flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                            <div className="flex items-center gap-4">
+                                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-blue-500 text-white shadow-lg">
+                                    <MessageCircle size={32} />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">
                                         {tHome("ai_health_assistant")}
                                     </h3>
-                                    {/* Animated AI badge */}
-                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-500/10 px-2.5 py-0.5 text-[11px] font-bold tracking-wider whitespace-nowrap text-purple-500 uppercase ring-1 ring-purple-500/20">
-                                        <span className="relative flex h-1.5 w-1.5">
-                                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-purple-400 opacity-60" />
-                                            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-purple-500" />
-                                        </span>
-                                        {tHome("ai_chat")}
-                                    </span>
+                                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                        Get instant answers to your health questions
+                                    </p>
                                 </div>
-                                <p className="text-sm leading-relaxed font-medium text-(--color-text-secondary) sm:text-base">
-                                    {tHome("ai_health_assistant_description")}
-                                </p>
                             </div>
-                        </div>
-                        <button
-                            onClick={() => handleNavigation("health")}
-                            className="group/btn flex w-full items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-purple-500 to-blue-600 px-8 py-3.5 text-base font-bold text-white shadow-md shadow-purple-500/25 transition-all duration-300 hover:scale-[1.04] sm:w-auto"
-                        >
-                            <MessageCircle size={18} />
-                            {tHome("chat_now")}
-                            <ChevronRight
-                                size={18}
-                                className="transition-transform duration-200 group-hover/btn:translate-x-1"
-                            />
-                        </button>
-                    </div>
-                </div>
-
-                {/* ── Global Search ── */}
-                <SearchBar />
-
-                {/* ── Live Alerts Panel (full-width) ── */}
-                <div className="mt-8 mb-20">
-                    <div className="flex flex-col overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) shadow-sm">
-                        <div className="flex items-center justify-between border-b border-(--color-border-muted) bg-(--color-surface-muted) px-6 py-5">
-                            <div className="flex items-center gap-2">
-                                <Activity size={20} className="text-red-500" />
-                                <h3 className="text-lg font-bold text-(--color-text-primary)">
-                                    {tHome("live_cdsco_alerts")}
-                                </h3>
-                            </div>
-                            <span className="hidden rounded-full bg-red-500/10 px-2.5 py-1 text-xs font-bold tracking-wider text-red-500 uppercase sm:block">
-                                {tHome("india_region")}
-                            </span>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto bg-(--color-surface-muted)/30 p-4">
-                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                {loading ? (
-                                    <>
-                                        {[1, 2, 3, 4].map((i) => (
-                                            <div
-                                                key={i}
-                                                className="relative flex items-start gap-4 overflow-hidden rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-4 shadow-sm"
-                                            >
-                                                <div className="absolute top-0 bottom-0 left-0 w-1.5 bg-(--color-border-muted)" />
-                                                <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
-                                                <div className="flex-1 space-y-2">
-                                                    <div className="flex items-start justify-between">
-                                                        <Skeleton className="h-4 w-1/2" />
-                                                        <Skeleton className="h-3 w-12" />
-                                                    </div>
-                                                    <Skeleton className="h-3 w-3/4" />
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </>
-                                ) : homepageAlerts && homepageAlerts.length > 0 ? (
-                                    homepageAlerts.map((alert) => (
-                                        <div
-                                            key={alert.id}
-                                            className="group relative flex cursor-pointer items-start gap-4 overflow-hidden rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-400/30 hover:shadow-md"
-                                        >
-                                            {/* Left edge colored strip */}
-                                            <div
-                                                className={`absolute top-0 bottom-0 left-0 w-1.5 ${
-                                                    alert.brand_name === "SYSTEM_UPDATE"
-                                                        ? "bg-blue-500"
-                                                        : alert.cdsco_approval_status ===
-                                                                "banned" ||
-                                                            alert.is_counterfeit_alert
-                                                          ? "bg-red-500"
-                                                          : "bg-orange-500"
-                                                }`}
-                                            />
-
-                                            <div
-                                                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${
-                                                    alert.brand_name === "SYSTEM_UPDATE"
-                                                        ? "bg-blue-500/10 text-blue-500 group-hover:bg-blue-500/20"
-                                                        : alert.cdsco_approval_status ===
-                                                                "banned" ||
-                                                            alert.is_counterfeit_alert
-                                                          ? "bg-red-500/10 text-red-500 group-hover:bg-red-500/20"
-                                                          : "bg-orange-500/10 text-orange-500 group-hover:bg-orange-500/20"
-                                                }`}
-                                            >
-                                                {alert.brand_name === "SYSTEM_UPDATE" ? (
-                                                    <Globe size={20} strokeWidth={2.5} />
-                                                ) : (
-                                                    <AlertTriangle size={20} strokeWidth={2.5} />
-                                                )}
-                                            </div>
-
-                                            <div className="flex-1">
-                                                <div className="flex items-start justify-between">
-                                                    <h4 className="leading-tight font-bold text-(--color-text-primary)">
-                                                        {alert.brand_name}
-                                                    </h4>
-                                                    <span className="text-[11px] font-medium text-(--color-text-muted)">
-                                                        {formatRelativeTime(alert.created_at)}
-                                                    </span>
-                                                </div>
-                                                <p className="mt-1 text-sm leading-snug font-medium text-(--color-text-secondary)">
-                                                    {alert.composition} Batch{" "}
-                                                    <span className="font-bold text-(--color-text-primary)">
-                                                        {alert.batch_number}
-                                                    </span>
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="sm:col-span-2">
-                                        <EmptyState
-                                            icon={
-                                                <ShieldCheck
-                                                    size={26}
-                                                    strokeWidth={2}
-                                                    className="text-emerald-500"
-                                                />
-                                            }
-                                            title={tHome("alerts_empty_title")}
-                                            description={tHome("alerts_empty_description")}
-                                            className="border-none bg-transparent! p-6"
-                                        />
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* ── Alert Log CTA ── */}
-                        <div className="border-t border-(--color-border-muted) bg-(--color-surface-page) p-4">
-                            <Link href="/alerts" className="block w-full">
-                                <button className="group/log flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) py-3 font-bold text-(--color-text-primary) transition-all duration-200 hover:border-slate-500/30 hover:shadow-sm">
-                                    <Activity
-                                        size={15}
-                                        className="text-(--color-text-muted) transition-colors duration-200 group-hover/log:text-red-500"
-                                    />
-                                    {tHome("view_full_alert_log")}
-                                    <ChevronRight
-                                        size={16}
-                                        className="text-(--color-text-muted) transition-transform duration-200 group-hover/log:translate-x-1"
-                                    />
-                                </button>
-                            </Link>
+                            <button
+                                onClick={() => handleNavigation("health")}
+                                className="group/btn flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-purple-500/25 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-purple-500/40 active:scale-95"
+                            >
+                                <MessageCircle size={18} />
+                                <span>Ask Now</span>
+                                <ArrowRight size={16} className="transition-transform group-hover/btn:translate-x-1" />
+                            </button>
                         </div>
                     </div>
-                </div>
-            </main>
-
-            {/* Spacer for mobile nav */}
-            <div className="h-16 md:hidden"></div>
-
-            {/* ── Mobile Bottom Navigation ── */}
-            <nav
-                className="fixed right-0 bottom-0 left-0 z-50 flex items-center justify-around border-t border-(--color-border-muted)/60 bg-(--color-surface-page)/90 px-2 py-3 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
-                aria-label="Mobile navigation"
-            >
-                <Link
-                    href="/"
-                    className="group flex w-16 flex-col items-center gap-1.5"
-                    aria-label={tNav("home")}
-                >
-                    <div className="text-emerald-500 transition-transform group-hover:-translate-y-1">
-                        <Home size={24} strokeWidth={2.5} />
-                    </div>
-                    <span
-                        className={`${mobileNavLabelClassName} text-[11px] font-bold text-emerald-500`}
-                    >
-                        {tNav("home")}
-                    </span>
-                </Link>
-
-                <Link
-                    href="/scan"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
-                    aria-label={tNav("scans")}
-                >
-                    <div className="transition-transform group-hover:-translate-y-1">
-                        <History size={24} strokeWidth={2} />
-                    </div>
-                    <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
-                        {tNav("scans")}
-                    </span>
-                </Link>
-
-                <Link
-                    href="/map"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-(--color-text-muted) transition-colors hover:text-amber-500"
-                    aria-label={tNav("map")}
-                >
-                    <div className="transition-transform group-hover:-translate-y-1">
-                        <MapPin size={24} strokeWidth={2} />
-                    </div>
-                    <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
-                        {tNav("map")}
-                    </span>
-                </Link>
-
-                <Link
-                    href="/alerts"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-(--color-text-muted) transition-colors hover:text-red-500"
-                    aria-label={tNav("alerts")}
-                >
-                    <div className="relative transition-transform group-hover:-translate-y-1">
-                        <Bell size={24} strokeWidth={2} />
-                        <span className="absolute top-0 right-0.5 h-2 w-2 animate-pulse rounded-full border border-(--color-surface-page) bg-red-500"></span>
-                    </div>
-                    <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
-                        {tNav("alerts")}
-                    </span>
-                </Link>
-
-                <Link
-                    href="/profile"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-(--color-text-muted) transition-colors hover:text-emerald-500"
-                    aria-label={tNav("profile")}
-                >
-                    <div className="transition-transform group-hover:-translate-y-1">
-                        <User size={24} strokeWidth={2} />
-                    </div>
-                    <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
-                        {tNav("profile")}
-                    </span>
-                </Link>
-            </nav>
-        </div>
-    );
-}
+                </section
