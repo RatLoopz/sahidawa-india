@@ -36,8 +36,9 @@ export default function LanguageSwitcher() {
 
     document.addEventListener("mousedown", handleClickOutside);
 
-    return () =>
+    return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   // Close dropdown on Escape key
@@ -50,8 +51,9 @@ export default function LanguageSwitcher() {
 
     document.addEventListener("keydown", handleEscape);
 
-    return () =>
+    return () => {
       document.removeEventListener("keydown", handleEscape);
+    };
   }, []);
 
   const switchLanguage = (code: string) => {
@@ -142,7 +144,6 @@ export default function LanguageSwitcher() {
                   px-4 py-3
                   text-left text-sm font-medium
                   transition-all duration-200
-
                   ${
                     isActive
                       ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
