@@ -9,6 +9,7 @@ export type VoiceTriageResult = {
     disclaimer: string;
     emergency: boolean;
 };
+
 export type VoiceErrorType = "generic" | "timeout" | "service-unavailable";
 
 export type VoiceErrorState = {
