@@ -142,6 +142,7 @@
       "prefix": "Get In",
       "highlight": "Touch"
     },
+ 
     "heroSubtitle": "Have questions, ideas, or want to contribute? We would love to hear from you.",
     "cards": {
       "email": {
@@ -172,4 +173,37 @@
     },
     "footer": "SahiDawa is free, open-source, and built for 1.4 billion Indians. No ads. No premium. No data sold. Ever."
   }
+  ,"faq": {
+  "badgeText": "GSSoC 2026 Open Source Project",
+  "heroTitle": "Frequently Asked Questions",
+  "heroSubtitle": "Everything you need to know about SahiDawa - India's free, open-source medicine verification platform.",
+
+  "q1Question": "What is SahiDawa?",
+  "q1Answer": "SahiDawa is India's first open-source citizen medicine verification platform. It helps you verify if your medicine is real or fake, find safe pharmacies nearby, and get health guidance in your language.",
+
+  "q2Question": "Is SahiDawa free to use?",
+  "q2Answer": "Yes! SahiDawa is 100% free forever. No ads, no premium plan, no data sold. Ever. It is built for Bharat, by the community.",
+
+  "q3Question": "How does medicine verification work?",
+  "q3Answer": "You can scan the barcode or QR code on your medicine packaging. SahiDawa checks it against the official CDSCO database and tells you if the medicine is real, suspicious, or fake.",
+
+  "q4Question": "Which languages does SahiDawa support?",
+  "q4Answer": "SahiDawa supports 22 official Indian languages. You can speak your symptoms in your own language using our Voice Health Assistant powered by Whisper and Sarvam AI.",
+
+  "q5Question": "How can I report a fake medicine?",
+  "q5Answer": "You can use the 'Report Fake' feature on the homepage. Your report gets added to a community heatmap that helps alert others in your district about counterfeit medicines.",
+
+  "q6Question": "Is my data safe with SahiDawa?",
+  "q6Answer": "Absolutely. SahiDawa does not sell your data, show ads, or have any premium plan. Your privacy is our top priority.",
+
+  "q7Question": "How can I contribute to SahiDawa?",
+  "q7Answer": "SahiDawa is open source under MIT License. You can contribute on GitHub, report bugs, suggest features, or join as a GSSoC 2026 participant.",
+
+  "q8Question": "What is CDSCO?",
+  "q8Answer": "CDSCO stands for Central Drugs Standard Control Organisation. It is India's national regulatory body for cosmetics, pharmaceuticals and medical devices. SahiDawa verifies medicines against their official database.",
+
+  "ctaTitle": "Still have questions?",
+  "ctaSubtitle": "Can't find the answer you're looking for? Reach out to our community.",
+  "contactButton": "Contact Us"
+}
 }
