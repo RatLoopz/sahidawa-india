@@ -204,7 +204,7 @@ class SupabaseLoader:
     def _upsert_payloads(self, payloads: list[dict], table: str) -> None:
         self.client.table(table).upsert(
             payloads,
-            on_conflict="generic_name,strength,dosage_form,source",
+            on_conflict="generic_name,brand_name,strength,dosage_form,source,barcode_id",
         ).execute()
 
     def _build_failure(self, payload: dict, row_index: int, error: Exception) -> dict:
