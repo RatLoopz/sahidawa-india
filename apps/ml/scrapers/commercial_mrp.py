@@ -1,5 +1,5 @@
 """
-Sahiwa — Commercial MRP Scraper
+SahiDawa — Commercial MRP Scraper
 ===================================
 Data Source: OpenFDA Drug Label API (https://open.fda.gov/apis/drug/label/)
              + NPPA ceiling price CSV for Indian market prices

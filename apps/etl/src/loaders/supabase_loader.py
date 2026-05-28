@@ -71,10 +71,8 @@ class SupabaseLoader:
             return
 
         if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
-            raise ValueError(
-                "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env.\n"
-                "Copy .env.example to .env and fill in your Supabase credentials."
-            )
+            raise ValueError("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set.")
+
         self.client: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
         logger.info(f"[Loader] Connected to Supabase: {SUPABASE_URL[:40]}...")
 
@@ -123,7 +121,6 @@ class SupabaseLoader:
 
     def retry_failed_rows(self, table: str = "medicines") -> dict:
         """Re-process rows previously captured in the etl_failed_rows table."""
-        # Supabase PostgREST default page size is 1000. Paginate to collect all rows.
         retry_rows: list[dict] = []
         page_size = 1000
         offset = 0
@@ -374,18 +371,7 @@ class SupabaseLoader:
         Matching strategy
         -----------------
         Records are matched on **both** ``generic_name`` (exact, case-insensitive)
-        **and** ``strength`` (exact, case-insensitive) simultaneously.  This
-        prevents assigning the same MRP to different strengths of the same drug
-        (e.g. Paracetamol 500 mg vs 650 mg) and avoids the false-positive
-        substring matches that plagued the old ``.ilike("%iron%")`` approach
-        (which would have touched *spironolactone*, *ferrous sulphate*, etc.).
-
-        Why no ``.limit()``?
-        --------------------
-        The previous implementation used ``.limit(5)`` which silently left
-        any drug with more than 5 null-mrp variants untouched.  Here we page
-        through all matching rows in batches of *page_size* (default 1 000)
-        and update every one of them.
+        **and** ``strength`` (exact, case-insensitive) simultaneously.
 
         Parameters
         ----------
@@ -413,27 +399,29 @@ class SupabaseLoader:
             strength = str(strength_raw).strip().lower() if strength_raw and not pd.isna(strength_raw) else None
             mrp = row.get("mrp")
             if name and mrp is not None and not pd.isna(mrp):
-                # Strength-specific key has priority; add both so we can fall
-                # back to (name, None) when the DB row has no strength.
                 key = (name, strength)
                 mrp_lookup.setdefault(key, float(mrp))
-                # Also register a strength-less fallback if not already set
                 fallback_key = (name, None)
                 mrp_lookup.setdefault(fallback_key, float(mrp))
 
         checked = updated = skipped = failed = 0
 
+        # Cursor-based pagination — progress forward by ID regardless of
+        # whether a row gets updated or skipped. This prevents infinite loops
+        # when skipped rows keep mrp=null and would be re-fetched at offset 0.
+        last_id = None
         while True:
-            # Always fetch from offset 0: each successful update removes a row
-            # from the is_null result set, so the window slides naturally.
-            # Using a fixed offset would skip rows as the pool shrinks.
-            response = (
+            query = (
                 self.client.table(table)
                 .select("id, generic_name, strength")
                 .is_("mrp", "null")
+                .order("id")
                 .range(0, page_size - 1)
-                .execute()
             )
+            if last_id:
+                query = query.gt("id", last_id)
+
+            response = query.execute()
             page: list[dict] = getattr(response, "data", None) or []
             if not page:
                 break
@@ -466,8 +454,7 @@ class SupabaseLoader:
                     )
                     failed += 1
 
-            # If the page was smaller than page_size, we've exhausted the null set.
-            # (We don't increment offset — see comment above.)
+            last_id = page[-1].get("id")
             if len(page) < page_size:
                 break
 
