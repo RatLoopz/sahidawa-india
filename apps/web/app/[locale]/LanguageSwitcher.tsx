@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { useRouter, usePathname } from "@/i18n/routing";
 import { Globe, ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
@@ -14,7 +14,9 @@ const languages = [
   { code: "mr", label: "Marathi", native: "मराठी" },
   { code: "gu", label: "Gujarati", native: "ગુજરાતી" },
   { code: "ur", label: "Urdu", native: "اردو" },
-  { code: "od", label: "Odia", native: "ଓଡ଼ିଆ" }
+  { code: "od", label: "Odia", native: "ଓଡ଼ିଆ" },
+  { code: "kn", label: "Kannada", native: "ಕನ್ನಡ" },
+  { code: "pa", label: "Punjabi", native: "ਪੰਜਾਬੀ" }
 ];
 
 export default function LanguageSwitcher() {

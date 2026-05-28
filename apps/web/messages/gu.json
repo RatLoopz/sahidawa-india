@@ -10,15 +10,32 @@
         "voice_subtitle": "લક્ષણો બોલો",
         "pharmacy_map": "ફાર્મસી નકશો",
         "pharmacy_subtitle": "ચકાસાયેલ સ્ટોર શોધો",
+        "report_fake": "નકલી રિપોર્ટ કરો",
+        "report_fake_subtitle": "શંકાસ્પદ દવાની જાણ કરો",
         "search_placeholder": "દવા અથવા બૅચ શોધો...",
         "search_button": "શોધો",
         "sign_in": "Sign In",
-        "get_started": "Get Started"
+        "get_started": "Get Started",
+        "open_ai_health_assistant": "AI આરોગ્ય સહાયક ખોલો",
+        "ai_health_assistant": "AI આરોગ્ય સહાયક",
+        "ai_chat": "AI ચેટ",
+        "ai_health_assistant_description": "તાત્કાલિક આરોગ્ય સલાહ, લક્ષણોની તપાસ અને પ્રિસ્ક્રિપ્શન માર્ગદર્શન મેળવો",
+        "chat_now": "હમણાં ચેટ કરો",
+        "live_cdsco_alerts": "લાઇવ CDSCO સૂચનાઓ",
+        "india_region": "ભારત પ્રદેશ",
+        "alerts_empty_title": "બધું ઠીક છે!",
+        "alerts_empty_description": "હાલમાં કોઈ સક્રિય નિયમનકારી સૂચનાઓ નથી. સુરક્ષિત રહો અને તમારી દવાઓ ચકાસો.",
+        "view_full_alert_log": "સંપૂર્ણ સૂચના લૉગ જુઓ"
     },
     "Navigation": {
         "how_it_works": "તે કેવી રીતે કામ કરે છે",
         "alerts": "સૂચનાઓ",
         "pharmacy_map": "ફાર્મસી નકશો",
+        "my_reports": "મારા રિપોર્ટ",
+        "home": "હોમ",
+        "scans": "સ્કૅન",
+        "map": "નકશો",
+        "profile": "પ્રોફાઇલ",
         "language": "ગુજરાતી"
     },
     "BackToTopButton": {

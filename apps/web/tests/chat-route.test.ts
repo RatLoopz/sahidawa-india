@@ -126,4 +126,30 @@ describe("POST /api/chat", () => {
             config: expect.any(Object),
         });
     });
+
+    it("uses Punjabi in the standard chat system prompt when locale is pa", async () => {
+        generateContentMock.mockResolvedValue({
+            text: "ਮੈਂ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ।",
+        });
+
+        const response = await POST(
+            new Request("http://localhost/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    locale: "pa",
+                    messages: [{ role: "user", content: "What is paracetamol?" }],
+                }),
+            })
+        );
+
+        expect(response.status).toBe(200);
+        expect(generateContentMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                config: expect.objectContaining({
+                    systemInstruction: expect.stringContaining("Punjabi"),
+                }),
+            })
+        );
+    });
 });

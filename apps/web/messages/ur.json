@@ -10,15 +10,32 @@
         "voice_subtitle": "علامات بیان کریں",
         "pharmacy_map": "فارمیسی کا نقشہ",
         "pharmacy_subtitle": "تصدیق شدہ فارمیسیاں تلاش کریں",
+        "report_fake": "جعلی دوا رپورٹ کریں",
+        "report_fake_subtitle": "مشکوک دوا کی اطلاع دیں",
         "search_placeholder": "دوا یا بیچ نمبر تلاش کریں…",
         "search_button": "تلاش کریں",
         "sign_in": "Sign In",
-        "get_started": "Get Started"
+        "get_started": "Get Started",
+        "open_ai_health_assistant": "AI صحت معاون کھولیں",
+        "ai_health_assistant": "AI صحت معاون",
+        "ai_chat": "AI چیٹ",
+        "ai_health_assistant_description": "فوری صحت مشورہ، علامات کی جانچ اور نسخے کی رہنمائی حاصل کریں",
+        "chat_now": "ابھی چیٹ کریں",
+        "live_cdsco_alerts": "لائیو CDSCO الرٹس",
+        "india_region": "بھارت خطہ",
+        "alerts_empty_title": "سب صاف ہے!",
+        "alerts_empty_description": "اس وقت کوئی فعال ضابطہ جاتی الرٹ نہیں ہے۔ محفوظ رہیں اور اپنی ادویات کی تصدیق کریں۔",
+        "view_full_alert_log": "مکمل الرٹ لاگ دیکھیں"
     },
     "Navigation": {
         "how_it_works": "یہ کیسے کام کرتا ہے",
         "alerts": "الرٹس",
         "pharmacy_map": "فارمیسی کا نقشہ",
+        "my_reports": "میری رپورٹس",
+        "home": "ہوم",
+        "scans": "اسکینز",
+        "map": "نقشہ",
+        "profile": "پروفائل",
         "language": "اردو"
     },
     "BackToTopButton": {

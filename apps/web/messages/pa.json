@@ -15,12 +15,27 @@
         "search_placeholder": "ਦਵਾਈ ਜਾਂ ਬੈਚ ਖੋਜੋ...",
         "search_button": "ਖੋਜੋ",
         "sign_in": "Sign In",
-        "get_started": "Get Started"
+        "get_started": "Get Started",
+        "open_ai_health_assistant": "AI ਸਿਹਤ ਸਹਾਇਕ ਖੋਲ੍ਹੋ",
+        "ai_health_assistant": "AI ਸਿਹਤ ਸਹਾਇਕ",
+        "ai_chat": "AI ਚੈਟ",
+        "ai_health_assistant_description": "ਤੁਰੰਤ ਸਿਹਤ ਸਲਾਹ, ਲੱਛਣ ਜਾਂਚ ਅਤੇ ਪ੍ਰਿਸਕ੍ਰਿਪਸ਼ਨ ਮਾਰਗਦਰਸ਼ਨ ਪ੍ਰਾਪਤ ਕਰੋ",
+        "chat_now": "ਹੁਣ ਚੈਟ ਕਰੋ",
+        "live_cdsco_alerts": "ਲਾਈਵ CDSCO ਚੇਤਾਵਨੀਆਂ",
+        "india_region": "ਭਾਰਤ ਖੇਤਰ",
+        "alerts_empty_title": "ਸਭ ਠੀਕ ਹੈ!",
+        "alerts_empty_description": "ਇਸ ਵੇਲੇ ਕੋਈ ਸਰਗਰਮ ਨਿਯਮਕ ਚੇਤਾਵਨੀ ਨਹੀਂ ਹੈ। ਸੁਰੱਖਿਅਤ ਰਹੋ ਅਤੇ ਆਪਣੀਆਂ ਦਵਾਈਆਂ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ।",
+        "view_full_alert_log": "ਪੂਰਾ ਚੇਤਾਵਨੀ ਲੌਗ ਵੇਖੋ"
     },
     "Navigation": {
         "how_it_works": "ਇਹ ਕਿਵੇਂ ਕੰਮ ਕਰਦਾ ਹੈ",
         "alerts": "ਚੇਤਾਵਨੀਆਂ",
         "pharmacy_map": "ਫਾਰਮੇਸੀ ਨਕਸ਼ਾ",
+        "my_reports": "ਮੇਰੀਆਂ ਰਿਪੋਰਟਾਂ",
+        "home": "ਹੋਮ",
+        "scans": "ਸਕੈਨ",
+        "map": "ਨਕਸ਼ਾ",
+        "profile": "ਪ੍ਰੋਫਾਈਲ",
         "language": "ਪੰਜਾਬੀ"
     },
     "VoicePage": {

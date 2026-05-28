@@ -15,12 +15,27 @@
         "search_placeholder": "ওষুধ বা ব্যাচ অনুসন্ধান করুন...",
         "search_button": "অনুসন্ধান",
         "sign_in": "Sign In",
-        "get_started": "Get Started"
+        "get_started": "Get Started",
+        "open_ai_health_assistant": "AI স্বাস্থ্য সহায়ক খুলুন",
+        "ai_health_assistant": "AI স্বাস্থ্য সহায়ক",
+        "ai_chat": "AI চ্যাট",
+        "ai_health_assistant_description": "তাৎক্ষণিক স্বাস্থ্য পরামর্শ, উপসর্গ পরীক্ষা ও প্রেসক্রিপশন নির্দেশনা পান",
+        "chat_now": "এখন চ্যাট করুন",
+        "live_cdsco_alerts": "লাইভ CDSCO সতর্কতা",
+        "india_region": "ভারত অঞ্চল",
+        "alerts_empty_title": "সব ঠিক আছে!",
+        "alerts_empty_description": "এই মুহূর্তে কোনো সক্রিয় নিয়ন্ত্রক সতর্কতা নেই। নিরাপদ থাকুন এবং আপনার ওষুধ যাচাই করুন।",
+        "view_full_alert_log": "সম্পূর্ণ সতর্কতা লগ দেখুন"
     },
     "Navigation": {
         "how_it_works": "কিভাবে কাজ করে",
         "alerts": "সতর্কতা",
         "pharmacy_map": "ফার্মেসি ম্যাপ",
+        "my_reports": "আমার রিপোর্ট",
+        "home": "হোম",
+        "scans": "স্ক্যান",
+        "map": "মানচিত্র",
+        "profile": "প্রোফাইল",
         "language": "বাংলা"
     },
     "BackToTopButton": {
