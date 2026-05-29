@@ -984,7 +984,7 @@ export default function ScanPage() {
     };
 
     return (
-        <div className="relative flex min-h-screen flex-col overflow-x-clip bg-black font-sans text-white">
+        <div className="relative flex min-h-screen flex-col overflow-x-clip bg-(--color-surface-page) text-(--color-text-primary) font-sans">
             <input
                 type="file"
                 id="medicine-upload"
@@ -1132,7 +1132,7 @@ export default function ScanPage() {
                 </div>
             )}
 
-            <div className="flex flex-col items-center gap-6 bg-linear-to-t from-black to-transparent p-8">
+            <div className="flex flex-col items-center gap-6 bg-linear-to-t from-(--color-surface-page) to-transparent p-8">
                 <form
                     onSubmit={handleBatchSubmit}
                     className="flex w-full max-w-sm flex-col gap-3 sm:flex-row"
