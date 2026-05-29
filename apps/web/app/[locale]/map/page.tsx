@@ -188,7 +188,7 @@ function BottomDrawer({
             <button
                 onClick={expandDrawer}
                 data-testid="mobile-pharmacy-pill"
-                className="pointer-events-auto absolute right-4 bottom-5 z-1000 flex items-center gap-2 rounded-full bg-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 px-4 py-2.5 text-xs font-bold text-white shadow-xl transition-all hover:bg-slate-800 active:scale-95 md:hidden"
+                className="pointer-events-auto absolute right-4 bottom-5 z-1000 flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-xs font-bold text-white shadow-xl transition-all hover:bg-slate-800 active:scale-95 md:hidden dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
                 aria-label={`Show nearby pharmacies list with ${count} results`}
             >
                 <ChevronUp size={14} />
@@ -309,6 +309,24 @@ export default function PharmacyMapPage() {
         }
     }, []);
 
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    setUserLocation(loc);
+                    fetchNearby(loc.lat, loc.lng);
+                },
+                () => {
+                    fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+            );
+        } else {
+            fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
+        }
+    }, [fetchNearby]);
+
     const fetchInBounds = useCallback(async (bounds: MapBounds) => {
         setIsLoading(true);
         setFetchError(null);
@@ -355,11 +373,41 @@ export default function PharmacyMapPage() {
         }
     }, []);
 
+    // Geolocation
+    const handleLocateUser = useCallback(() => {
+        if (!navigator.geolocation) {
+            setLocationError("Geolocation is not supported by your browser");
+            setTimeout(() => setLocationError(null), 3000);
+            return;
+        }
+        setIsLocating(true);
+        setLocationError(null);
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                setUserLocation(loc);
+                setIsLocating(false);
+                fetchNearby(loc.lat, loc.lng);
+            },
+            (err) => {
+                setIsLocating(false);
+                const messages: Record<number, string> = {
+                    1: "Location access denied. Please enable it in browser settings.",
+                    2: "Location information unavailable.",
+                    3: "Location request timed out.",
+                };
+                setLocationError(messages[err.code] || "Unable to get your location.");
+                setTimeout(() => setLocationError(null), 4000);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+        );
+    }, [fetchNearby]);
+
     const handleMapReady = useCallback(() => {
-        if (!initialFetchDone.current && !userLocation) {
+        if (!initialFetchDone.current) {
             fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
         }
-    }, [fetchNearby, userLocation]);
+    }, [fetchNearby]);
 
     const handleMapMoveEnd = useCallback((bounds: MapBounds) => {
         if (initialFetchDone.current) {
@@ -408,55 +456,32 @@ export default function PharmacyMapPage() {
         setAdvancedFilters((current) => ({ ...current, [key]: !current[key] }));
     };
 
-    // Geolocation
-    const handleLocateUser = useCallback(() => {
-        if (!navigator.geolocation) {
-            setLocationError("Geolocation is not supported by your browser");
-            setTimeout(() => setLocationError(null), 3000);
-            return;
-        }
-        setIsLocating(true);
-        setLocationError(null);
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                setUserLocation(loc);
-                setIsLocating(false);
-                fetchNearby(loc.lat, loc.lng);
-            },
-            (err) => {
-                setIsLocating(false);
-                const messages: Record<number, string> = {
-                    1: "Location access denied. Please enable it in browser settings.",
-                    2: "Location information unavailable.",
-                    3: "Location request timed out.",
-                };
-                setLocationError(messages[err.code] || "Unable to get your location.");
-                setTimeout(() => setLocationError(null), 4000);
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-        );
-    }, [fetchNearby]);
-
     const filters = [
-        { id: "all", label: "All Stores", activeClass: "bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white shadow-md" },
+        {
+            id: "all",
+            label: "All Stores",
+            activeClass: "bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white shadow-md",
+        },
         {
             id: "verified",
             label: "Verified Partners",
             icon: <Shield size={11} className="text-current" />,
-            activeClass: "bg-emerald-600 text-white shadow-md shadow-emerald-200 dark:shadow-emerald-950/20",
+            activeClass:
+                "bg-emerald-600 text-white shadow-md shadow-emerald-200 dark:shadow-emerald-950/20",
         },
         {
             id: "govt",
             label: "Jan Aushadhi",
             icon: <Globe size={11} />,
-            activeClass: "bg-emerald-600 text-white shadow-md shadow-emerald-200 dark:shadow-emerald-950/20",
+            activeClass:
+                "bg-emerald-600 text-white shadow-md shadow-emerald-200 dark:shadow-emerald-950/20",
         },
         {
             id: "named",
             label: "Named Only",
             icon: <Star size={11} className="fill-current" />,
-            activeClass: "bg-amber-500 text-white shadow-md shadow-amber-200 dark:shadow-amber-950/20",
+            activeClass:
+                "bg-amber-500 text-white shadow-md shadow-amber-200 dark:shadow-amber-950/20",
         },
         {
             id: "more",
@@ -710,17 +735,17 @@ export default function PharmacyMapPage() {
                                         ? "animate-pulse bg-emerald-500/10 text-emerald-600"
                                         : userLocation
                                           ? "bg-emerald-600 text-white hover:bg-emerald-700"
-                                          : "bg-(--color-surface-page) text-emerald-600 hover:text-emerald-500 dark:hover:text-emerald-400 hover:shadow-xl"
+                                          : "bg-(--color-surface-page) text-emerald-600 hover:text-emerald-500 hover:shadow-xl dark:hover:text-emerald-400"
                                 }`}
                                 aria-label="Find my location"
                                 title="Find my location"
-                             >
+                            >
                                 <Navigation size={20} />
                             </button>
                         </div>
 
                         {(locationError || fetchError) && (
-                            <div className="animate-in slide-in-from-top-2 absolute top-4 right-16 left-4 z-1000 rounded-2xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20 px-4 py-3 text-xs font-semibold text-red-700 dark:text-red-400 shadow-lg duration-300">
+                            <div className="animate-in slide-in-from-top-2 absolute top-4 right-16 left-4 z-1000 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700 shadow-lg duration-300 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-400">
                                 {locationError || fetchError}
                             </div>
                         )}

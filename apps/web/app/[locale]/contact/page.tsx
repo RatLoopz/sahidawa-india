@@ -1,6 +1,7 @@
-import {Link} from "@/i18n/routing";
+import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { Mail, MessageCircle, Bug, Handshake } from "lucide-react";
+import { PageHeader } from "../components/PageHeader";
 
 const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "contact@sahidawa.in";
 const DISCORD_URL = "https://discord.gg/dvbDuJVwNa";
@@ -10,10 +11,10 @@ const CONTRIBUTING_URL = "https://github.com/RatLoopz/sahidawa-india/blob/main/C
 
 export default function ContactPage() {
     const t = useTranslations("contact");
-   
+
     return (
         <main className="min-h-screen bg-white">
-           
+            <PageHeader backHref="/" variant="light" />
             {/* Hero */}
             <section className="border-b border-(--color-border-muted) px-4 py-16 text-center">
                 <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-950/20 dark:text-emerald-400">

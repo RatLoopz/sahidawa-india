@@ -12,7 +12,12 @@ import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence, Variants } from "framer-motion";
-import { submitReport, geocodePincode } from "@/lib/api";
+import {
+    submitReport,
+    geocodePincode,
+    analyzeMedicineImage,
+    type MedicineImageAnalysis,
+} from "@/lib/api";
 import { preprocessMedicineImage } from "@/lib/imageEnhancer";
 import LazyImage from "@/components/LazyImage";
 import { LiveMessage } from "@/components/ui/LiveMessage";
@@ -93,7 +98,45 @@ interface ImageEntry {
     preview: string; // blob URL of the original user file
     cloudUrl: string; // Cloudinary secure_url from enhanced file
     name: string;
+    analysis?: MedicineImageAnalysis | UnavailableImageAnalysis;
 }
+
+interface UnavailableImageAnalysis {
+    isFake: false;
+    confidence: 0;
+    verdict: "unavailable";
+    details: string;
+}
+
+type ImageAnalysisState = ImageEntry["analysis"];
+
+const analysisText: Record<NonNullable<ImageAnalysisState>["verdict"], string> = {
+    likely_genuine: "Likely genuine",
+    suspicious: "Suspicious",
+    likely_fake: "Likely fake",
+    unavailable: "Analysis unavailable",
+};
+
+const analysisTone: Record<NonNullable<ImageAnalysisState>["verdict"], string> = {
+    likely_genuine:
+        "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/20 dark:text-emerald-300",
+    suspicious:
+        "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/20 dark:text-amber-300",
+    likely_fake:
+        "border-red-200 bg-red-50 text-red-700 dark:border-red-950 dark:bg-red-950/20 dark:text-red-300",
+    unavailable:
+        "border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300",
+};
+
+const unavailableAnalysis = (error: unknown): UnavailableImageAnalysis => ({
+    isFake: false,
+    confidence: 0,
+    verdict: "unavailable",
+    details:
+        error instanceof Error
+            ? error.message
+            : "Image analysis could not be completed. Your report can still be submitted.",
+});
 
 // ─── Animation variants ────────────────────────────────────────────────────────
 const PAGE: Variants = {
@@ -436,11 +479,16 @@ function Step2({
                             );
                         }
 
+                        const cloudUrl = await uploadOne(fileToProcess);
+                        const analysis =
+                            await analyzeMedicineImage(cloudUrl).catch(unavailableAnalysis);
+
                         return {
                             // UX optimization: Generate preview from original file to maintain visual comfort
                             preview: URL.createObjectURL(f),
-                            cloudUrl: await uploadOne(fileToProcess),
+                            cloudUrl,
                             name: f.name,
+                            analysis,
                         };
                     })
                 );
@@ -592,9 +640,41 @@ function Step2({
                                         {img.name}
                                     </p>
                                 </div>
+                                {img.analysis && (
+                                    <span
+                                        className={`absolute top-2 left-2 rounded-full border px-2 py-1 text-[10px] font-bold shadow-sm ${analysisTone[img.analysis.verdict]}`}
+                                    >
+                                        {analysisText[img.analysis.verdict]}
+                                    </span>
+                                )}
                             </motion.div>
                         ))}
                     </AnimatePresence>
+                </div>
+            )}
+
+            {images.some((img) => img.analysis) && (
+                <div className="space-y-2">
+                    {images.map((img) =>
+                        img.analysis ? (
+                            <div
+                                key={`${img.cloudUrl}-analysis`}
+                                className={`rounded-xl border px-4 py-3 text-sm font-medium ${analysisTone[img.analysis.verdict]}`}
+                            >
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <span>{analysisText[img.analysis.verdict]}</span>
+                                    {img.analysis.verdict !== "unavailable" && (
+                                        <span>
+                                            {Math.round(img.analysis.confidence * 100)}% confidence
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="mt-1 text-xs leading-relaxed">
+                                    {img.analysis.details}
+                                </p>
+                            </div>
+                        ) : null
+                    )}
                 </div>
             )}
 

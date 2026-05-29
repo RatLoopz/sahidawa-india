@@ -1,16 +1,18 @@
 "use client";
 
-import { Mail, Lock, ShieldCheck, ArrowRight, Hand } from "lucide-react";
+import { Mail, Lock, ShieldCheck, ArrowRight, Hand, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 export default function LoginPage() {
     const router = useRouter();
-    const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    const isMissingEnvVars =
+        !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "http://localhost:54321",
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "local-development-key"
     );
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -22,6 +24,12 @@ export default function LoginPage() {
 
         setLoading(true);
         setError("");
+
+        if (isMissingEnvVars) {
+            setError("Database connection is not configured.");
+            setLoading(false);
+            return;
+        }
 
         try {
             const { data, error } = await supabase.auth.signInWithPassword({
@@ -76,6 +84,20 @@ export default function LoginPage() {
                         </p>
                     </div>
 
+                    {/* Missing Env Variables Warning */}
+                    {isMissingEnvVars && (
+                        <div className="mb-5 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/20 dark:text-amber-300">
+                            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-500" />
+                            <div>
+                                <p className="mb-1 font-semibold">Missing Configuration</p>
+                                <p className="text-amber-700 dark:text-amber-400">
+                                    Database connection variables are missing in your local setup.
+                                    Please configure .env.local to proceed.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Error */}
                     {error && (
                         <LiveMessage
@@ -102,7 +124,8 @@ export default function LoginPage() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
-                                    className="w-full bg-transparent text-(--color-text-primary) outline-none placeholder:text-(--color-text-muted)"
+                                    disabled={isMissingEnvVars}
+                                    className="w-full bg-transparent text-(--color-text-primary) outline-none placeholder:text-(--color-text-muted) disabled:cursor-not-allowed disabled:opacity-50"
                                 />
                             </div>
                         </div>
@@ -122,7 +145,8 @@ export default function LoginPage() {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
-                                    className="w-full bg-transparent text-(--color-text-primary) outline-none placeholder:text-(--color-text-muted)"
+                                    disabled={isMissingEnvVars}
+                                    className="w-full bg-transparent text-(--color-text-primary) outline-none placeholder:text-(--color-text-muted) disabled:cursor-not-allowed disabled:opacity-50"
                                 />
                             </div>
                         </div>
@@ -130,8 +154,8 @@ export default function LoginPage() {
                         {/* Button */}
                         <button
                             type="submit"
-                            disabled={loading}
-                            className="shadow-emerald-250/20 mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 font-semibold text-white shadow-lg transition-all hover:bg-emerald-700 dark:shadow-emerald-950/20"
+                            disabled={loading || isMissingEnvVars}
+                            className="shadow-emerald-250/20 mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 font-semibold text-white shadow-lg transition-all hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-emerald-600 dark:shadow-emerald-950/20"
                         >
                             {loading ? "Signing In..." : "Sign In"}
 

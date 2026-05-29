@@ -1,32 +1,28 @@
-import { BadgeCheck, Mail } from "lucide-react";
+"use client";
+
 import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
+import { GitBranch, Sparkles, Heart } from "lucide-react";
 import { Link } from "@/i18n/routing";
+import { usePathname } from "next/navigation";
 
 export default function Footer() {
+    const pathname = usePathname();
+    // Matches localized homepages like /en, /hi, /mr, or /
+    const isHome = pathname ? /^\/[a-z]{2}$|^\/$/.test(pathname) : false;
+
     return (
-        <footer className="no-print mt-auto border-t border-teal-100 bg-gradient-to-b from-teal-50 to-cyan-50 transition-colors duration-300 dark:border-slate-800 dark:from-slate-900 dark:to-slate-950">
-            <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-10">
-                <div className="grid grid-cols-1 gap-12 md:grid-cols-5">
-                    {/* Brand — spans 2 */}
-                    <div className="md:col-span-2">
-                        <Link href="/" className="mb-5 flex items-center gap-2.5">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 shadow-sm sm:h-10 sm:w-10 dark:bg-blue-900/30 dark:text-blue-400">
-                                <img
-                                    src="/favicon.ico"
-                                    alt=""
-                                    aria-hidden="true"
-                                    className="h-7 w-7 object-contain"
-                                    width={28}
-                                    height={28}
-                                />
-                            </div>
-                            <span className="text-[20px] font-extrabold tracking-tight text-slate-900 dark:text-white">
-                                Sahi<span className="text-teal-600 dark:text-teal-400">Dawa</span>
-                            </span>
-                        </Link>
-                        <p className="mb-6 max-w-xs text-[14px] leading-relaxed text-slate-600 dark:text-slate-400">
-                            India's most trusted medicine verification platform — protecting
-                            patients with AI-powered authenticity checks and real-time CDSCO data.
+        <footer
+            className={`no-print mt-auto border-t border-slate-800 bg-slate-950 text-slate-400 ${isHome ? "mb-16 md:mb-0" : ""}`}
+        >
+            <div className="container mx-auto px-4 py-10 md:px-6">
+                <div className="grid grid-cols-1 gap-8 border-b border-slate-800 pb-8 md:grid-cols-3">
+                    {/* Brand Section */}
+                    <div>
+                        <h2 className="mb-3 text-lg font-semibold text-white">SahiDawa</h2>
+
+                        <p className="text-sm leading-relaxed text-slate-500">
+                            An open-source healthcare platform built with community collaboration
+                            and innovation in mind.
                         </p>
                         <div className="mb-6 flex items-center gap-2 text-[12px] font-bold text-teal-700 dark:text-teal-400">
                             <BadgeCheck size={15} className="text-teal-500" />
@@ -123,10 +119,17 @@ export default function Footer() {
                     ))}
                 </div>
 
-                {/* Bottom bar */}
-                <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-teal-200 pt-8 sm:flex-row dark:border-slate-800">
-                    <p className="text-[12px] font-medium text-slate-500 dark:text-slate-500">
-                        © {new Date().getFullYear()} SahiDawa. Open Source under MIT License.
+                {/* Bottom Footer */}
+                <div className="flex flex-col items-center justify-between gap-4 pt-6 text-xs text-slate-500 md:flex-row">
+                    <div className="flex items-center gap-4">
+                        <p className="text-xs md:text-sm">
+                            © 2026 SahiDawa. Open Source under MIT License.
+                        </p>
+                    </div>
+
+                    <p className="text-center text-xs md:text-right md:text-sm">
+                        Built with <Heart className="inline h-[1em] w-[1em] text-red-500" /> for the
+                        open-source community.
                     </p>
                     <div className="flex items-center gap-2 text-[12px] font-semibold text-slate-500 dark:text-slate-500">
                         <span className="relative flex h-2 w-2">
