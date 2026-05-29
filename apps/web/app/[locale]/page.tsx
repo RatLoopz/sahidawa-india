@@ -33,6 +33,10 @@ import {
     Layers,
 } from "lucide-react";
 
+import { Link } from "@/i18n/routing";
+import LanguageSwitcher from "./LanguageSwitcher";
+import { ThemeToggle } from "./components/ThemeToggle";
+
 /* ─────────────────────────────────────────────────────────────
    GLOBAL STYLES  (injected once)
 ───────────────────────────────────────────────────────────── */
@@ -590,6 +594,11 @@ export default function SahiDawaHome() {
                                 <ScanLine size={15} strokeWidth={2.5} />
                                 Scan Medicine
                             </a>
+
+                            <div className="flex items-center gap-2 border-l border-slate-200 pl-3 dark:border-slate-800">
+                                <LanguageSwitcher />
+                                <ThemeToggle />
+                            </div>
                         </div>
 
                         {/* Mobile toggle */}
@@ -628,6 +637,16 @@ export default function SahiDawaHome() {
                             >
                                 <ScanLine size={16} /> Scan Your Medicine
                             </a>
+
+                            <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-6 dark:border-slate-800">
+                                <span className="text-sm font-bold text-slate-500">
+                                    Preferences
+                                </span>
+                                <div className="flex items-center gap-3">
+                                    <LanguageSwitcher />
+                                    <ThemeToggle />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}
