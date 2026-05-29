@@ -7,6 +7,7 @@ import { routing } from "../../i18n/routing";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { OfflineErrorBoundary } from "@/components/OfflineErrorBoundary";
+import ErrorBoundary from "../../src/components/ErrorBoundary";
 import { ServiceWorkerProvider } from "@/components/ServiceWorkerProvider";
 import BackToTopButton from "./components/BackToTopButton";
 import Chatbot from "./components/Chatbot";
@@ -65,6 +66,7 @@ export default async function LocaleLayout({
                 <ServiceWorkerProvider>
                     <ThemeProvider>
                         <NextIntlClientProvider messages={messages}>
+                            <ErrorBoundary>
                             <OfflineErrorBoundary>
                                 <OfflineBanner />
                                 {children}
@@ -73,7 +75,8 @@ export default async function LocaleLayout({
                                     <BackToTopButton />
                                     <Chatbot />
                                 </div>
-                            </OfflineErrorBoundary>
+                        </OfflineErrorBoundary>
+                            </ErrorBoundary>
                         </NextIntlClientProvider>
                         <div className="no-print">
                             <Toaster richColors position="top-center" />
