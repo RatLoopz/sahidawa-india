@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import io
 import wave
@@ -180,6 +182,17 @@ def ensure_wav_duration_within_limit(contents: bytes) -> float:
     return duration_seconds
 
 
+def ensure_audio_duration_within_limit(audio_data, sample_rate: int) -> float:
+    duration_seconds = get_audio_duration_seconds(audio_data, sample_rate)
+    if duration_seconds > MAX_TRANSCRIPTION_DURATION_SECONDS:
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded audio must be 60 seconds or shorter.",
+        )
+
+    return duration_seconds
+
+
 def transcribe_uploaded_bytes(
     contents: bytes,
     *,
@@ -252,7 +265,10 @@ def _transcribe_audio_bytes(
             )
 
         audio_data, sample_rate = sf.read(normalized_path)
-        audio_duration_seconds = get_audio_duration_seconds(audio_data, sample_rate)
+        audio_duration_seconds = ensure_audio_duration_within_limit(
+            audio_data,
+            sample_rate,
+        )
         audio_data = audio_data.astype(np.float32)
 
         with warnings.catch_warnings():

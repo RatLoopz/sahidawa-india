@@ -1,12 +1,37 @@
 import io
+import importlib.util
 import os
 import sys
+import types
 import wave
 
+import numpy as np
 import pytest
 from fastapi import HTTPException
 
+if importlib.util.find_spec("noisereduce") is None:
+    sys.modules["noisereduce"] = types.SimpleNamespace(reduce_noise=lambda y, sr: y)
+
+if importlib.util.find_spec("faster_whisper") is None:
+    sys.modules["faster_whisper"] = types.SimpleNamespace(WhisperModel=object)
+
+if importlib.util.find_spec("soundfile") is None:
+    sys.modules["soundfile"] = types.SimpleNamespace(
+        read=lambda _path: (_ for _ in ()).throw(RuntimeError("stubbed"))
+    )
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+if sys.version_info < (3, 10):
+    sys.modules["services.telemetry"] = types.SimpleNamespace(
+        get_audio_duration_seconds=lambda audio_data, sample_rate: len(audio_data)
+        / float(sample_rate),
+        get_memory_usage_mb=lambda: 0.0,
+        get_telemetry_logger=lambda: None,
+        log_transcription_finished=lambda **_kwargs: None,
+        start_timer=lambda: 0.0,
+    )
+
 from routers import asr as asr_router
 
 
@@ -83,3 +108,40 @@ def test_upload_validation_rejects_invalid_wav_before_ffmpeg(monkeypatch):
 
     assert exc.value.status_code == 400
     assert ffmpeg_called is False
+
+
+def test_post_transcode_duration_guard_rejects_over_limit_non_wav(monkeypatch):
+    model_loaded = False
+
+    def successful_ffmpeg(*_args, **_kwargs):
+        return asr_router.subprocess.CompletedProcess(
+            args=["ffmpeg"],
+            returncode=0,
+            stdout=b"",
+            stderr=b"",
+        )
+
+    def read_long_normalized_audio(_path):
+        sample_rate = 16000
+        return np.zeros(sample_rate * 61, dtype=np.float32), sample_rate
+
+    def fail_if_model_loads():
+        nonlocal model_loaded
+        model_loaded = True
+        raise AssertionError("model should not load for over-limit normalized audio")
+
+    monkeypatch.setattr(asr_router.subprocess, "run", successful_ffmpeg)
+    monkeypatch.setattr(asr_router.sf, "read", read_long_normalized_audio)
+    monkeypatch.setattr(asr_router, "get_model", fail_if_model_loads)
+
+    with pytest.raises(HTTPException) as exc:
+        asr_router.transcribe_uploaded_bytes(
+            b"fake compressed audio",
+            original_name="long.webm",
+            content_type="audio/webm",
+            language=None,
+        )
+
+    assert exc.value.status_code == 400
+    assert exc.value.detail == "Uploaded audio must be 60 seconds or shorter."
+    assert model_loaded is False
