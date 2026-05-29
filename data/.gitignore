@@ -5,3 +5,4 @@ raw/
 __pycache__/
 seeds/validated_medicines.csv
 seeds/cdsco_reference.csv
+failed/

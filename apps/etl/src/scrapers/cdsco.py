@@ -12,7 +12,11 @@ PIPELINE ROLE:
 """
 
 import os
+import sys
 from pathlib import Path
+
+# Allow running directly as a script
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import pandas as pd
 import requests

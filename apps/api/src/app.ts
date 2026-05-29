@@ -27,6 +27,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import adminRoutes from "./routes/admin.routes";
+import { requireAuth, requireRole } from "./middleware/auth";
 import { verifyLimiter } from "./middleware/rateLimit";
 import reportsRouter from "./routes/reports";
 import pharmaciesRouter from "./routes/pharmacies";
@@ -36,7 +37,9 @@ import notificationsRouter from "./routes/notifications";
 import scanRouter from "./routes/scan";
 import alertsRouter from "./routes/alerts";
 import lasaRouter from "./routes/lasa";
+import mlRouter from "./routes/ml";
 import { supabase } from "./db/client";
+import { createCorsOptions } from "./config/cors";
 
 import { errorHandler } from "./middleware/errorHandler";
 
@@ -53,13 +56,7 @@ app.use(
 );
 
 // Security: restrict CORS to known origins instead of wildcard
-const allowedOrigins = ["http://localhost:3000", "http://localhost:4000", "http://localhost:8000"];
-app.use(
-    cors({
-        origin: allowedOrigins,
-        credentials: true,
-    })
-);
+app.use(cors(createCorsOptions()));
 
 app.use(express.json({ limit: "1mb" }));
 app.use(verifyLimiter);
@@ -81,8 +78,8 @@ app.get("/", (req: Request, res: Response) => {
     res.send("SahiDawa-India API is running successfully!");
 });
 
-// Admin Routes
-app.use("/api/v1/admin", adminRoutes);
+// Admin Routes — protected: must be authenticated + have admin role
+app.use("/api/v1/admin", requireAuth, requireRole("admin"), adminRoutes);
 
 app.get("/health", async (req: Request, res: Response) => {
     logger.info("Health check endpoint accessed");
@@ -123,6 +120,7 @@ app.use("/api/notifications", notificationsRouter);
 app.use("/api/v1/scan", scanRouter);
 app.use("/api/v1/lasa", lasaRouter);
 app.use("/api/v1/alerts", alertsRouter);
+app.use("/api/ml", mlRouter);
 
 // ── Swagger UI (/api/docs) ──────────────────────────────────────────────────
 app.use(
