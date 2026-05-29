@@ -2,7 +2,16 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { WifiOff, Home, RefreshCw, Wifi, Pill, MapPin, ShieldCheck, PartyPopper } from "lucide-react";
+import {
+    WifiOff,
+    Home,
+    RefreshCw,
+    Wifi,
+    Pill,
+    MapPin,
+    ShieldCheck,
+    PartyPopper,
+} from "lucide-react";
 
 /**
  * OfflinePage — Premium offline fallback UI for SahiDawa.
@@ -72,7 +81,7 @@ export default function OfflinePage() {
                     <h1 className="mb-3 flex items-center justify-center gap-2 text-3xl font-bold text-white">
                         {t("bannerOnline")} <PartyPopper className="h-8 w-8 text-emerald-400" />
                     </h1>
-                    <p className="mb-2 text-lg text-emerald-400">`{t("descriptionOnline")}</p>
+                    <p className="mb-2 text-lg text-emerald-400">{t("descriptionOnline")}</p>
                     <p className="text-sm text-slate-400">Redirecting you to SahiDawa…</p>
 
                     {/* Progress bar */}
@@ -101,12 +110,8 @@ export default function OfflinePage() {
                 </div>
 
                 {/* Headline */}
-                <h1 className="mb-3 text-4xl font-bold tracking-tight text-white">
-                    {t("title")}
-                </h1>
-                <p className="mb-2 text-lg leading-relaxed text-slate-400">
-                    {t("description")}
-                </p>
+                <h1 className="mb-3 text-4xl font-bold tracking-tight text-white">{t("title")}</h1>
+                <p className="mb-2 text-lg leading-relaxed text-slate-400">{t("description")}</p>
                 <p className="mb-10 text-sm leading-relaxed text-slate-500">
                     {t("subtitle")}
                     {retryCount > 0 && (
@@ -161,9 +166,7 @@ export default function OfflinePage() {
                 </div>
 
                 {/* Brand footer */}
-                <p className="mt-8 text-xs text-slate-600">
-                    {t("footer")}
-                </p>
+                <p className="mt-8 text-xs text-slate-600">{t("footer")}</p>
             </div>
 
             <style>{`
