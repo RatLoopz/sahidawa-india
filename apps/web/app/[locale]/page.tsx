@@ -15,6 +15,8 @@ import {
     ChevronRight,
     Activity,
     MessageCircle,
+    Menu,
+    X,
 } from "lucide-react";
 
 import { useRouter, useParams } from "next/navigation";
@@ -64,6 +66,7 @@ export default function SahiDawaHome() {
 
     const [homepageAlerts, setHomepageAlerts] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
 
     useEffect(() => {
         async function fetchAlerts() {
@@ -118,7 +121,9 @@ export default function SahiDawaHome() {
                         </h1>
                     </div>
 
-                    <div className="flex items-center gap-3 sm:gap-4 md:gap-4">
+                    {/* Desktop & Mobile Actions Container */}
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        {/* Inline Desktop Menu Links (Hidden on mobile / tablet screens) */}
                         <nav
                             className="hidden items-center gap-6 text-sm font-semibold text-(--color-text-secondary) lg:flex"
                             aria-label="Main navigation"
@@ -142,7 +147,7 @@ export default function SahiDawaHome() {
 
                         <button
                             onClick={() => handleNavigation("login")}
-                            className="hidden h-9 items-center justify-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-50/50 px-4 py-1.5 text-sm font-bold text-emerald-700 transition-all duration-200 hover:scale-105 hover:border-emerald-500/50 hover:bg-emerald-100 sm:h-10 sm:px-5 sm:py-2 md:flex dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20"
+                            className="hidden h-9 items-center justify-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-50/50 px-4 py-1.5 text-sm font-bold text-emerald-700 transition-all duration-200 hover:scale-105 hover:border-emerald-500/50 hover:bg-emerald-100 sm:h-10 sm:px-5 sm:py-2 lg:flex dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20"
                             aria-label={tHome("sign_in")}
                         >
                             <User size={16} />
@@ -159,10 +164,94 @@ export default function SahiDawaHome() {
                         </button>
 
                         <LanguageSwitcher />
-                        <ThemeToggle />
+                        
+                        {/* Desktop Theme Control Container (Hidden from mobile layouts) */}
+                        <div className="hidden lg:block">
+                            <ThemeToggle />
+                        </div>
+
+                        {/* Mobile Hamburger Trigger Toggle Component (Replaces ThemeToggle button layout flow dynamically on viewport width shift) */}
+                        <button 
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-(--color-border-muted) text-(--color-text-secondary) hover:text-(--color-text-primary) transition-all duration-200 lg:hidden focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                            aria-label="Toggle drawer layout panel navigation menu"
+                            aria-expanded={isMenuOpen}
+                            aria-controls="mobile-collapsed-drawer"
+                        >
+                            {isMenuOpen ? <X size={20} className="animate-in spin-in-12 duration-200" /> : <Menu size={20} className="animate-in fade-in duration-200" />}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Mobile Dropdown Panel Container Layout Row Element */}
+                <div 
+                    id="mobile-collapsed-drawer"
+                    className={`lg:hidden w-full overflow-y-auto border-b border-(--color-border-muted)/40 bg-(--color-surface-page) transition-all duration-300 ease-in-out ${
+                        isMenuOpen ? "max-h-[calc(100vh-4rem-4rem)] opacity-100 shadow-xl pb-6" : "max-h-0 opacity-0 pointer-events-none"
+                    }`}
+                >
+                    <div className="flex flex-col gap-2 px-5 py-4 font-semibold text-sm text-(--color-text-secondary)">
+                        
+                        {/* Dynamic Core Appearance Configuration Segment */}
+                        <div className="flex items-center justify-between py-2 border-b border-(--color-border-muted)/30 mb-2">
+                            <span className="text-xs font-bold uppercase tracking-wider text-(--color-text-muted) self-center">
+                                HOME SETTINGS
+                            </span>
+                            <div className="flex items-center justify-center h-8 w-8 scale-90">
+                                <ThemeToggle />
+                            </div>
+                        </div>
+
+                        {/* Collapsible Panel Main Router Links */}
+                        <Link 
+                            href="/how-it-works" 
+                            onClick={() => setIsMenuOpen(false)}
+                            className="flex items-center justify-between py-2.5 rounded-xl px-3 hover:bg-(--color-surface-muted) transition-colors active:scale-[0.99]"
+                        >
+                            <span>{tNav("how_it_works")}</span>
+                            <ChevronRight size={16} className="opacity-40" />
+                        </Link>
+                        <Link 
+                            href="/alerts" 
+                            onClick={() => setIsMenuOpen(false)}
+                            className="flex items-center justify-between py-2.5 rounded-xl px-3 hover:bg-(--color-surface-muted) transition-colors active:scale-[0.99]"
+                        >
+                            <span>{tNav("alerts")}</span>
+                            <ChevronRight size={16} className="opacity-40" />
+                        </Link>
+                        <Link 
+                            href="/map" 
+                            onClick={() => setIsMenuOpen(false)}
+                            className="flex items-center justify-between py-2.5 rounded-xl px-3 hover:bg-(--color-surface-muted) transition-colors active:scale-[0.99]"
+                        >
+                            <span>{tNav("pharmacy_map")}</span>
+                            <ChevronRight size={16} className="opacity-40" />
+                        </Link>
+                        <Link 
+                            href="/reports/me" 
+                            onClick={() => setIsMenuOpen(false)}
+                            className="flex items-center justify-between py-2.5 rounded-xl px-3 hover:bg-(--color-surface-muted) transition-colors active:scale-[0.99]"
+                        >
+                            <span className="flex items-center gap-2"><History size={16} /> {tNav("my_reports")}</span>
+                            <ChevronRight size={16} className="opacity-40" />
+                        </Link>
+
+                        <div className="mt-3 border-t border-(--color-border-muted)/30 pt-4 pb-2">
+                            <button
+                                onClick={() => {
+                                    setIsMenuOpen(false);
+                                    handleNavigation("login");
+                                }}
+                                className="flex w-full h-11 items-center justify-center gap-2 rounded-xl bg-emerald-600 font-bold text-white shadow-md shadow-emerald-600/10 hover:bg-emerald-700 transition-all active:scale-[0.98]"
+                            >
+                                <User size={18} />
+                                <span>{tHome("sign_in")}</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </header>
+            
             {/* ── Main ── */}
             <main className="container mx-auto max-w-6xl px-4 pt-8 pb-24 md:pb-12">
                 {/* Hero */}
@@ -174,11 +263,9 @@ export default function SahiDawaHome() {
                         </span>
                         GSSoC 2026 Open Source Project
                     </div>
-                    {/* UPDATED TITLE COLOR HERE */}
                     <h2 className="text-4xl leading-[1.1] font-black tracking-tight text-(--color-text-primary) md:text-6xl">
                         {tHome("title")}
                     </h2>
-                    {/* UPDATED SUBTITLE COLOR HERE */}
                     <p className="mx-auto max-w-2xl text-lg leading-relaxed font-medium text-(--color-text-secondary) md:text-xl">
                         {tHome("subtitle")}
                     </p>
@@ -326,7 +413,6 @@ export default function SahiDawaHome() {
 
                     <div className="relative z-10 flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
                         <div className="flex items-center gap-4 sm:gap-5">
-                            {/* Icon container */}
                             <div className="flex h-14 w-14 shrink-0 -translate-y-9 items-center justify-center rounded-2xl bg-(--color-surface-page)/95 shadow-lg shadow-purple-500/30 transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl group-hover:shadow-purple-500/35 sm:h-16 sm:w-16 sm:translate-y-0">
                                 <MessageCircle size={28} className="text-white drop-shadow-sm" />
                             </div>
@@ -335,7 +421,6 @@ export default function SahiDawaHome() {
                                     <h3 className="text-xl font-extrabold tracking-tight text-(--color-text-primary) sm:text-2xl">
                                         {tHome("ai_health_assistant")}
                                     </h3>
-                                    {/* Animated AI badge */}
                                     <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-500/10 px-2.5 py-0.5 text-[11px] font-bold tracking-wider whitespace-nowrap text-purple-500 uppercase ring-1 ring-purple-500/20">
                                         <span className="relative flex h-1.5 w-1.5">
                                             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-purple-400 opacity-60" />
@@ -408,7 +493,6 @@ export default function SahiDawaHome() {
                                             key={alert.id}
                                             className="group relative flex cursor-pointer items-start gap-4 overflow-hidden rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-400/30 hover:shadow-md"
                                         >
-                                            {/* Left edge colored strip */}
                                             <div
                                                 className={`absolute top-0 bottom-0 left-0 w-1.5 ${
                                                     alert.brand_name === "SYSTEM_UPDATE"
@@ -476,7 +560,6 @@ export default function SahiDawaHome() {
                             </div>
                         </div>
 
-                        {/* ── Alert Log CTA ── */}
                         <div className="border-t border-(--color-border-muted) bg-(--color-surface-page) p-4">
                             <Link href="/alerts" className="block w-full">
                                 <button className="group/log flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) py-3 font-bold text-(--color-text-primary) transition-all duration-200 hover:border-slate-500/30 hover:shadow-sm">
@@ -496,7 +579,6 @@ export default function SahiDawaHome() {
                 </div>
             </main>
 
-            {/* Spacer for mobile nav */}
             <div className="h-16 md:hidden"></div>
 
             {/* ── Mobile Bottom Navigation ── */}
