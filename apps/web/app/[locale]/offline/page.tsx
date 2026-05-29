@@ -1,13 +1,24 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { WifiOff, Home, RefreshCw, Wifi, Pill, MapPin, ShieldCheck, PartyPopper } from "lucide-react";
+import { useTranslations } from "next-intl";
+import {
+    WifiOff,
+    Home,
+    RefreshCw,
+    Wifi,
+    Pill,
+    MapPin,
+    ShieldCheck,
+    PartyPopper,
+} from "lucide-react";
 
 /**
  * OfflinePage — Premium offline fallback UI for SahiDawa.
  * Automatically redirects to home when the connection is restored.
  */
 export default function OfflinePage() {
+    const t = useTranslations("offline");
     const [isOnline, setIsOnline] = useState(false);
     const [isRetrying, setIsRetrying] = useState(false);
     const [retryCount, setRetryCount] = useState(0);
@@ -68,9 +79,9 @@ export default function OfflinePage() {
                     </div>
 
                     <h1 className="mb-3 flex items-center justify-center gap-2 text-3xl font-bold text-white">
-                        Back Online! <PartyPopper className="h-8 w-8 text-emerald-400" />
+                        {t("bannerOnline")} <PartyPopper className="h-8 w-8 text-emerald-400" />
                     </h1>
-                    <p className="mb-2 text-lg text-emerald-400">Connection restored</p>
+                    <p className="mb-2 text-lg text-emerald-400">{t("descriptionOnline")}</p>
                     <p className="text-sm text-slate-400">Redirecting you to SahiDawa…</p>
 
                     {/* Progress bar */}
@@ -99,14 +110,10 @@ export default function OfflinePage() {
                 </div>
 
                 {/* Headline */}
-                <h1 className="mb-3 text-4xl font-bold tracking-tight text-white">
-                    You're Offline
-                </h1>
-                <p className="mb-2 text-lg leading-relaxed text-slate-400">
-                    SahiDawa needs an internet connection to verify medicines and locate pharmacies.
-                </p>
+                <h1 className="mb-3 text-4xl font-bold tracking-tight text-white">{t("title")}</h1>
+                <p className="mb-2 text-lg leading-relaxed text-slate-400">{t("description")}</p>
                 <p className="mb-10 text-sm leading-relaxed text-slate-500">
-                    Please check your Wi-Fi or mobile data and try again.
+                    {t("subtitle")}
                     {retryCount > 0 && (
                         <span className="ml-1 text-amber-400">(Attempt {retryCount})</span>
                     )}
@@ -121,7 +128,7 @@ export default function OfflinePage() {
                         className="inline-flex w-full items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-6 py-3.5 font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:from-emerald-500 hover:to-emerald-400 hover:shadow-emerald-500/40 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         <RefreshCw size={18} className={isRetrying ? "animate-spin" : ""} />
-                        {isRetrying ? "Checking connection…" : "Try Again"}
+                        {isRetrying ? "Checking connection…" : t("tryAgain")}
                     </button>
 
                     <a
@@ -131,7 +138,7 @@ export default function OfflinePage() {
                     >
                         <span className="inline-flex items-center justify-center gap-2.5">
                             <Home size={18} />
-                            Go to Home
+                            {t("goHome")}
                         </span>
                     </a>
                 </div>
@@ -159,9 +166,7 @@ export default function OfflinePage() {
                 </div>
 
                 {/* Brand footer */}
-                <p className="mt-8 text-xs text-slate-600">
-                    SahiDawa will automatically sync when your connection returns.
-                </p>
+                <p className="mt-8 text-xs text-slate-600">{t("footer")}</p>
             </div>
 
             <style>{`

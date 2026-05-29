@@ -25,7 +25,11 @@
         "india_region": "India Region",
         "alerts_empty_title": "All clear!",
         "alerts_empty_description": "No active regulatory alerts right now. Stay safe and verify your medicines.",
-        "view_full_alert_log": "View Full Alert Log"
+        "view_full_alert_log": "View Full Alert Log",
+        "heroTitle": {
+            "prefix": "Your Health, ",
+            "highlight": "Verified & Protected."
+        }
     },
     "Navigation": {
         "how_it_works": "How it Works",

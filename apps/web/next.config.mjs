@@ -1,18 +1,13 @@
 import createNextIntlPlugin from 'next-intl/plugin';
- 
+
 const withNextIntl = createNextIntlPlugin();
- 
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config, { dev }) => {
-    if (dev) {
-      config.watchOptions = {
-        ignored: ['**/node_modules/**', '**/.next/**', '**/.git/**'],
-        poll: 1000,
-      };
-    }
-    return config;
-  }
+  // NOTE: output: 'standalone' is for Docker/Vercel production builds ONLY.
+  // It must NOT be set during local dev as it causes the dev server to exit immediately.
+  // Uncomment the line below only when building for production Docker images:
+  // output: 'standalone',
 };
- 
+
 export default withNextIntl(nextConfig);

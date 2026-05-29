@@ -25,7 +25,11 @@
         "india_region": "ભારત પ્રદેશ",
         "alerts_empty_title": "બધું ઠીક છે!",
         "alerts_empty_description": "હાલમાં કોઈ સક્રિય નિયમનકારી સૂચનાઓ નથી. સુરક્ષિત રહો અને તમારી દવાઓ ચકાસો.",
-        "view_full_alert_log": "સંપૂર્ણ સૂચના લૉગ જુઓ"
+        "view_full_alert_log": "સંપૂર્ણ સૂચના લૉગ જુઓ",
+        "heroTitle": {
+            "prefix": "તમારું સ્વાસ્થ્ય, ",
+            "highlight": "ચકાસાયેલ અને સુરક્ષિત."
+        }
     },
     "Navigation": {
         "how_it_works": "તે કેવી રીતે કામ કરે છે",

@@ -25,7 +25,11 @@
         "india_region": "भारत क्षेत्र",
         "alerts_empty_title": "सर्व ठीक आहे!",
         "alerts_empty_description": "सध्या कोणतीही सक्रिय नियामक सूचना नाही. सुरक्षित रहा आणि तुमची औषधे पडताळा.",
-        "view_full_alert_log": "पूर्ण सूचना लॉग पहा"
+        "view_full_alert_log": "पूर्ण सूचना लॉग पहा",
+        "heroTitle": {
+            "prefix": "तुमचे आरोग्य, ",
+            "highlight": "पडताळलेले आणि सुरक्षित."
+        }
     },
     "Navigation": {
         "how_it_works": "हे कसे कार्य करते",

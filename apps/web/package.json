@@ -8,13 +8,13 @@
         "start": "next start",
         "lint": "eslint .",
         "test": "jest --config jest.config.cjs",
-        "test:a11y:voice": "node scripts/voice-a11y-audit.mjs",
-        "prepare": "command -v husky >/dev/null 2>&1 && husky || true"
+        "test:a11y:voice": "node scripts/voice-a11y-audit.mjs"
     },
     "dependencies": {
         "@google/genai": "^2.5.0",
         "@hookform/resolvers": "^5.4.0",
         "@supabase/auth-helpers-nextjs": "^0.15.0",
+        "@supabase/ssr": "^0.10.3",
         "@supabase/supabase-js": "^2.106.2",
         "@upstash/ratelimit": "^2.0.8",
         "@upstash/redis": "^1.38.0",

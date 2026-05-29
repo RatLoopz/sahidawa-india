@@ -60,7 +60,7 @@ BEGIN
   ORDER BY distance ASC
   LIMIT 200;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 2. get_pharmacies_in_bounds
@@ -111,10 +111,10 @@ BEGIN
   FROM public.pharmacies p
   WHERE p.location IS NOT NULL
     AND ST_Intersects(
-          p.location::geometry,
-          ST_MakeEnvelope(bound_west, bound_south, bound_east, bound_north, 4326)
+          p.location,
+          ST_MakeEnvelope(bound_west, bound_south, bound_east, bound_north, 4326)::geography
         )
   ORDER BY distance ASC
   LIMIT 200;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
