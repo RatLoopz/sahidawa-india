@@ -5,35 +5,80 @@
  */
 
 const OVERPASS_MIRRORS = [
+    "https://overpass.private.coffee/api/interpreter",
     "https://overpass-api.de/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
+    "https://lz4.overpass-api.de/api/interpreter",
+    "https://z.overpass-api.de/api/interpreter",
 ];
 
 async function queryOverpass(query: string): Promise<any> {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 20000);
+    // 1. Primary Path: Parallel client-side GET requests (races the first 2 mirrors for maximum speed)
+    const clientMirrors = OVERPASS_MIRRORS.slice(0, 2);
+    const fetchPromises = clientMirrors.map(async (mirror) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000); // 4s timeout per mirror client-side
 
-    for (const mirror of OVERPASS_MIRRORS) {
         try {
-            const response = await fetch(mirror, {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: `data=${encodeURIComponent(query)}`,
+            const url = `${mirror}?data=${encodeURIComponent(query)}`;
+            const response = await fetch(url, {
+                method: "GET",
+                headers: {
+                    Accept: "*/*",
+                },
                 signal: controller.signal,
             });
 
-            if (!response.ok) continue;
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error(`Mirror ${mirror} returned status ${response.status}`);
+            }
 
             const data = await response.json();
-            clearTimeout(timeout);
+            if (!data || !data.elements) {
+                throw new Error(`Mirror ${mirror} returned invalid data structure`);
+            }
+
             return data;
         } catch (err) {
-            continue;
+            clearTimeout(timeoutId);
+            throw err;
         }
+    });
+
+    try {
+        return await Promise.any(fetchPromises);
+    } catch (err) {
+        // Silent fallback — direct browser calls failed (e.g., CORS or adblocker). Proceeding to proxy.
     }
 
-    clearTimeout(timeout);
-    throw new Error("All Overpass mirrors failed to respond");
+    // 2. Fallback Path: Server-side Vercel Proxy
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout for proxy fallback
+
+    try {
+        const response = await fetch("/api/overpass", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query }),
+            signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data && data.elements) {
+                return data;
+            }
+        }
+    } catch (err) {
+        clearTimeout(timeoutId);
+        console.error("Fallback proxy failed:", err);
+    }
+
+    throw new Error("All Overpass mirrors and proxy failed to respond");
 }
 
 export interface OverpassPharmacy {
