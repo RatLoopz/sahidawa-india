@@ -223,11 +223,14 @@ class JanAushadhiNormalizer:
         df["is_counterfeit_alert"] = False
         df["source"] = "janaushadhi"
         df["barcode_id"] = None
+        df["mrp"] = pd.to_numeric(df["mrp"], errors="coerce").fillna(0.0)
+        df["jan_aushadhi_price"] = df["mrp"]
 
         output_cols = [
             "brand_name", "generic_name", "manufacturer", "strength",
             "dosage_form", "schedule", "cdsco_approval_status",
             "is_counterfeit_alert", "source", "barcode_id",
+            "mrp", "jan_aushadhi_price",
         ]
         result = df[output_cols].copy()
 

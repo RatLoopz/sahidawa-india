@@ -32,7 +32,7 @@ export default function BackToTopButton() {
             title={label}
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             className={clsx(
-                "fixed bottom-24 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-600 text-white shadow-[0_10px_25px_rgba(16,185,129,0.28)] transition-all duration-300 hover:-translate-y-1 hover:bg-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950",
+                "fixed bottom-36 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-600 text-white shadow-[0_10px_25px_rgba(16,185,129,0.28)] transition-all duration-300 hover:-translate-y-1 hover:bg-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 md:bottom-24",
                 isVisible
                     ? "opacity-100 translate-y-0"
                     : "pointer-events-none opacity-0 translate-y-4"

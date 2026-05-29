@@ -45,6 +45,47 @@ RETRY_TABLE = "etl_failed_rows"
 SUCCESS_RATE_ALERT_THRESHOLD = 95.0
 FAILED_ROWS_BASE_DIR = Path(__file__).resolve().parents[4] / "data" / "failed"
 
+ALLOWED_COLUMNS = {
+    "medicines": {
+        "id",
+        "barcode_id",
+        "brand_name",
+        "generic_name",
+        "manufacturer",
+        "batch_number",
+        "manufacturing_date",
+        "expiry_date",
+        "composition",
+        "cdsco_approval_status",
+        "is_counterfeit_alert",
+        "mrp",
+        "jan_aushadhi_price",
+        "strength",
+        "dosage_form",
+        "schedule",
+        "source",
+        "created_at",
+        "updated_at",
+    },
+    "etl_failed_rows": {
+        "id",
+        "pipeline_name",
+        "source_table",
+        "row_fingerprint",
+        "row_payload",
+        "medicine_name",
+        "unresolved_value",
+        "error_category",
+        "db_error_code",
+        "error_message",
+        "attempt_count",
+        "status",
+        "last_attempt_at",
+        "created_at",
+        "updated_at",
+    }
+}
+
 
 # ── Loader ─────────────────────────────────────────────────────────────────────
 
@@ -202,9 +243,15 @@ class SupabaseLoader:
         return inserted, failures
 
     def _upsert_payloads(self, payloads: list[dict], table: str) -> None:
+        if table in ALLOWED_COLUMNS:
+            allowed = ALLOWED_COLUMNS[table]
+            payloads = [
+                {k: v for k, v in p.items() if k in allowed}
+                for p in payloads
+            ]
         self.client.table(table).upsert(
             payloads,
-            on_conflict="generic_name,strength,dosage_form,source",
+            on_conflict="generic_name,brand_name,strength,dosage_form,source,barcode_id",
         ).execute()
 
     def _build_failure(self, payload: dict, row_index: int, error: Exception) -> dict:
@@ -267,6 +314,9 @@ class SupabaseLoader:
         return rows[0] if rows else None
 
     def _update_retry_row(self, row_id: str, payload: dict) -> None:
+        if RETRY_TABLE in ALLOWED_COLUMNS:
+            allowed = ALLOWED_COLUMNS[RETRY_TABLE]
+            payload = {k: v for k, v in payload.items() if k in allowed}
         self.client.table(RETRY_TABLE).update(payload).eq("id", row_id).execute()
 
     def _safe_update_retry_row(self, row_id: str, payload: dict) -> None:
