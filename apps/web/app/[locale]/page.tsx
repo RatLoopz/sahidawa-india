@@ -6,654 +6,1602 @@ import {
     Mic,
     MapPin,
     Bell,
-    History,
     Home,
     User,
     ShieldCheck,
     AlertTriangle,
     Globe,
     ChevronRight,
-    Activity,
-    MessageCircle,
     Database,
     ArrowRight,
     ScanLine,
-    Stethoscope,
     HeartPulse,
+    CheckCircle2,
+    Lock,
+    Zap,
+    Star,
+    Menu,
+    X,
+    Mail,
+    ChevronDown,
+    BadgeCheck,
+    FlaskConical,
+    Pill,
+    Building2,
+    Activity,
+    Fingerprint,
+    Layers,
 } from "lucide-react";
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 
-import { useRouter, useParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-import { Link } from "@/i18n/routing";
-import { useTranslations } from "next-intl";
-import LanguageSwitcher from "./LanguageSwitcher";
-import { ThemeToggle } from "./components/ThemeToggle";
-import SearchBar from "./components/SearchBar";
-import { Skeleton } from "@/components/ui/Skeleton";
-import { EmptyState } from "@/components/ui/EmptyState";
+/* ─────────────────────────────────────────────────────────────
+   GLOBAL STYLES  (injected once)
+───────────────────────────────────────────────────────────── */
+const GlobalStyles = () => (
+    <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 
-const desktopNavLinkClassName =
-    "relative inline-flex items-center pb-1 transition-colors duration-200 ease-out hover:text-blue-600 focus-visible:text-blue-600 after:absolute after:inset-x-0 after:-bottom-0.5 after:h-0.5 after:origin-center after:scale-x-0 after:rounded-full after:bg-current after:transition-transform after:duration-300 after:ease-out hover:after:scale-x-100 focus-visible:after:scale-x-100 motion-safe:after:will-change-transform";
+        *, *::before, *::after { box-sizing: border-box; }
 
-function formatRelativeTime(dateString: string | null): string {
-    if (!dateString) return "Recent";
+        :root {
+            --teal:   #0d9488;
+            --cyan:   #06b6d4;
+            --blue:   #2563eb;
+            --ink:    #0a0f1e;
+            --mist:   #f0fafa;
+        }
 
-    const now = new Date();
-    const past = new Date(dateString);
-    const msPerMinute = 60 * 1000;
-    const msPerHour = msPerMinute * 60;
-    const msPerDay = msPerHour * 24;
+        html { scroll-behavior: smooth; }
 
-    const elapsed = now.getTime() - past.getTime();
+        body { font-family: 'Instrument Sans', sans-serif; }
 
-    if (elapsed < msPerMinute) {
-        return "Just now";
-    } else if (elapsed < msPerHour) {
-        return `${Math.round(elapsed / msPerMinute)}m ago`;
-    } else if (elapsed < msPerDay) {
-        return `${Math.round(elapsed / msPerHour)}h ago`;
-    } else {
-        return past.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-    }
-}
+        .display, h1, h2, h3, h4 {
+            font-family: 'Bricolage Grotesque', sans-serif;
+            letter-spacing: -0.025em;
+        }
 
-// ── Premium Animated Scanner Component ──
-const ScannerIllustration = () => {
-    return (
-        <div className="relative mx-auto aspect-square w-full max-w-md overflow-hidden rounded-[2.5rem] border border-slate-800/60 bg-slate-900 shadow-2xl shadow-blue-900/20">
-            {/* High-tech Background Grid */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)] bg-[size:2rem_2rem] opacity-40"></div>
+        /* ── Noise texture overlay ── */
+        .noise::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            border-radius: inherit;
+        }
 
-            <div className="absolute inset-0 bg-gradient-to-tr from-blue-900/20 via-transparent to-emerald-900/20"></div>
+        /* ── Keyframes ── */
+        @keyframes fade-up {
+            from { opacity: 0; transform: translateY(28px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fade-in {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        @keyframes float-slow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33%       { transform: translateY(-10px) rotate(1deg); }
+            66%       { transform: translateY(-5px) rotate(-1deg); }
+        }
+        @keyframes float-med {
+            0%, 100% { transform: translateY(0px); }
+            50%       { transform: translateY(-14px); }
+        }
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+        @keyframes scan-laser {
+            0%   { top: 12%; }
+            50%  { top: 82%; }
+            100% { top: 12%; }
+        }
+        @keyframes shimmer {
+            0%   { background-position: -200% center; }
+            100% { background-position:  200% center; }
+        }
+        @keyframes orbit {
+            from { transform: rotate(0deg) translateX(120px) rotate(0deg); }
+            to   { transform: rotate(360deg) translateX(120px) rotate(-360deg); }
+        }
+        @keyframes counter-orbit {
+            from { transform: rotate(0deg) translateX(80px) rotate(0deg); }
+            to   { transform: rotate(-360deg) translateX(80px) rotate(360deg); }
+        }
+        @keyframes ping-slow {
+            0%   { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(2.2); opacity: 0; }
+        }
+        @keyframes bar-grow {
+            from { transform: scaleY(0); }
+            to   { transform: scaleY(1); }
+        }
+        @keyframes slide-right {
+            from { transform: translateX(-100%); }
+            to   { transform: translateX(0); }
+        }
+        @keyframes marquee {
+            from { transform: translateX(0); }
+            to   { transform: translateX(-50%); }
+        }
 
-            {/* Floating Medicine Box */}
-            <motion.div
-                animate={{ y: [-8, 8, -8], rotateZ: [-2, 2, -2] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute inset-0 z-10 flex items-center justify-center"
-            >
-                <div className="perspective-1000 rotateX-12 relative flex h-56 w-40 transform flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_0_50px_rgba(255,255,255,0.1)]">
-                    <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-blue-500 to-emerald-500"></div>
-                    <div className="flex w-full items-start justify-between">
-                        <div className="h-5 w-16 rounded-md bg-gradient-to-r from-blue-500 to-blue-400"></div>
-                        <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-emerald-500 text-emerald-500">
-                            <ShieldCheck size={14} />
-                        </div>
-                    </div>
+        /* ── Utility classes ── */
+        .anim-fade-up   { animation: fade-up  0.7s cubic-bezier(.22,1,.36,1) both; }
+        .anim-fade-in   { animation: fade-in  0.6s ease both; }
+        .anim-float     { animation: float-slow 7s ease-in-out infinite; }
+        .anim-float-med { animation: float-med  5s ease-in-out infinite; }
+        .anim-spin-slow { animation: spin-slow 22s linear infinite; }
+        .anim-spin-rev  { animation: spin-slow 18s linear infinite reverse; }
+        .anim-orbit     { animation: orbit 14s linear infinite; }
+        .anim-c-orbit   { animation: counter-orbit 10s linear infinite; }
+        .anim-marquee   { animation: marquee 28s linear infinite; }
 
-                    <div className="mt-4 space-y-3">
-                        <div className="h-2.5 w-full rounded-full bg-slate-100"></div>
-                        <div className="h-2.5 w-4/5 rounded-full bg-slate-100"></div>
-                        <div className="h-2.5 w-3/5 rounded-full bg-slate-100"></div>
-                    </div>
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        .delay-400 { animation-delay: 400ms; }
+        .delay-500 { animation-delay: 500ms; }
+        .delay-600 { animation-delay: 600ms; }
+        .delay-700 { animation-delay: 700ms; }
+        .delay-800 { animation-delay: 800ms; }
 
-                    <div className="mt-auto border-t border-slate-100 pt-4">
-                        {/* Realistic Barcode */}
-                        <div className="flex h-10 items-end gap-[3px] opacity-70">
-                            {[2, 4, 1, 3, 2, 5, 1, 2, 4, 2, 1, 3, 2, 4, 1, 2].map((h, i) => (
-                                <div
-                                    key={i}
-                                    className="rounded-t-sm bg-slate-800"
-                                    style={{
-                                        height: `${h * 20}%`,
-                                        width: h === 1 ? "2px" : h === 5 ? "4px" : "3px",
-                                    }}
-                                ></div>
-                            ))}
-                        </div>
+        .scan-laser {
+            position: absolute; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent 0%, #2dd4bf 20%, #67e8f9 50%, #2dd4bf 80%, transparent 100%);
+            box-shadow: 0 0 18px 4px rgba(45,212,191,0.7);
+            animation: scan-laser 2.8s ease-in-out infinite;
+        }
+
+        .shimmer-text {
+            background: linear-gradient(90deg, #0d9488 0%, #06b6d4 30%, #38bdf8 50%, #06b6d4 70%, #0d9488 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 4s linear infinite;
+        }
+
+        .glass {
+            background: rgba(255,255,255,0.72);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.55);
+        }
+
+        .glass-dark {
+            background: rgba(10,15,30,0.65);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .card-lift {
+            transition: transform 0.35s cubic-bezier(.22,1,.36,1),
+                        box-shadow 0.35s cubic-bezier(.22,1,.36,1);
+        }
+        .card-lift:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 28px 60px -12px rgba(13,148,136,0.18);
+        }
+
+        .btn-primary {
+            position: relative; overflow: hidden;
+        }
+        .btn-primary::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .btn-primary:hover::before { opacity: 1; }
+
+        .underline-wave {
+            position: relative; display: inline-block;
+        }
+        .underline-wave::after {
+            content: '';
+            position: absolute;
+            bottom: -4px; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, #0d9488, #06b6d4, #38bdf8);
+            border-radius: 999px;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s cubic-bezier(.22,1,.36,1);
+        }
+        .underline-wave:hover::after { transform: scaleX(1); }
+
+        /* Ticker bar */
+        .ticker-wrap { overflow: hidden; }
+        .ticker { display: flex; width: max-content; }
+
+        /* Step connector */
+        .step-connector {
+            position: absolute;
+            top: 40px; left: calc(50% + 60px);
+            width: calc(100% - 120px);
+            height: 1px;
+            background: linear-gradient(90deg, #5eead4, #93c5fd);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f0fafa; }
+        ::-webkit-scrollbar-thumb { background: #99f6e4; border-radius: 3px; }
+    `}</style>
+);
+
+/* ─────────────────────────────────────────────────────────────
+   MEDICINE CARD ILLUSTRATION
+───────────────────────────────────────────────────────────── */
+const MedicineIllustration = () => (
+    <div className="anim-float relative mx-auto w-full max-w-[460px] select-none">
+        {/* Orbital rings */}
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <div className="anim-spin-slow absolute h-[420px] w-[420px] rounded-full border border-teal-200/40" />
+            <div className="anim-spin-rev absolute h-[340px] w-[340px] rounded-full border border-cyan-200/30" />
+
+            {/* Orbiting dots */}
+            <div className="absolute flex h-[420px] w-[420px] items-center justify-center">
+                <div className="anim-orbit absolute">
+                    <div className="relative h-5 w-5 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 shadow-lg shadow-teal-300/50">
+                        <div className="absolute inset-0 animate-ping rounded-full bg-teal-400 opacity-60" />
                     </div>
                 </div>
-            </motion.div>
-
-            {/* Glowing Scanning Laser */}
-            <motion.div
-                animate={{ top: ["15%", "85%", "15%"] }}
-                transition={{ duration: 3.5, repeat: Infinity, ease: "linear" }}
-                className="absolute right-0 left-0 z-20 h-1 bg-emerald-400 shadow-[0_0_20px_rgba(52,211,153,1)]"
-            >
-                <div className="absolute top-1/2 left-1/2 h-[150px] w-full -translate-x-1/2 -translate-y-1/2 bg-gradient-to-b from-emerald-500/20 via-emerald-400/5 to-transparent"></div>
-            </motion.div>
-
-            {/* Verification Success Badge */}
-            <motion.div
-                initial={{ scale: 0, opacity: 0, y: 20 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                transition={{ delay: 1, duration: 0.5, type: "spring", bounce: 0.4 }}
-                className="absolute right-6 bottom-6 z-30 flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 p-3.5 text-emerald-400 shadow-2xl backdrop-blur-md"
-            >
-                <div className="rounded-full bg-emerald-400/20 p-1.5">
-                    <ShieldCheck size={22} className="text-emerald-400" />
+            </div>
+            <div className="absolute flex h-[340px] w-[340px] items-center justify-center">
+                <div className="anim-c-orbit absolute">
+                    <div className="h-3 w-3 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 shadow-md shadow-blue-300/50" />
                 </div>
-                <div>
-                    <p className="text-[10px] font-medium tracking-wider text-slate-300 uppercase">
-                        Status
+            </div>
+        </div>
+
+        {/* Main card */}
+        <div
+            className="noise relative z-10 overflow-hidden rounded-[2rem] shadow-2xl shadow-teal-900/10"
+            style={{
+                background: "linear-gradient(145deg, #ffffff 0%, #f0fdfa 100%)",
+                border: "1px solid rgba(204,251,241,0.8)",
+            }}
+        >
+            {/* Top rainbow bar */}
+            <div
+                className="h-1.5 w-full"
+                style={{
+                    background:
+                        "linear-gradient(90deg, #0d9488, #06b6d4, #3b82f6, #06b6d4, #0d9488)",
+                    backgroundSize: "200% auto",
+                    animation: "shimmer 3s linear infinite",
+                }}
+            />
+
+            <div className="p-7">
+                {/* Header row */}
+                <div className="mb-6 flex items-start justify-between">
+                    <div className="flex items-center gap-3.5">
+                        <div
+                            className="relative flex h-13 w-13 items-center justify-center rounded-2xl"
+                            style={{
+                                background: "linear-gradient(135deg, #ccfbf1 0%, #cffafe 100%)",
+                                border: "1px solid rgba(94,234,212,0.4)",
+                            }}
+                        >
+                            <Pill size={22} className="text-teal-600" />
+                        </div>
+                        <div>
+                            <p className="mb-0.5 text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">
+                                Verified Drug
+                            </p>
+                            <p className="text-[15px] leading-tight font-bold text-slate-800">
+                                Paracetamol 500mg
+                            </p>
+                            <p className="text-[11px] font-medium text-slate-400">
+                                Tab. · Batch #PM4892
+                            </p>
+                        </div>
+                    </div>
+                    <span
+                        className="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[11px] font-bold text-emerald-700"
+                        style={{
+                            background: "linear-gradient(135deg, #d1fae5, #a7f3d0)",
+                            border: "1px solid #6ee7b7",
+                        }}
+                    >
+                        <CheckCircle2 size={11} strokeWidth={3} /> Authentic
+                    </span>
+                </div>
+
+                {/* Barcode section */}
+                <div
+                    className="relative mb-5 overflow-hidden rounded-2xl p-4"
+                    style={{
+                        background: "linear-gradient(135deg, #f8fafc, #f1f5f9)",
+                        border: "1px solid #e2e8f0",
+                    }}
+                >
+                    <p className="mb-3 text-[9px] font-bold tracking-[0.2em] text-slate-400 uppercase">
+                        Batch Barcode
                     </p>
-                    <p className="text-sm font-bold text-white">100% Authentic</p>
+                    <div
+                        className="mb-2.5 flex h-14 items-end gap-[2.5px]"
+                        style={{
+                            transformOrigin: "bottom",
+                            animation: "bar-grow 0.8s cubic-bezier(.22,1,.36,1) 0.3s both",
+                        }}
+                    >
+                        {[
+                            3, 1, 4, 1, 5, 2, 3, 1, 2, 4, 1, 3, 5, 2, 1, 4, 2, 3, 1, 4, 5, 1, 2, 3,
+                            4, 1, 2,
+                        ].map((h, i) => (
+                            <div
+                                key={i}
+                                className="rounded-sm"
+                                style={{
+                                    height: `${h * 19}%`,
+                                    background: "#1e293b",
+                                    width: h === 1 ? "2px" : h === 5 ? "4px" : "3px",
+                                    minWidth: "2px",
+                                    opacity: 0.75 + (i % 3) * 0.08,
+                                }}
+                            />
+                        ))}
+                    </div>
+                    <p className="text-center font-mono text-[9px] tracking-[0.35em] text-slate-500">
+                        4 8 0 9 2 · 1 7 3 6
+                    </p>
                 </div>
-            </motion.div>
+
+                {/* Scanning laser */}
+                <div
+                    className="relative mb-5 overflow-hidden rounded-2xl"
+                    style={{
+                        height: "56px",
+                        background: "linear-gradient(135deg, #f0fdfa, #ecfeff)",
+                        border: "1px solid #99f6e4",
+                    }}
+                >
+                    <div className="scan-laser" />
+                    <div className="relative z-10 flex h-full items-center justify-center gap-2">
+                        <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-teal-500" />
+                        <p className="text-[13px] font-semibold text-teal-700">
+                            Verifying authenticity…
+                        </p>
+                    </div>
+                </div>
+
+                {/* Stats row */}
+                <div className="grid grid-cols-3 gap-3">
+                    {[
+                        {
+                            label: "CDSCO",
+                            val: "Approved",
+                            color: "#065f46",
+                            bg: "linear-gradient(135deg,#d1fae5,#a7f3d0)",
+                            border: "#6ee7b7",
+                        },
+                        {
+                            label: "Batch",
+                            val: "Valid",
+                            color: "#1e40af",
+                            bg: "linear-gradient(135deg,#dbeafe,#bfdbfe)",
+                            border: "#93c5fd",
+                        },
+                        {
+                            label: "Trust",
+                            val: "100%",
+                            color: "#115e59",
+                            bg: "linear-gradient(135deg,#ccfbf1,#cffafe)",
+                            border: "#5eead4",
+                        },
+                    ].map(({ label, val, color, bg, border }) => (
+                        <div
+                            key={label}
+                            className="rounded-xl p-3 text-center"
+                            style={{ background: bg, border: `1px solid ${border}` }}
+                        >
+                            <p
+                                className="mb-1 text-[9px] font-bold tracking-[0.15em] uppercase"
+                                style={{ color: `${color}99` }}
+                            >
+                                {label}
+                            </p>
+                            <p className="text-[13px] font-extrabold" style={{ color }}>
+                                {val}
+                            </p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+
+        {/* Floating badge — right */}
+        <div
+            className="glass anim-float-med absolute top-1/3 -right-10 z-20 flex items-center gap-3 rounded-2xl px-4 py-3 shadow-2xl"
+            style={{ animationDelay: "1s" }}
+        >
+            <div
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
+                style={{ background: "linear-gradient(135deg, #0d9488, #06b6d4)" }}
+            >
+                <ShieldCheck size={18} className="text-white" />
+            </div>
+            <div>
+                <p className="mb-0.5 text-[10px] font-semibold text-slate-400">Safety Score</p>
+                <p className="text-sm font-extrabold text-slate-800">Excellent ✓</p>
+            </div>
+        </div>
+
+        {/* Floating badge — left */}
+        <div
+            className="glass anim-float-med absolute bottom-1/4 -left-10 z-20 flex items-center gap-3 rounded-2xl px-4 py-3 shadow-2xl"
+            style={{ animationDelay: "2.5s" }}
+        >
+            <div
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
+                style={{ background: "linear-gradient(135deg, #2563eb, #4f46e5)" }}
+            >
+                <BadgeCheck size={18} className="text-white" />
+            </div>
+            <div>
+                <p className="mb-0.5 text-[10px] font-semibold text-slate-400">Manufacturer</p>
+                <p className="text-sm font-extrabold text-slate-800">Verified</p>
+            </div>
+        </div>
+
+        {/* Glow blob behind card */}
+        <div
+            className="absolute inset-0 -z-10 scale-90 rounded-3xl blur-3xl"
+            style={{
+                background:
+                    "radial-gradient(ellipse at 50% 50%, rgba(45,212,191,0.25), rgba(96,165,250,0.12), transparent 70%)",
+            }}
+        />
+    </div>
+);
+
+/* ─────────────────────────────────────────────────────────────
+   NAV LINK
+───────────────────────────────────────────────────────────── */
+const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
+    <a
+        href={href}
+        className="underline-wave text-[13.5px] font-semibold text-slate-600 transition-colors duration-200 hover:text-teal-700"
+    >
+        {children}
+    </a>
+);
+
+/* ─────────────────────────────────────────────────────────────
+   TICKER BAR
+───────────────────────────────────────────────────────────── */
+const TickerBar = () => {
+    const items = [
+        "✦ CDSCO Database Synced",
+        "✦ 2M+ Medicines Verified",
+        "✦ 5,000+ Safe Pharmacies",
+        "✦ Real-time Recall Alerts",
+        "✦ AI-Powered Detection",
+        "✦ Trusted by 10,000+ Users",
+        "✦ 99.9% Accuracy Rate",
+        "✦ Zero Counterfeit Tolerance",
+    ];
+    const doubled = [...items, ...items];
+    return (
+        <div
+            className="ticker-wrap w-full overflow-hidden border-y border-teal-100/80 py-3"
+            style={{ background: "linear-gradient(90deg, #f0fdfa 0%, #ecfeff 50%, #f0fdfa 100%)" }}
+        >
+            <div className="ticker anim-marquee gap-12">
+                {doubled.map((item, i) => (
+                    <span
+                        key={i}
+                        className="px-6 text-xs font-bold tracking-wide whitespace-nowrap text-teal-700"
+                    >
+                        {item}
+                    </span>
+                ))}
+            </div>
         </div>
     );
 };
 
-// ── Medical Heartbeat Background Animation ──
-const ECGBackground = () => (
-    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden opacity-[0.03] dark:opacity-[0.05]">
-        <svg
-            viewBox="0 0 1000 200"
-            className="h-full w-full stroke-blue-600 dark:stroke-blue-400"
-            strokeWidth="2"
-            fill="none"
-            preserveAspectRatio="none"
-        >
-            <motion.path
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 1 }}
-                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                d="M 0 100 L 200 100 L 220 50 L 250 150 L 280 20 L 310 120 L 330 100 L 600 100 L 620 50 L 650 150 L 680 20 L 710 120 L 730 100 L 1000 100"
-            />
-        </svg>
-    </div>
-);
-
+/* ─────────────────────────────────────────────────────────────
+   MAIN COMPONENT
+───────────────────────────────────────────────────────────── */
 export default function SahiDawaHome() {
-    const router = useRouter();
-    const params = useParams();
-    const locale = Array.isArray(params.locale) ? params.locale[0] : params.locale;
-    const tHome = useTranslations("Home");
-    const tNav = useTranslations("Navigation");
-
-    const [homepageAlerts, setHomepageAlerts] = useState<any[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-    const containerRef = useRef(null);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
 
     useEffect(() => {
-        async function fetchAlerts() {
-            try {
-                const { data } = await supabase
-                    .from("medicines")
-                    .select("*")
-                    .or(
-                        "is_counterfeit_alert.eq.true,cdsco_approval_status.eq.recalled,cdsco_approval_status.eq.banned, brand_name.eq.SYSTEM_UPDATE"
-                    )
-                    .order("created_at", { ascending: false })
-                    .limit(4);
-
-                if (data) setHomepageAlerts(data);
-            } catch (err) {
-                console.error("Failed to query alerts matrix:", err);
-            } finally {
-                setLoading(false);
-            }
-        }
-        fetchAlerts();
+        const fn = () => setScrolled(window.scrollY > 30);
+        window.addEventListener("scroll", fn, { passive: true });
+        return () => window.removeEventListener("scroll", fn);
     }, []);
 
-    const handleNavigation = (path: string) => {
-        router.push(`/${locale}/${path}`);
-    };
-
     return (
-        <div
-            ref={containerRef}
-            className="min-h-screen bg-[#fafcff] font-sans text-slate-900 transition-colors duration-300 selection:bg-blue-500/30 dark:bg-[#020617] dark:text-slate-50"
-        >
-            {/* ── Precision Top Navigation ── */}
-            <header className="sticky top-0 z-50 w-full border-b border-slate-200/50 bg-white/70 backdrop-blur-xl dark:border-slate-800/50 dark:bg-[#020617]/70">
-                <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-                    <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex cursor-pointer items-center gap-2.5"
-                        onClick={() => handleNavigation("")}
-                    >
-                        <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-blue-600 to-emerald-500 text-white shadow-md shadow-blue-500/20">
-                            <div className="absolute inset-0 bg-white/20 mix-blend-overlay"></div>
-                            <ShieldCheck size={22} strokeWidth={2.5} />
-                        </div>
-                        <h1 className="bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-xl font-bold tracking-tight text-transparent md:text-2xl dark:from-white dark:to-slate-300">
-                            SahiDawa
-                        </h1>
-                    </motion.div>
+        <div className="min-h-screen overflow-x-hidden bg-white text-slate-900 antialiased selection:bg-teal-100 selection:text-teal-900">
+            <GlobalStyles />
 
-                    <div className="flex items-center gap-3 sm:gap-4 md:gap-5">
-                        <nav className="hidden items-center gap-7 text-sm font-medium text-slate-600 lg:flex dark:text-slate-300">
-                            <Link href="/how-it-works" className={desktopNavLinkClassName}>
-                                {tNav("how_it_works")}
-                            </Link>
-                            <Link href="/alerts" className={desktopNavLinkClassName}>
+            {/* ══════════════════════════════
+                NAV
+            ══════════════════════════════ */}
+            <header
+                className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${scrolled ? "shadow-sm shadow-teal-100/50" : ""}`}
+                style={{
+                    background: scrolled ? "rgba(255,255,255,0.92)" : "transparent",
+                    backdropFilter: scrolled ? "blur(20px)" : "none",
+                    borderBottom: scrolled
+                        ? "1px solid rgba(204,251,241,0.6)"
+                        : "1px solid transparent",
+                }}
+            >
+                <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+                    <div className="flex h-[68px] items-center justify-between">
+                        {/* Logo */}
+                        <a href="/" className="flex items-center gap-2.5">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 shadow-sm sm:h-10 sm:w-10 dark:bg-blue-900/30 dark:text-blue-400">
+                                <img
+                                    src="/favicon.ico"
+                                    alt=""
+                                    aria-hidden="true"
+                                    className="h-7 w-7 object-contain"
+                                    width={28}
+                                    height={28}
+                                />
+                            </div>
+                            <span className="text-[20px] font-extrabold tracking-tight text-slate-900 dark:text-white">
+                                Sahi<span className="text-teal-600 dark:text-teal-400">Dawa</span>
+                            </span>
+                        </a>
+
+                        {/* Desktop nav */}
+                        <nav className="hidden items-center gap-8 lg:flex">
+                            <NavLink href="#how-it-works">How It Works</NavLink>
+                            <NavLink href="#features">Features</NavLink>
+                            <NavLink href="#trust">Trust & Safety</NavLink>
+                            <NavLink href="#alerts">
                                 <span className="relative">
-                                    {tNav("alerts")}
-                                    <span className="absolute -top-1 -right-2 flex h-2 w-2">
-                                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75"></span>
-                                        <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500"></span>
+                                    Alerts
+                                    <span className="absolute -top-0.5 -right-2.5 flex h-2 w-2">
+                                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75" />
+                                        <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500" />
                                     </span>
                                 </span>
-                            </Link>
-                            <Link href="/map" className={desktopNavLinkClassName}>
-                                {tNav("pharmacy_map")}
-                            </Link>
-                            <Link
-                                href="/reports/me"
-                                className={`${desktopNavLinkClassName} flex items-center gap-1.5`}
-                            >
-                                <History size={14} /> {tNav("my_reports")}
-                            </Link>
+                            </NavLink>
                         </nav>
 
-                        <div className="hidden h-6 w-px bg-slate-200 md:block dark:bg-slate-800"></div>
+                        {/* Right actions */}
+                        <div className="hidden items-center gap-3 lg:flex">
+                            <a
+                                href="/login"
+                                className="px-2 py-1.5 text-[13.5px] font-semibold text-slate-500 transition-colors hover:text-slate-800"
+                            >
+                                Sign In
+                            </a>
+                            <a
+                                href="/scan"
+                                className="btn-primary flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13.5px] font-bold text-white transition-all duration-300 hover:-translate-y-0.5"
+                                style={{
+                                    background: "linear-gradient(135deg, #0d9488, #06b6d4)",
+                                    boxShadow: "0 4px 20px rgba(13,148,136,0.35)",
+                                }}
+                            >
+                                <ScanLine size={15} strokeWidth={2.5} />
+                                Scan Medicine
+                            </a>
+                        </div>
 
+                        {/* Mobile toggle */}
                         <button
-                            onClick={() => handleNavigation("login")}
-                            className="hidden h-9 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-1.5 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50 hover:shadow-sm sm:h-10 md:flex dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                            onClick={() => setMenuOpen(!menuOpen)}
+                            className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 lg:hidden"
                         >
-                            <User size={16} />
-                            <span>{tHome("sign_in")}</span>
+                            {menuOpen ? <X size={22} /> : <Menu size={22} />}
                         </button>
-
-                        <LanguageSwitcher />
-                        <ThemeToggle />
                     </div>
                 </div>
+
+                {/* Mobile menu */}
+                {menuOpen && (
+                    <div className="anim-fade-up border-t border-slate-100 bg-white/98 px-5 py-6 backdrop-blur-xl lg:hidden">
+                        <div className="flex flex-col gap-5">
+                            {[
+                                ["How It Works", "#how-it-works"],
+                                ["Features", "#features"],
+                                ["Trust & Safety", "#trust"],
+                                ["Alerts", "#alerts"],
+                            ].map(([label, href]) => (
+                                <a
+                                    key={label}
+                                    href={href}
+                                    className="text-base font-semibold text-slate-700 transition-colors hover:text-teal-700"
+                                    onClick={() => setMenuOpen(false)}
+                                >
+                                    {label}
+                                </a>
+                            ))}
+                            <a
+                                href="/scan"
+                                className="btn-primary mt-2 flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold text-white"
+                                style={{ background: "linear-gradient(135deg, #0d9488, #06b6d4)" }}
+                            >
+                                <ScanLine size={16} /> Scan Your Medicine
+                            </a>
+                        </div>
+                    </div>
+                )}
             </header>
 
-            <main className="overflow-hidden">
-                {/* ── Premium Hero Section ── */}
-                <section className="relative pt-20 pb-24 lg:pt-32 lg:pb-36">
-                    <ECGBackground />
+            <main>
+                {/* ══════════════════════════════
+                    HERO
+                ══════════════════════════════ */}
+                <section className="relative flex min-h-[100svh] flex-col overflow-hidden pt-[68px]">
+                    {/* Mesh gradient background */}
+                    <div
+                        className="absolute inset-0 -z-10"
+                        style={{
+                            background:
+                                "radial-gradient(ellipse 80% 60% at 70% 40%, rgba(204,251,241,0.55) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 20% 70%, rgba(186,230,253,0.35) 0%, transparent 55%), radial-gradient(ellipse 40% 40% at 50% 10%, rgba(240,253,250,0.9) 0%, white 70%)",
+                        }}
+                    />
 
-                    <div className="absolute top-0 right-0 -z-10 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-blue-400/20 via-emerald-300/10 to-transparent blur-[100px] dark:from-blue-600/10 dark:via-emerald-900/10"></div>
-                    <div className="absolute bottom-0 left-0 -z-10 h-[400px] w-[400px] rounded-full bg-gradient-to-tr from-indigo-400/10 to-transparent blur-[80px] dark:from-indigo-600/10"></div>
+                    {/* Subtle dot grid */}
+                    <div
+                        className="absolute inset-0 -z-10 opacity-[0.4]"
+                        style={{
+                            backgroundImage:
+                                "radial-gradient(circle, #99f6e4 1px, transparent 1px)",
+                            backgroundSize: "36px 36px",
+                        }}
+                    />
 
-                    <div className="container mx-auto max-w-7xl px-4 md:px-6">
-                        <div className="grid grid-cols-1 items-center gap-16 lg:grid-cols-2 lg:gap-12">
-                            {/* Left Copy */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 30 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.8, ease: "easeOut" }}
-                                className="z-10 flex flex-col items-start space-y-8"
-                            >
-                                <div className="inline-flex items-center gap-2.5 rounded-full border border-blue-200/60 bg-blue-50/50 px-4 py-1.5 text-sm font-medium text-blue-700 shadow-sm backdrop-blur-sm dark:border-blue-800/50 dark:bg-blue-900/20 dark:text-blue-300">
-                                    <span className="relative flex h-2 w-2">
-                                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75"></span>
-                                        <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500"></span>
+                    <div className="relative mx-auto flex w-full max-w-7xl flex-grow flex-col justify-center px-5 sm:px-8 lg:px-10">
+                        <div className="grid grid-cols-1 items-center gap-16 py-20 lg:grid-cols-2 lg:gap-8 lg:py-24">
+                            {/* ── Left content ── */}
+                            <div className="flex flex-col items-start">
+                                {/* Pill badge */}
+                                <div
+                                    className="anim-fade-up mb-7 flex items-center gap-2.5 rounded-full py-2 pr-5 pl-2 text-[12px] font-bold text-teal-800"
+                                    style={{
+                                        background:
+                                            "linear-gradient(135deg, rgba(204,251,241,0.9), rgba(207,250,254,0.9))",
+                                        border: "1px solid rgba(94,234,212,0.6)",
+                                        backdropFilter: "blur(10px)",
+                                    }}
+                                >
+                                    <span
+                                        className="flex h-6 w-6 items-center justify-center rounded-full"
+                                        style={{
+                                            background: "linear-gradient(135deg, #0d9488, #06b6d4)",
+                                        }}
+                                    >
+                                        <ShieldCheck
+                                            size={12}
+                                            className="text-white"
+                                            strokeWidth={3}
+                                        />
                                     </span>
-                                    Enterprise-Grade Medical Verification
+                                    Trusted Medical Verification Platform
+                                    <span className="ml-1 rounded-full bg-teal-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                                        LIVE
+                                    </span>
                                 </div>
 
-                                <h1 className="text-5xl leading-[1.1] font-extrabold tracking-tight text-slate-900 md:text-6xl lg:text-[4.5rem] dark:text-white">
-                                    Secure your health with{" "}
-                                    <span className="relative inline-block">
-                                        <span className="relative z-10 bg-gradient-to-r from-blue-600 to-emerald-500 bg-clip-text text-transparent dark:from-blue-400 dark:to-emerald-400">
-                                            absolute truth.
-                                        </span>
-                                        <span className="absolute right-0 bottom-2 left-0 -z-0 h-3 -rotate-1 bg-emerald-200/50 dark:bg-emerald-900/50"></span>
+                                {/* Headline */}
+                                <h1 className="anim-fade-up mb-6 text-[3.25rem] leading-[1.05] font-extrabold text-slate-900 delay-100 md:text-[4rem] lg:text-[4.25rem]">
+                                    Your Health, <br className="hidden sm:block" />
+                                    <span className="shimmer-text">Verified</span>{" "}
+                                    <span className="relative">
+                                        &amp; Protected
+                                        <svg
+                                            className="absolute -bottom-2 left-0 w-full"
+                                            viewBox="0 0 320 10"
+                                            preserveAspectRatio="none"
+                                        >
+                                            <path
+                                                d="M4 7 Q80 2 160 6 Q240 10 316 5"
+                                                stroke="url(#wg)"
+                                                strokeWidth="3"
+                                                fill="none"
+                                                strokeLinecap="round"
+                                            />
+                                            <defs>
+                                                <linearGradient id="wg" x1="0" y1="0" x2="1" y2="0">
+                                                    <stop offset="0%" stopColor="#0d9488" />
+                                                    <stop offset="100%" stopColor="#38bdf8" />
+                                                </linearGradient>
+                                            </defs>
+                                        </svg>
                                     </span>
                                 </h1>
 
-                                <p className="max-w-xl text-lg leading-relaxed text-slate-600 dark:text-slate-400">
-                                    Empowering patients and professionals with real-time counterfeit
-                                    detection, CDSCO recall alerts, and verified pharmacy mapping.
-                                    Your safety, computationally guaranteed.
+                                {/* Subtext */}
+                                <p className="anim-fade-up mb-9 max-w-[480px] text-[17px] leading-[1.7] font-medium text-slate-500 delay-200">
+                                    Instantly verify any medicine using AI-powered scanning. Detect
+                                    counterfeits, check CDSCO approvals, and locate safe pharmacies
+                                    — all in under 2 seconds.
                                 </p>
 
-                                <div className="flex w-full flex-col gap-4 pt-2 sm:flex-row sm:items-center">
-                                    <button
-                                        onClick={() => handleNavigation("scan")}
-                                        className="group relative flex items-center justify-center gap-3 rounded-2xl bg-slate-900 px-8 py-4 text-base font-bold text-white shadow-xl shadow-slate-900/20 transition-all hover:-translate-y-0.5 hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:shadow-white/10 dark:hover:bg-slate-100"
+                                {/* CTAs */}
+                                <div className="anim-fade-up mb-10 flex w-full flex-wrap gap-3.5 delay-300">
+                                    <a
+                                        href="/scan"
+                                        className="btn-primary group flex items-center gap-2.5 rounded-2xl px-7 py-4 text-[15px] font-bold text-white transition-all duration-300 hover:-translate-y-0.5"
+                                        style={{
+                                            background:
+                                                "linear-gradient(135deg, #0d9488 0%, #06b6d4 100%)",
+                                            boxShadow:
+                                                "0 8px 30px rgba(13,148,136,0.4), inset 0 1px 0 rgba(255,255,255,0.2)",
+                                        }}
                                     >
-                                        <ScanLine
-                                            size={20}
-                                            className="text-emerald-400 dark:text-emerald-600"
-                                        />
-                                        Scan Medication
+                                        <ScanLine size={19} strokeWidth={2.5} />
+                                        Scan Your Medicine Now
                                         <ArrowRight
-                                            size={18}
-                                            className="opacity-70 transition-transform group-hover:translate-x-1"
+                                            size={17}
+                                            className="opacity-70 transition-transform duration-300 group-hover:translate-x-1"
                                         />
-                                    </button>
-                                    <button
-                                        onClick={() => handleNavigation("health")}
-                                        className="group flex items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white/50 px-8 py-4 text-base font-bold text-slate-700 shadow-sm backdrop-blur-sm transition-all hover:border-blue-300 hover:bg-white dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-200 dark:hover:border-blue-700 dark:hover:bg-slate-800"
+                                    </a>
+                                    <a
+                                        href="#how-it-works"
+                                        className="flex items-center gap-2 rounded-2xl border-2 bg-white/70 px-7 py-4 text-[15px] font-bold text-slate-700 backdrop-blur-sm transition-all duration-300 hover:border-teal-300 hover:bg-white hover:shadow-lg hover:shadow-teal-100/60"
+                                        style={{ borderColor: "#e2e8f0" }}
                                     >
-                                        <Stethoscope size={20} className="text-blue-500" />
-                                        AI Voice Triage
-                                    </button>
+                                        Learn More
+                                        <ChevronDown size={17} className="text-slate-400" />
+                                    </a>
                                 </div>
 
-                                <div className="flex items-center gap-4 pt-6 opacity-80">
-                                    <div className="flex -space-x-3">
-                                        {[1, 2, 3, 4].map((i) => (
-                                            <div
-                                                key={i}
-                                                className={`flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-slate-200 bg-gradient-to-br from-blue-100 to-slate-200 dark:border-[#020617] dark:from-slate-700 dark:to-slate-800`}
-                                            >
-                                                <User
-                                                    size={14}
-                                                    className="text-slate-500 dark:text-slate-400"
-                                                />
+                                {/* Social proof */}
+                                <div className="anim-fade-up flex flex-wrap items-center gap-6 delay-400">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex -space-x-2.5">
+                                            {["#ccfbf1", "#cffafe", "#dbeafe", "#ede9fe"].map(
+                                                (bg, i) => (
+                                                    <div
+                                                        key={i}
+                                                        className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white shadow-sm"
+                                                        style={{ background: bg }}
+                                                    >
+                                                        <User
+                                                            size={13}
+                                                            className="text-slate-500"
+                                                        />
+                                                    </div>
+                                                )
+                                            )}
+                                        </div>
+                                        <div>
+                                            <div className="mb-0.5 flex gap-0.5">
+                                                {[1, 2, 3, 4, 5].map((i) => (
+                                                    <Star
+                                                        key={i}
+                                                        size={11}
+                                                        className="fill-amber-400 text-amber-400"
+                                                    />
+                                                ))}
                                             </div>
-                                        ))}
+                                            <p className="text-[13px] font-semibold text-slate-500">
+                                                <span className="font-extrabold text-slate-900">
+                                                    10,000+
+                                                </span>{" "}
+                                                verified users
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                                        Trusted by{" "}
-                                        <span className="font-bold text-slate-900 dark:text-white">
-                                            10,000+
-                                        </span>{" "}
-                                        healthcare users
+                                    <div className="hidden h-8 w-px bg-slate-200 sm:block" />
+                                    <div className="flex items-center gap-2">
+                                        <BadgeCheck size={18} className="text-teal-500" />
+                                        <p className="text-[13px] font-semibold text-slate-500">
+                                            <span className="font-extrabold text-slate-900">
+                                                CDSCO
+                                            </span>{" "}
+                                            Synced Daily
+                                        </p>
+                                    </div>
+                                    <div className="hidden h-8 w-px bg-slate-200 sm:block" />
+                                    <div className="flex items-center gap-2">
+                                        <Activity size={18} className="text-rose-500" />
+                                        <p className="text-[13px] font-semibold text-slate-500">
+                                            <span className="font-extrabold text-slate-900">
+                                                99.9%
+                                            </span>{" "}
+                                            Accuracy
+                                        </p>
                                     </div>
                                 </div>
-                            </motion.div>
+                            </div>
 
-                            {/* Right Scanner Animation */}
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ duration: 1, delay: 0.2 }}
-                                className="relative lg:pl-10"
-                            >
-                                <ScannerIllustration />
-                            </motion.div>
+                            {/* ── Right illustration ── */}
+                            <div className="anim-fade-in relative flex justify-center delay-300 lg:justify-end lg:pr-4">
+                                <MedicineIllustration />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Scroll indicator */}
+                    <div className="anim-fade-up absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-1.5 delay-700">
+                        <p className="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase">
+                            Scroll
+                        </p>
+                        <div className="h-8 w-px overflow-hidden rounded-full bg-slate-200">
+                            <div
+                                className="h-full w-full bg-gradient-to-b from-teal-500 to-transparent"
+                                style={{ animation: "slide-right 1.8s ease-in-out infinite" }}
+                            />
                         </div>
                     </div>
                 </section>
 
-                {/* ── Modern Bento Grid Services ── */}
-                <section className="border-t border-slate-100 bg-white py-24 dark:border-slate-800/50 dark:bg-[#0b1120]">
-                    <div className="container mx-auto max-w-7xl px-4 md:px-6">
-                        <div className="mb-16 flex flex-col items-end justify-between gap-6 md:flex-row">
-                            <div className="max-w-2xl">
-                                <h2 className="mb-3 text-sm font-bold tracking-widest text-blue-600 uppercase dark:text-blue-400">
-                                    Core Infrastructure
-                                </h2>
-                                <h3 className="text-3xl font-extrabold text-slate-900 md:text-4xl dark:text-white">
-                                    A complete ecosystem for medical truth.
-                                </h3>
-                            </div>
-                            <p className="max-w-sm text-slate-600 md:text-right dark:text-slate-400">
-                                We provide the technical layer between patients and authentic
-                                healthcare.
+                {/* ══════════════════════════════
+                    TICKER
+                ══════════════════════════════ */}
+                <TickerBar />
+
+                {/* ══════════════════════════════
+                    TRUST CARDS
+                ══════════════════════════════ */}
+                <section
+                    id="trust"
+                    className="py-24 lg:py-32"
+                    style={{ background: "linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)" }}
+                >
+                    <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+                        {/* Section header */}
+                        <div className="mb-16 max-w-2xl">
+                            <span
+                                className="anim-fade-up mb-4 inline-block rounded-full px-4 py-1.5 text-[11px] font-extrabold tracking-[0.2em] text-teal-700 uppercase"
+                                style={{
+                                    background: "linear-gradient(135deg, #ccfbf1, #cffafe)",
+                                    border: "1px solid #99f6e4",
+                                }}
+                            >
+                                Built on Trust
+                            </span>
+                            <h2 className="anim-fade-up mb-4 text-[2.5rem] leading-tight font-extrabold text-slate-900 delay-100 lg:text-[3rem]">
+                                Healthcare decisions
+                                <br />
+                                deserve absolute certainty.
+                            </h2>
+                            <p className="anim-fade-up text-[16px] leading-relaxed font-medium text-slate-500 delay-200">
+                                Every feature is engineered with one goal: zero tolerance for
+                                counterfeits, zero compromise on your safety.
                             </p>
                         </div>
 
-                        <div className="grid auto-rows-[320px] grid-cols-1 gap-6 md:grid-cols-3">
-                            {/* Feature 1: Large Visual Scan */}
-                            <motion.div
-                                whileHover={{ y: -5 }}
-                                onClick={() => handleNavigation("scan")}
-                                className="group relative cursor-pointer overflow-hidden rounded-[2rem] border border-slate-200/50 bg-gradient-to-br from-slate-50 to-slate-100 md:col-span-2 dark:border-slate-800 dark:from-slate-900 dark:to-slate-800/50"
-                            >
-                                <div className="absolute top-0 right-0 h-[300px] w-[300px] translate-x-1/3 -translate-y-1/2 rounded-full bg-blue-500/10 blur-3xl transition-colors group-hover:bg-blue-500/20"></div>
-                                <div className="relative z-10 flex h-full flex-col justify-between p-10">
-                                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 bg-white text-blue-600 shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-blue-400">
-                                        <ScanLine size={28} />
-                                    </div>
-                                    <div>
-                                        <h4 className="mb-2 text-2xl font-bold text-slate-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
-                                            Visual Counterfeit Detection
-                                        </h4>
-                                        <p className="max-w-md text-slate-600 dark:text-slate-400">
-                                            Utilize advanced computer vision to analyze packaging,
-                                            barcodes, and pill structures against known authentic
-                                            signatures.
-                                        </p>
-                                    </div>
-                                </div>
-                                <ArrowRight
-                                    className="absolute right-10 bottom-10 text-slate-300 transition-all group-hover:translate-x-2 group-hover:text-blue-600 dark:text-slate-600 dark:group-hover:text-blue-400"
-                                    size={28}
-                                />
-                            </motion.div>
+                        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                            {[
+                                {
+                                    icon: <ShieldCheck size={26} />,
+                                    color: "#0d9488",
+                                    bg: "linear-gradient(145deg, #f0fdfa, #ccfbf1)",
+                                    border: "#99f6e4",
+                                    iconBg: "linear-gradient(135deg, #0d9488, #06b6d4)",
+                                    title: "Verified Medicines",
+                                    desc: "Cross-referenced against CDSCO's official approved drug list in real time with every scan.",
+                                    stat: "2M+",
+                                    statLabel: "medicines verified",
+                                    delay: "0ms",
+                                },
+                                {
+                                    icon: <Building2 size={26} />,
+                                    color: "#2563eb",
+                                    bg: "linear-gradient(145deg, #eff6ff, #dbeafe)",
+                                    border: "#93c5fd",
+                                    iconBg: "linear-gradient(135deg, #2563eb, #4f46e5)",
+                                    title: "Safe Pharmacies",
+                                    desc: "Geo-mapped and regularly audited pharmacies with zero counterfeit history.",
+                                    stat: "5,000+",
+                                    statLabel: "pharmacies listed",
+                                    delay: "80ms",
+                                },
+                                {
+                                    icon: <Database size={26} />,
+                                    color: "#7c3aed",
+                                    bg: "linear-gradient(145deg, #f5f3ff, #ede9fe)",
+                                    border: "#c4b5fd",
+                                    iconBg: "linear-gradient(135deg, #7c3aed, #6d28d9)",
+                                    title: "Trusted Data",
+                                    desc: "Direct feeds from CDSCO, WHO, and manufacturers — no aggregator guesswork.",
+                                    stat: "99.9%",
+                                    statLabel: "data accuracy",
+                                    delay: "160ms",
+                                },
+                                {
+                                    icon: <Zap size={26} />,
+                                    color: "#b45309",
+                                    bg: "linear-gradient(145deg, #fffbeb, #fef3c7)",
+                                    border: "#fcd34d",
+                                    iconBg: "linear-gradient(135deg, #d97706, #f59e0b)",
+                                    title: "Real-time Alerts",
+                                    desc: "Instant push notifications for recalled, banned, or flagged drugs before they reach you.",
+                                    stat: "<2s",
+                                    statLabel: "alert response",
+                                    delay: "240ms",
+                                },
+                            ].map(
+                                ({
+                                    icon,
+                                    color,
+                                    bg,
+                                    border,
+                                    iconBg,
+                                    title,
+                                    desc,
+                                    stat,
+                                    statLabel,
+                                    delay,
+                                }) => (
+                                    <div
+                                        key={title}
+                                        className="card-lift group noise relative overflow-hidden rounded-3xl p-7"
+                                        style={{
+                                            background: bg,
+                                            border: `1px solid ${border}`,
+                                            animationDelay: delay,
+                                        }}
+                                    >
+                                        {/* Icon */}
+                                        <div
+                                            className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl shadow-lg"
+                                            style={{
+                                                background: iconBg,
+                                                boxShadow: `0 8px 24px ${color}33`,
+                                                color: "white",
+                                            }}
+                                        >
+                                            {icon}
+                                        </div>
 
-                            {/* Feature 2: Voice Triage (Accent Color) */}
-                            <motion.div
-                                whileHover={{ y: -5 }}
-                                onClick={() => handleNavigation("voice")}
-                                className="group relative cursor-pointer overflow-hidden rounded-[2rem] bg-gradient-to-b from-indigo-600 to-blue-700 p-10 shadow-lg shadow-indigo-900/20"
-                            >
-                                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
-                                <div className="relative z-10 flex h-full flex-col justify-between text-white">
-                                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/20 bg-white/20 backdrop-blur-md">
-                                        <Mic size={28} className="text-white" />
-                                    </div>
-                                    <div>
-                                        <h4 className="mb-2 text-2xl font-bold">AI Voice Triage</h4>
-                                        <p className="text-sm text-indigo-100">
-                                            Speak your symptoms natively. Our AI maps them to
-                                            clinical urgency.
+                                        <h3 className="mb-2.5 text-[17px] font-bold text-slate-900">
+                                            {title}
+                                        </h3>
+                                        <p className="mb-6 text-[13.5px] leading-relaxed text-slate-600">
+                                            {desc}
                                         </p>
-                                    </div>
-                                </div>
-                            </motion.div>
 
-                            {/* Feature 3: Safe Pharmacy */}
-                            <motion.div
-                                whileHover={{ y: -5 }}
-                                onClick={() => handleNavigation("map")}
-                                className="group relative cursor-pointer overflow-hidden rounded-[2rem] bg-slate-900 p-10 dark:bg-slate-800"
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent opacity-80"></div>
-                                <div className="relative z-10 flex h-full flex-col justify-between">
-                                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-700 bg-slate-800 text-emerald-400 dark:border-slate-600 dark:bg-slate-700">
-                                        <MapPin size={28} />
-                                    </div>
-                                    <div>
-                                        <h4 className="mb-2 text-2xl font-bold text-white">
-                                            Verified Map
-                                        </h4>
-                                        <p className="text-sm text-slate-400">
-                                            Locate geo-fenced pharmacies with zero counterfeit
-                                            history.
-                                        </p>
-                                    </div>
-                                </div>
-                            </motion.div>
-
-                            {/* Feature 4: Alert Network */}
-                            <motion.div
-                                whileHover={{ y: -5 }}
-                                onClick={() => handleNavigation("alerts")}
-                                className="group relative cursor-pointer overflow-hidden rounded-[2rem] border border-rose-100 bg-gradient-to-br from-rose-50 to-orange-50 md:col-span-2 dark:border-rose-900/30 dark:from-rose-950/30 dark:to-orange-950/20"
-                            >
-                                <div className="relative z-10 flex h-full flex-col justify-between p-10">
-                                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-rose-200 bg-white text-rose-600 shadow-sm dark:border-rose-800 dark:bg-slate-800 dark:text-rose-400">
-                                        <AlertTriangle size={28} />
-                                    </div>
-                                    <div className="flex items-end justify-between">
-                                        <div>
-                                            <h4 className="mb-2 text-2xl font-bold text-slate-900 transition-colors group-hover:text-rose-600 dark:text-white dark:group-hover:text-rose-400">
-                                                National Alert Network
-                                            </h4>
-                                            <p className="max-w-md text-slate-600 dark:text-slate-400">
-                                                Direct pipeline to CDSCO recalls, banned drug
-                                                notifications, and community-reported suspicious
-                                                batches.
+                                        {/* Stat */}
+                                        <div
+                                            className="flex items-end gap-2 pt-5"
+                                            style={{ borderTop: `1px solid ${border}` }}
+                                        >
+                                            <p
+                                                className="text-[2rem] leading-none font-extrabold"
+                                                style={{ color }}
+                                            >
+                                                {stat}
+                                            </p>
+                                            <p className="mb-0.5 text-[12px] font-semibold text-slate-400">
+                                                {statLabel}
                                             </p>
                                         </div>
-                                        <button className="hidden items-center gap-2 rounded-full border border-rose-100 bg-white px-5 py-2.5 text-sm font-semibold text-rose-600 shadow-sm transition-colors group-hover:bg-rose-600 group-hover:text-white md:flex dark:border-rose-900/50 dark:bg-slate-800 dark:text-rose-400">
-                                            View Logs <ArrowRight size={16} />
-                                        </button>
+
+                                        {/* Corner accent */}
+                                        <div
+                                            className="absolute -right-4 -bottom-4 h-20 w-20 rounded-full opacity-20 transition-opacity duration-300 group-hover:opacity-40"
+                                            style={{ background: iconBg }}
+                                        />
                                     </div>
-                                </div>
-                            </motion.div>
+                                )
+                            )}
                         </div>
                     </div>
                 </section>
 
-                {/* ── Search & Live Clinical Data ── */}
-                <section className="border-t border-slate-100 bg-[#fafcff] py-24 dark:border-slate-800/50 dark:bg-[#020617]">
-                    <div className="container mx-auto max-w-5xl px-4">
-                        <div className="mb-10 text-center">
-                            <h2 className="mb-4 text-2xl font-bold text-slate-900 dark:text-white">
-                                Query The Database
-                            </h2>
-                            <div className="mx-auto max-w-2xl rounded-2xl shadow-xl shadow-blue-900/5">
-                                <SearchBar />
-                            </div>
+                {/* ══════════════════════════════
+                    HOW IT WORKS
+                ══════════════════════════════ */}
+                <section
+                    id="how-it-works"
+                    className="noise relative overflow-hidden py-24 lg:py-32"
+                    style={{
+                        background:
+                            "linear-gradient(135deg, #0a0f1e 0%, #0d2137 50%, #0a1a2e 100%)",
+                    }}
+                >
+                    {/* BG glows */}
+                    <div className="pointer-events-none absolute inset-0">
+                        <div
+                            className="absolute top-0 left-1/4 h-80 w-80 rounded-full blur-3xl"
+                            style={{
+                                background:
+                                    "radial-gradient(circle, rgba(13,148,136,0.15), transparent 70%)",
+                            }}
+                        />
+                        <div
+                            className="absolute right-1/4 bottom-0 h-80 w-80 rounded-full blur-3xl"
+                            style={{
+                                background:
+                                    "radial-gradient(circle, rgba(37,99,235,0.12), transparent 70%)",
+                            }}
+                        />
+                        {/* Subtle grid */}
+                        <div
+                            className="absolute inset-0 opacity-[0.06]"
+                            style={{
+                                backgroundImage:
+                                    "linear-gradient(rgba(99,255,230,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(99,255,230,0.3) 1px, transparent 1px)",
+                                backgroundSize: "60px 60px",
+                            }}
+                        />
+                    </div>
+
+                    <div className="relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+                        <div className="mb-5 flex justify-center">
+                            <span
+                                className="rounded-full px-4 py-1.5 text-[11px] font-extrabold tracking-[0.2em] text-teal-400 uppercase"
+                                style={{
+                                    background: "rgba(13,148,136,0.15)",
+                                    border: "1px solid rgba(20,184,166,0.3)",
+                                }}
+                            >
+                                Simple Process
+                            </span>
+                        </div>
+                        <h2 className="mb-4 text-center text-[2.5rem] leading-tight font-extrabold text-white lg:text-[3rem]">
+                            Verify any medicine
+                            <br />
+                            in just 3 steps
+                        </h2>
+                        <p
+                            className="mx-auto mb-20 max-w-xl text-center text-[15px] leading-relaxed font-medium"
+                            style={{ color: "rgba(148,163,184,1)" }}
+                        >
+                            Designed for patients, pharmacists, and doctors — no technical knowledge
+                            required.
+                        </p>
+
+                        {/* Steps */}
+                        <div className="relative grid grid-cols-1 gap-5 md:grid-cols-3">
+                            {/* Desktop connector */}
+                            <div
+                                className="step-connector hidden md:block"
+                                style={{
+                                    background:
+                                        "linear-gradient(90deg, rgba(94,234,212,0.6), rgba(147,197,253,0.6))",
+                                    left: "calc(16.66% + 40px)",
+                                    width: "calc(66.66% - 80px)",
+                                }}
+                            />
+
+                            {[
+                                {
+                                    num: "01",
+                                    icon: <Camera size={26} />,
+                                    color: "#2dd4bf",
+                                    glow: "rgba(45,212,191,0.2)",
+                                    title: "Scan Medicine",
+                                    desc: "Point your camera at the barcode, QR code, or packaging. Our AI captures it instantly — no special hardware needed.",
+                                    tag: "Step 1",
+                                },
+                                {
+                                    num: "02",
+                                    icon: <FlaskConical size={26} />,
+                                    color: "#60a5fa",
+                                    glow: "rgba(96,165,250,0.2)",
+                                    title: "Verify Authenticity",
+                                    desc: "Cross-matched against 2M+ records — CDSCO approvals, manufacturer data, batch numbers, and counterfeit alerts.",
+                                    tag: "Step 2",
+                                },
+                                {
+                                    num: "03",
+                                    icon: <CheckCircle2 size={26} />,
+                                    color: "#4ade80",
+                                    glow: "rgba(74,222,128,0.2)",
+                                    title: "Get Safe Results",
+                                    desc: "Receive a clear Authentic, Flagged, or Recalled verdict with actionable next steps in under 2 seconds.",
+                                    tag: "Step 3",
+                                },
+                            ].map(({ num, icon, color, glow, title, desc, tag }) => (
+                                <div
+                                    key={num}
+                                    className="glass-dark card-lift group relative cursor-default rounded-3xl p-8"
+                                >
+                                    {/* Number watermark */}
+                                    <span
+                                        className="absolute top-5 right-7 text-[4rem] leading-none font-black select-none"
+                                        style={{ color: "rgba(255,255,255,0.03)" }}
+                                    >
+                                        {num}
+                                    </span>
+
+                                    {/* Icon */}
+                                    <div
+                                        className="relative mb-7 inline-flex h-[60px] w-[60px] items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110"
+                                        style={{
+                                            background: glow,
+                                            border: `1px solid ${color}40`,
+                                            color,
+                                        }}
+                                    >
+                                        {icon}
+                                        <div
+                                            className="absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                                            style={{ background: glow }}
+                                        />
+                                    </div>
+
+                                    {/* Tag */}
+                                    <div
+                                        className="mb-3 inline-block rounded-full px-2.5 py-1 text-[10px] font-bold tracking-[0.15em] uppercase"
+                                        style={{
+                                            background: `${color}18`,
+                                            color,
+                                            border: `1px solid ${color}30`,
+                                        }}
+                                    >
+                                        {tag}
+                                    </div>
+
+                                    <h3 className="mb-3 text-[20px] font-bold text-white">
+                                        {title}
+                                    </h3>
+                                    <p
+                                        className="text-[14px] leading-relaxed"
+                                        style={{ color: "rgba(148,163,184,0.9)" }}
+                                    >
+                                        {desc}
+                                    </p>
+                                </div>
+                            ))}
                         </div>
 
-                        {/* High-End Glass Data Table */}
-                        <div className="mt-16 overflow-hidden rounded-[2rem] border border-slate-200/60 bg-white/60 shadow-xl shadow-slate-200/20 backdrop-blur-2xl dark:border-slate-800/60 dark:bg-slate-900/40 dark:shadow-none">
-                            <div className="flex items-center justify-between border-b border-slate-200/50 bg-slate-50/50 px-8 py-5 dark:border-slate-800/50 dark:bg-slate-900/50">
-                                <div className="flex items-center gap-3">
-                                    <div className="relative flex h-3 w-3">
-                                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75"></span>
-                                        <span className="relative inline-flex h-3 w-3 rounded-full bg-rose-500"></span>
-                                    </div>
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                                        Live Intelligence Feed
-                                    </h3>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                                        <Database size={12} /> CDSCO Sync
-                                    </span>
-                                </div>
-                            </div>
+                        {/* CTA */}
+                        <div className="mt-14 flex justify-center">
+                            <a
+                                href="/scan"
+                                className="btn-primary group flex items-center gap-3 rounded-2xl px-8 py-4.5 text-[15px] font-bold text-white transition-all duration-300 hover:-translate-y-0.5"
+                                style={{
+                                    background: "linear-gradient(135deg, #0d9488, #06b6d4)",
+                                    boxShadow: "0 8px 40px rgba(13,148,136,0.4)",
+                                }}
+                            >
+                                <ScanLine size={19} />
+                                Try It Free — No Account Needed
+                                <ArrowRight
+                                    size={17}
+                                    className="opacity-70 transition-transform duration-300 group-hover:translate-x-1"
+                                />
+                            </a>
+                        </div>
+                    </div>
+                </section>
 
-                            <div className="bg-gradient-to-b from-transparent to-slate-50/30 p-6 sm:p-8 dark:to-slate-950/30">
-                                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                                    {loading ? (
-                                        <>
-                                            {[1, 2, 3, 4].map((i) => (
-                                                <div
-                                                    key={i}
-                                                    className="flex items-start gap-5 rounded-2xl border border-slate-100 bg-white/50 p-5 dark:border-slate-800/60 dark:bg-slate-900/50"
-                                                >
-                                                    <Skeleton className="h-12 w-12 shrink-0 rounded-xl" />
-                                                    <div className="flex-1 space-y-3">
-                                                        <div className="flex justify-between">
-                                                            <Skeleton className="h-5 w-1/2" />
-                                                            <Skeleton className="h-4 w-12" />
-                                                        </div>
-                                                        <Skeleton className="h-4 w-3/4" />
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </>
-                                    ) : homepageAlerts && homepageAlerts.length > 0 ? (
-                                        homepageAlerts.map((alert) => (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                key={alert.id}
-                                                className="group flex items-start gap-5 rounded-2xl border border-slate-200/50 bg-white p-5 transition-all hover:border-slate-300 hover:shadow-md dark:border-slate-700/50 dark:bg-slate-800/40 dark:hover:border-slate-600 dark:hover:bg-slate-800"
-                                            >
-                                                <div
-                                                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-colors ${
-                                                        alert.brand_name === "SYSTEM_UPDATE"
-                                                            ? "bg-blue-50 text-blue-600 group-hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400"
-                                                            : alert.cdsco_approval_status ===
-                                                                    "banned" ||
-                                                                alert.is_counterfeit_alert
-                                                              ? "bg-rose-50 text-rose-600 group-hover:bg-rose-100 dark:bg-rose-900/20 dark:text-rose-400"
-                                                              : "bg-amber-50 text-amber-600 group-hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-400"
-                                                    }`}
-                                                >
-                                                    {alert.brand_name === "SYSTEM_UPDATE" ? (
-                                                        <Globe size={24} strokeWidth={2} />
-                                                    ) : (
-                                                        <AlertTriangle size={24} strokeWidth={2} />
-                                                    )}
-                                                </div>
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="mb-1 flex items-start justify-between gap-2">
-                                                        <h4 className="truncate text-base font-bold text-slate-900 dark:text-slate-50">
-                                                            {alert.brand_name}
-                                                        </h4>
-                                                        <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-slate-800">
-                                                            {formatRelativeTime(alert.created_at)}
-                                                        </span>
-                                                    </div>
-                                                    <p className="line-clamp-1 text-sm font-medium text-slate-600 dark:text-slate-400">
-                                                        {alert.composition}
-                                                        {alert.batch_number && (
-                                                            <>
-                                                                <span className="mx-2 inline-block h-3 w-px bg-slate-300 align-middle dark:bg-slate-700"></span>
-                                                                <span className="rounded bg-slate-100 px-1.5 py-0.5 font-semibold text-slate-800 dark:bg-slate-800 dark:text-slate-300">
-                                                                    B.No {alert.batch_number}
-                                                                </span>
-                                                            </>
-                                                        )}
-                                                    </p>
-                                                </div>
-                                            </motion.div>
-                                        ))
-                                    ) : (
-                                        <div className="col-span-1 lg:col-span-2">
-                                            <EmptyState
-                                                icon={
-                                                    <ShieldCheck
-                                                        size={32}
-                                                        className="text-emerald-500"
-                                                    />
-                                                }
-                                                title="All Clear"
-                                                description="No critical alerts in your region at the moment."
-                                                className="border border-dashed border-emerald-200 bg-emerald-50/30 p-8 shadow-none dark:border-emerald-900/30 dark:bg-emerald-900/10"
-                                            />
-                                        </div>
-                                    )}
+                {/* ══════════════════════════════
+                    FEATURES BENTO
+                ══════════════════════════════ */}
+                <section
+                    id="features"
+                    className="py-24 lg:py-32"
+                    style={{ background: "linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)" }}
+                >
+                    <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+                        <div className="mb-5 flex justify-center">
+                            <span
+                                className="rounded-full px-4 py-1.5 text-[11px] font-extrabold tracking-[0.2em] text-blue-700 uppercase"
+                                style={{
+                                    background: "linear-gradient(135deg, #dbeafe, #ede9fe)",
+                                    border: "1px solid #bfdbfe",
+                                }}
+                            >
+                                Core Features
+                            </span>
+                        </div>
+                        <h2 className="mb-4 text-center text-[2.5rem] leading-tight font-extrabold text-slate-900 lg:text-[3rem]">
+                            Everything you need.
+                            <br />
+                            Nothing you don't.
+                        </h2>
+                        <p className="mx-auto mb-16 max-w-xl text-center text-[15px] leading-relaxed font-medium text-slate-500">
+                            A complete platform for safe medicine access — scan, verify, locate, and
+                            stay informed.
+                        </p>
+
+                        {/* Bento grid */}
+                        <div className="grid grid-cols-1 gap-5 md:grid-cols-12">
+                            {/* Hero feature — spans 7 cols */}
+                            <a
+                                href="/scan"
+                                className="card-lift group noise relative overflow-hidden rounded-3xl p-9 md:col-span-7"
+                                style={{
+                                    background:
+                                        "linear-gradient(145deg, #0d9488 0%, #0891b2 50%, #0369a1 100%)",
+                                    minHeight: "320px",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    justifyContent: "space-between",
+                                }}
+                            >
+                                {/* Orb */}
+                                <div
+                                    className="absolute -top-16 -right-16 h-60 w-60 rounded-full opacity-20"
+                                    style={{
+                                        background:
+                                            "radial-gradient(circle, white, transparent 70%)",
+                                    }}
+                                />
+                                <div
+                                    className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full opacity-10"
+                                    style={{
+                                        background:
+                                            "radial-gradient(circle, white, transparent 70%)",
+                                    }}
+                                />
+
+                                <div className="relative z-10">
+                                    <div
+                                        className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl"
+                                        style={{
+                                            background: "rgba(255,255,255,0.2)",
+                                            border: "1px solid rgba(255,255,255,0.3)",
+                                            backdropFilter: "blur(10px)",
+                                        }}
+                                    >
+                                        <Fingerprint size={28} className="text-white" />
+                                    </div>
+                                    <span
+                                        className="mb-3 inline-block rounded-full px-3 py-1 text-[10px] font-bold tracking-widest text-teal-200 uppercase"
+                                        style={{
+                                            background: "rgba(255,255,255,0.15)",
+                                            border: "1px solid rgba(255,255,255,0.2)",
+                                        }}
+                                    >
+                                        Flagship Feature
+                                    </span>
+                                    <h3 className="mb-3 text-[1.75rem] leading-tight font-extrabold text-white">
+                                        AI-Powered Counterfeit Detection
+                                    </h3>
+                                    <p className="max-w-md text-[14px] leading-relaxed text-teal-100">
+                                        Advanced computer vision analyzes packaging, barcodes,
+                                        holograms, and pill morphology — catching even the most
+                                        sophisticated fakes in under 2 seconds.
+                                    </p>
                                 </div>
-                            </div>
-                            <div className="border-t border-slate-200/50 bg-white/50 p-5 text-center dark:border-slate-800/50 dark:bg-slate-900/50">
-                                <Link
-                                    href="/alerts"
-                                    className="inline-flex items-center gap-2 text-sm font-bold text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                                <div className="relative z-10 mt-6 flex items-center gap-2 text-sm font-bold text-white/80 transition-colors group-hover:text-white">
+                                    Start Scanning
+                                    <ArrowRight
+                                        size={16}
+                                        className="transition-transform duration-300 group-hover:translate-x-1.5"
+                                    />
+                                </div>
+                            </a>
+
+                            {/* Voice triage — spans 5 cols */}
+                            <a
+                                href="/health"
+                                className="card-lift group relative overflow-hidden rounded-3xl p-8 md:col-span-5"
+                                style={{
+                                    background: "linear-gradient(145deg, #f5f3ff, #ede9fe)",
+                                    border: "1px solid #c4b5fd",
+                                    minHeight: "320px",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    justifyContent: "space-between",
+                                }}
+                            >
+                                <div>
+                                    <div className="mb-5 flex items-start justify-between">
+                                        <div
+                                            className="inline-flex h-14 w-14 items-center justify-center rounded-2xl"
+                                            style={{
+                                                background:
+                                                    "linear-gradient(135deg, #7c3aed, #6d28d9)",
+                                                boxShadow: "0 8px 24px rgba(124,58,237,0.35)",
+                                            }}
+                                        >
+                                            <Mic size={26} className="text-white" />
+                                        </div>
+                                        <span
+                                            className="rounded-xl px-2.5 py-1 text-[10px] font-bold tracking-wider text-violet-700 uppercase"
+                                            style={{
+                                                background: "rgba(124,58,237,0.1)",
+                                                border: "1px solid rgba(124,58,237,0.2)",
+                                            }}
+                                        >
+                                            Beta
+                                        </span>
+                                    </div>
+                                    <h3 className="mb-2.5 text-[20px] font-extrabold text-slate-900">
+                                        AI Voice Triage
+                                    </h3>
+                                    <p className="text-[13.5px] leading-relaxed text-slate-600">
+                                        Speak your symptoms in any Indian language. Our AI maps them
+                                        to clinical urgency and recommends your next step.
+                                    </p>
+                                </div>
+                                <div className="mt-5 flex items-center gap-1.5 text-[13px] font-bold text-violet-600 transition-all group-hover:gap-2.5">
+                                    Try Voice Triage{" "}
+                                    <ArrowRight
+                                        size={15}
+                                        className="transition-transform duration-300 group-hover:translate-x-1"
+                                    />
+                                </div>
+                            </a>
+
+                            {/* Pharmacy map — spans 4 */}
+                            <a
+                                href="/map"
+                                className="card-lift group relative overflow-hidden rounded-3xl p-8 md:col-span-4"
+                                style={{
+                                    background: "linear-gradient(145deg, #f0fdf4, #dcfce7)",
+                                    border: "1px solid #86efac",
+                                }}
+                            >
+                                <div
+                                    className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl"
+                                    style={{
+                                        background: "linear-gradient(135deg, #16a34a, #059669)",
+                                        boxShadow: "0 8px 24px rgba(22,163,74,0.3)",
+                                    }}
                                 >
-                                    Access Full Security Log
-                                    <ChevronRight size={16} />
-                                </Link>
+                                    <MapPin size={26} className="text-white" />
+                                </div>
+                                <span
+                                    className="mb-3 inline-block rounded-xl px-2.5 py-1 text-[10px] font-bold tracking-wider text-emerald-700 uppercase"
+                                    style={{
+                                        background: "rgba(22,163,74,0.1)",
+                                        border: "1px solid rgba(22,163,74,0.2)",
+                                    }}
+                                >
+                                    Live
+                                </span>
+                                <h3 className="mb-2.5 text-[20px] font-extrabold text-slate-900">
+                                    Safe Pharmacy Map
+                                </h3>
+                                <p className="text-[13.5px] leading-relaxed text-slate-600">
+                                    GPS-guided map of verified pharmacies with zero counterfeit
+                                    history. Updated in real time.
+                                </p>
+                                <div className="mt-5 flex items-center gap-1.5 text-[13px] font-bold text-emerald-600 transition-all group-hover:gap-2.5">
+                                    Find Pharmacies{" "}
+                                    <ArrowRight
+                                        size={15}
+                                        className="transition-transform duration-300 group-hover:translate-x-1"
+                                    />
+                                </div>
+                            </a>
+
+                            {/* Alert feed — spans 4 */}
+                            <a
+                                href="/alerts"
+                                className="card-lift group relative overflow-hidden rounded-3xl p-8 md:col-span-4"
+                                style={{
+                                    background: "linear-gradient(145deg, #fff1f2, #ffe4e6)",
+                                    border: "1px solid #fca5a5",
+                                }}
+                            >
+                                <div className="mb-5 flex items-start justify-between">
+                                    <div
+                                        className="inline-flex h-14 w-14 items-center justify-center rounded-2xl"
+                                        style={{
+                                            background: "linear-gradient(135deg, #dc2626, #e11d48)",
+                                            boxShadow: "0 8px 24px rgba(220,38,38,0.3)",
+                                        }}
+                                    >
+                                        <AlertTriangle size={26} className="text-white" />
+                                    </div>
+                                    <div className="relative mt-1 flex h-3 w-3">
+                                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75" />
+                                        <span className="relative inline-flex h-3 w-3 rounded-full bg-rose-500" />
+                                    </div>
+                                </div>
+                                <h3 className="mb-2.5 text-[20px] font-extrabold text-slate-900">
+                                    National Alert Feed
+                                </h3>
+                                <p className="text-[13.5px] leading-relaxed text-slate-600">
+                                    CDSCO recalls and bans pushed directly to you.
+                                    Community-reported suspicious batches flagged instantly.
+                                </p>
+                                <div className="mt-5 flex items-center gap-1.5 text-[13px] font-bold text-rose-600 transition-all group-hover:gap-2.5">
+                                    View Active Alerts{" "}
+                                    <ArrowRight
+                                        size={15}
+                                        className="transition-transform duration-300 group-hover:translate-x-1"
+                                    />
+                                </div>
+                            </a>
+
+                            {/* Health Records — spans 4 */}
+                            <a
+                                href="/reports/me"
+                                className="card-lift group relative overflow-hidden rounded-3xl p-8 md:col-span-4"
+                                style={{
+                                    background: "linear-gradient(145deg, #eff6ff, #dbeafe)",
+                                    border: "1px solid #93c5fd",
+                                }}
+                            >
+                                <div
+                                    className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl"
+                                    style={{
+                                        background: "linear-gradient(135deg, #2563eb, #4f46e5)",
+                                        boxShadow: "0 8px 24px rgba(37,99,235,0.3)",
+                                    }}
+                                >
+                                    <Layers size={26} className="text-white" />
+                                </div>
+                                <h3 className="mb-2.5 text-[20px] font-extrabold text-slate-900">
+                                    Health Records
+                                </h3>
+                                <p className="text-[13.5px] leading-relaxed text-slate-600">
+                                    All your scans, alerts, and prescriptions in one encrypted,
+                                    private profile.
+                                </p>
+                                <div className="mt-5 flex items-center gap-1.5 text-[13px] font-bold text-blue-600 transition-all group-hover:gap-2.5">
+                                    My Records{" "}
+                                    <ArrowRight
+                                        size={15}
+                                        className="transition-transform duration-300 group-hover:translate-x-1"
+                                    />
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </section>
+
+                {/* ══════════════════════════════
+                    CTA BANNER
+                ══════════════════════════════ */}
+                <section
+                    className="py-16 lg:py-20"
+                    style={{ background: "linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)" }}
+                >
+                    <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+                        <div
+                            className="noise relative overflow-hidden rounded-[2.5rem] p-12 lg:p-20"
+                            style={{
+                                background:
+                                    "linear-gradient(135deg, #0a0f1e 0%, #0d2137 60%, #0a1a2e 100%)",
+                            }}
+                        >
+                            {/* Glows */}
+                            <div
+                                className="absolute -top-20 -right-20 h-80 w-80 rounded-full blur-3xl"
+                                style={{
+                                    background:
+                                        "radial-gradient(circle, rgba(13,148,136,0.2), transparent 70%)",
+                                }}
+                            />
+                            <div
+                                className="absolute -bottom-20 -left-20 h-80 w-80 rounded-full blur-3xl"
+                                style={{
+                                    background:
+                                        "radial-gradient(circle, rgba(37,99,235,0.15), transparent 70%)",
+                                }}
+                            />
+
+                            {/* Grid overlay */}
+                            <div
+                                className="absolute inset-0 opacity-[0.04]"
+                                style={{
+                                    backgroundImage:
+                                        "linear-gradient(rgba(99,255,230,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(99,255,230,0.5) 1px, transparent 1px)",
+                                    backgroundSize: "50px 50px",
+                                }}
+                            />
+
+                            <div className="relative z-10 flex flex-col items-center text-center">
+                                <div
+                                    className="mb-5 inline-flex items-center gap-2 rounded-full px-4 py-2 text-[12px] font-bold text-teal-300"
+                                    style={{
+                                        background: "rgba(13,148,136,0.15)",
+                                        border: "1px solid rgba(20,184,166,0.3)",
+                                    }}
+                                >
+                                    <Lock size={13} strokeWidth={2.5} />
+                                    Your data is encrypted. Always.
+                                </div>
+
+                                <h2 className="mb-5 max-w-3xl text-[2.5rem] leading-tight font-extrabold text-white lg:text-[3.5rem]">
+                                    Don't take chances
+                                    <br />
+                                    with your health.
+                                </h2>
+                                <p
+                                    className="mb-10 max-w-lg text-[16px] leading-relaxed font-medium"
+                                    style={{ color: "rgba(148,163,184,0.9)" }}
+                                >
+                                    Join 10,000+ patients and healthcare professionals who scan
+                                    before they consume.
+                                </p>
+
+                                <div className="flex flex-col gap-4 sm:flex-row">
+                                    <a
+                                        href="/scan"
+                                        className="btn-primary group flex items-center justify-center gap-2.5 rounded-2xl px-8 py-4 text-[15px] font-bold text-slate-900 transition-all duration-300 hover:-translate-y-0.5"
+                                        style={{
+                                            background: "linear-gradient(135deg, #f0fdfa, #ffffff)",
+                                            boxShadow: "0 8px 40px rgba(255,255,255,0.15)",
+                                        }}
+                                    >
+                                        <ScanLine size={19} className="text-teal-600" />
+                                        Scan Your Medicine Now
+                                        <ArrowRight
+                                            size={17}
+                                            className="text-teal-600 opacity-70 transition-transform duration-300 group-hover:translate-x-1"
+                                        />
+                                    </a>
+                                    <a
+                                        href="#how-it-works"
+                                        className="flex items-center justify-center gap-2 rounded-2xl px-8 py-4 text-[15px] font-semibold text-slate-300 transition-all duration-300 hover:text-white"
+                                        style={{
+                                            border: "1px solid rgba(255,255,255,0.15)",
+                                            background: "rgba(255,255,255,0.05)",
+                                        }}
+                                    >
+                                        See How It Works
+                                    </a>
+                                </div>
+
+                                {/* Trust signals */}
+                                <div className="mt-10 flex flex-wrap justify-center gap-6">
+                                    {[
+                                        "CDSCO Verified",
+                                        "256-bit Encryption",
+                                        "No Credit Card",
+                                        "Free Forever",
+                                    ].map((label) => (
+                                        <div
+                                            key={label}
+                                            className="flex items-center gap-2 text-[12.5px] font-semibold text-slate-400"
+                                        >
+                                            <CheckCircle2
+                                                size={14}
+                                                className="text-teal-400"
+                                                strokeWidth={2.5}
+                                            />
+                                            {label}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </section>
             </main>
 
-            {/* Spacer for mobile nav */}
-            <div className="h-16 md:hidden"></div>
-
-            {/* ── Mobile Bottom Navigation ── */}
-            <nav className="fixed right-0 bottom-0 left-0 z-50 flex items-center justify-around border-t border-slate-200/80 bg-white/80 px-2 py-3 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden dark:border-slate-800/80 dark:bg-slate-950/80">
-                <Link href="/" className="group flex flex-col items-center gap-1">
-                    <Home size={22} className="text-blue-600 dark:text-blue-400" />
-                    <span className="text-[10px] font-semibold text-blue-600 dark:text-blue-400">
-                        {tNav("home")}
-                    </span>
-                </Link>
-                <Link
-                    href="/scan"
-                    className="group flex flex-col items-center gap-1 text-slate-500 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-50"
-                >
-                    <ScanLine size={22} />
-                    <span className="text-[10px] font-medium">{tNav("scans")}</span>
-                </Link>
-                <Link
-                    href="/map"
-                    className="group flex flex-col items-center gap-1 text-slate-500 transition-colors hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400"
-                >
-                    <MapPin size={22} />
-                    <span className="text-[10px] font-medium">{tNav("map")}</span>
-                </Link>
-                <Link
-                    href="/alerts"
-                    className="group flex flex-col items-center gap-1 text-slate-500 transition-colors hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400"
-                >
-                    <div className="relative">
-                        <Bell size={22} />
-                        <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-950"></span>
-                    </div>
-                    <span className="text-[10px] font-medium">{tNav("alerts")}</span>
-                </Link>
-                <Link
-                    href="/profile"
-                    className="group flex flex-col items-center gap-1 text-slate-500 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-50"
-                >
-                    <User size={22} />
-                    <span className="text-[10px] font-medium">{tNav("profile")}</span>
-                </Link>
+            {/* ══════════════════════════════
+                MOBILE BOTTOM NAV
+            ══════════════════════════════ */}
+            <nav
+                className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-around border-t px-2 py-2.5 pb-[env(safe-area-inset-bottom)] md:hidden"
+                style={{
+                    background: "rgba(255,255,255,0.92)",
+                    backdropFilter: "blur(20px)",
+                    borderColor: "#ccfbf1",
+                }}
+            >
+                {[
+                    { icon: <Home size={21} />, label: "Home", href: "/", active: true },
+                    { icon: <ScanLine size={21} />, label: "Scan", href: "/scan", active: false },
+                    { icon: <MapPin size={21} />, label: "Map", href: "/map", active: false },
+                    {
+                        icon: <Bell size={21} />,
+                        label: "Alerts",
+                        href: "/alerts",
+                        active: false,
+                        badge: true,
+                    },
+                    { icon: <User size={21} />, label: "Profile", href: "/profile", active: false },
+                ].map(({ icon, label, href, active, badge }) => (
+                    <a
+                        key={label}
+                        href={href}
+                        className="flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 transition-colors duration-200"
+                        style={{ color: active ? "#0d9488" : "#94a3b8" }}
+                    >
+                        <div className="relative">
+                            {icon}
+                            {badge && (
+                                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
+                            )}
+                        </div>
+                        <span className="text-[9.5px] font-bold tracking-wide">{label}</span>
+                    </a>
+                ))}
             </nav>
+
+            <div className="h-16 md:hidden" />
         </div>
     );
 }
