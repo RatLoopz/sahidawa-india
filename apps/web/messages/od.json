@@ -161,7 +161,11 @@
         "noCache": "ଏହି ପୃଷ୍ଠାଟି ସେଭ୍ ହୋଇନଥିବାରୁ ଅଫଲାଇନରେ ଉପଲବ୍ଧ ନାହିଁ",
         "redirecting": "ଆପଣଙ୍କୁ SahiDawa କୁ ପୁନଃନିର୍ଦ୍ଦେଶ କରାଯାଉଛି…",
         "attempt": "(ପ୍ରୟାସ {retryCount})",
-        "checkingConnection": "ସଂଯୋଗ ଯାଞ୍ଚ କରାଯାଉଛି…"
+        "checkingConnection": "ସଂଯୋଗ ଯାଞ୍ଚ କରାଯାଉଛି…",
+        "cachedAvailable": "ପୂର୍ବରୁ ଦେଖିଥିବା ପୃଷ୍ଠାଗୁଡ଼ିକ ଏବେ ବି ଉପଲବ୍ଧ ହୋଇପାରେ",
+        "cachedVerifications": "ସେଭ୍ ହୋଇଥିବା ଯାଞ୍ଚ",
+        "savedPharmacies": "ସେଭ୍ ହୋଇଥିବା ଔଷଧାଳୟ",
+        "browsedMedicines": "ଖୋଜିଥିବା ଔଷଧ"
     },
     "contact": {
         "badge": "GSSoC 2026 ଓପେନ୍-ସୋର୍ସ ପ୍ରୋଜେକ୍ଟ",

@@ -166,7 +166,11 @@
         "noCache": "This page was not cached and is not available offline",
         "redirecting": "Redirecting you to SahiDawa…",
         "attempt": "(Attempt {retryCount})",
-        "checkingConnection": "Checking connection…"
+        "checkingConnection": "Checking connection…",
+        "cachedAvailable": "Previously visited pages may still be available",
+        "cachedVerifications": "Cached Verifications",
+        "savedPharmacies": "Saved Pharmacies",
+        "browsedMedicines": "Browsed Medicines"
     },
     "contact": {
         "badge": "GSSoC 2026 Open Source Project",

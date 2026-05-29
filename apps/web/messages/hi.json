@@ -166,7 +166,11 @@
         "noCache": "यह पृष्ठ कैश नहीं किया गया था और ऑफ़लाइन उपलब्ध नहीं है",
         "redirecting": "आपको SahiDawa पर ले जाया जा रहा है…",
         "attempt": "(प्रयास {retryCount})",
-        "checkingConnection": "कनेक्शन की जांच की जा रही है…"
+        "checkingConnection": "कनेक्शन की जांच की जा रही है…",
+        "cachedAvailable": "पहले देखे गए पृष्ठ अभी भी उपलब्ध हो सकते हैं",
+        "cachedVerifications": "कैश किए गए सत्यापन",
+        "savedPharmacies": "सहेजे गए मेडिकल स्टोर",
+        "browsedMedicines": "देखी गई दवाएं"
     },
     "contact": {
         "badge": "GSSoC 2026 ओपन सोर्स प्रोजेक्ट",

@@ -146,13 +146,13 @@ export default function OfflinePage() {
                 {/* Feature chips — reassure user what cached features they can still use */}
                 <div className="border-t border-slate-800 pt-8">
                     <p className="mb-4 text-xs font-medium tracking-widest text-slate-500 uppercase">
-                        Previously visited pages may still be available
+                        {t("cachedAvailable")}
                     </p>
                     <div className="flex flex-wrap justify-center gap-2">
                         {[
-                            { icon: ShieldCheck, label: "Cached Verifications" },
-                            { icon: MapPin, label: "Saved Pharmacies" },
-                            { icon: Pill, label: "Browsed Medicines" },
+                            { icon: ShieldCheck, label: t("cachedVerifications") },
+                            { icon: MapPin, label: t("savedPharmacies") },
+                            { icon: Pill, label: t("browsedMedicines") },
                         ].map(({ icon: Icon, label }) => (
                             <div
                                 key={label}

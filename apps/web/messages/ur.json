@@ -161,7 +161,11 @@
         "noCache": "یہ صفحہ پہلے محفوظ نہیں کیا گیا تھا اور آف لائن دستیاب نہیں ہے",
         "redirecting": "آپ کو SahiDawa پر ری ڈائریکٹ کیا جا رہا ہے…",
         "attempt": "(کوشش {retryCount})",
-        "checkingConnection": "کنکشن چیک کیا جا رہا ہے…"
+        "checkingConnection": "کنکشن چیک کیا جا رہا ہے…",
+        "cachedAvailable": "پہلے دیکھے گئے صفحات اب بھی دستیاب ہو سکتے ہیں",
+        "cachedVerifications": "محفوظ کردہ تصدیقات",
+        "savedPharmacies": "محفوظ کردہ فارمیسیاں",
+        "browsedMedicines": "دیکھی گئی ادویات"
     },
     "contact": {
         "badge": "GSSoC 2026 اوپن سورس پروجیکٹ",

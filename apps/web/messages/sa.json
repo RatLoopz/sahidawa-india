@@ -163,7 +163,11 @@
         "noCache": "इदं पृष्ठं सञ्चितं (cached) नासीत् अतः अन्तर्जालं विना अलभ्यम् अस्ति",
         "redirecting": "भवन्तं SahiDawa प्रति पुनर्निर्देशितं कुर्वन् अस्ति…",
         "attempt": "(प्रयासः {retryCount})",
-        "checkingConnection": "सम्पर्कं परीक्षते…"
+        "checkingConnection": "सम्पर्कं परीक्षते…",
+        "cachedAvailable": "पूर्वं दृष्टानि पृष्ठानि अद्यापि लब्धुं शक्यन्ते",
+        "cachedVerifications": "सञ्चितानि सत्यापनानि",
+        "savedPharmacies": "रक्षिताः औषधालयाः",
+        "browsedMedicines": "वीक्षितानि औषधानि"
     },
     "contact": {
         "badge": "GSSoC २०२६ मुक्तस्रोत-परियोजना (Open Source Project)",
