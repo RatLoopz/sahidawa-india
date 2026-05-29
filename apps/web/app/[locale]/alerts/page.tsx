@@ -1,5 +1,5 @@
 import React from "react";
-import { Activity, ArrowLeft, Filter, AlertTriangle, AlertCircle } from "lucide-react";
+import { Activity, ArrowLeft, Filter, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { Globe } from "lucide-react";

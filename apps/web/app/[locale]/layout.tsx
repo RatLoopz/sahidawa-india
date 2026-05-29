@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Bricolage_Grotesque, Instrument_Sans } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -15,8 +16,20 @@ import "../../src/styles/print.css";
 import { Toaster } from "sonner";
 import Footer from "./components/Footer";
 
+const bricolageGrotesque = Bricolage_Grotesque({
+    subsets: ["latin"],
+    variable: "--font-bricolage",
+    display: "swap",
+});
+
+const instrumentSans = Instrument_Sans({
+    subsets: ["latin"],
+    variable: "--font-instrument",
+    display: "swap",
+});
+
 export const metadata: Metadata = {
-    title: "SahiDawa — Verify Your Medicine",
+    title: "SahiDawa \u2014 Verify Your Medicine",
     description:
         "India's first open-source medicine verification platform. Scan, verify, and trust your medicines.",
     manifest: "/manifest.json",
@@ -25,7 +38,7 @@ export const metadata: Metadata = {
         apple: "/icons/icon-192.png",
     },
     openGraph: {
-        title: "SahiDawa — Verify Your Medicine",
+        title: "SahiDawa \u2014 Verify Your Medicine",
         description:
             "India's first open-source medicine verification platform. Scan, verify, and trust your medicines.",
         url: "https://sahidawa.in",
@@ -33,7 +46,7 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: "summary_large_image",
-        title: "SahiDawa — Verify Your Medicine",
+        title: "SahiDawa \u2014 Verify Your Medicine",
         description:
             "India's first open-source medicine verification platform. Scan, verify, and trust your medicines.",
     },
@@ -60,8 +73,9 @@ export default async function LocaleLayout({
 
     return (
         <html lang={locale} suppressHydrationWarning>
-            {/* REPLACE YOUR OLD BODY TAG WITH THIS ONE: */}
-            <body className="bg-(--color-surface-page) text-(--color-text-primary) transition-colors duration-300">
+            <body
+                className={`${bricolageGrotesque.variable} ${instrumentSans.variable} bg-(--color-surface-page) text-(--color-text-primary) transition-colors duration-300`}
+            >
                 <ServiceWorkerProvider>
                     <ThemeProvider>
                         <NextIntlClientProvider messages={messages}>

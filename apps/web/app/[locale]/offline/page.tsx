@@ -1,14 +1,23 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { WifiOff, Home, RefreshCw, Wifi, Pill, MapPin, ShieldCheck, PartyPopper } from "lucide-react";
+import {
+    WifiOff,
+    Home,
+    RefreshCw,
+    Wifi,
+    Pill,
+    MapPin,
+    ShieldCheck,
+    PartyPopper,
+} from "lucide-react";
 
 /**
  * OfflinePage — Premium offline fallback UI for SahiDawa.
  * Automatically redirects to home when the connection is restored.
  */
 export default function OfflinePage() {
-    const [isOnline, setIsOnline] = useState(false);
+    const [, setIsOnline] = useState(false);
     const [isRetrying, setIsRetrying] = useState(false);
     const [retryCount, setRetryCount] = useState(0);
     const [showReconnected, setShowReconnected] = useState(false);

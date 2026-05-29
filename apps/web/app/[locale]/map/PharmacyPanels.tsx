@@ -3,7 +3,6 @@
 import {
     AlertCircle,
     Heart,
-    Loader2,
     MapPin,
     Phone,
     Shield,

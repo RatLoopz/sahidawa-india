@@ -1,4 +1,4 @@
-import { ShieldCheck, BadgeCheck, Mail } from "lucide-react";
+import { BadgeCheck, Mail } from "lucide-react";
 import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
 import { Link } from "@/i18n/routing";
 

@@ -16,9 +16,6 @@ const STATIC_CACHE_NAME = `sahidawa-static-${CACHE_VERSION}`;
 /** Pages to pre-cache on install so they are available offline immediately */
 const PRECACHE_PAGES = ["/", "/en", "/hi", "/en/offline", "/hi/offline"];
 
-/** Maximum age (ms) for a stale API response before forcing a network refresh */
-const API_CACHE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutes
-
 // ---------------------------------------------------------------------------
 // INSTALL — precache core shell pages
 // ---------------------------------------------------------------------------

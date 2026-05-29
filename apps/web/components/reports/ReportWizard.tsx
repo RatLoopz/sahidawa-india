@@ -266,7 +266,7 @@ function Progress({ current }: { current: number }) {
                             key={s.n}
                             className={`flex items-center gap-2 rounded-lg border px-3.5 py-1.5 text-xs font-bold transition-all duration-200 select-none ${
                                 done
-                                    ? "border-emerald-100 dark:border-emerald-900/30 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400"
+                                    ? "border-emerald-100 bg-emerald-50 text-emerald-600 dark:border-emerald-900/30 dark:bg-emerald-950/20 dark:text-emerald-400"
                                     : active
                                       ? "border-(--color-text-primary) bg-(--color-text-primary) text-(--color-surface-page)"
                                       : "border-(--color-border-muted) bg-(--color-surface-page) text-(--color-text-muted)"
@@ -280,7 +280,11 @@ function Progress({ current }: { current: number }) {
                             ) : (
                                 <>
                                     <span
-                                        className={active ? "text-emerald-400" : "text-(--color-text-muted)"}
+                                        className={
+                                            active
+                                                ? "text-emerald-400"
+                                                : "text-(--color-text-muted)"
+                                        }
                                     >
                                         {s.n}
                                     </span>
@@ -453,7 +457,6 @@ function Step2({
                 setBusy(false);
                 if (ref.current) ref.current.value = "";
             }
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         },
         [images, setImages, setValue]
     );
@@ -536,7 +539,7 @@ function Step2({
                         <LiveMessage
                             tone="critical"
                             id={uploadErrorId}
-                            className="flex items-start gap-2 rounded-xl border border-red-200 dark:border-red-950 bg-red-50 dark:bg-red-950/20 px-4 py-3 text-sm font-medium text-red-600 dark:text-red-400"
+                            className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600 dark:border-red-950 dark:bg-red-950/20 dark:text-red-400"
                         >
                             <span className="mt-0.5">
                                 <Icon.Alert />
@@ -765,7 +768,6 @@ export default function ReportWizard() {
         return () => {
             images.forEach((i) => URL.revokeObjectURL(i.preview));
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const methods = useForm<FormValues>({
@@ -929,7 +931,7 @@ export default function ReportWizard() {
                                             type="button"
                                             onClick={next}
                                             disabled={submitting}
-                                            className="flex items-center gap-2 rounded-xl bg-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 px-7 py-3 text-sm font-bold text-white shadow-md shadow-slate-900/10 dark:shadow-none transition-all duration-200 hover:bg-slate-800 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                                            className="flex items-center gap-2 rounded-xl bg-slate-900 px-7 py-3 text-sm font-bold text-white shadow-md shadow-slate-900/10 transition-all duration-200 hover:bg-slate-800 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:shadow-none dark:hover:bg-slate-200"
                                         >
                                             Continue <Icon.Arrow />
                                         </button>

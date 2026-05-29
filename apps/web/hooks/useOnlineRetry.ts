@@ -7,7 +7,7 @@ import { toast } from "sonner";
  * Hook to automatically retry failed API requests when coming back online
  */
 export const useOnlineRetry = () => {
-    const { isOffline, isStatusDirty, registerRetryCallback } = useOfflineStatus();
+    const { registerRetryCallback } = useOfflineStatus();
 
     const retryQueuedRequests = useCallback(async () => {
         const queued = offlineRequestQueue.getAll();

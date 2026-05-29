@@ -22,7 +22,6 @@ import { PageHeader } from "../components/PageHeader";
 import { toast } from "sonner";
 import { ExpiryBadge } from "@/components/scanner/ExpiryBadge";
 import {
-    submitReport,
     verifyMedicine,
     fuzzyMatchBrand,
     verifyMedicineByBrand,
@@ -30,7 +29,6 @@ import {
     type VerifyResult,
     type LasaMatch,
     type VerifiedMedicine,
-    API_BASE,
 } from "@/lib/api";
 import LasaConfirmation from "@/components/scanner/LasaConfirmation";
 import { BarcodeScanner } from "@/components/scanner/BarcodeScanner";
