@@ -163,7 +163,14 @@
         "goHome": "Go to Home",
         "footer": "SahiDawa will automatically sync when your connection returns.",
         "cachedContent": "You can still access previously loaded content",
-        "noCache": "This page was not cached and is not available offline"
+        "noCache": "This page was not cached and is not available offline",
+        "redirecting": "Redirecting you to SahiDawa…",
+        "attempt": "(Attempt {retryCount})",
+        "checkingConnection": "Checking connection…",
+        "cachedAvailable": "Previously visited pages may still be available",
+        "cachedVerifications": "Cached Verifications",
+        "savedPharmacies": "Saved Pharmacies",
+        "browsedMedicines": "Browsed Medicines"
     },
     "contact": {
         "badge": "GSSoC 2026 Open Source Project",
@@ -200,5 +207,50 @@
             "faq": "FAQ"
         },
         "footer": "SahiDawa is free, open-source, and built for 1.4 billion Indians. No ads. No premium. No data sold. Ever."
+    },
+    "Faq": {
+        "badge": "GSSoC 2026 Open Source Project",
+        "title": "Frequently Asked",
+        "title_highlight": "Questions",
+        "subtitle": "Everything you need to know about SahiDawa — India's free, open-source medicine verification platform.",
+        "cta": {
+            "title": "Still have questions?",
+            "subtitle": "Can't find the answer you're looking for? Reach out to our community.",
+            "button": "Contact Us"
+        },
+        "items": {
+            "0": {
+                "question": "What is SahiDawa?",
+                "answer": "SahiDawa is India's first open-source citizen medicine verification platform. It helps you verify if your medicine is real or fake, find safe pharmacies nearby, and get health guidance in your language."
+            },
+            "1": {
+                "question": "Is SahiDawa free to use?",
+                "answer": "Yes! SahiDawa is 100% free forever. No ads, no premium plan, no data sold. Ever. It is built for Bharat, by the community."
+            },
+            "2": {
+                "question": "How does medicine verification work?",
+                "answer": "You can scan the barcode or QR code on your medicine packaging. SahiDawa checks it against the official CDSCO database and tells you if the medicine is real, suspicious, or fake."
+            },
+            "3": {
+                "question": "Which languages does SahiDawa support?",
+                "answer": "SahiDawa supports 22 official Indian languages. You can speak your symptoms in your own language using our Voice Health Assistant powered by Whisper and Sarvam AI."
+            },
+            "4": {
+                "question": "How can I report a fake medicine?",
+                "answer": "You can use the 'Report Fake' feature on the homepage. Your report gets added to a community heatmap that helps alert others in your district about counterfeit medicines."
+            },
+            "5": {
+                "question": "Is my data safe with SahiDawa?",
+                "answer": "Absolutely. SahiDawa does not sell your data, show ads, or have any premium plan. Your privacy is our top priority."
+            },
+            "6": {
+                "question": "How can I contribute to SahiDawa?",
+                "answer": "SahiDawa is open source under MIT License. You can contribute on GitHub, report bugs, suggest features, or join as a GSSoC 2026 participant."
+            },
+            "7": {
+                "question": "What is CDSCO?",
+                "answer": "CDSCO stands for Central Drugs Standard Control Organisation. It is India's national regulatory body for cosmetics, pharmaceuticals and medical devices. SahiDawa verifies medicines against their official database."
+            }
+        }
     }
 }

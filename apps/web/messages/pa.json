@@ -160,7 +160,14 @@
         "goHome": "ਹੋਮ ਤੇ ਜਾਓ",
         "footer": "ਕਨੈਕਸ਼ਨ ਵਾਪਸ ਆਉਣ 'ਤੇ SahiDawa ਆਪਣੇ ਆਪ ਸਿੰਕ ਕਰੇਗਾ।",
         "cachedContent": "ਤੁਸੀਂ ਪਹਿਲਾਂ ਲੋਡ ਕੀਤੀ ਸਮੱਗਰੀ ਵੇਖ ਸਕਦੇ ਹੋ",
-        "noCache": "ਇਹ ਪੇਜ cached ਨਹੀਂ ਸੀ ਅਤੇ ਆਫਲਾਈਨ ਉਪਲਬਧ ਨਹੀਂ ਹੈ"
+        "noCache": "ਇਹ ਪੇਜ cached ਨਹੀਂ ਸੀ ਅਤੇ ਆਫਲਾਈਨ ਉਪਲਬਧ ਨਹੀਂ ਹੈ",
+        "redirecting": "ਤੁਹਾਨੂੰ SahiDawa 'ਤੇ ਰੀਡਾਇਰੈਕਟ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ…",
+        "attempt": "(ਕੋਸ਼ਿਸ਼ {retryCount})",
+        "checkingConnection": "ਕਨੈਕਸ਼ਨ ਦੀ ਜਾਂਚ ਕੀਤੀ ਜਾ ਰਹੀ ਹੈ…",
+        "cachedAvailable": "ਪਹਿਲਾਂ ਦੇਖੇ ਗਏ ਪੇਜ ਅਜੇ ਵੀ ਉਪਲਬਧ ਹੋ ਸਕਦੇ ਹਨ",
+        "cachedVerifications": "ਸੁਰੱਖਿਅਤ ਕੀਤੀਆਂ ਜਾਂਚਾਂ",
+        "savedPharmacies": "ਸੁਰੱਖਿਅਤ ਕੀਤੀਆਂ ਫਾਰਮੇਸੀਆਂ",
+        "browsedMedicines": "ਦੇਖੀਆਂ ਗਈਆਂ ਦਵਾਈਆਂ"
     },
     "contact": {
         "badge": "GSSoC 2026 ਓਪਨ ਸੋਰਸ ਪ੍ਰੋਜੈਕਟ",
