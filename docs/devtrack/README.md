@@ -50,3 +50,4 @@
 | [#778](https://github.com/RatLoopz/sahidawa-india/pull/778) | 2026-05-27 | i18n | 44 | @shashank03-dev | [View Doc](devtrack/2026-05/PR-778-fix-i18n-localize-homepage-navigation-strings.md) / [ADR](devtrack/adr/ADR-012-fix-i18n-localize-homepage-navigation-strings.md) |
 | [#821](https://github.com/RatLoopz/sahidawa-india/pull/821) | 2026-05-29 | Frontend | 10 | @himanithakre56 | [View Doc](devtrack/2026-05/PR-821-i18n-localize-offline-page-and-banner-using-next-i.md) |
 | [#786](https://github.com/RatLoopz/sahidawa-india/pull/786) | 2026-05-29 | Frontend | 10 | @Christina1507 | [View Doc](devtrack/2026-05/PR-786-improve-language-switcher-accessibility-and-ux.md) |
+| [#845](https://github.com/RatLoopz/sahidawa-india/pull/845) | 2026-05-29 | ML/AI | 53 | @saurabhhhcodes | [View Doc](devtrack/2026-05/PR-845-feat-ml-connect-medicine-image-analysis.md) / [ADR](devtrack/adr/ADR-013-feat-ml-connect-medicine-image-analysis.md) |
