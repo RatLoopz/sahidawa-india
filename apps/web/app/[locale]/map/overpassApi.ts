@@ -4,29 +4,36 @@
  * Uses multiple mirrors for reliability
  */
 
+const OVERPASS_MIRRORS = [
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
+];
+
 async function queryOverpass(query: string): Promise<any> {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
+    const timeout = setTimeout(() => controller.abort(), 20000);
 
-    try {
-        const response = await fetch("/api/overpass", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ query }),
-            signal: controller.signal,
-        });
+    for (const mirror of OVERPASS_MIRRORS) {
+        try {
+            const response = await fetch(mirror, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `data=${encodeURIComponent(query)}`,
+                signal: controller.signal,
+            });
 
-        clearTimeout(timeout);
+            if (!response.ok) continue;
 
-        if (!response.ok) {
-            throw new Error(`Proxy failed with status: ${response.status}`);
+            const data = await response.json();
+            clearTimeout(timeout);
+            return data;
+        } catch (err) {
+            continue;
         }
-
-        return await response.json();
-    } catch (err: any) {
-        clearTimeout(timeout);
-        throw new Error(`Overpass fetch failed: ${err.message || "unknown error"}`);
     }
+
+    clearTimeout(timeout);
+    throw new Error("All Overpass mirrors failed to respond");
 }
 
 export interface OverpassPharmacy {
