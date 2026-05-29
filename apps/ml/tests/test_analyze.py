@@ -8,7 +8,7 @@ from fastapi import HTTPException
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from routers.analyze import _score_packaging_image
+from routers.analyze import _read_limited_image, _score_packaging_image
 
 
 def _image_bytes(color: tuple[int, int, int], *, size: tuple[int, int] = (24, 24)) -> bytes:
@@ -51,3 +51,20 @@ def test_rejects_unreadable_image_bytes():
         _score_packaging_image(b"not an image")
 
     assert exc.value.status_code == 400
+
+
+def test_rejects_non_cloudinary_image_url_before_fetch(monkeypatch):
+    fetch_called = False
+
+    def fail_if_called(*_args, **_kwargs):
+        nonlocal fetch_called
+        fetch_called = True
+        raise AssertionError("network fetch should not run for untrusted hosts")
+
+    monkeypatch.setattr("routers.analyze.requests.get", fail_if_called)
+
+    with pytest.raises(HTTPException) as exc:
+        _read_limited_image("https://example.test/medicine.jpg")
+
+    assert exc.value.status_code == 400
+    assert fetch_called is False

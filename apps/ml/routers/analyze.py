@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import logging
 from statistics import mean, pstdev
+from urllib.parse import urlparse
 
 import requests
 from fastapi import APIRouter, HTTPException
@@ -16,6 +17,7 @@ router = APIRouter(prefix="/analyze", tags=["Image Analysis"])
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
 REQUEST_TIMEOUT_SECONDS = 6
 SUPPORTED_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp"}
+CLOUDINARY_IMAGE_HOST = "res.cloudinary.com"
 
 
 class AnalyzeImageRequest(BaseModel):
@@ -30,8 +32,16 @@ class AnalyzeImageResponse(BaseModel):
 
 
 def _read_limited_image(url: str) -> bytes:
-    if not url.startswith("https://"):
+    parsed_url = urlparse(url)
+    if parsed_url.scheme != "https":
         raise HTTPException(status_code=400, detail="Only HTTPS image URLs are accepted.")
+
+    if parsed_url.hostname != CLOUDINARY_IMAGE_HOST:
+        raise HTTPException(status_code=400, detail="Only Cloudinary image delivery URLs are accepted.")
+
+    path_segments = [segment for segment in parsed_url.path.split("/") if segment]
+    if len(path_segments) < 3 or path_segments[1] != "image":
+        raise HTTPException(status_code=400, detail="Cloudinary URL must point to an image asset.")
 
     try:
         response = requests.get(url, timeout=REQUEST_TIMEOUT_SECONDS, stream=True)
