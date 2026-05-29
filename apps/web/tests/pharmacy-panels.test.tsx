@@ -54,6 +54,15 @@ function renderPanels(overrides: Partial<ComponentProps<typeof PharmacyPanels>> 
 }
 
 describe("PharmacyPanels", () => {
+    it("renders the recall and counterfeit alert card with safety guidance", () => {
+        const markup = renderPanels();
+
+        expect(markup).toContain("Recall &amp; counterfeit alerts");
+        expect(markup).toContain("Latest medicine safety updates");
+        expect(markup).toContain("Batch 4A7X9");
+        expect(markup).toContain("Check batch and avoid until verified");
+    });
+
     it("renders the shared heading, risk controls, and pharmacy row markup", () => {
         const markup = renderPanels();
 

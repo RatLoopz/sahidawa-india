@@ -36,6 +36,19 @@ export interface PharmacyPanelsProps {
     className?: string;
 }
 
+const safetyAlerts = [
+    {
+        title: "Batch 4A7X9 flagged",
+        severity: "High risk",
+        detail: "Check batch and avoid until verified.",
+    },
+    {
+        title: "Recall watch for Paracetamol 500 mg",
+        severity: "Monitor",
+        detail: "Verify packaging, expiry, and supplier before purchasing.",
+    },
+];
+
 function PharmacyPanelRow({
     pharmacy,
     isSelected,
@@ -220,6 +233,34 @@ export default function PharmacyPanels({
             </div>
 
             <div className="shrink-0 border-b border-(--color-border-muted) px-5 py-4">
+                <div className="mb-3 rounded-2xl border border-rose-200 bg-rose-50/90 p-3 dark:border-rose-900/40 dark:bg-rose-950/20">
+                    <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-rose-700 dark:text-rose-300">
+                        <AlertCircle size={12} />
+                        Recall & counterfeit alerts
+                    </div>
+                    <p className="mt-1 text-[10px] text-(--color-text-secondary)">
+                        Latest medicine safety updates
+                    </p>
+                    <div className="mt-2 space-y-2">
+                        {safetyAlerts.map((alert) => (
+                            <article
+                                key={alert.title}
+                                className="rounded-xl border border-rose-200 bg-white/90 p-2.5 shadow-sm dark:border-rose-900/40 dark:bg-slate-950/60"
+                            >
+                                <p className="text-[11px] font-bold text-(--color-text-primary)">
+                                    {alert.title}
+                                </p>
+                                <p className="mt-0.5 text-[10px] text-rose-700 dark:text-rose-300">
+                                    {alert.severity}
+                                </p>
+                                <p className="mt-1 text-[10px] text-(--color-text-secondary)">
+                                    {alert.detail}
+                                </p>
+                            </article>
+                        ))}
+                    </div>
+                </div>
+
                 <div className="mb-2 flex items-center gap-1.5 text-[11px] font-bold text-(--color-text-secondary)">
                     <AlertCircle size={12} className="text-red-500" />
                     Risk layers
