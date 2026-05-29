@@ -282,16 +282,50 @@
     background: var(--color-text-secondary);
 }
 
-/* Accessibility: Focus visible states for interactive elements */
-@layer base {
-    a:focus-visible,
-    button:focus-visible,
-    input:focus-visible,
-    select:focus-visible,
-    textarea:focus-visible,
-    [tabindex]:focus-visible {
-        outline: 2px solid var(--color-brand-secondary);
-        outline-offset: 2px;
+/* Language Switcher Accessibility + UX */
+
+.language-switcher-btn:focus-visible,
+.language-option:focus-visible {
+    outline: 2px solid var(--color-brand-primary);
+    outline-offset: 2px;
+}
+
+.language-dropdown {
+    animation: fadeInDropdown 0.2s ease;
+    transform-origin: top right;
+}
+
+@keyframes fadeInDropdown {
+    from {
+        opacity: 0;
+        transform: scale(0.96) translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
     }
 }
 
+/* Better mobile touch targets */
+@media (max-width: 640px) {
+
+    .language-option {
+        min-height: 48px;
+    }
+
+    .language-switcher-btn {
+        min-height: 44px;
+    }
+}
+
+/* Reduced motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+
+    .language-dropdown,
+    .language-switcher-btn,
+    .language-option {
+        animation: none !important;
+        transition: none !important;
+    }
+}
