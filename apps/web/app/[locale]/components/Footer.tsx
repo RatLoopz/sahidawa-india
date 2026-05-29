@@ -3,9 +3,17 @@
 import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
 import { GitBranch, Sparkles, Heart } from "lucide-react";
 import { Link } from "@/i18n/routing";
+import { usePathname } from "next/navigation";
+
 export default function Footer() {
+    const pathname = usePathname();
+    // Matches localized homepages like /en, /hi, /mr, or /
+    const isHome = pathname ? /^\/[a-z]{2}$|^\/$/.test(pathname) : false;
+
     return (
-        <footer className="no-print mt-auto border-t border-slate-800 bg-slate-950 text-slate-400">
+        <footer
+            className={`no-print mt-auto border-t border-slate-800 bg-slate-950 text-slate-400 ${isHome ? "mb-16 md:mb-0" : ""}`}
+        >
             <div className="container mx-auto px-4 py-10 md:px-6">
                 <div className="grid grid-cols-1 gap-8 border-b border-slate-800 pb-8 md:grid-cols-3">
                     {/* Brand Section */}
