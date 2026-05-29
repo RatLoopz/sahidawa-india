@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, ShieldCheck, HelpCircle } from "lucide-react";
 import { Link } from "@/i18n/routing";
+import { PageHeader } from "../components/PageHeader";
 
 const faqs = [
     {
@@ -48,7 +49,10 @@ export default function FAQPage() {
 
     return (
         <div className="min-h-screen bg-(--color-surface-muted) font-sans text-(--color-text-primary) transition-colors duration-300">
-
+            <PageHeader
+                backHref="/"
+                variant="light"
+            />
             {/* Hero */}
             <section className="bg-(--color-surface-page) border-b border-(--color-border-muted) transition-colors duration-300">
                 <div className="container mx-auto max-w-4xl px-4 py-16 md:py-24 text-center space-y-6">
