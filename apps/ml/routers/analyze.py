@@ -3,7 +3,7 @@ from __future__ import annotations
 import io
 import logging
 from statistics import mean, pstdev
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse, urlunparse
 
 import requests
 from fastapi import APIRouter, HTTPException
@@ -31,20 +31,30 @@ class AnalyzeImageResponse(BaseModel):
     details: str
 
 
-def _read_limited_image(url: str) -> bytes:
+def _canonical_cloudinary_image_url(url: str) -> str:
     parsed_url = urlparse(url)
     if parsed_url.scheme != "https":
         raise HTTPException(status_code=400, detail="Only HTTPS image URLs are accepted.")
 
-    if parsed_url.hostname != CLOUDINARY_IMAGE_HOST:
+    if parsed_url.netloc != CLOUDINARY_IMAGE_HOST:
         raise HTTPException(status_code=400, detail="Only Cloudinary image delivery URLs are accepted.")
+
+    if parsed_url.params or parsed_url.query or parsed_url.fragment:
+        raise HTTPException(status_code=400, detail="Cloudinary image URL cannot include extra parameters.")
 
     path_segments = [segment for segment in parsed_url.path.split("/") if segment]
     if len(path_segments) < 3 or path_segments[1] != "image":
         raise HTTPException(status_code=400, detail="Cloudinary URL must point to an image asset.")
 
+    safe_path = quote(parsed_url.path, safe="/._-")
+    return urlunparse(("https", CLOUDINARY_IMAGE_HOST, safe_path, "", "", ""))
+
+
+def _read_limited_image(url: str) -> bytes:
+    image_url = _canonical_cloudinary_image_url(url)
+
     try:
-        response = requests.get(url, timeout=REQUEST_TIMEOUT_SECONDS, stream=True)
+        response = requests.get(image_url, timeout=REQUEST_TIMEOUT_SECONDS, stream=True)
         response.raise_for_status()
     except requests.RequestException as exc:
         logger.warning("Failed to download medicine image for analysis: %s", exc)

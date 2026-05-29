@@ -8,7 +8,11 @@ from fastapi import HTTPException
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from routers.analyze import _read_limited_image, _score_packaging_image
+from routers.analyze import (
+    _canonical_cloudinary_image_url,
+    _read_limited_image,
+    _score_packaging_image,
+)
 
 
 def _image_bytes(color: tuple[int, int, int], *, size: tuple[int, int] = (24, 24)) -> bytes:
@@ -68,3 +72,27 @@ def test_rejects_non_cloudinary_image_url_before_fetch(monkeypatch):
 
     assert exc.value.status_code == 400
     assert fetch_called is False
+
+
+def test_canonicalizes_cloudinary_image_url():
+    url = _canonical_cloudinary_image_url(
+        "https://res.cloudinary.com/demo/image/upload/v1/medicine label.png"
+    )
+
+    assert url == "https://res.cloudinary.com/demo/image/upload/v1/medicine%20label.png"
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://res.cloudinary.com:443/demo/image/upload/medicine.png",
+        "https://user@res.cloudinary.com/demo/image/upload/medicine.png",
+        "https://res.cloudinary.com/demo/raw/upload/medicine.txt",
+        "https://res.cloudinary.com/demo/image/upload/medicine.png?redirect=https://example.test",
+    ],
+)
+def test_rejects_cloudinary_url_variants_that_cannot_be_canonicalized(url):
+    with pytest.raises(HTTPException) as exc:
+        _canonical_cloudinary_image_url(url)
+
+    assert exc.value.status_code == 400
