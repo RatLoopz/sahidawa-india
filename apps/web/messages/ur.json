@@ -25,7 +25,11 @@
         "india_region": "بھارت خطہ",
         "alerts_empty_title": "سب صاف ہے!",
         "alerts_empty_description": "اس وقت کوئی فعال ضابطہ جاتی الرٹ نہیں ہے۔ محفوظ رہیں اور اپنی ادویات کی تصدیق کریں۔",
-        "view_full_alert_log": "مکمل الرٹ لاگ دیکھیں"
+        "view_full_alert_log": "مکمل الرٹ لاگ دیکھیں",
+        "heroTitle": {
+            "prefix": "آپ کی صحت، ",
+            "highlight": "تصدیق شدہ اور محفوظ۔"
+        }
     },
     "Navigation": {
         "how_it_works": "یہ کیسے کام کرتا ہے",

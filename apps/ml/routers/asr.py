@@ -1,4 +1,8 @@
+from __future__ import annotations
+
 import json
+import io
+import wave
 from json import JSONDecodeError
 from contextlib import asynccontextmanager
 from collections.abc import Callable
@@ -25,6 +29,7 @@ from services.telemetry import (
 logger = logging.getLogger(__name__)
 telemetry_logger = get_telemetry_logger()
 DEFAULT_WHISPER_BEAM_SIZE = 5
+MAX_TRANSCRIPTION_DURATION_SECONDS = 60.0
 STREAM_SAMPLE_RATE = 16000
 STREAM_WINDOW_SECONDS = 12.0
 STREAM_COMMIT_LAG_SECONDS = 1.0
@@ -146,6 +151,48 @@ def normalize_requested_language(language: str | None) -> str | None:
     return None
 
 
+def get_wav_duration_seconds_from_bytes(contents: bytes) -> float:
+    try:
+        with wave.open(io.BytesIO(contents), "rb") as wav_file:
+            frame_rate = wav_file.getframerate()
+            frame_count = wav_file.getnframes()
+    except (EOFError, wave.Error) as exc:
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded WAV audio is invalid or corrupted.",
+        ) from exc
+
+    if frame_rate <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded WAV audio has an invalid frame rate.",
+        )
+
+    return frame_count / float(frame_rate)
+
+
+def ensure_wav_duration_within_limit(contents: bytes) -> float:
+    duration_seconds = get_wav_duration_seconds_from_bytes(contents)
+    if duration_seconds > MAX_TRANSCRIPTION_DURATION_SECONDS:
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded audio must be 60 seconds or shorter.",
+        )
+
+    return duration_seconds
+
+
+def ensure_audio_duration_within_limit(audio_data, sample_rate: int) -> float:
+    duration_seconds = get_audio_duration_seconds(audio_data, sample_rate)
+    if duration_seconds > MAX_TRANSCRIPTION_DURATION_SECONDS:
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded audio must be 60 seconds or shorter.",
+        )
+
+    return duration_seconds
+
+
 def transcribe_uploaded_bytes(
     contents: bytes,
     *,
@@ -160,6 +207,9 @@ def transcribe_uploaded_bytes(
             detail=f"Unsupported audio format '{content_type}'. "
                    f"Accepted: {', '.join(sorted(ALLOWED_TYPES))}"
         )
+
+    if normalized_content_type in {"audio/wav", "audio/x-wav"}:
+        ensure_wav_duration_within_limit(contents)
 
     requested_language = normalize_requested_language(language)
     suffix = os.path.splitext(original_name)[-1].lower() or ".wav"
@@ -215,7 +265,10 @@ def _transcribe_audio_bytes(
             )
 
         audio_data, sample_rate = sf.read(normalized_path)
-        audio_duration_seconds = get_audio_duration_seconds(audio_data, sample_rate)
+        audio_duration_seconds = ensure_audio_duration_within_limit(
+            audio_data,
+            sample_rate,
+        )
         audio_data = audio_data.astype(np.float32)
 
         with warnings.catch_warnings():

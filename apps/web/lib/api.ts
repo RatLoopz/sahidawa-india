@@ -22,6 +22,35 @@ export type SubmittedReport = {
     reporter_id: string | null;
 };
 
+export type MedicineImageAnalysisVerdict = "likely_genuine" | "suspicious" | "likely_fake";
+
+export type MedicineImageAnalysis = {
+    isFake: boolean;
+    confidence: number;
+    verdict: MedicineImageAnalysisVerdict;
+    details: string;
+};
+
+export async function analyzeMedicineImage(
+    imageUrl: string,
+    signal?: AbortSignal
+): Promise<MedicineImageAnalysis> {
+    const res = await fetchWithRetry(`${API_BASE}/api/ml/analyze`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl }),
+        timeout: 10000,
+        signal,
+    });
+
+    if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body.error ?? "Image analysis is unavailable. Please retry.");
+    }
+
+    return res.json() as Promise<MedicineImageAnalysis>;
+}
+
 export async function submitReport(
     payload: ReportPayload,
     accessToken?: string,
@@ -57,7 +86,7 @@ export async function geocodePincode(
         const url =
             `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(pincode)}` +
             `&country=IN&format=json&limit=1`;
-        
+
         let abortSignal = signal;
         // Merge with a 4s timeout if no caller signal is provided or merge them
         if (!abortSignal) {
@@ -145,7 +174,10 @@ export async function fetchVerifiedPharmaciesInBounds(
     }
 }
 
-export async function verifyMedicine(batchNumber: string, signal?: AbortSignal): Promise<VerifyResult> {
+export async function verifyMedicine(
+    batchNumber: string,
+    signal?: AbortSignal
+): Promise<VerifyResult> {
     const res = await fetchWithRetry(`${API_BASE}/api/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -184,7 +216,10 @@ export async function fuzzyMatchBrand(query: string, signal?: AbortSignal): Prom
     return res.json() as Promise<FuzzyMatch[]>;
 }
 
-export async function verifyMedicineByBrand(brandName: string, signal?: AbortSignal): Promise<VerifyResult> {
+export async function verifyMedicineByBrand(
+    brandName: string,
+    signal?: AbortSignal
+): Promise<VerifyResult> {
     const res = await fetchWithRetry(`${API_BASE}/api/v1/scan/verify-brand`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -214,7 +249,10 @@ export interface LasaCheckResult {
     matches: LasaMatch[];
 }
 
-export async function checkLasaConflicts(medicineName: string, signal?: AbortSignal): Promise<LasaCheckResult> {
+export async function checkLasaConflicts(
+    medicineName: string,
+    signal?: AbortSignal
+): Promise<LasaCheckResult> {
     const res = await fetchWithRetry(`${API_BASE}/api/v1/lasa/check`, {
         method: "POST",
         headers: {

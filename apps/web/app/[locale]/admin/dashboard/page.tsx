@@ -18,8 +18,7 @@ import {
     FileText,
 } from "lucide-react";
 import { LiveMessage } from "@/components/ui/LiveMessage";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api/v1/admin";
+import { ADMIN_API_BASE } from "@/lib/adminApi";
 
 type ReportStatus = "pending" | "verified_fake" | "false_alarm";
 type MedicineStatus = "approved" | "recalled" | "banned";
@@ -100,7 +99,7 @@ export default function AdminDashboard() {
         setLoading(true);
         setAuthError(null);
         try {
-            const res = await fetch(`${API_BASE}/reports`, { headers: authHeaders() });
+            const res = await fetch(`${ADMIN_API_BASE}/reports`, { headers: authHeaders() });
             if (res.status === 401) {
                 setAuthError("Not authenticated — please sign in as an admin.");
                 return;
@@ -120,8 +119,11 @@ export default function AdminDashboard() {
 
     const fetchMedicines = useCallback(async () => {
         try {
-            const res = await fetch(`${API_BASE}/medicines`, { headers: authHeaders() });
-            if (res.ok) setMedicines(await res.json());
+            const res = await fetch(`${ADMIN_API_BASE}/medicines`, { headers: authHeaders() });
+            if (res.ok) {
+                const data = await res.json();
+                setMedicines(data.medicines ?? []);
+            }
         } catch {
             /* silently fail, table will be empty */
         }
@@ -135,7 +137,7 @@ export default function AdminDashboard() {
     const handleReportAction = async (reportId: string, status: ReportStatus) => {
         setActing(reportId + status);
         try {
-            const res = await fetch(`${API_BASE}/reports/${reportId}/status`, {
+            const res = await fetch(`${ADMIN_API_BASE}/reports/${reportId}/status`, {
                 method: "PATCH",
                 headers: authHeaders(),
                 body: JSON.stringify({ status }),
@@ -145,13 +147,24 @@ export default function AdminDashboard() {
             if (target) setResolved((prev) => [...prev, { ...target, resolvedStatus: status }]);
             setReports((prev) => prev.filter((r) => r.id !== reportId));
             notify(
-                status === "verified_fake"
-                    ? <><AlertTriangle className="inline h-4 w-4 mr-1" /> Marked as Verified Fake</>
-                    : <><CheckCircle className="inline h-4 w-4 mr-1" /> Marked as False Alarm</>,
+                status === "verified_fake" ? (
+                    <>
+                        <AlertTriangle className="mr-1 inline h-4 w-4" /> Marked as Verified Fake
+                    </>
+                ) : (
+                    <>
+                        <CheckCircle className="mr-1 inline h-4 w-4" /> Marked as False Alarm
+                    </>
+                ),
                 status !== "verified_fake"
             );
         } catch {
-            notify(<><XCircle className="inline h-4 w-4 mr-1" /> Failed to update report</>, false);
+            notify(
+                <>
+                    <XCircle className="mr-1 inline h-4 w-4" /> Failed to update report
+                </>,
+                false
+            );
         } finally {
             setActing(null);
         }
@@ -160,7 +173,7 @@ export default function AdminDashboard() {
     const handleAddMedicine = async () => {
         if (!newMed.brand_name || !newMed.generic_name) return;
         try {
-            const res = await fetch(`${API_BASE}/medicines`, {
+            const res = await fetch(`${ADMIN_API_BASE}/medicines`, {
                 method: "POST",
                 headers: authHeaders(),
                 body: JSON.stringify(newMed),
@@ -176,9 +189,18 @@ export default function AdminDashboard() {
                 cdsco_approval_status: "approved",
             });
             setShowForm(false);
-            notify(<><CheckCircle className="inline h-4 w-4 mr-1" /> Medicine added</>);
+            notify(
+                <>
+                    <CheckCircle className="mr-1 inline h-4 w-4" /> Medicine added
+                </>
+            );
         } catch {
-            notify(<><XCircle className="inline h-4 w-4 mr-1" /> Failed to add medicine</>, false);
+            notify(
+                <>
+                    <XCircle className="mr-1 inline h-4 w-4" /> Failed to add medicine
+                </>,
+                false
+            );
         }
     };
 

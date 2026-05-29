@@ -25,7 +25,11 @@
         "india_region": "ਭਾਰਤ ਖੇਤਰ",
         "alerts_empty_title": "ਸਭ ਠੀਕ ਹੈ!",
         "alerts_empty_description": "ਇਸ ਵੇਲੇ ਕੋਈ ਸਰਗਰਮ ਨਿਯਮਕ ਚੇਤਾਵਨੀ ਨਹੀਂ ਹੈ। ਸੁਰੱਖਿਅਤ ਰਹੋ ਅਤੇ ਆਪਣੀਆਂ ਦਵਾਈਆਂ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ।",
-        "view_full_alert_log": "ਪੂਰਾ ਚੇਤਾਵਨੀ ਲੌਗ ਵੇਖੋ"
+        "view_full_alert_log": "ਪੂਰਾ ਚੇਤਾਵਨੀ ਲੌਗ ਵੇਖੋ",
+        "heroTitle": {
+            "prefix": "ਤੁਹਾਡੀ ਸਿਹਤ, ",
+            "highlight": "ਪ੍ਰਮਾਣਿਤ ਅਤੇ ਸੁਰੱਖਿਅਤ।"
+        }
     },
     "Navigation": {
         "how_it_works": "ਇਹ ਕਿਵੇਂ ਕੰਮ ਕਰਦਾ ਹੈ",
