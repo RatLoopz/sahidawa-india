@@ -1,3 +1,5 @@
+"use client";
+
 import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
 import { GitBranch, Sparkles, Heart } from "lucide-react";
 import { Link } from "@/i18n/routing";
@@ -117,7 +119,7 @@ export default function Footer() {
                         </p>
                     </div>
 
-                    <p className="text-xs md:text-sm text-center md:text-right">
+                    <p className="text-center text-xs md:text-right md:text-sm">
                         Built with <Heart className="inline h-[1em] w-[1em] text-red-500" /> for the
                         open-source community.
                     </p>
