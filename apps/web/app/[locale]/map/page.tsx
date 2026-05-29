@@ -310,6 +310,24 @@ export default function PharmacyMapPage() {
         }
     }, []);
 
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    setUserLocation(loc);
+                    fetchNearby(loc.lat, loc.lng);
+                },
+                () => {
+                    fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+            );
+        } else {
+            fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
+        }
+    }, [fetchNearby]);
+
     const fetchInBounds = useCallback(async (bounds: MapBounds) => {
         setIsLoading(true);
         setFetchError(null);
@@ -356,11 +374,41 @@ export default function PharmacyMapPage() {
         }
     }, []);
 
+    // Geolocation
+    const handleLocateUser = useCallback(() => {
+        if (!navigator.geolocation) {
+            setLocationError("Geolocation is not supported by your browser");
+            setTimeout(() => setLocationError(null), 3000);
+            return;
+        }
+        setIsLocating(true);
+        setLocationError(null);
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                setUserLocation(loc);
+                setIsLocating(false);
+                fetchNearby(loc.lat, loc.lng);
+            },
+            (err) => {
+                setIsLocating(false);
+                const messages: Record<number, string> = {
+                    1: "Location access denied. Please enable it in browser settings.",
+                    2: "Location information unavailable.",
+                    3: "Location request timed out.",
+                };
+                setLocationError(messages[err.code] || "Unable to get your location.");
+                setTimeout(() => setLocationError(null), 4000);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+        );
+    }, [fetchNearby]);
+
     const handleMapReady = useCallback(() => {
-        if (!initialFetchDone.current && !userLocation) {
+        if (!initialFetchDone.current) {
             fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
         }
-    }, [fetchNearby, userLocation]);
+    }, [fetchNearby]);
 
     const handleMapMoveEnd = useCallback((bounds: MapBounds) => {
         if (initialFetchDone.current) {
@@ -408,36 +456,6 @@ export default function PharmacyMapPage() {
     const updateAdvancedFilter = (key: keyof AdvancedFilters) => {
         setAdvancedFilters((current) => ({ ...current, [key]: !current[key] }));
     };
-
-    // Geolocation
-    const handleLocateUser = useCallback(() => {
-        if (!navigator.geolocation) {
-            setLocationError("Geolocation is not supported by your browser");
-            setTimeout(() => setLocationError(null), 3000);
-            return;
-        }
-        setIsLocating(true);
-        setLocationError(null);
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                setUserLocation(loc);
-                setIsLocating(false);
-                fetchNearby(loc.lat, loc.lng);
-            },
-            (err) => {
-                setIsLocating(false);
-                const messages: Record<number, string> = {
-                    1: "Location access denied. Please enable it in browser settings.",
-                    2: "Location information unavailable.",
-                    3: "Location request timed out.",
-                };
-                setLocationError(messages[err.code] || "Unable to get your location.");
-                setTimeout(() => setLocationError(null), 4000);
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-        );
-    }, [fetchNearby]);
 
     const filters = [
         {
