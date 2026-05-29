@@ -163,7 +163,10 @@
         "goHome": "Go to Home",
         "footer": "SahiDawa will automatically sync when your connection returns.",
         "cachedContent": "You can still access previously loaded content",
-        "noCache": "This page was not cached and is not available offline"
+        "noCache": "This page was not cached and is not available offline",
+        "redirecting": "Redirecting you to SahiDawa…",
+        "attempt": "(Attempt {retryCount})",
+        "checkingConnection": "Checking connection…"
     },
     "contact": {
         "badge": "GSSoC 2026 Open Source Project",

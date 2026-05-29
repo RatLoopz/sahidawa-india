@@ -82,7 +82,7 @@ export default function OfflinePage() {
                         {t("bannerOnline")} <PartyPopper className="h-8 w-8 text-emerald-400" />
                     </h1>
                     <p className="mb-2 text-lg text-emerald-400">{t("descriptionOnline")}</p>
-                    <p className="text-sm text-slate-400">Redirecting you to SahiDawa…</p>
+                    <p className="text-sm text-slate-400">{t("redirecting")}</p>
 
                     {/* Progress bar */}
                     <div className="mt-6 h-1.5 w-full overflow-hidden rounded-full bg-slate-700">
@@ -115,7 +115,7 @@ export default function OfflinePage() {
                 <p className="mb-10 text-sm leading-relaxed text-slate-500">
                     {t("subtitle")}
                     {retryCount > 0 && (
-                        <span className="ml-1 text-amber-400">(Attempt {retryCount})</span>
+                        <span className="ml-1 text-amber-400">{t("attempt", { retryCount })}</span>
                     )}
                 </p>
 
@@ -128,7 +128,7 @@ export default function OfflinePage() {
                         className="inline-flex w-full items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-6 py-3.5 font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:from-emerald-500 hover:to-emerald-400 hover:shadow-emerald-500/40 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         <RefreshCw size={18} className={isRetrying ? "animate-spin" : ""} />
-                        {isRetrying ? "Checking connection…" : t("tryAgain")}
+                        {isRetrying ? t("checkingConnection") : t("tryAgain")}
                     </button>
 
                     <a
