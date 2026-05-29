@@ -9,8 +9,8 @@ import { LiveMessage } from "@/components/ui/LiveMessage";
 export default function LoginPage() {
     const router = useRouter();
     const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "http://localhost:54321",
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "local-development-key"
     );
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
