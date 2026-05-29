@@ -239,20 +239,20 @@ const MedicineIllustration = () => (
     <div className="anim-float relative mx-auto w-full max-w-[460px] select-none">
         {/* Orbital rings */}
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="anim-spin-slow absolute h-[420px] w-[420px] rounded-full border border-teal-200/40" />
-            <div className="anim-spin-rev absolute h-[340px] w-[340px] rounded-full border border-cyan-200/30" />
+            <div className="anim-spin-slow absolute h-[300px] w-[300px] rounded-full border border-teal-200/40 md:h-[420px] md:w-[420px]" />
+            <div className="anim-spin-rev absolute h-[240px] w-[240px] rounded-full border border-cyan-200/30 md:h-[340px] md:w-[340px]" />
 
             {/* Orbiting dots */}
-            <div className="absolute flex h-[420px] w-[420px] items-center justify-center">
+            <div className="absolute flex h-[300px] w-[300px] items-center justify-center md:h-[420px] md:w-[420px]">
                 <div className="anim-orbit absolute">
-                    <div className="relative h-5 w-5 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 shadow-lg shadow-teal-300/50">
+                    <div className="relative h-4 w-4 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 shadow-lg shadow-teal-300/50 md:h-5 md:w-5">
                         <div className="absolute inset-0 animate-ping rounded-full bg-teal-400 opacity-60" />
                     </div>
                 </div>
             </div>
-            <div className="absolute flex h-[340px] w-[340px] items-center justify-center">
+            <div className="absolute flex h-[240px] w-[240px] items-center justify-center md:h-[340px] md:w-[340px]">
                 <div className="anim-c-orbit absolute">
-                    <div className="h-3 w-3 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 shadow-md shadow-blue-300/50" />
+                    <div className="h-2 w-2 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 shadow-md shadow-blue-300/50 md:h-3 md:w-3" />
                 </div>
             </div>
         </div>
@@ -556,7 +556,7 @@ export default function SahiDawaHome() {
                         </a>
 
                         {/* Desktop nav */}
-                        <nav className="hidden items-center gap-8 lg:flex">
+                        <nav className="hidden items-center gap-8 md:flex">
                             <NavLink href="#how-it-works">How It Works</NavLink>
                             <NavLink href="#features">Features</NavLink>
                             <NavLink href="#trust">Trust & Safety</NavLink>
@@ -572,7 +572,7 @@ export default function SahiDawaHome() {
                         </nav>
 
                         {/* Right actions */}
-                        <div className="hidden items-center gap-3 lg:flex">
+                        <div className="hidden items-center gap-3 md:flex">
                             <a
                                 href="/login"
                                 className="px-2 py-1.5 text-[13.5px] font-semibold text-slate-500 transition-colors hover:text-slate-800"
@@ -595,7 +595,7 @@ export default function SahiDawaHome() {
                         {/* Mobile toggle */}
                         <button
                             onClick={() => setMenuOpen(!menuOpen)}
-                            className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 lg:hidden"
+                            className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 md:hidden"
                         >
                             {menuOpen ? <X size={22} /> : <Menu size={22} />}
                         </button>
@@ -604,7 +604,7 @@ export default function SahiDawaHome() {
 
                 {/* Mobile menu */}
                 {menuOpen && (
-                    <div className="anim-fade-up border-t border-slate-100 bg-white/98 px-5 py-6 backdrop-blur-xl lg:hidden">
+                    <div className="anim-fade-up border-t border-slate-100 bg-white/98 px-5 py-6 backdrop-blur-xl md:hidden">
                         <div className="flex flex-col gap-5">
                             {[
                                 ["How It Works", "#how-it-works"],
@@ -690,7 +690,7 @@ export default function SahiDawaHome() {
                                 </div>
 
                                 {/* Headline */}
-                                <h1 className="anim-fade-up mb-6 text-[3.25rem] leading-[1.05] font-extrabold text-slate-900 delay-100 md:text-[4rem] lg:text-[4.25rem]">
+                                <h1 className="anim-fade-up mb-6 text-[2.5rem] leading-[1.05] font-extrabold text-slate-900 delay-100 md:text-[3.25rem] lg:text-[4.25rem]">
                                     Your Health, <br className="hidden sm:block" />
                                     <span className="shimmer-text">Verified</span>{" "}
                                     <span className="relative">
