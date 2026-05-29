@@ -47,7 +47,7 @@ export default function LoginPage() {
 
                 router.push("/reports/me");
             }
-        } catch {
+        } catch (err) {
             setError("Something went wrong. Please try again.");
         }
 
