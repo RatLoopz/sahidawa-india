@@ -13,4 +13,4 @@
 
 ALTER TABLE public.medicines DROP CONSTRAINT IF EXISTS idx_medicines_unique_variant;
 
-ALTER TABLE public.medicines ADD CONSTRAINT idx_medicines_unique_variant UNIQUE NULLS NOT DISTINCT (generic_name, brand_name, strength, dosage_form, source, barcode_id);
+ALTER TABLE public.medicines ADD CONSTRAINT idx_medicines_unique_variant UNIQUE NULLS NOT DISTINCT (generic_name, brand_name, manufacturer, barcode_id);
