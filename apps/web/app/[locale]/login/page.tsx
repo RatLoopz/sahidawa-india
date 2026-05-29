@@ -8,11 +8,11 @@ import { createBrowserClient } from "@supabase/ssr";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 export default function LoginPage() {
     const router = useRouter();
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    const supabase = supabaseUrl && supabaseKey 
-        ? createBrowserClient(supabaseUrl, supabaseKey) 
-        : null;
+    const isMissingEnvVars = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "http://localhost:54321",
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "local-development-key"
+    );
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
@@ -24,7 +24,7 @@ export default function LoginPage() {
         setLoading(true);
         setError("");
 
-        if (!supabase) {
+        if (isMissingEnvVars) {
             setError("Database connection is not configured.");
             setLoading(false);
             return;
@@ -82,7 +82,7 @@ export default function LoginPage() {
                     </div>
 
                     {/* Missing Env Variables Warning */}
-                    {!supabase && (
+                    {isMissingEnvVars && (
                         <div className="mb-5 flex items-start gap-3 rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/20 px-4 py-4 text-sm text-amber-800 dark:text-amber-300">
                             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-500" />
                             <div>
@@ -120,7 +120,7 @@ export default function LoginPage() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
-                                    disabled={!supabase}
+                                    disabled={isMissingEnvVars}
                                     className="w-full bg-transparent text-(--color-text-primary) outline-none placeholder:text-(--color-text-muted) disabled:opacity-50 disabled:cursor-not-allowed"
                                 />
                             </div>
@@ -139,7 +139,7 @@ export default function LoginPage() {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
-                                    disabled={!supabase}
+                                    disabled={isMissingEnvVars}
                                     className="w-full bg-transparent text-(--color-text-primary) outline-none placeholder:text-(--color-text-muted) disabled:opacity-50 disabled:cursor-not-allowed"
                                 />
                             </div>
@@ -148,7 +148,7 @@ export default function LoginPage() {
                         {/* Button */}
                         <button
                             type="submit"
-                            disabled={loading || !supabase}
+                            disabled={loading || isMissingEnvVars}
                             className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 font-semibold text-white shadow-lg shadow-emerald-250/20 dark:shadow-emerald-950/20 transition-all hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600"
                         >
                             {loading ? "Signing In..." : "Sign In"}
