@@ -123,9 +123,9 @@ export default function SahiDawaHome() {
 
                     {/* Desktop & Mobile Actions Container */}
                     <div className="flex items-center gap-2 sm:gap-3">
-                        {/* Inline Desktop Menu Links (Hidden on mobile / tablet screens) */}
+                        {/* Inline Desktop Menu Links (Centered on desktop layouts) */}
                         <nav
-                            className="hidden items-center gap-6 text-sm font-semibold text-(--color-text-secondary) lg:flex"
+                            className="hidden items-center justify-center gap-6 text-sm font-semibold text-(--color-text-secondary) lg:flex"
                             aria-label="Main navigation"
                         >
                             <Link href="/how-it-works" className={desktopNavLinkClassName}>
@@ -170,7 +170,7 @@ export default function SahiDawaHome() {
                             <ThemeToggle />
                         </div>
 
-                        {/* Mobile Hamburger Trigger Toggle Component (Replaces ThemeToggle button layout flow dynamically on viewport width shift) */}
+                        {/* Mobile Hamburger Trigger Toggle Component */}
                         <button 
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
                             className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-(--color-border-muted) text-(--color-text-secondary) hover:text-(--color-text-primary) transition-all duration-200 lg:hidden focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
@@ -366,7 +366,7 @@ export default function SahiDawaHome() {
                         aria-label="Pharmacy map"
                     >
                         <div className="flex items-start justify-between gap-4">
-                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 ring-1 ring-white/60 transition-colors duration-300 ring-inset group-hover:bg-amber-500 group-hover:text-white dark:bg-amber-950/30 dark:text-amber-400 dark:ring-white/10">
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 ring-1 ring-white/60 transition-colors duration-300 ring-inset group-hover:bg-amber-500 group-hover:text-white dark:bg-amber-950/30 dark:text-emerald-400 dark:ring-white/10">
                                 <MapPin size={28} strokeWidth={2.5} />
                             </div>
                             <ChevronRight className="mt-1 h-5 w-5 text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-amber-400" />
@@ -374,7 +374,7 @@ export default function SahiDawaHome() {
 
                         <div className="pt-4">
                             <h3 className="text-lg font-bold tracking-tight text-(--color-text-primary)">
-                                {tHome("pharmacy_map")}
+                                {tNav("pharmacy_map")}
                             </h3>
                             <p className="mt-1 text-sm leading-snug font-medium text-(--color-text-secondary)">
                                 {tHome("pharmacy_subtitle")}
@@ -385,7 +385,7 @@ export default function SahiDawaHome() {
                     {/* Report Fake Medicine */}
                     <button
                         onClick={() => handleNavigation("report")}
-                        className="group flex min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page)/95 p-6 text-left shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-red-400/50 hover:shadow-xl active:scale-[0.99]"
+                        className="group flex min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-(--red-400) bg-(--color-surface-page)/95 p-6 text-left shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-red-400/50 hover:shadow-xl active:scale-[0.99]"
                         aria-label="Report fake medicine"
                     >
                         <div className="flex items-start justify-between gap-4">
@@ -416,6 +416,7 @@ export default function SahiDawaHome() {
                             <div className="flex h-14 w-14 shrink-0 -translate-y-9 items-center justify-center rounded-2xl bg-(--color-surface-page)/95 shadow-lg shadow-purple-500/30 transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl group-hover:shadow-purple-500/35 sm:h-16 sm:w-16 sm:translate-y-0">
                                 <MessageCircle size={28} className="text-white drop-shadow-sm" />
                             </div>
+                            {/* Health Assistant Inner Layout Elements */}
                             <div className="space-y-1">
                                 <div className="flex items-center gap-2">
                                     <h3 className="text-xl font-extrabold tracking-tight text-(--color-text-primary) sm:text-2xl">
@@ -451,7 +452,7 @@ export default function SahiDawaHome() {
                 {/* ── Global Search ── */}
                 <SearchBar />
 
-                {/* ── Live Alerts Panel (full-width) ── */}
+                {/* ── Live Alerts Panel ── */}
                 <div className="mt-8 mb-20">
                     <div className="flex flex-col overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) shadow-sm">
                         <div className="flex items-center justify-between border-b border-(--color-border-muted) bg-(--color-surface-muted) px-6 py-5">
@@ -579,6 +580,7 @@ export default function SahiDawaHome() {
                 </div>
             </main>
 
+            {/* Spacer for mobile nav */}
             <div className="h-16 md:hidden"></div>
 
             {/* ── Mobile Bottom Navigation ── */}
