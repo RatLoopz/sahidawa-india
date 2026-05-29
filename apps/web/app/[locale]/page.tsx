@@ -15,6 +15,8 @@ import {
     ChevronRight,
     Activity,
     MessageCircle,
+    Menu, 
+    X,    
 } from "lucide-react";
 
 import { useRouter, useParams } from "next/navigation";
@@ -64,6 +66,7 @@ export default function SahiDawaHome() {
 
     const [homepageAlerts, setHomepageAlerts] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
     useEffect(() => {
         async function fetchAlerts() {
@@ -94,8 +97,54 @@ export default function SahiDawaHome() {
         router.push(`/${locale}/${path}`);
     };
 
+    const closeMobileMenu = () => setIsMobileMenuOpen(false);
+
     return (
         <div className="relative min-h-screen bg-(--color-surface-page) font-sans text-(--color-text-primary) transition-colors duration-300">
+            
+            {/* ── Mobile Hamburger Menu Overlay ── */}
+            {isMobileMenuOpen && (
+                <div className="fixed inset-0 z-[60] flex flex-col bg-white/95 p-6 backdrop-blur-xl dark:bg-slate-900/95 lg:hidden">
+                    <div className="flex items-center justify-between border-b border-slate-200/50 pb-4 dark:border-white/10">
+                        <div className="flex items-center gap-2">
+                             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 shadow-sm dark:bg-emerald-950/30 dark:text-emerald-400">
+                                <img src="/favicon.ico" alt="" className="h-7 w-7 object-contain" />
+                             </div>
+                             <span className="text-xl font-extrabold tracking-tight text-(--color-text-primary)">SahiDawa</span>
+                        </div>
+                        <button 
+                            onClick={closeMobileMenu} 
+                            className="rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+                        >
+                            <X size={24} />
+                        </button>
+                    </div>
+                    
+                    <nav className="mt-8 flex flex-col gap-6 text-lg font-semibold text-(--color-text-primary)">
+                        <Link href="/how-it-works" onClick={closeMobileMenu} className="transition-colors hover:text-emerald-600 dark:hover:text-emerald-400">
+                            {tNav("how_it_works")}
+                        </Link>
+                        <Link href="/alerts" onClick={closeMobileMenu} className="transition-colors hover:text-emerald-600 dark:hover:text-emerald-400">
+                            {tNav("alerts")}
+                        </Link>
+                        <Link href="/map" onClick={closeMobileMenu} className="transition-colors hover:text-emerald-600 dark:hover:text-emerald-400">
+                            {tNav("pharmacy_map")}
+                        </Link>
+                        <Link href="/reports/me" onClick={closeMobileMenu} className="flex items-center gap-2 transition-colors hover:text-emerald-600 dark:hover:text-emerald-400">
+                            <History size={18} /> {tNav("my_reports")}
+                        </Link>
+                        <hr className="border-slate-200/50 dark:border-white/10" />
+                        <button
+                            onClick={() => { closeMobileMenu(); handleNavigation("login"); }}
+                            className="flex items-center justify-center gap-2 rounded-full bg-emerald-600 py-3.5 text-white transition-all hover:bg-emerald-700 active:scale-95"
+                        >
+                            <User size={18} />
+                            {tHome("sign_in")}
+                        </button>
+                    </nav>
+                </div>
+            )}
+
             {/* ── Background Mesh ── */}
             <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
                 <div className="animate-blob absolute -top-32 -left-32 h-[600px] w-[600px] rounded-full bg-purple-500/20 opacity-70 mix-blend-multiply blur-[120px] filter dark:opacity-30 dark:mix-blend-screen"></div>
@@ -105,7 +154,7 @@ export default function SahiDawaHome() {
 
             {/* ── Top Navigation ── */}
             <header className="sticky top-0 z-50 w-full border-b border-white/30 bg-white/60 shadow-sm shadow-black/5 backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/60">
-                <div className="container mx-auto grid h-16 grid-cols-3 items-center px-4 md:px-6">
+                <div className="container mx-auto grid h-16 grid-cols-2 lg:grid-cols-3 items-center px-4 md:px-6">
                     {/* Left — Logo */}
                     <div className="flex items-center gap-2">
                         <div
@@ -126,7 +175,7 @@ export default function SahiDawaHome() {
                         </h1>
                     </div>
 
-                    {/* Center — Nav Links */}
+                    {/* Center — Nav Links (Desktop Only) */}
                     <nav
                         className="hidden items-center justify-center gap-6 text-sm font-semibold text-(--color-text-secondary) lg:flex"
                         aria-label="Main navigation"
@@ -161,17 +210,28 @@ export default function SahiDawaHome() {
                         <LanguageSwitcher />
                         <ThemeToggle />
 
+                        {/* Desktop Sign In */}
                         <button
                             onClick={() => handleNavigation("login")}
-                            className="hidden h-9 items-center justify-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-50/50 px-4 py-1.5 text-sm font-bold text-emerald-700 transition-all duration-200 hover:scale-105 hover:border-emerald-500/50 hover:bg-emerald-100 sm:h-10 sm:px-5 sm:py-2 md:flex dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20"
+                            className="hidden h-9 items-center justify-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-50/50 px-4 py-1.5 text-sm font-bold text-emerald-700 transition-all duration-200 hover:scale-105 hover:border-emerald-500/50 hover:bg-emerald-100 sm:h-10 sm:px-5 sm:py-2 lg:flex dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20"
                             aria-label={tHome("sign_in")}
                         >
                             <User size={16} />
                             <span>{tHome("sign_in")}</span>
                         </button>
+
+                        {/* Mobile Hamburger Button */}
+                        <button
+                            onClick={() => setIsMobileMenuOpen(true)}
+                            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200/50 bg-slate-50 text-slate-700 transition-colors hover:bg-slate-100 lg:hidden dark:border-white/10 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-800"
+                            aria-label="Open menu"
+                        >
+                            <Menu size={20} />
+                        </button>
                     </div>
                 </div>
             </header>
+            
             {/* ── Main ── */}
             <main className="pb-24 md:pb-12">
                 {/* ── Hero ── */}
