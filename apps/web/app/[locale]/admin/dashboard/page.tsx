@@ -120,7 +120,10 @@ export default function AdminDashboard() {
     const fetchMedicines = useCallback(async () => {
         try {
             const res = await fetch(`${ADMIN_API_BASE}/medicines`, { headers: authHeaders() });
-            if (res.ok) setMedicines(await res.json());
+            if (res.ok) {
+                const data = await res.json();
+                setMedicines(data.medicines ?? []);
+            }
         } catch {
             /* silently fail, table will be empty */
         }
@@ -144,13 +147,24 @@ export default function AdminDashboard() {
             if (target) setResolved((prev) => [...prev, { ...target, resolvedStatus: status }]);
             setReports((prev) => prev.filter((r) => r.id !== reportId));
             notify(
-                status === "verified_fake"
-                    ? <><AlertTriangle className="inline h-4 w-4 mr-1" /> Marked as Verified Fake</>
-                    : <><CheckCircle className="inline h-4 w-4 mr-1" /> Marked as False Alarm</>,
+                status === "verified_fake" ? (
+                    <>
+                        <AlertTriangle className="mr-1 inline h-4 w-4" /> Marked as Verified Fake
+                    </>
+                ) : (
+                    <>
+                        <CheckCircle className="mr-1 inline h-4 w-4" /> Marked as False Alarm
+                    </>
+                ),
                 status !== "verified_fake"
             );
         } catch {
-            notify(<><XCircle className="inline h-4 w-4 mr-1" /> Failed to update report</>, false);
+            notify(
+                <>
+                    <XCircle className="mr-1 inline h-4 w-4" /> Failed to update report
+                </>,
+                false
+            );
         } finally {
             setActing(null);
         }
@@ -175,9 +189,18 @@ export default function AdminDashboard() {
                 cdsco_approval_status: "approved",
             });
             setShowForm(false);
-            notify(<><CheckCircle className="inline h-4 w-4 mr-1" /> Medicine added</>);
+            notify(
+                <>
+                    <CheckCircle className="mr-1 inline h-4 w-4" /> Medicine added
+                </>
+            );
         } catch {
-            notify(<><XCircle className="inline h-4 w-4 mr-1" /> Failed to add medicine</>, false);
+            notify(
+                <>
+                    <XCircle className="mr-1 inline h-4 w-4" /> Failed to add medicine
+                </>,
+                false
+            );
         }
     };
 
