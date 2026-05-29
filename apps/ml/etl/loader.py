@@ -3,7 +3,7 @@
 # The loader has been moved to the unified ETL workspace:
 #   apps/etl/src/loaders/supabase_loader.py  (SupabaseLoader)
 #
-# This stub re-exports the class xso any remaining internal imports
+# This stub re-exports the class so any remaining internal imports
 # inside apps/ml/ continue to work during the transition period.
 
 from pathlib import Path
