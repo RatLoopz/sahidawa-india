@@ -49,3 +49,6 @@
 | [#773](https://github.com/RatLoopz/sahidawa-india/pull/773) | 2026-05-27 | Frontend | 22 | @shashank03-dev | [View Doc](devtrack/2026-05/PR-773-fix-web-enable-kannada-and-punjabi-locales.md) / [ADR](devtrack/adr/ADR-011-fix-web-enable-kannada-and-punjabi-locales.md) |
 | [#778](https://github.com/RatLoopz/sahidawa-india/pull/778) | 2026-05-27 | i18n | 44 | @shashank03-dev | [View Doc](devtrack/2026-05/PR-778-fix-i18n-localize-homepage-navigation-strings.md) / [ADR](devtrack/adr/ADR-012-fix-i18n-localize-homepage-navigation-strings.md) |
 | [#837](https://github.com/RatLoopz/sahidawa-india/pull/837) | 2026-05-29 | Backend | 12 | @Divv1524 | [View Doc](devtrack/2026-05/PR-837-fix-api-configure-cors-origins-from-environment.md) |
+| [#834](https://github.com/RatLoopz/sahidawa-india/pull/834) | 2026-05-29 | Frontend | 16 | @Suyash2527 | [View Doc](devtrack/2026-05/PR-834-fix-admin-dashboard-auth.md) / [ADR](devtrack/adr/ADR-013-fix-admin-dashboard-auth.md) |
+| [#821](https://github.com/RatLoopz/sahidawa-india/pull/821) | 2026-05-29 | Frontend | 10 | @himanithakre56 | [View Doc](devtrack/2026-05/PR-821-i18n-localize-offline-page-and-banner-using-next-i.md) |
+| [#786](https://github.com/RatLoopz/sahidawa-india/pull/786) | 2026-05-29 | Frontend | 10 | @Christina1507 | [View Doc](devtrack/2026-05/PR-786-improve-language-switcher-accessibility-and-ux.md) |
