@@ -96,15 +96,15 @@ export default function SahiDawaHome() {
 
     return (
         <div className="relative min-h-screen bg-(--color-surface-page) font-sans text-(--color-text-primary) transition-colors duration-300">
-            {/* ── Background Mesh ── */}
-            <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-                <div className="animate-blob absolute -top-32 -left-32 h-[600px] w-[600px] rounded-full bg-purple-500/20 opacity-70 mix-blend-multiply blur-[120px] filter dark:opacity-30 dark:mix-blend-screen"></div>
-                <div className="animate-blob animation-delay-2000 absolute -top-32 -right-32 h-[600px] w-[600px] rounded-full bg-emerald-500/20 opacity-70 mix-blend-multiply blur-[120px] filter dark:opacity-30 dark:mix-blend-screen"></div>
-                <div className="animate-blob animation-delay-4000 absolute -bottom-64 left-1/4 h-[800px] w-[800px] rounded-full bg-blue-500/20 opacity-70 mix-blend-multiply blur-[120px] filter dark:opacity-30 dark:mix-blend-screen"></div>
+            {/* ── Background Mesh (Static & High Performance) ── */}
+            <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden select-none">
+                <div className="absolute -top-40 -left-40 h-[600px] w-[600px] rounded-full bg-purple-500/10 blur-[130px] dark:bg-purple-900/10"></div>
+                <div className="absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-emerald-500/10 blur-[130px] dark:bg-emerald-900/10"></div>
+                <div className="absolute bottom-10 left-1/4 h-[600px] w-[600px] rounded-full bg-blue-500/10 blur-[130px] dark:bg-blue-900/10"></div>
             </div>
 
             {/* ── Top Navigation ── */}
-            <header className="sticky top-0 z-50 w-full border-b border-white/30 bg-white/60 shadow-sm shadow-black/5 backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/60">
+            <header className="sticky top-0 z-50 w-full border-b border-white/30 bg-white/60 shadow-sm shadow-black/5 backdrop-blur-md dark:border-white/10 dark:bg-slate-900/60">
                 <div className="container mx-auto grid h-16 grid-cols-3 items-center px-4 md:px-6">
                     {/* Left — Logo */}
                     <div className="flex items-center gap-2">
@@ -174,86 +174,66 @@ export default function SahiDawaHome() {
             </header>
             {/* ── Main ── */}
             <main className="pb-24 md:pb-12">
-                {/* ── Hero ── */}
-                <section className="relative overflow-hidden border-b border-emerald-50 bg-linear-to-b from-white via-white to-emerald-50/70 py-20 md:py-28 dark:border-transparent dark:bg-[#0b1623] dark:bg-none">
-                    {/* Dark mode: subtle glow */}
-                    <div className="pointer-events-none absolute inset-0 hidden items-start justify-center pt-16 md:pt-20 dark:flex">
-                        <div className="h-[420px] w-[700px] rounded-full bg-emerald-500/10 blur-[90px]" />
+                {/* ── Sleek Integrated Console Header ── */}
+                <section className="relative z-10 mx-auto max-w-4xl space-y-6 px-4 pt-10 pb-6 text-center">
+                    {/* Badge */}
+                    <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 text-[10px] font-extrabold tracking-widest text-emerald-600 uppercase dark:border-emerald-400/20 dark:text-emerald-400">
+                        <span className="relative flex h-1.5 w-1.5">
+                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                        </span>
+                        GSSoC 2026 Open Source Project
                     </div>
 
-                    <div className="relative z-10 container mx-auto max-w-4xl space-y-8 px-4 text-center">
-                        {/* Badge */}
-                        <div className="animate-in fade-in slide-in-from-bottom-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-50 px-4 py-2 text-xs font-bold tracking-widest text-emerald-600 uppercase duration-700 dark:bg-emerald-500/10 dark:text-emerald-400">
-                            <span className="relative flex h-2 w-2">
-                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
-                            </span>
-                            GSSoC 2026 Open Source Project
-                        </div>
+                    {/* Split-color title */}
+                    <h1 className="text-4xl leading-tight font-black tracking-tight text-slate-900 sm:text-5xl md:text-6xl dark:text-white">
+                        {tHome("heroTitle.prefix")}
+                        <span className="ml-1 block bg-linear-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent sm:inline dark:from-emerald-400 dark:to-teal-400">
+                            {tHome("heroTitle.highlight")}
+                        </span>
+                    </h1>
 
-                        {/* Split-color title */}
-                        <h1 className="text-5xl leading-[1.05] font-black tracking-tighter md:text-7xl">
-                            <span className="text-slate-900 dark:text-white">
-                                {tHome("heroTitle.prefix")}
-                            </span>
-                            <span className="text-emerald-500 dark:text-emerald-400">
-                                {tHome("heroTitle.highlight")}
-                            </span>
-                        </h1>
+                    {/* Subtitle */}
+                    <p className="mx-auto max-w-2xl text-sm leading-relaxed font-semibold text-slate-500 md:text-base dark:text-slate-400">
+                        {tHome("subtitle")}
+                    </p>
 
-                        {/* Subtitle */}
-                        <p className="mx-auto max-w-2xl text-base leading-relaxed font-medium text-slate-500 md:text-lg dark:text-slate-400">
-                            {tHome("subtitle")}
-                        </p>
-
-                        {/* Search Bar — no dark prop so it adapts to theme */}
-                        <div className="mx-auto w-full max-w-2xl">
-                            <SearchBar />
-                        </div>
-
-                        {/* Get Started button — outlined */}
-                        <div className="flex items-center justify-center">
-                            <button
-                                onClick={() => handleNavigation("login")}
-                                className="group flex items-center gap-2.5 rounded-full border border-emerald-500/60 bg-transparent px-8 py-3.5 text-base font-bold text-emerald-600 transition-all duration-300 hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-700 active:scale-95 dark:text-emerald-400 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-300"
-                            >
-                                <User size={20} />
-                                {tHome("get_started")}
-                            </button>
-                        </div>
+                    {/* Search Bar */}
+                    <div className="mx-auto w-full max-w-2xl pt-2">
+                        <SearchBar />
                     </div>
                 </section>
 
                 <div className="container mx-auto max-w-6xl px-4">
                     {/* ── Primary Action: Scan Medicine ── */}
-                    <section className="mt-8 mb-16">
+                    <section className="mt-4 mb-10">
                         <button
                             onClick={() => handleNavigation("scan")}
-                            className="group relative flex w-full flex-col justify-center overflow-hidden rounded-3xl border border-emerald-400/50 bg-emerald-600/80 p-8 text-left text-white shadow-2xl shadow-emerald-600/20 backdrop-blur-xl transition-all duration-300 hover:scale-[1.01] hover:shadow-emerald-600/40 active:scale-[0.99] md:p-12"
+                            className="group relative flex w-full transform-gpu cursor-pointer flex-col justify-center overflow-hidden rounded-3xl border border-emerald-400/30 p-8 text-left text-white shadow-xl shadow-emerald-500/10 transition-all duration-300 select-none hover:scale-[1.01] hover:shadow-emerald-500/20 active:scale-[0.99] md:p-10"
                             aria-label="Scan medicine"
                         >
-                            <div className="absolute inset-0 z-0 bg-linear-to-tr from-emerald-700 to-emerald-500"></div>
-                            <div className="absolute -top-10 -right-10 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
+                            <div className="absolute inset-0 z-0 bg-linear-to-tr from-emerald-700 via-emerald-600 to-emerald-500"></div>
+                            <div className="absolute -top-10 -right-10 h-64 w-64 rounded-full bg-white/10 blur-2xl"></div>
                             <div className="relative z-10 flex flex-col justify-between gap-6 md:flex-row md:items-center">
                                 <div className="flex items-center gap-6 md:gap-8">
-                                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-white/20 shadow-inner backdrop-blur-md transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 md:h-24 md:w-24">
+                                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-white/15 shadow-sm transition-all duration-300 group-hover:scale-105 group-hover:rotate-2 md:h-24 md:w-24">
                                         <Camera
                                             className="h-10 w-10 text-white drop-shadow-md md:h-12 md:w-12"
                                             strokeWidth={2}
                                         />
                                     </div>
                                     <div>
-                                        <span className="block text-3xl font-bold tracking-wide drop-shadow-sm md:text-5xl">
+                                        <span className="block text-3xl font-bold tracking-wide drop-shadow-sm md:text-4xl">
                                             {tHome("scan_button")}
                                         </span>
-                                        <span className="mt-2 block text-base font-medium text-emerald-100 opacity-90 md:text-xl">
+                                        <span className="mt-2 block text-sm font-medium text-emerald-100 opacity-90 md:text-lg">
                                             {tHome("scan_subtitle")}
                                         </span>
                                     </div>
                                 </div>
                                 <ChevronRight
-                                    size={40}
-                                    className="hidden shrink-0 text-emerald-200 opacity-50 transition-all group-hover:translate-x-3 group-hover:opacity-100 md:block"
+                                    size={36}
+                                    className="hidden shrink-0 text-emerald-100 opacity-70 transition-all group-hover:translate-x-2 group-hover:opacity-100 md:block"
                                 />
                             </div>
                         </button>
@@ -268,20 +248,42 @@ export default function SahiDawaHome() {
                             {/* Upload Photo */}
                             <button
                                 onClick={() => handleNavigation("scan")}
-                                className="group flex h-full min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-white/40 bg-white/40 p-6 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-2xl transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:border-white/60 hover:shadow-xl active:scale-[0.99] dark:border-white/10 dark:bg-slate-900/40 dark:hover:border-white/20"
+                                className="group relative flex h-full min-h-[180px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/50 bg-white/75 p-6 text-left shadow-sm backdrop-blur-md transition-all duration-300 select-none hover:-translate-y-1 hover:scale-[1.01] hover:border-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/5 active:scale-[0.99] dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-emerald-400/30 dark:hover:shadow-emerald-400/5"
                                 aria-label="Upload photo"
                             >
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 ring-1 ring-white/60 transition-colors duration-300 ring-inset group-hover:bg-emerald-500 group-hover:text-white dark:bg-emerald-950/30 dark:text-emerald-400 dark:ring-white/10">
-                                        <Camera size={28} strokeWidth={2.5} />
+                                {/* Background Decorative Mesh & Glow */}
+                                <div className="bg-radial-gradient absolute inset-0 -z-10 from-emerald-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-emerald-500/10"></div>
+
+                                {/* Corner Crop Marks SVG Overlay */}
+                                <svg
+                                    className="absolute right-4 bottom-4 h-16 w-16 text-slate-300/30 transition-all duration-500 group-hover:scale-110 group-hover:text-emerald-400/30 dark:text-slate-700/20 dark:group-hover:text-emerald-500/20"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={1}
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"
+                                    />
+                                </svg>
+
+                                <div className="relative z-10 flex items-start justify-between gap-4">
+                                    <div className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white dark:bg-emerald-950/40 dark:text-emerald-400">
+                                        <Camera
+                                            size={24}
+                                            strokeWidth={2}
+                                            className="transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
+                                        />
                                     </div>
-                                    <ChevronRight className="mt-1 h-5 w-5 text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-emerald-400" />
+                                    <ChevronRight className="mt-1 h-4 w-4 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-emerald-500 dark:group-hover:text-emerald-400" />
                                 </div>
-                                <div className="pt-4">
-                                    <h3 className="text-lg font-bold tracking-tight text-(--color-text-primary)">
+                                <div className="relative z-10 pt-4">
+                                    <h3 className="text-base font-black tracking-tight text-slate-900 dark:text-white">
                                         {tHome("upload_photo")}
                                     </h3>
-                                    <p className="mt-1 text-sm leading-snug font-medium text-(--color-text-secondary)">
+                                    <p className="mt-1 text-xs leading-snug font-semibold text-slate-500 dark:text-slate-400">
                                         {tHome("upload_subtitle")}
                                     </p>
                                 </div>
@@ -290,20 +292,35 @@ export default function SahiDawaHome() {
                             {/* Voice Triage */}
                             <button
                                 onClick={() => handleNavigation("voice")}
-                                className="group flex h-full min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-white/40 bg-white/40 p-6 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-2xl transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:border-white/60 hover:shadow-xl active:scale-[0.99] dark:border-white/10 dark:bg-slate-900/40 dark:hover:border-white/20"
+                                className="group relative flex h-full min-h-[180px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/50 bg-white/75 p-6 text-left shadow-sm backdrop-blur-md transition-all duration-300 select-none hover:-translate-y-1 hover:scale-[1.01] hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/5 active:scale-[0.99] dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-blue-400/30 dark:hover:shadow-blue-400/5"
                                 aria-label="Voice triage"
                             >
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 ring-1 ring-white/60 transition-colors duration-300 ring-inset group-hover:bg-blue-500 group-hover:text-white dark:bg-blue-950/30 dark:text-blue-400 dark:ring-white/10">
-                                        <Mic size={28} strokeWidth={2.5} />
-                                    </div>
-                                    <ChevronRight className="mt-1 h-5 w-5 text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-blue-400" />
+                                {/* Background Decorative Mesh & Glow */}
+                                <div className="bg-radial-gradient absolute inset-0 -z-10 from-blue-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-blue-500/10"></div>
+
+                                {/* Micro Waveform Visual Overlay */}
+                                <div className="absolute right-6 bottom-6 flex h-8 items-end gap-1">
+                                    <div className="h-3 w-1 animate-pulse rounded-full bg-slate-300/30 transition-all duration-300 group-hover:h-7 group-hover:bg-blue-400/30 dark:bg-slate-700/20 dark:group-hover:bg-blue-500/20"></div>
+                                    <div className="h-4 w-1 animate-pulse rounded-full bg-slate-300/30 transition-all duration-300 [animation-delay:0.2s] group-hover:h-5 group-hover:bg-blue-400/30 dark:bg-slate-700/20 dark:group-hover:bg-blue-500/20"></div>
+                                    <div className="h-2 w-1 animate-pulse rounded-full bg-slate-300/30 transition-all duration-300 [animation-delay:0.4s] group-hover:h-8 group-hover:bg-blue-400/30 dark:bg-slate-700/20 dark:group-hover:bg-blue-500/20"></div>
+                                    <div className="h-5 w-1 animate-pulse rounded-full bg-slate-300/30 transition-all duration-300 [animation-delay:0.1s] group-hover:h-4 group-hover:bg-blue-400/30 dark:bg-slate-700/20 dark:group-hover:bg-blue-500/20"></div>
                                 </div>
-                                <div className="pt-4">
-                                    <h3 className="text-lg font-bold tracking-tight text-(--color-text-primary)">
+
+                                <div className="relative z-10 flex items-start justify-between gap-4">
+                                    <div className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white dark:bg-blue-950/40 dark:text-blue-400">
+                                        <Mic
+                                            size={24}
+                                            strokeWidth={2}
+                                            className="transition-transform duration-300 group-hover:scale-115"
+                                        />
+                                    </div>
+                                    <ChevronRight className="mt-1 h-4 w-4 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-blue-500 dark:group-hover:text-blue-400" />
+                                </div>
+                                <div className="relative z-10 pt-4">
+                                    <h3 className="text-base font-black tracking-tight text-slate-900 dark:text-white">
                                         {tHome("voice_triage")}
                                     </h3>
-                                    <p className="mt-1 text-sm leading-snug font-medium text-(--color-text-secondary)">
+                                    <p className="mt-1 text-xs leading-snug font-semibold text-slate-500 dark:text-slate-400">
                                         {tHome("voice_subtitle")}
                                     </p>
                                 </div>
@@ -312,20 +329,40 @@ export default function SahiDawaHome() {
                             {/* Pharmacy Map */}
                             <button
                                 onClick={() => handleNavigation("map")}
-                                className="group flex h-full min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-white/40 bg-white/40 p-6 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-2xl transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:border-white/60 hover:shadow-xl active:scale-[0.99] dark:border-white/10 dark:bg-slate-900/40 dark:hover:border-white/20"
+                                className="group relative flex h-full min-h-[180px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/50 bg-white/75 p-6 text-left shadow-sm backdrop-blur-md transition-all duration-300 select-none hover:-translate-y-1 hover:scale-[1.01] hover:border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/5 active:scale-[0.99] dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-amber-400/30 dark:hover:shadow-amber-400/5"
                                 aria-label="Pharmacy map"
                             >
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 ring-1 ring-white/60 transition-colors duration-300 ring-inset group-hover:bg-amber-500 group-hover:text-white dark:bg-amber-950/30 dark:text-amber-400 dark:ring-white/10">
-                                        <MapPin size={28} strokeWidth={2.5} />
+                                {/* Background Decorative Mesh & Glow */}
+                                <div className="bg-radial-gradient absolute inset-0 -z-10 from-amber-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-amber-500/10"></div>
+
+                                {/* Compass / Ripple Rings Visual Overlay */}
+                                <svg
+                                    className="absolute right-1 bottom-1 h-18 w-18 text-slate-300/20 transition-all duration-500 group-hover:scale-110 group-hover:rotate-12 group-hover:text-amber-400/20 dark:text-slate-700/10 dark:group-hover:text-amber-500/15"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={1}
+                                >
+                                    <circle cx="12" cy="12" r="9" />
+                                    <circle cx="12" cy="12" r="6" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+
+                                <div className="relative z-10 flex items-start justify-between gap-4">
+                                    <div className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white dark:bg-amber-950/40 dark:text-amber-400">
+                                        <MapPin
+                                            size={24}
+                                            strokeWidth={2}
+                                            className="group-hover:translate-y--0.5 transition-transform duration-300"
+                                        />
                                     </div>
-                                    <ChevronRight className="mt-1 h-5 w-5 text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-amber-400" />
+                                    <ChevronRight className="mt-1 h-4 w-4 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-amber-500 dark:group-hover:text-amber-400" />
                                 </div>
-                                <div className="pt-4">
-                                    <h3 className="text-lg font-bold tracking-tight text-(--color-text-primary)">
+                                <div className="relative z-10 pt-4">
+                                    <h3 className="text-base font-black tracking-tight text-slate-900 dark:text-white">
                                         {tHome("pharmacy_map")}
                                     </h3>
-                                    <p className="mt-1 text-sm leading-snug font-medium text-(--color-text-secondary)">
+                                    <p className="mt-1 text-xs leading-snug font-semibold text-slate-500 dark:text-slate-400">
                                         {tHome("pharmacy_subtitle")}
                                     </p>
                                 </div>
@@ -334,20 +371,42 @@ export default function SahiDawaHome() {
                             {/* Report Fake Medicine */}
                             <button
                                 onClick={() => handleNavigation("report")}
-                                className="group flex h-full min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-white/40 bg-white/40 p-6 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-2xl transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:border-white/60 hover:shadow-xl active:scale-[0.99] dark:border-white/10 dark:bg-slate-900/40 dark:hover:border-white/20"
+                                className="group relative flex h-full min-h-[180px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/50 bg-white/75 p-6 text-left shadow-sm backdrop-blur-md transition-all duration-300 select-none hover:-translate-y-1 hover:scale-[1.01] hover:border-red-500/30 hover:shadow-lg hover:shadow-red-500/5 active:scale-[0.99] dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-red-400/30 dark:hover:shadow-red-400/5"
                                 aria-label="Report fake medicine"
                             >
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-600 ring-1 ring-white/60 transition-colors duration-300 ring-inset group-hover:bg-red-500 group-hover:text-white dark:bg-red-950/30 dark:text-red-400 dark:ring-white/10">
-                                        <AlertTriangle size={28} strokeWidth={2.5} />
+                                {/* Background Decorative Mesh & Glow */}
+                                <div className="bg-radial-gradient absolute inset-0 -z-10 from-red-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-red-500/10"></div>
+
+                                {/* Security Shield SVG Overlay */}
+                                <svg
+                                    className="absolute right-3 bottom-3 h-16 w-16 text-slate-300/30 transition-all duration-500 group-hover:scale-105 group-hover:text-red-400/30 dark:text-slate-700/20 dark:group-hover:text-red-500/20"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={1}
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                                    />
+                                </svg>
+
+                                <div className="relative z-10 flex items-start justify-between gap-4">
+                                    <div className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-600 transition-all duration-300 group-hover:bg-red-500 group-hover:text-white dark:bg-red-950/40 dark:text-red-400">
+                                        <AlertTriangle
+                                            size={24}
+                                            strokeWidth={2}
+                                            className="transition-transform duration-300 group-hover:rotate-6"
+                                        />
                                     </div>
-                                    <ChevronRight className="mt-1 h-5 w-5 text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-red-400" />
+                                    <ChevronRight className="mt-1 h-4 w-4 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-red-500 dark:group-hover:text-red-400" />
                                 </div>
-                                <div className="pt-4">
-                                    <h3 className="text-lg font-bold tracking-tight text-(--color-text-primary)">
+                                <div className="relative z-10 pt-4">
+                                    <h3 className="text-base font-black tracking-tight text-slate-900 dark:text-white">
                                         {tHome("report_fake")}
                                     </h3>
-                                    <p className="mt-1 text-sm leading-snug font-medium text-(--color-text-secondary)">
+                                    <p className="mt-1 text-xs leading-snug font-semibold text-slate-500 dark:text-slate-400">
                                         {tHome("report_fake_subtitle")}
                                     </p>
                                 </div>
@@ -357,7 +416,7 @@ export default function SahiDawaHome() {
 
                     {/* ── Health Assistant CTA Banner ── */}
                     <div
-                        className="group relative mt-8 overflow-hidden rounded-2xl transition-all duration-300 hover:scale-[1.01] hover:shadow-2xl hover:shadow-purple-500/20"
+                        className="group relative mt-4 transform-gpu overflow-hidden rounded-3xl transition-all duration-300 select-none hover:scale-[1.01] hover:shadow-xl hover:shadow-purple-500/10"
                         style={{
                             background:
                                 "linear-gradient(135deg, #6d5ce7 0%, #7c3aed 50%, #5b21b6 100%)",
@@ -406,8 +465,8 @@ export default function SahiDawaHome() {
                     {/* Global Search moved to Hero */}
 
                     {/* ── Live Alerts Panel (full-width) ── */}
-                    <div className="mt-8 mb-20">
-                        <div className="flex flex-col overflow-hidden rounded-3xl border border-white/40 bg-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/40">
+                    <div className="mt-10 mb-16">
+                        <div className="flex flex-col overflow-hidden rounded-3xl border border-slate-200/50 bg-white/70 shadow-sm backdrop-blur-md dark:border-slate-800/50 dark:bg-slate-900/50">
                             <div className="flex items-center justify-between border-b border-white/30 bg-white/20 px-6 py-5 dark:border-white/10 dark:bg-slate-800/20">
                                 <div className="flex items-center gap-2">
                                     <Activity size={20} className="text-red-500" />
