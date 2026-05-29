@@ -4,13 +4,13 @@ import { Mail, Lock, ShieldCheck, ArrowRight, Hand } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 export default function LoginPage() {
     const router = useRouter();
-    const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "http://localhost:54321",
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "local-development-key"
     );
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");

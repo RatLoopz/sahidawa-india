@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { WifiOff, Wifi, X } from "lucide-react";
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
+import { useTranslations } from "next-intl";
 
 /**
  * OfflineBanner — Sticky connectivity status banner.
@@ -15,6 +16,7 @@ import { useOfflineStatus } from "@/hooks/useOfflineStatus";
  * - Reappears automatically on subsequent disconnections.
  */
 export function OfflineBanner() {
+    const t = useTranslations("offline");
     const { isOffline, isStatusDirty, isTestMode } = useOfflineStatus();
     const [isDismissed, setIsDismissed] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
@@ -84,13 +86,13 @@ export function OfflineBanner() {
 
                         <div className="min-w-0">
                             <p className="truncate text-sm font-bold text-white drop-shadow-sm">
-                                {isCurrentlyOffline ? "You are offline" : "Back online"}
+                                {isCurrentlyOffline ? t("bannerOffline") : t("bannerOnline")}
                             </p>
                             <p className="truncate text-xs text-white/85">
                                 {isCurrentlyOffline
-                                    ? "Medicine search and AI chat are unavailable" +
+                                    ? t("descriptionOffline") +
                                       (isTestMode ? " · Test mode" : "")
-                                    : "Your connection has been restored — syncing…"}
+                                    : t("descriptionOnline")}
                             </p>
                         </div>
                     </div>
@@ -100,7 +102,7 @@ export function OfflineBanner() {
                         <button
                             id="offline-banner-dismiss"
                             onClick={handleDismiss}
-                            aria-label="Dismiss offline notification"
+                            aria-label={t("dismiss")}
                             className="flex-shrink-0 rounded-md p-1.5 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
                         >
                             <X size={18} />
