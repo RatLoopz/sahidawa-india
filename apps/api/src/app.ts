@@ -38,6 +38,7 @@ import scanRouter from "./routes/scan";
 import alertsRouter from "./routes/alerts";
 import lasaRouter from "./routes/lasa";
 import { supabase } from "./db/client";
+import { createCorsOptions } from "./config/cors";
 
 import { errorHandler } from "./middleware/errorHandler";
 
@@ -54,13 +55,7 @@ app.use(
 );
 
 // Security: restrict CORS to known origins instead of wildcard
-const allowedOrigins = ["http://localhost:3000", "http://localhost:4000", "http://localhost:8000"];
-app.use(
-    cors({
-        origin: allowedOrigins,
-        credentials: true,
-    })
-);
+app.use(cors(createCorsOptions()));
 
 app.use(express.json({ limit: "1mb" }));
 app.use(verifyLimiter);
