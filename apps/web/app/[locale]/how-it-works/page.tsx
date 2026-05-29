@@ -97,7 +97,7 @@ export default function HowItWorksPage() {
             {/* Timeline Section */}
             <section className="px-6 py-10">
                 <div className="mx-auto max-w-6xl">
-                    <div className="flex flex-col gap-6 md:flex-row md:items-stretch md:justify-between">
+                    <div className="flex flex-col gap-6 md:flex-row md:items-stretch md:gap-10">
                         {[
                             "Scan Medicine",
                             "Verify Instantly",
@@ -117,7 +117,7 @@ export default function HowItWorksPage() {
                                 </div>
 
                                 {index !== 4 && (
-                                    <div className="absolute top-1/2 -right-5 z-10 hidden translate-x-1/2 -translate-y-1/2 text-emerald-400 md:block">
+                                    <div className="absolute top-[52%] left-full ml-2 hidden -translate-y-1/2 text-emerald-400 md:block">
                                         <ArrowRight size={24} />
                                     </div>
                                 )}
