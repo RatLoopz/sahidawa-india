@@ -37,6 +37,7 @@ import notificationsRouter from "./routes/notifications";
 import scanRouter from "./routes/scan";
 import alertsRouter from "./routes/alerts";
 import lasaRouter from "./routes/lasa";
+import mlRouter from "./routes/ml";
 import { supabase } from "./db/client";
 import { createCorsOptions } from "./config/cors";
 
@@ -119,6 +120,7 @@ app.use("/api/notifications", notificationsRouter);
 app.use("/api/v1/scan", scanRouter);
 app.use("/api/v1/lasa", lasaRouter);
 app.use("/api/v1/alerts", alertsRouter);
+app.use("/api/ml", mlRouter);
 
 // ── Swagger UI (/api/docs) ──────────────────────────────────────────────────
 app.use(
