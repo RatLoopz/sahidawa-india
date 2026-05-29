@@ -142,10 +142,10 @@
             "no_speech_message": "शांत जगह पर पुनः प्रयास करें या माइक्रोफ़ोन के पास से बोलें।",
             "generic_title": "कुछ गलत हुआ",
             "generic_message": "इस बार आपका वॉयस इनपुट संसाधित नहीं हो सका। कृपया पुनः प्रयास करें।",
-            "service_unavailable_title": "Voice service unavailable",
-            "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
-            "timeout_title": "Voice request timed out",
-            "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
+            "service_unavailable_title": "वॉयस सेवा अनुपलब्ध",
+            "service_unavailable_message": "हमारे वॉयस सर्वर वर्तमान में भारी लोड के अधीन हैं। कृपया पुनः प्रयास करें या इसके बजाय अपने लक्षण टाइप करें।",
+            "timeout_title": "वॉयस अनुरोध का समय समाप्त हो गया",
+            "timeout_message": "वॉयस सेवा में अपेक्षा से अधिक समय लग रहा है। कृपया पुनः प्रयास करें या टेक्स्ट इनपुट पर स्विच करें।",
             "api_title": "SahiDawa AI उपलब्ध नहीं है",
             "api_message": "अभी चिकित्सा मार्गदर्शन प्राप्त नहीं हो सका। थोड़ी देर बाद पुनः प्रयास करें।"
         }
