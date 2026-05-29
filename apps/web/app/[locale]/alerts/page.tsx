@@ -37,7 +37,7 @@ export default async function FullAlertsLogPage() {
         .from("medicines")
         .select("*")
         .or(
-            "is_counterfeit_alert.eq.true,cdsco_approval_status.eq.recalled,cdsco_approval_status.eq.banned, brand_name.eq.SYSTEM_UPDATE"
+            "is_counterfeit_alert.eq.true,cdsco_approval_status.eq.recalled,cdsco_approval_status.eq.banned,brand_name.eq.SYSTEM_UPDATE"
         )
         .order("created_at", { ascending: false });
 
