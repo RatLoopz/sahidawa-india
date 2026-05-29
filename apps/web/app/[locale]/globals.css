@@ -293,5 +293,33 @@
         outline: 2px solid var(--color-brand-secondary);
         outline-offset: 2px;
     }
+    @keyframes marker-pulse {
+        0% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(16,185,129,0.5);
+        }
+        70% {
+            transform: scale(1.1);
+            box-shadow: 0 0 0 14px rgba(16,185,129,0);
+        }
+        100% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(16,185,129,0);
+        }
+    }
 }
 
+.marker-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 9999px;
+    background: #10b981;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    border: 2px solid white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.18);
+}

@@ -62,6 +62,8 @@ interface PharmacyMapProps {
     userLocation?: { lat: number; lng: number } | null;
     onMapMoveEnd?: (bounds: MapBounds) => void;
     onMapReady?: (bounds: MapBounds) => void;
+    hoveredPharmacyId: number | null;
+    onHoverPharmacy: (id: number | null) => void;
     autoFitBounds?: boolean;
     initialCenter?: { lat: number; lng: number };
     initialZoom?: number;
@@ -75,6 +77,8 @@ export default function PharmacyMap({
     userLocation,
     onMapMoveEnd,
     onMapReady,
+    hoveredPharmacyId,
+    onHoverPharmacy,
     autoFitBounds = true,
     initialCenter,
     initialZoom,
@@ -261,9 +265,11 @@ export default function PharmacyMap({
 
         const bounds = L.latLngBounds([]);
 
-        pharmacies.forEach((pharmacy) => {
+        pharmacies.forEach((pharmacy, index) => {
             bounds.extend([pharmacy.coordinates.lat, pharmacy.coordinates.lng]);
 
+            const isSelected = pharmacy.id === selectedPharmacyId;
+            const isHovered = pharmacy.id === hoveredPharmacyId;
             const isVerified = pharmacy.isVerified === true;
             const isGovt = pharmacy.type === "govt";
             const markerColor = isVerified
@@ -312,23 +318,41 @@ export default function PharmacyMap({
                 customMarker = L.divIcon({
                     className: "sahidawa-marker",
                     html: `
-          <div class="sahidawa-marker-shell" style="
-            position: relative;
-            width: 36px;
-            height: 36px;
-          ">
+            <div class="sahidawa-marker-shell" style="
+                position: relative;
+                width: 36px;
+                height: 36px;
+            ">
+
+            <div style="
+                position: absolute;
+                inset: 0;
+                border-radius: 50%;
+                background: ${markerColor};
+                opacity: 0.25;
+                animation: isSelected ? "none" : "marker-pulse 2s infinite";
+            "></div>
+
             <div style="
               width: 36px;
               height: 36px;
               background: ${markerColor};
               border-radius: 50% 50% 50% 4px;
-              transform: rotate(-45deg);
+              transform: rotate(-45deg) scale(${isSelected ? 1.15 : 1});
               border: 3px solid ${markerBorder};
-              box-shadow: 0 4px 12px ${markerShadowColor}, 0 2px 4px rgba(0,0,0,0.1);
+              box-shadow: ${
+                  isSelected
+                      ? "0 0 0 6px rgba(16,185,129,0.25), 0 6px 18px rgba(0,0,0,0.15)"
+                      : `0 4px 12px ${markerShadowColor}, 0 2px 4px rgba(0,0,0,0.1)`
+              };
               display: flex;
               align-items: center;
               justify-content: center;
+              position: relative;
             ">
+            <span style="font-size:10px;font-weight:700;color:white;">
+                ${index + 1}
+            </span>
               <svg style="transform: rotate(45deg); width: 16px; height: 16px; color: white;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 ${
                     isGovt
@@ -464,10 +488,12 @@ export default function PharmacyMap({
                 marker.on("mouseover", () => {
                     marker.openPopup();
                     marker.getElement()?.classList.add("sahidawa-marker-hover");
+                    onHoverPharmacy(pharmacy.id);
                 });
                 marker.on("mouseout", () => {
                     marker.closePopup();
                     marker.getElement()?.classList.remove("sahidawa-marker-hover");
+                    onHoverPharmacy(null);
                 });
             }
         });
@@ -552,7 +578,7 @@ export default function PharmacyMap({
     // Error state
     if (mapError) {
         return (
-            <div className="flex h-full min-h-[400px] w-full items-center justify-center rounded-2xl bg-slate-100">
+            <div className="flex h-full min-h-100 w-full items-center justify-center rounded-2xl bg-slate-100">
                 <div className="space-y-3 p-6 text-center">
                     <AlertCircle className="mx-auto text-slate-400" size={48} />
                     <p className="text-lg font-bold text-slate-600">Map could not be loaded</p>
@@ -565,7 +591,7 @@ export default function PharmacyMap({
     }
 
     return (
-        <div className="relative h-full min-h-[400px] w-full">
+        <div className="relative h-full min-h-100 w-full">
             {/* Loading Skeleton */}
             {!isMapReady && (
                 <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-slate-100">
@@ -578,7 +604,7 @@ export default function PharmacyMap({
                 </div>
             )}
             {/* Map Container */}
-            <div ref={mapContainer} className="z-0 h-full min-h-[400px] w-full" />
+            <div ref={mapContainer} className="z-0 h-full min-h-100 w-full" />
         </div>
     );
 }

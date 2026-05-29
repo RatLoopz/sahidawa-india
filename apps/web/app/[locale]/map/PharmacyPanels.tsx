@@ -1,5 +1,5 @@
 "use client";
-
+import { useEffect, useRef, useState } from "react";
 import {
     AlertCircle,
     Heart,
@@ -28,11 +28,13 @@ export interface PharmacyPanelsProps {
     pharmacies: Pharmacy[];
     isLoading: boolean;
     selectedPharmacyId: number | null;
+    hoveredPharmacyId: number | null;
     heatmapMode: HeatmapMode;
     heatmapOptions: PharmacyPanelHeatmapOption[];
     riskSummaryText: string;
     onSelectPharmacy: (pharmacyId: number) => void;
     onHeatmapModeChange: (mode: HeatmapMode) => void;
+    onHoverPharmacy: (pharmacyId: number | null) => void;
     className?: string;
 }
 
@@ -40,17 +42,54 @@ function PharmacyPanelRow({
     pharmacy,
     isSelected,
     onSelect,
+    index,
+    isHovered,
+    onHover,
+    onLeave,
 }: {
     pharmacy: Pharmacy;
     isSelected: boolean;
     onSelect: () => void;
+    onHover: (id: number | null) => void;
+    onLeave: () => void;
+    isHovered: boolean;
+    index: number;
 }) {
+    const [flash, setFlash] = useState(false);
+    useEffect(() => {
+        if (isSelected) {
+            setFlash(true);
+
+            const timer = setTimeout(() => {
+                setFlash(false);
+            }, 400);
+
+            return () => clearTimeout(timer);
+        }
+    }, [isSelected]);
+
+    const rowRef = useRef<HTMLElement | null>(null);
+
+    useEffect(() => {
+        if (isSelected && rowRef.current) {
+            rowRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+            });
+        }
+    }, [isSelected]);
+
     return (
         <article
-            className={`rounded-xl border p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/30 hover:shadow-md active:scale-[0.99] ${
+            ref={rowRef}
+            onMouseEnter={() => onHover(pharmacy.id)}
+            onMouseLeave={onLeave}
+            className={`rounded-xl border p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/30 hover:shadow-md active:scale-[0.99] ${flash ? "scale-[1.02] ring-2 ring-emerald-400/60" : ""} ${
                 isSelected
                     ? "border-emerald-300 bg-emerald-50/60 shadow-md shadow-emerald-100/30 dark:border-emerald-900 dark:bg-emerald-950/20 dark:shadow-emerald-950/10"
-                    : "border-(--color-border-muted) bg-(--color-surface-page) hover:border-(--color-text-muted) hover:shadow-sm"
+                    : isHovered
+                      ? "border-emerald-200 bg-emerald-50/30 shadow-sm dark:border-emerald-800 dark:bg-emerald-950/10"
+                      : "border-(--color-border-muted) bg-(--color-surface-page) hover:border-(--color-text-muted) hover:shadow-sm"
             }`}
         >
             <button
@@ -81,8 +120,9 @@ function PharmacyPanelRow({
 
                     <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
-                            <h3 className="truncate text-sm font-semibold text-(--color-text-primary)">
-                                {pharmacy.name}
+                            <h3 className="text-sm font-semibold text-(--color-text-primary)">
+                                <span className="mr-1 text-(--color-text-muted)">#{index + 1}</span>
+                                <span className="truncate">{pharmacy.name}</span>
                             </h3>
                             {pharmacy.isVerified && (
                                 <span className="dark:text-emerald-450 inline-flex shrink-0 items-center gap-0.5 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700 dark:bg-emerald-950/30">
@@ -160,10 +200,12 @@ export default function PharmacyPanels({
     pharmacies,
     isLoading,
     selectedPharmacyId,
+    hoveredPharmacyId,
     heatmapMode,
     heatmapOptions,
     riskSummaryText,
     onSelectPharmacy,
+    onHoverPharmacy,
     onHeatmapModeChange,
     className,
 }: PharmacyPanelsProps) {
@@ -260,14 +302,18 @@ export default function PharmacyPanels({
                         icon={<MapPin size={26} className="text-slate-400" />}
                         title="No pharmacies found"
                         description="Try panning the map and pressing “Search this area”"
-                        className="border-none !bg-transparent p-6 shadow-none"
+                        className="border-none bg-transparent! p-6 shadow-none"
                     />
                 ) : (
-                    pharmacies.map((pharmacy) => (
+                    pharmacies.map((pharmacy, index) => (
                         <PharmacyPanelRow
                             key={pharmacy.id}
                             pharmacy={pharmacy}
+                            index={index}
                             isSelected={selectedPharmacyId === pharmacy.id}
+                            isHovered={hoveredPharmacyId === pharmacy.id}
+                            onHover={() => onHoverPharmacy(pharmacy.id)}
+                            onLeave={() => onHoverPharmacy(null)}
                             onSelect={() => onSelectPharmacy(pharmacy.id)}
                         />
                     ))
