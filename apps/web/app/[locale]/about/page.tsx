@@ -16,10 +16,15 @@ import {
     BadgeCheck,
 } from "lucide-react";
 import { Link } from "@/i18n/routing";
+import { PageHeader } from "../components/PageHeader";
 
 export default function AboutPage() {
     return (
         <div className="min-h-screen bg-(--color-surface-muted) font-sans text-(--color-text-primary)">
+            <PageHeader
+                backHref="/"
+                variant="light"
+            />
             {/* Hero */}
             <section className="border-b border-(--color-border-muted) bg-(--color-surface-page)">
                 <div className="container mx-auto max-w-6xl space-y-6 px-4 py-16 text-center md:py-24">

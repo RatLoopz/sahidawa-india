@@ -31,6 +31,11 @@ export default function Chatbot() {
         scrollToBottom();
     }, [messages]);
 
+    // Securely check route-based visibility after hook declarations to satisfy React Rules of Hooks
+    if (pathname && pathname.includes("/health")) {
+        return null;
+    }
+
     const handleSend = async () => {
         if (!input.trim()) return;
 
