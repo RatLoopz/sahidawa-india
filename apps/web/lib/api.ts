@@ -1,6 +1,8 @@
 import { fetchWithRetry } from "./apiWithRetry";
 
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const DEFAULT_API_ORIGIN = "http://localhost:4000";
+const configuredApiUrl = (process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_API_ORIGIN).trim();
+export const API_BASE = configuredApiUrl.replace(/\/+$/, "");
 
 export type ReportPayload = {
     medicineName: string;
@@ -56,7 +58,7 @@ export async function submitReport(
     accessToken?: string,
     signal?: AbortSignal
 ): Promise<{ report: SubmittedReport }> {
-    const res = await fetchWithRetry(`${API_BASE}/reports`, {
+    const res = await fetchWithRetry(`${API_BASE}/api/reports`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

@@ -14,7 +14,7 @@ jest.mock("next-intl", () => ({
 }));
 
 describe("i18n locale availability", () => {
-    it.each(["kn", "pa"])("enables %s in the routing config", (locale) => {
+    it.each(["kn", "te", "pa"])("enables %s in the routing config", (locale) => {
         expect(routing.locales).toContain(locale);
     });
 
@@ -27,6 +27,7 @@ describe("i18n locale availability", () => {
 
     it.each([
         ["kn", "ಕನ್ನಡ"],
+        ["te", "తెలుగు"],
         ["pa", "ਪੰਜਾਬੀ"],
     ])("shows the native language label for %s", (locale, nativeLabel) => {
         activeLocale = locale;
