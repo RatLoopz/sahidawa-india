@@ -8,6 +8,7 @@ const nextConfig = {
   // It must NOT be set during local dev as it causes the dev server to exit immediately.
   // Uncomment the line below only when building for production Docker images:
   // output: 'standalone',
+  serverExternalPackages: ['@supabase/ssr', '@supabase/supabase-js'],
 };
 
 export default withNextIntl(nextConfig);
