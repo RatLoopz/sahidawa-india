@@ -4,7 +4,7 @@ function getExpiryStatus(expiryDate?: string): ExpiryStatus {
     if (!expiryDate) return "unknown";
     const [month, year] = expiryDate.split("/").map(Number);
     if (!month || !year) return "unknown";
-    const expiry = new Date(year, month - 1, 1);
+    const expiry = new Date(year, month, 0, 23, 59, 59, 999);
     const today = new Date();
     const soon = new Date();
     soon.setDate(today.getDate() + 30);

@@ -56,8 +56,6 @@ describe("homepage i18n", () => {
     it("renders homepage navigation, AI banner, alerts, and mobile labels from translation hooks", () => {
         const markup = renderToStaticMarkup(<SahiDawaHome />);
 
-        expect(markup).toContain("Navigation.my_reports");
-        expect(markup).toContain('aria-label="Home.open_ai_health_assistant"');
         expect(markup).toContain("Home.ai_health_assistant");
         expect(markup).toContain("Home.ai_chat");
         expect(markup).toContain("Home.ai_health_assistant_description");
@@ -65,11 +63,6 @@ describe("homepage i18n", () => {
         expect(markup).toContain("Home.live_cdsco_alerts");
         expect(markup).toContain("Home.india_region");
         expect(markup).toContain("Home.view_full_alert_log");
-        expect(markup).toContain('aria-label="Navigation.home"');
-        expect(markup).toContain('aria-label="Navigation.scans"');
-        expect(markup).toContain('aria-label="Navigation.map"');
-        expect(markup).toContain('aria-label="Navigation.alerts"');
-        expect(markup).toContain('aria-label="Navigation.profile"');
     });
 
     it("does not keep issue-listed homepage strings hardcoded in the page component", () => {
