@@ -14,8 +14,8 @@
         "report_fake_subtitle": "ಅನುಮಾನಾಸ್ಪದ ಔಷಧವನ್ನು ವರದಿ ಮಾಡಿ",
         "search_placeholder": "ಔಷಧ ಅಥವಾ ಬ್ಯಾಚ್ ಹುಡುಕಿ...",
         "search_button": "ಹುಡುಕಿ",
-        "sign_in": "Sign In",
-        "get_started": "Get Started",
+        "sign_in": "ಪ್ರವೇಶಿಸಿ",
+        "get_started": "ಪ್ರಾರಂಭಿಸಿ",
         "open_ai_health_assistant": "AI ಆರೋಗ್ಯ ಸಹಾಯಕ ತೆರೆಯಿರಿ",
         "ai_health_assistant": "AI ಆರೋಗ್ಯ ಸಹಾಯಕ",
         "ai_chat": "AI ಚಾಟ್",
@@ -163,7 +163,14 @@
         "goHome": "ಮುಖಪುಟಕ್ಕೆ ಹೋಗಿ",
         "footer": "ನಿಮ್ಮ ಸಂಪರ್ಕ ಮರಳಿದಾಗ SahiDawa ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಸಿಂಕ್ ಆಗುತ್ತದೆ.",
         "cachedContent": "ಹಿಂದೆ ಲೋಡ್ ಮಾಡಿದ ವಿಷಯವನ್ನು ನೀವು ಇನ್ನೂ ಪ್ರವೇಶಿಸಬಹುದು",
-        "noCache": "ಈ ಪುಟವನ್ನು ಕ್ಯಾಶ್ ಮಾಡಲಾಗಿಲ್ಲ ಮತ್ತು ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿ ಲಭ್ಯವಿಲ್ಲ"
+        "noCache": "ಈ ಪುಟವನ್ನು ಕ್ಯಾಶ್ ಮಾಡಲಾಗಿಲ್ಲ ಮತ್ತು ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿ ಲಭ್ಯವಿಲ್ಲ",
+        "redirecting": "ನಿಮ್ಮನ್ನು SahiDawa ಗೆ ಮರುನಿರ್ದೇಶಿಸಲಾಗುತ್ತಿದೆ…",
+        "attempt": "(ಪ್ರಯತ್ನ {retryCount})",
+        "checkingConnection": "ಸಂಪರ್ಕವನ್ನು ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ…",
+        "cachedAvailable": "ಹಿಂದೆ ಭೇಟಿ ನೀಡಿದ ಪುಟಗಳು ಇನ್ನೂ ಲಭ್ಯವಿರಬಹುದು",
+        "cachedVerifications": "ಕ್ಯಾಶ್ ಮಾಡಿದ ಪರಿಶೀಲನೆಗಳು",
+        "savedPharmacies": "ಉಳಿಸಿದ ಔಷಧಾಲയಗಳು",
+        "browsedMedicines": "ಬ್ರೌಸ್ ಮಾಡಿದ ಔಷಧಿಗಳು"
     },
     "contact": {
         "badge": "GSSoC 2026 ಮುಕ್ತ ಮೂಲ ಯೋಜನೆ",

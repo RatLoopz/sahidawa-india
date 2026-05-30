@@ -341,8 +341,8 @@ SahiDawa aims to support all 22 Indian scheduled languages. (We are just getting
 | English            | 🚧 In Progress | Core Team   |
 | Hindi (हिन्दी)     | 🔜 Open        | —           |
 | Tamil (தமிழ்)      | 🔜 Open        | —           |
-| Telugu (తెలుగు)    | 🔜 Open        | —           |
-| Kannada (ಕನ್ನಡ)    | 🔜 Open        | —           |
+| Telugu (తెలుగు)    | ✅ Complete    | GSSoC 2026  |
+| Kannada (ಕನ್ನಡ)    | ✅ Complete    | GSSoC 2026  |
 | Malayalam (മലയാളം) | 🔜 Open        | —           |
 | Bengali (বাংলা)    | 🔜 Open        | —           |
 | Gujarati (ગુજરાતી) | 🔜 Open        | —           |
