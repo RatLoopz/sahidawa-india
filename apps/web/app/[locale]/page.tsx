@@ -15,8 +15,8 @@ import {
     ChevronRight,
     Activity,
     MessageCircle,
-    Menu, 
-    X,    
+    Menu,
+    X,
 } from "lucide-react";
 
 import { useRouter, useParams } from "next/navigation";
@@ -101,40 +101,68 @@ export default function SahiDawaHome() {
 
     return (
         <div className="relative min-h-screen bg-(--color-surface-page) font-sans text-(--color-text-primary) transition-colors duration-300">
-{/* ── Mobile Hamburger Menu Overlay ── */}
+            {/* ── Mobile Hamburger Menu Overlay ── */}
             {isMobileMenuOpen && (
-                <div className="fixed inset-0 z-[60] flex flex-col bg-white/95 p-6 backdrop-blur-xl dark:bg-slate-900/95 lg:hidden">
+                <div className="fixed inset-0 z-[60] flex flex-col bg-white/95 p-6 backdrop-blur-xl lg:hidden dark:bg-slate-900/95">
                     <div className="flex items-center justify-between border-b border-slate-200/50 pb-4 dark:border-white/10">
                         <div className="flex items-center gap-2">
-                             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 shadow-sm dark:bg-emerald-950/30 dark:text-emerald-400">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 shadow-sm dark:bg-emerald-950/30 dark:text-emerald-400">
                                 <img src="/favicon.ico" alt="" className="h-7 w-7 object-contain" />
-                             </div>
-                             <span className="text-xl font-extrabold tracking-tight text-(--color-text-primary)">SahiDawa</span>
+                            </div>
+                            <span className="text-xl font-extrabold tracking-tight text-(--color-text-primary)">
+                                SahiDawa
+                            </span>
                         </div>
-                        <button 
-                            onClick={closeMobileMenu} 
+                        <button
+                            onClick={closeMobileMenu}
                             className="rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
                         >
                             <X size={24} />
                         </button>
                     </div>
-                    
+
                     <nav className="mt-8 flex flex-col gap-6 text-lg font-semibold text-(--color-text-primary)">
-                        <Link href="/how-it-works" onClick={closeMobileMenu} className="transition-colors hover:text-emerald-600 dark:hover:text-emerald-400">
+                        <Link
+                            href="/how-it-works"
+                            onClick={closeMobileMenu}
+                            className="transition-colors hover:text-emerald-600 dark:hover:text-emerald-400"
+                        >
                             {tNav("how_it_works")}
                         </Link>
-                        <Link href="/alerts" onClick={closeMobileMenu} className="transition-colors hover:text-emerald-600 dark:hover:text-emerald-400">
+                        <Link
+                            href="/alerts"
+                            onClick={closeMobileMenu}
+                            className="transition-colors hover:text-emerald-600 dark:hover:text-emerald-400"
+                        >
                             {tNav("alerts")}
                         </Link>
-                        <Link href="/map" onClick={closeMobileMenu} className="transition-colors hover:text-emerald-600 dark:hover:text-emerald-400">
+                        <Link
+                            href="/map"
+                            onClick={closeMobileMenu}
+                            className="transition-colors hover:text-emerald-600 dark:hover:text-emerald-400"
+                        >
                             {tNav("pharmacy_map")}
                         </Link>
-                        <Link href="/reports/me" onClick={closeMobileMenu} className="flex items-center gap-2 transition-colors hover:text-emerald-600 dark:hover:text-emerald-400">
+                        <Link
+                            href="/reports/me"
+                            onClick={closeMobileMenu}
+                            className="flex items-center gap-2 transition-colors hover:text-emerald-600 dark:hover:text-emerald-400"
+                        >
                             <History size={18} /> {tNav("my_reports")}
+                        </Link>
+                        <Link
+                            href="/history"
+                            onClick={closeMobileMenu}
+                            className="flex items-center gap-2 transition-colors hover:text-emerald-600 dark:hover:text-emerald-400"
+                        >
+                            <History size={18} /> Scan History
                         </Link>
                         <hr className="border-slate-200/50 dark:border-white/10" />
                         <button
-                            onClick={() => { closeMobileMenu(); handleNavigation("login"); }}
+                            onClick={() => {
+                                closeMobileMenu();
+                                handleNavigation("login");
+                            }}
                             className="flex items-center justify-center gap-2 rounded-full bg-emerald-600 py-3.5 text-white transition-all hover:bg-emerald-700 active:scale-95"
                         >
                             <User size={18} />
@@ -153,7 +181,7 @@ export default function SahiDawaHome() {
 
             {/* ── Top Navigation ── */}
             <header className="sticky top-0 z-50 w-full border-b border-white/30 bg-white/60 shadow-sm shadow-black/5 backdrop-blur-md dark:border-white/10 dark:bg-slate-900/60">
-                <div className="container mx-auto grid h-16 grid-cols-2 lg:grid-cols-3 items-center px-4 md:px-6">
+                <div className="container mx-auto grid h-16 grid-cols-2 items-center px-4 md:px-6 lg:grid-cols-3">
                     {/* Left — Logo */}
                     <div className="flex items-center gap-2">
                         <div
@@ -189,10 +217,10 @@ export default function SahiDawaHome() {
                             {tNav("pharmacy_map")}
                         </Link>
                         <Link
-                            href="/reports/me"
+                            href="/history"
                             className={`${desktopNavLinkClassName} flex items-center gap-1`}
                         >
-                            <History size={14} /> {tNav("my_reports")}
+                            <History size={14} /> Scan History
                         </Link>
                     </nav>
 
@@ -230,7 +258,7 @@ export default function SahiDawaHome() {
                     </div>
                 </div>
             </header>
-            
+
             {/* ── Main ── */}
             <main className="pb-24 md:pb-12">
                 {/* ── Sleek Integrated Console Header ── */}

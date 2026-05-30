@@ -43,6 +43,7 @@ import {
     extractMedicineName,
 } from "@/src/utils/medicineParser";
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
+import { saveScanToHistory } from "@/lib/db/scanHistory";
 
 function formatExpiryForBadge(isoDate: string | null | undefined): string | undefined {
     if (!isoDate) return undefined;
@@ -449,13 +450,20 @@ function ResultActions({ onScanAgain, onShare }: { onScanAgain: () => void; onSh
             >
                 Scan Another
             </button>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
                 <Link
                     href="/"
                     className="flex items-center justify-center gap-2 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) py-3.5 font-semibold text-(--color-text-primary) transition-all hover:bg-(--color-border-muted)"
                 >
                     <Home size={18} />
                     <span>Home</span>
+                </Link>
+                <Link
+                    href="/history"
+                    className="flex items-center justify-center gap-2 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) py-3.5 font-semibold text-(--color-text-primary) transition-all hover:bg-(--color-border-muted)"
+                >
+                    <ScanLine size={18} />
+                    <span>History</span>
                 </Link>
                 <button
                     onClick={onShare}
@@ -532,30 +540,84 @@ export default function ScanPage() {
     const [showLasaConfirmation, setShowLasaConfirmation] = useState(false);
     const [pendingVerifyResult, setPendingVerifyResult] = useState<VerifyResult | null>(null);
 
-    const processVerificationResult = async (result: VerifyResult, fallbackBrandName?: string) => {
-        if (!result.verified) {
-            setVerifyResult(result);
-            return;
-        }
-        try {
-            const medicineName = result.medicine.brand_name || fallbackBrandName;
-            if (!medicineName) {
+    const saveToHistory = useCallback(
+        async (result: VerifyResult, barcode = "", brandHint = "") => {
+            try {
+                if (result.verified) {
+                    const m = result.medicine;
+                    await saveScanToHistory({
+                        id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                        timestamp: Date.now(),
+                        barcode,
+                        medicineName: m.brand_name,
+                        genericName: m.generic_name,
+                        manufacturer: m.manufacturer,
+                        batchNumber: m.batch_number,
+                        expiryDate: m.expiry_date ?? null,
+                        cdscoStatus: m.cdsco_approval_status,
+                        status: m.is_counterfeit_alert ? "counterfeit" : "verified",
+                    });
+                } else {
+                    await saveScanToHistory({
+                        id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                        timestamp: Date.now(),
+                        barcode,
+                        medicineName: brandHint || barcode || "Unknown",
+                        genericName: "",
+                        manufacturer: "",
+                        batchNumber: barcode,
+                        expiryDate: null,
+                        cdscoStatus: "",
+                        status: "not-found",
+                    });
+                }
+            } catch {
+                // Non-critical — don't block UI
+            }
+        },
+        []
+    );
+
+    const processVerificationResult = useCallback(
+        async (result: VerifyResult, fallbackBrandName?: string) => {
+            if (!result.verified) {
                 setVerifyResult(result);
+                await saveToHistory(
+                    result,
+                    result.verified ? "" : (fallbackBrandName ?? ""),
+                    fallbackBrandName ?? ""
+                );
                 return;
             }
-            const lasaRes = await checkLasaConflicts(medicineName);
-            if (lasaRes.hasConflicts && lasaRes.matches.length > 0) {
-                setLasaMatches(lasaRes.matches);
-                setPendingVerifyResult(result);
-                setShowLasaConfirmation(true);
-            } else {
+            try {
+                const medicineName = result.medicine.brand_name || fallbackBrandName;
+                if (!medicineName) {
+                    setVerifyResult(result);
+                    await saveToHistory(result, result.medicine.batch_number, fallbackBrandName);
+                    return;
+                }
+                const lasaRes = await checkLasaConflicts(medicineName);
+                if (lasaRes.hasConflicts && lasaRes.matches.length > 0) {
+                    setLasaMatches(lasaRes.matches);
+                    setPendingVerifyResult(result);
+                    setShowLasaConfirmation(true);
+                    await saveToHistory(result, result.medicine.batch_number, fallbackBrandName);
+                } else {
+                    setVerifyResult(result);
+                    await saveToHistory(result, result.medicine.batch_number, fallbackBrandName);
+                }
+            } catch (error) {
+                console.error("LASA check error:", error);
                 setVerifyResult(result);
+                await saveToHistory(
+                    result,
+                    result.verified ? result.medicine.batch_number : "",
+                    fallbackBrandName
+                );
             }
-        } catch (error) {
-            console.error("LASA check error:", error);
-            setVerifyResult(result);
-        }
-    };
+        },
+        [saveToHistory]
+    );
 
     const handleConfirmScanned = () => {
         if (pendingVerifyResult) {
@@ -984,7 +1046,7 @@ export default function ScanPage() {
     };
 
     return (
-        <div className="relative flex min-h-screen flex-col overflow-x-clip bg-(--color-surface-page) text-(--color-text-primary) font-sans">
+        <div className="relative flex min-h-screen flex-col overflow-x-clip bg-(--color-surface-page) font-sans text-(--color-text-primary)">
             <input
                 type="file"
                 id="medicine-upload"

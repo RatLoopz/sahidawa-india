@@ -22,6 +22,8 @@
         "@zxing/library": "^0.23.0",
         "clsx": "^2.1.1",
         "framer-motion": "^12.39.0",
+        "idb": "^8.0.3",
+        "jspdf": "^4.2.1",
         "leaflet": "^1.9.4",
         "lucide-react": "^1.16.0",
         "next": "^16.2.6",

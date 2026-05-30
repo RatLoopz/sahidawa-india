@@ -65,11 +65,11 @@ export default function NotFound() {
                     padding: "12px 24px",
                     transition: "background-color 0.2s ease",
                 }}
-                onMouseOver={(e) =>
+                onMouseOver={(e: React.MouseEvent<HTMLAnchorElement>) =>
                     ((e.currentTarget as HTMLAnchorElement).style.backgroundColor =
                         "var(--color-brand-primary-hover)")
                 }
-                onMouseOut={(e) =>
+                onMouseOut={(e: React.MouseEvent<HTMLAnchorElement>) =>
                     ((e.currentTarget as HTMLAnchorElement).style.backgroundColor =
                         "var(--color-brand-primary)")
                 }
