@@ -87,7 +87,7 @@ export function ChatBubble({ msg, onRetry }: ChatBubbleProps) {
     return (
         <div
             role="listitem"
-            className={`sd-slide-in flex items-end gap-2.5 ${isUser ? "flex-row-reverse" : "flex-row"}`}
+            className={`sd-slide-in flex items-start gap-2.5 ${isUser ? "flex-row-reverse" : "flex-row"}`}
         >
             {isUser ? <UserAvatar /> : <BotAvatar />}
 
@@ -99,10 +99,10 @@ export function ChatBubble({ msg, onRetry }: ChatBubbleProps) {
                 <div
                     className={`rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
                         msg.isError
-                            ? "rounded-bl-sm border border-red-200 bg-red-50"
+                            ? "rounded-bl-sm border border-red-200/50 bg-red-50 dark:border-red-900/50 dark:bg-red-950/30"
                             : isUser
-                              ? "rounded-br-sm bg-emerald-600 text-white"
-                              : "rounded-bl-sm border border-slate-200 bg-white text-slate-700"
+                              ? "rounded-br-sm bg-linear-to-r from-emerald-500 to-teal-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                              : "rounded-bl-sm border border-white/40 bg-white/50 text-slate-800 backdrop-blur-xl dark:border-white/10 dark:bg-slate-800/50 dark:text-slate-200"
                     }`}
                 >
                     {msg.isError ? <ErrorContent onRetry={onRetry} msgId={msg.id} /> : msg.content}

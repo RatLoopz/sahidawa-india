@@ -51,12 +51,17 @@ export default function FullAlertsLogPage() {
                 if (regionSearch) url += `&region=${encodeURIComponent(regionSearch)}`;
 
                 const res = await fetch(url);
-                if (!res.ok) throw new Error("Failed to fetch");
+                if (!res.ok) {
+                    setError(true);
+                    setLoading(false);
+                    return;
+                }
                 const data = await res.json();
                 setAllAlerts(data.data || []);
                 setTotalCount(data.totalCount || 0);
             } catch (err) {
-                console.error(err);
+                // Log silently to avoid Next.js dev overlay popup
+                console.log("Fetch failed:", err instanceof Error ? err.message : err);
                 setError(true);
             } finally {
                 setLoading(false);
