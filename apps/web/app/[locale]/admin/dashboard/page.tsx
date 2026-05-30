@@ -133,7 +133,7 @@ export default function AdminDashboard() {
     const fetchAuditLogs = useCallback(async () => {
         setLogsLoading(true);
         try {
-            const res = await fetch(`${API_BASE}/logs`, { headers: authHeaders() });
+            const res = await fetch(`${ADMIN_API_BASE}/logs`, { headers: authHeaders() });
             if (res.ok) {
                 const data = await res.json();
                 setAuditLogs(data.logs ?? []);

@@ -1,7 +1,7 @@
 "use client";
 
 import { ShieldCheck, Search, Bot, Store, BellRing, AlertTriangle, ArrowRight } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { ArrowLeft } from "lucide-react";
 
 const steps = [
@@ -78,14 +78,14 @@ export default function HowItWorksPage() {
                     {/* CTA Buttons */}
                     <div className="mt-10 flex flex-wrap justify-center gap-4">
                         <Link
-                            href="/en/scan"
+                            href="/scan"
                             className="rounded-2xl bg-emerald-600 px-7 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:bg-emerald-700"
                         >
                             Start Scanning
                         </Link>
 
                         <Link
-                            href="/en/map"
+                            href="/map"
                             className="rounded-2xl border border-(--color-border-muted) px-7 py-4 font-semibold text-(--color-text-secondary) transition-all duration-300 hover:border-emerald-500 hover:text-emerald-600"
                         >
                             Explore Pharmacy Map
@@ -177,14 +177,14 @@ export default function HowItWorksPage() {
 
                     <div className="mt-10 flex flex-wrap justify-center gap-4">
                         <Link
-                            href="/en/scan"
+                            href="/scan"
                             className="rounded-2xl bg-white px-8 py-4 font-bold text-emerald-700 transition-transform duration-300 hover:scale-105"
                         >
                             Scan Medicine
                         </Link>
 
                         <Link
-                            href="/en/alerts"
+                            href="/alerts"
                             className="rounded-2xl border border-white/40 px-8 py-4 font-bold transition-all duration-300 hover:bg-white/10"
                         >
                             View Alerts
