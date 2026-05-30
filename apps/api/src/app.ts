@@ -4,6 +4,7 @@ import path from "path";
 import logger from "./utils/logger";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./utils/swagger";
+import batchRouter from "./routes/batch";
 
 const rootEnvPath = path.resolve(__dirname, "../../../.env");
 dotenv.config({ path: rootEnvPath });
@@ -117,6 +118,7 @@ app.get("/health", async (req: Request, res: Response) => {
 
 app.use("/reports", reportsRouter);
 app.use("/api/pharmacies", pharmaciesRouter);
+app.use("/api/verify/batch", batchRouter);
 app.use("/api/verify", verifyRouter);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/notifications", notificationsRouter);
