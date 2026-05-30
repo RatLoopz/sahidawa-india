@@ -5,7 +5,8 @@ const ROUTE = "/api/voice/transcribe";
 const ML_TRANSCRIBE_TIMEOUT_MS = 45_000;
 
 function getMlServiceUrl() {
-    return process.env.ML_SERVICE_URL ?? "http://localhost:8000";
+    const configuredUrl = process.env.ML_SERVICE_URL?.trim();
+    return configuredUrl ? configuredUrl.replace(/\/+$/, "") : null;
 }
 
 async function readJsonSafely(response: Response) {
@@ -31,6 +32,27 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Audio file is required." }, { status: 400 });
     }
 
+    const mlServiceUrl = getMlServiceUrl();
+    if (!mlServiceUrl) {
+        structuredLog({
+            log_level: "error",
+            route: ROUTE,
+            error: {
+                message: "ML_SERVICE_URL is not configured",
+                code: 500,
+                stack: undefined,
+            },
+            meta: { missingVars: ["ML_SERVICE_URL"] },
+        });
+        return NextResponse.json(
+            {
+                error: "Server configuration error: transcription service URL is missing.",
+                code: "ML_SERVICE_URL_MISSING",
+            },
+            { status: 500 }
+        );
+    }
+
     const upstreamBody = new FormData();
     upstreamBody.append("file", file);
     if (typeof language === "string" && language.trim()) {
@@ -41,7 +63,7 @@ export async function POST(req: Request) {
     const timeoutId = setTimeout(() => abortController.abort(), ML_TRANSCRIBE_TIMEOUT_MS);
 
     try {
-        const upstreamResponse = await fetch(`${getMlServiceUrl()}/asr/transcribe`, {
+        const upstreamResponse = await fetch(`${mlServiceUrl}/asr/transcribe`, {
             method: "POST",
             body: upstreamBody,
             signal: abortController.signal,
@@ -113,7 +135,6 @@ export async function POST(req: Request) {
                     ? upstreamData.language_probability
                     : null,
         });
-
     } catch (error) {
         const latency_ms = Date.now() - startTime;
 

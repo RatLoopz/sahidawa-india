@@ -4,6 +4,7 @@ import path from "path";
 import logger from "./utils/logger";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./utils/swagger";
+import { validateMlServiceConfig } from "./config/mlService";
 
 const rootEnvPath = path.resolve(__dirname, "../../../.env");
 dotenv.config({ path: rootEnvPath });
@@ -22,6 +23,8 @@ if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
     });
     process.exit(1);
 }
+
+validateMlServiceConfig();
 
 import cors from "cors";
 import helmet from "helmet";
