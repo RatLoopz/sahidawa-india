@@ -97,6 +97,7 @@ async function fetchWithTimeout(
         });
         return response;
     } catch (err) {
+        console.error(err)
         if ((err as Error).name === "AbortError") {
             throw new Error(
                 `Database request timed out after ${CONNECTION_TIMEOUT_MS}ms`
@@ -117,6 +118,7 @@ async function fetchWithRetry(
         try {
             return await fetchWithTimeout(input, init);
         } catch (err) {
+            console.error(err)
             const isLast = attempt === retries;
             const msg = err instanceof Error ? err.message : String(err);
 

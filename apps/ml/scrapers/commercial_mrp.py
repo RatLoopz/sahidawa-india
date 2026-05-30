@@ -2,7 +2,7 @@
 SahiDawa — Commercial MRP Scraper
 ===================================
 Data Source: OpenFDA Drug Label API (https://open.fda.gov/apis/drug/label/)
-             + Static reference MRP table for Indian market prices
+             + NPPA ceiling price CSV for Indian market prices
 
 WHY OpenFDA?
     1mg and other Indian pharmacy sites use JavaScript rendering (React apps)
@@ -10,9 +10,25 @@ WHY OpenFDA?
     free, official REST API with structured drug data including brand names,
     generic names, and compositions — no scraping, no blocking, no JS needed.
 
-    For MRP values specifically, we use a curated reference table of common
-    Indian drug prices (sourced from NPPA — National Pharmaceutical Pricing
-    Authority public data) since OpenFDA doesn't have Indian MRPs directly.
+    For MRP values specifically, we load a CSV of NPPA ceiling prices
+    (National Pharmaceutical Pricing Authority public data) rather than a
+    small hardcoded dict so the reference dataset can be updated independently
+    of the code.
+
+NPPA CSV FORMAT (data/seeds/nppa_ceiling_prices.csv):
+    generic_name,strength,mrp
+    paracetamol,500mg,18.50
+    paracetamol,650mg,22.00
+    amoxicillin,250mg,52.00
+    amoxicillin,500mg,85.00
+    ...
+
+    - generic_name: lowercase, plain text (no brand names)
+    - strength: optional; when present the row is strength-specific
+    - mrp: ceiling price in INR (₹)
+
+    Rows WITHOUT a strength act as a fallback for any strength of that drug.
+    Rows WITH a strength take precedence over the strength-less fallback.
 
 WHAT THIS SCRAPER PRODUCES:
     CSV with columns: brand_name, generic_name, strength, mrp, source
@@ -38,83 +54,133 @@ import requests
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
-OUTPUT_DIR = Path(__file__).resolve().parents[3] / "data" / "raw" / "commercial"
+OUTPUT_DIR  = Path(__file__).resolve().parents[3] / "data" / "raw" / "commercial"
+NPPA_CSV    = Path(__file__).resolve().parents[3] / "data" / "seeds" / "nppa_ceiling_prices.csv"
 OPENFDA_URL = "https://api.fda.gov/drug/label.json"
 
-MIN_DELAY_SEC = 1.0
-MAX_DELAY_SEC = 3.0
-MAX_RETRIES   = 3
-BACKOFF_BASE  = 2
+MIN_DELAY_SEC    = 1.0
+MAX_DELAY_SEC    = 3.0
+MAX_RETRIES      = 3
+BACKOFF_BASE     = 2
 RESULTS_PER_PAGE = 100
 
-# Strength pattern
+# Strength pattern (used for text extraction only, not for MRP key matching)
 STRENGTH_PATTERN = re.compile(
     r"(\d+(?:\.\d+)?)\s*(mg|mcg|g|ml|iu|units?|%)",
     re.IGNORECASE,
 )
 
-# ── NPPA Reference MRP Table ─────────────────────────────────────────────────
-# Source: NPPA (National Pharmaceutical Pricing Authority) public ceiling prices
-# https://www.nppa.gov.in/drug-price
-# These are standard Indian market ceiling MRPs (₹) per standard pack
 
-NPPA_MRP_REFERENCE = {
-    # generic_name_keyword → mrp (₹)
-    "paracetamol":          30.0,
-    "amoxicillin":          85.0,
-    "metformin":            28.0,
-    "atorvastatin":         95.0,
-    "omeprazole":           45.0,
-    "azithromycin":        120.0,
-    "cetirizine":           25.0,
-    "pantoprazole":         55.0,
-    "amlodipine":           38.0,
-    "losartan":             65.0,
-    "aspirin":              18.0,
-    "ibuprofen":            32.0,
-    "ciprofloxacin":        75.0,
-    "doxycycline":          90.0,
-    "fexofenadine":        110.0,
-    "montelukast":          95.0,
-    "levothyroxine":        42.0,
-    "metronidazole":        35.0,
-    "ranitidine":           28.0,
-    "vitamin d":            85.0,
-    "vitamin b12":          60.0,
-    "vitamin c":            22.0,
-    "iron":                 40.0,
-    "calcium":              55.0,
-    "zinc":                 30.0,
-    "diclofenac":           48.0,
-    "aceclofenac":          52.0,
-    "sertraline":          145.0,
-    "fluoxetine":          120.0,
-    "clopidogrel":         110.0,
-    "rosuvastatin":        105.0,
-    "telmisartan":          72.0,
-    "ramipril":             68.0,
-    "glimepiride":          62.0,
-    "glibenclamide":        28.0,
-    "insulin":             320.0,
-    "salbutamol":           45.0,
-    "budesonide":          185.0,
-    "prednisolone":         35.0,
-    "dexamethasone":        28.0,
-    "ondansetron":          65.0,
-    "domperidone":          38.0,
-    "albendazole":          22.0,
-    "ivermectin":           55.0,
-    "hydroxychloroquine":   80.0,
-    "artemether":          120.0,
-    "oseltamivir":         750.0,
-    "amoxicillin clavulanate": 185.0,
-    "cefixime":            145.0,
-    "ceftriaxone":         180.0,
-}
+# ── NPPA Reference Table ──────────────────────────────────────────────────────
 
-# ── Search queries for OpenFDA ─────────────────────────────────────────────────
+def _load_nppa_reference(csv_path: Path) -> dict[tuple[str, str | None], float]:
+    """
+    Loads NPPA ceiling prices from a CSV file.
 
-SEARCH_QUERIES = list(NPPA_MRP_REFERENCE.keys())
+    Returns a dict keyed by (generic_name_lower, strength_lower_or_None) → mrp.
+
+    Rows with a non-empty 'strength' column are strength-specific.
+    Rows with an empty 'strength' column are generic fallbacks.
+
+    If the CSV is missing (e.g. during tests), falls back to the built-in
+    NPPA_MRP_FALLBACK constant and logs a warning.
+    """
+    if not csv_path.exists():
+        import warnings
+        warnings.warn(
+            f"[CommercialScraper] NPPA CSV not found at {csv_path}. "
+            "Using built-in fallback table. "
+            "Add data/seeds/nppa_ceiling_prices.csv for a comprehensive dataset.",
+            stacklevel=2,
+        )
+        return _build_fallback_reference()
+
+    reference: dict[tuple[str, str | None], float] = {}
+    with open(csv_path, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            name     = row.get("generic_name", "").strip().lower()
+            strength = (row.get("strength") or "").strip().lower() or None
+            mrp_raw  = (row.get("mrp") or "").strip()
+
+            if not name or not mrp_raw:
+                continue
+            try:
+                mrp = float(mrp_raw)
+            except ValueError:
+                continue
+
+            reference[(name, strength)] = mrp
+
+    return reference
+
+
+def _build_fallback_reference() -> dict[tuple[str, str | None], float]:
+    """
+    Minimal built-in fallback used only when the CSV is absent (e.g. CI / tests).
+    Keys are (generic_name, None) — no strength specificity — matching the old
+    behaviour of the hardcoded dict so existing tests don't break.
+    """
+    _LEGACY: dict[str, float] = {
+        "paracetamol":              30.0,
+        "amoxicillin":              85.0,
+        "metformin":                28.0,
+        "atorvastatin":             95.0,
+        "omeprazole":               45.0,
+        "azithromycin":            120.0,
+        "cetirizine":               25.0,
+        "pantoprazole":             55.0,
+        "amlodipine":               38.0,
+        "losartan":                 65.0,
+        "aspirin":                  18.0,
+        "ibuprofen":                32.0,
+        "ciprofloxacin":            75.0,
+        "doxycycline":              90.0,
+        "fexofenadine":            110.0,
+        "montelukast":              95.0,
+        "levothyroxine":            42.0,
+        "metronidazole":            35.0,
+        "ranitidine":               28.0,
+        "vitamin d":                85.0,
+        "vitamin b12":              60.0,
+        "vitamin c":                22.0,
+        "iron":                     40.0,
+        "calcium":                  55.0,
+        "zinc":                     30.0,
+        "diclofenac":               48.0,
+        "aceclofenac":              52.0,
+        "sertraline":              145.0,
+        "fluoxetine":              120.0,
+        "clopidogrel":             110.0,
+        "rosuvastatin":            105.0,
+        "telmisartan":              72.0,
+        "ramipril":                 68.0,
+        "glimepiride":              62.0,
+        "glibenclamide":            28.0,
+        "insulin":                 320.0,
+        "salbutamol":               45.0,
+        "budesonide":              185.0,
+        "prednisolone":             35.0,
+        "dexamethasone":            28.0,
+        "ondansetron":              65.0,
+        "domperidone":              38.0,
+        "albendazole":              22.0,
+        "ivermectin":               55.0,
+        "hydroxychloroquine":       80.0,
+        "artemether":              120.0,
+        "oseltamivir":             750.0,
+        "amoxicillin clavulanate": 185.0,
+        "cefixime":                145.0,
+        "ceftriaxone":             180.0,
+    }
+    return {(name, None): mrp for name, mrp in _LEGACY.items()}
+
+
+# Loaded once at module import time so tests can monkey-patch NPPA_CSV.
+NPPA_MRP_REFERENCE: dict[tuple[str, str | None], float] = _load_nppa_reference(NPPA_CSV)
+
+# Derive the list of search queries from the unique generic names in the table.
+SEARCH_QUERIES: list[str] = sorted({name for name, _ in NPPA_MRP_REFERENCE})
 
 
 # ── Scraper Class ─────────────────────────────────────────────────────────────
@@ -124,8 +190,14 @@ class CommercialMRPScraper:
     Fetches drug data from OpenFDA API and enriches with NPPA reference MRPs.
     """
 
-    def __init__(self, max_results_per_query: int = 10):
+    def __init__(
+        self,
+        max_results_per_query: int = 10,
+        nppa_reference: dict[tuple[str, str | None], float] | None = None,
+    ):
         self.max_results_per_query = max_results_per_query
+        # Allow injection for tests; fall back to the module-level table.
+        self._nppa = nppa_reference if nppa_reference is not None else NPPA_MRP_REFERENCE
         self.session = requests.Session()
         self.session.headers.update({
             "User-Agent": "SahiDawa-ETL/1.0 (https://github.com/RatLoopz/sahidawa-india)",
@@ -138,11 +210,12 @@ class CommercialMRPScraper:
         Main entry point. Queries OpenFDA for each medicine and saves CSV.
         Returns path to output CSV.
         """
-        print(f"[CommercialScraper] Starting OpenFDA scrape for {len(SEARCH_QUERIES)} queries...")
+        queries = sorted({name for name, _ in self._nppa})
+        print(f"[CommercialScraper] Starting OpenFDA scrape for {len(queries)} queries...")
         OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-        for idx, query in enumerate(SEARCH_QUERIES, 1):
-            print(f"[CommercialScraper] Query {idx}/{len(SEARCH_QUERIES)}: '{query}'")
+        for idx, query in enumerate(queries, 1):
+            print(f"[CommercialScraper] Query {idx}/{len(queries)}: '{query}'")
             records = self._fetch_openfda(query)
             if records:
                 self.results.extend(records)
@@ -151,11 +224,11 @@ class CommercialMRPScraper:
                 print(f"[CommercialScraper]   No results for '{query}'")
             self._sleep()
 
-        # Deduplicate on brand_name + generic_name
-        seen = set()
+        # Deduplicate on brand_name + generic_name + strength
+        seen: set[tuple] = set()
         deduped = []
         for r in self.results:
-            key = (r["brand_name"], r["generic_name"])
+            key = (r["brand_name"], r["generic_name"], r["strength"])
             if key not in seen:
                 seen.add(key)
                 deduped.append(r)
@@ -178,11 +251,7 @@ class CommercialMRPScraper:
 
         for attempt in range(1, MAX_RETRIES + 1):
             try:
-                response = self.session.get(
-                    OPENFDA_URL,
-                    params=params,
-                    timeout=10,
-                )
+                response = self.session.get(OPENFDA_URL, params=params, timeout=10)
 
                 if response.status_code == 200:
                     data = response.json()
@@ -217,9 +286,8 @@ class CommercialMRPScraper:
             try:
                 openfda = item.get("openfda", {})
 
-                # brand_name and generic_name are arrays — take first element
-                brand_names = openfda.get("brand_name", [])
-                generic_names = openfda.get("generic_name", [])
+                brand_names    = openfda.get("brand_name", [])
+                generic_names  = openfda.get("generic_name", [])
                 substance_names = openfda.get("substance_name", [])
 
                 brand_name = brand_names[0].title() if brand_names else None
@@ -229,16 +297,16 @@ class CommercialMRPScraper:
                     else query.title()
                 )
 
-                # Extract strength from description or dosage fields
-                description = item.get("description", [""])[0] if item.get("description") else ""
+                # Extract strength from description / how_supplied fields
+                description  = item.get("description",  [""])[0] if item.get("description")  else ""
                 how_supplied = item.get("how_supplied", [""])[0] if item.get("how_supplied") else ""
                 strength = (
                     self._extract_strength_from_ingredients(description)
                     or self._extract_strength_from_ingredients(how_supplied)
                 )
 
-                # MRP from NPPA reference table
-                mrp = self._lookup_mrp(query)
+                # MRP from NPPA reference — strength-aware lookup
+                mrp = self._lookup_mrp(query, strength)
                 if mrp is None:
                     continue
 
@@ -265,22 +333,31 @@ class CommercialMRPScraper:
             return None
         return " + ".join(f"{val}{unit}" for val, unit in matches)
 
-    def _lookup_mrp(self, query: str) -> float | None:
+    def _lookup_mrp(self, query: str, strength: str | None = None) -> float | None:
         """
-        Looks up MRP from the NPPA reference table.
-        Uses substring matching so 'amoxicillin clavulanate' matches 'amoxicillin'.
-        Longer matches win (more specific).
+        Looks up MRP from the NPPA reference table using an exact-name match.
+
+        Match priority (highest → lowest):
+          1. Exact (generic_name, strength) match — most specific
+          2. Exact (generic_name, None)     match — strength-less fallback
+
+        The old substring/ilike approach (checking whether a keyword is
+        contained in the query string) caused false positives such as
+        'iron' matching 'spironolactone'.  We now require the query to
+        equal the reference key exactly (after lowercasing), which is safe
+        because SEARCH_QUERIES is derived from the reference table itself.
         """
-        query_lower = query.lower()
-        best_match = None
-        best_match_len = 0
+        query_lower = query.strip().lower()
+        strength_lower = strength.strip().lower() if strength else None
 
-        for keyword, mrp in NPPA_MRP_REFERENCE.items():
-            if keyword in query_lower and len(keyword) > best_match_len:
-                best_match = mrp
-                best_match_len = len(keyword)
+        # 1. Strength-specific match
+        if strength_lower is not None:
+            mrp = self._nppa.get((query_lower, strength_lower))
+            if mrp is not None:
+                return mrp
 
-        return best_match
+        # 2. Generic fallback (no strength)
+        return self._nppa.get((query_lower, None))
 
     def _sleep(self) -> None:
         """Polite random delay between requests."""
@@ -294,7 +371,7 @@ class CommercialMRPScraper:
 
         if not self.results:
             print("[CommercialScraper] ⚠ No results to save.")
-            open(output_path, "w").close()  # Save empty file
+            open(output_path, "w").close()
             return output_path
 
         fieldnames = ["brand_name", "generic_name", "strength", "mrp", "source"]

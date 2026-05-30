@@ -10,14 +10,40 @@
         "voice_subtitle": "علامات بیان کریں",
         "pharmacy_map": "فارمیسی کا نقشہ",
         "pharmacy_subtitle": "تصدیق شدہ فارمیسیاں تلاش کریں",
+        "report_fake": "جعلی دوا رپورٹ کریں",
+        "report_fake_subtitle": "مشکوک دوا کی اطلاع دیں",
         "search_placeholder": "دوا یا بیچ نمبر تلاش کریں…",
-        "search_button": "تلاش کریں"
+        "search_button": "تلاش کریں",
+        "sign_in": "Sign In",
+        "get_started": "Get Started",
+        "open_ai_health_assistant": "AI صحت معاون کھولیں",
+        "ai_health_assistant": "AI صحت معاون",
+        "ai_chat": "AI چیٹ",
+        "ai_health_assistant_description": "فوری صحت مشورہ، علامات کی جانچ اور نسخے کی رہنمائی حاصل کریں",
+        "chat_now": "ابھی چیٹ کریں",
+        "live_cdsco_alerts": "لائیو CDSCO الرٹس",
+        "india_region": "بھارت خطہ",
+        "alerts_empty_title": "سب صاف ہے!",
+        "alerts_empty_description": "اس وقت کوئی فعال ضابطہ جاتی الرٹ نہیں ہے۔ محفوظ رہیں اور اپنی ادویات کی تصدیق کریں۔",
+        "view_full_alert_log": "مکمل الرٹ لاگ دیکھیں",
+        "heroTitle": {
+            "prefix": "آپ کی صحت، ",
+            "highlight": "تصدیق شدہ اور محفوظ۔"
+        }
     },
     "Navigation": {
         "how_it_works": "یہ کیسے کام کرتا ہے",
         "alerts": "الرٹس",
         "pharmacy_map": "فارمیسی کا نقشہ",
+        "my_reports": "میری رپورٹس",
+        "home": "ہوم",
+        "scans": "اسکینز",
+        "map": "نقشہ",
+        "profile": "پروفائل",
         "language": "اردو"
+    },
+    "BackToTopButton": {
+        "label": "اوپر جائیں"
     },
     "VoicePage": {
         "header_title": "وائس ٹرئیج",
@@ -132,7 +158,14 @@
         "goHome": "ہوم پیج پر جائیں",
         "footer": "کنکشن بحال ہونے پر SahiDawa خود بخود تبدیلیاں مطابقت پذیر کر دے گی۔",
         "cachedContent": "آپ پہلے سے لوڈ کردہ مواد تک رسائی حاصل کر سکتے ہیں",
-        "noCache": "یہ صفحہ پہلے محفوظ نہیں کیا گیا تھا اور آف لائن دستیاب نہیں ہے"
+        "noCache": "یہ صفحہ پہلے محفوظ نہیں کیا گیا تھا اور آف لائن دستیاب نہیں ہے",
+        "redirecting": "آپ کو SahiDawa پر ری ڈائریکٹ کیا جا رہا ہے…",
+        "attempt": "(کوشش {retryCount})",
+        "checkingConnection": "کنکشن چیک کیا جا رہا ہے…",
+        "cachedAvailable": "پہلے دیکھے گئے صفحات اب بھی دستیاب ہو سکتے ہیں",
+        "cachedVerifications": "محفوظ کردہ تصدیقات",
+        "savedPharmacies": "محفوظ کردہ فارمیسیاں",
+        "browsedMedicines": "دیکھی گئی ادویات"
     },
     "contact": {
         "badge": "GSSoC 2026 اوپن سورس پروجیکٹ",

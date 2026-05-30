@@ -1,9 +1,19 @@
+"use client";
+
 import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
 import { GitBranch, Sparkles, Heart } from "lucide-react";
 import { Link } from "@/i18n/routing";
+import { usePathname } from "next/navigation";
+
 export default function Footer() {
+    const pathname = usePathname();
+    // Matches localized homepages like /en, /hi, /mr, or /
+    const isHome = pathname ? /^\/[a-z]{2}$|^\/$/.test(pathname) : false;
+
     return (
-        <footer className="no-print mt-auto border-t border-slate-800 bg-slate-950 text-slate-400">
+        <footer
+            className={`no-print mt-auto border-t border-slate-800 bg-slate-950 text-slate-400 ${isHome ? "mb-16 md:mb-0" : ""}`}
+        >
             <div className="container mx-auto px-4 py-10 md:px-6">
                 <div className="grid grid-cols-1 gap-8 border-b border-slate-800 pb-8 md:grid-cols-3">
                     {/* Brand Section */}
@@ -112,11 +122,13 @@ export default function Footer() {
                 {/* Bottom Footer */}
                 <div className="flex flex-col items-center justify-between gap-4 pt-6 text-xs text-slate-500 md:flex-row">
                     <div className="flex items-center gap-4">
-                        <p>© 2026 SahiDawa. Open Source under MIT License.</p>
+                        <p className="text-xs md:text-sm">
+                            © 2026 SahiDawa. Open Source under MIT License.
+                        </p>
                     </div>
 
-                    <p className="text-center md:text-right">
-                        Built with <Heart className="inline h-3 w-3 text-red-500" /> for the
+                    <p className="text-center text-xs md:text-right md:text-sm">
+                        Built with <Heart className="inline h-[1em] w-[1em] text-red-500" /> for the
                         open-source community.
                     </p>
                 </div>

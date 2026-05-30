@@ -59,6 +59,7 @@ describe("PharmacyPanels", () => {
 
         expect(markup).toContain("Nearby Pharmacies");
         expect(markup).toContain("Risk layers");
+        expect(markup).toContain("Verified stores");
         expect(markup).toContain("SafeMeds Pharmacy");
         expect(markup).toContain("Verified Safe Store");
         expect(markup).toContain("2 report clusters");

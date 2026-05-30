@@ -284,43 +284,70 @@ router.post("/extract", (req: Request, res: Response) => {
                 }
             }
 
-            // 2. Fetch all registered brand names and generic names from DB
+            // 2. Fetch candidate medicine names using OCR keyword search
+            //    WHY: The old approach fetched ALL rows from medicines table
+            //    on every single scan — dangerous at 10k+ records (OOM crash).
+            //    New approach: extract meaningful words from OCR text and
+            //    search only for medicines whose name contains those words.
             let brandNames: string[] = [];
             let genericNames: string[] = [];
             try {
-                const { data: dbMedicines, error: dbError } = await supabase
-                    .from("medicines")
-                    .select("brand_name, generic_name");
-                if (dbError) {
-                    logger.error(`Database error fetching medicines: ${dbError.message}`);
-                } else if (dbMedicines) {
-                    brandNames = Array.from(
-                        new Set(dbMedicines.map((m) => m.brand_name).filter(Boolean) as string[])
-                    );
-                    genericNames = Array.from(
-                        new Set(dbMedicines.map((m) => m.generic_name).filter(Boolean) as string[])
-                    );
+                // Extract meaningful search words from OCR text (skip short/filler words)
+                const FILLER = new Set([
+                    "the",
+                    "and",
+                    "for",
+                    "tab",
+                    "cap",
+                    "mg",
+                    "ml",
+                    "ip",
+                    "bp",
+                    "usp",
+                    "ltd",
+                    "pvt",
+                ]);
+                const searchWords = rawText
+                    .toLowerCase()
+                    .replace(/[^a-z0-9\s]/g, " ")
+                    .split(/\s+/)
+                    .map((w) => w.trim())
+                    .filter((w) => w.length > 3 && !FILLER.has(w))
+                    .slice(0, 6); // limit to top 6 meaningful words
+
+                if (searchWords.length > 0) {
+                    // Build OR filter: brand_name ILIKE any word OR generic_name ILIKE any word
+                    const orFilter = searchWords
+                        .map((w) => `brand_name.ilike.%${w}%,generic_name.ilike.%${w}%`)
+                        .join(",");
+
+                    const { data: dbMedicines, error: dbError } = await supabase
+                        .from("medicines")
+                        .select("brand_name, generic_name")
+                        .or(orFilter)
+                        .limit(80); // hard cap — never more than 80 candidates
+
+                    if (dbError) {
+                        logger.error(`Database error fetching medicines: ${dbError.message}`);
+                    } else if (dbMedicines) {
+                        brandNames = Array.from(
+                            new Set(
+                                dbMedicines.map((m) => m.brand_name).filter(Boolean) as string[]
+                            )
+                        );
+                        genericNames = Array.from(
+                            new Set(
+                                dbMedicines.map((m) => m.generic_name).filter(Boolean) as string[]
+                            )
+                        );
+                    }
                 }
             } catch (dbErr) {
                 logger.error(`Failed to fetch brand/generic names from DB: ${dbErr}`);
             }
 
-            // Fallback lists if database has nothing
-            if (brandNames.length === 0) {
-                brandNames = [
-                    "Dolo 650",
-                    "Augmentin 625 Duo",
-                    "Allegra 120",
-                    "Pan 40",
-                    "Fake Dolo 650",
-                ];
-                genericNames = [
-                    "Paracetamol 650mg",
-                    "Amoxicillin + Clavulanate",
-                    "Fexofenadine",
-                    "Pantoprazole",
-                ];
-            }
+            // No hardcoded fallback — if DB has no match, we return unmatched result.
+            // The app should prompt the user to verify manually in that case.
 
             // Combine both brand names and generic names as matching candidates
             const candidates = Array.from(new Set([...brandNames, ...genericNames]));
@@ -399,14 +426,18 @@ router.post("/extract", (req: Request, res: Response) => {
                 }
             }
 
-            // 4. Query medicine database entry for matched brand name or generic name
+            // 4. Query medicine record for matched name — explicit field select (no SELECT *)
             let medicineData: any = null;
             if (matchedName) {
                 try {
                     const { data: dbMed, error: lookupError } = await supabase
                         .from("medicines")
-                        .select("*")
-                        .or(`brand_name.ilike."${matchedName}",generic_name.ilike."${matchedName}"`)
+                        .select(
+                            "id, brand_name, generic_name, manufacturer, batch_number, " +
+                                "expiry_date, cdsco_approval_status, is_counterfeit_alert, " +
+                                "composition, mrp, jan_aushadhi_price"
+                        )
+                        .or(`brand_name.ilike.%${matchedName}%,generic_name.ilike.%${matchedName}%`)
                         .limit(1)
                         .maybeSingle();
 
@@ -431,10 +462,14 @@ router.post("/extract", (req: Request, res: Response) => {
                     brand_name: medicineData.brand_name,
                     generic_name: medicineData.generic_name,
                     manufacturer: medicineData.manufacturer,
+                    composition: medicineData.composition ?? null,
                     batch_number: parsedBatch || medicineData.batch_number,
                     expiry_date: parsedExpiry || medicineData.expiry_date,
                     cdsco_approval_status: medicineData.cdsco_approval_status,
                     is_counterfeit_alert: medicineData.is_counterfeit_alert,
+                    // Pricing — helps citizens compare branded vs Jan Aushadhi price
+                    mrp: medicineData.mrp ?? null,
+                    jan_aushadhi_price: medicineData.jan_aushadhi_price ?? null,
                 };
             }
 

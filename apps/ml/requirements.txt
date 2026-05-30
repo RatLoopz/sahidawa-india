@@ -18,6 +18,10 @@ python-Levenshtein>=0.26.0  # Fuzzy string matching for normalization
 # PDF parsing (for CDSCO alerts - Step 3)
 pdfplumber>=0.11.0          # Extract tables from government PDFs
 
+# LLM Parsing
+langchain-google-genai>=1.0.0
+langchain-core>=0.1.0
+
 # thefuzz for fuzzy string matching
 thefuzz==0.22.1
 

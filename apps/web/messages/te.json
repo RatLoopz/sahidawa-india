@@ -13,13 +13,37 @@
         "report_fake": "నకిలీని నివేదించండి",
         "report_fake_subtitle": "అనుమానాస్పద మందును నివేదించండి",
         "search_placeholder": "మందు లేదా బ్యాచ్‌ను వెతకండి...",
-        "search_button": "వెతకండి"
+        "search_button": "వెతకండి",
+        "sign_in": "ప్రవేశించండి",
+        "get_started": "ప్రారంభించండి",
+        "open_ai_health_assistant": "AI ఆరోగ్య సహాయకుడిని తెరవండి",
+        "ai_health_assistant": "AI ఆరోగ్య సహాయకుడు",
+        "ai_chat": "AI చాట్",
+        "ai_health_assistant_description": "తక్షణ ఆరోగ్య సలహా, లక్షణాల తనిఖీ మరియు ప్రిస్క్రిప్షన్ మార్గదర్శనం పొందండి",
+        "chat_now": "ఇప్పుడే చాట్ చేయండి",
+        "live_cdsco_alerts": "లైవ్ CDSCO హెచ్చరికలు",
+        "india_region": "భారత ప్రాంతం",
+        "alerts_empty_title": "అన్నీ సురక్షితం!",
+        "alerts_empty_description": "ప్రస్తుతం క్రియాశీల నియంత్రణ హెచ్చరికలు లేవు. సురక్షితంగా ఉండండి మరియు మీ మందులను ధృవీకరించండి.",
+        "view_full_alert_log": "పూర్తి హెచ్చరిక లాగ్ చూడండి",
+        "heroTitle": {
+            "prefix": "మీ ఆరోగ్యం, ",
+            "highlight": "ధృవీకరించబడింది మరియు రక్షించబడింది."
+        }
     },
     "Navigation": {
         "how_it_works": "ఇది ఎలా పనిచేస్తుంది",
         "alerts": "హెచ్చరికలు",
         "pharmacy_map": "ఫార్మసీ మ్యాప్",
+        "my_reports": "నా నివేదికలు",
+        "home": "హోమ్",
+        "scans": "స్కాన్లు",
+        "map": "మ్యాప్",
+        "profile": "ప్రొఫైల్",
         "language": "తెలుగు"
+    },
+    "BackToTopButton": {
+        "label": "పైనికి వెళ్లండి"
     },
     "VoicePage": {
         "header_title": "వాయిస్ ట్రియాజ్",
@@ -55,7 +79,7 @@
         "review_title": "మీ ట్రాన్స్‌క్రిప్ట్‌ను పరిశీలించండి",
         "review_message": "మైక్రోఫోన్ మీ లక్షణాలను తక్కువ నమ్మకంతో పట్టుకుంది. మరింత స్పష్టమైన ఫలితానికి మళ్లీ ప్రయత్నించండి లేదా ఇదే ట్రాన్స్‌క్రిప్ట్‌ను విశ్లేషించండి.",
         "retry_button": "మళ్లీ ప్రయత్నించండి",
-        "switch_to_text_button": "Type Instead",
+        "switch_to_text_button": "బదులుగా టైప్ చేయండి",
         "analyse_anyway_button": "ఏమైనా విశ్లేషించండి",
         "result_heading": "AI విశ్లేషణ",
         "result_subheading": "మెడికల్ ట్రియాజ్",
@@ -118,14 +142,35 @@
             "no_speech_message": "శాంతమైన ప్రదేశంలో మళ్లీ ప్రయత్నించండి లేదా మైక్రోఫోన్‌కు దగ్గరగా మాట్లాడండి.",
             "generic_title": "ఏదో తప్పు జరిగింది",
             "generic_message": "ఈసారి మీ వాయిస్ ఇన్‌పుట్‌ను ప్రాసెస్ చేయలేకపోయాం. దయచేసి మళ్లీ ప్రయత్నించండి.",
-            "service_unavailable_title": "Voice service unavailable",
-            "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
-
-            "timeout_title": "Voice request timed out",
-            "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
+            "service_unavailable_title": "వాయిస్ సేవ అందుబాటులో లేదు",
+            "service_unavailable_message": "మా వాయిస్ సర్వర్లపై ప్రస్తుత భారం ఎక్కువగా ఉంది. దయచేసి మళ్లీ ప్రయత్నించండి లేదా బదులుగా మీ లక్షణాలను టైప్ చేయండి.",
+            "timeout_title": "వాయిస్ అభ్యర్థనకు సమయం ముగిసింది",
+            "timeout_message": "వాయిస్ సేవ అంచనా కంటే ఎక్కువ సమయం తీసుకుంటోంది. దయచేసి మళ్లీ ప్రయత్నించండి లేదా టెక్స్ట్ ఇన్‌పుట్‌కు మారండి.",
             "api_title": "SahiDawa AI అందుబాటులో లేదు",
             "api_message": "ఇప్పుడే వైద్య మార్గదర్శకాన్ని పొందలేకపోయాం. కొద్దిసేపటికి మళ్లీ ప్రయత్నించండి."
         }
+    },
+    "offline": {
+        "bannerOffline": "మీరు ఆఫ్‌లైన్‌లో ఉన్నారు",
+        "descriptionOffline": "కనెక్షన్ తిరిగి వచ్చినప్పుడు మీ మార్పులు సమకాలీకరించబడతాయి",
+        "bannerOnline": "తిరిగి ఆన్‌లైన్",
+        "descriptionOnline": "విఫలమైన అభ్యర్థనలను మళ్లీ ప్రయత్నిస్తోంది...",
+        "dismiss": "తీసివేయి",
+        "title": "ఆఫ్‌లైన్ మోడ్",
+        "description": "ప్రస్తుతం మీకు ఇంటర్నెట్ కనెక్షన్ లేదు.",
+        "subtitle": "ఆఫ్‌లైన్‌లో ఉన్నప్పుడు కొన్ని ఫీచర్లు అందుబాటులో ఉండవు. ఇంటర్నెట్‌కు కనెక్ట్ కావడానికి ప్రయత్నించండి లేదా కాష్ చేసిన కంటెంట్‌ను బ్రౌజ్ చేయండి.",
+        "tryAgain": "మళ్లీ ప్రయత్నించండి",
+        "goHome": "హోమ్‌కు వెళ్లండి",
+        "footer": "కనెక్షన్ తిరిగి వచ్చినప్పుడు SahiDawa స్వయంచాలకంగా సమకాలీకరిస్తుంది.",
+        "cachedContent": "మీరు ఇప్పటికీ మునుపు లోడ్ చేసిన కంటెంట్‌ను యాక్సెస్ చేయవచ్చు",
+        "noCache": "ఈ పేజీ కాష్ చేయబడలేదు మరియు ఆఫ్‌లైన్‌లో అందుబాటులో లేదు",
+        "redirecting": "మిమ్మల్ని SahiDawa కి దారి మళ్లిస్తోంది…",
+        "attempt": "(ప్రయత్నం {retryCount})",
+        "checkingConnection": "కనెక్షన్ తనిఖీ చేయబడుతోంది…",
+        "cachedAvailable": "గతంలో సందర్శించిన పేజీలు ఇంకా అందుబాటులో ఉండవచ్చు",
+        "cachedVerifications": "కాష్ చేసిన ధృవీకరణలు",
+        "savedPharmacies": "సేవ్ చేసిన ఫార్మసీలు",
+        "browsedMedicines": "బ్రౌజ్ చేసిన మందులు"
     },
     "contact": {
         "badge": "GSSoC 2026 ఓపెన్ సోర్స్ ప్రాజెక్ట్",
