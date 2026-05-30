@@ -167,6 +167,10 @@ export default function PharmacyPanels({
     onHeatmapModeChange,
     className,
 }: PharmacyPanelsProps) {
+    const verifiedCount = pharmacies.filter((pharmacy) => pharmacy.isVerified).length;
+    const govtCount = pharmacies.filter((pharmacy) => pharmacy.type === "govt").length;
+    const liveCount = pharmacies.length;
+
     const subtitle = isLoading
         ? "Loading nearby verified stores…"
         : pharmacies.length === 0
@@ -190,6 +194,28 @@ export default function PharmacyPanels({
                         </h2>
                         <p className="text-xs text-(--color-text-secondary)">{subtitle}</p>
                     </div>
+                </div>
+            </div>
+
+            <div className="shrink-0 border-b border-(--color-border-muted) px-5 py-4">
+                <div className="grid grid-cols-3 gap-2">
+                    {[
+                        { label: "Verified stores", value: verifiedCount },
+                        { label: "Jan Aushadhi", value: govtCount },
+                        { label: "Live options", value: liveCount },
+                    ].map((item) => (
+                        <article
+                            key={item.label}
+                            className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) p-3"
+                        >
+                            <p className="text-[10px] font-semibold tracking-[0.18em] text-(--color-text-muted) uppercase">
+                                {item.label}
+                            </p>
+                            <p className="mt-1 text-xl font-black text-(--color-text-primary)">
+                                {item.value}
+                            </p>
+                        </article>
+                    ))}
                 </div>
             </div>
 

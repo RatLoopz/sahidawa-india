@@ -15,15 +15,17 @@ if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
     };
 }
 
+const SafeThemesProvider = NextThemesProvider as any;
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return (
-        <NextThemesProvider
+        <SafeThemesProvider
             attribute="class"
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
         >
             {children}
-        </NextThemesProvider>
+        </SafeThemesProvider>
     );
 }
