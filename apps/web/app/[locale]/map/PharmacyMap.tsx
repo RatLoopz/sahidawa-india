@@ -330,7 +330,7 @@ export default function PharmacyMap({
                 border-radius: 50%;
                 background: ${markerColor};
                 opacity: 0.25;
-                animation: isSelected ? "none" : "marker-pulse 2s infinite";
+                animation: ${isSelected ? "none" : "marker-pulse 2s infinite"};
             "></div>
 
             <div style="
