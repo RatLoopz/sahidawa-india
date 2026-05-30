@@ -5,6 +5,7 @@ import {
   updateReportStatus,
   getAllMedicines,
   createMedicine,
+  getAuditLogs,
 } from '../controllers/admin.controller';
 
 const router = Router();
@@ -15,5 +16,6 @@ router.get('/reports', getPendingReports);
 router.patch('/reports/:id/status', updateReportStatus);
 router.get('/medicines', getAllMedicines);
 router.post('/medicines', createMedicine);
+router.get('/logs', getAuditLogs);
 
 export default router;
