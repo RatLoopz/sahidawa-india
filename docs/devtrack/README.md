@@ -57,3 +57,4 @@
 | [#857](https://github.com/RatLoopz/sahidawa-india/pull/857) | 2026-05-29 | Database | 37 | @Akshayy9 | [View Doc](devtrack/2026-05/PR-857-feat-real-nearby-pharmacy-search-using-supabase-po.md) / [ADR](devtrack/adr/ADR-014-feat-real-nearby-pharmacy-search-using-supabase-po.md) |
 | [#884](https://github.com/RatLoopz/sahidawa-india/pull/884) | 2026-05-30 | i18n | 9 | @Ashitha0409 | [View Doc](devtrack/2026-05/PR-884-i18n-kn-te-complete-kannada-and-telugu-translation.md) |
 | [#877](https://github.com/RatLoopz/sahidawa-india/pull/877) | 2026-05-29 | Frontend | 8 | @TanushreeHarika | [View Doc](devtrack/2026-05/PR-877-counts-are-derived-from-the-currently-loaded-pharm.md) |
+| [#908](https://github.com/RatLoopz/sahidawa-india/pull/908) | 2026-05-30 | Backend | 6 | @shreyasfegade | [View Doc](devtrack/2026-05/PR-908-fix-api-require-supabase-service-role-key-remove-s.md) |
