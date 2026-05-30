@@ -3,16 +3,23 @@ import logger from "../utils/logger";
 
 // ── Environment resolution ────────────────────────────────────────────────────
 
-const supabaseUrl =
-    process.env.SUPABASE_URL ||
-    process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    "http://localhost:54321";
+if (!process.env.SUPABASE_URL) {
+    throw new Error(
+        "Missing required environment variable: SUPABASE_URL. " +
+        "Set it in your .env file (e.g. https://<project>.supabase.co)."
+    );
+}
 
-const supabaseKey =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.SUPABASE_ANON_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    "local-development-key";
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error(
+        "Missing required environment variable: SUPABASE_SERVICE_ROLE_KEY. " +
+        "The API backend requires the service_role key to bypass RLS for server-side writes. " +
+        "Do not use SUPABASE_ANON_KEY here — it is subject to RLS and will silently drop writes."
+    );
+}
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // ── Connection pool config ────────────────────────────────────────────────────
 // Supabase JS uses HTTP fetch under the hood (not raw pg sockets).
