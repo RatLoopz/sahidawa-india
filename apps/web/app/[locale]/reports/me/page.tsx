@@ -20,12 +20,7 @@ import Card from "@/components/Card";
 import LazyImage from "@/components/LazyImage";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
-
-// `NEXT_PUBLIC_API_URL` must be the bare API origin with no path suffix
-// (e.g. `https://api.example.com`). The reports router is mounted at
-// `/reports` in apps/api/src/index.ts (no `/api/v1` prefix), so this page
-// appends `/reports/mine` itself. Sibling pages may append different paths.
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+import { API_BASE } from "@/lib/api";
 
 type ReportStatus = "pending" | "verified_fake" | "false_alarm";
 
@@ -106,8 +101,8 @@ function ReportCard({ report }: { report: MyReport }) {
         report.reported_brand_name?.trim() || report.scanned_barcode || "Unnamed medicine";
 
     return (
-        <Card className="flex flex-col sm:flex-row bg-(--color-surface-page) border-(--color-border-muted) shadow-sm overflow-hidden">
-            <div className="flex h-40 shrink-0 items-center justify-center bg-(--color-surface-muted) sm:h-32 sm:w-32 border-r border-(--color-border-muted)">
+        <Card className="flex flex-col overflow-hidden border-(--color-border-muted) bg-(--color-surface-page) shadow-sm sm:flex-row">
+            <div className="flex h-40 shrink-0 items-center justify-center border-r border-(--color-border-muted) bg-(--color-surface-muted) sm:h-32 sm:w-32">
                 {isSafePhotoUrl(report.photo_url) ? (
                     <LazyImage
                         src={report.photo_url}
@@ -179,7 +174,7 @@ export default function MyReportsPage() {
         }
 
         try {
-            const res = await fetch(`${API_BASE}/reports/mine`, {
+            const res = await fetch(`${API_BASE}/api/reports/mine`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -249,8 +244,11 @@ export default function MyReportsPage() {
                 {state.kind === "loading" && (
                     <div className="flex flex-col gap-3" aria-label="Loading your reports">
                         {[1, 2, 3].map((i) => (
-                            <Card key={i} className="flex flex-col sm:flex-row bg-(--color-surface-page) border-(--color-border-muted)">
-                                <Skeleton className="h-40 shrink-0 sm:h-32 sm:w-32 rounded-none bg-slate-200 dark:bg-slate-800" />
+                            <Card
+                                key={i}
+                                className="flex flex-col border-(--color-border-muted) bg-(--color-surface-page) sm:flex-row"
+                            >
+                                <Skeleton className="h-40 shrink-0 rounded-none bg-slate-200 sm:h-32 sm:w-32 dark:bg-slate-800" />
                                 <div className="flex min-w-0 flex-1 flex-col gap-2 p-4">
                                     <div className="flex items-start justify-between gap-3">
                                         <Skeleton className="h-5 w-1/2 bg-slate-200 dark:bg-slate-800" />
@@ -284,7 +282,7 @@ export default function MyReportsPage() {
                         description={state.message}
                         actionLabel="Try again"
                         onAction={fetchMine}
-                        className="border-rose-200 dark:border-rose-950/40 bg-(--color-surface-page)!"
+                        className="border-rose-200 bg-(--color-surface-page)! dark:border-rose-950/40"
                     />
                 )}
 

@@ -355,6 +355,7 @@ router.post("/extract", (req: Request, res: Response) => {
             // 3. Fuzzy match the brand name or generic name
             let matchedName: string | null = null;
             let matchScore = 0;
+            let matchSource: "advanced" | "ml_fuzzy" | "substring_fallback" | "none" = "none";
 
             if (rawText && candidates.length > 0) {
                 // First try advanced matching (smart token coverage)
@@ -371,6 +372,7 @@ router.post("/extract", (req: Request, res: Response) => {
                 if (bestAdvancedScore >= 80) {
                     matchedName = bestAdvancedCandidate;
                     matchScore = bestAdvancedScore;
+                    matchSource = "advanced";
                     logger.info(
                         `Advanced token match successful: "${matchedName}" with score ${matchScore}`
                     );
@@ -401,6 +403,7 @@ router.post("/extract", (req: Request, res: Response) => {
                                 if (topMatch.score >= 50) {
                                     matchedName = topMatch.name;
                                     matchScore = topMatch.score;
+                                    matchSource = "ml_fuzzy";
                                     logger.info(
                                         `ML fuzzy match successful: "${matchedName}" with score ${matchScore}`
                                     );
@@ -416,10 +419,15 @@ router.post("/extract", (req: Request, res: Response) => {
                 if (!matchedName) {
                     const normalizedText = rawText.toLowerCase();
                     for (const name of candidates) {
-                        if (normalizedText.includes(name.toLowerCase())) {
+                        const lowerName = name.toLowerCase();
+                        if (lowerName.length < 5) continue;
+                        const escaped = lowerName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+                        const boundary = new RegExp(`\\b${escaped}\\b`);
+                        if (boundary.test(normalizedText)) {
                             matchedName = name;
-                            matchScore = 100;
-                            logger.info(`Substring fallback match successful: "${matchedName}"`);
+                            matchScore = 60;
+                            matchSource = "substring_fallback";
+                            logger.info(`Substring fallback match: "${matchedName}" (capped score ${matchScore})`);
                             break;
                         }
                     }
@@ -447,6 +455,19 @@ router.post("/extract", (req: Request, res: Response) => {
                         );
                     } else {
                         medicineData = dbMed;
+                    }
+
+                    // Verify the returned record actually matches — not just a substring hit
+                    if (medicineData && matchSource === "substring_fallback") {
+                        const dbBrand = (medicineData.brand_name || "").toLowerCase();
+                        const dbGeneric = (medicineData.generic_name || "").toLowerCase();
+                        const needle = matchedName!.toLowerCase();
+                        if (dbBrand !== needle && dbGeneric !== needle) {
+                            logger.warn(
+                                `Dropping weak fallback match: "${matchedName}" resolved to "${medicineData.brand_name}" — not an exact name match`
+                            );
+                            medicineData = null;
+                        }
                     }
                 } catch (lookupErr) {
                     logger.error(
@@ -484,6 +505,8 @@ router.post("/extract", (req: Request, res: Response) => {
                 },
                 medicine: medicineResponse,
                 matched: !!medicineResponse,
+                matchScore: matchedName ? matchScore : null,
+                matchSource: matchedName ? matchSource : null,
             });
         } catch (error: unknown) {
             const msg = error instanceof Error ? error.message : "Unknown error";

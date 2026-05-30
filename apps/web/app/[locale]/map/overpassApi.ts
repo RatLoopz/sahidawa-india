@@ -5,41 +5,57 @@
  */
 
 const OVERPASS_MIRRORS = [
-    "https://overpass.osm.ch/api/interpreter",
-    "https://overpass.kumi.systems/api/interpreter",
+    "https://overpass.private.coffee/api/interpreter",
     "https://overpass-api.de/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
+    "https://lz4.overpass-api.de/api/interpreter",
+    "https://z.overpass-api.de/api/interpreter",
 ];
 
 async function queryOverpass(query: string): Promise<any> {
-    // 1. Primary Path: Direct client-side GET requests (bypasses Vercel timeouts and shared IP rate-limiting)
-    for (const mirror of OVERPASS_MIRRORS) {
+    // 1. Primary Path: Parallel client-side GET requests (races the first 2 mirrors for maximum speed)
+    const clientMirrors = OVERPASS_MIRRORS.slice(0, 2);
+    const fetchPromises = clientMirrors.map(async (mirror) => {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout per mirror
+        const timeoutId = setTimeout(() => controller.abort(), 4000); // 4s timeout per mirror client-side
 
         try {
             const url = `${mirror}?data=${encodeURIComponent(query)}`;
             const response = await fetch(url, {
                 method: "GET",
+                headers: {
+                    Accept: "*/*",
+                },
                 signal: controller.signal,
             });
 
             clearTimeout(timeoutId);
 
-            if (response.ok) {
-                const data = await response.json();
-                if (data && data.elements) {
-                    return data;
-                }
+            if (!response.ok) {
+                throw new Error(`Mirror ${mirror} returned status ${response.status}`);
             }
+
+            const data = await response.json();
+            if (!data || !data.elements) {
+                throw new Error(`Mirror ${mirror} returned invalid data structure`);
+            }
+
+            return data;
         } catch (err) {
             clearTimeout(timeoutId);
-            console.warn(`Direct fetch failed for mirror ${mirror}:`, err);
+            throw err;
         }
+    });
+
+    try {
+        return await Promise.any(fetchPromises);
+    } catch (err) {
+        // Silent fallback — direct browser calls failed (e.g., CORS or adblocker). Proceeding to proxy.
     }
 
-    // 2. Fallback Path: Server-side Vercel Proxy (if client-side requests are blocked by browser adblockers or strict local policies)
+    // 2. Fallback Path: Server-side Vercel Proxy
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout for the fallback proxy
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout for proxy fallback
 
     try {
         const response = await fetch("/api/overpass", {
