@@ -21,6 +21,7 @@ import {
 import { preprocessMedicineImage } from "@/lib/imageEnhancer";
 import LazyImage from "@/components/LazyImage";
 import { LiveMessage } from "@/components/ui/LiveMessage";
+import { MedicinePhotoUpload } from "@/components/medicine";
 
 // ─── Cloudinary env ────────────────────────────────────────────────────────────
 // Uploads are now securely routed through our backend API (/api/upload),
@@ -412,105 +413,52 @@ function Step2({
         setValue,
         formState: { errors },
     } = useFormContext<FormValues>();
-    const ref = useRef<HTMLInputElement>(null);
     const [busy, setBusy] = useState(false);
-    const [drag, setDrag] = useState(false);
     const [upErr, setUpErr] = useState<string | null>(null);
     const uploadErrorId = useId();
     const imageErrorId = useId();
 
     const imgErr = errors.images?.message as string | undefined;
 
-    // Upload one file to Cloudinary securely via our API route
-    const uploadOne = async (file: File): Promise<string> => {
-        const fd = new FormData();
-        fd.append("file", file);
-        const res = await fetch("/api/upload", { method: "POST", body: fd });
+    const handleUploadComplete = (url: string) => {
+        setUpErr(null);
 
-        if (!res.ok) {
-            const e = (await res.json().catch(() => ({}))) as { error?: string };
-            throw new Error(e.error ?? `HTTP ${res.status}`);
-        }
+        // Update state and form value synchronously so validation passes instantly
+        const next = [
+            ...images,
+            {
+                preview: url,
+                cloudUrl: url,
+                name: `Photo #${images.length + 1}`,
+            },
+        ];
+        setImages(next);
+        setValue(
+            "images",
+            next.map((i) => i.cloudUrl),
+            { shouldValidate: true }
+        );
 
-        return ((await res.json()) as { secure_url: string }).secure_url;
+        // Run AI analysis asynchronously in the background
+        setBusy(true);
+        void analyzeMedicineImage(url)
+            .then((analysis) => {
+                setImages((currentImages) =>
+                    currentImages.map((img) => (img.cloudUrl === url ? { ...img, analysis } : img))
+                );
+            })
+            .catch((err) => {
+                const analysis = unavailableAnalysis(err);
+                setImages((currentImages) =>
+                    currentImages.map((img) => (img.cloudUrl === url ? { ...img, analysis } : img))
+                );
+            })
+            .finally(() => {
+                setBusy(false);
+            });
     };
 
-    const processFiles = useCallback(
-        async (files: File[]) => {
-            const imgs = files.filter((f) => f.type.startsWith("image/"));
-            if (!imgs.length) {
-                setUpErr("Only image files are accepted.");
-                return;
-            }
-            const oversized = imgs.filter((f) => f.size > MAX_FILE_SIZE);
-            if (oversized.length) {
-                setUpErr(
-                    `File${oversized.length > 1 ? "s" : ""} too large (max 10 MB): ${oversized.map((f) => f.name).join(", ")}`
-                );
-                return;
-            }
-            setUpErr(null);
-            setBusy(true);
-            try {
-                const entries: ImageEntry[] = await Promise.all(
-                    imgs.map(async (f) => {
-                        let fileToProcess = f;
-                        try {
-                            const optimizedBlob = await preprocessMedicineImage(f);
-                            // Defensive structural check to verify a solid asset payload was returned
-                            if (
-                                optimizedBlob &&
-                                typeof optimizedBlob !== "string" &&
-                                optimizedBlob instanceof Blob
-                            ) {
-                                fileToProcess = new File(
-                                    [optimizedBlob],
-                                    renameFileForMimeType(f.name, optimizedBlob.type),
-                                    {
-                                        type: optimizedBlob.type || f.type,
-                                        lastModified: Date.now(),
-                                    }
-                                );
-                            }
-                        } catch (error) {
-                            console.error(
-                                "Image enhancement failed, falling back to original:",
-                                error
-                            );
-                        }
-
-                        const cloudUrl = await uploadOne(fileToProcess);
-                        const analysis =
-                            await analyzeMedicineImage(cloudUrl).catch(unavailableAnalysis);
-
-                        return {
-                            // UX optimization: Generate preview from original file to maintain visual comfort
-                            preview: URL.createObjectURL(f),
-                            cloudUrl,
-                            name: f.name,
-                            analysis,
-                        };
-                    })
-                );
-                const next = [...images, ...entries];
-                setImages(next);
-                setValue(
-                    "images",
-                    next.map((i) => i.cloudUrl),
-                    { shouldValidate: true }
-                );
-            } catch (e) {
-                setUpErr(e instanceof Error ? e.message : "Upload failed. Please retry.");
-            } finally {
-                setBusy(false);
-                if (ref.current) ref.current.value = "";
-            }
-        },
-        [images, setImages, setValue]
-    );
-
     const remove = (idx: number) => {
-        URL.revokeObjectURL(images[idx].preview);
         const next = images.filter((_, i) => i !== idx);
         setImages(next);
         setValue(
@@ -522,59 +470,16 @@ function Step2({
 
     return (
         <div className="space-y-5">
-            {/* Drop zone */}
-            <div
-                onClick={() => !busy && ref.current?.click()}
-                onDragOver={(e) => {
-                    e.preventDefault();
-                    setDrag(true);
-                }}
-                onDragLeave={() => setDrag(false)}
-                onDrop={(e) => {
-                    e.preventDefault();
-                    setDrag(false);
-                    processFiles(Array.from(e.dataTransfer.files));
-                }}
-                className={`relative flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-12 text-center transition-all duration-200 ${drag ? "scale-[1.01] border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20" : "border-(--color-border-muted) bg-(--color-surface-muted)/50 hover:border-emerald-500"} ${busy ? "cursor-wait" : "cursor-pointer"}`}
-            >
-                <input
-                    ref={ref}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={(e) => processFiles(Array.from(e.target.files ?? []))}
-                    disabled={busy}
-                    aria-invalid={upErr || imgErr ? "true" : undefined}
-                    aria-describedby={upErr ? uploadErrorId : imgErr ? imageErrorId : undefined}
-                />
-
-                {busy ? (
-                    <>
-                        <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-slate-200 border-t-emerald-500" />
-                        <p className="text-sm font-semibold text-(--color-text-secondary)">
-                            Uploading to secure storage…
-                        </p>
-                    </>
-                ) : (
-                    <>
-                        <span className="mb-1 rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) p-3 text-(--color-text-muted) shadow-sm">
-                            <Icon.Upload />
-                        </span>
-                        <div>
-                            <p className="text-base font-bold text-(--color-text-primary)">
-                                Drop images or{" "}
-                                <span className="text-emerald-600 underline underline-offset-2">
-                                    select files
-                                </span>
-                            </p>
-                            <p className="mt-1 text-sm font-medium text-(--color-text-secondary)">
-                                JPG · PNG · WEBP &nbsp;·&nbsp; Multiple files OK
-                            </p>
-                        </div>
-                    </>
-                )}
-            </div>
+            {/* Reusable MedicinePhotoUpload component */}
+            <MedicinePhotoUpload
+                key={images.length}
+                onUploadComplete={handleUploadComplete}
+                onError={(err) => setUpErr(err)}
+                label={
+                    images.length > 0 ? "Upload another medicine photo" : "Upload medicine photo"
+                }
+                disabled={busy}
+            />
 
             {/* Upload error */}
             <AnimatePresence>
