@@ -23,17 +23,9 @@ import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
-import LanguageSwitcher from "./LanguageSwitcher";
-import { ThemeToggle } from "./components/ThemeToggle";
 import SearchBar from "./components/SearchBar";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
-
-const desktopNavLinkClassName =
-    "relative inline-flex items-center pb-1 transition-colors duration-200 ease-out hover:text-emerald-600 focus-visible:text-emerald-600 after:absolute after:inset-x-0 after:-bottom-0.5 after:h-0.5 after:origin-center after:scale-x-0 after:rounded-full after:bg-current after:transition-transform after:duration-300 after:ease-out hover:after:scale-x-100 focus-visible:after:scale-x-100 motion-safe:after:will-change-transform";
-
-const mobileNavLabelClassName =
-    "relative inline-flex items-center pb-1 transition-colors duration-200 ease-out after:absolute after:inset-x-0 after:-bottom-0.5 after:h-0.5 after:origin-center after:scale-x-0 after:rounded-full after:bg-current after:transition-transform after:duration-300 after:ease-out group-hover:after:scale-x-100 group-active:after:scale-x-100 group-focus-visible:after:scale-x-100 motion-safe:after:will-change-transform";
 
 function formatRelativeTime(dateString: string | null): string {
     if (!dateString) return "Recent";
@@ -66,7 +58,6 @@ export default function SahiDawaHome() {
 
     const [homepageAlerts, setHomepageAlerts] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
     useEffect(() => {
         async function fetchAlerts() {
@@ -96,8 +87,6 @@ export default function SahiDawaHome() {
     const handleNavigation = (path: string) => {
         router.push(`/${locale}/${path}`);
     };
-
-    const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
     return (
         <div className="relative min-h-screen bg-(--color-surface-page) font-sans text-(--color-text-primary) transition-colors duration-300">
@@ -687,80 +676,6 @@ export default function SahiDawaHome() {
 
             {/* Spacer for mobile nav */}
             <div className="h-16 md:hidden"></div>
-
-            {/* ── Mobile Bottom Navigation ── */}
-            <nav
-                className="fixed right-0 bottom-0 left-0 z-50 flex items-center justify-around border-t border-(--color-border-muted)/60 bg-(--color-surface-page)/90 px-2 py-3 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
-                aria-label="Mobile navigation"
-            >
-                <Link
-                    href="/"
-                    className="group flex w-16 flex-col items-center gap-1.5"
-                    aria-label={tNav("home")}
-                >
-                    <div className="text-emerald-500 transition-transform group-hover:-translate-y-1">
-                        <Home size={24} strokeWidth={2.5} />
-                    </div>
-                    <span
-                        className={`${mobileNavLabelClassName} text-[11px] font-bold text-emerald-500`}
-                    >
-                        {tNav("home")}
-                    </span>
-                </Link>
-
-                <Link
-                    href="/scan"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
-                    aria-label={tNav("scans")}
-                >
-                    <div className="transition-transform group-hover:-translate-y-1">
-                        <History size={24} strokeWidth={2} />
-                    </div>
-                    <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
-                        {tNav("scans")}
-                    </span>
-                </Link>
-
-                <Link
-                    href="/map"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-(--color-text-muted) transition-colors hover:text-amber-500"
-                    aria-label={tNav("map")}
-                >
-                    <div className="transition-transform group-hover:-translate-y-1">
-                        <MapPin size={24} strokeWidth={2} />
-                    </div>
-                    <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
-                        {tNav("map")}
-                    </span>
-                </Link>
-
-                <Link
-                    href="/alerts"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-(--color-text-muted) transition-colors hover:text-red-500"
-                    aria-label={tNav("alerts")}
-                >
-                    <div className="relative transition-transform group-hover:-translate-y-1">
-                        <Bell size={24} strokeWidth={2} />
-                        <span className="absolute top-0 right-0.5 h-2 w-2 animate-pulse rounded-full border border-(--color-surface-page) bg-red-500"></span>
-                    </div>
-                    <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
-                        {tNav("alerts")}
-                    </span>
-                </Link>
-
-                <Link
-                    href="/profile"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-(--color-text-muted) transition-colors hover:text-emerald-500"
-                    aria-label={tNav("profile")}
-                >
-                    <div className="transition-transform group-hover:-translate-y-1">
-                        <User size={24} strokeWidth={2} />
-                    </div>
-                    <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
-                        {tNav("profile")}
-                    </span>
-                </Link>
-            </nav>
         </div>
     );
 }
