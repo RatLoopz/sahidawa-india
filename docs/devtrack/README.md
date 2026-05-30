@@ -58,3 +58,5 @@
 | [#884](https://github.com/RatLoopz/sahidawa-india/pull/884) | 2026-05-30 | i18n | 9 | @Ashitha0409 | [View Doc](devtrack/2026-05/PR-884-i18n-kn-te-complete-kannada-and-telugu-translation.md) |
 | [#877](https://github.com/RatLoopz/sahidawa-india/pull/877) | 2026-05-29 | Frontend | 8 | @TanushreeHarika | [View Doc](devtrack/2026-05/PR-877-counts-are-derived-from-the-currently-loaded-pharm.md) |
 | [#909](https://github.com/RatLoopz/sahidawa-india/pull/909) | 2026-05-30 | Backend | 9 | @shreyasfegade | [View Doc](devtrack/2026-05/PR-909-fix-api-harden-scan-matching-pipeline-prevent-fals.md) |
+| [#908](https://github.com/RatLoopz/sahidawa-india/pull/908) | 2026-05-30 | Backend | 6 | @shreyasfegade | [View Doc](devtrack/2026-05/PR-908-fix-api-require-supabase-service-role-key-remove-s.md) |
+| [#899](https://github.com/RatLoopz/sahidawa-india/pull/899) | 2026-05-30 | Backend | 20 | @Tanish-Solanki | [View Doc](devtrack/2026-05/PR-899-feat-admin-implement-audit-logs-dashboard-integrat.md) / [ADR](devtrack/adr/ADR-015-feat-admin-implement-audit-logs-dashboard-integrat.md) |
