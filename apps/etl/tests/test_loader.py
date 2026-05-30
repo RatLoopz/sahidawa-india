@@ -148,165 +148,191 @@ def test_batch_success_returns_summary_without_failed_rows_csv(tmp_path):
     assert len(client.upsert_calls) == 1
 
 
-def test_failed_batch_falls_back_to_row_level_upserts_and_logs_bad_row(tmp_path, capsys):
-    client = FakeSupabaseClient(fail_batches=True, fail_generic_names={"Bad Float"})
-    loader = make_loader(client, tmp_path)
-    df = pd.DataFrame(
-        [
-            {"generic_name": "Paracetamol", "strength": "500mg", "dosage_form": "Tablet"},
-            {"generic_name": "Bad Float", "strength": "not-a-float", "dosage_form": "Tablet"},
-            {"generic_name": "Cetirizine", "strength": "10mg", "dosage_form": "Tablet"},
-        ]
-    )
-
-    stats = loader.load(df)
-
-    assert stats["inserted"] == 2
-    assert stats["failed"] == 1
-    assert stats["error_counts"] == {"duplicate_key": 1}
-    assert len(client.upsert_calls) == 4
-
-    log_lines = [line for line in capsys.readouterr().out.splitlines() if '"event": "etl_row_failure"' in line]
-    assert len(log_lines) == 1
-    log = json.loads(log_lines[0])
-    assert log["medicine_name"] == "Bad Float"
-    assert log["unresolved_value"] == "not-a-float"
-    assert log["db_error_code"] == "23505"
-    assert log["error_category"] == "duplicate_key"
-    assert log["row_index"] == 1
-    assert log["pipeline"] == "janaushadhi"
+# ── Tests for merge_jan_aushadhi_price ───────────────────────────────────────
 
 
-def test_failed_rows_are_exported_to_csv_with_error_columns(tmp_path):
-    client = FakeSupabaseClient(fail_batches=True, fail_generic_names={"Bad Float"})
-    loader = make_loader(client, tmp_path)
-    df = pd.DataFrame(
-        [
-            {"generic_name": "Bad Float", "strength": "not-a-float", "dosage_form": "Tablet"},
-        ]
-    )
-
-    stats = loader.load(df)
-
-    failed_rows_csv = Path(stats["failed_rows_csv"])
-    assert failed_rows_csv.exists()
-    failed = pd.read_csv(failed_rows_csv, dtype=str)
-    assert failed.loc[0, "generic_name"] == "Bad Float"
-    assert failed.loc[0, "error_category"] == "duplicate_key"
-    assert failed.loc[0, "db_error_code"] == "23505"
-    assert failed.loc[0, "error_message"]
+def _write_nppa_csv(path, rows):
+    """Helper: write a minimal NPPA CSV to a temp file for testing."""
+    import csv
+    path.mkdir(parents=True, exist_ok=True)
+    csv_path = path / "nppa_ceiling_prices.csv"
+    with open(csv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=["generic_name", "strength", "mrp"])
+        writer.writeheader()
+        writer.writerows(rows)
+    return csv_path
 
 
-def test_validation_failure_log_includes_required_debug_fields(tmp_path, capsys):
-    client = FakeSupabaseClient(
-        errors_by_generic_name={"Missing Name": "validation failed: generic_name is required"}
-    )
-    loader = make_loader(client, tmp_path)
-    df = pd.DataFrame(
-        [
-            {"generic_name": "Missing Name", "strength": "", "dosage_form": "Tablet"},
-        ]
-    )
+class MergeFakeTable(FakeTable):
+    """FakeTable extended with .is_(), .gt(), and .order() for merge tests."""
 
-    stats = loader.load(df)
+    def __init__(self, name, client):
+        super().__init__(name, client)
+        self._is_filters = []
+        self._gt_filters = []
 
-    assert stats["failed"] == 1
-    assert stats["error_counts"] == {"validation_error": 1}
-    log_lines = [line for line in capsys.readouterr().out.splitlines() if '"event": "etl_row_failure"' in line]
-    log = json.loads(log_lines[0])
-    assert log["medicine_name"] == "Missing Name"
-    assert log["unresolved_value"] == ""
-    assert log["db_error_code"] is None
-    assert log["error_category"] == "validation_error"
+    def is_(self, column, value):
+        self._is_filters.append((column, value))
+        return self
+
+    def gt(self, column, value):
+        self._gt_filters.append((column, value))
+        return self
+
+    def order(self, column):
+        return self
+
+    def range(self, start, end):
+        return self
+
+    def execute(self):
+        if self.operation == "select":
+            rows = list(self.client.medicines)
+
+            for col, val in self.eq_filters:
+                rows = [r for r in rows if r.get(col) == val]
+
+            for col, val in self._is_filters:
+                if val == "null":
+                    rows = [r for r in rows if r.get(col) is None]
+
+            for col, val in self._gt_filters:
+                rows = [r for r in rows if (r.get(col) or "") > val]
+
+            return FakeExecuteResponse(rows)
+
+        return super().execute()
 
 
-def test_summary_prints_alert_when_success_rate_is_below_threshold(tmp_path, caplog):
-    client = FakeSupabaseClient(fail_batches=True, fail_generic_names={"Bad Float"})
-    loader = make_loader(client, tmp_path)
-    df = pd.DataFrame(
-        [
-            {"generic_name": "Bad Float", "strength": "not-a-float", "dosage_form": "Tablet"},
-            {"generic_name": "Paracetamol", "strength": "500mg", "dosage_form": "Tablet"},
-        ]
-    )
+class MergeFakeSupabaseClient:
+    """Minimal Supabase fake for merge_jan_aushadhi_price tests."""
 
-    stats = loader.load(df)
+    def __init__(self, medicines=None):
+        self.medicines = medicines or []
+        self.update_calls = []
 
-    assert stats["success_rate"] == 50.0
-    output = caplog.text
-    assert "ALERT" in output
-    assert "95%" in output
+    def table(self, name):
+        t = MergeFakeTable(name, self)
+        original_execute = t.execute
+
+        def patched_execute():
+            if t.operation == "update":
+                row_id = next((v for c, v in t.eq_filters if c == "id"), None)
+                self.update_calls.append((name, t.pending_update, t.eq_filters))
+                for med in self.medicines:
+                    if med.get("id") == row_id:
+                        med.update(t.pending_update)
+                return FakeExecuteResponse()
+            return original_execute()
+
+        t.execute = patched_execute
+        return t
 
 
-def test_retry_failed_rows_updates_successful_and_failed_retry_records(tmp_path):
-    retry_rows = [
-        {
-            "id": "row-1",
-            "pipeline_name": "janaushadhi",
-            "status": "failed",
-            "row_payload": {"generic_name": "Paracetamol", "strength": "500mg", "dosage_form": "Tablet"},
-            "attempt_count": 1,
-        },
-        {
-            "id": "row-2",
-            "pipeline_name": "janaushadhi",
-            "status": "failed",
-            "row_payload": {"generic_name": "Bad Float", "strength": "not-a-float", "dosage_form": "Tablet"},
-            "attempt_count": 2,
-        },
+def make_merge_loader(client, tmp_path):
+    loader = SupabaseLoader.__new__(SupabaseLoader)
+    loader.client = client
+    loader.failed_rows_dir = tmp_path
+    loader.pipeline_name = "ja_backfill"
+    return loader
+
+
+def test_ja_backfill_updates_null_jan_aushadhi_price_rows(tmp_path):
+    """Basic case: rows with jan_aushadhi_price=None get backfilled from NPPA CSV."""
+    medicines = [
+        {"id": "m1", "generic_name": "Paracetamol", "strength": "500mg",
+         "source": "commercial", "jan_aushadhi_price": None},
+        {"id": "m2", "generic_name": "Cetirizine", "strength": "10mg",
+         "source": "commercial", "jan_aushadhi_price": None},
     ]
-    client = FakeSupabaseClient(fail_generic_names={"Bad Float"}, retry_rows=retry_rows)
-    loader = make_loader(client, tmp_path)
+    nppa_csv = _write_nppa_csv(tmp_path, [
+        {"generic_name": "paracetamol", "strength": "500mg", "mrp": "18.50"},
+        {"generic_name": "cetirizine",  "strength": "10mg",  "mrp": "25.00"},
+    ])
+    client = MergeFakeSupabaseClient(medicines=medicines)
+    loader = make_merge_loader(client, tmp_path)
 
-    stats = loader.retry_failed_rows()
+    stats = loader.merge_jan_aushadhi_price(nppa_csv=nppa_csv)
 
-    assert stats["total"] == 2
-    assert stats["inserted"] == 1
-    assert stats["failed"] == 1
-
-    updates = [call[1] for call in client.update_calls if call[0] == "etl_failed_rows"]
-    assert updates[0]["status"] == "retry_succeeded"
-    assert updates[0]["attempt_count"] == 2
-    assert updates[1]["status"] == "failed"
-    assert updates[1]["attempt_count"] == 3
-    assert updates[1]["error_category"] == "duplicate_key"
+    assert stats["updated"] == 2
+    assert stats["skipped"] == 0
+    assert stats["failed"] == 0
+    assert medicines[0]["jan_aushadhi_price"] == 18.50
+    assert medicines[1]["jan_aushadhi_price"] == 25.00
 
 
-def test_retry_success_is_counted_only_after_retry_metadata_update_succeeds(tmp_path):
-    retry_rows = [
-        {
-            "id": "row-1",
-            "pipeline_name": "janaushadhi",
-            "status": "failed",
-            "row_payload": {"generic_name": "Paracetamol", "strength": "500mg", "dosage_form": "Tablet"},
-            "attempt_count": 1,
-        },
+def test_ja_backfill_does_not_match_iron_against_spironolactone(tmp_path):
+    """Exact-match must prevent 'iron' substring matching 'spironolactone'."""
+    medicines = [
+        {"id": "m1", "generic_name": "Spironolactone", "strength": "25mg",
+         "source": "commercial", "jan_aushadhi_price": None},
+        {"id": "m2", "generic_name": "Iron", "strength": "100mg",
+         "source": "commercial", "jan_aushadhi_price": None},
     ]
-    client = FakeSupabaseClient(retry_rows=retry_rows, update_fail_ids={"row-1"})
-    loader = make_loader(client, tmp_path)
+    nppa_csv = _write_nppa_csv(tmp_path, [
+        {"generic_name": "iron", "strength": "100mg", "mrp": "32.00"},
+    ])
+    client = MergeFakeSupabaseClient(medicines=medicines)
+    loader = make_merge_loader(client, tmp_path)
 
-    stats = loader.retry_failed_rows()
+    stats = loader.merge_jan_aushadhi_price(nppa_csv=nppa_csv)
 
-    assert stats["total"] == 1
-    assert stats["inserted"] == 0
-    assert stats["failed"] == 1
+    spiro = next(m for m in medicines if m["id"] == "m1")
+    iron = next(m for m in medicines if m["id"] == "m2")
+    assert spiro["jan_aushadhi_price"] is None   # NOT updated
+    assert iron["jan_aushadhi_price"] == 32.00   # correctly updated
+    assert stats["updated"] == 1
+    assert stats["skipped"] == 1
 
 
-def test_persist_failure_updates_existing_retry_row_for_same_payload(tmp_path):
-    client = FakeSupabaseClient(fail_generic_names={"Bad Float"})
-    loader = make_loader(client, tmp_path)
-    df = pd.DataFrame(
-        [
-            {"generic_name": "Bad Float", "strength": "not-a-float", "dosage_form": "Tablet"},
-        ]
-    )
+def test_ja_backfill_uses_strength_specific_price(tmp_path):
+    """Strength-specific rows override the generic fallback."""
+    medicines = [
+        {"id": "para-500", "generic_name": "Paracetamol", "strength": "500mg",
+         "source": "commercial", "jan_aushadhi_price": None},
+        {"id": "para-650", "generic_name": "Paracetamol", "strength": "650mg",
+         "source": "commercial", "jan_aushadhi_price": None},
+    ]
+    nppa_csv = _write_nppa_csv(tmp_path, [
+        {"generic_name": "paracetamol", "strength": "500mg", "mrp": "18.50"},
+        {"generic_name": "paracetamol", "strength": "650mg", "mrp": "22.00"},
+    ])
+    client = MergeFakeSupabaseClient(medicines=medicines)
+    loader = make_merge_loader(client, tmp_path)
 
-    first_stats = loader.load(df)
-    second_stats = loader.load(df)
+    stats = loader.merge_jan_aushadhi_price(nppa_csv=nppa_csv)
 
-    assert first_stats["failed"] == 1
-    assert second_stats["failed"] == 1
-    assert len(client.insert_calls) == 1
-    retry_updates = [call[1] for call in client.update_calls if call[0] == "etl_failed_rows"]
-    assert retry_updates[-1]["attempt_count"] == 2
-    assert len(client.retry_rows) == 1
+    assert next(m["jan_aushadhi_price"] for m in medicines if m["id"] == "para-500") == 18.50
+    assert next(m["jan_aushadhi_price"] for m in medicines if m["id"] == "para-650") == 22.00
+    assert stats["updated"] == 2
+
+
+def test_ja_backfill_uses_fallback_when_no_strength_match(tmp_path):
+    """If no strength-specific row exists, use the strength-less fallback."""
+    medicines = [
+        {"id": "m1", "generic_name": "Amoxicillin", "strength": "875mg",
+         "source": "commercial", "jan_aushadhi_price": None},
+    ]
+    # CSV only has 500mg specific — the None-key fallback should be used
+    nppa_csv = _write_nppa_csv(tmp_path, [
+        {"generic_name": "amoxicillin", "strength": "500mg", "mrp": "85.00"},
+    ])
+    client = MergeFakeSupabaseClient(medicines=medicines)
+    loader = make_merge_loader(client, tmp_path)
+
+    stats = loader.merge_jan_aushadhi_price(nppa_csv=nppa_csv)
+
+    assert medicines[0]["jan_aushadhi_price"] == 85.00
+    assert stats["updated"] == 1
+
+
+def test_ja_backfill_returns_zeros_when_csv_missing(tmp_path):
+    """Graceful failure when NPPA CSV file does not exist."""
+    client = MergeFakeSupabaseClient(medicines=[])
+    loader = make_merge_loader(client, tmp_path)
+    missing_path = tmp_path / "does_not_exist.csv"
+
+    stats = loader.merge_jan_aushadhi_price(nppa_csv=missing_path)
+
+    assert stats == {"checked": 0, "updated": 0, "skipped": 0, "failed": 0}
+

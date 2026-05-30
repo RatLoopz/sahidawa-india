@@ -1,8 +1,13 @@
 import { Lock, Cookie, Star, ClipboardList, Search, Link as LinkIcon, Cloud, Database, Map, Bot, ShieldCheck, Users, Mail, Calendar } from "lucide-react";
+import { PageHeader } from "../components/PageHeader";
 
 export default function PrivacyPolicyPage() {
     return (
         <main className="min-h-screen bg-(--color-surface-page) text-(--color-text-primary)">
+            <PageHeader
+                backHref="/"
+                variant="light"
+            />
             {/* Hero */}
             <section className="border-b border-(--color-border-muted) px-4 py-16 text-center">
                 <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 dark:border-emerald-900/30 dark:bg-emerald-950/20 px-4 py-1.5 text-sm font-medium text-emerald-700 dark:text-emerald-400">

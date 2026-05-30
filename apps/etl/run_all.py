@@ -58,6 +58,7 @@ async def run(
     retry_failed: bool = False,
     refresh_cdsco: bool = False,
     limit: int = None,
+    backfill_ja_price: bool = False,
 ) -> dict | None:
     _banner("SahiDawa Unified ETL Pipeline")
 
@@ -201,10 +202,36 @@ async def run(
         )
 
     # ── STEP 3: LOAD ───────────────────────────────────────────────────────────
-    logger.info("STEP 3/3 — Loading into Supabase...")
+    logger.info("STEP 3/4 — Loading into Supabase...")
     loader = SupabaseLoader(pipeline_name=PIPELINE_NAME)
     stats = loader.load(df)
     stats["validation_skipped"] = validation_skipped
+
+    # ── STEP 4: BACKFILL jan_aushadhi_price ────────────────────────────────────
+    # Fills the jan_aushadhi_price column for commercial medicines that the
+    # Step 2b in-memory linking missed (covers ~99.5% of commercial rows).
+    # Uses NPPA ceiling prices (data/seeds/nppa_ceiling_prices.csv) as the
+    # Jan Aushadhi reference. Safe to skip with --skip-backfill-ja-price.
+    ja_backfill_stats: dict | None = None
+    if backfill_ja_price:
+        logger.info(
+            "STEP 4/4 — Backfilling jan_aushadhi_price for commercial medicines "
+            "(NPPA ceiling prices)..."
+        )
+        ja_backfill_stats = loader.merge_jan_aushadhi_price()
+        stats["ja_backfill"] = ja_backfill_stats
+        logger.info(
+            f"  jan_aushadhi_price backfill — "
+            f"checked: {ja_backfill_stats['checked']}, "
+            f"updated: {ja_backfill_stats['updated']}, "
+            f"skipped: {ja_backfill_stats['skipped']}, "
+            f"failed: {ja_backfill_stats['failed']}"
+        )
+    else:
+        logger.info(
+            "STEP 4/4 — Skipping jan_aushadhi_price backfill "
+            "(pass --backfill-ja-price to enable)."
+        )
 
     _summary(stats)
     return stats
@@ -230,6 +257,11 @@ def _summary(stats: dict) -> None:
         f"  Success rate     : {stats['success_rate']}%"
         + validation_line
         + (f"\n  Failed rows CSV  : {stats['failed_rows_csv']}" if stats.get("failed_rows_csv") else "")
+        + (
+            f"\n  JA price backfill: {stats['ja_backfill']['updated']} updated, "
+            f"{stats['ja_backfill']['skipped']} skipped"
+            if stats.get("ja_backfill") else ""
+        )
         + f"\n{'='*60}"
     )
 
@@ -246,6 +278,12 @@ if __name__ == "__main__":
                         help="Force re-download of CDSCO reference data")
     parser.add_argument("--limit", type=int, default=None,
                         help="Limit the number of normalized records processed (useful for testing)")
+    parser.add_argument("--backfill-ja-price", action="store_true",
+                        help=(
+                            "After loading, back-fill jan_aushadhi_price on commercial medicines "
+                            "using NPPA ceiling prices (data/seeds/nppa_ceiling_prices.csv). "
+                            "Covers ~99.5%% of commercial rows missing this value."
+                        ))
     args = parser.parse_args()
 
     asyncio.run(run(
@@ -254,4 +292,5 @@ if __name__ == "__main__":
         retry_failed=args.retry_failed,
         refresh_cdsco=args.refresh_cdsco,
         limit=args.limit,
+        backfill_ja_price=args.backfill_ja_price,
     ))
