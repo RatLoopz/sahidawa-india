@@ -275,6 +275,10 @@ router.post("/extract", (req: Request, res: Response) => {
                 const match = rawText.match(pattern);
                 if (match) {
                     const month = match[1];
+                    const monthVal = parseInt(month, 10);
+                    if (monthVal < 1 || monthVal > 12) {
+                        continue;
+                    }
                     let year = match[2];
                     if (year.length === 2) {
                         year = "20" + year;
