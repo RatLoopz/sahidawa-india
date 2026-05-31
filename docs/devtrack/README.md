@@ -61,3 +61,4 @@
 | [#908](https://github.com/RatLoopz/sahidawa-india/pull/908) | 2026-05-30 | Backend | 6 | @shreyasfegade | [View Doc](devtrack/2026-05/PR-908-fix-api-require-supabase-service-role-key-remove-s.md) |
 | [#899](https://github.com/RatLoopz/sahidawa-india/pull/899) | 2026-05-30 | Backend | 20 | @Tanish-Solanki | [View Doc](devtrack/2026-05/PR-899-feat-admin-implement-audit-logs-dashboard-integrat.md) / [ADR](devtrack/adr/ADR-015-feat-admin-implement-audit-logs-dashboard-integrat.md) |
 | [#941](https://github.com/RatLoopz/sahidawa-india/pull/941) | 2026-05-30 | Frontend | 18 | @dev-rahul-arya | [View Doc](devtrack/2026-05/PR-941-bug-responsive-chat-and-dark-mode.md) / [ADR](devtrack/adr/ADR-016-bug-responsive-chat-and-dark-mode.md) |
+| [#905](https://github.com/RatLoopz/sahidawa-india/pull/905) | 2026-05-31 | Frontend | 10 | @harshitavaishnav7878 | [View Doc](devtrack/2026-05/PR-905-feat-add-expiry-tracker-page-and-navigation-links.md) |
