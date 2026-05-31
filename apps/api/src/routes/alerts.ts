@@ -1,5 +1,26 @@
 import { Router, Request, Response } from "express";
 import { supabase } from "../db/client";
+import { z } from "zod";
+import { triggerRecallAlert } from "../services/notifications";
+
+if (!process.env.API_SECRET_KEY) {
+    console.error("CRITICAL ERROR: API_SECRET_KEY is not set. Terminating.");
+    process.exit(1);
+}
+
+const AlertSchema = z
+    .object({
+        reported_brand_name: z.string().optional(),
+        batch_number: z.string().optional(),
+        manufacturer: z.string().optional(),
+        alert_type: z.string().optional(),
+        state: z.string().optional(),
+        district: z.string().optional(),
+        reported_at: z.string().optional(),
+    })
+    .passthrough();
+
+const AlertsArraySchema = z.array(AlertSchema);
 
 const alertsRouter = Router();
 
@@ -23,15 +44,28 @@ const alertsRouter = Router();
 alertsRouter.get("/", async (req: Request, res: Response) => {
     const rawPage = parseInt(req.query.page as string, 10);
     const rawLimit = parseInt(req.query.limit as string, 10);
+    const brand = req.query.brand as string;
+    const region = req.query.region as string;
+    const batchNumber = req.query.batch_number as string;
 
     const page = isNaN(rawPage) || rawPage < 1 ? 1 : rawPage;
     const limit = isNaN(rawLimit) || rawLimit < 1 ? 10 : Math.min(rawLimit, 100);
 
     const offset = (page - 1) * limit;
 
-    const { data, error, count } = await supabase
-        .from("drug_alerts")
-        .select("*", { count: "exact" })
+    let query = supabase.from("drug_alerts").select("*", { count: "exact" });
+
+    if (brand) {
+        query = query.ilike("reported_brand_name", `%${brand}%`);
+    }
+    if (region) {
+        query = query.ilike("state", `%${region}%`);
+    }
+    if (batchNumber) {
+        query = query.eq("batch_number", batchNumber);
+    }
+
+    const { data, error, count } = await query
         .order("created_at", { ascending: false })
         .range(offset, offset + limit - 1);
 
@@ -50,6 +84,90 @@ alertsRouter.get("/", async (req: Request, res: Response) => {
         totalCount,
         totalPageCount,
     });
+});
+
+/**
+ * POST /api/v1/alerts/ingest
+ * Protected endpoint to ingest parsed CDSCO alerts from the ML agent.
+ */
+alertsRouter.post("/ingest", async (req: Request, res: Response) => {
+    // 1. Validate Secret Header
+    const authHeader = req.headers["x-api-secret"];
+    const expectedSecret = process.env.API_SECRET_KEY;
+
+    if (!authHeader || authHeader !== expectedSecret) {
+        res.status(401).json({ error: "Unauthorized access" });
+        return;
+    }
+
+    const { alerts } = req.body;
+    const parseResult = AlertsArraySchema.safeParse(alerts);
+    if (!parseResult.success) {
+        res.status(400).json({ error: "Invalid payload schema", details: parseResult.error });
+        return;
+    }
+
+    const validatedAlerts = parseResult.data;
+
+    try {
+        // 2. Insert alerts into drug_alerts table
+        const { data: insertedAlerts, error: insertError } = await supabase
+            .from("drug_alerts")
+            .insert(validatedAlerts)
+            .select();
+
+        if (insertError) {
+            console.error("Error inserting alerts:", insertError);
+            res.status(500).json({ error: "Database error inserting alerts" });
+            return;
+        }
+
+        // 3. Update medicines table based on matched batches
+        const updatePromises = validatedAlerts.map((alert) => {
+            if (alert.batch_number) {
+                let q = supabase
+                    .from("medicines")
+                    .update({ status: "recalled", is_counterfeit_alert: true })
+                    .eq("batch_number", alert.batch_number);
+
+                if (alert.manufacturer) {
+                    q = q.eq("manufacturer", alert.manufacturer);
+                } else if (alert.reported_brand_name) {
+                    q = q.eq("brand_name", alert.reported_brand_name);
+                }
+                return q;
+            }
+            return Promise.resolve();
+        });
+
+        await Promise.all(updatePromises);
+
+        // 4. Dispatch Web Push Notifications using shared service
+        if (insertedAlerts && insertedAlerts.length > 0) {
+            const pushPromises = insertedAlerts.map((alert) => {
+                return triggerRecallAlert({
+                    id: alert.id ? String(alert.id) : "unknown",
+                    medicineName: alert.reported_brand_name || "Unknown Medicine",
+                    batchNumber: alert.batch_number,
+                    manufacturer: alert.manufacturer,
+                    reason: `Alert of type ${alert.alert_type || "NSQ"} in ${alert.state || "Unknown region"}`,
+                    severity: "high",
+                    source: "CDSCO Live Feed",
+                    recalledAt: alert.reported_at || new Date().toISOString(),
+                });
+            });
+            await Promise.all(pushPromises);
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Alerts ingested and notifications dispatched",
+            inserted: insertedAlerts?.length,
+        });
+    } catch (error) {
+        console.error("Unexpected error in /ingest:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
 });
 
 export default alertsRouter;

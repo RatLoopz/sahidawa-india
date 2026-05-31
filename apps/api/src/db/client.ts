@@ -3,16 +3,23 @@ import logger from "../utils/logger";
 
 // ── Environment resolution ────────────────────────────────────────────────────
 
-const supabaseUrl =
-    process.env.SUPABASE_URL ||
-    process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    "http://localhost:54321";
+if (!process.env.SUPABASE_URL) {
+    throw new Error(
+        "Missing required environment variable: SUPABASE_URL. " +
+            "Set it in your .env file (e.g. https://<project>.supabase.co)."
+    );
+}
 
-const supabaseKey =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.SUPABASE_ANON_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    "local-development-key";
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error(
+        "Missing required environment variable: SUPABASE_SERVICE_ROLE_KEY. " +
+            "The API backend requires the service_role key to bypass RLS for server-side writes. " +
+            "Do not use SUPABASE_ANON_KEY here — it is subject to RLS and will silently drop writes."
+    );
+}
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // ── Connection pool config ────────────────────────────────────────────────────
 // Supabase JS uses HTTP fetch under the hood (not raw pg sockets).
@@ -21,8 +28,8 @@ const supabaseKey =
 //   - Enforcing a hard per-request timeout (connectionTimeoutMillis equivalent)
 //   - Retrying transient network errors automatically
 
-const MAX_CONNECTIONS = 20;          // max concurrent DB requests
-const IDLE_TIMEOUT_MS = 30_000;      // 30 s — matches pg idleTimeoutMillis
+const MAX_CONNECTIONS = 20; // max concurrent DB requests
+const IDLE_TIMEOUT_MS = 30_000; // 30 s — matches pg idleTimeoutMillis
 const CONNECTION_TIMEOUT_MS = 2_000; // 2 s  — matches pg connectionTimeoutMillis
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 500;
@@ -80,15 +87,9 @@ export const pool = new ConnectionPool(MAX_CONNECTIONS);
 
 // ── Fetch wrapper with timeout + retry ───────────────────────────────────────
 
-async function fetchWithTimeout(
-    input: RequestInfo | URL,
-    init?: RequestInit
-): Promise<Response> {
+async function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
     const controller = new AbortController();
-    const timeout = setTimeout(
-        () => controller.abort(),
-        CONNECTION_TIMEOUT_MS
-    );
+    const timeout = setTimeout(() => controller.abort(), CONNECTION_TIMEOUT_MS);
 
     try {
         const response = await fetch(input, {
@@ -97,11 +98,9 @@ async function fetchWithTimeout(
         });
         return response;
     } catch (err) {
-        console.error(err)
+        console.error(err);
         if ((err as Error).name === "AbortError") {
-            throw new Error(
-                `Database request timed out after ${CONNECTION_TIMEOUT_MS}ms`
-            );
+            throw new Error(`Database request timed out after ${CONNECTION_TIMEOUT_MS}ms`);
         }
         throw err;
     } finally {
@@ -118,7 +117,7 @@ async function fetchWithRetry(
         try {
             return await fetchWithTimeout(input, init);
         } catch (err) {
-            console.error(err)
+            console.error(err);
             const isLast = attempt === retries;
             const msg = err instanceof Error ? err.message : String(err);
 
@@ -139,10 +138,7 @@ async function fetchWithRetry(
 
 // ── Pool-aware fetch ──────────────────────────────────────────────────────────
 
-async function pooledFetch(
-    input: RequestInfo | URL,
-    init?: RequestInit
-): Promise<Response> {
+async function pooledFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
     await pool.acquire();
     try {
         return await fetchWithRetry(input, init);
@@ -158,7 +154,7 @@ export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseKey, {
         fetch: pooledFetch as typeof fetch,
     },
     auth: {
-        persistSession: false,   // server-side — no browser storage
+        persistSession: false, // server-side — no browser storage
         autoRefreshToken: false,
     },
 });
@@ -166,7 +162,9 @@ export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseKey, {
 // ── Graceful shutdown ─────────────────────────────────────────────────────────
 
 function gracefulShutdown(signal: string) {
-    logger.warn(`Received ${signal} — waiting for ${pool.stats.active} active DB connection(s) to drain...`);
+    logger.warn(
+        `Received ${signal} — waiting for ${pool.stats.active} active DB connection(s) to drain...`
+    );
 
     const check = setInterval(() => {
         if (pool.stats.active === 0) {
@@ -185,7 +183,7 @@ function gracefulShutdown(signal: string) {
 }
 
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
-process.on("SIGINT",  () => gracefulShutdown("SIGINT"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
 // Log pool exhaustion warnings
 setInterval(() => {
