@@ -12,10 +12,16 @@ import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence, Variants } from "framer-motion";
-import { submitReport, geocodePincode } from "@/lib/api";
+import {
+    submitReport,
+    geocodePincode,
+    analyzeMedicineImage,
+    type MedicineImageAnalysis,
+} from "@/lib/api";
 import { preprocessMedicineImage } from "@/lib/imageEnhancer";
 import LazyImage from "@/components/LazyImage";
 import { LiveMessage } from "@/components/ui/LiveMessage";
+import { MedicinePhotoUpload } from "@/components/medicine";
 
 // ─── Cloudinary env ────────────────────────────────────────────────────────────
 // Uploads are now securely routed through our backend API (/api/upload),
@@ -93,7 +99,45 @@ interface ImageEntry {
     preview: string; // blob URL of the original user file
     cloudUrl: string; // Cloudinary secure_url from enhanced file
     name: string;
+    analysis?: MedicineImageAnalysis | UnavailableImageAnalysis;
 }
+
+interface UnavailableImageAnalysis {
+    isFake: false;
+    confidence: 0;
+    verdict: "unavailable";
+    details: string;
+}
+
+type ImageAnalysisState = ImageEntry["analysis"];
+
+const analysisText: Record<NonNullable<ImageAnalysisState>["verdict"], string> = {
+    likely_genuine: "Likely genuine",
+    suspicious: "Suspicious",
+    likely_fake: "Likely fake",
+    unavailable: "Analysis unavailable",
+};
+
+const analysisTone: Record<NonNullable<ImageAnalysisState>["verdict"], string> = {
+    likely_genuine:
+        "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/20 dark:text-emerald-300",
+    suspicious:
+        "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/20 dark:text-amber-300",
+    likely_fake:
+        "border-red-200 bg-red-50 text-red-700 dark:border-red-950 dark:bg-red-950/20 dark:text-red-300",
+    unavailable:
+        "border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300",
+};
+
+const unavailableAnalysis = (error: unknown): UnavailableImageAnalysis => ({
+    isFake: false,
+    confidence: 0,
+    verdict: "unavailable",
+    details:
+        error instanceof Error
+            ? error.message
+            : "Image analysis could not be completed. Your report can still be submitted.",
+});
 
 // ─── Animation variants ────────────────────────────────────────────────────────
 const PAGE: Variants = {
@@ -266,7 +310,7 @@ function Progress({ current }: { current: number }) {
                             key={s.n}
                             className={`flex items-center gap-2 rounded-lg border px-3.5 py-1.5 text-xs font-bold transition-all duration-200 select-none ${
                                 done
-                                    ? "border-emerald-100 dark:border-emerald-900/30 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400"
+                                    ? "border-emerald-100 bg-emerald-50 text-emerald-600 dark:border-emerald-900/30 dark:bg-emerald-950/20 dark:text-emerald-400"
                                     : active
                                       ? "border-(--color-text-primary) bg-(--color-text-primary) text-(--color-surface-page)"
                                       : "border-(--color-border-muted) bg-(--color-surface-page) text-(--color-text-muted)"
@@ -280,7 +324,11 @@ function Progress({ current }: { current: number }) {
                             ) : (
                                 <>
                                     <span
-                                        className={active ? "text-emerald-400" : "text-(--color-text-muted)"}
+                                        className={
+                                            active
+                                                ? "text-emerald-400"
+                                                : "text-(--color-text-muted)"
+                                        }
                                     >
                                         {s.n}
                                     </span>
@@ -365,101 +413,52 @@ function Step2({
         setValue,
         formState: { errors },
     } = useFormContext<FormValues>();
-    const ref = useRef<HTMLInputElement>(null);
     const [busy, setBusy] = useState(false);
-    const [drag, setDrag] = useState(false);
     const [upErr, setUpErr] = useState<string | null>(null);
     const uploadErrorId = useId();
     const imageErrorId = useId();
 
     const imgErr = errors.images?.message as string | undefined;
 
-    // Upload one file to Cloudinary securely via our API route
-    const uploadOne = async (file: File): Promise<string> => {
-        const fd = new FormData();
-        fd.append("file", file);
-        const res = await fetch("/api/upload", { method: "POST", body: fd });
+    const handleUploadComplete = (url: string) => {
+        setUpErr(null);
 
-        if (!res.ok) {
-            const e = (await res.json().catch(() => ({}))) as { error?: string };
-            throw new Error(e.error ?? `HTTP ${res.status}`);
-        }
+        // Update state and form value synchronously so validation passes instantly
+        const next = [
+            ...images,
+            {
+                preview: url,
+                cloudUrl: url,
+                name: `Photo #${images.length + 1}`,
+            },
+        ];
+        setImages(next);
+        setValue(
+            "images",
+            next.map((i) => i.cloudUrl),
+            { shouldValidate: true }
+        );
 
-        return ((await res.json()) as { secure_url: string }).secure_url;
+        // Run AI analysis asynchronously in the background
+        setBusy(true);
+        void analyzeMedicineImage(url)
+            .then((analysis) => {
+                setImages((currentImages) =>
+                    currentImages.map((img) => (img.cloudUrl === url ? { ...img, analysis } : img))
+                );
+            })
+            .catch((err) => {
+                const analysis = unavailableAnalysis(err);
+                setImages((currentImages) =>
+                    currentImages.map((img) => (img.cloudUrl === url ? { ...img, analysis } : img))
+                );
+            })
+            .finally(() => {
+                setBusy(false);
+            });
     };
 
-    const processFiles = useCallback(
-        async (files: File[]) => {
-            const imgs = files.filter((f) => f.type.startsWith("image/"));
-            if (!imgs.length) {
-                setUpErr("Only image files are accepted.");
-                return;
-            }
-            const oversized = imgs.filter((f) => f.size > MAX_FILE_SIZE);
-            if (oversized.length) {
-                setUpErr(
-                    `File${oversized.length > 1 ? "s" : ""} too large (max 10 MB): ${oversized.map((f) => f.name).join(", ")}`
-                );
-                return;
-            }
-            setUpErr(null);
-            setBusy(true);
-            try {
-                const entries: ImageEntry[] = await Promise.all(
-                    imgs.map(async (f) => {
-                        let fileToProcess = f;
-                        try {
-                            const optimizedBlob = await preprocessMedicineImage(f);
-                            // Defensive structural check to verify a solid asset payload was returned
-                            if (
-                                optimizedBlob &&
-                                typeof optimizedBlob !== "string" &&
-                                optimizedBlob instanceof Blob
-                            ) {
-                                fileToProcess = new File(
-                                    [optimizedBlob],
-                                    renameFileForMimeType(f.name, optimizedBlob.type),
-                                    {
-                                        type: optimizedBlob.type || f.type,
-                                        lastModified: Date.now(),
-                                    }
-                                );
-                            }
-                        } catch (error) {
-                            console.error(
-                                "Image enhancement failed, falling back to original:",
-                                error
-                            );
-                        }
-
-                        return {
-                            // UX optimization: Generate preview from original file to maintain visual comfort
-                            preview: URL.createObjectURL(f),
-                            cloudUrl: await uploadOne(fileToProcess),
-                            name: f.name,
-                        };
-                    })
-                );
-                const next = [...images, ...entries];
-                setImages(next);
-                setValue(
-                    "images",
-                    next.map((i) => i.cloudUrl),
-                    { shouldValidate: true }
-                );
-            } catch (e) {
-                setUpErr(e instanceof Error ? e.message : "Upload failed. Please retry.");
-            } finally {
-                setBusy(false);
-                if (ref.current) ref.current.value = "";
-            }
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        },
-        [images, setImages, setValue]
-    );
-
     const remove = (idx: number) => {
-        URL.revokeObjectURL(images[idx].preview);
         const next = images.filter((_, i) => i !== idx);
         setImages(next);
         setValue(
@@ -471,59 +470,16 @@ function Step2({
 
     return (
         <div className="space-y-5">
-            {/* Drop zone */}
-            <div
-                onClick={() => !busy && ref.current?.click()}
-                onDragOver={(e) => {
-                    e.preventDefault();
-                    setDrag(true);
-                }}
-                onDragLeave={() => setDrag(false)}
-                onDrop={(e) => {
-                    e.preventDefault();
-                    setDrag(false);
-                    processFiles(Array.from(e.dataTransfer.files));
-                }}
-                className={`relative flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-12 text-center transition-all duration-200 ${drag ? "scale-[1.01] border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20" : "border-(--color-border-muted) bg-(--color-surface-muted)/50 hover:border-emerald-500"} ${busy ? "cursor-wait" : "cursor-pointer"}`}
-            >
-                <input
-                    ref={ref}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={(e) => processFiles(Array.from(e.target.files ?? []))}
-                    disabled={busy}
-                    aria-invalid={upErr || imgErr ? "true" : undefined}
-                    aria-describedby={upErr ? uploadErrorId : imgErr ? imageErrorId : undefined}
-                />
-
-                {busy ? (
-                    <>
-                        <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-slate-200 border-t-emerald-500" />
-                        <p className="text-sm font-semibold text-(--color-text-secondary)">
-                            Uploading to secure storage…
-                        </p>
-                    </>
-                ) : (
-                    <>
-                        <span className="mb-1 rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) p-3 text-(--color-text-muted) shadow-sm">
-                            <Icon.Upload />
-                        </span>
-                        <div>
-                            <p className="text-base font-bold text-(--color-text-primary)">
-                                Drop images or{" "}
-                                <span className="text-emerald-600 underline underline-offset-2">
-                                    select files
-                                </span>
-                            </p>
-                            <p className="mt-1 text-sm font-medium text-(--color-text-secondary)">
-                                JPG · PNG · WEBP &nbsp;·&nbsp; Multiple files OK
-                            </p>
-                        </div>
-                    </>
-                )}
-            </div>
+            {/* Reusable MedicinePhotoUpload component */}
+            <MedicinePhotoUpload
+                key={images.length}
+                onUploadComplete={handleUploadComplete}
+                onError={(err) => setUpErr(err)}
+                label={
+                    images.length > 0 ? "Upload another medicine photo" : "Upload medicine photo"
+                }
+                disabled={busy}
+            />
 
             {/* Upload error */}
             <AnimatePresence>
@@ -536,7 +492,7 @@ function Step2({
                         <LiveMessage
                             tone="critical"
                             id={uploadErrorId}
-                            className="flex items-start gap-2 rounded-xl border border-red-200 dark:border-red-950 bg-red-50 dark:bg-red-950/20 px-4 py-3 text-sm font-medium text-red-600 dark:text-red-400"
+                            className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600 dark:border-red-950 dark:bg-red-950/20 dark:text-red-400"
                         >
                             <span className="mt-0.5">
                                 <Icon.Alert />
@@ -589,9 +545,41 @@ function Step2({
                                         {img.name}
                                     </p>
                                 </div>
+                                {img.analysis && (
+                                    <span
+                                        className={`absolute top-2 left-2 rounded-full border px-2 py-1 text-[10px] font-bold shadow-sm ${analysisTone[img.analysis.verdict]}`}
+                                    >
+                                        {analysisText[img.analysis.verdict]}
+                                    </span>
+                                )}
                             </motion.div>
                         ))}
                     </AnimatePresence>
+                </div>
+            )}
+
+            {images.some((img) => img.analysis) && (
+                <div className="space-y-2">
+                    {images.map((img) =>
+                        img.analysis ? (
+                            <div
+                                key={`${img.cloudUrl}-analysis`}
+                                className={`rounded-xl border px-4 py-3 text-sm font-medium ${analysisTone[img.analysis.verdict]}`}
+                            >
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <span>{analysisText[img.analysis.verdict]}</span>
+                                    {img.analysis.verdict !== "unavailable" && (
+                                        <span>
+                                            {Math.round(img.analysis.confidence * 100)}% confidence
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="mt-1 text-xs leading-relaxed">
+                                    {img.analysis.details}
+                                </p>
+                            </div>
+                        ) : null
+                    )}
                 </div>
             )}
 
@@ -765,7 +753,6 @@ export default function ReportWizard() {
         return () => {
             images.forEach((i) => URL.revokeObjectURL(i.preview));
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const methods = useForm<FormValues>({
@@ -929,7 +916,7 @@ export default function ReportWizard() {
                                             type="button"
                                             onClick={next}
                                             disabled={submitting}
-                                            className="flex items-center gap-2 rounded-xl bg-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 px-7 py-3 text-sm font-bold text-white shadow-md shadow-slate-900/10 dark:shadow-none transition-all duration-200 hover:bg-slate-800 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                                            className="flex items-center gap-2 rounded-xl bg-slate-900 px-7 py-3 text-sm font-bold text-white shadow-md shadow-slate-900/10 transition-all duration-200 hover:bg-slate-800 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:shadow-none dark:hover:bg-slate-200"
                                         >
                                             Continue <Icon.Arrow />
                                         </button>

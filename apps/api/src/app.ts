@@ -37,7 +37,9 @@ import notificationsRouter from "./routes/notifications";
 import scanRouter from "./routes/scan";
 import alertsRouter from "./routes/alerts";
 import lasaRouter from "./routes/lasa";
+import mlRouter from "./routes/ml";
 import { supabase } from "./db/client";
+import { createCorsOptions } from "./config/cors";
 
 import { errorHandler } from "./middleware/errorHandler";
 
@@ -54,13 +56,7 @@ app.use(
 );
 
 // Security: restrict CORS to known origins instead of wildcard
-const allowedOrigins = ["http://localhost:3000", "http://localhost:4000", "http://localhost:8000"];
-app.use(
-    cors({
-        origin: allowedOrigins,
-        credentials: true,
-    })
-);
+app.use(cors(createCorsOptions()));
 
 app.use(express.json({ limit: "1mb" }));
 app.use(verifyLimiter);
@@ -77,45 +73,92 @@ app.use(
     })
 );
 
-app.get("/", (req: Request, res: Response) => {
+app.get("/", (_req: Request, res: Response) => {
     logger.info("Root route accessed");
-    res.send("SahiDawa-India API is running successfully!");
+
+    res.status(200).json({
+        name: "SahiDawa API",
+        description: "India's Open-Source Citizen Medicine Verifier & Rural Health Bridge",
+        version: process.env.npm_package_version || "0.1.0",
+        status: "running",
+        environment: process.env.NODE_ENV || "development",
+
+        endpoints: {
+            health: "/health",
+            docs: "/api/docs",
+        },
+
+        repository: "https://github.com/RatLoopz/sahidawa-india",
+
+        timestamp: new Date().toISOString(),
+    });
 });
 
 // Admin Routes — protected: must be authenticated + have admin role
 app.use("/api/v1/admin", requireAuth, requireRole("admin"), adminRoutes);
 
-app.get("/health", async (req: Request, res: Response) => {
-    logger.info("Health check endpoint accessed");
+app.get("/health", async (_req: Request, res: Response) => {
+    const start = Date.now();
 
     try {
         const { error } = await supabase.from("medicines").select("id").limit(1);
 
+        const uptime = process.uptime();
+
+        const healthData = {
+            status: error ? "degraded" : "ok",
+            service: "sahidawa-api",
+            version: process.env.npm_package_version || "unknown",
+
+            environment: process.env.NODE_ENV || "development",
+
+            uptime: `${Math.floor(uptime)}s`,
+
+            database: {
+                status: error ? "unreachable" : "connected",
+            },
+
+            services: {
+                api: "healthy",
+                redis: "not-configured-yet",
+                mlService: "not-configured-yet",
+            },
+
+            system: {
+                nodeVersion: process.version,
+                platform: process.platform,
+                memoryUsage: {
+                    rss: `${Math.round(process.memoryUsage().rss / 1024 / 1024)} MB`,
+                    heapUsed: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB`,
+                },
+            },
+
+            responseTime: `${Date.now() - start}ms`,
+            timestamp: new Date().toISOString(),
+        };
+
         if (error) {
             return res.status(503).json({
-                status: "degraded",
-                db: "unreachable",
-                error: error.message,
-                timestamp: new Date().toISOString(),
+                ...healthData,
+                database: {
+                    status: "unreachable",
+                    error: error.message,
+                },
             });
         }
 
-        return res.json({
-            status: "ok",
-            db: "connected",
-            timestamp: new Date().toISOString(),
-        });
-    } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Unknown error";
+        return res.status(200).json(healthData);
+    } catch (err) {
         return res.status(500).json({
             status: "error",
-            db: "unreachable",
-            error: message,
+            service: "sahidawa-api",
+            error: err instanceof Error ? err.message : "Unknown error",
             timestamp: new Date().toISOString(),
         });
     }
 });
 
+app.use("/api/reports", reportsRouter);
 app.use("/reports", reportsRouter);
 app.use("/api/pharmacies", pharmaciesRouter);
 app.use("/api/verify", verifyRouter);
@@ -124,6 +167,7 @@ app.use("/api/notifications", notificationsRouter);
 app.use("/api/v1/scan", scanRouter);
 app.use("/api/v1/lasa", lasaRouter);
 app.use("/api/v1/alerts", alertsRouter);
+app.use("/api/ml", mlRouter);
 
 // ── Swagger UI (/api/docs) ──────────────────────────────────────────────────
 app.use(

@@ -26,6 +26,12 @@ const INITIAL_MESSAGES = {
     kn: "ನಮಸ್ಕಾರ, ನಾನು SahiDawa. ಔಷಧಿಗಳನ್ನು ಪರಿಶೀಲಿಸಲು, ಲಕ್ಷಣಗಳನ್ನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳಲು ಮತ್ತು ಸಮೀಪದ ಆರೋಗ್ಯ ಸೇವೆಗಳನ್ನು ಹುಡುಕಲು ನಾನು ಸಹಾಯ ಮಾಡಬಹುದು. ಇಂದು ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಲಿ?",
 
     ur: "السلام علیکم، میں SahiDawa ہوں۔ میں ادویات کی تصدیق، علامات کو سمجھنے اور قریبی صحت کی سہولیات تلاش کرنے میں مدد کر سکتا ہوں۔ آج میں آپ کی کیسے مدد کر سکتا ہوں؟",
+
+    hi: "नमस्ते, मैं SahiDawa हूँ, आपका भरोसेमंद स्वास्थ्य साथी। मैं दवाइयों की पुष्टि करने, लक्षणों को समझने और आपके नज़दीकी स्वास्थ्य सेवाओं को खोजने में मदद कर सकता हूँ। आज मैं आपकी कैसे मदद कर सकता हूँ?",
+
+    pa: "ਸਤ ਸ੍ਰੀ ਅਕਾਲ, ਮੈਂ SahiDawa ਹਾਂ, ਤੁਹਾਡਾ ਭਰੋਸੇਯੋਗ ਸਿਹਤ ਸਾਥੀ। ਮੈਂ ਦਵਾਈਆਂ ਦੀ ਪੁਸ਼ਟੀ ਕਰਨ, ਲੱਛਣਾਂ ਨੂੰ ਸਮਝਣ ਅਤੇ ਤੁਹਾਡੇ ਨੇੜੇ ਸਿਹਤ ਸੇਵਾਵਾਂ ਲੱਭਣ ਵਿੱਚ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ। ਅੱਜ ਮੈਂ ਤੁਹਾਡੀ ਕਿਵੇਂ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ?",
+
+    od: "ନମସ୍କାର, ମୁଁ SahiDawa, ଆପଣଙ୍କର ଭରସାଯୋଗ୍ୟ ସ୍ୱାସ୍ଥ୍ୟ ସହଚର। ମୁଁ ଔଷଧ ଯାଞ୍ଚ କରିବା, ଲକ୍ଷଣ ବୁଝିବା ଏବଂ ନିକଟସ୍ଥ ସ୍ୱାସ୍ଥ୍ୟ ସେବା ଖୋଜିବାରେ ସହାୟତା କରିପାରିବି। ଆଜି ମୁଁ ଆପଣଙ୍କୁ କିପରି ସହାୟତା କରିପାରିବି?",
 };
 
 // Icons
@@ -217,6 +223,8 @@ export default function ChatUI() {
             kn: "kn-IN",
             ur: "ur-IN",
             mr: "mr-IN",
+            pa: "pa-IN",
+            od: "or-IN",
         };
         r.lang = speechLocales[locale as keyof typeof speechLocales] || "en-IN";
         r.interimResults = false;
@@ -242,12 +250,14 @@ export default function ChatUI() {
     };
 
     return (
-        <div className="flex h-screen flex-col bg-slate-50 font-sans">
-            {/* Header */}
-            <header className="flex-shrink-0 border-b border-slate-200 bg-white px-5 py-4">
-                <div className="mx-auto flex max-w-3xl items-center justify-between">
+        <div className="relative flex h-screen w-full flex-col overflow-hidden bg-transparent font-sans">
+            {/* Floating Header */}
+            <header className="absolute top-4 right-4 left-4 z-20 mx-auto max-w-3xl rounded-3xl border border-white/30 bg-white/60 px-5 py-4 shadow-[0_8px_30px_rgb(0,0,0,0.08)] backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/60 dark:shadow-black/50">
+                <div className="flex items-center justify-between">
                     <div className="flex items-baseline gap-2">
-                        <h1 className="text-xl font-semibold text-slate-800">SahiDawa</h1>
+                        <h1 className="text-xl font-semibold text-slate-800 dark:text-white">
+                            SahiDawa
+                        </h1>
                         <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-600">
                             CDSCO
                         </span>
@@ -257,8 +267,11 @@ export default function ChatUI() {
             </header>
 
             {/* Messages */}
-            <main ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-5">
-                <div className="mx-auto max-w-3xl">
+            <main
+                ref={messagesContainerRef}
+                className="absolute inset-0 z-0 overflow-y-auto px-4 pt-28 pb-36"
+            >
+                <div className="mx-auto flex max-w-3xl flex-col gap-6">
                     {messages.map((msg) => (
                         <ChatBubble key={msg.id} msg={msg} onRetry={handleRetry} />
                     ))}
@@ -266,7 +279,7 @@ export default function ChatUI() {
                     {isTyping && <TypingIndicator />}
 
                     {showWelcome && !isTyping && messages.length === 1 && (
-                        <div className="mt-6">
+                        <div>
                             <p className="mb-3 text-xs font-medium tracking-wide text-slate-400 uppercase">
                                 Quick actions
                             </p>
@@ -289,11 +302,11 @@ export default function ChatUI() {
                 </div>
             </main>
 
-            {/* Input Bar */}
-            <footer className="flex-shrink-0 border-t border-slate-200 bg-white">
-                <div className="mx-auto max-w-3xl px-4 py-4">
+            {/* Floating Input Pill */}
+            <footer className="absolute right-4 bottom-6 left-4 z-20 mx-auto max-w-3xl rounded-[2rem] border border-white/30 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/60 dark:shadow-black/50">
+                <div className="px-4 py-3">
                     {isListening && (
-                        <div className="mb-3 flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm text-emerald-800">
+                        <div className="mb-3 flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-400">
                             <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
                             <span>Listening... speak clearly</span>
                         </div>
@@ -304,8 +317,8 @@ export default function ChatUI() {
                             onClick={toggleVoice}
                             className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
                                 isListening
-                                    ? "bg-red-500 text-white"
-                                    : "border border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                    ? "bg-red-500 text-white shadow-md shadow-red-500/20"
+                                    : "border border-white/40 bg-white/50 text-slate-600 hover:bg-white/80 dark:border-white/10 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-700/50"
                             }`}
                         >
                             {isListening ? <IconStop /> : <IconMic size={20} />}
@@ -318,7 +331,7 @@ export default function ChatUI() {
                             onKeyDown={handleKeyDown}
                             placeholder="Type your health concern..."
                             rows={1}
-                            className="flex-1 resize-none rounded-xl border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                            className="flex-1 resize-none rounded-xl border border-white/40 bg-white/50 px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:border-white/10 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500"
                             style={{ minHeight: 44, maxHeight: 100 }}
                         />
 
@@ -327,17 +340,20 @@ export default function ChatUI() {
                             disabled={!input.trim() || isTyping}
                             className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
                                 input.trim() && !isTyping
-                                    ? "bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95"
-                                    : "cursor-not-allowed bg-slate-100 text-slate-400"
+                                    ? "bg-linear-to-r from-emerald-500 to-teal-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)] hover:from-emerald-600 hover:to-teal-600 active:scale-95"
+                                    : "cursor-not-allowed border border-white/20 bg-white/40 text-slate-400 dark:border-white/5 dark:bg-slate-800/40 dark:text-slate-500"
                             }`}
                         >
                             <IconSend />
                         </button>
                     </div>
 
-                    <p className="mt-3 text-center text-[10px] text-slate-400">
-                        For informational use only • Consult a doctor
-                    </p>
+                    {/* Minimal Footer Text */}
+                    <div className="mt-2 text-center">
+                        <p className="text-[10px] font-medium text-slate-400/80">
+                            For informational use only • Consult a doctor
+                        </p>
+                    </div>
                 </div>
             </footer>
         </div>

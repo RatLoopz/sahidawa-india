@@ -2,6 +2,83 @@
 
 ---
 
+## Windows Frontend Setup for First-Time Contributors
+
+This section is for new contributors who want to run only the SahiDawa frontend locally on Windows.
+
+If you are new to command line tools, follow the steps one by one.
+
+### 1. Check that Node.js, npm, and Git are installed
+
+Open PowerShell and run:
+
+```bash
+node -v
+npm -v
+git --version
+```
+
+If all three commands show version numbers, the tools are installed correctly.
+
+If `node`, `npm`, or `git` is not recognized, install Node.js and Git first. After installing them, close PowerShell completely and open it again so Windows can detect the new commands.
+
+### 2. Create a folder for the project
+
+You can create the project folder anywhere. For example:
+
+```bash
+mkdir gssoc
+cd gssoc
+```
+
+If `cd Desktop` does not work on your system, create the folder directly inside your user directory instead.
+
+### 3. Clone the repository
+
+```bash
+git clone https://github.com/RatLoopz/sahidawa-india.git
+cd sahidawa-india
+```
+
+### 4. Install dependencies on Windows
+
+First, try:
+
+```bash
+npm install
+```
+
+If installation fails on Windows because of the prepare script, use:
+
+```bash
+npm install --ignore-scripts
+```
+
+This skips the extra setup script and helps install the dependencies on Windows.
+
+### 5. Run only the frontend
+
+Running `npm run dev` from the root may start multiple workspaces, including backend services that require Supabase environment variables.
+
+For frontend-only development, go to the web app folder:
+
+```bash
+cd apps/web
+npm run dev
+```
+
+### 6. Open the frontend locally
+
+After the frontend starts, open this URL in your browser:
+
+```text
+http://localhost:3000/en
+```
+
+You should now see the SahiDawa frontend running locally.
+
+---
+
 ## PART 1: GitHub Repository Setup (Do This First)
 
 ### Step 1 — Create the repository

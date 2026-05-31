@@ -18,7 +18,7 @@ const DEBOUNCE_MS = 250;
  *  - Click-outside to close
  *  - Selecting a suggestion navigates to the scan/verify flow
  */
-export default function SearchBar() {
+export default function SearchBar({ dark = false }: { dark?: boolean }) {
     const router = useRouter();
     const params = useParams();
     const locale = params.locale as string;
@@ -203,49 +203,67 @@ export default function SearchBar() {
     };
     // ── Render ─────────────────────────────────────────────────────────────────
     return (
-        <div
-            ref={containerRef}
-            className="relative mt-8 rounded-[3rem] border border-slate-200 bg-white p-4 shadow-sm transition-all duration-300 focus-within:scale-[1.005] focus-within:border-emerald-500/30 focus-within:shadow-md focus-within:ring-4 focus-within:ring-emerald-500/10"
-        >
-            <div className="flex items-center gap-2 px-2 sm:gap-4">
-                {/* Search icon — shows a subtle spinner while fetching */}
-                <Search
-                    className={`ms-2 shrink-0 transition-colors ${
-                        isLoading ? "animate-pulse text-emerald-400" : "text-slate-400"
-                    }`}
-                    size={24}
-                    aria-hidden="true"
-                />
-                <input
-                    ref={inputRef}
-                    id="global-search-input"
-                    type="text"
-                    role="combobox"
-                    aria-autocomplete="list"
-                    aria-controls="search-suggestions-listbox"
-                    aria-activedescendant={
-                        activeIndex >= 0 ? `search-suggestion-${activeIndex}` : undefined
-                    }
-                    aria-expanded={isOpen}
-                    autoComplete="off"
-                    value={query}
-                    onChange={handleInputChange}
-                    onKeyDown={handleKeyDown}
-                    onFocus={() => {
-                        if (suggestions.length > 0) setIsOpen(true);
-                    }}
-                    placeholder={tHome("search_placeholder")}
-                    className="w-full border-none bg-transparent px-4 py-3 font-medium text-slate-700 outline-none placeholder:text-slate-400"
-                    aria-label="Search medicine or batch"
-                />
-                <button
-                    onClick={() => performSearch(query)}
-                    className="shrink-0 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 active:scale-95 sm:px-6 sm:text-base"
-                    aria-label="Submit search"
-                >
-                    {tHome("search_button")}
-                </button>
+        <div ref={containerRef} className="relative w-full">
+            <div
+                className={`relative rounded-2xl border transition-all duration-300 ${
+                    dark
+                        ? isOpen
+                            ? "border-emerald-500/60 bg-[#1a2a3a] shadow-[0_0_0_3px_rgba(16,185,129,0.15)]"
+                            : "border-white/10 bg-[#1a2a3a] focus-within:border-emerald-500/60 focus-within:shadow-[0_0_0_3px_rgba(16,185,129,0.15)]"
+                        : isOpen
+                          ? "border-emerald-400/60 bg-white/60 shadow-[0_0_0_4px_rgba(16,185,129,0.12)] dark:bg-slate-900/60"
+                          : "border-white/50 bg-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.06)] focus-within:border-emerald-400/60 focus-within:shadow-[0_0_0_4px_rgba(16,185,129,0.12)] dark:border-white/10 dark:bg-slate-900/50"
+                } backdrop-blur-2xl`}
+            >
+                <div className="flex items-center gap-3 px-4 py-3">
+                    <Search
+                        className={`shrink-0 transition-all duration-300 ${
+                            isLoading
+                                ? "scale-110 animate-pulse text-emerald-400"
+                                : dark
+                                  ? "text-slate-500"
+                                  : "text-slate-400 dark:text-slate-500"
+                        }`}
+                        size={22}
+                        aria-hidden="true"
+                    />
+                    <input
+                        ref={inputRef}
+                        id="global-search-input"
+                        type="text"
+                        role="combobox"
+                        aria-autocomplete="list"
+                        aria-controls="search-suggestions-listbox"
+                        aria-activedescendant={
+                            activeIndex >= 0 ? `search-suggestion-${activeIndex}` : undefined
+                        }
+                        aria-expanded={isOpen}
+                        autoComplete="off"
+                        value={query}
+                        onChange={handleInputChange}
+                        onKeyDown={handleKeyDown}
+                        onFocus={() => {
+                            if (suggestions.length > 0) setIsOpen(true);
+                        }}
+                        placeholder={tHome("search_placeholder")}
+                        className={`w-full border-none bg-transparent py-1.5 text-base font-medium outline-none ${
+                            dark
+                                ? "text-slate-100 placeholder:text-slate-500"
+                                : "text-slate-800 placeholder:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-500"
+                        }`}
+                        aria-label="Search medicine or batch"
+                    />
+                    <button
+                        onClick={() => performSearch(query)}
+                        className="flex shrink-0 items-center gap-2 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-500/35 active:scale-95"
+                        aria-label="Submit search"
+                    >
+                        <Search size={16} />
+                        {tHome("search_button")}
+                    </button>
+                </div>
             </div>
+
             {/* Suggestions dropdown */}
             <SearchSuggestions
                 suggestions={suggestions}
