@@ -1,4 +1,16 @@
-name: "Issue Assignment Guard & Auto-Lock"
+name: "Issue Assignment Guard (/assign command handler)"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# WHEN: Fires on issue comments (for /assign commands) and on issue assignment.
+# WHAT:
+#   /assign command handler:
+#     - Checks the 3-issue cap
+#     - Checks if the issue is already taken by someone else
+#     - Actually assigns the commenter (was previously a stub that did nothing)
+#     - Posts a level-aware deadline confirmation comment
+#   Issue assigned event:
+#     - No-op (auto-lock was intentionally removed)
+# ─────────────────────────────────────────────────────────────────────────────
 
 on:
   issue_comment:
@@ -19,54 +31,144 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const repo = context.repo;
+            const repo      = context.repo;
             const eventName = context.eventName;
-            
-            // 1. Handle manual assignment event
-            // NOTE: Auto-locking was intentionally removed. Locking conversations
-            // prevents all contributors from commenting, asking questions, or helping
-            // the assignee — which is harmful to open-source collaboration.
+
+            // ── 1. Assignment event: no auto-lock (intentional) ─────────────
+            // Locking conversations prevents contributors from asking questions,
+            // which is harmful to open-source collaboration.
             if (eventName === 'issues' && context.payload.action === 'assigned') {
-              core.info(`Issue #${context.payload.issue.number} assigned. No auto-lock applied.`);
+              core.info('Issue #' + context.payload.issue.number + ' assigned. No auto-lock applied.');
               return;
             }
 
-            // 2. Handle issue comment event -> Audit assignment requests
-            if (eventName === 'issue_comment' && context.payload.action === 'created') {
-              const commentBody = context.payload.comment.body;
-              const issueNumber = context.issue.number;
-              const commenter = context.payload.comment.user.login;
+            // ── 2. Comment event: /assign command handler ───────────────────
+            if (eventName !== 'issue_comment' || context.payload.action !== 'created') return;
 
-              // Check if comment requests assignment
-              const requestKeywords = ['/assign', 'please assign', 'assign me'];
-              const isRequest = requestKeywords.some(keyword => commentBody.toLowerCase().includes(keyword));
+            const commentBody = context.payload.comment.body;
+            const issueNumber = context.issue.number;
+            const commenter   = context.payload.comment.user.login;
 
-              if (isRequest) {
-                console.log(`Audit trigger: @${commenter} requested assignment on Issue #${issueNumber}`);
+            // Skip bots
+            if (context.payload.comment.user.type === 'Bot') return;
 
-                // Fetch current open issues assigned to the commenter
-                const assignedIssues = await github.rest.issues.listForRepo({
-                  owner: repo.owner,
-                  repo: repo.repo,
-                  assignee: commenter,
-                  state: 'open'
-                });
+            // Only process /assign requests
+            const requestKeywords = ['/assign', 'please assign', 'assign me'];
+            const isRequest = requestKeywords.some(kw => commentBody.toLowerCase().includes(kw));
+            if (!isRequest) return;
 
-                // Filter out pull requests
-                const activeAssignedIssues = assignedIssues.data.filter(issue => !issue.pull_request);
+            core.info('Audit trigger: @' + commenter + ' requested assignment on #' + issueNumber);
 
-                if (activeAssignedIssues.length >= 3) {
-                  const assignedIssueList = activeAssignedIssues.map(i => `#${i.number} ("${i.title}")`).join('\n- ');
-                  console.log(`Denying request: @${commenter} already holds ${activeAssignedIssues.length} active assignments.`);
+            // ── 2a. Enforce 3-issue cap ─────────────────────────────────────
+            const assignedList = await github.rest.issues.listForRepo({
+              owner: repo.owner, repo: repo.repo,
+              assignee: commenter,
+              state: 'open',
+              per_page: 100
+            });
+            const activeIssues = assignedList.data.filter(i => !i.pull_request && i.number !== issueNumber);
 
-                  await github.rest.issues.createComment({
-                    owner: repo.owner,
-                    repo: repo.repo,
-                    issue_number: issueNumber,
-                    body: `❌ **Request Denied**\n\nHi @${commenter}, to ensure a fair distribution of tasks in GSSoC/Hacktoberfest, contributors are limited to a maximum of **3 active assigned issues** at a time.\n\nYou are currently assigned to the following ${activeAssignedIssues.length} active tasks:\n- ${assignedIssueList}\n\nPlease complete your currently assigned tasks before requesting assignment for new ones! Thank you for your cooperation! 🤝`
-                  });
-                } else {
-                  console.log(`Commenter @${commenter} has ${activeAssignedIssues.length} active assignments. Safe to review (no auto-assignment).`);
-                }
-              }
+            if (activeIssues.length >= 3) {
+              const issueList = activeIssues
+                .map(i => '#' + i.number + ' ("' + i.title + '")')
+                .join('\n- ');
+              core.info('Denying: @' + commenter + ' already has ' + activeIssues.length + ' active assignments.');
+              await github.rest.issues.createComment({
+                owner: repo.owner, repo: repo.repo, issue_number: issueNumber,
+                body: [
+                  '\u274C **Request Denied**',
+                  '',
+                  'Hi @' + commenter + ', to ensure a fair distribution of tasks during GSSoC/Hacktoberfest,',
+                  'contributors are limited to a maximum of **3 active assigned issues** at a time.',
+                  '',
+                  'You are currently assigned to the following ' + activeIssues.length + ' active tasks:',
+                  '- ' + issueList,
+                  '',
+                  'Please complete your currently assigned tasks before requesting assignment for new ones! \uD83E\uDD1D'
+                ].join('\n')
+              });
+              return;
             }
+
+            // ── 2b. Fetch issue data to check current assignees + labels ────
+            const issueData        = await github.rest.issues.get({ owner: repo.owner, repo: repo.repo, issue_number: issueNumber });
+            const currentAssignees = (issueData.data.assignees || []).map(a => a.login);
+
+            // Already assigned to someone else?
+            if (currentAssignees.length > 0 && !currentAssignees.includes(commenter)) {
+              const takenBy = currentAssignees.map(a => '@' + a).join(', ');
+              await github.rest.issues.createComment({
+                owner: repo.owner, repo: repo.repo, issue_number: issueNumber,
+                body: [
+                  '## \u26a0\ufe0f Already Assigned',
+                  '',
+                  'Hi @' + commenter + '! This issue is currently assigned to ' + takenBy + '.',
+                  '',
+                  'If they do not show activity within their deadline, the bot will automatically unassign',
+                  'them and the issue will be open again.',
+                  '',
+                  '\uD83D\uDC49 **To get notified when it becomes available:** click **Subscribe** (\uD83D\uDD14) on this issue',
+                  '\u2014 you can then drop `/assign` when it is free.'
+                ].join('\n')
+              });
+              return;
+            }
+
+            // Already assigned to this same person?
+            if (currentAssignees.includes(commenter)) {
+              await github.rest.issues.createComment({
+                owner: repo.owner, repo: repo.repo, issue_number: issueNumber,
+                body: '\u2139\ufe0f @' + commenter + ' \u2014 you are already assigned to this issue! Go ahead and start working. \uD83D\uDE80'
+              });
+              return;
+            }
+
+            // ── 2c. Assign the commenter ────────────────────────────────────
+            await github.rest.issues.addAssignees({
+              owner: repo.owner, repo: repo.repo,
+              issue_number: issueNumber,
+              assignees: [commenter]
+            });
+            core.info('\u2705 Assigned @' + commenter + ' to #' + issueNumber);
+
+            // ── 2d. Determine deadline from labels ──────────────────────────
+            const labels = (issueData.data.labels || []).map(l =>
+              (typeof l === 'string' ? l : l.name).toLowerCase()
+            );
+            let level = 'intermediate', maxDays = 3, warnDays = 2, levelEmoji = '\uD83D\uDFE1';
+            if (labels.includes('level:beginner') || labels.includes('good first issue')) {
+              level = 'beginner'; maxDays = 2; warnDays = 1; levelEmoji = '\uD83D\uDFE2';
+            } else if (labels.includes('level:advanced') || labels.includes('level:expert')) {
+              level = 'advanced'; maxDays = 5; warnDays = 3; levelEmoji = '\uD83D\uDD34';
+            }
+
+            const deadline    = new Date(Date.now() + maxDays * 24 * 60 * 60 * 1000);
+            const deadlineStr = deadline.toUTCString().replace(' GMT', ' UTC');
+
+            // ── 2e. Post confirmation comment ───────────────────────────────
+            await github.rest.issues.createComment({
+              owner: repo.owner, repo: repo.repo, issue_number: issueNumber,
+              body: [
+                '## \u2705 Assigned \u2014 Issue #' + issueNumber,
+                '',
+                'Hi @' + commenter + '! \uD83C\uDF89 You\'ve been assigned to this issue.',
+                '',
+                '| Field | Details |',
+                '|-------|---------|',
+                '| **Level** | ' + levelEmoji + ' `' + level + '` |',
+                '| **Deadline** | **' + maxDays + ' days** \u2192 `' + deadlineStr + '` |',
+                '| **Warning at** | ' + warnDays + ' day' + (warnDays > 1 ? 's' : '') + ' of inactivity |',
+                '',
+                '**To keep your assignment active, do at least one of:**',
+                '- \uD83D\uDCAC Post a progress update comment on this issue',
+                '- \uD83D\uDD27 Open a Draft PR with `Closes #' + issueNumber + '` in the description',
+                '',
+                'After **' + maxDays + ' days** of no activity the bot will automatically unassign you',
+                'and open this issue for other contributors.',
+                '',
+                '> \u26a0\ufe0f **Before you start coding:** search for similar open/closed issues and PRs.',
+                '> Duplicate PRs are closed without merge \u2014 even after all your hard work.',
+                '',
+                'Good luck! \uD83E\uDE7A\uD83C\uDDEE\uD83C\uDDF3'
+              ].join('\n')
+            });

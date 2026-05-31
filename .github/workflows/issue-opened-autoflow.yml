@@ -1,0 +1,221 @@
+name: "Auto-Assign Issue Opener & Smart Onboarding"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# WHEN: Fires ONLY when a new issue is opened.
+# WHAT:
+#   1. Auto-assigns the issue to the person who opened it.
+#   2. Posts a detailed comment with:
+#      - Confirmation of assignment
+#      - Duplicate-check warning (including search links)
+#      - Time deadline based on the issue's difficulty label
+#      - Exact consequences of missing the deadline
+#      - How to avoid unassignment (progress update or draft PR)
+# WHY:
+#   Maintainers were manually assigning every issue. This automates that step
+#   while educating contributors about the workflow upfront.
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+  contents: read
+
+concurrency:
+  group: issue-open-autoflow-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  auto-assign-and-onboard:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Auto-assign opener and post smart onboarding comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue   = context.payload.issue;
+            const owner   = context.repo.owner;
+            const repo    = context.repo.repo;
+            const issueNo = issue.number;
+            const opener  = issue.user.login;
+
+            // ── 0. Ignore bots ──────────────────────────────────────────────
+            if (issue.user.type === 'Bot') {
+              core.info('Bot opened this issue — skipping.');
+              return;
+            }
+
+            // ── 1. Check if the opener already holds 3 active assignments ──
+            const assigned = await github.rest.issues.listForRepo({
+              owner, repo,
+              assignee: opener,
+              state: 'open',
+              per_page: 100
+            });
+            const activeIssues = assigned.data.filter(i => !i.pull_request && i.number !== issueNo);
+
+            if (activeIssues.length >= 3) {
+              const list = activeIssues
+                .slice(0, 5)
+                .map(i => '- #' + i.number + ': ' + i.title)
+                .join('\n');
+
+              const capMsg = [
+                '## \u26a0\ufe0f Auto-Assignment Skipped \u2014 3-Issue Cap Reached',
+                '',
+                'Hi @' + opener + '! \uD83D\uDC4B You\'ve already been assigned to **' + activeIssues.length + ' open issues**:',
+                '',
+                list,
+                '',
+                'We cap active assignments at **3** to keep the queue fair for all contributors.',
+                '',
+                '**Please complete or close your existing work before this issue can be assigned to you.**',
+                'Once you\'re done, drop a comment with `/assign` here and a maintainer will assign you.',
+                '',
+                'In the meantime, this issue is open for other contributors to claim.'
+              ].join('\n');
+
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: issueNo,
+                body: capMsg
+              });
+
+              core.info('@' + opener + ' already has ' + activeIssues.length + ' active issues. Skipping auto-assign.');
+              return;
+            }
+
+            // ── 2. Auto-assign the opener ───────────────────────────────────
+            try {
+              await github.rest.issues.addAssignees({
+                owner, repo,
+                issue_number: issueNo,
+                assignees: [opener]
+              });
+              core.info('Assigned #' + issueNo + ' to @' + opener);
+            } catch (err) {
+              core.warning('Could not assign @' + opener + ': ' + err.message);
+            }
+
+            // ── 3. Derive time deadline from labels ─────────────────────────
+            const labels = (issue.labels || []).map(l =>
+              (typeof l === 'string' ? l : l.name).toLowerCase()
+            );
+
+            let level      = 'intermediate';
+            let maxDays    = 3;
+            let warnDays   = 2;
+            let levelEmoji = '\uD83D\DFE1';
+
+            if (labels.includes('level:beginner') || labels.includes('good first issue')) {
+              level      = 'beginner';
+              maxDays    = 2;
+              warnDays   = 1;
+              levelEmoji = '\uD83D\uDFE2';
+            } else if (labels.includes('level:advanced') || labels.includes('level:expert')) {
+              level      = 'advanced';
+              maxDays    = 5;
+              warnDays   = 3;
+              levelEmoji = '\uD83D\uDD34';
+            } else if (labels.includes('level:intermediate')) {
+              level      = 'intermediate';
+              maxDays    = 3;
+              warnDays   = 2;
+              levelEmoji = '\uD83D\uDFE1';
+            }
+
+            // ── 4. Build the duplicate check search URL ─────────────────────
+            const titleSlug = encodeURIComponent(
+              (issue.title || '').replace(/\[.*?\]/g, '').trim().split(' ').slice(0, 5).join(' ')
+            );
+            const searchURL = 'https://github.com/' + owner + '/' + repo + '/issues?q=is%3Aissue+' + titleSlug;
+
+            // ── 5. Compute deadline string ──────────────────────────────────
+            const now        = new Date();
+            const deadline   = new Date(now.getTime() + maxDays * 24 * 60 * 60 * 1000);
+            const deadlineStr = deadline.toUTCString().replace(' GMT', ' UTC');
+
+            // ── 6. Post the detailed onboarding comment ─────────────────────
+            const lines = [
+              '## \u2705 You\'ve been assigned \u2014 Issue #' + issueNo,
+              '',
+              'Hi @' + opener + '! \uD83D\uDC4B You\'ve been **automatically assigned** to this issue.',
+              'Here\'s everything you need to know to contribute successfully. Please read carefully.',
+              '',
+              '---',
+              '',
+              '### \uD83D\uDCCB Assignment Summary',
+              '',
+              '| Field | Value |',
+              '|-------|-------|',
+              '| **Assigned to** | @' + opener + ' |',
+              '| **Difficulty** | ' + levelEmoji + ' `' + level + '` |',
+              '| **Deadline** | **' + maxDays + ' days** from now \u2192 `' + deadlineStr + '` |',
+              '| **Warning sent at** | ' + warnDays + ' day' + (warnDays > 1 ? 's' : '') + ' of inactivity |',
+              '',
+              '---',
+              '',
+              '### \u26a0\ufe0f IMPORTANT: Duplicate Check',
+              '',
+              '> **Before you start coding**, please verify this is not already being worked on or solved elsewhere.',
+              '',
+              '\uD83D\uDD0D **[Search for similar issues and PRs \u2192](' + searchURL + ')**',
+              '',
+              '**Check both:**',
+              '- Open issues & PRs that solve the same problem',
+              '- Closed issues where this was already fixed',
+              '',
+              'If this turns out to be a **duplicate**, your PR may be **closed without merge** even after all your hard work.',
+              'This happens when two contributors unknowingly solve the same problem. **You can avoid it by searching first.**',
+              '',
+              '---',
+              '',
+              '### \u23f1\ufe0f Time Limits & Consequences',
+              '',
+              'This is a **`' + level + '`** difficulty issue. The following deadlines apply:',
+              '',
+              '| Event | Timeline |',
+              '|-------|----------|',
+              '| \uD83D\uDFE1 **Warning comment** posted by bot | After **' + warnDays + ' day' + (warnDays > 1 ? 's' : '') + '** of no activity |',
+              '| \uD83D\uDD34 **Auto-unassigned** | After **' + maxDays + ' days** of no activity |',
+              '| \u267B\ufe0f Issue reassigned to next contributor | Immediately after unassignment |',
+              '',
+              '**Activity = any of the following:**',
+              '- \uD83D\uDCAC Dropping a progress comment on this issue',
+              '- \uD83D\uDD27 Opening a Draft PR with `Closes #' + issueNo + '` in the description',
+              '- \uD83D\uDCDD Pushing commits to a branch linked to this issue',
+              '',
+              '> If you are unable to complete the work by the deadline (exams, personal emergency, etc.),',
+              '> **please comment saying so** \u2014 maintainers can extend your deadline manually. We are human too! \uD83E\uDD1D',
+              '',
+              '---',
+              '',
+              '### \uD83D\uDE80 How to Deliver Quality Work',
+              '',
+              '1. **Fork & branch:** `git checkout -b fix/issue-' + issueNo + '-brief-description`',
+              '2. **Run tests locally:** `npm run test -w web` \u2014 all tests must pass before you PR',
+              '3. **Open a Draft PR early** with `Closes #' + issueNo + '` \u2014 this signals you\'re working and resets the inactivity timer',
+              '4. **Link the issue in your PR description** using `Closes #' + issueNo + '` or `Fixes #' + issueNo + '`',
+              '5. **Do not open a PR** without being assigned \u2014 it will be auto-closed by our bot',
+              '',
+              '---',
+              '',
+              '### \uD83D\uDCDE Need Help?',
+              '',
+              '- \uD83D\uDCAC **Discord:** [Join SahiDawa Discord](https://discord.gg/dvbDuJVwNa) \u2014 fastest way to reach maintainers',
+              '- \uD83D\uDCD6 **Docs:** [CONTRIBUTING.md](https://github.com/' + owner + '/' + repo + '/blob/main/CONTRIBUTING.md)',
+              '- \uD83D\uDCA1 **Discussions:** [GitHub Discussions](https://github.com/' + owner + '/' + repo + '/discussions)',
+              '',
+              'Good luck! We\'re excited to review your contribution. \uD83E\uDE7A\uD83C\uDDEE\uD83C\uDDF3'
+            ];
+
+            await github.rest.issues.createComment({
+              owner, repo,
+              issue_number: issueNo,
+              body: lines.join('\n')
+            });
+
+            core.info('Posted assignment confirmation + onboarding for @' + opener + ' on #' + issueNo);
