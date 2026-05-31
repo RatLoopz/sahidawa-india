@@ -36,24 +36,24 @@ export default function Navbar() {
         <>
             {/* ── Top Navigation ── */}
             <header className="sticky top-0 z-50 w-full border-b border-white/30 bg-white/60 shadow-sm shadow-black/5 backdrop-blur-md dark:border-white/10 dark:bg-slate-900/60">
-                <div className="container mx-auto grid h-16 grid-cols-3 items-center px-4 md:px-6">
+                <div className="container mx-auto flex h-16 items-center gap-2 px-3 sm:gap-3 sm:px-4 md:px-6">
                     {/* Left — Logo */}
-                    <div className="flex items-center gap-2">
-                        <Link href="/" className="flex items-center gap-2">
+                    <div className="flex min-w-0 flex-1 items-center gap-2">
+                        <Link href="/" className="flex min-w-0 items-center gap-2">
                             <div
-                                className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 shadow-sm sm:h-10 sm:w-10 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 shadow-sm sm:h-10 sm:w-10 dark:bg-emerald-950/30 dark:text-emerald-400"
                                 aria-label="SahiDawa Logo"
                             >
                                 <Image
                                     src="/favicon.ico"
                                     alt=""
                                     aria-hidden="true"
-                                    className="h-7 w-7 object-contain"
+                                    className="h-6 w-6 object-contain sm:h-7 sm:w-7"
                                     width={28}
                                     height={28}
                                 />
                             </div>
-                            <h1 className="text-xl font-extrabold tracking-tight text-(--color-text-primary) md:text-2xl">
+                            <h1 className="truncate text-lg font-extrabold tracking-tight text-(--color-text-primary) sm:text-xl md:text-2xl">
                                 SahiDawa
                             </h1>
                         </Link>
@@ -61,7 +61,7 @@ export default function Navbar() {
 
                     {/* Center — Nav Links */}
                     <nav
-                        className="hidden items-center justify-center gap-6 text-sm font-semibold text-(--color-text-secondary) lg:flex"
+                        className="ml-6 hidden flex-1 items-center justify-center gap-6 text-sm font-semibold text-(--color-text-secondary) lg:flex"
                         aria-label="Main navigation"
                     >
                         <Link href="/how-it-works" className={desktopNavLinkClassName}>
@@ -82,7 +82,7 @@ export default function Navbar() {
                     </nav>
 
                     {/* Right — Action Buttons */}
-                    <div className="flex items-center justify-end gap-2 sm:gap-3">
+                    <div className="ml-auto flex shrink-0 items-center justify-end gap-1.5 sm:gap-3">
                         <button
                             onClick={() => handleNavigation("health")}
                             className="flex h-9 w-9 items-center justify-center rounded-full bg-linear-to-r from-blue-500 to-purple-500 text-white transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 sm:h-10 sm:w-10"
@@ -96,7 +96,17 @@ export default function Navbar() {
 
                         <button
                             onClick={() => handleNavigation("login")}
-                            className="hidden h-9 items-center justify-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-50/50 px-4 py-1.5 text-sm font-bold text-emerald-700 transition-all duration-200 hover:scale-105 hover:border-emerald-500/50 hover:bg-emerald-100 sm:h-10 sm:px-5 sm:py-2 md:flex dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20"
+                            className="flex h-9 w-9 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-50/70 text-emerald-700 transition-all duration-200 hover:scale-105 hover:border-emerald-500/50 hover:bg-emerald-100 sm:hidden dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20"
+                            aria-label={tHome("sign_in")}
+                            title={tHome("sign_in")}
+                        >
+                            <User size={17} />
+                            <span className="sr-only">{tHome("sign_in")}</span>
+                        </button>
+
+                        <button
+                            onClick={() => handleNavigation("login")}
+                            className="hidden h-9 items-center justify-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-50/50 px-4 py-1.5 text-sm font-bold text-emerald-700 transition-all duration-200 hover:scale-105 hover:border-emerald-500/50 hover:bg-emerald-100 sm:flex sm:h-10 sm:px-5 sm:py-2 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20"
                             aria-label={tHome("sign_in")}
                         >
                             <User size={16} />

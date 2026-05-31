@@ -1,5 +1,7 @@
 import { Router, Request, Response } from "express";
 import { z } from "zod";
+import { getMlServiceUrl, MISSING_ML_SERVICE_URL_MESSAGE } from "../config/mlService";
+import logger from "../utils/logger";
 
 const router = Router();
 
@@ -14,7 +16,6 @@ const analyzeResponseSchema = z.object({
     details: z.string(),
 });
 
-const ML_SERVICE_URL = process.env.ML_SERVICE_URL ?? "http://localhost:8000";
 const ML_ANALYSIS_TIMEOUT_MS = 8000;
 
 router.post("/analyze", async (req: Request, res: Response) => {
@@ -28,11 +29,21 @@ router.post("/analyze", async (req: Request, res: Response) => {
         return;
     }
 
+    const mlServiceUrl = getMlServiceUrl();
+    if (!mlServiceUrl) {
+        logger.error(MISSING_ML_SERVICE_URL_MESSAGE, { route: "/api/ml/analyze" });
+        res.status(500).json({
+            error: "Image analysis service is not configured.",
+            code: "ML_SERVICE_URL_MISSING",
+        });
+        return;
+    }
+
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), ML_ANALYSIS_TIMEOUT_MS);
 
     try {
-        const mlResponse = await fetch(`${ML_SERVICE_URL}/analyze`, {
+        const mlResponse = await fetch(`${mlServiceUrl}/analyze`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(parsed.data),

@@ -65,12 +65,21 @@ const nearestQuerySchema = z.object({
     radius: z.coerce.number().min(1).max(200).default(50),
 });
 
-const boundsQuerySchema = z.object({
-    south: z.coerce.number().min(-90).max(90),
-    west: z.coerce.number().min(-180).max(180),
-    north: z.coerce.number().min(-90).max(90),
-    east: z.coerce.number().min(-180).max(180),
-});
+const boundsQuerySchema = z
+    .object({
+        south: z.coerce.number().min(-90).max(90),
+        west: z.coerce.number().min(-180).max(180),
+        north: z.coerce.number().min(-90).max(90),
+        east: z.coerce.number().min(-180).max(180),
+    })
+    .refine((data) => data.south < data.north, {
+        message: "South boundary must be less than North boundary",
+        path: ["south"],
+    })
+    .refine((data) => data.west < data.east, {
+        message: "West boundary must be less than East boundary",
+        path: ["west"],
+    });
 
 // ── Helper functions ─────────────────────────────────────────────────────────
 

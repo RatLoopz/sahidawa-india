@@ -166,3 +166,23 @@ describe("GET /api/v1/alerts — pagination", () => {
         expect(res.body).toHaveProperty("error");
     });
 });
+
+describe("POST /api/v1/alerts/ingest — configuration validation", () => {
+    const originalSecretKey = process.env.API_SECRET_KEY;
+
+    afterEach(() => {
+        process.env.API_SECRET_KEY = originalSecretKey;
+    });
+
+    it("returns 500 when API_SECRET_KEY is not set", async () => {
+        delete process.env.API_SECRET_KEY;
+
+        const res = await request(app)
+            .post("/api/v1/alerts/ingest")
+            .set("x-api-secret", "some-secret")
+            .send({ alerts: [] });
+
+        expect(res.status).toBe(500);
+        expect(res.body.error).toContain("API_SECRET_KEY is not configured");
+    });
+});

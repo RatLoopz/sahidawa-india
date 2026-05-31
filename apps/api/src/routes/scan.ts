@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import multer from "multer";
 import logger from "../utils/logger";
 import { supabase } from "../db/client";
+import { getMlServiceUrl, MISSING_ML_SERVICE_URL_MESSAGE } from "../config/mlService";
 
 const router = Router();
 
@@ -189,7 +190,16 @@ router.post("/extract", (req: Request, res: Response) => {
             return;
         }
 
-        const mlServiceUrl = process.env.ML_SERVICE_URL ?? "http://localhost:8000";
+        const mlServiceUrl = getMlServiceUrl();
+        if (!mlServiceUrl) {
+            logger.error(MISSING_ML_SERVICE_URL_MESSAGE, { route: "/api/v1/scan/extract" });
+            res.status(500).json({
+                error: "OCR service is not configured.",
+                code: "ML_SERVICE_URL_MISSING",
+            });
+            return;
+        }
+
         const targetUrl = `${mlServiceUrl}/ocr/extract`;
 
         logger.info(
@@ -275,6 +285,10 @@ router.post("/extract", (req: Request, res: Response) => {
                 const match = rawText.match(pattern);
                 if (match) {
                     const month = match[1];
+                    const monthVal = parseInt(month, 10);
+                    if (monthVal < 1 || monthVal > 12) {
+                        continue;
+                    }
                     let year = match[2];
                     if (year.length === 2) {
                         year = "20" + year;
@@ -427,7 +441,9 @@ router.post("/extract", (req: Request, res: Response) => {
                             matchedName = name;
                             matchScore = 60;
                             matchSource = "substring_fallback";
-                            logger.info(`Substring fallback match: "${matchedName}" (capped score ${matchScore})`);
+                            logger.info(
+                                `Substring fallback match: "${matchedName}" (capped score ${matchScore})`
+                            );
                             break;
                         }
                     }
