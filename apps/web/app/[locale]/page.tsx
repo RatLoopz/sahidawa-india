@@ -5,10 +5,6 @@ import {
     Camera,
     Mic,
     MapPin,
-    Bell,
-    History,
-    Home,
-    User,
     ShieldCheck,
     AlertTriangle,
     Globe,
@@ -52,7 +48,6 @@ export default function SahiDawaHome() {
     const params = useParams();
     const locale = Array.isArray(params.locale) ? params.locale[0] : params.locale;
     const tHome = useTranslations("Home");
-    const tNav = useTranslations("Navigation");
 
     const [homepageAlerts, setHomepageAlerts] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);

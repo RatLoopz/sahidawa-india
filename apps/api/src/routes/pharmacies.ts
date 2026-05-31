@@ -65,12 +65,21 @@ const nearestQuerySchema = z.object({
     radius: z.coerce.number().min(1).max(200).default(50),
 });
 
-const boundsQuerySchema = z.object({
-    south: z.coerce.number().min(-90).max(90),
-    west: z.coerce.number().min(-180).max(180),
-    north: z.coerce.number().min(-90).max(90),
-    east: z.coerce.number().min(-180).max(180),
-});
+const boundsQuerySchema = z
+    .object({
+        south: z.coerce.number().min(-90).max(90),
+        west: z.coerce.number().min(-180).max(180),
+        north: z.coerce.number().min(-90).max(90),
+        east: z.coerce.number().min(-180).max(180),
+    })
+    .refine((data) => data.south < data.north, {
+        message: "South boundary must be less than North boundary",
+        path: ["south"],
+    })
+    .refine((data) => data.west < data.east, {
+        message: "West boundary must be less than East boundary",
+        path: ["west"],
+    });
 
 // ── Helper functions ─────────────────────────────────────────────────────────
 
@@ -131,28 +140,6 @@ function formatPharmacy(p: PharmacyRow, distanceKm: number): FormattedPharmacy {
         district: p.district || null,
         state: p.state || null,
     };
-}
-
-/**
- * Validates that the required Supabase environment variables are set.
- * Returns false and sends a 500 response if credentials are missing.
- */
-function validateSupabaseConfig(res: Response): boolean {
-    const hasUrl = !!process.env.SUPABASE_URL;
-    const hasKey = !!(process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY);
-
-    if (!hasUrl || !hasKey) {
-        logger.error("Missing Supabase credentials in pharmacies route", {
-            missingVars: { SUPABASE_URL: !hasUrl, SUPABASE_KEY: !hasKey },
-        });
-        res.status(500).json({
-            error: "Server Configuration Error",
-            message: "The backend is missing database credentials.",
-            hint: "Please ensure SUPABASE_URL and SUPABASE_ANON_KEY are set in your root .env file.",
-        });
-        return false;
-    }
-    return true;
 }
 
 /**
@@ -296,8 +283,6 @@ router.get("/nearest", async (req: Request, res: Response, next: NextFunction) =
         }
 
         const { lat, lng, radius } = result.data;
-
-        if (!validateSupabaseConfig(res)) return;
 
         // Primary path: PostGIS RPC with server-side radius filtering
         const { data: rpcData, error: rpcError } = await supabase.rpc("get_nearest_pharmacies", {
@@ -467,8 +452,6 @@ router.get("/in-bounds", async (req: Request, res: Response, next: NextFunction)
         }
 
         const { south, west, north, east } = result.data;
-
-        if (!validateSupabaseConfig(res)) return;
 
         const centerLat = (south + north) / 2;
         const centerLng = (west + east) / 2;

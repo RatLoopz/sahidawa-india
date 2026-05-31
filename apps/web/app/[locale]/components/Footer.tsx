@@ -1,7 +1,7 @@
 "use client";
 
 import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
-import { GitBranch, Sparkles, Heart } from "lucide-react";
+import { GitBranch, Sparkles, Heart, CalendarRange } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { usePathname } from "next/navigation";
 
@@ -55,6 +55,16 @@ export default function Footer() {
                             >
                                 Contributing Guide
                             </a>
+
+                            {/* Medicine Expiry Tracker link */}
+                            <Link
+                                href="/expiry-tracker"
+                                className="flex items-center gap-2 transition-all duration-200 hover:translate-x-1 hover:text-white text-emerald-400 font-medium"
+                            >
+                                <CalendarRange size={16} />
+                                Medicine Expiry Tracker
+                            </Link>
+
                             <Link
                                 href="/faq"
                                 className="transition-all duration-200 hover:translate-x-1 hover:text-white"
@@ -97,7 +107,6 @@ export default function Footer() {
                             >
                                 <FaGithub size={18} />
                             </a>
-
                             <a
                                 href="https://linkedin.com/"
                                 target="_blank"
@@ -106,7 +115,6 @@ export default function Footer() {
                             >
                                 <FaLinkedin size={18} />
                             </a>
-
                             <a
                                 href="https://twitter.com/"
                                 target="_blank"

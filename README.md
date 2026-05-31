@@ -129,18 +129,18 @@ flowchart TD
 ### Phase 1 — Foundation & Core Scanner _(Pre-GSSoC / Early May)_
 
 - [x] Project scaffolding (Next.js + TypeScript + Tailwind)
-- [ ] CDSCO drug database scraper + PostgreSQL schema
-- [ ] Barcode/QR scanner UI (ZXing)
-- [ ] Medicine lookup REST API
+- [x] CDSCO drug database scraper + PostgreSQL schema
+- [x] Barcode/QR scanner UI (ZXing)
+- [x] Medicine lookup REST API
 - [ ] Supabase integration
 - [ ] GitHub Actions CI pipeline
-- [ ] English UI with i18n setup
+- [x] English UI with i18n setup
 
 ### Phase 2 — Map + Multilingual + Offline _(Coding Begins - Mid May)_
 
 - [ ] PostGIS pharmacy + ASHA worker map (Leaflet.js)
-- [ ] i18n system — 22 Indian language JSON files
-- [ ] Cloudinary photo upload integration
+- [x] i18n system — 22 Indian language JSON files
+- [x] Cloudinary photo upload integration
 - [ ] Offline PWA (Workbox cache strategies)
 - [ ] FastAPI ML microservice scaffolding
 - [ ] Redis caching for drug lookups
@@ -339,19 +339,19 @@ SahiDawa aims to support all 22 Indian scheduled languages. (We are just getting
 | Language           | Status         | Contributor |
 | ------------------ | -------------- | ----------- |
 | English            | 🚧 In Progress | Core Team   |
-| Hindi (हिन्दी)     | 🔜 Open        | —           |
-| Tamil (தமிழ்)      | 🔜 Open        | —           |
+| Hindi (हिन्दी)     | 🚧 In Progress | —           |
+| Tamil (தமிழ்)      | 🚧 In Progress | —           |
 | Telugu (తెలుగు)    | ✅ Complete    | GSSoC 2026  |
 | Kannada (ಕನ್ನಡ)    | ✅ Complete    | GSSoC 2026  |
 | Malayalam (മലയാളം) | 🔜 Open        | —           |
-| Bengali (বাংলা)    | 🔜 Open        | —           |
-| Gujarati (ગુજરાતી) | 🔜 Open        | —           |
-| Marathi (मराठी)    | 🔜 Open        | —           |
-| Punjabi (ਪੰਜਾਬੀ)   | 🔜 Open        | —           |
-| Odia (ଓଡ଼ିଆ)       | 🔜 Open        | —           |
+| Bengali (বাংলা)    | 🚧 In Progress        | —           |
+| Gujarati (ગુજરાતી) | 🚧 In Progress       | —           |
+| Marathi (मराठी)    | 🚧 In Progress        | —           |
+| Punjabi (ਪੰਜਾਬੀ)   | 🚧 In Progress       | —           |
+| Odia (ଓଡ଼ିଆ)       | 🚧 In Progress       | —           |
 | Assamese (অসমীয়া) | 🔜 Open        | —           |
-| Urdu (اردو)        | 🔜 Open        | —           |
-| Sanskrit (संस्कृत) | 🔜 Open        | —           |
+| Urdu (اردو)        |🚧 In Progress       | —           |
+| Sanskrit (संस्कृत) | 🚧 In Progress       | —           |
 | Maithili           | 🔜 Open        | —           |
 | Kashmiri           | 🔜 Open        | —           |
 | Konkani            | 🔜 Open        | —           |

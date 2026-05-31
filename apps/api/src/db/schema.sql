@@ -31,12 +31,7 @@ CREATE TABLE IF NOT EXISTS medicines (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     CONSTRAINT medicines_mrp_non_negative CHECK (mrp IS NULL OR mrp >= 0),
-    CONSTRAINT medicines_jan_aushadhi_price_non_negative CHECK (jan_aushadhi_price IS NULL OR jan_aushadhi_price >= 0),
-    CONSTRAINT medicines_mrp_gte_jan_aushadhi_price CHECK (
-        mrp IS NULL
-        OR jan_aushadhi_price IS NULL
-        OR mrp >= jan_aushadhi_price
-    )
+    CONSTRAINT medicines_jan_aushadhi_price_non_negative CHECK (jan_aushadhi_price IS NULL OR jan_aushadhi_price >= 0)
 );
 
 -- 2. Pharmacy Locations Table (Jan Aushadhi Stores)

@@ -79,7 +79,7 @@ export default function LanguageSwitcher() {
                 <div
                     id="language-dropdown"
                     role="listbox"
-                    className="absolute right-0 z-50 mt-2 w-44 overflow-hidden rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) shadow-lg"
+                    className="absolute right-0 z-50 mt-2 w-44 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) shadow-lg max-h-60 overflow-y-auto"
                 >
                     {languages.map((lang) => {
                         const isActive = locale === lang.code;
