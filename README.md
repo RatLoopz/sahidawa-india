@@ -339,10 +339,10 @@ SahiDawa aims to support all 22 Indian scheduled languages. (We are just getting
 | Language           | Status         | Contributor |
 | ------------------ | -------------- | ----------- |
 | English            | 🚧 In Progress | Core Team   |
-| Hindi (हिन्दी)     |🚧 In Progress      | —           |
-| Tamil (தமிழ்)      | 🚧 In Progress        | —           |
-| Telugu (తెలుగు)    | 🔜 Open        | —           |
-| Kannada (ಕನ್ನಡ)    | 🔜 Open        | —           |
+| Hindi (हिन्दी)     | 🚧 In Progress | —           |
+| Tamil (தமிழ்)      | 🚧 In Progress | —           |
+| Telugu (తెలుగు)    | ✅ Complete    | GSSoC 2026  |
+| Kannada (ಕನ್ನಡ)    | ✅ Complete    | GSSoC 2026  |
 | Malayalam (മലയാളം) | 🔜 Open        | —           |
 | Bengali (বাংলা)    | 🚧 In Progress        | —           |
 | Gujarati (ગુજરાતી) | 🚧 In Progress       | —           |
