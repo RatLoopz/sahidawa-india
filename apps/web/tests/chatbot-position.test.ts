@@ -59,10 +59,15 @@ describe("getChatbotPanelClasses", () => {
         const classes = getChatbotPanelClasses({
             pathname: "/en/health",
         });
+        const classTokens = classes.split(" ");
 
         expect(classes).toContain("right-0");
         expect(classes).not.toContain("left-0");
-        expect(classes).toContain("h-[450px]");
+        expect(classes).toContain("w-[min(22rem,calc(100vw-1.5rem))]");
+        expect(classes).toContain("h-[min(28rem,calc(100dvh-8rem))]");
+        expect(classes).toContain("md:w-[350px]");
+        expect(classes).toContain("md:h-[450px]");
+        expect(classTokens).not.toContain("h-[450px]");
     });
 
     it("uses a left-anchored responsive panel on map routes", () => {
@@ -74,7 +79,7 @@ describe("getChatbotPanelClasses", () => {
         expect(classes).toContain("left-0");
         expect(classes).not.toContain("right-0");
         expect(classes).toContain("max-w-[calc(100vw-2rem)]");
-        expect(classes).toContain("h-[min(28rem,calc(100vh-8rem))]");
+        expect(classes).toContain("h-[min(28rem,calc(100dvh-8rem))]");
         expect(classes).toContain("md:h-[450px]");
         expect(classTokens).not.toContain("h-[450px]");
     });

@@ -71,7 +71,8 @@ export default function AdminDashboard() {
     const [reports, setReports] = useState<Report[]>([]);
     const [resolved, setResolved] = useState<(Report & { resolvedStatus: ReportStatus })[]>([]);
     const [medicines, setMedicines] = useState<Medicine[]>([]);
-    const [auditLogs] = useState<AuditEntry[]>([]);
+    const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([]);
+    const [logsLoading, setLogsLoading] = useState(false);
     const [loading, setLoading] = useState(true);
     const [acting, setActing] = useState<string | null>(null);
     const [authError, setAuthError] = useState<string | null>(null);
@@ -129,10 +130,31 @@ export default function AdminDashboard() {
         }
     }, []);
 
+    const fetchAuditLogs = useCallback(async () => {
+        setLogsLoading(true);
+        try {
+            const res = await fetch(`${ADMIN_API_BASE}/logs`, { headers: authHeaders() });
+            if (res.ok) {
+                const data = await res.json();
+                setAuditLogs(data.logs ?? []);
+            }
+        } catch {
+            /* silently fail, list will be empty */
+        } finally {
+            setLogsLoading(false);
+        }
+    }, []);
+
     useEffect(() => {
         fetchReports();
         fetchMedicines();
     }, [fetchReports, fetchMedicines]);
+
+    useEffect(() => {
+        if (tab === "logs") {
+            fetchAuditLogs();
+        }
+    }, [tab, fetchAuditLogs]);
 
     const handleReportAction = async (reportId: string, status: ReportStatus) => {
         setActing(reportId + status);
@@ -450,7 +472,11 @@ export default function AdminDashboard() {
                                     Every administrative action is recorded here
                                 </p>
                             </div>
-                            {auditLogs.length === 0 ? (
+                            {logsLoading ? (
+                                <div className="flex items-center justify-center gap-2 py-16 text-slate-400">
+                                    <Loader2 className="h-5 w-5 animate-spin" /> Loading audit logs…
+                                </div>
+                            ) : auditLogs.length === 0 ? (
                                 <div className="py-16 text-center text-sm text-slate-400">
                                     No audit entries yet.
                                 </div>

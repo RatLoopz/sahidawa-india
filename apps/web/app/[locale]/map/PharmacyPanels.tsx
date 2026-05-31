@@ -208,7 +208,7 @@ export default function PharmacyPanels({
                             key={item.label}
                             className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) p-3"
                         >
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-(--color-text-muted)">
+                            <p className="text-[10px] font-semibold tracking-[0.18em] text-(--color-text-muted) uppercase">
                                 {item.label}
                             </p>
                             <p className="mt-1 text-xl font-black text-(--color-text-primary)">

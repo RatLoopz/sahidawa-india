@@ -16,6 +16,7 @@ const nextConfig = {
       },
     ],
   },
+  serverExternalPackages: ['@supabase/ssr', '@supabase/supabase-js'],
 };
 
 export default withNextIntl(nextConfig);
