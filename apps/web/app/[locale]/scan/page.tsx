@@ -984,7 +984,7 @@ export default function ScanPage() {
     };
 
     return (
-        <div className="relative flex min-h-screen flex-col overflow-x-clip bg-(--color-surface-page) text-(--color-text-primary) font-sans">
+        <div className="relative flex min-h-screen flex-col overflow-x-clip bg-(--color-surface-page) font-sans text-(--color-text-primary)">
             <input
                 type="file"
                 id="medicine-upload"
@@ -1142,7 +1142,7 @@ export default function ScanPage() {
                         value={batchInput}
                         onChange={(e) => setBatchInput(e.target.value)}
                         placeholder="Enter batch number"
-                        className="flex-1 rounded-full border border-white/20 bg-white/10 px-4 py-3 text-center text-sm font-medium text-white placeholder-white/40 focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                        className="flex-1 rounded-full border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 text-center text-sm font-medium text-(--color-text-primary) placeholder-(--color-text-muted) focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:border-white/20 dark:bg-white/10 dark:text-white dark:placeholder-white/40"
                     />
                     <button
                         type="submit"
