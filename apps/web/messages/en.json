@@ -42,6 +42,26 @@
         "profile": "Profile",
         "language": "English"
     },
+    "Scan": {
+        "share": {
+            "button": "Share Result",
+            "title": "SahiDawa Medicine Verification Result",
+            "real_status": "Verified REAL",
+            "suspicious_status": "Marked SUSPICIOUS",
+            "warning_prefix": "WARNING",
+            "verified_by": "by SahiDawa",
+            "batch_label": "Batch",
+            "manufacturer_label": "Manufacturer",
+            "avoid_and_report": "Please avoid and report to your nearest health worker.",
+            "verify_yourself": "Verify yourself",
+            "unknown_medicine": "Unknown medicine",
+            "unknown_batch": "Unknown batch",
+            "unknown_manufacturer": "Unknown manufacturer",
+            "shared_success": "Result shared successfully",
+            "copy_success": "Result copied to clipboard",
+            "failure": "Unable to share this result right now"
+        }
+    },
     "BackToTopButton": {
         "label": "Back to top"
     },
