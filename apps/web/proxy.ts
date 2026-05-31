@@ -7,7 +7,7 @@ import type { NextRequest } from 'next/server';
 const intlMiddleware = createMiddleware(routing);
 
 export default async function middleware(req: NextRequest) {
-  let res = intlMiddleware(req);
+  const res = intlMiddleware(req);
   
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || "http://localhost:54321",

@@ -1,10 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import {
   ImgHTMLAttributes,
   SyntheticEvent,
-  useEffect,
-  useRef,
   useState,
 } from "react";
 
@@ -22,39 +21,12 @@ export default function LazyImage({
   className = "",
   wrapperClassName = "",
   placeholderClassName = "",
-  rootMargin = "160px",
-  threshold = 0.1,
+  rootMargin, // Next.js Image does not use these, kept for compatibility
+  threshold,
   onLoad,
   ...imgProps
 }: LazyImageProps) {
-  const wrapperRef = useRef<HTMLSpanElement | null>(null);
-  const [isInView, setIsInView] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-
-  useEffect(() => {
-    setIsLoaded(false);
-    setIsInView(false);
-
-    const node = wrapperRef.current;
-    if (!node || typeof IntersectionObserver === "undefined") {
-      setIsInView(true);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin, threshold },
-    );
-
-    observer.observe(node);
-
-    return () => observer.disconnect();
-  }, [rootMargin, src, threshold]);
 
   const handleLoad = (event: SyntheticEvent<HTMLImageElement>) => {
     setIsLoaded(true);
@@ -63,7 +35,6 @@ export default function LazyImage({
 
   return (
     <span
-      ref={wrapperRef}
       className={`relative block overflow-hidden bg-slate-100 ${wrapperClassName}`}
     >
       {!isLoaded && (
@@ -72,17 +43,16 @@ export default function LazyImage({
           className={`absolute inset-0 bg-slate-200/80 ${placeholderClassName}`}
         />
       )}
-      {isInView && (
-        <img
-          {...imgProps}
-          src={src}
-          alt={alt}
-          onLoad={handleLoad}
-          className={`transition-[filter,opacity] duration-300 ease-out ${
-            isLoaded ? "blur-0" : "blur-[10px]"
-          } ${className}`}
-        />
-      )}
+      <Image
+        {...(imgProps as any)}
+        src={src}
+        alt={alt || ""}
+        fill
+        onLoad={handleLoad as any}
+        className={`transition-[filter,opacity] duration-300 ease-out object-cover ${
+          isLoaded ? "blur-0" : "blur-[10px]"
+        } ${className}`}
+      />
     </span>
   );
 }
