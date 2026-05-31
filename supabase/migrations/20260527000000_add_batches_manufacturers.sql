@@ -46,3 +46,24 @@ ALTER TABLE medicines
     ADD COLUMN IF NOT EXISTS manufacturer_id UUID REFERENCES manufacturers(id) ON DELETE SET NULL;
 
 CREATE INDEX IF NOT EXISTS idx_medicines_manufacturer_id ON medicines(manufacturer_id);
+-- Row Level Security
+ALTER TABLE public.manufacturers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.batches ENABLE ROW LEVEL SECURITY;
+
+-- Read policies (anyone can read)
+CREATE POLICY "manufacturers_select_public"
+    ON public.manufacturers FOR SELECT USING (true);
+
+CREATE POLICY "batches_select_public"
+    ON public.batches FOR SELECT USING (true);
+
+-- Write policies (service_role only)
+CREATE POLICY "manufacturers_write_service_role"
+    ON public.manufacturers FOR ALL
+    USING (auth.role() = 'service_role')
+    WITH CHECK (auth.role() = 'service_role');
+
+CREATE POLICY "batches_write_service_role"
+    ON public.batches FOR ALL
+    USING (auth.role() = 'service_role')
+    WITH CHECK (auth.role() = 'service_role');

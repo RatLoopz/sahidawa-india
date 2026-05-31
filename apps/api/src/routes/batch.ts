@@ -19,16 +19,19 @@ function getExpiryStatus(expiryDate: string | null): "green" | "yellow" | "red" 
     return "green";
 }
 
+// Shared batch number validation — alphanumeric only, prevents wildcard injection
+const BATCH_NUMBER_SCHEMA = z
+    .string()
+    .min(3, "Batch number must be at least 3 characters")
+    .max(100, "Batch number too long")
+    .regex(/^[A-Za-z0-9\-\/]+$/, "Batch number contains invalid characters");
+
 const batchParamSchema = z.object({
-    batchNumber: z
-        .string()
-        .min(3, "Batch number must be at least 3 characters")
-        .max(100, "Batch number too long")
-        .regex(/^[A-Za-z0-9\-\/]+$/, "Batch number contains invalid characters"),
+    batchNumber: BATCH_NUMBER_SCHEMA,
 });
 
 const reportBatchSchema = z.object({
-    batchNumber: z.string().min(3),
+    batchNumber: BATCH_NUMBER_SCHEMA,
     description: z.string().min(10, "Description must be at least 10 characters"),
     reporterName: z.string().optional(),
     city: z.string().optional(),
@@ -49,7 +52,6 @@ const reportBatchSchema = z.object({
  *     description: >
  *       Returns medicine details, manufacturer information, batch recall status,
  *       and expiry color warning for a given batch number.
- *       Results are cached for 2 minutes.
  *     parameters:
  *       - in: path
  *         name: batchNumber
@@ -57,26 +59,9 @@ const reportBatchSchema = z.object({
  *         schema:
  *           type: string
  *           example: "BN2024001"
- *         description: The batch number printed on the medicine packaging
  *     responses:
  *       200:
  *         description: Batch found with full traceability details
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 found:
- *                   type: boolean
- *                 batch:
- *                   type: object
- *                 medicine:
- *                   type: object
- *                 manufacturer:
- *                   type: object
- *                 expiry_status:
- *                   type: string
- *                   enum: [green, yellow, red, unknown]
  *       400:
  *         description: Invalid batch number format
  *       404:
@@ -98,21 +83,15 @@ router.get("/:batchNumber", batchLimiter, async (req: Request, res: Response) =>
     const { batchNumber } = parsed.data;
 
     try {
-        // ── Step 1: Look up batch record ──────────────────────────────────────
+        // ── Single query with joins (fixes N+1) ───────────────────────────────
         const { data: batchData, error: batchError } = await supabase
             .from("batches")
             .select(`
-                id,
-                batch_number,
-                manufacturing_date,
-                expiry_date,
-                recall_status,
-                recall_reason,
-                quantity_produced,
-                medicine_id,
-                manufacturer_id
+                *,
+                medicine:medicines(id, brand_name, generic_name, cdsco_approval_status, is_counterfeit_alert),
+                manufacturer:manufacturers(*)
             `)
-            .ilike("batch_number", batchNumber)
+            .eq("batch_number", batchNumber)
             .maybeSingle();
 
         if (batchError) {
@@ -121,19 +100,14 @@ router.get("/:batchNumber", batchLimiter, async (req: Request, res: Response) =>
             return;
         }
 
-        // ── Step 2: Fall back to medicines table if no batch record ───────────
+        // ── Fall back to medicines table if no dedicated batch record ─────────
         if (!batchData) {
-            const escaped = batchNumber
-                .replace(/\\/g, "\\\\")
-                .replace(/%/g, "\\%")
-                .replace(/_/g, "\\_");
-
             const { data: medicineData, error: medicineError } = await supabase
                 .from("medicines")
                 .select(
                     "id, brand_name, generic_name, manufacturer, batch_number, manufacturing_date, expiry_date, cdsco_approval_status, is_counterfeit_alert, manufacturer_id"
                 )
-                .ilike("batch_number", escaped)
+                .eq("batch_number", batchNumber)
                 .limit(1)
                 .maybeSingle();
 
@@ -151,7 +125,7 @@ router.get("/:batchNumber", batchLimiter, async (req: Request, res: Response) =>
                 return;
             }
 
-            // Try to get manufacturer details if linked
+            // Fetch manufacturer if linked — single query
             let manufacturerData = null;
             if (medicineData.manufacturer_id) {
                 const { data: mfr } = await supabase
@@ -216,27 +190,9 @@ router.get("/:batchNumber", batchLimiter, async (req: Request, res: Response) =>
             return;
         }
 
-        // ── Step 3: Fetch linked medicine ─────────────────────────────────────
-        let medicine = null;
-        if (batchData.medicine_id) {
-            const { data: med } = await supabase
-                .from("medicines")
-                .select("id, brand_name, generic_name, cdsco_approval_status, is_counterfeit_alert")
-                .eq("id", batchData.medicine_id)
-                .maybeSingle();
-            medicine = med;
-        }
-
-        // ── Step 4: Fetch manufacturer ────────────────────────────────────────
-        let manufacturer = null;
-        if (batchData.manufacturer_id) {
-            const { data: mfr } = await supabase
-                .from("manufacturers")
-                .select("*")
-                .eq("id", batchData.manufacturer_id)
-                .maybeSingle();
-            manufacturer = mfr;
-        }
+        // ── Batch found with joined data ──────────────────────────────────────
+        const medicine = batchData.medicine as any;
+        const manufacturer = batchData.manufacturer as any;
 
         res.status(200).json({
             found: true,
@@ -314,12 +270,6 @@ router.get("/:batchNumber", batchLimiter, async (req: Request, res: Response) =>
  *               description:
  *                 type: string
  *                 example: "Tablet colour was different from usual"
- *               city:
- *                 type: string
- *               state:
- *                 type: string
- *               pharmacyName:
- *                 type: string
  *     responses:
  *       201:
  *         description: Report submitted successfully
@@ -349,13 +299,12 @@ router.post("/report", batchLimiter, async (req: Request, res: Response) => {
     } = parsed.data;
 
     try {
-        // Find medicine_id if we can match the batch
+        // Use .eq() instead of .ilike() — exact match, no wildcard risk
         let medicine_id: string | null = null;
-
         const { data: medicineMatch } = await supabase
             .from("medicines")
             .select("id")
-            .ilike("batch_number", batchNumber)
+            .eq("batch_number", batchNumber)
             .limit(1)
             .maybeSingle();
 
