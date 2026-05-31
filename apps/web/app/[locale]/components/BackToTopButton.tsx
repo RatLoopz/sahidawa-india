@@ -2,7 +2,6 @@
 
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState, KeyboardEvent } from "react";
-import { motion, useSpring, useTransform } from "framer-motion";
 
 /**
  * Scroll thresholds with hysteresis to prevent rapid show/hide flickering
@@ -20,9 +19,8 @@ export default function BackToTopButton() {
     const t = useTranslations("BackToTopButton");
     const label = t("label");
 
-    // Spring-driven progress (0–100) that powers the SVG ring
-    const isScrollingBackRef = useRef(false);
-    const springProgress = useSpring(0, { stiffness: 120, damping: 30, mass: 0.5 });
+    const buttonRef = useRef<HTMLButtonElement>(null);
+    const progressBarRef = useRef<HTMLDivElement>(null);
 
     /**
      * SVG ring geometry — sized for the desktop 56×56 px button.
@@ -31,32 +29,47 @@ export default function BackToTopButton() {
      */
     const radius = 22;
     const circumference = 2 * Math.PI * radius; // ≈ 138.23
-    const strokeDashoffset = useTransform(
-        springProgress,
-        [0, 100],
-        [circumference, 0]
-    );
 
     useEffect(() => {
+        let ticking = false;
+
         const handleScroll = () => {
-            const y = window.scrollY;
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    const y = window.scrollY;
 
-            // Hysteresis: two separate thresholds stop flicker at the edge
-            if (y > SHOW_THRESHOLD) setIsVisible(true);
-            else if (y <= HIDE_THRESHOLD) setIsVisible(false);
+                    // Hysteresis: two separate thresholds stop flicker at the edge
+                    if (y > SHOW_THRESHOLD) {
+                        setIsVisible(true);
+                    } else if (y <= HIDE_THRESHOLD) {
+                        setIsVisible(false);
+                    }
 
-            const docH =
-                document.documentElement.scrollHeight - window.innerHeight;
-            
-            // Sync the progress ring with scroll ONLY when NOT scrolling back!
-            if (docH > 0 && !isScrollingBackRef.current) {
-                springProgress.set(
-                    Math.min(100, Math.max(0, (y / docH) * 100))
-                );
+                    if (y === 0) {
+                        setIsScrollingBack(false);
+                    }
+
+                    const docH = document.documentElement.scrollHeight - window.innerHeight;
+                    
+                    // Sync the progress ring with scroll directly via CSS variable on refs
+                    const progress = docH > 0 ? Math.min(100, Math.max(0, (y / docH) * 100)) : 0;
+                    const progressStr = progress.toFixed(2);
+
+                    if (buttonRef.current) {
+                        buttonRef.current.style.setProperty("--scroll-progress", progressStr);
+                    }
+                    if (progressBarRef.current) {
+                        progressBarRef.current.style.setProperty("--scroll-progress", progressStr);
+                    }
+
+                    ticking = false;
+                });
+                ticking = true;
             }
         };
 
-        handleScroll(); // sync on mount
+        // Sync initial state on mount
+        handleScroll();
         window.addEventListener("scroll", handleScroll, { passive: true });
 
         const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -69,7 +82,7 @@ export default function BackToTopButton() {
             window.removeEventListener("scroll", handleScroll);
             mq.removeEventListener("change", mqListener);
         };
-    }, [springProgress]);
+    }, []);
 
     const shiftFocus = () => {
         // Programmatic a11y focus shift — prevents screen-reader stranding
@@ -93,40 +106,19 @@ export default function BackToTopButton() {
     };
 
     const handleScrollToTop = () => {
-        if (isScrollingBackRef.current) return;
+        if (isScrollingBack) return;
 
-        if (prefersReducedMotion) {
-            window.scrollTo({ top: 0, behavior: "auto" });
-            springProgress.set(0);
-            shiftFocus();
-        } else {
-            isScrollingBackRef.current = true;
-            setIsScrollingBack(true);
-            springProgress.set(0);
-
-            const start = window.scrollY;
-            const startTime = performance.now();
-            const duration = 750; // Perfectly-tuned duration for SahiDawa
-
-            const animateScroll = (currentTime: number) => {
-                const elapsedTime = currentTime - startTime;
-                const progress = Math.min(elapsedTime / duration, 1);
-
-                // Premium cubic ease-out easing for an extremely elegant, organic deceleration
-                const ease = 1 - Math.pow(1 - progress, 3);
-                window.scrollTo(0, start * (1 - ease));
-
-                if (progress < 1) {
-                    requestAnimationFrame(animateScroll);
-                } else {
-                    isScrollingBackRef.current = false;
-                    setIsScrollingBack(false);
-                    shiftFocus();
-                }
-            };
-
-            requestAnimationFrame(animateScroll);
+        if (window.scrollY === 0) {
+            setIsScrollingBack(false);
+            return;
         }
+
+        setIsScrollingBack(true);
+        window.scrollTo({
+            top: 0,
+            behavior: prefersReducedMotion ? "auto" : "smooth",
+        });
+        shiftFocus();
     };
 
     const handleKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
@@ -140,38 +132,33 @@ export default function BackToTopButton() {
     };
 
     /**
-     * Animation variants.
-     *
-     * Entry  → springs up from below (opacity 0→1, translateY 20→0, scale 0.9→1)
-     * Exit   → falls back down      (opacity 1→0, translateY 0→20, scale 1→0.9)
-     *
-     * The button is always mounted so static tests can assert on its classes.
-     * pointer-events is disabled while hidden to keep keyboard nav clean.
+     * Entry, exit, and hover/active animations using standard Tailwind CSS classes.
+     * This achieves native high performance transitions.
      */
-    const variants = {
-        hidden: {
-            opacity: 0,
-            y: prefersReducedMotion ? 0 : 20,
-            scale: prefersReducedMotion ? 1 : 0.9,
-            pointerEvents: "none" as const,
-        },
-        visible: {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            pointerEvents: "auto" as const,
-        },
-    };
+    const baseClasses =
+        "fixed bottom-[152px] right-[28px] md:right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950 md:bottom-24 md:h-14 md:w-14 transition-all duration-300 ease-out";
+
+    const motionClasses = prefersReducedMotion
+        ? (isVisible
+            ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"
+            : "opacity-0 translate-y-0 scale-100 pointer-events-none")
+        : (isVisible
+            ? "opacity-100 translate-y-0 scale-100 pointer-events-auto hover:scale-108 hover:-translate-y-0.5 active:scale-92"
+            : "opacity-0 translate-y-5 scale-90 pointer-events-none");
 
     return (
         <>
-            {/* Sleek top-of-viewport scroll progress bar (bonus feature matching GSSoC issue suggestions) */}
-            <motion.div
+            {/* Sleek top-of-viewport scroll progress bar */}
+            <div
+                ref={progressBarRef}
                 className="fixed top-0 left-0 right-0 z-50 h-[3px] origin-left bg-linear-to-r from-green-400 to-green-600 pointer-events-none"
-                style={{ scaleX: useTransform(springProgress, [0, 100], [0, 1]) }}
+                style={{
+                    transform: "scaleX(calc(var(--scroll-progress, 0) / 100))",
+                }}
             />
 
-            <motion.button
+            <button
+                ref={buttonRef}
                 type="button"
                 aria-label={label}
                 aria-hidden={!isVisible}
@@ -179,32 +166,7 @@ export default function BackToTopButton() {
                 title={label}
                 onClick={handleScrollToTop}
                 onKeyDown={handleKeyDown}
-                initial="hidden"
-                animate={isVisible ? "visible" : "hidden"}
-                variants={variants}
-                transition={
-                    prefersReducedMotion
-                        ? { duration: 0 }
-                        : { type: "spring", stiffness: 300, damping: 24, mass: 0.9 }
-                }
-                whileHover={prefersReducedMotion ? {} : { scale: 1.08, y: -2 }}
-                whileTap={prefersReducedMotion ? {} : { scale: 0.92 }}
-                /**
-                 * Positioning — perfectly center-aligned with the chatbot launcher on all viewports.
-                 *
-                 * Chatbot: h-14 (56 px) at bottom-20 (80 px) mobile / md:bottom-6 (24 px) desktop
-                 * Both buttons share right-6 (24 px) to sit in the same column on desktop.
-                 *
-                 * Mobile sizes  : Scroll-to-top is h-12 w-12 (48 px). Chatbot is h-14 w-14 (56 px).
-                 *   To center-align them perfectly on mobile, the 48 px scroll-to-top button is positioned
-                 *   at right-[28px] (24px default + 4px offset to compensate for the 8px width difference).
-                 *   Mobile bottom offset: 80 + 56 + 16 = 152 px → bottom-[152px]
-                 *
-                 * Desktop sizes : Scroll-to-top is md:h-14 md:w-14 (56 px). Chatbot is h-14 w-14 (56 px).
-                 *   Since both buttons are 56 px wide, we use md:right-6 (24 px) for perfect alignment.
-                 *   Desktop bottom offset: 24 + 56 + 16 = 96 px → md:bottom-24
-                 */
-                className="fixed bottom-[152px] right-[28px] md:right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950 md:bottom-24 md:h-14 md:w-14"
+                className={`${baseClasses} ${motionClasses}`}
                 style={{
                     /* Spec gradient: #22C55E top → #16A34A bottom */
                     background: "linear-gradient(180deg, #22C55E 0%, #16A34A 100%)",
@@ -229,8 +191,8 @@ export default function BackToTopButton() {
                         fill="transparent"
                         stroke="rgba(255,255,255,0.18)"
                     />
-                    {/* Progress arc — spring-driven; reverses smoothly on click */}
-                    <motion.circle
+                    {/* Progress arc — updated smoothly on scroll via CSS variable */}
+                    <circle
                         cx="28"
                         cy="28"
                         r={radius}
@@ -239,11 +201,14 @@ export default function BackToTopButton() {
                         stroke="rgba(255,255,255,0.78)"
                         strokeLinecap="round"
                         strokeDasharray={circumference}
-                        style={{ strokeDashoffset }}
+                        style={{
+                            strokeDashoffset: `calc(${circumference}px - (${circumference}px * var(--scroll-progress, 0) / 100))`,
+                            transition: "stroke-dashoffset 80ms ease-out",
+                        }}
                     />
                 </svg>
 
-                {/* Custom arrow made of capsules, matching the premium UI/UX theme */}
+                {/* Custom arrow made of capsules */}
                 <svg
                     viewBox="0 0 24 24"
                     fill="none"
@@ -257,7 +222,7 @@ export default function BackToTopButton() {
                     <path d="M12 19V5" />
                     <path d="M5 12l7-7 7 7" />
                 </svg>
-            </motion.button>
+            </button>
         </>
     );
 }
