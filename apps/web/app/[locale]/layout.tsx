@@ -15,6 +15,13 @@ import "../../src/styles/print.css";
 import { Toaster } from "sonner";
 import Footer from "./components/Footer";
 
+/**
+ * Locales that use right-to-left (RTL) scripts.
+ * - ur = Urdu (Nastaliq / Perso-Arabic script)
+ * - ks = Kashmiri (Sharada / Perso-Arabic script in Pakistan-administered region)
+ */
+const RTL_LOCALES = ["ur", "ks"] as const;
+
 export const metadata: Metadata = {
     title: "SahiDawa — Verify Your Medicine",
     description:
@@ -58,8 +65,11 @@ export default async function LocaleLayout({
 
     const messages = await getMessages();
 
+    // Determine text direction based on locale
+    const dir = RTL_LOCALES.includes(locale as (typeof RTL_LOCALES)[number]) ? "rtl" : "ltr";
+
     return (
-        <html lang={locale} suppressHydrationWarning>
+        <html lang={locale} dir={dir} suppressHydrationWarning>
             {/* REPLACE YOUR OLD BODY TAG WITH THIS ONE: */}
             <body className="bg-(--color-surface-page) text-(--color-text-primary) transition-colors duration-300">
                 <ServiceWorkerProvider>

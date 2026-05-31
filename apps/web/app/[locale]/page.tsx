@@ -72,7 +72,7 @@ export default function SahiDawaHome() {
                     .from("medicines")
                     .select("*")
                     .or(
-                        "is_counterfeit_alert.eq.true,cdsco_approval_status.eq.recalled,cdsco_approval_status.eq.banned, brand_name.eq.SYSTEM_UPDATE"
+                        "is_counterfeit_alert.eq.true,cdsco_approval_status.eq.recalled,cdsco_approval_status.eq.banned,brand_name.eq.SYSTEM_UPDATE"
                     )
                     .order("created_at", { ascending: false })
                     .limit(4);
@@ -220,7 +220,7 @@ export default function SahiDawaHome() {
                     </div>
                     <ChevronRight
                         size={32}
-                        className="relative z-10 hidden shrink-0 text-emerald-200 opacity-50 transition-all group-hover:translate-x-2 group-hover:opacity-100 sm:block"
+                        className="relative z-10 hidden shrink-0 text-emerald-200 opacity-50 transition-all group-hover:translate-x-2 group-hover:opacity-100 sm:block rtl:rotate-180"
                     />
                 </button>
 
@@ -487,7 +487,7 @@ export default function SahiDawaHome() {
                                     {tHome("view_full_alert_log")}
                                     <ChevronRight
                                         size={16}
-                                        className="text-(--color-text-muted) transition-transform duration-200 group-hover/log:translate-x-1"
+                                        className="text-(--color-text-muted) transition-transform duration-200 group-hover/log:translate-x-1 rtl:rotate-180"
                                     />
                                 </button>
                             </Link>

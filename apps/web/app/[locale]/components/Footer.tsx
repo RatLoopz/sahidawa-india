@@ -31,7 +31,7 @@ export default function Footer() {
                                 href="https://github.com/RatLoopz/sahidawa-india"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-2 transition-all duration-200 hover:translate-x-1 hover:text-white"
+                                className="flex items-center gap-2 transition-all duration-200 hover:translate-x-1 hover:text-white rtl:-translate-x-1"
                             >
                                 <GitBranch size={16} />
                                 GitHub Repository
@@ -41,31 +41,31 @@ export default function Footer() {
                                 href="https://github.com/RatLoopz/sahidawa-india/blob/main/CONTRIBUTING.md"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="transition-all duration-200 hover:translate-x-1 hover:text-white"
+                                className="transition-all duration-200 hover:translate-x-1 hover:text-white rtl:-translate-x-1"
                             >
                                 Contributing Guide
                             </a>
                             <Link
                                 href="/faq"
-                                className="transition-all duration-200 hover:translate-x-1 hover:text-white"
+                                className="transition-all duration-200 hover:translate-x-1 hover:text-white rtl:-translate-x-1"
                             >
                                 FAQ
                             </Link>
                             <Link
                                 href="/about"
-                                className="transition-all duration-200 hover:translate-x-1 hover:text-white"
+                                className="transition-all duration-200 hover:translate-x-1 hover:text-white rtl:-translate-x-1"
                             >
                                 About Us
                             </Link>
                             <Link
                                 href="/privacy"
-                                className="transition-all duration-200 hover:translate-x-1 hover:text-white"
+                                className="transition-all duration-200 hover:translate-x-1 hover:text-white rtl:-translate-x-1"
                             >
                                 Privacy Policy
                             </Link>
                             <Link
                                 href="/contact"
-                                className="transition-all duration-200 hover:translate-x-1 hover:text-white"
+                                className="transition-all duration-200 hover:translate-x-1 hover:text-white rtl:-translate-x-1"
                             >
                                 Contact Us
                             </Link>
@@ -117,7 +117,7 @@ export default function Footer() {
                         </p>
                     </div>
 
-                    <p className="text-xs md:text-sm text-center md:text-right">
+                    <p className="text-center text-xs md:text-end md:text-sm">
                         Built with <Heart className="inline h-[1em] w-[1em] text-red-500" /> for the
                         open-source community.
                     </p>

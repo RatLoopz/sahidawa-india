@@ -1,5 +1,17 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 @variant dark (&:where(.dark, .dark *));
+
+/**
+ * RTL Font Override
+ * When the page is rendered in RTL (Urdu / Kashmiri locale), apply
+ * Noto Nastaliq Urdu for proper Perso-Arabic script rendering.
+ */
+:root:is([dir="rtl"]) {
+    --font-rtl: "Noto Nastaliq Urdu", serif;
+    font-family: var(--font-rtl);
+    line-height: 1.9; /* Nastaliq glyphs are taller — needs more leading */
+}
 
 :root {
     --color-brand-primary: #10b981;
