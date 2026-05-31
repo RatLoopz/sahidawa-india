@@ -12,6 +12,11 @@ export const useOfflineStatus = () => {
     const retryCallbacksRef = useRef<Set<() => void>>(new Set());
 
     useEffect(() => {
+        const isLocalDevelopment =
+            process.env.NODE_ENV === "development" &&
+            typeof window !== "undefined" &&
+            ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+
         // Check if we're in test mode
         if (typeof window !== "undefined") {
             const params = new URLSearchParams(window.location.search);
@@ -21,6 +26,11 @@ export const useOfflineStatus = () => {
             if (testMode) {
                 setIsOffline(true);
                 return; // Skip normal online/offline detection
+            }
+
+            if (isLocalDevelopment) {
+                setIsOffline(false);
+                return; // Local dev should not show offline unless ?offline=true is used.
             }
         }
 

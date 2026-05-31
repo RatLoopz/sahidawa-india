@@ -14,8 +14,8 @@
         "report_fake_subtitle": "ସନ୍ଦେହଜନକ ଔଷଧ ବିଷୟରେ ଅଭିଯୋଗ କରନ୍ତୁ",
         "search_placeholder": "ଔଷଧ କିମ୍ବା ବ୍ୟାଚ ନମ୍ବର ଖୋଜନ୍ତୁ...",
         "search_button": "ଖୋଜନ୍ତୁ",
-        "sign_in": "Sign In",
-        "get_started": "Get Started",
+        "sign_in": "ସାଇନ୍ ଇନ୍ କରନ୍ତୁ",
+        "get_started": "ଆରମ୍ଭ କରନ୍ତୁ",
         "open_ai_health_assistant": "AI ସ୍ୱାସ୍ଥ୍ୟ ସହାୟକ ଖୋଲନ୍ତୁ",
         "ai_health_assistant": "AI ସ୍ୱାସ୍ଥ୍ୟ ସହାୟକ",
         "ai_chat": "AI ଚାଟ୍",
@@ -25,7 +25,23 @@
         "india_region": "ଭାରତ ଅଞ୍ଚଳ",
         "alerts_empty_title": "ସବୁ ଠିକ୍ ଅଛି!",
         "alerts_empty_description": "ଏବେ କୌଣସି ସକ୍ରିୟ ନିୟାମକ ସତର୍କ ସୂଚନା ନାହିଁ । ସୁରକ୍ଷିତ ରୁହନ୍ତୁ ଏବଂ ଆପଣଙ୍କ ଔଷଧ ସତ୍ୟାପିତ କରନ୍ତୁ ।",
-        "view_full_alert_log": "ସମ୍ପୂର୍ଣ୍ଣ ସତର୍କ ସୂଚନା ଲଗ୍ ଦେଖନ୍ତୁ"
+        "view_full_alert_log": "ସମ୍ପୂର୍ଣ୍ଣ ସତର୍କ ସୂଚନା ଲଗ୍ ଦେଖନ୍ତୁ",
+        "project_badge": "GSSoC 2026 ଓପେନ୍ ସୋର୍ସ ପ୍ରକଳ୍ପ",
+        "logo_label": "SahiDawa",
+        "main_navigation_label": "????? ?????????",
+        "mobile_navigation_label": "??????? ?????????",
+        "scan_aria": "??? ?????? ??????",
+        "upload_photo_aria": "??? ?????? ??????",
+        "voice_triage_aria": "???? ????????",
+        "pharmacy_map_aria": "???????? ????????",
+        "report_fake_aria": "???? ??? ??????? ??????",
+        "batch_label": "??????",
+        "relative_recent": "????????",
+        "relative_just_now": "?????",
+        "relative_minutes_ago": "{count}?? ??????",
+        "relative_hours_ago": "{count} ଘଣ୍ଟା ପୂର୍ବରୁ",
+        "search_aria": "??? ?????? ?????? ???????",
+        "submit_search_aria": "??? ?????? ??????"
     },
     "Navigation": {
         "how_it_works": "ଏହା କିପରି କାର୍ଯ୍ୟ କରେ",
@@ -138,8 +154,13 @@
             "generic_title": "କିଛି ଅସୁବିଧା ହେଲା",
             "generic_message": "ବର୍ତ୍ତମାନ ଆମେ ଆପଣଙ୍କ ଭଏସ୍ ଇନପୁଟ୍ ପ୍ରକ୍ରିୟାକରଣ କରି ପାରିଲୁ ନାହିଁ । ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ ।",
             "api_title": "SahiDawa AI ଅନୁପଲବ୍ଧ",
-            "api_message": "ଆମେ ବର୍ତ୍ତମାନ ଚିକିତ୍ସା ମାର୍ଗଦର୍ଶନ ଆଣି ପାରୁ ନାହୁଁ । ଦୟାକରି କିଛି ସମୟ ପରେ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ ।"
-        }
+            "api_message": "ଆମେ ବର୍ତ୍ତମାନ ଚିକିତ୍ସା ମାର୍ଗଦର୍ଶନ ଆଣି ପାରୁ ନାହୁଁ । ଦୟାକରି କିଛି ସମୟ ପରେ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ ।",
+            "service_unavailable_title": "Voice service unavailable",
+            "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
+            "timeout_title": "Voice request timed out",
+            "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input."
+        },
+        "switch_to_text_button": "Type Instead"
     },
     "offline": {
         "bannerOffline": "ଆପଣ ଅଫ‌ଲାଇନ୍ ଅଛନ୍ତି",
@@ -191,5 +212,129 @@
             "faq": "ସାଧାରଣ ପ୍ରଶ୍ନ"
         },
         "footer": "SahiDawa ମାଗଣା, ଓପେନ୍-ସୋର୍ସ ଏବଂ ୧୪୦ କୋଟି ଭାରତୀୟଙ୍କ ପାଇଁ ନିର୍ମିତ । କୌଣସି ବିଜ୍ଞାପନ ନାହିଁ । କୌଣସି ପ୍ରିମିୟମ୍ ଚାର୍ଜ ନାହିଁ । ଡାଟା ବିକ୍ରି ହୁଏ ନାହିଁ । କେବେବି ନୁହେଁ ।"
+    },
+    "ComparePage": {
+        "title": "??? ????? ??????",
+        "subtitle": "??????? ? ???????? ????????",
+        "first_medicine": "????? ???",
+        "second_medicine": "??????? ???",
+        "search_placeholder": "??????? ?????? ???????? ??? ???????",
+        "find_pharmacies": "???????? ???????",
+        "search": {
+            "clear_label": "??? ??????",
+            "enter_at_least_two": "??? ?? ??? 2?? ????? ???????",
+            "no_results": "????? ????? ?????",
+            "searching": "??????"
+        },
+        "grid": {
+            "approved": "????????",
+            "banned": "???????",
+            "brand": "???????",
+            "brand_name": "??????? ???",
+            "cdsco_status": "CDSCO ??????",
+            "composition": "???",
+            "empty_state": "????? ???????? ???? ????? ??? ????????",
+            "expiry_date": "?????? ??????? ?????",
+            "field": "???????",
+            "generic": "????????",
+            "generic_name": "???????? ???",
+            "jan_aushadhi_price": "?? ???? ?????",
+            "manufacturer": "????????",
+            "market_price": "???? ????? (MRP)",
+            "medicine_a": "??? A",
+            "medicine_b": "??? B",
+            "no_savings": "????? ????? ?????",
+            "price_unavailable": "????? ?????? ?????",
+            "recalled": "????? ????????",
+            "savings_vs_mrp": "MRP ??????? ?????",
+            "save_amount": "{amount} ????? ?????? ({percent}%)",
+            "type": "??????"
+        }
+    },
+    "ReportPage": {
+        "header_title": "Report Incident",
+        "header_subtitle": "Public Safety Initiative",
+        "badge": "Active Surveillance",
+        "hero_title_prefix": "Report a",
+        "hero_title_highlight": "Suspicious Medicine",
+        "hero_description": "Your vigilance protects public health. Report suspected counterfeit, expired, or substandard medicines. All reports are investigated by India's Pharmacovigilance authorities."
+    },
+    "ReportInfoPanel": {
+        "quick_verify": "Quick Verify",
+        "check_if_reported": "Check if already reported",
+        "batch_placeholder": "Enter batch number...",
+        "trust_safety": "Trust & Safety",
+        "anonymity_title": "Anonymity Guaranteed",
+        "anonymity_desc": "Your personal details are encrypted and never shared publicly.",
+        "verified_title": "Verified by Pharmacovigilance",
+        "verified_desc": "Reports are cross-checked with official databases before alerts are issued.",
+        "review_title": "48h Review Cycle",
+        "review_desc": "Critical reports are prioritized and reviewed within 48 hours."
+    },
+    "ReportWizard": {
+        "fields": {
+            "medicine_name": "ଔଷଧର ନାମ",
+            "manufacturer": "ଉତ୍ପାଦକ",
+            "description_of_concern": "ସମସ୍ୟାର ବିବରଣୀ",
+            "pharmacy_store_name": "ଫାର୍ମାସି / ଦୋକାନର ନାମ",
+            "street_address": "ରାସ୍ତା ଠିକଣା",
+            "city": "ସହର",
+            "state": "ରାଜ୍ୟ",
+            "pincode": "ପିନକୋଡ"
+        },
+        "placeholders": {
+            "medicine_name": "ଉଦା. Augmentin 625 Duo",
+            "manufacturer": "ଉଦା. Cipla Ltd.",
+            "description_of_concern": "ଅସାଧାରଣ ରଙ୍ଗ, ଗନ୍ଧ, ଗଠନ, ପ୍ୟାକେଜିଂ କିମ୍ବା ରିପୋର୍ଟ ହୋଇଥିବା ପାର୍ଶ୍ୱ ପ୍ରତିକ୍ରିୟା ବର୍ଣ୍ଣନା କରନ୍ତୁ...",
+            "pharmacy_store_name": "ଉଦା. Apollo Pharmacy, MG Road",
+            "street_address": "ଉଦା. 45, Park Street, ବସ ଷ୍ଟାଣ୍ଡ ନିକଟରେ",
+            "city": "ମୁମ୍ବାଇ",
+            "state": "ମହାରାଷ୍ଟ୍ର",
+            "pincode": "400001"
+        },
+        "header_badge": "MedWatch ରିପୋର୍ଟ",
+        "report_received": "ରିପୋର୍ଟ ଗ୍ରହଣ କରାଯାଇଛି",
+        "step_subtitle_1": "ସନ୍ଦେହଜନକ ଉତ୍ପାଦକୁ ଚିହ୍ନଟ କରନ୍ତୁ",
+        "step_subtitle_2": "ପ୍ରମାଣ ଭାବରେ ସ୍ପଷ୍ଟ ଫଟୋ ଅପଲୋଡ୍ କରନ୍ତୁ",
+        "step_subtitle_3": "ଉତ୍ପାଦ କେଉଁଠାରୁ କିଣାଯାଇଥିଲା?",
+        "back": "ପଛକୁ",
+        "continue": "ଜାରି ରଖନ୍ତୁ",
+        "submit_report": "ରିପୋର୍ଟ ଦାଖଲ କରନ୍ତୁ",
+        "submitting": "ଦାଖଲ କରାଯାଉଛି...",
+        "submit_another": "ଅନ୍ୟ ଏକ ରିପୋର୍ଟ ଦାଖଲ କରନ୍ତୁ",
+        "success_title": "ରିପୋର୍ଟ ଦାଖଲ ହୋଇଛି",
+        "success_description": "ଆପଣଙ୍କ ରିପୋର୍ଟ ସୁରକ୍ଷିତ ଭାବରେ ଗ୍ରହଣ କରାଯାଇଛି ଏବଂ 48 ଘଣ୍ଟା ମଧ୍ୟରେ ଆମର ଫାର୍ମାକୋଭିଜିଲାନ୍ସ ଦଳ ଦ୍ୱାରା ସମୀକ୍ଷା କରାଯିବ।",
+        "reference_id": "ସନ୍ଦର୍ଭ ଆଇଡି",
+        "steps": {
+            "medicine_details": "ଔଷଧ ବିବରଣୀ",
+            "photo_evidence": "ଫଟୋ ପ୍ରମାଣ",
+            "location_submit": "ସ୍ଥାନ ଏବଂ ଦାଖଲ"
+        },
+        "upload": {
+            "uploading_secure": "Uploading to secure storage...",
+            "drop_images_or": "Drop images or",
+            "select_files": "select files",
+            "file_types_hint": "JPG · PNG · WEBP · Multiple files OK",
+            "remove_image": "Remove",
+            "confidence": "confidence",
+            "minimum_image_required": "Minimum 1 image required",
+            "only_image_files": "Only image files are accepted."
+        },
+        "upload_failed_retry": "Upload failed. Please retry."
+    },
+    "Footer": {
+        "description": "ସମୁଦାୟ ସହଯୋଗ ଏବଂ ନବୀନତାକୁ ଧ୍ୟାନରେ ରଖି ତିଆରି ହୋଇଥିବା ଏକ ଓପେନ୍-ସୋର୍ସ ସ୍ୱାସ୍ଥ୍ୟ ପ୍ଲାଟଫର୍ମ।",
+        "badge": "GSSoC 2026 ପାଇଁ ତିଆରି",
+        "quick_links": "ତ୍ୱରିତ ଲିଙ୍କ",
+        "github_repository": "GitHub ରିପୋଜିଟୋରି",
+        "contributing_guide": "ଅବଦାନ ଗାଇଡ୍",
+        "faq": "ସାଧାରଣ ପ୍ରଶ୍ନ",
+        "about_us": "ଆମ ବିଷୟରେ",
+        "privacy_policy": "ଗୋପନୀୟତା ନୀତି",
+        "contact_us": "ଯୋଗାଯୋଗ କରନ୍ତୁ",
+        "connect": "ସଂଯୋଗ କରନ୍ତୁ",
+        "copyright": "© 2026 SahiDawa. MIT ଲାଇସେନ୍ସ ଅଧୀନରେ ଓପେନ୍ ସୋର୍ସ.",
+        "built_with_prefix": "ତିଆରି ହୋଇଛି",
+        "built_with_suffix": "ଓପେନ୍-ସୋର୍ସ ସମୁଦାୟ ପାଇଁ."
     }
 }

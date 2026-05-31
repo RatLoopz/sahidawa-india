@@ -13,4 +13,9 @@
 
 ALTER TABLE public.medicines DROP CONSTRAINT IF EXISTS idx_medicines_unique_variant;
 
+ALTER TABLE public.medicines
+  ADD COLUMN IF NOT EXISTS strength VARCHAR(100),
+  ADD COLUMN IF NOT EXISTS dosage_form VARCHAR(100),
+  ADD COLUMN IF NOT EXISTS source VARCHAR(100) DEFAULT 'manual';
+
 ALTER TABLE public.medicines ADD CONSTRAINT idx_medicines_unique_variant UNIQUE NULLS NOT DISTINCT (generic_name, brand_name, strength, dosage_form, source, barcode_id);

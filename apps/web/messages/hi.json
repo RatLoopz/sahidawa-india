@@ -14,8 +14,8 @@
         "report_fake_subtitle": "संदिग्ध दवा की रिपोर्ट करें",
         "search_placeholder": "दवा या बैच खोजें...",
         "search_button": "खोजें",
-        "sign_in": "Sign In",
-        "get_started": "Get Started",
+        "sign_in": "साइन इन करें",
+        "get_started": "शुरू करें",
         "open_ai_health_assistant": "AI स्वास्थ्य सहायक खोलें",
         "ai_health_assistant": "AI स्वास्थ्य सहायक",
         "ai_chat": "AI चैट",
@@ -25,7 +25,23 @@
         "india_region": "भारत क्षेत्र",
         "alerts_empty_title": "सब ठीक है!",
         "alerts_empty_description": "अभी कोई सक्रिय नियामक अलर्ट नहीं है। सुरक्षित रहें और अपनी दवाएं सत्यापित करें।",
-        "view_full_alert_log": "पूरा अलर्ट लॉग देखें"
+        "view_full_alert_log": "पूरा अलर्ट लॉग देखें",
+        "project_badge": "GSSoC 2026 ओपन सोर्स प्रोजेक्ट",
+        "logo_label": "SahiDawa",
+        "main_navigation_label": "????? ????????",
+        "mobile_navigation_label": "?????? ????????",
+        "scan_aria": "??? ????? ????",
+        "upload_photo_aria": "???? ????? ????",
+        "voice_triage_aria": "???? ??????",
+        "pharmacy_map_aria": "???????? ????????",
+        "report_fake_aria": "???? ??? ?? ??????? ????",
+        "batch_label": "???",
+        "relative_recent": "??? ??",
+        "relative_just_now": "???",
+        "relative_minutes_ago": "{count}?? ????",
+        "relative_hours_ago": "{count}घंटे पहले",
+        "search_aria": "??? ?? ??? ?????",
+        "submit_search_aria": "??? ????? ????"
     },
     "Navigation": {
         "how_it_works": "यह कैसे काम करता है",
@@ -181,5 +197,106 @@
             "faq": "अक्सर पूछे जाने वाले प्रश्न"
         },
         "footer": "SahiDawa निःशुल्क, ओपन-सोर्स है और 1.4 अरब भारतीयों के लिए बनाया गया है। कोई विज्ञापन नहीं। कोई प्रीमियम नहीं। डेटा कभी नहीं बेचा जाएगा।"
+    },
+    "offline": {
+        "bannerOffline": "You are offline",
+        "descriptionOffline": "Your changes will sync when connection returns",
+        "bannerOnline": "Back online",
+        "descriptionOnline": "Retrying failed requests...",
+        "dismiss": "Dismiss",
+        "title": "Offline Mode",
+        "description": "You don't have an internet connection right now.",
+        "subtitle": "Some features are unavailable while offline. Try to connect to the internet or browse cached content.",
+        "tryAgain": "Try Again",
+        "goHome": "Go to Home",
+        "footer": "SahiDawa will automatically sync when your connection returns.",
+        "cachedContent": "You can still access previously loaded content",
+        "noCache": "This page was not cached and is not available offline"
+    },
+    "ReportPage": {
+        "header_title": "घटना की रिपोर्ट करें",
+        "header_subtitle": "सार्वजनिक सुरक्षा पहल",
+        "badge": "सक्रिय निगरानी",
+        "hero_title_prefix": "एक",
+        "hero_title_highlight": "संदिग्ध दवा की रिपोर्ट करें",
+        "hero_description": "आपकी सतर्कता सार्वजनिक स्वास्थ्य की रक्षा करती है। संदिग्ध नकली, एक्सपायर्ड या निम्न-गुणवत्ता वाली दवाओं की रिपोर्ट करें। सभी रिपोर्टों की जांच भारत के फार्माकोविजिलेंस प्राधिकरणों द्वारा की जाती है।"
+    },
+    "ReportInfoPanel": {
+        "quick_verify": "त्वरित सत्यापन",
+        "check_if_reported": "जांचें कि क्या पहले से रिपोर्ट किया गया है",
+        "batch_placeholder": "बैच नंबर दर्ज करें...",
+        "trust_safety": "विश्वास और सुरक्षा",
+        "anonymity_title": "गोपनीयता की गारंटी",
+        "anonymity_desc": "आपकी व्यक्तिगत जानकारी एन्क्रिप्टेड रहती है और कभी भी सार्वजनिक रूप से साझा नहीं की जाती।",
+        "verified_title": "फार्माकोविजिलेंस द्वारा सत्यापित",
+        "verified_desc": "अलर्ट जारी करने से पहले रिपोर्टों का आधिकारिक डेटाबेस से मिलान किया जाता है।",
+        "review_title": "48 घंटे की समीक्षा प्रक्रिया",
+        "review_desc": "महत्वपूर्ण रिपोर्टों को प्राथमिकता दी जाती है और 48 घंटों के भीतर उनकी समीक्षा की जाती है।"
+    },
+    "ReportWizard": {
+        "fields": {
+            "medicine_name": "दवा का नाम",
+            "manufacturer": "निर्माता",
+            "description_of_concern": "समस्या का विवरण",
+            "pharmacy_store_name": "फार्मेसी / स्टोर का नाम",
+            "street_address": "सड़क का पता",
+            "city": "शहर",
+            "state": "राज्य",
+            "pincode": "पिनकोड"
+        },
+        "placeholders": {
+            "medicine_name": "उदा. Augmentin 625 Duo",
+            "manufacturer": "उदा. Cipla Ltd.",
+            "description_of_concern": "असामान्य रंग, गंध, बनावट, पैकेजिंग या रिपोर्ट किए गए दुष्प्रभावों का वर्णन करें...",
+            "pharmacy_store_name": "उदा. Apollo Pharmacy, MG Road",
+            "street_address": "उदा. 45, Park Street, बस स्टैंड के पास",
+            "city": "मुंबई",
+            "state": "महाराष्ट्र",
+            "pincode": "400001"
+        },
+        "header_badge": "MedWatch रिपोर्ट",
+        "report_received": "रिपोर्ट प्राप्त हुई",
+        "step_subtitle_1": "संदिग्ध उत्पाद की पहचान करें",
+        "step_subtitle_2": "साक्ष्य के रूप में स्पष्ट तस्वीरें अपलोड करें",
+        "step_subtitle_3": "उत्पाद कहाँ से खरीदा गया था?",
+        "back": "वापस",
+        "continue": "जारी रखें",
+        "submit_report": "रिपोर्ट जमा करें",
+        "submitting": "जमा किया जा रहा है...",
+        "submit_another": "एक और रिपोर्ट जमा करें",
+        "success_title": "रिपोर्ट जमा हो गई",
+        "success_description": "आपकी रिपोर्ट सुरक्षित रूप से प्राप्त कर ली गई है और 48 घंटों के भीतर हमारी फार्माकोविजिलेंस टीम द्वारा इसकी समीक्षा की जाएगी।",
+        "reference_id": "संदर्भ आईडी",
+        "steps": {
+            "medicine_details": "दवा का विवरण",
+            "photo_evidence": "फोटो साक्ष्य",
+            "location_submit": "स्थान और जमा करें"
+        },
+        "upload": {
+            "uploading_secure": "सुरक्षित स्टोरेज में अपलोड हो रहा है...",
+            "drop_images_or": "तस्वीरें ड्रॉप करें या",
+            "select_files": "फाइलें चुनें",
+            "file_types_hint": "JPG · PNG · WEBP · कई फाइलें स्वीकार हैं",
+            "remove_image": "हटाएं",
+            "confidence": "विश्वास",
+            "minimum_image_required": "कम से कम 1 तस्वीर आवश्यक है",
+            "only_image_files": "केवल इमेज फाइलें स्वीकार की जाती हैं."
+        },
+        "upload_failed_retry": "अपलोड विफल रहा. कृपया फिर से कोशिश करें."
+    },
+    "Footer": {
+        "description": "समुदाय के सहयोग और नवाचार को ध्यान में रखकर बनाया गया एक ओपन-सोर्स स्वास्थ्य प्लेटफॉर्म.",
+        "badge": "GSSoC 2026 के लिए बनाया गया",
+        "quick_links": "त्वरित लिंक",
+        "github_repository": "GitHub रिपॉजिटरी",
+        "contributing_guide": "योगदान गाइड",
+        "faq": "अक्सर पूछे जाने वाले प्रश्न",
+        "about_us": "हमारे बारे में",
+        "privacy_policy": "गोपनीयता नीति",
+        "contact_us": "संपर्क करें",
+        "connect": "जुड़ें",
+        "copyright": "© 2026 SahiDawa. MIT लाइसेंस के तहत ओपन सोर्स.",
+        "built_with_prefix": "बनाया गया",
+        "built_with_suffix": "ओपन-सोर्स समुदाय के लिए."
     }
 }

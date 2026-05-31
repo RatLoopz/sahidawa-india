@@ -1,20 +1,32 @@
-import ReportWizard from "@/components/reports/ReportWizard";
+﻿import ReportWizard from "@/components/reports/ReportWizard";
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { PageHeader } from "../components/PageHeader";
 import ReportInfoPanel from "./ReportInfoPanel";
 
-export const metadata = {
-  title: "Report Fake Medicine — MedWatch",
-  description:
-    "Report suspicious or counterfeit medicines found at pharmacies. Help protect your community.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "ReportPage" });
 
-export default function ReportPage() {
+  return {
+    title: `${t("header_title")} - MedWatch`,
+    description: t("hero_description"),
+  };
+}
+
+export default async function ReportPage() {
+  const t = await getTranslations("ReportPage");
+
   return (
     <div className="min-h-screen bg-(--color-surface-muted) text-(--color-text-primary) font-sans selection:bg-emerald-200 flex flex-col overflow-x-hidden">
       {/* Header component */}
       <PageHeader 
-        title="Report Incident" 
-        subtitle="Public Safety Initiative" 
+        title={t("header_title")} 
+        subtitle={t("header_subtitle")} 
         backHref="/" 
         variant="light" 
       />
@@ -36,16 +48,16 @@ export default function ReportPage() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                Active Surveillance
+                {t("badge")}
               </div>
               <h1 className="text-4xl md:text-5xl font-extrabold text-(--color-text-primary) tracking-tight leading-[1.1]">
-                Report a <br />
+                {t("hero_title_prefix")} <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500 dark:from-emerald-400 dark:to-teal-400">
-                  Suspicious Medicine
+                  {t("hero_title_highlight")}
                 </span>
               </h1>
               <p className="text-lg text-(--color-text-secondary) font-medium leading-relaxed max-w-xl">
-                Your vigilance protects public health. Report suspected counterfeit, expired, or substandard medicines. All reports are investigated by India's Pharmacovigilance authorities.
+                {t("hero_description")}
               </p>
             </div>
 
@@ -62,3 +74,4 @@ export default function ReportPage() {
     </div>
   );
 }
+

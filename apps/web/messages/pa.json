@@ -14,8 +14,8 @@
         "report_fake_subtitle": "ਸ਼ੱਕੀ ਦਵਾਈ ਦੀ ਰਿਪੋਰਟ ਕਰੋ",
         "search_placeholder": "ਦਵਾਈ ਜਾਂ ਬੈਚ ਖੋਜੋ...",
         "search_button": "ਖੋਜੋ",
-        "sign_in": "Sign In",
-        "get_started": "Get Started",
+        "sign_in": "ਸਾਈਨ ਇਨ ਕਰੋ",
+        "get_started": "ਸ਼ੁਰੂ ਕਰੋ",
         "open_ai_health_assistant": "AI ਸਿਹਤ ਸਹਾਇਕ ਖੋਲ੍ਹੋ",
         "ai_health_assistant": "AI ਸਿਹਤ ਸਹਾਇਕ",
         "ai_chat": "AI ਚੈਟ",
@@ -25,7 +25,23 @@
         "india_region": "ਭਾਰਤ ਖੇਤਰ",
         "alerts_empty_title": "ਸਭ ਠੀਕ ਹੈ!",
         "alerts_empty_description": "ਇਸ ਵੇਲੇ ਕੋਈ ਸਰਗਰਮ ਨਿਯਮਕ ਚੇਤਾਵਨੀ ਨਹੀਂ ਹੈ। ਸੁਰੱਖਿਅਤ ਰਹੋ ਅਤੇ ਆਪਣੀਆਂ ਦਵਾਈਆਂ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ।",
-        "view_full_alert_log": "ਪੂਰਾ ਚੇਤਾਵਨੀ ਲੌਗ ਵੇਖੋ"
+        "view_full_alert_log": "ਪੂਰਾ ਚੇਤਾਵਨੀ ਲੌਗ ਵੇਖੋ",
+        "project_badge": "GSSoC 2026 ਓਪਨ ਸੋਰਸ ਪ੍ਰੋਜੈਕਟ",
+        "logo_label": "SahiDawa",
+        "main_navigation_label": "???? ?????????",
+        "mobile_navigation_label": "?????? ?????????",
+        "scan_aria": "???? ???? ???",
+        "upload_photo_aria": "???? ????? ???",
+        "voice_triage_aria": "???? ???????",
+        "pharmacy_map_aria": "??????? ?????",
+        "report_fake_aria": "???? ???? ?? ?????? ???",
+        "batch_label": "Batch",
+        "relative_recent": "?????",
+        "relative_just_now": "???? ??",
+        "relative_minutes_ago": "{count}???? ??????",
+        "relative_hours_ago": "{count} ਘੰਟੇ ਪਹਿਲਾਂ",
+        "search_aria": "???? ??? ??? ????",
+        "submit_search_aria": "??? ?????? ???"
     },
     "Navigation": {
         "how_it_works": "ਇਹ ਕਿਵੇਂ ਕੰਮ ਕਰਦਾ ਹੈ",
@@ -193,5 +209,132 @@
             "faq": "ਅਕਸਰ ਪੁੱਛੇ ਜਾਣ ਵਾਲੇ ਸਵਾਲ"
         },
         "footer": "SahiDawa ਮੁਫ਼ਤ, ਓਪਨ-ਸੋਰਸ ਅਤੇ 1.4 ਬਿਲੀਅਨ ਭਾਰਤੀਆਂ ਲਈ ਬਣਾਇਆ ਗਿਆ ਹੈ। ਕੋਈ ਵਿਗਿਆਪਨ ਨਹੀਂ। ਕੋਈ ਪ੍ਰੀਮੀਅਮ ਨਹੀਂ। ਕੋਈ ਡਾਟਾ ਵੇਚਿਆ ਨਹੀਂ ਜਾਂਦਾ।"
+    },
+    "ComparePage": {
+        "title": "?????? ?? ????? ???",
+        "subtitle": "?????? ??? ??????? ???-???",
+        "first_medicine": "????? ????",
+        "second_medicine": "???? ????",
+        "search_placeholder": "?????? ??? ??????? ??? ????",
+        "find_pharmacies": "??????? ????",
+        "search": {
+            "clear_label": "???? ???",
+            "enter_at_least_two": "????-??? 2 ???? ???? ???",
+            "no_results": "??? ????? ????",
+            "searching": "??? ???? ??"
+        },
+        "grid": {
+            "approved": "??????",
+            "banned": "???????????",
+            "brand": "??????",
+            "brand_name": "?????? ???",
+            "cdsco_status": "CDSCO ?????",
+            "composition": "????",
+            "empty_state": "????? ???? ?? ???? ?? ?????? ?????",
+            "expiry_date": "???? ??? ??? ?? ?????",
+            "field": "????",
+            "generic": "???????",
+            "generic_name": "??????? ???",
+            "jan_aushadhi_price": "?? ????? ????",
+            "manufacturer": "???????",
+            "market_price": "?????? ???? (MRP)",
+            "medicine_a": "???? A",
+            "medicine_b": "???? B",
+            "no_savings": "??? ??? ????",
+            "price_unavailable": "???? ????? ????",
+            "recalled": "???? ??????",
+            "savings_vs_mrp": "MRP ????? ???",
+            "save_amount": "{amount} ???? ({percent}%)",
+            "type": "????"
+        }
+    },
+    "BackToTopButton": {
+        "label": "Back to top"
+    },
+    "ReportPage": {
+        "header_title": "Report Incident",
+        "header_subtitle": "Public Safety Initiative",
+        "badge": "Active Surveillance",
+        "hero_title_prefix": "Report a",
+        "hero_title_highlight": "Suspicious Medicine",
+        "hero_description": "Your vigilance protects public health. Report suspected counterfeit, expired, or substandard medicines. All reports are investigated by India's Pharmacovigilance authorities."
+    },
+    "ReportInfoPanel": {
+        "quick_verify": "Quick Verify",
+        "check_if_reported": "Check if already reported",
+        "batch_placeholder": "Enter batch number...",
+        "trust_safety": "Trust & Safety",
+        "anonymity_title": "Anonymity Guaranteed",
+        "anonymity_desc": "Your personal details are encrypted and never shared publicly.",
+        "verified_title": "Verified by Pharmacovigilance",
+        "verified_desc": "Reports are cross-checked with official databases before alerts are issued.",
+        "review_title": "48h Review Cycle",
+        "review_desc": "Critical reports are prioritized and reviewed within 48 hours."
+    },
+    "ReportWizard": {
+        "fields": {
+            "medicine_name": "Medicine Name",
+            "manufacturer": "Manufacturer",
+            "description_of_concern": "Description of Concern",
+            "pharmacy_store_name": "Pharmacy / Store Name",
+            "street_address": "Street Address",
+            "city": "City",
+            "state": "State",
+            "pincode": "Pincode"
+        },
+        "placeholders": {
+            "medicine_name": "e.g. Augmentin 625 Duo",
+            "manufacturer": "e.g. Cipla Ltd.",
+            "description_of_concern": "Describe unusual colour, smell, texture, packaging, reported side-effects...",
+            "pharmacy_store_name": "e.g. Apollo Pharmacy, MG Road",
+            "street_address": "e.g. 45, Park Street, Near Bus Stand",
+            "city": "Mumbai",
+            "state": "Maharashtra",
+            "pincode": "400001"
+        },
+        "header_badge": "MedWatch Report",
+        "report_received": "Report Received",
+        "step_subtitle_1": "Identify the suspicious product",
+        "step_subtitle_2": "Upload clear photos as evidence",
+        "step_subtitle_3": "Where was the product purchased?",
+        "back": "Back",
+        "continue": "Continue",
+        "submit_report": "Submit Report",
+        "submitting": "Submitting...",
+        "submit_another": "Submit another report",
+        "success_title": "Report Submitted",
+        "success_description": "Your report has been securely received and will be reviewed by our pharmacovigilance team within 48 hours.",
+        "reference_id": "Reference ID",
+        "steps": {
+            "medicine_details": "Medicine Details",
+            "photo_evidence": "Photo Evidence",
+            "location_submit": "Location & Submit"
+        },
+        "upload": {
+            "uploading_secure": "Uploading to secure storage...",
+            "drop_images_or": "Drop images or",
+            "select_files": "select files",
+            "file_types_hint": "JPG · PNG · WEBP · Multiple files OK",
+            "remove_image": "Remove",
+            "confidence": "confidence",
+            "minimum_image_required": "Minimum 1 image required",
+            "only_image_files": "Only image files are accepted."
+        },
+        "upload_failed_retry": "Upload failed. Please retry."
+    },
+    "Footer": {
+        "description": "ਕਮਿਊਨਿਟੀ ਸਹਿਯੋਗ ਅਤੇ ਨਵੀਂ ਸੋਚ ਨੂੰ ਧਿਆਨ ਵਿੱਚ ਰੱਖ ਕੇ ਬਣਾਇਆ ਗਿਆ ਓਪਨ-ਸੋਰਸ ਸਿਹਤ ਪਲੇਟਫਾਰਮ।",
+        "badge": "GSSoC 2026 ਲਈ ਬਣਾਇਆ ਗਿਆ",
+        "quick_links": "ਤੇਜ਼ ਲਿੰਕ",
+        "github_repository": "GitHub ਰਿਪੋਜ਼ਟਰੀ",
+        "contributing_guide": "ਯੋਗਦਾਨ ਗਾਈਡ",
+        "faq": "ਅਕਸਰ ਪੁੱਛੇ ਸਵਾਲ",
+        "about_us": "ਸਾਡੇ ਬਾਰੇ",
+        "privacy_policy": "ਗੋਪਨੀਯਤਾ ਨੀਤੀ",
+        "contact_us": "ਸੰਪਰਕ ਕਰੋ",
+        "connect": "ਜੁੜੋ",
+        "copyright": "© 2026 SahiDawa. MIT ਲਾਇਸੈਂਸ ਹੇਠ ਓਪਨ ਸੋਰਸ.",
+        "built_with_prefix": "ਬਣਾਇਆ ਗਿਆ",
+        "built_with_suffix": "ਓਪਨ-ਸੋਰਸ ਕਮਿਊਨਿਟੀ ਲਈ."
     }
 }

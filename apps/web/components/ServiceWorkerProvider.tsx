@@ -14,7 +14,7 @@ import { toast } from "sonner";
  */
 export function ServiceWorkerProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
-        if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
+        if (typeof window === "undefined" || !("serviceWorker" in navigator) || process.env.NODE_ENV !== "production") return;
 
         let updateInterval: ReturnType<typeof setInterval> | null = null;
 

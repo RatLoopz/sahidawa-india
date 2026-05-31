@@ -25,7 +25,23 @@
         "india_region": "India Region",
         "alerts_empty_title": "All clear!",
         "alerts_empty_description": "No active regulatory alerts right now. Stay safe and verify your medicines.",
-        "view_full_alert_log": "View Full Alert Log"
+        "view_full_alert_log": "View Full Alert Log",
+        "project_badge": "GSSoC 2026 Open Source Project",
+        "logo_label": "SahiDawa",
+        "main_navigation_label": "Main navigation",
+        "mobile_navigation_label": "Mobile navigation",
+        "scan_aria": "Scan medicine",
+        "upload_photo_aria": "Upload medicine photo",
+        "voice_triage_aria": "Open voice triage",
+        "pharmacy_map_aria": "Open pharmacy map",
+        "report_fake_aria": "Report fake medicine",
+        "batch_label": "Batch",
+        "relative_recent": "Recent",
+        "relative_just_now": "Just now",
+        "relative_minutes_ago": "{count}m ago",
+        "relative_hours_ago": "{count}h ago",
+        "search_aria": "Search medicine or batch",
+        "submit_search_aria": "Submit search"
     },
     "Navigation": {
         "how_it_works": "How it Works",
@@ -196,5 +212,129 @@
             "faq": "FAQ"
         },
         "footer": "SahiDawa is free, open-source, and built for 1.4 billion Indians. No ads. No premium. No data sold. Ever."
+    },
+    "ReportPage": {
+        "header_title": "Report Incident",
+        "header_subtitle": "Public Safety Initiative",
+        "badge": "Active Surveillance",
+        "hero_title_prefix": "Report a",
+        "hero_title_highlight": "Suspicious Medicine",
+        "hero_description": "Your vigilance protects public health. Report suspected counterfeit, expired, or substandard medicines. All reports are investigated by India's Pharmacovigilance authorities."
+    },
+    "ReportInfoPanel": {
+        "quick_verify": "Quick Verify",
+        "check_if_reported": "Check if already reported",
+        "batch_placeholder": "Enter batch number...",
+        "trust_safety": "Trust & Safety",
+        "anonymity_title": "Anonymity Guaranteed",
+        "anonymity_desc": "Your personal details are encrypted and never shared publicly.",
+        "verified_title": "Verified by Pharmacovigilance",
+        "verified_desc": "Reports are cross-checked with official databases before alerts are issued.",
+        "review_title": "48h Review Cycle",
+        "review_desc": "Critical reports are prioritized and reviewed within 48 hours."
+    },
+    "ReportWizard": {
+        "fields": {
+            "medicine_name": "Medicine Name",
+            "manufacturer": "Manufacturer",
+            "description_of_concern": "Description of Concern",
+            "pharmacy_store_name": "Pharmacy / Store Name",
+            "street_address": "Street Address",
+            "city": "City",
+            "state": "State",
+            "pincode": "Pincode"
+        },
+        "placeholders": {
+            "medicine_name": "e.g. Augmentin 625 Duo",
+            "manufacturer": "e.g. Cipla Ltd.",
+            "description_of_concern": "Describe unusual colour, smell, texture, packaging, reported side-effects...",
+            "pharmacy_store_name": "e.g. Apollo Pharmacy, MG Road",
+            "street_address": "e.g. 45, Park Street, Near Bus Stand",
+            "city": "Mumbai",
+            "state": "Maharashtra",
+            "pincode": "400001"
+        },
+        "header_badge": "MedWatch Report",
+        "report_received": "Report Received",
+        "step_subtitle_1": "Identify the suspicious product",
+        "step_subtitle_2": "Upload clear photos as evidence",
+        "step_subtitle_3": "Where was the product purchased?",
+        "back": "Back",
+        "continue": "Continue",
+        "submit_report": "Submit Report",
+        "submitting": "Submitting...",
+        "submit_another": "Submit another report",
+        "success_title": "Report Submitted",
+        "success_description": "Your report has been securely received and will be reviewed by our pharmacovigilance team within 48 hours.",
+        "reference_id": "Reference ID",
+        "steps": {
+            "medicine_details": "Medicine Details",
+            "photo_evidence": "Photo Evidence",
+            "location_submit": "Location & Submit"
+        },
+        "upload": {
+            "uploading_secure": "Uploading to secure storage...",
+            "drop_images_or": "Drop images or",
+            "select_files": "select files",
+            "file_types_hint": "JPG · PNG · WEBP · Multiple files OK",
+            "remove_image": "Remove",
+            "confidence": "confidence",
+            "minimum_image_required": "Minimum 1 image required",
+            "only_image_files": "Only image files are accepted."
+        },
+        "upload_failed_retry": "Upload failed. Please retry."
+    },
+    "ComparePage": {
+        "title": "Compare Medicines",
+        "subtitle": "Check medicine price and safety side-by-side",
+        "first_medicine": "First medicine",
+        "second_medicine": "Second medicine",
+        "search_placeholder": "Search medicine name or batch",
+        "find_pharmacies": "Find pharmacies",
+        "search": {
+            "clear_label": "Clear",
+            "enter_at_least_two": "Enter at least 2 characters",
+            "no_results": "No results found",
+            "searching": "Searching"
+        },
+        "grid": {
+            "approved": "Approved",
+            "banned": "Banned",
+            "brand": "Brand",
+            "brand_name": "Brand name",
+            "cdsco_status": "CDSCO status",
+            "composition": "Composition",
+            "empty_state": "Select medicines above to compare details.",
+            "expiry_date": "Expiry date",
+            "field": "Field",
+            "generic": "Generic",
+            "generic_name": "Generic name",
+            "jan_aushadhi_price": "Jan Aushadhi price",
+            "manufacturer": "Manufacturer",
+            "market_price": "Market price (MRP)",
+            "medicine_a": "Medicine A",
+            "medicine_b": "Medicine B",
+            "no_savings": "No savings",
+            "price_unavailable": "Price unavailable",
+            "recalled": "Recalled",
+            "savings_vs_mrp": "Savings vs MRP",
+            "save_amount": "Save {amount} ({percent}%)",
+            "type": "Type"
+        }
+    },
+    "Footer": {
+        "description": "An open-source healthcare platform built with community collaboration and innovation in mind.",
+        "badge": "Made for GSSoC 2026",
+        "quick_links": "Quick Links",
+        "github_repository": "GitHub Repository",
+        "contributing_guide": "Contributing Guide",
+        "faq": "FAQ",
+        "about_us": "About Us",
+        "privacy_policy": "Privacy Policy",
+        "contact_us": "Contact Us",
+        "connect": "Connect",
+        "copyright": "© 2026 SahiDawa. Open Source under MIT License.",
+        "built_with_prefix": "Built with",
+        "built_with_suffix": "for the open-source community."
     }
 }

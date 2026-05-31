@@ -14,8 +14,8 @@
         "report_fake_subtitle": "શંકાસ્પદ દવાની જાણ કરો",
         "search_placeholder": "દવા અથવા બૅચ શોધો...",
         "search_button": "શોધો",
-        "sign_in": "Sign In",
-        "get_started": "Get Started",
+        "sign_in": "સાઇન ઇન કરો",
+        "get_started": "શરૂઆત કરો",
         "open_ai_health_assistant": "AI આરોગ્ય સહાયક ખોલો",
         "ai_health_assistant": "AI આરોગ્ય સહાયક",
         "ai_chat": "AI ચેટ",
@@ -25,7 +25,23 @@
         "india_region": "ભારત પ્રદેશ",
         "alerts_empty_title": "બધું ઠીક છે!",
         "alerts_empty_description": "હાલમાં કોઈ સક્રિય નિયમનકારી સૂચનાઓ નથી. સુરક્ષિત રહો અને તમારી દવાઓ ચકાસો.",
-        "view_full_alert_log": "સંપૂર્ણ સૂચના લૉગ જુઓ"
+        "view_full_alert_log": "સંપૂર્ણ સૂચના લૉગ જુઓ",
+        "project_badge": "GSSoC 2026 ઓપન સોર્સ પ્રોજેક્ટ",
+        "logo_label": "SahiDawa ",
+        "main_navigation_label": "????? ????????",
+        "mobile_navigation_label": "?????? ????????",
+        "scan_aria": "??? ????? ???",
+        "upload_photo_aria": "???? ????? ???",
+        "voice_triage_aria": "???? ???????",
+        "pharmacy_map_aria": "??????? ????",
+        "report_fake_aria": "???? ????? ??? ???",
+        "batch_label": "Batch",
+        "relative_recent": "?????????",
+        "relative_just_now": "????? ?",
+        "relative_minutes_ago": "{count}?? ??????",
+        "relative_hours_ago": "{count} કલાક પહેલા",
+        "search_aria": "??? ???? ??? ????",
+        "submit_search_aria": "??? ????? ???"
     },
     "Navigation": {
         "how_it_works": "તે કેવી રીતે કામ કરે છે",
@@ -131,8 +147,20 @@
             "timeout_title": "Voice request timed out",
             "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
             "api_title": "SahiDawa AI અનુપલબ્ધ છે",
-            "api_message": "અમે હમણાં તબીબી માર્ગદર્શન મેળવી શક્યા નહીં. કૃપા કરીને થોડીવાર પછી ફરી પ્રયાસ કરો."
-        }
+            "api_message": "અમે હમણાં તબીબી માર્ગદર્શન મેળવી શક્યા નહીં. કૃપા કરીને થોડીવાર પછી ફરી પ્રયાસ કરો.",
+            "language_not_supported_title": "This browser cannot capture that voice language",
+            "language_not_supported_message": "{language} voice input is limited in this browser. Try Chrome or Edge, or start a new check with another voice language."
+        },
+        "skip_to_main_content": "Skip to main content",
+        "announcements": {
+            "recording_started": "Recording started",
+            "processing_started": "Processing your symptoms",
+            "results_ready": "Results ready"
+        },
+        "streaming_connecting_hint": "Connecting to live transcription…",
+        "streaming_live_hint": "Live transcript is updating",
+        "streaming_fallback_hint": "Connection is unstable. SahiDawa will finish processing after you stop speaking.",
+        "tts_fallback_message": "Your browser may read this summary aloud in a different voice because {language} text-to-speech support is limited."
     },
     "offline": {
         "bannerOffline": "તમે ઑફલાઇન છો",
@@ -148,5 +176,139 @@
         "footer": "જ્યારે તમારું કનેક્શન પાછું આવશે ત્યારે SahiDawa આપમેળે સિંક થઈ જશે.",
         "cachedContent": "તમે અગાઉ લોડ કરેલ સામગ્રી હજુ પણ ઍક્સેસ કરી શકો છો",
         "noCache": "આ પૃષ્ઠ કૅશ થયું ન હતું અને ઑફલાઇન ઉપલબ્ধ નથી"
+    },
+    "ComparePage": {
+        "title": "?????? ??????? ???",
+        "subtitle": "??????? ??? ??????? ????????",
+        "first_medicine": "????? ???",
+        "second_medicine": "???? ???",
+        "search_placeholder": "??????? ???? ??????? ??? ????",
+        "find_pharmacies": "??????? ????",
+        "search": {
+            "clear_label": "?????",
+            "enter_at_least_two": "?????? ??? 2 ????? ???? ???",
+            "no_results": "??? ?????? ???",
+            "searching": "???? ?????? ??"
+        },
+        "grid": {
+            "approved": "?????",
+            "banned": "??????????",
+            "brand": "???????",
+            "brand_name": "??????? ???",
+            "cdsco_status": "CDSCO ??????",
+            "composition": "????",
+            "empty_state": "??????? ???? ???? ??? ?? ???? ???? ???.",
+            "expiry_date": "??????? ?????",
+            "field": "?????",
+            "generic": "???????",
+            "generic_name": "??????? ???",
+            "jan_aushadhi_price": "?? ???? ?????",
+            "manufacturer": "???????",
+            "market_price": "???? ????? (MRP)",
+            "medicine_a": "??? A",
+            "medicine_b": "??? B",
+            "no_savings": "??? ???",
+            "price_unavailable": "????? ?????? ???",
+            "recalled": "??? ????????",
+            "savings_vs_mrp": "MRP ???? ???",
+            "save_amount": "{amount} ????? ({percent}%)",
+            "type": "??????"
+        }
+    },
+    "contact": {
+        "badge": "GSSoC 2026 Open Source Project",
+        "heroTitle": {
+            "prefix": "Get In",
+            "highlight": "Touch"
+        },
+        "heroSubtitle": "Have questions, ideas, or want to contribute? We would love to hear from you.",
+        "cards": {
+            "email": {
+                "title": "Email Us",
+                "description": "For privacy queries, partnerships, or serious concerns."
+            },
+            "discord": {
+                "title": "Discord Community",
+                "description": "Join contributors, ask questions, and get announcements.",
+                "cta": "Join Discord"
+            },
+            "bug": {
+                "title": "Report a Bug",
+                "description": "Found an issue? Open a GitHub issue and we will fix it fast.",
+                "cta": "Open Issue"
+            },
+            "contribute": {
+                "title": "Contribute",
+                "description": "Want to help build SahiDawa? Read our contributing guide.",
+                "cta": "Read Guide"
+            }
+        },
+        "quickLinks": {
+            "title": "Helpful Links",
+            "about": "About SahiDawa",
+            "privacy": "Privacy Policy",
+            "faq": "FAQ"
+        },
+        "footer": "SahiDawa is free, open-source, and built for 1.4 billion Indians. No ads. No premium. No data sold. Ever."
+    },
+    "ReportPage": {
+        "header_title": "Report Incident",
+        "header_subtitle": "Public Safety Initiative",
+        "badge": "Active Surveillance",
+        "hero_title_prefix": "Report a",
+        "hero_title_highlight": "Suspicious Medicine",
+        "hero_description": "Your vigilance protects public health. Report suspected counterfeit, expired, or substandard medicines. All reports are investigated by India's Pharmacovigilance authorities."
+    },
+    "ReportInfoPanel": {
+        "quick_verify": "Quick Verify",
+        "check_if_reported": "Check if already reported",
+        "batch_placeholder": "Enter batch number...",
+        "trust_safety": "Trust & Safety",
+        "anonymity_title": "Anonymity Guaranteed",
+        "anonymity_desc": "Your personal details are encrypted and never shared publicly.",
+        "verified_title": "Verified by Pharmacovigilance",
+        "verified_desc": "Reports are cross-checked with official databases before alerts are issued.",
+        "review_title": "48h Review Cycle",
+        "review_desc": "Critical reports are prioritized and reviewed within 48 hours."
+    },
+    "ReportWizard": {
+        "fields": {
+            "medicine_name": "દવાનું નામ",
+            "manufacturer": "ઉત્પાદક",
+            "description_of_concern": "સમસ્યાનું વર્ણન",
+            "pharmacy_store_name": "ફાર્મસી / સ્ટોરનું નામ",
+            "street_address": "શેરીનું સરનામું",
+            "city": "શહેર",
+            "state": "રાજ્ય",
+            "pincode": "પિનકોડ"
+        },
+        "placeholders": {
+            "medicine_name": "દા.ત. Augmentin 625 Duo",
+            "manufacturer": "દા.ત. Cipla Ltd.",
+            "description_of_concern": "અસામાન્ય રંગ, ગંધ, રચના, પેકેજિંગ અથવા નોંધાયેલ આડઅસરોનું વર્ણન કરો...",
+            "pharmacy_store_name": "દા.ત. Apollo Pharmacy, MG Road",
+            "street_address": "દા.ત. 45, Park Street, બસ સ્ટેન્ડ પાસે",
+            "city": "મુંબઈ",
+            "state": "મહારાષ્ટ્ર",
+            "pincode": "400001"
+        },
+        "header_badge": "MedWatch અહેવાલ",
+        "report_received": "અહેવાલ પ્રાપ્ત થયો",
+        "step_subtitle_1": "શંકાસ્પદ ઉત્પાદનને ઓળખો",
+        "step_subtitle_2": "પુરાવા તરીકે સ્પષ્ટ ફોટા અપલોડ કરો",
+        "step_subtitle_3": "ઉત્પાદન ક્યાંથી ખરીદવામાં આવ્યું હતું?",
+        "back": "પાછળ",
+        "continue": "આગળ વધો",
+        "submit_report": "અહેવાલ સબમિટ કરો",
+        "submitting": "સબમિટ થઈ રહ્યું છે...",
+        "submit_another": "બીજો અહેવાલ સબમિટ કરો",
+        "success_title": "અહેવાલ સબમિટ થયો",
+        "success_description": "તમારો અહેવાલ સુરક્ષિત રીતે પ્રાપ્ત થયો છે અને 48 કલાકની અંદર અમારી ફાર્માકોવિજિલન્સ ટીમ દ્વારા તેની સમીક્ષા કરવામાં આવશે.",
+        "reference_id": "સંદર્ભ આઈડી",
+        "steps": {
+            "medicine_details": "દવાની વિગતો",
+            "photo_evidence": "ફોટો પુરાવો",
+            "location_submit": "સ્થાન અને સબમિટ"
+        }
     }
 }

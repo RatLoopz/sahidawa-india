@@ -14,8 +14,8 @@
         "report_fake_subtitle": "مشکوک دوا کی اطلاع دیں",
         "search_placeholder": "دوا یا بیچ نمبر تلاش کریں…",
         "search_button": "تلاش کریں",
-        "sign_in": "Sign In",
-        "get_started": "Get Started",
+        "sign_in": "سائن اِن کریں",
+        "get_started": "شروع کریں",
         "open_ai_health_assistant": "AI صحت معاون کھولیں",
         "ai_health_assistant": "AI صحت معاون",
         "ai_chat": "AI چیٹ",
@@ -25,7 +25,23 @@
         "india_region": "بھارت خطہ",
         "alerts_empty_title": "سب صاف ہے!",
         "alerts_empty_description": "اس وقت کوئی فعال ضابطہ جاتی الرٹ نہیں ہے۔ محفوظ رہیں اور اپنی ادویات کی تصدیق کریں۔",
-        "view_full_alert_log": "مکمل الرٹ لاگ دیکھیں"
+        "view_full_alert_log": "مکمل الرٹ لاگ دیکھیں",
+        "project_badge": "GSSoC 2026 اوپن سورس پروجیکٹ",
+        "logo_label": "SahiDawa ????",
+        "main_navigation_label": "????? ????????",
+        "mobile_navigation_label": "?????? ????????",
+        "scan_aria": "??? ????? ????",
+        "upload_photo_aria": "????? ?? ??? ????",
+        "voice_triage_aria": "???? ?????",
+        "pharmacy_map_aria": "??????? ????",
+        "report_fake_aria": "???? ??? ????? ????",
+        "batch_label": "???",
+        "relative_recent": "?????",
+        "relative_just_now": "????",
+        "relative_minutes_ago": "{count} ??? ????",
+        "relative_hours_ago": "{count} گھنٹے پہلے",
+        "search_aria": "??? ?? ??? ???? ????",
+        "submit_search_aria": "???? ??? ????"
     },
     "Navigation": {
         "how_it_works": "یہ کیسے کام کرتا ہے",
@@ -138,8 +154,13 @@
             "generic_title": "کچھ غلط ہو گیا",
             "generic_message": "ہم اس بار آپ کے وائس ان پٹ پر کارروائی نہیں کر سکے۔ براہ کرم دوبارہ کوشش کریں۔",
             "api_title": "SahiDawa AI دستیاب نہیں ہے",
-            "api_message": "ہمیں اس وقت طبی رہنمائی حاصل نہیں ہو سکی۔ براہ کرم تھوڑی دیر بعد دوبارہ کوشش کریں۔"
-        }
+            "api_message": "ہمیں اس وقت طبی رہنمائی حاصل نہیں ہو سکی۔ براہ کرم تھوڑی دیر بعد دوبارہ کوشش کریں۔",
+            "service_unavailable_title": "Voice service unavailable",
+            "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
+            "timeout_title": "Voice request timed out",
+            "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input."
+        },
+        "switch_to_text_button": "Type Instead"
     },
     "offline": {
         "bannerOffline": "آپ آف لائن ہیں",
@@ -191,5 +212,129 @@
             "faq": "اکثر پوچھے گئے سوالات"
         },
         "footer": "SahiDawa مکمل طور پر مفت، اوپن سورس، اور 1.4 ارب ہندوستانیوں کے لیے بنائی گئی ہے۔ کوئی اشتہار نہیں، کوئی پریمیم پلان نہیں، کوئی ڈیٹا فروخت نہیں۔ کبھی نہیں۔"
+    },
+    "ComparePage": {
+        "title": "????? ?? ?????? ????",
+        "subtitle": "????? ??? ????? ???? ????",
+        "first_medicine": "???? ???",
+        "second_medicine": "????? ???",
+        "search_placeholder": "????? ?? ????? ??? ???? ????",
+        "find_pharmacies": "??????? ???? ????",
+        "search": {
+            "clear_label": "??? ????",
+            "enter_at_least_two": "?? ?? ?? 2 ???? ??? ????",
+            "no_results": "???? ????? ????",
+            "searching": "???? ???? ??"
+        },
+        "grid": {
+            "approved": "????? ???",
+            "banned": "?????",
+            "brand": "?????",
+            "brand_name": "????? ???",
+            "cdsco_status": "CDSCO ?????",
+            "composition": "?????",
+            "empty_state": "?????? ?????? ?? ??? ???? ?? ?????? ????? ?????",
+            "expiry_date": "????? ??? ???? ?? ?????",
+            "field": "????",
+            "generic": "?????",
+            "generic_name": "????? ???",
+            "jan_aushadhi_price": "?? ?????? ????",
+            "manufacturer": "??????????",
+            "market_price": "?????? ???? (MRP)",
+            "medicine_a": "??? A",
+            "medicine_b": "??? B",
+            "no_savings": "???? ??? ????",
+            "price_unavailable": "???? ?????? ????",
+            "recalled": "???? ?? ???",
+            "savings_vs_mrp": "MRP ?? ?????? ???",
+            "save_amount": "{amount} ?????? ({percent}%)",
+            "type": "???"
+        }
+    },
+    "ReportPage": {
+        "header_title": "Report Incident",
+        "header_subtitle": "Public Safety Initiative",
+        "badge": "Active Surveillance",
+        "hero_title_prefix": "Report a",
+        "hero_title_highlight": "Suspicious Medicine",
+        "hero_description": "Your vigilance protects public health. Report suspected counterfeit, expired, or substandard medicines. All reports are investigated by India's Pharmacovigilance authorities."
+    },
+    "ReportInfoPanel": {
+        "quick_verify": "Quick Verify",
+        "check_if_reported": "Check if already reported",
+        "batch_placeholder": "Enter batch number...",
+        "trust_safety": "Trust & Safety",
+        "anonymity_title": "Anonymity Guaranteed",
+        "anonymity_desc": "Your personal details are encrypted and never shared publicly.",
+        "verified_title": "Verified by Pharmacovigilance",
+        "verified_desc": "Reports are cross-checked with official databases before alerts are issued.",
+        "review_title": "48h Review Cycle",
+        "review_desc": "Critical reports are prioritized and reviewed within 48 hours."
+    },
+    "ReportWizard": {
+        "fields": {
+            "medicine_name": "دوائی کا نام",
+            "manufacturer": "کارخانہ دار",
+            "description_of_concern": "مسئلے کی تفصیل",
+            "pharmacy_store_name": "فارمیسی / اسٹور کا نام",
+            "street_address": "گلی کا پتہ",
+            "city": "شہر",
+            "state": "ریاست",
+            "pincode": "پن کوڈ"
+        },
+        "placeholders": {
+            "medicine_name": "مثال: Augmentin 625 Duo",
+            "manufacturer": "مثال: Cipla Ltd.",
+            "description_of_concern": "غیر معمولی رنگ، بو، ساخت، پیکجنگ یا رپورٹ شدہ مضر اثرات کی وضاحت کریں...",
+            "pharmacy_store_name": "مثال: Apollo Pharmacy, MG Road",
+            "street_address": "مثال: 45, Park Street, بس اسٹینڈ کے قریب",
+            "city": "ممبئی",
+            "state": "مہاراشٹر",
+            "pincode": "400001"
+        },
+        "header_badge": "MedWatch رپورٹ",
+        "report_received": "رپورٹ موصول ہوگئی",
+        "step_subtitle_1": "مشکوک پروڈکٹ کی شناخت کریں",
+        "step_subtitle_2": "ثبوت کے طور پر واضح تصاویر اپ لوڈ کریں",
+        "step_subtitle_3": "پروڈکٹ کہاں سے خریدی گئی تھی؟",
+        "back": "واپس",
+        "continue": "جاری رکھیں",
+        "submit_report": "رپورٹ جمع کریں",
+        "submitting": "جمع کیا جا رہا ہے...",
+        "submit_another": "ایک اور رپورٹ جمع کریں",
+        "success_title": "رپورٹ جمع ہوگئی",
+        "success_description": "آپ کی رپورٹ محفوظ طریقے سے موصول ہو گئی ہے اور 48 گھنٹوں کے اندر ہماری فارماکوویجیلنس ٹیم اس کا جائزہ لے گی۔",
+        "reference_id": "حوالہ آئی ڈی",
+        "steps": {
+            "medicine_details": "دوائی کی تفصیلات",
+            "photo_evidence": "تصویری ثبوت",
+            "location_submit": "مقام اور جمع کرائیں"
+        },
+        "upload": {
+            "uploading_secure": "Uploading to secure storage...",
+            "drop_images_or": "Drop images or",
+            "select_files": "select files",
+            "file_types_hint": "JPG · PNG · WEBP · Multiple files OK",
+            "remove_image": "Remove",
+            "confidence": "confidence",
+            "minimum_image_required": "Minimum 1 image required",
+            "only_image_files": "Only image files are accepted."
+        },
+        "upload_failed_retry": "Upload failed. Please retry."
+    },
+    "Footer": {
+        "description": "کمیونٹی تعاون اور جدت کو مدنظر رکھتے ہوئے بنایا گیا اوپن سورس صحت کا پلیٹ فارم۔",
+        "badge": "GSSoC 2026 کے لیے بنایا گیا",
+        "quick_links": "فوری لنکس",
+        "github_repository": "GitHub ریپوزٹری",
+        "contributing_guide": "شراکت گائیڈ",
+        "faq": "عمومی سوالات",
+        "about_us": "ہمارے بارے میں",
+        "privacy_policy": "رازداری کی پالیسی",
+        "contact_us": "رابطہ کریں",
+        "connect": "رابطہ",
+        "copyright": "© 2026 SahiDawa. MIT لائسنس کے تحت اوپن سورس۔",
+        "built_with_prefix": "بنایا گیا",
+        "built_with_suffix": "اوپن سورس کمیونٹی کے لیے۔"
     }
 }

@@ -14,8 +14,8 @@
         "report_fake_subtitle": "सन्दिग्ध-औषधस्य विवरणं प्रेषयन्तु",
         "search_placeholder": "औषधं वा घानं (batch) वा अन्विष्यन्तु...",
         "search_button": "अन्वेषणम्",
-        "sign_in": "प्रवेशं कुर्वन्तु",
-        "get_started": "आरभताम्",
+        "sign_in": "???????",
+        "get_started": "????",
         "open_ai_health_assistant": "AI स्वास्थ्य-सहायकं उद्घाटयतु",
         "ai_health_assistant": "AI स्वास्थ्य-सहायकः",
         "ai_chat": "AI संवादः",
@@ -25,7 +25,23 @@
         "india_region": "भारत-प्रदेशः",
         "alerts_empty_title": "सर्वं स्पष्टम्!",
         "alerts_empty_description": "अधुना सक्रियाः नियामक-सूचनाः न सन्ति। सुरक्षिताः तिष्ठन्तु, औषधानि च सत्यापयन्तु।",
-        "view_full_alert_log": "सम्पूर्णं सूचना-लेखं पश्यन्तु"
+        "view_full_alert_log": "सम्पूर्णं सूचना-लेखं पश्यन्तु",
+        "project_badge": "GSSoC 2026 ?????????? ????????",
+        "logo_label": "SahiDawa ???????",
+        "main_navigation_label": "????? ????????????",
+        "mobile_navigation_label": "????????? ????????????",
+        "scan_aria": "???? ????? ?????????",
+        "upload_photo_aria": "??????? ?????? ?????????",
+        "voice_triage_aria": "????? ?????????",
+        "pharmacy_map_aria": "?????? ??????????",
+        "report_fake_aria": "??????? ??????????",
+        "batch_label": "???",
+        "relative_recent": "??????",
+        "relative_just_now": "?????",
+        "relative_minutes_ago": "{count}?? ???????",
+        "relative_hours_ago": "{count}???? ???????",
+        "search_aria": "???? ?? ??? ???????????",
+        "submit_search_aria": "???????? ??????????"
     },
     "Navigation": {
         "how_it_works": "कार्यप्रणाली",
@@ -137,7 +153,6 @@
             "generic_message": "वयं अस्मिन् समये भवतः वाणी-निवेशं संसाधितुं न शक्ताः। कृपया पुनः प्रयतध्वम्।",
             "service_unavailable_title": "वाणी-सेवा अलभ्या",
             "service_unavailable_message": "अस्माकं वाणी-सर्वर-उपरि सम्मर्धः अधिकः अस्ति। कृपया पुनः प्रयतध्वम् अथवा लक्षणानि टङ्कयन्तु।",
-
             "timeout_title": "वाणी-अनुरोधस्य समयः समाप्तः",
             "timeout_message": "वाणी-सेवा अपेक्षितात् अधिकं समयं गृह्णाति। कृपया पुनः प्रयतध्वम् अथवा पाठ-निवेशं (text input) उपयुञ्जताम्।",
             "api_title": "सहीदवा एआई (SahiDawa AI) अलभ्यः अस्ति",
@@ -194,5 +209,132 @@
             "faq": "प्रायः पृष्टाः प्रश्नाः (FAQ)"
         },
         "footer": "सहीदवा निःशुल्का, मुक्तस्रोता, १.४ अब्ज-भारतीयानां कृते निर्मिता च अस्ति। विज्ञापनानि न सन्ति। प्रिमियम् नास्ति। दत्तांशः कदापि न क्रीयते।"
+    },
+    "ComparePage": {
+        "title": "?????? ????????",
+        "subtitle": "???????? ??? ???????? ???????? ????????",
+        "first_medicine": "??????? ?????",
+        "second_medicine": "????????? ?????",
+        "search_placeholder": "???????? ?? ???????? ??? ???????????",
+        "find_pharmacies": "????????? ???????????",
+        "search": {
+            "clear_label": "??????",
+            "enter_at_least_two": "?????????????? 2 ???????? ???????",
+            "no_results": "???? ??????",
+            "searching": "?????????"
+        },
+        "grid": {
+            "approved": "??????????",
+            "banned": "?????????",
+            "brand": "????????",
+            "brand_name": "???????? ???",
+            "cdsco_status": "CDSCO ???????",
+            "composition": "??????",
+            "empty_state": "?????? ???????? ???? ???????? ??????",
+            "expiry_date": "??????? ????????",
+            "field": "?????????",
+            "generic": "????????",
+            "generic_name": "???????? ???",
+            "jan_aushadhi_price": "?? ???? ???????",
+            "manufacturer": "????????",
+            "market_price": "????? ??????? (MRP)",
+            "medicine_a": "????? A",
+            "medicine_b": "????? B",
+            "no_savings": "?????? ??????",
+            "price_unavailable": "?????? ? ????????",
+            "recalled": "????????????",
+            "savings_vs_mrp": "MRP ???????? ??????",
+            "save_amount": "{amount} ?????? ({percent}%)",
+            "type": "???????"
+        }
+    },
+    "BackToTopButton": {
+        "label": "Back to top"
+    },
+    "ReportPage": {
+        "header_title": "Report Incident",
+        "header_subtitle": "Public Safety Initiative",
+        "badge": "Active Surveillance",
+        "hero_title_prefix": "Report a",
+        "hero_title_highlight": "Suspicious Medicine",
+        "hero_description": "Your vigilance protects public health. Report suspected counterfeit, expired, or substandard medicines. All reports are investigated by India's Pharmacovigilance authorities."
+    },
+    "ReportInfoPanel": {
+        "quick_verify": "Quick Verify",
+        "check_if_reported": "Check if already reported",
+        "batch_placeholder": "Enter batch number...",
+        "trust_safety": "Trust & Safety",
+        "anonymity_title": "Anonymity Guaranteed",
+        "anonymity_desc": "Your personal details are encrypted and never shared publicly.",
+        "verified_title": "Verified by Pharmacovigilance",
+        "verified_desc": "Reports are cross-checked with official databases before alerts are issued.",
+        "review_title": "48h Review Cycle",
+        "review_desc": "Critical reports are prioritized and reviewed within 48 hours."
+    },
+    "ReportWizard": {
+        "fields": {
+            "medicine_name": "औषधस्य नाम",
+            "manufacturer": "निर्माता",
+            "description_of_concern": "समस्यायाः वर्णनम्",
+            "pharmacy_store_name": "औषधालयस्य / विक्रयस्थानस्य नाम",
+            "street_address": "मार्गस्य पता",
+            "city": "नगरम्",
+            "state": "राज्यम्",
+            "pincode": "पिनकोडः"
+        },
+        "placeholders": {
+            "medicine_name": "यथा Augmentin 625 Duo",
+            "manufacturer": "यथा Cipla Ltd.",
+            "description_of_concern": "असामान्यवर्णं, गन्धं, संरचनां, आवरणं वा प्रतिकूलप्रभावान् वर्णयन्तु...",
+            "pharmacy_store_name": "यथा Apollo Pharmacy, MG Road",
+            "street_address": "यथा 45, Park Street, बसस्थानकस्य समीपे",
+            "city": "मुम्बई",
+            "state": "महाराष्ट्रम्",
+            "pincode": "400001"
+        },
+        "header_badge": "MedWatch प्रतिवेदनम्",
+        "report_received": "प्रतिवेदनं प्राप्तम्",
+        "step_subtitle_1": "सन्दिग्धोत्पादस्य परिचयं कुरुत",
+        "step_subtitle_2": "प्रमाणरूपेण स्पष्टचित्राणि अपलोड् कुरुत",
+        "step_subtitle_3": "उत्पादः कुत्र क्रीतः आसीत्?",
+        "back": "पृष्ठतः",
+        "continue": "अग्रे गच्छतु",
+        "submit_report": "प्रतिवेदनं समर्पयतु",
+        "submitting": "समर्प्यते...",
+        "submit_another": "अन्यत् प्रतिवेदनं समर्पयतु",
+        "success_title": "प्रतिवेदनं समर्पितम्",
+        "success_description": "भवतः प्रतिवेदनं सुरक्षितरूपेण प्राप्तम् अस्ति तथा च ४८ घण्टाभ्यन्तरे अस्माकं औषधनिरीक्षणदलस्य समीक्षां प्राप्स्यति।",
+        "reference_id": "सन्दर्भपरिचयः",
+        "steps": {
+            "medicine_details": "औषधविवरणम्",
+            "photo_evidence": "चित्रप्रमाणम्",
+            "location_submit": "स्थानं तथा समर्पणम्"
+        },
+        "upload": {
+            "uploading_secure": "Uploading to secure storage...",
+            "drop_images_or": "Drop images or",
+            "select_files": "select files",
+            "file_types_hint": "JPG · PNG · WEBP · Multiple files OK",
+            "remove_image": "Remove",
+            "confidence": "confidence",
+            "minimum_image_required": "Minimum 1 image required",
+            "only_image_files": "Only image files are accepted."
+        },
+        "upload_failed_retry": "Upload failed. Please retry."
+    },
+    "Footer": {
+        "description": "समुदायसहयोगं नवाचारं च मनसि निधाय निर्मितं मुक्तस्रोत-स्वास्थ्य-मञ्चम्।",
+        "badge": "GSSoC 2026 कृते निर्मितम्",
+        "quick_links": "शीघ्रसम्बन्धाः",
+        "github_repository": "GitHub भण्डारः",
+        "contributing_guide": "योगदानमार्गदर्शिका",
+        "faq": "प्रायः पृष्टाः प्रश्नाः",
+        "about_us": "अस्माकं विषये",
+        "privacy_policy": "गोपनीयता नीति",
+        "contact_us": "सम्पर्कं कुर्वन्तु",
+        "connect": "संयुज्यताम्",
+        "copyright": "© 2026 SahiDawa. MIT अनुज्ञापत्रेण मुक्तस्रोतः।",
+        "built_with_prefix": "निर्मितम्",
+        "built_with_suffix": "मुक्तस्रोत-समुदायाय।"
     }
 }

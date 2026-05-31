@@ -1,7 +1,10 @@
-import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
+﻿import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
 import { GitBranch, Sparkles, Heart } from "lucide-react";
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 export default function Footer() {
+    const t = useTranslations("Footer");
+
     return (
         <footer className="no-print mt-auto border-t border-slate-800 bg-slate-950 text-slate-400">
             <div className="container mx-auto px-4 py-10 md:px-6">
@@ -11,19 +14,18 @@ export default function Footer() {
                         <h2 className="mb-3 text-lg font-semibold text-white">SahiDawa</h2>
 
                         <p className="text-sm leading-relaxed text-slate-500">
-                            An open-source healthcare platform built with community collaboration
-                            and innovation in mind.
+                            {t("description")}
                         </p>
 
                         <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
-                            <Sparkles className="h-3 w-3" /> Made for GSSoC 2026
+                            <Sparkles className="h-3 w-3" /> {t("badge")}
                         </div>
                     </div>
 
                     {/* Quick Links */}
                     <div>
                         <h3 className="mb-4 text-sm font-semibold tracking-wide text-white uppercase">
-                            Quick Links
+                            {t("quick_links")}
                         </h3>
 
                         <div className="flex flex-col gap-3 text-sm">
@@ -34,7 +36,7 @@ export default function Footer() {
                                 className="flex items-center gap-2 transition-all duration-200 hover:translate-x-1 hover:text-white"
                             >
                                 <GitBranch size={16} />
-                                GitHub Repository
+                                {t("github_repository")}
                             </a>
 
                             <a
@@ -43,31 +45,31 @@ export default function Footer() {
                                 rel="noopener noreferrer"
                                 className="transition-all duration-200 hover:translate-x-1 hover:text-white"
                             >
-                                Contributing Guide
+                                {t("contributing_guide")}
                             </a>
                             <Link
                                 href="/faq"
                                 className="transition-all duration-200 hover:translate-x-1 hover:text-white"
                             >
-                                FAQ
+                                {t("faq")}
                             </Link>
                             <Link
                                 href="/about"
                                 className="transition-all duration-200 hover:translate-x-1 hover:text-white"
                             >
-                                About Us
+                                {t("about_us")}
                             </Link>
                             <Link
                                 href="/privacy"
                                 className="transition-all duration-200 hover:translate-x-1 hover:text-white"
                             >
-                                Privacy Policy
+                                {t("privacy_policy")}
                             </Link>
                             <Link
                                 href="/contact"
                                 className="transition-all duration-200 hover:translate-x-1 hover:text-white"
                             >
-                                Contact Us
+                                {t("contact_us")}
                             </Link>
                         </div>
                     </div>
@@ -75,7 +77,7 @@ export default function Footer() {
                     {/* Social Links */}
                     <div>
                         <h3 className="mb-4 text-sm font-semibold tracking-wide text-white uppercase">
-                            Connect
+                            {t("connect")}
                         </h3>
 
                         <div className="flex items-center gap-4">
@@ -113,16 +115,16 @@ export default function Footer() {
                 <div className="flex flex-col items-center justify-between gap-4 pt-6 text-xs text-slate-500 md:flex-row">
                     <div className="flex items-center gap-4">
                         <p className="text-xs md:text-sm">
-                            © 2026 SahiDawa. Open Source under MIT License.
+                            {t("copyright")}
                         </p>
                     </div>
 
                     <p className="text-xs md:text-sm text-center md:text-right">
-                        Built with <Heart className="inline h-[1em] w-[1em] text-red-500" /> for the
-                        open-source community.
+                        {t("built_with_prefix")} <Heart className="inline h-[1em] w-[1em] text-red-500" /> {t("built_with_suffix")}
                     </p>
                 </div>
             </div>
         </footer>
     );
 }
+

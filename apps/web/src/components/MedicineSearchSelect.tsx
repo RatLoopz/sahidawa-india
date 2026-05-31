@@ -10,6 +10,12 @@ type Props = {
   onChange: (medicine: Medicine | null) => void;
   onSearch: (query: string) => Promise<Medicine[]>;
   placeholder?: string;
+  copy?: {
+    clearLabel: string;
+    enterAtLeastTwo: string;
+    noResults: string;
+    searchingLabel: string;
+  };
 };
 
 function labelFor(m: Medicine): string {
@@ -18,12 +24,20 @@ function labelFor(m: Medicine): string {
     : m.generic_name;
 }
 
+const defaultCopy = {
+  clearLabel: "Clear",
+  enterAtLeastTwo: "Enter at least 2 characters",
+  noResults: "No results",
+  searchingLabel: "Searching",
+};
+
 export default function MedicineSearchSelect({
   label,
   value,
   onChange,
   onSearch,
   placeholder = "Search brand or generic name",
+  copy = defaultCopy,
 }: Props) {
   const listId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -76,7 +90,7 @@ export default function MedicineSearchSelect({
             type="button"
             onClick={() => onChange(null)}
             className="rounded p-1 text-slate-400 hover:bg-white hover:text-slate-700"
-            aria-label={`Clear ${label}`}
+            aria-label={`${copy.clearLabel} ${label}`}
           >
             <X size={16} />
           </button>
@@ -113,16 +127,16 @@ export default function MedicineSearchSelect({
           {loading && (
             <li className="flex items-center gap-2 px-3 py-2 text-sm text-slate-500">
               <Loader2 size={14} className="animate-spin" />
-              Searching
+              {copy.searchingLabel}
             </li>
           )}
           {!loading && query.trim().length < 2 && (
             <li className="px-3 py-2 text-sm text-slate-500">
-              Enter at least 2 characters
+              {copy.enterAtLeastTwo}
             </li>
           )}
           {!loading && query.trim().length >= 2 && results.length === 0 && (
-            <li className="px-3 py-2 text-sm text-slate-500">No results</li>
+            <li className="px-3 py-2 text-sm text-slate-500">{copy.noResults}</li>
           )}
           {!loading &&
             results.map((m) => (

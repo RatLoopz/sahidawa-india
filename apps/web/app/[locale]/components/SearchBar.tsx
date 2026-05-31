@@ -245,12 +245,12 @@ export default function SearchBar() {
           }}
           placeholder={tHome("search_placeholder")}
           className="w-full border-none bg-transparent px-4 py-3 font-medium text-slate-700 outline-none placeholder:text-slate-400"
-          aria-label="Search medicine or batch"
+          aria-label={tHome("search_aria")}
         />
         <button
           onClick={() => performSearch(query)}
           className="shrink-0 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 active:scale-95 sm:px-6 sm:text-base"
-          aria-label="Submit search"
+          aria-label={tHome("submit_search_aria")}
         >
           {tHome("search_button")}
         </button>

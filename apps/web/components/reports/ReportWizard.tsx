@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 /**
  * ReportWizard.tsx
  * 3-step wizard to report suspicious / fake medicines.
- * Tech: React Hook Form · Zod · @hookform/resolvers · Framer Motion · Tailwind CSS
- * Design: SahiDawa modern aesthetic — emerald accents, deep navy header, rounded corners
+ * Tech: React Hook Form Â· Zod Â· @hookform/resolvers Â· Framer Motion Â· Tailwind CSS
+ * Design: SahiDawa modern aesthetic â€” emerald accents, deep navy header, rounded corners
  */
 
 import React, { useState, useRef, useCallback, useEffect, useId } from "react";
@@ -21,16 +21,17 @@ import {
 import { preprocessMedicineImage } from "@/lib/imageEnhancer";
 import LazyImage from "@/components/LazyImage";
 import { LiveMessage } from "@/components/ui/LiveMessage";
+import { useTranslations } from "next-intl";
 
-// ─── Cloudinary env ────────────────────────────────────────────────────────────
+// â”€â”€â”€ Cloudinary env â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Uploads are now securely routed through our backend API (/api/upload),
 // eliminating the need to expose unsigned presets or API keys in the client.
 
-// ─── Constants ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB per file
 const WEBP_FILE_EXTENSION = ".webp";
 
-// ─── Input sanitisation ────────────────────────────────────────────────────────
+// â”€â”€â”€ Input sanitisation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 /** Strip HTML/script tags and trim whitespace to prevent stored XSS. */
 const sanitize = (v: string) => v.replace(/<[^>]*>/g, "").trim();
 
@@ -42,7 +43,7 @@ const renameFileForMimeType = (fileName: string, mimeType: string) => {
     return fileName.replace(/\.[^.]+$/, "") + WEBP_FILE_EXTENSION;
 };
 
-// ─── Zod schema ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Zod schema â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const schema = z.object({
     medicineName: z
         .string()
@@ -80,7 +81,7 @@ const EMPTY: FormValues = {
     pincode: "",
 };
 
-// ─── Per-step field keys ────────────────────────────────────────────────────────
+// â”€â”€â”€ Per-step field keys â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const STEP_KEYS: Record<number, (keyof FormValues)[]> = {
     1: ["medicineName", "manufacturer", "description"],
     2: ["images"],
@@ -93,7 +94,7 @@ const STEPS = [
     { n: 3, title: "Location & Submit", code: "LOC" },
 ];
 
-// ─── Types ─────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface ImageEntry {
     preview: string; // blob URL of the original user file
     cloudUrl: string; // Cloudinary secure_url from enhanced file
@@ -138,7 +139,7 @@ const unavailableAnalysis = (error: unknown): UnavailableImageAnalysis => ({
             : "Image analysis could not be completed. Your report can still be submitted.",
 });
 
-// ─── Animation variants ────────────────────────────────────────────────────────
+// â”€â”€â”€ Animation variants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const PAGE: Variants = {
     enter: (d: number) => ({ x: d > 0 ? 48 : -48, opacity: 0 }),
     show: {
@@ -153,7 +154,7 @@ const PAGE: Variants = {
     }),
 };
 
-// ─── Tiny inline icons ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Tiny inline icons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const Icon = {
     Check: () => (
         <svg viewBox="0 0 12 12" fill="none" className="h-3 w-3">
@@ -241,7 +242,7 @@ const Icon = {
     ),
 };
 
-// ─── Field error ───────────────────────────────────────────────────────────────
+// â”€â”€â”€ Field error â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function FieldError({ messageId, msg }: { messageId: string; msg?: string }) {
     return (
         <AnimatePresence>
@@ -267,7 +268,7 @@ function FieldError({ messageId, msg }: { messageId: string; msg?: string }) {
     );
 }
 
-// ─── Label ─────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Label â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function FL({ children, req }: { children: React.ReactNode; req?: boolean }) {
     return (
         <label className="mb-2 block text-sm font-bold text-(--color-text-primary)">
@@ -277,15 +278,21 @@ function FL({ children, req }: { children: React.ReactNode; req?: boolean }) {
     );
 }
 
-// ─── Base input classes ────────────────────────────────────────────────────────
+// â”€â”€â”€ Base input classes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const inp = (err?: boolean) =>
     `w-full bg-(--color-surface-muted) border border-(--color-border-muted) rounded-xl px-4 py-3 text-(--color-text-primary) font-medium
    placeholder-(--color-text-muted) outline-none transition-all duration-200
    focus:bg-(--color-surface-page) focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500
    ${err ? "border-red-300 focus:border-red-400 focus:ring-red-500/10" : "hover:border-slate-350 dark:hover:border-slate-600"}`;
 
-// ─── Step progress bar ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Step progress bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function Progress({ current }: { current: number }) {
+    const t = useTranslations("ReportWizard");
+    const stepTitles = [
+        t("steps.medicine_details"),
+        t("steps.photo_evidence"),
+        t("steps.location_submit"),
+    ];
     const pct = ((current - 1) / 2) * 100;
     return (
         <div className="mb-8">
@@ -339,17 +346,18 @@ function Progress({ current }: { current: number }) {
                 })}
                 {/* Step label */}
                 <span className="ml-auto self-center text-xs font-semibold whitespace-nowrap text-(--color-text-secondary)">
-                    {current}/{STEPS.length} — {STEPS[current - 1].title}
+                    {current}/{STEPS.length} - {stepTitles[current - 1]}
                 </span>
             </div>
         </div>
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // STEP 1
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function Step1() {
+    const t = useTranslations("ReportWizard");
     const {
         register,
         formState: { errors },
@@ -361,10 +369,10 @@ function Step1() {
     return (
         <div className="space-y-5">
             <div>
-                <FL req>Medicine Name</FL>
+                <FL req>{t("fields.medicine_name")}</FL>
                 <input
                     {...register("medicineName")}
-                    placeholder="e.g. Augmentin 625 Duo"
+                    placeholder={t("placeholders.medicine_name")}
                     className={inp(!!errors.medicineName)}
                     aria-invalid={errors.medicineName ? "true" : undefined}
                     aria-describedby={errors.medicineName ? medicineNameErrorId : undefined}
@@ -372,10 +380,10 @@ function Step1() {
                 <FieldError messageId={medicineNameErrorId} msg={errors.medicineName?.message} />
             </div>
             <div>
-                <FL req>Manufacturer</FL>
+                <FL req>{t("fields.manufacturer")}</FL>
                 <input
                     {...register("manufacturer")}
-                    placeholder="e.g. Cipla Ltd."
+                    placeholder={t("placeholders.manufacturer")}
                     className={inp(!!errors.manufacturer)}
                     aria-invalid={errors.manufacturer ? "true" : undefined}
                     aria-describedby={errors.manufacturer ? manufacturerErrorId : undefined}
@@ -383,11 +391,11 @@ function Step1() {
                 <FieldError messageId={manufacturerErrorId} msg={errors.manufacturer?.message} />
             </div>
             <div>
-                <FL req>Description of Concern</FL>
+                <FL req>{t("fields.description_of_concern")}</FL>
                 <textarea
                     {...register("description")}
                     rows={4}
-                    placeholder="Describe unusual colour, smell, texture, packaging, reported side-effects…"
+                    placeholder={t("placeholders.description_of_concern")}
                     className={`${inp(!!errors.description)} resize-none`}
                     aria-invalid={errors.description ? "true" : undefined}
                     aria-describedby={errors.description ? descriptionErrorId : undefined}
@@ -398,9 +406,9 @@ function Step1() {
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // STEP 2
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function Step2({
     images,
     setImages,
@@ -408,6 +416,7 @@ function Step2({
     images: ImageEntry[];
     setImages: React.Dispatch<React.SetStateAction<ImageEntry[]>>;
 }) {
+    const t = useTranslations("ReportWizard");
     const {
         setValue,
         formState: { errors },
@@ -439,7 +448,7 @@ function Step2({
         async (files: File[]) => {
             const imgs = files.filter((f) => f.type.startsWith("image/"));
             if (!imgs.length) {
-                setUpErr("Only image files are accepted.");
+                setUpErr(t("upload.only_image_files"));
                 return;
             }
             const oversized = imgs.filter((f) => f.size > MAX_FILE_SIZE);
@@ -500,7 +509,7 @@ function Step2({
                     { shouldValidate: true }
                 );
             } catch (e) {
-                setUpErr(e instanceof Error ? e.message : "Upload failed. Please retry.");
+                setUpErr(e instanceof Error ? e.message : t("upload_failed_retry"));
             } finally {
                 setBusy(false);
                 if (ref.current) ref.current.value = "";
@@ -553,7 +562,7 @@ function Step2({
                     <>
                         <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-slate-200 border-t-emerald-500" />
                         <p className="text-sm font-semibold text-(--color-text-secondary)">
-                            Uploading to secure storage…
+                            {t("upload.uploading_secure")}
                         </p>
                     </>
                 ) : (
@@ -563,13 +572,13 @@ function Step2({
                         </span>
                         <div>
                             <p className="text-base font-bold text-(--color-text-primary)">
-                                Drop images or{" "}
+                                {t("upload.drop_images_or")}{" "}
                                 <span className="text-emerald-600 underline underline-offset-2">
-                                    select files
+                                    {t("upload.select_files")}
                                 </span>
                             </p>
                             <p className="mt-1 text-sm font-medium text-(--color-text-secondary)">
-                                JPG · PNG · WEBP &nbsp;·&nbsp; Multiple files OK
+                                {t("upload.file_types_hint")}
                             </p>
                         </div>
                     </>
@@ -629,7 +638,7 @@ function Step2({
                                             remove(idx);
                                         }}
                                         className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white shadow-md transition-all hover:bg-red-600 active:scale-95"
-                                        aria-label="Remove"
+                                        aria-label={t("upload.remove_image")}
                                     >
                                         <Icon.X />
                                     </button>
@@ -665,7 +674,7 @@ function Step2({
                                     <span>{analysisText[img.analysis.verdict]}</span>
                                     {img.analysis.verdict !== "unavailable" && (
                                         <span>
-                                            {Math.round(img.analysis.confidence * 100)}% confidence
+                                            {Math.round(img.analysis.confidence * 100)}% {t("upload.confidence")}
                                         </span>
                                     )}
                                 </div>
@@ -680,17 +689,18 @@ function Step2({
 
             {images.length === 0 && !busy && (
                 <p className="text-center text-sm font-medium text-(--color-text-muted)">
-                    Minimum 1 image required
+                    {t("upload.minimum_image_required")}
                 </p>
             )}
         </div>
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // STEP 3
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function Step3() {
+    const t = useTranslations("ReportWizard");
     const {
         register,
         formState: { errors },
@@ -704,10 +714,10 @@ function Step3() {
     return (
         <div className="space-y-5">
             <div>
-                <FL req>Pharmacy / Store Name</FL>
+                <FL req>{t("fields.pharmacy_store_name")}</FL>
                 <input
                     {...register("pharmacyName")}
-                    placeholder="e.g. Apollo Pharmacy, MG Road"
+                    placeholder={t("placeholders.pharmacy_store_name")}
                     className={inp(!!errors.pharmacyName)}
                     aria-invalid={errors.pharmacyName ? "true" : undefined}
                     aria-describedby={errors.pharmacyName ? pharmacyNameErrorId : undefined}
@@ -715,10 +725,10 @@ function Step3() {
                 <FieldError messageId={pharmacyNameErrorId} msg={errors.pharmacyName?.message} />
             </div>
             <div>
-                <FL req>Street Address</FL>
+                <FL req>{t("fields.street_address")}</FL>
                 <input
                     {...register("address")}
-                    placeholder="e.g. 45, Park Street, Near Bus Stand"
+                    placeholder={t("placeholders.street_address")}
                     className={inp(!!errors.address)}
                     aria-invalid={errors.address ? "true" : undefined}
                     aria-describedby={errors.address ? addressErrorId : undefined}
@@ -727,10 +737,10 @@ function Step3() {
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <FL req>City</FL>
+                    <FL req>{t("fields.city")}</FL>
                     <input
                         {...register("city")}
-                        placeholder="Mumbai"
+                        placeholder={t("placeholders.city")}
                         className={inp(!!errors.city)}
                         aria-invalid={errors.city ? "true" : undefined}
                         aria-describedby={errors.city ? cityErrorId : undefined}
@@ -738,10 +748,10 @@ function Step3() {
                     <FieldError messageId={cityErrorId} msg={errors.city?.message} />
                 </div>
                 <div>
-                    <FL req>State</FL>
+                    <FL req>{t("fields.state")}</FL>
                     <input
                         {...register("state")}
-                        placeholder="Maharashtra"
+                        placeholder={t("placeholders.state")}
                         className={inp(!!errors.state)}
                         aria-invalid={errors.state ? "true" : undefined}
                         aria-describedby={errors.state ? stateErrorId : undefined}
@@ -750,10 +760,10 @@ function Step3() {
                 </div>
             </div>
             <div className="max-w-[160px]">
-                <FL req>Pincode</FL>
+                <FL req>{t("fields.pincode")}</FL>
                 <input
                     {...register("pincode")}
-                    placeholder="400001"
+                    placeholder={t("placeholders.pincode")}
                     maxLength={6}
                     inputMode="numeric"
                     className={inp(!!errors.pincode)}
@@ -766,10 +776,11 @@ function Step3() {
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // SUCCESS
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function Success({ onReset, reportId }: { onReset: () => void; reportId: string | null }) {
+    const t = useTranslations("ReportWizard");
     const ref = reportId ? `RPT-${reportId.slice(0, 8).toUpperCase()}` : "RPT-PENDING";
     return (
         <motion.div
@@ -803,18 +814,17 @@ function Success({ onReset, reportId }: { onReset: () => void; reportId: string 
 
             <div className="space-y-2">
                 <h3 className="text-2xl font-extrabold tracking-tight text-(--color-text-primary)">
-                    Report Submitted
+                    {t("success_title")}
                 </h3>
                 <p className="mx-auto max-w-sm text-base leading-relaxed font-medium text-(--color-text-secondary)">
-                    Your report has been securely received and will be reviewed by our
-                    pharmacovigilance team within 48 hours.
+                    {t("success_description")}
                 </p>
             </div>
 
             {/* Reference */}
             <div className="mx-auto w-full max-w-xs rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-6 py-4 shadow-sm">
                 <p className="mb-1 text-xs font-bold tracking-wider text-(--color-text-muted) uppercase">
-                    Reference ID
+                    {t("reference_id")}
                 </p>
                 <p className="text-lg font-bold tracking-wide text-(--color-text-primary)">{ref}</p>
             </div>
@@ -824,16 +834,17 @@ function Success({ onReset, reportId }: { onReset: () => void; reportId: string 
                 onClick={onReset}
                 className="mt-2 rounded-xl bg-emerald-50 px-6 py-2.5 text-sm font-bold text-emerald-600 transition-colors duration-200 hover:bg-emerald-100 hover:text-emerald-700 active:scale-95"
             >
-                Submit another report
+                {t("submit_another")}
             </button>
         </motion.div>
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // MAIN EXPORT
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function ReportWizard() {
+    const t = useTranslations("ReportWizard");
     const [step, setStep] = useState(1);
     const [dir, setDir] = useState(1);
     const [images, setImages] = useState<ImageEntry[]>([]);
@@ -906,11 +917,11 @@ export default function ReportWizard() {
 
     return (
         <FormProvider {...methods}>
-            {/* Semantic form wrapper — enables Enter-to-submit and screen reader identification */}
+            {/* Semantic form wrapper â€” enables Enter-to-submit and screen reader identification */}
             <form onSubmit={handleSubmit(onSubmit)} noValidate>
                 {/* Card */}
                 <div className="mx-auto flex w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) font-sans shadow-xl dark:shadow-none">
-                    {/* ── Header band ── */}
+                    {/* â”€â”€ Header band â”€â”€ */}
                     <div className="relative overflow-hidden bg-slate-900 px-8 pt-8 pb-7">
                         {/* Decorative blur */}
                         <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-emerald-500/20 blur-3xl"></div>
@@ -921,22 +932,28 @@ export default function ReportWizard() {
                                 <Icon.ShieldCheck />
                             </div>
                             <span className="text-xs font-bold tracking-wider text-emerald-400 uppercase">
-                                MedWatch Report
+                                {t("header_badge")}
                             </span>
                         </div>
                         <h2 className="relative z-10 text-3xl leading-tight font-extrabold tracking-tight text-white">
-                            {done ? "Report Received" : STEPS[step - 1].title}
+                            {done
+                                ? t("report_received")
+                                : step === 1
+                                  ? t("steps.medicine_details")
+                                  : step === 2
+                                    ? t("steps.photo_evidence")
+                                    : t("steps.location_submit")}
                         </h2>
                         {!done && (
                             <p className="relative z-10 mt-2 text-base font-medium text-slate-400">
-                                {step === 1 && "Identify the suspicious product"}
-                                {step === 2 && "Upload clear photos as evidence"}
-                                {step === 3 && "Where was the product purchased?"}
+                                {step === 1 && t("step_subtitle_1")}
+                                {step === 2 && t("step_subtitle_2")}
+                                {step === 3 && t("step_subtitle_3")}
                             </p>
                         )}
                     </div>
 
-                    {/* ── Body ── */}
+                    {/* â”€â”€ Body â”€â”€ */}
                     <div className="flex-1 bg-(--color-surface-page) px-8 py-8">
                         {done ? (
                             <Success onReset={handleReset} reportId={reportId} />
@@ -987,7 +1004,7 @@ export default function ReportWizard() {
                                     )}
                                 </AnimatePresence>
 
-                                {/* ── Nav buttons ── */}
+                                {/* â”€â”€ Nav buttons â”€â”€ */}
                                 <div className="mt-10 flex items-center justify-between border-t border-(--color-border-muted) pt-6">
                                     {/* Back */}
                                     <button
@@ -997,7 +1014,7 @@ export default function ReportWizard() {
                                         className="flex items-center gap-2 rounded-xl border border-transparent px-5 py-2.5 text-sm font-bold text-(--color-text-secondary) transition-all duration-200 hover:border-(--color-border-muted) hover:bg-(--color-surface-muted) hover:text-(--color-text-primary) active:scale-95 disabled:pointer-events-none disabled:opacity-0"
                                     >
                                         <Icon.Arrow left />
-                                        Back
+                                        {t("back")}
                                     </button>
 
                                     {/* Mobile count */}
@@ -1013,7 +1030,7 @@ export default function ReportWizard() {
                                             disabled={submitting}
                                             className="flex items-center gap-2 rounded-xl bg-slate-900 px-7 py-3 text-sm font-bold text-white shadow-md shadow-slate-900/10 transition-all duration-200 hover:bg-slate-800 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:shadow-none dark:hover:bg-slate-200"
                                         >
-                                            Continue <Icon.Arrow />
+                                            {t("continue")} <Icon.Arrow />
                                         </button>
                                     ) : (
                                         <button
@@ -1025,11 +1042,11 @@ export default function ReportWizard() {
                                             {submitting ? (
                                                 <>
                                                     <span className="h-5 w-5 animate-spin rounded-full border-[3px] border-white/30 border-t-white" />
-                                                    Submitting…
+                                                    {t("submitting")}
                                                 </>
                                             ) : (
                                                 <>
-                                                    Submit Report <Icon.Send />
+                                                    {t("submit_report")} <Icon.Send />
                                                 </>
                                             )}
                                         </button>
@@ -1043,3 +1060,4 @@ export default function ReportWizard() {
         </FormProvider>
     );
 }
+

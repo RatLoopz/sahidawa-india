@@ -8,6 +8,7 @@ import MedicineSearchSelect from "@/src/components/MedicineSearchSelect";
 import { COMPARE_SELECT_FIELDS } from "@/src/lib/compareSelectFields";
 import { supabase } from "@/lib/supabase";
 import { mapMedicineRow } from "@/src/lib/mapMedicineRow";
+import { useTranslations } from "next-intl";
 
 async function searchMedicines(query: string): Promise<Medicine[]> {
     const q = query.trim();
@@ -31,12 +32,13 @@ export default function ComparePage() {
     const [medicine1, setMedicine1] = useState<Medicine | null>(null);
     const [medicine2, setMedicine2] = useState<Medicine | null>(null);
     const handleSearch = useCallback((q: string) => searchMedicines(q), []);
+    const t = useTranslations("ComparePage");
 
     return (
         <div className="min-h-screen bg-(--color-surface-muted) text-(--color-text-primary)">
             <PageHeader
-                title="Compare medicines"
-                subtitle="Brand vs generic side by side"
+                title={t("title")}
+                subtitle={t("subtitle")}
                 backHref="/"
                 variant="light"
             />
@@ -44,26 +46,68 @@ export default function ComparePage() {
                 <section className="rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) p-5 transition-all duration-300 hover:border-emerald-500/20 hover:shadow-md">
                     <div className="grid gap-4 sm:grid-cols-2">
                         <MedicineSearchSelect
-                            label="First medicine"
+                            label={t("first_medicine")}
                             value={medicine1}
                             onChange={setMedicine1}
                             onSearch={handleSearch}
+                            placeholder={t("search_placeholder")}
+                            copy={{
+                                clearLabel: t("search.clear_label"),
+                                enterAtLeastTwo: t("search.enter_at_least_two"),
+                                noResults: t("search.no_results"),
+                                searchingLabel: t("search.searching"),
+                            }}
                         />
                         <MedicineSearchSelect
-                            label="Second medicine"
+                            label={t("second_medicine")}
                             value={medicine2}
                             onChange={setMedicine2}
                             onSearch={handleSearch}
+                            placeholder={t("search_placeholder")}
+                            copy={{
+                                clearLabel: t("search.clear_label"),
+                                enterAtLeastTwo: t("search.enter_at_least_two"),
+                                noResults: t("search.no_results"),
+                                searchingLabel: t("search.searching"),
+                            }}
                         />
                     </div>
                 </section>
-                <ComparisonGrid medicine1={medicine1} medicine2={medicine2} />
+                <ComparisonGrid
+                    medicine1={medicine1}
+                    medicine2={medicine2}
+                    copy={{
+                        approved: t("grid.approved"),
+                        banned: t("grid.banned"),
+                        brand: t("grid.brand"),
+                        brandName: t("grid.brand_name"),
+                        cdscoStatus: t("grid.cdsco_status"),
+                        composition: t("grid.composition"),
+                        emptyState: t("grid.empty_state"),
+                        expiryDate: t("grid.expiry_date"),
+                        field: t("grid.field"),
+                        generic: t("grid.generic"),
+                        genericName: t("grid.generic_name"),
+                        janAushadhiPrice: t("grid.jan_aushadhi_price"),
+                        manufacturer: t("grid.manufacturer"),
+                        marketPrice: t("grid.market_price"),
+                        medicineA: t("grid.medicine_a"),
+                        medicineB: t("grid.medicine_b"),
+                        noSavings: t("grid.no_savings"),
+                        priceUnavailable: t("grid.price_unavailable"),
+                        recalled: t("grid.recalled"),
+                        savingsVsMrp: t("grid.savings_vs_mrp"),
+                        saveAmount: (amount, percent) =>
+                            t("grid.save_amount", { amount, percent }),
+                        type: t("grid.type"),
+                    }}
+                />
                 <p className="text-center text-sm text-(--color-text-secondary)">
                     <Link
                         href="/map"
                         className="text-emerald-700 hover:underline dark:text-emerald-400"
                     >
-                        Find pharmacies
+                        {t("find_pharmacies")}
                     </Link>
                 </p>
             </main>

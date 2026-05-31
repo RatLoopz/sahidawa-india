@@ -8,8 +8,11 @@ import {
   Search,
   ShieldCheck,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function ReportInfoPanel() {
+  const t = useTranslations("ReportInfoPanel");
+
   return (
     <div className="lg:col-span-5 space-y-6 lg:mt-24">
       {/* Quick Verify */}
@@ -19,14 +22,14 @@ export default function ReportInfoPanel() {
             <Search size={20} strokeWidth={2.5} />
           </div>
           <div>
-            <h3 className="font-bold text-(--color-text-primary)">Quick Verify</h3>
-            <p className="text-xs text-(--color-text-secondary) font-medium">Check if already reported</p>
+            <h3 className="font-bold text-(--color-text-primary)">{t("quick_verify")}</h3>
+            <p className="text-xs text-(--color-text-secondary) font-medium">{t("check_if_reported")}</p>
           </div>
         </div>
         <div className="relative">
           <input
             type="text"
-            placeholder="Enter batch number..."
+            placeholder={t("batch_placeholder")}
             className="w-full bg-(--color-surface-muted) border border-(--color-border-muted) text-(--color-text-primary) placeholder-(--color-text-muted) rounded-2xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
           />
           <button className="absolute right-2 top-2 bottom-2 bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 px-3 rounded-xl hover:bg-slate-800 transition-colors flex items-center justify-center">
@@ -41,7 +44,7 @@ export default function ReportInfoPanel() {
 
         <div className="flex items-center gap-3 mb-8">
           <ShieldCheck className="text-emerald-500" size={28} strokeWidth={2.5} />
-          <h3 className="text-xl font-bold text-(--color-text-primary)">Trust & Safety</h3>
+          <h3 className="text-xl font-bold text-(--color-text-primary)">{t("trust_safety")}</h3>
         </div>
 
         <div className="space-y-6">
@@ -50,9 +53,9 @@ export default function ReportInfoPanel() {
               <Lock size={18} strokeWidth={2.5} />
             </div>
             <div>
-              <h4 className="font-bold text-(--color-text-primary)">Anonymity Guaranteed</h4>
+              <h4 className="font-bold text-(--color-text-primary)">{t("anonymity_title")}</h4>
               <p className="text-sm text-(--color-text-secondary) font-medium leading-relaxed mt-1">
-                Your personal details are encrypted and never shared publicly.
+                {t("anonymity_desc")}
               </p>
             </div>
           </div>
@@ -62,9 +65,9 @@ export default function ReportInfoPanel() {
               <CheckCircle2 size={18} strokeWidth={2.5} />
             </div>
             <div>
-              <h4 className="font-bold text-(--color-text-primary)">Verified by Pharmacovigilance</h4>
+              <h4 className="font-bold text-(--color-text-primary)">{t("verified_title")}</h4>
               <p className="text-sm text-(--color-text-secondary) font-medium leading-relaxed mt-1">
-                Reports are cross-checked with official databases before alerts are issued.
+                {t("verified_desc")}
               </p>
             </div>
           </div>
@@ -74,9 +77,9 @@ export default function ReportInfoPanel() {
               <Clock size={18} strokeWidth={2.5} />
             </div>
             <div>
-              <h4 className="font-bold text-(--color-text-primary)">48h Review Cycle</h4>
+              <h4 className="font-bold text-(--color-text-primary)">{t("review_title")}</h4>
               <p className="text-sm text-(--color-text-secondary) font-medium leading-relaxed mt-1">
-                Critical reports are prioritized and reviewed within 48 hours.
+                {t("review_desc")}
               </p>
             </div>
           </div>
