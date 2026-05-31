@@ -1,253 +1,361 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useParams } from "next/navigation";
 import { ChatBubble, type Message } from "./components/ChatBubble";
 import { ActionCard } from "./components/ActionCard";
 import { TypingIndicator } from "./components/TypingIndicator";
 import { TrustBar } from "./components/TrustBar";
+import { Camera, Pill, MapPin } from "lucide-react";
 
 const genId = () => Math.random().toString(36).slice(2, 10);
 
-const SYSTEM_PROMPT = `You are SahiDawa, India's trusted open-source health assistant and medicine verifier.
-Help citizens verify medicines, understand symptoms, find appropriate care, and make informed health decisions.
-Respond warmly, empathetically, and clearly. Keep responses concise (2–4 sentences) and actionable.
-Understand Hindi/Hinglish but respond in simple English unless asked otherwise.
-Never diagnose. Help people understand when to seek professional care.
-For medicine queries, describe common use and always recommend a doctor or pharmacist.`;
+const INITIAL_MESSAGES = {
+    en: "Namaste, I'm SahiDawa, your trusted health companion. I can help you verify medicines, understand symptoms, or find nearby care. What would you like help with today?",
 
-const INITIAL_MESSAGE: Message = {
-  id: "init",
-  role: "assistant",
-  content: "Namaste, I'm SahiDawa, your trusted health companion. I can help you verify medicines, understand symptoms, or find nearby care. What would you like help with today?",
-  timestamp: new Date(),
+    bn: "নমস্কার, আমি SahiDawa। আমি ওষুধ যাচাই, উপসর্গ বোঝা এবং নিকটবর্তী স্বাস্থ্যসেবা খুঁজে পেতে সাহায্য করতে পারি। আজ আপনাকে কীভাবে সাহায্য করতে পারি?",
+
+    te: "నమస్కారం, నేను SahiDawa. మందులను ధృవీకరించడం, లక్షణాలను అర్థం చేసుకోవడం మరియు సమీప వైద్య సేవలను కనుగొనడంలో నేను సహాయం చేయగలను. ఈ రోజు మీకు ఎలా సహాయం చేయగలను?",
+
+    ta: "வணக்கம், நான் SahiDawa. மருந்துகளை சரிபார்க்கவும், அறிகுறிகளை புரிந்துகொள்ளவும் மற்றும் அருகிலுள்ள சிகிச்சை சேவைகளை கண்டறியவும் உதவ முடியும். இன்று உங்களுக்கு என்ன உதவி வேண்டும்?",
+
+    mr: "नमस्कार, मी SahiDawa आहे. मी औषध पडताळणी, लक्षणे समजून घेणे आणि जवळील आरोग्यसेवा शोधण्यात मदत करू शकतो. आज मी तुम्हाला कशी मदत करू?",
+
+    gu: "નમસ્તે, હું SahiDawa છું. હું તમને દવાઓ ચકાસવામાં, લક્ષણો સમજવામાં અને નજીકની આરોગ્ય સેવાઓ શોધવામાં મદદ કરી શકું છું. આજે હું તમારી કેવી રીતે મદદ કરી શકું?",
+
+    kn: "ನಮಸ್ಕಾರ, ನಾನು SahiDawa. ಔಷಧಿಗಳನ್ನು ಪರಿಶೀಲಿಸಲು, ಲಕ್ಷಣಗಳನ್ನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳಲು ಮತ್ತು ಸಮೀಪದ ಆರೋಗ್ಯ ಸೇವೆಗಳನ್ನು ಹುಡುಕಲು ನಾನು ಸಹಾಯ ಮಾಡಬಹುದು. ಇಂದು ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಲಿ?",
+
+    ur: "السلام علیکم، میں SahiDawa ہوں۔ میں ادویات کی تصدیق، علامات کو سمجھنے اور قریبی صحت کی سہولیات تلاش کرنے میں مدد کر سکتا ہوں۔ آج میں آپ کی کیسے مدد کر سکتا ہوں؟",
+
+    hi: "नमस्ते, मैं SahiDawa हूँ, आपका भरोसेमंद स्वास्थ्य साथी। मैं दवाइयों की पुष्टि करने, लक्षणों को समझने और आपके नज़दीकी स्वास्थ्य सेवाओं को खोजने में मदद कर सकता हूँ। आज मैं आपकी कैसे मदद कर सकता हूँ?",
+
+    pa: "ਸਤ ਸ੍ਰੀ ਅਕਾਲ, ਮੈਂ SahiDawa ਹਾਂ, ਤੁਹਾਡਾ ਭਰੋਸੇਯੋਗ ਸਿਹਤ ਸਾਥੀ। ਮੈਂ ਦਵਾਈਆਂ ਦੀ ਪੁਸ਼ਟੀ ਕਰਨ, ਲੱਛਣਾਂ ਨੂੰ ਸਮਝਣ ਅਤੇ ਤੁਹਾਡੇ ਨੇੜੇ ਸਿਹਤ ਸੇਵਾਵਾਂ ਲੱਭਣ ਵਿੱਚ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ। ਅੱਜ ਮੈਂ ਤੁਹਾਡੀ ਕਿਵੇਂ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ?",
+
+    od: "ନମସ୍କାର, ମୁଁ SahiDawa, ଆପଣଙ୍କର ଭରସାଯୋଗ୍ୟ ସ୍ୱାସ୍ଥ୍ୟ ସହଚର। ମୁଁ ଔଷଧ ଯାଞ୍ଚ କରିବା, ଲକ୍ଷଣ ବୁଝିବା ଏବଂ ନିକଟସ୍ଥ ସ୍ୱାସ୍ଥ୍ୟ ସେବା ଖୋଜିବାରେ ସହାୟତା କରିପାରିବି। ଆଜି ମୁଁ ଆପଣଙ୍କୁ କିପରି ସହାୟତା କରିପାରିବି?",
 };
 
 // Icons
 const IconMic = ({ size = 20 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
-    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-    <line x1="12" y1="19" x2="12" y2="22"/>
-    <line x1="8" y1="22" x2="16" y2="22"/>
-  </svg>
+    <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+        <line x1="12" y1="19" x2="12" y2="22" />
+        <line x1="8" y1="22" x2="16" y2="22" />
+    </svg>
 );
 
 const IconSend = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="22" y1="2" x2="11" y2="13"/>
-    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-  </svg>
+    <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        <line x1="22" y1="2" x2="11" y2="13" />
+        <polygon points="22 2 15 22 11 13 2 9 22 2" />
+    </svg>
 );
 
 const IconStop = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-    <rect x="6" y="6" width="12" height="12" rx="2"/>
-  </svg>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <rect x="6" y="6" width="12" height="12" rx="2" />
+    </svg>
 );
 
 // Quick actions configuration
 const ACTIONS = [
-  { id: "scan", label: "Scan Medicine", description: "Verify authenticity", icon: "📷", prompt: "I'd like to verify a medicine.", accent: "emerald" as const },
-  { id: "symptoms", label: "Check Symptoms", description: "AI-assisted guidance", icon: "💊", prompt: "I want to describe my symptoms.", accent: "sky" as const },
-  { id: "pharmacy", label: "Find Pharmacy", description: "Locate verified stores", icon: "📍", prompt: "Help me find a verified pharmacy nearby.", accent: "amber" as const },
+    {
+        id: "scan",
+        label: "Scan Medicine",
+        description: "Verify authenticity",
+        icon: <Camera className="h-5 w-5 text-emerald-500" />,
+        prompt: "I'd like to verify a medicine.",
+        accent: "emerald" as const,
+    },
+    {
+        id: "symptoms",
+        label: "Check Symptoms",
+        description: "AI-assisted guidance",
+        icon: <Pill className="h-5 w-5 text-sky-500" />,
+        prompt: "I want to describe my symptoms.",
+        accent: "sky" as const,
+    },
+    {
+        id: "pharmacy",
+        label: "Find Pharmacy",
+        description: "Locate verified stores",
+        icon: <MapPin className="h-5 w-5 text-amber-500" />,
+        prompt: "Help me find a verified pharmacy nearby.",
+        accent: "amber" as const,
+    },
 ];
 
 export default function ChatUI() {
-  const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
-  const [input, setInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(true);
-  const lastUserText = useRef("");
-  const messagesContainerRef = useRef<HTMLElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-  const recRef = useRef<any>(null);
-
-  useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (!container) return;
-
-    container.scrollTo({
-      top: container.scrollHeight,
-      behavior: "smooth",
-    });
-  }, [messages, isTyping]);
-
-  useEffect(() => {
-    const ta = inputRef.current;
-    if (!ta) return;
-    ta.style.height = "auto";
-    ta.style.height = Math.min(ta.scrollHeight, 100) + "px";
-  }, [input]);
-
-  const sendMessage = useCallback(async (text: string) => {
-    const t = text.trim();
-    if (!t || isTyping) return;
-    lastUserText.current = t;
-    setShowWelcome(false);
-    
-    const userMsg: Message = { id: genId(), role: "user", content: t, timestamp: new Date() };
-    setMessages(prev => [...prev, userMsg]);
-    setInput("");
-    setIsTyping(true);
-    
-    try {
-      const history = [...messages, userMsg].filter(m => !m.isError).map(m => ({ role: m.role, content: m.content }));
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history }),
-      });
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      const reply = data.text || "I'm here to help! Could you rephrase that?";
-      setMessages(prev => [...prev, { id: genId(), role: "assistant", content: reply, timestamp: new Date() }]);
-    } catch {
-      setMessages(prev => [...prev, { id: genId(), role: "assistant", content: "", timestamp: new Date(), isError: true }]);
-    } finally {
-      setIsTyping(false);
-    }
-  }, [messages, isTyping]);
-
-  const handleRetry = useCallback((id: string) => {
-    setMessages(prev => prev.filter(m => m.id !== id));
-    if (lastUserText.current) sendMessage(lastUserText.current);
-  }, [sendMessage]);
-
-  const toggleVoice = useCallback(() => {
-    if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
-      alert("Voice input requires Chrome or Edge.");
-      return;
-    }
-    if (isListening) {
-      recRef.current?.stop();
-      setIsListening(false);
-      return;
-    }
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    const r = new SR();
-    r.lang = "en-IN";
-    r.interimResults = false;
-    r.onresult = (e: any) => {
-      setInput(e.results[0][0].transcript);
-      setIsListening(false);
+    const params = useParams();
+    const locale = (params.locale as string) || "en";
+    const initialMessage: Message = {
+        id: "init",
+        role: "assistant",
+        content: INITIAL_MESSAGES[locale as keyof typeof INITIAL_MESSAGES] || INITIAL_MESSAGES.en,
+        timestamp: new Date(),
     };
-    r.onerror = r.onend = () => setIsListening(false);
-    recRef.current = r;
-    r.start();
-    setIsListening(true);
-  }, [isListening]);
+    const [messages, setMessages] = useState<Message[]>([initialMessage]);
+    const [input, setInput] = useState("");
+    const [isTyping, setIsTyping] = useState(false);
+    const [isListening, setIsListening] = useState(false);
+    const [showWelcome, setShowWelcome] = useState(true);
+    const lastUserText = useRef("");
+    const messagesContainerRef = useRef<HTMLElement>(null);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
+    const recRef = useRef<any>(null);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage(input);
-    }
-  };
+    useEffect(() => {
+        const container = messagesContainerRef.current;
+        if (!container) return;
 
-  const handleAction = (prompt: string) => {
-    sendMessage(prompt);
-  };
+        container.scrollTo({
+            top: container.scrollHeight,
+            behavior: "smooth",
+        });
+    }, [messages, isTyping]);
 
-  return (
-    <div className="flex flex-col h-screen bg-slate-50 font-sans">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 px-5 py-4 flex-shrink-0">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <div className="flex items-baseline gap-2">
-            <h1 className="text-xl font-semibold text-slate-800">SahiDawa</h1>
-            <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-              CDSCO
-            </span>
-          </div>
-          <TrustBar />
-        </div>
-      </header>
+    useEffect(() => {
+        const ta = inputRef.current;
+        if (!ta) return;
+        ta.style.height = "auto";
+        ta.style.height = Math.min(ta.scrollHeight, 100) + "px";
+    }, [input]);
 
-      {/* Messages */}
-      <main ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-5">
-        <div className="max-w-3xl mx-auto">
-          {messages.map((msg) => (
-            <ChatBubble key={msg.id} msg={msg} onRetry={handleRetry} />
-          ))}
-          
-          {isTyping && <TypingIndicator />}
-          
-          {showWelcome && !isTyping && messages.length === 1 && (
-            <div className="mt-6">
-              <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-3">
-                Quick actions
-              </p>
-              <div className="space-y-3">
-                {ACTIONS.map((action) => (
-                  <ActionCard
-                    key={action.id}
-                    icon={action.icon}
-                    label={action.label}
-                    description={action.description}
-                    onClick={() => handleAction(action.prompt)}
-                    accentColor={action.accent}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-          
-          <div className="h-2" />
-        </div>
-      </main>
+    const sendMessage = useCallback(
+        async (text: string) => {
+            const t = text.trim();
+            if (!t || isTyping) return;
+            lastUserText.current = t;
+            setShowWelcome(false);
 
-      {/* Input Bar */}
-      <footer className="bg-white border-t border-slate-200 flex-shrink-0">
-        <div className="max-w-3xl mx-auto px-4 py-4">
-          {isListening && (
-            <div className="flex items-center gap-2 bg-emerald-50 rounded-full px-4 py-2 mb-3 text-sm text-emerald-800">
-              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-              <span>Listening... speak clearly</span>
-            </div>
-          )}
-          
-          <div className="flex items-center gap-3">
-            <button
-              onClick={toggleVoice}
-              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all flex-shrink-0 ${
-                isListening
-                  ? "bg-red-500 text-white"
-                  : "bg-slate-100 border border-slate-200 text-slate-600 hover:bg-slate-200"
-              }`}
+            const userMsg: Message = {
+                id: genId(),
+                role: "user",
+                content: t,
+                timestamp: new Date(),
+            };
+            setMessages((prev) => [...prev, userMsg]);
+            setInput("");
+            setIsTyping(true);
+
+            try {
+                const history = [...messages, userMsg]
+                    .filter((m) => !m.isError)
+                    .map((m) => ({ role: m.role, content: m.content }));
+                const res = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ messages: history, locale }),
+                });
+                if (res.status === 429) {
+                    throw new Error("Too many requests. Please try again in a few moments.");
+                }
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                const reply = data.text || "I'm here to help! Could you rephrase that?";
+                setMessages((prev) => [
+                    ...prev,
+                    { id: genId(), role: "assistant", content: reply, timestamp: new Date() },
+                ]);
+            } catch (err: any) {
+                setMessages((prev) => [
+                    ...prev,
+                    {
+                        id: genId(),
+                        role: "assistant",
+                        content: err.message || "Something went wrong",
+                        timestamp: new Date(),
+                        isError: true,
+                    },
+                ]);
+            } finally {
+                setIsTyping(false);
+            }
+        },
+        [messages, isTyping]
+    );
+
+    const handleRetry = useCallback(
+        (id: string) => {
+            setMessages((prev) => prev.filter((m) => m.id !== id));
+            if (lastUserText.current) sendMessage(lastUserText.current);
+        },
+        [sendMessage]
+    );
+
+    const toggleVoice = useCallback(() => {
+        if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
+            alert("Voice input requires Chrome or Edge.");
+            return;
+        }
+        if (isListening) {
+            recRef.current?.stop();
+            setIsListening(false);
+            return;
+        }
+        const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        const r = new SR();
+        const speechLocales = {
+            en: "en-IN",
+            hi: "hi-IN",
+            bn: "bn-IN",
+            gu: "gu-IN",
+            te: "te-IN",
+            ta: "ta-IN",
+            kn: "kn-IN",
+            ur: "ur-IN",
+            mr: "mr-IN",
+            pa: "pa-IN",
+            od: "or-IN",
+        };
+        r.lang = speechLocales[locale as keyof typeof speechLocales] || "en-IN";
+        r.interimResults = false;
+        r.onresult = (e: any) => {
+            setInput(e.results[0][0].transcript);
+            setIsListening(false);
+        };
+        r.onerror = r.onend = () => setIsListening(false);
+        recRef.current = r;
+        r.start();
+        setIsListening(true);
+    }, [isListening]);
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage(input);
+        }
+    };
+
+    const handleAction = (prompt: string) => {
+        sendMessage(prompt);
+    };
+
+    return (
+        <div className="relative flex h-screen w-full flex-col overflow-hidden bg-transparent font-sans">
+            {/* Floating Header */}
+            <header className="absolute top-4 right-4 left-4 z-20 mx-auto max-w-3xl rounded-3xl border border-white/30 bg-white/60 px-5 py-4 shadow-[0_8px_30px_rgb(0,0,0,0.08)] backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/60 dark:shadow-black/50">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-baseline gap-2">
+                        <h1 className="text-xl font-semibold text-slate-800 dark:text-white">
+                            SahiDawa
+                        </h1>
+                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-600">
+                            CDSCO
+                        </span>
+                    </div>
+                    <TrustBar />
+                </div>
+            </header>
+
+            {/* Messages */}
+            <main
+                ref={messagesContainerRef}
+                className="absolute inset-0 z-0 overflow-y-auto px-4 pt-28 pb-36"
             >
-              {isListening ? <IconStop /> : <IconMic size={20} />}
-            </button>
-            
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Type your health concern..."
-              rows={1}
-              className="flex-1 bg-slate-100 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
-              style={{ minHeight: 44, maxHeight: 100 }}
-            />
-            
-            <button
-              onClick={() => sendMessage(input)}
-              disabled={!input.trim() || isTyping}
-              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all flex-shrink-0 ${
-                input.trim() && !isTyping
-                  ? "bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95"
-                  : "bg-slate-100 text-slate-400 cursor-not-allowed"
-              }`}
-            >
-              <IconSend />
-            </button>
-          </div>
-          
-          <p className="text-center text-[10px] text-slate-400 mt-3">
-            For informational use only • Consult a doctor
-          </p>
+                <div className="mx-auto flex max-w-3xl flex-col gap-6">
+                    {messages.map((msg) => (
+                        <ChatBubble key={msg.id} msg={msg} onRetry={handleRetry} />
+                    ))}
+
+                    {isTyping && <TypingIndicator />}
+
+                    {showWelcome && !isTyping && messages.length === 1 && (
+                        <div>
+                            <p className="mb-3 text-xs font-medium tracking-wide text-slate-400 uppercase">
+                                Quick actions
+                            </p>
+                            <div className="space-y-3">
+                                {ACTIONS.map((action) => (
+                                    <ActionCard
+                                        key={action.id}
+                                        icon={action.icon}
+                                        label={action.label}
+                                        description={action.description}
+                                        onClick={() => handleAction(action.prompt)}
+                                        accentColor={action.accent}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="h-2" />
+                </div>
+            </main>
+
+            {/* Floating Input Pill */}
+            <footer className="absolute right-4 bottom-6 left-4 z-20 mx-auto max-w-3xl rounded-[2rem] border border-white/30 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/60 dark:shadow-black/50">
+                <div className="px-4 py-3">
+                    {isListening && (
+                        <div className="mb-3 flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-400">
+                            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+                            <span>Listening... speak clearly</span>
+                        </div>
+                    )}
+
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={toggleVoice}
+                            className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
+                                isListening
+                                    ? "bg-red-500 text-white shadow-md shadow-red-500/20"
+                                    : "border border-white/40 bg-white/50 text-slate-600 hover:bg-white/80 dark:border-white/10 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-700/50"
+                            }`}
+                        >
+                            {isListening ? <IconStop /> : <IconMic size={20} />}
+                        </button>
+
+                        <textarea
+                            ref={inputRef}
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder="Type your health concern..."
+                            rows={1}
+                            className="flex-1 resize-none rounded-xl border border-white/40 bg-white/50 px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:border-white/10 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500"
+                            style={{ minHeight: 44, maxHeight: 100 }}
+                        />
+
+                        <button
+                            onClick={() => sendMessage(input)}
+                            disabled={!input.trim() || isTyping}
+                            className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
+                                input.trim() && !isTyping
+                                    ? "bg-linear-to-r from-emerald-500 to-teal-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)] hover:from-emerald-600 hover:to-teal-600 active:scale-95"
+                                    : "cursor-not-allowed border border-white/20 bg-white/40 text-slate-400 dark:border-white/5 dark:bg-slate-800/40 dark:text-slate-500"
+                            }`}
+                        >
+                            <IconSend />
+                        </button>
+                    </div>
+
+                    {/* Minimal Footer Text */}
+                    <div className="mt-2 text-center">
+                        <p className="text-[10px] font-medium text-slate-400/80">
+                            For informational use only • Consult a doctor
+                        </p>
+                    </div>
+                </div>
+            </footer>
         </div>
-      </footer>
-    </div>
-  );
+    );
 }

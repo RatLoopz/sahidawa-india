@@ -8,7 +8,9 @@ import { ThemeProvider } from "./components/ThemeProvider";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { OfflineErrorBoundary } from "@/components/OfflineErrorBoundary";
 import { ServiceWorkerProvider } from "@/components/ServiceWorkerProvider";
+import BackToTopButton from "./components/BackToTopButton";
 import Chatbot from "./components/Chatbot";
+import Navbar from "./components/Navbar";
 import "./globals.css";
 import "../../src/styles/print.css";
 import { Toaster } from "sonner";
@@ -59,18 +61,19 @@ export default async function LocaleLayout({
 
     return (
         <html lang={locale} suppressHydrationWarning>
-            <body>
+            {/* REPLACE YOUR OLD BODY TAG WITH THIS ONE: */}
+            <body className="bg-(--color-surface-page) text-(--color-text-primary) transition-colors duration-300">
                 <ServiceWorkerProvider>
                     <ThemeProvider>
                         <NextIntlClientProvider messages={messages}>
-                            <OfflineErrorBoundary>
-                                <OfflineBanner />
-                                {children}
-                                <Footer />
-                                <div className="no-print">
-                                    <Chatbot />
-                                </div>
-                            </OfflineErrorBoundary>
+                            <OfflineBanner />
+                            <Navbar />
+                            <OfflineErrorBoundary>{children}</OfflineErrorBoundary>
+                            <Footer />
+                            <div className="no-print">
+                                <BackToTopButton />
+                                <Chatbot />
+                            </div>
                         </NextIntlClientProvider>
                         <div className="no-print">
                             <Toaster richColors position="top-center" />

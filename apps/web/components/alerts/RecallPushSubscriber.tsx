@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Bell, BellOff } from "lucide-react";
 import { API_BASE } from "@/lib/api";
+import { LiveMessage } from "@/components/ui/LiveMessage";
 
 type SubscribeState = "idle" | "subscribing" | "subscribed" | "unsupported" | "error";
 
@@ -93,13 +94,15 @@ export default function RecallPushSubscriber() {
                             avoid.
                         </p>
                         {message && (
-                            <p
+                            <LiveMessage
+                                as="p"
+                                tone={isSubscribed ? "polite" : "critical"}
                                 className={`mt-2 text-xs font-semibold ${
                                     isSubscribed ? "text-emerald-600" : "text-slate-500"
                                 }`}
                             >
                                 {message}
-                            </p>
+                            </LiveMessage>
                         )}
                     </div>
                 </div>
@@ -107,7 +110,7 @@ export default function RecallPushSubscriber() {
                     type="button"
                     onClick={subscribe}
                     disabled={state === "subscribing" || isSubscribed}
-                    className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                    className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition-all duration-300 hover:scale-105 hover:bg-emerald-700 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed disabled:bg-slate-300"
                 >
                     {state === "subscribing"
                         ? "Enabling..."

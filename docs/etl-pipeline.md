@@ -38,14 +38,14 @@ The `apps/etl/` workspace is the single source of truth for all data ingestion i
 
 ### Data flow in detail
 
-| Stage | Input | Output | Location |
-|---|---|---|---|
-| Scrape | URL | `data/raw/janaushadhi/janaushadhi_raw_<ts>.csv` | `src/scrapers/jan_aushadhi.py` |
-| Normalize | raw CSV | `pd.DataFrame` (10 cols) | `src/scrapers/jan_aushadhi.py` |
-| CDSCO fetch | CDSCO API | `data/seeds/cdsco_reference.csv` | `src/scrapers/cdsco.py` |
-| Validate | DataFrame + reference CSV | DataFrame + 6 new columns | `src/validators/cdsco_validator.py` |
-| Load | validated DataFrame | Supabase `medicines` table | `src/loaders/supabase_loader.py` |
-| Retry | `etl_failed_rows` table | updated rows in Supabase | `src/loaders/supabase_loader.py` |
+| Stage       | Input                     | Output                                          | Location                            |
+| ----------- | ------------------------- | ----------------------------------------------- | ----------------------------------- |
+| Scrape      | URL                       | `data/raw/janaushadhi/janaushadhi_raw_<ts>.csv` | `src/scrapers/jan_aushadhi.py`      |
+| Normalize   | raw CSV                   | `pd.DataFrame` (10 cols)                        | `src/scrapers/jan_aushadhi.py`      |
+| CDSCO fetch | CDSCO API                 | `data/seeds/cdsco_reference.csv`                | `src/scrapers/cdsco.py`             |
+| Validate    | DataFrame + reference CSV | DataFrame + 6 new columns                       | `src/validators/cdsco_validator.py` |
+| Load        | validated DataFrame       | Supabase `medicines` table                      | `src/loaders/supabase_loader.py`    |
+| Retry       | `etl_failed_rows` table   | updated rows in Supabase                        | `src/loaders/supabase_loader.py`    |
 
 ### CDSCO validation scoring
 
@@ -101,8 +101,8 @@ python run_all.py --refresh-cdsco
 ## How to add a new scraper
 
 1. Create `src/scrapers/<source_name>.py` with a class that exposes:
-   - `scrape() -> Path` (or `async scrape() -> Path` for JS-rendered sites)
-   - `normalize(raw_path: Path) -> pd.DataFrame` — output must include at minimum: `generic_name`, `manufacturer`, `source`
+    - `scrape() -> Path` (or `async scrape() -> Path` for JS-rendered sites)
+    - `normalize(raw_path: Path) -> pd.DataFrame` — output must include at minimum: `generic_name`, `manufacturer`, `source`
 
 2. Register it in `run_all.py` — add a new step between NORMALIZE and LOAD following the same pattern as the Jan Aushadhi step.
 

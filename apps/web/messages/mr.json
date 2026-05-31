@@ -13,13 +13,37 @@
         "report_fake": "बनावट औषधाची तक्रार करा",
         "report_fake_subtitle": "संशयास्पद औषधाची तक्रार करा",
         "search_placeholder": "औषध किंवा बॅच शोधा...",
-        "search_button": "शोधा"
+        "search_button": "शोधा",
+        "sign_in": "Sign In",
+        "get_started": "Get Started",
+        "open_ai_health_assistant": "AI आरोग्य सहाय्यक उघडा",
+        "ai_health_assistant": "AI आरोग्य सहाय्यक",
+        "ai_chat": "AI चॅट",
+        "ai_health_assistant_description": "त्वरित आरोग्य सल्ला, लक्षण तपासणी आणि प्रिस्क्रिप्शन मार्गदर्शन मिळवा",
+        "chat_now": "आता चॅट करा",
+        "live_cdsco_alerts": "लाइव्ह CDSCO सूचना",
+        "india_region": "भारत क्षेत्र",
+        "alerts_empty_title": "सर्व ठीक आहे!",
+        "alerts_empty_description": "सध्या कोणतीही सक्रिय नियामक सूचना नाही. सुरक्षित रहा आणि तुमची औषधे पडताळा.",
+        "view_full_alert_log": "पूर्ण सूचना लॉग पहा",
+        "heroTitle": {
+            "prefix": "तुमचे आरोग्य, ",
+            "highlight": "पडताळलेले आणि सुरक्षित."
+        }
     },
     "Navigation": {
         "how_it_works": "हे कसे कार्य करते",
         "alerts": "सूचना",
         "pharmacy_map": "औषधालय नकाशा",
+        "my_reports": "माझे अहवाल",
+        "home": "मुख्यपृष्ठ",
+        "scans": "स्कॅन",
+        "map": "नकाशा",
+        "profile": "प्रोफाइल",
         "language": "मराठी"
+    },
+    "BackToTopButton": {
+        "label": "वर जा"
     },
     "VoicePage": {
         "header_title": "व्हॉइस ट्रायज",
@@ -55,6 +79,7 @@
         "review_title": "तुमचा ट्रान्सक्रिप्ट तपासा",
         "review_message": "मायक्रोफोनने तुमची लक्षणे कमी विश्वासार्हतेने टिपली. अधिक स्पष्ट निकालासाठी पुन्हा प्रयत्न करा किंवा हाच ट्रान्सक्रिप्ट विश्लेषित करा.",
         "retry_button": "पुन्हा प्रयत्न करा",
+        "switch_to_text_button": "Type Instead",
         "analyse_anyway_button": "तरीही विश्लेषण करा",
         "result_heading": "AI विश्लेषण",
         "result_subheading": "वैद्यकीय ट्रायज",
@@ -117,44 +142,70 @@
             "no_speech_message": "शांत ठिकाणी पुन्हा प्रयत्न करा किंवा मायक्रोफोनजवळून बोला.",
             "generic_title": "काहीतरी चुकले",
             "generic_message": "यावेळी तुमचा व्हॉइस इनपुट प्रक्रिया करता आला नाही. कृपया पुन्हा प्रयत्न करा.",
+            "service_unavailable_title": "Voice service unavailable",
+            "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
+            "timeout_title": "Voice request timed out",
+            "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
             "api_title": "SahiDawa AI उपलब्ध नाही",
             "api_message": "सध्या वैद्यकीय मार्गदर्शन मिळू शकले नाही. थोड्या वेळाने पुन्हा प्रयत्न करा."
         }
     },
+    "offline": {
+        "bannerOffline": "तुम्ही ऑफलाइन आहात",
+        "descriptionOffline": "कनेक्शन परत आल्यावर तुमचे बदल सिंक केले जातील",
+        "bannerOnline": "पुन्हा ऑनलाइन",
+        "descriptionOnline": "अयशस्वी विनंत्या पुन्हा प्रयत्न करत आहे...",
+        "dismiss": "बंद करा",
+        "title": "ऑफलाइन मोड",
+        "description": "तुमच्याकडे सध्या इंटरनेट कनेक्शन नाही.",
+        "subtitle": "ऑफलाइन असताना काही वैशिष्ट्ये अनुपलब्ध आहेत. इंटरनेटशी कनेक्ट करण्याचा प्रयत्न करा किंवा जतन केलेला मजकूर ब्राउझ करा.",
+        "tryAgain": "पुन्हा प्रयत्न करा",
+        "goHome": "होमवर जा",
+        "footer": "कनेक्शन परत आल्यावर SahiDawa आपोआप सिंक होईल.",
+        "cachedContent": "तुम्ही अजूनही पूर्वी लोड केलेल्या मजकुरात प्रवेश करू शकता",
+        "noCache": "हे पृष्ठ जतन केलेले नाही आणि ऑफलाइन उपलब्ध नाही",
+        "redirecting": "तुम्हाला SahiDawa वर पुनर्निर्देशित करत आहे…",
+        "attempt": "(प्रयत्न {retryCount})",
+        "checkingConnection": "कनेक्शन तपासत आहे…",
+        "cachedAvailable": "पूर्वी भेट दिलेली पृष्ठे अद्याप उपलब्ध असू शकतात",
+        "cachedVerifications": "जतन केलेल्या पडताळण्या",
+        "savedPharmacies": "जतन केलेली औषधालये",
+        "browsedMedicines": "शोधलेली औषधे"
+    },
     "contact": {
-    "badge": "GSSoC 2026 ओपन सोर्स प्रकल्प",
-    "heroTitle": {
-      "prefix": "संपर्क",
-      "highlight": "साधा"
-    },
-    "heroSubtitle": "प्रश्न, कल्पना किंवा योगदान द्यायचे आहे? आम्हाला तुमच्याकडून ऐकायला आवडेल.",
-    "cards": {
-      "email": {
-        "title": "आम्हाला ईमेल करा",
-        "description": "गोपनीयतेचे प्रश्न, भागीदारी किंवा गंभीर समस्यांसाठी."
-      },
-      "discord": {
-        "title": "Discord समुदाय",
-        "description": "योगदानकर्त्यांशी जोडा, प्रश्न विचारा आणि घोषणा मिळवा.",
-        "cta": "Discord मध्ये सामील व्हा"
-      },
-      "bug": {
-        "title": "बग नोंदवा",
-        "description": "समस्या आढळली? GitHub issue उघडा आणि आम्ही लवकर दुरुस्त करू.",
-        "cta": "Issue उघडा"
-      },
-      "contribute": {
-        "title": "योगदान द्या",
-        "description": "SahiDawa तयार करण्यास मदत करायची आहे? आमची contributing guide वाचा.",
-        "cta": "मार्गदर्शिका वाचा"
-      }
-    },
-    "quickLinks": {
-      "title": "उपयुक्त दुवे",
-      "about": "SahiDawa बद्दल",
-      "privacy": "गोपनीयता धोरण",
-      "faq": "वारंवार विचारले जाणारे प्रश्न"
-    },
-    "footer": "SahiDawa विनामूल्य, ओपन-सोर्स आहे आणि 1.4 अब्ज भारतीयांसाठी बनवले आहे. जाहिराती नाहीत. प्रीमियम नाही. डेटा कधीही विकला जाणार नाही."
-  }
+        "badge": "GSSoC 2026 ओपन सोर्स प्रकल्प",
+        "heroTitle": {
+            "prefix": "संपर्क",
+            "highlight": "साधा"
+        },
+        "heroSubtitle": "प्रश्न, कल्पना किंवा योगदान द्यायचे आहे? आम्हाला तुमच्याकडून ऐकायला आवडेल.",
+        "cards": {
+            "email": {
+                "title": "आम्हाला ईमेल करा",
+                "description": "गोपनीयतेचे प्रश्न, भागीदारी किंवा गंभीर समस्यांसाठी."
+            },
+            "discord": {
+                "title": "Discord समुदाय",
+                "description": "योगदानकर्त्यांशी जोडा, प्रश्न विचारा आणि घोषणा मिळवा.",
+                "cta": "Discord मध्ये सामील व्हा"
+            },
+            "bug": {
+                "title": "बग नोंदवा",
+                "description": "समस्या आढळली? GitHub issue उघडा आणि आम्ही लवकर दुरुस्त करू.",
+                "cta": "Issue उघडा"
+            },
+            "contribute": {
+                "title": "योगदान द्या",
+                "description": "SahiDawa तयार करण्यास मदत करायची आहे? आमची contributing guide वाचा.",
+                "cta": "मार्गदर्शिका वाचा"
+            }
+        },
+        "quickLinks": {
+            "title": "उपयुक्त दुवे",
+            "about": "SahiDawa बद्दल",
+            "privacy": "गोपनीयता धोरण",
+            "faq": "वारंवार विचारले जाणारे प्रश्न"
+        },
+        "footer": "SahiDawa विनामूल्य, ओपन-सोर्स आहे आणि 1.4 अब्ज भारतीयांसाठी बनवले आहे. जाहिराती नाहीत. प्रीमियम नाही. डेटा कधीही विकला जाणार नाही."
+    }
 }

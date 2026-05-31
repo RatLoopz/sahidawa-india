@@ -31,6 +31,11 @@ export default function Chatbot() {
         scrollToBottom();
     }, [messages]);
 
+    // Securely check route-based visibility after hook declarations to satisfy React Rules of Hooks
+    if (pathname && pathname.includes("/health")) {
+        return null;
+    }
+
     const handleSend = async () => {
         if (!input.trim()) return;
 
@@ -83,7 +88,7 @@ export default function Chatbot() {
             {isOpen && (
                 <div className={getChatbotPanelClasses({ pathname })}>
                     {/* Header */}
-                    <div className="z-10 flex items-center justify-between bg-green-600 p-4 text-white shadow-md">
+                    <div className="z-10 flex items-center justify-between bg-green-600 p-4 text-white shadow-md dark:bg-green-700">
                         <div className="flex items-center gap-3">
                             <div className="rounded-full bg-white/20 p-2">
                                 <Bot size={20} />
@@ -102,14 +107,14 @@ export default function Chatbot() {
                     </div>
 
                     {/* Messages */}
-                    <div className="flex flex-1 flex-col gap-4 overflow-y-auto bg-gray-50 p-4">
+                    <div className="flex flex-1 flex-col gap-4 overflow-y-auto bg-(--color-surface-muted) p-4">
                         {messages.map((msg, idx) => (
                             <div
                                 key={idx}
                                 className={`max-w-[85%] rounded-2xl p-3 shadow-sm ${
                                     msg.isBot
-                                        ? "self-start rounded-tl-sm border border-gray-100 bg-white text-gray-800"
-                                        : "self-end rounded-tr-sm bg-green-600 text-white"
+                                        ? "self-start rounded-tl-sm border border-(--color-border-muted) bg-(--color-surface-page) text-(--color-text-primary)"
+                                        : "self-end rounded-tr-sm bg-green-600 text-white dark:bg-green-700"
                                 }`}
                             >
                                 <p className="text-sm leading-relaxed">{msg.text}</p>
@@ -119,19 +124,19 @@ export default function Chatbot() {
                     </div>
 
                     {/* Input Area */}
-                    <div className="flex items-center gap-2 border-t border-gray-100 bg-white p-3">
+                    <div className="flex items-center gap-2 border-t border-(--color-border-muted) bg-(--color-surface-page) p-3">
                         <input
                             type="text"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && handleSend()}
                             placeholder="Ask me about a medicine..."
-                            className="flex-1 rounded-full bg-gray-100 px-4 py-3 text-sm text-gray-800 transition-all placeholder:text-gray-400 focus:ring-2 focus:ring-green-500/50 focus:outline-none"
+                            className="flex-1 rounded-full bg-(--color-surface-muted) px-4 py-3 text-sm text-(--color-text-primary) transition-all placeholder:text-(--color-text-muted) focus:ring-2 focus:ring-green-500/50 focus:outline-none"
                         />
                         <button
                             onClick={handleSend}
                             disabled={!input.trim()}
-                            className="flex h-11 w-11 items-center justify-center rounded-full bg-green-600 p-3 text-white shadow-md transition-colors hover:bg-green-700 disabled:opacity-50"
+                            className="flex h-11 w-11 items-center justify-center rounded-full bg-green-600 p-3 text-white shadow-md transition-colors hover:bg-green-700 disabled:opacity-50 dark:bg-green-700 dark:hover:bg-green-800"
                         >
                             <Send size={18} className="relative right-[1px] bottom-[1px]" />
                         </button>
@@ -141,7 +146,7 @@ export default function Chatbot() {
 
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="relative z-50 flex h-14 w-14 items-center justify-center rounded-full bg-green-600 text-white shadow-[0_8px_20px_rgba(22,163,74,0.3)] transition-all hover:scale-105 hover:shadow-[0_8px_25px_rgba(22,163,74,0.4)] active:scale-95"
+                className="relative z-50 flex h-14 w-14 items-center justify-center rounded-full bg-green-600 text-white shadow-[0_8px_20px_rgba(22,163,74,0.3)] transition-all hover:scale-105 hover:shadow-[0_8px_25px_rgba(22,163,74,0.4)] active:scale-95 dark:bg-green-700 dark:hover:bg-green-800"
             >
                 {isOpen ? <X size={28} /> : <MessageSquare size={28} />}
             </button>

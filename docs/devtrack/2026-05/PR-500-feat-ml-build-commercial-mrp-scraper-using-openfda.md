@@ -23,46 +23,46 @@ Prior to this change, our `medicines` table lacked comprehensive commercial MRP 
 This new module defines the `CommercialMRPScraper` class, responsible for fetching and structuring commercial drug data.
 
 1.  **Constants and References:**
-    *   `OUTPUT_DIR`: Specifies the output directory for raw CSV files as `data/raw/commercial/`.
-    *   `OPENFDA_URL`: The base URL for the OpenFDA Drug Label API (`https://api.fda.gov/drug/label.json`).
-    *   `NPPA_MRP_REFERENCE`: A dictionary mapping generic drug name keywords (e.g., "paracetamol") to their approximate ceiling MRPs in INR (₹), sourced from the National Pharmaceutical Pricing Authority (NPPA) public data. This serves as our primary source for commercial MRP values, as OpenFDA does not provide Indian market prices.
-    *   `SEARCH_QUERIES`: A list of generic drug names derived from the keys of `NPPA_MRP_REFERENCE`, used to query the OpenFDA API.
-    *   `STRENGTH_PATTERN`: A regular expression (`r"(\d+(?:\.\d+)?)\s*(mg|mcg|g|ml|iu|units?|%)"`) used to extract dosage strength and unit from drug descriptions.
+    - `OUTPUT_DIR`: Specifies the output directory for raw CSV files as `data/raw/commercial/`.
+    - `OPENFDA_URL`: The base URL for the OpenFDA Drug Label API (`https://api.fda.gov/drug/label.json`).
+    - `NPPA_MRP_REFERENCE`: A dictionary mapping generic drug name keywords (e.g., "paracetamol") to their approximate ceiling MRPs in INR (₹), sourced from the National Pharmaceutical Pricing Authority (NPPA) public data. This serves as our primary source for commercial MRP values, as OpenFDA does not provide Indian market prices.
+    - `SEARCH_QUERIES`: A list of generic drug names derived from the keys of `NPPA_MRP_REFERENCE`, used to query the OpenFDA API.
+    - `STRENGTH_PATTERN`: A regular expression (`r"(\d+(?:\.\d+)?)\s*(mg|mcg|g|ml|iu|units?|%)"`) used to extract dosage strength and unit from drug descriptions.
 
 2.  **`CommercialMRPScraper` Class:**
-    *   **`__init__(self, max_results_per_query: int = 10)`:** Initializes the scraper with a `max_results_per_query` limit for OpenFDA API calls and sets up a `requests.Session` with a custom `User-Agent` (`SahiDawa-ETL/1.0`) and `Accept` header for polite API interaction.
-    *   **`scrape(self) -> Path`:** The main orchestration method.
-        *   It iterates through `SEARCH_QUERIES`, calling `_fetch_openfda()` for each query.
-        *   After fetching all records, it performs deduplication based on a combined key of `(brand_name, generic_name)` to ensure unique entries.
-        *   Finally, it calls `_save_csv()` to write the collected data to a timestamped CSV file in `OUTPUT_DIR`.
-    *   **`_fetch_openfda(self, query: str) -> list[dict]`:**
-        *   Constructs OpenFDA API requests using the `search` parameter (`openfda.generic_name:"{query}"`) and `limit` (`RESULTS_PER_PAGE`).
-        *   Implements a robust retry mechanism with exponential backoff (`MAX_RETRIES`, `BACKOFF_BASE`) and random delays (`MIN_DELAY_SEC`, `MAX_DELAY_SEC`) between requests to respect API rate limits and handle transient network issues.
-        *   Handles pagination using the `skip` parameter to fetch multiple pages of results up to `max_results_per_query`.
-        *   Parses the JSON response and extracts relevant drug information using `_parse_record()`.
-        *   Enriches each record with an MRP by calling `_get_mrp_from_nppa()`.
-    *   **`_parse_record(self, hit: dict) -> dict | None`:**
-        *   Extracts `brand_name` (from `openfda.brand_name`), `generic_name` (from `openfda.generic_name`), and `strength` (from `strength` or `active_ingredient` fields) from a single OpenFDA API response `hit`.
-        *   Uses `STRENGTH_PATTERN` to normalize strength values.
-        *   Returns a dictionary with `brand_name`, `generic_name`, `strength`, and `source` (set to "OpenFDA/NPPA").
-    *   **`_get_mrp_from_nppa(self, generic_name: str) -> float | None`:**
-        *   Performs a case-insensitive lookup in the `NPPA_MRP_REFERENCE` dictionary using keywords from the provided `generic_name`.
-        *   Returns the corresponding MRP if a match is found, otherwise `None`.
-    *   **`_save_csv(self) -> Path`:**
-        *   Generates a timestamped filename (`commercial_mrp_<timestamp>.csv`).
-        *   Writes the collected `self.results` to this CSV file with headers: `brand_name`, `generic_name`, `strength`, `mrp`, `source`.
+    - **`__init__(self, max_results_per_query: int = 10)`:** Initializes the scraper with a `max_results_per_query` limit for OpenFDA API calls and sets up a `requests.Session` with a custom `User-Agent` (`SahiDawa-ETL/1.0`) and `Accept` header for polite API interaction.
+    - **`scrape(self) -> Path`:** The main orchestration method.
+        - It iterates through `SEARCH_QUERIES`, calling `_fetch_openfda()` for each query.
+        - After fetching all records, it performs deduplication based on a combined key of `(brand_name, generic_name)` to ensure unique entries.
+        - Finally, it calls `_save_csv()` to write the collected data to a timestamped CSV file in `OUTPUT_DIR`.
+    - **`_fetch_openfda(self, query: str) -> list[dict]`:**
+        - Constructs OpenFDA API requests using the `search` parameter (`openfda.generic_name:"{query}"`) and `limit` (`RESULTS_PER_PAGE`).
+        - Implements a robust retry mechanism with exponential backoff (`MAX_RETRIES`, `BACKOFF_BASE`) and random delays (`MIN_DELAY_SEC`, `MAX_DELAY_SEC`) between requests to respect API rate limits and handle transient network issues.
+        - Handles pagination using the `skip` parameter to fetch multiple pages of results up to `max_results_per_query`.
+        - Parses the JSON response and extracts relevant drug information using `_parse_record()`.
+        - Enriches each record with an MRP by calling `_get_mrp_from_nppa()`.
+    - **`_parse_record(self, hit: dict) -> dict | None`:**
+        - Extracts `brand_name` (from `openfda.brand_name`), `generic_name` (from `openfda.generic_name`), and `strength` (from `strength` or `active_ingredient` fields) from a single OpenFDA API response `hit`.
+        - Uses `STRENGTH_PATTERN` to normalize strength values.
+        - Returns a dictionary with `brand_name`, `generic_name`, `strength`, and `source` (set to "OpenFDA/NPPA").
+    - **`_get_mrp_from_nppa(self, generic_name: str) -> float | None`:**
+        - Performs a case-insensitive lookup in the `NPPA_MRP_REFERENCE` dictionary using keywords from the provided `generic_name`.
+        - Returns the corresponding MRP if a match is found, otherwise `None`.
+    - **`_save_csv(self) -> Path`:**
+        - Generates a timestamped filename (`commercial_mrp_<timestamp>.csv`).
+        - Writes the collected `self.results` to this CSV file with headers: `brand_name`, `generic_name`, `strength`, `mrp`, `source`.
 
 ### `apps/ml/etl/loader.py`
 
 The `SupabaseLoader` class was extended to incorporate the commercial MRP data.
 
 1.  **`merge_commercial_mrp(self, mrp_csv_path: "Path", table: str = "medicines") -> dict`:**
-    *   This new method reads the CSV file generated by `CommercialMRPScraper` using `pandas.read_csv()`.
-    *   It iterates through each row of the DataFrame, extracting `generic_name` and `mrp`.
-    *   For each record, it queries the Supabase `medicines` table to find existing entries that match the `generic_name` (using `ilike` for case-insensitive partial matching) and where the `mrp` column is currently `null`. This ensures a non-destructive merge, only populating `mrp` where it's missing.
-    *   For every matching record found, it updates the `mrp` column with the scraped value using `self.client.table(table).update({"mrp": float(mrp)}).eq("id", match["id"]).execute()`.
-    *   A small `time.sleep(0.1)` is included for polite interaction with the Supabase API.
-    *   It tracks and returns statistics on `total`, `updated`, `not_found`, and `failed` records, along with a `success_rate`.
+    - This new method reads the CSV file generated by `CommercialMRPScraper` using `pandas.read_csv()`.
+    - It iterates through each row of the DataFrame, extracting `generic_name` and `mrp`.
+    - For each record, it queries the Supabase `medicines` table to find existing entries that match the `generic_name` (using `ilike` for case-insensitive partial matching) and where the `mrp` column is currently `null`. This ensures a non-destructive merge, only populating `mrp` where it's missing.
+    - For every matching record found, it updates the `mrp` column with the scraped value using `self.client.table(table).update({"mrp": float(mrp)}).eq("id", match["id"]).execute()`.
+    - A small `time.sleep(0.1)` is included for polite interaction with the Supabase API.
+    - It tracks and returns statistics on `total`, `updated`, `not_found`, and `failed` records, along with a `success_rate`.
 2.  **`_upsert_payloads`:** The comment for this method was updated to clarify that for commercial MRP records, we use `merge_commercial_mrp` for a targeted update, while for Janaushadhi records, we still use the full uniqueness key for upsert.
 
 ### `apps/ml/run_pipeline.py`
@@ -70,14 +70,14 @@ The `SupabaseLoader` class was extended to incorporate the commercial MRP data.
 This script, which orchestrates our ETL pipeline, was updated to allow execution of the new commercial MRP scraping and merging.
 
 1.  **`argparse` Additions:**
-    *   `--commercial-mrp`: A new flag (`action="store_true"`) to trigger the commercial MRP scraping and merging process.
-    *   `--commercial-csv`: An optional flag (`type=str, default=None`) to provide a path to an existing commercial MRP CSV file, allowing the merging step to run without re-scraping.
+    - `--commercial-mrp`: A new flag (`action="store_true"`) to trigger the commercial MRP scraping and merging process.
+    - `--commercial-csv`: An optional flag (`type=str, default=None`) to provide a path to an existing commercial MRP CSV file, allowing the merging step to run without re-scraping.
 2.  **Conditional Execution:**
-    *   The script now checks if either `--commercial-mrp` or `--commercial-csv` flags are present.
-    *   If `--commercial-csv` is provided, it directly uses that path.
-    *   If `--commercial-mrp` is set (and no `--commercial-csv`), it instantiates `CommercialMRPScraper()` and calls its `scrape()` method to generate the CSV.
-    *   In both cases, it then instantiates `SupabaseLoader()` and calls `loader.merge_commercial_mrp()` with the determined CSV path.
-    *   If neither commercial MRP flag is present, the script falls back to its original behavior of running the full Janaushadhi ETL pipeline.
+    - The script now checks if either `--commercial-mrp` or `--commercial-csv` flags are present.
+    - If `--commercial-csv` is provided, it directly uses that path.
+    - If `--commercial-mrp` is set (and no `--commercial-csv`), it instantiates `CommercialMRPScraper()` and calls its `scrape()` method to generate the CSV.
+    - In both cases, it then instantiates `SupabaseLoader()` and calls `loader.merge_commercial_mrp()` with the determined CSV path.
+    - If neither commercial MRP flag is present, the script falls back to its original behavior of running the full Janaushadhi ETL pipeline.
 
 ## Technical Decisions
 
@@ -93,48 +93,49 @@ This script, which orchestrates our ETL pipeline, was updated to allow execution
 To re-implement this feature from scratch, a contributor would follow these steps:
 
 1.  **Set up Environment:**
-    *   Ensure Python 3.x is installed.
-    *   Install necessary libraries: `pip install requests pandas supabase-py`.
-    *   Create the output directory: `mkdir -p apps/ml/data/raw/commercial`.
+    - Ensure Python 3.x is installed.
+    - Install necessary libraries: `pip install requests pandas supabase-py`.
+    - Create the output directory: `mkdir -p apps/ml/data/raw/commercial`.
 
 2.  **Create the Scraper (`apps/ml/scrapers/commercial_mrp.py`):**
-    *   **Define Constants:** Establish `OUTPUT_DIR`, `OPENFDA_URL`, `MIN_DELAY_SEC`, `MAX_DELAY_SEC`, `MAX_RETRIES`, `BACKOFF_BASE`, `RESULTS_PER_PAGE`, and `STRENGTH_PATTERN` regex.
-    *   **NPPA Reference:** Create the `NPPA_MRP_REFERENCE` dictionary with generic names and their corresponding MRPs. This is a critical data source for pricing.
-    *   **Search Queries:** Generate `SEARCH_QUERIES` from the keys of `NPPA_MRP_REFERENCE`.
-    *   **`CommercialMRPScraper` Class:**
-        *   **`__init__`:** Initialize `requests.Session` with a `User-Agent` and `Accept` header.
-        *   **`_sleep()`:** Implement a function for random delays between API calls.
-        *   **`_get_mrp_from_nppa(generic_name: str)`:** Implement the lookup logic for `NPPA_MRP_REFERENCE`.
-        *   **`_parse_record(hit: dict)`:** Extract `brand_name`, `generic_name`, `strength` from OpenFDA `hit` dictionary, using `STRENGTH_PATTERN` for strength normalization. Handle missing fields gracefully.
-        *   **`_fetch_openfda(query: str)`:**
-            *   Construct API URL with `search=openfda.generic_name:"{query}"`, `limit`, and `skip` for pagination.
-            *   Implement a `for` loop for `MAX_RETRIES` with `try-except requests.RequestException`.
-            *   Inside the loop, make `session.get()` request.
-            *   If successful, parse JSON, iterate `results`, call `_parse_record` and `_get_mrp_from_nppa`.
-            *   Implement exponential backoff (`time.sleep(BACKOFF_BASE ** attempt)`) on failure.
-            *   Include `_sleep()` after each successful request.
-        *   **`_save_csv()`:** Use Python's `csv` module or `pandas.DataFrame.to_csv()` to write `self.results` to a timestamped CSV file in `OUTPUT_DIR` with columns: `brand_name`, `generic_name`, `strength`, `mrp`, `source`.
-        *   **`scrape()`:** Orchestrate the calls to `_fetch_openfda`, perform deduplication on `(brand_name, generic_name)`, and then call `_save_csv`.
+    - **Define Constants:** Establish `OUTPUT_DIR`, `OPENFDA_URL`, `MIN_DELAY_SEC`, `MAX_DELAY_SEC`, `MAX_RETRIES`, `BACKOFF_BASE`, `RESULTS_PER_PAGE`, and `STRENGTH_PATTERN` regex.
+    - **NPPA Reference:** Create the `NPPA_MRP_REFERENCE` dictionary with generic names and their corresponding MRPs. This is a critical data source for pricing.
+    - **Search Queries:** Generate `SEARCH_QUERIES` from the keys of `NPPA_MRP_REFERENCE`.
+    - **`CommercialMRPScraper` Class:**
+        - **`__init__`:** Initialize `requests.Session` with a `User-Agent` and `Accept` header.
+        - **`_sleep()`:** Implement a function for random delays between API calls.
+        - **`_get_mrp_from_nppa(generic_name: str)`:** Implement the lookup logic for `NPPA_MRP_REFERENCE`.
+        - **`_parse_record(hit: dict)`:** Extract `brand_name`, `generic_name`, `strength` from OpenFDA `hit` dictionary, using `STRENGTH_PATTERN` for strength normalization. Handle missing fields gracefully.
+        - **`_fetch_openfda(query: str)`:**
+            - Construct API URL with `search=openfda.generic_name:"{query}"`, `limit`, and `skip` for pagination.
+            - Implement a `for` loop for `MAX_RETRIES` with `try-except requests.RequestException`.
+            - Inside the loop, make `session.get()` request.
+            - If successful, parse JSON, iterate `results`, call `_parse_record` and `_get_mrp_from_nppa`.
+            - Implement exponential backoff (`time.sleep(BACKOFF_BASE ** attempt)`) on failure.
+            - Include `_sleep()` after each successful request.
+        - **`_save_csv()`:** Use Python's `csv` module or `pandas.DataFrame.to_csv()` to write `self.results` to a timestamped CSV file in `OUTPUT_DIR` with columns: `brand_name`, `generic_name`, `strength`, `mrp`, `source`.
+        - **`scrape()`:** Orchestrate the calls to `_fetch_openfda`, perform deduplication on `(brand_name, generic_name)`, and then call `_save_csv`.
 
 3.  **Extend the Loader (`apps/ml/etl/loader.py`):**
-    *   **`SupabaseLoader` Class:**
-        *   **`merge_commercial_mrp(self, mrp_csv_path: Path, table: str = "medicines") -> dict`:**
-            *   Import `pandas`.
-            *   Read the CSV: `df = pd.read_csv(mrp_csv_path)`.
-            *   Initialize `updated`, `not_found`, `failed` counters.
-            *   Loop `for _, row in df.iterrows():`.
-            *   Extract `generic_name` and `mrp` from `row`.
-            *   Construct Supabase query: `self.client.table(table).select("id, generic_name, mrp").ilike("generic_name", f"%{generic_name}%").is_("mrp", "null").execute()`.
-            *   Iterate `matches = response.data` and for each `match`:
-                *   `self.client.table(table).update({"mrp": float(mrp)}).eq("id", match["id"]).execute()`.
-                *   Increment `updated`.
-            *   Include `time.sleep(0.1)` after each row's processing.
-            *   Add `try-except Exception` block for robust error handling.
-            *   Return a dictionary of statistics.
+    - **`SupabaseLoader` Class:**
+        - **`merge_commercial_mrp(self, mrp_csv_path: Path, table: str = "medicines") -> dict`:**
+            - Import `pandas`.
+            - Read the CSV: `df = pd.read_csv(mrp_csv_path)`.
+            - Initialize `updated`, `not_found`, `failed` counters.
+            - Loop `for _, row in df.iterrows():`.
+            - Extract `generic_name` and `mrp` from `row`.
+            - Construct Supabase query: `self.client.table(table).select("id, generic_name, mrp").ilike("generic_name", f"%{generic_name}%").is_("mrp", "null").execute()`.
+            - Iterate `matches = response.data` and for each `match`:
+                - `self.client.table(table).update({"mrp": float(mrp)}).eq("id", match["id"]).execute()`.
+                - Increment `updated`.
+            - Include `time.sleep(0.1)` after each row's processing.
+            - Add `try-except Exception` block for robust error handling.
+            - Return a dictionary of statistics.
 
 4.  **Update the Pipeline Runner (`apps/ml/run_pipeline.py`):**
-    *   **`argparse`:** Add `parser.add_argument("--commercial-mrp", action="store_true", ...)` and `parser.add_argument("--commercial-csv", type=str, default=None, ...)`
-    *   **Conditional Logic:**
+    - **`argparse`:** Add `parser.add_argument("--commercial-mrp", action="store_true", ...)` and `parser.add_argument("--commercial-csv", type=str, default=None, ...)`
+    - **Conditional Logic:**
+
         ```python
         if args.commercial_mrp or args.commercial_csv:
             from scrapers.commercial_mrp import CommercialMRPScraper
@@ -176,8 +177,8 @@ The changes were verified through several steps:
 
 **Edge Cases Considered:**
 
-*   **Generic Name Mismatches:** The use of `ilike("generic_name", f"%{generic_name}%")` helps mitigate minor variations in generic names between OpenFDA/NPPA data and our database.
-*   **Existing MRP Values:** The `is_("mrp", "null")` filter ensures that already populated `mrp` values are not overwritten, preserving any potentially more accurate or manually entered data.
-*   **API Rate Limits/Network Issues:** The scraper's built-in retry mechanism with exponential backoff and random delays handles transient network failures and prevents IP blocking from the OpenFDA API.
-*   **Missing Data:** The scraper gracefully handles cases where `brand_name`, `generic_name`, or `strength` might be missing from OpenFDA responses, and the loader handles cases where `generic_name` or `mrp` are missing from the CSV or where a generic name from the CSV cannot be found in our database.
-*   **No Matches in DB:** The `not_found` counter in `merge_commercial_mrp` specifically tracks records from the CSV that could not be matched to existing `medicines` entries, providing visibility into data coverage.
+- **Generic Name Mismatches:** The use of `ilike("generic_name", f"%{generic_name}%")` helps mitigate minor variations in generic names between OpenFDA/NPPA data and our database.
+- **Existing MRP Values:** The `is_("mrp", "null")` filter ensures that already populated `mrp` values are not overwritten, preserving any potentially more accurate or manually entered data.
+- **API Rate Limits/Network Issues:** The scraper's built-in retry mechanism with exponential backoff and random delays handles transient network failures and prevents IP blocking from the OpenFDA API.
+- **Missing Data:** The scraper gracefully handles cases where `brand_name`, `generic_name`, or `strength` might be missing from OpenFDA responses, and the loader handles cases where `generic_name` or `mrp` are missing from the CSV or where a generic name from the CSV cannot be found in our database.
+- **No Matches in DB:** The `not_found` counter in `merge_commercial_mrp` specifically tracks records from the CSV that could not be matched to existing `medicines` entries, providing visibility into data coverage.

@@ -17,20 +17,22 @@ The voice triage system was enhanced to provide robust and user-friendly multili
 
 ## Alternatives Considered
 
-| Alternative | Why Rejected |
-| :---------- | :----------- |
-| **Rely on browser's default language selection for TTS/ASR without explicit fallback logic.** | This approach would lead to an unpredictable user experience, as the browser's default might not align with the user's selected language or SahiDawa's intended workflow. It would also prevent providing specific, localized feedback to the user about voice availability. |
+| Alternative                                                                                    | Why Rejected                                                                                                                                                                                                                                                                                                                      |
+| :--------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Rely on browser's default language selection for TTS/ASR without explicit fallback logic.**  | This approach would lead to an unpredictable user experience, as the browser's default might not align with the user's selected language or SahiDawa's intended workflow. It would also prevent providing specific, localized feedback to the user about voice availability.                                                      |
 | **Implement simpler, ad-hoc language state management without a dedicated workflow resolver.** | This could lead to race conditions or inconsistent language application across different components of the voice workflow. Without a centralized `resolveVoiceWorkflowLanguage`, ensuring the correct language is used from session start to finish, especially during retries, would be more error-prone and harder to maintain. |
 
 ## Consequences
 
 **Positive:**
+
 - Significantly improved user experience for speakers of Bengali, Marathi, and Telugu, with native-script labels enhancing clarity and accessibility.
 - Enhanced reliability and consistency of voice triage workflows by ensuring the selected language remains stable throughout a session.
 - Provided clearer, more informative, and localized feedback to users regarding browser speech recognition and text-to-speech capabilities and fallback behavior.
 - Reduced user confusion and potential errors caused by inconsistent or stale language settings during voice interactions.
 
 **Trade-offs:**
+
 - Increased complexity in the voice language resolution and fallback logic within the frontend application.
 - Requires ongoing maintenance of `VOICE_LANGUAGE_OPTIONS` to ensure accurate native script labels and language codes are supported.
 - The quality and availability of `SpeechSynthesisVoice` still depend on the user's browser and operating system, necessitating continued reliance on fallback mechanisms and clear user communication.

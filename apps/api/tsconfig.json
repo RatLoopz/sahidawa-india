@@ -1,8 +1,10 @@
 {
     "compilerOptions": {
+        "isolatedModules": true,
         "target": "ES2022",
         "module": "Node16",
         "moduleResolution": "node16",
+        "ignoreDeprecations": "5.0",
         "rootDir": "./src",
         "outDir": "./dist",
 

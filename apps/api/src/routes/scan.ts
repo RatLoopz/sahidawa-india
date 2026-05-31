@@ -284,43 +284,70 @@ router.post("/extract", (req: Request, res: Response) => {
                 }
             }
 
-            // 2. Fetch all registered brand names and generic names from DB
+            // 2. Fetch candidate medicine names using OCR keyword search
+            //    WHY: The old approach fetched ALL rows from medicines table
+            //    on every single scan — dangerous at 10k+ records (OOM crash).
+            //    New approach: extract meaningful words from OCR text and
+            //    search only for medicines whose name contains those words.
             let brandNames: string[] = [];
             let genericNames: string[] = [];
             try {
-                const { data: dbMedicines, error: dbError } = await supabase
-                    .from("medicines")
-                    .select("brand_name, generic_name");
-                if (dbError) {
-                    logger.error(`Database error fetching medicines: ${dbError.message}`);
-                } else if (dbMedicines) {
-                    brandNames = Array.from(
-                        new Set(dbMedicines.map((m) => m.brand_name).filter(Boolean) as string[])
-                    );
-                    genericNames = Array.from(
-                        new Set(dbMedicines.map((m) => m.generic_name).filter(Boolean) as string[])
-                    );
+                // Extract meaningful search words from OCR text (skip short/filler words)
+                const FILLER = new Set([
+                    "the",
+                    "and",
+                    "for",
+                    "tab",
+                    "cap",
+                    "mg",
+                    "ml",
+                    "ip",
+                    "bp",
+                    "usp",
+                    "ltd",
+                    "pvt",
+                ]);
+                const searchWords = rawText
+                    .toLowerCase()
+                    .replace(/[^a-z0-9\s]/g, " ")
+                    .split(/\s+/)
+                    .map((w) => w.trim())
+                    .filter((w) => w.length > 3 && !FILLER.has(w))
+                    .slice(0, 6); // limit to top 6 meaningful words
+
+                if (searchWords.length > 0) {
+                    // Build OR filter: brand_name ILIKE any word OR generic_name ILIKE any word
+                    const orFilter = searchWords
+                        .map((w) => `brand_name.ilike.%${w}%,generic_name.ilike.%${w}%`)
+                        .join(",");
+
+                    const { data: dbMedicines, error: dbError } = await supabase
+                        .from("medicines")
+                        .select("brand_name, generic_name")
+                        .or(orFilter)
+                        .limit(80); // hard cap — never more than 80 candidates
+
+                    if (dbError) {
+                        logger.error(`Database error fetching medicines: ${dbError.message}`);
+                    } else if (dbMedicines) {
+                        brandNames = Array.from(
+                            new Set(
+                                dbMedicines.map((m) => m.brand_name).filter(Boolean) as string[]
+                            )
+                        );
+                        genericNames = Array.from(
+                            new Set(
+                                dbMedicines.map((m) => m.generic_name).filter(Boolean) as string[]
+                            )
+                        );
+                    }
                 }
             } catch (dbErr) {
                 logger.error(`Failed to fetch brand/generic names from DB: ${dbErr}`);
             }
 
-            // Fallback lists if database has nothing
-            if (brandNames.length === 0) {
-                brandNames = [
-                    "Dolo 650",
-                    "Augmentin 625 Duo",
-                    "Allegra 120",
-                    "Pan 40",
-                    "Fake Dolo 650",
-                ];
-                genericNames = [
-                    "Paracetamol 650mg",
-                    "Amoxicillin + Clavulanate",
-                    "Fexofenadine",
-                    "Pantoprazole",
-                ];
-            }
+            // No hardcoded fallback — if DB has no match, we return unmatched result.
+            // The app should prompt the user to verify manually in that case.
 
             // Combine both brand names and generic names as matching candidates
             const candidates = Array.from(new Set([...brandNames, ...genericNames]));
@@ -328,6 +355,7 @@ router.post("/extract", (req: Request, res: Response) => {
             // 3. Fuzzy match the brand name or generic name
             let matchedName: string | null = null;
             let matchScore = 0;
+            let matchSource: "advanced" | "ml_fuzzy" | "substring_fallback" | "none" = "none";
 
             if (rawText && candidates.length > 0) {
                 // First try advanced matching (smart token coverage)
@@ -344,6 +372,7 @@ router.post("/extract", (req: Request, res: Response) => {
                 if (bestAdvancedScore >= 80) {
                     matchedName = bestAdvancedCandidate;
                     matchScore = bestAdvancedScore;
+                    matchSource = "advanced";
                     logger.info(
                         `Advanced token match successful: "${matchedName}" with score ${matchScore}`
                     );
@@ -374,6 +403,7 @@ router.post("/extract", (req: Request, res: Response) => {
                                 if (topMatch.score >= 50) {
                                     matchedName = topMatch.name;
                                     matchScore = topMatch.score;
+                                    matchSource = "ml_fuzzy";
                                     logger.info(
                                         `ML fuzzy match successful: "${matchedName}" with score ${matchScore}`
                                     );
@@ -389,24 +419,33 @@ router.post("/extract", (req: Request, res: Response) => {
                 if (!matchedName) {
                     const normalizedText = rawText.toLowerCase();
                     for (const name of candidates) {
-                        if (normalizedText.includes(name.toLowerCase())) {
+                        const lowerName = name.toLowerCase();
+                        if (lowerName.length < 5) continue;
+                        const escaped = lowerName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+                        const boundary = new RegExp(`\\b${escaped}\\b`);
+                        if (boundary.test(normalizedText)) {
                             matchedName = name;
-                            matchScore = 100;
-                            logger.info(`Substring fallback match successful: "${matchedName}"`);
+                            matchScore = 60;
+                            matchSource = "substring_fallback";
+                            logger.info(`Substring fallback match: "${matchedName}" (capped score ${matchScore})`);
                             break;
                         }
                     }
                 }
             }
 
-            // 4. Query medicine database entry for matched brand name or generic name
+            // 4. Query medicine record for matched name — explicit field select (no SELECT *)
             let medicineData: any = null;
             if (matchedName) {
                 try {
                     const { data: dbMed, error: lookupError } = await supabase
                         .from("medicines")
-                        .select("*")
-                        .or(`brand_name.ilike."${matchedName}",generic_name.ilike."${matchedName}"`)
+                        .select(
+                            "id, brand_name, generic_name, manufacturer, batch_number, " +
+                                "expiry_date, cdsco_approval_status, is_counterfeit_alert, " +
+                                "composition, mrp, jan_aushadhi_price"
+                        )
+                        .or(`brand_name.ilike.%${matchedName}%,generic_name.ilike.%${matchedName}%`)
                         .limit(1)
                         .maybeSingle();
 
@@ -416,6 +455,19 @@ router.post("/extract", (req: Request, res: Response) => {
                         );
                     } else {
                         medicineData = dbMed;
+                    }
+
+                    // Verify the returned record actually matches — not just a substring hit
+                    if (medicineData && matchSource === "substring_fallback") {
+                        const dbBrand = (medicineData.brand_name || "").toLowerCase();
+                        const dbGeneric = (medicineData.generic_name || "").toLowerCase();
+                        const needle = matchedName!.toLowerCase();
+                        if (dbBrand !== needle && dbGeneric !== needle) {
+                            logger.warn(
+                                `Dropping weak fallback match: "${matchedName}" resolved to "${medicineData.brand_name}" — not an exact name match`
+                            );
+                            medicineData = null;
+                        }
                     }
                 } catch (lookupErr) {
                     logger.error(
@@ -431,10 +483,14 @@ router.post("/extract", (req: Request, res: Response) => {
                     brand_name: medicineData.brand_name,
                     generic_name: medicineData.generic_name,
                     manufacturer: medicineData.manufacturer,
+                    composition: medicineData.composition ?? null,
                     batch_number: parsedBatch || medicineData.batch_number,
                     expiry_date: parsedExpiry || medicineData.expiry_date,
                     cdsco_approval_status: medicineData.cdsco_approval_status,
                     is_counterfeit_alert: medicineData.is_counterfeit_alert,
+                    // Pricing — helps citizens compare branded vs Jan Aushadhi price
+                    mrp: medicineData.mrp ?? null,
+                    jan_aushadhi_price: medicineData.jan_aushadhi_price ?? null,
                 };
             }
 
@@ -449,6 +505,8 @@ router.post("/extract", (req: Request, res: Response) => {
                 },
                 medicine: medicineResponse,
                 matched: !!medicineResponse,
+                matchScore: matchedName ? matchScore : null,
+                matchSource: matchedName ? matchSource : null,
             });
         } catch (error: unknown) {
             const msg = error instanceof Error ? error.message : "Unknown error";
