@@ -165,6 +165,29 @@ jobs:
                   owner, repo, issue_number, labels: ['duplicate']
                 });
               }
+            } else {
+              // No duplicate detected. Check if it was previously flagged as duplicate.
+              const currentLabels = (issue.labels || []).map(l => typeof l === 'string' ? l : l.name);
+              if (currentLabels.includes('duplicate')) {
+                const comments = await github.paginate(github.rest.issues.listComments, {
+                  owner, repo, issue_number, per_page: 100
+                });
+                const botComment = comments.find(c => c.user.type === 'Bot' && c.body.includes('Possible Duplicate Issue Detected'));
+                if (botComment) {
+                  try {
+                    await github.rest.issues.removeLabel({
+                      owner, repo, issue_number, name: 'duplicate'
+                    });
+                    await github.rest.issues.createComment({
+                      owner, repo, issue_number,
+                      body: `✅ **Duplicate Flag Removed**\n\nThank you @${username} for updating the issue title and details! This issue has been reviewed and is no longer flagged as a duplicate.`
+                    });
+                    core.info(`Duplicate flag removed from #${issue_number}`);
+                  } catch (err) {
+                    core.warning(`Failed to remove duplicate label: ${err.message}`);
+                  }
+                }
+              }
             }
 
             core.info('Issue validation complete.');
