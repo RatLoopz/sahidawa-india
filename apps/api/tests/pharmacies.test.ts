@@ -275,6 +275,17 @@ describe("GET /api/pharmacies/in-bounds", () => {
         expect(response.body.details).toHaveProperty("south");
     });
 
+    it("returns 400 when south >= north or west >= east", async () => {
+        const response = await request(app).get(
+            "/api/pharmacies/in-bounds?south=30&west=80&north=20&east=70"
+        );
+
+        expect(response.status).toBe(400);
+        expect(response.body.error).toBe("Invalid bounds");
+        expect(response.body.details).toHaveProperty("south");
+        expect(response.body.details).toHaveProperty("west");
+    });
+
     it("returns pharmacies from PostGIS bounds RPC when available", async () => {
         mockedSupabase.rpc.mockResolvedValueOnce({
             data: [
