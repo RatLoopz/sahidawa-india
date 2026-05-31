@@ -1123,17 +1123,17 @@ export default function VoiceTriagePage() {
                   : undefined;
 
     return (
-        <div className="relative flex min-h-screen flex-col overflow-hidden bg-(--color-surface-muted) text-(--color-text-primary) font-sans">
+        <div className="relative flex min-h-screen flex-col overflow-hidden bg-(--color-surface-muted) font-sans text-(--color-text-primary)">
             <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
                 {srAnnouncement}
             </div>
 
             <div
-                className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-emerald-100/40 dark:bg-emerald-950/15 blur-3xl"
+                className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-emerald-100/40 blur-3xl dark:bg-emerald-950/15"
                 aria-hidden="true"
             ></div>
             <div
-                className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-blue-100/40 dark:bg-blue-950/15 blur-3xl"
+                className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-blue-100/40 blur-3xl dark:bg-blue-950/15"
                 aria-hidden="true"
             ></div>
 

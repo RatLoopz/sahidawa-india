@@ -113,7 +113,6 @@ export async function POST(req: Request) {
                     ? upstreamData.language_probability
                     : null,
         });
-
     } catch (error) {
         const latency_ms = Date.now() - startTime;
 
