@@ -1142,7 +1142,7 @@ export default function ScanPage() {
                         value={batchInput}
                         onChange={(e) => setBatchInput(e.target.value)}
                         placeholder="Enter batch number"
-                        className="flex-1 rounded-full border border-white/20 bg-white/10 px-4 py-3 text-center text-sm font-medium text-white placeholder-white/40 focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                        className="flex-1 rounded-full border border-gray-300 bg-white px-4 py-3 text-center text-sm font-medium text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:border-white/20 dark:bg-white/10 dark:text-white dark:placeholder-white/40"
                     />
                     <button
                         type="submit"
