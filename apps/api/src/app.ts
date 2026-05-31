@@ -94,8 +94,8 @@ app.get("/", (_req: Request, res: Response) => {
     });
 });
 
-// Admin Routes — protected: must be authenticated + have admin role
-app.use("/api/v1/admin", requireAuth, requireRole("admin"), adminRoutes);
+// Admin Routes — protected: must be authenticated + have admin or moderator role
+app.use("/api/v1/admin", requireAuth, requireRole("admin", "moderator"), adminRoutes);
 
 app.get("/health", async (_req: Request, res: Response) => {
     const start = Date.now();
