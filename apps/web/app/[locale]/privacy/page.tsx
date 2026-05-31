@@ -1,18 +1,21 @@
+import { useTranslations } from "next-intl";
+
 export default function PrivacyPolicyPage() {
+    const t = useTranslations("privacy");
+
     return (
         <main className="min-h-screen bg-white">
             {/* Hero */}
             <section className="border-b border-gray-100 px-4 py-16 text-center">
                 <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-1.5 text-sm font-medium text-green-700">
                     <span className="h-2 w-2 animate-pulse rounded-full bg-green-500"></span>
-                    GSSoC 2026 Open Source Project
+{t("badge")}
                 </div>
                 <h1 className="mb-4 text-5xl font-extrabold text-gray-900">
-                    Privacy <span className="text-green-500">Policy</span>
+{t("title.prefix")} <span className="text-green-500">{t("title.highlight")}</span>
                 </h1>
                 <p className="mx-auto mb-8 max-w-xl text-lg text-gray-500">
-                    We believe in transparency. Here is exactly what we collect, why we collect it,
-                    and what we never do with it.
+                    {t("subtitle")}
                 </p>
                 <div className="flex flex-wrap justify-center gap-3">
                     <span className="rounded-full border border-gray-200 px-4 py-1.5 text-sm text-gray-600">
@@ -35,12 +38,10 @@ export default function PrivacyPolicyPage() {
                         <div className="mb-4 flex items-center gap-3">
                             <span className="text-2xl">📋</span>
                             <h2 className="text-xl font-bold text-gray-900">
-                                1. Information We Collect
-                            </h2>
+{t("sections.collect.title")}                            </h2>
                         </div>
                         <p className="mb-4 text-sm text-gray-500">
-                            SahiDawa collects only what is absolutely necessary to verify medicines
-                            and keep you safe.
+                           {t("sections.collect.description")}
                         </p>
                         <ul className="space-y-3">
                             <li className="flex items-start gap-3">

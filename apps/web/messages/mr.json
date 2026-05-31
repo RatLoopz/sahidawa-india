@@ -156,5 +156,23 @@
       "faq": "वारंवार विचारले जाणारे प्रश्न"
     },
     "footer": "SahiDawa विनामूल्य, ओपन-सोर्स आहे आणि 1.4 अब्ज भारतीयांसाठी बनवले आहे. जाहिराती नाहीत. प्रीमियम नाही. डेटा कधीही विकला जाणार नाही."
+  },"privacy": {
+  "subtitle": "We believe in transparency. Here is exactly what we collect, why we collect it, and what we never do with it.",
+  "title": {
+    "prefix": "Privacy",
+    "highlight": "Policy"
+  },
+  "badge": "GSSoC 2026 Open Source Project",
+  "badges": {
+    "data": "🔒 No Data Sold. Ever.",
+    "cookies": "🍪 No Tracking Cookies",
+    "license": "⭐ Open Source MIT License"
+  },
+  "sections": {
+  "collect": {
+    "title": "1. Information We Collect",
+    "description": "SahiDawa collects only what is absolutely necessary to verify medicines and keep you safe."
   }
+}
+}
 }

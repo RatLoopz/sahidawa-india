@@ -156,5 +156,23 @@
       "faq": "அடிக்கடி கேட்கப்படும் கேள்விகள்"
     },
     "footer": "SahiDawa இலவசம், திறந்த மூலம், மற்றும் 1.4 பில்லியன் இந்தியர்களுக்காக கட்டப்பட்டது. விளம்பரங்கள் இல்லை. பிரீமியம் இல்லை. தரவு எப்போதும் விற்கப்படாது."
+  },"privacy": {
+  "subtitle": "We believe in transparency. Here is exactly what we collect, why we collect it, and what we never do with it.",
+  "title": {
+    "prefix": "Privacy",
+    "highlight": "Policy"
+  },
+  "badge": "GSSoC 2026 Open Source Project",
+  "badges": {
+    "data": "🔒 No Data Sold. Ever.",
+    "cookies": "🍪 No Tracking Cookies",
+    "license": "⭐ Open Source MIT License"
+  },
+  "sections": {
+  "collect": {
+    "title": "1. Information We Collect",
+    "description": "SahiDawa collects only what is absolutely necessary to verify medicines and keep you safe."
   }
+}
+}
 }

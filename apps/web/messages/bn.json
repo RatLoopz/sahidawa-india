@@ -157,4 +157,24 @@
     },
     "footer": "SahiDawa বিনামূল্যে, ওপেন-সোর্স এবং ১৪০ কোটি ভারতীয়ের জন্য তৈরি। কোনো বিজ্ঞাপন নেই। কোনো প্রিমিয়াম নেই। ডেটা কখনো বিক্রি হবে না।"
   }
+  ,
+"privacy": {
+  "subtitle": "We believe in transparency. Here is exactly what we collect, why we collect it, and what we never do with it.",
+  "title": {
+    "prefix": "Privacy",
+    "highlight": "Policy"
+  },
+  "badge": "GSSoC 2026 Open Source Project",
+  "badges": {
+    "data": "🔒 No Data Sold. Ever.",
+    "cookies": "🍪 No Tracking Cookies",
+    "license": "⭐ Open Source MIT License"
+  },
+  "sections": {
+  "collect": {
+    "title": "1. Information We Collect",
+    "description": "SahiDawa collects only what is absolutely necessary to verify medicines and keep you safe."
+  }
+}
+}
 }
