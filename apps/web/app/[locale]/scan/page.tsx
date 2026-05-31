@@ -230,7 +230,7 @@ function VerifiedSafeResult({
 
                 {(medicine.cdsco_approval_status === "recalled" ||
                     medicine.cdsco_approval_status === "banned") && (
-                    <div className="border-amber-250 flex w-full items-start gap-3 rounded-2xl border bg-amber-50 p-4 text-left dark:border-amber-900 dark:bg-amber-950/20">
+                    <div className="border-amber-250 flex w-full items-start gap-3 rounded-2xl border bg-amber-50 p-4 text-start dark:border-amber-900 dark:bg-amber-950/20">
                         <AlertTriangle
                             size={18}
                             className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400"
@@ -243,7 +243,7 @@ function VerifiedSafeResult({
                 )}
 
                 {medicine.cdsco_approval_status === "approved" && (
-                    <div className="border-emerald-250 flex w-full items-start gap-3 rounded-2xl border bg-emerald-50 p-4 text-left dark:border-emerald-900 dark:bg-emerald-950/20">
+                    <div className="border-emerald-250 flex w-full items-start gap-3 rounded-2xl border bg-emerald-50 p-4 text-start dark:border-emerald-900 dark:bg-emerald-950/20">
                         <Info
                             size={18}
                             className="dark:text-emerald-450 mt-0.5 shrink-0 text-emerald-600"
@@ -323,7 +323,7 @@ function CounterfeitAlertResult({
                     </div>
                 </div>
 
-                <div className="border-red-250 flex w-full items-start gap-3 rounded-2xl border bg-red-50 p-4 text-left dark:border-red-900 dark:bg-red-950/20">
+                <div className="border-red-250 flex w-full items-start gap-3 rounded-2xl border bg-red-50 p-4 text-start dark:border-red-900 dark:bg-red-950/20">
                     <AlertTriangle
                         size={18}
                         className="mt-0.5 shrink-0 text-red-600 dark:text-red-400"
@@ -381,7 +381,7 @@ function UnverifiedResult({
                     </div>
                 )}
 
-                <div className="border-amber-250 flex w-full items-start gap-3 rounded-2xl border bg-amber-50 p-4 text-left dark:border-amber-900 dark:bg-amber-950/20">
+                <div className="border-amber-250 flex w-full items-start gap-3 rounded-2xl border bg-amber-50 p-4 text-start dark:border-amber-900 dark:bg-amber-950/20">
                     <Info
                         size={18}
                         className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400"

@@ -23,7 +23,7 @@ export function VoiceAnimationToggle({
                 role="switch"
                 aria-checked={enabled}
                 onClick={() => onToggle(!enabled)}
-                className={`group flex w-full items-center justify-between gap-4 rounded-xl px-3 py-2.5 text-left transition-all duration-300 hover:bg-emerald-50/70 ${VOICE_FOCUS_RING_CLASS}`}
+                className={`group flex w-full items-center justify-between gap-4 rounded-xl px-3 py-2.5 text-start transition-all duration-300 hover:bg-emerald-50/70 ${VOICE_FOCUS_RING_CLASS}`}
             >
                 <span className="flex min-w-0 items-center gap-3">
                     <span

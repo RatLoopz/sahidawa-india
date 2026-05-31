@@ -117,7 +117,7 @@ export default function HowItWorksPage() {
                                 </div>
 
                                 {index !== 4 && (
-                                    <div className="absolute top-[52%] left-full ml-2 hidden -translate-y-1/2 text-emerald-400 md:block">
+                                    <div className="absolute top-[52%] left-full ms-2 hidden -translate-y-1/2 text-emerald-400 md:block">
                                         <ArrowRight size={24} />
                                     </div>
                                 )}

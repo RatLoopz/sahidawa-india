@@ -46,7 +46,7 @@ export default function GlobalError({ error, unstable_retry }: GlobalErrorProps)
                         </p>
 
                         {isDev && (error.message || error.digest) && (
-                            <div className="mb-8 w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-left">
+                            <div className="mb-8 w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-start">
                                 {error.message && (
                                     <p className="font-mono text-xs wrap-break-word text-slate-200">
                                         {error.message}

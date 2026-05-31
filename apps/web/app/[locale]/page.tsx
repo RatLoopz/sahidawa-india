@@ -111,7 +111,7 @@ export default function SahiDawaHome() {
                     {/* Split-color title */}
                     <h1 className="text-4xl leading-tight font-black tracking-tight text-slate-900 sm:text-5xl md:text-6xl dark:text-white">
                         {tHome("heroTitle.prefix")}
-                        <span className="ml-1 block bg-linear-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent sm:inline dark:from-emerald-400 dark:to-teal-400">
+                        <span className="ms-1 block bg-linear-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent sm:inline dark:from-emerald-400 dark:to-teal-400">
                             {tHome("heroTitle.highlight")}
                         </span>
                     </h1>
@@ -132,7 +132,7 @@ export default function SahiDawaHome() {
                     <section className="mt-4 mb-10">
                         <button
                             onClick={() => handleNavigation("scan")}
-                            className="group relative flex w-full transform-gpu cursor-pointer flex-col justify-center overflow-hidden rounded-3xl border border-emerald-400/30 p-8 text-left text-white shadow-xl shadow-emerald-500/10 transition-all duration-300 select-none hover:scale-[1.01] hover:shadow-emerald-500/20 active:scale-[0.99] md:p-10"
+                            className="group relative flex w-full transform-gpu cursor-pointer flex-col justify-center overflow-hidden rounded-3xl border border-emerald-400/30 p-8 text-start text-white shadow-xl shadow-emerald-500/10 transition-all duration-300 select-none hover:scale-[1.01] hover:shadow-emerald-500/20 active:scale-[0.99] md:p-10"
                             aria-label="Scan medicine"
                         >
                             <div className="absolute inset-0 z-0 bg-linear-to-tr from-emerald-700 via-emerald-600 to-emerald-500"></div>
@@ -171,7 +171,7 @@ export default function SahiDawaHome() {
                             {/* Upload Photo */}
                             <button
                                 onClick={() => handleNavigation("scan")}
-                                className="group relative flex h-full min-h-[180px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/50 bg-white/75 p-6 text-left shadow-sm backdrop-blur-md transition-all duration-300 select-none hover:-translate-y-1 hover:scale-[1.01] hover:border-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/5 active:scale-[0.99] dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-emerald-400/30 dark:hover:shadow-emerald-400/5"
+                                className="group relative flex h-full min-h-[180px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/50 bg-white/75 p-6 text-start shadow-sm backdrop-blur-md transition-all duration-300 select-none hover:-translate-y-1 hover:scale-[1.01] hover:border-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/5 active:scale-[0.99] dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-emerald-400/30 dark:hover:shadow-emerald-400/5"
                                 aria-label="Upload photo"
                             >
                                 {/* Background Decorative Mesh & Glow */}
@@ -215,7 +215,7 @@ export default function SahiDawaHome() {
                             {/* Voice Triage */}
                             <button
                                 onClick={() => handleNavigation("voice")}
-                                className="group relative flex h-full min-h-[180px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/50 bg-white/75 p-6 text-left shadow-sm backdrop-blur-md transition-all duration-300 select-none hover:-translate-y-1 hover:scale-[1.01] hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/5 active:scale-[0.99] dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-blue-400/30 dark:hover:shadow-blue-400/5"
+                                className="group relative flex h-full min-h-[180px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/50 bg-white/75 p-6 text-start shadow-sm backdrop-blur-md transition-all duration-300 select-none hover:-translate-y-1 hover:scale-[1.01] hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/5 active:scale-[0.99] dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-blue-400/30 dark:hover:shadow-blue-400/5"
                                 aria-label="Voice triage"
                             >
                                 {/* Background Decorative Mesh & Glow */}
@@ -252,7 +252,7 @@ export default function SahiDawaHome() {
                             {/* Pharmacy Map */}
                             <button
                                 onClick={() => handleNavigation("map")}
-                                className="group relative flex h-full min-h-[180px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/50 bg-white/75 p-6 text-left shadow-sm backdrop-blur-md transition-all duration-300 select-none hover:-translate-y-1 hover:scale-[1.01] hover:border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/5 active:scale-[0.99] dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-amber-400/30 dark:hover:shadow-amber-400/5"
+                                className="group relative flex h-full min-h-[180px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/50 bg-white/75 p-6 text-start shadow-sm backdrop-blur-md transition-all duration-300 select-none hover:-translate-y-1 hover:scale-[1.01] hover:border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/5 active:scale-[0.99] dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-amber-400/30 dark:hover:shadow-amber-400/5"
                                 aria-label="Pharmacy map"
                             >
                                 {/* Background Decorative Mesh & Glow */}
@@ -294,7 +294,7 @@ export default function SahiDawaHome() {
                             {/* Report Fake Medicine */}
                             <button
                                 onClick={() => handleNavigation("report")}
-                                className="group relative flex h-full min-h-[180px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/50 bg-white/75 p-6 text-left shadow-sm backdrop-blur-md transition-all duration-300 select-none hover:-translate-y-1 hover:scale-[1.01] hover:border-red-500/30 hover:shadow-lg hover:shadow-red-500/5 active:scale-[0.99] dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-red-400/30 dark:hover:shadow-red-400/5"
+                                className="group relative flex h-full min-h-[180px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/50 bg-white/75 p-6 text-start shadow-sm backdrop-blur-md transition-all duration-300 select-none hover:-translate-y-1 hover:scale-[1.01] hover:border-red-500/30 hover:shadow-lg hover:shadow-red-500/5 active:scale-[0.99] dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-red-400/30 dark:hover:shadow-red-400/5"
                                 aria-label="Report fake medicine"
                             >
                                 {/* Background Decorative Mesh & Glow */}

@@ -115,7 +115,7 @@ export default function ComparisonGrid({
             <table className="w-full text-sm">
                 <thead>
                     <tr className="border-b border-slate-200 bg-slate-50">
-                        <th className="w-1/4 px-5 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                        <th className="w-1/4 px-5 py-3 text-start text-xs font-semibold tracking-wide text-slate-500 uppercase">
                             Field
                         </th>
                         <th className="px-5 py-3 text-center text-sm font-semibold text-slate-800">

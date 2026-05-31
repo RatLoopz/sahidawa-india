@@ -115,7 +115,7 @@ export default function OfflinePage() {
                 <p className="mb-10 text-sm leading-relaxed text-slate-500">
                     {t("subtitle")}
                     {retryCount > 0 && (
-                        <span className="ml-1 text-amber-400">{t("attempt", { retryCount })}</span>
+                        <span className="ms-1 text-amber-400">{t("attempt", { retryCount })}</span>
                     )}
                 </p>
 

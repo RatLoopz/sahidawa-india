@@ -127,7 +127,7 @@ export default function Footer() {
                         </p>
                     </div>
 
-                    <p className="text-center text-xs md:text-right md:text-sm">
+                    <p className="text-center text-xs md:text-end md:text-sm">
                         Built with <Heart className="inline h-[1em] w-[1em] text-red-500" /> for the
                         open-source community.
                     </p>

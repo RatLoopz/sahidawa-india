@@ -589,7 +589,7 @@ export default function PharmacyMapPage() {
                             {"icon" in f && f.icon}
                             {f.label}
                             {f.id === "more" && activeAdvancedFilterCount > 0 && (
-                                <span className="ml-0.5 rounded-full bg-(--color-text-primary) px-1.5 py-0.5 text-[9px] text-(--color-surface-page)">
+                                <span className="ms-0.5 rounded-full bg-(--color-text-primary) px-1.5 py-0.5 text-[9px] text-(--color-surface-page)">
                                     {activeAdvancedFilterCount}
                                 </span>
                             )}

@@ -37,15 +37,15 @@ export default function PrivacyPolicyPage() {
                 </p>
                 <div className="flex flex-wrap justify-center gap-3">
                     <span className="rounded-full border border-(--color-border-muted) px-4 py-1.5 text-sm text-(--color-text-secondary)">
-                        <Lock className="dark:text-emerald-450 mr-2 inline h-4 w-4 text-emerald-600" />{" "}
+                        <Lock className="dark:text-emerald-450 me-2 inline h-4 w-4 text-emerald-600" />{" "}
                         No Data Sold. Ever.
                     </span>
                     <span className="rounded-full border border-(--color-border-muted) px-4 py-1.5 text-sm text-(--color-text-secondary)">
-                        <Cookie className="dark:text-emerald-450 mr-2 inline h-4 w-4 text-emerald-600" />{" "}
+                        <Cookie className="dark:text-emerald-450 me-2 inline h-4 w-4 text-emerald-600" />{" "}
                         No Tracking Cookies
                     </span>
                     <span className="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-sm text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-950/20 dark:text-emerald-400">
-                        <Star className="mr-2 inline h-4 w-4" /> Open Source MIT License
+                        <Star className="me-2 inline h-4 w-4" /> Open Source MIT License
                     </span>
                 </div>
             </section>
@@ -153,19 +153,19 @@ export default function PrivacyPolicyPage() {
                         </p>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="rounded-xl bg-(--color-surface-muted) px-4 py-3 text-sm font-medium text-(--color-text-secondary)">
-                                <Cloud className="mr-2 inline h-4 w-4 text-emerald-600 dark:text-emerald-400" />{" "}
+                                <Cloud className="me-2 inline h-4 w-4 text-emerald-600 dark:text-emerald-400" />{" "}
                                 Cloudinary
                             </div>
                             <div className="rounded-xl bg-(--color-surface-muted) px-4 py-3 text-sm font-medium text-(--color-text-secondary)">
-                                <Database className="mr-2 inline h-4 w-4 text-emerald-600 dark:text-emerald-400" />{" "}
+                                <Database className="me-2 inline h-4 w-4 text-emerald-600 dark:text-emerald-400" />{" "}
                                 Supabase
                             </div>
                             <div className="rounded-xl bg-(--color-surface-muted) px-4 py-3 text-sm font-medium text-(--color-text-secondary)">
-                                <Map className="mr-2 inline h-4 w-4 text-emerald-600 dark:text-emerald-400" />{" "}
+                                <Map className="me-2 inline h-4 w-4 text-emerald-600 dark:text-emerald-400" />{" "}
                                 OpenStreetMap
                             </div>
                             <div className="rounded-xl bg-(--color-surface-muted) px-4 py-3 text-sm font-medium text-(--color-text-secondary)">
-                                <Bot className="mr-2 inline h-4 w-4 text-emerald-600 dark:text-emerald-400" />{" "}
+                                <Bot className="me-2 inline h-4 w-4 text-emerald-600 dark:text-emerald-400" />{" "}
                                 Sarvam AI
                             </div>
                         </div>

@@ -89,7 +89,7 @@ export default function LanguageSwitcher() {
                                 key={lang.code}
                                 onClick={() => switchLanguage(lang.code)}
                                 aria-label={`Switch language to ${lang.label}`}
-                                className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium transition-colors duration-200 ${
+                                className={`flex w-full items-center justify-between px-4 py-3 text-start text-sm font-medium transition-colors duration-200 ${
                                     isActive
                                         ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400"
                                         : "text-(--color-text-primary) hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/20 dark:hover:text-emerald-400"

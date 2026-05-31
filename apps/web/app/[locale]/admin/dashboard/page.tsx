@@ -171,11 +171,11 @@ export default function AdminDashboard() {
             notify(
                 status === "verified_fake" ? (
                     <>
-                        <AlertTriangle className="mr-1 inline h-4 w-4" /> Marked as Verified Fake
+                        <AlertTriangle className="me-1 inline h-4 w-4" /> Marked as Verified Fake
                     </>
                 ) : (
                     <>
-                        <CheckCircle className="mr-1 inline h-4 w-4" /> Marked as False Alarm
+                        <CheckCircle className="me-1 inline h-4 w-4" /> Marked as False Alarm
                     </>
                 ),
                 status !== "verified_fake"
@@ -183,7 +183,7 @@ export default function AdminDashboard() {
         } catch {
             notify(
                 <>
-                    <XCircle className="mr-1 inline h-4 w-4" /> Failed to update report
+                    <XCircle className="me-1 inline h-4 w-4" /> Failed to update report
                 </>,
                 false
             );
@@ -213,13 +213,13 @@ export default function AdminDashboard() {
             setShowForm(false);
             notify(
                 <>
-                    <CheckCircle className="mr-1 inline h-4 w-4" /> Medicine added
+                    <CheckCircle className="me-1 inline h-4 w-4" /> Medicine added
                 </>
             );
         } catch {
             notify(
                 <>
-                    <XCircle className="mr-1 inline h-4 w-4" /> Failed to add medicine
+                    <XCircle className="me-1 inline h-4 w-4" /> Failed to add medicine
                 </>,
                 false
             );
@@ -287,7 +287,7 @@ export default function AdminDashboard() {
                             <input
                                 type="text"
                                 placeholder="Search..."
-                                className="w-56 rounded-full border border-slate-200 bg-slate-50 py-2 pr-4 pl-9 text-sm focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                                className="w-56 rounded-full border border-slate-200 bg-slate-50 py-2 ps-9 pe-4 text-sm focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
                             />
                         </div>
                         <button
@@ -412,7 +412,7 @@ export default function AdminDashboard() {
                                 </div>
                             )}
 
-                            <table className="w-full text-left">
+                            <table className="w-full text-start">
                                 <thead>
                                     <tr className="bg-slate-50 text-xs font-semibold tracking-wider text-slate-400 uppercase">
                                         <th className="px-6 py-3">Brand</th>
@@ -551,7 +551,7 @@ function NavItem({
     return (
         <button
             onClick={onClick}
-            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-all ${active ? "bg-blue-50 text-blue-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"}`}
+            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-start text-sm font-medium transition-all ${active ? "bg-blue-50 text-blue-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"}`}
         >
             <Icon className={`h-4 w-4 ${active ? "text-blue-600" : "text-slate-400"}`} />
             {label}
@@ -646,7 +646,7 @@ function ReportsTable({
             )}
 
             {!loading && !authError && reports.length > 0 && (
-                <table className="w-full text-left">
+                <table className="w-full text-start">
                     <thead>
                         <tr className="bg-slate-50 text-xs font-semibold tracking-wider text-slate-400 uppercase">
                             <th className="px-6 py-3">Medicine</th>
@@ -711,7 +711,7 @@ function ResolvedTable({
                 <h2 className="font-semibold text-slate-800">Resolved</h2>
                 <span className="text-xs text-slate-400">{resolved.length} resolved</span>
             </div>
-            <table className="w-full text-left">
+            <table className="w-full text-start">
                 <thead>
                     <tr className="bg-slate-50 text-xs font-semibold tracking-wider text-slate-400 uppercase">
                         <th className="px-6 py-3">Medicine</th>

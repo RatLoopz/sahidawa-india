@@ -273,7 +273,7 @@ function FL({ children, req }: { children: React.ReactNode; req?: boolean }) {
     return (
         <label className="mb-2 block text-sm font-bold text-(--color-text-primary)">
             {children}
-            {req && <span className="ml-1.5 text-emerald-500">*</span>}
+            {req && <span className="ms-1.5 text-emerald-500">*</span>}
         </label>
     );
 }
@@ -339,7 +339,7 @@ function Progress({ current }: { current: number }) {
                     );
                 })}
                 {/* Step label */}
-                <span className="ml-auto self-center text-xs font-semibold whitespace-nowrap text-(--color-text-secondary)">
+                <span className="ms-auto self-center text-xs font-semibold whitespace-nowrap text-(--color-text-secondary)">
                     {current}/{STEPS.length} — {STEPS[current - 1].title}
                 </span>
             </div>
