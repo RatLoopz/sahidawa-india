@@ -40,7 +40,7 @@ export default async function AdminLayout({
     } = await supabase.auth.getSession();
 
     if (!session) {
-        return redirect(`${resolvedParams.locale}/login`);
+        return redirect(`/${resolvedParams.locale}/login`);
     }
 
     const role = session.user.app_metadata?.role || session.user.user_metadata?.role;
