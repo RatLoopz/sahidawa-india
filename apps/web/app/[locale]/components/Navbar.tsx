@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { History, Home, User, MapPin, Bell, MessageCircle } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { Link, usePathname } from "@/i18n/routing";
@@ -43,7 +44,7 @@ export default function Navbar() {
                                 className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 shadow-sm sm:h-10 sm:w-10 dark:bg-emerald-950/30 dark:text-emerald-400"
                                 aria-label="SahiDawa Logo"
                             >
-                                <img
+                                <Image
                                     src="/favicon.ico"
                                     alt=""
                                     aria-hidden="true"
