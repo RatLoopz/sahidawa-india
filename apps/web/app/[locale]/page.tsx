@@ -240,50 +240,53 @@ export default function SahiDawaHome() {
                     </section>
 
                     {/* ── Explore Features Section ── */}
-                    <section className="mb-16">
-                        <h2 className="mb-8 bg-linear-to-r from-slate-700 to-slate-500 bg-clip-text text-center text-3xl font-bold tracking-tighter text-transparent dark:from-slate-200 dark:to-slate-400">
-                            Explore Features
-                        </h2>
+                    <section className="relative mb-20">
+                        {/* Decorative Background for Section */}
+                        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent opacity-50 dark:from-emerald-900/20"></div>
+
+                        <div className="mb-12 flex flex-col items-center justify-center space-y-4">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/50 bg-white/50 px-4 py-2 text-sm font-bold shadow-sm backdrop-blur-md dark:border-slate-800/50 dark:bg-slate-900/50">
+                                <span className="flex h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
+                                <span className="text-slate-700 dark:text-slate-300">
+                                    Powerful Capabilities
+                                </span>
+                            </div>
+                            <h2 className="bg-linear-to-r from-slate-900 via-slate-700 to-slate-900 bg-clip-text text-center text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl dark:from-white dark:via-slate-200 dark:to-slate-400">
+                                Explore Features
+                            </h2>
+                            <p className="max-w-2xl text-center font-medium text-slate-500 dark:text-slate-400">
+                                Discover all the ways SahiDawa can help you verify your medicines
+                                and stay safe.
+                            </p>
+                        </div>
+
                         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                             {/* Upload Photo */}
                             <button
                                 onClick={() => handleNavigation("scan")}
-                                className="group relative flex h-full min-h-[180px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/50 bg-white/75 p-6 text-left shadow-sm backdrop-blur-md transition-all duration-300 select-none hover:-translate-y-1 hover:scale-[1.01] hover:border-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/5 active:scale-[0.99] dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-emerald-400/30 dark:hover:shadow-emerald-400/5"
+                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white/60 p-6 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 select-none hover:-translate-y-2 hover:scale-[1.02] hover:border-emerald-400/50 hover:bg-white/90 hover:shadow-[0_20px_40px_-15px_rgba(16,185,129,0.3)] active:scale-[0.98] dark:border-slate-800/60 dark:bg-slate-900/40 dark:hover:border-emerald-500/50 dark:hover:bg-slate-800/80"
                                 aria-label="Upload photo"
                             >
-                                {/* Background Decorative Mesh & Glow */}
-                                <div className="bg-radial-gradient absolute inset-0 -z-10 from-emerald-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-emerald-500/10"></div>
-
-                                {/* Corner Crop Marks SVG Overlay */}
-                                <svg
-                                    className="absolute right-4 bottom-4 h-16 w-16 text-slate-300/30 transition-all duration-500 group-hover:scale-110 group-hover:text-emerald-400/30 dark:text-slate-700/20 dark:group-hover:text-emerald-500/20"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth={1}
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"
-                                    />
-                                </svg>
+                                <div className="absolute inset-0 -z-10 bg-linear-to-br from-emerald-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-emerald-500/20"></div>
 
                                 <div className="relative z-10 flex items-start justify-between gap-4">
-                                    <div className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white dark:bg-emerald-950/40 dark:text-emerald-400">
+                                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-emerald-100 to-emerald-50 text-emerald-600 shadow-inner transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 group-hover:from-emerald-500 group-hover:to-teal-400 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] dark:from-emerald-950/60 dark:to-emerald-900/40 dark:text-emerald-400">
                                         <Camera
-                                            size={24}
-                                            strokeWidth={2}
-                                            className="transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
+                                            size={26}
+                                            strokeWidth={2.5}
+                                            className="transition-transform duration-500"
                                         />
                                     </div>
-                                    <ChevronRight className="mt-1 h-4 w-4 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-emerald-500 dark:group-hover:text-emerald-400" />
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100/50 opacity-0 backdrop-blur-md transition-all duration-300 group-hover:opacity-100 dark:bg-slate-800/50">
+                                        <ChevronRight className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                                    </div>
                                 </div>
+
                                 <div className="relative z-10 pt-4">
-                                    <h3 className="text-base font-black tracking-tight text-slate-900 dark:text-white">
+                                    <h3 className="text-xl font-bold tracking-tight text-slate-900 transition-colors group-hover:text-emerald-700 dark:text-white dark:group-hover:text-emerald-300">
                                         {tHome("upload_photo")}
                                     </h3>
-                                    <p className="mt-1 text-xs leading-snug font-semibold text-slate-500 dark:text-slate-400">
+                                    <p className="mt-2 text-sm leading-snug font-medium text-slate-500 transition-colors group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-300">
                                         {tHome("upload_subtitle")}
                                     </p>
                                 </div>
@@ -292,35 +295,36 @@ export default function SahiDawaHome() {
                             {/* Voice Triage */}
                             <button
                                 onClick={() => handleNavigation("voice")}
-                                className="group relative flex h-full min-h-[180px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/50 bg-white/75 p-6 text-left shadow-sm backdrop-blur-md transition-all duration-300 select-none hover:-translate-y-1 hover:scale-[1.01] hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/5 active:scale-[0.99] dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-blue-400/30 dark:hover:shadow-blue-400/5"
+                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white/60 p-6 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 select-none hover:-translate-y-2 hover:scale-[1.02] hover:border-blue-400/50 hover:bg-white/90 hover:shadow-[0_20px_40px_-15px_rgba(59,130,246,0.3)] active:scale-[0.98] dark:border-slate-800/60 dark:bg-slate-900/40 dark:hover:border-blue-500/50 dark:hover:bg-slate-800/80"
                                 aria-label="Voice triage"
                             >
-                                {/* Background Decorative Mesh & Glow */}
-                                <div className="bg-radial-gradient absolute inset-0 -z-10 from-blue-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-blue-500/10"></div>
+                                <div className="absolute inset-0 -z-10 bg-linear-to-br from-blue-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-blue-500/20"></div>
 
-                                {/* Micro Waveform Visual Overlay */}
-                                <div className="absolute right-6 bottom-6 flex h-8 items-end gap-1">
-                                    <div className="h-3 w-1 animate-pulse rounded-full bg-slate-300/30 transition-all duration-300 group-hover:h-7 group-hover:bg-blue-400/30 dark:bg-slate-700/20 dark:group-hover:bg-blue-500/20"></div>
-                                    <div className="h-4 w-1 animate-pulse rounded-full bg-slate-300/30 transition-all duration-300 [animation-delay:0.2s] group-hover:h-5 group-hover:bg-blue-400/30 dark:bg-slate-700/20 dark:group-hover:bg-blue-500/20"></div>
-                                    <div className="h-2 w-1 animate-pulse rounded-full bg-slate-300/30 transition-all duration-300 [animation-delay:0.4s] group-hover:h-8 group-hover:bg-blue-400/30 dark:bg-slate-700/20 dark:group-hover:bg-blue-500/20"></div>
-                                    <div className="h-5 w-1 animate-pulse rounded-full bg-slate-300/30 transition-all duration-300 [animation-delay:0.1s] group-hover:h-4 group-hover:bg-blue-400/30 dark:bg-slate-700/20 dark:group-hover:bg-blue-500/20"></div>
+                                <div className="absolute right-6 bottom-8 flex h-10 items-end gap-1.5 opacity-30 transition-opacity duration-300 group-hover:opacity-100">
+                                    <div className="h-4 w-1.5 animate-pulse rounded-full bg-blue-400/60 transition-all duration-300 group-hover:h-8 group-hover:bg-blue-500"></div>
+                                    <div className="h-6 w-1.5 animate-pulse rounded-full bg-blue-400/60 transition-all duration-300 [animation-delay:0.2s] group-hover:h-6 group-hover:bg-blue-500"></div>
+                                    <div className="h-3 w-1.5 animate-pulse rounded-full bg-blue-400/60 transition-all duration-300 [animation-delay:0.4s] group-hover:h-10 group-hover:bg-blue-500"></div>
+                                    <div className="h-7 w-1.5 animate-pulse rounded-full bg-blue-400/60 transition-all duration-300 [animation-delay:0.1s] group-hover:h-5 group-hover:bg-blue-500"></div>
                                 </div>
 
                                 <div className="relative z-10 flex items-start justify-between gap-4">
-                                    <div className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white dark:bg-blue-950/40 dark:text-blue-400">
+                                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-blue-100 to-blue-50 text-blue-600 shadow-inner transition-all duration-500 group-hover:scale-110 group-hover:-rotate-6 group-hover:from-blue-500 group-hover:to-cyan-400 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] dark:from-blue-950/60 dark:to-blue-900/40 dark:text-blue-400">
                                         <Mic
-                                            size={24}
-                                            strokeWidth={2}
-                                            className="transition-transform duration-300 group-hover:scale-115"
+                                            size={26}
+                                            strokeWidth={2.5}
+                                            className="transition-transform duration-500"
                                         />
                                     </div>
-                                    <ChevronRight className="mt-1 h-4 w-4 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-blue-500 dark:group-hover:text-blue-400" />
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100/50 opacity-0 backdrop-blur-md transition-all duration-300 group-hover:opacity-100 dark:bg-slate-800/50">
+                                        <ChevronRight className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                    </div>
                                 </div>
+
                                 <div className="relative z-10 pt-4">
-                                    <h3 className="text-base font-black tracking-tight text-slate-900 dark:text-white">
+                                    <h3 className="text-xl font-bold tracking-tight text-slate-900 transition-colors group-hover:text-blue-700 dark:text-white dark:group-hover:text-blue-300">
                                         {tHome("voice_triage")}
                                     </h3>
-                                    <p className="mt-1 text-xs leading-snug font-semibold text-slate-500 dark:text-slate-400">
+                                    <p className="mt-2 text-sm leading-snug font-medium text-slate-500 transition-colors group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-300">
                                         {tHome("voice_subtitle")}
                                     </p>
                                 </div>
@@ -329,40 +333,40 @@ export default function SahiDawaHome() {
                             {/* Pharmacy Map */}
                             <button
                                 onClick={() => handleNavigation("map")}
-                                className="group relative flex h-full min-h-[180px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/50 bg-white/75 p-6 text-left shadow-sm backdrop-blur-md transition-all duration-300 select-none hover:-translate-y-1 hover:scale-[1.01] hover:border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/5 active:scale-[0.99] dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-amber-400/30 dark:hover:shadow-amber-400/5"
+                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white/60 p-6 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 select-none hover:-translate-y-2 hover:scale-[1.02] hover:border-amber-400/50 hover:bg-white/90 hover:shadow-[0_20px_40px_-15px_rgba(245,158,11,0.3)] active:scale-[0.98] dark:border-slate-800/60 dark:bg-slate-900/40 dark:hover:border-amber-500/50 dark:hover:bg-slate-800/80"
                                 aria-label="Pharmacy map"
                             >
-                                {/* Background Decorative Mesh & Glow */}
-                                <div className="bg-radial-gradient absolute inset-0 -z-10 from-amber-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-amber-500/10"></div>
+                                <div className="absolute inset-0 -z-10 bg-linear-to-br from-amber-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-amber-500/20"></div>
 
-                                {/* Compass / Ripple Rings Visual Overlay */}
                                 <svg
-                                    className="absolute right-1 bottom-1 h-18 w-18 text-slate-300/20 transition-all duration-500 group-hover:scale-110 group-hover:rotate-12 group-hover:text-amber-400/20 dark:text-slate-700/10 dark:group-hover:text-amber-500/15"
+                                    className="absolute right-0 bottom-0 h-24 w-24 translate-x-4 translate-y-4 text-amber-500/5 transition-all duration-700 group-hover:-translate-x-2 group-hover:-translate-y-2 group-hover:scale-125 group-hover:rotate-45 group-hover:text-amber-500/20 dark:text-amber-400/5"
                                     fill="none"
                                     viewBox="0 0 24 24"
                                     stroke="currentColor"
-                                    strokeWidth={1}
+                                    strokeWidth={0.5}
                                 >
                                     <circle cx="12" cy="12" r="9" />
-                                    <circle cx="12" cy="12" r="6" />
-                                    <circle cx="12" cy="12" r="3" />
+                                    <circle cx="12" cy="12" r="5" />
                                 </svg>
 
                                 <div className="relative z-10 flex items-start justify-between gap-4">
-                                    <div className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white dark:bg-amber-950/40 dark:text-amber-400">
+                                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-amber-100 to-amber-50 text-amber-600 shadow-inner transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 group-hover:from-amber-500 group-hover:to-orange-400 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] dark:from-amber-950/60 dark:to-amber-900/40 dark:text-amber-400">
                                         <MapPin
-                                            size={24}
-                                            strokeWidth={2}
-                                            className="group-hover:translate-y--0.5 transition-transform duration-300"
+                                            size={26}
+                                            strokeWidth={2.5}
+                                            className="transition-transform duration-500 group-hover:-translate-y-1"
                                         />
                                     </div>
-                                    <ChevronRight className="mt-1 h-4 w-4 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-amber-500 dark:group-hover:text-amber-400" />
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100/50 opacity-0 backdrop-blur-md transition-all duration-300 group-hover:opacity-100 dark:bg-slate-800/50">
+                                        <ChevronRight className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                                    </div>
                                 </div>
+
                                 <div className="relative z-10 pt-4">
-                                    <h3 className="text-base font-black tracking-tight text-slate-900 dark:text-white">
+                                    <h3 className="text-xl font-bold tracking-tight text-slate-900 transition-colors group-hover:text-amber-700 dark:text-white dark:group-hover:text-amber-300">
                                         {tHome("pharmacy_map")}
                                     </h3>
-                                    <p className="mt-1 text-xs leading-snug font-semibold text-slate-500 dark:text-slate-400">
+                                    <p className="mt-2 text-sm leading-snug font-medium text-slate-500 transition-colors group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-300">
                                         {tHome("pharmacy_subtitle")}
                                     </p>
                                 </div>
@@ -371,42 +375,31 @@ export default function SahiDawaHome() {
                             {/* Report Fake Medicine */}
                             <button
                                 onClick={() => handleNavigation("report")}
-                                className="group relative flex h-full min-h-[180px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/50 bg-white/75 p-6 text-left shadow-sm backdrop-blur-md transition-all duration-300 select-none hover:-translate-y-1 hover:scale-[1.01] hover:border-red-500/30 hover:shadow-lg hover:shadow-red-500/5 active:scale-[0.99] dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-red-400/30 dark:hover:shadow-red-400/5"
+                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white/60 p-6 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 select-none hover:-translate-y-2 hover:scale-[1.02] hover:border-red-400/50 hover:bg-white/90 hover:shadow-[0_20px_40px_-15px_rgba(239,68,68,0.3)] active:scale-[0.98] dark:border-slate-800/60 dark:bg-slate-900/40 dark:hover:border-red-500/50 dark:hover:bg-slate-800/80"
                                 aria-label="Report fake medicine"
                             >
-                                {/* Background Decorative Mesh & Glow */}
-                                <div className="bg-radial-gradient absolute inset-0 -z-10 from-red-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-red-500/10"></div>
+                                <div className="absolute inset-0 -z-10 bg-linear-to-br from-red-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-red-500/20"></div>
 
-                                {/* Security Shield SVG Overlay */}
-                                <svg
-                                    className="absolute right-3 bottom-3 h-16 w-16 text-slate-300/30 transition-all duration-500 group-hover:scale-105 group-hover:text-red-400/30 dark:text-slate-700/20 dark:group-hover:text-red-500/20"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth={1}
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                                    />
-                                </svg>
+                                <div className="absolute right-0 bottom-0 h-24 w-24 translate-x-8 translate-y-8 rounded-full bg-red-500/5 blur-2xl transition-all duration-500 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:bg-red-500/20"></div>
 
                                 <div className="relative z-10 flex items-start justify-between gap-4">
-                                    <div className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-600 transition-all duration-300 group-hover:bg-red-500 group-hover:text-white dark:bg-red-950/40 dark:text-red-400">
+                                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-red-100 to-red-50 text-red-600 shadow-inner transition-all duration-500 group-hover:scale-110 group-hover:rotate-12 group-hover:from-red-500 group-hover:to-rose-400 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] dark:from-red-950/60 dark:to-red-900/40 dark:text-red-400">
                                         <AlertTriangle
-                                            size={24}
-                                            strokeWidth={2}
-                                            className="transition-transform duration-300 group-hover:rotate-6"
+                                            size={26}
+                                            strokeWidth={2.5}
+                                            className="transition-transform duration-500"
                                         />
                                     </div>
-                                    <ChevronRight className="mt-1 h-4 w-4 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-red-500 dark:group-hover:text-red-400" />
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100/50 opacity-0 backdrop-blur-md transition-all duration-300 group-hover:opacity-100 dark:bg-slate-800/50">
+                                        <ChevronRight className="h-5 w-5 text-red-600 dark:text-red-400" />
+                                    </div>
                                 </div>
+
                                 <div className="relative z-10 pt-4">
-                                    <h3 className="text-base font-black tracking-tight text-slate-900 dark:text-white">
+                                    <h3 className="text-xl font-bold tracking-tight text-slate-900 transition-colors group-hover:text-red-700 dark:text-white dark:group-hover:text-red-300">
                                         {tHome("report_fake")}
                                     </h3>
-                                    <p className="mt-1 text-xs leading-snug font-semibold text-slate-500 dark:text-slate-400">
+                                    <p className="mt-2 text-sm leading-snug font-medium text-slate-500 transition-colors group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-300">
                                         {tHome("report_fake_subtitle")}
                                     </p>
                                 </div>

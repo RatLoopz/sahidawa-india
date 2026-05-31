@@ -347,3 +347,12 @@
         transition: none !important;
     }
 }
+
+/* Feature Card Hover Effects */
+.feature-card:hover {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-4px);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
