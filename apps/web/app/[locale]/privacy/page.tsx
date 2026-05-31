@@ -211,9 +211,9 @@ export default function PrivacyPolicyPage() {
                         <p className="mb-3 text-sm text-(--color-text-secondary)">
                             For privacy-related queries, reach us at:
                         </p>
-                        <span className="inline-block rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-950/20 dark:text-emerald-400">
-                            [ADMIN_EMAIL]
-                        </span>
+                        <a href="mailto:contact@sahidawa.in" className="inline-block rounded-lg border border-emerald-200 dark:border-emerald-900/30 bg-emerald-50 dark:bg-emerald-950/20 px-4 py-2 text-sm font-semibold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors">
+                            contact@sahidawa.in
+                        </a>
                         <p className="mt-4 text-sm text-(--color-text-secondary)">
                             Or join our community on{" "}
                             <a
