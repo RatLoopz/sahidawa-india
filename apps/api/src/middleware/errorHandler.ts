@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import logger from '../utils/logger';
+import { getDbErrorStatus } from '../utils/dbErrors';
 
 const SENSITIVE_FIELDS = ['password', 'apiKey', 'api_key', 'token', 'secret', 'authorization', 'cookie'];
 
@@ -18,12 +19,20 @@ function sanitize(obj: Record<string, unknown>): Record<string, unknown> {
 }
 
 export function errorHandler(
-  err: Error & { statusCode?: number; status?: number },
+  err: Error & { statusCode?: number; status?: number; code?: string },
   req: Request,
   res: Response,
   _next: NextFunction
 ): void {
-  const statusCode = err.statusCode || err.status || 500;
+  let statusCode = err.statusCode || err.status || 500;
+
+  if (err.code) {
+    const dbStatus = getDbErrorStatus(err.code);
+    if (dbStatus) {
+      statusCode = dbStatus;
+    }
+  }
+
   const level = statusCode >= 500 ? 'error' : 'warn';
 
   logger.log({

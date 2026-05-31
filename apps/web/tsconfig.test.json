@@ -1,0 +1,22 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "module": "node16",
+        "moduleResolution": "node16",
+        "rootDir": ".",
+        "types": ["node", "jest"],
+        "baseUrl": ".",
+        "ignoreDeprecations": "6.0",
+        "paths": {
+            "@/*": ["./*"]
+        }
+    },
+    "include": [
+        "tests/**/*.ts",
+        "tests/**/*.tsx",
+        "app/**/*.ts",
+        "app/**/*.tsx",
+        "lib/**/*.ts",
+        "components/**/*.tsx"
+    ]
+}

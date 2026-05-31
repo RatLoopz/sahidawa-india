@@ -1,0 +1,72 @@
+name: "Issue Assignment Guard & Auto-Lock"
+
+on:
+  issue_comment:
+    types: [created]
+  issues:
+    types: [assigned]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  manage-issues:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Process Issue Event
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const repo = context.repo;
+            const eventName = context.eventName;
+            
+            // 1. Handle manual assignment event
+            // NOTE: Auto-locking was intentionally removed. Locking conversations
+            // prevents all contributors from commenting, asking questions, or helping
+            // the assignee — which is harmful to open-source collaboration.
+            if (eventName === 'issues' && context.payload.action === 'assigned') {
+              core.info(`Issue #${context.payload.issue.number} assigned. No auto-lock applied.`);
+              return;
+            }
+
+            // 2. Handle issue comment event -> Audit assignment requests
+            if (eventName === 'issue_comment' && context.payload.action === 'created') {
+              const commentBody = context.payload.comment.body;
+              const issueNumber = context.issue.number;
+              const commenter = context.payload.comment.user.login;
+
+              // Check if comment requests assignment
+              const requestKeywords = ['/assign', 'please assign', 'assign me'];
+              const isRequest = requestKeywords.some(keyword => commentBody.toLowerCase().includes(keyword));
+
+              if (isRequest) {
+                console.log(`Audit trigger: @${commenter} requested assignment on Issue #${issueNumber}`);
+
+                // Fetch current open issues assigned to the commenter
+                const assignedIssues = await github.rest.issues.listForRepo({
+                  owner: repo.owner,
+                  repo: repo.repo,
+                  assignee: commenter,
+                  state: 'open'
+                });
+
+                // Filter out pull requests
+                const activeAssignedIssues = assignedIssues.data.filter(issue => !issue.pull_request);
+
+                if (activeAssignedIssues.length >= 3) {
+                  const assignedIssueList = activeAssignedIssues.map(i => `#${i.number} ("${i.title}")`).join('\n- ');
+                  console.log(`Denying request: @${commenter} already holds ${activeAssignedIssues.length} active assignments.`);
+
+                  await github.rest.issues.createComment({
+                    owner: repo.owner,
+                    repo: repo.repo,
+                    issue_number: issueNumber,
+                    body: `❌ **Request Denied**\n\nHi @${commenter}, to ensure a fair distribution of tasks in GSSoC/Hacktoberfest, contributors are limited to a maximum of **3 active assigned issues** at a time.\n\nYou are currently assigned to the following ${activeAssignedIssues.length} active tasks:\n- ${assignedIssueList}\n\nPlease complete your currently assigned tasks before requesting assignment for new ones! Thank you for your cooperation! 🤝`
+                  });
+                } else {
+                  console.log(`Commenter @${commenter} has ${activeAssignedIssues.length} active assignments. Safe to review (no auto-assignment).`);
+                }
+              }
+            }

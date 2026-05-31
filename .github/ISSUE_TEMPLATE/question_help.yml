@@ -1,7 +1,7 @@
 name: "❓ Question / Help"
 description: "Ask a question or request help"
 title: "[Help] <short-title>"
-labels: ["question", "needs-triage"]
+labels: []
 assignees: []
 
 body:
@@ -18,6 +18,8 @@ body:
       attributes:
           label: "🧠 What's Your Question?"
           description: "Be specific so others can help you quickly."
+      validations:
+          required: true
 
     - type: textarea
       id: context

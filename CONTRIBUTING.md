@@ -1,5 +1,8 @@
 # Contributing to SahiDawa 🩺
 
+> **⚠️ CRITICAL RULE FOR CONTRIBUTORS: We have a strict assignment policy. You MUST request assignment on an issue and wait for a maintainer to assign you before writing any code. Any Pull Requests submitted without assignment will be closed automatically to prevent duplicate work.**
+> 
+
 Thank you for wanting to contribute to SahiDawa! Every PR you submit helps protect a real person from a fake medicine. Read this guide fully before submitting your first contribution — it will save you time and help your PR get merged faster.
 
 ---
@@ -157,6 +160,7 @@ npm run dev          # http://localhost:3000
 cd apps/api
 npm install
 npm run dev          # http://localhost:4000
+                     # API Docs: http://localhost:4000/api/docs
 
 # Terminal 3 — ML Service (optional for Phase 1/2 work)
 cd apps/ml
@@ -165,6 +169,27 @@ source venv/bin/activate
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
+
+## ⚠️ Troubleshooting npm install Failures
+
+If you encounter `No matching version found` errors while running `npm install`, it may be caused by the canary package versions currently used in this project.
+
+Try running:
+
+```bash
+npm install --legacy-peer-deps
+```
+
+or:
+
+```bash
+npm install --force
+```
+
+If the issue still persists, you may temporarily downgrade package versions locally to get the project running on your machine.
+
+> ⚠️ Important:
+> Do not commit modified `package.json` or `package-lock.json` files created during local downgrades. Revert those changes before pushing your PR.
 
 ---
 
@@ -241,6 +266,11 @@ Example:
 - Use TypeScript — no `any` types
 - Every route needs: input validation (Zod), error handling, rate limiting
 - Write tests in `apps/api/tests/`
+
+**Swagger/OpenAPI Documentation**
+- **Access Instructions:** You can open the interactive Swagger UI at `http://localhost:4000/api/docs` while the API is running.
+- **Backend Guidelines:** When adding new API routes to `apps/api/src/routes/`, use the `@openapi` JSDoc annotations to document the request/response schemas.
+- **Frontend Benefit:** Frontend developers can use this UI instead of Postman to explore and test endpoints directly from the browser.
 
 ---
 

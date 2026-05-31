@@ -1,0 +1,10 @@
+# ⚠️  SUPERSEDED — do not install from this file.
+#
+# All ETL dependencies (pandas, rapidfuzz, requests, supabase, playwright, etc.)
+# have been consolidated into the unified ETL workspace:
+#
+#   apps/etl/pyproject.toml
+#
+# To install:
+#   cd apps/etl
+#   pip install -e .

@@ -2,8 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
+import logging
+
+from services.telemetry import configure_telemetry_logging
+from services.router_loader import include_router_if_available
 
 load_dotenv()
+configure_telemetry_logging()
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="SahiDawa ML Service",
@@ -11,20 +17,27 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Configure CORS
-origins = [
-    "http://localhost:3000",
-    "http://localhost:4000",
-    "http://localhost:8000",
-]
+# Configure CORS - load dynamically from environment variables
+allowed_origins = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:3000,http://localhost:4000,http://localhost:8000"
+).split(",")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include ASR as a required router and OCR as optional so voice triage can boot
+# even when OCR-only dependencies are not installed in the current environment.
+include_router_if_available(app, "routers.asr", required=True)
+include_router_if_available(app, "routers.analyze", required=True)
+ocr_loaded = include_router_if_available(app, "routers.ocr", required=False)
+if not ocr_loaded:
+    logger.warning("OCR routes are disabled in this runtime.")
 
 @app.get("/")
 def read_root():

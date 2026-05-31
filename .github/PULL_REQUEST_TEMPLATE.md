@@ -1,72 +1,85 @@
+### 🛑 STOP: Assignment Check
+
+- [ ] I am officially assigned to the issue this PR fixes.
+
+_(Warning: If you are not assigned, this PR will be immediately closed without review to prevent duplicate work)._
+
 ## 📋 PR Summary
 
-Added Progressive Web App (PWA) support to make SahiDawa installable on Android devices with proper manifest configuration, theme integration, and installable icons.
+<!-- Provide a brief summary of the changes introduced by this PR. -->
 
 ---
 
 ## 🔗 Related Issue
 
-Closes #33
+<!-- Link the issue this PR resolves. For example: Closes 123 -->
+
+Closes #
 
 ---
 
 ## 🏷️ PR Type
 
-* [✓] 🐛 Bug Fix
-* [✓] ✨ New Feature / Enhancement
-* [ ] 📖 Documentation
-* [ ] 🌏 Translation (i18n)
-* [✓] 🎨 UI / UX Improvement
-* [ ] ⚙️ DevOps / CI-CD
-* [ ] 🤖 ML / AI Feature
-* [ ] 🔒 Security Fix
-* [ ] ♻️ Refactor / Code Quality
+<!-- Select the type of changes. Replace [ ] with [x] for matching items. -->
+
+- [ ] 🐛 Bug Fix
+- [ ] ✨ New Feature / Enhancement
+- [ ] 📖 Documentation
+- [ ] 🌏 Translation (i18n)
+- [ ] 🎨 UI / UX Improvement
+- [ ] ⚙️ DevOps / CI-CD
+- [ ] 🤖 ML / AI Feature
+- [ ] 🔒 Security Fix
+- [ ] ♻️ Refactor / Code Quality
 
 ---
 
 ## 🗂️ Area Changed
 
-* [✓] `apps/web` — Next.js Frontend
-* [ ] `apps/api` — Node.js / Express Backend
-* [ ] `apps/ml` — Python / FastAPI ML Service
-* [ ] `data/` — Database seeds / migrations
-* [ ] `docs/` — Documentation
-* [ ] `.github/` — GitHub config, workflows
-* [ ] Root config (package.json, etc.)
+<!-- Select the areas that have been modified by this PR. Replace [ ] with [x] for matching items. -->
+
+- [ ] `apps/web` — Next.js Frontend
+- [ ] `apps/api` — Node.js / Express Backend
+- [ ] `apps/ml` — Python / FastAPI ML Service
+- [ ] `data/` — Database seeds / migrations
+- [ ] `docs/` — Documentation
+- [ ] `.github/` — GitHub config, workflows
+- [ ] Root config (package.json, etc.)
 
 ---
 
 ## 📝 What Was Done
 
-* Added `manifest.json` for PWA support
-* Added installable app icons (192x192 and 512x512)
-* Linked manifest in `app/[locale]/layout.tsx`
-* Added theme color metadata and viewport configuration
-* Verified manifest and installability in browser DevTools
-* Tested Lighthouse audit and PWA compatibility
+<!-- Provide a bulleted list of the exact changes made in this PR. -->
 
----
+- ***
 
-## 📸 Screenshots / Demo
+## 📸 Screenshots / Proof of Work (REQUIRED)
 
-* Lighthouse audit screenshot
-* Manifest validation screenshot
-* Install App / Add to Home Screen screenshot
+> [!IMPORTANT]
+> **No Pull Request will be merged without proof of testing!**
+>
+> - **Frontend/UI changes:** You MUST attach screenshots or screen recordings (GIFs/Videos) showing the UI changes.
+> - **Backend/API/ML changes:** You MUST attach terminal logs, curl/Postman outputs, or test run outputs proving the changes work.
+>
+> _Please drag & drop your screenshots/GIFs here, or paste terminal/console logs below:_
 
 ---
 
 ## ✅ Contributor Checklist
 
-* [✓] My PR has a linked issue (see above)
-* [✓] I have pulled the latest `main` and rebased/merged before this PR
-* [✓] My code follows the patterns in `docs/code-guide.md`
-* [✓] I ran `npm run dev -w web` (frontend) or `npm run dev -w api` (backend) — no build errors
-* [✓] For backend: All responses return structured JSON `{ success, data, error }`
-* [✓] Screenshots/test output added (for UI or API changes)
-* [✓] I have performed a self-review of my own code
+<!-- Ensure you have completed the following steps before requesting a review. Replace [ ] with [x]. -->
+
+- [ ] My PR has a linked issue (see above)
+- [ ] I have pulled the latest `main` and rebased/merged before opening this PR
+- [ ] My code follows the patterns and conventions in `docs/code-guide.md`
+- [ ] I ran the project locally and verified there are no compile/build errors
+- [ ] I have attached screenshots, screen recordings, or terminal logs as proof of testing (MANDATORY)
+- [ ] My backend responses return structured JSON `{ success: boolean, data?: any, error?: { message: string } }` (if backend change)
+- [ ] I have performed a self-review of my own code
 
 ---
 
 ## 🎓 GSSoC 2026
 
-* [✓] I am a GSSoC 2026 participant
+- [ ] I am a GSSoC 2026 participant

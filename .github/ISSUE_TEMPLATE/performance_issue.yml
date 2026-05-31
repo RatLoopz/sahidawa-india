@@ -1,7 +1,7 @@
 name: "⚡ Performance Issue"
 description: "Report performance issues such as lag or slowness"
 title: "[Performance] <short-title>"
-labels: ["performance", "needs-triage"]
+labels: ["type:performance"]
 assignees: []
 
 body:
@@ -18,6 +18,8 @@ body:
     attributes:
       label: "📉 Describe the Performance Issue"
       description: "What is slow or lagging? When does it happen?"
+    validations:
+      required: true
 
   - type: textarea
     id: environment
@@ -30,6 +32,8 @@ body:
     attributes:
       label: "🔁 Steps to Reproduce"
       description: "Explain how someone else can experience this issue."
+    validations:
+      required: true
 
   - type: textarea
     id: logs

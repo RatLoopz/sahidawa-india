@@ -1,39 +1,138 @@
-import { GitBranch } from "lucide-react";
+"use client";
+
+import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
+import { GitBranch, Sparkles, Heart } from "lucide-react";
+import { Link } from "@/i18n/routing";
+import { usePathname } from "next/navigation";
 
 export default function Footer() {
-  return (
-    <footer className="sticky bottom-0 border-t border-slate-800 bg-slate-950 text-slate-400">
-      <div className="container mx-auto px-4 md:px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
+    const pathname = usePathname();
+    // Matches localized homepages like /en, /hi, /mr, or /
+    const isHome = pathname ? /^\/[a-z]{2}$|^\/$/.test(pathname) : false;
 
-        <div className="flex items-center gap-4 flex-wrap justify-center">
-          <a
-            href="https://github.com/RatLoopz/sahidawa-india"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1 hover:text-white transition-colors"
-          >
-            <GitBranch size={14} />
-            GitHub
-          </a>
+    return (
+        <footer
+            className={`no-print mt-auto border-t border-slate-800 bg-slate-950 text-slate-400 ${isHome ? "mb-16 md:mb-0" : ""}`}
+        >
+            <div className="container mx-auto px-4 py-10 md:px-6">
+                <div className="grid grid-cols-1 gap-8 border-b border-slate-800 pb-8 md:grid-cols-3">
+                    {/* Brand Section */}
+                    <div>
+                        <h2 className="mb-3 text-lg font-semibold text-white">SahiDawa</h2>
 
-          <a
-            href="https://github.com/RatLoopz/sahidawa-india/blob/main/CONTRIBUTING.md"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-white transition-colors"
-          >
-            Contributing Guide
-          </a>
+                        <p className="text-sm leading-relaxed text-slate-500">
+                            An open-source healthcare platform built with community collaboration
+                            and innovation in mind.
+                        </p>
 
-          <span className="px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            Made for GSSoC 2026
-          </span>
-        </div>
+                        <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
+                            <Sparkles className="h-3 w-3" /> Made for GSSoC 2026
+                        </div>
+                    </div>
 
-        <p className="text-center md:text-right">
-          © 2026 SahiDawa. Open Source under MIT License.
-        </p>
-      </div>
-    </footer>
-  );
+                    {/* Quick Links */}
+                    <div>
+                        <h3 className="mb-4 text-sm font-semibold tracking-wide text-white uppercase">
+                            Quick Links
+                        </h3>
+
+                        <div className="flex flex-col gap-3 text-sm">
+                            <a
+                                href="https://github.com/RatLoopz/sahidawa-india"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 transition-all duration-200 hover:translate-x-1 hover:text-white"
+                            >
+                                <GitBranch size={16} />
+                                GitHub Repository
+                            </a>
+
+                            <a
+                                href="https://github.com/RatLoopz/sahidawa-india/blob/main/CONTRIBUTING.md"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="transition-all duration-200 hover:translate-x-1 hover:text-white"
+                            >
+                                Contributing Guide
+                            </a>
+                            <Link
+                                href="/faq"
+                                className="transition-all duration-200 hover:translate-x-1 hover:text-white"
+                            >
+                                FAQ
+                            </Link>
+                            <Link
+                                href="/about"
+                                className="transition-all duration-200 hover:translate-x-1 hover:text-white"
+                            >
+                                About Us
+                            </Link>
+                            <Link
+                                href="/privacy"
+                                className="transition-all duration-200 hover:translate-x-1 hover:text-white"
+                            >
+                                Privacy Policy
+                            </Link>
+                            <Link
+                                href="/contact"
+                                className="transition-all duration-200 hover:translate-x-1 hover:text-white"
+                            >
+                                Contact Us
+                            </Link>
+                        </div>
+                    </div>
+
+                    {/* Social Links */}
+                    <div>
+                        <h3 className="mb-4 text-sm font-semibold tracking-wide text-white uppercase">
+                            Connect
+                        </h3>
+
+                        <div className="flex items-center gap-4">
+                            <a
+                                href="https://github.com/RatLoopz/sahidawa-india"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-600 hover:text-white hover:shadow-[0_4px_12px_rgba(255,255,255,0.1)] active:scale-95"
+                            >
+                                <FaGithub size={18} />
+                            </a>
+
+                            <a
+                                href="https://linkedin.com/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500 hover:text-blue-400 hover:shadow-[0_4px_12px_rgba(37,99,235,0.2)] active:scale-95"
+                            >
+                                <FaLinkedin size={18} />
+                            </a>
+
+                            <a
+                                href="https://twitter.com/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="rounded-lg border border-slate-800 bg-slate-900 p-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-500 hover:text-white hover:shadow-[0_4px_12px_rgba(255,255,255,0.1)] active:scale-95"
+                            >
+                                <FaXTwitter size={18} />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Bottom Footer */}
+                <div className="flex flex-col items-center justify-between gap-4 pt-6 text-xs text-slate-500 md:flex-row">
+                    <div className="flex items-center gap-4">
+                        <p className="text-xs md:text-sm">
+                            © 2026 SahiDawa. Open Source under MIT License.
+                        </p>
+                    </div>
+
+                    <p className="text-center text-xs md:text-right md:text-sm">
+                        Built with <Heart className="inline h-[1em] w-[1em] text-red-500" /> for the
+                        open-source community.
+                    </p>
+                </div>
+            </div>
+        </footer>
+    );
 }

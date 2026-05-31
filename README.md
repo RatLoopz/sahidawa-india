@@ -196,6 +196,27 @@ npm run dev
 # Open http://localhost:3000
 ```
 
+### ⚠️ Troubleshooting npm install Failures
+
+If you encounter `No matching version found` errors while running `npm install`, it may be caused by the canary package versions used in this project.
+
+Try running:
+
+```bash
+npm install --legacy-peer-deps
+```
+
+or:
+
+```bash
+npm install --force
+```
+
+If the issue still persists, you may temporarily downgrade package versions locally to get the project running on your machine.
+
+> ⚠️ Important:
+> Do not commit modified `package.json` or `package-lock.json` files created during local downgrades. Revert those changes before pushing your PR.
+
 ### Full Stack with Docker
 
 ```bash
@@ -210,23 +231,31 @@ docker compose up --build
 # Frontend:  http://localhost:3000
 # API:       http://localhost:4000
 # ML service: http://localhost:8000
-# API Docs:  http://localhost:4000/api-docs
+# API Docs:  http://localhost:4000/api/docs
 ```
 
 ### Manual Backend Setup
 
 ```bash
-# API Server
+# Ensure environment variables are set at the project root
+cp .env.example .env
+# Edit .env with your keys
+
+# Start API Server
 cd apps/api
 npm install
 npm run dev
+# API Docs: http://localhost:4000/api/docs
 ```
 
 ### ML Service (Python)
 
-For detailed setup instructions, see: [ML Setup Guide](./docs/SETUP_ML.md)
+For detailed setup instructions, see: [ML Setup Guide](./docs/getting-started/ml-setup.md)
+
+For local setup instructions, see: [Local Setup Guide](./docs/getting-started/local-setup.md)
 
 Quick start:
+
 ```bash
 cd apps/ml
 python -m venv venv
@@ -234,7 +263,6 @@ source venv/bin/activate
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
-
 
 ---
 
@@ -313,8 +341,8 @@ SahiDawa aims to support all 22 Indian scheduled languages. (We are just getting
 | English            | 🚧 In Progress | Core Team   |
 | Hindi (हिन्दी)     | 🔜 Open        | —           |
 | Tamil (தமிழ்)      | 🔜 Open        | —           |
-| Telugu (తెలుగు)    | 🔜 Open        | —           |
-| Kannada (ಕನ್ನಡ)    | 🔜 Open        | —           |
+| Telugu (తెలుగు)    | ✅ Complete    | GSSoC 2026  |
+| Kannada (ಕನ್ನಡ)    | ✅ Complete    | GSSoC 2026  |
 | Malayalam (മലയാളം) | 🔜 Open        | —           |
 | Bengali (বাংলা)    | 🔜 Open        | —           |
 | Gujarati (ગુજરાતી) | 🔜 Open        | —           |
@@ -370,6 +398,14 @@ We are also a **Cloudinary Bounty Partner project** — contributors who build f
 SahiDawa is licensed under the **MIT License** — free to use, modify, distribute, and deploy.
 
 See [LICENSE](./LICENSE) for full text.
+
+## 👥 Contributors
+
+Thank you to all the incredible people who have contributed to making SahiDawa a reality! 🙌
+
+<a href="https://github.com/RatLoopz/sahidawa-india/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=RatLoopz/sahidawa-india" alt="SahiDawa Contributors" />
+</a>
 
 ---
 
