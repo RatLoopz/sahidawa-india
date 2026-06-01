@@ -160,7 +160,7 @@ export default function SahiDawaHome() {
                     {/* ── Explore Features Section ── */}
                     <section className="mb-16">
                         <h2 className="mb-8 bg-linear-to-r from-slate-700 to-slate-500 bg-clip-text text-center text-3xl font-bold tracking-tighter text-transparent dark:from-slate-200 dark:to-slate-400">
-                            Explore Features
+                            {tHome("explore_features")}
                         </h2>
                         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                             {/* Upload Photo */}

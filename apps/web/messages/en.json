@@ -26,6 +26,7 @@
         "alerts_empty_title": "All clear!",
         "alerts_empty_description": "No active regulatory alerts right now. Stay safe and verify your medicines.",
         "view_full_alert_log": "View Full Alert Log",
+        "explore_features": "Explore Features",
         "heroTitle": {
             "prefix": "Your Health, ",
             "highlight": "Verified & Protected."
