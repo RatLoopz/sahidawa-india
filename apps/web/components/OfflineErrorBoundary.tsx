@@ -10,6 +10,7 @@ interface OfflineErrorBoundaryProps {
 interface OfflineErrorBoundaryState {
   hasError: boolean;
   isOfflineError: boolean;
+  isChecking: boolean;
 }
 
 /**
@@ -25,6 +26,7 @@ export class OfflineErrorBoundary extends React.Component<
     this.state = {
       hasError: false,
       isOfflineError: false,
+      isChecking: false,
     };
   }
 
@@ -46,9 +48,19 @@ export class OfflineErrorBoundary extends React.Component<
   }
 
   handleRetry = () => {
+    this.setState({ isChecking: true });
+
+    if (typeof window !== 'undefined' && !navigator.onLine) {
+      setTimeout(() => {
+        this.setState({ isChecking: false });
+      }, 1000);
+      return;
+    }
+
     this.setState({
       hasError: false,
       isOfflineError: false,
+      isChecking: false,
     });
   };
 
@@ -66,24 +78,25 @@ export class OfflineErrorBoundary extends React.Component<
             </div>
 
             <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-              {this.state.isOfflineError
-                ? 'Connection Lost'
-                : 'Something Went Wrong'}
+              {this.state.isOfflineError ? 'Connection Lost' : 'Something Went Wrong'}
             </h2>
 
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+            <p aria-live="polite" className="text-sm text-slate-600 dark:text-slate-400 mb-6">
               {this.state.isOfflineError
-                ? 'Check your internet connection and try again. Cached data may still be available.'
+                ? 'Please check your internet connection and try again. Cached data may still be available.'
                 : 'An unexpected error occurred. Please try again or go back.'}
             </p>
 
             <div className="flex gap-3 flex-col sm:flex-row">
               <button
+                type="button"
                 onClick={this.handleRetry}
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                disabled={this.state.isChecking}
+                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
               >
-                Try Again
+                {this.state.isChecking ? 'Checking...' : 'Try Again'}
               </button>
+
               <a
                 href="/"
                 className="flex-1 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-900 dark:text-white font-semibold py-2 px-4 rounded-lg transition-colors text-center"
