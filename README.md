@@ -418,7 +418,11 @@ Thank you to all the incredible people who have contributed to making SahiDawa a
 - Every contributor who believes healthcare is a right, not a privilege
 
 ---
+## ❤️ Why Open Source?
 
+Healthcare accessibility should not depend on income, location, or language.
+
+SahiDawa is community-driven and built to remain free forever.
 <div align="center">
 
 **Built with ❤️ for 1.4 billion Indians**
