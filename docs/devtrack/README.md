@@ -70,3 +70,4 @@
 | [#988](https://github.com/RatLoopz/sahidawa-india/pull/988) | 2026-05-31 | Frontend | 42 | @Adi-Marathe | [View Doc](devtrack/2026-05/PR-988-fix-drop-mrp-gte-jan-aushadhi-price-constraint.md) / [ADR](devtrack/adr/ADR-017-fix-drop-mrp-gte-jan-aushadhi-price-constraint.md) |
 | [#934](https://github.com/RatLoopz/sahidawa-india/pull/934) | 2026-05-31 | i18n | 41 | @Vartika2903 | [View Doc](devtrack/2026-05/PR-934-fix-767-i18n-missing-translation-about-us.md) / [ADR](devtrack/adr/ADR-018-fix-767-i18n-missing-translation-about-us.md) |
 | [#1021](https://github.com/RatLoopz/sahidawa-india/pull/1021) | 2026-06-01 | Frontend | 6 | @vishali-mp | [View Doc](devtrack/2026-06/PR-1021-feat-pwa-offline-first-caching-for-service-worker.md) |
+| [#1029](https://github.com/RatLoopz/sahidawa-india/pull/1029) | 2026-06-01 | Backend | 9 | @anshul23102 | [View Doc](devtrack/2026-06/PR-1029-fix-scan-escape-ilike-wildcard-characters-in-ocr-d.md) |
