@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { History, Home, User, MapPin, Bell, MessageCircle } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
@@ -8,12 +8,67 @@ import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import LanguageSwitcher from "../LanguageSwitcher";
 import { ThemeToggle } from "./ThemeToggle";
+import type { FC } from "react";
 
 const desktopNavLinkClassName =
     "relative inline-flex items-center pb-1 transition-colors duration-200 ease-out hover:text-emerald-600 focus-visible:text-emerald-600 after:absolute after:inset-x-0 after:-bottom-0.5 after:h-0.5 after:origin-center after:scale-x-0 after:rounded-full after:bg-current after:transition-transform after:duration-300 after:ease-out hover:after:scale-x-100 focus-visible:after:scale-x-100 motion-safe:after:will-change-transform";
 
 const mobileNavLabelClassName =
     "relative inline-flex items-center pb-1 transition-colors duration-200 ease-out after:absolute after:inset-x-0 after:-bottom-0.5 after:h-0.5 after:origin-center after:scale-x-0 after:rounded-full after:bg-current after:transition-transform after:duration-300 after:ease-out group-hover:after:scale-x-100 group-active:after:scale-x-100 group-focus-visible:after:scale-x-100 motion-safe:after:will-change-transform";
+type NavItem = {
+    href: string;
+    labelKey: string;
+    icon: FC<{ size?: number; strokeWidth?: number }>;
+    activeColor: string;
+    hoverColor: string;
+    strokeWidth: number;
+    badge?: boolean;
+};
+
+// Nav items config — single source of truth
+const MOBILE_NAV_ITEMS: NavItem[] = [
+    {
+        href: "/",
+        labelKey: "home",
+        icon: Home,
+        activeColor: "text-emerald-500",
+        hoverColor: "hover:text-emerald-500",
+        strokeWidth: 2.5,
+    },
+    {
+        href: "/scan",
+        labelKey: "scans",
+        icon: History,
+        activeColor: "text-emerald-500",
+        hoverColor: "hover:text-emerald-500",
+        strokeWidth: 2,
+    },
+    {
+        href: "/map",
+        labelKey: "map",
+        icon: MapPin,
+        activeColor: "text-amber-500",
+        hoverColor: "hover:text-amber-500",
+        strokeWidth: 2,
+    },
+    {
+        href: "/alerts",
+        labelKey: "alerts",
+        icon: Bell,
+        activeColor: "text-red-500",
+        hoverColor: "hover:text-red-500",
+        strokeWidth: 2,
+        badge: true,
+    },
+    {
+        href: "/profile",
+        labelKey: "profile",
+        icon: User,
+        activeColor: "text-emerald-500",
+        hoverColor: "hover:text-emerald-500",
+        strokeWidth: 2,
+    },
+];
 
 export default function Navbar() {
     const router = useRouter();
@@ -23,13 +78,45 @@ export default function Navbar() {
     const tHome = useTranslations("Home");
     const tNav = useTranslations("Navigation");
 
-    // Hide the global navbar on specific standalone routes (like the AI Agent or Login)
+    // ── Scroll-hide logic (mirrors BackToTopButton pattern) ──
+    const [isNavVisible, setIsNavVisible] = useState(true);
+    const lastScrollY = useRef(0);
+    const ticking = useRef(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (!ticking.current) {
+                window.requestAnimationFrame(() => {
+                    const currentY = window.scrollY;
+                    // Hide when scrolling down past 80px, show when scrolling up
+                    if (currentY > lastScrollY.current && currentY > 80) {
+                        setIsNavVisible(false);
+                    } else {
+                        setIsNavVisible(true);
+                    }
+                    lastScrollY.current = currentY;
+                    ticking.current = false;
+                });
+                ticking.current = true;
+            }
+        };
+
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
     if (pathname === "/login" || pathname === "/health") {
         return null;
     }
 
     const handleNavigation = (path: string) => {
         router.push(`/${locale}/${path}`);
+    };
+
+    // Active route detection — exact match for "/", prefix match for others
+    const isActive = (href: string) => {
+        if (href === "/") return pathname === "/";
+        return pathname.startsWith(href);
     };
 
     return (
@@ -118,76 +205,67 @@ export default function Navbar() {
 
             {/* ── Mobile Bottom Navigation ── */}
             <nav
-                className="fixed right-0 bottom-0 left-0 z-50 flex items-center justify-around border-t border-(--color-border-muted)/60 bg-(--color-surface-page)/90 px-2 py-3 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
+                className={`
+                    fixed right-0 bottom-0 left-0 z-50
+                    flex items-center justify-around
+                    border-t border-(--color-border-muted)/60
+                    bg-(--color-surface-page)/90
+                    px-2 py-3 pb-[env(safe-area-inset-bottom)]
+                    backdrop-blur-md md:hidden
+                    transition-transform duration-300 ease-out
+                    ${isNavVisible ? "translate-y-0" : "translate-y-full"}
+                `}
                 aria-label="Mobile navigation"
             >
-                <Link
-                    href="/"
-                    className="group flex w-16 flex-col items-center gap-1.5"
-                    aria-label={tNav("home")}
-                >
-                    <div className="text-emerald-500 transition-transform group-hover:-translate-y-1">
-                        <Home size={24} strokeWidth={2.5} />
-                    </div>
-                    <span
-                        className={`${mobileNavLabelClassName} text-[11px] font-bold text-emerald-500`}
-                    >
-                        {tNav("home")}
-                    </span>
-                </Link>
-
-                <Link
-                    href="/scan"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
-                    aria-label={tNav("scans")}
-                >
-                    <div className="transition-transform group-hover:-translate-y-1">
-                        <History size={24} strokeWidth={2} />
-                    </div>
-                    <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
-                        {tNav("scans")}
-                    </span>
-                </Link>
-
-                <Link
-                    href="/map"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-(--color-text-muted) transition-colors hover:text-amber-500"
-                    aria-label={tNav("map")}
-                >
-                    <div className="transition-transform group-hover:-translate-y-1">
-                        <MapPin size={24} strokeWidth={2} />
-                    </div>
-                    <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
-                        {tNav("map")}
-                    </span>
-                </Link>
-
-                <Link
-                    href="/alerts"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-(--color-text-muted) transition-colors hover:text-red-500"
-                    aria-label={tNav("alerts")}
-                >
-                    <div className="relative transition-transform group-hover:-translate-y-1">
-                        <Bell size={24} strokeWidth={2} />
-                        <span className="absolute top-0 right-0.5 h-2 w-2 animate-pulse rounded-full border border-(--color-surface-page) bg-red-500"></span>
-                    </div>
-                    <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
-                        {tNav("alerts")}
-                    </span>
-                </Link>
-
-                <Link
-                    href="/profile"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-(--color-text-muted) transition-colors hover:text-emerald-500"
-                    aria-label={tNav("profile")}
-                >
-                    <div className="transition-transform group-hover:-translate-y-1">
-                        <User size={24} strokeWidth={2} />
-                    </div>
-                    <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
-                        {tNav("profile")}
-                    </span>
-                </Link>
+                {MOBILE_NAV_ITEMS.map(({ href, labelKey, icon: Icon, activeColor, hoverColor, strokeWidth, badge = false }) => {
+                    const active = isActive(href);
+                    return (
+                        <Link
+                            key={href}
+                            href={href}
+                            aria-label={tNav(labelKey)}
+                            aria-current={active ? "page" : undefined}
+                            className={`
+                                group flex w-16 flex-col items-center gap-1.5
+                                transition-colors
+                                ${active
+                                    ? activeColor
+                                    : `text-(--color-text-muted) ${hoverColor}`
+                                }
+                            `}
+                        >
+                            <div className={`
+                                relative transition-transform duration-200
+                                group-hover:-translate-y-1
+                                ${active ? "scale-110" : ""}
+                            `}>
+                                <Icon
+                                    size={24}
+                                    strokeWidth={active ? 2.5 : strokeWidth}
+                                />
+                                {/* Alert badge */}
+                                {badge && (
+                                    <span className="absolute top-0 right-0.5 h-2 w-2 animate-pulse rounded-full border border-(--color-surface-page) bg-red-500" />
+                                )}
+                                {/* Active indicator dot */}
+                                {active && (
+                                    <span className={`
+                                        absolute -bottom-1.5 left-1/2 -translate-x-1/2
+                                        h-1 w-1 rounded-full
+                                        ${activeColor.replace("text-", "bg-")}
+                                    `} />
+                                )}
+                            </div>
+                            <span className={`
+                                ${mobileNavLabelClassName}
+                                text-[11px]
+                                ${active ? "font-bold" : "font-semibold"}
+                            `}>
+                                {tNav(labelKey)}
+                            </span>
+                        </Link>
+                    );
+                })}
             </nav>
         </>
     );
