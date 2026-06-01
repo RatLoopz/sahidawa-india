@@ -210,6 +210,7 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json({ text: response.text });
+
     } catch (error: any) {
         const latency_ms = Date.now() - startTime;
         const statusCode: number = error?.status || 500;
