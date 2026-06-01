@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 
+const MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
+
 export async function POST(req: NextRequest) {
     try {
         const formData = await req.formData();
@@ -8,6 +10,18 @@ export async function POST(req: NextRequest) {
 
         if (!file) {
             return NextResponse.json({ error: "No file provided" }, { status: 400 });
+        }
+
+        if (file.size > MAX_UPLOAD_SIZE) {
+            return NextResponse.json(
+                {
+                    error: "file_too_large",
+                    message: `File exceeds maximum upload size of ${MAX_UPLOAD_SIZE / 1024 / 1024} MB`,
+                    maxSize: MAX_UPLOAD_SIZE,
+                    actualSize: file.size,
+                },
+                { status: 413 }
+            );
         }
 
         const cloudName = process.env.CLOUDINARY_CLOUD_NAME;

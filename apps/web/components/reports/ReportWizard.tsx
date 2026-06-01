@@ -28,7 +28,6 @@ import { MedicinePhotoUpload } from "@/components/medicine";
 // eliminating the need to expose unsigned presets or API keys in the client.
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB per file
 const WEBP_FILE_EXTENSION = ".webp";
 
 // ─── Input sanitisation ────────────────────────────────────────────────────────
