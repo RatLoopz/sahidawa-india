@@ -228,6 +228,72 @@
         },
         "footer": "SahiDawa is free, open-source, and built for 1.4 billion Indians. No ads. No premium. No data sold. Ever."
     },
+    "about":{
+        "badge": "GSSoC 2026 Open Source Project",
+        "heroTitle":"About <highlight>SahiDawa</highlight>",
+        "heroSubtitle":"India's first open-source citizen medicine verifier & rural health bridge. Built for Bharat. Not just India.",
+       "features":{
+        "free":"100% Free. Forever.",
+        "languages":"22 Indian Languages",
+        "license":"Open Source MIT License"
+       },
+       "problemSection":{
+        "title":"The Problem We're Solving",
+        "description":"India has a three-layer healthcare crisis that no existing platform solves simultaneously."
+       },
+       "cards":{
+        "fakeMedicines":{
+            "title":"Fake Medicines",
+            "description":"12–25% of medicines in India are fake or substandard — putting 1.4 billion people at risk with zero citizen-facing verification tool."
+        },
+        "ruralHealthcare":{
+            "title":"Rural Healthcare Gap",
+            "description":"65% of India's population lives in rural areas with almost no qualified doctors — over 900 million people without accessible healthcare."
+        },
+        "languageBarrier":{
+            "title":"Language Barrier",
+            "description":"22 official languages — but health information is mostly in English or Hindi, leaving 500M+ non-Hindi speakers behind."
+        }
+       },
+       "realIncident":{
+        "title":"Real Incident — July 2025",
+        "text":"Delhi Police busted a counterfeit medicine ring supplying fake Johnson & Johnson and GSK medicines — made of chalk powder and starch — all the way into government hospitals. Patients had <highlight>zero way to verify</highlight> these medicines before consuming them.",        
+        "highlight":"SahiDawa fixes this. For free. Forever. Open source."
+       },
+       "mission":{
+        "title":"Our Mission",
+        "description":"To empower every Indian citizen — regardless of language, location, or literacy — with the ability to instantly verify medicines, access qualified health guidance, and report counterfeit drugs in their community."
+       },
+       "vision":{
+        "title":"Our Vision",
+        "description":"A Bharat where no child dies from a fake medicine, no farmer's family is misdiagnosed for lack of a doctor, and no language is a barrier to healthcare. Free. Open. Forever."
+       },
+       "coreValues":{
+        "title":"Our Core Values",
+        "cards":{
+            "openSource":{
+                "title":"Open Source",
+                "description":"MIT Licensed. Always."
+            },
+            "freeForever":{
+                "title":"Free Forever",
+                "description":"No hidden costs. Ever."
+            },
+            "inclusive":{
+                "title":"Inclusive",
+                "description":"22 languages. All of Bharat."
+            },
+            "privacy":{
+                "title":"Privacy First",
+                "description":"No data sold. No ads."
+            }
+        }
+       },
+       "contactUs":{
+        "title":"Get In Touch",
+        "subtitle":"Have questions, ideas, or want to contribute? We'd love to hear from you."       
+       } 
+    },       
     "Faq": {
         "badge": "GSSoC 2026 Open Source Project",
         "title": "Frequently Asked",

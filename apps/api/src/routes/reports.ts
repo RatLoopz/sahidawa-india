@@ -10,11 +10,45 @@ import {
 
 const reportsRouter = Router();
 
+// Blocked hostname patterns for image URL SSRF protection.
+// z.string().url() only validates URL format, not destination.
+// An attacker could supply cloud metadata or internal service URLs that may be
+// fetched server-side when the image is processed.
+const BLOCKED_IMAGE_URL_PATTERNS = [
+  /^localhost$/i,
+  /^127\./,
+  /^10\./,
+  /^172\.(1[6-9]|2\d|3[01])\./,
+  /^192\.168\./,
+  /^169\.254\./,
+  /^::1$/,
+  /^fc00:/i,
+  /^fe80:/i,
+];
+
+function isPublicImageUrl(rawUrl: string): boolean {
+  try {
+    const { protocol, hostname } = new URL(rawUrl);
+    if (protocol !== 'https:' && protocol !== 'http:') return false;
+    return !BLOCKED_IMAGE_URL_PATTERNS.some((p) => p.test(hostname));
+  } catch {
+    return false;
+  }
+}
+
+const safeImageUrl = z
+  .string()
+  .url()
+  .refine(isPublicImageUrl, {
+    message:
+      'Image URL must use http(s) and must not point to a private, loopback, or link-local address',
+  });
+
 const createReportSchema = z.object({
   medicineName: z.string().min(2),
   manufacturer: z.string().min(2),
   description: z.string().min(20),
-  images: z.array(z.string().url()).min(1),
+  images: z.array(safeImageUrl).min(1),
   pharmacyName: z.string().min(2),
   address: z.string().min(5),
   city: z.string().min(2),
