@@ -95,9 +95,9 @@ export default function HowItWorksPage() {
             </section>
 
             {/* Timeline Section */}
-            <section className="px-6 py-10">
+            <section className="px-4 py-10 sm:px-6">
                 <div className="mx-auto max-w-6xl">
-                    <div className="flex flex-col gap-6 md:flex-row md:items-stretch md:gap-10">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-5 md:gap-2">
                         {[
                             "Scan Medicine",
                             "Verify Instantly",
@@ -105,20 +105,21 @@ export default function HowItWorksPage() {
                             "Find Pharmacies",
                             "Stay Protected",
                         ].map((item, index) => (
-                            <div key={index} className="relative flex-1">
-                                <div className="h-full rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:border-emerald-300 hover:shadow-xl">
-                                    <div className="dark:text-emerald-450 mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-xl font-bold text-emerald-600 dark:bg-emerald-950/30">
+                            <div key={index} className="relative flex items-center">
+                                <div className="w-full rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-lg md:rounded-3xl md:p-6">
+                                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-lg font-bold text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 md:mb-4 md:h-12 md:w-12 md:text-xl">
                                         {index + 1}
                                     </div>
 
-                                    <h3 className="text-lg font-bold text-(--color-text-primary)">
+                                    <h3 className="text-sm font-bold text-(--color-text-primary) md:text-base lg:text-lg">
                                         {item}
                                     </h3>
                                 </div>
 
                                 {index !== 4 && (
-                                    <div className="absolute top-[52%] left-full ml-2 hidden -translate-y-1/2 text-emerald-400 md:block">
-                                        <ArrowRight size={24} />
+                                    <div className="absolute -right-1.5 top-1/2 z-10 hidden -translate-y-1/2 text-emerald-400 md:block lg:-right-2">
+                                        <ArrowRight size={20} className="lg:hidden" />
+                                        <ArrowRight size={24} className="hidden lg:block" />
                                     </div>
                                 )}
                             </div>
