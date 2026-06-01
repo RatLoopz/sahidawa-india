@@ -4,6 +4,17 @@ import logger from "../utils/logger";
 import { supabase } from "../db/client";
 import { getMlServiceUrl, MISSING_ML_SERVICE_URL_MESSAGE } from "../config/mlService";
 
+/**
+ * Escape ILIKE wildcard characters in a string derived from untrusted input
+ * (e.g. OCR text). In PostgreSQL ILIKE patterns, % matches any sequence of
+ * characters and _ matches any single character. Leaving them unescaped in
+ * OCR-derived text causes overly broad matches that return far more rows than
+ * intended and may expose unrelated medicine records.
+ */
+function escapeIlike(word: string): string {
+    return word.replace(/%/g, "\\%").replace(/_/g, "\\_");
+}
+
 const router = Router();
 
 // ── Allowed image MIME types ─────────────────────────────────────────────────
@@ -332,7 +343,10 @@ router.post("/extract", (req: Request, res: Response) => {
                 if (searchWords.length > 0) {
                     // Build OR filter: brand_name ILIKE any word OR generic_name ILIKE any word
                     const orFilter = searchWords
-                        .map((w) => `brand_name.ilike.%${w}%,generic_name.ilike.%${w}%`)
+                        .map((w) => {
+                            const safe = escapeIlike(w);
+                            return `brand_name.ilike.%${safe}%,generic_name.ilike.%${safe}%`;
+                        })
                         .join(",");
 
                     const { data: dbMedicines, error: dbError } = await supabase
@@ -461,7 +475,7 @@ router.post("/extract", (req: Request, res: Response) => {
                                 "expiry_date, cdsco_approval_status, is_counterfeit_alert, " +
                                 "composition, mrp, jan_aushadhi_price"
                         )
-                        .or(`brand_name.ilike.%${matchedName}%,generic_name.ilike.%${matchedName}%`)
+                        .or(`brand_name.ilike.%${escapeIlike(matchedName)}%,generic_name.ilike.%${escapeIlike(matchedName)}%`)
                         .limit(1)
                         .maybeSingle();
 
