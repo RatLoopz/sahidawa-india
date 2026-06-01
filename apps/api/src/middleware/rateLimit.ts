@@ -2,7 +2,7 @@ import rateLimit from "express-rate-limit";
 
 export const verifyLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 mins
-    max: 20,
+    max: 10,                   // 10 requests per 15 min per IP (stricter for anti-scraping)
     standardHeaders: true,
     legacyHeaders: false,
     handler: (_req, res) => {

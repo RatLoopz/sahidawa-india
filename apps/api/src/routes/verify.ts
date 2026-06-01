@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { supabase } from "../db/client";
 import { verifyLimiter } from "../middleware/rateLimit";
+import { requireApiKey } from "../middleware/apiKey";
 
 const router = Router();
 
@@ -81,7 +82,7 @@ const verifySchema = z.object({
  *                   type: string
  *                   example: "Database lookup failed"
  */
-router.post("/", verifyLimiter, async (req: Request, res: Response) => {
+router.post("/", requireApiKey, verifyLimiter, async (req: Request, res: Response) => {
     const parsed = verifySchema.safeParse(req.body);
 
     if (!parsed.success) {
