@@ -45,47 +45,47 @@ const reportBatchSchema = z.object({
 /**
  * @openapi
  * /api/verify/batch/{batchNumber}:
- * get:
- * tags:
- * - Batch Traceability
- * summary: Get full traceability info for a batch number
- * description: >
- * Returns medicine details, manufacturer information, batch recall status,
- * and expiry color warning for a given batch number.
- * Results are cached for 2 minutes.
- * parameters:
- * - in: path
- * name: batchNumber
- * required: true
- * schema:
- * type: string
- * example: "BN2024001"
- * description: The batch number printed on the medicine packaging
- * responses:
- * 200:
- * description: Batch found with full traceability details
- * content:
- * application/json:
- * schema:
- * type: object
- * properties:
- * found:
- * type: boolean
- * batch:
- * type: object
- * medicine:
- * type: object
- * manufacturer:
- * type: object
- * expiry_status:
- * type: string
- * enum: [green, yellow, red, unknown]
- * 400:
- * description: Invalid batch number format
- * 404:
- * description: Batch not found
- * 500:
- * description: Database error
+ *   get:
+ *     tags:
+ *       - Batch Traceability
+ *     summary: Get full traceability info for a batch number
+ *     description: >
+ *       Returns medicine details, manufacturer information, batch recall status,
+ *       and expiry color warning for a given batch number.
+ *       Results are cached for 2 minutes.
+ *     parameters:
+ *       - in: path
+ *         name: batchNumber
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: "BN2024001"
+ *         description: The batch number printed on the medicine packaging
+ *     responses:
+ *       200:
+ *         description: Batch found with full traceability details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 found:
+ *                   type: boolean
+ *                 batch:
+ *                   type: object
+ *                 medicine:
+ *                   type: object
+ *                 manufacturer:
+ *                   type: object
+ *                 expiry_status:
+ *                   type: string
+ *                   enum: [green, yellow, red, unknown]
+ *       400:
+ *         description: Invalid batch number format
+ *       404:
+ *         description: Batch not found
+ *       500:
+ *         description: Database error
  */
 router.get("/:batchNumber", batchLimiter, async (req: Request, res: Response) => {
     const parsed = batchParamSchema.safeParse({ batchNumber: req.params.batchNumber });
@@ -268,40 +268,40 @@ router.get("/:batchNumber", batchLimiter, async (req: Request, res: Response) =>
 /**
  * @openapi
  * /api/verify/batch/report:
- * post:
- * tags:
- * - Batch Traceability
- * summary: Report a batch issue
- * description: Creates a counterfeit report entry for a specific batch number.
- * requestBody:
- * required: true
- * content:
- * application/json:
- * schema:
- * type: object
- * required:
- * - batchNumber
- * - description
- * properties:
- * batchNumber:
- * type: string
- * example: "BN2024001"
- * description:
- * type: string
- * example: "Tablet colour was different from usual"
- * city:
- * type: string
- * state:
- * type: string
- * pharmacyName:
- * type: string
- * responses:
- * 201:
- * description: Report submitted successfully
- * 400:
- * description: Invalid request body
- * 500:
- * description: Failed to submit report
+ *   post:
+ *     tags:
+ *       - Batch Traceability
+ *     summary: Report a batch issue
+ *     description: Creates a counterfeit report entry for a specific batch number.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - batchNumber
+ *               - description
+ *             properties:
+ *               batchNumber:
+ *                 type: string
+ *                 example: "BN2024001"
+ *               description:
+ *                 type: string
+ *                 example: "Tablet colour was different from usual"
+ *               city:
+ *                 type: string
+ *               state:
+ *                 type: string
+ *               pharmacyName:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Report submitted successfully
+ *       400:
+ *         description: Invalid request body
+ *       500:
+ *         description: Failed to submit report
  */
 router.post("/report", batchLimiter, async (req: Request, res: Response) => {
     const parsed = reportBatchSchema.safeParse(req.body);
