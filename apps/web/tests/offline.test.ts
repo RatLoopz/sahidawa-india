@@ -3,6 +3,7 @@
  * Run with: npm test apps/web -- offline.test.ts
  */
 
+import { join } from "path";
 import { fetchWithRetry, offlineRequestQueue } from "@/lib/apiWithRetry";
 
 describe("Offline Support", () => {
@@ -195,11 +196,77 @@ describe("Offline Support", () => {
     });
 
     describe("Service Worker", () => {
-        // Integration tests:
-        // 1. Service worker installs and activates
-        // 2. API requests cached properly
-        // 3. Static assets cached
-        // 4. Offline responses served
-        // 5. Push notifications handled
+        it("exists as a valid JS file", () => {
+            const fs = require("fs");
+            const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
+            expect(swContent).toContain("self.addEventListener");
+            expect(swContent).toContain("install");
+            expect(swContent).toContain("activate");
+            expect(swContent).toContain("fetch");
+        });
+
+        it("defines expected cache strategies", () => {
+            const fs = require("fs");
+            const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
+            expect(swContent).toContain("sahidawa-offline-");
+            expect(swContent).toContain("sahidawa-api-");
+            expect(swContent).toContain("sahidawa-medicine-");
+            expect(swContent).toContain("sahidawa-static-");
+            expect(swContent).toContain("sahidawa-assets-");
+            expect(swContent).toContain("sahidawa-tiles-");
+        });
+
+        it("handles OSM tile origin for offline maps", () => {
+            const fs = require("fs");
+            const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
+            expect(swContent).toContain("tile.openstreetmap.org");
+            expect(swContent).toContain("sahidawa-tiles-");
+        });
+
+        it("caches medicine lookup APIs with StaleWhileRevalidate", () => {
+            const fs = require("fs");
+            const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
+            expect(swContent).toContain("/api/medicines/");
+            expect(swContent).toContain("/api/verify");
+            expect(swContent).toContain("/api/v1/scan/");
+            expect(swContent).toContain("/api/v1/lasa/");
+            expect(swContent).toContain("MEDICINE_CACHE_NAME");
+        });
+
+        it("caches icons and manifest with CacheFirst", () => {
+            const fs = require("fs");
+            const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
+            expect(swContent).toContain("/icons/");
+            expect(swContent).toContain("/manifest.json");
+            expect(swContent).toContain("ASSETS_CACHE_NAME");
+        });
+
+        it("handles push notification events", () => {
+            const fs = require("fs");
+            const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
+            expect(swContent).toContain('"push"');
+            expect(swContent).toContain("showNotification");
+        });
+
+        it("handles notificationclick events", () => {
+            const fs = require("fs");
+            const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
+            expect(swContent).toContain('"notificationclick"');
+            expect(swContent).toContain("clients.openWindow");
+        });
+
+        it("handles SKIP_WAITING message", () => {
+            const fs = require("fs");
+            const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
+            expect(swContent).toContain("SKIP_WAITING");
+        });
+
+        it("registers service worker via ServiceWorkerProvider", () => {
+            const fs = require("fs");
+            const swProviderPath = join(process.cwd(), "components/ServiceWorkerProvider.tsx");
+            const providerContent = fs.readFileSync(swProviderPath, "utf8");
+            expect(providerContent).toContain('serviceWorker.register("/sw.js"');
+            expect(providerContent).toContain("SKIP_WAITING");
+        });
     });
 });

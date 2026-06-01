@@ -3,10 +3,6 @@ import { supabase } from "../db/client";
 import { z } from "zod";
 import { triggerRecallAlert } from "../services/notifications";
 
-if (!process.env.API_SECRET_KEY) {
-    console.error("CRITICAL ERROR: API_SECRET_KEY is not set. Terminating.");
-    process.exit(1);
-}
 
 const AlertSchema = z
     .object({
@@ -91,10 +87,15 @@ alertsRouter.get("/", async (req: Request, res: Response) => {
  * Protected endpoint to ingest parsed CDSCO alerts from the ML agent.
  */
 alertsRouter.post("/ingest", async (req: Request, res: Response) => {
-    // 1. Validate Secret Header
-    const authHeader = req.headers["x-api-secret"];
+    // 1. Validate Secret Header & Environment Setup
     const expectedSecret = process.env.API_SECRET_KEY;
+    if (!expectedSecret) {
+        console.error("Server Configuration Error: API_SECRET_KEY is not configured.");
+        res.status(500).json({ error: "Ingestion is disabled because API_SECRET_KEY is not configured on the server." });
+        return;
+    }
 
+    const authHeader = req.headers["x-api-secret"];
     if (!authHeader || authHeader !== expectedSecret) {
         res.status(401).json({ error: "Unauthorized access" });
         return;

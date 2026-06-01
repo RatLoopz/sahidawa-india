@@ -14,14 +14,20 @@ from services.alert_extractor import extract_alerts_from_text
 logging.basicConfig(level=logging.INFO)
 
 CDSCO_ALERTS_URL = "https://cdsco.gov.in/opencms/opencms/en/Notifications/Alerts/"
-INGEST_API_URL = os.getenv("API_BASE_URL", "http://localhost:3000") + "/api/v1/alerts/ingest"
+
+API_BASE_URL = os.getenv("API_BASE_URL", "").strip().rstrip("/")
+if not API_BASE_URL:
+    logging.error("CRITICAL ERROR: API_BASE_URL is not set in environment.")
+    sys.exit(1)
+
+INGEST_API_URL = API_BASE_URL + "/api/v1/alerts/ingest"
 
 API_SECRET_KEY = os.getenv("API_SECRET_KEY")
 if not API_SECRET_KEY:
     logging.error("CRITICAL ERROR: API_SECRET_KEY is not set in environment.")
     sys.exit(1)
 
-ALERTS_API_URL = os.getenv("API_BASE_URL", "http://localhost:3000") + "/api/v1/alerts"
+ALERTS_API_URL = API_BASE_URL + "/api/v1/alerts"
 
 def scrape_cdsco_alerts():
     logging.info(f"Checking {CDSCO_ALERTS_URL} for new alerts...")

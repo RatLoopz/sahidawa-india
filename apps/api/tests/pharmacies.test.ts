@@ -3,6 +3,16 @@ process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "test-anon-key"
 
 (global as any).WebSocket = (global as any).WebSocket || class {};
 
+jest.mock("../src/db/client", () => ({
+    supabase: {
+        from: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        ilike: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        maybeSingle: jest.fn(),
+    },
+}));
+
 jest.mock("../src/db/supabase", () => ({
     __esModule: true,
     default: {
@@ -273,6 +283,17 @@ describe("GET /api/pharmacies/in-bounds", () => {
         expect(response.status).toBe(400);
         expect(response.body.error).toBe("Invalid bounds");
         expect(response.body.details).toHaveProperty("south");
+    });
+
+    it("returns 400 when south >= north or west >= east", async () => {
+        const response = await request(app).get(
+            "/api/pharmacies/in-bounds?south=30&west=80&north=20&east=70"
+        );
+
+        expect(response.status).toBe(400);
+        expect(response.body.error).toBe("Invalid bounds");
+        expect(response.body.details).toHaveProperty("south");
+        expect(response.body.details).toHaveProperty("west");
     });
 
     it("returns pharmacies from PostGIS bounds RPC when available", async () => {

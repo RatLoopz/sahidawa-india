@@ -78,25 +78,22 @@ export const updateReportStatus = async (req: AuthenticatedRequest, res: Respons
       if (count && count >= 3) {
         const alertLevel = count >= 10 ? 'high' : 'medium';
 
-        const { data: existingAlert } = await supabase
+        // Replace the previous check-then-insert pattern with a single upsert.
+        // The old pattern had a TOCTOU race window: two concurrent admin actions
+        // on the same district could both pass the existingAlert check and
+        // produce duplicate rows. The upsert with onConflict is atomic and
+        // eliminates the window. The conflict target must match a unique
+        // constraint on (district) in the district_alerts table.
+        await supabase
           .from('district_alerts')
-          .select('id, alert_level')
-          .eq('district', data.district)
-          .maybeSingle();
-
-        if (!existingAlert) {
-          // Create new alert if none exists
-          await supabase.from('district_alerts').insert({
-            district: data.district,
-            medicine_name: data.reported_brand_name,
-            alert_level: alertLevel
-          });
-        } else if (existingAlert.alert_level !== alertLevel) {
-          // Upgrade the alert level if the count threshold changed
-          await supabase.from('district_alerts')
-            .update({ alert_level: alertLevel })
-            .eq('id', existingAlert.id);
-        }
+          .upsert(
+            {
+              district: data.district,
+              medicine_name: data.reported_brand_name,
+              alert_level: alertLevel,
+            },
+            { onConflict: 'district' }
+          );
       }
     }
 

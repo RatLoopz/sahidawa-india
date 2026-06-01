@@ -7,13 +7,16 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createBrowserClient } from "@supabase/ssr";
 import { LiveMessage } from "@/components/ui/LiveMessage";
+import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
 export default function LoginPage() {
     const router = useRouter();
+    const supabaseUrl = getSupabaseUrl();
+    const supabaseKey = getSupabaseAnonKey();
     const isMissingEnvVars =
-        !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        !supabaseUrl || !supabaseKey;
     const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "http://localhost:54321",
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "local-development-key"
+        supabaseUrl,
+        supabaseKey
     );
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
