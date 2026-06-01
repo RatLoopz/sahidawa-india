@@ -1,342 +1,350 @@
 {
-    "Home": {
-        "title": "Your Health, Verified & Protected.",
-        "subtitle": "India's open-source citizen platform to instantly verify medicine authenticity, find safe pharmacies, and receive critical health alerts.",
-        "scan_button": "Scan Medicine",
-        "scan_subtitle": "Point camera at packaging or barcode",
-        "upload_photo": "Upload Photo",
-        "upload_subtitle": "Select from gallery",
-        "voice_triage": "Voice Triage",
-        "voice_subtitle": "Speak symptoms",
-        "pharmacy_map": "Pharmacy Map",
-        "pharmacy_subtitle": "Find verified stores",
-        "report_fake": "Report Fake",
-        "report_fake_subtitle": "Report suspicious medicine",
-        "search_placeholder": "Search medicine or batch...",
-        "search_button": "Search",
-        "sign_in": "Sign In",
-        "get_started": "Get Started",
-        "open_ai_health_assistant": "Open AI Health Assistant",
-        "ai_health_assistant": "AI Health Assistant",
-        "ai_chat": "AI Chat",
-        "ai_health_assistant_description": "Get instant health advice, symptom checking & prescription guidance",
-        "chat_now": "Chat Now",
-        "live_cdsco_alerts": "Live CDSCO Alerts",
-        "india_region": "India Region",
-        "alerts_empty_title": "All clear!",
-        "alerts_empty_description": "No active regulatory alerts right now. Stay safe and verify your medicines.",
-        "view_full_alert_log": "View Full Alert Log",
-        "heroTitle": {
-            "prefix": "Your Health, ",
-            "highlight": "Verified & Protected."
-        }
+  "Home": {
+    "title": "Your Health, Verified & Protected.",
+    "subtitle": "India's open-source citizen platform to instantly verify medicine authenticity, find safe pharmacies, and receive critical health alerts.",
+    "scan_button": "Scan Medicine",
+    "scan_subtitle": "Point camera at packaging or barcode",
+    "upload_photo": "Upload Photo",
+    "upload_subtitle": "Select from gallery",
+    "voice_triage": "Voice Triage",
+    "voice_subtitle": "Speak symptoms",
+    "pharmacy_map": "Pharmacy Map",
+    "pharmacy_subtitle": "Find verified stores",
+    "report_fake": "Report Fake",
+    "report_fake_subtitle": "Report suspicious medicine",
+    "search_placeholder": "Search medicine or batch...",
+    "search_button": "Search",
+    "sign_in": "Sign In",
+    "get_started": "Get Started",
+    "open_ai_health_assistant": "Open AI Health Assistant",
+    "ai_health_assistant": "AI Health Assistant",
+    "ai_chat": "AI Chat",
+    "ai_health_assistant_description": "Get instant health advice, symptom checking & prescription guidance",
+    "chat_now": "Chat Now",
+    "live_cdsco_alerts": "Live CDSCO Alerts",
+    "india_region": "India Region",
+    "alerts_empty_title": "All clear!",
+    "alerts_empty_description": "No active regulatory alerts right now. Stay safe and verify your medicines.",
+    "view_full_alert_log": "View Full Alert Log",
+    "heroTitle": {
+      "prefix": "Your Health, ",
+      "highlight": "Verified & Protected."
     },
-    "Navigation": {
-        "how_it_works": "How it Works",
-        "alerts": "Alerts",
-        "pharmacy_map": "Pharmacy Map",
-        "my_reports": "My Reports",
-        "home": "Home",
-        "scans": "Scans",
-        "map": "Map",
-        "profile": "Profile",
-        "language": "English"
-    },
-    "Scan": {
-        "share": {
-            "button": "Share Result",
-            "title": "SahiDawa Medicine Verification Result",
-            "real_status": "Verified REAL",
-            "suspicious_status": "Marked SUSPICIOUS",
-            "warning_prefix": "WARNING",
-            "verified_by": "by SahiDawa",
-            "batch_label": "Batch",
-            "manufacturer_label": "Manufacturer",
-            "avoid_and_report": "Please avoid and report to your nearest health worker.",
-            "verify_yourself": "Verify yourself",
-            "unknown_medicine": "Unknown medicine",
-            "unknown_batch": "Unknown batch",
-            "unknown_manufacturer": "Unknown manufacturer",
-            "shared_success": "Result shared successfully",
-            "copy_success": "Result copied to clipboard",
-            "failure": "Unable to share this result right now"
-        }
-    },
-    "BackToTopButton": {
-        "label": "Back to top"
-    },
-    "VoicePage": {
-        "header_title": "Voice Triage",
-        "header_subtitle": "Speak your symptoms",
-        "title": "AI Voice Triage",
-        "subtitle": "Speak your symptoms in your local language. SahiDawa AI will help you understand next steps.",
-        "language_selector": "Voice Language",
-        "example_label": "Try saying",
-        "example_text": "\"I have fever and cough\"",
-        "assistant_label": "AI Assistant",
-        "assistant_value": "Listening 24/7",
-        "skip_to_main_content": "Skip to main content",
-        "listening_placeholder": "Start speaking about your symptoms…",
-        "listening_status": "Listening for symptoms",
-        "announcements": {
-            "recording_started": "Recording started",
-            "processing_started": "Processing your symptoms",
-            "results_ready": "Results ready"
-        },
-        "streaming_connecting_hint": "Connecting to live transcription…",
-        "streaming_live_hint": "Live transcript is updating",
-        "streaming_fallback_hint": "Connection is unstable. SahiDawa will finish processing after you stop speaking.",
-        "animation_toggle_label": "Voice animations",
-        "animation_live_label": "Live waveform",
-        "animation_reduced_motion_label": "Reduced motion",
-        "visualizer_label": "Microphone waveform",
-        "volume_label": "Volume level",
-        "volume_live_label": "Live",
-        "volume_still_label": "Still",
-        "visualizer_unavailable": "Live waveform unavailable",
-        "processing_title": "Analysing symptoms",
-        "processing_subtitle": "Checking your symptoms with SahiDawa AI…",
-        "review_title": "Please review your transcript",
-        "review_message": "The microphone picked up your symptoms with low confidence. You can retry for a clearer result or analyse this transcript anyway.",
-        "retry_button": "Try Again",
-        "switch_to_text_button": "Type Instead",
-        "analyse_anyway_button": "Analyse Anyway",
-        "result_heading": "AI Analysis",
-        "result_subheading": "Medical Triage",
-        "transcript_label": "Your Transcript",
-        "confidence_label": "Confidence",
-        "confidence_values": {
-            "high": "High",
-            "medium": "Medium",
-            "low": "Low",
-            "unavailable": "Unavailable"
-        },
-        "recommendations_label": "Recommended Actions",
-        "emergency_title": "Seek immediate medical attention",
-        "emergency_body": "These symptoms may need urgent care. Call 112 or 108 right away, or go to the nearest emergency facility.",
-        "disclaimer": "This guidance is for informational use only and is not a diagnosis. Consult a doctor or pharmacist, especially for severe or worsening symptoms.",
-        "share_button": "Share with Doctor",
-        "speak_button": "Read Aloud",
-        "stop_speaking_button": "Stop Audio",
-        "try_again_button": "Start New Check",
-        "tap_to_speak": "Tap to speak",
-        "stop_listening_label": "Tap again to stop",
-        "start_listening_aria": "Tap to speak your symptoms",
-        "stop_listening_aria": "Listening for symptoms. Tap to stop.",
-        "start_listening_sr": "Start voice input",
-        "stop_listening_sr": "Stop voice input",
-        "footer_note": "Voice guidance is informative only. For serious symptoms, please consult a licensed doctor immediately.",
-        "share_title": "SahiDawa Voice Triage Report",
-        "share_success": "Report shared successfully",
-        "copy_success": "Report copied to clipboard",
-        "share_failure": "Unable to share the report right now",
-        "tts_not_supported": "Your browser does not support text-to-speech",
-        "tts_fallback_message": "Your browser may read this summary aloud in a different voice because {language} text-to-speech support is limited.",
-        "fallback_summary": "SahiDawa could not structure the response clearly. Please consult a doctor if your symptoms continue.",
-        "share_report": {
-            "title": "SahiDawa Voice Triage Report",
-            "timestamp": "Timestamp",
-            "language": "Language",
-            "transcript": "Transcript",
-            "confidence": "Confidence",
-            "emergency": "Emergency Alert",
-            "yes": "Yes",
-            "no": "No",
-            "summary": "Summary",
-            "recommendations": "Recommendations",
-            "disclaimer": "Disclaimer",
-            "default_recommendation": "Follow the advice of a doctor or pharmacist."
-        },
-        "errors": {
-            "unsupported_title": "Voice input is unavailable",
-            "unsupported_message": "This browser does not support speech recognition yet. Please try Chrome or Edge.",
-            "language_not_supported_title": "This browser cannot capture that voice language",
-            "language_not_supported_message": "{language} voice input is limited in this browser. Try Chrome or Edge, or start a new check with another voice language.",
-            "permission_title": "Microphone access is blocked",
-            "permission_message": "Please allow microphone permission in your browser settings and try again.",
-            "microphone_title": "No microphone was detected",
-            "microphone_message": "Check that your microphone is connected and available to this browser tab.",
-            "network_title": "A connection issue interrupted listening",
-            "network_message": "Your browser could not finish the voice capture. Please check your connection and try again.",
-            "no_speech_title": "We could not hear any speech",
-            "no_speech_message": "Try again in a quieter place or speak a little closer to the microphone.",
-            "generic_title": "Something went wrong",
-            "generic_message": "We could not process your voice input this time. Please try again.",
-            "service_unavailable_title": "Voice service unavailable",
-            "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
-            "timeout_title": "Voice request timed out",
-            "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
-            "api_title": "SahiDawa AI is unavailable",
-            "api_message": "We could not get medical guidance right now. Please try again in a moment."
-        }
-    },
-    "offline": {
-        "bannerOffline": "You are offline",
-        "descriptionOffline": "Your changes will sync when connection returns",
-        "bannerOnline": "Back online",
-        "descriptionOnline": "Retrying failed requests...",
-        "dismiss": "Dismiss",
-        "title": "Offline Mode",
-        "description": "You don't have an internet connection right now.",
-        "subtitle": "Some features are unavailable while offline. Try to connect to the internet or browse cached content.",
-        "tryAgain": "Try Again",
-        "goHome": "Go to Home",
-        "footer": "SahiDawa will automatically sync when your connection returns.",
-        "cachedContent": "You can still access previously loaded content",
-        "noCache": "This page was not cached and is not available offline",
-        "redirecting": "Redirecting you to SahiDawa…",
-        "attempt": "(Attempt {retryCount})",
-        "checkingConnection": "Checking connection…",
-        "cachedAvailable": "Previously visited pages may still be available",
-        "cachedVerifications": "Cached Verifications",
-        "savedPharmacies": "Saved Pharmacies",
-        "browsedMedicines": "Browsed Medicines"
-    },
-    "contact": {
-        "badge": "GSSoC 2026 Open Source Project",
-        "heroTitle": {
-            "prefix": "Get In",
-            "highlight": "Touch"
-        },
-        "heroSubtitle": "Have questions, ideas, or want to contribute? We would love to hear from you.",
-        "cards": {
-            "email": {
-                "title": "Email Us",
-                "description": "For privacy queries, partnerships, or serious concerns."
-            },
-            "discord": {
-                "title": "Discord Community",
-                "description": "Join contributors, ask questions, and get announcements.",
-                "cta": "Join Discord"
-            },
-            "bug": {
-                "title": "Report a Bug",
-                "description": "Found an issue? Open a GitHub issue and we will fix it fast.",
-                "cta": "Open Issue"
-            },
-            "contribute": {
-                "title": "Contribute",
-                "description": "Want to help build SahiDawa? Read our contributing guide.",
-                "cta": "Read Guide"
-            }
-        },
-        "quickLinks": {
-            "title": "Helpful Links",
-            "about": "About SahiDawa",
-            "privacy": "Privacy Policy",
-            "faq": "FAQ"
-        },
-        "footer": "SahiDawa is free, open-source, and built for 1.4 billion Indians. No ads. No premium. No data sold. Ever."
-    },
-    "about":{
-        "badge": "GSSoC 2026 Open Source Project",
-        "heroTitle":"About <highlight>SahiDawa</highlight>",
-        "heroSubtitle":"India's first open-source citizen medicine verifier & rural health bridge. Built for Bharat. Not just India.",
-       "features":{
-        "free":"100% Free. Forever.",
-        "languages":"22 Indian Languages",
-        "license":"Open Source MIT License"
-       },
-       "problemSection":{
-        "title":"The Problem We're Solving",
-        "description":"India has a three-layer healthcare crisis that no existing platform solves simultaneously."
-       },
-       "cards":{
-        "fakeMedicines":{
-            "title":"Fake Medicines",
-            "description":"12–25% of medicines in India are fake or substandard — putting 1.4 billion people at risk with zero citizen-facing verification tool."
-        },
-        "ruralHealthcare":{
-            "title":"Rural Healthcare Gap",
-            "description":"65% of India's population lives in rural areas with almost no qualified doctors — over 900 million people without accessible healthcare."
-        },
-        "languageBarrier":{
-            "title":"Language Barrier",
-            "description":"22 official languages — but health information is mostly in English or Hindi, leaving 500M+ non-Hindi speakers behind."
-        }
-       },
-       "realIncident":{
-        "title":"Real Incident — July 2025",
-        "text":"Delhi Police busted a counterfeit medicine ring supplying fake Johnson & Johnson and GSK medicines — made of chalk powder and starch — all the way into government hospitals. Patients had <highlight>zero way to verify</highlight> these medicines before consuming them.",        
-        "highlight":"SahiDawa fixes this. For free. Forever. Open source."
-       },
-       "mission":{
-        "title":"Our Mission",
-        "description":"To empower every Indian citizen — regardless of language, location, or literacy — with the ability to instantly verify medicines, access qualified health guidance, and report counterfeit drugs in their community."
-       },
-       "vision":{
-        "title":"Our Vision",
-        "description":"A Bharat where no child dies from a fake medicine, no farmer's family is misdiagnosed for lack of a doctor, and no language is a barrier to healthcare. Free. Open. Forever."
-       },
-       "coreValues":{
-        "title":"Our Core Values",
-        "cards":{
-            "openSource":{
-                "title":"Open Source",
-                "description":"MIT Licensed. Always."
-            },
-            "freeForever":{
-                "title":"Free Forever",
-                "description":"No hidden costs. Ever."
-            },
-            "inclusive":{
-                "title":"Inclusive",
-                "description":"22 languages. All of Bharat."
-            },
-            "privacy":{
-                "title":"Privacy First",
-                "description":"No data sold. No ads."
-            }
-        }
-       },
-       "contactUs":{
-        "title":"Get In Touch",
-        "subtitle":"Have questions, ideas, or want to contribute? We'd love to hear from you."       
-       } 
-    },       
-    "Faq": {
-        "badge": "GSSoC 2026 Open Source Project",
-        "title": "Frequently Asked",
-        "title_highlight": "Questions",
-        "subtitle": "Everything you need to know about SahiDawa — India's free, open-source medicine verification platform.",
-        "cta": {
-            "title": "Still have questions?",
-            "subtitle": "Can't find the answer you're looking for? Reach out to our community.",
-            "button": "Contact Us"
-        },
-        "items": {
-            "0": {
-                "question": "What is SahiDawa?",
-                "answer": "SahiDawa is India's first open-source citizen medicine verification platform. It helps you verify if your medicine is real or fake, find safe pharmacies nearby, and get health guidance in your language."
-            },
-            "1": {
-                "question": "Is SahiDawa free to use?",
-                "answer": "Yes! SahiDawa is 100% free forever. No ads, no premium plan, no data sold. Ever. It is built for Bharat, by the community."
-            },
-            "2": {
-                "question": "How does medicine verification work?",
-                "answer": "You can scan the barcode or QR code on your medicine packaging. SahiDawa checks it against the official CDSCO database and tells you if the medicine is real, suspicious, or fake."
-            },
-            "3": {
-                "question": "Which languages does SahiDawa support?",
-                "answer": "SahiDawa supports 22 official Indian languages. You can speak your symptoms in your own language using our Voice Health Assistant powered by Whisper and Sarvam AI."
-            },
-            "4": {
-                "question": "How can I report a fake medicine?",
-                "answer": "You can use the 'Report Fake' feature on the homepage. Your report gets added to a community heatmap that helps alert others in your district about counterfeit medicines."
-            },
-            "5": {
-                "question": "Is my data safe with SahiDawa?",
-                "answer": "Absolutely. SahiDawa does not sell your data, show ads, or have any premium plan. Your privacy is our top priority."
-            },
-            "6": {
-                "question": "How can I contribute to SahiDawa?",
-                "answer": "SahiDawa is open source under MIT License. You can contribute on GitHub, report bugs, suggest features, or join as a GSSoC 2026 participant."
-            },
-            "7": {
-                "question": "What is CDSCO?",
-                "answer": "CDSCO stands for Central Drugs Standard Control Organisation. It is India's national regulatory body for cosmetics, pharmaceuticals and medical devices. SahiDawa verifies medicines against their official database."
-            }
-        }
+    "stats_badge": "This Month In India",
+    "stats_title": "Medicine Safety Dashboard",
+    "stats_total_label": "total alerts detected",
+    "stats_all_clear": "All clear this month",
+    "stat_banned": "Banned",
+    "stat_recalled": "Recalled",
+    "stat_counterfeit": "Counterfeit",
+    "stat_nsq": "NSQ"
+  },
+  "Navigation": {
+    "how_it_works": "How it Works",
+    "alerts": "Alerts",
+    "pharmacy_map": "Pharmacy Map",
+    "my_reports": "My Reports",
+    "home": "Home",
+    "scans": "Scans",
+    "map": "Map",
+    "profile": "Profile",
+    "language": "English"
+  },
+  "Scan": {
+    "share": {
+      "button": "Share Result",
+      "title": "SahiDawa Medicine Verification Result",
+      "real_status": "Verified REAL",
+      "suspicious_status": "Marked SUSPICIOUS",
+      "warning_prefix": "WARNING",
+      "verified_by": "by SahiDawa",
+      "batch_label": "Batch",
+      "manufacturer_label": "Manufacturer",
+      "avoid_and_report": "Please avoid and report to your nearest health worker.",
+      "verify_yourself": "Verify yourself",
+      "unknown_medicine": "Unknown medicine",
+      "unknown_batch": "Unknown batch",
+      "unknown_manufacturer": "Unknown manufacturer",
+      "shared_success": "Result shared successfully",
+      "copy_success": "Result copied to clipboard",
+      "failure": "Unable to share this result right now"
     }
+  },
+  "BackToTopButton": {
+    "label": "Back to top"
+  },
+  "VoicePage": {
+    "header_title": "Voice Triage",
+    "header_subtitle": "Speak your symptoms",
+    "title": "AI Voice Triage",
+    "subtitle": "Speak your symptoms in your local language. SahiDawa AI will help you understand next steps.",
+    "language_selector": "Voice Language",
+    "example_label": "Try saying",
+    "example_text": "\"I have fever and cough\"",
+    "assistant_label": "AI Assistant",
+    "assistant_value": "Listening 24/7",
+    "skip_to_main_content": "Skip to main content",
+    "listening_placeholder": "Start speaking about your symptoms…",
+    "listening_status": "Listening for symptoms",
+    "announcements": {
+      "recording_started": "Recording started",
+      "processing_started": "Processing your symptoms",
+      "results_ready": "Results ready"
+    },
+    "streaming_connecting_hint": "Connecting to live transcription…",
+    "streaming_live_hint": "Live transcript is updating",
+    "streaming_fallback_hint": "Connection is unstable. SahiDawa will finish processing after you stop speaking.",
+    "animation_toggle_label": "Voice animations",
+    "animation_live_label": "Live waveform",
+    "animation_reduced_motion_label": "Reduced motion",
+    "visualizer_label": "Microphone waveform",
+    "volume_label": "Volume level",
+    "volume_live_label": "Live",
+    "volume_still_label": "Still",
+    "visualizer_unavailable": "Live waveform unavailable",
+    "processing_title": "Analysing symptoms",
+    "processing_subtitle": "Checking your symptoms with SahiDawa AI…",
+    "review_title": "Please review your transcript",
+    "review_message": "The microphone picked up your symptoms with low confidence. You can retry for a clearer result or analyse this transcript anyway.",
+    "retry_button": "Try Again",
+    "switch_to_text_button": "Type Instead",
+    "analyse_anyway_button": "Analyse Anyway",
+    "result_heading": "AI Analysis",
+    "result_subheading": "Medical Triage",
+    "transcript_label": "Your Transcript",
+    "confidence_label": "Confidence",
+    "confidence_values": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "unavailable": "Unavailable"
+    },
+    "recommendations_label": "Recommended Actions",
+    "emergency_title": "Seek immediate medical attention",
+    "emergency_body": "These symptoms may need urgent care. Call 112 or 108 right away, or go to the nearest emergency facility.",
+    "disclaimer": "This guidance is for informational use only and is not a diagnosis. Consult a doctor or pharmacist, especially for severe or worsening symptoms.",
+    "share_button": "Share with Doctor",
+    "speak_button": "Read Aloud",
+    "stop_speaking_button": "Stop Audio",
+    "try_again_button": "Start New Check",
+    "tap_to_speak": "Tap to speak",
+    "stop_listening_label": "Tap again to stop",
+    "start_listening_aria": "Tap to speak your symptoms",
+    "stop_listening_aria": "Listening for symptoms. Tap to stop.",
+    "start_listening_sr": "Start voice input",
+    "stop_listening_sr": "Stop voice input",
+    "footer_note": "Voice guidance is informative only. For serious symptoms, please consult a licensed doctor immediately.",
+    "share_title": "SahiDawa Voice Triage Report",
+    "share_success": "Report shared successfully",
+    "copy_success": "Report copied to clipboard",
+    "share_failure": "Unable to share the report right now",
+    "tts_not_supported": "Your browser does not support text-to-speech",
+    "tts_fallback_message": "Your browser may read this summary aloud in a different voice because {language} text-to-speech support is limited.",
+    "fallback_summary": "SahiDawa could not structure the response clearly. Please consult a doctor if your symptoms continue.",
+    "share_report": {
+      "title": "SahiDawa Voice Triage Report",
+      "timestamp": "Timestamp",
+      "language": "Language",
+      "transcript": "Transcript",
+      "confidence": "Confidence",
+      "emergency": "Emergency Alert",
+      "yes": "Yes",
+      "no": "No",
+      "summary": "Summary",
+      "recommendations": "Recommendations",
+      "disclaimer": "Disclaimer",
+      "default_recommendation": "Follow the advice of a doctor or pharmacist."
+    },
+    "errors": {
+      "unsupported_title": "Voice input is unavailable",
+      "unsupported_message": "This browser does not support speech recognition yet. Please try Chrome or Edge.",
+      "language_not_supported_title": "This browser cannot capture that voice language",
+      "language_not_supported_message": "{language} voice input is limited in this browser. Try Chrome or Edge, or start a new check with another voice language.",
+      "permission_title": "Microphone access is blocked",
+      "permission_message": "Please allow microphone permission in your browser settings and try again.",
+      "microphone_title": "No microphone was detected",
+      "microphone_message": "Check that your microphone is connected and available to this browser tab.",
+      "network_title": "A connection issue interrupted listening",
+      "network_message": "Your browser could not finish the voice capture. Please check your connection and try again.",
+      "no_speech_title": "We could not hear any speech",
+      "no_speech_message": "Try again in a quieter place or speak a little closer to the microphone.",
+      "generic_title": "Something went wrong",
+      "generic_message": "We could not process your voice input this time. Please try again.",
+      "service_unavailable_title": "Voice service unavailable",
+      "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
+      "timeout_title": "Voice request timed out",
+      "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
+      "api_title": "SahiDawa AI is unavailable",
+      "api_message": "We could not get medical guidance right now. Please try again in a moment."
+    }
+  },
+  "offline": {
+    "bannerOffline": "You are offline",
+    "descriptionOffline": "Your changes will sync when connection returns",
+    "bannerOnline": "Back online",
+    "descriptionOnline": "Retrying failed requests...",
+    "dismiss": "Dismiss",
+    "title": "Offline Mode",
+    "description": "You don't have an internet connection right now.",
+    "subtitle": "Some features are unavailable while offline. Try to connect to the internet or browse cached content.",
+    "tryAgain": "Try Again",
+    "goHome": "Go to Home",
+    "footer": "SahiDawa will automatically sync when your connection returns.",
+    "cachedContent": "You can still access previously loaded content",
+    "noCache": "This page was not cached and is not available offline",
+    "redirecting": "Redirecting you to SahiDawa…",
+    "attempt": "(Attempt {retryCount})",
+    "checkingConnection": "Checking connection…",
+    "cachedAvailable": "Previously visited pages may still be available",
+    "cachedVerifications": "Cached Verifications",
+    "savedPharmacies": "Saved Pharmacies",
+    "browsedMedicines": "Browsed Medicines"
+  },
+  "contact": {
+    "badge": "GSSoC 2026 Open Source Project",
+    "heroTitle": {
+      "prefix": "Get In",
+      "highlight": "Touch"
+    },
+    "heroSubtitle": "Have questions, ideas, or want to contribute? We would love to hear from you.",
+    "cards": {
+      "email": {
+        "title": "Email Us",
+        "description": "For privacy queries, partnerships, or serious concerns."
+      },
+      "discord": {
+        "title": "Discord Community",
+        "description": "Join contributors, ask questions, and get announcements.",
+        "cta": "Join Discord"
+      },
+      "bug": {
+        "title": "Report a Bug",
+        "description": "Found an issue? Open a GitHub issue and we will fix it fast.",
+        "cta": "Open Issue"
+      },
+      "contribute": {
+        "title": "Contribute",
+        "description": "Want to help build SahiDawa? Read our contributing guide.",
+        "cta": "Read Guide"
+      }
+    },
+    "quickLinks": {
+      "title": "Helpful Links",
+      "about": "About SahiDawa",
+      "privacy": "Privacy Policy",
+      "faq": "FAQ"
+    },
+    "footer": "SahiDawa is free, open-source, and built for 1.4 billion Indians. No ads. No premium. No data sold. Ever."
+  },
+  "about": {
+    "badge": "GSSoC 2026 Open Source Project",
+    "heroTitle": "About <highlight>SahiDawa</highlight>",
+    "heroSubtitle": "India's first open-source citizen medicine verifier & rural health bridge. Built for Bharat. Not just India.",
+    "features": {
+      "free": "100% Free. Forever.",
+      "languages": "22 Indian Languages",
+      "license": "Open Source MIT License"
+    },
+    "problemSection": {
+      "title": "The Problem We're Solving",
+      "description": "India has a three-layer healthcare crisis that no existing platform solves simultaneously."
+    },
+    "cards": {
+      "fakeMedicines": {
+        "title": "Fake Medicines",
+        "description": "12–25% of medicines in India are fake or substandard — putting 1.4 billion people at risk with zero citizen-facing verification tool."
+      },
+      "ruralHealthcare": {
+        "title": "Rural Healthcare Gap",
+        "description": "65% of India's population lives in rural areas with almost no qualified doctors — over 900 million people without accessible healthcare."
+      },
+      "languageBarrier": {
+        "title": "Language Barrier",
+        "description": "22 official languages — but health information is mostly in English or Hindi, leaving 500M+ non-Hindi speakers behind."
+      }
+    },
+    "realIncident": {
+      "title": "Real Incident — July 2025",
+      "text": "Delhi Police busted a counterfeit medicine ring supplying fake Johnson & Johnson and GSK medicines — made of chalk powder and starch — all the way into government hospitals. Patients had <highlight>zero way to verify</highlight> these medicines before consuming them.",
+      "highlight": "SahiDawa fixes this. For free. Forever. Open source."
+    },
+    "mission": {
+      "title": "Our Mission",
+      "description": "To empower every Indian citizen — regardless of language, location, or literacy — with the ability to instantly verify medicines, access qualified health guidance, and report counterfeit drugs in their community."
+    },
+    "vision": {
+      "title": "Our Vision",
+      "description": "A Bharat where no child dies from a fake medicine, no farmer's family is misdiagnosed for lack of a doctor, and no language is a barrier to healthcare. Free. Open. Forever."
+    },
+    "coreValues": {
+      "title": "Our Core Values",
+      "cards": {
+        "openSource": {
+          "title": "Open Source",
+          "description": "MIT Licensed. Always."
+        },
+        "freeForever": {
+          "title": "Free Forever",
+          "description": "No hidden costs. Ever."
+        },
+        "inclusive": {
+          "title": "Inclusive",
+          "description": "22 languages. All of Bharat."
+        },
+        "privacy": {
+          "title": "Privacy First",
+          "description": "No data sold. No ads."
+        }
+      }
+    },
+    "contactUs": {
+      "title": "Get In Touch",
+      "subtitle": "Have questions, ideas, or want to contribute? We'd love to hear from you."
+    }
+  },
+  "Faq": {
+    "badge": "GSSoC 2026 Open Source Project",
+    "title": "Frequently Asked",
+    "title_highlight": "Questions",
+    "subtitle": "Everything you need to know about SahiDawa — India's free, open-source medicine verification platform.",
+    "cta": {
+      "title": "Still have questions?",
+      "subtitle": "Can't find the answer you're looking for? Reach out to our community.",
+      "button": "Contact Us"
+    },
+    "items": {
+      "0": {
+        "question": "What is SahiDawa?",
+        "answer": "SahiDawa is India's first open-source citizen medicine verification platform. It helps you verify if your medicine is real or fake, find safe pharmacies nearby, and get health guidance in your language."
+      },
+      "1": {
+        "question": "Is SahiDawa free to use?",
+        "answer": "Yes! SahiDawa is 100% free forever. No ads, no premium plan, no data sold. Ever. It is built for Bharat, by the community."
+      },
+      "2": {
+        "question": "How does medicine verification work?",
+        "answer": "You can scan the barcode or QR code on your medicine packaging. SahiDawa checks it against the official CDSCO database and tells you if the medicine is real, suspicious, or fake."
+      },
+      "3": {
+        "question": "Which languages does SahiDawa support?",
+        "answer": "SahiDawa supports 22 official Indian languages. You can speak your symptoms in your own language using our Voice Health Assistant powered by Whisper and Sarvam AI."
+      },
+      "4": {
+        "question": "How can I report a fake medicine?",
+        "answer": "You can use the 'Report Fake' feature on the homepage. Your report gets added to a community heatmap that helps alert others in your district about counterfeit medicines."
+      },
+      "5": {
+        "question": "Is my data safe with SahiDawa?",
+        "answer": "Absolutely. SahiDawa does not sell your data, show ads, or have any premium plan. Your privacy is our top priority."
+      },
+      "6": {
+        "question": "How can I contribute to SahiDawa?",
+        "answer": "SahiDawa is open source under MIT License. You can contribute on GitHub, report bugs, suggest features, or join as a GSSoC 2026 participant."
+      },
+      "7": {
+        "question": "What is CDSCO?",
+        "answer": "CDSCO stands for Central Drugs Standard Control Organisation. It is India's national regulatory body for cosmetics, pharmaceuticals and medical devices. SahiDawa verifies medicines against their official database."
+      }
+    }
+  }
 }

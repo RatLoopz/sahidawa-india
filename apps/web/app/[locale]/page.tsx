@@ -18,6 +18,7 @@ import { supabase } from "@/lib/supabase";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import SearchBar from "./components/SearchBar";
+import SafetyStatsBanner from "./components/SafetyStatsBanner";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 
@@ -123,6 +124,9 @@ export default function SahiDawaHome() {
                 </section>
 
                 <div className="container mx-auto max-w-6xl px-4">
+                    {/* ── Medicine Safety Stats Banner ── */}
+                    <SafetyStatsBanner />
+
                     {/* ── Primary Action: Scan Medicine ── */}
                     <section className="mt-4 mb-10">
                         <button
