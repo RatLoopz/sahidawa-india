@@ -40,15 +40,20 @@ export default function FAQPage() {
             </section>
 
             {/* FAQ List */}
-            <section className="container mx-auto max-w-4xl px-4 py-16">
+            <section className="container mx-auto max-w-4xl px-4 py-16" aria-label={t("title")}>
                 <div className="space-y-4">
                     {["0", "1", "2", "3", "4", "5", "6", "7"].map((key, i) => (
                         <div
                             key={i}
+                            role="region"
+                            aria-labelledby={`faq-question-${i}`}
                             className="overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/30 hover:shadow-md active:scale-[0.998]"
                         >
                             <button
                                 onClick={() => toggle(i)}
+                                id={`faq-question-${i}`}
+                                aria-expanded={openIndex === i}
+                                aria-controls={`faq-answer-${i}`}
                                 className="flex w-full items-center justify-between px-6 py-5 text-left transition-colors duration-200 hover:bg-emerald-500/[0.01]"
                             >
                                 <div className="flex items-center gap-3">
@@ -68,7 +73,12 @@ export default function FAQPage() {
                                 </div>
                             </button>
                             {openIndex === i && (
-                                <div className="border-t border-(--color-border-muted) px-6 pt-4 pb-5 text-sm leading-relaxed font-medium text-(--color-text-secondary)">
+                                <div
+                                    id={`faq-answer-${i}`}
+                                    role="region"
+                                    aria-labelledby={`faq-question-${i}`}
+                                    className="border-t border-(--color-border-muted) px-6 pt-4 pb-5 text-sm leading-relaxed font-medium text-(--color-text-secondary)"
+                                >
                                     {t(`items.${key}.answer`)}
                                 </div>
                             )}
