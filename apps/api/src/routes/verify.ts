@@ -2,8 +2,25 @@ import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { supabase } from "../db/client";
 import { verifyLimiter } from "../middleware/rateLimit";
+import { requireAuth } from "../middleware/auth";
+
+const ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "https://sahidawa.vercel.app",
+    "https://sahidawa-india.vercel.app",
+    "https://sahidawa.goswav.in",
+];
 
 const router = Router();
+
+function isAllowedOrigin(req: Request): boolean {
+    const origin = req.headers.origin;
+    const referer = req.headers.referer;
+    const source = origin || (referer ? new URL(referer).origin : null);
+    if (!source) return false;
+    return ALLOWED_ORIGINS.includes(source);
+}
 
 const verifySchema = z.object({
     batchNumber: z
@@ -81,7 +98,13 @@ const verifySchema = z.object({
  *                   type: string
  *                   example: "Database lookup failed"
  */
-router.post("/", verifyLimiter, async (req: Request, res: Response) => {
+router.post("/", requireAuth, verifyLimiter, (req: Request, res: Response, next) => {
+    if (!isAllowedOrigin(req)) {
+        res.status(403).json({ error: "Access denied: unrecognized origin" });
+        return;
+    }
+    next();
+}, async (req: Request, res: Response) => {
     const parsed = verifySchema.safeParse(req.body);
 
     if (!parsed.success) {
