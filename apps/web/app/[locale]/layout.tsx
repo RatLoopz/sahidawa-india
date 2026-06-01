@@ -61,7 +61,23 @@ export default async function LocaleLayout({
 
     return (
         <html lang={locale} suppressHydrationWarning>
-            {/* REPLACE YOUR OLD BODY TAG WITH THIS ONE: */}
+            <head>
+                {/* Prevent flash of incorrect theme on page load */}
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `
+                            (function() {
+                                try {
+                                    var theme = localStorage.getItem('theme');
+                                    if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                                        document.documentElement.classList.add('dark');
+                                    }
+                                } catch (e) {}
+                            })();
+                        `,
+                    }}
+                />
+            </head>
             <body className="bg-(--color-surface-page) text-(--color-text-primary) transition-colors duration-300">
                 <ServiceWorkerProvider>
                     <ThemeProvider>
