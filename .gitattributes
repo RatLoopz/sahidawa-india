@@ -1,0 +1,11 @@
+# Normalize line endings to LF for cross-platform consistency.
+# Git stores text files with LF in the repository and checks them out as LF,
+# preventing CRLF/LF differences from showing up as spurious diffs.
+* text=auto eol=lf
+
+# Explicitly mark binary files so Git never alters their contents.
+*.png binary
+*.ico binary
+*.wav binary
+*.tflite binary
+*.keras binary

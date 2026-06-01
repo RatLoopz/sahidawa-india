@@ -56,10 +56,41 @@ const options: swaggerJsdoc.Options = {
             timestamp: { type: "string", format: "date-time" },
           },
         },
+        Batch: {
+          type: "object",
+          properties: {
+            batch_number: { type: "string", example: "BN2024001" },
+            manufacturing_date: { type: "string", format: "date", example: "2024-01-01" },
+            expiry_date: { type: "string", format: "date", example: "2026-12-31" },
+            recall_status: { type: "string", enum: ["none", "recalled", "under_review"], example: "none" },
+            recall_reason: { type: "string", nullable: true },
+          },
+        },
+        Manufacturer: {
+          type: "object",
+          properties: {
+            name: { type: "string", example: "Micro Labs Ltd" },
+            license_number: { type: "string", example: "MH/DRUGS/KD/G-I/60" },
+            address: { type: "string" },
+            city: { type: "string", example: "Mumbai" },
+            state: { type: "string", example: "Maharashtra" },
+            phone: { type: "string" },
+            email: { type: "string" },
+            gmp_certified: { type: "boolean", example: true },
+            coordinates: {
+              type: "object",
+              nullable: true,
+              properties: {
+                lat: { type: "number" },
+                lng: { type: "number" },
+              },
+            },
+          },
+        },
       },
     },
   },
-  apis: ["./src/routes/*.ts", "./src/app.ts"],
+  apis: ["./src/routes/*.ts", "./src/routes/batch.ts", "./src/app.ts"],
 };
 
 export const swaggerSpec = swaggerJsdoc(options);

@@ -14,6 +14,7 @@ interface PageHeaderProps {
     variant?: "dark" | "light";
     showLanguage?: boolean;
     languageName?: string;
+    showThemeToggle?: boolean;
     children?: React.ReactNode;
 }
 
@@ -24,6 +25,7 @@ export const PageHeader = ({
     variant = "dark",
     showLanguage = false,
     languageName,
+    showThemeToggle = true,
     children,
 }: PageHeaderProps) => {
     const isDark = variant === "dark";
@@ -66,7 +68,7 @@ export const PageHeader = ({
                 )}
 
                 <div className="flex shrink-0 items-center justify-end gap-2">
-                    <ThemeToggle />
+                    {showThemeToggle && <ThemeToggle />}
                     {showLanguage ? (
                         <div
                             className="flex items-center gap-1.5 rounded-full border border-(--color-border-muted) bg-(--color-surface-page) px-3 py-1.5 shadow-sm"

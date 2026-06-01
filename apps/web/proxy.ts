@@ -3,6 +3,7 @@ import { routing } from './i18n/routing';
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getSupabaseUrl, getSupabaseAnonKey } from '@/lib/env';
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -10,8 +11,8 @@ export default async function middleware(req: NextRequest) {
   const res = intlMiddleware(req);
   
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || "http://localhost:54321",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "local-development-key",
+    getSupabaseUrl(),
+    getSupabaseAnonKey(),
     {
       cookies: {
         getAll() {
@@ -28,7 +29,7 @@ export default async function middleware(req: NextRequest) {
   );
   
   const { data: { session } } = await supabase.auth.getSession();
-
+  
   const { pathname } = req.nextUrl;
   
   if (/^\/[a-z]{2}\/admin\//.test(pathname) || /^\/[a-z]{2}\/admin$/.test(pathname)) {
@@ -37,7 +38,7 @@ export default async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL(`/${locale}/login`, req.url));
     }
   }
-
+  
   return res;
 }
 
