@@ -179,9 +179,7 @@ export default function Navbar() {
                                 <MessageCircle size={17} />
                             </button>
 
-                            <div
-                                className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 rounded-md bg-slate-900 px-2 py-1 text-xs font-medium text-white whitespace-nowrap opacity-0 transition-all duration-200 group-hover:opacity-100"
-                            >
+                            <div className="pointer-events-none absolute top-full left-1/2 z-50 mt-2 -translate-x-1/2 rounded-md bg-slate-900 px-2 py-1 text-xs font-medium whitespace-nowrap text-white opacity-0 transition-all duration-200 group-hover:opacity-100">
                                 Health Companion
                             </div>
                         </div>
@@ -189,9 +187,7 @@ export default function Navbar() {
                         <div className="group relative flex items-center">
                             <LanguageSwitcher />
 
-                            <div
-                                className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 rounded-md bg-slate-900 px-2 py-1 text-xs font-medium text-white whitespace-nowrap opacity-0 transition-all duration-200 group-hover:opacity-100"
-                            >
+                            <div className="pointer-events-none absolute top-full left-1/2 z-50 mt-2 -translate-x-1/2 rounded-md bg-slate-900 px-2 py-1 text-xs font-medium whitespace-nowrap text-white opacity-0 transition-all duration-200 group-hover:opacity-100">
                                 Language
                             </div>
                         </div>
@@ -222,67 +218,54 @@ export default function Navbar() {
 
             {/* ── Mobile Bottom Navigation ── */}
             <nav
-                className={`
-                    fixed right-0 bottom-0 left-0 z-50
-                    flex items-center justify-around
-                    border-t border-(--color-border-muted)/60
-                    bg-(--color-surface-page)/90
-                    px-2 py-3 pb-[env(safe-area-inset-bottom)]
-                    backdrop-blur-md md:hidden
-                    transition-transform duration-300 ease-out
-                    ${isNavVisible ? "translate-y-0" : "translate-y-full"}
-                `}
+                className={`fixed right-0 bottom-0 left-0 z-50 flex items-center justify-around border-t border-(--color-border-muted)/60 bg-(--color-surface-page)/90 px-2 py-3 pb-[env(safe-area-inset-bottom)] backdrop-blur-md transition-transform duration-300 ease-out md:hidden ${isNavVisible ? "translate-y-0" : "translate-y-full"} `}
                 aria-label="Mobile navigation"
             >
-                {MOBILE_NAV_ITEMS.map(({ href, labelKey, icon: Icon, activeColor, hoverColor, strokeWidth, badge = false }) => {
-                    const active = isActive(href);
-                    return (
-                        <Link
-                            key={href}
-                            href={href}
-                            aria-label={tNav(labelKey)}
-                            aria-current={active ? "page" : undefined}
-                            className={`
-                                group flex w-16 flex-col items-center gap-1.5
-                                transition-colors
-                                ${active
-                                    ? activeColor
-                                    : `text-(--color-text-muted) ${hoverColor}`
-                                }
-                            `}
-                        >
-                            <div className={`
-                                relative transition-transform duration-200
-                                group-hover:-translate-y-1
-                                ${active ? "scale-110" : ""}
-                            `}>
-                                <Icon
-                                    size={24}
-                                    strokeWidth={active ? 2.5 : strokeWidth}
-                                />
-                                {/* Alert badge */}
-                                {badge && (
-                                    <span className="absolute top-0 right-0.5 h-2 w-2 animate-pulse rounded-full border border-(--color-surface-page) bg-red-500" />
-                                )}
-                                {/* Active indicator dot */}
-                                {active && (
-                                    <span className={`
-                                        absolute -bottom-1.5 left-1/2 -translate-x-1/2
-                                        h-1 w-1 rounded-full
-                                        ${activeColor.replace("text-", "bg-")}
-                                    `} />
-                                )}
-                            </div>
-                            <span className={`
-                                ${mobileNavLabelClassName}
-                                text-[11px]
-                                ${active ? "font-bold" : "font-semibold"}
-                            `}>
-                                {tNav(labelKey)}
-                            </span>
-                        </Link>
-                    );
-                })}
+                {MOBILE_NAV_ITEMS.map(
+                    ({
+                        href,
+                        labelKey,
+                        icon: Icon,
+                        activeColor,
+                        hoverColor,
+                        strokeWidth,
+                        badge = false,
+                    }) => {
+                        const active = isActive(href);
+                        return (
+                            <Link
+                                key={href}
+                                href={href}
+                                aria-label={tNav(labelKey)}
+                                aria-current={active ? "page" : undefined}
+                                className={`group flex w-16 flex-col items-center gap-1.5 transition-colors ${
+                                    active ? activeColor : `text-(--color-text-muted) ${hoverColor}`
+                                } `}
+                            >
+                                <div
+                                    className={`relative transition-transform duration-200 group-hover:-translate-y-1 ${active ? "scale-110" : ""} `}
+                                >
+                                    <Icon size={24} strokeWidth={active ? 2.5 : strokeWidth} />
+                                    {/* Alert badge */}
+                                    {badge && (
+                                        <span className="absolute top-0 right-0.5 h-2 w-2 animate-pulse rounded-full border border-(--color-surface-page) bg-red-500" />
+                                    )}
+                                    {/* Active indicator dot */}
+                                    {active && (
+                                        <span
+                                            className={`absolute -bottom-1.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full ${activeColor.replace("text-", "bg-")} `}
+                                        />
+                                    )}
+                                </div>
+                                <span
+                                    className={` ${mobileNavLabelClassName} text-[11px] ${active ? "font-bold" : "font-semibold"} `}
+                                >
+                                    {tNav(labelKey)}
+                                </span>
+                            </Link>
+                        );
+                    }
+                )}
             </nav>
         </>
     );

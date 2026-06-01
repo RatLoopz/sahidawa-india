@@ -19,6 +19,7 @@ Prior to this change, our `scan` API endpoint, specifically the `/extract` route
 The core of this change is the introduction of a new private utility function, `escapeIlike(word: string): string`, within `apps/api/src/routes/scan.ts`. This function takes a string `word` as input and returns a new string where all occurrences of the `%` character are replaced with `\%` and all occurrences of the `_` character are replaced with `\_`. This escaping mechanism neutralizes their special wildcard meaning within PostgreSQL `ILIKE` patterns.
 
 The `escapeIlike` function uses JavaScript's `String.prototype.replace()` method with global regular expressions:
+
 - `word.replace(/%/g, "\\%")` targets all global occurrences of `%` and replaces them with the escaped sequence `\%`.
 - `word.replace(/_/g, "\\_")` targets all global occurrences of `_` and replaces them with the escaped sequence `\_`.
 
@@ -31,7 +32,7 @@ The `supabase` client is used for all database interactions, and its `or()` meth
 
 ## Technical Decisions
 
-We chose to implement a simple, localized `escapeIlike` function directly within `apps/api/src/routes/scan.ts` rather than a more generic utility module or a third-party library. This decision was driven by the specific and isolated nature of the problem: only two `ILIKE` interpolation sites within this single route were affected. Using regular expressions (`/g` flag for global replacement) with `String.prototype.replace()` is a standard and efficient way to perform character escaping in JavaScript, providing clear and concise code without introducing new dependencies. The decision to prepend and append `%` to the search term (e.g., `.%${safe}%`) indicates a design choice to allow partial matches starting anywhere within the `brand_name` or `generic_name` fields, which is appropriate for OCR-derived, potentially incomplete or noisy, search terms. The escaping ensures that only the *intended* wildcards (the ones we explicitly add) are active, not those accidentally present in the OCR text.
+We chose to implement a simple, localized `escapeIlike` function directly within `apps/api/src/routes/scan.ts` rather than a more generic utility module or a third-party library. This decision was driven by the specific and isolated nature of the problem: only two `ILIKE` interpolation sites within this single route were affected. Using regular expressions (`/g` flag for global replacement) with `String.prototype.replace()` is a standard and efficient way to perform character escaping in JavaScript, providing clear and concise code without introducing new dependencies. The decision to prepend and append `%` to the search term (e.g., `.%${safe}%`) indicates a design choice to allow partial matches starting anywhere within the `brand_name` or `generic_name` fields, which is appropriate for OCR-derived, potentially incomplete or noisy, search terms. The escaping ensures that only the _intended_ wildcards (the ones we explicitly add) are active, not those accidentally present in the OCR text.
 
 ## How To Re-Implement (Contributor Reference)
 
@@ -40,16 +41,16 @@ To re-implement this feature from scratch, a contributor would follow these step
 1.  **Identify Vulnerable `ILIKE` Interpolations:** Scan the codebase for any instances where user-controlled or untrusted string input (like OCR results, user search queries, etc.) is directly interpolated into a PostgreSQL `ILIKE` pattern string. Look for patterns such as `.ilike.%${variable}%` or `.ilike('${variable}')`.
 2.  **Understand `ILIKE` Wildcards:** Recall that PostgreSQL's `ILIKE` operator uses `%` for multi-character wildcards and `_` for single-character wildcards. These must be escaped if they are part of the literal search term.
 3.  **Create an Escaping Function:**
-    *   Define a function, for example, `function escapeIlike(inputString: string): string`.
-    *   Inside this function, use `String.prototype.replace()` with global regular expressions to replace the wildcard characters.
-    *   `inputString = inputString.replace(/%/g, "\\%");`
-    *   `inputString = inputString.replace(/_/g, "\\_");`
-    *   Return the `inputString`.
-    *   For example, in `apps/api/src/routes/scan.ts`, this function was placed near the top of the file, before the router definition.
+    - Define a function, for example, `function escapeIlike(inputString: string): string`.
+    - Inside this function, use `String.prototype.replace()` with global regular expressions to replace the wildcard characters.
+    - `inputString = inputString.replace(/%/g, "\\%");`
+    - `inputString = inputString.replace(/_/g, "\\_");`
+    - Return the `inputString`.
+    - For example, in `apps/api/src/routes/scan.ts`, this function was placed near the top of the file, before the router definition.
 4.  **Apply the Escaping Function:**
-    *   Locate each identified `ILIKE` interpolation site.
-    *   Before passing the untrusted variable to the `ILIKE` pattern, apply the `escapeIlike` function to it.
-    *   **Example 1 (within a `map` function):**
+    - Locate each identified `ILIKE` interpolation site.
+    - Before passing the untrusted variable to the `ILIKE` pattern, apply the `escapeIlike` function to it.
+    - **Example 1 (within a `map` function):**
         ```typescript
         // Before: .map((w) => `brand_name.ilike.%${w}%,generic_name.ilike.%${w}%`)
         // After:
@@ -58,7 +59,7 @@ To re-implement this feature from scratch, a contributor would follow these step
             return `brand_name.ilike.%${safeWord}%,generic_name.ilike.%${safeWord}%`;
         })
         ```
-    *   **Example 2 (direct interpolation):**
+    - **Example 2 (direct interpolation):**
         ```typescript
         // Before: .or(`brand_name.ilike.%${matchedName}%,generic_name.ilike.%${matchedName}%`)
         // After: .or(`brand_name.ilike.%${escapeIlike(matchedName)}%,generic_name.ilike.%${escapeIlike(matchedName)}%`)
@@ -69,18 +70,18 @@ To re-implement this feature from scratch, a contributor would follow these step
 
 This change primarily affects the robustness and security of our backend API's data retrieval logic, specifically within the `/scan/extract` endpoint. It hardens our system against unintended data exposure and improves the accuracy of medicine lookups based on OCR results.
 
--   **Improved Data Accuracy:** By correctly interpreting OCR-derived search terms, we ensure that users receive more precise search results, reducing false positives caused by wildcard misinterpretation.
--   **Enhanced Data Security/Privacy:** Preventing overly broad queries means that the system is less likely to inadvertently return unrelated medicine records, which could contain sensitive information or simply clutter the user's view with irrelevant data.
--   **Increased Reliability:** The `scan` service, a critical component for initial medicine identification, becomes more reliable in its core function of matching scanned text to our medicine database.
--   **No Architectural Changes:** This fix is a targeted improvement within an existing route; it does not introduce new services, alter data models, or change the overall flow of information between major system components. It's a refinement of an existing data access pattern.
+- **Improved Data Accuracy:** By correctly interpreting OCR-derived search terms, we ensure that users receive more precise search results, reducing false positives caused by wildcard misinterpretation.
+- **Enhanced Data Security/Privacy:** Preventing overly broad queries means that the system is less likely to inadvertently return unrelated medicine records, which could contain sensitive information or simply clutter the user's view with irrelevant data.
+- **Increased Reliability:** The `scan` service, a critical component for initial medicine identification, becomes more reliable in its core function of matching scanned text to our medicine database.
+- **No Architectural Changes:** This fix is a targeted improvement within an existing route; it does not introduce new services, alter data models, or change the overall flow of information between major system components. It's a refinement of an existing data access pattern.
 
 ## Testing & Verification
 
 The following aspects were considered for testing and verification:
 
--   **Normal Alphanumeric Names:** We verified that medicine names without `%` or `_` characters are unaffected by the escaping logic, ensuring existing functionality remains intact.
--   **Wildcard Characters in Search Terms:** We tested with OCR-derived words known to contain `%` (e.g., "PRODUCT%ID") and `_` (e.g., "BATCH_CODE_XYZ") to ensure they are correctly escaped and result in precise matches rather than broad wildcard behavior.
--   **Both ILIKE Call Sites:** We confirmed that the `escapeIlike()` function was consistently applied to both the `searchWords` mapping and the `matchedName` lookup, preventing any overlooked vulnerabilities.
--   **Edge Cases:** We considered edge cases such as empty search words (handled by existing logic), search words consisting solely of `%` or `_` (now correctly escaped to `\%` or `\_`), and long search words (negligible performance impact).
--   **Manual Verification:** The author likely performed manual tests by submitting images with medicine names containing these characters and observing the API responses to confirm correct filtering.
--   **Automated Tests:** Not documented in this PR.
+- **Normal Alphanumeric Names:** We verified that medicine names without `%` or `_` characters are unaffected by the escaping logic, ensuring existing functionality remains intact.
+- **Wildcard Characters in Search Terms:** We tested with OCR-derived words known to contain `%` (e.g., "PRODUCT%ID") and `_` (e.g., "BATCH_CODE_XYZ") to ensure they are correctly escaped and result in precise matches rather than broad wildcard behavior.
+- **Both ILIKE Call Sites:** We confirmed that the `escapeIlike()` function was consistently applied to both the `searchWords` mapping and the `matchedName` lookup, preventing any overlooked vulnerabilities.
+- **Edge Cases:** We considered edge cases such as empty search words (handled by existing logic), search words consisting solely of `%` or `_` (now correctly escaped to `\%` or `\_`), and long search words (negligible performance impact).
+- **Manual Verification:** The author likely performed manual tests by submitting images with medicine names containing these characters and observing the API responses to confirm correct filtering.
+- **Automated Tests:** Not documented in this PR.

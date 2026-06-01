@@ -475,7 +475,9 @@ router.post("/extract", (req: Request, res: Response) => {
                                 "expiry_date, cdsco_approval_status, is_counterfeit_alert, " +
                                 "composition, mrp, jan_aushadhi_price"
                         )
-                        .or(`brand_name.ilike.%${escapeIlike(matchedName)}%,generic_name.ilike.%${escapeIlike(matchedName)}%`)
+                        .or(
+                            `brand_name.ilike.%${escapeIlike(matchedName)}%,generic_name.ilike.%${escapeIlike(matchedName)}%`
+                        )
                         .limit(1)
                         .maybeSingle();
 

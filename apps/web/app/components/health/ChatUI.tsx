@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ChatBubble, type Message } from "./components/ChatBubble";
 import { ActionCard } from "./components/ActionCard";
 import { TypingIndicator } from "./components/TypingIndicator";
@@ -121,6 +122,7 @@ export default function ChatUI() {
     const messagesContainerRef = useRef<HTMLElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const recRef = useRef<any>(null);
+    const t = useTranslations("chat");
 
     useEffect(() => {
         const container = messagesContainerRef.current;
@@ -141,15 +143,14 @@ export default function ChatUI() {
 
     const sendMessage = useCallback(
         async (text: string) => {
-            const t = text.trim();
-            if (!t || isTyping) return;
-            lastUserText.current = t;
+            const trimmed = text.trim();
+            if (!trimmed || isTyping) return;
+            lastUserText.current = trimmed;
             setShowWelcome(false);
-
             const userMsg: Message = {
                 id: genId(),
                 role: "user",
-                content: t,
+                content: trimmed,
                 timestamp: new Date(),
             };
             setMessages((prev) => [...prev, userMsg]);
@@ -323,7 +324,6 @@ export default function ChatUI() {
                         >
                             {isListening ? <IconStop /> : <IconMic size={20} />}
                         </button>
-
                         <textarea
                             ref={inputRef}
                             value={input}

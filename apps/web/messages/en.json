@@ -338,5 +338,23 @@
                 "answer": "CDSCO stands for Central Drugs Standard Control Organisation. It is India's national regulatory body for cosmetics, pharmaceuticals and medical devices. SahiDawa verifies medicines against their official database."
             }
         }
+    },
+    "chat": {
+        "welcome": "Namaste, I'm SahiDawa, your trusted health companion. I can help you verify medicines, understand symptoms, or find nearby care. What would you like help with today?",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "quick_actions": "Quick actions",
+        "footer": "For informational use only • Consult a doctor",
+        "actions": {
+            "scan": { "label": "Scan Medicine", "description": "Verify authenticity" },
+            "symptoms": { "label": "Check Symptoms", "description": "AI-assisted guidance" },
+            "pharmacy": { "label": "Find Pharmacy", "description": "Locate verified stores" }
+        }
+    },
+    "chatbot": {
+        "title": "SahiDawa AI",
+        "status": "Online",
+        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?",
+        "placeholder": "Ask me about a medicine..."
     }
 }

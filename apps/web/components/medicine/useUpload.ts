@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { compressImage } from "./compressImage";
 
 export type UploadState =
     | { status: "idle" }
@@ -48,8 +49,10 @@ export function useUpload(onUploadComplete: (url: string) => void): UseUploadRet
             cancelledRef.current = false;
             setState({ status: "uploading", progress: 0 });
 
+            const compressed = await compressImage(file);
+
             const formData = new FormData();
-            formData.append("file", file);
+            formData.append("file", compressed);
 
             try {
                 const result = await new Promise<{ secure_url: string }>((resolve, reject) => {

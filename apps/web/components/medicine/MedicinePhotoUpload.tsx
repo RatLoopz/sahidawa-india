@@ -123,7 +123,8 @@ function UploadDropzone({
                 <span className="text-center">
                     <span className="block text-sm font-semibold text-slate-800">{label}</span>
                     <span className="mt-1 block text-xs text-slate-500">
-                        JPG, PNG, or WebP · max {MAX_IMAGE_SIZE_BYTES / 1024 / 1024} MB · tap to capture on mobile
+                        JPG, PNG, or WebP · max {MAX_IMAGE_SIZE_BYTES / 1024 / 1024} MB · tap to
+                        capture on mobile
                     </span>
                 </span>
                 <Camera className="h-4 w-4 text-slate-400" aria-hidden="true" />

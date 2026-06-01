@@ -23,27 +23,27 @@ Before this PR, our system relied on a custom `LazyImage` component that used an
 The core of this PR involves integrating Next.js's `Image` component for improved performance:
 
 1.  **`apps/web/next.config.mjs` Configuration:**
-    *   We introduced an `images` configuration object within `next.config.mjs`.
-    *   Inside this object, `remotePatterns` was added to explicitly whitelist `https://res.cloudinary.com`. This is crucial for `next/image` to be able to process, optimize, and serve images from our Cloudinary CDN, ensuring they benefit from features like automatic resizing and format conversion.
+    - We introduced an `images` configuration object within `next.config.mjs`.
+    - Inside this object, `remotePatterns` was added to explicitly whitelist `https://res.cloudinary.com`. This is crucial for `next/image` to be able to process, optimize, and serve images from our Cloudinary CDN, ensuring they benefit from features like automatic resizing and format conversion.
 
 2.  **`apps/web/app/[locale]/components/Navbar.tsx` Update:**
-    *   The `Navbar.tsx` component was updated to import `Image from "next/image"`.
-    *   The existing `<img src="/favicon.ico" ... />` tag, used for the SahiDawa logo, was replaced with the `next/image` component: `<Image src="/favicon.ico" alt="" aria-hidden="true" width={36} height={36} />`. We explicitly added `width` and `height` props to prevent layout shifts (CLS) for this static asset.
+    - The `Navbar.tsx` component was updated to import `Image from "next/image"`.
+    - The existing `<img src="/favicon.ico" ... />` tag, used for the SahiDawa logo, was replaced with the `next/image` component: `<Image src="/favicon.ico" alt="" aria-hidden="true" width={36} height={36} />`. We explicitly added `width` and `height` props to prevent layout shifts (CLS) for this static asset.
 
 3.  **`apps/web/components/LazyImage.tsx` Refactor:**
-    *   This component, previously responsible for custom lazy loading via `IntersectionObserver`, was significantly refactored.
-    *   We removed the `useEffect` hook, `useRef` hook (`wrapperRef`), `isInView` state, and all associated `IntersectionObserver` logic. Next.js's `Image` component handles lazy loading intrinsically.
-    *   The component now imports `Image from "next/image"` and renders it internally.
-    *   The custom `<img>` tag was replaced with `<Image {...(imgProps as any)} src={src} alt={alt || ""} fill onLoad={handleLoad as any} ... />`.
-    *   The `fill` prop was added to `next/image`, indicating that the image should fill the dimensions of its parent container. This is consistent with how our custom `LazyImage` component previously managed its size within a `<span>` wrapper.
-    *   The `isLoaded` state and `handleLoad` function were retained. This allows us to keep our custom blur-in effect and the `Skeleton` placeholder UI while the image is loading, providing a consistent user experience during image transitions.
-    *   The `rootMargin` and `threshold` props were kept in the `LazyImageProps` interface but are now effectively unused by the underlying `next/image` component, serving primarily for API compatibility.
+    - This component, previously responsible for custom lazy loading via `IntersectionObserver`, was significantly refactored.
+    - We removed the `useEffect` hook, `useRef` hook (`wrapperRef`), `isInView` state, and all associated `IntersectionObserver` logic. Next.js's `Image` component handles lazy loading intrinsically.
+    - The component now imports `Image from "next/image"` and renders it internally.
+    - The custom `<img>` tag was replaced with `<Image {...(imgProps as any)} src={src} alt={alt || ""} fill onLoad={handleLoad as any} ... />`.
+    - The `fill` prop was added to `next/image`, indicating that the image should fill the dimensions of its parent container. This is consistent with how our custom `LazyImage` component previously managed its size within a `<span>` wrapper.
+    - The `isLoaded` state and `handleLoad` function were retained. This allows us to keep our custom blur-in effect and the `Skeleton` placeholder UI while the image is loading, providing a consistent user experience during image transitions.
+    - The `rootMargin` and `threshold` props were kept in the `LazyImageProps` interface but are now effectively unused by the underlying `next/image` component, serving primarily for API compatibility.
 
 4.  **`apps/web/components/ui/Skeleton.tsx` Minor Type Change:**
-    *   The type definition for `SkeletonProps` was updated from an `interface` to a `type` alias: `export type SkeletonProps = React.HTMLAttributes<HTMLDivElement>;`. This is a minor code style refinement.
+    - The type definition for `SkeletonProps` was updated from an `interface` to a `type` alias: `export type SkeletonProps = React.HTMLAttributes<HTMLDivElement>;`. This is a minor code style refinement.
 
 5.  **`apps/web/proxy.ts` Minor Refactor:**
-    *   A minor change was made from `let res = intlMiddleware(req);` to `const res = intlMiddleware(req);`. This improves code immutability as the `res` variable is not reassigned after its initial declaration.
+    - A minor change was made from `let res = intlMiddleware(req);` to `const res = intlMiddleware(req);`. This improves code immutability as the `res` variable is not reassigned after its initial declaration.
 
 ## Technical Decisions
 
@@ -57,28 +57,28 @@ The core of this PR involves integrating Next.js's `Image` component for improve
 To re-implement or extend this image optimization strategy:
 
 1.  **Configure `next.config.mjs` for External Images:**
-    *   If you need to optimize images from any external domain (e.g., a CDN or third-party service), you must add that domain to the `images.remotePatterns` array in `apps/web/next.config.mjs`.
-    *   Example:
+    - If you need to optimize images from any external domain (e.g., a CDN or third-party service), you must add that domain to the `images.remotePatterns` array in `apps/web/next.config.mjs`.
+    - Example:
         ```javascript
         // apps/web/next.config.mjs
         const nextConfig = {
-          // ... other config
-          images: {
-            remotePatterns: [
-              {
-                protocol: 'https',
-                hostname: 'res.cloudinary.com', // Add your domain here
-              },
-              // Add other domains as needed
-            ],
-          },
-          // ... other config
+            // ... other config
+            images: {
+                remotePatterns: [
+                    {
+                        protocol: "https",
+                        hostname: "res.cloudinary.com", // Add your domain here
+                    },
+                    // Add other domains as needed
+                ],
+            },
+            // ... other config
         };
         ```
 2.  **Replace `<img>` Tags with `next/image`:**
-    *   For any static images or images where you control the dimensions, import `Image from "next/image"` at the top of your component file.
-    *   Replace the `<img>` tag with `<Image />`, ensuring you provide `src`, `alt`, `width`, and `height` props.
-    *   Example (from `Navbar.tsx`):
+    - For any static images or images where you control the dimensions, import `Image from "next/image"` at the top of your component file.
+    - Replace the `<img>` tag with `<Image />`, ensuring you provide `src`, `alt`, `width`, and `height` props.
+    - Example (from `Navbar.tsx`):
         ```typescript
         import Image from "next/image";
         // ...
@@ -91,9 +91,9 @@ To re-implement or extend this image optimization strategy:
         />
         ```
 3.  **Utilize the `LazyImage` Component for Dynamic Content:**
-    *   For images that require a custom loading state (like our blur-in effect and `Skeleton` placeholder) or where the image needs to fill its parent container, use our `apps/web/components/LazyImage.tsx` component.
-    *   This component internally uses `next/image` with the `fill` prop. Ensure its parent container has `position: relative` (or `absolute`, `fixed`, `sticky`) and defined dimensions for `fill` to work correctly.
-    *   Example usage:
+    - For images that require a custom loading state (like our blur-in effect and `Skeleton` placeholder) or where the image needs to fill its parent container, use our `apps/web/components/LazyImage.tsx` component.
+    - This component internally uses `next/image` with the `fill` prop. Ensure its parent container has `position: relative` (or `absolute`, `fixed`, `sticky`) and defined dimensions for `fill` to work correctly.
+    - Example usage:
         ```typescript
         import LazyImage from "@/components/LazyImage";
         // ...
@@ -113,18 +113,18 @@ To re-implement or extend this image optimization strategy:
 
 This change significantly impacts the `apps/web` frontend architecture by:
 
-*   **Improving Performance:** It directly addresses page load performance, reducing the Largest Contentful Paint (LCP) and Cumulative Layout Shift (CLS) metrics. This leads to a faster, smoother user experience and better search engine rankings.
-*   **Reducing Client-Side Overhead:** By offloading complex image optimization and lazy loading logic to Next.js, we reduce the amount of custom JavaScript required on the client side, leading to smaller bundle sizes and faster initial page loads.
-*   **Standardizing Image Handling:** We now have a consistent, framework-driven approach to image optimization across the application, reducing the maintenance burden of custom solutions and ensuring future image features can leverage Next.js's capabilities.
-*   **Increased Dependency on Next.js Features:** Our frontend now has a deeper integration with and dependency on the `next/image` component. Future image-related development will naturally revolve around this component and its configuration.
-*   **Enhanced Scalability:** The automatic optimization for remote images from Cloudinary ensures that as our content library grows, image delivery remains efficient without manual intervention for each new image.
+- **Improving Performance:** It directly addresses page load performance, reducing the Largest Contentful Paint (LCP) and Cumulative Layout Shift (CLS) metrics. This leads to a faster, smoother user experience and better search engine rankings.
+- **Reducing Client-Side Overhead:** By offloading complex image optimization and lazy loading logic to Next.js, we reduce the amount of custom JavaScript required on the client side, leading to smaller bundle sizes and faster initial page loads.
+- **Standardizing Image Handling:** We now have a consistent, framework-driven approach to image optimization across the application, reducing the maintenance burden of custom solutions and ensuring future image features can leverage Next.js's capabilities.
+- **Increased Dependency on Next.js Features:** Our frontend now has a deeper integration with and dependency on the `next/image` component. Future image-related development will naturally revolve around this component and its configuration.
+- **Enhanced Scalability:** The automatic optimization for remote images from Cloudinary ensures that as our content library grows, image delivery remains efficient without manual intervention for each new image.
 
 ## Testing & Verification
 
 The verification process for this change, as implied by the PR checklist, included:
 
-*   **Local Project Verification:** The author confirmed that the project ran locally without compile or build errors.
-*   **Visual Inspection:** For frontend/UI changes, visual proof (screenshots/screen recordings) is required. Not documented in this PR.
-*   **Network Tab Analysis:** While not explicitly stated in the PR description, typical verification for image optimization involves inspecting the browser's network tab to confirm that images are being lazy-loaded (loaded only when entering the viewport) and are served in optimized formats (e.g., WebP or AVIF) with appropriate `srcset` attributes.
-*   **Performance Metrics:** Not documented in this PR. Ideally, performance tools like Lighthouse or PageSpeed Insights would be used to quantify improvements in metrics such as LCP and total page weight before and after the change.
-*   **Edge Cases:** Not documented in this PR. Potential edge cases include images with invalid `src` URLs, images within rapidly changing layouts, or images that are critical for initial load and should not be lazy-loaded (which `next/image` handles with the `priority` prop).
+- **Local Project Verification:** The author confirmed that the project ran locally without compile or build errors.
+- **Visual Inspection:** For frontend/UI changes, visual proof (screenshots/screen recordings) is required. Not documented in this PR.
+- **Network Tab Analysis:** While not explicitly stated in the PR description, typical verification for image optimization involves inspecting the browser's network tab to confirm that images are being lazy-loaded (loaded only when entering the viewport) and are served in optimized formats (e.g., WebP or AVIF) with appropriate `srcset` attributes.
+- **Performance Metrics:** Not documented in this PR. Ideally, performance tools like Lighthouse or PageSpeed Insights would be used to quantify improvements in metrics such as LCP and total page weight before and after the change.
+- **Edge Cases:** Not documented in this PR. Potential edge cases include images with invalid `src` URLs, images within rapidly changing layouts, or images that are critical for initial load and should not be lazy-loaded (which `next/image` handles with the `priority` prop).

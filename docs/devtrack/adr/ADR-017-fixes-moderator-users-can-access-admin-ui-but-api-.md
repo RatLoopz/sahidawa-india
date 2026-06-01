@@ -18,20 +18,22 @@ app.use("/api/v1/admin", requireAuth, requireRole("admin", "moderator"), adminRo
 
 ## Alternatives Considered
 
-| Alternative | Why Rejected |
-|---|---|
-| **Restrict frontend UI and nested API routes to "admin" role only** | This would have been a functional regression, removing intended capabilities from moderator users and contradicting the platform's design for their role. It would also require significant refactoring of existing, correctly implemented permissions. |
-| **Implement granular role checks within `adminRoutes` for each endpoint** | While possible, this would have introduced redundancy and complexity. The issue was a top-level block, not a lack of granular control within the `adminRoutes`. Moving the role check down would duplicate logic for every moderator-accessible endpoint, rather than fixing the overarching entry point. |
-| **Create a separate `/api/v1/moderator` API endpoint/router** | This would lead to significant code duplication if moderator actions largely overlap with admin actions. It would also complicate frontend routing and potentially diverge shared logic, increasing maintenance overhead. The current shared "admin dashboard" concept for both roles was deemed more efficient. |
+| Alternative                                                               | Why Rejected                                                                                                                                                                                                                                                                                                     |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Restrict frontend UI and nested API routes to "admin" role only**       | This would have been a functional regression, removing intended capabilities from moderator users and contradicting the platform's design for their role. It would also require significant refactoring of existing, correctly implemented permissions.                                                          |
+| **Implement granular role checks within `adminRoutes` for each endpoint** | While possible, this would have introduced redundancy and complexity. The issue was a top-level block, not a lack of granular control within the `adminRoutes`. Moving the role check down would duplicate logic for every moderator-accessible endpoint, rather than fixing the overarching entry point.        |
+| **Create a separate `/api/v1/moderator` API endpoint/router**             | This would lead to significant code duplication if moderator actions largely overlap with admin actions. It would also complicate frontend routing and potentially diverge shared logic, increasing maintenance overhead. The current shared "admin dashboard" concept for both roles was deemed more efficient. |
 
 ## Consequences
 
 **Positive:**
+
 - Moderator users can now successfully access and utilize the admin dashboard APIs, enabling them to perform their assigned duties without encountering 403 errors.
 - Achieved consistency across all layers of the application (frontend UI, top-level API routing, and nested API routing) regarding admin dashboard access for both "admin" and "moderator" roles.
 - Improved user experience and operational efficiency for moderators.
 
 **Trade-offs:**
+
 - The top-level API gateway for `/api/v1/admin` is now less restrictive, allowing a broader set of authenticated users (moderators) to pass through to the `adminRoutes`. This is aligned with functional requirements but represents a shift from a stricter initial gate.
 
 ## Related Issues & PRs

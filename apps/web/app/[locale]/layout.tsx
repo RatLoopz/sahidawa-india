@@ -68,10 +68,7 @@ export default async function LocaleLayout({
                         <NextIntlClientProvider messages={messages}>
                             <OfflineBanner />
                             <Navbar />
-                            <div className="flex flex-col flex-grow">
-                                <OfflineErrorBoundary>{children}</OfflineErrorBoundary>
-                            </div>
-                            <main className="flex-grow">
+                            <main className="flex flex-grow flex-col">
                                 <OfflineErrorBoundary>{children}</OfflineErrorBoundary>
                             </main>
                             <Footer />
