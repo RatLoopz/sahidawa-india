@@ -4,6 +4,7 @@ import path from "path";
 import logger from "./utils/logger";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./utils/swagger";
+import { validateMlServiceConfig } from "./config/mlService";
 
 const rootEnvPath = path.resolve(__dirname, "../../../.env");
 dotenv.config({ path: rootEnvPath });
@@ -23,6 +24,8 @@ if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
     process.exit(1);
 }
 
+validateMlServiceConfig();
+
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
@@ -32,6 +35,7 @@ import { requireAuth, requireRole } from "./middleware/auth";
 import reportsRouter from "./routes/reports";
 import pharmaciesRouter from "./routes/pharmacies";
 import verifyRouter from "./routes/verify";
+import batchRouter from "./routes/batch";
 import analyticsRoutes from "./routes/analytics";
 import notificationsRouter from "./routes/notifications";
 import scanRouter from "./routes/scan";
@@ -59,7 +63,6 @@ app.use(
 app.use(cors(createCorsOptions()));
 
 app.use(express.json({ limit: "1mb" }));
-
 
 app.use(
     morgan((tokens, req: Request, res: Response) => {
@@ -161,6 +164,7 @@ app.get("/health", async (_req: Request, res: Response) => {
 app.use("/api/reports", reportsRouter);
 app.use("/reports", reportsRouter);
 app.use("/api/pharmacies", pharmaciesRouter);
+app.use("/api/verify/batch", batchRouter);
 app.use("/api/verify", verifyRouter);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/notifications", notificationsRouter);

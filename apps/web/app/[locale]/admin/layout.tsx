@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
@@ -15,8 +16,8 @@ export default async function AdminLayout({
     const resolvedParams = await params;
     const cookieStore = await cookies();
     const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "http://localhost:54321",
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "local-development-key",
+        getSupabaseUrl(),
+        getSupabaseAnonKey(),
         {
             cookies: {
                 getAll() {
@@ -39,7 +40,7 @@ export default async function AdminLayout({
     } = await supabase.auth.getSession();
 
     if (!session) {
-        redirect(`/${resolvedParams.locale}/login`);
+        return redirect(`/${resolvedParams.locale}/login`);
     }
 
     const role = session.user.app_metadata?.role || session.user.user_metadata?.role;

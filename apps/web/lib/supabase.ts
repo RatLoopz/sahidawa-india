@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
+import { getSupabaseUrl, getSupabaseAnonKey } from "./env";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "http://localhost:54321";
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "local-development-key";
+const supabaseUrl = getSupabaseUrl();
+const supabaseKey = getSupabaseAnonKey();
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
