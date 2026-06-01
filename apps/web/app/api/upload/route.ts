@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 
+// Allow up to 10 MB uploads (Next.js App Router default is 1 MB)
+export const maxBodySize = 10 * 1024 * 1024;
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB per file
+const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
 export async function POST(req: NextRequest) {
     try {
         const formData = await req.formData();
@@ -8,6 +14,25 @@ export async function POST(req: NextRequest) {
 
         if (!file) {
             return NextResponse.json({ error: "No file provided" }, { status: 400 });
+        }
+
+        // Validate file type
+        if (!ALLOWED_TYPES.has(file.type)) {
+            return NextResponse.json(
+                { error: "Only JPG, PNG, and WebP images are supported." },
+                { status: 400 }
+            );
+        }
+
+        // Validate file size
+        if (file.size > MAX_FILE_SIZE) {
+            const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+            return NextResponse.json(
+                {
+                    error: `File is too large (${sizeMB} MB). Maximum size is 5 MB. Please compress or resize the image before uploading.`,
+                },
+                { status: 413 }
+            );
         }
 
         const cloudName = process.env.CLOUDINARY_CLOUD_NAME;

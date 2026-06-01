@@ -76,11 +76,21 @@ export function useUpload(onUploadComplete: (url: string) => void): UseUploadRet
                             return;
                         }
 
+                        // Handle 413 Payload Too Large specifically
+                        if (xhr.status === 413) {
+                            reject(
+                                new Error(
+                                    "File is too large. Maximum size is 5 MB. Please compress or resize the image before uploading."
+                                )
+                            );
+                            return;
+                        }
+
                         try {
                             const body = JSON.parse(xhr.responseText) as { error?: string };
                             reject(new Error(body.error || "Upload failed"));
                         } catch {
-                            reject(new Error("Upload failed"));
+                            reject(new Error(`Upload failed (HTTP ${xhr.status})`));
                         }
                     };
 
