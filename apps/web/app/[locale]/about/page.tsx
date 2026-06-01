@@ -26,6 +26,7 @@ export default function AboutPage() {
             <PageHeader
                 backHref="/"
                 variant="light"
+                showThemeToggle={false}
             />
             {/* Hero */}
             <section className="border-b border-(--color-border-muted) bg-(--color-surface-page)">
