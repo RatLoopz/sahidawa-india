@@ -15,6 +15,7 @@ import {
     ChevronRight,
     Activity,
     MessageCircle,
+    Zap,
 } from "lucide-react";
 
 import { useRouter, useParams } from "next/navigation";
@@ -339,11 +340,8 @@ export default function SahiDawaHome() {
 
                     {/* ── Health Assistant CTA Banner ── */}
                     <div
-                        className="group relative mt-4 transform-gpu overflow-hidden rounded-3xl transition-all duration-300 select-none hover:scale-[1.01] hover:shadow-xl hover:shadow-purple-500/10"
-                        style={{
-                            background:
-                                "linear-gradient(135deg, #6d5ce7 0%, #7c3aed 50%, #5b21b6 100%)",
-                        }}
+                        className="group relative mt-4 transform-gpu overflow-hidden rounded-3xl transition-all duration-300 select-none hover:scale-[1.01] hover:shadow-(--color-brand-primary-dark)/20 hover:shadow-xl"
+                        style={{ backgroundColor: "var(--color-brand-primary-dark)" }}
                     >
                         {/* Subtle inner highlight */}
                         <div className="pointer-events-none absolute inset-0 bg-linear-to-r from-white/10 to-transparent" />
@@ -351,35 +349,59 @@ export default function SahiDawaHome() {
                         <div className="relative z-10 flex flex-col items-start gap-5 p-6 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-8">
                             <div className="flex items-center gap-4">
                                 {/* Icon */}
-                                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm transition-all duration-300 group-hover:scale-105 group-hover:bg-white/25">
-                                    <MessageCircle size={26} className="text-white" />
+                                <div
+                                    className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl backdrop-blur-sm transition-all duration-300 group-hover:scale-105"
+                                    style={{
+                                        backgroundColor: "rgba(209, 250, 229, 0.2)",
+                                    }} /* --color-brand-primary-soft with opacity */
+                                >
+                                    <MessageCircle
+                                        size={26}
+                                        style={{ color: "var(--color-text-inverse)" }}
+                                    />
                                 </div>
                                 <div className="space-y-1">
                                     <div className="flex flex-wrap items-center gap-2">
-                                        <h3 className="text-xl font-extrabold tracking-tight text-white sm:text-2xl">
+                                        <h3
+                                            className="text-xl font-extrabold tracking-tight sm:text-2xl"
+                                            style={{ color: "var(--color-text-inverse)" }}
+                                        >
                                             {tHome("ai_health_assistant")}
                                         </h3>
                                         {/* AI CHAT badge */}
-                                        <span className="inline-flex items-center rounded-md bg-white/20 px-2.5 py-0.5 text-[11px] font-bold tracking-widest text-white uppercase">
+                                        <span
+                                            className="inline-flex items-center rounded-md px-2.5 py-0.5 text-[11px] font-bold tracking-widest uppercase"
+                                            style={{
+                                                backgroundColor: "rgba(255, 255, 255, 0.2)",
+                                                color: "var(--color-text-inverse)",
+                                            }}
+                                        >
                                             {tHome("ai_chat")}
                                         </span>
                                     </div>
-                                    <p className="text-sm leading-relaxed font-medium text-purple-100 sm:text-base">
+                                    <p
+                                        className="text-sm leading-relaxed font-medium sm:text-base"
+                                        style={{ color: "var(--color-brand-primary-soft)" }}
+                                    >
                                         {tHome("ai_health_assistant_description")}
                                     </p>
                                 </div>
                             </div>
 
-                            {/* Chat Now button — white outlined */}
+                            {/* Chat Now button */}
                             <button
                                 onClick={() => handleNavigation("health")}
-                                className="group/btn flex w-full shrink-0 items-center justify-center gap-2.5 rounded-xl border-2 border-white/80 bg-white/15 px-7 py-3 text-base font-bold text-white backdrop-blur-sm transition-all duration-300 hover:bg-white hover:text-purple-700 sm:w-auto"
+                                className="group/btn flex w-full shrink-0 items-center justify-center gap-2.5 rounded-xl border-2 px-7 py-3 text-base font-bold shadow-sm backdrop-blur-sm transition-all duration-300 hover:bg-(--color-surface-page) sm:w-auto"
+                                style={{
+                                    backgroundColor: "var(--color-brand-primary-soft)",
+                                    borderColor: "var(--color-brand-primary-soft)",
+                                    color: "var(--color-brand-primary-strong-text)",
+                                }}
                             >
-                                <MessageCircle size={18} />
                                 {tHome("chat_now")}
-                                <ChevronRight
+                                <Zap
                                     size={18}
-                                    className="transition-transform duration-200 group-hover/btn:translate-x-1"
+                                    className="transition-transform duration-200 group-hover/btn:scale-110"
                                 />
                             </button>
                         </div>
