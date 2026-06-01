@@ -32,7 +32,11 @@ const getBearerToken = (authorization?: string): string | null => {
 };
 
 const getUserRole = (user: User): AuthRole => {
-    const metadataRole = user.app_metadata?.role || user.user_metadata?.role;
+    // Read the role exclusively from app_metadata, which is server-controlled
+    // and cannot be modified by the user via supabase.auth.updateUser().
+    // user_metadata is user-writable and must not be trusted for authorization
+    // decisions; reading it here would allow any user to self-promote to admin.
+    const metadataRole = user.app_metadata?.role;
     if (metadataRole === "admin") return "admin";
     if (metadataRole === "moderator") return "moderator";
     return "user";
