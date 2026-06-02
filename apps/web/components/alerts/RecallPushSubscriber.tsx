@@ -60,9 +60,19 @@ export default function RecallPushSubscriber() {
                 applicationServerKey: urlBase64ToUint8Array(publicKey),
             });
 
+            const token = localStorage.getItem("sb-access-token");
+            if (!token) {
+                setState("error");
+                setMessage("Please sign in to enable push alerts.");
+                return;
+            }
+
             const res = await fetch(`${API_BASE}/api/notifications/subscriptions`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
                 body: JSON.stringify(subscription),
             });
 

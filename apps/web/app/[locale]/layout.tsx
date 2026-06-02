@@ -16,29 +16,52 @@ import "../../src/styles/print.css";
 import { Toaster } from "sonner";
 import Footer from "./components/Footer";
 
-export const metadata: Metadata = {
-    title: "SahiDawa — Verify Your Medicine",
-    description:
-        "India's first open-source medicine verification platform. Scan, verify, and trust your medicines.",
-    manifest: "/manifest.json",
-    icons: {
-        icon: "/icons/icon-192.png",
-        apple: "/icons/icon-192.png",
-    },
-    openGraph: {
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+    const { locale } = await params;
+    const baseUrl = "https://sahidawa.in";
+
+    // Generate alternates for all locales
+    const alternates = {
+        languages: Object.fromEntries(
+            routing.locales.map((lang) => [
+                lang,
+                locale === routing.defaultLocale ? `${baseUrl}/${lang}` : `${baseUrl}/${lang}`,
+            ])
+        ),
+    };
+
+    // Add x-default for default locale
+    (alternates.languages as Record<string, string>)["x-default"] = baseUrl;
+
+    return {
         title: "SahiDawa — Verify Your Medicine",
         description:
             "India's first open-source medicine verification platform. Scan, verify, and trust your medicines.",
-        url: "https://sahidawa.in",
-        siteName: "SahiDawa",
-    },
-    twitter: {
-        card: "summary_large_image",
-        title: "SahiDawa — Verify Your Medicine",
-        description:
-            "India's first open-source medicine verification platform. Scan, verify, and trust your medicines.",
-    },
-};
+        manifest: "/manifest.json",
+        icons: {
+            icon: "/icons/icon-192.png",
+            apple: "/icons/icon-192.png",
+        },
+        openGraph: {
+            title: "SahiDawa — Verify Your Medicine",
+            description:
+                "India's first open-source medicine verification platform. Scan, verify, and trust your medicines.",
+            url: "https://sahidawa.in",
+            siteName: "SahiDawa",
+        },
+        twitter: {
+            card: "summary_large_image",
+            title: "SahiDawa — Verify Your Medicine",
+            description:
+                "India's first open-source medicine verification platform. Scan, verify, and trust your medicines.",
+        },
+        alternates,
+    };
+}
 
 export const viewport: Viewport = {
     themeColor: "#10b981",
@@ -61,6 +84,21 @@ export default async function LocaleLayout({
 
     return (
         <html lang={locale} suppressHydrationWarning>
+            <head>
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `
+                            try {
+                                if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                                    document.documentElement.classList.add('dark');
+                                } else {
+                                    document.documentElement.classList.remove('dark');
+                                }
+                            } catch (_) {}
+                        `,
+                    }}
+                />
+            </head>
             {/* REPLACE YOUR OLD BODY TAG WITH THIS ONE: */}
             <body className="flex min-h-screen flex-col bg-(--color-surface-page) text-(--color-text-primary) transition-colors duration-300">
                 <ServiceWorkerProvider>

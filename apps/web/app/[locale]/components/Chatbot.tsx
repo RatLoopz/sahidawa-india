@@ -92,12 +92,13 @@ export default function Chatbot() {
                             </div>
                             <div>
                                 <h3 className="text-sm font-bold">{t("title")}</h3>
-                                <p className="text-xs text-white/80">{t("status")}</p>
+                                <p className="text-xs text-white/95">{t("status")}</p>
                             </div>
                         </div>
                         <button
                             onClick={() => setIsOpen(false)}
                             className="rounded-full p-2 text-white transition-colors hover:bg-white/20"
+                            aria-label="Close chat"
                         >
                             <X size={20} />
                         </button>
@@ -134,6 +135,7 @@ export default function Chatbot() {
                             onClick={handleSend}
                             disabled={!input.trim()}
                             className="flex h-11 w-11 items-center justify-center rounded-full bg-green-600 p-3 text-white shadow-md transition-colors hover:bg-green-700 disabled:opacity-50 dark:bg-green-700 dark:hover:bg-green-800"
+                            aria-label="Send message"
                         >
                             <Send size={18} className="relative right-[1px] bottom-[1px]" />
                         </button>
@@ -151,6 +153,7 @@ export default function Chatbot() {
                 <button
                     onClick={() => setIsOpen(!isOpen)}
                     className="relative z-50 flex h-14 w-14 items-center justify-center rounded-full bg-green-600 text-white shadow-[0_8px_20px_rgba(22,163,74,0.3)] transition-all hover:scale-105 hover:shadow-[0_8px_25px_rgba(22,163,74,0.4)] active:scale-95 dark:bg-green-700 dark:hover:bg-green-800"
+                    aria-label={isOpen ? "Close AI chat" : "Open AI chat"}
                 >
                     {isOpen ? <X size={28} /> : <MessageSquare size={28} />}
                 </button>

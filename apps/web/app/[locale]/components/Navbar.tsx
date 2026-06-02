@@ -2,8 +2,19 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { History, Home, User, MapPin, Bell, MessageCircle } from "lucide-react";
-import { useRouter, useParams } from "next/navigation";
+import {
+    History,
+    Home,
+    User,
+    MapPin,
+    Bell,
+    MessageCircle,
+    Menu,
+    X,
+    Globe,
+    Moon,
+    LogIn,
+} from "lucide-react";
 import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import LanguageSwitcher from "../LanguageSwitcher";
@@ -15,6 +26,7 @@ const desktopNavLinkClassName =
 
 const mobileNavLabelClassName =
     "relative inline-flex items-center pb-1 transition-colors duration-200 ease-out after:absolute after:inset-x-0 after:-bottom-0.5 after:h-0.5 after:origin-center after:scale-x-0 after:rounded-full after:bg-current after:transition-transform after:duration-300 after:ease-out group-hover:after:scale-x-100 group-active:after:scale-x-100 group-focus-visible:after:scale-x-100 motion-safe:after:will-change-transform";
+
 type NavItem = {
     href: string;
     labelKey: string;
@@ -25,7 +37,6 @@ type NavItem = {
     badge?: boolean;
 };
 
-// Nav items config — single source of truth
 const MOBILE_NAV_ITEMS: NavItem[] = [
     {
         href: "/",
@@ -71,26 +82,39 @@ const MOBILE_NAV_ITEMS: NavItem[] = [
 ];
 
 export default function Navbar() {
-    const router = useRouter();
-    const params = useParams();
     const pathname = usePathname();
-    const locale = Array.isArray(params.locale) ? params.locale[0] : params.locale;
     const tHome = useTranslations("Home");
     const tNav = useTranslations("Navigation");
 
-    // ── Scroll-hide logic (mirrors BackToTopButton pattern) ──
+    // UI States
     const [isNavVisible, setIsNavVisible] = useState(true);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
     const lastScrollY = useRef(0);
     const ticking = useRef(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    // Close hamburger menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setIsMenuOpen(false);
+            }
+        };
+        if (isMenuOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [isMenuOpen]);
 
     useEffect(() => {
         const handleScroll = () => {
             if (!ticking.current) {
                 window.requestAnimationFrame(() => {
                     const currentY = window.scrollY;
-                    // Hide when scrolling down past 80px, show when scrolling up
                     if (currentY > lastScrollY.current && currentY > 80) {
                         setIsNavVisible(false);
+                        setIsMenuOpen(false);
                     } else {
                         setIsNavVisible(true);
                     }
@@ -109,10 +133,6 @@ export default function Navbar() {
         return null;
     }
 
-    const handleNavigation = (path: string) => {
-        router.push(`/${locale}/${path}`);
-    };
-
     // Active route detection — exact match for "/", prefix match for others
     const isActive = (href: string) => {
         if (href === "/") return pathname === "/";
@@ -123,10 +143,10 @@ export default function Navbar() {
         <>
             {/* ── Top Navigation ── */}
             <header className="sticky top-0 z-50 w-full border-b border-white/30 bg-white/60 shadow-sm shadow-black/5 backdrop-blur-md dark:border-white/10 dark:bg-slate-900/60">
-                <div className="container mx-auto flex h-16 items-center gap-2 px-3 sm:gap-3 sm:px-4 md:px-6">
-                    {/* Left — Logo */}
-                    <div className="flex min-w-0 flex-1 items-center gap-2">
-                        <Link href="/" className="flex min-w-0 items-center gap-2">
+                <div className="container mx-auto flex h-16 items-center justify-between gap-1 px-2 sm:gap-3 sm:px-4 md:px-6">
+                    {/* Left — Logo & Brand Title */}
+                    <div className="flex min-w-0 flex-1 items-center">
+                        <Link href="/" className="flex min-w-0 items-center gap-1.5 sm:gap-2">
                             <div
                                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 shadow-sm sm:h-10 sm:w-10 dark:bg-emerald-950/30 dark:text-emerald-400"
                                 aria-label="SahiDawa Logo"
@@ -135,18 +155,18 @@ export default function Navbar() {
                                     src="/favicon.ico"
                                     alt=""
                                     aria-hidden="true"
-                                    className="h-6 w-6 object-contain sm:h-7 sm:w-7"
+                                    className="h-5 w-5 object-contain sm:h-7 sm:w-7"
                                     width={28}
                                     height={28}
                                 />
                             </div>
-                            <h1 className="truncate text-lg font-extrabold tracking-tight text-(--color-text-primary) sm:text-xl md:text-2xl">
+                            <h1 className="xxs:text-lg text-base font-extrabold tracking-tight text-(--color-text-primary) sm:text-xl md:text-2xl">
                                 SahiDawa
                             </h1>
                         </Link>
                     </div>
 
-                    {/* Center — Nav Links */}
+                    {/* Center — Desktop Nav Links */}
                     <nav
                         className="ml-6 hidden flex-1 items-center justify-center gap-6 text-sm font-semibold text-(--color-text-secondary) lg:flex"
                         aria-label="Main navigation"
@@ -168,57 +188,87 @@ export default function Navbar() {
                         </Link>
                     </nav>
 
-                    {/* Right — Action Buttons */}
-                    <div className="ml-auto flex items-center justify-end gap-2 sm:gap-3">
+                    {/* Right — Action Controls Container */}
+                    <div className="flex shrink-0 items-center gap-1 sm:gap-3">
+                        {/* Health Companion Trigger */}
                         <div className="group relative flex items-center">
-                            <button
-                                onClick={() => handleNavigation("health")}
-                                className="flex h-9 w-9 items-center justify-center rounded-full bg-linear-to-r from-blue-500 to-purple-500 text-white transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 sm:h-10 sm:w-10"
+                            <Link
+                                href="/health"
+                                className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-r from-blue-500 to-purple-500 text-white transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 sm:h-10 sm:w-10"
                                 aria-label={tHome("open_ai_health_assistant")}
                             >
-                                <MessageCircle size={17} />
-                            </button>
-
+                                <MessageCircle size={16} />
+                            </Link>
                             <div className="pointer-events-none absolute top-full left-1/2 z-50 mt-2 -translate-x-1/2 rounded-md bg-slate-900 px-2 py-1 text-xs font-medium whitespace-nowrap text-white opacity-0 transition-all duration-200 group-hover:opacity-100">
                                 Health Companion
                             </div>
                         </div>
 
-                        <div className="group relative flex items-center">
+                        {/* Desktop Only Utilities Layout */}
+                        <div className="hidden items-center gap-2 sm:flex">
                             <LanguageSwitcher />
-
-                            <div className="pointer-events-none absolute top-full left-1/2 z-50 mt-2 -translate-x-1/2 rounded-md bg-slate-900 px-2 py-1 text-xs font-medium whitespace-nowrap text-white opacity-0 transition-all duration-200 group-hover:opacity-100">
-                                Language
-                            </div>
+                            <ThemeToggle />
                         </div>
 
-                        <ThemeToggle />
-
-                        <button
-                            onClick={() => handleNavigation("login")}
-                            className="flex h-9 w-9 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-50/70 text-emerald-700 transition-all duration-200 hover:scale-105 hover:border-emerald-500/50 hover:bg-emerald-100 sm:hidden dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20"
-                            aria-label={tHome("sign_in")}
-                            title={tHome("sign_in")}
-                        >
-                            <User size={17} />
-                            <span className="sr-only">{tHome("sign_in")}</span>
-                        </button>
-
-                        <button
-                            onClick={() => handleNavigation("login")}
+                        {/* Desktop Only Account Sign In */}
+                        <Link
+                            href="/login"
                             className="hidden h-9 items-center justify-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-50/50 px-4 py-1.5 text-sm font-bold text-emerald-700 transition-all duration-200 hover:scale-105 hover:border-emerald-500/50 hover:bg-emerald-100 sm:flex sm:h-10 sm:px-5 sm:py-2 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20"
                             aria-label={tHome("sign_in")}
                         >
                             <User size={16} />
                             <span>{tHome("sign_in")}</span>
-                        </button>
+                        </Link>
+
+                        {/* Mobile Only: Hamburger Toggle Menu Button */}
+                        <div className="relative sm:hidden" ref={menuRef}>
+                            <button
+                                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+                                aria-label="Toggle system parameters"
+                                aria-expanded={isMenuOpen}
+                            >
+                                {isMenuOpen ? <X size={16} /> : <Menu size={16} />}
+                            </button>
+
+                            {/* Dropdown Vertical Panel Menu */}
+                            {isMenuOpen && (
+                                <div className="animate-in fade-in slide-in-from-top-2 absolute top-full right-0 z-50 mt-2 w-44 origin-top-right rounded-xl border border-slate-200 bg-white p-2 shadow-xl duration-150 dark:border-slate-800 dark:bg-slate-950">
+                                    <div className="flex flex-col gap-1.5">
+                                        {/* Added Sign In / Sign Up Option */}
+                                        <Link
+                                            href="/login"
+                                            onClick={() => setIsMenuOpen(false)}
+                                            className="flex w-full items-center gap-2 rounded-lg bg-emerald-50 px-2.5 py-2 text-left text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-950/70"
+                                        >
+                                            <LogIn size={14} />
+                                            <span>{tHome("sign_in")}</span>
+                                        </Link>
+
+                                        <div className="my-0.5 border-t border-slate-100 dark:border-slate-900" />
+
+                                        {/* Language Settings */}
+                                        <div className="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                            <LanguageSwitcher />
+                                        </div>
+
+                                        <div className="border-t border-slate-100 dark:border-slate-900" />
+
+                                        {/* Dark Mode Theme Settings */}
+                                        <div className="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                            <ThemeToggle />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </header>
 
             {/* ── Mobile Bottom Navigation ── */}
             <nav
-                className={`fixed right-0 bottom-0 left-0 z-50 flex items-center justify-around border-t border-(--color-border-muted)/60 bg-(--color-surface-page)/90 px-2 py-3 pb-[env(safe-area-inset-bottom)] backdrop-blur-md transition-transform duration-300 ease-out md:hidden ${isNavVisible ? "translate-y-0" : "translate-y-full"} `}
+                className={`fixed right-0 bottom-0 left-0 z-50 flex items-center justify-around border-t border-(--color-border-muted)/60 bg-(--color-surface-page)/90 px-1 py-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-md transition-transform duration-300 ease-out md:hidden ${isNavVisible ? "translate-y-0" : "translate-y-full"} `}
                 aria-label="Mobile navigation"
             >
                 {MOBILE_NAV_ITEMS.map(
@@ -238,27 +288,25 @@ export default function Navbar() {
                                 href={href}
                                 aria-label={tNav(labelKey)}
                                 aria-current={active ? "page" : undefined}
-                                className={`group flex w-16 flex-col items-center gap-1.5 transition-colors ${
+                                className={`group flex w-14 flex-col items-center gap-1 transition-colors ${
                                     active ? activeColor : `text-(--color-text-muted) ${hoverColor}`
                                 } `}
                             >
                                 <div
-                                    className={`relative transition-transform duration-200 group-hover:-translate-y-1 ${active ? "scale-110" : ""} `}
+                                    className={`relative transition-transform duration-200 group-hover:-translate-y-0.5 ${active ? "scale-105" : ""} `}
                                 >
-                                    <Icon size={24} strokeWidth={active ? 2.5 : strokeWidth} />
-                                    {/* Alert badge */}
+                                    <Icon size={22} strokeWidth={active ? 2.5 : strokeWidth} />
                                     {badge && (
-                                        <span className="absolute top-0 right-0.5 h-2 w-2 animate-pulse rounded-full border border-(--color-surface-page) bg-red-500" />
+                                        <span className="absolute top-0 right-0 h-2 w-2 animate-pulse rounded-full border border-(--color-surface-page) bg-red-500" />
                                     )}
-                                    {/* Active indicator dot */}
                                     {active && (
                                         <span
-                                            className={`absolute -bottom-1.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full ${activeColor.replace("text-", "bg-")} `}
+                                            className={`absolute -bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full ${activeColor.replace("text-", "bg-")} `}
                                         />
                                     )}
                                 </div>
                                 <span
-                                    className={` ${mobileNavLabelClassName} text-[11px] ${active ? "font-bold" : "font-semibold"} `}
+                                    className={` ${mobileNavLabelClassName} text-[10px] ${active ? "font-bold" : "font-semibold"} `}
                                 >
                                     {tNav(labelKey)}
                                 </span>

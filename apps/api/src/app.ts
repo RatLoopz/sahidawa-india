@@ -1,11 +1,14 @@
-import express, { Express, Request, Response } from "express";
+import express, { Express, Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
 import path from "path";
 import logger from "./utils/logger";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./utils/swagger";
 import { validateMlServiceConfig } from "./config/mlService";
+import cookieParser from "cookie-parser";
+import { doubleCsrf } from "csrf-csrf";
 
+// ── Environment Configuration ──────────────────────────────────────────────
 const rootEnvPath = path.resolve(__dirname, "../../../.env");
 dotenv.config({ path: rootEnvPath });
 
@@ -27,13 +30,13 @@ if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
 // Execute configuration validation after import completes
 validateMlServiceConfig();
 
+// ── Feature & Route Imports ────────────────────────────────────────────────
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import compression from "compression";
 import adminRoutes from "./routes/admin.routes";
 import { requireAuth, requireRole } from "./middleware/auth";
-
 import reportsRouter from "./routes/reports";
 import pharmaciesRouter from "./routes/pharmacies";
 import verifyRouter from "./routes/verify";
@@ -46,12 +49,45 @@ import lasaRouter from "./routes/lasa";
 import mlRouter from "./routes/ml";
 import { supabase } from "./db/client";
 import { createCorsOptions } from "./config/cors";
-
 import { errorHandler } from "./middleware/errorHandler";
 
+// ── Application Initialization ─────────────────────────────────────────────
 const app: Express = express();
 
 app.use(compression());
+
+// ── Global Middleware Configuration ───────────────────────────────────────
+app.use(cookieParser());
+
+// ── CSRF Protection (double-submit cookie pattern) ─────────────────────────
+// csrf-csrf is recognized by CodeQL as a valid CSRF defense unlike custom header checks.
+const {
+    doubleCsrfProtection,
+    generateCsrfToken: generateToken, // FIXED: Extract generateCsrfToken and alias it to generateToken
+} = doubleCsrf({
+    getSecret: () => process.env.CSRF_SECRET || "fallback-secret-change-in-production",
+    getSessionIdentifier: (req: Request) => {
+        return req.cookies?.access_token || "anonymous-session";
+    },
+    cookieName:
+        process.env.NODE_ENV === "production" ? "__Host-psifi.x-csrf-token" : "psifi.x-csrf-token",
+    cookieOptions: {
+        httpOnly: true,
+        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+    },
+    size: 64,
+    ignoredMethods: ["GET", "HEAD", "OPTIONS"],
+});
+if (process.env.NODE_ENV !== "test") {
+    app.use(doubleCsrfProtection);
+}
+
+// ── CSRF token endpoint — frontend fetches this once on load ───────────────
+app.get("/api/csrf-token", (req: Request, res: Response) => {
+    res.json({ csrfToken: generateToken(req, res) });
+});
 
 app.use(
     helmet({
@@ -63,7 +99,7 @@ app.use(
     })
 );
 
-// Security: restrict CORS to known origins instead of wildcard
+// Security: restrict CORS to known origins and allow credentials for secure cookies
 app.use(cors(createCorsOptions()));
 
 app.use(express.json({ limit: "1mb" }));
@@ -80,23 +116,17 @@ app.use(
     })
 );
 
+// ── Core Routes ────────────────────────────────────────────────────────────
 app.get("/", (_req: Request, res: Response) => {
     logger.info("Root route accessed");
-
     res.status(200).json({
         name: "SahiDawa API",
         description: "India's Open-Source Citizen Medicine Verifier & Rural Health Bridge",
         version: process.env.npm_package_version || "0.1.0",
         status: "running",
         environment: process.env.NODE_ENV || "development",
-
-        endpoints: {
-            health: "/health",
-            docs: "/api/docs",
-        },
-
+        endpoints: { health: "/health", docs: "/api/docs", csrfToken: "/api/csrf-token" },
         repository: "https://github.com/RatLoopz/sahidawa-india",
-
         timestamp: new Date().toISOString(),
     });
 });
@@ -106,31 +136,21 @@ app.use("/api/v1/admin", requireAuth, requireRole("admin", "moderator"), adminRo
 
 app.get("/health", async (_req: Request, res: Response) => {
     const start = Date.now();
-
     try {
         const { error } = await supabase.from("medicines").select("id").limit(1);
-
         const uptime = process.uptime();
-
         const healthData = {
             status: error ? "degraded" : "ok",
             service: "sahidawa-api",
             version: process.env.npm_package_version || "unknown",
-
             environment: process.env.NODE_ENV || "development",
-
             uptime: `${Math.floor(uptime)}s`,
-
-            database: {
-                status: error ? "unreachable" : "connected",
-            },
-
+            database: { status: error ? "unreachable" : "connected" },
             services: {
                 api: "healthy",
                 redis: "not-configured-yet",
                 mlService: "not-configured-yet",
             },
-
             system: {
                 nodeVersion: process.version,
                 platform: process.platform,
@@ -139,7 +159,6 @@ app.get("/health", async (_req: Request, res: Response) => {
                     heapUsed: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB`,
                 },
             },
-
             responseTime: `${Date.now() - start}ms`,
             timestamp: new Date().toISOString(),
         };
@@ -147,10 +166,7 @@ app.get("/health", async (_req: Request, res: Response) => {
         if (error) {
             return res.status(503).json({
                 ...healthData,
-                database: {
-                    status: "unreachable",
-                    error: error.message,
-                },
+                database: { status: "unreachable", error: error.message },
             });
         }
 
@@ -165,6 +181,7 @@ app.get("/health", async (_req: Request, res: Response) => {
     }
 });
 
+// ── Feature API Modules ────────────────────────────────────────────────────
 app.use("/api/reports", reportsRouter);
 app.use("/reports", reportsRouter);
 app.use("/api/pharmacies", pharmaciesRouter);
@@ -177,7 +194,7 @@ app.use("/api/v1/lasa", lasaRouter);
 app.use("/api/v1/alerts", alertsRouter);
 app.use("/api/ml", mlRouter);
 
-// ── Swagger UI (/api/docs) ──────────────────────────────────────────────────
+// ── Swagger UI Documentation (/api/docs) ──────────────────────────────────
 app.use(
     "/api/docs",
     swaggerUi.serve,
@@ -197,12 +214,12 @@ app.use(
     })
 );
 
-// Also expose raw spec as JSON for tooling (Postman, etc.)
-app.get("/api/docs.json", (req: Request, res: Response) => {
+app.get("/api/docs.json", (_req: Request, res: Response) => {
     res.setHeader("Content-Type", "application/json");
     res.send(swaggerSpec);
 });
 
+// ── Error Management Middleware ────────────────────────────────────────────
 app.use(errorHandler);
 
 export default app;

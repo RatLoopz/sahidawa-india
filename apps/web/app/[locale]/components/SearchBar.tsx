@@ -25,12 +25,15 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
     const locale = params.locale as string;
     const tHome = useTranslations("Home");
     // ── State ──────────────────────────────────────────────────────────────────
+    const [error, setError] = useState<string | null>(null);
+    const [noResults, setNoResults] = useState(false);
     const [query, setQuery] = useState<string>("");
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [activeIndex, setActiveIndex] = useState<number>(-1);
+
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    // ── Refs ───────────────────────────────────────────────────────────────────
+    // ── Refs ───────────────────────────────────────────────────────────────────D
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -48,10 +51,14 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
     }, []);
     // ── Fetch suggestions from Supabase (debounced) ────────────────────────────
     const fetchSuggestions = useCallback(async (trimmed: string) => {
+        setError(null);
+        setNoResults(false);
         if (!trimmed) {
             setSuggestions([]);
             setIsOpen(false);
             setIsLoading(false);
+            setError(null);
+            setNoResults(false);
             return;
         }
         // Check if offline
@@ -124,8 +131,14 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
             }
 
             setSuggestions(results);
+            if (results.length === 0) {
+                setNoResults(true);
+                setIsOpen(true);
+            } else {
+                setNoResults(false);
+                setIsOpen(true);
+            }
             setActiveIndex(-1);
-            setIsOpen(results.length > 0);
         } catch (err) {
             if (err instanceof Error && err.name === "AbortError") {
                 // Silently ignore aborted suggestions queries
@@ -133,7 +146,8 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
             }
             console.error("[SearchBar] Unexpected error fetching suggestions:", err);
             setSuggestions([]);
-            setIsOpen(false);
+            setError("Unable to fetch medicine suggestions.");
+            setIsOpen(true);
         } finally {
             if (!controller.signal.aborted) {
                 setIsLoading(false);
@@ -222,7 +236,7 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
     return (
         <div ref={containerRef} className="relative w-full">
             <div
-                className={`relative rounded-2xl border transition-all duration-300 ${
+                className={`relative rounded-2xl border transition-[border-color,background-color,box-shadow,transform] duration-300 ease-out ${
                     dark
                         ? isOpen
                             ? "border-emerald-500/60 bg-[#1a2a3a] shadow-[0_0_0_3px_rgba(16,185,129,0.15)]"
@@ -260,7 +274,7 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
                         onChange={handleInputChange}
                         onKeyDown={handleKeyDown}
                         onFocus={() => {
-                            if (suggestions.length > 0) setIsOpen(true);
+                            setIsOpen(true);
                         }}
                         placeholder={tHome("search_placeholder")}
                         className={`w-full border-none bg-transparent py-1.5 text-base font-medium outline-none ${
@@ -272,10 +286,10 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
                     />
                     <button
                         onClick={() => performSearch(query)}
-                        className="flex shrink-0 items-center gap-2 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-500/35 active:scale-95"
+                        className="flex shrink-0 items-center gap-2 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-emerald-500/25 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-500/30 active:scale-95"
                         aria-label="Submit search"
                     >
-                        <Search size={16} />
+                        <Search size={16} aria-hidden="true" />
                         {tHome("search_button")}
                     </button>
                 </div>
@@ -287,6 +301,10 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
                 activeIndex={activeIndex}
                 onSelect={selectSuggestion}
                 visible={isOpen}
+                isLoading={isLoading}
+                error={error}
+                noResults={noResults}
+                onRetry={() => fetchSuggestions(query.trim())}
             />
         </div>
     );

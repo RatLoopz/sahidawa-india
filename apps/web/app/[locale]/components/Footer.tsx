@@ -69,7 +69,7 @@ export default function Footer() {
                         <h2 className="mb-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                             SahiDawa
                         </h2>
-                        <p className="mb-4 max-w-sm text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                        <p className="mb-4 max-w-sm text-sm leading-relaxed text-slate-700 dark:text-slate-400">
                             India's first open-source medicine verification platform. Scan, verify,
                             and trust your medicines with community-powered transparency.
                         </p>
@@ -92,7 +92,7 @@ export default function Footer() {
                                         className={`inline-flex items-center gap-1.5 text-sm transition-colors ${
                                             link.highlight
                                                 ? "font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
-                                                : "text-slate-600 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400"
+                                                : "text-slate-700 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400"
                                         }`}
                                     >
                                         {link.icon && <link.icon className="h-3.5 w-3.5" />}
@@ -115,7 +115,7 @@ export default function Footer() {
                                         href={link.href}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1 text-sm text-slate-600 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400"
+                                        className="inline-flex items-center gap-1 text-sm text-slate-700 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400"
                                     >
                                         {link.label}
                                         <ExternalLink className="h-3 w-3" />
@@ -149,7 +149,7 @@ export default function Footer() {
                         </div>
                         <a
                             href="mailto:contact@sahidawa.in"
-                            className="inline-flex items-center gap-2 text-sm text-slate-600 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400"
+                            className="inline-flex items-center gap-2 text-sm text-slate-700 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400"
                         >
                             <Mail className="h-4 w-4" />
                             contact@sahidawa.in
@@ -158,7 +158,7 @@ export default function Footer() {
                 </div>
 
                 {/* Bottom Bar */}
-                <div className="mt-8 flex flex-col items-center justify-between gap-3 border-t border-slate-200/50 pt-6 text-xs text-slate-500 md:flex-row dark:border-slate-800/50 dark:text-slate-500">
+                <div className="mt-8 flex flex-col items-center justify-between gap-3 border-t border-slate-200/50 pt-6 text-xs text-slate-700 md:flex-row dark:border-slate-800/50 dark:text-slate-400">
                     <p>© 2026 SahiDawa. Open Source under MIT License.</p>
                     <p className="flex items-center gap-1.5">
                         Built with

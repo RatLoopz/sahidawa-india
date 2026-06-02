@@ -32,7 +32,7 @@ const INITIAL_MESSAGES = {
 
     pa: "ਸਤ ਸ੍ਰੀ ਅਕਾਲ, ਮੈਂ SahiDawa ਹਾਂ, ਤੁਹਾਡਾ ਭਰੋਸੇਯੋਗ ਸਿਹਤ ਸਾਥੀ। ਮੈਂ ਦਵਾਈਆਂ ਦੀ ਪੁਸ਼ਟੀ ਕਰਨ, ਲੱਛਣਾਂ ਨੂੰ ਸਮਝਣ ਅਤੇ ਤੁਹਾਡੇ ਨੇੜੇ ਸਿਹਤ ਸੇਵਾਵਾਂ ਲੱਭਣ ਵਿੱਚ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ। ਅੱਜ ਮੈਂ ਤੁਹਾਡੀ ਕਿਵੇਂ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ?",
 
-    od: "ନମସ୍କାର, ମୁଁ SahiDawa, ଆପଣଙ୍କର ଭରସାଯୋଗ୍ୟ ସ୍ୱାସ୍ଥ୍ୟ ସହଚର। ମୁଁ ଔଷଧ ଯାଞ୍ଚ କରିବା, ଲକ୍ଷଣ ବୁଝିବା ଏବଂ ନିକଟସ୍ଥ ସ୍ୱାସ୍ଥ୍ୟ ସେବା ଖୋଜିବାରେ ସହାୟତା କରିପାରିବି। ଆଜି ମୁଁ ଆପଣଙ୍କୁ କିପରି ସହାୟତା କରିପାରିବି?",
+    or: "ନମସ୍କାର, ମୁଁ SahiDawa, ଆପଣଙ୍କର ଭରସାଯୋଗ୍ୟ ସ୍ୱାସ୍ଥ୍ୟ ସହଚର। ମୁଁ ଔଷଧ ଯାଞ୍ଚ କରିବା, ଲକ୍ଷଣ ବୁଝିବା ଏବଂ ନିକଟସ୍ଥ ସ୍ୱାସ୍ଥ୍ୟ ସେବା ଖୋଜିବାରେ ସହାୟତା କରିପାରିବି। ଆଜି ମୁଁ ଆପଣଙ୍କୁ କିପରି ସହାୟତା କରିପାରିବି?",
 };
 
 // Icons
@@ -225,7 +225,7 @@ export default function ChatUI() {
             ur: "ur-IN",
             mr: "mr-IN",
             pa: "pa-IN",
-            od: "or-IN",
+            or: "or-IN",
         };
         r.lang = speechLocales[locale as keyof typeof speechLocales] || "en-IN";
         r.interimResults = false;
@@ -270,6 +270,9 @@ export default function ChatUI() {
             {/* Messages */}
             <main
                 ref={messagesContainerRef}
+                role="log"
+                aria-live="polite"
+                aria-label="Chat conversation"
                 className="absolute inset-0 z-0 overflow-y-auto px-4 pt-28 pb-36"
             >
                 <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -316,6 +319,8 @@ export default function ChatUI() {
                     <div className="flex items-center gap-3">
                         <button
                             onClick={toggleVoice}
+                            aria-label={isListening ? "Stop voice input" : "Start voice input"}
+                            aria-pressed={isListening}
                             className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
                                 isListening
                                     ? "bg-red-500 text-white shadow-md shadow-red-500/20"
@@ -324,8 +329,14 @@ export default function ChatUI() {
                         >
                             {isListening ? <IconStop /> : <IconMic size={20} />}
                         </button>
+
+                        <label htmlFor="chat-input" className="sr-only">
+                            Type your health question
+                        </label>
                         <textarea
+                            id="chat-input"
                             ref={inputRef}
+                            aria-label="Type your health question"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={handleKeyDown}
@@ -338,6 +349,7 @@ export default function ChatUI() {
                         <button
                             onClick={() => sendMessage(input)}
                             disabled={!input.trim() || isTyping}
+                            aria-label="Send message"
                             className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
                                 input.trim() && !isTyping
                                     ? "bg-linear-to-r from-emerald-500 to-teal-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)] hover:from-emerald-600 hover:to-teal-600 active:scale-95"

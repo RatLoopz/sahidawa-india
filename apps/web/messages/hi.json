@@ -29,7 +29,14 @@
         "heroTitle": {
             "prefix": "आपका स्वास्थ्य, ",
             "highlight": "सत्यापित और सुरक्षित।"
-        }
+        },
+        "scan_medicine": "Scan Medicine",
+        "scan_now": "Scan Now",
+        "find_pharmacy": "Find Pharmacy",
+        "report_subtitle": "Report suspicious medicine",
+        "our_core_features": "Explore Features",
+        "real_time": "REAL TIME",
+        "alerts_description": "Stay updated with the latest medicine safety alerts and recalls."
     },
     "Navigation": {
         "how_it_works": "यह कैसे काम करता है",

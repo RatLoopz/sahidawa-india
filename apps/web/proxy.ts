@@ -16,10 +16,10 @@ export default async function middleware(req: NextRequest) {
                 return req.cookies.getAll();
             },
             setAll(cookiesToSet) {
-                cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
-                cookiesToSet.forEach(({ name, value, options }) =>
-                    res.cookies.set(name, value, options)
-                );
+                // Apply cookies only to the response; request cookies are immutable in middleware.
+                cookiesToSet.forEach(({ name, value, options }) => {
+                    res.cookies.set(name, value, options);
+                });
             },
         },
     });
@@ -42,5 +42,5 @@ export default async function middleware(req: NextRequest) {
 
 export const config = {
     // Match only internationalized pathnames
-    matcher: ["/", "/(ta|en|bn|te|mr|gu|ur|od|hi|kn|pa)/:path*"],
+    matcher: ["/", "/(ta|en|bn|te|mr|gu|ur|or|hi|kn|pa)/:path*"],
 };

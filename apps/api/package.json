@@ -12,7 +12,9 @@
     "dependencies": {
         "@supabase/supabase-js": "^2.106.2",
         "compression": "^1.8.1",
+        "cookie-parser": "^1.4.7",
         "cors": "^2.8.5",
+        "csrf-csrf": "^4.0.3",
         "dotenv": "^17.4.2",
         "express": "^5.0.0",
         "express-rate-limit": "^8.5.2",
@@ -30,6 +32,7 @@
     },
     "devDependencies": {
         "@types/compression": "^1.8.1",
+        "@types/cookie-parser": "^1.4.10",
         "@types/cors": "^2.8.17",
         "@types/express": "^5.0.0",
         "@types/jest": "^30.0.0",

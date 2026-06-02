@@ -531,7 +531,7 @@ export default function PharmacyMapPage() {
             <h1 className="sr-only">Pharmacy Map — Find Verified Pharmacies Near You</h1>
 
             {/* ── Header with search ── */}
-            <PageHeader backHref="/" variant="light">
+            <PageHeader backHref="/" variant="light" showThemeToggle={false}>
                 <div
                     className="flex flex-1 items-center rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-2 transition-all focus-within:border-emerald-500 focus-within:bg-(--color-surface-page)"
                     role="search"

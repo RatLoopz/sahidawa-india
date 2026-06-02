@@ -164,6 +164,7 @@ export default function SahiDawaHome() {
 
                     {/* ── Vaccine Hub & Tracker ── */}
                     <section className="mb-6">
+                        <h2 className="sr-only">Featured Services</h2>
                         <Link
                             href="/vaccine-hub"
                             className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-md focus-visible:-translate-y-1 focus-visible:scale-[1.01] focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-emerald-400/30 dark:hover:shadow-emerald-400/5 dark:focus-visible:ring-offset-slate-900"

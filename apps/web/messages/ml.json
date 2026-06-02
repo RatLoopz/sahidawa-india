@@ -29,7 +29,14 @@
         "heroTitle": {
             "prefix": "നിങ്ങളുടെ ആരോഗ്യം, ",
             "highlight": "പരിശോധിക്കപ്പെട്ടതും സംരക്ഷിക്കപ്പെട്ടതും."
-        }
+        },
+        "scan_medicine": "Scan Medicine",
+        "scan_now": "Scan Now",
+        "find_pharmacy": "Find Pharmacy",
+        "report_subtitle": "Report suspicious medicine",
+        "our_core_features": "Explore Features",
+        "real_time": "REAL TIME",
+        "alerts_description": "Stay updated with the latest medicine safety alerts and recalls."
     },
     "Navigation": {
         "how_it_works": "എങ്ങനെ പ്രവർത്തിക്കുന്നു",

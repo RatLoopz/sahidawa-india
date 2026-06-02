@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 
 /**
@@ -58,6 +58,7 @@ export interface RiskHotspot {
 interface PharmacyMapProps {
     pharmacies: Pharmacy[];
     selectedPharmacyId?: number | null;
+    onSelectPharmacy?: (pharmacyId: number) => void;
     onLocateUser?: () => void;
     userLocation?: { lat: number; lng: number } | null;
     onMapMoveEnd?: (bounds: MapBounds) => void;
@@ -72,6 +73,7 @@ interface PharmacyMapProps {
 export default function PharmacyMap({
     pharmacies,
     selectedPharmacyId,
+    onSelectPharmacy,
     userLocation,
     onMapMoveEnd,
     onMapReady,
@@ -134,7 +136,7 @@ export default function PharmacyMap({
                         "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
                         {
                             attribution:
-                                '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+                                '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
                             maxZoom: 19,
                         }
                     ).addTo(map.current);
@@ -150,6 +152,11 @@ export default function PharmacyMap({
                           @keyframes sahidawa-verified-glow {
                             0%, 100% { box-shadow: 0 0 8px 3px rgba(5,150,105,0.35); }
                             50% { box-shadow: 0 0 18px 7px rgba(5,150,105,0.6); }
+                          }
+                          @keyframes sahidawa-pulse {
+                            0% { transform: scale(0.95); opacity: 0.5; }
+                            50% { transform: scale(1.2); opacity: 0.2; }
+                            100% { transform: scale(0.95); opacity: 0.5; }
                           }
                         `;
                         document.head.appendChild(style);
@@ -195,7 +202,7 @@ export default function PharmacyMap({
         return () => {
             mounted = false;
         };
-    }, []);
+    }, [initialCenter, initialZoom, onMapMoveEnd, onMapReady]);
 
     // Update heatmap circles when risk layer changes
     useEffect(() => {
@@ -255,7 +262,6 @@ export default function PharmacyMap({
         markersRef.current.clear();
 
         if (pharmacies.length === 0) {
-            map.current.setView([22.5937, 78.9629], 5);
             return;
         }
 
@@ -268,9 +274,7 @@ export default function PharmacyMap({
             const isGovt = pharmacy.type === "govt";
             const markerColor = isVerified
                 ? "var(--color-brand-primary-hover)"
-                : isGovt
-                  ? "var(--color-brand-primary-hover)"
-                  : "var(--color-brand-secondary-bright)";
+                : "var(--color-brand-primary-hover)";
             const markerShadowColor =
                 isVerified || isGovt ? "rgba(5,150,105,0.25)" : "rgba(59,130,246,0.25)";
 
@@ -376,6 +380,9 @@ export default function PharmacyMap({
                   </div>`
                 : "";
 
+            // Directions setup (Fixed interpolation template string issue here)
+            const directionsUrl = `https://www.google.com/maps/search/?api=1&query=${pharmacy.coordinates.lat},${pharmacy.coordinates.lng}`;
+
             const popupContent = `
         <div style="
           padding: 12px;
@@ -414,43 +421,64 @@ export default function PharmacyMap({
                 ${statusColor};
                 display:inline-block;
                 margin-top:2px;
-              ">${escapeHtml(pharmacy.status)}</span>
+              ">${escapeHtml(pharmacy.status || "Status unknown")}</span>
             </div>
           </div>
-          ${pharmacy.address ? `<p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 8px 0;line-height:1.4;">${escapeHtml(pharmacy.address)}</p>` : ""}
-          <div style="display:flex;align-items:center;gap:12px;font-size:12px;color:var(--color-text-muted);margin-bottom:10px;">
+          <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 8px 0;line-height:1.4;">
+              ${escapeHtml(pharmacy.address || "No precise address listed in OSM")}
+          </p>
+          <div style="display:flex;align-items:center;gap:12px;font-size:12px;color:var(--color-text-muted);margin-bottom:12px;">
             ${pharmacy.distance && pharmacy.distance !== "—" ? `<span style="font-weight:600;">${escapeHtml(pharmacy.distance)} away</span>` : ""}
             ${
                 pharmacy.rating > 0
                     ? `<span style="display:flex;align-items:center;gap:2px;">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--color-accent-warning)" stroke="var(--color-accent-warning)" stroke-width="0"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--color-accent-warning)" stroke="var(--color-accent-warning)" stroke-width="0"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></polygon></svg>
               <span style="font-weight:700;color:var(--color-dark-scrollbar);">${pharmacy.rating}</span>
             </span>`
-                    : `<span style="font-weight:500;font-size:11px;color:var(--color-scrollbar-thumb);">OpenStreetMap data</span>`
+                    : `<span style="font-weight:500;font-size:11px;color:var(--color-scrollbar-thumb);">Live from OSM</span>`
             }
           </div>
-          ${
-              pharmacy.phone
-                  ? `<a href="tel:${escapeHtml(pharmacy.phone)}" style="
+          
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" style="
               display:flex;
               align-items:center;
               justify-content:center;
               gap:6px;
               width:100%;
               padding:8px;
-              background:var(--color-dark-surface);
+              background:#059669;
               color:white;
               border-radius:10px;
               text-decoration:none;
               font-size:12px;
               font-weight:700;
-              transition: background 0.2s;
             ">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-              Call ${escapeHtml(pharmacy.phone)}
-            </a>`
-                  : ""
-          }
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="1"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+              Directions
+            </a>
+            ${
+                pharmacy.phone
+                    ? `<a href="tel:${escapeHtml(pharmacy.phone)}" style="
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                gap:6px;
+                width:100%;
+                padding:8px;
+                background:var(--color-dark-surface);
+                color:white;
+                border-radius:10px;
+                text-decoration:none;
+                font-size:12px;
+                font-weight:700;
+              ">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                Call Store
+              </a>`
+                    : ""
+            }
+          </div>
         </div>
       `;
 
@@ -460,14 +488,25 @@ export default function PharmacyMap({
                 maxWidth: 300,
             });
 
+            // Bidirectional trigger: Select card panel row when a marker is clicked
+            marker.on("click", () => {
+                if (onSelectPharmacy) {
+                    onSelectPharmacy(pharmacy.id);
+                }
+            });
+
             if (window.matchMedia("(pointer: fine)").matches) {
                 marker.on("mouseover", () => {
                     marker.openPopup();
                     marker.getElement()?.classList.add("sahidawa-marker-hover");
                 });
                 marker.on("mouseout", () => {
-                    marker.closePopup();
-                    marker.getElement()?.classList.remove("sahidawa-marker-hover");
+                    // Slight delay to allow moving cursor into the popup if needed
+                    setTimeout(() => {
+                        if (!marker.isPopupOpen()) {
+                            marker.getElement()?.classList.remove("sahidawa-marker-hover");
+                        }
+                    }, 100);
                 });
             }
         });
@@ -479,9 +518,9 @@ export default function PharmacyMap({
                 maxZoom: 15,
             });
         }
-    }, [pharmacies, isMapReady]);
+    }, [pharmacies, isMapReady, autoFitBounds, onSelectPharmacy]);
 
-    // Handle selected pharmacy changes
+    // Handle selected pharmacy changes (Panels -> Map flight)
     useEffect(() => {
         if (!isMapReady || !map.current || selectedPharmacyId == null) return;
 
@@ -492,7 +531,7 @@ export default function PharmacyMap({
                 map.current.flyTo([pharmacy.coordinates.lat, pharmacy.coordinates.lng], 15, {
                     duration: 0.8,
                 });
-                // Small delay to let flyTo start before opening popup
+                // Small delay to let flyTo start before opening popup safely
                 setTimeout(() => {
                     marker.openPopup();
                 }, 400);

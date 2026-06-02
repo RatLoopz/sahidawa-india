@@ -6,9 +6,18 @@ const configuredApiUrl = (
 ).trim();
 export const API_BASE = configuredApiUrl.replace(/\/+$/, "");
 
-const ML_BASE = (
-    process.env.NEXT_PUBLIC_ML_URL ?? "http://localhost:8000"
-).trim().replace(/\/+$/, "");
+// Fetch and cache the CSRF token from the API
+let csrfTokenCache: string | null = null;
+
+async function getCsrfToken(): Promise<string> {
+    if (csrfTokenCache) return csrfTokenCache;
+    const res = await fetch(`${API_BASE}/api/csrf-token`, {
+        credentials: "include",
+    });
+    const data = await res.json();
+    csrfTokenCache = data.csrfToken;
+    return csrfTokenCache!;
+}
 
 export type ReportPayload = {
     medicineName: string;
@@ -46,9 +55,14 @@ export async function analyzeMedicineImage(
     imageUrl: string,
     signal?: AbortSignal
 ): Promise<MedicineImageAnalysis> {
+    const csrfToken = await getCsrfToken();
+
     const res = await fetchWithRetry(`${API_BASE}/api/ml/analyze`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            "x-csrf-token": csrfToken,
+        },
         body: JSON.stringify({ imageUrl }),
         timeout: 10000,
         signal,
@@ -71,14 +85,17 @@ export async function submitReport(
     accessToken?: string,
     signal?: AbortSignal
 ): Promise<{ report: SubmittedReport }> {
+    const csrfToken = await getCsrfToken();
+
     const res = await fetchWithRetry(`${API_BASE}/api/reports`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            ...(accessToken
-                ? { Authorization: `Bearer ${accessToken}` }
-                : {}),
+            "x-csrf-token": csrfToken,
+            // Support both cookie-based auth (primary) and Bearer token fallback
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
+        credentials: "include", // Send HTTP-only access_token cookie automatically
         body: JSON.stringify(payload),
         timeout: 10000,
         signal,
@@ -201,20 +218,56 @@ export async function verifyMedicine(
     batchNumber: string,
     signal?: AbortSignal
 ): Promise<VerifyResult> {
-    // Call ML FastAPI service directly
-    try {
-        const mlRes = await fetchWithRetry(
-            `${ML_BASE}/verify/batch`,
-            {
+    // 1. Try ML Service First
+    const mlUrl = process.env.NEXT_PUBLIC_ML_URL;
+    if (mlUrl) {
+        try {
+            const mlRes = await fetchWithRetry(`${mlUrl.replace(/\/+$/, "")}/verify/batch`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    batch_number: batchNumber,
-                }),
-                timeout: 10000,
+                body: JSON.stringify({ batch_number: batchNumber }),
+                timeout: 8000,
                 signal,
+            });
+
+            if (mlRes.ok) {
+                const mlData = await mlRes.json();
+
+                if (mlData.status === "not_found") {
+                    return { verified: false, message: "Medicine not found" };
+                }
+
+                // Map ML response to VerifyResult structure
+                return {
+                    verified: true,
+                    medicine: {
+                        brand_name: mlData.brand_name || "",
+                        generic_name: mlData.generic_name || "",
+                        manufacturer: mlData.manufacturer || "",
+                        batch_number: batchNumber,
+                        expiry_date: mlData.expiry_date || null,
+                        cdsco_approval_status: mlData.cdsco_approval_status || "",
+                        is_counterfeit_alert: mlData.is_counterfeit_alert || false,
+                    },
+                };
             }
-        );
+        } catch (error) {
+            console.warn("ML service verification failed, falling back to Node API", error);
+        }
+    }
+
+    // 2. Fallback to Node API
+    const csrfToken = await getCsrfToken();
+    const res = await fetchWithRetry(`${API_BASE}/api/verify`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "x-csrf-token": csrfToken,
+        },
+        body: JSON.stringify({ batchNumber }),
+        timeout: 10000,
+        signal,
+    });
 
         if (!mlRes.ok) {
             throw new Error("ML API error");
@@ -282,13 +335,15 @@ export type FuzzyMatch = {
     score: number;
 };
 
-export async function fuzzyMatchBrand(
-    query: string,
-    signal?: AbortSignal
-): Promise<FuzzyMatch[]> {
+export async function fuzzyMatchBrand(query: string, signal?: AbortSignal): Promise<FuzzyMatch[]> {
+    const csrfToken = await getCsrfToken();
+
     const res = await fetchWithRetry(`${API_BASE}/api/v1/scan/match`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            "x-csrf-token": csrfToken,
+        },
         body: JSON.stringify({ query }),
         timeout: 8000,
         signal,
@@ -310,16 +365,18 @@ export async function verifyMedicineByBrand(
     brandName: string,
     signal?: AbortSignal
 ): Promise<VerifyResult> {
-    const res = await fetchWithRetry(
-        `${API_BASE}/api/v1/scan/verify-brand`,
-        {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ brandName }),
-            timeout: 10000,
-            signal,
-        }
-    );
+    const csrfToken = await getCsrfToken();
+
+    const res = await fetchWithRetry(`${API_BASE}/api/v1/scan/verify-brand`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "x-csrf-token": csrfToken,
+        },
+        body: JSON.stringify({ brandName }),
+        timeout: 10000,
+        signal,
+    });
 
     if (!res.ok && res.status !== 404) {
         const body = (await res.json().catch(() => ({}))) as {
@@ -350,10 +407,13 @@ export async function checkLasaConflicts(
     medicineName: string,
     signal?: AbortSignal
 ): Promise<LasaCheckResult> {
+    const csrfToken = await getCsrfToken();
+
     const res = await fetchWithRetry(`${API_BASE}/api/v1/lasa/check`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
+            "x-csrf-token": csrfToken,
         },
         body: JSON.stringify({ medicineName }),
         timeout: 8000,

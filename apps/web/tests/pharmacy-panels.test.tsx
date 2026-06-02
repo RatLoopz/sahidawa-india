@@ -64,6 +64,7 @@ describe("PharmacyPanels", () => {
         expect(markup).toContain("Verified Safe Store");
         expect(markup).toContain("2 report clusters");
         expect(markup).toContain('aria-pressed="true"');
+        expect(markup).toContain("Share");
     });
 
     it("renders the empty state when no pharmacies are provided", () => {
