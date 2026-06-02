@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EaseMotion Dark Mode Demo</title>
+    <link rel="stylesheet" href="dark-mode.css" />
+  </head>
+  <body>
+    <div class="page">
+      <section class="card">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+          <div>
+            <h1>EaseMotion Dark Mode</h1>
+            <p>Demo showing automatic `prefers-color-scheme` and manual theme switching with CSS variables.</p>
+          </div>
+          <button id="theme-toggle" type="button" aria-pressed="false">Enable dark mode</button>
+        </div>
+      </section>
+
+      <section class="card strong">
+        <h2>How it works</h2>
+        <ul>
+          <li><strong>Light mode:</strong> default `:root` values</li>
+          <li><strong>Auto dark mode:</strong> `@media (prefers-color-scheme: dark)` overrides root values</li>
+          <li><strong>Manual theme:</strong> `:root[data-theme="dark"]` / `:root[data-theme="light"]`</li>
+        </ul>
+      </section>
+
+      <section class="card theme-summary">
+        <div class="theme-swatch">
+          <strong>Background</strong>
+          <span>var(--ease-background)</span>
+        </div>
+        <div class="theme-swatch">
+          <strong>Surface</strong>
+          <span>var(--ease-surface)</span>
+        </div>
+        <div class="theme-swatch">
+          <strong>Foreground</strong>
+          <span>var(--ease-foreground)</span>
+        </div>
+        <div class="theme-swatch">
+          <strong>Primary</strong>
+          <span>var(--ease-primary)</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Example CSS</h2>
+        <pre class="code-block">@media (prefers-color-scheme: dark) {
+  :root {
+    --ease-background: #020617;
+    --ease-surface: #111827;
+    --ease-foreground: #f8fafc;
+    --ease-primary: #60a5fa;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ease-background: #020617;
+  --ease-surface: #111827;
+  --ease-foreground: #f8fafc;
+  --ease-primary: #60a5fa;
+}
+</pre>
+      </section>
+
+      <section class="card">
+        <h2>Theme variables to override</h2>
+        <p class="demo-notice">These are the most important tokens for dark mode in an EaseMotion-like system.</p>
+        <ul>
+          <li>--ease-background</li>
+          <li>--ease-surface</li>
+          <li>--ease-surface-strong</li>
+          <li>--ease-foreground</li>
+          <li>--ease-muted</li>
+          <li>--ease-border</li>
+          <li>--ease-border-muted</li>
+          <li>--ease-primary</li>
+          <li>--ease-primary-contrast</li>
+          <li>--ease-secondary</li>
+          <li>--ease-shadow</li>
+          <li>--ease-link</li>
+        </ul>
+      </section>
+    </div>
+
+    <script>
+      const root = document.documentElement;
+      const toggle = document.getElementById('theme-toggle');
+      const savedTheme = localStorage.getItem('easeTheme');
+
+      function applyTheme(theme) {
+        if (theme) {
+          root.dataset.theme = theme;
+          toggle.textContent = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+          toggle.setAttribute('aria-pressed', theme === 'dark');
+        } else {
+          root.removeAttribute('data-theme');
+          toggle.textContent = 'Enable dark mode';
+          toggle.setAttribute('aria-pressed', 'false');
+        }
+      }
+
+      function getNextTheme() {
+        const current = root.dataset.theme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        return current === 'dark' ? 'light' : 'dark';
+      }
+
+      function refreshToggleLabel() {
+        const current = root.dataset.theme;
+        if (current === 'dark') {
+          toggle.textContent = 'Switch to light mode';
+          toggle.setAttribute('aria-pressed', 'true');
+        } else if (current === 'light') {
+          toggle.textContent = 'Switch to dark mode';
+          toggle.setAttribute('aria-pressed', 'false');
+        } else {
+          toggle.textContent = 'Use system theme or enable dark mode';
+          toggle.setAttribute('aria-pressed', 'false');
+        }
+      }
+
+      if (savedTheme === 'dark' || savedTheme === 'light') {
+        applyTheme(savedTheme);
+      } else {
+        refreshToggleLabel();
+      }
+
+      toggle.addEventListener('click', () => {
+        const theme = getNextTheme();
+        applyTheme(theme);
+        localStorage.setItem('easeTheme', theme);
+      });
+    </script>
+  </body>
+</html>
