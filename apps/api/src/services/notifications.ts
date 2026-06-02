@@ -27,6 +27,7 @@ export type StoredSubscription = {
     endpoint: string;
     subscription: PushSubscription;
     createdAt: string;
+    userId: string;
 };
 
 const memorySubscriptions = new Map<string, StoredSubscription>();
@@ -79,11 +80,12 @@ export function getMockRecallFeed() {
     return mockRecallFeed;
 }
 
-export async function savePushSubscription(subscription: PushSubscription) {
+export async function savePushSubscription(subscription: PushSubscription, userId: string) {
     const stored: StoredSubscription = {
         endpoint: subscription.endpoint,
         subscription,
         createdAt: new Date().toISOString(),
+        userId,
     };
     memorySubscriptions.set(subscription.endpoint, stored);
 
@@ -92,6 +94,7 @@ export async function savePushSubscription(subscription: PushSubscription) {
             endpoint: subscription.endpoint,
             subscription,
             updated_at: stored.createdAt,
+            user_id: userId,
         },
         { onConflict: "endpoint" }
     );
@@ -107,24 +110,28 @@ export async function removePushSubscription(endpoint: string) {
 async function listPersistedSubscriptions(): Promise<StoredSubscription[]> {
     const { data, error } = await supabase
         .from("push_subscriptions")
-        .select("endpoint, subscription, created_at")
+        .select("endpoint, subscription, created_at, user_id")
         .order("created_at", { ascending: false });
 
     if (error || !data) {
         return [];
     }
 
-    return data
-        .map((row) => {
-            const parsed = pushSubscriptionSchema.safeParse(row.subscription);
-            if (!parsed.success) return null;
-            return {
-                endpoint: row.endpoint as string,
-                subscription: parsed.data as PushSubscription,
-                createdAt: (row.created_at as string | null) ?? new Date().toISOString(),
-            };
-        })
-        .filter((row): row is StoredSubscription => row !== null);
+    const results: StoredSubscription[] = [];
+
+    for (const row of data) {
+        const parsed = pushSubscriptionSchema.safeParse(row.subscription);
+        if (!parsed.success) continue;
+
+        results.push({
+            endpoint: row.endpoint as string,
+            subscription: parsed.data as PushSubscription,
+            createdAt: (row.created_at as string | null) ?? new Date().toISOString(),
+            userId: row.user_id as string,
+        });
+    }
+
+    return results;
 }
 
 export async function listPushSubscriptions() {

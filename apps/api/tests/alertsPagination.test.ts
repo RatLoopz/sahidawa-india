@@ -12,6 +12,14 @@ jest.mock("../src/db/client", () => ({
     },
 }));
 
+// Mock doubleCsrf to automatically bypass CSRF validation during testing
+jest.mock("csrf-csrf", () => ({
+    doubleCsrf: () => ({
+        doubleCsrfProtection: (req: any, res: any, next: any) => next(),
+        generateToken: () => "mocked-csrf-token",
+    }),
+}));
+
 import { supabase } from "../src/db/client";
 
 // ── Helpers ────────────────────────────────────────────────────────
@@ -164,5 +172,25 @@ describe("GET /api/v1/alerts — pagination", () => {
 
         expect(res.status).toBe(500);
         expect(res.body).toHaveProperty("error");
+    });
+});
+
+describe("POST /api/v1/alerts/ingest — configuration validation", () => {
+    const originalSecretKey = process.env.API_SECRET_KEY;
+
+    afterEach(() => {
+        process.env.API_SECRET_KEY = originalSecretKey;
+    });
+
+    it("returns 500 when API_SECRET_KEY is not set", async () => {
+        delete process.env.API_SECRET_KEY;
+
+        const res = await request(app)
+            .post("/api/v1/alerts/ingest")
+            .set("x-api-secret", "some-secret")
+            .send({ alerts: [] });
+
+        expect(res.status).toBe(500);
+        expect(res.body.error).toMatch(/API_SECRET_KEY.*not.*configured/i);
     });
 });

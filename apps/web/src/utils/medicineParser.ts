@@ -1,14 +1,16 @@
 export function extractExpiryDate(text: string): string | null {
-    const labeled =
-        /(?:EXP(?:IRY)?\.?\s*(?:DATE)?|EXPIRY|USE\s+BEFORE|BB|E\.?D\.?)[:\s.-]*(\d{1,2})[\/\s.-](\d{4}|\d{2})/i;
-    const m = text.match(labeled);
-    if (m) {
-        const month = m[1].padStart(2, "0");
-        const year = m[2].length === 2 ? "20" + m[2] : m[2];
-        const mn = parseInt(month, 10);
-        if (mn >= 1 && mn <= 12) return `${month}/${year}`;
+    // 1. Most specific: DD/MM/YYYY
+    const ddMmYyyy = /\b(\d{2})[\/\-](\d{2})[\/\-](\d{4})\b/;
+    const dmy = text.match(ddMmYyyy);
+    if (dmy) {
+        const day = parseInt(dmy[1], 10);
+        const month = parseInt(dmy[2], 10);
+        if (day >= 1 && day <= 31 && month >= 1 && month <= 12) {
+            return `${dmy[2]}/${dmy[3]}`;
+        }
     }
 
+    // 2. Named months: JAN 2024
     const mmm =
         /(?:EXP(?:IRY)?\s*)?(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s*\.?\s*(\d{4})/i;
     const mm = text.match(mmm);
@@ -31,21 +33,27 @@ export function extractExpiryDate(text: string): string | null {
         if (month) return `${month}/${mm[2]}`;
     }
 
+    // 3. Labeled MM/YYYY or MM/YY
+    const labeled =
+        /(?:EXP(?:IRY)?\.?\s*(?:DATE)?|EXPIRY|USE\s+BEFORE|BB|E\.?D\.?)[:\s.-]*(\d{1,2})[\/\s.-](\d{4}|\d{2})/i;
+    const m = text.match(labeled);
+    if (m) {
+        const month = m[1].padStart(2, "0");
+        const year = m[2].length === 2 ? "20" + m[2] : m[2];
+        const mn = parseInt(month, 10);
+        if (mn >= 1 && mn <= 12) {
+            return `${month}/${year}`;
+        }
+        // If explicitly labeled as EXP but month is invalid, do not fall through to generic dates (which could be Mfg dates)
+        return null;
+    }
+
+    // 4. Generic MM/YYYY or MM/YY
     const generic = /\b(0[1-9]|1[0-2])[\/\s.-](20[2-9]\d|[2-9]\d)\b/;
     const g = text.match(generic);
     if (g) {
         const year = g[2].length === 2 ? "20" + g[2] : g[2];
         return `${g[1]}/${year}`;
-    }
-
-    const ddMmYyyy = /\b(\d{2})[\/\-](\d{2})[\/\-](\d{4})\b/;
-    const dmy = text.match(ddMmYyyy);
-    if (dmy) {
-        const day = parseInt(dmy[1], 10);
-        const month = parseInt(dmy[2], 10);
-        if (day >= 1 && day <= 31 && month >= 1 && month <= 12) {
-            return `${dmy[2]}/${dmy[3]}`;
-        }
     }
 
     return null;

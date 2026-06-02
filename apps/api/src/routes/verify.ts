@@ -2,8 +2,27 @@ import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { supabase } from "../db/client";
 import { verifyLimiter } from "../middleware/rateLimit";
+import { optionalAuth } from "../middleware/auth";
+
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim())
+    : [
+          "http://localhost:3000",
+          "http://localhost:5173",
+          "https://sahidawa.vercel.app",
+          "https://sahidawa-india.vercel.app",
+          "https://sahidawa.goswav.in",
+      ];
 
 const router = Router();
+
+function isAllowedOrigin(req: Request): boolean {
+    const origin = req.headers.origin;
+    const referer = req.headers.referer;
+    const source = origin || (referer ? new URL(referer).origin : null);
+    if (!source) return true; // Allow requests with no Origin/Referer header
+    return ALLOWED_ORIGINS.includes(source);
+}
 
 const verifySchema = z.object({
     batchNumber: z
@@ -81,62 +100,82 @@ const verifySchema = z.object({
  *                   type: string
  *                   example: "Database lookup failed"
  */
-router.post("/", verifyLimiter, async (req: Request, res: Response) => {
-    const parsed = verifySchema.safeParse(req.body);
+router.post(
+    "/",
+    optionalAuth,
+    verifyLimiter,
+    (req: Request, res: Response, next) => {
+        if (!isAllowedOrigin(req)) {
+            res.status(403).json({ error: "Access denied: unrecognized origin" });
+            return;
+        }
+        next();
+    },
+    async (req: Request, res: Response) => {
+        const parsed = verifySchema.safeParse(req.body);
 
-    if (!parsed.success) {
-        res.status(400).json({
-            error: "Invalid request body",
-            details: parsed.error.issues,
-        });
-        return;
+        if (!parsed.success) {
+            res.status(400).json({
+                error: "Invalid request body",
+                details: parsed.error.issues,
+            });
+            return;
+        }
+
+        const { batchNumber } = parsed.data;
+
+        const escaped = batchNumber
+            .replace(/\\/g, "\\\\")
+            .replace(/%/g, "\\%")
+            .replace(/_/g, "\\_");
+
+        try {
+            const { data, error } = await supabase
+                .from("medicines")
+                .select(
+                    "brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert"
+                )
+                .ilike("batch_number", escaped)
+                .limit(1)
+                .maybeSingle();
+
+            if (error) {
+                console.error("Medicine lookup failed:", error);
+                res.status(500).json({
+                    verified: false,
+                    message: "Database lookup failed",
+                });
+                return;
+            }
+
+            if (!data) {
+                res.status(404).json({
+                    verified: false,
+                    message: "Medicine not found",
+                });
+                return;
+            }
+
+            res.status(200).json({
+                verified: true,
+                medicine: {
+                    brand_name: data.brand_name,
+                    generic_name: data.generic_name,
+                    manufacturer: data.manufacturer,
+                    batch_number: data.batch_number,
+                    expiry_date: data.expiry_date,
+                    cdsco_approval_status: data.cdsco_approval_status,
+                    is_counterfeit_alert: data.is_counterfeit_alert,
+                },
+            });
+        } catch (err) {
+            console.error("Unexpected error in /api/verify:", err);
+            res.status(500).json({
+                verified: false,
+                message: "An unexpected error occurred",
+            });
+        }
     }
-
-    const { batchNumber } = parsed.data;
-
-    const escaped = batchNumber
-        .replace(/\\/g, "\\\\")
-        .replace(/%/g, "\\%")
-        .replace(/_/g, "\\_");
-
-    const { data, error } = await supabase
-        .from("medicines")
-        .select(
-            "brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert"
-        )
-        .ilike("batch_number", escaped)
-        .limit(1)
-        .maybeSingle();
-
-    if (error) {
-        console.error("Medicine lookup failed:", error);
-        res.status(500).json({
-            verified: false,
-            message: "Database lookup failed",
-        });
-        return;
-    }
-
-    if (!data) {
-        res.status(404).json({
-            verified: false,
-            message: "Medicine not found",
-        });
-        return;
-    }
-
-    res.status(200).json({
-        verified: true,
-        medicine: {
-            brand_name: data.brand_name,
-            generic_name: data.generic_name,
-            manufacturer: data.manufacturer,
-            batch_number: data.batch_number,
-            expiry_date: data.expiry_date,
-            cdsco_approval_status: data.cdsco_approval_status,
-            is_counterfeit_alert: data.is_counterfeit_alert,
-        },
-    });
-});
+);
 
 export default router;

@@ -18,8 +18,7 @@ import {
     FileText,
 } from "lucide-react";
 import { LiveMessage } from "@/components/ui/LiveMessage";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api/v1/admin";
+import { ADMIN_API_BASE } from "@/lib/adminApi";
 
 type ReportStatus = "pending" | "verified_fake" | "false_alarm";
 type MedicineStatus = "approved" | "recalled" | "banned";
@@ -72,7 +71,8 @@ export default function AdminDashboard() {
     const [reports, setReports] = useState<Report[]>([]);
     const [resolved, setResolved] = useState<(Report & { resolvedStatus: ReportStatus })[]>([]);
     const [medicines, setMedicines] = useState<Medicine[]>([]);
-    const [auditLogs] = useState<AuditEntry[]>([]);
+    const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([]);
+    const [logsLoading, setLogsLoading] = useState(false);
     const [loading, setLoading] = useState(true);
     const [acting, setActing] = useState<string | null>(null);
     const [authError, setAuthError] = useState<string | null>(null);
@@ -100,7 +100,7 @@ export default function AdminDashboard() {
         setLoading(true);
         setAuthError(null);
         try {
-            const res = await fetch(`${API_BASE}/reports`, { headers: authHeaders() });
+            const res = await fetch(`${ADMIN_API_BASE}/reports`, { headers: authHeaders() });
             if (res.status === 401) {
                 setAuthError("Not authenticated — please sign in as an admin.");
                 return;
@@ -120,10 +120,28 @@ export default function AdminDashboard() {
 
     const fetchMedicines = useCallback(async () => {
         try {
-            const res = await fetch(`${API_BASE}/medicines`, { headers: authHeaders() });
-            if (res.ok) setMedicines(await res.json());
+            const res = await fetch(`${ADMIN_API_BASE}/medicines`, { headers: authHeaders() });
+            if (res.ok) {
+                const data = await res.json();
+                setMedicines(data.medicines ?? []);
+            }
         } catch {
             /* silently fail, table will be empty */
+        }
+    }, []);
+
+    const fetchAuditLogs = useCallback(async () => {
+        setLogsLoading(true);
+        try {
+            const res = await fetch(`${ADMIN_API_BASE}/logs`, { headers: authHeaders() });
+            if (res.ok) {
+                const data = await res.json();
+                setAuditLogs(data.logs ?? []);
+            }
+        } catch {
+            /* silently fail, list will be empty */
+        } finally {
+            setLogsLoading(false);
         }
     }, []);
 
@@ -132,10 +150,16 @@ export default function AdminDashboard() {
         fetchMedicines();
     }, [fetchReports, fetchMedicines]);
 
+    useEffect(() => {
+        if (tab === "logs") {
+            fetchAuditLogs();
+        }
+    }, [tab, fetchAuditLogs]);
+
     const handleReportAction = async (reportId: string, status: ReportStatus) => {
         setActing(reportId + status);
         try {
-            const res = await fetch(`${API_BASE}/reports/${reportId}/status`, {
+            const res = await fetch(`${ADMIN_API_BASE}/reports/${reportId}/status`, {
                 method: "PATCH",
                 headers: authHeaders(),
                 body: JSON.stringify({ status }),
@@ -145,13 +169,24 @@ export default function AdminDashboard() {
             if (target) setResolved((prev) => [...prev, { ...target, resolvedStatus: status }]);
             setReports((prev) => prev.filter((r) => r.id !== reportId));
             notify(
-                status === "verified_fake"
-                    ? <><AlertTriangle className="inline h-4 w-4 mr-1" /> Marked as Verified Fake</>
-                    : <><CheckCircle className="inline h-4 w-4 mr-1" /> Marked as False Alarm</>,
+                status === "verified_fake" ? (
+                    <>
+                        <AlertTriangle className="mr-1 inline h-4 w-4" /> Marked as Verified Fake
+                    </>
+                ) : (
+                    <>
+                        <CheckCircle className="mr-1 inline h-4 w-4" /> Marked as False Alarm
+                    </>
+                ),
                 status !== "verified_fake"
             );
         } catch {
-            notify(<><XCircle className="inline h-4 w-4 mr-1" /> Failed to update report</>, false);
+            notify(
+                <>
+                    <XCircle className="mr-1 inline h-4 w-4" /> Failed to update report
+                </>,
+                false
+            );
         } finally {
             setActing(null);
         }
@@ -160,7 +195,7 @@ export default function AdminDashboard() {
     const handleAddMedicine = async () => {
         if (!newMed.brand_name || !newMed.generic_name) return;
         try {
-            const res = await fetch(`${API_BASE}/medicines`, {
+            const res = await fetch(`${ADMIN_API_BASE}/medicines`, {
                 method: "POST",
                 headers: authHeaders(),
                 body: JSON.stringify(newMed),
@@ -176,9 +211,18 @@ export default function AdminDashboard() {
                 cdsco_approval_status: "approved",
             });
             setShowForm(false);
-            notify(<><CheckCircle className="inline h-4 w-4 mr-1" /> Medicine added</>);
+            notify(
+                <>
+                    <CheckCircle className="mr-1 inline h-4 w-4" /> Medicine added
+                </>
+            );
         } catch {
-            notify(<><XCircle className="inline h-4 w-4 mr-1" /> Failed to add medicine</>, false);
+            notify(
+                <>
+                    <XCircle className="mr-1 inline h-4 w-4" /> Failed to add medicine
+                </>,
+                false
+            );
         }
     };
 
@@ -428,7 +472,11 @@ export default function AdminDashboard() {
                                     Every administrative action is recorded here
                                 </p>
                             </div>
-                            {auditLogs.length === 0 ? (
+                            {logsLoading ? (
+                                <div className="flex items-center justify-center gap-2 py-16 text-slate-400">
+                                    <Loader2 className="h-5 w-5 animate-spin" /> Loading audit logs…
+                                </div>
+                            ) : auditLogs.length === 0 ? (
                                 <div className="py-16 text-center text-sm text-slate-400">
                                     No audit entries yet.
                                 </div>

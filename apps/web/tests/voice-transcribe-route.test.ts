@@ -87,6 +87,26 @@ describe("POST /api/voice/transcribe", () => {
         expect(data.error).toBe("Audio file is required.");
     });
 
+    it("returns 500 when ML_SERVICE_URL is missing", async () => {
+        delete process.env.ML_SERVICE_URL;
+        global.fetch = jest.fn() as unknown as typeof fetch;
+
+        const formData = new FormData();
+        formData.append("file", new File(["audio"], "voice.webm", { type: "audio/webm" }));
+
+        const request = new Request("http://localhost/api/voice/transcribe", {
+            method: "POST",
+            body: formData,
+        });
+
+        const response = await POST(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(500);
+        expect(data.code).toBe("ML_SERVICE_URL_MISSING");
+        expect(global.fetch).not.toHaveBeenCalled();
+    });
+
     it("maps upstream ML failures into a retryable error", async () => {
         global.fetch = jest.fn().mockResolvedValue({
             ok: false,

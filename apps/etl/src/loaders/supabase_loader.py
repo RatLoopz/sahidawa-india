@@ -45,6 +45,47 @@ RETRY_TABLE = "etl_failed_rows"
 SUCCESS_RATE_ALERT_THRESHOLD = 95.0
 FAILED_ROWS_BASE_DIR = Path(__file__).resolve().parents[4] / "data" / "failed"
 
+ALLOWED_COLUMNS = {
+    "medicines": {
+        "id",
+        "barcode_id",
+        "brand_name",
+        "generic_name",
+        "manufacturer",
+        "batch_number",
+        "manufacturing_date",
+        "expiry_date",
+        "composition",
+        "cdsco_approval_status",
+        "is_counterfeit_alert",
+        "mrp",
+        "jan_aushadhi_price",
+        "strength",
+        "dosage_form",
+        "schedule",
+        "source",
+        "created_at",
+        "updated_at",
+    },
+    "etl_failed_rows": {
+        "id",
+        "pipeline_name",
+        "source_table",
+        "row_fingerprint",
+        "row_payload",
+        "medicine_name",
+        "unresolved_value",
+        "error_category",
+        "db_error_code",
+        "error_message",
+        "attempt_count",
+        "status",
+        "last_attempt_at",
+        "created_at",
+        "updated_at",
+    }
+}
+
 
 # ── Loader ─────────────────────────────────────────────────────────────────────
 
@@ -75,6 +116,7 @@ class SupabaseLoader:
                 "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env.\n"
                 "Copy .env.example to .env and fill in your Supabase credentials."
             )
+
         self.client: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
         logger.info(f"[Loader] Connected to Supabase: {SUPABASE_URL[:40]}...")
 
@@ -202,9 +244,15 @@ class SupabaseLoader:
         return inserted, failures
 
     def _upsert_payloads(self, payloads: list[dict], table: str) -> None:
+        if table in ALLOWED_COLUMNS:
+            allowed = ALLOWED_COLUMNS[table]
+            payloads = [
+                {k: v for k, v in p.items() if k in allowed}
+                for p in payloads
+            ]
         self.client.table(table).upsert(
             payloads,
-            on_conflict="generic_name,strength,dosage_form,source",
+            on_conflict="generic_name,brand_name,strength,dosage_form,source,barcode_id",
         ).execute()
 
     def _build_failure(self, payload: dict, row_index: int, error: Exception) -> dict:
@@ -267,6 +315,9 @@ class SupabaseLoader:
         return rows[0] if rows else None
 
     def _update_retry_row(self, row_id: str, payload: dict) -> None:
+        if RETRY_TABLE in ALLOWED_COLUMNS:
+            allowed = ALLOWED_COLUMNS[RETRY_TABLE]
+            payload = {k: v for k, v in payload.items() if k in allowed}
         self.client.table(RETRY_TABLE).update(payload).eq("id", row_id).execute()
 
     def _safe_update_retry_row(self, row_id: str, payload: dict) -> None:
@@ -358,3 +409,151 @@ class SupabaseLoader:
 
     def _utc_now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
+
+
+    # ── Jan Aushadhi price backfill ──────────────────────────────────────────
+
+    def merge_jan_aushadhi_price(
+        self,
+        nppa_csv: "Path | None" = None,
+        table: str = "medicines",
+        page_size: int = 1000,
+    ) -> dict:
+        """
+        Back-fills ``jan_aushadhi_price`` on commercial medicine rows in *table*
+        where it IS NULL by matching against the NPPA ceiling price CSV.
+
+        WHY THIS EXISTS
+        ---------------
+        SahiDawa's core value proposition is showing users the Jan Aushadhi
+        (generic) alternative price alongside a branded commercial medicine.
+        After a full ETL run, only ~0.5% of commercial medicines have
+        ``jan_aushadhi_price`` populated (linked via run_all.py Step 2b).
+        The remaining 99.5% show nothing — breaking the price comparison feature.
+
+        This method fills that gap using the NPPA ceiling prices CSV
+        (data/seeds/nppa_ceiling_prices.csv) as the Jan Aushadhi reference.
+        NPPA ceiling prices are government-fixed maximum retail prices for
+        generic drugs, which correspond directly to Jan Aushadhi store prices.
+
+        Matching strategy
+        -----------------
+        Priority 1: exact (generic_name, strength) match — most specific
+        Priority 2: exact (generic_name, None)     match — strength-less fallback
+
+        Only commercial rows (source = 'commercial') with jan_aushadhi_price IS
+        NULL are touched. janaushadhi-source rows already have correct prices.
+
+        Parameters
+        ----------
+        nppa_csv:
+            Path to NPPA ceiling price CSV. Defaults to
+            data/seeds/nppa_ceiling_prices.csv relative to this file.
+        table:
+            Target Supabase table (default ``"medicines"``).
+        page_size:
+            Rows fetched per page during cursor scan.
+
+        Returns
+        -------
+        dict with keys: ``checked``, ``updated``, ``skipped``, ``failed``.
+        """
+        import csv as _csv
+
+        _default_csv = Path(__file__).resolve().parents[4] / "data" / "seeds" / "nppa_ceiling_prices.csv"
+        csv_path = Path(nppa_csv) if nppa_csv else _default_csv
+
+        if not csv_path.exists():
+            logger.error(
+                f"[Loader] merge_jan_aushadhi_price: NPPA CSV not found at {csv_path}. "
+                "Run: cp data/seeds/nppa_ceiling_price.csv data/seeds/nppa_ceiling_prices.csv"
+            )
+            return {"checked": 0, "updated": 0, "skipped": 0, "failed": 0}
+
+        # Build lookup: (generic_name_lower, strength_lower_or_None) → ja_price
+        # setdefault keeps the FIRST (most specific) entry for each key, so
+        # strength-specific rows added before the None-strength fallback row win.
+        ja_lookup: dict[tuple[str, str | None], float] = {}
+        with open(csv_path, newline="", encoding="utf-8") as f:
+            for row in _csv.DictReader(f):
+                name = str(row.get("generic_name") or "").strip().lower()
+                strength_raw = str(row.get("strength") or "").strip().lower() or None
+                try:
+                    price = float(row.get("mrp") or 0)
+                except ValueError:
+                    continue
+                if name and price > 0:
+                    ja_lookup.setdefault((name, strength_raw), price)
+                    ja_lookup.setdefault((name, None), price)  # fallback key
+
+        if not ja_lookup:
+            logger.warning("[Loader] merge_jan_aushadhi_price: NPPA CSV loaded but produced no entries.")
+            return {"checked": 0, "updated": 0, "skipped": 0, "failed": 0}
+
+        logger.info(
+            f"[Loader] merge_jan_aushadhi_price: loaded {len(ja_lookup)} lookup entries "
+            f"from {csv_path.name}"
+        )
+
+        checked = updated = skipped = failed = 0
+
+        # Cursor-based pagination — advances by ID so skipped rows (still NULL)
+        # are never re-fetched in an infinite loop.
+        last_id = None
+        while True:
+            query = (
+                self.client.table(table)
+                .select("id, generic_name, strength")
+                .eq("source", "commercial")
+                .is_("jan_aushadhi_price", "null")
+                .order("id")
+                .range(0, page_size - 1)
+            )
+            if last_id:
+                query = query.gt("id", last_id)
+
+            response = query.execute()
+            page: list[dict] = getattr(response, "data", None) or []
+            if not page:
+                break
+
+            for record in page:
+                checked += 1
+                record_id = record.get("id")
+                name_lower = str(record.get("generic_name") or "").strip().lower()
+                strength_raw = record.get("strength")
+                strength_lower = (
+                    str(strength_raw).strip().lower()
+                    if strength_raw else None
+                )
+
+                # Prefer (name, strength) then fall back to (name, None)
+                ja_price = ja_lookup.get((name_lower, strength_lower))
+                if ja_price is None:
+                    ja_price = ja_lookup.get((name_lower, None))
+
+                if ja_price is None:
+                    skipped += 1
+                    continue
+
+                try:
+                    self.client.table(table).update(
+                        {"jan_aushadhi_price": ja_price}
+                    ).eq("id", record_id).execute()
+                    updated += 1
+                except Exception as e:
+                    logger.warning(
+                        f"[Loader] merge_jan_aushadhi_price: failed to update "
+                        f"id={record_id}: {e}"
+                    )
+                    failed += 1
+
+            last_id = page[-1].get("id")
+            if len(page) < page_size:
+                break
+
+        logger.info(
+            f"[Loader] merge_jan_aushadhi_price — checked: {checked}, "
+            f"updated: {updated}, skipped: {skipped}, failed: {failed}"
+        )
+        return {"checked": checked, "updated": updated, "skipped": skipped, "failed": failed}

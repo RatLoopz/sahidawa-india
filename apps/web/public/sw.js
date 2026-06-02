@@ -8,13 +8,41 @@
  * @version 2.0.0
  */
 
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
+
+/** Navigation / shell pages */
 const OFFLINE_CACHE_NAME = `sahidawa-offline-${CACHE_VERSION}`;
+
+/** General API responses (alerts, reports, etc.) */
 const API_CACHE_NAME = `sahidawa-api-${CACHE_VERSION}`;
+
+/** Medicine-lookup API responses (verification, scan, LASA) */
+const MEDICINE_CACHE_NAME = `sahidawa-medicine-${CACHE_VERSION}`;
+
+/** App static assets (CSS, JS, fonts) */
 const STATIC_CACHE_NAME = `sahidawa-static-${CACHE_VERSION}`;
 
+/** App-owned images & manifest */
+const ASSETS_CACHE_NAME = `sahidawa-assets-${CACHE_VERSION}`;
+
+/** OpenStreetMap raster tiles */
+const TILES_CACHE_NAME = `sahidawa-tiles-${CACHE_VERSION}`;
+
 /** Pages to pre-cache on install so they are available offline immediately */
-const PRECACHE_PAGES = ["/", "/en", "/hi", "/en/offline", "/hi/offline"];
+const PRECACHE_PAGES = [
+    "/",
+    "/en",
+    "/hi",
+    "/gu",
+    "/ta",
+    "/bn",
+    "/mr",
+    "/te",
+    "/en/offline",
+    "/hi/offline",
+    "/gu/offline",
+    "/ta/offline",
+];
 
 /** Maximum age (ms) for a stale API response before forcing a network refresh */
 const API_CACHE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutes
@@ -40,7 +68,14 @@ self.addEventListener("install", (event) => {
 // ACTIVATE — purge stale caches from previous versions
 // ---------------------------------------------------------------------------
 self.addEventListener("activate", (event) => {
-    const validCaches = new Set([OFFLINE_CACHE_NAME, API_CACHE_NAME, STATIC_CACHE_NAME]);
+    const validCaches = new Set([
+        OFFLINE_CACHE_NAME,
+        API_CACHE_NAME,
+        MEDICINE_CACHE_NAME,
+        STATIC_CACHE_NAME,
+        ASSETS_CACHE_NAME,
+        TILES_CACHE_NAME,
+    ]);
 
     event.waitUntil(
         caches.keys().then((cacheNames) =>
@@ -66,6 +101,18 @@ self.addEventListener("fetch", (event) => {
     const { request } = event;
     const url = new URL(request.url);
 
+    // -------------------------------------------------------------------------
+    // Strategy 0 — OpenStreetMap tiles: Cache-First, cross-origin
+    // (handled before the same-origin guard so tiles work offline)
+    // -------------------------------------------------------------------------
+    if (
+        url.hostname.endsWith(".tile.openstreetmap.org") ||
+        url.hostname === "tile.openstreetmap.org"
+    ) {
+        event.respondWith(cacheFirstWithExpiry(request, TILES_CACHE_NAME, 7 * 24 * 60 * 60 * 1000));
+        return;
+    }
+
     // --- Skip cross-origin requests (analytics, CDN assets, etc.) ---
     if (url.origin !== self.location.origin) return;
 
@@ -81,9 +128,6 @@ self.addEventListener("fetch", (event) => {
     // --- Skip service worker itself ---
     if (request.url.endsWith("/sw.js")) return;
 
-    // --- Skip manifest (let browser handle it natively) ---
-    if (request.url.endsWith("manifest.json")) return;
-
     // --- Dev mode: skip dynamic JS chunks so HMR keeps working ---
     // (detect dev by checking if the origin is localhost / 127.0.0.1)
     const isDev =
@@ -95,7 +139,32 @@ self.addEventListener("fetch", (event) => {
     }
 
     // -------------------------------------------------------------------------
-    // Strategy 1 — API routes: Network-first, cache fallback
+    // Strategy 1 — App-owned assets (icons, manifest): Cache-First
+    // -------------------------------------------------------------------------
+    if (url.pathname.startsWith("/icons/") || url.pathname === "/manifest.json") {
+        event.respondWith(
+            cacheFirstWithExpiry(request, ASSETS_CACHE_NAME, 30 * 24 * 60 * 60 * 1000)
+        );
+        return;
+    }
+
+    // -------------------------------------------------------------------------
+    // Strategy 2 — Medicine-lookup API routes: Stale-While-Revalidate
+    // (verify, scan, LASA — show cached result immediately, update in background)
+    // -------------------------------------------------------------------------
+    if (
+        url.pathname.startsWith("/api/medicines/") ||
+        url.pathname.startsWith("/api/verify") ||
+        url.pathname.startsWith("/api/v1/scan/") ||
+        url.pathname.startsWith("/api/v1/lasa/")
+    ) {
+        event.respondWith(staleWhileRevalidate(request, MEDICINE_CACHE_NAME));
+        return;
+    }
+
+    // -------------------------------------------------------------------------
+    // Strategy 3 — Alert & other API routes: Network-first, cache fallback
+    // (alerts must be fresh; other API endpoints like reports)
     // -------------------------------------------------------------------------
     if (url.pathname.startsWith("/api/")) {
         event.respondWith(networkFirstWithCache(request, API_CACHE_NAME));
@@ -103,7 +172,7 @@ self.addEventListener("fetch", (event) => {
     }
 
     // -------------------------------------------------------------------------
-    // Strategy 2 — Navigation (HTML pages): Network-first, offline page fallback
+    // Strategy 4 — Navigation (HTML pages): Network-first, offline page fallback
     // -------------------------------------------------------------------------
     if (request.mode === "navigate") {
         event.respondWith(navigateWithOfflineFallback(request));
@@ -111,14 +180,13 @@ self.addEventListener("fetch", (event) => {
     }
 
     // -------------------------------------------------------------------------
-    // Strategy 3 — Static assets: Stale-While-Revalidate
+    // Strategy 5 — Static assets (CSS, JS, fonts, images): Stale-While-Revalidate
     // -------------------------------------------------------------------------
     if (
         request.destination === "style" ||
         request.destination === "script" ||
         request.destination === "image" ||
-        request.destination === "font" ||
-        request.destination === "manifest"
+        request.destination === "font"
     ) {
         event.respondWith(staleWhileRevalidate(request, STATIC_CACHE_NAME));
         return;
@@ -128,6 +196,51 @@ self.addEventListener("fetch", (event) => {
 // ---------------------------------------------------------------------------
 // Caching Strategy Helpers
 // ---------------------------------------------------------------------------
+
+/**
+ * Cache-First with Expiry:
+ *   1. Serve from cache if available and not expired.
+ *   2. If expired or not cached, fetch from network and cache the result.
+ */
+async function cacheFirstWithExpiry(request, cacheName, maxAgeMs) {
+    const cache = await caches.open(cacheName);
+    const cachedResponse = await cache.match(request);
+
+    if (cachedResponse) {
+        const cachedTime = new Date(cachedResponse.headers.get("sw-cached-at") || 0).getTime();
+        const isExpired = Date.now() - cachedTime > maxAgeMs;
+
+        if (!isExpired) {
+            return cachedResponse;
+        }
+    }
+
+    try {
+        const networkResponse = await fetch(request);
+        if (networkResponse && networkResponse.ok) {
+            const headers = new Headers(networkResponse.headers);
+            headers.set("sw-cached-at", new Date().toISOString());
+            const cloned = new Response(await networkResponse.clone().text(), {
+                status: networkResponse.status,
+                statusText: networkResponse.statusText,
+                headers,
+            });
+            cache.put(request, cloned).catch(() => {});
+        }
+        return networkResponse;
+    } catch {
+        if (cachedResponse) return cachedResponse;
+
+        if (request.destination === "image") {
+            return new Response(
+                '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#e0e0e0"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="12" fill="#9ca3af">Offline</text></svg>',
+                { headers: { "Content-Type": "image/svg+xml" } }
+            );
+        }
+
+        return new Response("Offline", { status: 503 });
+    }
+}
 
 /**
  * Stale-While-Revalidate:
@@ -180,7 +293,15 @@ async function networkFirstWithCache(request, cacheName) {
     const cache = await caches.open(cacheName);
 
     try {
-        const networkResponse = await fetch(request);
+        // 8s timeout for API calls — important for slow networks
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+        const networkResponse = await fetch(request, {
+            signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
         if (networkResponse.ok) {
             cache.put(request, networkResponse.clone()).catch(() => {});
         }

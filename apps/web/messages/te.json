@@ -14,8 +14,8 @@
         "report_fake_subtitle": "అనుమానాస్పద మందును నివేదించండి",
         "search_placeholder": "మందు లేదా బ్యాచ్‌ను వెతకండి...",
         "search_button": "వెతకండి",
-        "sign_in": "Sign In",
-        "get_started": "Get Started",
+        "sign_in": "ప్రవేశించండి",
+        "get_started": "ప్రారంభించండి",
         "open_ai_health_assistant": "AI ఆరోగ్య సహాయకుడిని తెరవండి",
         "ai_health_assistant": "AI ఆరోగ్య సహాయకుడు",
         "ai_chat": "AI చాట్",
@@ -25,7 +25,11 @@
         "india_region": "భారత ప్రాంతం",
         "alerts_empty_title": "అన్నీ సురక్షితం!",
         "alerts_empty_description": "ప్రస్తుతం క్రియాశీల నియంత్రణ హెచ్చరికలు లేవు. సురక్షితంగా ఉండండి మరియు మీ మందులను ధృవీకరించండి.",
-        "view_full_alert_log": "పూర్తి హెచ్చరిక లాగ్ చూడండి"
+        "view_full_alert_log": "పూర్తి హెచ్చరిక లాగ్ చూడండి",
+        "heroTitle": {
+            "prefix": "మీ ఆరోగ్యం, ",
+            "highlight": "ధృవీకరించబడింది మరియు రక్షించబడింది."
+        }
     },
     "Navigation": {
         "how_it_works": "ఇది ఎలా పనిచేస్తుంది",
@@ -75,7 +79,7 @@
         "review_title": "మీ ట్రాన్స్‌క్రిప్ట్‌ను పరిశీలించండి",
         "review_message": "మైక్రోఫోన్ మీ లక్షణాలను తక్కువ నమ్మకంతో పట్టుకుంది. మరింత స్పష్టమైన ఫలితానికి మళ్లీ ప్రయత్నించండి లేదా ఇదే ట్రాన్స్‌క్రిప్ట్‌ను విశ్లేషించండి.",
         "retry_button": "మళ్లీ ప్రయత్నించండి",
-        "switch_to_text_button": "Type Instead",
+        "switch_to_text_button": "బదులుగా టైప్ చేయండి",
         "analyse_anyway_button": "ఏమైనా విశ్లేషించండి",
         "result_heading": "AI విశ్లేషణ",
         "result_subheading": "మెడికల్ ట్రియాజ్",
@@ -138,13 +142,35 @@
             "no_speech_message": "శాంతమైన ప్రదేశంలో మళ్లీ ప్రయత్నించండి లేదా మైక్రోఫోన్‌కు దగ్గరగా మాట్లాడండి.",
             "generic_title": "ఏదో తప్పు జరిగింది",
             "generic_message": "ఈసారి మీ వాయిస్ ఇన్‌పుట్‌ను ప్రాసెస్ చేయలేకపోయాం. దయచేసి మళ్లీ ప్రయత్నించండి.",
-            "service_unavailable_title": "Voice service unavailable",
-            "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
-            "timeout_title": "Voice request timed out",
-            "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
+            "service_unavailable_title": "వాయిస్ సేవ అందుబాటులో లేదు",
+            "service_unavailable_message": "మా వాయిస్ సర్వర్లపై ప్రస్తుత భారం ఎక్కువగా ఉంది. దయచేసి మళ్లీ ప్రయత్నించండి లేదా బదులుగా మీ లక్షణాలను టైప్ చేయండి.",
+            "timeout_title": "వాయిస్ అభ్యర్థనకు సమయం ముగిసింది",
+            "timeout_message": "వాయిస్ సేవ అంచనా కంటే ఎక్కువ సమయం తీసుకుంటోంది. దయచేసి మళ్లీ ప్రయత్నించండి లేదా టెక్స్ట్ ఇన్‌పుట్‌కు మారండి.",
             "api_title": "SahiDawa AI అందుబాటులో లేదు",
             "api_message": "ఇప్పుడే వైద్య మార్గదర్శకాన్ని పొందలేకపోయాం. కొద్దిసేపటికి మళ్లీ ప్రయత్నించండి."
         }
+    },
+    "offline": {
+        "bannerOffline": "మీరు ఆఫ్‌లైన్‌లో ఉన్నారు",
+        "descriptionOffline": "కనెక్షన్ తిరిగి వచ్చినప్పుడు మీ మార్పులు సమకాలీకరించబడతాయి",
+        "bannerOnline": "తిరిగి ఆన్‌లైన్",
+        "descriptionOnline": "విఫలమైన అభ్యర్థనలను మళ్లీ ప్రయత్నిస్తోంది...",
+        "dismiss": "తీసివేయి",
+        "title": "ఆఫ్‌లైన్ మోడ్",
+        "description": "ప్రస్తుతం మీకు ఇంటర్నెట్ కనెక్షన్ లేదు.",
+        "subtitle": "ఆఫ్‌లైన్‌లో ఉన్నప్పుడు కొన్ని ఫీచర్లు అందుబాటులో ఉండవు. ఇంటర్నెట్‌కు కనెక్ట్ కావడానికి ప్రయత్నించండి లేదా కాష్ చేసిన కంటెంట్‌ను బ్రౌజ్ చేయండి.",
+        "tryAgain": "మళ్లీ ప్రయత్నించండి",
+        "goHome": "హోమ్‌కు వెళ్లండి",
+        "footer": "కనెక్షన్ తిరిగి వచ్చినప్పుడు SahiDawa స్వయంచాలకంగా సమకాలీకరిస్తుంది.",
+        "cachedContent": "మీరు ఇప్పటికీ మునుపు లోడ్ చేసిన కంటెంట్‌ను యాక్సెస్ చేయవచ్చు",
+        "noCache": "ఈ పేజీ కాష్ చేయబడలేదు మరియు ఆఫ్‌లైన్‌లో అందుబాటులో లేదు",
+        "redirecting": "మిమ్మల్ని SahiDawa కి దారి మళ్లిస్తోంది…",
+        "attempt": "(ప్రయత్నం {retryCount})",
+        "checkingConnection": "కనెక్షన్ తనిఖీ చేయబడుతోంది…",
+        "cachedAvailable": "గతంలో సందర్శించిన పేజీలు ఇంకా అందుబాటులో ఉండవచ్చు",
+        "cachedVerifications": "కాష్ చేసిన ధృవీకరణలు",
+        "savedPharmacies": "సేవ్ చేసిన ఫార్మసీలు",
+        "browsedMedicines": "బ్రౌజ్ చేసిన మందులు"
     },
     "contact": {
         "badge": "GSSoC 2026 ఓపెన్ సోర్స్ ప్రాజెక్ట్",
@@ -181,5 +207,163 @@
             "faq": "తరచుగా అడిగే ప్రశ్నలు"
         },
         "footer": "SahiDawa ఉచితం, ఓపెన్-సోర్స్, మరియు 1.4 బిలియన్ భారతీయుల కోసం నిర్మించబడింది. ప్రకటనలు లేవు. ప్రీమియం లేదు. డేటా ఎప్పటికీ అమ్మబడదు."
+    },
+    "about": {
+        "badge": "GSSoC 2026 ఓపెన్ సోర్స్ ప్రాజెక్ట్",
+        "heroTitle": "<highlight>SahiDawa</highlight> గురించి",
+        "heroSubtitle": "భారతదేశపు మొట్టమొదటి ఓపెన్-సోర్స్ పౌర ఔషధ ధృవీకరణ సాధనం & గ్రామీణ ఆరోగ్య సేతువు. భారత్ కోసం నిర్మించబడింది. కేవలం ఇండియా కోసం మాత్రమే కాదు.",
+        "features": {
+            "free": "100% ఉచితం. ఎల్లప్పటికీ.",
+            "languages": "22 భారతీయ భాషలు",
+            "license": "ఓపెన్ సోర్స్ MIT లైసెన్స్"
+        },
+        "problemSection": {
+            "title": "మేము పరిష్కరిస్తున్న సమస్య",
+            "description": "భారతదేశం మూడు అంచెల ఆరోగ్య సంక్షోభాన్ని ఎదుర్కొంటోంది, దీనిని ప్రస్తుతం ఉన్న ఏ వేదిక కూడా ఏకకాలంలో పరిష్కరించలేకపోతోంది."
+        },
+        "cards": {
+            "fakeMedicines": {
+                "title": "నకిలీ మందులు",
+                "description": "భారతదేశంలో 12-25% మందులు నకిలీవి లేదా నాణ్యత లేనివి — పౌరుల కోసం ఎలాంటి ధృవీకరణ సాధనం లేకపోవడం వల్ల ఇవి 140 కోట్ల మంది ప్రజల జీవితాలను ప్రమాదంలో పడేస్తున్నాయి."
+            },
+            "ruralHealthcare": {
+                "title": "గ్రామీణ ఆరోగ్య సంరక్షణలో అంతరం",
+                "description": "భారతదేశ జనాభాలో 65% మంది గ్రామీణ ప్రాంతాల్లో నివసిస్తున్నారు, అక్కడ అర్హత కలిగిన వైద్యులు దాదాపు లేరు — అంటే 90 కోట్ల కంటే ఎక్కువ మంది ప్రజలకు సరైన ఆరోగ్య సేవలు అందడం లేదు."
+            },
+            "languageBarrier": {
+                "title": "భాషా అవరోధం",
+                "description": "22 అధికార భాషలు ఉన్నప్పటికీ, ఆరోగ్య సంబంధిత సమాచారం ప్రధానంగా ఇంగ్లీష్ లేదా హిందీలోనే లభిస్తోంది; దీనివల్ల 50 కోట్లకు పైగా హిందీయేతర భాషా మాట్లాడేవారు వెనుకబడిపోతున్నారు."
+            }
+        },
+        "realIncident": {
+            "title": "వాస్తవ సంఘటన — జూలై 2025",
+            "text": "ఢిల్లీ పోలీసులు ఒక నకిలీ మందుల ముఠాను పట్టుకున్నారు, వారు చాక్ పౌడర్ మరియు స్టార్చ్‌తో తయారు చేసిన Johnson & Johnson మరియు GSK నకిలీ మందులను ప్రభుత్వ ఆసుపత్రుల వరకు సరఫరా చేశారు. రోగులు వీటిని వాడే ముందు <highlight>ధృవీకరించుకోవడానికి ఎలాంటి మార్గం లేదు</highlight>.",
+            "highlight": "SahiDawa ఈ సమస్యను సరిచేస్తుంది. ఉచితంగా. ఎల్లప్పటికీ. ఓపెన్ సోర్స్."
+        },
+        "mission": {
+            "title": "మా లక్ష్యం",
+            "description": "భాష, ప్రాంతం లేదా చదువుతో సంబంధం లేకుండా — ప్రతి భారతీయ పౌరుడికి తక్షణమే మందులను ధృవీకరించుకునేలా, అర్హత కలిగిన ఆరోగ్య మార్గదర్శకత్వాన్ని పొందేలా మరియు వారి ప్రాంతంలో నకిలీ మందుల గురించి నివేదించేలా శక్తిని అందించడం."
+        },
+        "vision": {
+            "title": "మా విజన్",
+            "description": "నకిలీ మందుల వల్ల ఏ బిడ్డ మరణించని, వైద్యులు లేకపోవడం వల్ల ఏ రైతు కుటుంబానికీ తప్పుడు నిర్ధారణ జరగని, ఆరోగ్య సంరక్షణకు ఏ భాషా అడ్డంకి కాని ఒక భారతం. ఉచితం. అందరికీ అందుబాటులో. శాశ్వతంగా."
+        },
+        "coreValues": {
+            "title": "మా ముఖ్య విలువల",
+            "cards": {
+                "openSource": {
+                    "title": "ఓపెన్ సోర్స్",
+                    "description": "MIT లైసెన్స్ పొందింది. ఎల్లప్పుడూ."
+                },
+                "freeForever": {
+                    "title": "ఎప్పటికీ ఉచితం",
+                    "description": "ఎలాంటి దాచిన ఖర్చులు లేవు. ఎప్పటికీ"
+                },
+                "inclusive": {
+                    "title": "సమ్మిళిత",
+                    "description": "22 భాషలు. భారతదేశం మొత్తం."
+                },
+                "privacy": {
+                    "title": "గోప్యతకు మొదటి ప్రాధాన్యత",
+                    "description": "డేటా విక్రయించబడదు. ప్రకటనలు లేవు."
+                }
+            }
+        },
+        "contactUs": {
+            "title": "సంప్రదించండి",
+            "subtitle": "మీకు ఏవైనా ప్రశ్నలు, ఆలోచనలు ఉన్నాయా? లేదా మీరు సహకరించాలనుకుంటున్నారా? మీ నుండి వినడానికి మేము ఎంతో ఆసక్తిగా ఎదురుచూస్తున్నాము."
+        }
+    },
+    "Faq": {
+        "badge": "GSSoC 2026 ఓపెన్ సోర్స్ ప్రాజెక్ట్",
+        "title": "తరచుగా అడిగే",
+        "title_highlight": "ప్రశ్నలు",
+        "subtitle": "SahiDawa గురించి మీరు తెలుసుకోవాల్సిన ప్రతిదీ — భారతదేశపు ఉచిత, ఓపెన్-సోర్స్ మందుల ధృవీకరణ వేదిక.",
+        "cta": {
+            "title": "ఇంకా ప్రశ్నలు ఉన్నాయా?",
+            "subtitle": "మీరు వెతుకుతున్న సమాధానం దొరకలేదా? మా కమ్యూనిటీని సంప్రదించండి.",
+            "button": "సంప్రదించండి"
+        },
+        "items": {
+            "0": {
+                "question": "SahiDawa అంటే ఏమిటి?",
+                "answer": "SahiDawa భారతదేశపు మొదటి ఓపెన్-సోర్స్ పౌర మందుల ధృవీకరణ వేదిక. మీ మందు నిజమా నకిలీనా అని తనిఖీ చేయడంలో, దగ్గరలోని సురక్షిత ఫార్మసీలను కనుగొనడంలో, మీ భాషలో ఆరోగ్య మార్గదర్శకత్వం పొందడంలో ఇది సహాయపడుతుంది."
+            },
+            "1": {
+                "question": "SahiDawa ఉపయోగించడానికి ఉచితమా?",
+                "answer": "అవును! SahiDawa ఎల్లప్పుడూ 100% ఉచితం. ప్రకటనలు లేవు, ప్రీమియం ప్లాన్ లేదు, డేటా విక్రయం లేదు. ఇది భారతదేశం కోసం, కమ్యూనిటీ చేత నిర్మించబడింది."
+            },
+            "2": {
+                "question": "మందుల ధృవీకరణ ఎలా పనిచేస్తుంది?",
+                "answer": "మీ మందుల ప్యాకేజింగ్‌పై ఉన్న బార్‌కోడ్ లేదా QR కోడ్‌ను స్కాన్ చేయవచ్చు. SahiDawa దాన్ని అధికారిక CDSCO డేటాబేస్‌తో తనిఖీ చేసి, మందు నిజమైనదా, అనుమానాస్పదమా లేదా నకిలీనా అని చెబుతుంది."
+            },
+            "3": {
+                "question": "SahiDawa ఏ భాషలను మద్దతు ఇస్తుంది?",
+                "answer": "SahiDawa భారతదేశపు 22 అధికార భాషలకు మద్దతు ఇస్తుంది. Whisper మరియు Sarvam AI ఆధారంగా పనిచేసే మా Voice Health Assistant ద్వారా మీరు మీ భాషలో లక్షణాలను చెప్పవచ్చు."
+            },
+            "4": {
+                "question": "నేను నకిలీ మందును ఎలా రిపోర్ట్ చేయగలను?",
+                "answer": "హోమ్‌పేజీలోని 'Report Fake' ఫీచర్‌ను ఉపయోగించవచ్చు. మీ రిపోర్ట్ కమ్యూనిటీ హీట్‌మ్యాప్‌లో చేరుతుంది, ఇది మీ జిల్లాలోని ఇతరులను నకిలీ మందుల గురించి హెచ్చరించడంలో సహాయపడుతుంది."
+            },
+            "5": {
+                "question": "SahiDawa వద్ద నా డేటా సురక్షితమా?",
+                "answer": "ఖచ్చితంగా. SahiDawa మీ డేటాను అమ్మదు, ప్రకటనలు చూపదు, ఎలాంటి ప్రీమియం ప్లాన్ ఉంచదు. మీ గోప్యత మా అత్యంత ముఖ్యమైన ప్రాధాన్యత."
+            },
+            "6": {
+                "question": "నేను SahiDawa కు ఎలా సహకరించగలను?",
+                "answer": "SahiDawa MIT లైసెన్స్ కింద ఓపెన్ సోర్స్. మీరు GitHub లో సహకరించవచ్చు, బగ్‌లను రిపోర్ట్ చేయవచ్చు, ఫీచర్‌లను సూచించవచ్చు లేదా GSSoC 2026 పాల్గొనేవారిగా చేరవచ్చు."
+            },
+            "7": {
+                "question": "CDSCO అంటే ఏమిటి?",
+                "answer": "CDSCO అంటే Central Drugs Standard Control Organisation. ఇది సౌందర్య సాధనాలు, ఔషధాలు మరియు వైద్య పరికరాల కోసం భారతదేశపు జాతీయ నియంత్రణ సంస్థ. SahiDawa వారి అధికారిక డేటాబేస్‌తో మందులను ధృవీకరిస్తుంది."
+            }
+        }
+    },
+    "Scan": {
+        "share": {
+            "avoid_and_report": "Please avoid and report to your nearest health worker.",
+            "batch_label": "Batch",
+            "button": "Share Result",
+            "copy_success": "Result copied to clipboard",
+            "failure": "Unable to share this result right now",
+            "manufacturer_label": "Manufacturer",
+            "real_status": "Verified REAL",
+            "shared_success": "Result shared successfully",
+            "suspicious_status": "Marked SUSPICIOUS",
+            "title": "SahiDawa Medicine Verification Result",
+            "unknown_batch": "Unknown batch",
+            "unknown_manufacturer": "Unknown manufacturer",
+            "unknown_medicine": "Unknown medicine",
+            "verified_by": "by SahiDawa",
+            "verify_yourself": "Verify yourself",
+            "warning_prefix": "WARNING"
+        }
+    },
+    "chat": {
+        "actions": {
+            "pharmacy": {
+                "description": "Locate verified stores",
+                "label": "Find Pharmacy"
+            },
+            "scan": {
+                "description": "Verify authenticity",
+                "label": "Scan Medicine"
+            },
+            "symptoms": {
+                "description": "AI-assisted guidance",
+                "label": "Check Symptoms"
+            }
+        },
+        "footer": "For informational use only • Consult a doctor",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "quick_actions": "Quick actions",
+        "welcome": "Namaste, I'm SahiDawa, your trusted health companion. I can help you verify medicines, understand symptoms, or find nearby care. What would you like help with today?"
+    },
+    "chatbot": {
+        "placeholder": "Ask me about a medicine...",
+        "status": "Online",
+        "title": "SahiDawa AI",
+        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"
     }
 }

@@ -103,30 +103,43 @@ jobs:
                   }
 
                   // ─────────────────────────────────────────────
-                  // Check contributor activity
+                  // Check contributor activity & Linked PRs
                   // ─────────────────────────────────────────────
-                  const contributorComments = comments.filter(c => 
-                    c.user && c.user.login === assignee && new Date(c.created_at) > assignedAt
-                  );
-
-                  // Linked PR detection (even if draft)
                   const linkedPR = prs.find(pr => {
                     const body = (pr.body || '').toLowerCase();
                     return pr.user && pr.user.login === assignee && 
                            (body.includes(`#${issue.number}`) || body.includes(`closes #${issue.number}`) || body.includes(`fixes #${issue.number}`));
                   });
 
-                  if (contributorComments.length > 0 || linkedPR) {
-                    core.info(`${assignee} has activity on issue #${issue.number}. Linked PR: ${linkedPR ? '#' + linkedPR.number : 'None'}. Comments: ${contributorComments.length}. Skipping.`);
+                  if (linkedPR) {
+                    core.info(`${assignee} has an open linked PR (#${linkedPR.number}) for issue #${issue.number}. Skipping.`);
+                    continue;
+                  }
+
+                  const contributorComments = comments.filter(c => 
+                    c.user && c.user.login === assignee && new Date(c.created_at) > assignedAt
+                  );
+
+                  let lastActivityAt = assignedAt;
+                  if (contributorComments.length > 0) {
+                    const sortedComments = contributorComments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    const lastCommentAt = new Date(sortedComments[0].created_at);
+                    if (lastCommentAt > lastActivityAt) {
+                      lastActivityAt = lastCommentAt;
+                    }
+                  }
+
+                  if (lastActivityAt > warnCutoff) {
+                    core.info(`Skipping ${assignee} on #${issue.number} (active recently, last activity at ${lastActivityAt.toUTCString()})`);
                     continue;
                   }
 
                   // ─────────────────────────────────────────────
                   // Auto-unassign or Warn
                   // ─────────────────────────────────────────────
-                  if (assignedAt <= unassignCutoff) {
+                  if (lastActivityAt <= unassignCutoff) {
                     // UNASSIGN
-                    core.info(`Unassigning ${assignee} from #${issue.number} (No activity for > ${rules.maxDays} days)`);
+                    core.info(`Unassigning ${assignee} from #${issue.number} (No activity since ${lastActivityAt.toUTCString()} - over ${rules.maxDays} days)`);
                     await github.rest.issues.removeAssignees({
                       owner, repo, issue_number: issue.number, assignees: [assignee]
                     });
@@ -140,19 +153,24 @@ jobs:
                     } catch (commentErr) {
                       core.warning(`Failed to post unassign comment on #${issue.number}: ${commentErr.message}`);
                     }
-                  } else if (assignedAt <= warnCutoff) {
+                  } else if (lastActivityAt <= warnCutoff) {
                     // WARN
                     const warningMarker = `⚠️ @${assignee}, friendly reminder!`;
-                    const alreadyWarned = comments.some(c => c.user && c.user.login === 'github-actions[bot]' && c.body.includes(warningMarker));
+                    const alreadyWarned = comments.some(c => 
+                      c.user && 
+                      c.user.login === 'github-actions[bot]' && 
+                      c.body.includes(warningMarker) &&
+                      new Date(c.created_at) > lastActivityAt
+                    );
                     
                     if (!alreadyWarned) {
                       core.info(`Warning ${assignee} on #${issue.number} (Approaching unassign cutoff)`);
-                      const hoursLeft = (rules.maxDays - rules.warnDays) * 24;
+                      const hoursLeft = Math.max(0, Math.round((lastActivityAt.getTime() + rules.maxDays * 24 * 60 * 60 * 1000 - now.getTime()) / (60 * 60 * 1000)));
                       try {
                         await github.rest.issues.createComment({
                           owner, repo, issue_number: issue.number,
                           body: `${warningMarker}\n\n` +
-                                `It looks like there hasn't been any activity on this issue since you were assigned ${rules.warnDays} days ago.\n` +
+                                `It looks like there hasn't been any activity on this issue since your last update on ${lastActivityAt.toUTCString()}.\n` +
                                 `To keep this assignment, please share a progress update or open a Draft PR within the next **${hoursLeft} hours**. ` +
                                 `Otherwise, you will be automatically unassigned to let other contributors have a chance. Thank you! 💙`
                         });
@@ -160,7 +178,7 @@ jobs:
                         core.warning(`Failed to post warn comment on #${issue.number}: ${commentErr.message}`);
                       }
                     } else {
-                      core.info(`Already warned ${assignee} on #${issue.number}, waiting for unassign cutoff.`);
+                      core.info(`Already warned ${assignee} on #${issue.number} since their last activity, waiting for unassign cutoff.`);
                     }
                   }
                 }
