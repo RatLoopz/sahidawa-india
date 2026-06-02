@@ -14,6 +14,8 @@ import "./globals.css";
 import "../../src/styles/print.css";
 import { Toaster } from "sonner";
 import Footer from "./components/Footer";
+import { AuthSync } from "@/components/AuthSync";
+
 
 export const metadata: Metadata = {
     title: "SahiDawa — Verify Your Medicine",
@@ -67,6 +69,8 @@ export default async function LocaleLayout({
                         <NextIntlClientProvider messages={messages}>
                             <OfflineErrorBoundary>
                                 <OfflineBanner />
+                                <AuthSync />
+                                <Navbar />
                                 {children}
                                 <Footer />
                                 <div className="no-print">
