@@ -25,7 +25,18 @@
         "india_region": "India Region",
         "alerts_empty_title": "All clear!",
         "alerts_empty_description": "No active regulatory alerts right now. Stay safe and verify your medicines.",
-        "view_full_alert_log": "View Full Alert Log"
+        "view_full_alert_log": "View Full Alert Log",
+        "just_now": "Just now",
+        "minutes_ago": "{minutes}m ago",
+        "hours_ago": "{hours}h ago",
+        "recent": "Recent",
+        "gssoc_badge": "GSSoC 2026 Open Source Project",
+        "sahidawa_logo_aria": "SahiDawa Logo",
+        "scan_medicine_aria": "Scan medicine",
+        "upload_photo_aria": "Upload photo",
+        "voice_triage_aria": "Voice triage",
+        "pharmacy_map_aria": "Pharmacy map",
+        "report_fake_medicine_aria": "Report fake medicine"
     },
     "Navigation": {
         "how_it_works": "How it Works",
@@ -36,7 +47,9 @@
         "scans": "Scans",
         "map": "Map",
         "profile": "Profile",
-        "language": "English"
+        "language": "English",
+        "main_navigation": "Main navigation",
+        "mobile_navigation": "Mobile navigation"
     },
     "BackToTopButton": {
         "label": "Back to top"

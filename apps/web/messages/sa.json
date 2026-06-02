@@ -25,7 +25,18 @@
         "india_region": "भारत-प्रदेशः",
         "alerts_empty_title": "सर्वं स्पष्टम्!",
         "alerts_empty_description": "अधुना सक्रियाः नियामक-सूचनाः न सन्ति। सुरक्षिताः तिष्ठन्तु, औषधानि च सत्यापयन्तु।",
-        "view_full_alert_log": "सम्पूर्णं सूचना-लेखं पश्यन्तु"
+        "view_full_alert_log": "सम्पूर्णं सूचना-लेखं पश्यन्तु",
+        "just_now": "इदानीमेव",
+        "minutes_ago": "{minutes} मिनट-पूर्वम्",
+        "hours_ago": "{hours} होरा-पूर्वम्",
+        "recent": "नूतनतमम्",
+        "gssoc_badge": "GSSoC 2026 मुक्तस्रोतः परियोजना",
+        "sahidawa_logo_aria": "SahiDawa चिह्नम्",
+        "scan_medicine_aria": "औषधं स्कैन् कुर्वन्तु",
+        "upload_photo_aria": "चित्रम् अपलोड् कुर्वन्तु",
+        "voice_triage_aria": "वाणी-वर्गीकरणम्",
+        "pharmacy_map_aria": "औषधालय-मानचित्रम्",
+        "report_fake_medicine_aria": "कपट-औषधस्य सूचनां ददातु"
     },
     "Navigation": {
         "how_it_works": "कार्यप्रणाली",
@@ -36,7 +47,9 @@
         "scans": "स्कैनानि",
         "map": "मानचित्रम्",
         "profile": "प्रोफाइल्",
-        "language": "संस्कृतम्"
+        "language": "संस्कृतम्",
+        "main_navigation": "मुख्य-सञ्चालनम्",
+        "mobile_navigation": "मोबाइल-सञ्चालनम्"
     },
     "VoicePage": {
         "header_title": "वाणी-वर्गीकरणम्",

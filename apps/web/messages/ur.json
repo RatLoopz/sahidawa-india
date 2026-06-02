@@ -25,7 +25,18 @@
         "india_region": "بھارت خطہ",
         "alerts_empty_title": "سب صاف ہے!",
         "alerts_empty_description": "اس وقت کوئی فعال ضابطہ جاتی الرٹ نہیں ہے۔ محفوظ رہیں اور اپنی ادویات کی تصدیق کریں۔",
-        "view_full_alert_log": "مکمل الرٹ لاگ دیکھیں"
+        "view_full_alert_log": "مکمل الرٹ لاگ دیکھیں",
+        "just_now": "ابھی ابھی",
+        "minutes_ago": "{minutes} منٹ پہلے",
+        "hours_ago": "{hours} گھنٹے پہلے",
+        "recent": "حالیہ",
+        "gssoc_badge": "GSSoC 2026 اوپن سورس پروجیکٹ",
+        "sahidawa_logo_aria": "SahiDawa لوگو",
+        "scan_medicine_aria": "دوا اسکین کریں",
+        "upload_photo_aria": "تصویر اپلوڈ کریں",
+        "voice_triage_aria": "وائس ٹرئیج",
+        "pharmacy_map_aria": "فارمیسی کا نقشہ",
+        "report_fake_medicine_aria": "جعلی دوا رپورٹ کریں"
     },
     "Navigation": {
         "how_it_works": "یہ کیسے کام کرتا ہے",
@@ -36,7 +47,9 @@
         "scans": "اسکینز",
         "map": "نقشہ",
         "profile": "پروفائل",
-        "language": "اردو"
+        "language": "اردو",
+        "main_navigation": "مرکزی نیویگیشن",
+        "mobile_navigation": "موبائل نیویگیشن"
     },
     "BackToTopButton": {
         "label": "اوپر جائیں"

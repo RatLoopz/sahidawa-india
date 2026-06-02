@@ -25,7 +25,18 @@
         "india_region": "भारत क्षेत्र",
         "alerts_empty_title": "सब ठीक है!",
         "alerts_empty_description": "अभी कोई सक्रिय नियामक अलर्ट नहीं है। सुरक्षित रहें और अपनी दवाएं सत्यापित करें।",
-        "view_full_alert_log": "पूरा अलर्ट लॉग देखें"
+        "view_full_alert_log": "पूरा अलर्ट लॉग देखें",
+        "just_now": "अभी अभी",
+        "minutes_ago": "{minutes} मि. पहले",
+        "hours_ago": "{hours} घं. पहले",
+        "recent": "हाल ही में",
+        "gssoc_badge": "GSSoC 2026 ओपन सोर्स प्रोजेक्ट",
+        "sahidawa_logo_aria": "SahiDawa लोगो",
+        "scan_medicine_aria": "दवा स्कैन करें",
+        "upload_photo_aria": "फ़ोटो अपलोड करें",
+        "voice_triage_aria": "वॉइस ट्रायज",
+        "pharmacy_map_aria": "फार्मेसी मानचित्र",
+        "report_fake_medicine_aria": "नकली दवा रिपोर्ट करें"
     },
     "Navigation": {
         "how_it_works": "यह कैसे काम करता है",
@@ -36,7 +47,9 @@
         "scans": "स्कैन",
         "map": "मानचित्र",
         "profile": "प्रोफ़ाइल",
-        "language": "हिन्दी"
+        "language": "हिन्दी",
+        "main_navigation": "मुख्य नेविगेशन",
+        "mobile_navigation": "मोबाइल नेविगेशन"
     },
     "BackToTopButton": {
         "label": "ऊपर जाएँ"

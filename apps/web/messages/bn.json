@@ -25,7 +25,18 @@
         "india_region": "ভারত অঞ্চল",
         "alerts_empty_title": "সব ঠিক আছে!",
         "alerts_empty_description": "এই মুহূর্তে কোনো সক্রিয় নিয়ন্ত্রক সতর্কতা নেই। নিরাপদ থাকুন এবং আপনার ওষুধ যাচাই করুন।",
-        "view_full_alert_log": "সম্পূর্ণ সতর্কতা লগ দেখুন"
+        "view_full_alert_log": "সম্পূর্ণ সতর্কতা লগ দেখুন",
+        "just_now": "এইমাত্র",
+        "minutes_ago": "{minutes} মি. আগে",
+        "hours_ago": "{hours} ঘ. আগে",
+        "recent": "সম্প্রতি",
+        "gssoc_badge": "GSSoC 2026 ওপেন সোর্স প্রজেক্ট",
+        "sahidawa_logo_aria": "SahiDawa লোগো",
+        "scan_medicine_aria": "ওষুধ স্ক্যান করুন",
+        "upload_photo_aria": "ছবি আপলোড করুন",
+        "voice_triage_aria": "ভয়েস ট্রায়াজ",
+        "pharmacy_map_aria": "ফার্মেসি ম্যাপ",
+        "report_fake_medicine_aria": "ভুয়া ওষুধ রিপোর্ট করুন"
     },
     "Navigation": {
         "how_it_works": "কিভাবে কাজ করে",
@@ -36,7 +47,9 @@
         "scans": "স্ক্যান",
         "map": "মানচিত্র",
         "profile": "প্রোফাইল",
-        "language": "বাংলা"
+        "language": "বাংলা",
+        "main_navigation": "প্রধান নেভিগেশন",
+        "mobile_navigation": "মোবাইল নেভিগেশন"
     },
     "BackToTopButton": {
         "label": "উপরে যান"

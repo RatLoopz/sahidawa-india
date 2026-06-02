@@ -25,7 +25,18 @@
         "india_region": "ਭਾਰਤ ਖੇਤਰ",
         "alerts_empty_title": "ਸਭ ਠੀਕ ਹੈ!",
         "alerts_empty_description": "ਇਸ ਵੇਲੇ ਕੋਈ ਸਰਗਰਮ ਨਿਯਮਕ ਚੇਤਾਵਨੀ ਨਹੀਂ ਹੈ। ਸੁਰੱਖਿਅਤ ਰਹੋ ਅਤੇ ਆਪਣੀਆਂ ਦਵਾਈਆਂ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ।",
-        "view_full_alert_log": "ਪੂਰਾ ਚੇਤਾਵਨੀ ਲੌਗ ਵੇਖੋ"
+        "view_full_alert_log": "ਪੂਰਾ ਚੇਤਾਵਨੀ ਲੌਗ ਵੇਖੋ",
+        "just_now": "ਹੁਣੇ ਹੁਣੇ",
+        "minutes_ago": "{minutes} ਮਿ. ਪਹਿਲਾਂ",
+        "hours_ago": "{hours} ਘ. ਪਹਿਲਾਂ",
+        "recent": "ਹਾਲ ਹੀ ਵਿੱਚ",
+        "gssoc_badge": "GSSoC 2026 ਓਪਨ ਸੋਰਸ ਪ੍ਰੋਜੈਕਟ",
+        "sahidawa_logo_aria": "SahiDawa ਲੋਗੋ",
+        "scan_medicine_aria": "ਦਵਾਈ ਸਕੈਨ ਕਰੋ",
+        "upload_photo_aria": "ਫੋਟੋ ਅੱਪਲੋਡ ਕਰੋ",
+        "voice_triage_aria": "ਆਵਾਜ਼ ਸਹਾਇਤਾ",
+        "pharmacy_map_aria": "ਫਾਰਮੇਸੀ ਨਕਸ਼ਾ",
+        "report_fake_medicine_aria": "ਨਕਲੀ ਦਵਾਈ ਰਿਪੋਰਟ ਕਰੋ"
     },
     "Navigation": {
         "how_it_works": "ਇਹ ਕਿਵੇਂ ਕੰਮ ਕਰਦਾ ਹੈ",
@@ -36,7 +47,9 @@
         "scans": "ਸਕੈਨ",
         "map": "ਨਕਸ਼ਾ",
         "profile": "ਪ੍ਰੋਫਾਈਲ",
-        "language": "ਪੰਜਾਬੀ"
+        "language": "ਪੰਜਾਬੀ",
+        "main_navigation": "ਮੁੱਖ ਨੇਵੀਗੇਸ਼ਨ",
+        "mobile_navigation": "ਮੋਬਾਈਲ ਨੇਵੀਗੇਸ਼ਨ"
     },
     "VoicePage": {
         "header_title": "ਆਵਾਜ਼ ਸਹਾਇਤਾ",

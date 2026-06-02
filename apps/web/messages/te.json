@@ -25,7 +25,18 @@
         "india_region": "భారత ప్రాంతం",
         "alerts_empty_title": "అన్నీ సురక్షితం!",
         "alerts_empty_description": "ప్రస్తుతం క్రియాశీల నియంత్రణ హెచ్చరికలు లేవు. సురక్షితంగా ఉండండి మరియు మీ మందులను ధృవీకరించండి.",
-        "view_full_alert_log": "పూర్తి హెచ్చరిక లాగ్ చూడండి"
+        "view_full_alert_log": "పూర్తి హెచ్చరిక లాగ్ చూడండి",
+        "just_now": "ఇప్పుడే",
+        "minutes_ago": "{minutes} ని. క్రితం",
+        "hours_ago": "{hours} గం. క్రితం",
+        "recent": "ఇటీవల",
+        "gssoc_badge": "GSSoC 2026 ఓపెన్ సోర్స్ ప్రాజెక్ట్",
+        "sahidawa_logo_aria": "SahiDawa లోగో",
+        "scan_medicine_aria": "మందులను స్కాన్ చేయండి",
+        "upload_photo_aria": "ఫోటో అప్‌లోడ్ చేయండి",
+        "voice_triage_aria": "వాయిస్ ట్రయాజ్",
+        "pharmacy_map_aria": "ఫార్మసీ మ్యాప్",
+        "report_fake_medicine_aria": "నకిలీ మందులను నివేదించండి"
     },
     "Navigation": {
         "how_it_works": "ఇది ఎలా పనిచేస్తుంది",
@@ -36,7 +47,9 @@
         "scans": "స్కాన్లు",
         "map": "మ్యాప్",
         "profile": "ప్రొఫైల్",
-        "language": "తెలుగు"
+        "language": "తెలుగు",
+        "main_navigation": "ప్రధాన నావిగేషన్",
+        "mobile_navigation": "మొబైల్ నావిగేషన్"
     },
     "BackToTopButton": {
         "label": "పైనికి వెళ్లండి"

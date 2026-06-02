@@ -25,7 +25,18 @@
         "india_region": "ભારત પ્રદેશ",
         "alerts_empty_title": "બધું ઠીક છે!",
         "alerts_empty_description": "હાલમાં કોઈ સક્રિય નિયમનકારી સૂચનાઓ નથી. સુરક્ષિત રહો અને તમારી દવાઓ ચકાસો.",
-        "view_full_alert_log": "સંપૂર્ણ સૂચના લૉગ જુઓ"
+        "view_full_alert_log": "સંપૂર્ણ સૂચના લૉગ જુઓ",
+        "just_now": "હમણાં જ",
+        "minutes_ago": "{minutes} મિ. પહેલાં",
+        "hours_ago": "{hours} ક. પહેલાં",
+        "recent": "તાજેતરમાં",
+        "gssoc_badge": "GSSoC 2026 ઓપન સોર્સ પ્રોજેક્ટ",
+        "sahidawa_logo_aria": "SahiDawa લોગો",
+        "scan_medicine_aria": "દવા સ્કૅન કરો",
+        "upload_photo_aria": "ફોટો અપલોડ કરો",
+        "voice_triage_aria": "વૉઇસ ટ્રાઇઍજ",
+        "pharmacy_map_aria": "ફાર્મસી નકશો",
+        "report_fake_medicine_aria": "નકલી દવાની જાણ કરો"
     },
     "Navigation": {
         "how_it_works": "તે કેવી રીતે કામ કરે છે",
@@ -36,7 +47,9 @@
         "scans": "સ્કૅન",
         "map": "નકશો",
         "profile": "પ્રોફાઇલ",
-        "language": "ગુજરાતી"
+        "language": "ગુજરાતી",
+        "main_navigation": "મુખ્ય નેવિગેશન",
+        "mobile_navigation": "મોબાઇલ નેવિગેશન"
     },
     "BackToTopButton": {
         "label": "ઉપર જાઓ"

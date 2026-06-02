@@ -33,8 +33,8 @@ const desktopNavLinkClassName =
 const mobileNavLabelClassName =
     "relative inline-flex items-center pb-1 transition-colors duration-200 ease-out after:absolute after:inset-x-0 after:-bottom-0.5 after:h-0.5 after:origin-center after:scale-x-0 after:rounded-full after:bg-current after:transition-transform after:duration-300 after:ease-out group-hover:after:scale-x-100 group-active:after:scale-x-100 group-focus-visible:after:scale-x-100 motion-safe:after:will-change-transform";
 
-function formatRelativeTime(dateString: string | null): string {
-    if (!dateString) return "Recent";
+function formatRelativeTime(dateString: string | null, tHome: (key: string, params?: Record<string, unknown>) => string): string {
+    if (!dateString) return tHome("recent");
 
     const now = new Date();
     const past = new Date(dateString);
@@ -45,11 +45,11 @@ function formatRelativeTime(dateString: string | null): string {
     const elapsed = now.getTime() - past.getTime();
 
     if (elapsed < msPerMinute) {
-        return "Just now";
+        return tHome("just_now");
     } else if (elapsed < msPerHour) {
-        return `${Math.round(elapsed / msPerMinute)}m ago`;
+        return tHome("minutes_ago", { minutes: Math.round(elapsed / msPerMinute) });
     } else if (elapsed < msPerDay) {
-        return `${Math.round(elapsed / msPerHour)}h ago`;
+        return tHome("hours_ago", { hours: Math.round(elapsed / msPerHour) });
     } else {
         return past.toLocaleDateString(undefined, { month: "short", day: "numeric" });
     }
@@ -102,7 +102,7 @@ export default function SahiDawaHome() {
                     <div className="flex items-center gap-2">
                         <div
                             className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 shadow-sm sm:h-10 sm:w-10 dark:bg-emerald-950/30 dark:text-emerald-400"
-                            aria-label="SahiDawa Logo"
+                            aria-label={tHome("sahidawa_logo_aria")}
                         >
                             <img
                                 src="/favicon.ico"
@@ -121,7 +121,7 @@ export default function SahiDawaHome() {
                     <div className="flex items-center gap-3 sm:gap-4 md:gap-4">
                         <nav
                             className="hidden items-center gap-6 text-sm font-semibold text-(--color-text-secondary) lg:flex"
-                            aria-label="Main navigation"
+                            aria-label={tNav("main_navigation")}
                         >
                             <Link href="/how-it-works" className={desktopNavLinkClassName}>
                                 {tNav("how_it_works")}
@@ -172,7 +172,7 @@ export default function SahiDawaHome() {
                             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                             <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
                         </span>
-                        GSSoC 2026 Open Source Project
+                        {tHome("gssoc_badge")}
                     </div>
                     {/* UPDATED TITLE COLOR HERE */}
                     <h2 className="text-4xl leading-[1.1] font-black tracking-tight text-(--color-text-primary) md:text-6xl">
@@ -198,7 +198,7 @@ export default function SahiDawaHome() {
                 <button
                     onClick={() => handleNavigation("scan")}
                     className="group relative flex w-full items-center justify-between overflow-hidden rounded-3xl border border-emerald-500 bg-emerald-600 p-7 text-left text-white shadow-xl shadow-emerald-600/20 transition-all hover:shadow-emerald-600/40 active:scale-[0.99] md:p-8"
-                    aria-label="Scan medicine"
+                    aria-label={tHome("scan_medicine_aria")}
                 >
                     <div className="absolute inset-0 z-0 bg-linear-to-tr from-emerald-700 to-emerald-500"></div>
                     <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-3xl"></div>
@@ -230,7 +230,7 @@ export default function SahiDawaHome() {
                     <button
                         onClick={() => handleNavigation("scan")}
                         className="group flex min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page)/95 p-6 text-left shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-400/50 hover:shadow-xl active:scale-[0.99]"
-                        aria-label="Upload photo"
+                        aria-label={tHome("upload_photo_aria")}
                     >
                         <div className="flex items-start justify-between gap-4">
                             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 ring-1 ring-white/60 transition-colors duration-300 ring-inset group-hover:bg-emerald-500 group-hover:text-white dark:bg-emerald-950/30 dark:text-emerald-400 dark:ring-white/10">
@@ -253,7 +253,7 @@ export default function SahiDawaHome() {
                     <button
                         onClick={() => handleNavigation("voice")}
                         className="group flex min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page)/95 p-6 text-left shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-400/50 hover:shadow-xl active:scale-[0.99]"
-                        aria-label="Voice triage"
+                        aria-label={tHome("voice_triage_aria")}
                     >
                         <div className="flex items-start justify-between gap-4">
                             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 ring-1 ring-white/60 transition-colors duration-300 ring-inset group-hover:bg-blue-500 group-hover:text-white dark:bg-blue-950/30 dark:text-blue-400 dark:ring-white/10">
@@ -276,7 +276,7 @@ export default function SahiDawaHome() {
                     <button
                         onClick={() => handleNavigation("map")}
                         className="group flex min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page)/95 p-6 text-left shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-400/50 hover:shadow-xl active:scale-[0.99]"
-                        aria-label="Pharmacy map"
+                        aria-label={tHome("pharmacy_map_aria")}
                     >
                         <div className="flex items-start justify-between gap-4">
                             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 ring-1 ring-white/60 transition-colors duration-300 ring-inset group-hover:bg-amber-500 group-hover:text-white dark:bg-amber-950/30 dark:text-amber-400 dark:ring-white/10">
@@ -299,7 +299,7 @@ export default function SahiDawaHome() {
                     <button
                         onClick={() => handleNavigation("report")}
                         className="group flex min-h-[170px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page)/95 p-6 text-left shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-red-400/50 hover:shadow-xl active:scale-[0.99]"
-                        aria-label="Report fake medicine"
+                        aria-label={tHome("report_fake_medicine_aria")}
                     >
                         <div className="flex items-start justify-between gap-4">
                             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-600 ring-1 ring-white/60 transition-colors duration-300 ring-inset group-hover:bg-red-500 group-hover:text-white dark:bg-red-950/30 dark:text-red-400 dark:ring-white/10">
@@ -445,7 +445,7 @@ export default function SahiDawaHome() {
                                                         {alert.brand_name}
                                                     </h4>
                                                     <span className="text-[11px] font-medium text-(--color-text-muted)">
-                                                        {formatRelativeTime(alert.created_at)}
+                                                        {formatRelativeTime(alert.created_at, tHome)}
                                                     </span>
                                                 </div>
                                                 <p className="mt-1 text-sm leading-snug font-medium text-(--color-text-secondary)">
@@ -502,7 +502,7 @@ export default function SahiDawaHome() {
             {/* ── Mobile Bottom Navigation ── */}
             <nav
                 className="fixed right-0 bottom-0 left-0 z-50 flex items-center justify-around border-t border-(--color-border-muted)/60 bg-(--color-surface-page)/90 px-2 py-3 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
-                aria-label="Mobile navigation"
+                aria-label={tNav("mobile_navigation")}
             >
                 <Link
                     href="/"

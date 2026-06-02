@@ -25,7 +25,18 @@
         "india_region": "ಭಾರತ ಪ್ರದೇಶ",
         "alerts_empty_title": "ಎಲ್ಲವೂ ಸರಿಯಾಗಿದೆ!",
         "alerts_empty_description": "ಈಗ ಯಾವುದೇ ಸಕ್ರಿಯ ನಿಯಂತ್ರಣ ಎಚ್ಚರಿಕೆಗಳಿಲ್ಲ. ಸುರಕ್ಷಿತರಾಗಿರಿ ಮತ್ತು ನಿಮ್ಮ ಔಷಧಿಗಳನ್ನು ಪರಿಶೀಲಿಸಿ.",
-        "view_full_alert_log": "ಸಂಪೂರ್ಣ ಎಚ್ಚರಿಕೆ ಲಾಗ್ ನೋಡಿ"
+        "view_full_alert_log": "ಸಂಪೂರ್ಣ ಎಚ್ಚರಿಕೆ ಲಾಗ್ ನೋಡಿ",
+        "just_now": "ಈಗಲೇ",
+        "minutes_ago": "{minutes} ನಿ. ಹಿಂದೆ",
+        "hours_ago": "{hours} ಗಂ. ಹಿಂದೆ",
+        "recent": "ಇತ್ತೀಚೆಗೆ",
+        "gssoc_badge": "GSSoC 2026 ಓಪನ್ ಸೋರ್ಸ್ ಪ್ರಾಜೆಕ್ಟ್",
+        "sahidawa_logo_aria": "SahiDawa ಲೋಗೊ",
+        "scan_medicine_aria": "ಔಷಧ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ",
+        "upload_photo_aria": "ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+        "voice_triage_aria": "ಧ್ವನಿ ಟ್ರಯಾಜ್",
+        "pharmacy_map_aria": "ಔಷಧಾಲಯ ನಕ್ಷೆ",
+        "report_fake_medicine_aria": "ನಕಲಿ ವರದಿ ಮಾಡಿ"
     },
     "Navigation": {
         "how_it_works": "ಹೇಗೆ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ",
@@ -36,7 +47,9 @@
         "scans": "ಸ್ಕ್ಯಾನ್‌ಗಳು",
         "map": "ನಕ್ಷೆ",
         "profile": "ಪ್ರೊಫೈಲ್",
-        "language": "ಕನ್ನಡ"
+        "language": "ಕನ್ನಡ",
+        "main_navigation": "ಮುಖ್ಯ ನ್ಯಾವಿಗೇಶನ್",
+        "mobile_navigation": "ಮೊಬೈಲ್ ನ್ಯಾವಿಗೇಶನ್"
     },
     "BackToTopButton": {
         "label": "ಮೇಲೆ ಹೋಗಿ"
