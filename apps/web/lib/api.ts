@@ -143,9 +143,16 @@ export type VerifiedMedicine = {
     is_counterfeit_alert: boolean;
 };
 
+export type ScanMeta = {
+    recentScanCount24h: number;
+    recentScanCount7d: number;
+    suspicious: boolean;
+    suspicionReasons: string[];
+};
+
 export type VerifyResult =
-    | { verified: true; medicine: VerifiedMedicine }
-    | { verified: false; message: string };
+    | { verified: true; medicine: VerifiedMedicine; scanMeta?: ScanMeta }
+    | { verified: false; message: string; scanMeta?: ScanMeta };
 
 export type VerifiedPharmacy = {
     name: string;

@@ -180,6 +180,7 @@ function LoadingSkeleton({ ocrStatus, ocrProgress }: { ocrStatus: string; ocrPro
 // Result views with dark/light mode surface tokens and variables support
 function VerifiedSafeResult({
     medicine,
+    scanMeta,
     onScanAgain,
     onShare,
     onCopyMedicineDetails,
@@ -187,6 +188,12 @@ function VerifiedSafeResult({
     copied,
 }: {
     medicine: VerifiedMedicine;
+    scanMeta?: {
+        recentScanCount24h: number;
+        recentScanCount7d: number;
+        suspicious: boolean;
+        suspicionReasons: string[];
+    };
     onScanAgain: () => void;
     onShare: () => void;
     onCopyMedicineDetails: () => void;
@@ -208,6 +215,18 @@ function VerifiedSafeResult({
                 </div>
 
                 <CdscoStatusBadge status={medicine.cdsco_approval_status} />
+
+                {scanMeta?.suspicious && (
+                    <div className="border-amber-250 flex w-full items-start gap-3 rounded-2xl border bg-amber-50 p-4 text-left dark:border-amber-900 dark:bg-amber-950/20">
+                        <AlertTriangle
+                            size={18}
+                            className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400"
+                        />
+                        <p className="text-xs leading-relaxed font-medium text-amber-800 dark:text-amber-400">
+                            {scanMeta.suspicionReasons.join(" ")}
+                        </p>
+                    </div>
+                )}
 
                 <div className="grid w-full grid-cols-2 gap-3 pt-2">
                     <div className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) p-3">
@@ -1157,6 +1176,7 @@ export default function ScanPage() {
                                     !verifyResult.medicine.is_counterfeit_alert && (
                                         <VerifiedSafeResult
                                             medicine={verifyResult.medicine}
+                                            scanMeta={verifyResult.scanMeta}
                                             onScanAgain={handleScanAgain}
                                             onShare={handleShare}
                                             onCopyMedicineDetails={handleCopyMedicineDetails}
