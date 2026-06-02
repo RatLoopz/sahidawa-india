@@ -1,8 +1,14 @@
 import { fetchWithRetry } from "./apiWithRetry";
 
 const DEFAULT_API_ORIGIN = "http://localhost:4000";
-const configuredApiUrl = (process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_API_ORIGIN).trim();
+const configuredApiUrl = (
+    process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_API_ORIGIN
+).trim();
 export const API_BASE = configuredApiUrl.replace(/\/+$/, "");
+
+const ML_BASE = (
+    process.env.NEXT_PUBLIC_ML_URL ?? "http://localhost:8000"
+).trim().replace(/\/+$/, "");
 
 export type ReportPayload = {
     medicineName: string;
@@ -24,7 +30,10 @@ export type SubmittedReport = {
     reporter_id: string | null;
 };
 
-export type MedicineImageAnalysisVerdict = "likely_genuine" | "suspicious" | "likely_fake";
+export type MedicineImageAnalysisVerdict =
+    | "likely_genuine"
+    | "suspicious"
+    | "likely_fake";
 
 export type MedicineImageAnalysis = {
     isFake: boolean;
@@ -46,8 +55,12 @@ export async function analyzeMedicineImage(
     });
 
     if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(body.error ?? "Image analysis is unavailable. Please retry.");
+        const body = (await res.json().catch(() => ({}))) as {
+            error?: string;
+        };
+        throw new Error(
+            body.error ?? "Image analysis is unavailable. Please retry."
+        );
     }
 
     return res.json() as Promise<MedicineImageAnalysis>;
@@ -62,7 +75,9 @@ export async function submitReport(
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+            ...(accessToken
+                ? { Authorization: `Bearer ${accessToken}` }
+                : {}),
         },
         body: JSON.stringify(payload),
         timeout: 10000,
@@ -70,8 +85,12 @@ export async function submitReport(
     });
 
     if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(body.error ?? "Server error occurred. Please retry.");
+        const body = (await res.json().catch(() => ({}))) as {
+            error?: string;
+        };
+        throw new Error(
+            body.error ?? "Server error occurred. Please retry."
+        );
     }
 
     return res.json() as Promise<{ report: SubmittedReport }>;
@@ -90,7 +109,6 @@ export async function geocodePincode(
             `&country=IN&format=json&limit=1`;
 
         let abortSignal = signal;
-        // Merge with a 4s timeout if no caller signal is provided or merge them
         if (!abortSignal) {
             abortSignal = AbortSignal.timeout(4000);
         }
@@ -100,7 +118,10 @@ export async function geocodePincode(
             signal: abortSignal,
         });
         if (!r.ok) return null;
-        const arr = (await r.json()) as Array<{ lat: string; lon: string }>;
+        const arr = (await r.json()) as Array<{
+            lat: string;
+            lon: string;
+        }>;
         if (!arr.length) return null;
         const lat = parseFloat(arr[0].lat);
         const lng = parseFloat(arr[0].lon);
@@ -180,20 +201,80 @@ export async function verifyMedicine(
     batchNumber: string,
     signal?: AbortSignal
 ): Promise<VerifyResult> {
-    const res = await fetchWithRetry(`${API_BASE}/api/verify`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ batchNumber }),
-        timeout: 10000,
-        signal,
-    });
+    // Call ML FastAPI service directly
+    try {
+        const mlRes = await fetchWithRetry(
+            `${ML_BASE}/verify/batch`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    batch_number: batchNumber,
+                }),
+                timeout: 10000,
+                signal,
+            }
+        );
 
-    if (!res.ok && res.status !== 404) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(body.error ?? "Server error occurred. Please retry.");
+        if (!mlRes.ok) {
+            throw new Error("ML API error");
+        }
+
+        const mlData = await mlRes.json() as {
+            status: string;
+            brand_name?: string;
+            generic_name?: string;
+            manufacturer?: string;
+            expiry_date?: string;
+            cdsco_approval_status?: string;
+            is_counterfeit_alert?: boolean;
+        };
+
+        if (mlData.status === "not_found") {
+            return {
+                verified: false,
+                message: "No match found in CDSCO Database",
+            };
+        }
+
+        return {
+            verified: true,
+            medicine: {
+                brand_name: mlData.brand_name ?? "",
+                generic_name: mlData.generic_name ?? "",
+                manufacturer: mlData.manufacturer ?? "",
+                batch_number: batchNumber,
+                expiry_date: mlData.expiry_date ?? null,
+                cdsco_approval_status:
+                    mlData.cdsco_approval_status ?? "unknown",
+                is_counterfeit_alert:
+                    mlData.is_counterfeit_alert ?? false,
+            },
+        };
+
+    } catch (err) {
+        // Fallback to Node API if ML service is down
+        try {
+            const res = await fetchWithRetry(
+                `${API_BASE}/api/verify`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ batchNumber }),
+                    timeout: 10000,
+                    signal,
+                }
+            );
+            if (!res.ok && res.status !== 404) {
+                throw new Error("Node API error");
+            }
+            return res.json() as Promise<VerifyResult>;
+        } catch {
+            throw new Error(
+                "Verification service unavailable. Please retry."
+            );
+        }
     }
-
-    return res.json() as Promise<VerifyResult>;
 }
 
 export type FuzzyMatch = {
@@ -201,7 +282,10 @@ export type FuzzyMatch = {
     score: number;
 };
 
-export async function fuzzyMatchBrand(query: string, signal?: AbortSignal): Promise<FuzzyMatch[]> {
+export async function fuzzyMatchBrand(
+    query: string,
+    signal?: AbortSignal
+): Promise<FuzzyMatch[]> {
     const res = await fetchWithRetry(`${API_BASE}/api/v1/scan/match`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -211,8 +295,12 @@ export async function fuzzyMatchBrand(query: string, signal?: AbortSignal): Prom
     });
 
     if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(body.error ?? "Server error occurred. Please retry.");
+        const body = (await res.json().catch(() => ({}))) as {
+            error?: string;
+        };
+        throw new Error(
+            body.error ?? "Server error occurred. Please retry."
+        );
     }
 
     return res.json() as Promise<FuzzyMatch[]>;
@@ -222,17 +310,24 @@ export async function verifyMedicineByBrand(
     brandName: string,
     signal?: AbortSignal
 ): Promise<VerifyResult> {
-    const res = await fetchWithRetry(`${API_BASE}/api/v1/scan/verify-brand`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ brandName }),
-        timeout: 10000,
-        signal,
-    });
+    const res = await fetchWithRetry(
+        `${API_BASE}/api/v1/scan/verify-brand`,
+        {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ brandName }),
+            timeout: 10000,
+            signal,
+        }
+    );
 
     if (!res.ok && res.status !== 404) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(body.error ?? "Server error occurred. Please retry.");
+        const body = (await res.json().catch(() => ({}))) as {
+            error?: string;
+        };
+        throw new Error(
+            body.error ?? "Server error occurred. Please retry."
+        );
     }
 
     return res.json() as Promise<VerifyResult>;
@@ -266,8 +361,12 @@ export async function checkLasaConflicts(
     });
 
     if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(body.error ?? "Server error occurred. Please retry.");
+        const body = (await res.json().catch(() => ({}))) as {
+            error?: string;
+        };
+        throw new Error(
+            body.error ?? "Server error occurred. Please retry."
+        );
     }
 
     return res.json() as Promise<LasaCheckResult>;
