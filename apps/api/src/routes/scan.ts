@@ -619,7 +619,12 @@ router.post("/match", async (req: Request, res: Response) => {
     }
 
     try {
-        const { data, error } = await supabase.from("medicines").select("brand_name, generic_name");
+        const keyword = query.trim().split(/\s+/)[0];
+        const { data, error } = await supabase
+            .from("medicines")
+            .select("brand_name, generic_name")
+            .or(`brand_name.ilike.%${keyword}%,generic_name.ilike.%${keyword}%`)
+            .limit(100);
 
         if (error) {
             logger.error(`Database error during match: ${error.message}`);
