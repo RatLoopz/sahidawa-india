@@ -21,6 +21,7 @@
         "ai_chat": "AI चैट",
         "ai_health_assistant_description": "तुरंत स्वास्थ्य सलाह, लक्षण जाँच और प्रिस्क्रिप्शन मार्गदर्शन पाएं",
         "chat_now": "अभी चैट करें",
+        "explore_features": "सुविधाएँ खोजें",
         "live_cdsco_alerts": "लाइव CDSCO अलर्ट",
         "india_region": "भारत क्षेत्र",
         "alerts_empty_title": "सब ठीक है!",
@@ -34,7 +35,6 @@
         "scan_now": "Scan Now",
         "find_pharmacy": "Find Pharmacy",
         "report_subtitle": "Report suspicious medicine",
-        "our_core_features": "Explore Features",
         "real_time": "REAL TIME",
         "alerts_description": "Stay updated with the latest medicine safety alerts and recalls."
     },
