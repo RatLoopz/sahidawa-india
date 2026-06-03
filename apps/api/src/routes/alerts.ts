@@ -3,7 +3,6 @@ import { supabase } from "../db/client";
 import { z } from "zod";
 import { triggerRecallAlert } from "../services/notifications";
 
-
 const AlertSchema = z
     .object({
         reported_brand_name: z.string().optional(),
@@ -96,7 +95,9 @@ alertsRouter.post("/ingest", async (req: Request, res: Response) => {
     const expectedSecret = process.env.API_SECRET_KEY;
     if (!expectedSecret) {
         console.error("Server Configuration Error: API_SECRET_KEY is not configured.");
-        res.status(500).json({ error: "Ingestion is disabled because API_SECRET_KEY is not configured on the server." });
+        res.status(500).json({
+            error: "Ingestion is disabled because API_SECRET_KEY is not configured on the server.",
+        });
         return;
     }
 

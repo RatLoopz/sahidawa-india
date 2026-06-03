@@ -14,6 +14,7 @@ import {
     Globe,
     Moon,
     LogIn,
+    Camera,
 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
@@ -49,7 +50,7 @@ const MOBILE_NAV_ITEMS: NavItem[] = [
     {
         href: "/scan",
         labelKey: "scans",
-        icon: History,
+        icon: Camera,
         activeColor: "text-emerald-500",
         hoverColor: "hover:text-emerald-500",
         strokeWidth: 2,

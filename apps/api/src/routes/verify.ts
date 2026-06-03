@@ -28,6 +28,8 @@ const verifySchema = z.object({
     batchNumber: z
         .string({ message: "batchNumber is required and must be a string" })
         .min(3, "batchNumber must be at least 3 characters long"),
+    latitude: z.number().optional(),
+    longitude: z.number().optional(),
 });
 
 /**
@@ -54,6 +56,16 @@ const verifySchema = z.object({
  *                 minLength: 3
  *                 example: "BN2024001"
  *                 description: The batch number printed on the medicine packaging
+ *               latitude:
+ *                 type: number
+ *                 format: float
+ *                 example: 23.0355
+ *                 description: Optional latitude of the scanner device when available
+ *               longitude:
+ *                 type: number
+ *                 format: float
+ *                 example: 72.5116
+ *                 description: Optional longitude of the scanner device when available
  *     responses:
  *       200:
  *         description: Medicine found and verified
@@ -67,6 +79,24 @@ const verifySchema = z.object({
  *                   example: true
  *                 medicine:
  *                   $ref: '#/components/schemas/Medicine'
+ *                 scanMeta:
+ *                   type: object
+ *                   properties:
+ *                     recentScanCount24h:
+ *                       type: integer
+ *                       example: 3
+ *                     recentScanCount7d:
+ *                       type: integer
+ *                       example: 12
+ *                     suspicious:
+ *                       type: boolean
+ *                       example: true
+ *                     suspicionReasons:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       example:
+ *                         - "This batch has been scanned multiple times in the last 24 hours."
  *       400:
  *         description: Invalid request body
  *         content:
@@ -122,7 +152,7 @@ router.post(
             return;
         }
 
-        const { batchNumber } = parsed.data;
+        const { batchNumber, latitude, longitude } = parsed.data;
 
         const escaped = batchNumber
             .replace(/\\/g, "\\\\")
@@ -133,7 +163,7 @@ router.post(
             const { data, error } = await supabase
                 .from("medicines")
                 .select(
-                    "brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert"
+                    "id, barcode_id, brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert"
                 )
                 .ilike("batch_number", escaped)
                 .limit(1)
@@ -156,6 +186,62 @@ router.post(
                 return;
             }
 
+            const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+            const since7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+            const [{ count: count24h = 0 }, { count: count7d = 0 }] = (await Promise.all([
+                supabase
+                    .from("scan_history")
+                    .select("id", { count: "exact", head: true })
+                    .eq("batch_number", data.batch_number)
+                    .gte("created_at", since24h),
+                supabase
+                    .from("scan_history")
+                    .select("id", { count: "exact", head: true })
+                    .eq("batch_number", data.batch_number)
+                    .gte("created_at", since7d),
+            ])) as Array<{ count: number | null }>;
+
+            const recentScanCount24h = (count24h ?? 0) + 1;
+            const recentScanCount7d = (count7d ?? 0) + 1;
+            const suspicionReasons: string[] = [];
+            let suspicious = false;
+
+            if (data.is_counterfeit_alert) {
+                suspicious = true;
+                suspicionReasons.push(
+                    "This batch is already flagged as a counterfeit alert in the official database."
+                );
+            }
+            if (recentScanCount24h >= 3) {
+                suspicious = true;
+                suspicionReasons.push(
+                    "This batch has been scanned multiple times in the last 24 hours, which may indicate barcode reuse or sticker cloning."
+                );
+            }
+            if (recentScanCount7d >= 10) {
+                suspicious = true;
+                suspicionReasons.push(
+                    "This batch has unusually high scan volume in the last week, increasing the risk of counterfeit reuse."
+                );
+            }
+
+            const { error: insertError } = await supabase.from("scan_history").insert([
+                {
+                    batch_number: data.batch_number,
+                    medicine_id: data.id,
+                    barcode_id: data.barcode_id,
+                    client_ip: req.ip || null,
+                    origin: req.headers.origin ?? null,
+                    user_agent: req.headers["user-agent"] ?? null,
+                    latitude: latitude ?? null,
+                    longitude: longitude ?? null,
+                },
+            ]);
+            if (insertError) {
+                console.error("Failed to record scan history:", insertError);
+            }
+
             res.status(200).json({
                 verified: true,
                 medicine: {
@@ -166,6 +252,12 @@ router.post(
                     expiry_date: data.expiry_date,
                     cdsco_approval_status: data.cdsco_approval_status,
                     is_counterfeit_alert: data.is_counterfeit_alert,
+                },
+                scanMeta: {
+                    recentScanCount24h,
+                    recentScanCount7d,
+                    suspicious,
+                    suspicionReasons,
                 },
             });
         } catch (err) {

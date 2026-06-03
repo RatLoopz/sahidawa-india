@@ -210,7 +210,7 @@ export default function SahiDawaHome() {
                                 </span>
                             </div>
                             <h2 className="bg-linear-to-r from-slate-900 via-slate-700 to-slate-900 bg-clip-text text-center text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl dark:from-white dark:via-slate-200 dark:to-slate-400">
-                                Explore Features
+                                {tHome("explore_features")}
                             </h2>
                             <p className="max-w-2xl text-center font-medium text-slate-500 dark:text-slate-400">
                                 Discover all the ways SahiDawa can help you verify your medicines
