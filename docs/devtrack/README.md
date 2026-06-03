@@ -95,3 +95,4 @@
 | [#1172](https://github.com/RatLoopz/sahidawa-india/pull/1172) | 2026-06-03 | Frontend | 8 | @aryan-nmaurya | [View Doc](devtrack/2026-06/PR-1172-fix-916-name-cloudinary-report-uploads-as-sahidawa.md) |
 | [#1190](https://github.com/RatLoopz/sahidawa-india/pull/1190) | 2026-06-03 | Backend | 8 | @anshul23102 | [View Doc](devtrack/2026-06/PR-1190-fix-lasa-add-ttl-cache-with-in-flight-deduplicatio.md) |
 | [#1189](https://github.com/RatLoopz/sahidawa-india/pull/1189) | 2026-06-03 | Backend | 9 | @anshul23102 | [View Doc](devtrack/2026-06/PR-1189-fix-pharmacies-add-post-api-pharmacies-with-licens.md) |
+| [#1160](https://github.com/RatLoopz/sahidawa-india/pull/1160) | 2026-06-03 | Frontend | 40 | @nimkarprachi17 | [View Doc](devtrack/2026-06/PR-1160-feat-verify-and-extend-pharmacy-asha-worker-map-wi.md) / [ADR](devtrack/adr/ADR-023-feat-verify-and-extend-pharmacy-asha-worker-map-wi.md) |
