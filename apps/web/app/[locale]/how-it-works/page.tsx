@@ -13,6 +13,10 @@ import {
     MapPin,
     Shield,
 } from "lucide-react";
+// Locale-aware Link (not next/link) so CTAs preserve the active locale.
+// Hardcoded "/en/" hrefs were removed and this import was fixed in
+// commit 8359882 / PR #918 ("fix(web): use i18n routing link and remove
+// hardcoded locale in how-it-works"). Hrefs below are intentionally relative.
 import { Link } from "@/i18n/routing";
 
 const steps = [
