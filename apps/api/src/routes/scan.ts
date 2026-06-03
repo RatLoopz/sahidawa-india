@@ -216,12 +216,14 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const file: Express.Multer.File | undefined = (req as any).file;
 
-        if (!file) {
+        if (!file || !file.filename) {
             res.status(400).json({ error: "No image file provided." });
             return;
         }
 
-        tempFilePath = file.path;
+        // Security: Prevent path traversal (CodeQL) by ensuring the path only resolves within UPLOAD_DIR
+        const safeFilename = path.basename(file.filename);
+        tempFilePath = path.join(UPLOAD_DIR, safeFilename);
 
         const mlServiceUrl = getMlServiceUrl();
         if (!mlServiceUrl) {
@@ -241,7 +243,7 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
 
         try {
             const formData = new FormData();
-            const fileBuffer = fs.readFileSync(file.path);
+            const fileBuffer = fs.readFileSync(tempFilePath);
             const blob = new Blob([new Uint8Array(fileBuffer)], {
                 type: file.mimetype,
             });
