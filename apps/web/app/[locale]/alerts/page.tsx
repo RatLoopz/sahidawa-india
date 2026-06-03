@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Activity, ArrowLeft, Filter, AlertTriangle, AlertCircle, Search } from "lucide-react";
-import Link from "next/link";
+import { Activity, ArrowLeft, Filter, AlertTriangle, Search } from "lucide-react";
 import { Globe } from "lucide-react";
 import RecallPushSubscriber from "@/components/alerts/RecallPushSubscriber";
 import { LiveMessage } from "@/components/ui/LiveMessage";
+import { Link } from "@/i18n/routing";
 import { API_BASE } from "@/lib/api";
 
 function formatRelativeTime(dateString: string | null): string {
