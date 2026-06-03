@@ -1,9 +1,7 @@
 import { fetchWithRetry } from "./apiWithRetry";
 
 const DEFAULT_API_ORIGIN = "http://localhost:4000";
-const configuredApiUrl = (
-    process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_API_ORIGIN
-).trim();
+const configuredApiUrl = (process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_API_ORIGIN).trim();
 export const API_BASE = configuredApiUrl.replace(/\/+$/, "");
 
 let csrfTokenCache: string | null = null;
@@ -38,10 +36,7 @@ export type SubmittedReport = {
     reporter_id: string | null;
 };
 
-export type MedicineImageAnalysisVerdict =
-    | "likely_genuine"
-    | "suspicious"
-    | "likely_fake";
+export type MedicineImageAnalysisVerdict = "likely_genuine" | "suspicious" | "likely_fake";
 
 export type MedicineImageAnalysis = {
     isFake: boolean;
@@ -70,9 +65,7 @@ export async function analyzeMedicineImage(
         const body = (await res.json().catch(() => ({}))) as {
             error?: string;
         };
-        throw new Error(
-            body.error ?? "Image analysis is unavailable. Please retry."
-        );
+        throw new Error(body.error ?? "Image analysis is unavailable. Please retry.");
     }
 
     return res.json() as Promise<MedicineImageAnalysis>;
@@ -89,9 +82,7 @@ export async function submitReport(
         headers: {
             "Content-Type": "application/json",
             "x-csrf-token": csrfToken,
-            ...(accessToken
-                ? { Authorization: `Bearer ${accessToken}` }
-                : {}),
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         credentials: "include",
         body: JSON.stringify(payload),
@@ -103,9 +94,7 @@ export async function submitReport(
         const body = (await res.json().catch(() => ({}))) as {
             error?: string;
         };
-        throw new Error(
-            body.error ?? "Server error occurred. Please retry."
-        );
+        throw new Error(body.error ?? "Server error occurred. Please retry.");
     }
 
     return res.json() as Promise<{ report: SubmittedReport }>;
@@ -226,20 +215,17 @@ export async function verifyMedicine(
     const mlUrl = process.env.NEXT_PUBLIC_ML_URL;
     if (mlUrl) {
         try {
-            const mlRes = await fetchWithRetry(
-                `${mlUrl.replace(/\/+$/, "")}/verify/batch`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        batch_number: batchNumber,
-                    }),
-                    timeout: 8000,
-                    signal,
-                }
-            );
+            const mlRes = await fetchWithRetry(`${mlUrl.replace(/\/+$/, "")}/verify/batch`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    batch_number: batchNumber,
+                }),
+                timeout: 8000,
+                signal,
+            });
             if (mlRes.ok) {
                 const mlData = (await mlRes.json()) as {
                     status: string;
@@ -264,10 +250,8 @@ export async function verifyMedicine(
                         manufacturer: mlData.manufacturer ?? "",
                         batch_number: batchNumber,
                         expiry_date: mlData.expiry_date ?? null,
-                        cdsco_approval_status:
-                            mlData.cdsco_approval_status ?? "unknown",
-                        is_counterfeit_alert:
-                            mlData.is_counterfeit_alert ?? false,
+                        cdsco_approval_status: mlData.cdsco_approval_status ?? "unknown",
+                        is_counterfeit_alert: mlData.is_counterfeit_alert ?? false,
                     },
                 };
             }
@@ -276,27 +260,20 @@ export async function verifyMedicine(
         }
     }
     const csrfToken = await getCsrfToken();
-    const res = await fetchWithRetry(
-        `${API_BASE}/api/verify`,
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "x-csrf-token": csrfToken,
-            },
-            credentials: "include",
-            body: JSON.stringify({ batchNumber }),
-            timeout: 10000,
-            signal,
-        }
-    );
+    const res = await fetchWithRetry(`${API_BASE}/api/verify`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "x-csrf-token": csrfToken,
+        },
+        credentials: "include",
+        body: JSON.stringify({ batchNumber }),
+        timeout: 10000,
+        signal,
+    });
     if (!res.ok && res.status !== 404) {
-        const body = (await res.json().catch(
-            () => ({})
-        )) as { error?: string };
-        throw new Error(
-            body.error ?? "Server error occurred. Please retry."
-        );
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body.error ?? "Server error occurred. Please retry.");
     }
     return res.json() as Promise<VerifyResult>;
 }
@@ -306,32 +283,24 @@ export type FuzzyMatch = {
     score: number;
 };
 
-export async function fuzzyMatchBrand(
-    query: string,
-    signal?: AbortSignal
-): Promise<FuzzyMatch[]> {
+export async function fuzzyMatchBrand(query: string, signal?: AbortSignal): Promise<FuzzyMatch[]> {
     const csrfToken = await getCsrfToken();
-    const res = await fetchWithRetry(
-        `${API_BASE}/api/v1/scan/match`,
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "x-csrf-token": csrfToken,
-            },
-            body: JSON.stringify({ query }),
-            timeout: 8000,
-            signal,
-        }
-    );
+    const res = await fetchWithRetry(`${API_BASE}/api/v1/scan/match`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "x-csrf-token": csrfToken,
+        },
+        body: JSON.stringify({ query }),
+        timeout: 8000,
+        signal,
+    });
 
     if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as {
             error?: string;
         };
-        throw new Error(
-            body.error ?? "Server error occurred. Please retry."
-        );
+        throw new Error(body.error ?? "Server error occurred. Please retry.");
     }
 
     return res.json() as Promise<FuzzyMatch[]>;
@@ -342,27 +311,22 @@ export async function verifyMedicineByBrand(
     signal?: AbortSignal
 ): Promise<VerifyResult> {
     const csrfToken = await getCsrfToken();
-    const res = await fetchWithRetry(
-        `${API_BASE}/api/v1/scan/verify-brand`,
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "x-csrf-token": csrfToken,
-            },
-            body: JSON.stringify({ brandName }),
-            timeout: 10000,
-            signal,
-        }
-    );
+    const res = await fetchWithRetry(`${API_BASE}/api/v1/scan/verify-brand`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "x-csrf-token": csrfToken,
+        },
+        body: JSON.stringify({ brandName }),
+        timeout: 10000,
+        signal,
+    });
 
     if (!res.ok && res.status !== 404) {
         const body = (await res.json().catch(() => ({}))) as {
             error?: string;
         };
-        throw new Error(
-            body.error ?? "Server error occurred. Please retry."
-        );
+        throw new Error(body.error ?? "Server error occurred. Please retry.");
     }
 
     return res.json() as Promise<VerifyResult>;
@@ -386,27 +350,22 @@ export async function checkLasaConflicts(
     signal?: AbortSignal
 ): Promise<LasaCheckResult> {
     const csrfToken = await getCsrfToken();
-    const res = await fetchWithRetry(
-        `${API_BASE}/api/v1/lasa/check`,
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "x-csrf-token": csrfToken,
-            },
-            body: JSON.stringify({ medicineName }),
-            timeout: 8000,
-            signal,
-        }
-    );
+    const res = await fetchWithRetry(`${API_BASE}/api/v1/lasa/check`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "x-csrf-token": csrfToken,
+        },
+        body: JSON.stringify({ medicineName }),
+        timeout: 8000,
+        signal,
+    });
 
     if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as {
             error?: string;
         };
-        throw new Error(
-            body.error ?? "Server error occurred. Please retry."
-        );
+        throw new Error(body.error ?? "Server error occurred. Please retry.");
     }
 
     return res.json() as Promise<LasaCheckResult>;

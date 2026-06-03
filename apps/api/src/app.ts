@@ -55,7 +55,6 @@ import { errorHandler } from "./middleware/errorHandler";
 const app: Express = express();
 app.set("trust proxy", 1); // Trust first proxy (Nginx) — fixes req.ip for rate limiters
 
-
 app.use(compression());
 
 // ── Global Middleware Configuration ───────────────────────────────────────
