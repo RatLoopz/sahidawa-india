@@ -29,6 +29,7 @@ import {
     fetchVerifiedPharmaciesInBounds,
     type VerifiedPharmacy,
 } from "../../../lib/api";
+import MapView from '@/components/map/MapView';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const DEFAULT_CENTER = { lat: 28.6139, lng: 77.209 }; // New Delhi
@@ -695,6 +696,10 @@ export default function PharmacyMapPage() {
                             heatmapMode={heatmapMode}
                             riskHotspots={riskHotspots}
                         />
+                        <div className="mt-4 px-4 pb-4">
+                            <h2 className="mb-2 text-sm font-semibold text-(--color-text-primary)">ASHA Workers & Verified Pharmacies</h2>
+                            <MapView />
+                        </div>
 
                         {showSearchArea && !isLoading && (
                             <div className="absolute top-4 left-1/2 z-1000 -translate-x-1/2">
