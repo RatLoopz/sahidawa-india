@@ -94,3 +94,4 @@
 | [#1162](https://github.com/RatLoopz/sahidawa-india/pull/1162) | 2026-06-03 | Frontend | 5     | @aryan-nmaurya         | [View Doc](devtrack/2026-06/PR-1162-fix-add-batch-number-input-display-in-expiry-track.md)                                                                                     |
 | [#1172](https://github.com/RatLoopz/sahidawa-india/pull/1172) | 2026-06-03 | Frontend | 8 | @aryan-nmaurya | [View Doc](devtrack/2026-06/PR-1172-fix-916-name-cloudinary-report-uploads-as-sahidawa.md) |
 | [#1190](https://github.com/RatLoopz/sahidawa-india/pull/1190) | 2026-06-03 | Backend | 8 | @anshul23102 | [View Doc](devtrack/2026-06/PR-1190-fix-lasa-add-ttl-cache-with-in-flight-deduplicatio.md) |
+| [#1189](https://github.com/RatLoopz/sahidawa-india/pull/1189) | 2026-06-03 | Backend | 9 | @anshul23102 | [View Doc](devtrack/2026-06/PR-1189-fix-pharmacies-add-post-api-pharmacies-with-licens.md) |
