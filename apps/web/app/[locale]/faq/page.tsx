@@ -49,6 +49,9 @@ export default function FAQPage() {
                         >
                             <button
                                 onClick={() => toggle(i)}
+                                id={`faq-question-${i}`}
+                                aria-expanded={openIndex === i}
+                                aria-controls={`faq-answer-${i}`}
                                 className="flex w-full items-center justify-between px-6 py-5 text-left transition-colors duration-200 hover:bg-emerald-500/[0.01]"
                             >
                                 <div className="flex items-center gap-3">
@@ -68,7 +71,12 @@ export default function FAQPage() {
                                 </div>
                             </button>
                             {openIndex === i && (
-                                <div className="border-t border-(--color-border-muted) px-6 pt-4 pb-5 text-sm leading-relaxed font-medium text-(--color-text-secondary)">
+                                <div
+                                    id={`faq-answer-${i}`}
+                                    role="region"
+                                    aria-labelledby={`faq-question-${i}`}
+                                    className="border-t border-(--color-border-muted) px-6 pt-4 pb-5 text-sm leading-relaxed font-medium text-(--color-text-secondary)"
+                                >
                                     {t(`items.${key}.answer`)}
                                 </div>
                             )}

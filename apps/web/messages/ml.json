@@ -21,6 +21,7 @@
         "ai_chat": "AI ചാറ്റ്",
         "ai_health_assistant_description": "ഉടനടി ആരോഗ്യ ഉപദേശം, ലക്ഷണ പരിശോധന & പ്രിസ്ക്രിപ്ഷൻ മാർഗ്ഗനിർദ്ദേശം ലഭിക്കുക",
         "chat_now": "ഇപ്പോൾ ചാറ്റ് ചെയ്യുക",
+        "explore_features": "സവിശേഷതകൾ പര്യവേക്ഷണം ചെയ്യുക",
         "live_cdsco_alerts": "തത്സമയ CDSCO അലേർട്ടുകൾ",
         "india_region": "ഇന്ത്യ മേഖല",
         "alerts_empty_title": "എല്ലാം ശരിയാണ്!",
@@ -34,7 +35,6 @@
         "scan_now": "Scan Now",
         "find_pharmacy": "Find Pharmacy",
         "report_subtitle": "Report suspicious medicine",
-        "our_core_features": "Explore Features",
         "real_time": "REAL TIME",
         "alerts_description": "Stay updated with the latest medicine safety alerts and recalls."
     },

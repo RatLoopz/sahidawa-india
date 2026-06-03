@@ -116,7 +116,9 @@ reportsRouter.get("/mine", requireAuth, async (req: AuthenticatedRequest, res: R
     try {
         const { data, error } = await supabase
             .from("counterfeit_reports")
-            .select("id, reported_brand_name, scanned_barcode, photo_url, district, status, created_at")
+            .select(
+                "id, reported_brand_name, scanned_barcode, photo_url, district, status, created_at"
+            )
             .eq("reporter_id", userId)
             .order("created_at", { ascending: false });
 
