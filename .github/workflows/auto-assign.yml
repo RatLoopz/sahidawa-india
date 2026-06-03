@@ -52,12 +52,19 @@ jobs:
             // Skip bots
             if (context.payload.comment.user.type === 'Bot') return;
 
-            // Only process /assign requests
+            // Check if it's an explicit /assign request
             const requestKeywords = ['/assign', 'please assign', 'assign me'];
             const isRequest = requestKeywords.some(kw => commentBody.toLowerCase().includes(kw));
-            if (!isRequest) return;
+            
+            // Fetch issue early to check unassigned status
+            const issueData = await github.rest.issues.get({ owner: repo.owner, repo: repo.repo, issue_number: issueNumber });
+            const currentAssignees = (issueData.data.assignees || []).map(a => a.login);
+            const isUnassigned = currentAssignees.length === 0;
+            const isSpam = commentBody.trim().length < 5;
 
-            core.info('Audit trigger: @' + commenter + ' requested assignment on #' + issueNumber);
+            if (!isRequest && (!isUnassigned || isSpam)) return;
+
+            core.info('Audit trigger: @' + commenter + ' attempting assignment on #' + issueNumber);
 
             // ── 2a. Enforce 3-issue cap ─────────────────────────────────────
             const assignedList = await github.rest.issues.listForRepo({
@@ -90,9 +97,7 @@ jobs:
               return;
             }
 
-            // ── 2b. Fetch issue data to check current assignees + labels ────
-            const issueData        = await github.rest.issues.get({ owner: repo.owner, repo: repo.repo, issue_number: issueNumber });
-            const currentAssignees = (issueData.data.assignees || []).map(a => a.login);
+
 
             // Already assigned to someone else?
             if (currentAssignees.length > 0 && !currentAssignees.includes(commenter)) {

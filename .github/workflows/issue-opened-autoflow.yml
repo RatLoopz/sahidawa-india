@@ -43,10 +43,22 @@ jobs:
             const issueNo = issue.number;
             const opener  = issue.user.login;
 
-            // ── 0. Ignore bots ──────────────────────────────────────────────
+            // ── 0. Ignore bots and maintainers ───────────────────────────────
             if (issue.user.type === 'Bot') {
               core.info('Bot opened this issue — skipping.');
               return;
+            }
+
+            try {
+              const { data: perm } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner, repo, username: opener
+              });
+              if (perm.permission === 'admin' || perm.permission === 'write') {
+                core.info('Maintainer/Owner opened this issue — skipping auto-assignment.');
+                return;
+              }
+            } catch (err) {
+              core.warning('Could not check permissions for @' + opener + ': ' + err.message);
             }
 
             // ── 1. Check if the opener already holds 3 active assignments ──
