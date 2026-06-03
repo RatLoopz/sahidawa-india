@@ -48,7 +48,7 @@ describe("getChatbotPositionClasses", () => {
             isOpen: true,
         });
 
-        expect(classes).toContain("bottom-[5rem]");
+        expect(classes).toContain("bottom-24");
         expect(classes).toContain("md:bottom-6");
         expect(classes).toContain("md:left-[calc(clamp(22rem,26vw,30rem)+2.75rem)]");
     });
