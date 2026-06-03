@@ -92,6 +92,7 @@ alertsRouter.get("/", async (req: Request, res: Response) => {
  */
 alertsRouter.post("/ingest", async (req: Request, res: Response) => {
     // 1. Validate Secret Header & Environment Setup
+    // Issue fixed: API_SECRET_KEY is validated here instead of at startup, so a missing key no longer crashes the server.
     const expectedSecret = process.env.API_SECRET_KEY;
     if (!expectedSecret) {
         console.error("Server Configuration Error: API_SECRET_KEY is not configured.");
