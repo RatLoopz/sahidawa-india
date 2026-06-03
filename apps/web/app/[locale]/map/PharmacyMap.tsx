@@ -357,10 +357,10 @@ export default function PharmacyMap({
 
             // Rich popup matching SahiDawa's design
             const statusColor = isVerified
-                ? "background:var(--color-brand-primary-soft);color:var(--color-brand-primary-text)"
+                ? "background:#d1fae5;color:#065f46"
                 : pharmacy.status === "Verified" || pharmacy.status === "Govt. Verified"
-                  ? "background:var(--color-brand-primary-soft);color:var(--color-brand-primary-text)"
-                  : "background:var(--color-accent-warning-soft);color:var(--color-accent-warning-text)";
+                  ? "background:#d1fae5;color:#065f46"
+                  : "background:#fef3c7;color:#92400e";
 
             const verifiedBanner = isVerified
                 ? `<div style="
@@ -389,6 +389,7 @@ export default function PharmacyMap({
           min-width: 220px;
           max-width: 280px;
           font-family: ui-sans-serif, system-ui, sans-serif;
+          color: #1e293b;
         ">
           ${verifiedBanner}
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
@@ -396,7 +397,7 @@ export default function PharmacyMap({
               width: 36px;
               height: 36px;
               border-radius: 10px;
-              background: ${isGovt ? "var(--color-brand-primary-faint)" : "var(--color-brand-secondary-subtle)"};
+              background: ${isGovt ? "#ecfdf5" : "#eff6ff"};
               color: ${markerColor};
               display: flex;
               align-items: center;
@@ -412,7 +413,7 @@ export default function PharmacyMap({
               </svg>
             </div>
             <div style="flex:1;min-width:0;">
-              <div style="font-weight:800;color:var(--color-text-primary);font-size:13px;line-height:1.3;">${escapeHtml(pharmacy.name)}</div>
+              <div style="font-weight:800;color:#1e293b;font-size:13px;line-height:1.3;">${escapeHtml(pharmacy.name)}</div>
               <span style="
                 font-size:10px;
                 font-weight:700;
@@ -424,18 +425,18 @@ export default function PharmacyMap({
               ">${escapeHtml(pharmacy.status || "Status unknown")}</span>
             </div>
           </div>
-          <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 8px 0;line-height:1.4;">
+          <p style="font-size:12px;color:#64748b;margin:0 0 8px 0;line-height:1.4;">
               ${escapeHtml(pharmacy.address || "No precise address listed in OSM")}
           </p>
-          <div style="display:flex;align-items:center;gap:12px;font-size:12px;color:var(--color-text-muted);margin-bottom:12px;">
-            ${pharmacy.distance && pharmacy.distance !== "—" ? `<span style="font-weight:600;">${escapeHtml(pharmacy.distance)} away</span>` : ""}
+          <div style="display:flex;align-items:center;gap:12px;font-size:12px;color:#94a3b8;margin-bottom:12px;">
+            ${pharmacy.distance && pharmacy.distance !== "—" ? `<span style="font-weight:600;color:#64748b;">${escapeHtml(pharmacy.distance)} away</span>` : ""}
             ${
                 pharmacy.rating > 0
                     ? `<span style="display:flex;align-items:center;gap:2px;">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--color-accent-warning)" stroke="var(--color-accent-warning)" stroke-width="0"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></polygon></svg>
-              <span style="font-weight:700;color:var(--color-dark-scrollbar);">${pharmacy.rating}</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="0"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></polygon></svg>
+              <span style="font-weight:700;color:#1f2937;">${pharmacy.rating}</span>
             </span>`
-                    : `<span style="font-weight:500;font-size:11px;color:var(--color-scrollbar-thumb);">Live from OSM</span>`
+                    : `<span style="font-weight:500;font-size:11px;color:#cbd5e1;">Live from OSM</span>`
             }
           </div>
           
@@ -466,7 +467,7 @@ export default function PharmacyMap({
                 gap:6px;
                 width:100%;
                 padding:8px;
-                background:var(--color-dark-surface);
+                background:#1e293b;
                 color:white;
                 border-radius:10px;
                 text-decoration:none;

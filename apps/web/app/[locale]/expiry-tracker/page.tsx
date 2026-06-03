@@ -66,8 +66,13 @@ export default function ExpiryTrackerPage() {
         saveToLocalStorage(updated);
     };
 
+    const parseLocalDate = (dateStr: string) => {
+        const [year, month, day] = dateStr.split("-").map(Number);
+        return new Date(year, month - 1, day);
+    };
+
     const getExpiryStatus = (dateStr: string) => {
-        const expiry = new Date(dateStr);
+        const expiry = parseLocalDate(dateStr);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const diffDays = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
@@ -132,6 +137,18 @@ export default function ExpiryTrackerPage() {
                                     className="w-full rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) p-3 text-(--color-text-primary) [color-scheme:light] transition outline-none focus:ring-2 focus:ring-emerald-500 dark:[color-scheme:dark]"
                                 />
                             </div>
+                            <div>
+                                <label className="mb-1 block text-xs font-bold tracking-wider uppercase opacity-60">
+                                    Batch Number (Optional)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={batchNumber}
+                                    onChange={(e) => setBatchNumber(e.target.value)}
+                                    className="w-full rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) p-3 text-(--color-text-primary) transition outline-none focus:ring-2 focus:ring-emerald-500"
+                                    placeholder="e.g. B12345"
+                                />
+                            </div>
                             <button
                                 type="submit"
                                 className="w-full rounded-xl bg-emerald-600 py-3 font-bold text-white shadow-lg shadow-emerald-900/20 transition-all hover:bg-emerald-700 active:scale-95"
@@ -174,10 +191,16 @@ export default function ExpiryTrackerPage() {
                                                 <div className="flex items-center gap-3 text-sm opacity-70">
                                                     <span className="flex items-center gap-1">
                                                         <Calendar size={14} />{" "}
-                                                        {new Date(
+                                                        {parseLocalDate(
                                                             med.expiryDate
                                                         ).toLocaleDateString()}
                                                     </span>
+                                                    {med.batchNumber && (
+                                                        <span className="flex items-center gap-1">
+                                                            <Package size={14} />{" "}
+                                                            {med.batchNumber}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-4">

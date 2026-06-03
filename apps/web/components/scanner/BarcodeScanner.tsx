@@ -7,11 +7,12 @@ import { LiveMessage } from "@/components/ui/LiveMessage";
 type ScannerStatus = "initializing" | "scanning" | "permission-denied" | "unavailable" | "error";
 
 interface BarcodeScannerProps {
-  onScan: (barcodeText: string) => void;
-  debounceMs?: number;
-  isVerifying?: boolean;
-  apiError?: string | null;
-  onRetry?: () => void;
+    onScan: (barcodeText: string) => void;
+    debounceMs?: number;
+    isVerifying?: boolean;
+    apiError?: string | null;
+    onRetry?: () => void;
+    onPermissionDenied?: () => void;
 }
 
 function stopMediaStream(stream: MediaStream | null): void {
@@ -27,6 +28,7 @@ export function BarcodeScanner({
   isVerifying,
   apiError,
   onRetry,
+  onPermissionDenied,
 }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -160,6 +162,14 @@ export function BarcodeScanner({
       } catch (err: unknown) {
         if (cancelled) return;
         const errorObj = err instanceof Error ? err : new Error(String(err));
+        if (errorObj.name === "NotAllowedError" ||
+          errorObj.name === "PermissionDeniedError") {
+          setStatus("permission-denied");
+          setErrorMessage(
+        "Camera access was denied. Please allow camera permissions in your browser settings."
+      );
+    onPermissionDenied?.(); // Add this line
+}
 
         if (errorObj.name === "NotAllowedError" || errorObj.name === "PermissionDeniedError") {
           setStatus("permission-denied");
@@ -256,32 +266,215 @@ export function BarcodeScanner({
         </div>
       )}
 
-      {/* 4. CAMERA STATUS OVERLAYS (Only visible when actively scanning) */}
-      {!apiError && !isVerifying && (
-        <>
-          {status === "initializing" && (
-            <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 bg-slate-900">
-              <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/10 border-t-emerald-500" />
-              <p className="text-sm font-medium text-slate-400">Starting camera...</p>
-            </div>
-          )}
+    {/* 4. CAMERA STATUS OVERLAYS */}
+{!apiError && !isVerifying && (
+  <>
+    {status === "initializing" && (
+      <div
+        id={initializingMessageId}
+        className="absolute inset-0 z-30 flex flex-col 
+        items-center justify-center gap-3 bg-slate-900"
+        role="status"
+        aria-live="polite"
+      >
+        <div className="h-10 w-10 animate-spin rounded-full 
+        border-4 border-white/10 border-t-emerald-500" />
+        <p className="text-sm font-medium text-slate-400">
+          Starting camera...
+        </p>
+      </div>
+    )}
 
-          {status === "permission-denied" && (
-            <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 bg-slate-900 p-6 text-center">
-              <AlertCircle size={32} className="text-red-400" />
-              <p className="max-w-xs text-sm text-slate-400">{errorMessage}</p>
-              <button onClick={handleCameraRetry} className="rounded-full bg-emerald-500 px-6 py-2">Retry</button>
-            </div>
-          )}
+    {status === "permission-denied" && (
+      <div
+        id={permissionDeniedMessageId}
+        className="absolute inset-0 z-30 flex flex-col 
+        items-center justify-center gap-4 bg-slate-900 
+        p-6 text-center"
+        role="alert"
+        aria-live="assertive"
+      >
+        <div className="flex h-16 w-16 items-center 
+        justify-center rounded-full bg-red-500/20">
+          <AlertCircle size={32} className="text-red-400" />
+        </div>
+        <h3 className="text-lg font-bold text-white">
+          Camera Access Denied
+        </h3>
+        <p className="max-w-xs text-sm text-slate-400">
+          {errorMessage}
+        </p>
 
-          {status === "scanning" && (
-            <div className="absolute right-3 bottom-3 z-30 flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-md">
-              <Camera size={14} className="text-emerald-400" />
-              <span className="text-xs font-medium text-emerald-400">Scanning</span>
-            </div>
-          )}
-        </>
+        {/* Browser specific instructions */}
+        <div className="w-full max-w-xs rounded-xl 
+        bg-slate-800 p-4 text-left text-xs 
+        text-slate-400 space-y-1">
+          <p className="font-bold text-slate-300 mb-2">
+            How to enable camera:
+          </p>
+          <p>🔵 <strong>Chrome:</strong> Click the 🔒 lock 
+          icon in address bar → Camera → Allow</p>
+          <p>🦊 <strong>Firefox:</strong> Click the 🔒 lock 
+          icon → Clear Permission → Reload</p>
+          <p>🧭 <strong>Safari:</strong> Settings → Safari 
+          → Camera → Allow</p>
+        </div>
+
+        <button
+          onClick={handleCameraRetry}
+          className="rounded-full bg-emerald-500 px-6 
+          py-2.5 text-sm font-bold text-white 
+          transition-colors hover:bg-emerald-600 
+          shadow-lg"
+        >
+          Retry Camera
+        </button>
+
+        {/* Fallback options */}
+        <p className="text-xs text-slate-500">
+          Or use these alternatives:
+        </p>
+        <div className="flex w-full max-w-xs gap-3">
+          <button
+            onClick={() => {
+              const input = document.getElementById(
+                "medicine-upload"
+              );
+              input?.click();
+            }}
+            className="flex-1 rounded-xl border 
+            border-slate-700 bg-slate-800 py-2.5 
+            text-xs font-semibold text-slate-300 
+            hover:bg-slate-700 transition-colors"
+          >
+            📷 Upload Photo
+          </button>
+          <button
+            onClick={onRetry}
+            className="flex-1 rounded-xl border 
+            border-slate-700 bg-slate-800 py-2.5 
+            text-xs font-semibold text-slate-300 
+            hover:bg-slate-700 transition-colors"
+          >
+            ⌨️ Manual Entry
+          </button>
+        </div>
+      </div>
+    )}
+
+    {status === "unavailable" && (
+      <div
+        id={unavailableMessageId}
+        className="absolute inset-0 z-30 flex flex-col 
+        items-center justify-center gap-4 bg-slate-900 
+        p-6 text-center"
+        role="alert"
+        aria-live="assertive"
+      >
+        <div className="flex h-16 w-16 items-center 
+        justify-center rounded-full bg-amber-500/20">
+          <VideoOff size={32} className="text-amber-400" />
+        </div>
+        <h3 className="text-lg font-bold text-white">
+          No Camera Found
+        </h3>
+        <p className="max-w-xs text-sm text-slate-400">
+          {errorMessage}
+        </p>
+        <div className="flex w-full max-w-xs gap-3">
+          <button
+            onClick={() => {
+              const input = document.getElementById(
+                "medicine-upload"
+              );
+              input?.click();
+            }}
+            className="flex-1 rounded-xl border 
+            border-slate-700 bg-slate-800 py-2.5 
+            text-xs font-semibold text-slate-300 
+            hover:bg-slate-700 transition-colors"
+          >
+            📷 Upload Photo
+          </button>
+          <button
+            onClick={onRetry}
+            className="flex-1 rounded-xl border 
+            border-slate-700 bg-slate-800 py-2.5 
+            text-xs font-semibold text-slate-300 
+            hover:bg-slate-700 transition-colors"
+          >
+            ⌨️ Manual Entry
+          </button>
+        </div>
+      </div>
+    )}
+
+    {status === "error" && (
+      <div
+        id={scannerErrorMessageId}
+        className="absolute inset-0 z-30 flex flex-col 
+        items-center justify-center gap-4 bg-slate-900 
+        p-6 text-center"
+        role="alert"
+        aria-live="assertive"
+      >
+        <div className="flex h-16 w-16 items-center 
+        justify-center rounded-full bg-red-500/20">
+          <AlertCircle size={32} className="text-red-400" />
+        </div>
+        <h3 className="text-lg font-bold text-white">
+          Scanner Error
+        </h3>
+        <p className="max-w-xs text-sm text-slate-400">
+          {errorMessage}
+        </p>
+        <button
+          onClick={handleCameraRetry}
+          className="rounded-full bg-emerald-500 px-6 
+          py-2.5 text-sm font-bold text-white 
+          transition-colors hover:bg-emerald-600"
+        >
+          Try Again
+        </button>
+        <div className="flex w-full max-w-xs gap-3">
+          <button
+            onClick={() => {
+              const input = document.getElementById(
+                "medicine-upload"
+              );
+              input?.click();
+            }}
+            className="flex-1 rounded-xl border 
+            border-slate-700 bg-slate-800 py-2.5 
+            text-xs font-semibold text-slate-300 
+            hover:bg-slate-700 transition-colors"
+          >
+            📷 Upload Photo
+          </button>
+          <button
+            onClick={onRetry}
+            className="flex-1 rounded-xl border 
+            border-slate-700 bg-slate-800 py-2.5 
+            text-xs font-semibold text-slate-300 
+            hover:bg-slate-700 transition-colors"
+          >
+            ⌨️ Manual Entry
+          </button>
+        </div>
+      </div>
+    )}
+
+    {status === "scanning" && (
+      <div className="absolute right-3 bottom-3 z-30 
+      flex items-center gap-1.5 rounded-full 
+      bg-black/60 px-3 py-1.5 backdrop-blur-md">
+        <Camera size={14} className="text-emerald-400" />
+        <span className="text-xs font-medium 
+        text-emerald-400">Scanning</span>
+      </div>
       )}
+    </>
+  )}
     </div>
-  );
+);
 }
