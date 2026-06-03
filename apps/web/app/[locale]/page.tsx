@@ -13,6 +13,8 @@ import {
     MessageCircle,
     Syringe,
     ArrowRight,
+    Quote,
+    Star,
 } from "lucide-react";
 
 import { useRouter, useParams } from "next/navigation";
@@ -45,6 +47,39 @@ function formatRelativeTime(dateString: string | null): string {
         return past.toLocaleDateString(undefined, { month: "short", day: "numeric" });
     }
 }
+
+const testimonials = [
+    {
+        quote: "SahiDawa helped our family verify a batch number before buying medicine for my father. The result was quick and gave us real confidence.",
+        name: "Priya Sharma",
+        role: "Caregiver, Jaipur",
+    },
+    {
+        quote: "The scanner makes medicine checks simple enough for first-time smartphone users. It fits naturally into our community health camps.",
+        name: "Amit Verma",
+        role: "Health Volunteer, Lucknow",
+    },
+    {
+        quote: "I use the pharmacy finder when travelling for field work. It cuts down the guesswork and points me toward safer options nearby.",
+        name: "Nandini Rao",
+        role: "NGO Coordinator, Bengaluru",
+    },
+    {
+        quote: "The alert log is clear and timely. It has become a useful reference when customers ask about recalls or counterfeit warnings.",
+        name: "Rahul Mehta",
+        role: "Pharmacist, Pune",
+    },
+    {
+        quote: "Voice triage makes the platform approachable for patients who are not comfortable typing symptoms or medicine names.",
+        name: "Dr. Sana Khan",
+        role: "Primary Care Doctor, Bhopal",
+    },
+    {
+        quote: "The open-source approach matters. It gives contributors and citizens a shared way to improve medicine safety across India.",
+        name: "Arjun Patel",
+        role: "Open Source Contributor, Ahmedabad",
+    },
+];
 
 export default function SahiDawaHome() {
     const router = useRouter();
@@ -558,6 +593,62 @@ export default function SahiDawaHome() {
                             </div>
                         </div>
                     </div>
+
+                    <section className="mb-20 overflow-hidden rounded-3xl border border-slate-200/60 bg-white/70 py-10 shadow-sm backdrop-blur-md dark:border-slate-800/60 dark:bg-slate-900/50">
+                        <div className="mb-8 flex flex-col gap-3 px-5 sm:px-8 md:flex-row md:items-end md:justify-between">
+                            <div>
+                                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 text-[11px] font-extrabold tracking-widest text-emerald-600 uppercase dark:border-emerald-400/20 dark:text-emerald-400">
+                                    <Star size={13} className="fill-current" aria-hidden="true" />
+                                    Trusted by citizens
+                                </div>
+                                <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
+                                    Voices from the SahiDawa community
+                                </h2>
+                            </div>
+                            <p className="max-w-md text-sm leading-relaxed font-medium text-slate-500 dark:text-slate-400">
+                                Families, pharmacists, doctors, and contributors using SahiDawa to
+                                make medicine safety easier to act on.
+                            </p>
+                        </div>
+
+                        <div className="testimonial-marquee relative flex overflow-hidden">
+                            <div className="testimonial-marquee-track flex min-w-full shrink-0 gap-5 px-5 sm:px-8">
+                                {[...testimonials, ...testimonials].map((testimonial, index) => (
+                                    <article
+                                        key={`${testimonial.name}-${index}`}
+                                        className="flex h-[250px] w-[300px] shrink-0 flex-col justify-between rounded-2xl border border-slate-200/70 bg-white/85 p-6 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-300/70 hover:shadow-md sm:w-[360px] dark:border-slate-800/70 dark:bg-slate-950/55 dark:hover:border-emerald-400/40"
+                                    >
+                                        <div>
+                                            <Quote
+                                                size={24}
+                                                className="mb-4 text-emerald-500"
+                                                aria-hidden="true"
+                                            />
+                                            <p className="text-sm leading-relaxed font-medium text-slate-600 dark:text-slate-300">
+                                                {testimonial.quote}
+                                            </p>
+                                        </div>
+                                        <div className="mt-6 flex items-center gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
+                                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-emerald-500 to-teal-500 text-sm font-black text-white shadow-sm">
+                                                {testimonial.name
+                                                    .split(" ")
+                                                    .map((part) => part[0])
+                                                    .join("")}
+                                            </div>
+                                            <div>
+                                                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                                                    {testimonial.name}
+                                                </h3>
+                                                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                                    {testimonial.role}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </article>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
                 </div>
             </main>
 
