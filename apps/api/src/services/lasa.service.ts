@@ -94,6 +94,7 @@ export const detectLasaConflicts = async (medicineName: string): Promise<LasaMat
     return promise;
 };
 
+// fixed
 export const clearLasaCache = (): void => {
     cache.clear();
     inFlight.clear();

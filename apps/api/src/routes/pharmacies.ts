@@ -124,7 +124,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
                 district: data.district,
                 state: data.state,
                 phone_number: data.phone_number ?? null,
-                location: data.lng && data.lat ? `POINT(${data.lng} ${data.lat})` : null,
+                location: data.lng && data.lat ? `POINT(${data.lng} ${data.lat})` : null, // fixed
                 is_verified: false,
             })
             .select()
