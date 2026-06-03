@@ -129,44 +129,52 @@ router.post(
             .replace(/%/g, "\\%")
             .replace(/_/g, "\\_");
 
-        const { data, error } = await supabase
-            .from("medicines")
-            .select(
-                "brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert"
-            )
-            .ilike("batch_number", escaped)
-            .limit(1)
-            .maybeSingle();
+        try {
+            const { data, error } = await supabase
+                .from("medicines")
+                .select(
+                    "brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert"
+                )
+                .ilike("batch_number", escaped)
+                .limit(1)
+                .maybeSingle();
 
-        if (error) {
-            console.error("Medicine lookup failed:", error);
+            if (error) {
+                console.error("Medicine lookup failed:", error);
+                res.status(500).json({
+                    verified: false,
+                    message: "Database lookup failed",
+                });
+                return;
+            }
+
+            if (!data) {
+                res.status(404).json({
+                    verified: false,
+                    message: "Medicine not found",
+                });
+                return;
+            }
+
+            res.status(200).json({
+                verified: true,
+                medicine: {
+                    brand_name: data.brand_name,
+                    generic_name: data.generic_name,
+                    manufacturer: data.manufacturer,
+                    batch_number: data.batch_number,
+                    expiry_date: data.expiry_date,
+                    cdsco_approval_status: data.cdsco_approval_status,
+                    is_counterfeit_alert: data.is_counterfeit_alert,
+                },
+            });
+        } catch (err) {
+            console.error("Unexpected error in /api/verify:", err);
             res.status(500).json({
                 verified: false,
-                message: "Database lookup failed",
+                message: "An unexpected error occurred",
             });
-            return;
         }
-
-        if (!data) {
-            res.status(404).json({
-                verified: false,
-                message: "Medicine not found",
-            });
-            return;
-        }
-
-        res.status(200).json({
-            verified: true,
-            medicine: {
-                brand_name: data.brand_name,
-                generic_name: data.generic_name,
-                manufacturer: data.manufacturer,
-                batch_number: data.batch_number,
-                expiry_date: data.expiry_date,
-                cdsco_approval_status: data.cdsco_approval_status,
-                is_counterfeit_alert: data.is_counterfeit_alert,
-            },
-        });
     }
 );
 

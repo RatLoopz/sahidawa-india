@@ -1,8 +1,19 @@
 "use client";
 
-import { ShieldCheck, Search, Bot, Store, BellRing, AlertTriangle, ArrowRight } from "lucide-react";
+import {
+    ShieldCheck,
+    Search,
+    Bot,
+    Store,
+    BellRing,
+    AlertTriangle,
+    ArrowRight,
+    ArrowLeft,
+    QrCode,
+    MapPin,
+    Shield,
+} from "lucide-react";
 import { Link } from "@/i18n/routing";
-import { ArrowLeft } from "lucide-react";
 
 const steps = [
     {
@@ -40,6 +51,59 @@ const steps = [
         title: "Report Suspicious Medicines",
         description:
             "Help the community by reporting counterfeit or suspicious medicines instantly.",
+    },
+];
+
+const timelineSteps = [
+    {
+        icon: <QrCode size={24} />,
+        title: "Scan Medicine",
+        description:
+            "Point your device camera at the barcode or QR code on any medicine packaging.",
+        bgClass: "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400",
+        badgeClass: "bg-emerald-600 dark:bg-emerald-500",
+        borderClass:
+            "hover:border-emerald-300 dark:hover:border-emerald-800 hover:shadow-[0_20px_40px_-15px_rgba(16,185,129,0.15)]",
+    },
+    {
+        icon: <ShieldCheck size={24} />,
+        title: "Verify Instantly",
+        description:
+            "AI cross-references scanned details with CDSCO records to check authenticity.",
+        bgClass: "bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400",
+        badgeClass: "bg-blue-600 dark:bg-blue-500",
+        borderClass:
+            "hover:border-blue-300 dark:hover:border-blue-800 hover:shadow-[0_20px_40px_-15px_rgba(59,130,246,0.15)]",
+    },
+    {
+        icon: <BellRing size={24} />,
+        title: "Check Alerts",
+        description:
+            "Get real-time safety alerts if the batch is recalled, banned, or substandard.",
+        bgClass: "bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400",
+        badgeClass: "bg-amber-600 dark:bg-amber-500",
+        borderClass:
+            "hover:border-amber-300 dark:hover:border-amber-800 hover:shadow-[0_20px_40px_-15px_rgba(245,158,11,0.15)]",
+    },
+    {
+        icon: <MapPin size={24} />,
+        title: "Find Pharmacies",
+        description:
+            "Locate Jan Aushadhi stores and verified nearby pharmacies stocking real medicines.",
+        bgClass: "bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400",
+        badgeClass: "bg-purple-600 dark:bg-purple-500",
+        borderClass:
+            "hover:border-purple-300 dark:hover:border-purple-800 hover:shadow-[0_20px_40px_-15px_rgba(168,85,247,0.15)]",
+    },
+    {
+        icon: <Shield size={24} />,
+        title: "Stay Protected",
+        description:
+            "Keep records of your scans, report fakes, and safeguard your family's health.",
+        bgClass: "bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400",
+        badgeClass: "bg-rose-600 dark:bg-rose-500",
+        borderClass:
+            "hover:border-rose-300 dark:hover:border-rose-800 hover:shadow-[0_20px_40px_-15px_rgba(244,63,94,0.15)]",
     },
 ];
 
@@ -95,36 +159,43 @@ export default function HowItWorksPage() {
             </section>
 
             {/* Timeline Section */}
-            <section className="px-6 py-10">
+            <section className="relative overflow-hidden px-6 py-10">
                 <h2 className="sr-only">How It Works Steps</h2>
-                <div className="mx-auto max-w-6xl">
-                    <div className="no-scrollbar flex snap-x snap-mandatory flex-row gap-4 overflow-x-auto pb-4 md:flex-row md:items-stretch md:gap-10 md:overflow-x-visible md:pb-0">
-                        {[
-                            "Scan Medicine",
-                            "Verify Instantly",
-                            "Check Alerts",
-                            "Find Pharmacies",
-                            "Stay Protected",
-                        ].map((item, index) => (
+                <div className="relative mx-auto max-w-6xl">
+                    {/* Desktop Connected Path */}
+                    <div className="absolute top-[52px] right-[10%] left-[10%] z-0 hidden h-[2px] bg-gradient-to-r from-emerald-500/30 via-purple-500/30 to-rose-500/30 md:block" />
+
+                    <div className="no-scrollbar relative z-10 flex snap-x snap-mandatory flex-row gap-6 overflow-x-auto pb-6 md:grid md:grid-cols-5 md:gap-6 md:overflow-x-visible md:pb-0">
+                        {timelineSteps.map((step, index) => (
                             <div
                                 key={index}
-                                className="relative min-w-[170px] flex-shrink-0 snap-start sm:min-w-[200px] md:w-auto md:min-w-0 md:flex-1"
+                                className="group relative min-w-[250px] flex-shrink-0 snap-start sm:min-w-[280px] md:min-w-0"
                             >
-                                <div className="flex h-full flex-col items-center rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-5 text-center shadow-sm transition-all duration-300 hover:-translate-y-2 hover:border-emerald-300 hover:shadow-xl md:p-6">
-                                    <div className="dark:text-emerald-450 mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-xl font-bold text-emerald-600 dark:bg-emerald-950/30">
-                                        {index + 1}
+                                <div
+                                    className={`flex h-full flex-col items-center rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 text-center shadow-xs transition-all duration-500 hover:-translate-y-2 hover:shadow-xl active:scale-[0.99] ${step.borderClass}`}
+                                >
+                                    {/* Icon Container with Floating Number Badge */}
+                                    <div
+                                        className={`relative mb-5 flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-inner transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 ${step.bgClass}`}
+                                    >
+                                        {step.icon}
+                                        <span
+                                            className={`absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black text-white shadow-md ${step.badgeClass}`}
+                                        >
+                                            {index + 1}
+                                        </span>
                                     </div>
 
-                                    <h3 className="text-base font-bold text-(--color-text-primary) md:text-lg">
-                                        {item}
+                                    {/* Title */}
+                                    <h3 className="mb-2 text-base font-extrabold text-(--color-text-primary) md:text-lg">
+                                        {step.title}
                                     </h3>
-                                </div>
 
-                                {index !== 4 && (
-                                    <div className="absolute top-[52%] left-full z-10 flex w-4 -translate-y-1/2 items-center justify-center text-emerald-500 md:w-10">
-                                        <ArrowRight size={18} className="md:size-6" />
-                                    </div>
-                                )}
+                                    {/* Description */}
+                                    <p className="text-xs leading-relaxed text-(--color-text-secondary) md:text-sm">
+                                        {step.description}
+                                    </p>
+                                </div>
                             </div>
                         ))}
                     </div>

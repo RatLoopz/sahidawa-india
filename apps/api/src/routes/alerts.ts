@@ -60,25 +60,30 @@ alertsRouter.get("/", async (req: Request, res: Response) => {
         query = query.eq("batch_number", batchNumber);
     }
 
-    const { data, error, count } = await query
-        .order("created_at", { ascending: false })
-        .range(offset, offset + limit - 1);
+    try {
+        const { data, error, count } = await query
+            .order("created_at", { ascending: false })
+            .range(offset, offset + limit - 1);
 
-    if (error) {
-        res.status(500).json({ error: "Failed to fetch alerts" });
-        return;
+        if (error) {
+            res.status(500).json({ error: "Failed to fetch alerts" });
+            return;
+        }
+
+        const totalCount = count ?? 0;
+        const totalPageCount = Math.ceil(totalCount / limit);
+
+        res.json({
+            data: data ?? [],
+            pageIndex: page,
+            pageSize: (data ?? []).length,
+            totalCount,
+            totalPageCount,
+        });
+    } catch (err) {
+        console.error("Unexpected error in GET /api/alerts:", err);
+        res.status(500).json({ error: "An unexpected error occurred" });
     }
-
-    const totalCount = count ?? 0;
-    const totalPageCount = Math.ceil(totalCount / limit);
-
-    res.json({
-        data: data ?? [],
-        pageIndex: page,
-        pageSize: (data ?? []).length,
-        totalCount,
-        totalPageCount,
-    });
 });
 
 /**

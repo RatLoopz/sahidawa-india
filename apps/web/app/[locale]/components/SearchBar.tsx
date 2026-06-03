@@ -25,12 +25,15 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
     const locale = params.locale as string;
     const tHome = useTranslations("Home");
     // ── State ──────────────────────────────────────────────────────────────────
+    const [error, setError] = useState<string | null>(null);
+    const [noResults, setNoResults] = useState(false);
     const [query, setQuery] = useState<string>("");
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [activeIndex, setActiveIndex] = useState<number>(-1);
+
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    // ── Refs ───────────────────────────────────────────────────────────────────
+    // ── Refs ───────────────────────────────────────────────────────────────────D
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -48,10 +51,14 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
     }, []);
     // ── Fetch suggestions from Supabase (debounced) ────────────────────────────
     const fetchSuggestions = useCallback(async (trimmed: string) => {
+        setError(null);
+        setNoResults(false);
         if (!trimmed) {
             setSuggestions([]);
             setIsOpen(false);
             setIsLoading(false);
+            setError(null);
+            setNoResults(false);
             return;
         }
         // Check if offline
@@ -124,8 +131,14 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
             }
 
             setSuggestions(results);
+            if (results.length === 0) {
+                setNoResults(true);
+                setIsOpen(true);
+            } else {
+                setNoResults(false);
+                setIsOpen(true);
+            }
             setActiveIndex(-1);
-            setIsOpen(results.length > 0);
         } catch (err) {
             if (err instanceof Error && err.name === "AbortError") {
                 // Silently ignore aborted suggestions queries
@@ -133,7 +146,8 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
             }
             console.error("[SearchBar] Unexpected error fetching suggestions:", err);
             setSuggestions([]);
-            setIsOpen(false);
+            setError("Unable to fetch medicine suggestions.");
+            setIsOpen(true);
         } finally {
             if (!controller.signal.aborted) {
                 setIsLoading(false);
@@ -287,6 +301,10 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
                 activeIndex={activeIndex}
                 onSelect={selectSuggestion}
                 visible={isOpen}
+                isLoading={isLoading}
+                error={error}
+                noResults={noResults}
+                onRetry={() => fetchSuggestions(query.trim())}
             />
         </div>
     );

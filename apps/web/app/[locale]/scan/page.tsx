@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import { SkeletonLoader } from "@/components/scanner/SkeletonLoader";
 import {
     Camera,
     ShieldCheck,
@@ -1109,7 +1110,7 @@ export default function ScanPage() {
                     )}
                 </div>
 
-                {isScanning && <LoadingSkeleton ocrStatus={ocrStatus} ocrProgress={ocrProgress} />}
+                {isScanning && <SkeletonLoader />}
 
                 {showResult && (
                     <div className="animate-in fade-in zoom-in absolute inset-0 z-30 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm duration-300">

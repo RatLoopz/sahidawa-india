@@ -309,10 +309,10 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
 
             // Expiry parsing
             const expiryPatterns = [
-                /(?:EXP\.?(?:\s*DATE)?|EXPIRY(?:\s*DATE)?)\s*[:\-\.\s]*([0-9]{2})\s*[\/\-]\s*([0-9]{4})/i,
-                /(?:EXP\.?(?:\s*DATE)?|EXPIRY(?:\s*DATE)?)\s*[:\-\.\s]*([0-9]{2})\s*[\/\-]\s*([0-9]{2})\b/i,
-                /\b([0-9]{2})\s*[\/\-]\s*([0-9]{4})\b/,
-                /\b([0-9]{2})\s*[\/\-]\s*([0-9]{2})\b/,
+                /(?:EXP\.?(?:\s*DATE)?|EXPIRY(?:\s*DATE)?)\s*[:\-\.\s]*(0[1-9]|1[0-2])\s*[\/\-]\s*([0-9]{4})/i,
+                /(?:EXP\.?(?:\s*DATE)?|EXPIRY(?:\s*DATE)?)\s*[:\-\.\s]*(0[1-9]|1[0-2])\s*[\/\-]\s*([0-9]{2})\b/i,
+                /\b(0[1-9]|1[0-2])\s*[\/\-]\s*([0-9]{4})\b/,
+                /\b(0[1-9]|1[0-2])\s*[\/\-]\s*([0-9]{2})\b/,
             ];
             let parsedExpiry: string | null = null;
             for (const pattern of expiryPatterns) {
@@ -380,6 +380,8 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
 
                     if (dbError) {
                         logger.error(`Database error fetching medicines: ${dbError.message}`);
+                        res.status(500).json({ error: "Database error fetching medicines" });
+                        return;
                     } else if (dbMedicines) {
                         brandNames = Array.from(
                             new Set(
@@ -395,6 +397,8 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
                 }
             } catch (dbErr) {
                 logger.error(`Failed to fetch brand/generic names from DB: ${dbErr}`);
+                res.status(500).json({ error: "Database error fetching medicines" });
+                return;
             }
 
             // No hardcoded fallback — if DB has no match, we return unmatched result.
@@ -508,6 +512,10 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
                         logger.error(
                             `Database lookup error for match ${matchedName}: ${lookupError.message}`
                         );
+                        res.status(500).json({
+                            error: "Database lookup error for matched medicine",
+                        });
+                        return;
                     } else {
                         medicineData = dbMed;
                     }
@@ -528,6 +536,8 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
                     logger.error(
                         `Failed to lookup matched name ${matchedName} in database: ${lookupErr}`
                     );
+                    res.status(500).json({ error: "Database lookup error for matched medicine" });
+                    return;
                 }
             }
 

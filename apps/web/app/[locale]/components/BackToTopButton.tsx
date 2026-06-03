@@ -135,7 +135,7 @@ export default function BackToTopButton() {
      * This achieves native high performance transitions.
      */
     const baseClasses =
-        "fixed bottom-[7.5rem] right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950 md:bottom-24 md:right-6 md:h-14 md:w-14";
+        "fixed bottom-[152px] right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950 md:bottom-24 md:right-6 md:h-14 md:w-14";
 
     const motionClasses = prefersReducedMotion
         ? isVisible
