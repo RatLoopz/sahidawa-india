@@ -29,6 +29,12 @@ htmlcov/
 .env.*
 !.env.example
 
+# Credentials & API Keys (NEVER commit these!)
+**/google-credentials.json
+**/credentials.json
+*.pem
+*.key
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
@@ -54,6 +60,9 @@ coverage/
 .tmp/
 .cache/
 .turbo/
+
+# Dev / scratch test scripts (not part of the test suite)
+test_tts_live.py
 
 # local model data 
 ml_model_dev_pipeline/.venv/*

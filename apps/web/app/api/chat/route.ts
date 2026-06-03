@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { NextResponse } from "next/server";
 import { detectEmergencyKeywords } from "@/lib/voice/emergency";
 import { rateLimit } from "@/lib/rateLimit";
@@ -88,14 +88,43 @@ function parseVoiceTriageResponse(rawText: string): VoiceTriageResponse {
     }
 }
 
+// Structured-output schema so Gemini always returns valid, parseable JSON
+// (no markdown fences, no trailing/mixed-language corruption).
+const VOICE_TRIAGE_SCHEMA = {
+    type: Type.OBJECT,
+    properties: {
+        summary: {
+            type: Type.STRING,
+            description:
+                "One short sentence (max two) describing the likely situation and next step.",
+        },
+        recommendations: {
+            type: Type.ARRAY,
+            description: "The 3 most important actions, each a single short sentence.",
+            items: { type: Type.STRING },
+            minItems: "1",
+            maxItems: "3",
+        },
+        disclaimer: {
+            type: Type.STRING,
+            description:
+                "A brief reminder to seek professional care for serious, persistent, or worsening symptoms.",
+        },
+        emergency: {
+            type: Type.BOOLEAN,
+            description: "True only if the symptoms could indicate urgent medical attention.",
+        },
+    },
+    required: ["summary", "recommendations", "disclaimer", "emergency"],
+    propertyOrdering: ["summary", "recommendations", "disclaimer", "emergency"],
+};
+
 function buildVoiceTriagePrompt(transcript: string, responseLanguage: string) {
     return [
         `Citizen transcript: ${JSON.stringify(transcript)}`,
-        `Respond in ${responseLanguage}.`,
-        "Return strict JSON only.",
-        'Use this shape: {"summary":"string","recommendations":["string"],"disclaimer":"string","emergency":boolean,"text":"string"}.',
-        "Keep the summary to at most 2 short sentences.",
-        "Return no more than 3 concise recommendation items.",
+        `Write every field entirely in ${responseLanguage}. Do not mix languages or scripts within any field.`,
+        "Be brief: the summary is at most 2 short sentences.",
+        "Give only the 3 most important recommendations, each a single short sentence.",
         "Set emergency to true only if the symptoms could indicate urgent medical attention.",
         "The disclaimer must remind the user to seek professional care for serious, persistent, or worsening symptoms.",
     ].join("\n");
@@ -147,6 +176,8 @@ export async function POST(req: Request) {
                 config: {
                     systemInstruction:
                         "You are the SahiDawa voice triage assistant for India. Help users understand possible next steps based on symptoms, but never claim certainty or replace medical professionals. Be calm, concise, practical, and safety-first.",
+                    responseMimeType: "application/json",
+                    responseSchema: VOICE_TRIAGE_SCHEMA,
                 },
             });
 
@@ -210,7 +241,6 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json({ text: response.text });
-
     } catch (error: any) {
         const latency_ms = Date.now() - startTime;
         const statusCode: number = error?.status || 500;
