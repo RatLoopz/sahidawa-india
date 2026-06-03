@@ -223,6 +223,10 @@ export async function verifyMedicine(
     if (mlUrl) {
         try {
             const mlRes = await fetchWithRetry(`${mlUrl.replace(/\/+$/, "")}/verify/batch`, {
+    try {
+        const mlRes = await fetchWithRetry(
+            `${ML_BASE}/verify/batch`,
+            {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ batch_number: batchNumber }),
@@ -269,26 +273,20 @@ export async function verifyMedicine(
         signal,
     });
 
-        if (!mlRes.ok) {
-            throw new Error("ML API error");
-        }
-
-        const mlData = await mlRes.json() as {
-            status: string;
-            brand_name?: string;
-            generic_name?: string;
-            manufacturer?: string;
-            expiry_date?: string;
-            cdsco_approval_status?: string;
-            is_counterfeit_alert?: boolean;
-        };
-
-        if (mlData.status === "not_found") {
-            return {
-                verified: false,
-                message: "No match found in CDSCO Database",
+        if (mlRes.ok) {
+            const mlData = (await mlRes.json()) as {
+                status: string;
+                brand_name?: string;
+                generic_name?: string;
+                manufacturer?: string;
+                expiry_date?: string;
+                cdsco_approval_status?: string;
+                is_counterfeit_alert?: boolean;
             };
-        }
+
+            if (mlData.status === "not_found") {
+                return { verified: false, message: "Medicine not found" };
+            }
 
         return {
             verified: true,
@@ -304,29 +302,29 @@ export async function verifyMedicine(
                     mlData.is_counterfeit_alert ?? false,
             },
         };
-
-    } catch (err) {
+    } catch {
         // Fallback to Node API if ML service is down
-        try {
-            const res = await fetchWithRetry(
-                `${API_BASE}/api/verify`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ batchNumber }),
-                    timeout: 10000,
-                    signal,
-                }
-            );
-            if (!res.ok && res.status !== 404) {
-                throw new Error("Node API error");
+        const res = await fetchWithRetry(
+            `${API_BASE}/api/verify`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ batchNumber }),
+                timeout: 10000,
+                signal,
             }
-            return res.json() as Promise<VerifyResult>;
-        } catch {
+        );
+
+        if (!res.ok && res.status !== 404) {
+            const body = (await res.json().catch(
+                () => ({})
+            )) as { error?: string };
             throw new Error(
-                "Verification service unavailable. Please retry."
+                body.error ?? "Server error occurred. Please retry."
             );
         }
+
+        return res.json() as Promise<VerifyResult>;
     }
 }
 
@@ -348,6 +346,20 @@ export async function fuzzyMatchBrand(query: string, signal?: AbortSignal): Prom
         timeout: 8000,
         signal,
     });
+export async function fuzzyMatchBrand(
+    query: string,
+    signal?: AbortSignal
+): Promise<FuzzyMatch[]> {
+    const res = await fetchWithRetry(
+        `${API_BASE}/api/v1/scan/match`,
+        {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query }),
+            timeout: 8000,
+            signal,
+        }
+    );
 
     if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as {
@@ -419,6 +431,18 @@ export async function checkLasaConflicts(
         timeout: 8000,
         signal,
     });
+    const res = await fetchWithRetry(
+        `${API_BASE}/api/v1/lasa/check`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ medicineName }),
+            timeout: 8000,
+            signal,
+        }
+    );
 
     if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as {

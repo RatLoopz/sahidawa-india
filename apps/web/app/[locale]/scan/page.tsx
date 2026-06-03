@@ -964,7 +964,20 @@ export default function ScanPage() {
             }
         }
     };
-
+const handleCameraPermissionDenied = useCallback(() => {
+    setIsCameraActive(false);
+    toast.error(
+        "Camera access denied. Please enter batch number manually.",
+        { duration: 4000 }
+    );
+    // Auto focus batch input
+    setTimeout(() => {
+        const input = document.querySelector(
+            'input[placeholder="Enter batch number"]'
+        ) as HTMLInputElement;
+        input?.focus();
+    }, 300);
+}, []);
     const handleBarcodeScan = async (scannedText: string) => {
         setIsVerifying(true);
         setApiError(null);
@@ -1071,13 +1084,18 @@ export default function ScanPage() {
             <div className="relative flex flex-1 items-center justify-center">
                 <div className="absolute inset-0 overflow-hidden bg-slate-900">
                     {isCameraActive ? (
-                        <BarcodeScanner
-                            onScan={handleBarcodeScan}
-                            debounceMs={2500}
-                            isVerifying={isVerifying}
-                            apiError={apiError}
-                            onRetry={() => setApiError(null)}
-                        />
+                    <BarcodeScanner
+                        onScan={handleBarcodeScan}
+                        debounceMs={2500}
+                        isVerifying={isVerifying}
+                        apiError={apiError}
+                        onRetry={() => {
+                        setApiError(null);
+                        setIsCameraActive(false)
+                    }}
+                    onPermissionDenied={handleCameraPermissionDenied}
+
+                    />
                     ) : uploadedImage ? (
                         <LazyImage
                             src={uploadedImage}

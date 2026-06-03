@@ -7,11 +7,12 @@ import { LiveMessage } from "@/components/ui/LiveMessage";
 type ScannerStatus = "initializing" | "scanning" | "permission-denied" | "unavailable" | "error";
 
 interface BarcodeScannerProps {
-  onScan: (barcodeText: string) => void;
-  debounceMs?: number;
-  isVerifying?: boolean;
-  apiError?: string | null;
-  onRetry?: () => void;
+    onScan: (barcodeText: string) => void;
+    debounceMs?: number;
+    isVerifying?: boolean;
+    apiError?: string | null;
+    onRetry?: () => void;
+    onPermissionDenied?: () => void;
 }
 
 function stopMediaStream(stream: MediaStream | null): void {
@@ -27,6 +28,7 @@ export function BarcodeScanner({
   isVerifying,
   apiError,
   onRetry,
+  onPermissionDenied,
 }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -160,6 +162,14 @@ export function BarcodeScanner({
       } catch (err: unknown) {
         if (cancelled) return;
         const errorObj = err instanceof Error ? err : new Error(String(err));
+        if (errorObj.name === "NotAllowedError" ||
+          errorObj.name === "PermissionDeniedError") {
+          setStatus("permission-denied");
+          setErrorMessage(
+        "Camera access was denied. Please allow camera permissions in your browser settings."
+      );
+    onPermissionDenied?.(); // Add this line
+}
 
         if (errorObj.name === "NotAllowedError" || errorObj.name === "PermissionDeniedError") {
           setStatus("permission-denied");
