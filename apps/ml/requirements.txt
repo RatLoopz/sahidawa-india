@@ -31,5 +31,9 @@ soundfile>=0.12.1
 noisereduce>=3.0.0
 numpy>=1.26.0
 
+# Testing
+pytest>=8.0
+pytest-timeout>=2.3.0
+
 # Load testing
 locust>=2.31.8
