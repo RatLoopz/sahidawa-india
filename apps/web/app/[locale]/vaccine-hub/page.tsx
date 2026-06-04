@@ -3,6 +3,17 @@
 import { PageHeader } from "../components/PageHeader";
 import { useState } from "react";
 import { vaccineDatabase, VaccineKey, VACCINE_GLOBAL_DISCLAIMER } from "@/lib/vaccineData";
+import {
+    Syringe,
+    Calendar,
+    ShieldAlert,
+    HeartPulse,
+    Target,
+    AlertTriangle,
+    CheckCircle2,
+    XCircle,
+    ChevronDown,
+} from "lucide-react";
 
 export default function VaccineHubPage() {
     const [selectedVaccine, setSelectedVaccine] = useState<VaccineKey | "">("");
@@ -39,7 +50,8 @@ export default function VaccineHubPage() {
                 {/* HEADER */}
                 <div className="mx-auto mb-8 max-w-5xl border-b border-(--color-border-muted) pb-5">
                     <h1 className="flex items-center gap-2 text-3xl font-extrabold tracking-tight text-emerald-600">
-                        <span>💉</span> Vaccine Hub & Immunization Tracker
+                        <Syringe className="h-7 w-7 shrink-0 text-emerald-600" /> Vaccine Hub &
+                        Immunization Tracker
                     </h1>
                     <p className="mt-2 max-w-2xl text-sm text-(--color-text-secondary)">
                         Explore vaccine schedules, safety information, and aftercare guidance for
@@ -54,21 +66,24 @@ export default function VaccineHubPage() {
                         <label className="mb-2 block text-xs font-bold tracking-wider text-emerald-800 uppercase">
                             Select Disease / Vaccine
                         </label>
-                        <select
-                            className="w-full rounded-lg border border-(--color-border-muted) bg-(--color-surface-page) p-3 font-medium text-(--color-text-primary) shadow-sm outline-none focus:ring-2 focus:ring-emerald-500"
-                            value={selectedVaccine}
-                            onChange={(e) => {
-                                setSelectedVaccine(e.target.value as VaccineKey);
-                                setInitialDate(""); // Clear date tracking context when swapping vaccine targets
-                            }}
-                        >
-                            <option value="">🔎 Choose a Vaccine Profile...</option>
-                            {(Object.keys(vaccineDatabase) as VaccineKey[]).map((key) => (
-                                <option key={key} value={key}>
-                                    {vaccineDatabase[key].disease_name}
-                                </option>
-                            ))}
-                        </select>
+                        <div className="relative">
+                            <select
+                                className="w-full cursor-pointer appearance-none rounded-xl border-2 border-(--color-border-muted) bg-(--color-surface-page) px-4 py-3 font-medium text-(--color-text-primary) shadow-sm transition-all duration-200 hover:border-emerald-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+                                value={selectedVaccine}
+                                onChange={(e) => {
+                                    setSelectedVaccine(e.target.value as VaccineKey);
+                                    setInitialDate("");
+                                }}
+                            >
+                                <option value="">Choose a Vaccine Profile...</option>
+                                {(Object.keys(vaccineDatabase) as VaccineKey[]).map((key) => (
+                                    <option key={key} value={key}>
+                                        {vaccineDatabase[key].disease_name}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-(--color-text-secondary)" />
+                        </div>
                     </div>
 
                     {/* TIME GENERATOR CONTROL */}
@@ -91,25 +106,28 @@ export default function VaccineHubPage() {
 
                 {/* EMPTY STATE */}
                 {!vaccine && (
-                    <div className="mx-auto max-w-5xl rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) p-10 text-center shadow-sm">
-                        <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
-                            📅
+                    <div className="mx-auto max-w-2xl rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) px-8 py-14 text-center shadow-sm">
+                        <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 ring-1 ring-emerald-200">
+                            <Calendar className="h-6 w-6 text-emerald-700" />
                         </div>
-                        <p className="text-lg font-semibold text-(--color-text-primary)">
+                        <p className="text-xl font-bold text-(--color-text-primary)">
                             No vaccine selected
                         </p>
                         <p className="mt-1 text-sm text-(--color-text-secondary)">
                             Choose a vaccine above to unlock tracking tools:
                         </p>
-                        <ul className="mx-auto mt-4 max-w-sm space-y-2.5 rounded-lg border border-(--color-border-muted) bg-slate-50 p-4 text-left text-sm text-(--color-text-secondary) dark:text-blue-900">
-                            <li className="flex items-center gap-2">
-                                <span>📅</span> Dynamic projected immunization schedule
+                        <ul className="mx-auto mt-4 max-w-sm space-y-2.5 rounded-lg border border-(--color-border-muted) bg-(--color-surface-muted) p-4 text-left">
+                            <li className="flex items-center gap-3 text-sm text-(--color-text-secondary)">
+                                <Calendar className="h-4 w-4 shrink-0 text-emerald-500" />
+                                Dynamic projected immunization schedule
                             </li>
-                            <li className="flex items-center gap-2">
-                                <span>⚠️</span> Side effects split parameters (mild vs severe)
+                            <li className="flex items-center gap-3 text-sm text-(--color-text-secondary)">
+                                <ShieldAlert className="h-4 w-4 shrink-0 text-amber-500" />
+                                Side effects split parameters (mild vs severe)
                             </li>
-                            <li className="flex items-center gap-2">
-                                <span>🩹</span> Clinical step-by-step aftercare instructions
+                            <li className="flex items-center gap-3 text-sm text-(--color-text-secondary)">
+                                <HeartPulse className="h-4 w-4 shrink-0 text-sky-500" />
+                                Clinical step-by-step aftercare instructions
                             </li>
                         </ul>
                     </div>
@@ -168,8 +186,9 @@ export default function VaccineHubPage() {
 
                         {/* MIDDLE & RIGHT COMBINED COLUMN: TIMELINE, SYMPTOMS & SAFETY INSIGHTS */}
                         <div className="space-y-6 lg:col-span-2">
-                            <h3 className="flex items-center gap-1.5 text-lg font-bold text-(--color-text-primary)">
-                                <span>📅</span> Immunization Schedule Layout
+                            <h3 className="flex items-center gap-2 text-lg font-bold text-(--color-text-primary)">
+                                <Calendar className="h-5 w-5 text-emerald-600" /> Immunization
+                                Schedule
                             </h3>
 
                             {/* GENERATED DOSES RENDER LOOP */}
@@ -193,9 +212,9 @@ export default function VaccineHubPage() {
                                     return (
                                         <div
                                             key={index}
-                                            className="flex items-center gap-4 rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) p-4 transition-colors"
+                                            className="flex cursor-default items-center gap-4 rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md"
                                         >
-                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 font-bold text-emerald-800">
+                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white shadow-sm ring-2 ring-emerald-100">
                                                 {index + 1}
                                             </div>
 
@@ -203,13 +222,17 @@ export default function VaccineHubPage() {
                                                 <p className="text-sm font-bold text-(--color-text-primary) sm:text-base">
                                                     {labelHeader}
                                                 </p>
-                                                <p
-                                                    className={`mt-0.5 text-xs sm:text-sm ${dateString ? "font-semibold text-emerald-700" : "mt-1 inline-block rounded border border-amber-100/50 bg-amber-50/50 px-2 py-0.5 font-medium text-amber-700"}`}
-                                                >
-                                                    {dateString
-                                                        ? `🎯 Target Execution Date: ${dateString}`
-                                                        : "⚠️ Select a date above to project scheduled timelines"}
-                                                </p>
+                                                {dateString ? (
+                                                    <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 sm:text-sm">
+                                                        <Target className="h-3.5 w-3.5 shrink-0" />
+                                                        Target Date: {dateString}
+                                                    </span>
+                                                ) : (
+                                                    <span className="mt-1 flex w-fit items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+                                                        <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                                                        Select a date above to project timelines
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                     );
@@ -217,10 +240,11 @@ export default function VaccineHubPage() {
                             </div>
 
                             {/* SIDE EFFECTS CONDITIONAL ARRAYS GRID */}
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <div className="rounded-xl border border-amber-200/60 bg-amber-50/60 p-4">
-                                    <h4 className="flex items-center gap-1.5 text-sm font-bold tracking-wide text-amber-800 uppercase">
-                                        <span>🟢</span> Common Post-Effects
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:items-start">
+                                <div className="rounded-xl border border-emerald-200/60 bg-emerald-50/40 p-4">
+                                    <h4 className="flex items-center gap-2 text-sm font-bold tracking-wide text-emerald-800 uppercase">
+                                        <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />{" "}
+                                        Common Post-Effects
                                     </h4>
                                     <ul className="mt-2.5 ml-5 list-disc space-y-1.5 text-xs font-medium text-amber-950 sm:text-sm">
                                         {vaccine.side_effects.common.map((effect, index) => (
@@ -230,8 +254,9 @@ export default function VaccineHubPage() {
                                 </div>
 
                                 <div className="rounded-xl border border-rose-200/60 bg-rose-50/60 p-4">
-                                    <h4 className="flex items-center gap-1.5 text-sm font-bold tracking-wide text-rose-800 uppercase">
-                                        <span>🛑</span> Severe Reactions
+                                    <h4 className="flex items-center gap-2 text-sm font-bold tracking-wide text-rose-800 uppercase">
+                                        <XCircle className="h-4 w-4 shrink-0 text-rose-600" />{" "}
+                                        Severe Reactions
                                     </h4>
                                     <ul className="mt-2.5 ml-5 list-disc space-y-1.5 text-xs font-medium text-rose-950 sm:text-sm">
                                         {vaccine.side_effects.severe.map((effect, index) => (
@@ -243,8 +268,9 @@ export default function VaccineHubPage() {
 
                             {/* AFTERCARE DATA FRAME */}
                             <div className="rounded-xl border border-sky-200/60 bg-sky-50 p-4">
-                                <h4 className="flex items-center gap-1.5 text-sm font-bold tracking-wide text-sky-800 uppercase">
-                                    <span>🩹</span> Immediate Aftercare Guidance
+                                <h4 className="flex items-center gap-2 text-sm font-bold tracking-wide text-sky-800 uppercase">
+                                    <HeartPulse className="h-4 w-4 shrink-0 text-sky-600" />{" "}
+                                    Immediate Aftercare Guidance
                                 </h4>
                                 <p className="mt-2 text-xs leading-relaxed font-medium text-sky-950 sm:text-sm">
                                     {vaccine.aftercare_text}
