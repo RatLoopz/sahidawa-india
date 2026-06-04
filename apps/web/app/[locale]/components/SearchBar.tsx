@@ -236,17 +236,17 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
     return (
         <div ref={containerRef} className="relative w-full">
             <div
-                className={`relative rounded-2xl border transition-[border-color,background-color,box-shadow,transform] duration-300 ease-out ${
+                className={`relative rounded-2xl border transition-all duration-300 ease-out ${
                     dark
                         ? isOpen
-                            ? "border-emerald-500/60 bg-[#1a2a3a] shadow-[0_0_0_3px_rgba(16,185,129,0.15)]"
-                            : "border-white/10 bg-[#1a2a3a] focus-within:border-emerald-500/60 focus-within:shadow-[0_0_0_3px_rgba(16,185,129,0.15)]"
+                            ? "border-emerald-500 bg-[#16222f] shadow-md ring-1 shadow-emerald-950/20 ring-emerald-500"
+                            : "border-slate-800 bg-[#16222f] hover:border-slate-700"
                         : isOpen
-                          ? "border-emerald-400/60 bg-white/60 shadow-[0_0_0_4px_rgba(16,185,129,0.12)] dark:bg-slate-900/60"
-                          : "border-white/50 bg-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.06)] focus-within:border-emerald-400/60 focus-within:shadow-[0_0_0_4px_rgba(16,185,129,0.12)] dark:border-white/10 dark:bg-slate-900/50"
-                } backdrop-blur-2xl`}
+                          ? "border-emerald-500 bg-white shadow-md ring-1 shadow-emerald-50/50 ring-emerald-500 dark:border-emerald-500 dark:bg-slate-900 dark:shadow-none dark:ring-emerald-500"
+                          : "border-slate-200 bg-white shadow-sm hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700"
+                }`}
             >
-                <div className="flex items-center gap-3 px-4 py-3">
+                <div className="flex items-center gap-2 p-1.5 pl-3 sm:gap-3 sm:p-2 sm:pl-4">
                     <Search
                         className={`shrink-0 transition-all duration-300 ${
                             isLoading
@@ -255,7 +255,7 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
                                   ? "text-slate-500"
                                   : "text-slate-400 dark:text-slate-500"
                         }`}
-                        size={22}
+                        size={20}
                         aria-hidden="true"
                     />
                     <input
@@ -277,7 +277,7 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
                             setIsOpen(true);
                         }}
                         placeholder={tHome("search_placeholder")}
-                        className={`w-full border-none bg-transparent py-1.5 text-base font-medium outline-none ${
+                        className={`w-full border-none bg-transparent py-1 text-sm font-medium outline-none sm:text-base ${
                             dark
                                 ? "text-slate-100 placeholder:text-slate-500"
                                 : "text-slate-800 placeholder:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-500"
@@ -286,11 +286,11 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
                     />
                     <button
                         onClick={() => performSearch(query)}
-                        className="flex shrink-0 items-center gap-2 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-emerald-500/25 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-500/30 active:scale-95"
+                        className="flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 p-2.5 text-sm font-bold text-white shadow-md shadow-emerald-500/25 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-500/30 active:scale-95 sm:px-5 sm:py-2.5"
                         aria-label="Submit search"
                     >
                         <Search size={16} aria-hidden="true" />
-                        {tHome("search_button")}
+                        <span className="hidden sm:inline">{tHome("search_button")}</span>
                     </button>
                 </div>
             </div>

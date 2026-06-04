@@ -1,48 +1,54 @@
 "use client";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { Ban, RotateCcw, ShieldAlert, FileWarning, Calendar, ShieldCheck } from "lucide-react";
 
 interface StatConfig {
     type: string;
     label: string;
-    icon: string;
+    icon: React.ComponentType<{ className?: string }>;
     colorClass: string;
     bgClass: string;
     borderClass: string;
+    leftBorderClass: string;
 }
 
 const STAT_CONFIG: StatConfig[] = [
     {
         type: "banned",
         label: "Banned",
-        icon: "🚫",
+        icon: Ban,
         colorClass: "text-red-600 dark:text-red-400",
-        bgClass: "bg-red-50 dark:bg-red-950/30",
-        borderClass: "border-red-200 dark:border-red-900/50",
+        bgClass: "bg-red-50/60 dark:bg-red-950/20",
+        borderClass: "border-red-200/60 dark:border-red-900/40",
+        leftBorderClass: "border-l-red-500 dark:border-l-red-500",
     },
     {
         type: "recalled",
         label: "Recalled",
-        icon: "⚠️",
+        icon: RotateCcw,
         colorClass: "text-amber-600 dark:text-amber-400",
-        bgClass: "bg-amber-50 dark:bg-amber-950/30",
-        borderClass: "border-amber-200 dark:border-amber-900/50",
+        bgClass: "bg-amber-50/60 dark:bg-amber-950/20",
+        borderClass: "border-amber-200/60 dark:border-amber-900/40",
+        leftBorderClass: "border-l-amber-500 dark:border-l-amber-500",
     },
     {
         type: "counterfeit",
         label: "Counterfeit",
-        icon: "🔴",
+        icon: ShieldAlert,
         colorClass: "text-purple-600 dark:text-purple-400",
-        bgClass: "bg-purple-50 dark:bg-purple-950/30",
-        borderClass: "border-purple-200 dark:border-purple-900/50",
+        bgClass: "bg-purple-50/60 dark:bg-purple-950/20",
+        borderClass: "border-purple-200/60 dark:border-purple-900/40",
+        leftBorderClass: "border-l-purple-500 dark:border-l-purple-500",
     },
     {
         type: "nsq",
         label: "NSQ",
-        icon: "📋",
+        icon: FileWarning,
         colorClass: "text-sky-700 dark:text-sky-400",
-        bgClass: "bg-sky-50 dark:bg-sky-950/30",
-        borderClass: "border-sky-200 dark:border-sky-900/50",
+        bgClass: "bg-sky-50/60 dark:bg-sky-950/20",
+        borderClass: "border-sky-200/60 dark:border-sky-900/40",
+        leftBorderClass: "border-l-sky-500 dark:border-l-sky-500",
     },
 ];
 
@@ -87,16 +93,23 @@ function useCountUp(target: number, duration = 1200) {
 
 function StatCard({ config, count }: { config: StatConfig; count: number }) {
     const displayed = useCountUp(count);
+    const Icon = config.icon;
     return (
         <div
-            className={`flex min-w-[130px] flex-1 basis-[140px] items-center gap-3 rounded-xl border p-4 transition-all duration-200 hover:-translate-y-[3px] hover:shadow-md dark:hover:shadow-black/40 ${config.bgClass} ${config.borderClass}`}
+            className={`flex min-w-[130px] flex-1 basis-[140px] items-center gap-4 rounded-xl border border-l-4 p-4 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-md dark:hover:shadow-black/20 ${config.bgClass} ${config.borderClass} ${config.leftBorderClass}`}
         >
-            <span className="text-2xl">{config.icon}</span>
+            <div
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white shadow-xs dark:bg-slate-900 ${config.colorClass}`}
+            >
+                <Icon className="h-5 w-5" />
+            </div>
             <div>
-                <div className={`text-[26px] leading-none font-extrabold ${config.colorClass}`}>
+                <div
+                    className={`text-2xl leading-none font-extrabold tracking-tight ${config.colorClass}`}
+                >
                     {displayed}
                 </div>
-                <div className="mt-0.5 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                <div className="mt-1 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
                     {config.label}
                 </div>
             </div>
@@ -168,8 +181,11 @@ export default function SafetyStatsBanner() {
                         Medicine Safety Alerts
                     </span>
                 </div>
-                <span className="text-xs text-slate-500 dark:text-slate-400">
-                    📅 {monthName} {now.getFullYear()} · India
+                <span className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                    <Calendar size={14} className="text-slate-400 dark:text-slate-500" />
+                    <span>
+                        {monthName} {now.getFullYear()} · India
+                    </span>
                 </span>
             </div>
 
@@ -185,8 +201,8 @@ export default function SafetyStatsBanner() {
             )}
 
             {/* Footer */}
-            <div className="mt-3.5 flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500">
-                <span>🛡️</span>
+            <div className="mt-4 flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
+                <ShieldCheck size={14} className="text-emerald-500 dark:text-emerald-400" />
                 <span>Data sourced from CDSCO official registry. Updated in real-time.</span>
             </div>
         </div>

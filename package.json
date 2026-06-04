@@ -38,6 +38,7 @@
     "devDependencies": {
         "@parcel/watcher": "^2.5.6",
         "@types/winston": "^2.4.4",
+        "eslint": "^10.4.1",
         "husky": "^9.1.7",
         "lint-staged": "^17.0.5",
         "prettier": "^3.8.3",
