@@ -18,6 +18,18 @@ function sanitize(obj: Record<string, unknown>): Record<string, unknown> {
   return sanitized;
 }
 
+function redactErrorMessage(message: string): string {
+  // Remove file paths, connection strings, and sensitive patterns
+  return message
+    .replace(/\/[^\s]+\/[^\s]+\.\w+/g, '[FILE_PATH]')
+    .replace(/mongodb:\/\/[^\s]+/gi, '[REDACTED_DB_URL]')
+    .replace(/postgres:\/\/[^\s]+/gi, '[REDACTED_DB_URL]')
+    .replace(/mysql:\/\/[^\s]+/gi, '[REDACTED_DB_URL]')
+    .replace(/password[=:][^\s]+/gi, 'password=[REDACTED]')
+    .replace(/api[_-]?key[=:][^\s]+/gi, 'api_key=[REDACTED]')
+    .replace(/token[=:][^\s]+/gi, 'token=[REDACTED]');
+}
+
 export function errorHandler(
   err: Error & { statusCode?: number; status?: number; code?: string },
   req: Request,
@@ -46,13 +58,19 @@ export function errorHandler(
   });
 
   const isProduction = process.env.NODE_ENV === 'production';
-  const clientMessage = statusCode >= 500 ? 'Internal Server Error' : err.message;
+
+  // In production, always return generic error messages
+  // Stack traces are never sent to clients, only logged server-side
+  const clientMessage = isProduction
+    ? (statusCode >= 500 ? 'Internal Server Error' : 'Request Failed')
+    : redactErrorMessage(err.message);
 
   res.status(statusCode).json({
     success: false,
     error: {
       message: clientMessage,
-      ...(!isProduction && { stack: err.stack }),
+      // Stack traces are NEVER sent to clients, only logged server-side
+      ...(process.env.DEBUG === 'true' && !isProduction && { stack: err.stack }),
     },
   });
 }
