@@ -8,12 +8,17 @@ const reportStatusSchema = z.object({
     status: z.enum(["pending", "verified_fake", "false_alarm"]),
 });
 
+const medicineStatusSchema = z.object({
+    status: z.enum(["safe", "suspicious", "recalled", "pending_review"]),
+});
+
 const medicineSchema = z.object({
     brand_name: z.string().min(1),
     generic_name: z.string().min(1),
     manufacturer: z.string().min(1),
     barcode_id: z.string().optional(),
     cdsco_approval_status: z.enum(["approved", "recalled", "banned"]).default("approved"),
+    status: z.enum(["safe", "suspicious", "recalled", "pending_review"]).default("safe").optional(),
 });
 
 export const getPendingReports = async (

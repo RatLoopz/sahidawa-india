@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { supabase } from "../db/client";
 import { z } from "zod";
 import { triggerRecallAlert } from "../services/notifications";
+import { validateMedicineStatus, getValidStatusList } from "../validators/medicine.validator";
 
 const AlertSchema = z
     .object({
@@ -130,11 +131,19 @@ alertsRouter.post("/ingest", async (req: Request, res: Response) => {
         }
 
         // 3. Update medicines table based on matched batches
+        const medicineStatus = "recalled";
+        if (!validateMedicineStatus(medicineStatus)) {
+            res.status(400).json({
+                error: `Invalid medicine status. Valid values are: ${getValidStatusList()}`,
+            });
+            return;
+        }
+
         const updatePromises = validatedAlerts.map((alert) => {
             if (alert.batch_number) {
                 let q = supabase
                     .from("medicines")
-                    .update({ status: "recalled", is_counterfeit_alert: true })
+                    .update({ status: medicineStatus, is_counterfeit_alert: true })
                     .eq("batch_number", alert.batch_number);
 
                 if (alert.manufacturer) {
