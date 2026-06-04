@@ -21,6 +21,7 @@
         "ai_chat": "AI चैट",
         "ai_health_assistant_description": "तुरंत स्वास्थ्य सलाह, लक्षण जाँच और प्रिस्क्रिप्शन मार्गदर्शन पाएं",
         "chat_now": "अभी चैट करें",
+        "explore_features": "सुविधाएँ खोजें",
         "live_cdsco_alerts": "लाइव CDSCO अलर्ट",
         "india_region": "भारत क्षेत्र",
         "alerts_empty_title": "सब ठीक है!",
@@ -29,7 +30,13 @@
         "heroTitle": {
             "prefix": "आपका स्वास्थ्य, ",
             "highlight": "सत्यापित और सुरक्षित।"
-        }
+        },
+        "scan_medicine": "Scan Medicine",
+        "scan_now": "Scan Now",
+        "find_pharmacy": "Find Pharmacy",
+        "report_subtitle": "Report suspicious medicine",
+        "real_time": "REAL TIME",
+        "alerts_description": "Stay updated with the latest medicine safety alerts and recalls."
     },
     "Navigation": {
         "how_it_works": "यह कैसे काम करता है",
@@ -142,10 +149,10 @@
             "no_speech_message": "शांत जगह पर पुनः प्रयास करें या माइक्रोफ़ोन के पास से बोलें।",
             "generic_title": "कुछ गलत हुआ",
             "generic_message": "इस बार आपका वॉयस इनपुट संसाधित नहीं हो सका। कृपया पुनः प्रयास करें।",
-            "service_unavailable_title": "Voice service unavailable",
-            "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
-            "timeout_title": "Voice request timed out",
-            "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
+            "service_unavailable_title": "वॉयस सेवा अनुपलब्ध",
+            "service_unavailable_message": "हमारे वॉयस सर्वर वर्तमान में भारी लोड के अधीन हैं। कृपया पुनः प्रयास करें या इसके बजाय अपने लक्षण टाइप करें।",
+            "timeout_title": "वॉयस अनुरोध का समय समाप्त हो गया",
+            "timeout_message": "वॉयस सेवा में अपेक्षा से अधिक समय लग रहा है। कृपया पुनः प्रयास करें या टेक्स्ट इनपुट पर स्विच करें।",
             "api_title": "SahiDawa AI उपलब्ध नहीं है",
             "api_message": "अभी चिकित्सा मार्गदर्शन प्राप्त नहीं हो सका। थोड़ी देर बाद पुनः प्रयास करें।"
         }
@@ -163,7 +170,14 @@
         "goHome": "मुख्य पृष्ठ पर जाएं",
         "footer": "कनेक्शन वापस आने पर SahiDawa स्वचालित रूप से सिंक हो जाएगा।",
         "cachedContent": "आप अभी भी पहले से लोड की गई सामग्री देख सकते हैं",
-        "noCache": "यह पृष्ठ कैश नहीं किया गया था और ऑफ़लाइन उपलब्ध नहीं है"
+        "noCache": "यह पृष्ठ कैश नहीं किया गया था और ऑफ़लाइन उपलब्ध नहीं है",
+        "redirecting": "आपको SahiDawa पर ले जाया जा रहा है…",
+        "attempt": "(प्रयास {retryCount})",
+        "checkingConnection": "कनेक्शन की जांच की जा रही है…",
+        "cachedAvailable": "पहले देखे गए पृष्ठ अभी भी उपलब्ध हो सकते हैं",
+        "cachedVerifications": "कैश किए गए सत्यापन",
+        "savedPharmacies": "सहेजे गए मेडिकल स्टोर",
+        "browsedMedicines": "देखी गई दवाएं"
     },
     "contact": {
         "badge": "GSSoC 2026 ओपन सोर्स प्रोजेक्ट",
@@ -200,5 +214,163 @@
             "faq": "अक्सर पूछे जाने वाले प्रश्न"
         },
         "footer": "SahiDawa निःशुल्क, ओपन-सोर्स है और 1.4 अरब भारतीयों के लिए बनाया गया है। कोई विज्ञापन नहीं। कोई प्रीमियम नहीं। डेटा कभी नहीं बेचा जाएगा।"
+    },
+    "about": {
+        "badge": "GSSoC 2026 ओपन सोर्स प्रोजेक्ट",
+        "heroTitle": "<highlight>SahiDawa</highlight> के बारे में",
+        "heroSubtitle": "भारत का पहला ओपन-सोर्स नागरिक दवा सत्यापनकर्ता और ग्रामीण स्वास्थ्य सेतु। भारत के लिए बनाया गया। सिर्फ इंडिया नहीं।",
+        "features": {
+            "free": "100% मुफ़्त। हमेशा के लिए।",
+            "languages": "22 भारतीय भाषाएँ",
+            "license": "ओपन सोर्स MIT लाइसेंस"
+        },
+        "problemSection": {
+            "title": "हम जिस समस्या का समाधान कर रहे हैं",
+            "description": "भारत में स्वास्थ्य सेवा की तीन-स्तरीय समस्या है, जिसे कोई भी मौजूदा प्लेटफ़ॉर्म एक साथ हल नहीं करता।"
+        },
+        "cards": {
+            "fakeMedicines": {
+                "title": "नकली दवाइयाँ",
+                "description": "भारत में 12–25% दवाइयाँ नकली या निम्न गुणवत्ता की हैं — जिससे 1.4 अरब लोगों की ज़िंदगी खतरे में है, और नागरिकों के लिए कोई सत्यापन उपकरण उपलब्ध नहीं है।"
+            },
+            "ruralHealthcare": {
+                "title": "ग्रामीण स्वास्थ्य सेवा की कमी",
+                "description": "भारत की 65% आबादी ग्रामीण क्षेत्रों में रहती है जहाँ योग्य डॉक्टर लगभग नहीं हैं — 90 करोड़ से अधिक लोगों को सुलभ स्वास्थ्य सेवा नहीं मिल पाती।"
+            },
+            "languageBarrier": {
+                "title": "भाषा की बाधा",
+                "description": "22 आधिकारिक भाषाओं वाले देश में स्वास्थ्य संबंधी जानकारी अधिकतर अंग्रेज़ी या हिंदी में होती है, जिससे 50 करोड़ से अधिक गैर-हिंदी भाषी लोग पीछे रह जाते हैं।"
+            }
+        },
+        "realIncident": {
+            "title": "वास्तविक घटना — जुलाई 2025",
+            "text": "दिल्ली पुलिस ने नकली दवाइयों के एक गिरोह का भंडाफोड़ किया, जो नकली Johnson & Johnson और GSK की दवाइयाँ — जो चॉक पाउडर और स्टार्च से बनाई गई थीं — सरकारी अस्पतालों तक सप्लाई कर रहा था। मरीजों के पास इन दवाइयों को सेवन करने से पहले <highlight>सत्यापित करने का कोई तरीका नहीं था</highlight>।",
+            "highlight": "SahiDawa इस समस्या का समाधान करता है। पूरी तरह मुफ्त। हमेशा के लिए। ओपन सोर्स।"
+        },
+        "mission": {
+            "title": "हमारा मिशन",
+            "description": "हर भारतीय नागरिक को — भाषा, स्थान या साक्षरता की परवाह किए बिना — दवाइयों की तुरंत सत्यापन करने, योग्य स्वास्थ्य मार्गदर्शन प्राप्त करने, और अपने समुदाय में नकली दवाइयों की रिपोर्ट करने की क्षमता प्रदान करना।"
+        },
+        "vision": {
+            "title": "हमारा नज़रिया",
+            "description": "एक भारत जहाँ कोई बच्चा नकली दवा से न मरे, किसी किसान के परिवार का गलत इलाज डॉक्टर की कमी के कारण न हो, और कोई भाषा स्वास्थ्य सेवा पाने में बाधा न बने। मुफ़्त। खुला। हमेशा के लिए।"
+        },
+        "coreValues": {
+            "title": "हमारे मुख्य मूल्य",
+            "cards": {
+                "openSource": {
+                    "title": "ओपन सोर्स",
+                    "description": "MIT लाइसेंस प्राप्त। हमेशा।"
+                },
+                "freeForever": {
+                    "title": "हमेशा मुफ्त",
+                    "description": "कोई छिपा हुआ शुल्क नहीं। कभी नहीं।"
+                },
+                "inclusive": {
+                    "title": "सभी के लिए",
+                    "description": "22 भाषाएँ। पूरे भारत के लिए।"
+                },
+                "privacy": {
+                    "title": "प्राइवेसी पहले",
+                    "description": "कोई डेटा बेचा नहीं जाता। कोई विज्ञापन नहीं।"
+                }
+            }
+        },
+        "contactUs": {
+            "title": "संपर्क करें",
+            "subtitle": "प्रश्न, विचार या योगदान देना चाहते हैं? हमें आपसे सुनना अच्छा लगेगा।"
+        }
+    },
+    "Faq": {
+        "badge": "GSSoC 2026 ओपन सोर्स प्रोजेक्ट",
+        "title": "अक्सर पूछे जाने वाले",
+        "title_highlight": "प्रश्न",
+        "subtitle": "SahiDawa के बारे में वह सब कुछ जो आपको जानना चाहिए — भारत का मुफ्त, ओपन-सोर्स दवा सत्यापन मंच।",
+        "cta": {
+            "title": "अभी भी प्रश्न हैं?",
+            "subtitle": "आप जो उत्तर खोज रहे हैं वह नहीं मिल रहा? हमारे समुदाय से संपर्क करें।",
+            "button": "संपर्क करें"
+        },
+        "items": {
+            "0": {
+                "question": "SahiDawa क्या है?",
+                "answer": "SahiDawa भारत का पहला ओपन-सोर्स नागरिक दवा सत्यापन मंच है। यह आपको यह सत्यापित करने में मदद करता है कि आपकी दवा असली है या नकली, पास की सुरक्षित फार्मेसियों को खोजने और अपनी भाषा में स्वास्थ्य मार्गदर्शन प्राप्त करने में मदद करता है।"
+            },
+            "1": {
+                "question": "क्या SahiDawa का उपयोग निःशुल्क है?",
+                "answer": "हाँ! SahiDawa हमेशा के लिए 100% मुफ़्त है। कोई विज्ञापन नहीं, कोई प्रीमियम योजना नहीं, कोई डेटा नहीं बेचा जाता। यह समुदाय द्वारा भारत के लिए बनाया गया है।"
+            },
+            "2": {
+                "question": "दवा सत्यापन कैसे काम करता है?",
+                "answer": "आप अपनी दवा की पैकेजिंग पर बारकोड या क्यूआर कोड को स्कैन कर सकते हैं। SahiDawa आधिकारिक CDSCO डेटाबेस से इसकी जांच करता है और आपको बताता है कि दवा असली है, संदिग्ध है, या नकली है।"
+            },
+            "3": {
+                "question": "SahiDawa किन भाषाओं का समर्थन करता है?",
+                "answer": "SahiDawa 22 आधिकारिक भारतीय भाषाओं का समर्थन करता है। आप व्हिस्पर और सर्वम एआई द्वारा संचालित हमारे वॉयस हेल्थ असिस्टेंट का उपयोग करके अपनी भाषा में अपने लक्षण बोल सकते हैं।"
+            },
+            "4": {
+                "question": "मैं नकली दवा की रिपोर्ट कैसे कर सकता हूँ?",
+                "answer": "आप होमपेज पर 'नकली रिपोर्ट करें' सुविधा का उपयोग कर सकते हैं। आपकी रिपोर्ट एक कम्युनिटी हीटमैप में जुड़ जाती है जो आपके जिले में दूसरों को नकली दवाओं के बारे में सचेत करने में मदद करती है।"
+            },
+            "5": {
+                "question": "क्या SahiDawa के साथ मेरा डेटा सुरक्षित है?",
+                "answer": "बिल्कुल। SahiDawa आपका डेटा नहीं बेचता, विज्ञापन नहीं दिखाता, या कोई प्रीमियम योजना नहीं रखता है। आपकी निजता हमारी सर्वोच्च प्राथमिकता है।"
+            },
+            "6": {
+                "question": "मैं SahiDawa में कैसे योगदान कर सकता हूँ?",
+                "answer": "SahiDawa MIT लाइसेंस के तहत ओपन सोर्स है। आप GitHub पर योगदान कर सकते हैं, बग की रिपोर्ट कर सकते हैं, सुविधाओं का सुझाव दे सकते हैं, या GSSoC 2026 प्रतिभागी के रूप में जुड़ सकते हैं।"
+            },
+            "7": {
+                "question": "CDSCO क्या है?",
+                "answer": "CDSCO का अर्थ है केंद्रीय औषधि मानक नियंत्रण संगठन (Central Drugs Standard Control Organisation)। यह सौंदर्य प्रसाधनों, फार्मास्यूटिकल्स और चिकित्सा उपकरणों के लिए भारत का राष्ट्रीय नियामक निकाय है। SahiDawa उनके आधिकारिक डेटाबेस के खिलाफ दवाओं का सत्यापन करता है।"
+            }
+        }
+    },
+    "Scan": {
+        "share": {
+            "avoid_and_report": "Please avoid and report to your nearest health worker.",
+            "batch_label": "Batch",
+            "button": "Share Result",
+            "copy_success": "Result copied to clipboard",
+            "failure": "Unable to share this result right now",
+            "manufacturer_label": "Manufacturer",
+            "real_status": "Verified REAL",
+            "shared_success": "Result shared successfully",
+            "suspicious_status": "Marked SUSPICIOUS",
+            "title": "SahiDawa Medicine Verification Result",
+            "unknown_batch": "Unknown batch",
+            "unknown_manufacturer": "Unknown manufacturer",
+            "unknown_medicine": "Unknown medicine",
+            "verified_by": "by SahiDawa",
+            "verify_yourself": "Verify yourself",
+            "warning_prefix": "WARNING"
+        }
+    },
+    "chat": {
+        "actions": {
+            "pharmacy": {
+                "description": "Locate verified stores",
+                "label": "Find Pharmacy"
+            },
+            "scan": {
+                "description": "Verify authenticity",
+                "label": "Scan Medicine"
+            },
+            "symptoms": {
+                "description": "AI-assisted guidance",
+                "label": "Check Symptoms"
+            }
+        },
+        "footer": "For informational use only • Consult a doctor",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "quick_actions": "Quick actions",
+        "welcome": "Namaste, I'm SahiDawa, your trusted health companion. I can help you verify medicines, understand symptoms, or find nearby care. What would you like help with today?"
+    },
+    "chatbot": {
+        "placeholder": "Ask me about a medicine...",
+        "status": "Online",
+        "title": "SahiDawa AI",
+        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"
     }
 }

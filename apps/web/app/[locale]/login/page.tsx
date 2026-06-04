@@ -1,18 +1,19 @@
 "use client";
 
 import { Mail, Lock, ShieldCheck, ArrowRight, Hand, AlertTriangle } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createBrowserClient } from "@supabase/ssr";
 import { LiveMessage } from "@/components/ui/LiveMessage";
+import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
 export default function LoginPage() {
     const router = useRouter();
-    const isMissingEnvVars = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "http://localhost:54321",
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "local-development-key"
-    );
+    const supabaseUrl = getSupabaseUrl();
+    const supabaseKey = getSupabaseAnonKey();
+    const isMissingEnvVars = !supabaseUrl || !supabaseKey;
+    const supabase = createBrowserClient(supabaseUrl, supabaseKey);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
@@ -54,18 +55,48 @@ export default function LoginPage() {
         setLoading(false);
     };
 
+    const handleGoogleLogin = async () => {
+        setLoading(true);
+        setError("");
+
+        if (isMissingEnvVars) {
+            setError("Database connection is not configured.");
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: "google",
+                options: {
+                    redirectTo: `${window.location.origin}/reports/me`,
+                },
+            });
+
+            if (error) {
+                setError(error.message);
+                setLoading(false);
+            }
+        } catch (err) {
+            setError("Something went wrong. Please try again.");
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="flex min-h-screen items-center justify-center bg-[var(--color-surface-login)] px-4 py-10">
             <div className="w-full max-w-md">
                 {/* Logo */}
                 <div className="mb-8 flex items-center justify-center gap-3">
-                    <div className="rounded-2xl bg-emerald-100 dark:bg-emerald-950/30 p-3 shadow-sm">
-                        <ShieldCheck className="h-7 w-7 text-emerald-600 dark:text-emerald-450" />
+                    <div className="rounded-2xl bg-emerald-100 p-3 shadow-sm dark:bg-emerald-950/30">
+                        <ShieldCheck className="dark:text-emerald-450 h-7 w-7 text-emerald-600" />
                     </div>
 
                     <div>
                         <h1 className="text-3xl font-bold text-(--color-text-primary)">SahiDawa</h1>
-                        <p className="text-sm text-(--color-text-secondary)">Secure Health Verification</p>
+                        <p className="text-sm text-(--color-text-secondary)">
+                            Secure Health Verification
+                        </p>
                     </div>
                 </div>
 
@@ -73,7 +104,7 @@ export default function LoginPage() {
                 <div className="rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-8 shadow-xl">
                     <div className="mb-7">
                         <h2 className="flex items-center gap-2 text-3xl font-bold text-(--color-text-primary)">
-                            Welcome Back <Hand className="h-8 w-8 text-amber-500 animate-bounce" />
+                            Welcome Back <Hand className="h-8 w-8 animate-bounce text-amber-500" />
                         </h2>
 
                         <p className="mt-2 text-(--color-text-secondary)">
@@ -83,12 +114,13 @@ export default function LoginPage() {
 
                     {/* Missing Env Variables Warning */}
                     {isMissingEnvVars && (
-                        <div className="mb-5 flex items-start gap-3 rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/20 px-4 py-4 text-sm text-amber-800 dark:text-amber-300">
+                        <div className="mb-5 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/20 dark:text-amber-300">
                             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-500" />
                             <div>
-                                <p className="font-semibold mb-1">Missing Configuration</p>
+                                <p className="mb-1 font-semibold">Missing Configuration</p>
                                 <p className="text-amber-700 dark:text-amber-400">
-                                    Database connection variables are missing in your local setup. Please configure .env.local to proceed.
+                                    Database connection variables are missing in your local setup.
+                                    Please configure .env.local to proceed.
                                 </p>
                             </div>
                         </div>
@@ -98,11 +130,31 @@ export default function LoginPage() {
                     {error && (
                         <LiveMessage
                             tone="critical"
-                            className="mb-5 rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/20 px-4 py-3 text-sm text-red-600 dark:text-red-400"
+                            className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900 dark:bg-red-950/20 dark:text-red-400"
                         >
                             {error}
                         </LiveMessage>
                     )}
+
+                    {/* Google Login Button */}
+                    <button
+                        type="button"
+                        onClick={handleGoogleLogin}
+                        disabled={loading || isMissingEnvVars}
+                        className="mb-6 flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200/50 bg-white/60 px-4 py-3.5 font-medium text-slate-700 shadow-sm backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:bg-white/80 hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-slate-800/50 dark:text-white dark:hover:bg-slate-800/80 dark:hover:shadow-[0_8px_20px_rgba(0,0,0,0.2)]"
+                    >
+                        <FcGoogle size={20} />
+                        Sign in with Google
+                    </button>
+
+                    {/* OR Separator */}
+                    <div className="mb-6 flex items-center gap-4">
+                        <div className="h-px flex-1 bg-(--color-border-muted)"></div>
+                        <span className="text-xs font-medium tracking-wider text-(--color-text-muted) uppercase">
+                            Or continue with email
+                        </span>
+                        <div className="h-px flex-1 bg-(--color-border-muted)"></div>
+                    </div>
 
                     <form onSubmit={handleLogin} className="space-y-5">
                         {/* Email */}
@@ -121,14 +173,16 @@ export default function LoginPage() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
                                     disabled={isMissingEnvVars}
-                                    className="w-full bg-transparent text-(--color-text-primary) outline-none placeholder:text-(--color-text-muted) disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full bg-transparent text-(--color-text-primary) outline-none placeholder:text-(--color-text-muted) disabled:cursor-not-allowed disabled:opacity-50"
                                 />
                             </div>
                         </div>
 
                         {/* Password */}
                         <div>
-                            <label className="text-sm font-medium text-(--color-text-primary)">Password</label>
+                            <label className="text-sm font-medium text-(--color-text-primary)">
+                                Password
+                            </label>
 
                             <div className="mt-2 flex items-center gap-3 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 transition focus-within:border-emerald-500 focus-within:bg-(--color-surface-page)">
                                 <Lock className="h-5 w-5 text-(--color-text-muted)" />
@@ -140,7 +194,7 @@ export default function LoginPage() {
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
                                     disabled={isMissingEnvVars}
-                                    className="w-full bg-transparent text-(--color-text-primary) outline-none placeholder:text-(--color-text-muted) disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full bg-transparent text-(--color-text-primary) outline-none placeholder:text-(--color-text-muted) disabled:cursor-not-allowed disabled:opacity-50"
                                 />
                             </div>
                         </div>
@@ -149,7 +203,7 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={loading || isMissingEnvVars}
-                            className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 font-semibold text-white shadow-lg shadow-emerald-250/20 dark:shadow-emerald-950/20 transition-all hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600"
+                            className="shadow-emerald-250/20 mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 font-semibold text-white shadow-lg transition-all hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-emerald-600 dark:shadow-emerald-950/20"
                         >
                             {loading ? "Signing In..." : "Sign In"}
 

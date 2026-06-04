@@ -5,33 +5,26 @@ import {
     Camera,
     Mic,
     MapPin,
-    Bell,
-    History,
-    Home,
-    User,
     ShieldCheck,
     AlertTriangle,
     Globe,
     ChevronRight,
     Activity,
     MessageCircle,
+    Syringe,
+    ArrowRight,
+    Quote,
+    Star,
 } from "lucide-react";
 
 import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
-import LanguageSwitcher from "./LanguageSwitcher";
-import { ThemeToggle } from "./components/ThemeToggle";
 import SearchBar from "./components/SearchBar";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
-
-const desktopNavLinkClassName =
-    "relative inline-flex items-center pb-1 transition-colors duration-200 ease-out hover:text-emerald-600 focus-visible:text-emerald-600 after:absolute after:inset-x-0 after:-bottom-0.5 after:h-0.5 after:origin-center after:scale-x-0 after:rounded-full after:bg-current after:transition-transform after:duration-300 after:ease-out hover:after:scale-x-100 focus-visible:after:scale-x-100 motion-safe:after:will-change-transform";
-
-const mobileNavLabelClassName =
-    "relative inline-flex items-center pb-1 transition-colors duration-200 ease-out after:absolute after:inset-x-0 after:-bottom-0.5 after:h-0.5 after:origin-center after:scale-x-0 after:rounded-full after:bg-current after:transition-transform after:duration-300 after:ease-out group-hover:after:scale-x-100 group-active:after:scale-x-100 group-focus-visible:after:scale-x-100 motion-safe:after:will-change-transform";
+import SafetyStatsBanner from "@/components/SafetyStatsBanner";
 
 function formatRelativeTime(dateString: string | null): string {
     if (!dateString) return "Recent";
@@ -55,12 +48,44 @@ function formatRelativeTime(dateString: string | null): string {
     }
 }
 
+const testimonials = [
+    {
+        quote: "SahiDawa helped our family verify a batch number before buying medicine for my father. The result was quick and gave us real confidence.",
+        name: "Priya Sharma",
+        role: "Caregiver, Jaipur",
+    },
+    {
+        quote: "The scanner makes medicine checks simple enough for first-time smartphone users. It fits naturally into our community health camps.",
+        name: "Amit Verma",
+        role: "Health Volunteer, Lucknow",
+    },
+    {
+        quote: "I use the pharmacy finder when travelling for field work. It cuts down the guesswork and points me toward safer options nearby.",
+        name: "Nandini Rao",
+        role: "NGO Coordinator, Bengaluru",
+    },
+    {
+        quote: "The alert log is clear and timely. It has become a useful reference when customers ask about recalls or counterfeit warnings.",
+        name: "Rahul Mehta",
+        role: "Pharmacist, Pune",
+    },
+    {
+        quote: "Voice triage makes the platform approachable for patients who are not comfortable typing symptoms or medicine names.",
+        name: "Dr. Sana Khan",
+        role: "Primary Care Doctor, Bhopal",
+    },
+    {
+        quote: "The open-source approach matters. It gives contributors and citizens a shared way to improve medicine safety across India.",
+        name: "Arjun Patel",
+        role: "Open Source Contributor, Ahmedabad",
+    },
+];
+
 export default function SahiDawaHome() {
     const router = useRouter();
     const params = useParams();
     const locale = Array.isArray(params.locale) ? params.locale[0] : params.locale;
     const tHome = useTranslations("Home");
-    const tNav = useTranslations("Navigation");
 
     const [homepageAlerts, setHomepageAlerts] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -103,75 +128,6 @@ export default function SahiDawaHome() {
                 <div className="absolute bottom-10 left-1/4 h-[600px] w-[600px] rounded-full bg-blue-500/10 blur-[130px] dark:bg-blue-900/10"></div>
             </div>
 
-            {/* ── Top Navigation ── */}
-            <header className="sticky top-0 z-50 w-full border-b border-white/30 bg-white/60 shadow-sm shadow-black/5 backdrop-blur-md dark:border-white/10 dark:bg-slate-900/60">
-                <div className="container mx-auto grid h-16 grid-cols-3 items-center px-4 md:px-6">
-                    {/* Left — Logo */}
-                    <div className="flex items-center gap-2">
-                        <div
-                            className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 shadow-sm sm:h-10 sm:w-10 dark:bg-emerald-950/30 dark:text-emerald-400"
-                            aria-label="SahiDawa Logo"
-                        >
-                            <img
-                                src="/favicon.ico"
-                                alt=""
-                                aria-hidden="true"
-                                className="h-7 w-7 object-contain"
-                                width={28}
-                                height={28}
-                            />
-                        </div>
-                        <h1 className="text-xl font-extrabold tracking-tight text-(--color-text-primary) md:text-2xl">
-                            SahiDawa
-                        </h1>
-                    </div>
-
-                    {/* Center — Nav Links */}
-                    <nav
-                        className="hidden items-center justify-center gap-6 text-sm font-semibold text-(--color-text-secondary) lg:flex"
-                        aria-label="Main navigation"
-                    >
-                        <Link href="/how-it-works" className={desktopNavLinkClassName}>
-                            {tNav("how_it_works")}
-                        </Link>
-                        <Link href="/alerts" className={desktopNavLinkClassName}>
-                            {tNav("alerts")}
-                        </Link>
-                        <Link href="/map" className={desktopNavLinkClassName}>
-                            {tNav("pharmacy_map")}
-                        </Link>
-                        <Link
-                            href="/reports/me"
-                            className={`${desktopNavLinkClassName} flex items-center gap-1`}
-                        >
-                            <History size={14} /> {tNav("my_reports")}
-                        </Link>
-                    </nav>
-
-                    {/* Right — Action Buttons */}
-                    <div className="flex items-center justify-end gap-2 sm:gap-3">
-                        <button
-                            onClick={() => handleNavigation("health")}
-                            className="flex h-9 w-9 items-center justify-center rounded-full bg-linear-to-r from-blue-500 to-purple-500 text-white transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 sm:h-10 sm:w-10"
-                            aria-label={tHome("open_ai_health_assistant")}
-                        >
-                            <MessageCircle size={17} />
-                        </button>
-
-                        <LanguageSwitcher />
-                        <ThemeToggle />
-
-                        <button
-                            onClick={() => handleNavigation("login")}
-                            className="hidden h-9 items-center justify-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-50/50 px-4 py-1.5 text-sm font-bold text-emerald-700 transition-all duration-200 hover:scale-105 hover:border-emerald-500/50 hover:bg-emerald-100 sm:h-10 sm:px-5 sm:py-2 md:flex dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20"
-                            aria-label={tHome("sign_in")}
-                        >
-                            <User size={16} />
-                            <span>{tHome("sign_in")}</span>
-                        </button>
-                    </div>
-                </div>
-            </header>
             {/* ── Main ── */}
             <main className="pb-24 md:pb-12">
                 {/* ── Sleek Integrated Console Header ── */}
@@ -197,6 +153,8 @@ export default function SahiDawaHome() {
                     <p className="mx-auto max-w-2xl text-sm leading-relaxed font-semibold text-slate-500 md:text-base dark:text-slate-400">
                         {tHome("subtitle")}
                     </p>
+                    {/*Safety Stats Banner*/}
+                    <SafetyStatsBanner />
 
                     {/* Search Bar */}
                     <div className="mx-auto w-full max-w-2xl pt-2">
@@ -239,51 +197,92 @@ export default function SahiDawaHome() {
                         </button>
                     </section>
 
+                    {/* ── Vaccine Hub & Tracker ── */}
+                    <section className="mb-6">
+                        <h2 className="sr-only">Featured Services</h2>
+                        <Link
+                            href="/vaccine-hub"
+                            className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-md focus-visible:-translate-y-1 focus-visible:scale-[1.01] focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-emerald-400/30 dark:hover:shadow-emerald-400/5 dark:focus-visible:ring-offset-slate-900"
+                        >
+                            <div>
+                                {/* Icon Container */}
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-colors group-hover:bg-emerald-600 group-hover:text-white">
+                                    <Syringe size={24} />
+                                </div>
+
+                                {/* Text Context */}
+                                <h3 className="mt-4 text-lg font-bold text-slate-900 dark:text-white">
+                                    Vaccine Hub & Tracker
+                                </h3>
+                                <p className="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                                    Check customized national immunization schedules, view critical
+                                    side effects, and track milestone execution timelines.
+                                </p>
+                            </div>
+
+                            {/* Action Footer Indicator */}
+                            <div className="mt-6 flex items-center gap-1.5 text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                                <span>Open Tracker</span>
+                                <ArrowRight
+                                    size={16}
+                                    className="transition-transform group-hover:translate-x-1"
+                                    aria-hidden="true"
+                                />
+                            </div>
+                        </Link>
+                    </section>
+
                     {/* ── Explore Features Section ── */}
-                    <section className="mb-16">
-                        <h2 className="mb-8 bg-linear-to-r from-slate-700 to-slate-500 bg-clip-text text-center text-3xl font-bold tracking-tighter text-transparent dark:from-slate-200 dark:to-slate-400">
-                            Explore Features
-                        </h2>
+                    <section className="relative mb-20">
+                        {/* Decorative Background for Section */}
+                        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent opacity-50 dark:from-emerald-900/20"></div>
+
+                        <div className="mb-12 flex flex-col items-center justify-center space-y-4">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/50 bg-white/50 px-4 py-2 text-sm font-bold shadow-sm backdrop-blur-md dark:border-slate-800/50 dark:bg-slate-900/50">
+                                <span className="flex h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
+                                <span className="text-slate-700 dark:text-slate-300">
+                                    Powerful Capabilities
+                                </span>
+                            </div>
+                            <h2 className="bg-linear-to-r from-slate-900 via-slate-700 to-slate-900 bg-clip-text text-center text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl dark:from-white dark:via-slate-200 dark:to-slate-400">
+                                {tHome("explore_features")}
+                            </h2>
+                            <p className="max-w-2xl text-center font-medium text-slate-500 dark:text-slate-400">
+                                Discover all the ways SahiDawa can help you verify your medicines
+                                and stay safe.
+                            </p>
+                        </div>
+
                         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                             {/* Upload Photo */}
                             <button
                                 onClick={() => handleNavigation("scan")}
-                                className="group relative flex h-full min-h-[180px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/50 bg-white/75 p-6 text-left shadow-sm backdrop-blur-md transition-all duration-300 select-none hover:-translate-y-1 hover:scale-[1.01] hover:border-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/5 active:scale-[0.99] dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-emerald-400/30 dark:hover:shadow-emerald-400/5"
+                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white/60 p-6 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 select-none hover:-translate-y-2 hover:scale-[1.02] hover:border-emerald-400/50 hover:bg-white/90 hover:shadow-[0_20px_40px_-15px_rgba(16,185,129,0.3)] focus-visible:-translate-y-2 focus-visible:scale-[1.02] focus-visible:border-emerald-400/50 focus-visible:ring-emerald-500/50 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800/60 dark:bg-slate-900/40 dark:hover:border-emerald-500/50 dark:hover:bg-slate-800/80"
                                 aria-label="Upload photo"
                             >
-                                {/* Background Decorative Mesh & Glow */}
-                                <div className="bg-radial-gradient absolute inset-0 -z-10 from-emerald-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-emerald-500/10"></div>
-
-                                {/* Corner Crop Marks SVG Overlay */}
-                                <svg
-                                    className="absolute right-4 bottom-4 h-16 w-16 text-slate-300/30 transition-all duration-500 group-hover:scale-110 group-hover:text-emerald-400/30 dark:text-slate-700/20 dark:group-hover:text-emerald-500/20"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth={1}
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"
-                                    />
-                                </svg>
+                                <div className="absolute inset-0 -z-10 bg-linear-to-br from-emerald-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-emerald-500/20"></div>
 
                                 <div className="relative z-10 flex items-start justify-between gap-4">
-                                    <div className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white dark:bg-emerald-950/40 dark:text-emerald-400">
+                                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-emerald-100 to-emerald-50 text-emerald-600 shadow-inner transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 group-hover:from-emerald-500 group-hover:to-teal-400 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] dark:from-emerald-950/60 dark:to-emerald-900/40 dark:text-emerald-400">
                                         <Camera
-                                            size={24}
-                                            strokeWidth={2}
-                                            className="transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
+                                            size={26}
+                                            strokeWidth={2.5}
+                                            className="transition-transform duration-500"
                                         />
                                     </div>
-                                    <ChevronRight className="mt-1 h-4 w-4 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-emerald-500 dark:group-hover:text-emerald-400" />
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100/50 opacity-0 backdrop-blur-md transition-all duration-300 group-hover:opacity-100 dark:bg-slate-800/50">
+                                        <ChevronRight
+                                            className="h-5 w-5 text-emerald-600 dark:text-emerald-400"
+                                            aria-hidden="true"
+                                        />
+                                    </div>
                                 </div>
+
                                 <div className="relative z-10 pt-4">
-                                    <h3 className="text-base font-black tracking-tight text-slate-900 dark:text-white">
+                                    <h3 className="text-xl font-bold tracking-tight text-slate-900 transition-colors group-hover:text-emerald-700 dark:text-white dark:group-hover:text-emerald-300">
                                         {tHome("upload_photo")}
                                     </h3>
-                                    <p className="mt-1 text-xs leading-snug font-semibold text-slate-500 dark:text-slate-400">
+                                    <p className="mt-2 text-sm leading-snug font-medium text-slate-500 transition-colors group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-300">
                                         {tHome("upload_subtitle")}
                                     </p>
                                 </div>
@@ -292,35 +291,39 @@ export default function SahiDawaHome() {
                             {/* Voice Triage */}
                             <button
                                 onClick={() => handleNavigation("voice")}
-                                className="group relative flex h-full min-h-[180px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/50 bg-white/75 p-6 text-left shadow-sm backdrop-blur-md transition-all duration-300 select-none hover:-translate-y-1 hover:scale-[1.01] hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/5 active:scale-[0.99] dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-blue-400/30 dark:hover:shadow-blue-400/5"
+                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white/60 p-6 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 select-none hover:-translate-y-2 hover:scale-[1.02] hover:border-blue-400/50 hover:bg-white/90 hover:shadow-[0_20px_40px_-15px_rgba(59,130,246,0.3)] focus-visible:-translate-y-2 focus-visible:scale-[1.02] focus-visible:border-blue-400/50 focus-visible:ring-blue-500/50 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800/60 dark:bg-slate-900/40 dark:hover:border-blue-500/50 dark:hover:bg-slate-800/80"
                                 aria-label="Voice triage"
                             >
-                                {/* Background Decorative Mesh & Glow */}
-                                <div className="bg-radial-gradient absolute inset-0 -z-10 from-blue-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-blue-500/10"></div>
+                                <div className="absolute inset-0 -z-10 bg-linear-to-br from-blue-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-blue-500/20"></div>
 
-                                {/* Micro Waveform Visual Overlay */}
-                                <div className="absolute right-6 bottom-6 flex h-8 items-end gap-1">
-                                    <div className="h-3 w-1 animate-pulse rounded-full bg-slate-300/30 transition-all duration-300 group-hover:h-7 group-hover:bg-blue-400/30 dark:bg-slate-700/20 dark:group-hover:bg-blue-500/20"></div>
-                                    <div className="h-4 w-1 animate-pulse rounded-full bg-slate-300/30 transition-all duration-300 [animation-delay:0.2s] group-hover:h-5 group-hover:bg-blue-400/30 dark:bg-slate-700/20 dark:group-hover:bg-blue-500/20"></div>
-                                    <div className="h-2 w-1 animate-pulse rounded-full bg-slate-300/30 transition-all duration-300 [animation-delay:0.4s] group-hover:h-8 group-hover:bg-blue-400/30 dark:bg-slate-700/20 dark:group-hover:bg-blue-500/20"></div>
-                                    <div className="h-5 w-1 animate-pulse rounded-full bg-slate-300/30 transition-all duration-300 [animation-delay:0.1s] group-hover:h-4 group-hover:bg-blue-400/30 dark:bg-slate-700/20 dark:group-hover:bg-blue-500/20"></div>
+                                <div className="absolute right-6 bottom-8 flex h-10 items-end gap-1.5 opacity-30 transition-opacity duration-300 group-hover:opacity-100">
+                                    <div className="h-4 w-1.5 animate-pulse rounded-full bg-blue-400/60 transition-all duration-300 group-hover:h-8 group-hover:bg-blue-500"></div>
+                                    <div className="h-6 w-1.5 animate-pulse rounded-full bg-blue-400/60 transition-all duration-300 [animation-delay:0.2s] group-hover:h-6 group-hover:bg-blue-500"></div>
+                                    <div className="h-3 w-1.5 animate-pulse rounded-full bg-blue-400/60 transition-all duration-300 [animation-delay:0.4s] group-hover:h-10 group-hover:bg-blue-500"></div>
+                                    <div className="h-7 w-1.5 animate-pulse rounded-full bg-blue-400/60 transition-all duration-300 [animation-delay:0.1s] group-hover:h-5 group-hover:bg-blue-500"></div>
                                 </div>
 
                                 <div className="relative z-10 flex items-start justify-between gap-4">
-                                    <div className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white dark:bg-blue-950/40 dark:text-blue-400">
+                                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-blue-100 to-blue-50 text-blue-600 shadow-inner transition-all duration-500 group-hover:scale-110 group-hover:-rotate-6 group-hover:from-blue-500 group-hover:to-cyan-400 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] dark:from-blue-950/60 dark:to-blue-900/40 dark:text-blue-400">
                                         <Mic
-                                            size={24}
-                                            strokeWidth={2}
-                                            className="transition-transform duration-300 group-hover:scale-115"
+                                            size={26}
+                                            strokeWidth={2.5}
+                                            className="transition-transform duration-500"
                                         />
                                     </div>
-                                    <ChevronRight className="mt-1 h-4 w-4 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-blue-500 dark:group-hover:text-blue-400" />
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100/50 opacity-0 backdrop-blur-md transition-all duration-300 group-hover:opacity-100 dark:bg-slate-800/50">
+                                        <ChevronRight
+                                            className="h-5 w-5 text-blue-600 dark:text-blue-400"
+                                            aria-hidden="true"
+                                        />
+                                    </div>
                                 </div>
+
                                 <div className="relative z-10 pt-4">
-                                    <h3 className="text-base font-black tracking-tight text-slate-900 dark:text-white">
+                                    <h3 className="text-xl font-bold tracking-tight text-slate-900 transition-colors group-hover:text-blue-700 dark:text-white dark:group-hover:text-blue-300">
                                         {tHome("voice_triage")}
                                     </h3>
-                                    <p className="mt-1 text-xs leading-snug font-semibold text-slate-500 dark:text-slate-400">
+                                    <p className="mt-2 text-sm leading-snug font-medium text-slate-500 transition-colors group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-300">
                                         {tHome("voice_subtitle")}
                                     </p>
                                 </div>
@@ -329,40 +332,43 @@ export default function SahiDawaHome() {
                             {/* Pharmacy Map */}
                             <button
                                 onClick={() => handleNavigation("map")}
-                                className="group relative flex h-full min-h-[180px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/50 bg-white/75 p-6 text-left shadow-sm backdrop-blur-md transition-all duration-300 select-none hover:-translate-y-1 hover:scale-[1.01] hover:border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/5 active:scale-[0.99] dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-amber-400/30 dark:hover:shadow-amber-400/5"
+                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white/60 p-6 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 select-none hover:-translate-y-2 hover:scale-[1.02] hover:border-amber-400/50 hover:bg-white/90 hover:shadow-[0_20px_40px_-15px_rgba(245,158,11,0.3)] focus-visible:-translate-y-2 focus-visible:scale-[1.02] focus-visible:border-amber-400/50 focus-visible:ring-amber-500/50 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800/60 dark:bg-slate-900/40 dark:hover:border-amber-500/50 dark:hover:bg-slate-800/80"
                                 aria-label="Pharmacy map"
                             >
-                                {/* Background Decorative Mesh & Glow */}
-                                <div className="bg-radial-gradient absolute inset-0 -z-10 from-amber-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-amber-500/10"></div>
+                                <div className="absolute inset-0 -z-10 bg-linear-to-br from-amber-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-amber-500/20"></div>
 
-                                {/* Compass / Ripple Rings Visual Overlay */}
                                 <svg
-                                    className="absolute right-1 bottom-1 h-18 w-18 text-slate-300/20 transition-all duration-500 group-hover:scale-110 group-hover:rotate-12 group-hover:text-amber-400/20 dark:text-slate-700/10 dark:group-hover:text-amber-500/15"
+                                    className="absolute right-0 bottom-0 h-24 w-24 translate-x-4 translate-y-4 text-amber-500/5 transition-all duration-700 group-hover:-translate-x-2 group-hover:-translate-y-2 group-hover:scale-125 group-hover:rotate-45 group-hover:text-amber-500/20 dark:text-amber-400/5"
                                     fill="none"
                                     viewBox="0 0 24 24"
                                     stroke="currentColor"
-                                    strokeWidth={1}
+                                    strokeWidth={0.5}
                                 >
                                     <circle cx="12" cy="12" r="9" />
-                                    <circle cx="12" cy="12" r="6" />
-                                    <circle cx="12" cy="12" r="3" />
+                                    <circle cx="12" cy="12" r="5" />
                                 </svg>
 
                                 <div className="relative z-10 flex items-start justify-between gap-4">
-                                    <div className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white dark:bg-amber-950/40 dark:text-amber-400">
+                                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-amber-100 to-amber-50 text-amber-600 shadow-inner transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 group-hover:from-amber-500 group-hover:to-orange-400 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] dark:from-amber-950/60 dark:to-amber-900/40 dark:text-amber-400">
                                         <MapPin
-                                            size={24}
-                                            strokeWidth={2}
-                                            className="group-hover:translate-y--0.5 transition-transform duration-300"
+                                            size={26}
+                                            strokeWidth={2.5}
+                                            className="transition-transform duration-500 group-hover:-translate-y-1"
                                         />
                                     </div>
-                                    <ChevronRight className="mt-1 h-4 w-4 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-amber-500 dark:group-hover:text-amber-400" />
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100/50 opacity-0 backdrop-blur-md transition-all duration-300 group-hover:opacity-100 dark:bg-slate-800/50">
+                                        <ChevronRight
+                                            className="h-5 w-5 text-amber-600 dark:text-amber-400"
+                                            aria-hidden="true"
+                                        />
+                                    </div>
                                 </div>
+
                                 <div className="relative z-10 pt-4">
-                                    <h3 className="text-base font-black tracking-tight text-slate-900 dark:text-white">
+                                    <h3 className="text-xl font-bold tracking-tight text-slate-900 transition-colors group-hover:text-amber-700 dark:text-white dark:group-hover:text-amber-300">
                                         {tHome("pharmacy_map")}
                                     </h3>
-                                    <p className="mt-1 text-xs leading-snug font-semibold text-slate-500 dark:text-slate-400">
+                                    <p className="mt-2 text-sm leading-snug font-medium text-slate-500 transition-colors group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-300">
                                         {tHome("pharmacy_subtitle")}
                                     </p>
                                 </div>
@@ -371,42 +377,34 @@ export default function SahiDawaHome() {
                             {/* Report Fake Medicine */}
                             <button
                                 onClick={() => handleNavigation("report")}
-                                className="group relative flex h-full min-h-[180px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/50 bg-white/75 p-6 text-left shadow-sm backdrop-blur-md transition-all duration-300 select-none hover:-translate-y-1 hover:scale-[1.01] hover:border-red-500/30 hover:shadow-lg hover:shadow-red-500/5 active:scale-[0.99] dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-red-400/30 dark:hover:shadow-red-400/5"
+                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white/60 p-6 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 select-none hover:-translate-y-2 hover:scale-[1.02] hover:border-red-400/50 hover:bg-white/90 hover:shadow-[0_20px_40px_-15px_rgba(239,68,68,0.3)] focus-visible:-translate-y-2 focus-visible:scale-[1.02] focus-visible:border-red-400/50 focus-visible:ring-red-500/50 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800/60 dark:bg-slate-900/40 dark:hover:border-red-500/50 dark:hover:bg-slate-800/80"
                                 aria-label="Report fake medicine"
                             >
-                                {/* Background Decorative Mesh & Glow */}
-                                <div className="bg-radial-gradient absolute inset-0 -z-10 from-red-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-red-500/10"></div>
+                                <div className="absolute inset-0 -z-10 bg-linear-to-br from-red-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-red-500/20"></div>
 
-                                {/* Security Shield SVG Overlay */}
-                                <svg
-                                    className="absolute right-3 bottom-3 h-16 w-16 text-slate-300/30 transition-all duration-500 group-hover:scale-105 group-hover:text-red-400/30 dark:text-slate-700/20 dark:group-hover:text-red-500/20"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth={1}
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                                    />
-                                </svg>
+                                <div className="absolute right-0 bottom-0 h-24 w-24 translate-x-8 translate-y-8 rounded-full bg-red-500/5 blur-2xl transition-all duration-500 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:bg-red-500/20"></div>
 
                                 <div className="relative z-10 flex items-start justify-between gap-4">
-                                    <div className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-600 transition-all duration-300 group-hover:bg-red-500 group-hover:text-white dark:bg-red-950/40 dark:text-red-400">
+                                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-red-100 to-red-50 text-red-600 shadow-inner transition-all duration-500 group-hover:scale-110 group-hover:rotate-12 group-hover:from-red-500 group-hover:to-rose-400 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] dark:from-red-950/60 dark:to-red-900/40 dark:text-red-400">
                                         <AlertTriangle
-                                            size={24}
-                                            strokeWidth={2}
-                                            className="transition-transform duration-300 group-hover:rotate-6"
+                                            size={26}
+                                            strokeWidth={2.5}
+                                            className="transition-transform duration-500"
                                         />
                                     </div>
-                                    <ChevronRight className="mt-1 h-4 w-4 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-red-500 dark:group-hover:text-red-400" />
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100/50 opacity-0 backdrop-blur-md transition-all duration-300 group-hover:opacity-100 dark:bg-slate-800/50">
+                                        <ChevronRight
+                                            className="h-5 w-5 text-red-600 dark:text-red-400"
+                                            aria-hidden="true"
+                                        />
+                                    </div>
                                 </div>
+
                                 <div className="relative z-10 pt-4">
-                                    <h3 className="text-base font-black tracking-tight text-slate-900 dark:text-white">
+                                    <h3 className="text-xl font-bold tracking-tight text-slate-900 transition-colors group-hover:text-red-700 dark:text-white dark:group-hover:text-red-300">
                                         {tHome("report_fake")}
                                     </h3>
-                                    <p className="mt-1 text-xs leading-snug font-semibold text-slate-500 dark:text-slate-400">
+                                    <p className="mt-2 text-sm leading-snug font-medium text-slate-500 transition-colors group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-300">
                                         {tHome("report_fake_subtitle")}
                                     </p>
                                 </div>
@@ -595,85 +593,67 @@ export default function SahiDawaHome() {
                             </div>
                         </div>
                     </div>
+
+                    <section className="mb-20 overflow-hidden rounded-3xl border border-slate-200/60 bg-white/70 py-10 shadow-sm backdrop-blur-md dark:border-slate-800/60 dark:bg-slate-900/50">
+                        <div className="mb-8 flex flex-col gap-3 px-5 sm:px-8 md:flex-row md:items-end md:justify-between">
+                            <div>
+                                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 text-[11px] font-extrabold tracking-widest text-emerald-600 uppercase dark:border-emerald-400/20 dark:text-emerald-400">
+                                    <Star size={13} className="fill-current" aria-hidden="true" />
+                                    Trusted by citizens
+                                </div>
+                                <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
+                                    Voices from the SahiDawa community
+                                </h2>
+                            </div>
+                            <p className="max-w-md text-sm leading-relaxed font-medium text-slate-500 dark:text-slate-400">
+                                Families, pharmacists, doctors, and contributors using SahiDawa to
+                                make medicine safety easier to act on.
+                            </p>
+                        </div>
+
+                        <div className="testimonial-marquee relative flex overflow-hidden">
+                            <div className="testimonial-marquee-track flex min-w-full shrink-0 gap-5 px-5 sm:px-8">
+                                {[...testimonials, ...testimonials].map((testimonial, index) => (
+                                    <article
+                                        key={`${testimonial.name}-${index}`}
+                                        className="flex h-[250px] w-[300px] shrink-0 flex-col justify-between rounded-2xl border border-slate-200/70 bg-white/85 p-6 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-300/70 hover:shadow-md sm:w-[360px] dark:border-slate-800/70 dark:bg-slate-950/55 dark:hover:border-emerald-400/40"
+                                    >
+                                        <div>
+                                            <Quote
+                                                size={24}
+                                                className="mb-4 text-emerald-500"
+                                                aria-hidden="true"
+                                            />
+                                            <p className="text-sm leading-relaxed font-medium text-slate-600 dark:text-slate-300">
+                                                {testimonial.quote}
+                                            </p>
+                                        </div>
+                                        <div className="mt-6 flex items-center gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
+                                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-emerald-500 to-teal-500 text-sm font-black text-white shadow-sm">
+                                                {testimonial.name
+                                                    .split(" ")
+                                                    .map((part) => part[0])
+                                                    .join("")}
+                                            </div>
+                                            <div>
+                                                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                                                    {testimonial.name}
+                                                </h3>
+                                                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                                    {testimonial.role}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </article>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
                 </div>
             </main>
 
             {/* Spacer for mobile nav */}
             <div className="h-16 md:hidden"></div>
-
-            {/* ── Mobile Bottom Navigation ── */}
-            <nav
-                className="fixed right-0 bottom-0 left-0 z-50 flex items-center justify-around border-t border-(--color-border-muted)/60 bg-(--color-surface-page)/90 px-2 py-3 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
-                aria-label="Mobile navigation"
-            >
-                <Link
-                    href="/"
-                    className="group flex w-16 flex-col items-center gap-1.5"
-                    aria-label={tNav("home")}
-                >
-                    <div className="text-emerald-500 transition-transform group-hover:-translate-y-1">
-                        <Home size={24} strokeWidth={2.5} />
-                    </div>
-                    <span
-                        className={`${mobileNavLabelClassName} text-[11px] font-bold text-emerald-500`}
-                    >
-                        {tNav("home")}
-                    </span>
-                </Link>
-
-                <Link
-                    href="/scan"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
-                    aria-label={tNav("scans")}
-                >
-                    <div className="transition-transform group-hover:-translate-y-1">
-                        <History size={24} strokeWidth={2} />
-                    </div>
-                    <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
-                        {tNav("scans")}
-                    </span>
-                </Link>
-
-                <Link
-                    href="/map"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-(--color-text-muted) transition-colors hover:text-amber-500"
-                    aria-label={tNav("map")}
-                >
-                    <div className="transition-transform group-hover:-translate-y-1">
-                        <MapPin size={24} strokeWidth={2} />
-                    </div>
-                    <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
-                        {tNav("map")}
-                    </span>
-                </Link>
-
-                <Link
-                    href="/alerts"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-(--color-text-muted) transition-colors hover:text-red-500"
-                    aria-label={tNav("alerts")}
-                >
-                    <div className="relative transition-transform group-hover:-translate-y-1">
-                        <Bell size={24} strokeWidth={2} />
-                        <span className="absolute top-0 right-0.5 h-2 w-2 animate-pulse rounded-full border border-(--color-surface-page) bg-red-500"></span>
-                    </div>
-                    <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
-                        {tNav("alerts")}
-                    </span>
-                </Link>
-
-                <Link
-                    href="/profile"
-                    className="group flex w-16 flex-col items-center gap-1.5 text-(--color-text-muted) transition-colors hover:text-emerald-500"
-                    aria-label={tNav("profile")}
-                >
-                    <div className="transition-transform group-hover:-translate-y-1">
-                        <User size={24} strokeWidth={2} />
-                    </div>
-                    <span className={`${mobileNavLabelClassName} text-[11px] font-semibold`}>
-                        {tNav("profile")}
-                    </span>
-                </Link>
-            </nav>
         </div>
     );
 }

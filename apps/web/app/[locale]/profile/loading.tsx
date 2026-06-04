@@ -1,6 +1,6 @@
 export default function ProfileLoading() {
     return (
-        <div className="min-h-screen bg-(--color-surface-muted) px-6 py-8">
+        <div className="flex-grow bg-(--color-surface-muted) px-6 py-8">
             <div className="mx-auto max-w-3xl">
                 {/* Back Button Skeleton */}
                 <div className="mb-6 inline-flex items-center gap-2 px-3 py-2">

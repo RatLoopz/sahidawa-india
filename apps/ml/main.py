@@ -33,6 +33,7 @@ app.add_middleware(
 
 # Include ASR as a required router and OCR as optional so voice triage can boot
 # even when OCR-only dependencies are not installed in the current environment.
+include_router_if_available(app, "routers.verify", required=True)
 include_router_if_available(app, "routers.asr", required=True)
 include_router_if_available(app, "routers.analyze", required=True)
 ocr_loaded = include_router_if_available(app, "routers.ocr", required=False)

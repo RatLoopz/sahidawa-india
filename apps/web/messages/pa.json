@@ -21,6 +21,7 @@
         "ai_chat": "AI ਚੈਟ",
         "ai_health_assistant_description": "ਤੁਰੰਤ ਸਿਹਤ ਸਲਾਹ, ਲੱਛਣ ਜਾਂਚ ਅਤੇ ਪ੍ਰਿਸਕ੍ਰਿਪਸ਼ਨ ਮਾਰਗਦਰਸ਼ਨ ਪ੍ਰਾਪਤ ਕਰੋ",
         "chat_now": "ਹੁਣ ਚੈਟ ਕਰੋ",
+        "explore_features": "ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ ਦੀ ਪੜਚੋਲ ਕਰੋ",
         "live_cdsco_alerts": "ਲਾਈਵ CDSCO ਚੇਤਾਵਨੀਆਂ",
         "india_region": "ਭਾਰਤ ਖੇਤਰ",
         "alerts_empty_title": "ਸਭ ਠੀਕ ਹੈ!",
@@ -160,7 +161,14 @@
         "goHome": "ਹੋਮ ਤੇ ਜਾਓ",
         "footer": "ਕਨੈਕਸ਼ਨ ਵਾਪਸ ਆਉਣ 'ਤੇ SahiDawa ਆਪਣੇ ਆਪ ਸਿੰਕ ਕਰੇਗਾ।",
         "cachedContent": "ਤੁਸੀਂ ਪਹਿਲਾਂ ਲੋਡ ਕੀਤੀ ਸਮੱਗਰੀ ਵੇਖ ਸਕਦੇ ਹੋ",
-        "noCache": "ਇਹ ਪੇਜ cached ਨਹੀਂ ਸੀ ਅਤੇ ਆਫਲਾਈਨ ਉਪਲਬਧ ਨਹੀਂ ਹੈ"
+        "noCache": "ਇਹ ਪੇਜ cached ਨਹੀਂ ਸੀ ਅਤੇ ਆਫਲਾਈਨ ਉਪਲਬਧ ਨਹੀਂ ਹੈ",
+        "redirecting": "ਤੁਹਾਨੂੰ SahiDawa 'ਤੇ ਰੀਡਾਇਰੈਕਟ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ…",
+        "attempt": "(ਕੋਸ਼ਿਸ਼ {retryCount})",
+        "checkingConnection": "ਕਨੈਕਸ਼ਨ ਦੀ ਜਾਂਚ ਕੀਤੀ ਜਾ ਰਹੀ ਹੈ…",
+        "cachedAvailable": "ਪਹਿਲਾਂ ਦੇਖੇ ਗਏ ਪੇਜ ਅਜੇ ਵੀ ਉਪਲਬਧ ਹੋ ਸਕਦੇ ਹਨ",
+        "cachedVerifications": "ਸੁਰੱਖਿਅਤ ਕੀਤੀਆਂ ਜਾਂਚਾਂ",
+        "savedPharmacies": "ਸੁਰੱਖਿਅਤ ਕੀਤੀਆਂ ਫਾਰਮੇਸੀਆਂ",
+        "browsedMedicines": "ਦੇਖੀਆਂ ਗਈਆਂ ਦਵਾਈਆਂ"
     },
     "contact": {
         "badge": "GSSoC 2026 ਓਪਨ ਸੋਰਸ ਪ੍ਰੋਜੈਕਟ",
@@ -197,5 +205,166 @@
             "faq": "ਅਕਸਰ ਪੁੱਛੇ ਜਾਣ ਵਾਲੇ ਸਵਾਲ"
         },
         "footer": "SahiDawa ਮੁਫ਼ਤ, ਓਪਨ-ਸੋਰਸ ਅਤੇ 1.4 ਬਿਲੀਅਨ ਭਾਰਤੀਆਂ ਲਈ ਬਣਾਇਆ ਗਿਆ ਹੈ। ਕੋਈ ਵਿਗਿਆਪਨ ਨਹੀਂ। ਕੋਈ ਪ੍ਰੀਮੀਅਮ ਨਹੀਂ। ਕੋਈ ਡਾਟਾ ਵੇਚਿਆ ਨਹੀਂ ਜਾਂਦਾ।"
+    },
+    "about": {
+        "badge": "GSSoC 2026 Open Source Project",
+        "heroTitle": "<highlight>SahiDawa</highlight> ਬਾਰੇ",
+        "heroSubtitle": "ਭਾਰਤ ਦਾ ਪਹਿਲਾ ਓਪਨ-ਸੋਰਸ ਨਾਗਰਿਕ ਦਵਾਈ ਪੁਸ਼ਟੀਕਰਨ ਟੂਲ ਅਤੇ ਪੇਂਡੂ ਸਿਹਤ ਸੇਤੂ। ਭਾਰਤ ਲਈ ਨਿਰਮਿਤ। ਸਿਰਫ਼ ਇੰਡੀਆ ਲਈ ਨਹੀਂ।",
+        "features": {
+            "free": "100% ਮੁਫ਼ਤ। ਹਮੇਸ਼ਾ ਲਈ।",
+            "languages": "22 ਭਾਰਤੀ ਭਾਸ਼ਾਵਾਂ",
+            "license": "ਓਪਨ ਸੋਰਸ MIT ਲਾਇਸੰਸ"
+        },
+        "problemSection": {
+            "title": "ਉਹ ਸਮੱਸਿਆ ਜਿਸ ਨੂੰ ਅਸੀਂ ਹੱਲ ਕਰ ਰਹੇ ਹਾਂ",
+            "description": "ਭਾਰਤ ਵਿੱਚ ਤਿੰਨ-ਪੱਧਰੀ ਸਿਹਤ ਸੰਭਾਲ ਸੰਕਟ ਹੈ ਜਿਸਨੂੰ ਕੋਈ ਵੀ ਮੌਜੂਦਾ ਪਲੇਟਫਾਰਮ ਇੱਕੋ ਸਮੇਂ ਹੱਲ ਨਹੀਂ ਕਰ ਸਕਦਾ।"
+        },
+        "cards": {
+            "fakeMedicines": {
+                "title": "ਨਕਲੀ ਦਵਾਈਆਂ",
+                "description": "ਭਾਰਤ ਵਿੱਚ 12–25% ਦਵਾਈਆਂ ਨਕਲੀ ਜਾਂ ਘੱਟ ਮਿਆਰੀ ਹਨ — ਜਿਸ ਕਾਰਨ 1.4 ਅਰਬ ਲੋਕ ਖਤਰੇ ਵਿੱਚ ਹਨ, ਅਤੇ ਨਾਗਰਿਕਾਂ ਲਈ ਜਾਂਚ ਕਰਨ ਦਾ ਕੋਈ ਸਿੱਧਾ ਸਾਧਨ ਨਹੀਂ ਹੈ।"
+            },
+            "ruralHealthcare": {
+                "title": "ਪਿੰਡੂ ਸਿਹਤ ਸੇਵਾ ਦੀ ਕਮੀ",
+                "description": "ਭਾਰਤ ਦੀ 65% ਆਬਾਦੀ ਪਿੰਡਾਂ ਵਿੱਚ ਰਹਿੰਦੀ ਹੈ ਜਿੱਥੇ ਯੋਗ ਡਾਕਟਰ ਲਗਭਗ ਨਾ ਕੇ ਬਰਾਬਰ ਹਨ — 90 ਕਰੋੜ ਤੋਂ ਵੱਧ ਲੋਕ ਪਹੁੰਚਯੋਗ ਸਿਹਤ ਸੇਵਾਵਾਂ ਤੋਂ ਵਾਂਝੇ ਹਨ।"
+            },
+            "languageBarrier": {
+                "title": "ਭਾਸ਼ਾਈ ਰੁਕਾਵਟ",
+                "description": "22 ਸਰਕਾਰੀ ਭਾਸ਼ਾਵਾਂ ਹਨ — ਪਰ ਸਿਹਤ ਸੰਬੰਧੀ ਜਾਣਕਾਰੀ ਜ਼ਿਆਦਾਤਰ ਅੰਗਰੇਜ਼ੀ ਜਾਂ ਹਿੰਦੀ ਵਿੱਚ ਹੀ ਉਪਲਬਧ ਹੈ, ਜਿਸ ਨਾਲ 50 ਕਰੋੜ ਤੋਂ ਵੱਧ ਗੈਰ-ਹਿੰਦੀ ਭਾਸ਼ੀ ਲੋਕ ਪਿੱਛੇ ਰਹਿ ਜਾਂਦੇ ਹਨ।"
+            }
+        },
+        "realIncident": {
+            "title": "ਅਸਲ ਘਟਨਾ — ਜੁਲਾਈ 2025",
+            "text": "ਦਿੱਲੀ ਪੁਲਿਸ ਨੇ ਇੱਕ ਨਕਲੀ ਦਵਾਈ ਗਿਰੋਹ ਦਾ ਪਰਦਾਫਾਸ਼ ਕੀਤਾ ਜੋ ਚਾਕ ਪਾਊਡਰ ਅਤੇ ਸਟਾਰਚ ਨਾਲ ਬਣੀਆਂ Johnson & Johnson ਅਤੇ GSK ਦੀਆਂ ਨਕਲੀ ਦਵਾਈਆਂ ਸਰਕਾਰੀ ਹਸਪਤਾਲਾਂ ਤੱਕ ਪਹੁੰਚਾ ਰਿਹਾ ਸੀ। ਮਰੀਜ਼ਾਂ ਕੋਲ ਇਹ ਦਵਾਈਆਂ ਵਰਤਣ ਤੋਂ ਪਹਿਲਾਂ <highlight>ਉਨ੍ਹਾਂ ਦੀ ਪੁਸ਼ਟੀ ਕਰਨ ਦਾ ਕੋਈ ਤਰੀਕਾ ਨਹੀਂ ਸੀ</highlight>।",
+            "highlight": "SahiDawa ਇਸ ਸਮੱਸਿਆ ਦਾ ਹੱਲ ਕਰਦਾ ਹੈ। ਮੁਫ਼ਤ। ਸਦਾ ਲਈ। ਓਪਨ ਸੋਰਸ।"
+        },
+        "mission": {
+            "title": "ਸਾਡਾ ਮਿਸ਼ਨ",
+            "description": "ਭਾਸ਼ਾ, ਖੇਤਰ ਜਾਂ ਸਿੱਖਿਆ ਦੇ ਭੇਦਭਾਵ ਤੋਂ ਬਿਨਾਂ — ਹਰ ਭਾਰਤੀ ਨਾਗਰਿਕ ਨੂੰ ਤੁਰੰਤ ਦਵਾਈਆਂ ਦੀ ਜਾਂਚ ਕਰਨ, ਯੋਗ ਸਿਹਤ ਮਾਰਗਦਰਸ਼ਨ ਪ੍ਰਾਪਤ ਕਰਨ ਅਤੇ ਆਪਣੇ ਖੇਤਰ ਵਿੱਚ ਨਕਲੀ ਦਵਾਈਆਂ ਦੀ ਰਿਪੋਰਟ ਕਰਨ ਦੀ ਸ਼ਕਤੀ ਦੇਣਾ।"
+        },
+        "vision": {
+            "title": "ਸਾਡਾ ਵਿਜ਼ਨ",
+            "description": "ਇੱਕ ਐਸਾ ਭਾਰਤ ਜਿੱਥੇ ਕੋਈ ਵੀ ਬੱਚਾ ਨਕਲੀ ਦਵਾਈ ਕਾਰਨ ਨਾ ਮਰੇ, ਕਿਸੇ ਕਿਸਾਨ ਦੇ ਪਰਿਵਾਰ ਦਾ ਡਾਕਟਰ ਦੀ ਕਮੀ ਕਾਰਨ ਗਲਤ ਨਿਦਾਨ ਨਾ ਹੋਵੇ, ਅਤੇ ਕੋਈ ਵੀ ਭਾਸ਼ਾ ਸਿਹਤ ਸੇਵਾਵਾਂ ਤੱਕ ਪਹੁੰਚ ਵਿੱਚ ਰੁਕਾਵਟ ਨਾ ਬਣੇ। ਮੁਫ਼ਤ। ਖੁੱਲ੍ਹਾ। ਸਦਾ ਲਈ।"
+        },
+        "coreValues": {
+            "title": "ਸਾਡੀਆਂ ਮੁੱਖ ਕਦਰਾਂ-ਕੀਮਤਾਂ",
+            "cards": {
+                "openSource": {
+                    "title": "ਓਪਨ ਸੋਰਸ",
+                    "description": "MIT ਲਾਇਸੰਸ ਪ੍ਰਾਪਤ। ਹਮੇਸ਼ਾ।"
+                },
+                "freeForever": {
+                    "title": "ਹਮੇਸ਼ਾਂ ਲਈ ਮੁਫ਼ਤ",
+                    "description": "ਕੋਈ ਲੁਕਵੇਂ ਖਰਚੇ ਨਹੀਂ। ਕਦੇ ਨਹੀਂ।"
+                },
+                "inclusive": {
+                    "title": "ਸਭ ਨੂੰ ਸ਼ਾਮਲ ਕਰਨ ਵਾਲਾ",
+                    "description": "22 ਭਾਸ਼ਾਵਾਂ। ਪੂਰੇ ਭਾਰਤ ਲਈ।"
+                },
+                "privacy": {
+                    "title": "ਗੋਪਨੀਯਤਾ ਸਭ ਤੋਂ ਪਹਿਲਾਂ",
+                    "description": "ਕੋਈ ਡਾਟਾ ਨਹੀਂ ਵੇਚਿਆ ਜਾਂਦਾ। ਕੋਈ ਇਸ਼ਤਿਹਾਰ ਨਹੀਂ।"
+                }
+            }
+        },
+        "contactUs": {
+            "title": "ਸੰਪਰਕ ਕਰੋ",
+            "subtitle": "ਕੋਈ ਸਵਾਲ, ਵਿਚਾਰ ਹਨ ਜਾਂ ਇਸ ਪ੍ਰੋਜੈਕਟ ਵਿੱਚ ਯੋਗਦਾਨ ਪਾਉਣਾ ਚਾਹੁੰਦੇ ਹੋ? ਅਸੀਂ ਤੁਹਾਡੇ ਤੋਂ ਸੁਣਨਾ ਚਾਹੁੰਦੇ ਹਾਂ।"
+        }
+    },
+    "Faq": {
+        "badge": "GSSoC 2026 ਓਪਨ ਸੋਰਸ ਪ੍ਰੋਜੈਕਟ",
+        "title": "ਅਕਸਰ ਪੁੱਛੇ ਜਾਣ ਵਾਲੇ",
+        "title_highlight": "ਸਵਾਲ",
+        "subtitle": "SahiDawa ਬਾਰੇ ਤੁਹਾਨੂੰ ਜਾਣਨ ਦੀ ਲੋੜੀਂਦੀ ਹਰ ਗੱਲ — ਭਾਰਤ ਦਾ ਮੁਫ਼ਤ, ਓਪਨ-ਸੋਰਸ ਦਵਾਈ ਜਾਂਚ ਪਲੇਟਫਾਰਮ।",
+        "cta": {
+            "title": "ਅਜੇ ਵੀ ਸਵਾਲ ਹਨ?",
+            "subtitle": "ਜਵਾਬ ਨਹੀਂ ਮਿਲਿਆ ਜੋ ਤੁਸੀਂ ਲੱਭ ਰਹੇ ਹੋ? ਸਾਡੀ ਕਮਿਊਨਟੀ ਨਾਲ ਸੰਪਰਕ ਕਰੋ।",
+            "button": "ਸੰਪਰਕ ਕਰੋ"
+        },
+        "items": {
+            "0": {
+                "question": "SahiDawa ਕੀ ਹੈ?",
+                "answer": "SahiDawa ਭਾਰਤ ਦਾ ਪਹਿਲਾ ਓਪਨ-ਸੋਰਸ ਨਾਗਰਿਕ ਦਵਾਈ ਜਾਂਚ ਪਲੇਟਫਾਰਮ ਹੈ। ਇਹ ਤੁਹਾਡੀ ਦਵਾਈ ਅਸਲੀ ਹੈ ਜਾਂ ਨਕਲੀ, ਇਹ ਜਾਂਚਣ, ਨੇੜੇ ਦੀਆਂ ਸੁਰੱਖਿਅਤ ਫਾਰਮਸੀਆਂ ਲੱਭਣ ਅਤੇ ਤੁਹਾਡੀ ਭਾਸ਼ਾ ਵਿੱਚ ਸਿਹਤ ਮਾਰਗਦਰਸ਼ਨ ਪ੍ਰਾਪਤ ਕਰਨ ਵਿੱਚ ਮਦਦ ਕਰਦਾ ਹੈ।"
+            },
+            "1": {
+                "question": "ਕੀ SahiDawa ਵਰਤਣ ਲਈ ਮੁਫ਼ਤ ਹੈ?",
+                "answer": "ਹਾਂ! SahiDawa ਹਮੇਸ਼ਾਂ ਲਈ 100% ਮੁਫ਼ਤ ਹੈ। ਕੋਈ ਇਸ਼ਤਿਹਾਰ ਨਹੀਂ, ਕੋਈ ਪ੍ਰੀਮਿਅਮ ਪਲਾਨ ਨਹੀਂ, ਕੋਈ ਡਾਟਾ ਨਹੀਂ ਵੇਚਿਆ ਜਾਂਦਾ। ਇਹ ਭਾਰਤ ਲਈ, ਕਮਿਊਨਟੀ ਦੁਆਰਾ ਬਣਾਇਆ ਗਿਆ ਹੈ।"
+            },
+            "2": {
+                "question": "ਦਵਾਈ ਦੀ ਜਾਂਚ ਕਿਵੇਂ ਕੰਮ ਕਰਦੀ ਹੈ?",
+                "answer": "ਤੁਸੀਂ ਆਪਣੀ ਦਵਾਈ ਦੀ ਪੈਕਿੰਗ ਉੱਤੇ ਬਾਰਕੋਡ ਜਾਂ QR ਕੋਡ ਸਕੈਨ ਕਰ ਸਕਦੇ ਹੋ। SahiDawa ਇਸਨੂੰ ਸਰਕਾਰੀ CDSCO ਡਾਟਾਬੇਸ ਨਾਲ ਮਿਲਾ ਕੇ ਜਾਂਚਦਾ ਹੈ ਅਤੇ ਦੱਸਦਾ ਹੈ ਕਿ ਦਵਾਈ ਅਸਲੀ, ਸ਼ੱਕੀ ਜਾਂ ਨਕਲੀ ਹੈ।"
+            },
+            "3": {
+                "question": "SahiDawa ਕਿਹੜੀਆਂ ਭਾਸ਼ਾਵਾਂ ਨੂੰ ਸਹਾਇਤਾ ਦਿੰਦਾ ਹੈ?",
+                "answer": "SahiDawa ਭਾਰਤ ਦੀਆਂ 22 ਸਰਕਾਰੀ ਭਾਸ਼ਾਵਾਂ ਨੂੰ ਸਹਾਇਤਾ ਦਿੰਦਾ ਹੈ। ਤੁਸੀਂ Whisper ਅਤੇ Sarvam AI ਨਾਲ ਚੱਲਣ ਵਾਲੇ ਸਾਡੇ Voice Health Assistant ਰਾਹੀਂ ਆਪਣੀ ਭਾਸ਼ਾ ਵਿੱਚ ਆਪਣੇ ਲੱਛਣ ਬੋਲ ਸਕਦੇ ਹੋ।"
+            },
+            "4": {
+                "question": "ਮੈਂ ਨਕਲੀ ਦਵਾਈ ਦੀ ਰਿਪੋਰਟ ਕਿਵੇਂ ਕਰ ਸਕਦਾ ਹਾਂ?",
+                "answer": "ਤੁਸੀਂ ਹੋਮਪੇਜ ਉੱਤੇ 'Report Fake' ਫੀਚਰ ਵਰਤ ਸਕਦੇ ਹੋ। ਤੁਹਾਡੀ ਰਿਪੋਰਟ ਕਮਿਊਨਟੀ ਹੀਟਮੈਪ ਵਿੱਚ ਸ਼ਾਮਲ ਹੁੰਦੀ ਹੈ, ਜੋ ਤੁਹਾਡੇ ਜ਼ਿਲ੍ਹੇ ਦੇ ਹੋਰ ਲੋਕਾਂ ਨੂੰ ਨਕਲੀ ਦਵਾਈਆਂ ਬਾਰੇ ਚੇਤਾਵਨੀ ਦੇਣ ਵਿੱਚ ਮਦਦ ਕਰਦੀ ਹੈ।"
+            },
+            "5": {
+                "question": "ਕੀ SahiDawa ਨਾਲ ਮੇਰਾ ਡਾਟਾ ਸੁਰੱਖਿਅਤ ਹੈ?",
+                "answer": "ਬਿਲਕੁਲ। SahiDawa ਤੁਹਾਡਾ ਡਾਟਾ ਨਹੀਂ ਵੇਚਦਾ, ਇਸ਼ਤਿਹਾਰ ਨਹੀਂ ਦਿਖਾਉਂਦਾ ਅਤੇ ਕੋਈ ਪ੍ਰੀਮਿਅਮ ਪਲਾਨ ਨਹੀਂ ਰੱਖਦਾ। ਤੁਹਾਡੀ ਗੋਪਨੀਯਤਾ ਸਾਡੀ ਸਭ ਤੋਂ ਵੱਡੀ ਤਰਜੀਹ ਹੈ।"
+            },
+            "6": {
+                "question": "ਮੈਂ SahiDawa ਵਿੱਚ ਕਿਵੇਂ ਯੋਗਦਾਨ ਪਾ ਸਕਦਾ ਹਾਂ?",
+                "answer": "SahiDawa MIT ਲਾਇਸੰਸ ਹੇਠ ਓਪਨ ਸੋਰਸ ਹੈ। ਤੁਸੀਂ GitHub ਉੱਤੇ ਯੋਗਦਾਨ ਪਾ ਸਕਦੇ ਹੋ, ਬਗ ਰਿਪੋਰਟ ਕਰ ਸਕਦੇ ਹੋ, ਫੀਚਰ ਸੁਝਾ ਸਕਦੇ ਹੋ ਜਾਂ GSSoC 2026 ਭਾਗੀਦਾਰ ਵਜੋਂ ਜੁੜ ਸਕਦੇ ਹੋ।"
+            },
+            "7": {
+                "question": "CDSCO ਕੀ ਹੈ?",
+                "answer": "CDSCO ਦਾ ਅਰਥ Central Drugs Standard Control Organisation ਹੈ। ਇਹ ਕਾਸਮੈਟਿਕਸ, ਫਾਰਮਾਸਿਊਟਿਕਲਜ਼ ਅਤੇ ਮੈਡੀਕਲ ਡਿਵਾਈਸਾਂ ਲਈ ਭਾਰਤ ਦੀ ਰਾਸ਼ਟਰੀ ਨਿਯੰਤਰਕ ਸੰਸਥਾ ਹੈ। SahiDawa ਉਨ੍ਹਾਂ ਦੇ ਸਰਕਾਰੀ ਡਾਟਾਬੇਸ ਨਾਲ ਦਵਾਈਆਂ ਦੀ ਜਾਂਚ ਕਰਦਾ ਹੈ।"
+            }
+        }
+    },
+    "Scan": {
+        "share": {
+            "avoid_and_report": "Please avoid and report to your nearest health worker.",
+            "batch_label": "Batch",
+            "button": "Share Result",
+            "copy_success": "Result copied to clipboard",
+            "failure": "Unable to share this result right now",
+            "manufacturer_label": "Manufacturer",
+            "real_status": "Verified REAL",
+            "shared_success": "Result shared successfully",
+            "suspicious_status": "Marked SUSPICIOUS",
+            "title": "SahiDawa Medicine Verification Result",
+            "unknown_batch": "Unknown batch",
+            "unknown_manufacturer": "Unknown manufacturer",
+            "unknown_medicine": "Unknown medicine",
+            "verified_by": "by SahiDawa",
+            "verify_yourself": "Verify yourself",
+            "warning_prefix": "WARNING"
+        }
+    },
+    "chat": {
+        "actions": {
+            "pharmacy": {
+                "description": "Locate verified stores",
+                "label": "Find Pharmacy"
+            },
+            "scan": {
+                "description": "Verify authenticity",
+                "label": "Scan Medicine"
+            },
+            "symptoms": {
+                "description": "AI-assisted guidance",
+                "label": "Check Symptoms"
+            }
+        },
+        "footer": "For informational use only • Consult a doctor",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "quick_actions": "Quick actions",
+        "welcome": "Namaste, I'm SahiDawa, your trusted health companion. I can help you verify medicines, understand symptoms, or find nearby care. What would you like help with today?"
+    },
+    "chatbot": {
+        "placeholder": "Ask me about a medicine...",
+        "status": "Online",
+        "title": "SahiDawa AI",
+        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"
+    },
+    "BackToTopButton": {
+        "label": "Back to top"
     }
 }

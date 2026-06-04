@@ -27,8 +27,11 @@ import { fetchPharmacies, fetchPharmaciesInBounds, type OverpassPharmacy } from 
 import {
     fetchVerifiedPharmacies,
     fetchVerifiedPharmaciesInBounds,
+    fetchNearbyAshaWorkers,
     type VerifiedPharmacy,
+    type ApiAshaWorker,
 } from "../../../lib/api";
+import { type AshaWorker } from "./PharmacyMap";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const DEFAULT_CENTER = { lat: 28.6139, lng: 77.209 }; // New Delhi
@@ -137,6 +140,17 @@ function toVerifiedPharmacy(vp: VerifiedPharmacy, id: number): Pharmacy {
     };
 }
 
+function toAshaWorker(aw: ApiAshaWorker): AshaWorker {
+    return {
+        id: aw.id,
+        name: aw.name,
+        district: aw.district,
+        coordinates: { lat: aw.lat, lng: aw.lng },
+        contact: aw.contact,
+        distanceKm: aw.distance_km,
+    };
+}
+
 function deduplicateOsm(verified: Pharmacy[], osm: Pharmacy[]): Pharmacy[] {
     if (verified.length === 0) return osm;
     return osm.filter((osmP) => {
@@ -188,7 +202,7 @@ function BottomDrawer({
             <button
                 onClick={expandDrawer}
                 data-testid="mobile-pharmacy-pill"
-                className="pointer-events-auto absolute right-4 bottom-5 z-1000 flex items-center gap-2 rounded-full bg-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 px-4 py-2.5 text-xs font-bold text-white shadow-xl transition-all hover:bg-slate-800 active:scale-95 md:hidden"
+                className="pointer-events-auto absolute right-4 bottom-5 z-1000 flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-xs font-bold text-white shadow-xl transition-all hover:bg-slate-800 active:scale-95 md:hidden dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
                 aria-label={`Show nearby pharmacies list with ${count} results`}
             >
                 <ChevronUp size={14} />
@@ -257,6 +271,7 @@ export default function PharmacyMapPage() {
 
     // Live data state (PR #147 engine)
     const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
+    const [ashaWorkers, setAshaWorkers] = useState<AshaWorker[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [fetchError, setFetchError] = useState<string | null>(null);
     const [showSearchArea, setShowSearchArea] = useState(false);
@@ -272,9 +287,10 @@ export default function PharmacyMapPage() {
         setShowSearchArea(false);
         try {
             const radiusKm = Math.round(radius / 1000);
-            const [verifiedResult, osmResult] = await Promise.allSettled([
+            const [verifiedResult, osmResult, ashaResult] = await Promise.allSettled([
                 fetchVerifiedPharmacies(lat, lng, radiusKm),
                 fetchPharmacies(lat, lng, radius),
+                fetchNearbyAshaWorkers(lat, lng, radiusKm),
             ]);
 
             const verified =
@@ -282,6 +298,8 @@ export default function PharmacyMapPage() {
                     ? verifiedResult.value.map((vp, i) => toVerifiedPharmacy(vp, -(i + 1)))
                     : [];
             const osm = osmResult.status === "fulfilled" ? osmResult.value.map(toPharmacy) : [];
+            const asha =
+                ashaResult.status === "fulfilled" ? ashaResult.value.map(toAshaWorker) : [];
 
             const dedupedOsm = deduplicateOsm(verified, osm);
             const merged = [...verified, ...dedupedOsm].sort((a, b) => {
@@ -298,6 +316,7 @@ export default function PharmacyMapPage() {
             }
 
             setPharmacies(merged);
+            setAshaWorkers(asha);
             setPharmacyCount(merged.length);
             initialFetchDone.current = true;
         } catch (err) {
@@ -308,31 +327,34 @@ export default function PharmacyMapPage() {
             setIsLoading(false);
         }
     }, []);
-    
-   useEffect(() => {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                setUserLocation(loc);
-                fetchNearby(loc.lat, loc.lng);
-            },
-            () => {
-                fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-        );
-    } else {
-        fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
-    }
-}, [fetchNearby]); 
+
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    setUserLocation(loc);
+                    fetchNearby(loc.lat, loc.lng);
+                },
+                () => {
+                    fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+            );
+        } else {
+            fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
+        }
+    }, [fetchNearby]);
 
     const fetchInBounds = useCallback(async (bounds: MapBounds) => {
         setIsLoading(true);
         setFetchError(null);
         setShowSearchArea(false);
         try {
-            const [verifiedResult, osmResult] = await Promise.allSettled([
+            const centerLat = bounds.center.lat;
+            const centerLng = bounds.center.lng;
+            const radiusKm = 15;
+            const [verifiedResult, osmResult, ashaResult] = await Promise.allSettled([
                 fetchVerifiedPharmaciesInBounds(
                     bounds.south,
                     bounds.west,
@@ -340,6 +362,7 @@ export default function PharmacyMapPage() {
                     bounds.east
                 ),
                 fetchPharmaciesInBounds(bounds.south, bounds.west, bounds.north, bounds.east),
+                fetchNearbyAshaWorkers(centerLat, centerLng, radiusKm),
             ]);
 
             const verified =
@@ -347,6 +370,8 @@ export default function PharmacyMapPage() {
                     ? verifiedResult.value.map((vp, i) => toVerifiedPharmacy(vp, -(i + 1)))
                     : [];
             const osm = osmResult.status === "fulfilled" ? osmResult.value.map(toPharmacy) : [];
+            const asha =
+                ashaResult.status === "fulfilled" ? ashaResult.value.map(toAshaWorker) : [];
 
             const dedupedOsm = deduplicateOsm(verified, osm);
             const merged = [...verified, ...dedupedOsm].sort((a, b) => {
@@ -363,6 +388,7 @@ export default function PharmacyMapPage() {
             }
 
             setPharmacies(merged);
+            setAshaWorkers(asha);
             setPharmacyCount(merged.length);
         } catch (err) {
             console.error("Critical error in bound pharmacy rendering:", err);
@@ -373,7 +399,7 @@ export default function PharmacyMapPage() {
         }
     }, []);
 
-     // Geolocation
+    // Geolocation
     const handleLocateUser = useCallback(() => {
         if (!navigator.geolocation) {
             setLocationError("Geolocation is not supported by your browser");
@@ -403,11 +429,11 @@ export default function PharmacyMapPage() {
         );
     }, [fetchNearby]);
 
-const handleMapReady = useCallback(() => {
-    if (!initialFetchDone.current) {
-        fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
-    }
-}, [fetchNearby]);
+    const handleMapReady = useCallback(() => {
+        if (!initialFetchDone.current) {
+            fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
+        }
+    }, [fetchNearby]);
 
     const handleMapMoveEnd = useCallback((bounds: MapBounds) => {
         if (initialFetchDone.current) {
@@ -457,24 +483,31 @@ const handleMapReady = useCallback(() => {
     };
 
     const filters = [
-        { id: "all", label: "All Stores", activeClass: "bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white shadow-md" },
+        {
+            id: "all",
+            label: "All Stores",
+            activeClass: "bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white shadow-md",
+        },
         {
             id: "verified",
             label: "Verified Partners",
             icon: <Shield size={11} className="text-current" />,
-            activeClass: "bg-emerald-600 text-white shadow-md shadow-emerald-200 dark:shadow-emerald-950/20",
+            activeClass:
+                "bg-emerald-600 text-white shadow-md shadow-emerald-200 dark:shadow-emerald-950/20",
         },
         {
             id: "govt",
             label: "Jan Aushadhi",
             icon: <Globe size={11} />,
-            activeClass: "bg-emerald-600 text-white shadow-md shadow-emerald-200 dark:shadow-emerald-950/20",
+            activeClass:
+                "bg-emerald-600 text-white shadow-md shadow-emerald-200 dark:shadow-emerald-950/20",
         },
         {
             id: "named",
             label: "Named Only",
             icon: <Star size={11} className="fill-current" />,
-            activeClass: "bg-amber-500 text-white shadow-md shadow-amber-200 dark:shadow-amber-950/20",
+            activeClass:
+                "bg-amber-500 text-white shadow-md shadow-amber-200 dark:shadow-amber-950/20",
         },
         {
             id: "more",
@@ -520,11 +553,11 @@ const handleMapReady = useCallback(() => {
     };
 
     return (
-        <div className="flex h-screen flex-col overflow-hidden bg-(--color-surface-muted) font-sans">
+        <div className="flex h-screen flex-col overflow-hidden bg-(--color-surface-muted) font-sans dark:bg-[#0d1117]">
             <h1 className="sr-only">Pharmacy Map — Find Verified Pharmacies Near You</h1>
 
             {/* ── Header with search ── */}
-            <PageHeader backHref="/" variant="light">
+            <PageHeader backHref="/" variant="light" showThemeToggle={false}>
                 <div
                     className="flex flex-1 items-center rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-2 transition-all focus-within:border-emerald-500 focus-within:bg-(--color-surface-page)"
                     role="search"
@@ -678,6 +711,7 @@ const handleMapReady = useCallback(() => {
                     >
                         <PharmacyMap
                             pharmacies={filteredPharmacies}
+                            ashaWorkers={ashaWorkers}
                             selectedPharmacyId={selectedPharmacyId}
                             userLocation={userLocation}
                             onMapMoveEnd={handleMapMoveEnd}
@@ -728,17 +762,17 @@ const handleMapReady = useCallback(() => {
                                         ? "animate-pulse bg-emerald-500/10 text-emerald-600"
                                         : userLocation
                                           ? "bg-emerald-600 text-white hover:bg-emerald-700"
-                                          : "bg-(--color-surface-page) text-emerald-600 hover:text-emerald-500 dark:hover:text-emerald-400 hover:shadow-xl"
+                                          : "bg-(--color-surface-page) text-emerald-600 hover:text-emerald-500 hover:shadow-xl dark:hover:text-emerald-400"
                                 }`}
                                 aria-label="Find my location"
                                 title="Find my location"
-                             >
+                            >
                                 <Navigation size={20} />
                             </button>
                         </div>
 
                         {(locationError || fetchError) && (
-                            <div className="animate-in slide-in-from-top-2 absolute top-4 right-16 left-4 z-1000 rounded-2xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20 px-4 py-3 text-xs font-semibold text-red-700 dark:text-red-400 shadow-lg duration-300">
+                            <div className="animate-in slide-in-from-top-2 absolute top-4 right-16 left-4 z-1000 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700 shadow-lg duration-300 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-400">
                                 {locationError || fetchError}
                             </div>
                         )}

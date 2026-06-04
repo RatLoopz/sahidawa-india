@@ -21,6 +21,7 @@
         "ai_chat": "AI ચેટ",
         "ai_health_assistant_description": "તાત્કાલિક આરોગ્ય સલાહ, લક્ષણોની તપાસ અને પ્રિસ્ક્રિપ્શન માર્ગદર્શન મેળવો",
         "chat_now": "હમણાં ચેટ કરો",
+        "explore_features": "વિશેષતાઓ શોધો",
         "live_cdsco_alerts": "લાઇવ CDSCO સૂચનાઓ",
         "india_region": "ભારત પ્રદેશ",
         "alerts_empty_title": "બધું ઠીક છે!",
@@ -135,8 +136,20 @@
             "timeout_title": "Voice request timed out",
             "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
             "api_title": "SahiDawa AI અનુપલબ્ધ છે",
-            "api_message": "અમે હમણાં તબીબી માર્ગદર્શન મેળવી શક્યા નહીં. કૃપા કરીને થોડીવાર પછી ફરી પ્રયાસ કરો."
-        }
+            "api_message": "અમે હમણાં તબીબી માર્ગદર્શન મેળવી શક્યા નહીં. કૃપા કરીને થોડીવાર પછી ફરી પ્રયાસ કરો.",
+            "language_not_supported_title": "This browser cannot capture that voice language",
+            "language_not_supported_message": "{language} voice input is limited in this browser. Try Chrome or Edge, or start a new check with another voice language."
+        },
+        "skip_to_main_content": "Skip to main content",
+        "announcements": {
+            "recording_started": "Recording started",
+            "processing_started": "Processing your symptoms",
+            "results_ready": "Results ready"
+        },
+        "streaming_connecting_hint": "Connecting to live transcription…",
+        "streaming_live_hint": "Live transcript is updating",
+        "streaming_fallback_hint": "Connection is unstable. SahiDawa will finish processing after you stop speaking.",
+        "tts_fallback_message": "Your browser may read this summary aloud in a different voice because {language} text-to-speech support is limited."
     },
     "offline": {
         "bannerOffline": "તમે ઑફલાઇન છો",
@@ -151,6 +164,207 @@
         "goHome": "હોમ પર જાઓ",
         "footer": "જ્યારે તમારું કનેક્શન પાછું આવશે ત્યારે SahiDawa આપમેળે સિંક થઈ જશે.",
         "cachedContent": "તમે અગાઉ લોડ કરેલ સામગ્રી હજુ પણ ઍક્સેસ કરી શકો છો",
-        "noCache": "આ પૃષ્ઠ કૅશ થયું ન હતું અને ઑફલાઇન ઉપલબ્ধ નથી"
+        "noCache": "આ પૃષ્ઠ કૅશ થયું ન હતું અને ઑફલાઇન ઉપલબ્ধ નથી",
+        "redirecting": "તમને SahiDawa પર રીડાયરેક્ટ કરી રહ્યાં છે…",
+        "attempt": "(પ્રયાસ {retryCount})",
+        "checkingConnection": "કનેક્શન તપાસી રહ્યું છે…",
+        "cachedAvailable": "અગાઉ મુલાકાત લીધેલ પૃષ્ઠો હજુ પણ ઉપલબ્ધ હોઈ શકે છે",
+        "cachedVerifications": "કૅશ કરેલી ચકાસણીઓ",
+        "savedPharmacies": "સાચવેલી ફાર્મસીઓ",
+        "browsedMedicines": "જોયેલી દવાઓ"
+    },
+    "contact": {
+        "badge": "GSSoC 2026 ઓપન સોર્સ પ્રોજેક્ટ",
+        "heroTitle": {
+            "prefix": "સંપર્ક",
+            "highlight": "કરો"
+        },
+        "heroSubtitle": "કોઈ પ્રશ્ન, વિચાર છે અથવા યોગદાન આપવા માંગો છો? અમને તમારા તરફથી સાંભળવાનું ગમશે.",
+        "cards": {
+            "email": {
+                "title": "અમને ઈમેલ કરો",
+                "description": "ગોપનીયતા સંબંધિત પ્રશ્નો, ભાગીદારી અથવા ગંભીર ચિંતાઓ માટે"
+            },
+            "discord": {
+                "title": "Discord કોમ્યુનિટી",
+                "description": "યોગદાન આપનારાઓ સાથે જોડાઓ, પ્રશ્નો પૂછો અને નવી ઘોષણાઓ મેળવો.",
+                "cta": "Discord સાથે જોડાઓ"
+            },
+            "bug": {
+                "title": "બગની જાણ કરો",
+                "description": "કોઈ સમસ્યા મળી? GitHub પર ઇશ્યૂ ઓપન કરો અને અમે તેને ઝડપથી ઠીક કરીશું.",
+                "cta": "ઇશ્યૂ ઓપન કરો"
+            },
+            "contribute": {
+                "title": "યોગદાન આપો",
+                "description": "SahiDawa બનાવવામાં મદદ કરવા માંગો છો? અમારી કન્ટ્રીબ્યુટીંગ ગાઈડ વાંચો.",
+                "cta": "ગાઈડ વાંચો"
+            }
+        },
+        "quickLinks": {
+            "title": "ઉપયોગી લિંક્સ",
+            "about": "SahiDawa વિશે",
+            "privacy": "ગોપનીયતા નીતિ",
+            "faq": "વારંવાર પૂછાતા પ્રશ્નો"
+        },
+        "footer": "SahiDawa મફત છે, ઓપન-સોર્સ છે, અને 140 કરોડ ભારતીયો માટે બનાવવામાં આવ્યું છે. કોઈ જાહેરાતો નથી. કોઈ પ્રીમિયમ નથી. કોઈ ડેટા વેચાતો નથી. ક્યારેય."
+    },
+    "about": {
+        "badge": "GSSoC 2026 ઓપન સોર્સ પ્રોજેક્ટ",
+        "heroTitle": "<highlight>SahiDawa</highlight> વિશે",
+        "heroSubtitle": "ભારતનો પહેલો ઓપન-સોર્સ નાગરિક દવા ચકાસણીકર્તા અને ગ્રામીણ આરોગ્ય સેતુ. ભારત માટે બનાવવામાં આવ્યો છે. ફક્ત ભારત માટે જ નહીં.",
+        "features": {
+            "free": "100% મફત. હંમેશા માટે.",
+            "languages": "22 ભારતીય ભાષાઓ",
+            "license": "ઓપન સોર્સ MIT લાયસન્સ"
+        },
+        "problemSection": {
+            "title": "સમસ્યા જેનો અમે ઉકેલ લાવી રહ્યા છીએ",
+            "description": "ભારતમાં સ્વાસ્થ્ય ક્ષેત્રે ત્રણ સ્તરીય કટોકટી છે જેનો કોઈ પણ વર્તમાન પ્લેટફોર્મ એકસાથે ઉકેલ નથી લાવી શકતું."
+        },
+        "cards": {
+            "fakeMedicines": {
+                "title": "નકલી દવાઓ",
+                "description": "ભારતમાં 12–25% દવાઓ નકલી અથવા હલકી ગુણવત્તાની હોય છે — જે નાગરિકો માટે કોઈ ચકાસણી સાધન ન હોવાને કારણે 1.4 અબજ લોકોને જોખમમાં મૂકે છે."
+            },
+            "ruralHealthcare": {
+                "title": "ગ્રામીણ હેલ્થકેર ગેપ",
+                "description": "ભારતની 65% વસ્તી ગ્રામીણ વિસ્તારોમાં રહે છે જેમાં લગભગ કોઈ લાયક ડોકટરો નથી - 900 મિલિયનથી વધુ લોકો સુલભ આરોગ્યસંભાળ વિના."
+            },
+            "languageBarrier": {
+                "title": "ભાષાનો અવરોધ",
+                "description": "22 સત્તાવાર ભાષાઓ છે — પરંતુ સ્વાસ્થ્ય સંબંધિત માહિતી મોટે ભાગે અંગ્રેજી કે હિન્દીમાં જ હોય છે, જેના કારણે 50 કરોડથી વધુ બિન-હિન્દી ભાષી લોકો પાછળ રહી જાય છે."
+            }
+        },
+        "realIncident": {
+            "title": "વાસ્તવિક ઘટના — જુલાઈ 2025",
+            "text": "દિલ્હી પોલીસે નકલી દવાઓ બનાવતી એક ગેંગનો પર્દાફાશ કર્યો હતો જે જોહ્ન્સન એન્ડ જોહ્ન્સન (Johnson & Johnson) અને GSK ની નકલી દવાઓ — જે ચોક પાવડર અને સ્ટાર્ચમાંથી બનેલી હતી — સરકારી હોસ્પિટલો સુધી સપ્લાય કરતી હતી. દર્દીઓ પાસે આ દવાઓ વાપરતા પહેલા <highlight>તેની ચકાસણી કરવાનો કોઈ જ રસ્તો નહોતો</highlight> .",
+            "highlight": "SahiDawa આ સમસ્યાને સુધારે છે. મફત. હંમેશા માટે. ઓપન સોર્સ."
+        },
+        "mission": {
+            "title": "અમારું મિશન",
+            "description": "દરેક ભારતીય નાગરિકને - ભાષા, સ્થાન અથવા સાક્ષરતાને અનુલક્ષીને - તરત જ દવાઓની ચકાસણી કરવાની, લાયકાત ધરાવતા આરોગ્ય માર્ગદર્શનને ઍક્સેસ કરવાની અને તેમના સમુદાયમાં નકલી દવાઓની જાણ કરવાની ક્ષમતા સાથે સશક્ત બનાવવા."
+        },
+        "vision": {
+            "title": "અમારું વિઝન",
+            "description": "એક એવું ભારત જ્યાં કોઈ પણ બાળક નકલી દવાને કારણે ન મરે, ડોક્ટરના અભાવે કોઈ ખેડૂતના પરિવારનું ખોટું નિદાન ન થાય, અને સ્વાસ્થ્ય સેવાઓમાં કોઈ ભાષા અવરોધ ન બને. મફત. ઓપન. હંમેશા માટે."
+        },
+        "coreValues": {
+            "title": "અમારા મુખ્ય મૂલ્યો",
+            "cards": {
+                "openSource": {
+                    "title": "ઓપન સોર્સ",
+                    "description": "MIT લાયસન્સ પ્રાપ્ત. હંમેશા."
+                },
+                "freeForever": {
+                    "title": "હંમેશા માટે મફત",
+                    "description": "કોઈ છુપો ખર્ચ નહીં. ક્યારેય નહીં."
+                },
+                "inclusive": {
+                    "title": "સર્વસમાવેશી",
+                    "description": "22 ભાષાઓ. આખું ભારત."
+                },
+                "privacy": {
+                    "title": "ગોપનીયતા પહેલા",
+                    "description": "કોઈ ડેટા વેચવામાં નહીં આવે. કોઈ જાહેરાતો નહીં."
+                }
+            }
+        },
+        "contactUs": {
+            "title": "સંપર્ક કરો",
+            "subtitle": "કોઈ પ્રશ્નો, વિચારો છે અથવા પ્રોજેક્ટમાં યોગદાન આપવા માંગો છો? અમને તમારા તરફથી સાંભળવું ગમશે."
+        }
+    },
+    "Faq": {
+        "badge": "GSSoC 2026 ઓપન સોર્સ પ્રોજેક્ટ",
+        "title": "વારંવાર પૂછાતા",
+        "title_highlight": "પ્રશ્નો",
+        "subtitle": "SahiDawa વિશે તમને જાણવાની તમામ બાબતો — ભારતનું મફત, ઓપન-સોર્સ દવા ચકાસણી પ્લેટફોર્મ.",
+        "cta": {
+            "title": "હજુ પણ પ્રશ્નો છે?",
+            "subtitle": "તમે જે જવાબ શોધી રહ્યા છો તે મળતો નથી? અમારી કમ્યુનિટીનો સંપર્ક કરો.",
+            "button": "સંપર્ક કરો"
+        },
+        "items": {
+            "0": {
+                "question": "SahiDawa શું છે?",
+                "answer": "SahiDawa ભારતનું પહેલું ઓપન-સોર્સ નાગરિક દવા ચકાસણી પ્લેટફોર્મ છે. તે તમારી દવા સાચી છે કે નકલી તે તપાસવામાં, નજીકની સુરક્ષિત ફાર્મસીઓ શોધવામાં અને તમારી ભાષામાં આરોગ્ય માર્ગદર્શન મેળવવામાં મદદ કરે છે."
+            },
+            "1": {
+                "question": "શું SahiDawa મફતમાં ઉપયોગ કરી શકાય છે?",
+                "answer": "હા! SahiDawa હંમેશાં માટે 100% મફત છે. કોઈ જાહેરાતો નહીં, કોઈ પ્રીમિયમ પ્લાન નહીં, કોઈ ડેટા વેચાણ નહીં. તે ભારત માટે, કમ્યુનિટી દ્વારા બનાવવામાં આવ્યું છે."
+            },
+            "2": {
+                "question": "દવાની ચકાસણી કેવી રીતે કામ કરે છે?",
+                "answer": "તમે તમારી દવાની પેકેજિંગ પરનો બારકોડ અથવા QR કોડ સ્કેન કરી શકો છો. SahiDawa તેને સત્તાવાર CDSCO ડેટાબેઝ સામે તપાસે છે અને દવા સાચી, શંકાસ્પદ કે નકલી છે તે જણાવે છે."
+            },
+            "3": {
+                "question": "SahiDawa કઈ ભાષાઓને સપોર્ટ કરે છે?",
+                "answer": "SahiDawa ભારતની 22 સત્તાવાર ભાષાઓને સપોર્ટ કરે છે. તમે Whisper અને Sarvam AI દ્વારા સંચાલિત અમારા Voice Health Assistant નો ઉપયોગ કરીને તમારી પોતાની ભાષામાં લક્ષણો બોલી શકો છો."
+            },
+            "4": {
+                "question": "હું નકલી દવાની રિપોર્ટ કેવી રીતે કરી શકું?",
+                "answer": "તમે હોમપેજ પરની 'Report Fake' સુવિધાનો ઉપયોગ કરી શકો છો. તમારી રિપોર્ટ કમ્યુનિટી હીટમૅપમાં ઉમેરાય છે, જે તમારા જિલ્લામાં અન્ય લોકોને નકલી દવાઓ વિશે ચેતવવામાં મદદ કરે છે."
+            },
+            "5": {
+                "question": "શું SahiDawa સાથે મારો ડેટા સુરક્ષિત છે?",
+                "answer": "ખરેખર. SahiDawa તમારો ડેટા વેચતું નથી, જાહેરાતો બતાવતું નથી અને કોઈ પ્રીમિયમ પ્લાન રાખતું નથી. તમારી ગોપનીયતા અમારી સર્વોચ્ચ પ્રાથમિકતા છે."
+            },
+            "6": {
+                "question": "હું SahiDawa માં કેવી રીતે યોગદાન આપી શકું?",
+                "answer": "SahiDawa MIT લાયસન્સ હેઠળ ઓપન સોર્સ છે. તમે GitHub પર યોગદાન આપી શકો છો, બગ્સ રિપોર્ટ કરી શકો છો, સુવિધાઓ સૂચવી શકો છો અથવા GSSoC 2026 ભાગીદાર તરીકે જોડાઈ શકો છો."
+            },
+            "7": {
+                "question": "CDSCO શું છે?",
+                "answer": "CDSCO નો અર્થ Central Drugs Standard Control Organisation થાય છે. તે કોસ્મેટિક્સ, ફાર્માસ્યુટિકલ્સ અને મેડિકલ ડિવાઇસીસ માટે ભારતનું રાષ્ટ્રીય નિયમનકારી સંગઠન છે. SahiDawa તેમની સત્તાવાર ડેટાબેઝ સામે દવાઓની ચકાસણી કરે છે."
+            }
+        }
+    },
+    "Scan": {
+        "share": {
+            "avoid_and_report": "Please avoid and report to your nearest health worker.",
+            "batch_label": "Batch",
+            "button": "Share Result",
+            "copy_success": "Result copied to clipboard",
+            "failure": "Unable to share this result right now",
+            "manufacturer_label": "Manufacturer",
+            "real_status": "Verified REAL",
+            "shared_success": "Result shared successfully",
+            "suspicious_status": "Marked SUSPICIOUS",
+            "title": "SahiDawa Medicine Verification Result",
+            "unknown_batch": "Unknown batch",
+            "unknown_manufacturer": "Unknown manufacturer",
+            "unknown_medicine": "Unknown medicine",
+            "verified_by": "by SahiDawa",
+            "verify_yourself": "Verify yourself",
+            "warning_prefix": "WARNING"
+        }
+    },
+    "chat": {
+        "actions": {
+            "pharmacy": {
+                "description": "Locate verified stores",
+                "label": "Find Pharmacy"
+            },
+            "scan": {
+                "description": "Verify authenticity",
+                "label": "Scan Medicine"
+            },
+            "symptoms": {
+                "description": "AI-assisted guidance",
+                "label": "Check Symptoms"
+            }
+        },
+        "footer": "For informational use only • Consult a doctor",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "quick_actions": "Quick actions",
+        "welcome": "Namaste, I'm SahiDawa, your trusted health companion. I can help you verify medicines, understand symptoms, or find nearby care. What would you like help with today?"
+    },
+    "chatbot": {
+        "placeholder": "Ask me about a medicine...",
+        "status": "Online",
+        "title": "SahiDawa AI",
+        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"
     }
 }

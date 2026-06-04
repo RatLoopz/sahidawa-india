@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import { SkeletonLoader } from "@/components/scanner/SkeletonLoader";
 import {
     Camera,
     ShieldCheck,
@@ -43,6 +44,8 @@ import {
     extractMedicineName,
 } from "@/src/utils/medicineParser";
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
+import { useTranslations } from "next-intl";
+import { buildVerificationShareText, type VerificationShareCopy } from "@/lib/verificationShare";
 
 function formatExpiryForBadge(isoDate: string | null | undefined): string | undefined {
     if (!isoDate) return undefined;
@@ -98,6 +101,27 @@ function formatMedicineDetails(medicine: VerifiedMedicine) {
         `CDSCO Status: ${medicine.cdsco_approval_status}`,
         medicine.is_counterfeit_alert ? "Status: Counterfeit alert" : "Status: Verified",
     ].join("\n");
+}
+
+async function copyTextToClipboard(text: string) {
+    try {
+        if (!navigator.clipboard?.writeText) {
+            throw new Error("Clipboard API unavailable");
+        }
+        await navigator.clipboard.writeText(text);
+        return true;
+    } catch {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.setAttribute("readonly", "");
+        textArea.style.position = "fixed";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.select();
+        const copied = document.execCommand("copy");
+        document.body.removeChild(textArea);
+        return copied;
+    }
 }
 
 function LoadingSkeleton({ ocrStatus, ocrProgress }: { ocrStatus: string; ocrProgress: number }) {
@@ -156,15 +180,24 @@ function LoadingSkeleton({ ocrStatus, ocrProgress }: { ocrStatus: string; ocrPro
 // Result views with dark/light mode surface tokens and variables support
 function VerifiedSafeResult({
     medicine,
+    scanMeta,
     onScanAgain,
     onShare,
     onCopyMedicineDetails,
+    shareLabel,
     copied,
 }: {
     medicine: VerifiedMedicine;
+    scanMeta?: {
+        recentScanCount24h: number;
+        recentScanCount7d: number;
+        suspicious: boolean;
+        suspicionReasons: string[];
+    };
     onScanAgain: () => void;
     onShare: () => void;
     onCopyMedicineDetails: () => void;
+    shareLabel: string;
     copied: boolean;
 }) {
     return (
@@ -182,6 +215,18 @@ function VerifiedSafeResult({
                 </div>
 
                 <CdscoStatusBadge status={medicine.cdsco_approval_status} />
+
+                {scanMeta?.suspicious && (
+                    <div className="border-amber-250 flex w-full items-start gap-3 rounded-2xl border bg-amber-50 p-4 text-left dark:border-amber-900 dark:bg-amber-950/20">
+                        <AlertTriangle
+                            size={18}
+                            className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400"
+                        />
+                        <p className="text-xs leading-relaxed font-medium text-amber-800 dark:text-amber-400">
+                            {scanMeta.suspicionReasons.join(" ")}
+                        </p>
+                    </div>
+                )}
 
                 <div className="grid w-full grid-cols-2 gap-3 pt-2">
                     <div className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) p-3">
@@ -255,7 +300,11 @@ function VerifiedSafeResult({
                     </div>
                 )}
 
-                <ResultActions onScanAgain={onScanAgain} onShare={onShare} />
+                <ResultActions
+                    onScanAgain={onScanAgain}
+                    onShare={onShare}
+                    shareLabel={shareLabel}
+                />
             </div>
         </div>
     );
@@ -266,12 +315,14 @@ function CounterfeitAlertResult({
     onScanAgain,
     onShare,
     onCopyMedicineDetails,
+    shareLabel,
     copied,
 }: {
     medicine: VerifiedMedicine;
     onScanAgain: () => void;
     onShare: () => void;
     onCopyMedicineDetails: () => void;
+    shareLabel: string;
     copied: boolean;
 }) {
     return (
@@ -334,7 +385,11 @@ function CounterfeitAlertResult({
                     </p>
                 </div>
 
-                <ResultActions onScanAgain={onScanAgain} onShare={onShare} />
+                <ResultActions
+                    onScanAgain={onScanAgain}
+                    onShare={onShare}
+                    shareLabel={shareLabel}
+                />
             </div>
         </div>
     );
@@ -345,11 +400,15 @@ function UnverifiedResult({
     batchNumber,
     expiryDate,
     onScanAgain,
+    onShare,
+    shareLabel,
 }: {
     brandName?: string;
     batchNumber?: string;
     expiryDate?: string;
     onScanAgain: () => void;
+    onShare: () => void;
+    shareLabel: string;
 }) {
     return (
         <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] border border-(--color-border-muted) bg-(--color-surface-page) p-8 text-(--color-text-primary) shadow-2xl">
@@ -392,12 +451,11 @@ function UnverifiedResult({
                     </p>
                 </div>
 
-                <button
-                    onClick={onScanAgain}
-                    className="w-full rounded-2xl bg-slate-900 py-4 font-bold text-white shadow-lg shadow-slate-900/20 transition-all hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
-                >
-                    Try Again
-                </button>
+                <ResultActions
+                    onScanAgain={onScanAgain}
+                    onShare={onShare}
+                    shareLabel={shareLabel}
+                />
             </div>
         </div>
     );
@@ -440,7 +498,15 @@ function ErrorResult({
     );
 }
 
-function ResultActions({ onScanAgain, onShare }: { onScanAgain: () => void; onShare: () => void }) {
+function ResultActions({
+    onScanAgain,
+    onShare,
+    shareLabel,
+}: {
+    onScanAgain: () => void;
+    onShare: () => void;
+    shareLabel: string;
+}) {
     return (
         <div className="no-print grid w-full grid-cols-1 gap-3">
             <button
@@ -462,7 +528,7 @@ function ResultActions({ onScanAgain, onShare }: { onScanAgain: () => void; onSh
                     className="flex items-center justify-center gap-2 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) py-3.5 font-semibold text-(--color-text-primary) transition-all hover:bg-(--color-border-muted)"
                 >
                     <Share2 size={18} />
-                    <span>Share</span>
+                    <span>{shareLabel}</span>
                 </button>
             </div>
         </div>
@@ -470,6 +536,7 @@ function ResultActions({ onScanAgain, onShare }: { onScanAgain: () => void; onSh
 }
 
 export default function ScanPage() {
+    const tScan = useTranslations("Scan");
     // Add these near the top of your component, inside the main function
     const [isVerifying, setIsVerifying] = useState(false);
     const [apiError, setApiError] = useState<string | null>(null);
@@ -531,16 +598,31 @@ export default function ScanPage() {
     const [lasaMatches, setLasaMatches] = useState<LasaMatch[]>([]);
     const [showLasaConfirmation, setShowLasaConfirmation] = useState(false);
     const [pendingVerifyResult, setPendingVerifyResult] = useState<VerifyResult | null>(null);
+    const shareCopy: VerificationShareCopy = {
+        realStatus: tScan("share.real_status"),
+        suspiciousStatus: tScan("share.suspicious_status"),
+        warningPrefix: tScan("share.warning_prefix"),
+        verifiedBy: tScan("share.verified_by"),
+        batchLabel: tScan("share.batch_label"),
+        manufacturerLabel: tScan("share.manufacturer_label"),
+        avoidAndReport: tScan("share.avoid_and_report"),
+        verifyYourself: tScan("share.verify_yourself"),
+        unknownMedicine: tScan("share.unknown_medicine"),
+        unknownBatch: tScan("share.unknown_batch"),
+        unknownManufacturer: tScan("share.unknown_manufacturer"),
+    };
 
     const processVerificationResult = async (result: VerifyResult, fallbackBrandName?: string) => {
         if (!result.verified) {
             setVerifyResult(result);
+            setShowResult(true);
             return;
         }
         try {
             const medicineName = result.medicine.brand_name || fallbackBrandName;
             if (!medicineName) {
                 setVerifyResult(result);
+                setShowResult(true);
                 return;
             }
             const lasaRes = await checkLasaConflicts(medicineName);
@@ -548,12 +630,15 @@ export default function ScanPage() {
                 setLasaMatches(lasaRes.matches);
                 setPendingVerifyResult(result);
                 setShowLasaConfirmation(true);
+                setShowResult(true);
             } else {
                 setVerifyResult(result);
+                setShowResult(true);
             }
         } catch (error) {
             console.error("LASA check error:", error);
             setVerifyResult(result);
+            setShowResult(true);
         }
     };
 
@@ -898,7 +983,19 @@ export default function ScanPage() {
             }
         }
     };
-
+    const handleCameraPermissionDenied = useCallback(() => {
+        setIsCameraActive(false);
+        toast.error("Camera access denied. Please enter batch number manually.", {
+            duration: 4000,
+        });
+        // Auto focus batch input
+        setTimeout(() => {
+            const input = document.querySelector(
+                'input[placeholder="Enter batch number"]'
+            ) as HTMLInputElement;
+            input?.focus();
+        }, 300);
+    }, []);
     const handleBarcodeScan = async (scannedText: string) => {
         setIsVerifying(true);
         setApiError(null);
@@ -950,30 +1047,32 @@ export default function ScanPage() {
     };
 
     const handleShare = async () => {
-        let shareText = "";
-        if (verifyResult?.verified) {
-            shareText = formatMedicineDetails(verifyResult.medicine);
-        } else {
-            shareText = `Medicine Verification: Unverified batch — ${batchInput}`;
-        }
+        const shareText = buildVerificationShareText({
+            result: verifyResult,
+            batchNumber: batchInput || parsedBatch,
+            brandName: parsedBrand,
+            copy: shareCopy,
+        });
 
         const shareData = {
-            title: "Medicine Verification Result",
+            title: tScan("share.title"),
             text: shareText,
-            url: window.location.href,
         };
 
         try {
             if (navigator.share) {
                 await navigator.share(shareData);
-                toast.success("Result shared successfully");
+                toast.success(tScan("share.shared_success"));
             } else {
-                await navigator.clipboard.writeText(`${shareText}\n\n${window.location.href}`);
-                toast.success("Result copied to clipboard");
+                const copiedToClipboard = await copyTextToClipboard(shareText);
+                if (!copiedToClipboard) {
+                    throw new Error("Clipboard copy failed");
+                }
+                toast.success(tScan("share.copy_success"));
             }
         } catch (error: unknown) {
             if (error instanceof Error && error.name !== "AbortError") {
-                toast.error("Failed to share result");
+                toast.error(tScan("share.failure"));
             }
         }
     };
@@ -984,7 +1083,7 @@ export default function ScanPage() {
     };
 
     return (
-        <div className="relative flex min-h-screen flex-col overflow-x-clip bg-(--color-surface-page) text-(--color-text-primary) font-sans">
+        <div className="relative flex min-h-[calc(100vh-4rem)] flex-col overflow-x-clip bg-(--color-surface-page) font-sans text-(--color-text-primary)">
             <input
                 type="file"
                 id="medicine-upload"
@@ -997,7 +1096,7 @@ export default function ScanPage() {
                 title="Scanner Mode"
                 subtitle="Position the Barcode"
                 backHref="/"
-                variant="dark"
+                variant="light"
             />
 
             <div className="relative flex flex-1 items-center justify-center">
@@ -1008,7 +1107,11 @@ export default function ScanPage() {
                             debounceMs={2500}
                             isVerifying={isVerifying}
                             apiError={apiError}
-                            onRetry={() => setApiError(null)}
+                            onRetry={() => {
+                                setApiError(null);
+                                setIsCameraActive(false);
+                            }}
+                            onPermissionDenied={handleCameraPermissionDenied}
                         />
                     ) : uploadedImage ? (
                         <LazyImage
@@ -1042,7 +1145,7 @@ export default function ScanPage() {
                     )}
                 </div>
 
-                {isScanning && <LoadingSkeleton ocrStatus={ocrStatus} ocrProgress={ocrProgress} />}
+                {isScanning && <SkeletonLoader />}
 
                 {showResult && (
                     <div className="animate-in fade-in zoom-in absolute inset-0 z-30 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm duration-300">
@@ -1080,6 +1183,7 @@ export default function ScanPage() {
                                             onScanAgain={handleScanAgain}
                                             onShare={handleShare}
                                             onCopyMedicineDetails={handleCopyMedicineDetails}
+                                            shareLabel={tScan("share.button")}
                                             copied={copied}
                                         />
                                     )}
@@ -1088,9 +1192,11 @@ export default function ScanPage() {
                                     !verifyResult.medicine.is_counterfeit_alert && (
                                         <VerifiedSafeResult
                                             medicine={verifyResult.medicine}
+                                            scanMeta={verifyResult.scanMeta}
                                             onScanAgain={handleScanAgain}
                                             onShare={handleShare}
                                             onCopyMedicineDetails={handleCopyMedicineDetails}
+                                            shareLabel={tScan("share.button")}
                                             copied={copied}
                                         />
                                     )}
@@ -1100,6 +1206,8 @@ export default function ScanPage() {
                                         batchNumber={parsedBatch}
                                         expiryDate={parsedExpiry}
                                         onScanAgain={handleDismissResult}
+                                        onShare={handleShare}
+                                        shareLabel={tScan("share.button")}
                                     />
                                 )}
                             </>
@@ -1142,7 +1250,7 @@ export default function ScanPage() {
                         value={batchInput}
                         onChange={(e) => setBatchInput(e.target.value)}
                         placeholder="Enter batch number"
-                        className="flex-1 rounded-full border border-white/20 bg-white/10 px-4 py-3 text-center text-sm font-medium text-white placeholder-white/40 focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                        className="flex-1 rounded-full border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 text-center text-sm font-medium text-(--color-text-primary) placeholder-(--color-text-muted) focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:border-white/20 dark:bg-white/10 dark:text-white dark:placeholder-white/40"
                     />
                     <button
                         type="submit"
