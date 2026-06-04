@@ -84,7 +84,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-[var(--color-surface-login)] px-4 py-10">
+        <div className="flex min-h-screen items-center justify-center bg-[var(--color-surface-login)] px-4 py-10 [background-image:radial-gradient(ellipse_at_top_left,rgba(16,185,129,0.08)_0%,transparent_50%),radial-gradient(ellipse_at_bottom_right,rgba(5,150,105,0.06)_0%,transparent_50%)]">
             <div className="w-full max-w-md">
                 {/* Logo */}
                 <div className="mb-8 flex items-center justify-center gap-3">
@@ -141,7 +141,7 @@ export default function LoginPage() {
                         type="button"
                         onClick={handleGoogleLogin}
                         disabled={loading || isMissingEnvVars}
-                        className="mb-6 flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200/50 bg-white/60 px-4 py-3.5 font-medium text-slate-700 shadow-sm backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:bg-white/80 hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-slate-800/50 dark:text-white dark:hover:bg-slate-800/80 dark:hover:shadow-[0_8px_20px_rgba(0,0,0,0.2)]"
+                        className="mb-6 flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 font-medium text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
                     >
                         <FcGoogle size={20} />
                         Sign in with Google
@@ -163,7 +163,7 @@ export default function LoginPage() {
                                 Email Address
                             </label>
 
-                            <div className="mt-2 flex items-center gap-3 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 transition focus-within:border-emerald-500 focus-within:bg-(--color-surface-page)">
+                            <div className="mt-2 flex items-center gap-3 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3.5 transition focus-within:border-emerald-500 focus-within:bg-(--color-surface-page) focus-within:ring-2 focus-within:ring-emerald-500/20">
                                 <Mail className="h-5 w-5 text-(--color-text-muted)" />
 
                                 <input
@@ -184,7 +184,7 @@ export default function LoginPage() {
                                 Password
                             </label>
 
-                            <div className="mt-2 flex items-center gap-3 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 transition focus-within:border-emerald-500 focus-within:bg-(--color-surface-page)">
+                            <div className="mt-2 flex items-center gap-3 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3.5 transition focus-within:border-emerald-500 focus-within:bg-(--color-surface-page) focus-within:ring-2 focus-within:ring-emerald-500/20">
                                 <Lock className="h-5 w-5 text-(--color-text-muted)" />
 
                                 <input
