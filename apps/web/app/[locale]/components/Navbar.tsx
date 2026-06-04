@@ -169,7 +169,7 @@ export default function Navbar() {
 
                     {/* Center — Desktop Nav Links */}
                     <nav
-                        className="ml-6 hidden flex-1 items-center justify-center gap-6 text-sm font-semibold text-(--color-text-secondary) lg:flex"
+                        className="ml-6 hidden items-center justify-center gap-6 text-sm font-semibold text-(--color-text-secondary) lg:flex"
                         aria-label="Main navigation"
                     >
                         <Link href="/how-it-works" className={desktopNavLinkClassName}>
@@ -190,7 +190,7 @@ export default function Navbar() {
                     </nav>
 
                     {/* Right — Action Controls Container */}
-                    <div className="flex shrink-0 items-center gap-1 sm:gap-3">
+                    <div className="flex min-w-0 flex-1 items-center justify-end gap-1 sm:gap-3">
                         {/* Health Companion Trigger */}
                         <div className="group relative flex items-center">
                             <Link
