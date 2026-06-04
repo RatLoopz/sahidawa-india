@@ -45,6 +45,12 @@ jobs:
             // ── 2. Comment event: /assign command handler ───────────────────
             if (eventName !== 'issue_comment' || context.payload.action !== 'created') return;
 
+            // Skip PR comments (GitHub treats PR comments as issue_comment events)
+            if (context.payload.issue && context.payload.issue.pull_request) {
+              core.info('Comment is on a Pull Request. Skipping assignment.');
+              return;
+            }
+
             const commentBody = context.payload.comment.body;
             const issueNumber = context.issue.number;
             const commenter   = context.payload.comment.user.login;
@@ -56,13 +62,25 @@ jobs:
             const requestKeywords = ['/assign', 'please assign', 'assign me'];
             const isRequest = requestKeywords.some(kw => commentBody.toLowerCase().includes(kw));
             
+            if (!isRequest) return;
+
+            // Skip maintainers/owners from being auto-assigned via comments
+            try {
+              const { data: perm } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: repo.owner, repo: repo.repo, username: commenter
+              });
+              if (perm.permission === 'admin' || perm.permission === 'write') {
+                core.info('Maintainer/Owner commented — skipping auto-assignment.');
+                return;
+              }
+            } catch (err) {
+              core.warning('Could not check permissions for @' + commenter + ': ' + err.message);
+            }
+
             // Fetch issue early to check unassigned status
             const issueData = await github.rest.issues.get({ owner: repo.owner, repo: repo.repo, issue_number: issueNumber });
             const currentAssignees = (issueData.data.assignees || []).map(a => a.login);
             const isUnassigned = currentAssignees.length === 0;
-            const isSpam = commentBody.trim().length < 5;
-
-            if (!isRequest && (!isUnassigned || isSpam)) return;
 
             core.info('Audit trigger: @' + commenter + ' attempting assignment on #' + issueNumber);
 

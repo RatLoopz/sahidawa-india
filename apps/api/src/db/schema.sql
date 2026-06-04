@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS medicines (
 CREATE TABLE IF NOT EXISTS pharmacies (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
+    license_id VARCHAR(100) UNIQUE,
     address TEXT NOT NULL,
     district VARCHAR(100) NOT NULL,
     state VARCHAR(100) NOT NULL,

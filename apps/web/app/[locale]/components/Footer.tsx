@@ -35,19 +35,19 @@ export default function Footer() {
             href: "https://github.com/RatLoopz/sahidawa-india",
             icon: FaGithub,
             label: "GitHub",
-            hoverColor: "hover:text-white hover:border-slate-600",
+            hoverColor: "hover:text-slate-800 dark:hover:text-white hover:border-slate-600",
         },
         {
             href: "https://linkedin.com/",
             icon: FaLinkedin,
             label: "LinkedIn",
-            hoverColor: "hover:text-blue-400 hover:border-blue-500",
+            hoverColor: "hover:text-slate-800 dark:hover:text-white hover:border-slate-600",
         },
         {
             href: "https://twitter.com/",
             icon: FaXTwitter,
             label: "Twitter",
-            hoverColor: "hover:text-white hover:border-slate-600",
+            hoverColor: "hover:text-slate-800 dark:hover:text-white hover:border-slate-600",
         },
     ];
 

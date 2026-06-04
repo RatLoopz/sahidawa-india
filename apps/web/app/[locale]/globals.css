@@ -112,10 +112,18 @@
 
     /* Blob Animation for Glassmorphism */
     @keyframes blob {
-        0% { transform: translate(0px, 0px) scale(1); }
-        33% { transform: translate(30px, -50px) scale(1.1); }
-        66% { transform: translate(-20px, 20px) scale(0.9); }
-        100% { transform: translate(0px, 0px) scale(1); }
+        0% {
+            transform: translate(0px, 0px) scale(1);
+        }
+        33% {
+            transform: translate(30px, -50px) scale(1.1);
+        }
+        66% {
+            transform: translate(-20px, 20px) scale(0.9);
+        }
+        100% {
+            transform: translate(0px, 0px) scale(1);
+        }
     }
     .animate-blob {
         animation: blob 7s infinite;
@@ -127,6 +135,23 @@
         animation-delay: 4s;
     }
 
+    @keyframes testimonial-marquee {
+        from {
+            transform: translateX(0);
+        }
+        to {
+            transform: translateX(-50%);
+        }
+    }
+
+    .testimonial-marquee-track {
+        width: max-content;
+        animation: testimonial-marquee 34s linear infinite;
+    }
+
+    .testimonial-marquee:hover .testimonial-marquee-track {
+        animation-play-state: paused;
+    }
 
     /* Leaflet Popup Overrides — match SahiDawa design */
     /* Popup always renders with white background, so use fixed dark colors for text */
@@ -330,7 +355,6 @@
 
 /* Better mobile touch targets */
 @media (max-width: 640px) {
-
     .language-option {
         min-height: 48px;
     }
@@ -342,11 +366,18 @@
 
 /* Reduced motion accessibility */
 @media (prefers-reduced-motion: reduce) {
-
     .language-dropdown,
     .language-switcher-btn,
     .language-option {
         animation: none !important;
         transition: none !important;
+    }
+
+    .testimonial-marquee {
+        overflow-x: auto;
+    }
+
+    .testimonial-marquee-track {
+        animation: none !important;
     }
 }

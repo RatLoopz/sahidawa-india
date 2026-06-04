@@ -55,8 +55,18 @@ export interface RiskHotspot {
     details?: string;
 }
 
+export interface AshaWorker {
+    id: number;
+    name: string;
+    district: string;
+    coordinates: { lat: number; lng: number };
+    contact: string;
+    distanceKm?: number;
+}
+
 interface PharmacyMapProps {
     pharmacies: Pharmacy[];
+    ashaWorkers?: AshaWorker[];
     selectedPharmacyId?: number | null;
     onSelectPharmacy?: (pharmacyId: number) => void;
     onLocateUser?: () => void;
@@ -72,6 +82,7 @@ interface PharmacyMapProps {
 
 export default function PharmacyMap({
     pharmacies,
+    ashaWorkers = [],
     selectedPharmacyId,
     onSelectPharmacy,
     userLocation,
@@ -86,6 +97,7 @@ export default function PharmacyMap({
     const mapContainer = useRef<HTMLDivElement>(null);
     const map = useRef<any>(null);
     const layerGroup = useRef<any>(null);
+    const ashaLayerGroup = useRef<any>(null);
     const heatLayerGroup = useRef<any>(null);
     const userMarker = useRef<any>(null);
     const markersRef = useRef<Map<number, any>>(new Map());
@@ -163,6 +175,7 @@ export default function PharmacyMap({
                     }
 
                     layerGroup.current = L.layerGroup().addTo(map.current);
+                    ashaLayerGroup.current = L.layerGroup().addTo(map.current);
                     heatLayerGroup.current = L.layerGroup().addTo(map.current);
 
                     // Fire moveend callback so the page can fetch initial data
@@ -249,6 +262,133 @@ export default function PharmacyMap({
                 );
             });
     }, [heatmapMode, riskHotspots, isMapReady]);
+
+    // Update markers when ASHA workers change
+    useEffect(() => {
+        if (!isMapReady || !map.current || !ashaLayerGroup.current) return;
+
+        const L = (window as any).L;
+        if (!L) return;
+
+        // Clear existing ASHA markers
+        ashaLayerGroup.current.clearLayers();
+
+        if (!ashaWorkers || ashaWorkers.length === 0) {
+            return;
+        }
+
+        ashaWorkers.forEach((worker) => {
+            const customIcon = L.divIcon({
+                className: "asha-worker-marker",
+                html: `
+          <div style="position:relative;width:36px;height:36px;">
+            <div style="
+              width: 36px;
+              height: 36px;
+              background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+              border-radius: 50% 50% 50% 4px;
+              transform: rotate(-45deg);
+              border: 3px solid #93c5fd;
+              box-shadow: 0 4px 12px rgba(59,130,246,0.4), 0 2px 4px rgba(0,0,0,0.1);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              <svg style="transform: rotate(45deg); width: 18px; height: 18px; color: white;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+          </div>`,
+                iconSize: [36, 36],
+                iconAnchor: [18, 36],
+                popupAnchor: [0, -36],
+            });
+
+            const marker = L.marker([worker.coordinates.lat, worker.coordinates.lng], {
+                icon: customIcon,
+            }).addTo(ashaLayerGroup.current);
+
+            const popupContent = `
+        <div style="
+          padding: 12px;
+          min-width: 220px;
+          max-width: 280px;
+          font-family: ui-sans-serif, system-ui, sans-serif;
+          color: #1e293b;
+        ">
+          <div style="
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 8px;
+          ">
+            🩺 Certified ASHA Worker
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:800;color:#1e293b;font-size:13px;line-height:1.3;">${escapeHtml(worker.name)}</div>
+              <span style="
+                font-size:10px;
+                font-weight:700;
+                padding:2px 6px;
+                border-radius:4px;
+                background:#eff6ff;color:#1e40af;
+                display:inline-block;
+                margin-top:2px;
+              ">District: ${escapeHtml(worker.district || "N/A")}</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;font-size:12px;color:#94a3b8;margin-bottom:12px;">
+            ${worker.distanceKm ? `<span style="font-weight:600;color:#64748b;">${worker.distanceKm.toFixed(1)} km away</span>` : ""}
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            ${
+                worker.contact
+                    ? `<a href="tel:${escapeHtml(worker.contact)}" style="
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                gap:6px;
+                width:100%;
+                padding:8px;
+                background:#1d4ed8;
+                color:white;
+                border-radius:10px;
+                text-decoration:none;
+                font-size:12px;
+                font-weight:700;
+              ">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                Call ASHA Worker
+              </a>`
+                    : ""
+            }
+          </div>
+        </div>
+      `;
+
+            marker.bindPopup(popupContent, {
+                className: "sahidawa-popup",
+                closeButton: true,
+                maxWidth: 300,
+            });
+
+            if (window.matchMedia("(pointer: fine)").matches) {
+                marker.on("mouseover", () => {
+                    marker.openPopup();
+                });
+            }
+        });
+    }, [ashaWorkers, isMapReady]);
 
     // Update markers when pharmacies change
     useEffect(() => {

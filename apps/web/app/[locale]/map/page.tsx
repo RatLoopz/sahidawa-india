@@ -27,8 +27,11 @@ import { fetchPharmacies, fetchPharmaciesInBounds, type OverpassPharmacy } from 
 import {
     fetchVerifiedPharmacies,
     fetchVerifiedPharmaciesInBounds,
+    fetchNearbyAshaWorkers,
     type VerifiedPharmacy,
+    type ApiAshaWorker,
 } from "../../../lib/api";
+import { type AshaWorker } from "./PharmacyMap";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const DEFAULT_CENTER = { lat: 28.6139, lng: 77.209 }; // New Delhi
@@ -134,6 +137,17 @@ function toVerifiedPharmacy(vp: VerifiedPharmacy, id: number): Pharmacy {
         address: vp.address,
         phone: vp.phone_number || undefined,
         isVerified: verified,
+    };
+}
+
+function toAshaWorker(aw: ApiAshaWorker): AshaWorker {
+    return {
+        id: aw.id,
+        name: aw.name,
+        district: aw.district,
+        coordinates: { lat: aw.lat, lng: aw.lng },
+        contact: aw.contact,
+        distanceKm: aw.distance_km,
     };
 }
 
@@ -257,6 +271,7 @@ export default function PharmacyMapPage() {
 
     // Live data state (PR #147 engine)
     const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
+    const [ashaWorkers, setAshaWorkers] = useState<AshaWorker[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [fetchError, setFetchError] = useState<string | null>(null);
     const [showSearchArea, setShowSearchArea] = useState(false);
@@ -272,9 +287,10 @@ export default function PharmacyMapPage() {
         setShowSearchArea(false);
         try {
             const radiusKm = Math.round(radius / 1000);
-            const [verifiedResult, osmResult] = await Promise.allSettled([
+            const [verifiedResult, osmResult, ashaResult] = await Promise.allSettled([
                 fetchVerifiedPharmacies(lat, lng, radiusKm),
                 fetchPharmacies(lat, lng, radius),
+                fetchNearbyAshaWorkers(lat, lng, radiusKm),
             ]);
 
             const verified =
@@ -282,6 +298,8 @@ export default function PharmacyMapPage() {
                     ? verifiedResult.value.map((vp, i) => toVerifiedPharmacy(vp, -(i + 1)))
                     : [];
             const osm = osmResult.status === "fulfilled" ? osmResult.value.map(toPharmacy) : [];
+            const asha =
+                ashaResult.status === "fulfilled" ? ashaResult.value.map(toAshaWorker) : [];
 
             const dedupedOsm = deduplicateOsm(verified, osm);
             const merged = [...verified, ...dedupedOsm].sort((a, b) => {
@@ -298,6 +316,7 @@ export default function PharmacyMapPage() {
             }
 
             setPharmacies(merged);
+            setAshaWorkers(asha);
             setPharmacyCount(merged.length);
             initialFetchDone.current = true;
         } catch (err) {
@@ -332,7 +351,10 @@ export default function PharmacyMapPage() {
         setFetchError(null);
         setShowSearchArea(false);
         try {
-            const [verifiedResult, osmResult] = await Promise.allSettled([
+            const centerLat = bounds.center.lat;
+            const centerLng = bounds.center.lng;
+            const radiusKm = 15;
+            const [verifiedResult, osmResult, ashaResult] = await Promise.allSettled([
                 fetchVerifiedPharmaciesInBounds(
                     bounds.south,
                     bounds.west,
@@ -340,6 +362,7 @@ export default function PharmacyMapPage() {
                     bounds.east
                 ),
                 fetchPharmaciesInBounds(bounds.south, bounds.west, bounds.north, bounds.east),
+                fetchNearbyAshaWorkers(centerLat, centerLng, radiusKm),
             ]);
 
             const verified =
@@ -347,6 +370,8 @@ export default function PharmacyMapPage() {
                     ? verifiedResult.value.map((vp, i) => toVerifiedPharmacy(vp, -(i + 1)))
                     : [];
             const osm = osmResult.status === "fulfilled" ? osmResult.value.map(toPharmacy) : [];
+            const asha =
+                ashaResult.status === "fulfilled" ? ashaResult.value.map(toAshaWorker) : [];
 
             const dedupedOsm = deduplicateOsm(verified, osm);
             const merged = [...verified, ...dedupedOsm].sort((a, b) => {
@@ -363,6 +388,7 @@ export default function PharmacyMapPage() {
             }
 
             setPharmacies(merged);
+            setAshaWorkers(asha);
             setPharmacyCount(merged.length);
         } catch (err) {
             console.error("Critical error in bound pharmacy rendering:", err);
@@ -685,6 +711,7 @@ export default function PharmacyMapPage() {
                     >
                         <PharmacyMap
                             pharmacies={filteredPharmacies}
+                            ashaWorkers={ashaWorkers}
                             selectedPharmacyId={selectedPharmacyId}
                             userLocation={userLocation}
                             onMapMoveEnd={handleMapMoveEnd}

@@ -58,3 +58,6 @@ coverage/
 # local model data 
 ml_model_dev_pipeline/.venv/*
 ml_model_dev_pipeline/data
+
+# Scratch / Temporary Dev Scripts
+scratch/

@@ -59,6 +59,88 @@ interface PharmacyWithRawDistance extends FormattedPharmacy {
 
 // ── Zod validation schemas ───────────────────────────────────────────────────
 
+// Schema for pharmacy registration. licenseId is required and must be unique
+// across all registered pharmacies to prevent duplicate records.
+const registerPharmacySchema = z.object({
+    name: z.string().min(2),
+    licenseId: z.string().min(3),
+    address: z.string().min(5),
+    district: z.string().min(2),
+    state: z.string().min(2),
+    phone_number: z
+        .string()
+        .regex(/^\+?[\d\s\-()]{7,15}$/)
+        .optional(),
+    lat: z.number().min(-90).max(90).optional(),
+    lng: z.number().min(-180).max(180).optional(),
+});
+
+// ── Pharmacy registration ────────────────────────────────────────────────────
+
+/**
+ * POST /api/pharmacies
+ * Register a new pharmacy. Returns 409 if a pharmacy with the same licenseId
+ * already exists to prevent duplicate entries.
+ */
+router.post("/", async (req: Request, res: Response, next: NextFunction) => {
+    const parsed = registerPharmacySchema.safeParse(req.body);
+    if (!parsed.success) {
+        res.status(400).json({ error: "Invalid pharmacy payload", issues: parsed.error.issues });
+        return;
+    }
+
+    const data = parsed.data;
+
+    try {
+        // Check for an existing pharmacy with the same licenseId before inserting.
+        // Without this check concurrent or repeated requests can create duplicate
+        // records for the same physical location, corrupting search results and
+        // user-facing data.
+        const { data: existing, error: lookupError } = await supabase
+            .from("pharmacies")
+            .select("id")
+            .eq("license_id", data.licenseId)
+            .maybeSingle();
+
+        if (lookupError) {
+            logger.error("Pharmacy duplicate check failed", { error: lookupError });
+            next(lookupError);
+            return;
+        }
+
+        if (existing) {
+            res.status(409).json({
+                error: "A pharmacy with this license ID is already registered",
+            });
+            return;
+        }
+
+        const { data: pharmacy, error: insertError } = await supabase
+            .from("pharmacies")
+            .insert({
+                name: data.name,
+                license_id: data.licenseId,
+                address: data.address,
+                district: data.district,
+                state: data.state,
+                phone_number: data.phone_number ?? null,
+                location: data.lng && data.lat ? `POINT(${data.lng} ${data.lat})` : null,
+                is_verified: false,
+            })
+            .select()
+            .single();
+
+        if (insertError) {
+            next(insertError);
+            return;
+        }
+
+        res.status(201).json({ pharmacy });
+    } catch (err) {
+        next(err);
+    }
+});
+
 const nearestQuerySchema = z.object({
     lat: z.coerce.number().min(-90).max(90),
     lng: z.coerce.number().min(-180).max(180),

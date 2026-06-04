@@ -167,6 +167,21 @@ reportsRouter.patch(
         }
 
         try {
+            // Verify the report exists before updating. Without this check a
+            // caller can submit arbitrary IDs and receive a 500 instead of a
+            // 404, leaking that the endpoint performs blind updates and
+            // enabling IDOR-style enumeration across report IDs.
+            const { data: existing, error: fetchError } = await supabase
+                .from("counterfeit_reports")
+                .select("id")
+                .eq("id", req.params.id)
+                .single();
+
+            if (fetchError || !existing) {
+                res.status(404).json({ error: "Report not found" });
+                return;
+            }
+
             const { data, error } = await supabase
                 .from("counterfeit_reports")
                 .update({ status })
