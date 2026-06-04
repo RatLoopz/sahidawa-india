@@ -45,6 +45,13 @@ export class OfflineErrorBoundary extends React.Component<
 
     componentDidCatch(error: Error, info: React.ErrorInfo) {
         console.error("OfflineErrorBoundary caught error:", error, info);
+        if (process.env.NODE_ENV === "development") {
+            console.group("🔴 OfflineErrorBoundary — Dev Stack Trace");
+            console.error("Error:", error.message);
+            console.error("Stack:", error.stack);
+            console.error("Component Stack:", info.componentStack);
+            console.groupEnd();
+        }
     }
 
     handleRetry = () => {
@@ -68,8 +75,8 @@ export class OfflineErrorBoundary extends React.Component<
         if (this.state.hasError) {
             return (
                 <div className="flex min-h-[400px] items-center justify-center p-4">
-                    <div className="max-w-md text-center">
-                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/20">
+                    <div className="max-w-md text-center rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg p-8">
+                        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/20 ring-4 ring-amber-50 dark:ring-amber-900/10">
                             {this.state.isOfflineError ? (
                                 <Wifi size={32} className="text-amber-600 dark:text-amber-400" />
                             ) : (
