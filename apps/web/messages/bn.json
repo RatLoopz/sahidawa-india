@@ -537,5 +537,35 @@
             "count": "{count, plural, =0 {No resolved reports} =1 {1 resolved report} other {# resolved reports}}",
             "decision": "Decision"
         }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "ভ্যাকসিন হাব",
+        "pageHeaderSubtitle": "ইমিউনাইজেশন ট্র্যাকার",
+        "title": "ভ্যাকসিন হাব এবং ইমিউনাইজেশন ট্র্যাকার",
+        "subtitle": "জনস্বাস্থ্য সচেতনতা বৃদ্ধির জন্য ভ্যাকসিনের সময়সূচী, সুরক্ষা তথ্য এবং পরবর্তী পরিচর্যার নির্দেশিকা অন্বেষণ করুন।",
+        "selectLabel": "রোগ / ভ্যাকসিন নির্বাচন করুন",
+        "placeholder": "একটি ভ্যাকসিন প্রোফাইল চয়ন করুন...",
+        "childBirthDate": "শিশুর জন্ম তারিখ",
+        "milestoneBaseDate": "প্রথম ডোজ মাইলস্টোন বেস তারিখ",
+        "noVaccineSelected": "কোনো ভ্যাকসিন নির্বাচন করা হয়নি",
+        "chooseVaccinePrompt": "ট্র্যাকিং টুল আনলক করতে উপরে একটি ভ্যাকসিন চয়ন করুন:",
+        "featureSchedule": "গতিশীলভাবে অনুমিত ইমিউনাইজেশন সময়সূচী",
+        "featureSideEffects": "পার্শ্বপ্রতিক্রিয়ার বিভক্ত প্যারামিটার (মৃদু বনাম গুরুতর)",
+        "featureAftercare": "ক্লিনিকাল ধাপে ধাপে পরবর্তী পরিচর্যার নির্দেশাবলী",
+        "targetGroups": "লক্ষ্য গোষ্ঠী",
+        "totalDoses": "মোট ডোজ",
+        "effectiveness": "কার্যকারিতা",
+        "classification": "শ্রেণীবিভাগ",
+        "aboutDisease": "রোগ সম্পর্কে:",
+        "scheduleLayoutHeading": "ইমিউনাইজেশন সময়সূচী",
+        "atBirth": "জন্মেকালীন প্রয়োগ",
+        "atWeeks": "বয়স {weeks} সপ্তাহে",
+        "baseline": "প্রাথমিক প্রয়োগ (ভিত্তি)",
+        "doseStep": "ডোজ ধাপ {index} (+{weeks} সপ্তাহ পরে)",
+        "targetDate": "লক্ষ্য তারিখ: {date}",
+        "selectDateWarning": "সময়সূচী অনুমান করতে উপরে একটি তারিখ নির্বাচন করুন",
+        "commonEffects": "সাধারণ পরবর্তী প্রতিক্রিয়া",
+        "severeReactions": "গুরুতর প্রতিক্রিয়া",
+        "aftercareHeading": "তাত্ক্ষণিক পরবর্তী পরিচর্যার নির্দেশিকা"
     }
 }

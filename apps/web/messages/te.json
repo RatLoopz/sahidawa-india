@@ -537,5 +537,35 @@
             "count": "{count, plural, =0 {No resolved reports} =1 {1 resolved report} other {# resolved reports}}",
             "decision": "Decision"
         }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "వ్యాక్సిన్ హబ్",
+        "pageHeaderSubtitle": "రోగనిరోధక శక్తి ట్రాకర్",
+        "title": "వ్యాక్సిన్ హబ్ & రోగనిరోధక శక్తి ట్రాకర్",
+        "subtitle": "మెరుగైన ప్రజారోగ్య అవగాహన కోసం వ్యాక్సిన్ షెడ్యూల్‌లు, భద్రతా సమాచారం మరియు తదుపరి సంరక్షణ మార్గదర్శకాలను అన్వేషించండి.",
+        "selectLabel": "వ్యాధి / వ్యాక్సిన్‌ను ఎంచుకోండి",
+        "placeholder": "ఒక వ్యాక్సిన్ ప్రొఫైల్‌ను ఎంచుకోండి...",
+        "childBirthDate": "పిల్లల పుట్టిన తేదీ",
+        "milestoneBaseDate": "మొదటి డోస్ మైల్‌స్టోన్ బేస్ తేదీ",
+        "noVaccineSelected": "ఏ వ్యాక్సిన్ ఎంచుకోబడలేదు",
+        "chooseVaccinePrompt": "ట్రాకింగ్ సాధనాలను అన్‌లాక్ చేయడానికి పైన ఒక వ్యాక్సిన్‌ను ఎంచుకోండి:",
+        "featureSchedule": "డైనమిక్ అంచనా రోగనిరోధక షెడ్యూల్",
+        "featureSideEffects": "దుష్ప్రభావాల వర్గీకరణ (తేలికపాటి వర్సెస్ తీవ్రమైన)",
+        "featureAftercare": "దశల వారీ క్లినికల్ అనంతర సంరక్షణ సూచనలు",
+        "targetGroups": "లక్ష్య సమూహాలు",
+        "totalDoses": "మొత్తం డోసులు",
+        "effectiveness": "ప్రభావశీలత",
+        "classification": "వర్గీకరణ",
+        "aboutDisease": "వ్యాధి గురించి:",
+        "scheduleLayoutHeading": "రోగనిరోధక షెడ్యూల్",
+        "atBirth": "పుట్టిన సమయంలో ఇచ్చే మోతాదు",
+        "atWeeks": "{weeks} వారాల వయస్సులో",
+        "baseline": "ప్రారంభ మోతాదు (బేస్‌లైన్)",
+        "doseStep": "డోస్ దశ {index} (+{weeks} వారాల తర్వాత)",
+        "targetDate": "లక్ష్య తేదీ: {date}",
+        "selectDateWarning": "షెడ్యూల్ టైమ్‌లైన్‌లను చూడటానికి పైన ఒక తేదీని ఎంచుకోండి",
+        "commonEffects": "సాధారణ దుష్ప్రభావాలు",
+        "severeReactions": "తీవ్రమైన ప్రతిచర్యలు",
+        "aftercareHeading": "తక్షణ అనంతర సంరక్షణ మార్గదర్శకత్వం"
     }
 }

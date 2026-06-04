@@ -537,5 +537,35 @@
             "count": "{count, plural, =0 {No resolved reports} =1 {1 resolved report} other {# resolved reports}}",
             "decision": "Decision"
         }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "सूचीवेधकेन्द्रम्",
+        "pageHeaderSubtitle": "प्रतिरक्षणअनुवेधकम",
+        "title": "सूचीवेधकेन्द्रम् प्रतिरक्षणअनुवेधकम् च",
+        "subtitle": "उत्तमलोकस्वास्थ्यजागरूकतायै सूचीवेधसमयसारणीं, सुरक्षासूचनां, पश्चाद्परिचर्यामार्गदर्शनं च जानन्तु।",
+        "selectLabel": "रोगं / सूचीवेधं चिनोतु",
+        "placeholder": "सूचीवेधविवरणं चिनोतु...",
+        "childBirthDate": "शिशोः जन्मदिनाङ्कः",
+        "milestoneBaseDate": "प्रथममात्रायाः आधारदिनाङ्कः",
+        "noVaccineSelected": "किमपि सूचीवेधं न चितम्",
+        "chooseVaccinePrompt": "अनुवेधसाधनानां प्रयोगार्थं उपरि सूचीवेधं चिनोतु:",
+        "featureSchedule": "गतिशीला आनुमानिकी प्रतिरक्षणसमयसारणी",
+        "featureSideEffects": "दुष्प्रभावाणां वर्गीकरणम् (मन्दाः विरुद्धाः तीव्राः)",
+        "featureAftercare": "क्रमशः चिकित्सकीयपश्चाद्परिचर्यानिर्देशाः",
+        "targetGroups": "लक्ष्यसमूहाः",
+        "totalDoses": "पूर्णाः मात्राः",
+        "effectiveness": "प्रभावकारिता",
+        "classification": "वर्गीकरणम्",
+        "aboutDisease": "रोगविषये:",
+        "scheduleLayoutHeading": "प्रतिरक्षणसमयसारणी",
+        "atBirth": "जन्मसमये प्रदेयम्",
+        "atWeeks": "{weeks} सप्ताहात्मके वयसि",
+        "baseline": "प्रारम्भिकप्रदानम् (आधाररेखा)",
+        "doseStep": "मात्राचरणम् {index} (+{weeks} सप्ताहपश्चात्)",
+        "targetDate": "लक्ष्यदिनाङ्कः: {date}",
+        "selectDateWarning": "समयरेखादर्शनार्थं उपरि दिनाङ्कम् चितम् करोतु",
+        "commonEffects": "सामान्याः पश्चाद्प्रभावाः",
+        "severeReactions": "तीव्राः प्रतिक्रियाः",
+        "aftercareHeading": "तत्कालिका पश्चाद्परिचर्या"
     }
 }

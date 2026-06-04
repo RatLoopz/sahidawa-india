@@ -2,6 +2,7 @@
 
 import { VaccineProfile } from "@/lib/vaccineData";
 import { CheckCircle, AlertCircle, Calendar } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface DoseScheduleProps {
     vaccine: VaccineProfile;
@@ -9,6 +10,7 @@ interface DoseScheduleProps {
 }
 
 export function DoseSchedule({ vaccine, initialDate }: DoseScheduleProps) {
+    const t = useTranslations("vaccineHub");
     const calculateMilestoneDate = (weeksOffset: number): string | null => {
         if (!initialDate) return null;
 
@@ -27,11 +29,9 @@ export function DoseSchedule({ vaccine, initialDate }: DoseScheduleProps) {
 
     const getDoseLabel = (weeks: number, index: number): string => {
         if (vaccine.is_relative_to_birth) {
-            return weeks === 0 ? "At Birth Administration" : `At ${weeks} Weeks of Age`;
+            return weeks === 0 ? t("atBirth") : t("atWeeks", { weeks });
         } else {
-            return index === 0
-                ? "Initial Administration (Baseline)"
-                : `Dose Step ${index + 1} (+${weeks} weeks later)`;
+            return index === 0 ? t("baseline") : t("doseStep", { index: index + 1, weeks });
         }
     };
 
@@ -54,7 +54,7 @@ export function DoseSchedule({ vaccine, initialDate }: DoseScheduleProps) {
             <div className="flex items-center gap-2">
                 <Calendar size={20} className="text-emerald-600" aria-hidden="true" />
                 <h3 className="text-lg font-bold text-(--color-text-primary)">
-                    Immunization Schedule
+                    {t("scheduleLayoutHeading")}
                 </h3>
             </div>
 
@@ -62,11 +62,7 @@ export function DoseSchedule({ vaccine, initialDate }: DoseScheduleProps) {
                 <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-900/20">
                     <p className="flex items-start gap-2 text-sm text-amber-800 dark:text-amber-200">
                         <AlertCircle size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
-                        <span>
-                            Select a{" "}
-                            {vaccine.is_relative_to_birth ? "birth date" : "first dose date"} above
-                            to see projected immunization dates.
-                        </span>
+                        <span>{t("selectDateWarning")}</span>
                     </p>
                 </div>
             )}
@@ -147,7 +143,7 @@ export function DoseSchedule({ vaccine, initialDate }: DoseScheduleProps) {
                                             </p>
                                         ) : (
                                             <p className="mt-1 text-sm text-(--color-text-muted) italic dark:text-slate-400">
-                                                Enter a date above to calculate this dose date
+                                                {t("selectDateWarning")}
                                             </p>
                                         )}
                                     </div>
@@ -163,19 +159,19 @@ export function DoseSchedule({ vaccine, initialDate }: DoseScheduleProps) {
                 <h4 className="text-sm font-semibold text-(--color-text-primary)">Summary</h4>
                 <dl className="mt-3 space-y-2 text-sm text-(--color-text-secondary)">
                     <div className="flex justify-between">
-                        <dt className="font-medium">Total Doses:</dt>
+                        <dt className="font-medium">{t("totalDoses")}:</dt>
                         <dd className="font-semibold text-(--color-text-primary)">
                             {vaccine.total_doses}
                         </dd>
                     </div>
                     <div className="flex justify-between">
-                        <dt className="font-medium">Effectiveness:</dt>
+                        <dt className="font-medium">{t("effectiveness")}:</dt>
                         <dd className="font-semibold text-emerald-600 dark:text-emerald-400">
                             {vaccine.effectiveness}
                         </dd>
                     </div>
                     <div className="flex justify-between">
-                        <dt className="font-medium">Category:</dt>
+                        <dt className="font-medium">{t("classification")}:</dt>
                         <dd className="font-semibold text-(--color-text-primary)">
                             {vaccine.category}
                         </dd>

@@ -573,5 +573,35 @@
             "count": "{count, plural, =0 {No resolved reports} =1 {1 resolved report} other {# resolved reports}}",
             "decision": "Decision"
         }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "Vaccine Hub",
+        "pageHeaderSubtitle": "Immunization Tracker",
+        "title": "Vaccine Hub & Immunization Tracker",
+        "subtitle": "Explore vaccine schedules, safety information, and aftercare guidance for better public health awareness.",
+        "selectLabel": "Select Disease / Vaccine",
+        "placeholder": "Choose a Vaccine Profile...",
+        "childBirthDate": "Child's Birth Date",
+        "milestoneBaseDate": "First Dose Milestone Base Date",
+        "noVaccineSelected": "No vaccine selected",
+        "chooseVaccinePrompt": "Choose a vaccine above to unlock tracking tools:",
+        "featureSchedule": "Dynamic projected immunization schedule",
+        "featureSideEffects": "Side effects split parameters (mild vs severe)",
+        "featureAftercare": "Clinical step-by-step aftercare instructions",
+        "targetGroups": "Target Groups",
+        "totalDoses": "Total Doses",
+        "effectiveness": "Effectiveness",
+        "classification": "Classification",
+        "aboutDisease": "About Disease:",
+        "scheduleLayoutHeading": "Immunization Schedule",
+        "atBirth": "At Birth Administration",
+        "atWeeks": "At {weeks} Weeks of Age",
+        "baseline": "Initial Administration (Baseline)",
+        "doseStep": "Dose Step {index} (+{weeks} weeks later)",
+        "targetDate": "Target Date: {date}",
+        "selectDateWarning": "Select a date above to project timelines",
+        "commonEffects": "Common Post-Effects",
+        "severeReactions": "Severe Reactions",
+        "aftercareHeading": "Immediate Aftercare Guidance"
     }
 }

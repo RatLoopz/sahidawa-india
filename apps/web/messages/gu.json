@@ -537,5 +537,35 @@
             "count": "{count, plural, =0 {No resolved reports} =1 {1 resolved report} other {# resolved reports}}",
             "decision": "Decision"
         }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "વેક્સિન હબ",
+        "pageHeaderSubtitle": "ઇમ્યુનાઇઝેશન ટ્રેકર",
+        "title": "વેક્સિન હબ અને ઇમ્યુનાઇઝેશન ટ્રેકર",
+        "subtitle": "જાહેર આરોગ્ય જાગૃતિ માટે વેક્સિનના સમયપત્રક, સુરક્ષા માહિતી અને સારસંભાળ માર્ગદર્શન મેળવો.",
+        "selectLabel": "રોગ / વેક્સિન પસંદ કરો",
+        "placeholder": "વેક્સિન પ્રોફાઇલ પસંદ કરો...",
+        "childBirthDate": "બાળકની જન્મ તારીખ",
+        "milestoneBaseDate": "પ્રથમ ડોઝ માટેની આધાર તારીખ",
+        "noVaccineSelected": "કોઈ વેક્સિન પસંદ કરેલ નથી",
+        "chooseVaccinePrompt": "ટ્રેકિંગ ટૂલ્સનો ઉપયોગ કરવા માટે ઉપરથી વેક્સિન પસંદ કરો:",
+        "featureSchedule": "ડાયનેમિક અનુમાનિત ઇમ્યુનાઇઝેશન સમયપત્રક",
+        "featureSideEffects": "આડઅસરોના વિભાજિત માપદંડો (હળવી વિરુદ્ધ ગંભીર)",
+        "featureAftercare": "ક્લિનિકલ તબક્કાવાર સારસંભાળ સૂચનાઓ",
+        "targetGroups": "લક્ષિત જૂથો",
+        "totalDoses": "કુલ ડોઝ",
+        "effectiveness": "અસરકારકતા",
+        "classification": "વર્ગીકરણ",
+        "aboutDisease": "રોગ વિશે:",
+        "scheduleLayoutHeading": "ઇમ્યુનાઇઝેશન સમયપત્રક",
+        "atBirth": "જન્મ સમયે આપવાનો ડોઝ",
+        "atWeeks": "{weeks} અઠવાડિયાની ઉંમરે",
+        "baseline": "પ્રારંભિક વહીવટ (આધારરેખા)",
+        "doseStep": "ડોઝ સ્ટેપ {index} (+{weeks} અઠવાડિયા પછી)",
+        "targetDate": "લક્ષિત તારીખ: {date}",
+        "selectDateWarning": "સમયરેખા જોવા માટે ઉપરની તારીખ પસંદ કરો",
+        "commonEffects": "સામાન્ય આડઅસરો",
+        "severeReactions": "ગંભીર પ્રતિક્રિયાઓ",
+        "aftercareHeading": "તાત્કાલિક સારસંભાળ માર્ગદર્શન"
     }
 }

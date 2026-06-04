@@ -2,6 +2,7 @@
 
 import { vaccineDatabase, VaccineKey } from "@/lib/vaccineData";
 import { useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { ChevronDown, Search } from "lucide-react";
 
 interface VaccineSelectorProps {
@@ -17,6 +18,7 @@ export function VaccineSelector({
     onVaccineChange,
     disabled = false,
 }: VaccineSelectorProps) {
+    const t = useTranslations("vaccineHub");
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -75,7 +77,7 @@ export function VaccineSelector({
     return (
         <div className="relative">
             <label className="mb-2 block text-xs font-bold tracking-wider text-emerald-800 uppercase">
-                🔎 Select Disease / Vaccine
+                🔎 {t("selectLabel")}
             </label>
 
             {/* Trigger Button */}
@@ -101,7 +103,7 @@ export function VaccineSelector({
                             </div>
                         </>
                     ) : (
-                        "Choose a Vaccine Profile..."
+                        t("placeholder")
                     )}
                 </span>
                 <ChevronDown

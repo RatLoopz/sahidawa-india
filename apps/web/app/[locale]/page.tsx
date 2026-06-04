@@ -213,17 +213,16 @@ export default function SahiDawaHome() {
 
                                 {/* Text Context */}
                                 <h3 className="mt-4 text-lg font-bold text-slate-900 dark:text-white">
-                                    Vaccine Hub & Tracker
+                                    {tHome("vaccine_title")}
                                 </h3>
                                 <p className="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-                                    Check customized national immunization schedules, view critical
-                                    side effects, and track milestone execution timelines.
+                                    {tHome("vaccine_subtitle")}
                                 </p>
                             </div>
 
                             {/* Action Footer Indicator */}
                             <div className="mt-6 flex items-center gap-1.5 text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                                <span>Open Tracker</span>
+                                <span>{tHome("vaccine_open")}</span>
                                 <ArrowRight
                                     size={16}
                                     className="transition-transform group-hover:translate-x-1"

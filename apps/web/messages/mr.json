@@ -537,5 +537,35 @@
             "count": "{count, plural, =0 {No resolved reports} =1 {1 resolved report} other {# resolved reports}}",
             "decision": "Decision"
         }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "लस केंद्र (व्हॅक्सिन हब)",
+        "pageHeaderSubtitle": "लसीकरण ट्रॅकर",
+        "title": "लस केंद्र आणि लसीकरण ट्रॅकर",
+        "subtitle": "सार्वजनिक आरोग्य जागरूकतेसाठी लसीचे वेळापत्रक, सुरक्षितता माहिती आणि त्यानंतरच्या काळजीचे मार्गदर्शन एक्सप्लोर करा.",
+        "selectLabel": "आजार / लस निवडा",
+        "placeholder": "लस प्रोफाइल निवडा...",
+        "childBirthDate": "बालकाची जन्मतारीख",
+        "milestoneBaseDate": "पहिल्या डोसची मूळ तारीख",
+        "noVaccineSelected": "कोणतीही लस निवडलेली नाही",
+        "chooseVaccinePrompt": "ट्रॅकिंग टूल्स वापरण्यासाठी वर एक लस निवडा:",
+        "featureSchedule": "डायनॅमिक अंदाजित लसीकरण वेळापत्रक",
+        "featureSideEffects": "दुष्परिणामांचे वर्गीकरण (सौम्य वि. गंभीर)",
+        "featureAftercare": "टप्प्याटप्प्याने क्लिनिकल काळजी घेण्याच्या सूचना",
+        "targetGroups": "लक्ष्य गट (टार्गेट ग्रुप्स)",
+        "totalDoses": "एकूण डोस",
+        "effectiveness": "परिणामकारकता",
+        "classification": "वर्गीकरण",
+        "aboutDisease": "आजाराबद्दल माहिती:",
+        "scheduleLayoutHeading": "लसीकरण वेळापत्रक",
+        "atBirth": "जन्माच्या वेळी द्यावयाची मात्रा",
+        "atWeeks": "वय {weeks} आठवडे असताना",
+        "baseline": "प्रारंभिक मात्रा (बेसलाइन)",
+        "doseStep": "डोस टप्पा {index} (+{weeks} आठवड्यांनंतर)",
+        "targetDate": "लक्ष्य तारीख: {date}",
+        "selectDateWarning": "वेळापत्रक पाहण्यासाठी वर एक तारीख निवडा",
+        "commonEffects": "सामान्य दुष्परिणाम",
+        "severeReactions": "गंभीर प्रतिक्रिया",
+        "aftercareHeading": "तातडीने घ्यावयाची काळजी"
     }
 }

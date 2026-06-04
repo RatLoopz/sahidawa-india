@@ -537,5 +537,35 @@
             "count": "{count, plural, =0 {No resolved reports} =1 {1 resolved report} other {# resolved reports}}",
             "decision": "Decision"
         }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "ଟିକାକରଣ ହବ୍",
+        "pageHeaderSubtitle": "ଟିକାକରଣ ଟ୍ରାକର୍",
+        "title": "ଟିକାକରଣ ହବ୍ ଏବଂ ଟ୍ରାକର୍",
+        "subtitle": "ଉତ୍ତମ ଜନସ୍ୱାସ୍ଥ୍ୟ ସଚେତନତା ପାଇଁ ଟିକା ସୂଚୀ, ସୁରକ୍ଷା ସୂଚନା ଏବଂ ପରବର୍ତ୍ତୀ ଯତ୍ନ ମାର୍ଗଦର୍ଶନ ବିଷୟରେ ଜାଣନ୍ତୁ।",
+        "selectLabel": "ରୋଗ / ଟିକା ଚୟନ କରନ୍ତୁ",
+        "placeholder": "ଏକ ଟିକା ପ୍ରୋଫାଇଲ୍ ବାଛନ୍ତୁ...",
+        "childBirthDate": "ଶିଶୁର ଜନ୍ମ ତାରିଖ",
+        "milestoneBaseDate": "ପ୍ରଥମ ଡୋଜ୍ ଆଧାର ତାରିଖ",
+        "noVaccineSelected": "କୌଣସି ଟିକା ଚୟନ କରାଯାଇ ନାହିଁ",
+        "chooseVaccinePrompt": "ଟ୍ରାକିଂ ଟୁଲ୍ସ ବ୍ୟବହାର କରିବା ପାଇଁ ଉପରେ ଏକ ଟିକା ବାଛନ୍ତୁ:",
+        "featureSchedule": "ଡାଇନାମିକ ଅନୁମାନିତ ଟିକାକରଣ ସୂଚୀ",
+        "featureSideEffects": "ପାର୍ଶ୍ୱ ପ୍ରତିକ୍ରିୟାର ବର୍ଗୀକରଣ (ସାମାନ୍ୟ ବନାମ ଗମ୍ଭୀର)",
+        "featureAftercare": "ପର୍ଯ୍ୟାୟକ୍ରମିକ ଚିକିତ୍ସା ଯତ୍ନ ନିର୍ଦ୍ଦେଶାବଳୀ",
+        "targetGroups": "ଲକ୍ଷ୍ୟ ଗୋଷ୍ଠୀ",
+        "totalDoses": "ମୋଟ ଡୋଜ୍",
+        "effectiveness": "ପ୍ରଭାବଶାଳୀତା",
+        "classification": "ବର୍ଗୀକରଣ",
+        "aboutDisease": "ରୋଗ ବିଷୟରେ:",
+        "scheduleLayoutHeading": "ଟିକାକରଣ ସୂଚୀ",
+        "atBirth": "ଜନ୍ମ ସମୟରେ ପ୍ରଦାନ",
+        "atWeeks": "{weeks} ସପ୍ତାହ ବୟସରେ",
+        "baseline": "ପ୍ରାରମ୍ଭିକ ପ୍ରଦାନ (ଆଧାରରେଖା)",
+        "doseStep": "ଡୋଜ୍ ପର୍ଯ୍ୟାୟ {index} (+{weeks} ସପ୍ତାହ ପରେ)",
+        "targetDate": "ଧାର୍ଯ୍ୟ ତାରିଖ: {date}",
+        "selectDateWarning": "ସମୟସୀମା ଆକଳନ କରିବା ପାଇଁ ଉପରେ ଏକ ତାରିଖ ଚୟନ କରନ୍ତୁ",
+        "commonEffects": "ସାଧାରଣ ପାର୍ଶ୍ୱ ପ୍ରତିକ୍ରିୟା",
+        "severeReactions": "ଗମ୍ଭୀର ପ୍ରତିକ୍ରିୟା",
+        "aftercareHeading": "ତତ୍କାଳ ପରବର୍ତ୍ତୀ ଯତ୍ନ ମାର୍ଗଦର୍ଶନ"
     }
 }

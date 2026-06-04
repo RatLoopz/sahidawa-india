@@ -543,5 +543,35 @@
             "count": "{count, plural, =0 {No resolved reports} =1 {1 resolved report} other {# resolved reports}}",
             "decision": "Decision"
         }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "വാക്സിൻ ഹബ്",
+        "pageHeaderSubtitle": "ഇമ്മ്യൂണൈസേഷൻ ട്രാക്കർ",
+        "title": "വാക്സിൻ ഹബ്ബും ഇമ്മ്യൂണൈസേഷൻ ട്രാക്കറും",
+        "subtitle": "മെച്ചപ്പെട്ട പൊതുജനാരോഗ്യ അവബോധത്തിനായി വാക്സിൻ ഷെഡ്യൂളുകൾ, സുരക്ഷാ വിവരങ്ങൾ, പരിചരണ മാർഗ്ഗനിർദ്ദേശങ്ങൾ എന്നിവ മനസ്സിലാക്കുക.",
+        "selectLabel": "രോഗം / വാക്സിൻ തിരഞ്ഞെടുക്കുക",
+        "placeholder": "ഒരു വാക്സിൻ പ്രൊഫൈൽ തിരഞ്ഞെടുക്കുക...",
+        "childBirthDate": "കുട്ടിയുടെ ജനനത്തീയതി",
+        "milestoneBaseDate": "ആദ്യ ഡോസിന്റെ അടിസ്ഥാന തീയതി",
+        "noVaccineSelected": "വാക്സിനുകളൊന്നും തിരഞ്ഞെടുത്തിട്ടില്ല",
+        "chooseVaccinePrompt": "ട്രാക്കിംഗ് ടൂളുകൾ ലഭ്യമാക്കാൻ മുകളിൽ ഒരു വാക്സിൻ തിരഞ്ഞെടുക്കുക:",
+        "featureSchedule": "ഡൈനാമിക് പ്രൊജക്റ്റഡ് ഇമ്മ്യൂണൈസേഷൻ ഷെഡ്യൂൾ",
+        "featureSideEffects": "പാർശ്വഫലങ്ങളുടെ വിവരങ്ങൾ (ലഘുവായതും കഠിനമായതും)",
+        "featureAftercare": "ഘട്ടം ഘട്ടമായുള്ള ക്ലിനിക്കൽ പരിചരണ നിർദ്ദേശങ്ങൾ",
+        "targetGroups": "ലക്ഷ്യ ഗ്രൂപ്പുകൾ",
+        "totalDoses": "ആകെ ഡോസുകൾ",
+        "effectiveness": "ഫലപ്രാപ്തി",
+        "classification": "വർഗ്ഗീകരണം",
+        "aboutDisease": "രോഗത്തെക്കുറിച്ച്:",
+        "scheduleLayoutHeading": "ഇമ്മ്യൂണൈസേഷൻ ഷെഡ്യൂൾ",
+        "atBirth": "ജനനസമയത്ത് നൽകേണ്ടത്",
+        "atWeeks": "{weeks} ആഴ്ച പ്രായത്തിൽ",
+        "baseline": "പ്രാഥമിക ഡോസ് (അടിസ്ഥാനം)",
+        "doseStep": "ഡോസ് ഘട്ടം {index} (+{weeks} ആഴ്ചകൾക്ക് ശേഷം)",
+        "targetDate": "ലക്ഷ്യ തീയതി: {date}",
+        "selectDateWarning": "സമയക്രമം കണക്കാക്കാൻ മുകളിൽ ഒരു തീയതി തിരഞ്ഞെടുക്കുക",
+        "commonEffects": "സാധാരണ പാർശ്വഫലങ്ങൾ",
+        "severeReactions": "ഗുരുതരമായ പ്രതികരണങ്ങൾ",
+        "aftercareHeading": "ഉടൻ ചെയ്യേണ്ട പരിചരണ മാർഗ്ഗനിർദ്ദേശങ്ങൾ"
     }
 }

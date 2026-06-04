@@ -2,6 +2,7 @@
 
 import { PageHeader } from "../components/PageHeader";
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { vaccineDatabase, VaccineKey, VACCINE_GLOBAL_DISCLAIMER } from "@/lib/vaccineData";
 import {
     VaccineSelector,
@@ -20,6 +21,7 @@ const STORAGE_KEYS = {
 };
 
 export default function VaccineHubPage() {
+    const t = useTranslations("vaccineHub");
     const [selectedVaccine, setSelectedVaccine] = useState<VaccineKey | "">("");
     const [initialDate, setInitialDate] = useState<string>("");
     const [isLoading, setIsLoading] = useState(true);
@@ -68,8 +70,8 @@ export default function VaccineHubPage() {
         return (
             <>
                 <PageHeader
-                    title="Vaccine Hub"
-                    subtitle="Immunization Tracker"
+                    title={t("pageHeaderTitle")}
+                    subtitle={t("pageHeaderSubtitle")}
                     backHref="/"
                     variant="light"
                 />
@@ -86,8 +88,8 @@ export default function VaccineHubPage() {
     return (
         <>
             <PageHeader
-                title="Vaccine Hub"
-                subtitle="Immunization Tracker"
+                title={t("pageHeaderTitle")}
+                subtitle={t("pageHeaderSubtitle")}
                 backHref="/"
                 variant="light"
             />
@@ -98,11 +100,10 @@ export default function VaccineHubPage() {
                     <div className="space-y-2 text-center">
                         <h1 className="text-3xl font-bold text-(--color-text-primary) sm:text-4xl dark:text-white">
                             <Syringe className="mr-2 inline h-8 w-8 shrink-0 text-emerald-600" />{" "}
-                            Vaccine Hub & Immunization Tracker
+                            {t("title")}
                         </h1>
                         <p className="mx-auto max-w-2xl text-(--color-text-secondary)">
-                            Explore vaccine schedules, safety information, and aftercare guidance
-                            for better public health awareness.
+                            {t("subtitle")}
                         </p>
                     </div>
 
@@ -131,8 +132,8 @@ export default function VaccineHubPage() {
                         <div className="py-12">
                             <EmptyState
                                 icon={<BookOpen size={32} className="text-emerald-600" />}
-                                title="No Vaccine Selected"
-                                description="Choose a vaccine above to view detailed information, schedule tracking, safety guidelines, and aftercare instructions."
+                                title={t("noVaccineSelected")}
+                                description={t("chooseVaccinePrompt")}
                                 className="mx-auto max-w-md"
                             />
 
@@ -141,33 +142,24 @@ export default function VaccineHubPage() {
                                     <div className="mb-2 inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50">
                                         <Calendar className="h-6 w-6 text-emerald-700" />
                                     </div>
-                                    <p className="text-sm font-semibold text-(--color-text-primary)">
-                                        Schedule Tracking
-                                    </p>
-                                    <p className="mt-1 text-xs text-(--color-text-secondary)">
-                                        Calculate projected doses
+                                    <p className="mt-1 text-sm font-semibold text-(--color-text-primary)">
+                                        {t("featureSchedule")}
                                     </p>
                                 </div>
                                 <div className="rounded-lg border border-slate-200 bg-white p-4 text-center dark:border-slate-700 dark:bg-slate-800">
                                     <div className="mb-2 inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-50">
                                         <AlertTriangle className="h-6 w-6 text-amber-600" />
                                     </div>
-                                    <p className="text-sm font-semibold text-(--color-text-primary)">
-                                        Safety Info
-                                    </p>
-                                    <p className="mt-1 text-xs text-(--color-text-secondary)">
-                                        Common & severe reactions
+                                    <p className="mt-1 text-sm font-semibold text-(--color-text-primary)">
+                                        {t("featureSideEffects")}
                                     </p>
                                 </div>
                                 <div className="rounded-lg border border-slate-200 bg-white p-4 text-center dark:border-slate-700 dark:bg-slate-800">
                                     <div className="mb-2 inline-flex h-12 w-12 items-center justify-center rounded-full bg-sky-50">
                                         <HeartPulse className="h-6 w-6 text-sky-600" />
                                     </div>
-                                    <p className="text-sm font-semibold text-(--color-text-primary)">
-                                        Aftercare
-                                    </p>
-                                    <p className="mt-1 text-xs text-(--color-text-secondary)">
-                                        Step-by-step guidance
+                                    <p className="mt-1 text-sm font-semibold text-(--color-text-primary)">
+                                        {t("featureAftercare")}
                                     </p>
                                 </div>
                             </div>

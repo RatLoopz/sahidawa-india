@@ -543,5 +543,35 @@
             "count": "{count, plural, =0 {No resolved reports} =1 {1 resolved report} other {# resolved reports}}",
             "decision": "Decision"
         }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "ویکسین ہب",
+        "pageHeaderSubtitle": "حفاظتی ٹیکہ کاری ٹریکر",
+        "title": "ویکسین ہب تہٕ حفاظتی ٹیکہ کاری ٹریکر",
+        "subtitle": "عوامی صحت ہنز بیداری خٲطرٕ ویکسین شیڈول، حفاظت تہٕ دیکھ بھالک ہداہت ہنز تلاش کٔریو۔",
+        "selectLabel": "بیماری یا ویکسین چنیو",
+        "placeholder": "اکھ ویکسین پروفائل چنیو...",
+        "childBirthDate": "بچس جمنک دوہ",
+        "milestoneBaseDate": "گوڈنکس ڈوزک بنیادی دوہ",
+        "noVaccineSelected": "کانہہ ویکسین نیہ چنہ آمیت",
+        "chooseVaccinePrompt": "ٹریکنگ ٹولز اَن لاک کرنے خٲطرٕ چنیو ہیر کانہہ ویکسین:",
+        "featureSchedule": "متحرک متوقع حفاظتی ٹیکہ کاری شیڈول",
+        "featureSideEffects": "سائیڈ ایفیکٹس ہند فرق (ہلکہٕ بمقابلہ شدید)",
+        "featureAftercare": "کلینکل طریقہ کار دیکھ بھال ہنز ہدایات",
+        "targetGroups": "ٹارگٹ گروپس",
+        "totalDoses": "کُل ڈوز",
+        "effectiveness": "اثر پذیری",
+        "classification": "درجہ بندی",
+        "aboutDisease": "بیماری متعلق:",
+        "scheduleLayoutHeading": "حفاظتی ٹیکہ کاری شیڈول",
+        "atBirth": "جمن وقتک انتظام",
+        "atWeeks": "عمر {weeks} ہفتن منز",
+        "baseline": "ابتدائی انتظام (بنیاد)",
+        "doseStep": "ڈوز قدم {index} (+{weeks} ہفتن پتہٕ)",
+        "targetDate": "ٹارگٹ دوہ: {date}",
+        "selectDateWarning": "ٹائم لائن پروجیکٹ کرنے خٲطرٕ ہیر کانہہ دوہ چنیو",
+        "commonEffects": "عام سائیڈ ایفیکٹس",
+        "severeReactions": "شدید ردعمل",
+        "aftercareHeading": "فوری دیکھ بھال ہنز ہدایات"
     }
 }

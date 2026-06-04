@@ -537,5 +537,35 @@
             "count": "{count, plural, =0 {No resolved reports} =1 {1 resolved report} other {# resolved reports}}",
             "decision": "Decision"
         }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "ਵੈਕਸੀਨ ਹੱਬ",
+        "pageHeaderSubtitle": "ਟੀਕਾਕਰਨ ਟ੍ਰੈਕਰ",
+        "title": "ਵੈਕਸੀਨ ਹੱਬ ਅਤੇ ਟੀਕਾਕਰਨ ਟ੍ਰੈਕਰ",
+        "subtitle": "ਬਿਹਤਰ ਜਨਤਕ ਸਿਹਤ ਜਾਗਰੂਕਤਾ ਲਈ ਵੈਕਸੀਨ ਦੇ ਸ਼ਡਿਊਲ, ਸੁਰੱਖਿਆ ਜਾਣਕਾਰੀ ਅਤੇ ਬਾਅਦ ਦੀ ਦੇਖਭਾਲ ਦੇ ਮਾਰਗਦਰਸ਼ਨ ਬਾਰੇ ਜਾਣੋ।",
+        "selectLabel": "ਬਿਮਾਰੀ / ਵੈਕਸੀਨ ਦੀ ਚੋਣ ਕਰੋ",
+        "placeholder": "ਇੱਕ ਵੈਕਸੀਨ ਪ੍ਰੋਫਾਈਲ ਚੁਣੋ...",
+        "childBirthDate": "ਬੱਚੇ ਦੇ ਜਨਮ ਦੀ ਮਿਤੀ",
+        "milestoneBaseDate": "ਪਹਿਲੀ ਖ਼ੁਰਾਕ ਦੀ ਮੂਲ ਮਿਤੀ",
+        "noVaccineSelected": "ਕੋਈ ਵੈਕਸੀਨ ਨਹੀਂ ਚੁਣੀ ਗਈ",
+        "chooseVaccinePrompt": "ਟ੍ਰੈਕਿੰਗ ਟੂਲਸ ਦੀ ਵਰਤੋਂ ਕਰਨ ਲਈ ਉੱਪਰ ਇੱਕ ਵੈਕਸੀਨ ਚੁਣੋ:",
+        "featureSchedule": "ਗਤੀਸ਼ੀਲ ਅਨੁਮਾਨਿਤ ਟੀਕਾਕਰਨ ਸ਼ਡਿਊਲ",
+        "featureSideEffects": "ਮਾੜੇ ਪ੍ਰਭਾਵਾਂ ਦਾ ਵਰਗੀਕਰਨ (ਹਲਕੇ ਬਨਾਮ ਗੰਭੀਰ)",
+        "featureAftercare": "ਪੜਾਅਵਾਰ ਕਲੀਨਿਕਲ ਦੇਖਭਾਲ ਦੇ ਨਿਰਦੇਸ਼",
+        "targetGroups": "ਲਕਸ਼ਿਤ ਸਮੂਹ",
+        "totalDoses": "ਕੁੱਲ ਖ਼ੁਰਾਕਾਂ",
+        "effectiveness": "ਪ੍ਰਭਾਵਸ਼ੀਲਤਾ",
+        "classification": "ਵਰਗੀਕਰਨ",
+        "aboutDisease": "ਬਿਮਾਰੀ ਬਾਰੇ:",
+        "scheduleLayoutHeading": "ਟੀਕਾਕਰਨ ਸ਼ਡਿਊਲ",
+        "atBirth": "ਜਨਮ ਦੇ ਸਮੇਂ ਖ਼ੁਰਾਕ",
+        "atWeeks": "{weeks} ਹਫ਼ਤਿਆਂ ਦੀ ਉਮਰ ਵਿੱਚ",
+        "baseline": "ਸ਼ੁਰੂਆਤੀ ਖ਼ੁਰਾਕ (ਅਧਾਰ ਰੇਖਾ)",
+        "doseStep": "ਖ਼ੁਰਾਕ ਪੜਾਅ {index} (+{weeks} ਹਫ਼ਤਿਆਂ ਬਾਅद)",
+        "targetDate": "ਲਕਸ਼ਿਤ ਮਿਤੀ: {date}",
+        "selectDateWarning": "ਸਮਾਂ-ਸੀਮਾ ਦੇਖਣ ਲਈ ਉੱਪਰ ਇੱਕ ਮਿਤੀ ਚੁਣੋ",
+        "commonEffects": "ਆਮ ਮਾੜੇ ਪ੍ਰਭਾਵ",
+        "severeReactions": "ਗੰਭੀਰ ਪ੍ਰਤੀਕਿਰਿਆਵਾਂ",
+        "aftercareHeading": "ਤੁਰੰਤ ਦੇਖਭਾਲ ਦੇ ਨਿਰਦੇਸ਼"
     }
 }

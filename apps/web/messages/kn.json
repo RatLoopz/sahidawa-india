@@ -537,5 +537,35 @@
             "count": "{count, plural, =0 {No resolved reports} =1 {1 resolved report} other {# resolved reports}}",
             "decision": "Decision"
         }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "ಲಸಿಕೆ ಹಬ್",
+        "pageHeaderSubtitle": "ರೋಗನಿರೋಧಕ ಟ್ರ್ಯಾಕರ್",
+        "title": "ಲಸಿಕೆ ಹಬ್ ಮತ್ತು ರೋಗನಿರೋಧಕ ಟ್ರ್ಯಾಕರ್",
+        "subtitle": "ಉತ್ತಮ ಸಾರ್ವಜನಿಕ ಆರೋಗ್ಯ ಜಾಗೃತಿಗಾಗಿ ಲಸಿಕೆ ವೇಳಾಪಟ್ಟಿಗಳು, ಸುರಕ್ಷತಾ ಮಾಹಿತಿ ಮತ್ತು ನಂತರದ ಆರೈಕೆಯ ಮಾರ್ಗದರ್ಶನವನ್ನು ಅನ್ವೇಷಿಸಿ.",
+        "selectLabel": "ರೋಗ / ಲಸಿಕೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+        "placeholder": "ಲಸಿಕೆ ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ...",
+        "childBirthDate": "ಮಗುವಿನ ಜನ್ಮ ದಿನಾಂಕ",
+        "milestoneBaseDate": "ಮೊದಲ ಡೋಸ್ ಮೈಲಿಗಲ್ಲು ಮೂಲ ದಿನಾಂಕ",
+        "noVaccineSelected": "ಯಾವುದೇ ಲಸಿಕೆಯನ್ನು ಆಯ್ಕೆ ಮಾಡಿಲ್ಲ",
+        "chooseVaccinePrompt": "ಟ್ರ್ಯಾಕಿಂಗ್ ಪರಿಕರಗಳನ್ನು ಬಳಸಲು ಮೇಲಿನ ಲಸಿಕೆಯನ್ನು ಆರಿಸಿ:",
+        "featureSchedule": "ಡೈನಾಮಿಕ್ ಪ್ರಕ್ಷೇಪಿತ ರೋಗನಿರೋಧಕ ವೇಳಾಪಟ್ಟಿ",
+        "featureSideEffects": "ಪಾರ್ಶ್ವಪರಿಣಾಮಗಳ ವಿಭಜಿತ ನಿಯತಾಂಕಗಳು (ಸೌಮ್ಯ ವರ್ಸಸ್ ತೀವ್ರ)",
+        "featureAftercare": "ಹಂತ-ಹಂತದ ಕ್ಲಿನಿಕಲ್ ನಂತರದ ಆರೈಕೆ ಸೂಚನೆಗಳು",
+        "targetGroups": "ಲಕ್ಷ್ಯ ಗುಂಪುಗಳು",
+        "totalDoses": "ಒಟ್ಟು ಡೋಸ್‌ಗಳು",
+        "effectiveness": "ಪರಿಣಾಮಕಾರಿತ್ವ",
+        "classification": "ವರ್ಗೀಕರಣ",
+        "aboutDisease": "ರೋಗದ ಬಗ್ಗೆ:",
+        "scheduleLayoutHeading": "ರೋಗನಿರೋಧಕ ವೇಳಾಪಟ್ಟಿ",
+        "atBirth": "ಹುಟ್ಟಿದ ತಕ್ಷಣ ನೀಡುವ ಡೋಸ್",
+        "atWeeks": "{weeks} ವಾರಗಳ ವಯಸ್ಸಿನಲ್ಲಿ",
+        "baseline": "ಆರಂಭಿಕ ಡೋಸ್ (ಬೇಸ್‌ಲೈನ್)",
+        "doseStep": "ಡೋಸ್ ಹಂತ {index} (+{weeks} ವಾರಗಳ ನಂತರ)",
+        "targetDate": "ನಿಗದಿತ ದಿನಾಂಕ: {date}",
+        "selectDateWarning": "ವೇಳಾಪಟ್ಟಿಯನ್ನು ಯೋಜಿಸಲು ಮೇಲಿನ ದಿನಾಂಕವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+        "commonEffects": "ಸಾಮಾನ್ಯ ಪಾರ್ಶ್ವಪರಿಣಾಮಗಳು",
+        "severeReactions": "ತೀವ್ರ ಪ್ರತಿಕ್ರಿಯೆಗಳು",
+        "aftercareHeading": "ತಕ್ಷಣದ ನಂತರದ ಆರೈಕೆ ಮಾರ್ಗದರ್ಶನ"
     }
 }

@@ -2,6 +2,7 @@
 
 import { VaccineProfile } from "@/lib/vaccineData";
 import { Calendar } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface DateInitializerProps {
     vaccine: VaccineProfile;
@@ -10,11 +11,12 @@ interface DateInitializerProps {
 }
 
 export function DateInitializer({ vaccine, value, onChange }: DateInitializerProps) {
+    const t = useTranslations("vaccineHub");
     return (
         <div className="space-y-2">
             <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-emerald-800 uppercase">
                 <Calendar size={14} aria-hidden="true" />
-                {vaccine.is_relative_to_birth ? "Child's Birth Date" : "First Dose Date"}
+                {vaccine.is_relative_to_birth ? t("childBirthDate") : t("milestoneBaseDate")}
             </label>
 
             <input

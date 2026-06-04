@@ -2,12 +2,14 @@
 
 import { VaccineProfile } from "@/lib/vaccineData";
 import { AlertTriangle, Check } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface SafetyInfoProps {
     vaccine: VaccineProfile;
 }
 
 export function SafetyInfo({ vaccine }: SafetyInfoProps) {
+    const t = useTranslations("vaccineHub");
     return (
         <div className="space-y-4">
             <h3 className="flex items-center gap-2 text-lg font-bold text-(--color-text-primary)">
@@ -20,7 +22,7 @@ export function SafetyInfo({ vaccine }: SafetyInfoProps) {
                 <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
                     <h4 className="flex items-center gap-2 text-sm font-bold tracking-wide text-amber-900 uppercase dark:text-amber-100">
                         <Check size={18} aria-hidden="true" />
-                        Common Effects
+                        {t("commonEffects")}
                     </h4>
                     <ul className="mt-3 space-y-2">
                         {vaccine.side_effects.common.map((effect, index) => (
@@ -45,7 +47,7 @@ export function SafetyInfo({ vaccine }: SafetyInfoProps) {
                 <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 dark:border-rose-800 dark:bg-rose-900/20">
                     <h4 className="flex items-center gap-2 text-sm font-bold tracking-wide text-rose-900 uppercase dark:text-rose-100">
                         <AlertTriangle size={18} aria-hidden="true" />
-                        Severe Reactions
+                        {t("severeReactions")}
                     </h4>
                     <ul className="mt-3 space-y-2">
                         {vaccine.side_effects.severe.map((effect, index) => (

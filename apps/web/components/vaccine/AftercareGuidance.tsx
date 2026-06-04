@@ -2,12 +2,14 @@
 
 import { VaccineProfile } from "@/lib/vaccineData";
 import { HelpCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface AftercareGuidanceProps {
     vaccine: VaccineProfile;
 }
 
 export function AftercareGuidance({ vaccine }: AftercareGuidanceProps) {
+    const t = useTranslations("vaccineHub");
     return (
         <div className="space-y-4">
             <h3 className="flex items-center gap-2 text-lg font-bold text-(--color-text-primary)">
@@ -19,7 +21,7 @@ export function AftercareGuidance({ vaccine }: AftercareGuidanceProps) {
             <div className="rounded-lg border border-sky-200 bg-sky-50 p-5 dark:border-sky-800 dark:bg-sky-900/20">
                 <h4 className="mb-3 flex items-center gap-2 text-sm font-bold tracking-wide text-sky-900 uppercase dark:text-sky-100">
                     <HelpCircle size={16} aria-hidden="true" />
-                    Clinical Aftercare Instructions
+                    {t("aftercareHeading")}
                 </h4>
                 <p className="text-sm leading-relaxed font-medium text-sky-900 dark:text-sky-100">
                     {vaccine.aftercare_text}

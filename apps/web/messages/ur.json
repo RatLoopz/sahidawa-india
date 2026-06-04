@@ -537,5 +537,35 @@
             "count": "{count, plural, =0 {No resolved reports} =1 {1 resolved report} other {# resolved reports}}",
             "decision": "Decision"
         }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "ویکسین حب",
+        "pageHeaderSubtitle": "حفاظتی ٹیکہ جات ٹریکر",
+        "title": "ویکسین حب اور حفاظتی ٹیکہ جات ٹریکر",
+        "subtitle": "عوامی صحت کی بہتری اور آگاہی کے لیے ویکسین کے نظام الاوقات، حفاظت کی معلومات، اور بعد از ویکسین دیکھ بھال کی رہنمائی حاصل کریں۔",
+        "selectLabel": "بیماری / ویکسین کا انتخاب کریں",
+        "placeholder": "ویکسین پروفائل منتخب کریں...",
+        "childBirthDate": "بچے کی تاریخ پیدائش",
+        "milestoneBaseDate": "پہلی خوراک کی بنیادی تاریخ",
+        "noVaccineSelected": "کوئی ویکسین منتخب نہیں کی گئی",
+        "chooseVaccinePrompt": "ٹریکنگ ٹولز استعمال کرنے کے لیے اوپر کوئی ویکسین منتخب کریں:",
+        "featureSchedule": "متحرک طور پر متوقع حفاظتی ٹیکوں کا شیڈول",
+        "featureSideEffects": "ضمنی اثرات کی تقسیم (ہلکے بمقابلہ شدید)",
+        "featureAftercare": "مرحلہ وار کلینیکل دیکھ بھال کی ہدایات",
+        "targetGroups": "ہدف گروپس",
+        "totalDoses": "کل خوراکیں",
+        "effectiveness": "افادیت",
+        "classification": "درجہ بندی",
+        "aboutDisease": "بیماری کے بارے میں:",
+        "scheduleLayoutHeading": "حفاظتی ٹیکوں کا شیڈول",
+        "atBirth": "پیدائش کے وقت دی جانے والی خوراک",
+        "atWeeks": "{weeks} ہفتے کی عمر پر",
+        "baseline": "ابتدائی خوراک (بنیاد)",
+        "doseStep": "خوراک کا مرحلہ {index} (+{weeks} ہفتوں بعد)",
+        "targetDate": "مقررہ تاریخ: {date}",
+        "selectDateWarning": "ٹائم لائن دیکھنے کے لیے اوپر ایک تاریخ منتخب کریں",
+        "commonEffects": "عام ضمنی اثرات",
+        "severeReactions": "شدید ردعمل",
+        "aftercareHeading": "فوری دیکھ بھال کی رہنمائی"
     }
 }
