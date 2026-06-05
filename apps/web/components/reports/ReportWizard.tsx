@@ -66,7 +66,14 @@ const schema = z.object({
     pincode: z
         .string()
         .transform(sanitize)
-        .pipe(z.string().regex(/^\d{6}$/, "Must be exactly 6 digits")),
+        .pipe(
+            z
+                .string()
+                .regex(
+                    /^[1-9][0-9]{5}$/,
+                    "Enter a valid 6-digit Indian Pincode (cannot start with 0)"
+                )
+        ),
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -599,6 +606,8 @@ function Step2({
 function Step3() {
     const {
         register,
+        watch,
+        setValue,
         formState: { errors },
     } = useFormContext<FormValues>();
     const pharmacyNameErrorId = useId();
@@ -606,6 +615,33 @@ function Step3() {
     const cityErrorId = useId();
     const stateErrorId = useId();
     const pincodeErrorId = useId();
+
+    const pincode = watch("pincode");
+
+    // Debounced Pincode Geocoding
+    useEffect(() => {
+        const PIN_REGEX = /^[1-9][0-9]{5}$/;
+
+        // Step 1: Input Validation - Only fire if it's a valid 6-digit Indian Pincode
+        if (!PIN_REGEX.test(pincode)) return;
+
+        // Step 2: Debouncing - Wait 500ms after last keystroke
+        const timer = setTimeout(async () => {
+            try {
+                // Cast to any to access optional address fields (city, state) returned by the API
+                const geo = (await geocodePincode(pincode)) as any;
+                if (geo) {
+                    // Auto-populate City and State
+                    if (geo.city) setValue("city", geo.city, { shouldValidate: true });
+                    if (geo.state) setValue("state", geo.state, { shouldValidate: true });
+                }
+            } catch (err) {
+                console.error("Auto-geocoding failed:", err);
+            }
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [pincode, setValue]);
 
     return (
         <div className="space-y-5">
