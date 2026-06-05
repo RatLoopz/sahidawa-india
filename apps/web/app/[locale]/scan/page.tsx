@@ -775,10 +775,18 @@ export default function ScanPage() {
         }
 
         const reader = new FileReader();
-        const dataUrl = await new Promise<string>((resolve) => {
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.readAsDataURL(file);
-        });
+        let dataUrl: string;
+        try {
+            dataUrl = await new Promise<string>((resolve, reject) => {
+                reader.onloadend = () => resolve(reader.result as string);
+                reader.onerror = () => reject(new Error("Failed to read image file"));
+                reader.readAsDataURL(file);
+            });
+        } catch (err) {
+            toast.error("Could not read the image file. Please try again.");
+            e.target.value = "";
+            return;
+        }
         setUploadedImage(dataUrl);
         e.target.value = "";
 
