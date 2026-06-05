@@ -252,5 +252,74 @@
                 "answer": "CDSCO stands for Central Drugs Standard Control Organisation. It is India's national regulatory body for cosmetics, pharmaceuticals and medical devices. SahiDawa verifies medicines against their official database."
             }
         }
+    },
+    
+  "PrivacyPolicy": {
+  "badge": "GSSoC 2026 Open Source Project",
+  "hero": {
+    "title": "Privacy",
+    "titleHighlight": "Policy",
+    "description": "We believe in transparency. Here is exactly what we collect, why we collect it, and what we never do with it."
+  },
+  "pills": {
+    "noDataSold": "No Data Sold. Ever.",
+    "noTrackingCookies": "No Tracking Cookies",
+    "openSource": "Open Source MIT License"
+  },
+  "sections": {
+    "informationWeCollect": {
+      "title": "1. Information We Collect",
+      "description": "SahiDawa collects only what is absolutely necessary to verify medicines and keep you safe.",
+      "items": {
+        "barcodeScans": "Medicine barcode or image scans — used only for verification",
+        "locationData": "Location data — only if you use pharmacy finder, never stored",
+        "voiceInput": "Voice input — processed locally, never uploaded without consent",
+        "noPersonalData": "We do <strong>not</strong> collect your name, phone number, or Aadhaar"
+      }
+    },
+    "howWeUseData": {
+      "title": "2. How We Use Your Data",
+      "items": {
+        "cdscoVerification": "Medicine scans are verified against the CDSCO database only",
+        "anonymousReports": "Anonymous scan reports may build our counterfeit heatmap",
+        "noSharing": "No personal data is shared with advertisers or third parties"
+      }
+    },
+    "cookies": {
+      "title": "3. Cookies",
+      "description": "SahiDawa uses only <strong>essential cookies</strong> such as your language preference. We do not use tracking, advertising, or analytics cookies of any kind."
+    },
+    "thirdPartyServices": {
+      "title": "4. Third-Party Services",
+      "description": "We use the following trusted services, each with their own privacy policy:",
+      "services": {
+        "cloudinary": "Cloudinary",
+        "supabase": "Supabase",
+        "openStreetMap": "OpenStreetMap",
+        "sarvamAI": "Sarvam AI"
+      }
+    },
+    "dataSecurity": {
+      "title": "5. Data Security",
+      "description": "SahiDawa is fully open source — our code is publicly auditable on GitHub. We follow secure coding practices and never store sensitive health data beyond what is needed for verification."
+    },
+    "childrensPrivacy": {
+      "title": "6. Children's Privacy",
+      "description": "SahiDawa is built for all citizens of India, including families. We do not knowingly collect personal data from children under 13."
+    },
+    "contactUs": {
+      "title": "7. Contact Us",
+      "description": "For privacy-related queries, reach us at:",
+      "email": "contact@sahidawa.in",
+      "discordText": "Or join our community on",
+      "discordLabel": "Discord"
+    },
+    "changesToPolicy": {
+      "title": "8. Changes to This Policy",
+      "description": "We may update this policy as SahiDawa grows. Any changes will be posted on this page with a revised date."
     }
+  },
+  "footer": "SahiDawa is free, open-source, and built for 1.4 billion Indians. No ads. No premium. No data sold. Ever."
 }
+}
+
