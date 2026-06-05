@@ -5,12 +5,21 @@ import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { MessageSquare, X, Send, Bot } from "lucide-react";
 import { getChatbotPanelClasses, getChatbotPositionClasses } from "./chatbotPosition";
+import { ChatMarkdown } from "@/app/components/ChatMarkdown";
+import { isAbortError, readChatErrorMessage, readTextResponseStream } from "@/lib/chatStream";
 
 type Message = {
     text: string;
     isBot: boolean;
     isTyping?: boolean;
 };
+
+const MessageContent = ({ msg }: { msg: Message }) =>
+    msg.isBot ? (
+        <ChatMarkdown content={msg.text} />
+    ) : (
+        <span className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</span>
+    );
 
 export default function Chatbot() {
     const pathname = usePathname();
@@ -19,6 +28,7 @@ export default function Chatbot() {
     const [messages, setMessages] = useState<Message[]>([{ text: t("welcome"), isBot: true }]);
     const [input, setInput] = useState("");
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const activeRequestRef = useRef<AbortController | null>(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -28,14 +38,23 @@ export default function Chatbot() {
         scrollToBottom();
     }, [messages]);
 
+    useEffect(() => {
+        return () => {
+            activeRequestRef.current?.abort();
+        };
+    }, []);
+
     // Securely check route-based visibility after hook declarations to satisfy React Rules of Hooks
     if (pathname && pathname.includes("/health")) {
         return null;
     }
 
     const handleSend = async () => {
-        if (!input.trim()) return;
+        if (!input.trim() || messages.some((message) => message.isTyping)) return;
 
+        activeRequestRef.current?.abort();
+        const requestController = new AbortController();
+        activeRequestRef.current = requestController;
         const userMessage = { text: input, isBot: false };
         const currentMessages = [...messages, userMessage];
         setMessages(currentMessages);
@@ -48,22 +67,34 @@ export default function Chatbot() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ messages: currentMessages }),
+                signal: requestController.signal,
             });
-
-            const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.error || "Failed to fetch response");
+                throw new Error(await readChatErrorMessage(response, "Failed to fetch response"));
             }
 
+            let streamedReply = "";
+            const reply = await readTextResponseStream(
+                response,
+                (chunk) => {
+                    streamedReply += chunk;
+                    setMessages((prev) =>
+                        prev.map((msg) =>
+                            msg.isTyping ? { ...msg, text: streamedReply || "Thinking..." } : msg
+                        )
+                    );
+                },
+                { signal: requestController.signal }
+            );
+
             setMessages((prev) => {
-                const withoutTyping = prev.filter((msg) => !msg.isTyping);
-                return [
-                    ...withoutTyping,
-                    { text: data.text || "Sorry, I received an empty response.", isBot: true },
-                ];
+                const finalText = reply || "Sorry, I received an empty response.";
+                return prev.map((msg) => (msg.isTyping ? { text: finalText, isBot: true } : msg));
             });
         } catch (error: any) {
+            if (isAbortError(error)) return;
+
             console.error("Chatbot API Error:", error);
             setMessages((prev) => {
                 const withoutTyping = prev.filter((msg) => !msg.isTyping);
@@ -77,6 +108,10 @@ export default function Chatbot() {
                     },
                 ];
             });
+        } finally {
+            if (activeRequestRef.current === requestController) {
+                activeRequestRef.current = null;
+            }
         }
     };
 
@@ -115,7 +150,7 @@ export default function Chatbot() {
                                         : "self-end rounded-tr-sm bg-green-600 text-white dark:bg-green-700"
                                 }`}
                             >
-                                <p className="text-sm leading-relaxed">{msg.text}</p>
+                                <MessageContent msg={msg} />
                             </div>
                         ))}
                         <div ref={messagesEndRef} />

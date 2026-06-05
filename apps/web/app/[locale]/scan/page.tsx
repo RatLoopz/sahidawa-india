@@ -46,6 +46,7 @@ import {
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
 import { useTranslations } from "next-intl";
 import { buildVerificationShareText, type VerificationShareCopy } from "@/lib/verificationShare";
+import { structuredLog } from "@/lib/structuredLogger";
 
 function formatExpiryForBadge(isoDate: string | null | undefined): string | undefined {
     if (!isoDate) return undefined;
@@ -831,8 +832,15 @@ export default function ScanPage() {
                     await handleVerify(barcodeText);
                     return;
                 }
-            } catch {
-                // ZXing failed — continue to OCR fallback
+            } catch (error) {
+                structuredLog({
+                    log_level: "warn",
+                    route: "/scan",
+                    meta: {
+                        message: "[scan] Barcode detection (ZXing) failed, falling back to OCR",
+                        error: error instanceof Error ? error.message : String(error),
+                    },
+                });
             }
 
             if (!isMountedRef.current || controller.signal.aborted) return;
@@ -904,8 +912,16 @@ export default function ScanPage() {
                     if (batchRes.verified) {
                         finalResult = batchRes;
                     }
-                } catch {
-                    // Silent fallback
+                } catch (error) {
+                    structuredLog({
+                        log_level: "warn",
+                        route: "/scan",
+                        meta: {
+                            message: "[scan] Batch verification failed, trying brand match",
+                            batch: parsedBatchNum,
+                            error: error instanceof Error ? error.message : String(error),
+                        },
+                    });
                 }
             }
 
@@ -927,8 +943,16 @@ export default function ScanPage() {
                             }
                         }
                     }
-                } catch {
-                    // Silent fallback
+                } catch (error) {
+                    structuredLog({
+                        log_level: "warn",
+                        route: "/scan",
+                        meta: {
+                            message: "[scan] Fuzzy brand match verification failed",
+                            brand: medName,
+                            error: error instanceof Error ? error.message : String(error),
+                        },
+                    });
                 }
             }
 

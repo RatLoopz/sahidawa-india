@@ -173,16 +173,29 @@ export async function triggerRecallAlert(alert: RecallAlert) {
         };
     }
 
-    const results = await Promise.allSettled(
-        subscriptions.map((item) =>
-            webPush.sendNotification(item.subscription, JSON.stringify(payload))
-        )
-    );
+    const BATCH_SIZE = 50;
+    const results: PromiseSettledResult<any>[] = [];
+    const failedEndpoints: string[] = [];
 
-    const failedEndpoints = results
-        .map((result, index) => ({ result, endpoint: subscriptions[index].endpoint }))
-        .filter(({ result }) => result.status === "rejected")
-        .map(({ endpoint }) => endpoint);
+    for (let i = 0; i < subscriptions.length; i += BATCH_SIZE) {
+        const chunk = subscriptions.slice(i, i + BATCH_SIZE);
+        const chunkResults = await Promise.allSettled(
+            chunk.map((item) =>
+                webPush.sendNotification(item.subscription, JSON.stringify(payload))
+            )
+        );
+
+        chunkResults.forEach((result, index) => {
+            results.push(result);
+            if (result.status === "rejected") {
+                failedEndpoints.push(chunk[index].endpoint);
+            }
+        });
+
+        if (i + BATCH_SIZE < subscriptions.length) {
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+    }
 
     await Promise.all(failedEndpoints.map(removePushSubscription));
 

@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { supabase } from "../db/client";
 import { z } from "zod";
 import { triggerRecallAlert } from "../services/notifications";
+import { validateMedicineStatus, getValidStatusList } from "../validators/medicine.validator";
 
 const AlertSchema = z
     .object({
@@ -92,6 +93,7 @@ alertsRouter.get("/", async (req: Request, res: Response) => {
  */
 alertsRouter.post("/ingest", async (req: Request, res: Response) => {
     // 1. Validate Secret Header & Environment Setup
+    // Issue fixed: API_SECRET_KEY is validated here instead of at startup, so a missing key no longer crashes the server.
     const expectedSecret = process.env.API_SECRET_KEY;
     if (!expectedSecret) {
         console.error("Server Configuration Error: API_SECRET_KEY is not configured.");
@@ -130,11 +132,19 @@ alertsRouter.post("/ingest", async (req: Request, res: Response) => {
         }
 
         // 3. Update medicines table based on matched batches
+        const medicineStatus = "recalled";
+        if (!validateMedicineStatus(medicineStatus)) {
+            res.status(400).json({
+                error: `Invalid medicine status. Valid values are: ${getValidStatusList()}`,
+            });
+            return;
+        }
+
         const updatePromises = validatedAlerts.map((alert) => {
             if (alert.batch_number) {
                 let q = supabase
                     .from("medicines")
-                    .update({ status: "recalled", is_counterfeit_alert: true })
+                    .update({ status: medicineStatus, is_counterfeit_alert: true })
                     .eq("batch_number", alert.batch_number);
 
                 if (alert.manufacturer) {

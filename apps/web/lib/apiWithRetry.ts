@@ -16,8 +16,8 @@ const DEFAULT_CONFIG: Required<RetryConfig> = {
     maxDelayMs: 10000,
     backoffMultiplier: 2,
     shouldRetry: (error: Error | Response, attemptNumber: number) => {
-        if (error instanceof Response) {
-            const status = error.status;
+        if (error && typeof error === "object" && "status" in error) {
+            const status = (error as any).status;
             if ([400, 401, 403, 404].includes(status)) {
                 return false;
             }
@@ -97,10 +97,7 @@ export async function fetchWithRetry(
             }
 
             if (!response.ok) {
-                if (
-                    attempt <= config.maxRetries &&
-                    config.shouldRetry(new Response("", { status: response.status }), attempt)
-                ) {
+                if (attempt <= config.maxRetries && config.shouldRetry(response, attempt)) {
                     const delay = getBackoffDelay(attempt, config);
                     await sleep(delay);
                     continue;

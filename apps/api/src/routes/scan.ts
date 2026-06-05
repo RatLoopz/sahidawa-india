@@ -17,7 +17,7 @@ import { uploadRateLimiter } from "../middleware/uploadRateLimit";
  * intended and may expose unrelated medicine records.
  */
 function escapeIlike(word: string): string {
-    return word.replace(/%/g, "\\%").replace(/_/g, "\\_");
+    return word.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
 }
 
 const router = Router();

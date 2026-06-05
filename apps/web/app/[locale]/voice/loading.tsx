@@ -1,59 +1,65 @@
 export default function VoiceLoading() {
-  return (
-    <div className="min-h-screen bg-slate-50 flex flex-col relative overflow-hidden">
-      {/* Decorative blobs — matches real page */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-100/40 rounded-full blur-3xl -mr-20 -mt-20" />
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-100/40 rounded-full blur-3xl -ml-20 -mb-20" />
+    return (
+        <div className="relative flex min-h-screen flex-col overflow-hidden bg-slate-50">
+            {/* Decorative blobs — matches real page */}
+            <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-emerald-100/40 blur-3xl" />
+            <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-blue-100/40 blur-3xl" />
 
-      {/* Header skeleton */}
-      <div className="flex items-center gap-4 px-6 pt-14 pb-4 relative z-10">
-        <div className="w-10 h-10 rounded-2xl bg-slate-200 animate-pulse" />
-        <div className="space-y-1.5">
-          <div className="w-28 h-3.5 rounded-full bg-slate-200 animate-pulse" />
-          <div className="w-20 h-2.5 rounded-full bg-slate-200 animate-pulse" />
+            {/* Header skeleton */}
+            <div className="relative z-10 flex items-center gap-4 px-6 pt-14 pb-4">
+                <div className="h-10 w-10 animate-pulse rounded-2xl bg-slate-200" />
+                <div className="space-y-1.5">
+                    <div className="h-3.5 w-28 animate-pulse rounded-full bg-slate-200" />
+                    <div className="h-2.5 w-20 animate-pulse rounded-full bg-slate-200" />
+                </div>
+            </div>
+
+            {/* Center content skeleton */}
+            <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-8 px-6">
+                {/* Title skeleton */}
+                <div className="flex flex-col items-center space-y-3">
+                    <div className="h-8 w-52 animate-pulse rounded-2xl bg-slate-200" />
+                    <div className="h-3 w-64 animate-pulse rounded-full bg-slate-200" />
+                    <div className="h-3 w-44 animate-pulse rounded-full bg-slate-200" />
+                </div>
+
+                {/* Feature cards skeleton */}
+                <div className="grid w-full max-w-sm grid-cols-2 gap-4">
+                    <div className="space-y-2 rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
+                        <div className="h-5 w-5 animate-pulse rounded-md bg-slate-200" />
+                        <div className="h-2.5 w-16 animate-pulse rounded-full bg-slate-200" />
+                        <div className="h-3.5 w-24 animate-pulse rounded-full bg-slate-200" />
+                    </div>
+                    <div className="space-y-2 rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
+                        <div className="h-5 w-5 animate-pulse rounded-md bg-slate-200" />
+                        <div className="h-2.5 w-16 animate-pulse rounded-full bg-slate-200" />
+                        <div className="h-3.5 w-20 animate-pulse rounded-full bg-slate-200" />
+                    </div>
+                </div>
+            </div>
+
+            {/* Mic button skeleton — pulsing circle, microphone-loading feel */}
+            <div className="relative z-10 flex flex-col items-center gap-6 p-12">
+                <div className="relative flex items-center justify-center">
+                    {/* Outer pulse rings */}
+                    <div
+                        className="absolute h-24 w-24 animate-pulse rounded-full bg-emerald-400/20"
+                        style={{ animationDuration: "1.6s" }}
+                    />
+                    <div
+                        className="absolute h-32 w-32 animate-pulse rounded-full bg-emerald-400/10"
+                        style={{ animationDuration: "2.2s" }}
+                    />
+                    {/* Mic button shimmer */}
+                    <div className="h-24 w-24 animate-pulse rounded-full bg-emerald-200" />
+                </div>
+                <div className="h-3 w-24 animate-pulse rounded-full bg-slate-200" />
+            </div>
+
+            {/* Footer text skeleton */}
+            <div className="flex justify-center p-8">
+                <div className="h-2.5 w-56 animate-pulse rounded-full bg-slate-200" />
+            </div>
         </div>
-      </div>
-
-      {/* Center content skeleton */}
-      <div className="flex-1 relative z-10 flex flex-col items-center justify-center px-6 gap-8">
-        {/* Title skeleton */}
-        <div className="space-y-3 flex flex-col items-center">
-          <div className="w-52 h-8 rounded-2xl bg-slate-200 animate-pulse" />
-          <div className="w-64 h-3 rounded-full bg-slate-200 animate-pulse" />
-          <div className="w-44 h-3 rounded-full bg-slate-200 animate-pulse" />
-        </div>
-
-        {/* Feature cards skeleton */}
-        <div className="grid grid-cols-2 gap-4 max-w-sm w-full">
-          <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm space-y-2">
-            <div className="w-5 h-5 rounded-md bg-slate-200 animate-pulse" />
-            <div className="w-16 h-2.5 rounded-full bg-slate-200 animate-pulse" />
-            <div className="w-24 h-3.5 rounded-full bg-slate-200 animate-pulse" />
-          </div>
-          <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm space-y-2">
-            <div className="w-5 h-5 rounded-md bg-slate-200 animate-pulse" />
-            <div className="w-16 h-2.5 rounded-full bg-slate-200 animate-pulse" />
-            <div className="w-20 h-3.5 rounded-full bg-slate-200 animate-pulse" />
-          </div>
-        </div>
-      </div>
-
-      {/* Mic button skeleton — pulsing circle, microphone-loading feel */}
-      <div className="relative z-10 p-12 flex flex-col items-center gap-6">
-        <div className="relative flex items-center justify-center">
-          {/* Outer pulse rings */}
-          <div className="absolute w-24 h-24 rounded-full bg-emerald-400/20 animate-pulse" style={{ animationDuration: "1.6s" }} />
-          <div className="absolute w-32 h-32 rounded-full bg-emerald-400/10 animate-pulse" style={{ animationDuration: "2.2s" }} />
-          {/* Mic button shimmer */}
-          <div className="w-24 h-24 rounded-full bg-emerald-200 animate-pulse" />
-        </div>
-        <div className="w-24 h-3 rounded-full bg-slate-200 animate-pulse" />
-      </div>
-
-      {/* Footer text skeleton */}
-      <div className="p-8 flex justify-center">
-        <div className="w-56 h-2.5 rounded-full bg-slate-200 animate-pulse" />
-      </div>
-    </div>
-  );
+    );
 }

@@ -1,7 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/routing";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,10 @@ export default async function AdminLayout({
     params: Promise<{ locale: string }>;
 }) {
     const resolvedParams = await params;
+    const t = await getTranslations({
+        locale: resolvedParams.locale,
+        namespace: "AdminLayout",
+    });
     const cookieStore = await cookies();
     const supabase = createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
         cookies: {
@@ -63,16 +68,15 @@ export default async function AdminLayout({
                             <line x1="12" y1="16" x2="12.01" y2="16" />
                         </svg>
                     </div>
-                    <h1 className="mb-2 text-xl font-bold text-slate-900">Access Denied</h1>
-                    <p className="mb-6 text-sm text-slate-500">
-                        You do not have the required permissions to view the admin dashboard. Must
-                        be an admin or moderator.
-                    </p>
+                    <h1 className="mb-2 text-xl font-bold text-slate-900">
+                        {t("accessDeniedTitle")}
+                    </h1>
+                    <p className="mb-6 text-sm text-slate-500">{t("accessDeniedDescription")}</p>
                     <Link
-                        href={`/${resolvedParams.locale}/`}
+                        href="/"
                         className="inline-flex w-full justify-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
                     >
-                        Return to Home
+                        {t("returnHome")}
                     </Link>
                 </div>
             </div>

@@ -3,13 +3,15 @@
 import { Mail, Lock, ShieldCheck, ArrowRight, Hand, AlertTriangle } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { Link, useRouter } from "@/i18n/routing";
 import { createBrowserClient } from "@supabase/ssr";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
 export default function LoginPage() {
     const router = useRouter();
+    const locale = useLocale();
+    const t = useTranslations("Login");
     const supabaseUrl = getSupabaseUrl();
     const supabaseKey = getSupabaseAnonKey();
     const isMissingEnvVars = !supabaseUrl || !supabaseKey;
@@ -26,7 +28,7 @@ export default function LoginPage() {
         setError("");
 
         if (isMissingEnvVars) {
-            setError("Database connection is not configured.");
+            setError(t("errors.databaseNotConfigured"));
             setLoading(false);
             return;
         }
@@ -44,12 +46,10 @@ export default function LoginPage() {
             }
 
             if (data?.session?.access_token) {
-                localStorage.setItem("sb-access-token", data.session.access_token);
-
                 router.push("/reports/me");
             }
-        } catch (err) {
-            setError("Something went wrong. Please try again.");
+        } catch {
+            setError(t("errors.generic"));
         }
 
         setLoading(false);
@@ -60,7 +60,7 @@ export default function LoginPage() {
         setError("");
 
         if (isMissingEnvVars) {
-            setError("Database connection is not configured.");
+            setError(t("errors.databaseNotConfigured"));
             setLoading(false);
             return;
         }
@@ -69,7 +69,7 @@ export default function LoginPage() {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: "google",
                 options: {
-                    redirectTo: `${window.location.origin}/reports/me`,
+                    redirectTo: `${window.location.origin}/${locale}/reports/me`,
                 },
             });
 
@@ -77,14 +77,14 @@ export default function LoginPage() {
                 setError(error.message);
                 setLoading(false);
             }
-        } catch (err) {
-            setError("Something went wrong. Please try again.");
+        } catch {
+            setError(t("errors.generic"));
             setLoading(false);
         }
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-[var(--color-surface-login)] px-4 py-10 [background-image:radial-gradient(ellipse_at_top_left,rgba(16,185,129,0.08)_0%,transparent_50%),radial-gradient(ellipse_at_bottom_right,rgba(5,150,105,0.06)_0%,transparent_50%)]">
+        <div className="flex min-h-screen items-center justify-center bg-[var(--color-surface-login)] [background-image:radial-gradient(ellipse_at_top_left,rgba(16,185,129,0.08)_0%,transparent_50%),radial-gradient(ellipse_at_bottom_right,rgba(5,150,105,0.06)_0%,transparent_50%)] px-4 py-10">
             <div className="w-full max-w-md">
                 {/* Logo */}
                 <div className="mb-8 flex items-center justify-center gap-3">
@@ -95,7 +95,7 @@ export default function LoginPage() {
                     <div>
                         <h1 className="text-3xl font-bold text-(--color-text-primary)">SahiDawa</h1>
                         <p className="text-sm text-(--color-text-secondary)">
-                            Secure Health Verification
+                            {t("brandSubtitle")}
                         </p>
                     </div>
                 </div>
@@ -104,12 +104,11 @@ export default function LoginPage() {
                 <div className="rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-8 shadow-xl">
                     <div className="mb-7">
                         <h2 className="flex items-center gap-2 text-3xl font-bold text-(--color-text-primary)">
-                            Welcome Back <Hand className="h-8 w-8 animate-bounce text-amber-500" />
+                            {t("heading")}{" "}
+                            <Hand className="h-8 w-8 animate-bounce text-amber-500" />
                         </h2>
 
-                        <p className="mt-2 text-(--color-text-secondary)">
-                            Sign in to access your reports and continue using SahiDawa.
-                        </p>
+                        <p className="mt-2 text-(--color-text-secondary)">{t("description")}</p>
                     </div>
 
                     {/* Missing Env Variables Warning */}
@@ -117,10 +116,9 @@ export default function LoginPage() {
                         <div className="mb-5 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/20 dark:text-amber-300">
                             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-500" />
                             <div>
-                                <p className="mb-1 font-semibold">Missing Configuration</p>
+                                <p className="mb-1 font-semibold">{t("missingConfig.title")}</p>
                                 <p className="text-amber-700 dark:text-amber-400">
-                                    Database connection variables are missing in your local setup.
-                                    Please configure .env.local to proceed.
+                                    {t("missingConfig.description")}
                                 </p>
                             </div>
                         </div>
@@ -144,14 +142,14 @@ export default function LoginPage() {
                         className="mb-6 flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 font-medium text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
                     >
                         <FcGoogle size={20} />
-                        Sign in with Google
+                        {t("googleButton")}
                     </button>
 
                     {/* OR Separator */}
                     <div className="mb-6 flex items-center gap-4">
                         <div className="h-px flex-1 bg-(--color-border-muted)"></div>
                         <span className="text-xs font-medium tracking-wider text-(--color-text-muted) uppercase">
-                            Or continue with email
+                            {t("emailSeparator")}
                         </span>
                         <div className="h-px flex-1 bg-(--color-border-muted)"></div>
                     </div>
@@ -160,7 +158,7 @@ export default function LoginPage() {
                         {/* Email */}
                         <div>
                             <label className="text-sm font-medium text-(--color-text-primary)">
-                                Email Address
+                                {t("emailLabel")}
                             </label>
 
                             <div className="mt-2 flex items-center gap-3 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3.5 transition focus-within:border-emerald-500 focus-within:bg-(--color-surface-page) focus-within:ring-2 focus-within:ring-emerald-500/20">
@@ -168,7 +166,7 @@ export default function LoginPage() {
 
                                 <input
                                     type="email"
-                                    placeholder="Enter your email"
+                                    placeholder={t("emailPlaceholder")}
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
@@ -181,7 +179,7 @@ export default function LoginPage() {
                         {/* Password */}
                         <div>
                             <label className="text-sm font-medium text-(--color-text-primary)">
-                                Password
+                                {t("passwordLabel")}
                             </label>
 
                             <div className="mt-2 flex items-center gap-3 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3.5 transition focus-within:border-emerald-500 focus-within:bg-(--color-surface-page) focus-within:ring-2 focus-within:ring-emerald-500/20">
@@ -189,7 +187,7 @@ export default function LoginPage() {
 
                                 <input
                                     type="password"
-                                    placeholder="Enter your password"
+                                    placeholder={t("passwordPlaceholder")}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
@@ -205,7 +203,7 @@ export default function LoginPage() {
                             disabled={loading || isMissingEnvVars}
                             className="shadow-emerald-250/20 mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 font-semibold text-white shadow-lg transition-all hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-emerald-600 dark:shadow-emerald-950/20"
                         >
-                            {loading ? "Signing In..." : "Sign In"}
+                            {loading ? t("signingIn") : t("signIn")}
 
                             {!loading && <ArrowRight className="h-5 w-5" />}
                         </button>
@@ -213,16 +211,16 @@ export default function LoginPage() {
 
                     {/* Footer */}
                     <div className="mt-7 text-center text-sm text-(--color-text-secondary)">
-                        Don&apos;t have an account?{" "}
+                        {t("footerPrompt")}{" "}
                         <Link href="/" className="font-medium text-emerald-600 hover:underline">
-                            Return Home
+                            {t("returnHome")}
                         </Link>
                     </div>
                 </div>
 
                 {/* Bottom Text */}
                 <p className="mt-6 text-center text-xs text-(--color-text-muted)">
-                    Protected by Supabase Authentication • SahiDawa © 2026
+                    {t("bottomText")}
                 </p>
             </div>
         </div>

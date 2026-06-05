@@ -366,5 +366,206 @@
         "status": "Online",
         "title": "SahiDawa AI",
         "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"
+    },
+    "Alerts": {
+        "backHome": "Back to Home Page",
+        "badge": "Live Alerts",
+        "title": "Live CDSCO Alerts",
+        "subtitle": "Complete historical safety logging stream directly mapped to the master CDSCO registry.",
+        "regionBadge": "India Region",
+        "totalCount": "Total Count: {count}",
+        "brandPlaceholder": "Search by Brand Name...",
+        "regionPlaceholder": "Filter by State/District...",
+        "error": "Database synchronization error encountered while fetching active logs.",
+        "loading": "Loading alerts...",
+        "systemUpdate": "System Update",
+        "alertType": "Alert: {type}",
+        "noDetails": "No details available",
+        "batchLabel": "Batch:",
+        "manufacturerLabel": "Manufacturer:",
+        "regionLabel": "Region:",
+        "empty": "No health alerts matching your criteria were found.",
+        "previous": "Previous",
+        "next": "Next"
+    },
+    "Compare": {
+        "pageTitle": "Compare medicines",
+        "pageSubtitle": "Brand vs generic side by side",
+        "firstMedicine": "First medicine",
+        "secondMedicine": "Second medicine",
+        "searchPlaceholder": "Search brand or generic name",
+        "findPharmacies": "Find pharmacies",
+        "emptyComparison": "Select two medicines above to see the comparison.",
+        "fieldHeader": "Field",
+        "medicineA": "Medicine A",
+        "medicineB": "Medicine B",
+        "priceUnavailable": "Price unavailable",
+        "noSavings": "No savings",
+        "saveAmount": "Save ₹{amount} ({percent}%)",
+        "rows": {
+            "brandName": "Brand name",
+            "genericName": "Generic name",
+            "composition": "Composition",
+            "manufacturer": "Manufacturer",
+            "type": "Type",
+            "cdscoStatus": "CDSCO status",
+            "expiryDate": "Expiry date",
+            "marketPrice": "Market price (MRP)",
+            "janAushadhiPrice": "Jan Aushadhi price",
+            "savings": "Savings vs MRP"
+        },
+        "medicineTypes": {
+            "brand": "Brand",
+            "generic": "Generic"
+        },
+        "status": {
+            "approved": "Approved",
+            "recalled": "Recalled",
+            "banned": "Banned"
+        }
+    },
+    "Login": {
+        "brandSubtitle": "Medicine safety platform",
+        "heading": "Welcome back",
+        "description": "Sign in to continue tracking medicine safety reports and verification results.",
+        "missingConfig": {
+            "title": "Authentication is not configured",
+            "description": "Supabase URL or anon key is missing. Add the environment variables before signing in."
+        },
+        "googleButton": "Continue with Google",
+        "emailSeparator": "or continue with email",
+        "emailLabel": "Email address",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Enter your password",
+        "signingIn": "Signing in...",
+        "signIn": "Sign In",
+        "footerPrompt": "Need to go back?",
+        "returnHome": "Return home",
+        "bottomText": "Protected access for SahiDawa community tools.",
+        "errors": {
+            "databaseNotConfigured": "Authentication is not configured for this environment.",
+            "generic": "Unable to sign in. Please try again."
+        }
+    },
+    "AdminLayout": {
+        "accessDeniedTitle": "Access denied",
+        "accessDeniedDescription": "You need administrator or moderator privileges to view this page.",
+        "returnHome": "Return home"
+    },
+    "AdminDashboard": {
+        "brandSuffix": "Admin",
+        "version": "SahiDawa Admin v1.0",
+        "nav": {
+            "reports": "Reports",
+            "medicine": "Medicine Master",
+            "logs": "Audit Logs"
+        },
+        "header": {
+            "title": "Moderation Dashboard",
+            "subtitle": "Manage community-reported counterfeit medicines"
+        },
+        "searchPlaceholder": "Search...",
+        "actions": {
+            "signIn": "Sign In",
+            "refresh": "Refresh",
+            "addMedicine": "Add Medicine",
+            "save": "Save",
+            "cancel": "Cancel",
+            "goToLogin": "Go to login",
+            "markFake": "Mark fake",
+            "falseAlarm": "False alarm"
+        },
+        "stats": {
+            "pending": "Pending",
+            "resolved": "Resolved",
+            "districtsAffected": "Districts Affected"
+        },
+        "errors": {
+            "notAuthenticated": "Not authenticated — please sign in as an admin.",
+            "accessDenied": "Access denied — admin or moderator role required.",
+            "apiUnavailable": "Cannot reach the API. Is the backend server running on port 4000?"
+        },
+        "toasts": {
+            "markedFake": "Marked as Verified Fake",
+            "falseAlarm": "Marked as False Alarm",
+            "reportUpdateFailed": "Failed to update report",
+            "medicineAdded": "Medicine added",
+            "medicineAddFailed": "Failed to add medicine"
+        },
+        "medicine": {
+            "title": "Medicine Master",
+            "empty": "No medicines found",
+            "columns": {
+                "brand": "Brand",
+                "generic": "Generic",
+                "manufacturer": "Manufacturer",
+                "barcode": "Barcode",
+                "status": "Status"
+            }
+        },
+        "status": {
+            "approved": "Approved",
+            "recalled": "Recalled",
+            "banned": "Banned"
+        },
+        "logs": {
+            "title": "Audit Logs",
+            "subtitle": "Recent moderation and medicine catalog activity",
+            "loading": "Loading logs...",
+            "empty": "No audit logs yet"
+        },
+        "reports": {
+            "title": "Incoming Reports",
+            "pendingCount": "{count, plural, =0 {No pending reports} =1 {1 pending report} other {# pending reports}}",
+            "loading": "Loading reports...",
+            "empty": "No pending reports",
+            "columns": {
+                "medicine": "Medicine",
+                "district": "District",
+                "barcode": "Barcode",
+                "reported": "Reported",
+                "actions": "Actions"
+            },
+            "decisions": {
+                "verifiedFake": "Verified Fake",
+                "falseAlarm": "False Alarm"
+            }
+        },
+        "resolved": {
+            "title": "Recently Resolved",
+            "count": "{count, plural, =0 {No resolved reports} =1 {1 resolved report} other {# resolved reports}}",
+            "decision": "Decision"
+        }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "ভ্যাকসিন হাব",
+        "pageHeaderSubtitle": "ইমিউনাইজেশন ট্র্যাকার",
+        "title": "ভ্যাকসিন হাব এবং ইমিউনাইজেশন ট্র্যাকার",
+        "subtitle": "জনস্বাস্থ্য সচেতনতা বৃদ্ধির জন্য ভ্যাকসিনের সময়সূচী, সুরক্ষা তথ্য এবং পরবর্তী পরিচর্যার নির্দেশিকা অন্বেষণ করুন।",
+        "selectLabel": "রোগ / ভ্যাকসিন নির্বাচন করুন",
+        "placeholder": "একটি ভ্যাকসিন প্রোফাইল চয়ন করুন...",
+        "childBirthDate": "শিশুর জন্ম তারিখ",
+        "milestoneBaseDate": "প্রথম ডোজ মাইলস্টোন বেস তারিখ",
+        "noVaccineSelected": "কোনো ভ্যাকসিন নির্বাচন করা হয়নি",
+        "chooseVaccinePrompt": "ট্র্যাকিং টুল আনলক করতে উপরে একটি ভ্যাকসিন চয়ন করুন:",
+        "featureSchedule": "গতিশীলভাবে অনুমিত ইমিউনাইজেশন সময়সূচী",
+        "featureSideEffects": "পার্শ্বপ্রতিক্রিয়ার বিভক্ত প্যারামিটার (মৃদু বনাম গুরুতর)",
+        "featureAftercare": "ক্লিনিকাল ধাপে ধাপে পরবর্তী পরিচর্যার নির্দেশাবলী",
+        "targetGroups": "লক্ষ্য গোষ্ঠী",
+        "totalDoses": "মোট ডোজ",
+        "effectiveness": "কার্যকারিতা",
+        "classification": "শ্রেণীবিভাগ",
+        "aboutDisease": "রোগ সম্পর্কে:",
+        "scheduleLayoutHeading": "ইমিউনাইজেশন সময়সূচী",
+        "atBirth": "জন্মেকালীন প্রয়োগ",
+        "atWeeks": "বয়স {weeks} সপ্তাহে",
+        "baseline": "প্রাথমিক প্রয়োগ (ভিত্তি)",
+        "doseStep": "ডোজ ধাপ {index} (+{weeks} সপ্তাহ পরে)",
+        "targetDate": "লক্ষ্য তারিখ: {date}",
+        "selectDateWarning": "সময়সূচী অনুমান করতে উপরে একটি তারিখ নির্বাচন করুন",
+        "commonEffects": "সাধারণ পরবর্তী প্রতিক্রিয়া",
+        "severeReactions": "গুরুতর প্রতিক্রিয়া",
+        "aftercareHeading": "তাত্ক্ষণিক পরবর্তী পরিচর্যার নির্দেশিকা"
     }
 }

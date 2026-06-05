@@ -11,6 +11,68 @@ export interface Medicine {
     cdsco_approval_status: string;
 }
 
+export interface ComparisonGridLabels {
+    emptyComparison: string;
+    fieldHeader: string;
+    medicineA: string;
+    medicineB: string;
+    priceUnavailable: string;
+    noSavings: string;
+    saveAmount: (amount: string, percent: string) => string;
+    rows: {
+        brandName: string;
+        genericName: string;
+        composition: string;
+        manufacturer: string;
+        type: string;
+        cdscoStatus: string;
+        expiryDate: string;
+        marketPrice: string;
+        janAushadhiPrice: string;
+        savings: string;
+    };
+    medicineTypes: {
+        brand: string;
+        generic: string;
+    };
+    status: {
+        approved: string;
+        recalled: string;
+        banned: string;
+    };
+}
+
+const defaultLabels: ComparisonGridLabels = {
+    emptyComparison: "Select two medicines above to see the comparison.",
+    fieldHeader: "Field",
+    medicineA: "Medicine A",
+    medicineB: "Medicine B",
+    priceUnavailable: "Price unavailable",
+    noSavings: "No savings",
+    saveAmount: (amount, percent) => `Save ₹${amount} (${percent}%)`,
+    rows: {
+        brandName: "Brand name",
+        genericName: "Generic name",
+        composition: "Composition",
+        manufacturer: "Manufacturer",
+        type: "Type",
+        cdscoStatus: "CDSCO status",
+        expiryDate: "Expiry date",
+        marketPrice: "Market price (MRP)",
+        janAushadhiPrice: "Jan Aushadhi price",
+        savings: "Savings vs MRP",
+    },
+    medicineTypes: {
+        brand: "brand",
+        generic: "generic",
+    },
+    status: {
+        approved: "Approved",
+        recalled: "Recalled",
+        banned: "Banned",
+    },
+};
+
 function hasValidMrp(m: Medicine | null | undefined): m is Medicine & { mrp: number } {
     return m != null && m.mrp != null && Number.isFinite(m.mrp) && m.mrp >= 0;
 }
@@ -30,11 +92,11 @@ function displayName(m: Medicine): string {
     return m.brand_name?.trim() || m.generic_name;
 }
 
-function formatStatus(status: string): string {
+function formatStatus(status: string, labels: ComparisonGridLabels): string {
     const map: Record<string, string> = {
-        approved: "Approved",
-        recalled: "Recalled",
-        banned: "Banned",
+        approved: labels.status.approved,
+        recalled: labels.status.recalled,
+        banned: labels.status.banned,
     };
     return map[status.toLowerCase()] ?? status;
 }
@@ -55,59 +117,66 @@ function computeSavingsPercent(higher: number, lower: number): number {
     return ((higher - lower) / higher) * 100;
 }
 
-function formatPrice(value: number | null | undefined): string {
-    return value != null ? `₹${value.toFixed(2)}` : "Price unavailable";
+function formatPrice(value: number | null | undefined, unavailableText: string): string {
+    return value != null ? `₹${value.toFixed(2)}` : unavailableText;
 }
 
-function getSavingsText(medicine: Medicine | null): string {
+function getSavingsText(medicine: Medicine | null, labels: ComparisonGridLabels): string {
     if (!medicine || !hasValidMrp(medicine) || !hasValidJanAushadhiPrice(medicine)) {
-        return "Price unavailable";
+        return labels.priceUnavailable;
     }
 
     if (medicine.mrp <= medicine.jan_aushadhi_price) {
-        return "No savings";
+        return labels.noSavings;
     }
 
     const amount = medicine.mrp - medicine.jan_aushadhi_price;
     const percent = computeSavingsPercent(medicine.mrp, medicine.jan_aushadhi_price);
-    return `Save ₹${amount.toFixed(2)} (${percent.toFixed(1)}%)`;
+    return labels.saveAmount(amount.toFixed(2), percent.toFixed(1));
 }
 
 export default function ComparisonGrid({
     medicine1,
     medicine2,
+    labels = defaultLabels,
 }: {
     medicine1: Medicine | null;
     medicine2: Medicine | null;
+    labels?: ComparisonGridLabels;
 }) {
     if (!medicine1 && !medicine2) {
         return (
             <div className="rounded-xl border border-dashed border-slate-200 bg-white py-14 text-center text-slate-500">
-                Select two medicines above to see the comparison.
+                {labels.emptyComparison}
             </div>
         );
     }
 
     const rows: { label: string; getValue: (m: Medicine) => string }[] = [
-        { label: "Brand name", getValue: (m) => m.brand_name?.trim() || "—" },
-        { label: "Generic name", getValue: (m) => m.generic_name },
-        { label: "Composition", getValue: (m) => m.composition?.trim() || "—" },
-        { label: "Manufacturer", getValue: (m) => m.manufacturer },
+        { label: labels.rows.brandName, getValue: (m) => m.brand_name?.trim() || "—" },
+        { label: labels.rows.genericName, getValue: (m) => m.generic_name },
+        { label: labels.rows.composition, getValue: (m) => m.composition?.trim() || "—" },
+        { label: labels.rows.manufacturer, getValue: (m) => m.manufacturer },
         {
-            label: "Type",
-            getValue: (m) => m.medicine_type ?? (m.brand_name?.trim() ? "Brand" : "Generic"),
+            label: labels.rows.type,
+            getValue: (m) =>
+                m.medicine_type ??
+                (m.brand_name?.trim() ? labels.medicineTypes.brand : labels.medicineTypes.generic),
         },
         {
-            label: "CDSCO status",
-            getValue: (m) => formatStatus(m.cdsco_approval_status),
+            label: labels.rows.cdscoStatus,
+            getValue: (m) => formatStatus(m.cdsco_approval_status, labels),
         },
-        { label: "Expiry date", getValue: (m) => formatExpiry(m.expiry_date) },
-        { label: "Market price (MRP)", getValue: (m) => formatPrice(m.mrp) },
+        { label: labels.rows.expiryDate, getValue: (m) => formatExpiry(m.expiry_date) },
         {
-            label: "Jan Aushadhi price",
-            getValue: (m) => formatPrice(m.jan_aushadhi_price),
+            label: labels.rows.marketPrice,
+            getValue: (m) => formatPrice(m.mrp, labels.priceUnavailable),
         },
-        { label: "Savings vs MRP", getValue: (m) => getSavingsText(m) },
+        {
+            label: labels.rows.janAushadhiPrice,
+            getValue: (m) => formatPrice(m.jan_aushadhi_price, labels.priceUnavailable),
+        },
+        { label: labels.rows.savings, getValue: (m) => getSavingsText(m, labels) },
     ];
 
     return (
@@ -116,13 +185,13 @@ export default function ComparisonGrid({
                 <thead>
                     <tr className="border-b border-slate-200 bg-slate-50">
                         <th className="w-1/4 px-5 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase">
-                            Field
+                            {labels.fieldHeader}
                         </th>
                         <th className="px-5 py-3 text-center text-sm font-semibold text-slate-800">
-                            {medicine1 ? displayName(medicine1) : "Medicine A"}
+                            {medicine1 ? displayName(medicine1) : labels.medicineA}
                         </th>
                         <th className="px-5 py-3 text-center text-sm font-semibold text-slate-800">
-                            {medicine2 ? displayName(medicine2) : "Medicine B"}
+                            {medicine2 ? displayName(medicine2) : labels.medicineB}
                         </th>
                     </tr>
                 </thead>

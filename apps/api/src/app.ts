@@ -7,7 +7,7 @@ import { swaggerSpec } from "./utils/swagger";
 import { validateMlServiceConfig } from "./config/mlService";
 import cookieParser from "cookie-parser";
 import { doubleCsrf } from "csrf-csrf";
-import mapRouter from './routes/map';
+import mapRouter from "./routes/map";
 
 // ── Environment Configuration ──────────────────────────────────────────────
 const rootEnvPath = path.resolve(__dirname, "../../../.env");
@@ -80,8 +80,8 @@ const {
         path: "/",
     },
     size: 64,
-    ignoredMethods: ["GET", "HEAD", "OPTIONS"],
 });
+
 // Skip CSRF in test environment so supertest can run without mock cookies
 if (process.env.NODE_ENV !== "test") {
     app.use(doubleCsrfProtection);
@@ -167,18 +167,24 @@ app.get("/health", async (_req: Request, res: Response) => {
         };
 
         if (error) {
+            logger.error("Health check database failure", { error });
             return res.status(503).json({
                 ...healthData,
-                database: { status: "unreachable", error: error.message },
+                database: {
+                    status: "unreachable",
+                    error: "Database connection failed",
+                },
             });
         }
 
         return res.status(200).json(healthData);
     } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Unknown error";
+        logger.error("Health check error", { error: err, errorMessage });
         return res.status(500).json({
             status: "error",
             service: "sahidawa-api",
-            error: err instanceof Error ? err.message : "Unknown error",
+            error: "Service health check failed",
             timestamp: new Date().toISOString(),
         });
     }
@@ -196,7 +202,7 @@ app.use("/api/v1/scan", scanRouter);
 app.use("/api/v1/lasa", lasaRouter);
 app.use("/api/v1/alerts", alertsRouter);
 app.use("/api/ml", mlRouter);
-app.use('/api/map', mapRouter);
+app.use("/api/map", mapRouter);
 
 // ── Swagger UI Documentation (/api/docs) ──────────────────────────────────
 app.use(

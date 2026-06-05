@@ -1,7 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Activity, ArrowLeft, Filter, AlertTriangle, AlertCircle, Search } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 import { Globe } from "lucide-react";
 import RecallPushSubscriber from "@/components/alerts/RecallPushSubscriber";
 import { LiveMessage } from "@/components/ui/LiveMessage";
@@ -31,6 +32,7 @@ function formatRelativeTime(dateString: string | null): string {
 }
 
 export default function FullAlertsLogPage() {
+    const t = useTranslations("Alerts");
     const [allAlerts, setAllAlerts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
@@ -84,7 +86,7 @@ export default function FullAlertsLogPage() {
                     className="inline-flex items-center gap-2 text-sm font-semibold text-(--color-text-secondary) transition-colors hover:text-(--color-text-primary)"
                 >
                     <ArrowLeft size={16} />
-                    Back to Home Page
+                    {t("backHome")}
                 </Link>
 
                 <div className="animate-in fade-in slide-in-from-bottom-4 inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 duration-700 dark:border-emerald-900/30 dark:bg-emerald-950/20 dark:text-emerald-400">
@@ -92,7 +94,7 @@ export default function FullAlertsLogPage() {
                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                         <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
                     </span>
-                    Live Alerts
+                    {t("badge")}
                 </div>
             </div>
 
@@ -100,19 +102,18 @@ export default function FullAlertsLogPage() {
                 <div>
                     <h1 className="flex items-center gap-3 text-3xl font-extrabold tracking-tight text-(--color-text-primary)">
                         <Activity className="text-red-500" size={28} />
-                        Live CDSCO Alerts
+                        {t("title")}
                     </h1>
                     <p className="mt-1 font-medium text-(--color-text-secondary)">
-                        Complete historical safety logging stream directly mapped to the master
-                        CDSCO registry.
+                        {t("subtitle")}
                     </p>
                 </div>
                 <span className="hidden rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold tracking-wider text-red-600 uppercase sm:block dark:bg-red-950/30 dark:text-red-400">
-                    India Region
+                    {t("regionBadge")}
                 </span>
                 <div className="inline-flex items-center gap-2 self-start rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) px-4 py-2 text-sm font-bold text-(--color-text-primary) shadow-sm md:self-auto">
                     <Filter size={16} />
-                    Total Count: {totalCount}
+                    {t("totalCount", { count: totalCount })}
                 </div>
             </div>
 
@@ -126,7 +127,7 @@ export default function FullAlertsLogPage() {
                     </div>
                     <input
                         type="text"
-                        placeholder="Search by Brand Name..."
+                        placeholder={t("brandPlaceholder")}
                         value={brandSearch}
                         onChange={(e) => setBrandSearch(e.target.value)}
                         className="block w-full rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) p-3 pl-10 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) shadow-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-hidden"
@@ -138,7 +139,7 @@ export default function FullAlertsLogPage() {
                     </div>
                     <input
                         type="text"
-                        placeholder="Filter by State/District..."
+                        placeholder={t("regionPlaceholder")}
                         value={regionSearch}
                         onChange={(e) => setRegionSearch(e.target.value)}
                         className="block w-full rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) p-3 pl-10 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) shadow-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-hidden"
@@ -151,14 +152,14 @@ export default function FullAlertsLogPage() {
                     tone="critical"
                     className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800 dark:border-red-900 dark:bg-red-950/20 dark:text-red-400"
                 >
-                    Database synchronization error encountered while fetching active logs.
+                    {t("error")}
                 </LiveMessage>
             )}
 
             <div role="feed" aria-busy={loading} className="space-y-4">
                 {loading ? (
                     <div className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) py-16 text-center font-medium text-(--color-text-muted)">
-                        Loading alerts...
+                        {t("loading")}
                     </div>
                 ) : allAlerts.length > 0 ? (
                     allAlerts.map((alert) => {
@@ -211,7 +212,7 @@ export default function FullAlertsLogPage() {
                                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                                             <h4 className="leading-tight font-bold text-(--color-text-primary)">
                                                 {isSystem
-                                                    ? "System Update"
+                                                    ? t("systemUpdate")
                                                     : alert.reported_brand_name ||
                                                       alert.brand_name ||
                                                       alert.brand}
@@ -239,22 +240,22 @@ export default function FullAlertsLogPage() {
 
                                     <p className="mt-1 text-sm leading-snug font-medium text-(--color-text-secondary)">
                                         {alert.alert_type
-                                            ? `Alert: ${alert.alert_type}`
-                                            : alert.composition || "No details available"}
+                                            ? t("alertType", { type: alert.alert_type })
+                                            : alert.composition || t("noDetails")}
                                     </p>
 
                                     {/* Render metadata bottom line layout only if it's not a system update card */}
                                     {!isSystem && (
                                         <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] font-semibold text-(--color-text-muted)">
                                             <span>
-                                                Batch:{" "}
+                                                {t("batchLabel")}{" "}
                                                 <span className="font-bold text-(--color-text-primary)">
                                                     {alert.batch_number}
                                                 </span>
                                             </span>
                                             <span>•</span>
                                             <span>
-                                                Manufacturer:{" "}
+                                                {t("manufacturerLabel")}{" "}
                                                 <span className="font-bold text-(--color-text-primary)">
                                                     {alert.manufacturer}
                                                 </span>
@@ -263,7 +264,7 @@ export default function FullAlertsLogPage() {
                                                 <>
                                                     <span>•</span>
                                                     <span>
-                                                        Region:{" "}
+                                                        {t("regionLabel")}{" "}
                                                         <span className="font-bold text-(--color-text-primary)">
                                                             {[alert.state, alert.district]
                                                                 .filter(Boolean)
@@ -280,7 +281,7 @@ export default function FullAlertsLogPage() {
                     })
                 ) : (
                     <div className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) py-16 text-center font-medium text-(--color-text-muted)">
-                        No health alerts matching your criteria were found.
+                        {t("empty")}
                     </div>
                 )}
             </div>
@@ -291,14 +292,14 @@ export default function FullAlertsLogPage() {
                     onClick={() => setPage((p) => p - 1)}
                     className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold disabled:opacity-50"
                 >
-                    Previous
+                    {t("previous")}
                 </button>
                 <button
                     disabled={page * 50 >= totalCount}
                     onClick={() => setPage((p) => p + 1)}
                     className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                    Next
+                    {t("next")}
                 </button>
             </div>
         </div>

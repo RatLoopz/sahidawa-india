@@ -22,6 +22,8 @@ import { preprocessMedicineImage } from "@/lib/imageEnhancer";
 import LazyImage from "@/components/LazyImage";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 import { MedicinePhotoUpload } from "@/components/medicine";
+import { createBrowserClient } from "@supabase/ssr";
+import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
 
 // ─── Cloudinary env ────────────────────────────────────────────────────────────
 // Uploads are now securely routed through our backend API (/api/upload),
@@ -32,7 +34,7 @@ const WEBP_FILE_EXTENSION = ".webp";
 
 // ─── Input sanitisation ────────────────────────────────────────────────────────
 /** Strip HTML/script tags and trim whitespace to prevent stored XSS. */
-const sanitize = (v: string) => v.replace(/<[^>]*>/g, "").trim();
+const sanitize = (v: string) => v.replace(/[<>]/g, "").trim();
 
 const renameFileForMimeType = (fileName: string, mimeType: string) => {
     if (mimeType !== "image/webp" || fileName.toLowerCase().endsWith(WEBP_FILE_EXTENSION)) {
@@ -777,10 +779,18 @@ export default function ReportWizard() {
         setSubmitting(true);
         setSubmitErr(null);
         try {
-            const token =
-                typeof window !== "undefined"
-                    ? (localStorage.getItem("sb-access-token") ?? undefined)
-                    : undefined;
+            let token: string | undefined = undefined;
+            if (typeof window !== "undefined") {
+                try {
+                    const supabase = createBrowserClient(getSupabaseUrl(), getSupabaseAnonKey());
+                    const {
+                        data: { session },
+                    } = await supabase.auth.getSession();
+                    token = session?.access_token;
+                } catch (err) {
+                    // ignore if supabase is not configured
+                }
+            }
             const geo = await geocodePincode(data.pincode);
             const { report } = await submitReport({ ...data, ...(geo ?? {}) }, token);
             setReportId(report.id);

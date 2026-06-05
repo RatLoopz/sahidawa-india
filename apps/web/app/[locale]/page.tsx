@@ -25,6 +25,7 @@ import SearchBar from "./components/SearchBar";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import SafetyStatsBanner from "@/components/SafetyStatsBanner";
+import { getVisibleAlertBatchNumber } from "@/lib/alertFormatting";
 
 function formatRelativeTime(dateString: string | null): string {
     if (!dateString) return "Recent";
@@ -212,17 +213,16 @@ export default function SahiDawaHome() {
 
                                 {/* Text Context */}
                                 <h3 className="mt-4 text-lg font-bold text-slate-900 dark:text-white">
-                                    Vaccine Hub & Tracker
+                                    {tHome("vaccine_title")}
                                 </h3>
                                 <p className="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-                                    Check customized national immunization schedules, view critical
-                                    side effects, and track milestone execution timelines.
+                                    {tHome("vaccine_subtitle")}
                                 </p>
                             </div>
 
                             {/* Action Footer Indicator */}
                             <div className="mt-6 flex items-center gap-1.5 text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                                <span>Open Tracker</span>
+                                <span>{tHome("vaccine_open")}</span>
                                 <ArrowRight
                                     size={16}
                                     className="transition-transform group-hover:translate-x-1"
@@ -414,10 +414,10 @@ export default function SahiDawaHome() {
 
                     {/* ── Health Assistant CTA Banner ── */}
                     <div
-                        className="group relative mt-4 transform-gpu overflow-hidden rounded-3xl transition-all duration-300 select-none hover:scale-[1.01] hover:shadow-xl hover:shadow-purple-500/10"
+                        className="group relative mt-4 transform-gpu overflow-hidden rounded-3xl transition-all duration-300 select-none hover:scale-[1.01] hover:shadow-xl hover:shadow-emerald-500/10"
                         style={{
                             background:
-                                "linear-gradient(135deg, #6d5ce7 0%, #7c3aed 50%, #5b21b6 100%)",
+                                "linear-gradient(135deg, #059669 0%, #10b981 50%, #14b8a6 100%)",
                         }}
                     >
                         {/* Subtle inner highlight */}
@@ -439,7 +439,7 @@ export default function SahiDawaHome() {
                                             {tHome("ai_chat")}
                                         </span>
                                     </div>
-                                    <p className="text-sm leading-relaxed font-medium text-purple-100 sm:text-base">
+                                    <p className="text-sm leading-relaxed font-medium text-emerald-100 sm:text-base">
                                         {tHome("ai_health_assistant_description")}
                                     </p>
                                 </div>
@@ -448,7 +448,7 @@ export default function SahiDawaHome() {
                             {/* Chat Now button — white outlined */}
                             <button
                                 onClick={() => handleNavigation("health")}
-                                className="group/btn flex w-full shrink-0 items-center justify-center gap-2.5 rounded-xl border-2 border-white/80 bg-white/15 px-7 py-3 text-base font-bold text-white backdrop-blur-sm transition-all duration-300 hover:bg-white hover:text-purple-700 sm:w-auto"
+                                className="group/btn flex w-full shrink-0 items-center justify-center gap-2.5 rounded-xl border-2 border-white/80 bg-white/15 px-7 py-3 text-base font-bold text-white backdrop-blur-sm transition-all duration-300 hover:bg-white hover:text-emerald-700 sm:w-auto"
                             >
                                 <MessageCircle size={18} />
                                 {tHome("chat_now")}
@@ -464,8 +464,8 @@ export default function SahiDawaHome() {
 
                     {/* ── Live Alerts Panel (full-width) ── */}
                     <div className="mt-10 mb-16">
-                        <div className="flex flex-col overflow-hidden rounded-3xl border border-slate-200/50 bg-white/70 shadow-sm backdrop-blur-md dark:border-slate-800/50 dark:bg-slate-900/50">
-                            <div className="flex items-center justify-between border-b border-white/30 bg-white/20 px-6 py-5 dark:border-white/10 dark:bg-slate-800/20">
+                        <div className="flex flex-col overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800/80 dark:bg-slate-900">
+                            <div className="flex items-center justify-between border-b border-slate-200/80 bg-slate-50 px-6 py-5 dark:border-slate-800/80 dark:bg-slate-950">
                                 <div className="flex items-center gap-2">
                                     <Activity size={20} className="text-red-500" />
                                     <h3 className="text-lg font-bold text-(--color-text-primary)">
@@ -477,14 +477,14 @@ export default function SahiDawaHome() {
                                 </span>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto bg-(--color-surface-muted)/30 p-4">
-                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            <div className="flex-1 overflow-y-auto bg-slate-50 p-4 dark:bg-slate-950">
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                     {loading ? (
                                         <>
                                             {[1, 2, 3, 4].map((i) => (
                                                 <div
                                                     key={i}
-                                                    className="relative flex items-start gap-4 overflow-hidden rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-4 shadow-sm"
+                                                    className="relative flex items-start gap-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-800/80 dark:bg-slate-900"
                                                 >
                                                     <div className="absolute top-0 bottom-0 left-0 w-1.5 bg-(--color-border-muted)" />
                                                     <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
@@ -499,63 +499,77 @@ export default function SahiDawaHome() {
                                             ))}
                                         </>
                                     ) : homepageAlerts && homepageAlerts.length > 0 ? (
-                                        homepageAlerts.map((alert) => (
-                                            <div
-                                                key={alert.id}
-                                                className="group relative flex cursor-pointer items-start gap-4 overflow-hidden rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-400/30 hover:shadow-md"
-                                            >
-                                                {/* Left edge colored strip */}
-                                                <div
-                                                    className={`absolute top-0 bottom-0 left-0 w-1.5 ${
-                                                        alert.brand_name === "SYSTEM_UPDATE"
-                                                            ? "bg-blue-500"
-                                                            : alert.cdsco_approval_status ===
-                                                                    "banned" ||
-                                                                alert.is_counterfeit_alert
-                                                              ? "bg-red-500"
-                                                              : "bg-orange-500"
-                                                    }`}
-                                                />
+                                        homepageAlerts.map((alert) => {
+                                            const visibleBatchNumber = getVisibleAlertBatchNumber(
+                                                alert.composition,
+                                                alert.batch_number
+                                            );
 
+                                            return (
                                                 <div
-                                                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${
-                                                        alert.brand_name === "SYSTEM_UPDATE"
-                                                            ? "bg-blue-500/10 text-blue-500 group-hover:bg-blue-500/20"
-                                                            : alert.cdsco_approval_status ===
-                                                                    "banned" ||
-                                                                alert.is_counterfeit_alert
-                                                              ? "bg-red-500/10 text-red-500 group-hover:bg-red-500/20"
-                                                              : "bg-orange-500/10 text-orange-500 group-hover:bg-orange-500/20"
-                                                    }`}
+                                                    key={alert.id}
+                                                    className="group relative flex cursor-pointer items-start gap-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md dark:border-slate-800/80 dark:bg-slate-900 dark:hover:border-slate-700"
                                                 >
-                                                    {alert.brand_name === "SYSTEM_UPDATE" ? (
-                                                        <Globe size={20} strokeWidth={2.5} />
-                                                    ) : (
-                                                        <AlertTriangle
-                                                            size={20}
-                                                            strokeWidth={2.5}
-                                                        />
-                                                    )}
-                                                </div>
+                                                    {/* Left edge colored strip */}
+                                                    <div
+                                                        className={`absolute top-0 bottom-0 left-0 w-1.5 ${
+                                                            alert.brand_name === "SYSTEM_UPDATE"
+                                                                ? "bg-blue-500"
+                                                                : alert.cdsco_approval_status ===
+                                                                        "banned" ||
+                                                                    alert.is_counterfeit_alert
+                                                                  ? "bg-red-500"
+                                                                  : "bg-orange-500"
+                                                        }`}
+                                                    />
 
-                                                <div className="flex-1">
-                                                    <div className="flex items-start justify-between">
-                                                        <h4 className="leading-tight font-bold text-(--color-text-primary)">
-                                                            {alert.brand_name}
-                                                        </h4>
-                                                        <span className="text-[11px] font-medium text-(--color-text-muted)">
-                                                            {formatRelativeTime(alert.created_at)}
-                                                        </span>
+                                                    <div
+                                                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${
+                                                            alert.brand_name === "SYSTEM_UPDATE"
+                                                                ? "bg-blue-500/10 text-blue-500 group-hover:bg-blue-500/20"
+                                                                : alert.cdsco_approval_status ===
+                                                                        "banned" ||
+                                                                    alert.is_counterfeit_alert
+                                                                  ? "bg-red-500/10 text-red-500 group-hover:bg-red-500/20"
+                                                                  : "bg-orange-500/10 text-orange-500 group-hover:bg-orange-500/20"
+                                                        }`}
+                                                    >
+                                                        {alert.brand_name === "SYSTEM_UPDATE" ? (
+                                                            <Globe size={20} strokeWidth={2.5} />
+                                                        ) : (
+                                                            <AlertTriangle
+                                                                size={20}
+                                                                strokeWidth={2.5}
+                                                            />
+                                                        )}
                                                     </div>
-                                                    <p className="mt-1 text-sm leading-snug font-medium text-(--color-text-secondary)">
-                                                        {alert.composition} Batch{" "}
-                                                        <span className="font-bold text-(--color-text-primary)">
-                                                            {alert.batch_number}
-                                                        </span>
-                                                    </p>
+
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="flex items-start justify-between gap-3">
+                                                            <h4 className="leading-tight font-bold text-(--color-text-primary)">
+                                                                {alert.brand_name}
+                                                            </h4>
+                                                            <span className="shrink-0 text-[11px] font-medium text-(--color-text-muted)">
+                                                                {formatRelativeTime(
+                                                                    alert.created_at
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                        <p className="mt-1 text-sm leading-snug font-medium text-(--color-text-secondary)">
+                                                            {alert.composition}
+                                                            {visibleBatchNumber ? (
+                                                                <span className="whitespace-nowrap">
+                                                                    {" · Batch "}
+                                                                    <span className="font-bold text-(--color-text-primary)">
+                                                                        {visibleBatchNumber}
+                                                                    </span>
+                                                                </span>
+                                                            ) : null}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))
+                                            );
+                                        })
                                     ) : (
                                         <div className="sm:col-span-2">
                                             <EmptyState

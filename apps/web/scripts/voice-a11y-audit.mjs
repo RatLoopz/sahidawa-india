@@ -70,7 +70,9 @@ async function runAxeAudit(url) {
     const response = await fetch(url, { redirect: "follow" });
 
     if (!response.ok) {
-        throw new Error(`Failed to load ${url.toString()}: ${response.status} ${response.statusText}`);
+        throw new Error(
+            `Failed to load ${url.toString()}: ${response.status} ${response.statusText}`
+        );
     }
 
     const html = await response.text();

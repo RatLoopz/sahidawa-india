@@ -11,7 +11,13 @@ async function getCsrfToken(): Promise<string> {
     const res = await fetch(`${API_BASE}/api/csrf-token`, {
         credentials: "include",
     });
+    if (!res.ok) {
+        throw new Error(`Failed to fetch CSRF token: ${res.status} ${res.statusText}`);
+    }
     const data = await res.json();
+    if (!data.csrfToken) {
+        throw new Error("CSRF token not found in response body");
+    }
     csrfTokenCache = data.csrfToken;
     return csrfTokenCache!;
 }
