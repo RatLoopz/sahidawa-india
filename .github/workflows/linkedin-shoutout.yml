@@ -149,6 +149,7 @@ jobs:
                   PR_REPO: ${{ steps.pr_meta.outputs.pr_repo }}
                   PR_LINES_CHANGED: ${{ steps.pr_meta.outputs.pr_lines_changed }}
                   PR_GIT_DIFF: ${{ steps.diff.outputs.git_diff }}
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: python scripts/linkedin_shoutout.py
 
             # ─────────────────────────────────────────────────────────────────

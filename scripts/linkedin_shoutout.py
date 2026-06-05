@@ -147,7 +147,8 @@ def validate_linkedin_url(pr: dict) -> str:
                 f"`LinkedIn: https://linkedin.com/in/your-username`"
             )
             if not check_if_commented(pr_number, comment_snippet):
-                os.system(f'gh pr comment {pr_number} --body "{comment_text}"')
+                import subprocess
+                subprocess.run(['gh', 'pr', 'comment', pr_number, '--body', comment_text])
         
         github_output = os.environ.get("GITHUB_OUTPUT")
         if github_output:
