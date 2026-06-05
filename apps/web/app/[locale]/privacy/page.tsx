@@ -21,6 +21,9 @@ import { PageHeader } from "../components/PageHeader";
 
 export default function PrivacyPolicyPage() {
     const t = useTranslations("PrivacyPolicy");
+    const richText = {
+        strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
+    };
 
     return (
         <main className="min-h-screen bg-(--color-surface-page) text-(--color-text-primary)">
@@ -93,12 +96,9 @@ export default function PrivacyPolicyPage() {
                             </li>
                             <li className="flex items-start gap-3">
                                 <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-red-400"></span>
-                                <span
-                                    className="text-sm text-(--color-text-secondary)"
-                                    dangerouslySetInnerHTML={{
-                                        __html: t("sections.informationWeCollect.items.noPersonalData"),
-                                    }}
-                                />
+                                <span className="text-sm text-(--color-text-secondary)">
+                                    {t.rich("sections.informationWeCollect.items.noPersonalData", richText)}
+                                </span>
                             </li>
                         </ul>
                     </div>
@@ -141,12 +141,9 @@ export default function PrivacyPolicyPage() {
                                 {t("sections.cookies.title")}
                             </h2>
                         </div>
-                        <p
-                            className="text-sm text-(--color-text-secondary)"
-                            dangerouslySetInnerHTML={{
-                                __html: t("sections.cookies.description"),
-                            }}
-                        />
+                        <p className="text-sm text-(--color-text-secondary)">
+                            {t.rich("sections.cookies.description", richText)}
+                        </p>
                     </div>
 
                     {/* Card 4 — Third-Party Services */}
