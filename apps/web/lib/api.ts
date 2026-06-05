@@ -137,7 +137,10 @@ export async function geocodePincode(
         const lng = parseFloat(arr[0].lon);
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
         return { latitude: lat, longitude: lng };
-    } catch {
+    } catch (error) {
+        if (typeof window !== "undefined") {
+            console.warn(`[api] Geocoding pincode ${pincode} failed: ${error instanceof Error ? error.message : String(error)}`);
+        }
         return null;
     }
 }
