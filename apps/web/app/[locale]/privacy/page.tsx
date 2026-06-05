@@ -19,6 +19,8 @@ import {
 import { useTranslations } from "next-intl";
 import { PageHeader } from "../components/PageHeader";
 
+const CONTACT_EMAIL = "contact@sahidawa.in";
+
 export default function PrivacyPolicyPage() {
     const t = useTranslations("PrivacyPolicy");
     const richText = {
@@ -215,10 +217,10 @@ export default function PrivacyPolicyPage() {
                             {t("sections.contactUs.description")}
                         </p>
                         <a
-                            href={`mailto:${t("sections.contactUs.email")}`}
+                            href={`mailto:${CONTACT_EMAIL}`}
                             className="inline-block rounded-lg border border-emerald-200 dark:border-emerald-900/30 bg-emerald-50 dark:bg-emerald-950/20 px-4 py-2 text-sm font-semibold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
                         >
-                            {t("sections.contactUs.email")}
+                            {CONTACT_EMAIL}
                         </a>
                         <p className="mt-4 text-sm text-(--color-text-secondary)">
                             {t("sections.contactUs.discordText")} {" "}
