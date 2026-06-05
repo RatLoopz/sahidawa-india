@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Mic } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -363,11 +363,11 @@ export default function VoiceTriagePage() {
         return () => window.clearTimeout(focusTimer);
     }, [error, result, step, t]);
 
-    const handleEscapeShortcut = useEffectEvent((event: KeyboardEvent) => {
+    const handleEscapeShortcut = useCallback((event: KeyboardEvent) => {
         if (event.key !== "Escape") {
             return;
         }
-
+        
         const activeElement =
             typeof document !== "undefined" ? (document.activeElement as HTMLElement | null) : null;
         const activeWithinVoiceRegion = Boolean(
@@ -401,7 +401,7 @@ export default function VoiceTriagePage() {
             event.preventDefault();
             resetFlow();
         }
-    });
+    }, [isSpeaking, step, handleStopSpeaking, stopListening, resetFlow]);
 
     useEffect(() => {
         if (typeof window === "undefined") {
