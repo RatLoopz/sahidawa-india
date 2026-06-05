@@ -12,9 +12,7 @@ interface PageHeaderProps {
     subtitle?: string;
     backHref: string;
     variant?: "dark" | "light";
-    showLanguage?: boolean;
     languageName?: string;
-    showThemeToggle?: boolean;
     contentClassName?: string;
     childrenWrapperClassName?: string;
     backButtonClassName?: string;
@@ -77,37 +75,6 @@ export const PageHeader = ({
                     </div>
                 )}
 
-                {/* RIGHT ACTIONS BLOCK (Features & Utilities) */}
-                <div
-                    className={`flex shrink-0 items-center justify-end gap-2 ${rightActionsClassName}`}
-                >
-                    {/* STATUS OR QUICK ACTIONS CONTAINER */}
-                    {showThemeToggle && <ThemeToggle />}
-
-                    {showLanguage ? (
-                        <div
-                            className="flex items-center gap-1.5 rounded-full border border-(--color-border-muted) bg-(--color-surface-page) px-3 py-1.5 shadow-sm"
-                            role="status"
-                            aria-label={`Current language: ${languageName || "English"}`}
-                        >
-                            <Globe size={14} aria-hidden="true" className="text-emerald-600" />
-                            <span className="text-xs font-bold text-(--color-text-primary)">
-                                {languageName || "English"}
-                            </span>
-                        </div>
-                    ) : isDark ? (
-                        <button
-                            onClick={() => console.log("Quick actions menu triggered!")}
-                            aria-label="Quick actions"
-                            className={`flex h-10 w-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-md transition-colors hover:bg-white/20 ${pageHeaderFocusRingClass}`}
-                        >
-                            <Zap size={20} aria-hidden="true" className="text-amber-400" />
-                            <span className="sr-only">Quick actions</span>
-                        </button>
-                    ) : (
-                        <div className="w-2" />
-                    )}
-                </div>
             </div>
         </header>
     );
