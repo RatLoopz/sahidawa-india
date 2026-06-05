@@ -34,7 +34,15 @@ const WEBP_FILE_EXTENSION = ".webp";
 
 // ─── Input sanitisation ────────────────────────────────────────────────────────
 /** Strip HTML/script tags and trim whitespace to prevent stored XSS. */
-const sanitize = (v: string) => v.replace(/[<>]/g, "").trim();
+const sanitize = (v: string): string => {
+    return v
+        .replace(/[<>]/g, "")
+        .replace(/\bon\w+\s*=/gi, "")
+        .replace(/javascript:/gi, "")
+        .replace(/data:/gi, "")
+        .replace(/vbscript:/gi, "")
+        .trim();
+};
 
 const renameFileForMimeType = (fileName: string, mimeType: string) => {
     if (mimeType !== "image/webp" || fileName.toLowerCase().endsWith(WEBP_FILE_EXTENSION)) {
