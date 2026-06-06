@@ -775,10 +775,18 @@ export default function ScanPage() {
         }
 
         const reader = new FileReader();
-        const dataUrl = await new Promise<string>((resolve) => {
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.readAsDataURL(file);
-        });
+        let dataUrl: string;
+        try {
+            dataUrl = await new Promise<string>((resolve, reject) => {
+                reader.onloadend = () => resolve(reader.result as string);
+                reader.onerror = () => reject(new Error("Failed to read image file"));
+                reader.readAsDataURL(file);
+            });
+        } catch (err) {
+            toast.error("Could not read the image file. Please try again.");
+            e.target.value = "";
+            return;
+        }
         setUploadedImage(dataUrl);
         e.target.value = "";
 
@@ -977,6 +985,7 @@ export default function ScanPage() {
                         message: "No match found in CDSCO Database",
                     }
                 );
+                setShowResult(true);
             }
         } catch (err) {
             if (!isMountedRef.current || controller.signal.aborted || ocrCancelledRef.current)
@@ -1023,14 +1032,8 @@ export default function ScanPage() {
     const handleBarcodeScan = async (scannedText: string) => {
         setIsVerifying(true);
         setApiError(null);
-
-        try {
-            await handleVerify(scannedText);
-        } catch (error: any) {
-            setApiError(error.message || "Failed to verify medicine with CDSCO.");
-        } finally {
-            setIsVerifying(false);
-        }
+        await handleVerify(scannedText);
+        setIsVerifying(false);
     };
 
     const handleScanAgain = async () => {

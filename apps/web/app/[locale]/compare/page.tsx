@@ -69,14 +69,23 @@ export default function ComparePage() {
 
     return (
         <div className="min-h-screen bg-(--color-surface-muted) text-(--color-text-primary)">
-            <PageHeader
-                title={t("pageTitle")}
-                subtitle={t("pageSubtitle")}
-                backHref="/"
-                variant="light"
-            />
+            <div className="print:hidden">
+                <PageHeader
+                    title={t("pageTitle")}
+                    subtitle={t("pageSubtitle")}
+                    backHref="/"
+                    variant="light"
+                />
+            </div>
+            <div className="mb-6 hidden text-center print:block">
+                <h1 className="text-2xl font-bold">{t("reportTitle")}</h1>
+
+                <p className="text-sm">
+                    {t("generatedOn", { date: new Date().toLocaleDateString() })}
+                </p>
+            </div>
             <main className="container mx-auto max-w-4xl space-y-6 px-4 py-8">
-                <section className="rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) p-5 transition-all duration-300 hover:border-emerald-500/20 hover:shadow-md">
+                <section className="rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) p-5 transition-all duration-300 hover:border-emerald-500/20 hover:shadow-md print:hidden">
                     <div className="grid gap-4 sm:grid-cols-2">
                         <MedicineSearchSelect
                             label={t("firstMedicine")}
@@ -94,12 +103,23 @@ export default function ComparePage() {
                         />
                     </div>
                 </section>
+                {medicine1 && medicine2 && (
+                    <div className="flex justify-end">
+                        <button
+                            type="button"
+                            onClick={() => window.print()}
+                            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 print:hidden"
+                        >
+                            {t("printExport")}
+                        </button>
+                    </div>
+                )}
                 <ComparisonGrid
                     medicine1={medicine1}
                     medicine2={medicine2}
                     labels={comparisonLabels}
                 />
-                <p className="text-center text-sm text-(--color-text-secondary)">
+                <p className="text-center text-sm text-(--color-text-secondary) print:hidden">
                     <Link
                         href="/map"
                         className="text-emerald-700 hover:underline dark:text-emerald-400"

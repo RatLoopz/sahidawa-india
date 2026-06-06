@@ -397,6 +397,9 @@
     "Compare": {
         "pageTitle": "Compare medicines",
         "pageSubtitle": "Brand vs generic side by side",
+        "reportTitle": "SahiDawa Medicine Comparison Report",
+        "generatedOn": "Generated on {date}",
+        "printExport": "Print / Export PDF",
         "firstMedicine": "First medicine",
         "secondMedicine": "Second medicine",
         "searchPlaceholder": "Search brand or generic name",

@@ -49,11 +49,6 @@ function formatNumber(n: number): string {
     return n.toLocaleString();
 }
 
-function getToken(): string {
-    if (globalThis.window === undefined) return "";
-    return localStorage.getItem("sb-access-token") ?? "";
-}
-
 export default function AnalyticsDashboard() {
     const t = useTranslations("AdminAnalytics");
     const [loading, setLoading] = useState(true);

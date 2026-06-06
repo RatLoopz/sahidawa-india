@@ -17,6 +17,7 @@ const languages = [
     { code: "or", label: "Odia", native: "ଓଡ଼ିଆ" },
     { code: "kn", label: "Kannada", native: "ಕನ್ನಡ" },
     { code: "pa", label: "Punjabi", native: "ਪੰਜਾਬੀ" },
+    { code: "as", label: "Assamese", native: "অসমীয়া" },
 ];
 
 export default function LanguageSwitcher() {
