@@ -1,0 +1,633 @@
+{
+    "Home": {
+        "title": "अहाँक स्वास्थ्य, सत्यापित आ सुरक्षित।",
+        "subtitle": "भारतक मुक्त-स्रोत नागरिक प्लेटफॉर्म — तुरन्त दवाइक प्रामाणिकता सत्यापित करू, सुरक्षित फार्मेसी खोजू, आ महत्त्वपूर्ण स्वास्थ्य सचेतना प्राप्त करू।",
+        "scan_button": "दवाइ स्कैन करू",
+        "scan_medicine": "दवाइ स्कैन करू",
+        "scan_now": "अखन स्कैन करू",
+        "scan_subtitle": "पैकेजिंग वा बारकोड पर कैमरा राखू",
+        "upload_photo": "फोटो अपलोड करू",
+        "upload_subtitle": "गैलरीसँ चुनू",
+        "voice_triage": "वॉयस ट्रायज",
+        "voice_subtitle": "लक्षण बाजू",
+        "find_pharmacy": "फार्मेसी खोजू",
+        "pharmacy_map": "फार्मेसी मैप",
+        "pharmacy_subtitle": "सत्यापित दोकान खोजू",
+        "report_fake": "नकली रिपोर्ट करू",
+        "report_subtitle": "संदिग्ध दवाइ रिपोर्ट करू",
+        "report_fake_subtitle": "संदिग्ध दवाइ रिपोर्ट करू",
+        "search_placeholder": "दवाइ वा बैच खोजू...",
+        "search_button": "खोजू",
+        "sign_in": "साइन इन करू",
+        "get_started": "शुरू करू",
+        "open_ai_health_assistant": "AI स्वास्थ्य सहायक खोलू",
+        "ai_health_assistant": "AI स्वास्थ्य सहायक",
+        "ai_chat": "AI चैट",
+        "ai_health_assistant_description": "तुरन्त स्वास्थ्य सलाह, लक्षण जाँच आ प्रिस्क्रिप्शन मार्गदर्शन प्राप्त करू",
+        "chat_now": "अखन चैट करू",
+        "explore_features": "सुविधा देखू",
+        "live_cdsco_alerts": "लाइव CDSCO सचेतना",
+        "india_region": "भारत क्षेत्र",
+        "real_time": "वास्तविक समय",
+        "alerts_description": "नवीनतम दवाइ सुरक्षा सचेतना आ वापसीसँ अपडेट रहू।",
+        "alerts_empty_title": "सब ठीक अछि!",
+        "alerts_empty_description": "अखन कोनो सक्रिय नियामक सचेतना नहि अछि। सुरक्षित रहू आ अपन दवाइ सत्यापित करू।",
+        "view_full_alert_log": "पूर्ण सचेतना लॉग देखू",
+        "heroTitle": {
+            "prefix": "अहाँक स्वास्थ्य, ",
+            "highlight": "सत्यापित आ सुरक्षित।"
+        }
+    },
+    "Navigation": {
+        "how_it_works": "कोना काज करैत अछि",
+        "alerts": "सचेतना",
+        "pharmacy_map": "फार्मेसी मैप",
+        "my_reports": "हमर रिपोर्ट",
+        "home": "होम",
+        "scans": "स्कैन",
+        "map": "मैप",
+        "profile": "प्रोफाइल",
+        "language": "मैथिली"
+    },
+    "Scan": {
+        "share": {
+            "button": "परिणाम शेयर करू",
+            "title": "SahiDawa दवाइ सत्यापन परिणाम",
+            "real_status": "असली सत्यापित",
+            "suspicious_status": "संदिग्ध चिह्नित",
+            "warning_prefix": "चेतावनी",
+            "verified_by": "SahiDawa द्वारा",
+            "batch_label": "बैच",
+            "manufacturer_label": "निर्माता",
+            "avoid_and_report": "कृपया बचू आ नजदीकी स्वास्थ्यकर्मीकेँ रिपोर्ट करू।",
+            "verify_yourself": "स्वयं सत्यापित करू",
+            "unknown_medicine": "अज्ञात दवाइ",
+            "unknown_batch": "अज्ञात बैच",
+            "unknown_manufacturer": "अज्ञात निर्माता",
+            "shared_success": "परिणाम सफलतापूर्वक शेयर भेल",
+            "copy_success": "परिणाम क्लिपबोर्ड पर कॉपी भेल",
+            "failure": "अखन ई परिणाम शेयर नहि कयल जा सकल"
+        }
+    },
+    "BackToTopButton": {
+        "label": "ऊपर जाऊ"
+    },
+    "VoicePage": {
+        "header_title": "वॉयस ट्रायज",
+        "header_subtitle": "अपन लक्षण बाजू",
+        "title": "AI वॉयस ट्रायज",
+        "subtitle": "अपन स्थानीय भाषामे लक्षण बाजू। SahiDawa AI अहाँकेँ अगिला कदम बुझबामे सहायता करत।",
+        "language_selector": "वॉयस भाषा",
+        "example_label": "कहबाक प्रयास करू",
+        "example_text": "\"हमरा बुखार आ खाँसी अछि\"",
+        "assistant_label": "AI सहायक",
+        "assistant_value": "२४/७ सुनैत अछि",
+        "skip_to_main_content": "मुख्य सामग्री पर जाऊ",
+        "listening_placeholder": "अपन लक्षणक बारेमे बाजब शुरू करू…",
+        "listening_status": "लक्षण सुनि रहल अछि",
+        "announcements": {
+            "recording_started": "रेकॉर्डिंग शुरू भेल",
+            "processing_started": "अहाँक लक्षण प्रक्रिया भऽ रहल अछि",
+            "results_ready": "परिणाम तैयार अछि"
+        },
+        "streaming_connecting_hint": "लाइव ट्रांसक्रिप्शनसँ जुड़ि रहल अछि…",
+        "streaming_live_hint": "लाइव ट्रांसक्रिप्ट अपडेट भऽ रहल अछि",
+        "streaming_fallback_hint": "कनेक्शन अस्थिर अछि। बाजब बंद करलाक बाद SahiDawa प्रक्रिया पूरी करत।",
+        "animation_toggle_label": "वॉयस एनिमेशन",
+        "animation_live_label": "लाइव वेवफॉर्म",
+        "animation_reduced_motion_label": "कम गति",
+        "visualizer_label": "माइक्रोफोन वेवफॉर्म",
+        "volume_label": "वॉल्यूम स्तर",
+        "volume_live_label": "लाइव",
+        "volume_still_label": "स्थिर",
+        "visualizer_unavailable": "लाइव वेवफॉर्म उपलब्ध नहि अछि",
+        "processing_title": "लक्षण विश्लेषण भऽ रहल अछि",
+        "processing_subtitle": "SahiDawa AI सँ अहाँक लक्षण जाँचल जा रहल अछि…",
+        "review_title": "कृपया अपन ट्रांसक्रिप्ट समीक्षा करू",
+        "review_message": "माइक्रोफोन कम विश्वासक संग अहाँक लक्षण लेलक। स्पष्ट परिणामक लेल पुनः प्रयास कऽ सकैत छी वा जहिना अछि तहिना ट्रांसक्रिप्ट विश्लेषण कऽ सकैत छी।",
+        "retry_button": "फेर प्रयास करू",
+        "switch_to_text_button": "टाइप करू",
+        "analyse_anyway_button": "जहिना अछि विश्लेषण करू",
+        "result_heading": "AI विश्लेषण",
+        "result_subheading": "चिकित्सा ट्रायज",
+        "transcript_label": "अहाँक ट्रांसक्रिप्ट",
+        "confidence_label": "विश्वास",
+        "confidence_values": {
+            "high": "उच्च",
+            "medium": "मध्यम",
+            "low": "निम्न",
+            "unavailable": "अनुपलब्ध"
+        },
+        "recommendations_label": "अनुशंसित कार्य",
+        "emergency_title": "तुरन्त चिकित्सा सहायता लिअ",
+        "emergency_body": "एहि लक्षणमे तत्काल देखभालक जरूरत भऽ सकैत अछि। तुरन्त ११२ वा १०८ पर फोन करू, वा नजदीकी आपातकालीन सुविधा पर जाऊ।",
+        "disclaimer": "ई मार्गदर्शन केवल सूचनात्मक उद्देश्यक लेल अछि आ ई निदान नहि अछि। विशेष रूपसँ गंभीर वा बिगड़ैत लक्षणक लेल डॉक्टर वा फार्मासिस्टसँ परामर्श करू।",
+        "share_button": "डॉक्टरसँ शेयर करू",
+        "speak_button": "जोरसँ पढ़ू",
+        "stop_speaking_button": "ऑडियो बंद करू",
+        "try_again_button": "नव जाँच शुरू करू",
+        "tap_to_speak": "बाजबाक लेल टैप करू",
+        "stop_listening_label": "बंद करबाक लेल फेर टैप करू",
+        "start_listening_aria": "लक्षण बाजबाक लेल टैप करू",
+        "stop_listening_aria": "लक्षण सुनि रहल अछि। बंद करबाक लेल टैप करू।",
+        "start_listening_sr": "वॉयस इनपुट शुरू करू",
+        "stop_listening_sr": "वॉयस इनपुट बंद करू",
+        "footer_note": "वॉयस मार्गदर्शन केवल सूचनात्मक अछि। गंभीर लक्षणक लेल कृपया तुरन्त लाइसेंसप्राप्त डॉक्टरसँ परामर्श करू।",
+        "share_title": "SahiDawa वॉयस ट्रायज रिपोर्ट",
+        "share_success": "रिपोर्ट सफलतापूर्वक शेयर भेल",
+        "copy_success": "रिपोर्ट क्लिपबोर्ड पर कॉपी भेल",
+        "share_failure": "अखन रिपोर्ट शेयर नहि कयल जा सकल",
+        "tts_not_supported": "अहाँक ब्राउजर टेक्स्ट-टु-स्पीच सपोर्ट नहि करैत अछि",
+        "tts_fallback_message": "अहाँक ब्राउजर {language} टेक्स्ट-टु-स्पीच सपोर्ट सीमित होयबाक कारण भिन्न आवाजमे ई सारांश पढ़ि सकैत अछि।",
+        "fallback_summary": "SahiDawa प्रतिक्रिया स्पष्ट रूपसँ संरचित नहि कऽ सकल। लक्षण जारी रहलापर कृपया डॉक्टरसँ परामर्श करू।",
+        "share_report": {
+            "title": "SahiDawa वॉयस ट्रायज रिपोर्ट",
+            "timestamp": "टाइमस्टैम्प",
+            "language": "भाषा",
+            "transcript": "ट्रांसक्रिप्ट",
+            "confidence": "विश्वास",
+            "emergency": "आपातकालीन सचेतना",
+            "yes": "हँ",
+            "no": "नहि",
+            "summary": "सारांश",
+            "recommendations": "अनुशंसा",
+            "disclaimer": "अस्वीकरण",
+            "default_recommendation": "डॉक्टर वा फार्मासिस्टक सलाह मानू।"
+        },
+        "errors": {
+            "unsupported_title": "वॉयस इनपुट अनुपलब्ध अछि",
+            "unsupported_message": "ई ब्राउजर अखन स्पीच रिकग्निशन सपोर्ट नहि करैत अछि। कृपया Chrome वा Edge आजमाऊ।",
+            "language_not_supported_title": "ई ब्राउजर ओ वॉयस भाषा नहि पकड़ि सकैत अछि",
+            "language_not_supported_message": "ई ब्राउजरमे {language} वॉयस इनपुट सीमित अछि। Chrome वा Edge आजमाऊ, वा दोसर वॉयस भाषासँ नव जाँच शुरू करू।",
+            "permission_title": "माइक्रोफोन पहुँच बाधित अछि",
+            "permission_message": "कृपया अपन ब्राउजर सेटिंगमे माइक्रोफोन अनुमति दिअ आ फेर प्रयास करू।",
+            "microphone_title": "कोनो माइक्रोफोन नहि भेटल",
+            "microphone_message": "जाँच करू जे अहाँक माइक्रोफोन जुड़ल अछि आ ई ब्राउजर टैब पर उपलब्ध अछि।",
+            "network_title": "एकटा कनेक्शन समस्या सुनबामे बाधा आयल",
+            "network_message": "अहाँक ब्राउजर वॉयस कैप्चर पूरा नहि कऽ सकल। कृपया अपन कनेक्शन जाँचू आ फेर प्रयास करू।",
+            "no_speech_title": "हम कोनो भाषण नहि सुनि सकलहुँ",
+            "no_speech_message": "शांत जगहमे फेर प्रयास करू वा माइक्रोफोनक थोड़ा नजदीक बाजू।",
+            "generic_title": "किछु गड़बड़ भेल",
+            "generic_message": "एहि बेर अहाँक वॉयस इनपुट प्रक्रिया नहि कयल जा सकल। कृपया फेर प्रयास करू।",
+            "service_unavailable_title": "वॉयस सेवा अनुपलब्ध अछि",
+            "service_unavailable_message": "हमर वॉयस सर्वर अखन भारी लोड पर अछि। फेर प्रयास करू वा लिखि कऽ लक्षण दिअ।",
+            "timeout_title": "वॉयस अनुरोधक समय समाप्त भेल",
+            "timeout_message": "वॉयस सेवा अपेक्षासँ बेसी समय ले रहल अछि। फेर प्रयास करू वा टेक्स्ट इनपुट पर जाऊ।",
+            "api_title": "SahiDawa AI अनुपलब्ध अछि",
+            "api_message": "अखन चिकित्सा मार्गदर्शन नहि भेटि सकल। कृपया किछु क्षण बाद फेर प्रयास करू।"
+        }
+    },
+    "offline": {
+        "bannerOffline": "अहाँ ऑफलाइन छी",
+        "descriptionOffline": "कनेक्शन वापस आयलापर अहाँक परिवर्तन सिंक हयत",
+        "bannerOnline": "फेर ऑनलाइन",
+        "descriptionOnline": "विफल अनुरोध फेर प्रयास भऽ रहल अछि...",
+        "dismiss": "बंद करू",
+        "title": "ऑफलाइन मोड",
+        "description": "अखन अहाँक इंटरनेट कनेक्शन नहि अछि।",
+        "subtitle": "ऑफलाइन रहलापर किछु सुविधा अनुपलब्ध अछि। इंटरनेटसँ जुड़बाक प्रयास करू वा कैश्ड सामग्री देखू।",
+        "tryAgain": "फेर प्रयास करू",
+        "goHome": "होम पर जाऊ",
+        "footer": "कनेक्शन वापस आयलापर SahiDawa स्वचालित रूपसँ सिंक हयत।",
+        "cachedContent": "अहाँ पहिने लोड कयल सामग्री देखि सकैत छी",
+        "noCache": "ई पृष्ठ कैश्ड नहि अछि आ ऑफलाइन उपलब्ध नहि अछि",
+        "redirecting": "अहाँकेँ SahiDawa पर पुनर्निर्देशित कयल जा रहल अछि…",
+        "attempt": "(प्रयास {retryCount})",
+        "checkingConnection": "कनेक्शन जाँचि रहल अछि…",
+        "cachedAvailable": "पहिने देखल पृष्ठ अखनो उपलब्ध भऽ सकैत अछि",
+        "cachedVerifications": "कैश्ड सत्यापन",
+        "savedPharmacies": "सहेजल फार्मेसी",
+        "browsedMedicines": "देखल दवाइ"
+    },
+    "contact": {
+        "badge": "GSSoC 2026 मुक्त-स्रोत परियोजना",
+        "heroTitle": {
+            "prefix": "संपर्क",
+            "highlight": "करू"
+        },
+        "heroSubtitle": "प्रश्न, विचार, वा योगदान देबऽ चाहैत छी? हम अहाँसँ सुनबऽ चाहब।",
+        "cards": {
+            "email": {
+                "title": "हमरा ईमेल करू",
+                "description": "गोपनीयता प्रश्न, साझेदारी, वा गंभीर चिंताक लेल।"
+            },
+            "discord": {
+                "title": "Discord समुदाय",
+                "description": "योगदानकर्तासँ जुड़ू, प्रश्न पूछू आ घोषणा प्राप्त करू।",
+                "cta": "Discord पर जुड़ू"
+            },
+            "bug": {
+                "title": "बग रिपोर्ट करू",
+                "description": "कोनो समस्या भेटल? GitHub issue खोलू आ हम जल्दी ठीक करब।",
+                "cta": "Issue खोलू"
+            },
+            "contribute": {
+                "title": "योगदान दिअ",
+                "description": "SahiDawa बनाबऽमे मदद करबऽ चाहैत छी? हमर योगदान गाइड पढ़ू।",
+                "cta": "गाइड पढ़ू"
+            }
+        },
+        "quickLinks": {
+            "title": "सहायक लिंक",
+            "about": "SahiDawa क बारेमे",
+            "privacy": "गोपनीयता नीति",
+            "faq": "अक्सर पूछल प्रश्न"
+        },
+        "footer": "SahiDawa मुफ्त, मुक्त-स्रोत, आ १४० करोड़ भारतीयक लेल बनल अछि। कोनो विज्ञापन नहि। कोनो प्रीमियम नहि। डेटा बेचल नहि। कखनो नहि।"
+    },
+    "about": {
+        "badge": "GSSoC 2026 मुक्त-स्रोत परियोजना",
+        "heroTitle": "SahiDawa क <highlight>बारेमे</highlight>",
+        "heroSubtitle": "भारतक पहिल मुक्त-स्रोत नागरिक दवाइ सत्यापक आ ग्रामीण स्वास्थ्य सेतु। भारतक लेल बनल। केवल भारतक लेल नहि।",
+        "features": {
+            "free": "१००% मुफ्त। हमेशाक लेल।",
+            "languages": "२२ भारतीय भाषा",
+            "license": "मुक्त-स्रोत MIT लाइसेंस"
+        },
+        "problemSection": {
+            "title": "हम जे समस्या सुलझा रहल छी",
+            "description": "भारतमे एकटा तीन-परत स्वास्थ्य संकट अछि जे कोनो मौजूदा प्लेटफॉर्म एकसाथ नहि सुलझबैत अछि।"
+        },
+        "cards": {
+            "fakeMedicines": {
+                "title": "नकली दवाइ",
+                "description": "भारतमे १२–२५% दवाइ नकली वा घटिया अछि — १४० करोड़ लोककेँ जोखिममे राखैत अछि आ कोनो नागरिक-सामना सत्यापन उपकरण नहि अछि।"
+            },
+            "ruralHealthcare": {
+                "title": "ग्रामीण स्वास्थ्य सेवाक कमी",
+                "description": "भारतक ६५% जनसंख्या ग्रामीण क्षेत्रमे रहैत अछि जतय लगभग कोनो योग्य डॉक्टर नहि अछि — ९० करोड़सँ बेसी लोक सुलभ स्वास्थ्य सेवासँ वंचित अछि।"
+            },
+            "languageBarrier": {
+                "title": "भाषाक बाधा",
+                "description": "२२ सरकारी भाषा — मुदा स्वास्थ्य जानकारी मुख्यतः अंग्रेजी वा हिन्दीमे अछि, ५० करोड़सँ बेसी गैर-हिन्दी बोलनेवालाकेँ पाछू छोड़ि रहल अछि।"
+            }
+        },
+        "realIncident": {
+            "title": "वास्तविक घटना — जुलाई २०२५",
+            "text": "दिल्ली पुलिस एकटा नकली दवाइ चक्रकेँ पकड़लक जे चाक पाउडर आ स्टार्चसँ बनल नकली Johnson & Johnson आ GSK दवाइ सरकारी अस्पताल तक पहुँचा रहल छल। मरीजकेँ ई दवाइ खेबासँ पहिने सत्यापित करबाक <highlight>कोनो उपाय नहि छलनि</highlight>।",
+            "highlight": "SahiDawa एकरा ठीक करैत अछि। मुफ्तमे। हमेशाक लेल। मुक्त-स्रोत।"
+        },
+        "mission": {
+            "title": "हमर लक्ष्य",
+            "description": "प्रत्येक भारतीय नागरिककेँ — भाषा, स्थान वा साक्षरता निरपेक्ष — तुरन्त दवाइ सत्यापित करबाक, योग्य स्वास्थ्य मार्गदर्शन प्राप्त करबाक, आ अपन समुदायमे नकली दवाइ रिपोर्ट करबाक क्षमता देब।"
+        },
+        "vision": {
+            "title": "हमर दृष्टि",
+            "description": "एकटा भारत जतय कोनो बच्चा नकली दवाइसँ नहि मरय, कोनो किसानक परिवार डॉक्टरक अभावमे गलत निदान नहि पाबय, आ कोनो भाषा स्वास्थ्य सेवाक बाधा नहि बनय। मुफ्त। खुला। हमेशाक लेल।"
+        },
+        "coreValues": {
+            "title": "हमर मूल मूल्य",
+            "cards": {
+                "openSource": {
+                    "title": "मुक्त-स्रोत",
+                    "description": "MIT लाइसेंस। हमेशा।"
+                },
+                "freeForever": {
+                    "title": "हमेशाक लेल मुफ्त",
+                    "description": "कोनो छिपल खर्च नहि। कखनो नहि।"
+                },
+                "inclusive": {
+                    "title": "समावेशी",
+                    "description": "२२ भाषा। पूरा भारत।"
+                },
+                "privacy": {
+                    "title": "गोपनीयता पहिले",
+                    "description": "डेटा बेचल नहि। विज्ञापन नहि।"
+                }
+            }
+        },
+        "contactUs": {
+            "title": "संपर्क करू",
+            "subtitle": "प्रश्न, विचार, वा योगदान देबऽ चाहैत छी? हम अहाँसँ सुनबऽ चाहब।"
+        }
+    },
+    "Faq": {
+        "badge": "GSSoC 2026 मुक्त-स्रोत परियोजना",
+        "title": "अक्सर पूछल",
+        "title_highlight": "प्रश्न",
+        "subtitle": "SahiDawa क बारेमे सब किछु जानू — भारतक मुफ्त, मुक्त-स्रोत दवाइ सत्यापन प्लेटफॉर्म।",
+        "cta": {
+            "title": "अखनो प्रश्न अछि?",
+            "subtitle": "उत्तर नहि भेटल? हमर समुदायसँ संपर्क करू।",
+            "button": "संपर्क करू"
+        },
+        "items": {
+            "0": {
+                "question": "SahiDawa की अछि?",
+                "answer": "SahiDawa भारतक पहिल मुक्त-स्रोत नागरिक दवाइ सत्यापन प्लेटफॉर्म अछि। ई अहाँकेँ अपन दवाइ असली वा नकली सत्यापित करबामे, नजदीकी सुरक्षित फार्मेसी खोजबामे, आ अपन भाषामे स्वास्थ्य मार्गदर्शन प्राप्त करबामे सहायता करैत अछि।"
+            },
+            "1": {
+                "question": "की SahiDawa उपयोग करब मुफ्त अछि?",
+                "answer": "हँ! SahiDawa हमेशाक लेल १००% मुफ्त अछि। कोनो विज्ञापन नहि, कोनो प्रीमियम योजना नहि, डेटा बेचल नहि। कखनो नहि। ई समुदाय द्वारा भारतक लेल बनल अछि।"
+            },
+            "2": {
+                "question": "दवाइ सत्यापन कोना काज करैत अछि?",
+                "answer": "अहाँ अपन दवाइक पैकेजिंग पर बारकोड वा QR कोड स्कैन कऽ सकैत छी। SahiDawa एकरा आधिकारिक CDSCO डेटाबेससँ जाँचैत अछि आ बतबैत अछि जे दवाइ असली, संदिग्ध वा नकली अछि।"
+            },
+            "3": {
+                "question": "SahiDawa कोन भाषा सपोर्ट करैत अछि?",
+                "answer": "SahiDawa २२ सरकारी भारतीय भाषा सपोर्ट करैत अछि। अहाँ Whisper आ Sarvam AI द्वारा संचालित हमर वॉयस स्वास्थ्य सहायक उपयोग कऽ अपन भाषामे लक्षण बाजि सकैत छी।"
+            },
+            "4": {
+                "question": "नकली दवाइ कोना रिपोर्ट कऽ सकैत छी?",
+                "answer": "होमपेज पर 'नकली रिपोर्ट करू' सुविधा उपयोग कऽ सकैत छी। अहाँक रिपोर्ट एकटा सामुदायिक हीटमैप पर जुड़ैत अछि जे अहाँक जिलाक दोसरकेँ नकली दवाइक बारेमे सचेत करबामे सहायता करैत अछि।"
+            },
+            "5": {
+                "question": "की SahiDawa पर हमर डेटा सुरक्षित अछि?",
+                "answer": "बिल्कुल। SahiDawa अहाँक डेटा नहि बेचैत अछि, विज्ञापन नहि देखबैत अछि, वा कोनो प्रीमियम योजना नहि अछि। अहाँक गोपनीयता हमर सर्वोच्च प्राथमिकता अछि।"
+            },
+            "6": {
+                "question": "SahiDawa पर कोना योगदान दऽ सकैत छी?",
+                "answer": "SahiDawa MIT लाइसेंसक अंतर्गत मुक्त-स्रोत अछि। अहाँ GitHub पर योगदान दऽ सकैत छी, बग रिपोर्ट कऽ सकैत छी, सुविधा सुझाव दऽ सकैत छी, वा GSSoC 2026 प्रतिभागी क रूपमे जुड़ि सकैत छी।"
+            },
+            "7": {
+                "question": "CDSCO की अछि?",
+                "answer": "CDSCO मतलब Central Drugs Standard Control Organisation। ई सौंदर्य प्रसाधन, फार्मास्यूटिकल आ चिकित्सा उपकरणक लेल भारतक राष्ट्रीय नियामक निकाय अछि। SahiDawa हुनकर आधिकारिक डेटाबेससँ दवाइ सत्यापित करैत अछि।"
+            }
+        }
+    },
+    "chat": {
+        "welcome": "नमस्ते, हम SahiDawa छी, अहाँक विश्वसनीय स्वास्थ्य साथी। हम अहाँकेँ दवाइ सत्यापित करबामे, लक्षण बुझबामे, वा नजदीकी देखभाल खोजबामे सहायता कऽ सकैत छी। आइ अहाँकेँ कोनामे सहायता करू?",
+        "listening": "सुनि रहल छी... स्पष्ट बाजू",
+        "placeholder": "अपन स्वास्थ्य चिंता लिखू...",
+        "quick_actions": "त्वरित कार्य",
+        "footer": "केवल सूचनात्मक उद्देश्यक लेल • डॉक्टरसँ परामर्श करू",
+        "actions": {
+            "scan": {
+                "label": "दवाइ स्कैन करू",
+                "description": "प्रामाणिकता सत्यापित करू"
+            },
+            "symptoms": {
+                "label": "लक्षण जाँचू",
+                "description": "AI-सहायता प्राप्त मार्गदर्शन"
+            },
+            "pharmacy": {
+                "label": "फार्मेसी खोजू",
+                "description": "सत्यापित दोकान खोजू"
+            }
+        }
+    },
+    "chatbot": {
+        "title": "SahiDawa AI",
+        "status": "ऑनलाइन",
+        "welcome": "नमस्ते! हम SahiDawa AI सहायक छी। आइ अहाँक दवाइक बारेमे कोना सहायता करू?",
+        "placeholder": "दवाइक बारेमे पूछू..."
+    },
+    "Alerts": {
+        "backHome": "होम पेज पर वापस जाऊ",
+        "badge": "लाइव सचेतना",
+        "title": "लाइव CDSCO सचेतना",
+        "subtitle": "मास्टर CDSCO रजिस्ट्रीसँ सीधे मैप कयल सम्पूर्ण ऐतिहासिक सुरक्षा लॉगिंग स्ट्रीम।",
+        "regionBadge": "भारत क्षेत्र",
+        "totalCount": "कुल संख्या: {count}",
+        "brandPlaceholder": "ब्रांड नामसँ खोजू...",
+        "regionPlaceholder": "राज्य/जिलासँ फिल्टर करू...",
+        "error": "सक्रिय लॉग आनबामे डेटाबेस सिंक्रोनाइजेशन त्रुटि भेल।",
+        "loading": "सचेतना लोड भऽ रहल अछि...",
+        "systemUpdate": "सिस्टम अपडेट",
+        "alertType": "सचेतना: {type}",
+        "noDetails": "कोनो विवरण उपलब्ध नहि अछि",
+        "batchLabel": "बैच:",
+        "manufacturerLabel": "निर्माता:",
+        "regionLabel": "क्षेत्र:",
+        "empty": "अहाँक मानदंडसँ मेल खाइत कोनो स्वास्थ्य सचेतना नहि भेटल।",
+        "previous": "पहिले",
+        "next": "आगू"
+    },
+    "Compare": {
+        "pageTitle": "दवाइ तुलना करू",
+        "pageSubtitle": "ब्रांड बनाम जेनेरिक पाशापाश",
+        "reportTitle": "SahiDawa दवाइ तुलना रिपोर्ट",
+        "generatedOn": "{date} पर बनल",
+        "printExport": "प्रिंट / PDF निर्यात करू",
+        "firstMedicine": "पहिल दवाइ",
+        "secondMedicine": "दोसर दवाइ",
+        "searchPlaceholder": "ब्रांड वा जेनेरिक नाम खोजू",
+        "findPharmacies": "फार्मेसी खोजू",
+        "emptyComparison": "तुलना देखबाक लेल ऊपर दू टा दवाइ चुनू।",
+        "fieldHeader": "क्षेत्र",
+        "medicineA": "दवाइ A",
+        "medicineB": "दवाइ B",
+        "priceUnavailable": "मूल्य अनुपलब्ध अछि",
+        "noSavings": "कोनो बचत नहि",
+        "saveAmount": "₹{amount} ({percent}%) बचाऊ",
+        "rows": {
+            "brandName": "ब्रांड नाम",
+            "genericName": "जेनेरिक नाम",
+            "composition": "संरचना",
+            "manufacturer": "निर्माता",
+            "type": "प्रकार",
+            "cdscoStatus": "CDSCO स्थिति",
+            "expiryDate": "समाप्ति तिथि",
+            "marketPrice": "बाजार मूल्य (MRP)",
+            "janAushadhiPrice": "जन औषधि मूल्य",
+            "savings": "MRP सँ बचत"
+        },
+        "medicineTypes": {
+            "brand": "ब्रांड",
+            "generic": "जेनेरिक"
+        },
+        "status": {
+            "approved": "स्वीकृत",
+            "recalled": "वापस लेल गेल",
+            "banned": "प्रतिबंधित"
+        }
+    },
+    "ExpiryTracker": {
+        "title": "दवाइ समाप्ति ट्रैकर",
+        "subtitle": "स्थानीय रूपसँ अपन दवाइक स्टॉक प्रबंधित आ ट्रैक करू",
+        "addMedicine": "दवाइ जोड़ू",
+        "name": "नाम",
+        "expiryDate": "समाप्ति तिथि",
+        "batchNumber": "बैच नंबर (वैकल्पिक)",
+        "batchPlaceholder": "जेना B12345",
+        "namePlaceholder": "जेना Paracetamol",
+        "addToTracker": "ट्रैकरमे जोड़ू",
+        "trackedMedicines": "ट्रैक कयल दवाइ",
+        "total": "कुल",
+        "noMedicines": "अखन तक कोनो दवाइ नहि जोड़ल गेल।",
+        "loading": "ट्रैकर डेटा लोड भऽ रहल अछि...",
+        "searchPlaceholder": "दवाइ खोजू...",
+        "sortBy": "अनुसार सजाऊ",
+        "sortExpirySoonest": "समाप्ति तिथि (जल्दी पहिने)",
+        "sortExpiryLatest": "समाप्ति तिथि (देरी पहिने)",
+        "sortAlpha": "नाम (A-Z)",
+        "filterAll": "सब",
+        "filterExpired": "समाप्त",
+        "filterExpiringSoon": "जल्दी समाप्त हयत",
+        "filterSafe": "सुरक्षित",
+        "exportBackup": "बैकअप निर्यात करू",
+        "importBackup": "बैकअप आयात करू",
+        "importError": "अमान्य बैकअप फाइल। कृपया एकटा वैध JSON बैकअप अपलोड करू।",
+        "statusExpired": "समाप्त",
+        "statusExpiringSoon": "जल्दी समाप्त ({days}दिन)",
+        "statusSafe": "सुरक्षित"
+    },
+    "Login": {
+        "brandSubtitle": "दवाइ सुरक्षा प्लेटफॉर्म",
+        "heading": "फेर स्वागत अछि",
+        "description": "दवाइ सुरक्षा रिपोर्ट आ सत्यापन परिणाम ट्रैक करब जारी राखबाक लेल साइन इन करू।",
+        "missingConfig": {
+            "title": "प्रमाणीकरण कॉन्फ़िगर नहि अछि",
+            "description": "Supabase URL वा anon key नहि अछि। साइन इन करबासँ पहिने पर्यावरण चर जोड़ू।"
+        },
+        "googleButton": "Google सँ जारी राखू",
+        "emailSeparator": "वा ईमेलसँ जारी राखू",
+        "emailLabel": "ईमेल पता",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "पासवर्ड",
+        "passwordPlaceholder": "अपन पासवर्ड दिअ",
+        "signingIn": "साइन इन भऽ रहल अछि...",
+        "signIn": "साइन इन करू",
+        "footerPrompt": "वापस जेबाक अछि?",
+        "returnHome": "होम पर वापस जाऊ",
+        "bottomText": "SahiDawa समुदाय उपकरणक लेल सुरक्षित पहुँच।",
+        "errors": {
+            "databaseNotConfigured": "एहि वातावरणक लेल प्रमाणीकरण कॉन्फ़िगर नहि अछि।",
+            "generic": "साइन इन नहि कयल जा सकल। कृपया फेर प्रयास करू।"
+        }
+    },
+    "AdminLayout": {
+        "accessDeniedTitle": "पहुँच अस्वीकृत",
+        "accessDeniedDescription": "ई पृष्ठ देखबाक लेल अहाँकेँ प्रशासक वा मॉडरेटर अधिकार चाही।",
+        "returnHome": "होम पर वापस जाऊ"
+    },
+    "AdminDashboard": {
+        "brandSuffix": "एडमिन",
+        "version": "SahiDawa Admin v1.0",
+        "nav": {
+            "reports": "रिपोर्ट",
+            "medicine": "दवाइ मास्टर",
+            "logs": "ऑडिट लॉग"
+        },
+        "header": {
+            "title": "मॉडरेशन डैशबोर्ड",
+            "subtitle": "समुदाय-रिपोर्ट कयल नकली दवाइ प्रबंधित करू"
+        },
+        "searchPlaceholder": "खोजू...",
+        "actions": {
+            "signIn": "साइन इन करू",
+            "refresh": "रिफ्रेश करू",
+            "addMedicine": "दवाइ जोड़ू",
+            "save": "सहेजू",
+            "cancel": "रद्द करू",
+            "goToLogin": "लॉगिन पर जाऊ",
+            "markFake": "नकली चिह्नित करू",
+            "falseAlarm": "झूठा अलार्म"
+        },
+        "stats": {
+            "pending": "लंबित",
+            "resolved": "समाधान भेल",
+            "districtsAffected": "प्रभावित जिला"
+        },
+        "errors": {
+            "notAuthenticated": "प्रमाणित नहि — कृपया एडमिन क रूपमे साइन इन करू।",
+            "accessDenied": "पहुँच अस्वीकृत — एडमिन वा मॉडरेटर भूमिका आवश्यक अछि।",
+            "apiUnavailable": "API तक नहि पहुँचि सकल। की बैकएंड सर्वर पोर्ट 4000 पर चलि रहल अछि?"
+        },
+        "toasts": {
+            "markedFake": "सत्यापित नकली क रूपमे चिह्नित",
+            "falseAlarm": "झूठा अलार्म क रूपमे चिह्नित",
+            "reportUpdateFailed": "रिपोर्ट अपडेट करबामे विफल",
+            "medicineAdded": "दवाइ जोड़ल गेल",
+            "medicineAddFailed": "दवाइ जोड़बामे विफल"
+        },
+        "medicine": {
+            "title": "दवाइ मास्टर",
+            "empty": "कोनो दवाइ नहि भेटल",
+            "columns": {
+                "brand": "ब्रांड",
+                "generic": "जेनेरिक",
+                "manufacturer": "निर्माता",
+                "barcode": "बारकोड",
+                "status": "स्थिति"
+            }
+        },
+        "status": {
+            "approved": "स्वीकृत",
+            "recalled": "वापस लेल गेल",
+            "banned": "प्रतिबंधित"
+        },
+        "logs": {
+            "title": "ऑडिट लॉग",
+            "subtitle": "हालिया मॉडरेशन आ दवाइ कैटलॉग गतिविधि",
+            "loading": "लॉग लोड भऽ रहल अछि...",
+            "empty": "अखन तक कोनो ऑडिट लॉग नहि अछि"
+        },
+        "reports": {
+            "title": "आइबाइत रिपोर्ट",
+            "pendingCount": "{count, plural, =0 {कोनो लंबित रिपोर्ट नहि} =1 {१ लंबित रिपोर्ट} other {# लंबित रिपोर्ट}}",
+            "loading": "रिपोर्ट लोड भऽ रहल अछि...",
+            "empty": "कोनो लंबित रिपोर्ट नहि अछि",
+            "columns": {
+                "medicine": "दवाइ",
+                "district": "जिला",
+                "barcode": "बारकोड",
+                "reported": "रिपोर्ट कयल गेल",
+                "actions": "कार्य"
+            },
+            "decisions": {
+                "verifiedFake": "सत्यापित नकली",
+                "falseAlarm": "झूठा अलार्म"
+            }
+        },
+        "resolved": {
+            "title": "हालमे समाधान भेल",
+            "count": "{count, plural, =0 {कोनो समाधान भेल रिपोर्ट नहि} =1 {१ समाधान भेल रिपोर्ट} other {# समाधान भेल रिपोर्ट}}",
+            "decision": "निर्णय"
+        }
+    },
+    "AdminAnalytics": {
+        "title": "प्रभाव विश्लेषण डैशबोर्ड",
+        "subtitle": "समुदाय संलग्नता मेट्रिक्स आ वृद्धि रुझान",
+        "metrics": {
+            "totalMedicines": "कुल दवाइ",
+            "totalReports": "कुल रिपोर्ट",
+            "resolved": "समाधान भेल",
+            "districtsCovered": "आच्छादित जिला"
+        },
+        "charts": {
+            "monthlyGrowth": "मासिक वृद्धि रुझान",
+            "reportStatus": "रिपोर्ट स्थिति वितरण",
+            "topDistricts": "रिपोर्ट अनुसार शीर्ष जिला",
+            "recentActivity": "हालिया गतिविधि"
+        },
+        "overview": {
+            "title": "प्लेटफॉर्म अवलोकन",
+            "avgReportsPerDay": "औसत रिपोर्ट/दिन",
+            "resolutionRate": "समाधान दर",
+            "thisWeekReports": "एहि सप्ताहक रिपोर्ट",
+            "thisWeekMedicines": "एहि सप्ताहक दवाइ"
+        }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "वैक्सीन हब",
+        "pageHeaderSubtitle": "टीकाकरण ट्रैकर",
+        "title": "वैक्सीन हब आ टीकाकरण ट्रैकर",
+        "subtitle": "बेहतर सार्वजनिक स्वास्थ्य जागरूकताक लेल वैक्सीन समय-सारणी, सुरक्षा जानकारी, आ देखभाल मार्गदर्शन देखू।",
+        "selectLabel": "रोग / वैक्सीन चुनू",
+        "placeholder": "एकटा वैक्सीन प्रोफाइल चुनू...",
+        "childBirthDate": "बच्चाक जन्म तिथि",
+        "milestoneBaseDate": "पहिल डोज माइलस्टोन आधार तिथि",
+        "noVaccineSelected": "कोनो वैक्सीन नहि चुनल गेल",
+        "chooseVaccinePrompt": "ट्रैकिंग उपकरण अनलॉक करबाक लेल ऊपर एकटा वैक्सीन चुनू:",
+        "featureSchedule": "गतिशील अनुमानित टीकाकरण समय-सारणी",
+        "featureSideEffects": "दुष्प्रभाव विभाजन मानदंड (हल्का बनाम गंभीर)",
+        "featureAftercare": "क्लिनिकल चरण-दर-चरण देखभाल निर्देश",
+        "targetGroups": "लक्षित समूह",
+        "totalDoses": "कुल डोज",
+        "effectiveness": "प्रभावशीलता",
+        "classification": "वर्गीकरण",
+        "aboutDisease": "रोगक बारेमे:",
+        "scheduleLayoutHeading": "टीकाकरण समय-सारणी",
+        "atBirth": "जन्मक समय प्रशासन",
+        "atWeeks": "{weeks} सप्ताह उमेरमे",
+        "baseline": "प्रारंभिक प्रशासन (बेसलाइन)",
+        "doseStep": "डोज चरण {index} (+{weeks} सप्ताह बाद)",
+        "targetDate": "लक्ष्य तिथि: {date}",
+        "selectDateWarning": "समय-सारणी अनुमान करबाक लेल ऊपर एकटा तिथि चुनू",
+        "commonEffects": "सामान्य बाद-प्रभाव",
+        "severeReactions": "गंभीर प्रतिक्रिया",
+        "aftercareHeading": "तत्काल देखभाल मार्गदर्शन"
+    }
+}
