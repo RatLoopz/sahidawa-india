@@ -1,58 +1,90 @@
 "use client";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Ban, RotateCcw, ShieldAlert, FileWarning, Calendar, ShieldCheck } from "lucide-react";
+import {
+    Ban,
+    RotateCcw,
+    Shield,
+    FileWarning,
+    Calendar,
+    ShieldCheck,
+    TrendingDown,
+} from "lucide-react";
 
 interface StatConfig {
     type: string;
     label: string;
+    description: string;
     icon: React.ComponentType<{ className?: string }>;
-    colorClass: string;
-    bgClass: string;
-    borderClass: string;
-    leftBorderClass: string;
+    accentBar: string;
+    iconGradient: string;
+    iconColor: string;
+    numberColor: string;
+    glowColor: string;
+    badgeBg: string;
+    badgeText: string;
 }
 
 const STAT_CONFIG: StatConfig[] = [
     {
         type: "banned",
         label: "Banned",
+        description: "Drugs prohibited from sale",
         icon: Ban,
-        colorClass: "text-red-600 dark:text-red-400",
-        bgClass: "bg-red-50/60 dark:bg-red-950/20",
-        borderClass: "border-red-200/60 dark:border-red-900/40",
-        leftBorderClass: "border-l-red-500 dark:border-l-red-500",
+        accentBar: "bg-gradient-to-r from-rose-500 to-red-400",
+        iconGradient: "bg-gradient-to-br from-rose-500 to-red-600",
+        iconColor: "text-white",
+        numberColor: "text-rose-600 dark:text-rose-400",
+        glowColor:
+            "group-hover:shadow-[0_16px_48px_-8px_rgba(244,63,94,0.22)] dark:group-hover:shadow-[0_16px_48px_-8px_rgba(244,63,94,0.30)]",
+        badgeBg: "bg-rose-50 dark:bg-rose-950/40",
+        badgeText: "text-rose-600 dark:text-rose-400",
     },
     {
         type: "recalled",
         label: "Recalled",
+        description: "Withdrawn from circulation",
         icon: RotateCcw,
-        colorClass: "text-amber-600 dark:text-amber-400",
-        bgClass: "bg-amber-50/60 dark:bg-amber-950/20",
-        borderClass: "border-amber-200/60 dark:border-amber-900/40",
-        leftBorderClass: "border-l-amber-500 dark:border-l-amber-500",
+        accentBar: "bg-gradient-to-r from-amber-500 to-orange-400",
+        iconGradient: "bg-gradient-to-br from-amber-500 to-orange-500",
+        iconColor: "text-white",
+        numberColor: "text-amber-600 dark:text-amber-400",
+        glowColor:
+            "group-hover:shadow-[0_16px_48px_-8px_rgba(245,158,11,0.22)] dark:group-hover:shadow-[0_16px_48px_-8px_rgba(245,158,11,0.30)]",
+        badgeBg: "bg-amber-50 dark:bg-amber-950/40",
+        badgeText: "text-amber-600 dark:text-amber-400",
     },
     {
         type: "counterfeit",
         label: "Counterfeit",
-        icon: ShieldAlert,
-        colorClass: "text-purple-600 dark:text-purple-400",
-        bgClass: "bg-purple-50/60 dark:bg-purple-950/20",
-        borderClass: "border-purple-200/60 dark:border-purple-900/40",
-        leftBorderClass: "border-l-purple-500 dark:border-l-purple-500",
+        description: "Fake medicines detected",
+        icon: Shield,
+        accentBar: "bg-gradient-to-r from-violet-500 to-purple-500",
+        iconGradient: "bg-gradient-to-br from-violet-500 to-purple-600",
+        iconColor: "text-white",
+        numberColor: "text-violet-600 dark:text-violet-400",
+        glowColor:
+            "group-hover:shadow-[0_16px_48px_-8px_rgba(139,92,246,0.22)] dark:group-hover:shadow-[0_16px_48px_-8px_rgba(139,92,246,0.30)]",
+        badgeBg: "bg-violet-50 dark:bg-violet-950/40",
+        badgeText: "text-violet-600 dark:text-violet-400",
     },
     {
         type: "nsq",
         label: "NSQ",
+        description: "Not of standard quality",
         icon: FileWarning,
-        colorClass: "text-sky-700 dark:text-sky-400",
-        bgClass: "bg-sky-50/60 dark:bg-sky-950/20",
-        borderClass: "border-sky-200/60 dark:border-sky-900/40",
-        leftBorderClass: "border-l-sky-500 dark:border-l-sky-500",
+        accentBar: "bg-gradient-to-r from-blue-500 to-sky-400",
+        iconGradient: "bg-gradient-to-br from-blue-500 to-sky-500",
+        iconColor: "text-white",
+        numberColor: "text-blue-600 dark:text-blue-400",
+        glowColor:
+            "group-hover:shadow-[0_16px_48px_-8px_rgba(59,130,246,0.22)] dark:group-hover:shadow-[0_16px_48px_-8px_rgba(59,130,246,0.30)]",
+        badgeBg: "bg-blue-50 dark:bg-blue-950/40",
+        badgeText: "text-blue-600 dark:text-blue-400",
     },
 ];
 
-function useCountUp(target: number, duration = 1200) {
+function useCountUp(target: number, duration = 1400) {
     const [count, setCount] = useState(0);
 
     useEffect(() => {
@@ -60,59 +92,100 @@ function useCountUp(target: number, duration = 1200) {
             setCount(0);
             return;
         }
-
         let startTimestamp: number | null = null;
         let animationFrameId: number;
-
         const step = (timestamp: number) => {
             if (!startTimestamp) startTimestamp = timestamp;
             const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-
-            // easeOutQuart easing function for smooth deceleration
             const easeProgress = 1 - Math.pow(1 - progress, 4);
             setCount(Math.floor(easeProgress * target));
-
             if (progress < 1) {
                 animationFrameId = window.requestAnimationFrame(step);
             } else {
                 setCount(target);
             }
         };
-
         animationFrameId = window.requestAnimationFrame(step);
-
         return () => {
-            if (animationFrameId) {
-                window.cancelAnimationFrame(animationFrameId);
-            }
+            if (animationFrameId) window.cancelAnimationFrame(animationFrameId);
         };
     }, [target, duration]);
 
     return count;
 }
 
+function SkeletonCard() {
+    return (
+        <div className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <div className="h-1 w-full animate-pulse rounded-full bg-slate-100 dark:bg-slate-800" />
+            <div className="mt-4 flex items-start gap-4">
+                <div className="h-12 w-12 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
+                <div className="flex-1 space-y-2 pt-1">
+                    <div className="h-7 w-16 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />
+                    <div className="h-3 w-24 animate-pulse rounded bg-slate-100 dark:bg-slate-800" />
+                </div>
+            </div>
+            <div className="mt-4 h-3 w-32 animate-pulse rounded bg-slate-100 dark:bg-slate-800" />
+        </div>
+    );
+}
+
 function StatCard({ config, count }: { config: StatConfig; count: number }) {
     const displayed = useCountUp(count);
     const Icon = config.icon;
+
     return (
         <div
-            className={`flex min-w-[130px] flex-1 basis-[140px] items-center gap-4 rounded-xl border border-l-4 p-4 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-md dark:hover:shadow-black/20 ${config.bgClass} ${config.borderClass} ${config.leftBorderClass}`}
+            className={`group relative overflow-hidden rounded-2xl border border-slate-100/80 bg-white shadow-sm transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-slate-200/80 dark:border-slate-800/80 dark:bg-slate-900 dark:hover:border-slate-700/80 ${config.glowColor}`}
         >
+            {/* Coloured accent top bar */}
             <div
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white shadow-xs dark:bg-slate-900 ${config.colorClass}`}
-            >
-                <Icon className="h-5 w-5" />
-            </div>
-            <div>
+                className={`h-1 w-full ${config.accentBar} transition-all duration-300 group-hover:h-1.5`}
+            />
+
+            <div className="p-5">
+                <div className="flex items-start justify-between gap-3">
+                    {/* Gradient icon orb */}
+                    <div
+                        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl shadow-md transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-lg ${config.iconGradient}`}
+                    >
+                        <Icon className={`h-5.5 w-5.5 ${config.iconColor}`} />
+                    </div>
+
+                    {/* Trend badge */}
+                    <div
+                        className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase ${config.badgeBg} ${config.badgeText}`}
+                    >
+                        <TrendingDown className="h-3 w-3" />
+                        <span>This Month</span>
+                    </div>
+                </div>
+
+                {/* Number */}
                 <div
-                    className={`text-2xl leading-none font-extrabold tracking-tight ${config.colorClass}`}
+                    className={`mt-4 origin-left text-4xl leading-none font-black tracking-tight tabular-nums transition-transform duration-300 group-hover:scale-[1.03] ${config.numberColor}`}
                 >
                     {displayed}
                 </div>
-                <div className="mt-1 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
-                    {config.label}
+
+                {/* Label */}
+                <div className="mt-1.5 flex items-center gap-1.5">
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                        {config.label}
+                    </span>
                 </div>
+
+                {/* Description */}
+                <p className="mt-1 text-xs leading-snug text-slate-400 dark:text-slate-500">
+                    {config.description}
+                </p>
             </div>
+
+            {/* Subtle radial glow background on hover */}
+            <div
+                className={`pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 ${config.iconGradient}`}
+                style={{ opacity: 0 }}
+            />
         </div>
     );
 }
@@ -169,41 +242,59 @@ export default function SafetyStatsBanner() {
     ];
 
     return (
-        <div className="my-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/50">
-            {/* Header */}
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold tracking-wide text-emerald-700 uppercase dark:bg-emerald-950/50 dark:text-emerald-400">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+        <div className="my-6 overflow-hidden rounded-3xl border border-slate-200/60 bg-slate-50/80 shadow-xl shadow-slate-200/30 backdrop-blur-sm dark:border-slate-800/50 dark:bg-slate-950/60 dark:shadow-slate-950/20">
+            {/* Header bar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/60 bg-white/60 px-6 py-4 dark:border-slate-800/50 dark:bg-slate-900/60">
+                <div className="flex items-center gap-3">
+                    {/* Pulsing LIVE badge */}
+                    <span className="relative inline-flex items-center gap-2 rounded-full bg-emerald-500 px-3 py-1 text-[11px] font-bold tracking-widest text-white uppercase shadow-md shadow-emerald-500/30">
+                        <span className="relative flex h-2 w-2">
+                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
+                            <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
+                        </span>
                         Live
                     </span>
-                    <span className="text-[15px] font-bold text-slate-900 dark:text-slate-100">
-                        Medicine Safety Alerts
-                    </span>
+                    <div>
+                        <h3 className="text-[15px] leading-tight font-extrabold text-slate-900 dark:text-slate-100">
+                            Medicine Safety Alerts
+                        </h3>
+                        <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                            Real-time alerts from CDSCO registry
+                        </p>
+                    </div>
                 </div>
-                <span className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                    <Calendar size={14} className="text-slate-400 dark:text-slate-500" />
+
+                <div className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-500 shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                    <Calendar size={12} className="text-slate-400" />
                     <span>
                         {monthName} {now.getFullYear()} · India
                     </span>
-                </span>
+                </div>
             </div>
 
-            {/* Cards */}
-            {loading ? (
-                <div className="text-sm text-slate-400 dark:text-slate-500">Loading alerts...</div>
-            ) : (
-                <div className="flex flex-wrap gap-3">
-                    {cardData.map((card) => (
-                        <StatCard key={card.type} config={card} count={card.count} />
-                    ))}
-                </div>
-            )}
+            {/* Cards grid */}
+            <div className="p-5">
+                {loading ? (
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        {[0, 1, 2, 3].map((i) => (
+                            <SkeletonCard key={i} />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        {cardData.map((card) => (
+                            <StatCard key={card.type} config={card} count={card.count} />
+                        ))}
+                    </div>
+                )}
+            </div>
 
             {/* Footer */}
-            <div className="mt-4 flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
-                <ShieldCheck size={14} className="text-emerald-500 dark:text-emerald-400" />
-                <span>Data sourced from CDSCO official registry. Updated in real-time.</span>
+            <div className="flex items-center gap-2 border-t border-slate-200/60 bg-white/40 px-6 py-3 dark:border-slate-800/50 dark:bg-slate-900/40">
+                <ShieldCheck size={13} className="shrink-0 text-emerald-500" />
+                <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                    Data sourced from CDSCO official registry. Updated in real-time.
+                </span>
             </div>
         </div>
     );
