@@ -78,9 +78,11 @@ export default function ComparePage() {
                 />
             </div>
             <div className="mb-6 hidden text-center print:block">
-                <h1 className="text-2xl font-bold">SahiDawa Medicine Comparison Report</h1>
+                <h1 className="text-2xl font-bold">{t("reportTitle")}</h1>
 
-                <p className="text-sm">Generated on {new Date().toLocaleDateString()}</p>
+                <p className="text-sm">
+                    {t("generatedOn", { date: new Date().toLocaleDateString() })}
+                </p>
             </div>
             <main className="container mx-auto max-w-4xl space-y-6 px-4 py-8">
                 <section className="rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) p-5 transition-all duration-300 hover:border-emerald-500/20 hover:shadow-md print:hidden">
@@ -108,7 +110,7 @@ export default function ComparePage() {
                             onClick={() => window.print()}
                             className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 print:hidden"
                         >
-                            Print / Export PDF
+                            {t("printExport")}
                         </button>
                     </div>
                 )}
