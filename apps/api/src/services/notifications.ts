@@ -1,6 +1,7 @@
 import webPush, { PushSubscription } from "web-push";
 import { z } from "zod";
 import { supabase } from "../db/client";
+import logger from "../utils/logger";
 
 export const pushSubscriptionSchema = z.object({
     endpoint: z.string().url(),
@@ -158,6 +159,59 @@ export function buildRecallPayload(alert: RecallAlert) {
     };
 }
 
+function getPushErrorStatusCode(reason: unknown): number | null {
+    if (!reason || typeof reason !== "object") {
+        return null;
+    }
+
+    const error = reason as Record<string, unknown>;
+    const rawStatus = error.statusCode ?? error.status;
+
+    if (typeof rawStatus === "number" && Number.isInteger(rawStatus)) {
+        return rawStatus;
+    }
+
+    if (typeof rawStatus === "string" && /^\d{3}$/.test(rawStatus)) {
+        return Number(rawStatus);
+    }
+
+    return null;
+}
+
+function getPushErrorLabel(reason: unknown, key: "code" | "name") {
+    if (!reason || typeof reason !== "object") {
+        return "unknown";
+    }
+
+    const value = (reason as Record<string, unknown>)[key];
+    return typeof value === "string" && value.length > 0 ? value : "unknown";
+}
+
+function getPushEndpointHost(endpoint: string) {
+    try {
+        return new URL(endpoint).hostname;
+    } catch {
+        return "unknown";
+    }
+}
+
+function shouldRemovePushSubscription(reason: unknown) {
+    const statusCode = getPushErrorStatusCode(reason);
+    return statusCode === 404 || statusCode === 410;
+}
+
+function logRetainedPushFailure(endpoint: string, reason: unknown) {
+    const statusCode = getPushErrorStatusCode(reason);
+    const statusLabel = statusCode === null ? "none" : statusCode;
+
+    logger.warn(
+        "Retaining push subscription after non-terminal push delivery failure " +
+            `(host=${getPushEndpointHost(endpoint)}, status=${statusLabel}, ` +
+            `code=${getPushErrorLabel(reason, "code")}, ` +
+            `name=${getPushErrorLabel(reason, "name")})`
+    );
+}
+
 export async function triggerRecallAlert(alert: RecallAlert) {
     const configured = configureWebPush();
     const subscriptions = await listPushSubscriptions();
@@ -175,7 +229,7 @@ export async function triggerRecallAlert(alert: RecallAlert) {
 
     const BATCH_SIZE = 50;
     const results: PromiseSettledResult<any>[] = [];
-    const failedEndpoints: string[] = [];
+    const expiredEndpoints: string[] = [];
 
     for (let i = 0; i < subscriptions.length; i += BATCH_SIZE) {
         const chunk = subscriptions.slice(i, i + BATCH_SIZE);
@@ -188,7 +242,12 @@ export async function triggerRecallAlert(alert: RecallAlert) {
         chunkResults.forEach((result, index) => {
             results.push(result);
             if (result.status === "rejected") {
-                failedEndpoints.push(chunk[index].endpoint);
+                const endpoint = chunk[index].endpoint;
+                if (shouldRemovePushSubscription(result.reason)) {
+                    expiredEndpoints.push(endpoint);
+                } else {
+                    logRetainedPushFailure(endpoint, result.reason);
+                }
             }
         });
 
@@ -197,13 +256,13 @@ export async function triggerRecallAlert(alert: RecallAlert) {
         }
     }
 
-    await Promise.all(failedEndpoints.map(removePushSubscription));
+    await Promise.all(expiredEndpoints.map(removePushSubscription));
 
     return {
         configured: true,
         attempted: subscriptions.length,
         sent: results.filter((result) => result.status === "fulfilled").length,
-        failed: failedEndpoints.length,
+        failed: results.filter((result) => result.status === "rejected").length,
         payload,
     };
 }
