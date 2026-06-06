@@ -13,17 +13,7 @@ export async function POST(req: NextRequest) {
         }
 
         if (file.size > MAX_UPLOAD_SIZE) {
-            return NextResponse.json(
-                {
-                    error: "file_too_large",
-                    message: `File exceeds maximum upload size of ${MAX_UPLOAD_SIZE / 1024 / 1024} MB`,
-                    maxSize: MAX_UPLOAD_SIZE,
-                    actualSize: file.size,
-                },
-                { status: 413 }
-            );
-        }
-                
+                    
         const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
         if (!ALLOWED_MIME_TYPES.includes(file.type)) {
             return NextResponse.json(
@@ -36,6 +26,17 @@ export async function POST(req: NextRequest) {
                 { status: 400 }
             );
         }
+            return NextResponse.json(
+                {
+                    error: "file_too_large",
+                    message: `File exceeds maximum upload size of ${MAX_UPLOAD_SIZE / 1024 / 1024} MB`,
+                    maxSize: MAX_UPLOAD_SIZE,
+                    actualSize: file.size,
+                },
+                { status: 413 }
+            );
+        }
+        
         const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
         const apiKey = process.env.CLOUDINARY_API_KEY;
         const apiSecret = process.env.CLOUDINARY_API_SECRET;
