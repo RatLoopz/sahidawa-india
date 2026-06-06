@@ -165,7 +165,28 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
 );
 CREATE INDEX IF NOT EXISTS idx_push_subscriptions_updated_at ON push_subscriptions(updated_at DESC);
 
--- 7. ETL Failed Rows
+-- 7. Web Push Notification Delivery Events
+CREATE TABLE IF NOT EXISTS push_notification_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    alert_id TEXT,
+    notification_type TEXT NOT NULL DEFAULT 'recall_alert',
+    endpoint_hash TEXT NOT NULL,
+    endpoint_host TEXT NOT NULL DEFAULT 'unknown',
+    status TEXT NOT NULL CHECK (status IN ('sent', 'failed')),
+    http_status INTEGER CHECK (http_status IS NULL OR (http_status BETWEEN 100 AND 599)),
+    failure_reason TEXT,
+    error_code TEXT,
+    error_name TEXT,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    occurred_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_push_notification_events_occurred_at ON push_notification_events(occurred_at DESC);
+CREATE INDEX IF NOT EXISTS idx_push_notification_events_status_occurred_at ON push_notification_events(status, occurred_at DESC);
+CREATE INDEX IF NOT EXISTS idx_push_notification_events_failure_reason ON push_notification_events(failure_reason) WHERE status = 'failed';
+CREATE INDEX IF NOT EXISTS idx_push_notification_events_http_status ON push_notification_events(http_status) WHERE status = 'failed' AND http_status IS NOT NULL;
+
+-- 8. ETL Failed Rows
 CREATE TABLE IF NOT EXISTS etl_failed_rows (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     pipeline_name VARCHAR(100) NOT NULL,
