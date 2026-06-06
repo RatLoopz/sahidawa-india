@@ -517,6 +517,7 @@ class SupabaseLoader:
             if not page:
                 break
 
+            page_updates: list[dict] = []
             for record in page:
                 checked += 1
                 record_id = record.get("id")
@@ -536,17 +537,15 @@ class SupabaseLoader:
                     skipped += 1
                     continue
 
-                try:
-                    self.client.table(table).update(
-                        {"jan_aushadhi_price": ja_price}
-                    ).eq("id", record_id).execute()
-                    updated += 1
-                except Exception as e:
-                    logger.warning(
-                        f"[Loader] merge_jan_aushadhi_price: failed to update "
-                        f"id={record_id}: {e}"
-                    )
-                    failed += 1
+                page_updates.append({"id": record_id, "jan_aushadhi_price": ja_price})
+
+            if page_updates:
+                page_updated, page_failed = self._upsert_ja_price_update_batches(
+                    page_updates,
+                    table,
+                )
+                updated += page_updated
+                failed += page_failed
 
             last_id = page[-1].get("id")
             if len(page) < page_size:
@@ -557,3 +556,64 @@ class SupabaseLoader:
             f"updated: {updated}, skipped: {skipped}, failed: {failed}"
         )
         return {"checked": checked, "updated": updated, "skipped": skipped, "failed": failed}
+
+    def _upsert_ja_price_update_batches(
+        self,
+        updates: list[dict],
+        table: str,
+    ) -> tuple[int, int]:
+        updated = failed = 0
+        total = len(updates)
+        total_batches = (total + BATCH_SIZE - 1) // BATCH_SIZE
+
+        for batch_start in range(0, total, BATCH_SIZE):
+            batch = updates[batch_start: batch_start + BATCH_SIZE]
+            batch_number = (batch_start // BATCH_SIZE) + 1
+            batch_end = batch_start + len(batch)
+
+            try:
+                self.client.table(table).upsert(batch).execute()
+                updated += len(batch)
+                logger.info(
+                    f"[Loader] merge_jan_aushadhi_price: batch "
+                    f"{batch_number}/{total_batches} upserted {len(batch)} rows "
+                    f"({updated}/{total} page matches)"
+                )
+            except Exception as e:
+                logger.warning(
+                    f"[Loader] merge_jan_aushadhi_price: batch "
+                    f"{batch_number}/{total_batches} rows {batch_start}-{batch_end} "
+                    f"failed: {e} - retrying row-by-row"
+                )
+                batch_updated, batch_failed = self._update_ja_price_rows_one_by_one(
+                    batch,
+                    table,
+                )
+                updated += batch_updated
+                failed += batch_failed
+
+        return updated, failed
+
+    def _update_ja_price_rows_one_by_one(
+        self,
+        updates: list[dict],
+        table: str,
+    ) -> tuple[int, int]:
+        updated = failed = 0
+
+        for update in updates:
+            record_id = update.get("id")
+            try:
+                self.client.table(table).update(
+                    {"jan_aushadhi_price": update.get("jan_aushadhi_price")}
+                ).eq("id", record_id).execute()
+                updated += 1
+            except Exception as e:
+                logger.warning(
+                    f"[Loader] merge_jan_aushadhi_price: failed row fallback "
+                    f"update id={record_id}, "
+                    f"jan_aushadhi_price={update.get('jan_aushadhi_price')}: {e}"
+                )
+                failed += 1
+
+        return updated, failed
