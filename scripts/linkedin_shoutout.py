@@ -58,6 +58,7 @@ def get_pr_metadata() -> dict:
     return {
         "title": get_env_or_exit("PR_TITLE"),
         "author": get_env_or_exit("PR_AUTHOR"),
+        "author_avatar": os.environ.get("PR_AUTHOR_AVATAR", ""),
         "url": get_env_or_exit("PR_URL"),
         "number": os.environ.get("PR_NUMBER", "N/A"),
         "labels": os.environ.get("PR_LABELS", ""),
@@ -102,6 +103,61 @@ def validate_pr_size(pr: dict) -> None:
         sys.exit(0)
     
     print(f"✅ PR Size Validation Passed. Lines changed: {lines_changed} (Threshold: {threshold})")
+
+
+def extract_linkedin_url(body: str) -> str:
+    # Requires a format like "LinkedIn: https://linkedin.com/in/username" 
+    # to avoid accidentally extracting a random link from the PR body.
+    match = re.search(r'(?i)LinkedIn(?: Profile(?: URL)?)?:\s*(https:\/\/(www\.)?linkedin\.com\/in\/[A-Za-z0-9_-]+)', body)
+    if match:
+        return match.group(1)
+    return ""
+
+
+def check_if_commented(pr_number: str, comment_snippet: str) -> bool:
+    import subprocess
+    try:
+        result = subprocess.run(
+            ['gh', 'pr', 'view', pr_number, '--json', 'comments'], 
+            capture_output=True, text=True
+        )
+        if result.returncode == 0:
+            data = json.loads(result.stdout)
+            for c in data.get("comments", []):
+                if comment_snippet in c.get("body", ""):
+                    return True
+    except Exception as e:
+        print(f"Failed to check comments: {e}")
+    return False
+
+
+def validate_linkedin_url(pr: dict) -> str:
+    linkedin_url = extract_linkedin_url(pr.get("body", ""))
+    if not linkedin_url:
+        print("🛑 REJECTED: No LinkedIn Profile URL found in the PR description.")
+        print("   Without a LinkedIn URL, we cannot properly tag/mention the contributor.")
+        print("   Exiting gracefully without triggering Make.com webhook.")
+        
+        pr_number = pr.get("number")
+        if pr_number and pr_number != "N/A":
+            comment_snippet = "Your PR is approved for a LinkedIn shoutout!"
+            comment_text = (
+                f"👋 {comment_snippet}\n"
+                f"To get featured, please add your LinkedIn ID to the PR description like this:\n"
+                f"`LinkedIn: https://linkedin.com/in/your-username`"
+            )
+            if not check_if_commented(pr_number, comment_snippet):
+                import subprocess
+                subprocess.run(['gh', 'pr', 'comment', pr_number, '--body', comment_text])
+        
+        github_output = os.environ.get("GITHUB_OUTPUT")
+        if github_output:
+            with open(github_output, "a") as f:
+                f.write("shoutout_status=skipped\n")
+        
+        sys.exit(0)
+    print(f"✅ Found LinkedIn URL: {linkedin_url}")
+    return linkedin_url
 
 
 def evaluate_pr_impact(pr: dict) -> None:
@@ -189,31 +245,32 @@ def generate_post_with_gemini(pr: dict, tier_display: str, tier_desc: str) -> st
     gemini_api_key = get_env_or_exit("GEMINI_API_KEY")
 
     system_prompt = (
-        f"You are the social media voice of '{PROJECT_NAME}', {PROJECT_TAGLINE}. "
-        "Write an authentic, enthusiastic LinkedIn post to celebrate a contributor. "
-        "Keep it professional but warm. Use emojis appropriately. "
-        "The post MUST feel human-written — never generic or AI-sounding. "
-        "Never start with 'I am' or 'We are'. Be creative with the opening line each time. "
-        "The post should be 150-250 words. Do NOT include hashtags — they will be added separately."
+        f"You are the core maintainer of '{PROJECT_NAME}'. "
+        "Write a short, heartfelt, and genuine LinkedIn post thanking a contributor. "
+        "It MUST sound like a real human engineer expressing sincere gratitude from the heart. "
+        "Do not use corporate buzzwords. Keep it concise, high-quality, and impactful. "
+        "Use minimal formatting and very few emojis. It should feel like a personal shoutout, not a bot. "
+        "Never start with 'I am' or 'We are'."
     )
 
     user_prompt = (
-        f"Write a LinkedIn shoutout post celebrating this open-source contribution:\n\n"
-        f"Contributor GitHub Username: @{pr['author']}\n"
+        f"Write a short, genuine LinkedIn shoutout for this contributor:\n\n"
+        f"Contributor: {pr['author']} (LinkedIn: {pr['linkedin_url']})\n"
         f"PR Title: {pr['title']}\n"
         f"PR Number: #{pr['number']}\n"
-        f"Tier: {tier_display} ({tier_desc} contribution)\n"
+        f"Tier: {tier_display}\n"
         f"PR Link: {pr['url']}\n"
         f"Project: {PROJECT_NAME} — {PROJECT_TAGLINE}\n"
         f"PR Description: {pr['body'] if pr['body'] else 'Not provided'}\n\n"
-        f"Requirements:\n"
-        f"- Celebrate @{pr['author']} personally\n"
-        f"- Explain what this PR does in simple terms\n"
-        f"- Mention the '{tier_display}' difficulty tackled\n"
-        f"- Invite other developers to contribute to SahiDawa\n"
-        f"- End with a call-to-action to the PR or repo\n"
-        f"- Tone: warm, inspiring, community-focused\n"
-        f"- Do NOT mention any monetary reward"
+        f"### Technical Context (Use this to explain their impact) ###\n"
+        f"{pr['diff'][:15000] if pr.get('diff') else 'No diff provided.'}\n\n"
+        f"CRITICAL REQUIREMENTS:\n"
+        f"1. Start by directly thanking the contributor and including their LinkedIn profile link: {pr['linkedin_url']} in a warm, personal way.\n"
+        f"2. Look at the Technical Context (the code diff) and briefly summarize the technical impact they made (e.g. 'They optimized the notification module'). Make them feel proud of the exact files/logic they improved.\n"
+        f"3. Make them feel truly valued. Tell them their hard work is making a real difference in this {tier_display} task. Motivate them to keep solving issues.\n"
+        f"4. End by warmly welcoming new developers to join the journey (GSSoC2026), with the repo link: {PROJECT_GITHUB_URL}\n"
+        f"5. Keep the text short and easy to read. Do NOT use heavy bullet points, bolding, or too many emojis.\n"
+        f"6. Do NOT include hashtags at the end (they are added automatically later)."
     )
 
     url = (
@@ -223,7 +280,7 @@ def generate_post_with_gemini(pr: dict, tier_display: str, tier_desc: str) -> st
     payload = {
         "systemInstruction": {"parts": [{"text": system_prompt}]},
         "contents": [{"parts": [{"text": user_prompt}]}],
-        "generationConfig": {"temperature": 0.9, "maxOutputTokens": 400},
+        "generationConfig": {"temperature": 0.8, "maxOutputTokens": 800},
         "safetySettings": [
             {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
             {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
@@ -232,43 +289,60 @@ def generate_post_with_gemini(pr: dict, tier_display: str, tier_desc: str) -> st
         ]
     }
 
-    try:
-        print("🤖 Calling Gemini AI to generate post...")
-        resp = requests.post(url, headers={"Content-Type": "application/json"},
-                             json=payload, timeout=30)
-        resp.raise_for_status()
-        resp_json = resp.json()
-        
-        candidates = resp_json.get("candidates", [])
-        if not candidates:
-            raise KeyError("No candidates returned from Gemini API")
+    import time
+    
+    max_retries = 3
+    for attempt in range(1, max_retries + 1):
+        try:
+            print(f"🤖 Calling Gemini AI to generate post... (Attempt {attempt}/{max_retries})")
+            resp = requests.post(url, headers={"Content-Type": "application/json"},
+                                 json=payload, timeout=30)
             
-        candidate = candidates[0]
-        content = candidate.get("content", {})
-        parts = content.get("parts", [])
-        if not parts:
-            finish_reason = candidate.get("finishReason")
-            raise KeyError(f"No content parts returned. finishReason: {finish_reason}")
+            if resp.status_code == 429:
+                print(f"⏳ Rate limit hit (429). Retrying in 20 seconds...")
+                time.sleep(20)
+                continue
+                
+            resp.raise_for_status()
+            resp_json = resp.json()
             
-        text = parts[0].get("text", "").strip()
-        print("✅ Gemini post generated successfully.")
-        return text
-    except Exception as exc:
-        print(f"⚠️  Gemini AI failed ({exc}). Using static fallback.")
-        return _static_fallback(pr, tier_display)
+            candidates = resp_json.get("candidates", [])
+            if not candidates:
+                raise KeyError("No candidates returned from Gemini API")
+                
+            candidate = candidates[0]
+            content = candidate.get("content", {})
+            parts = content.get("parts", [])
+            if not parts:
+                finish_reason = candidate.get("finishReason")
+                raise KeyError(f"No content parts returned. finishReason: {finish_reason}")
+                
+            text = parts[0].get("text", "").strip()
+            
+            print("\n✅ Script completed successfully!")
+            print("✅ Gemini post generated successfully.")
+            return text
+            
+        except Exception as exc:
+            if attempt == max_retries:
+                print(f"⚠️  Gemini AI failed after {max_retries} attempts ({exc}). Using static fallback.")
+                return _static_fallback(pr, tier_display)
+            print(f"⚠️  Gemini AI failed ({exc}). Retrying in 10 seconds...")
+            time.sleep(10)
+            
+    return _static_fallback(pr, tier_display)
 
 
 def _static_fallback(pr: dict, tier_display: str) -> str:
     return (
-        f"🌟 Celebrating an incredible contribution to {PROJECT_NAME}!\n\n"
-        f"Massive shoutout to @{pr['author']} for landing PR #{pr['number']} — "
-        f'"{pr["title"]}" — a {tier_display} contribution to our codebase!\n\n'
-        f"{PROJECT_NAME} is {PROJECT_TAGLINE}. With 200+ contributors from across the country, "
-        "every merged PR brings us closer to making quality healthcare information accessible "
-        "to every Indian citizen.\n\n"
-        f"Thank you, @{pr['author']}, for your dedication and technical expertise!\n\n"
-        f"👉 Check it out: {pr['url']}\n"
-        f"🌐 Join us: {PROJECT_GITHUB_URL}"
+        f"A massive thank you from the heart to our contributor, {pr['author']} ({pr['linkedin_url']}).\n\n"
+        f"They just landed PR #{pr['number']}: \"{pr['title']}\". "
+        f"This was a {tier_display} contribution, and the effort put into it is truly inspiring. "
+        f"Your work is directly helping {PROJECT_NAME} become a better platform for everyone. We deeply value your time and technical expertise. "
+        f"Keep crushing those issues, @{pr['author']}!\n\n"
+        f"If anyone else wants to make a real impact and join our open-source journey for GSSoC2026, we'd love to welcome you.\n\n"
+        f"Repo: {PROJECT_GITHUB_URL}\n"
+        f"View PR: {pr['url']}"
     )
 
 
@@ -280,8 +354,6 @@ def assemble_final_post(ai_content: str, pr: dict) -> str:
     return (
         f"{clean}\n\n"
         f"─────────────────────\n"
-        f"🔗 PR: {pr['url']}\n"
-        f"⭐ Star & Contribute: {PROJECT_GITHUB_URL}\n\n"
         f"{PROJECT_HASHTAGS}"
     )
 
@@ -301,16 +373,45 @@ def send_to_make_webhook(post_text: str, pr: dict) -> None:
       - pr_url      : Direct link to the PR
       - pr_number   : PR number
       - tier        : "level:advanced" or "level:critical"
+      - author_avatar : URL to contributor's GitHub avatar
     """
     webhook_url = get_env_or_exit("MAKE_WEBHOOK_URL")
 
     labels = pr["labels"].lower()
     tier = "level:critical" if "level:critical" in labels else "level:advanced"
 
+    import urllib.parse
+    
+    # Generate a dynamic Thank You banner image URL
+    banner_text = f"**GSSoC 2026 Star Contributor** <br/><br/> Huge thanks to **{pr['author']}** for scaling **SahiDawa**! 🚀"
+    encoded_text = urllib.parse.quote(banner_text)
+    
+    raw_image_url = f"https://og-image.vercel.app/{encoded_text}.png?theme=dark&md=1&fontSize=75px"
+    
+    # Add RatLoopz/SahiDawa Logo
+    ratloopz_logo = "https://github.com/RatLoopz.png"
+    raw_image_url += f"&images={urllib.parse.quote(ratloopz_logo, safe='')}"
+    
+    # Add Author Avatar
+    if pr.get("author_avatar"):
+        clean_avatar = pr['author_avatar'].split('?')[0]
+        raw_image_url += f"&images={urllib.parse.quote(clean_avatar, safe='')}"
+        
+    # Use TinyURL to bypass Make.com's strict/buggy URL validation and double-encoding
+    try:
+        req = urllib.request.Request(f"https://tinyurl.com/api-create.php?url={urllib.parse.quote(raw_image_url, safe='=&?/:%')}")
+        with urllib.request.urlopen(req) as response:
+            image_url = response.read().decode('utf-8')
+    except Exception as e:
+        print(f"Warning: TinyURL failed ({e}), using raw URL")
+        image_url = raw_image_url
+
     payload = {
         "post_text": post_text,
         "pr_title": pr["title"],
         "pr_author": pr["author"],
+        "author_avatar": pr.get("author_avatar", ""),
+        "image_url": image_url,
         "pr_url": pr["url"],
         "pr_number": pr["number"],
         "tier": tier,
@@ -354,6 +455,9 @@ def main():
     tier_display, tier_desc = determine_tier(pr["labels"])
     print(f"🏆 Tier: {tier_display}")
 
+    # Check for LinkedIn Profile Link
+    pr["linkedin_url"] = validate_linkedin_url(pr)
+
     # The Smart Gate Validations
     validate_pr_size(pr)
     evaluate_pr_impact(pr)
@@ -368,6 +472,13 @@ def main():
     print("─" * 60 + "\n")
 
     send_to_make_webhook(final_post, pr)
+    
+    # Final Output Step
+    github_output = os.environ.get("GITHUB_OUTPUT")
+    if github_output:
+        with open(github_output, "a") as f:
+            f.write("shoutout_status=published\n")
+            
     print("\n✅ Done!")
 
 
