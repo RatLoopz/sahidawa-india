@@ -2,7 +2,6 @@
 
 import { ArrowLeft, Globe, Zap } from "lucide-react";
 import { Link } from "@/i18n/routing";
-import { ThemeToggle } from "./ThemeToggle";
 
 const pageHeaderFocusRingClass =
     "focus-visible:outline-[3px] focus-visible:outline-emerald-600 focus-visible:outline-offset-2 focus-visible:ring-[3px] focus-visible:ring-emerald-600 focus-visible:ring-offset-2";
@@ -14,7 +13,6 @@ interface PageHeaderProps {
     variant?: "dark" | "light";
     showLanguage?: boolean;
     languageName?: string;
-    showThemeToggle?: boolean;
     contentClassName?: string;
     childrenWrapperClassName?: string;
     backButtonClassName?: string;
@@ -29,7 +27,6 @@ export const PageHeader = ({
     variant = "dark",
     showLanguage = false,
     languageName,
-    showThemeToggle = true,
     contentClassName = "",
     childrenWrapperClassName = "min-w-0 flex-1",
     backButtonClassName = "",
@@ -82,8 +79,7 @@ export const PageHeader = ({
                     className={`flex shrink-0 items-center justify-end gap-2 ${rightActionsClassName}`}
                 >
                     {/* STATUS OR QUICK ACTIONS CONTAINER */}
-                    {showThemeToggle && <ThemeToggle />}
-
+                    
                     {showLanguage ? (
                         <div
                             className="flex items-center gap-1.5 rounded-full border border-(--color-border-muted) bg-(--color-surface-page) px-3 py-1.5 shadow-sm"

@@ -800,3 +800,4 @@
 | [#1281](https://github.com/RatLoopz/sahidawa-india/pull/1281) | 2026-06-04 | Frontend | 8 | @shashank03-dev | [View Doc](devtrack/2026-06/PR-1281-feat-web-integrate-profile-account-session-state.md) |
 | [#1288](https://github.com/RatLoopz/sahidawa-india/pull/1288) | 2026-06-04 | Frontend | 5 | @AnushKamble | [View Doc](devtrack/2026-06/PR-1288-critical-fix-scan-replace-silent-catch-blocks-with.md) |
 | [#1360](https://github.com/RatLoopz/sahidawa-india/pull/1360) | 2026-06-06 | Frontend | 5 | @Avinash-sdbegin | [View Doc](devtrack/2026-06/PR-1360-feat-web-add-print-and-pdf-export-support-for-medi.md) |
+| [#1333](https://github.com/RatLoopz/sahidawa-india/pull/1333) | 2026-06-06 | Frontend | 5 | @hrx01-dev | [View Doc](devtrack/2026-06/PR-1333-optimized-debounce-and-validate-geocode-pincode-is.md) |

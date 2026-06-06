@@ -368,174 +368,227 @@
         "label": "Back to top"
     },
     "Alerts": {
-        "backHome": "Back to Home Page",
-        "badge": "Live Alerts",
-        "title": "Live CDSCO Alerts",
-        "subtitle": "Complete historical safety logging stream directly mapped to the master CDSCO registry.",
-        "regionBadge": "India Region",
-        "totalCount": "Total Count: {count}",
-        "brandPlaceholder": "Search by Brand Name...",
-        "regionPlaceholder": "Filter by State/District...",
-        "error": "Database synchronization error encountered while fetching active logs.",
-        "loading": "Loading alerts...",
-        "systemUpdate": "System Update",
-        "alertType": "Alert: {type}",
-        "noDetails": "No details available",
-        "batchLabel": "Batch:",
-        "manufacturerLabel": "Manufacturer:",
-        "regionLabel": "Region:",
-        "empty": "No health alerts matching your criteria were found.",
-        "previous": "Previous",
-        "next": "Next"
+        "backHome": "मुख्यपृष्ठं प्रति प्रतिगच्छतु",
+        "badge": "प्रत्यक्षसूचनाः",
+        "title": "प्रत्यक्ष CDSCO सूचनाः",
+        "subtitle": "CDSCO अभिलेखेन सह प्रत्यक्षतया सम्बद्धः सम्पूर्णः सुरक्षा-वृत्तान्तः।",
+        "regionBadge": "भारतक्षेत्रम्",
+        "totalCount": "समग्रसंख्या: {count}",
+        "brandPlaceholder": "ब्राण्डनाम्ना अन्विष्यताम्...",
+        "regionPlaceholder": "राज्येन वा जनपदेन वा छननं कुर्वन्तु...",
+        "error": "सक्रियनिबन्धनानि प्राप्तुं दत्तांशभाण्डार-समन्वयदोषः अभवत्।",
+        "loading": "सूचनाः आरोप्यन्ते...",
+        "systemUpdate": "प्रणाली-अद्यतनम्",
+        "alertType": "सूचना: {type}",
+        "noDetails": "विवरणं न उपलब्धम्",
+        "batchLabel": "समूहः:",
+        "manufacturerLabel": "निर्माता:",
+        "regionLabel": "क्षेत्रम्:",
+        "empty": "भवतः मानदण्डानुसारं काचिद् स्वास्थ्यसूचना न प्राप्ता।",
+        "previous": "पूर्वम्",
+        "next": "अनन्तरम्"
     },
     "Compare": {
-        "pageTitle": "Compare medicines",
-        "pageSubtitle": "Brand vs generic side by side",
-        "firstMedicine": "First medicine",
-        "secondMedicine": "Second medicine",
-        "searchPlaceholder": "Search brand or generic name",
-        "findPharmacies": "Find pharmacies",
-        "emptyComparison": "Select two medicines above to see the comparison.",
-        "fieldHeader": "Field",
-        "medicineA": "Medicine A",
-        "medicineB": "Medicine B",
-        "priceUnavailable": "Price unavailable",
-        "noSavings": "No savings",
-        "saveAmount": "Save ₹{amount} ({percent}%)",
+        "pageTitle": "औषधानां तुलना",
+        "pageSubtitle": "ब्राण्ड-जनरिक-औषधयोः पार्श्वयोः तुलना",
+        "firstMedicine": "प्रथमम् औषधम्",
+        "secondMedicine": "द्वितीयम् औषधम्",
+        "searchPlaceholder": "ब्राण्ड अथवा जनरिकनाम अन्विष्यताम्",
+        "findPharmacies": "औषधालयान् अन्विष्यताम्",
+        "emptyComparison": "तुलनां द्रष्टुं उपरि द्वे औषधे चिनुताम्।",
+        "fieldHeader": "क्षेत्रम्",
+        "medicineA": "औषधम् A",
+        "medicineB": "औषधम् B",
+        "priceUnavailable": "मूल्यं न उपलब्धम्",
+        "noSavings": "न काचित् बचतिः",
+        "saveAmount": "₹{amount} परिमिता बचतिः ({percent}%)",
         "rows": {
-            "brandName": "Brand name",
-            "genericName": "Generic name",
-            "composition": "Composition",
-            "manufacturer": "Manufacturer",
-            "type": "Type",
-            "cdscoStatus": "CDSCO status",
-            "expiryDate": "Expiry date",
-            "marketPrice": "Market price (MRP)",
-            "janAushadhiPrice": "Jan Aushadhi price",
-            "savings": "Savings vs MRP"
+            "brandName": "ब्राण्डनाम",
+            "genericName": "जनरिकनाम",
+            "composition": "संघटनम्",
+            "manufacturer": "निर्माता",
+            "type": "प्रकारः",
+            "cdscoStatus": "CDSCO स्थिति",
+            "expiryDate": "अवधितिथिः",
+            "marketPrice": "बाजारमूल्यम् (MRP)",
+            "janAushadhiPrice": "जनौषधिमूल्यम्",
+            "savings": "MRP अपेक्षया बचतिः"
         },
         "medicineTypes": {
-            "brand": "Brand",
-            "generic": "Generic"
+            "brand": "ब्राण्ड",
+            "generic": "जनरिक"
         },
         "status": {
-            "approved": "Approved",
-            "recalled": "Recalled",
-            "banned": "Banned"
+            "approved": "स्वीकृतम्",
+            "recalled": "पुनराहूतम्",
+            "banned": "निषिद्धम्"
         }
     },
+    "ExpiryTracker": {
+        "title": "औषध-अवधि-अनुवर्तकः",
+        "subtitle": "स्वस्य औषधसञ्चयं स्थानीयतया व्यवस्थापयतु तथा निरीक्षताम्",
+        "addMedicine": "औषधं योजयतु",
+        "name": "नाम",
+        "expiryDate": "अवधितिथिः",
+        "batchNumber": "समूहनम्बरम् (ऐच्छिकम्)",
+        "batchPlaceholder": "उदाहरणम्: B12345",
+        "namePlaceholder": "उदाहरणम्: पेरासिटामोल",
+        "addToTracker": "अनुवर्तके योजयतु",
+        "trackedMedicines": "अनुवर्तितानि औषधानि",
+        "total": "समग्रम्",
+        "noMedicines": "अद्यावधि किमपि औषधं न योजितम्।",
+        "loading": "अनुवर्तकदत्तांशः आरोप्यते...",
+        "searchPlaceholder": "औषधानि अन्विष्यन्ताम्...",
+        "sortBy": "क्रमयतु",
+        "sortExpirySoonest": "अवधितिथिः (शीघ्रतमम्)",
+        "sortExpiryLatest": "अवधितिथिः (विलम्बतमम्)",
+        "sortAlpha": "नाम (अ-ह)",
+        "filterAll": "सर्वे",
+        "filterExpired": "अवधिक्षीणम्",
+        "filterExpiringSoon": "शीघ्रमेव अवधिक्षीणम्",
+        "filterSafe": "सुरक्षितम्",
+        "exportBackup": "प्रतिलिपिं निर्गच्छतु",
+        "importBackup": "प्रतिलिपिं आयच्छतु",
+        "importError": "अमान्या प्रतिलिपिः। कृपया मान्यं JSON प्रतिलिपिं आरोपयतु।",
+        "statusExpired": "अवधिक्षीणम्",
+        "statusExpiringSoon": "({days} दिनेषु) अवधिक्षीणम्",
+        "statusSafe": "सुरक्षितम्"
+    },
     "Login": {
-        "brandSubtitle": "Medicine safety platform",
-        "heading": "Welcome back",
-        "description": "Sign in to continue tracking medicine safety reports and verification results.",
+        "brandSubtitle": "औषधसुरक्षा-मञ्चः",
+        "heading": "पुनः स्वागतम्",
+        "description": "औषधसुरक्षा-वृत्तान्तान् तथा सत्यापनफलानि निरीक्षितुं प्रवेशं कुर्वन्तु।",
         "missingConfig": {
-            "title": "Authentication is not configured",
-            "description": "Supabase URL or anon key is missing. Add the environment variables before signing in."
+            "title": "प्रमाणीकरणं विन्यस्तं नास्ति",
+            "description": "Supabase URL अथवा anon key न उपलब्धम्। प्रवेशात् पूर्वं environment variables योजयन्तु।"
         },
-        "googleButton": "Continue with Google",
-        "emailSeparator": "or continue with email",
-        "emailLabel": "Email address",
+        "googleButton": "Google द्वारा प्रविशतु",
+        "emailSeparator": "अथवा ईमेलद्वारा प्रविशतु",
+        "emailLabel": "ईमेल-पत्रम्",
         "emailPlaceholder": "you@example.com",
-        "passwordLabel": "Password",
-        "passwordPlaceholder": "Enter your password",
-        "signingIn": "Signing in...",
-        "signIn": "Sign In",
-        "footerPrompt": "Need to go back?",
-        "returnHome": "Return home",
-        "bottomText": "Protected access for SahiDawa community tools.",
+        "passwordLabel": "गुह्यशब्दः",
+        "passwordPlaceholder": "स्वीयं गुह्यशब्दं प्रविशन्तु",
+        "signingIn": "प्रवेशः क्रियते...",
+        "signIn": "प्रविशतु",
+        "footerPrompt": "प्रतिगन्तुम् इच्छथ?",
+        "returnHome": "मुख्यपृष्ठं प्रति प्रतिगच्छतु",
+        "bottomText": "SahiDawa समुदायोपकरणानां कृते सुरक्षितः प्रवेशः।",
         "errors": {
-            "databaseNotConfigured": "Authentication is not configured for this environment.",
-            "generic": "Unable to sign in. Please try again."
+            "databaseNotConfigured": "अस्मिन् परिवेशे प्रमाणीकरणं विन्यस्तं नास्ति।",
+            "generic": "प्रवेशः न सफलः। कृपया पुनः प्रयतध्वम्।"
         }
     },
     "AdminLayout": {
-        "accessDeniedTitle": "Access denied",
-        "accessDeniedDescription": "You need administrator or moderator privileges to view this page.",
-        "returnHome": "Return home"
+        "accessDeniedTitle": "प्रवेशः निषिद्धः",
+        "accessDeniedDescription": "एतत् पृष्ठं द्रष्टुं प्रशासकस्य अथवा नियामकस्य अनुमतिः अपेक्ष्यते।",
+        "returnHome": "मुख्यपृष्ठं प्रति प्रतिगच्छतु"
     },
     "AdminDashboard": {
-        "brandSuffix": "Admin",
-        "version": "SahiDawa Admin v1.0",
+        "brandSuffix": "प्रशासकः",
+        "version": "SahiDawa प्रशासकः v1.0",
         "nav": {
-            "reports": "Reports",
-            "medicine": "Medicine Master",
-            "logs": "Audit Logs"
+            "reports": "वृत्तान्ताः",
+            "medicine": "औषध-सूची",
+            "logs": "लेखाजोखा"
         },
         "header": {
-            "title": "Moderation Dashboard",
-            "subtitle": "Manage community-reported counterfeit medicines"
+            "title": "नियमन-पट्टिका",
+            "subtitle": "समुदायेन सूचितानि कूट-औषधानि व्यवस्थापयतु"
         },
-        "searchPlaceholder": "Search...",
+        "searchPlaceholder": "अन्विष्यताम्...",
         "actions": {
-            "signIn": "Sign In",
-            "refresh": "Refresh",
-            "addMedicine": "Add Medicine",
-            "save": "Save",
-            "cancel": "Cancel",
-            "goToLogin": "Go to login",
-            "markFake": "Mark fake",
-            "falseAlarm": "False alarm"
+            "signIn": "प्रविशतु",
+            "refresh": "पुनरारोपयतु",
+            "addMedicine": "औषधं योजयतु",
+            "save": "संगृह्णातु",
+            "cancel": "निरस्यतु",
+            "goToLogin": "प्रवेशपृष्ठं गच्छतु",
+            "markFake": "कूटम् इति चिह्नयतु",
+            "falseAlarm": "मिथ्या-सूचना"
         },
         "stats": {
-            "pending": "Pending",
-            "resolved": "Resolved",
-            "districtsAffected": "Districts Affected"
+            "pending": "प्रतीक्षायाम्",
+            "resolved": "परिहृतम्",
+            "districtsAffected": "प्रभावित-जनपदाः"
         },
         "errors": {
-            "notAuthenticated": "Not authenticated — please sign in as an admin.",
-            "accessDenied": "Access denied — admin or moderator role required.",
-            "apiUnavailable": "Cannot reach the API. Is the backend server running on port 4000?"
+            "notAuthenticated": "प्रमाणीकृतः नास्ति — कृपया प्रशासकरूपेण प्रविशतु।",
+            "accessDenied": "प्रवेशः निषिद्धः — प्रशासकस्य अथवा नियामकस्य भूमिका अपेक्षिता।",
+            "apiUnavailable": "API प्राप्तुं न शक्यते। किं पृष्ठभाग-सेवकः 4000 पोर्टे सञ्चरति?"
         },
         "toasts": {
-            "markedFake": "Marked as Verified Fake",
-            "falseAlarm": "Marked as False Alarm",
-            "reportUpdateFailed": "Failed to update report",
-            "medicineAdded": "Medicine added",
-            "medicineAddFailed": "Failed to add medicine"
+            "markedFake": "सत्यापित-कूटम् इति चिह्नितम्",
+            "falseAlarm": "मिथ्या-सूचना इति चिह्नितम्",
+            "reportUpdateFailed": "वृत्तान्तस्य अद्यतनीकरणे विफलम्",
+            "medicineAdded": "औषधं योजितम्",
+            "medicineAddFailed": "औषधस्य योजने विफलम्"
         },
         "medicine": {
-            "title": "Medicine Master",
-            "empty": "No medicines found",
+            "title": "औषध-सूची",
+            "empty": "किमपि औषधं न प्राप्तम्",
             "columns": {
-                "brand": "Brand",
-                "generic": "Generic",
-                "manufacturer": "Manufacturer",
-                "barcode": "Barcode",
-                "status": "Status"
+                "brand": "ब्राण्डः",
+                "generic": "जनरिकः",
+                "manufacturer": "निर्माता",
+                "barcode": "सङ्केतरेखा",
+                "status": "स्थिति"
             }
         },
         "status": {
-            "approved": "Approved",
-            "recalled": "Recalled",
-            "banned": "Banned"
+            "approved": "स्वीकृतम्",
+            "recalled": "पुनराहूतम्",
+            "banned": "निषिद्धम्"
         },
         "logs": {
-            "title": "Audit Logs",
-            "subtitle": "Recent moderation and medicine catalog activity",
-            "loading": "Loading logs...",
-            "empty": "No audit logs yet"
+            "title": "लेखाजोखा",
+            "subtitle": "अद्यतन-नियमन-औषध-सूची-क्रियाकलापाः",
+            "loading": "लेखाजोखाः आरोप्यन्ते...",
+            "empty": "अद्यावधि लेखाजोखाः न सन्ति"
         },
         "reports": {
-            "title": "Incoming Reports",
-            "pendingCount": "{count, plural, =0 {No pending reports} =1 {1 pending report} other {# pending reports}}",
-            "loading": "Loading reports...",
-            "empty": "No pending reports",
+            "title": "प्राप्त-वृत्तान्ताः",
+            "pendingCount": "{count, plural, =0 {प्रतीक्षायां कश्चन वृत्तान्तः नास्ति} =1 {1 प्रतीक्षायां वृत्तान्तः} other {# प्रतीक्षायां वृत्तान्ताः}}",
+            "loading": "वृत्तान्ताः आरोप्यन्ते...",
+            "empty": "प्रतीक्षायां वृत्तान्ताः न सन्ति",
             "columns": {
-                "medicine": "Medicine",
-                "district": "District",
-                "barcode": "Barcode",
-                "reported": "Reported",
-                "actions": "Actions"
+                "medicine": "औषधम्",
+                "district": "जनपदः",
+                "barcode": "सङ्केतरेखा",
+                "reported": "सूचितम्",
+                "actions": "क्रियाः"
             },
             "decisions": {
-                "verifiedFake": "Verified Fake",
-                "falseAlarm": "False Alarm"
+                "verifiedFake": "सत्यापित-कूटम्",
+                "falseAlarm": "मिथ्या-सूचना"
             }
         },
         "resolved": {
-            "title": "Recently Resolved",
-            "count": "{count, plural, =0 {No resolved reports} =1 {1 resolved report} other {# resolved reports}}",
-            "decision": "Decision"
+            "title": "अद्यतन-परिहृतानि",
+            "count": "{count, plural, =0 {परिहृत-वृत्तान्ताः न सन्ति} =1 {1 परिहृत-वृत्तान्तः} other {# परिहृत-वृत्तान्ताः}}",
+            "decision": "निर्णयः"
+        }
+    },
+    "AdminAnalytics": {
+        "title": "प्रभाव-विश्लेषण-पट्टिका",
+        "subtitle": "समुदाय-सहभागिता-मापनानि तथा वृद्धेः प्रवृत्तयः",
+        "metrics": {
+            "totalMedicines": "समग्र-औषधानि",
+            "totalReports": "समग्र-वृत्तान्ताः",
+            "resolved": "परिहृतानि",
+            "districtsCovered": "आवृत-जनपदाः"
+        },
+        "charts": {
+            "monthlyGrowth": "मासिक-वृद्धेः प्रवृत्तिः",
+            "reportStatus": "वृत्तान्त-स्थितेः वितरणम्",
+            "topDistricts": "वृत्तान्तानां आधारेण प्रमुख-जनपदाः",
+            "recentActivity": "अद्यतन-क्रियाकलापः"
+        },
+        "overview": {
+            "title": "मञ्चस्य अवलोकनम्",
+            "avgReportsPerDay": "प्रतिदिनं सरासरी-वृत्तान्ताः",
+            "resolutionRate": "परिहार-दरः",
+            "thisWeekReports": "अस्य सप्ताहस्य वृत्तान्ताः",
+            "thisWeekMedicines": "अस्य सप्ताहस्य औषधानि"
         }
     },
     "vaccineHub": {

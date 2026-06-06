@@ -368,174 +368,227 @@
         "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"
     },
     "Alerts": {
-        "backHome": "Back to Home Page",
-        "badge": "Live Alerts",
-        "title": "Live CDSCO Alerts",
-        "subtitle": "Complete historical safety logging stream directly mapped to the master CDSCO registry.",
-        "regionBadge": "India Region",
-        "totalCount": "Total Count: {count}",
-        "brandPlaceholder": "Search by Brand Name...",
-        "regionPlaceholder": "Filter by State/District...",
-        "error": "Database synchronization error encountered while fetching active logs.",
-        "loading": "Loading alerts...",
-        "systemUpdate": "System Update",
-        "alertType": "Alert: {type}",
-        "noDetails": "No details available",
-        "batchLabel": "Batch:",
-        "manufacturerLabel": "Manufacturer:",
-        "regionLabel": "Region:",
-        "empty": "No health alerts matching your criteria were found.",
-        "previous": "Previous",
-        "next": "Next"
+        "backHome": "ಮುಖಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ",
+        "badge": "ಲೈವ್ ಎಚ್ಚರಿಕೆಗಳು",
+        "title": "ಲೈವ್ CDSCO ಎಚ್ಚರಿಕೆಗಳು",
+        "subtitle": "CDSCO ನೋಂದಣಿಯೊಂದಿಗೆ ನೇರವಾಗಿ ಸಂಪರ್ಕಗೊಂಡ ಸಂಪೂರ್ಣ ಐತಿಹಾಸಿಕ ಸುರಕ್ಷತಾ ದಾಖಲೆ.",
+        "regionBadge": "ಭಾರತ ಪ್ರದೇಶ",
+        "totalCount": "ಒಟ್ಟು ಸಂಖ್ಯೆ: {count}",
+        "brandPlaceholder": "ಬ್ರ್ಯಾಂಡ್ ಹೆಸರಿನಿಂದ ಹುಡುಕಿ...",
+        "regionPlaceholder": "ರಾಜ್ಯ/ಜಿಲ್ಲೆಯ ಪ್ರಕಾರ ಫಿಲ್ಟರ್ ಮಾಡಿ...",
+        "error": "ಸಕ್ರಿಯ ದಾಖಲೆಗಳನ್ನು ಪಡೆಯುವಾಗ ಡೇಟಾಬೇಸ್ ಸಿಂಕ್ರೊನೈಸೇಶನ್ ದೋಷ ಕಂಡುಬಂದಿದೆ.",
+        "loading": "ಎಚ್ಚರಿಕೆಗಳು ಲೋಡ್ ಆಗುತ್ತಿವೆ...",
+        "systemUpdate": "ಸಿಸ್ಟಮ್ ನವೀಕರಣ",
+        "alertType": "ಎಚ್ಚರಿಕೆ: {type}",
+        "noDetails": "ಯಾವುದೇ ವಿವರಗಳು ಲಭ್ಯವಿಲ್ಲ",
+        "batchLabel": "ಬ್ಯಾಚ್:",
+        "manufacturerLabel": "ತಯಾರಕರು:",
+        "regionLabel": "ಪ್ರದೇಶ:",
+        "empty": "ನಿಮ್ಮ ಮಾನದಂಡಗಳಿಗೆ ಹೊಂದುವ ಆರೋಗ್ಯ ಎಚ್ಚರಿಕೆಗಳು ಕಂಡುಬಂದಿಲ್ಲ.",
+        "previous": "ಹಿಂದಿನದು",
+        "next": "ಮುಂದಿನದು"
     },
     "Compare": {
-        "pageTitle": "Compare medicines",
-        "pageSubtitle": "Brand vs generic side by side",
-        "firstMedicine": "First medicine",
-        "secondMedicine": "Second medicine",
-        "searchPlaceholder": "Search brand or generic name",
-        "findPharmacies": "Find pharmacies",
-        "emptyComparison": "Select two medicines above to see the comparison.",
-        "fieldHeader": "Field",
-        "medicineA": "Medicine A",
-        "medicineB": "Medicine B",
-        "priceUnavailable": "Price unavailable",
-        "noSavings": "No savings",
-        "saveAmount": "Save ₹{amount} ({percent}%)",
+        "pageTitle": "ಔಷಧಗಳನ್ನು ಹೋಲಿಸಿ",
+        "pageSubtitle": "ಬ್ರ್ಯಾಂಡ್ ಮತ್ತು ಜೆನೆರಿಕ್ ಅನ್ನು ಪಕ್ಕಪಕ್ಕವಾಗಿ ಹೋಲಿಸಿ",
+        "firstMedicine": "ಮೊದಲ ಔಷಧ",
+        "secondMedicine": "ಎರಡನೇ ಔಷಧ",
+        "searchPlaceholder": "ಬ್ರ್ಯಾಂಡ್ ಅಥವಾ ಜೆನೆರಿಕ್ ಹೆಸರನ್ನು ಹುಡುಕಿ",
+        "findPharmacies": "ಔಷಧ ಅಂಗಡಿಗಳನ್ನು ಹುಡುಕಿ",
+        "emptyComparison": "ಹೋಲಿಕೆಯನ್ನು ನೋಡಲು ಮೇಲಿನ ಎರಡು ಔಷಧಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+        "fieldHeader": "ಕ್ಷೇತ್ರ",
+        "medicineA": "ಔಷಧ A",
+        "medicineB": "ಔಷಧ B",
+        "priceUnavailable": "ಬೆಲೆ ಲಭ್ಯವಿಲ್ಲ",
+        "noSavings": "ಯಾವುದೇ ಉಳಿತಾಯ ಇಲ್ಲ",
+        "saveAmount": "₹{amount} ಉಳಿತಾಯ ({percent}%)",
         "rows": {
-            "brandName": "Brand name",
-            "genericName": "Generic name",
-            "composition": "Composition",
-            "manufacturer": "Manufacturer",
-            "type": "Type",
-            "cdscoStatus": "CDSCO status",
-            "expiryDate": "Expiry date",
-            "marketPrice": "Market price (MRP)",
-            "janAushadhiPrice": "Jan Aushadhi price",
-            "savings": "Savings vs MRP"
+            "brandName": "ಬ್ರ್ಯಾಂಡ್ ಹೆಸರು",
+            "genericName": "ಜೆನೆರಿಕ್ ಹೆಸರು",
+            "composition": "ಸಂಯೋಜನೆ",
+            "manufacturer": "ತಯಾರಕರು",
+            "type": "ಪ್ರಕಾರ",
+            "cdscoStatus": "CDSCO ಸ್ಥಿತಿ",
+            "expiryDate": "ಅವಧಿ ಮುಗಿಯುವ ದಿನಾಂಕ",
+            "marketPrice": "ಮಾರುಕಟ್ಟೆ ಬೆಲೆ (MRP)",
+            "janAushadhiPrice": "ಜನ ಔಷಧಿ ಬೆಲೆ",
+            "savings": "MRP ಗೆ ಹೋಲಿಸಿದ ಉಳಿತಾಯ"
         },
         "medicineTypes": {
-            "brand": "Brand",
-            "generic": "Generic"
+            "brand": "ಬ್ರ್ಯಾಂಡ್",
+            "generic": "ಜೆನೆರಿಕ್"
         },
         "status": {
-            "approved": "Approved",
-            "recalled": "Recalled",
-            "banned": "Banned"
+            "approved": "ಅನುಮೋದಿತ",
+            "recalled": "ಹಿಂಪಡೆಯಲಾಗಿದೆ",
+            "banned": "ನಿಷೇಧಿಸಲಾಗಿದೆ"
         }
     },
+    "ExpiryTracker": {
+        "title": "ಔಷಧ ಅವಧಿ ಟ್ರ್ಯಾಕರ್",
+        "subtitle": "ನಿಮ್ಮ ಔಷಧ ಸಂಗ್ರಹವನ್ನು ಸ್ಥಳೀಯವಾಗಿ ನಿರ್ವಹಿಸಿ ಮತ್ತು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ",
+        "addMedicine": "ಔಷಧ ಸೇರಿಸಿ",
+        "name": "ಹೆಸರು",
+        "expiryDate": "ಅವಧಿ ಮುಗಿಯುವ ದಿನಾಂಕ",
+        "batchNumber": "ಬ್ಯಾಚ್ ಸಂಖ್ಯೆ (ಐಚ್ಛಿಕ)",
+        "batchPlaceholder": "ಉದಾ: B12345",
+        "namePlaceholder": "ಉದಾ: ಪ್ಯಾರಾಸಿಟಮಾಲ್",
+        "addToTracker": "ಟ್ರ್ಯಾಕರ್‌ಗೆ ಸೇರಿಸಿ",
+        "trackedMedicines": "ಟ್ರ್ಯಾಕ್ ಮಾಡಿದ ಔಷಧಗಳು",
+        "total": "ಒಟ್ಟು",
+        "noMedicines": "ಇನ್ನೂ ಯಾವುದೇ ಔಷಧ ಸೇರಿಸಲಾಗಿಲ್ಲ.",
+        "loading": "ಟ್ರ್ಯಾಕರ್ ಡೇಟಾ ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+        "searchPlaceholder": "ಔಷಧಗಳನ್ನು ಹುಡುಕಿ...",
+        "sortBy": "ವಿಂಗಡಿಸಿ",
+        "sortExpirySoonest": "ಅವಧಿ ಮುಗಿಯುವ ದಿನಾಂಕ (ಶೀಘ್ರದಲ್ಲೇ)",
+        "sortExpiryLatest": "ಅವಧಿ ಮುಗಿಯುವ ದಿನಾಂಕ (ಅತ್ಯಂತ ತಡವಾಗಿ)",
+        "sortAlpha": "ಹೆಸರು (ಅ-ಹ)",
+        "filterAll": "ಎಲ್ಲಾ",
+        "filterExpired": "ಅವಧಿ ಮುಗಿದಿದೆ",
+        "filterExpiringSoon": "ಶೀಘ್ರದಲ್ಲೇ ಅವಧಿ ಮುಗಿಯಲಿದೆ",
+        "filterSafe": "ಸುರಕ್ಷಿತ",
+        "exportBackup": "ಬ್ಯಾಕಪ್ ರಫ್ತು ಮಾಡಿ",
+        "importBackup": "ಬ್ಯಾಕಪ್ ಆಮದು ಮಾಡಿ",
+        "importError": "ಅಮಾನ್ಯ ಬ್ಯಾಕಪ್ ಫೈಲ್. ದಯವಿಟ್ಟು ಮಾನ್ಯ JSON ಬ್ಯಾಕಪ್ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ.",
+        "statusExpired": "ಅವಧಿ ಮುಗಿದಿದೆ",
+        "statusExpiringSoon": "ಶೀಘ್ರದಲ್ಲೇ ಅವಧಿ ಮುಗಿಯಲಿದೆ ({days} ದಿನಗಳು)",
+        "statusSafe": "ಸುರಕ್ಷಿತ"
+    },
     "Login": {
-        "brandSubtitle": "Medicine safety platform",
-        "heading": "Welcome back",
-        "description": "Sign in to continue tracking medicine safety reports and verification results.",
+        "brandSubtitle": "ಔಷಧ ಸುರಕ್ಷತಾ ವೇದಿಕೆ",
+        "heading": "ಮತ್ತೆ ಸ್ವಾಗತ",
+        "description": "ಔಷಧ ಸುರಕ್ಷತಾ ವರದಿಗಳು ಮತ್ತು ಪರಿಶೀಲನಾ ಫಲಿತಾಂಶಗಳನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಲು ಸೈನ್ ಇನ್ ಮಾಡಿ.",
         "missingConfig": {
-            "title": "Authentication is not configured",
-            "description": "Supabase URL or anon key is missing. Add the environment variables before signing in."
+            "title": "ದೃಢೀಕರಣವನ್ನು ಸಂರಚಿಸಲಾಗಿಲ್ಲ",
+            "description": "Supabase URL ಅಥವಾ anon key ಕಾಣೆಯಾಗಿದೆ. ಸೈನ್ ಇನ್ ಮಾಡುವ ಮೊದಲು environment variables ಸೇರಿಸಿ."
         },
-        "googleButton": "Continue with Google",
-        "emailSeparator": "or continue with email",
-        "emailLabel": "Email address",
+        "googleButton": "Google ಮೂಲಕ ಮುಂದುವರಿಯಿರಿ",
+        "emailSeparator": "ಅಥವಾ ಇಮೇಲ್ ಮೂಲಕ ಮುಂದುವರಿಯಿರಿ",
+        "emailLabel": "ಇಮೇಲ್ ವಿಳಾಸ",
         "emailPlaceholder": "you@example.com",
-        "passwordLabel": "Password",
-        "passwordPlaceholder": "Enter your password",
-        "signingIn": "Signing in...",
-        "signIn": "Sign In",
-        "footerPrompt": "Need to go back?",
-        "returnHome": "Return home",
-        "bottomText": "Protected access for SahiDawa community tools.",
+        "passwordLabel": "ಪಾಸ್‌ವರ್ಡ್",
+        "passwordPlaceholder": "ನಿಮ್ಮ ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ",
+        "signingIn": "ಸೈನ್ ಇನ್ ಆಗುತ್ತಿದೆ...",
+        "signIn": "ಸೈನ್ ಇನ್ ಮಾಡಿ",
+        "footerPrompt": "ಹಿಂದೆ ಹೋಗಬೇಕೇ?",
+        "returnHome": "ಮುಖಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ",
+        "bottomText": "SahiDawa ಸಮುದಾಯ ಸಾಧನಗಳಿಗಾಗಿ ಸುರಕ್ಷಿತ ಪ್ರವೇಶ.",
         "errors": {
-            "databaseNotConfigured": "Authentication is not configured for this environment.",
-            "generic": "Unable to sign in. Please try again."
+            "databaseNotConfigured": "ಈ ಪರಿಸರಕ್ಕಾಗಿ ದೃಢೀಕರಣವನ್ನು ಸಂರಚಿಸಲಾಗಿಲ್ಲ.",
+            "generic": "ಸೈನ್ ಇನ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."
         }
     },
     "AdminLayout": {
-        "accessDeniedTitle": "Access denied",
-        "accessDeniedDescription": "You need administrator or moderator privileges to view this page.",
-        "returnHome": "Return home"
+        "accessDeniedTitle": "ಪ್ರವೇಶ ನಿರಾಕರಿಸಲಾಗಿದೆ",
+        "accessDeniedDescription": "ಈ ಪುಟವನ್ನು ವೀಕ್ಷಿಸಲು ನಿಮಗೆ ನಿರ್ವಾಹಕ ಅಥವಾ ಮಾಡರೇಟರ್ ಅನುಮತಿಗಳು ಅಗತ್ಯವಿದೆ.",
+        "returnHome": "ಮುಖಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ"
     },
     "AdminDashboard": {
-        "brandSuffix": "Admin",
-        "version": "SahiDawa Admin v1.0",
+        "brandSuffix": "ನಿರ್ವಾಹಕ",
+        "version": "SahiDawa ನಿರ್ವಾಹಕ v1.0",
         "nav": {
-            "reports": "Reports",
-            "medicine": "Medicine Master",
-            "logs": "Audit Logs"
+            "reports": "ವರದಿಗಳು",
+            "medicine": "ಔಷಧ ಮಾಸ್ಟರ್",
+            "logs": "ಆಡಿಟ್ ದಾಖಲೆಗಳು"
         },
         "header": {
-            "title": "Moderation Dashboard",
-            "subtitle": "Manage community-reported counterfeit medicines"
+            "title": "ಮಾಡರೇಷನ್ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+            "subtitle": "ಸಮುದಾಯದಿಂದ ವರದಿಯಾದ ನಕಲಿ ಔಷಧಗಳನ್ನು ನಿರ್ವಹಿಸಿ"
         },
-        "searchPlaceholder": "Search...",
+        "searchPlaceholder": "ಹುಡುಕಿ...",
         "actions": {
-            "signIn": "Sign In",
-            "refresh": "Refresh",
-            "addMedicine": "Add Medicine",
-            "save": "Save",
-            "cancel": "Cancel",
-            "goToLogin": "Go to login",
-            "markFake": "Mark fake",
-            "falseAlarm": "False alarm"
+            "signIn": "ಸೈನ್ ಇನ್ ಮಾಡಿ",
+            "refresh": "ರಿಫ್ರೆಶ್ ಮಾಡಿ",
+            "addMedicine": "ಔಷಧ ಸೇರಿಸಿ",
+            "save": "ಉಳಿಸಿ",
+            "cancel": "ರದ್ದುಮಾಡಿ",
+            "goToLogin": "ಲಾಗಿನ್ ಪುಟಕ್ಕೆ ಹೋಗಿ",
+            "markFake": "ನಕಲಿ ಎಂದು ಗುರುತಿಸಿ",
+            "falseAlarm": "ತಪ್ಪು ಎಚ್ಚರಿಕೆ"
         },
         "stats": {
-            "pending": "Pending",
-            "resolved": "Resolved",
-            "districtsAffected": "Districts Affected"
+            "pending": "ಬಾಕಿ",
+            "resolved": "ಪರಿಹರಿಸಲಾಗಿದೆ",
+            "districtsAffected": "ಪರಿಣಾಮಿತ ಜಿಲ್ಲೆಗಳು"
         },
         "errors": {
-            "notAuthenticated": "Not authenticated — please sign in as an admin.",
-            "accessDenied": "Access denied — admin or moderator role required.",
-            "apiUnavailable": "Cannot reach the API. Is the backend server running on port 4000?"
+            "notAuthenticated": "ದೃಢೀಕರಿಸಲಾಗಿಲ್ಲ — ದಯವಿಟ್ಟು ನಿರ್ವಾಹಕರಾಗಿ ಸೈನ್ ಇನ್ ಮಾಡಿ.",
+            "accessDenied": "ಪ್ರವೇಶ ನಿರಾಕರಿಸಲಾಗಿದೆ — ನಿರ್ವಾಹಕ ಅಥವಾ ಮಾಡರೇಟರ್ ಪಾತ್ರ ಅಗತ್ಯವಿದೆ.",
+            "apiUnavailable": "API ತಲುಪಲು ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ. ಬ್ಯಾಕ್‌ಎಂಡ್ ಸರ್ವರ್ 4000 ಪೋರ್ಟ್‌ನಲ್ಲಿ ಚಾಲನೆಯಲ್ಲಿದೆಯೇ?"
         },
         "toasts": {
-            "markedFake": "Marked as Verified Fake",
-            "falseAlarm": "Marked as False Alarm",
-            "reportUpdateFailed": "Failed to update report",
-            "medicineAdded": "Medicine added",
-            "medicineAddFailed": "Failed to add medicine"
+            "markedFake": "ಪರಿಶೀಲಿತ ನಕಲಿ ಎಂದು ಗುರುತಿಸಲಾಗಿದೆ",
+            "falseAlarm": "ತಪ್ಪು ಎಚ್ಚರಿಕೆ ಎಂದು ಗುರುತಿಸಲಾಗಿದೆ",
+            "reportUpdateFailed": "ವರದಿಯನ್ನು ನವೀಕರಿಸಲು ವಿಫಲವಾಗಿದೆ",
+            "medicineAdded": "ಔಷಧ ಸೇರಿಸಲಾಗಿದೆ",
+            "medicineAddFailed": "ಔಷಧ ಸೇರಿಸಲು ವಿಫಲವಾಗಿದೆ"
         },
         "medicine": {
-            "title": "Medicine Master",
-            "empty": "No medicines found",
+            "title": "ಔಷಧ ಮಾಸ್ಟರ್",
+            "empty": "ಯಾವುದೇ ಔಷಧಗಳು ಕಂಡುಬಂದಿಲ್ಲ",
             "columns": {
-                "brand": "Brand",
-                "generic": "Generic",
-                "manufacturer": "Manufacturer",
-                "barcode": "Barcode",
-                "status": "Status"
+                "brand": "ಬ್ರ್ಯಾಂಡ್",
+                "generic": "ಜೆನೆರಿಕ್",
+                "manufacturer": "ತಯಾರಕರು",
+                "barcode": "ಬಾರ್ಕೋಡ್",
+                "status": "ಸ್ಥಿತಿ"
             }
         },
         "status": {
-            "approved": "Approved",
-            "recalled": "Recalled",
-            "banned": "Banned"
+            "approved": "ಅನುಮೋದಿತ",
+            "recalled": "ಹಿಂಪಡೆಯಲಾಗಿದೆ",
+            "banned": "ನಿಷೇಧಿಸಲಾಗಿದೆ"
         },
         "logs": {
-            "title": "Audit Logs",
-            "subtitle": "Recent moderation and medicine catalog activity",
-            "loading": "Loading logs...",
-            "empty": "No audit logs yet"
+            "title": "ಆಡಿಟ್ ದಾಖಲೆಗಳು",
+            "subtitle": "ಇತ್ತೀಚಿನ ಮಾಡರೇಷನ್ ಮತ್ತು ಔಷಧ ಕ್ಯಾಟಲಾಗ್ ಚಟುವಟಿಕೆ",
+            "loading": "ದಾಖಲೆಗಳು ಲೋಡ್ ಆಗುತ್ತಿವೆ...",
+            "empty": "ಇನ್ನೂ ಯಾವುದೇ ಆಡಿಟ್ ದಾಖಲೆಗಳಿಲ್ಲ"
         },
         "reports": {
-            "title": "Incoming Reports",
-            "pendingCount": "{count, plural, =0 {No pending reports} =1 {1 pending report} other {# pending reports}}",
-            "loading": "Loading reports...",
-            "empty": "No pending reports",
+            "title": "ಒಳಬರುವ ವರದಿಗಳು",
+            "pendingCount": "{count, plural, =0 {ಯಾವುದೇ ಬಾಕಿ ವರದಿಗಳಿಲ್ಲ} =1 {1 ಬಾಕಿ ವರದಿ} other {# ಬಾಕಿ ವರದಿಗಳು}}",
+            "loading": "ವರದಿಗಳು ಲೋಡ್ ಆಗುತ್ತಿವೆ...",
+            "empty": "ಯಾವುದೇ ಬಾಕಿ ವರದಿಗಳಿಲ್ಲ",
             "columns": {
-                "medicine": "Medicine",
-                "district": "District",
-                "barcode": "Barcode",
-                "reported": "Reported",
-                "actions": "Actions"
+                "medicine": "ಔಷಧ",
+                "district": "ಜಿಲ್ಲೆ",
+                "barcode": "ಬಾರ್ಕೋಡ್",
+                "reported": "ವರದಿಯಾಗಿದೆ",
+                "actions": "ಕ್ರಿಯೆಗಳು"
             },
             "decisions": {
-                "verifiedFake": "Verified Fake",
-                "falseAlarm": "False Alarm"
+                "verifiedFake": "ಪರಿಶೀಲಿತ ನಕಲಿ",
+                "falseAlarm": "ತಪ್ಪು ಎಚ್ಚರಿಕೆ"
             }
         },
         "resolved": {
-            "title": "Recently Resolved",
-            "count": "{count, plural, =0 {No resolved reports} =1 {1 resolved report} other {# resolved reports}}",
-            "decision": "Decision"
+            "title": "ಇತ್ತೀಚೆಗೆ ಪರಿಹರಿಸಲಾಗಿದೆ",
+            "count": "{count, plural, =0 {ಯಾವುದೇ ಪರಿಹರಿಸಲಾದ ವರದಿಗಳಿಲ್ಲ} =1 {1 ಪರಿಹರಿಸಲಾದ ವರದಿ} other {# ಪರಿಹರಿಸಲಾದ ವರದಿಗಳು}}",
+            "decision": "ನಿರ್ಧಾರ"
+        }
+    },
+    "AdminAnalytics": {
+        "title": "ಪ್ರಭಾವ ವಿಶ್ಲೇಷಣಾ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+        "subtitle": "ಸಮುದಾಯದ ತೊಡಗಿಸಿಕೊಳ್ಳುವಿಕೆ ಮತ್ತು ಬೆಳವಣಿಗೆಯ ಪ್ರವೃತ್ತಿಗಳು",
+        "metrics": {
+            "totalMedicines": "ಒಟ್ಟು ಔಷಧಗಳು",
+            "totalReports": "ಒಟ್ಟು ವರದಿಗಳು",
+            "resolved": "ಪರಿಹರಿಸಲಾಗಿದೆ",
+            "districtsCovered": "ಒಳಗೊಂಡ ಜಿಲ್ಲೆಗಳು"
+        },
+        "charts": {
+            "monthlyGrowth": "ಮಾಸಿಕ ಬೆಳವಣಿಗೆಯ ಪ್ರವೃತ್ತಿ",
+            "reportStatus": "ವರದಿ ಸ್ಥಿತಿ ವಿತರಣೆ",
+            "topDistricts": "ವರದಿಗಳ ಆಧಾರದ ಮೇಲೆ ಪ್ರಮುಖ ಜಿಲ್ಲೆಗಳು",
+            "recentActivity": "ಇತ್ತೀಚಿನ ಚಟುವಟಿಕೆ"
+        },
+        "overview": {
+            "title": "ವೇದಿಕೆಯ ಅವಲೋಕನ",
+            "avgReportsPerDay": "ಪ್ರತಿ ದಿನದ ಸರಾಸರಿ ವರದಿಗಳು",
+            "resolutionRate": "ಪರಿಹಾರ ಪ್ರಮಾಣ",
+            "thisWeekReports": "ಈ ವಾರದ ವರದಿಗಳು",
+            "thisWeekMedicines": "ಈ ವಾರದ ಔಷಧಗಳು"
         }
     },
     "vaccineHub": {

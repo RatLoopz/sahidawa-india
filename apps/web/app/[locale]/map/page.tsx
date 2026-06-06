@@ -563,7 +563,6 @@ export default function PharmacyMapPage() {
             <PageHeader
                 backHref="/"
                 variant="light"
-                showThemeToggle={false}
                 contentClassName="mx-auto w-full max-w-4xl justify-start rounded-[1.65rem] border border-(--color-border-muted) bg-(--color-surface-page)/95 p-1.5 shadow-[0_18px_52px_-34px_rgba(15,23,42,0.75)] ring-1 ring-white/80 backdrop-blur-xl dark:bg-slate-950/90 dark:ring-white/5"
                 backButtonClassName="border border-transparent bg-emerald-50 text-emerald-700 shadow-sm hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/70"
                 rightActionsClassName="hidden"
