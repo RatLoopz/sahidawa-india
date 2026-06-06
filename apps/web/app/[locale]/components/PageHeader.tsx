@@ -13,7 +13,6 @@ interface PageHeaderProps {
     variant?: "dark" | "light";
     showLanguage?: boolean;
     languageName?: string;
-    // showThemeToggle?: boolean;
     contentClassName?: string;
     childrenWrapperClassName?: string;
     backButtonClassName?: string;
