@@ -380,11 +380,30 @@ def send_to_make_webhook(post_text: str, pr: dict) -> None:
     labels = pr["labels"].lower()
     tier = "level:critical" if "level:critical" in labels else "level:advanced"
 
+    import urllib.parse
+    
+    # Generate a dynamic Thank You banner image URL
+    # Using Microlink Cards API for a beautiful GitHub-style banner with the contributor's avatar
+    title = "GSSoC 2026 Star Contributor"
+    desc = f"Huge thanks to {pr['author']} for scaling SahiDawa! 🚀"
+    
+    encoded_title = urllib.parse.quote(title)
+    encoded_desc = urllib.parse.quote(desc)
+    
+    cards_url = f"https://cards.microlink.io/?preset=github&title={encoded_title}&description={encoded_desc}"
+    
+    if pr.get("author_avatar"):
+        clean_avatar = pr['author_avatar'].split('?')[0]
+        cards_url += f"&image={urllib.parse.quote(clean_avatar, safe='')}"
+        
+    image_url = f"https://i.microlink.io/{urllib.parse.quote(cards_url, safe='')}"
+    
     payload = {
         "post_text": post_text,
         "pr_title": pr["title"],
         "pr_author": pr["author"],
         "author_avatar": pr.get("author_avatar", ""),
+        "image_url": image_url,
         "pr_url": pr["url"],
         "pr_number": pr["number"],
         "tier": tier,
