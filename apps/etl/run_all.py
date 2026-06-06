@@ -253,6 +253,7 @@ def _summary(stats: dict) -> None:
         f"  Pipeline Complete!\n"
         f"  Total processed  : {stats['total']}\n"
         f"  Inserted/updated : {stats['inserted']}\n"
+        f"  Skipped unchanged: {stats.get('skipped_unchanged', 0)}\n"
         f"  Failed           : {stats['failed']}\n"
         f"  Success rate     : {stats['success_rate']}%"
         + validation_line

@@ -106,7 +106,7 @@ CREATE INDEX IF NOT EXISTS idx_medicines_brand_name_trgm ON medicines USING gin 
 CREATE INDEX IF NOT EXISTS idx_medicines_generic_name_trgm ON medicines USING gin (generic_name gin_trgm_ops);
 
 -- Constraints for Upsert Operations
-ALTER TABLE medicines ADD CONSTRAINT idx_medicines_unique_variant UNIQUE NULLS NOT DISTINCT (generic_name, strength, dosage_form, source);
+ALTER TABLE medicines ADD CONSTRAINT idx_medicines_unique_variant UNIQUE NULLS NOT DISTINCT (generic_name, brand_name, manufacturer, barcode_id);
 
 -- 4. Barcode Mappings (Real-world scanning intelligence)
 CREATE TABLE IF NOT EXISTS barcode_mappings (
