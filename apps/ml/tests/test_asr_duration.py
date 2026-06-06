@@ -9,13 +9,24 @@ import numpy as np
 import pytest
 from fastapi import HTTPException
 
-if importlib.util.find_spec("noisereduce") is None:
+
+# find_spec raises ValueError (not returns None) when a module is present but
+# its __spec__ is None — e.g. when faster_whisper is already partially imported.
+# Wrapping in try/except makes the stub logic safe in all CI environments.
+def _is_available(module_name: str) -> bool:
+    try:
+        return importlib.util.find_spec(module_name) is not None
+    except ValueError:
+        return True  # module exists; __spec__ just not set — skip stubbing
+
+
+if not _is_available("noisereduce"):
     sys.modules["noisereduce"] = types.SimpleNamespace(reduce_noise=lambda y, sr: y)
 
-if importlib.util.find_spec("faster_whisper") is None:
+if not _is_available("faster_whisper"):
     sys.modules["faster_whisper"] = types.SimpleNamespace(WhisperModel=object)
 
-if importlib.util.find_spec("soundfile") is None:
+if not _is_available("soundfile"):
     sys.modules["soundfile"] = types.SimpleNamespace(
         read=lambda _path: (_ for _ in ()).throw(RuntimeError("stubbed"))
     )
