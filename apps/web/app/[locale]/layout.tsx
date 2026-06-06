@@ -16,6 +16,7 @@ import "../../src/styles/print.css";
 import { Toaster } from "sonner";
 import Footer from "./components/Footer";
 import { AuthSync } from "@/src/components/AuthSync";
+import CommandPalette from "./components/CommandPalette";
 
 export async function generateMetadata({
     params,
@@ -115,6 +116,7 @@ export default async function LocaleLayout({
                             <div className="no-print">
                                 <BackToTopButton />
                                 <Chatbot />
+                                <CommandPalette />
                             </div>
                         </NextIntlClientProvider>
                         <div className="no-print">
