@@ -368,174 +368,227 @@
         "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"
     },
     "Alerts": {
-        "backHome": "Back to Home Page",
-        "badge": "Live Alerts",
-        "title": "Live CDSCO Alerts",
-        "subtitle": "Complete historical safety logging stream directly mapped to the master CDSCO registry.",
-        "regionBadge": "India Region",
-        "totalCount": "Total Count: {count}",
-        "brandPlaceholder": "Search by Brand Name...",
-        "regionPlaceholder": "Filter by State/District...",
-        "error": "Database synchronization error encountered while fetching active logs.",
-        "loading": "Loading alerts...",
-        "systemUpdate": "System Update",
-        "alertType": "Alert: {type}",
-        "noDetails": "No details available",
-        "batchLabel": "Batch:",
-        "manufacturerLabel": "Manufacturer:",
-        "regionLabel": "Region:",
-        "empty": "No health alerts matching your criteria were found.",
-        "previous": "Previous",
-        "next": "Next"
+        "backHome": "ہوم پیج پر واپس جائیں",
+        "badge": "براہِ راست انتباہات",
+        "title": "براہِ راست CDSCO انتباہات",
+        "subtitle": "CDSCO رجسٹری سے براہِ راست منسلک مکمل تاریخی حفاظتی لاگ۔",
+        "regionBadge": "بھارت کا علاقہ",
+        "totalCount": "کل تعداد: {count}",
+        "brandPlaceholder": "برانڈ نام سے تلاش کریں...",
+        "regionPlaceholder": "ریاست/ضلع کے مطابق فلٹر کریں...",
+        "error": "فعال لاگز حاصل کرتے وقت ڈیٹابیس ہم آہنگی میں خرابی پیش آئی۔",
+        "loading": "انتباہات لوڈ ہو رہے ہیں...",
+        "systemUpdate": "سسٹم اپ ڈیٹ",
+        "alertType": "انتباہ: {type}",
+        "noDetails": "کوئی تفصیلات دستیاب نہیں",
+        "batchLabel": "بیچ:",
+        "manufacturerLabel": "کارخانہ دار:",
+        "regionLabel": "علاقہ:",
+        "empty": "آپ کے معیار سے مطابقت رکھنے والا کوئی صحتی انتباہ نہیں ملا۔",
+        "previous": "پچھلا",
+        "next": "اگلا"
     },
     "Compare": {
-        "pageTitle": "Compare medicines",
-        "pageSubtitle": "Brand vs generic side by side",
-        "firstMedicine": "First medicine",
-        "secondMedicine": "Second medicine",
-        "searchPlaceholder": "Search brand or generic name",
-        "findPharmacies": "Find pharmacies",
-        "emptyComparison": "Select two medicines above to see the comparison.",
-        "fieldHeader": "Field",
-        "medicineA": "Medicine A",
-        "medicineB": "Medicine B",
-        "priceUnavailable": "Price unavailable",
-        "noSavings": "No savings",
-        "saveAmount": "Save ₹{amount} ({percent}%)",
+        "pageTitle": "ادویات کا موازنہ کریں",
+        "pageSubtitle": "برانڈ اور جنیرک ادویات کا ساتھ ساتھ موازنہ",
+        "firstMedicine": "پہلی دوا",
+        "secondMedicine": "دوسری دوا",
+        "searchPlaceholder": "برانڈ یا جنیرک نام تلاش کریں",
+        "findPharmacies": "فارمیسیاں تلاش کریں",
+        "emptyComparison": "موازنہ دیکھنے کے لیے اوپر دو ادویات منتخب کریں۔",
+        "fieldHeader": "فیلڈ",
+        "medicineA": "دوا A",
+        "medicineB": "دوا B",
+        "priceUnavailable": "قیمت دستیاب نہیں",
+        "noSavings": "کوئی بچت نہیں",
+        "saveAmount": "₹{amount} کی بچت ({percent}%)",
         "rows": {
-            "brandName": "Brand name",
-            "genericName": "Generic name",
-            "composition": "Composition",
-            "manufacturer": "Manufacturer",
-            "type": "Type",
-            "cdscoStatus": "CDSCO status",
-            "expiryDate": "Expiry date",
-            "marketPrice": "Market price (MRP)",
-            "janAushadhiPrice": "Jan Aushadhi price",
-            "savings": "Savings vs MRP"
+            "brandName": "برانڈ نام",
+            "genericName": "جنیرک نام",
+            "composition": "ترکیب",
+            "manufacturer": "کارخانہ دار",
+            "type": "قسم",
+            "cdscoStatus": "CDSCO حیثیت",
+            "expiryDate": "میعاد ختم ہونے کی تاریخ",
+            "marketPrice": "مارکیٹ قیمت (MRP)",
+            "janAushadhiPrice": "جن اوشدھی قیمت",
+            "savings": "MRP کے مقابلے میں بچت"
         },
         "medicineTypes": {
-            "brand": "Brand",
-            "generic": "Generic"
+            "brand": "برانڈ",
+            "generic": "جنیرک"
         },
         "status": {
-            "approved": "Approved",
-            "recalled": "Recalled",
-            "banned": "Banned"
+            "approved": "منظور شدہ",
+            "recalled": "واپس منگوائی گئی",
+            "banned": "ممنوع"
         }
     },
+    "ExpiryTracker": {
+        "title": "ادویات کی میعاد ٹریکر",
+        "subtitle": "اپنے ادویات کے ذخیرے کو مقامی طور پر منظم اور ٹریک کریں",
+        "addMedicine": "دوا شامل کریں",
+        "name": "نام",
+        "expiryDate": "میعاد ختم ہونے کی تاریخ",
+        "batchNumber": "بیچ نمبر (اختیاری)",
+        "batchPlaceholder": "مثال: B12345",
+        "namePlaceholder": "مثال: پیراسٹامول",
+        "addToTracker": "ٹریکر میں شامل کریں",
+        "trackedMedicines": "ٹریک کی گئی ادویات",
+        "total": "کل",
+        "noMedicines": "ابھی تک کوئی دوا شامل نہیں کی گئی۔",
+        "loading": "ٹریکر کا ڈیٹا لوڈ ہو رہا ہے...",
+        "searchPlaceholder": "ادویات تلاش کریں...",
+        "sortBy": "ترتیب دیں",
+        "sortExpirySoonest": "میعاد ختم ہونے کی تاریخ (جلد ترین)",
+        "sortExpiryLatest": "میعاد ختم ہونے کی تاریخ (سب سے بعد)",
+        "sortAlpha": "نام (ا-ی)",
+        "filterAll": "سب",
+        "filterExpired": "میعاد ختم",
+        "filterExpiringSoon": "جلد میعاد ختم ہونے والی",
+        "filterSafe": "محفوظ",
+        "exportBackup": "بیک اپ برآمد کریں",
+        "importBackup": "بیک اپ درآمد کریں",
+        "importError": "غلط بیک اپ فائل۔ براہ کرم درست JSON بیک اپ اپ لوڈ کریں۔",
+        "statusExpired": "میعاد ختم",
+        "statusExpiringSoon": "جلد میعاد ختم ہوگی ({days} دن)",
+        "statusSafe": "محفوظ"
+    },
     "Login": {
-        "brandSubtitle": "Medicine safety platform",
-        "heading": "Welcome back",
-        "description": "Sign in to continue tracking medicine safety reports and verification results.",
+        "brandSubtitle": "ادویات کی حفاظت کا پلیٹ فارم",
+        "heading": "دوبارہ خوش آمدید",
+        "description": "ادویات کی حفاظتی رپورٹس اور تصدیقی نتائج کو ٹریک کرنے کے لیے سائن ان کریں۔",
         "missingConfig": {
-            "title": "Authentication is not configured",
-            "description": "Supabase URL or anon key is missing. Add the environment variables before signing in."
+            "title": "توثیق ترتیب نہیں دی گئی",
+            "description": "Supabase URL یا anon key موجود نہیں۔ سائن ان کرنے سے پہلے environment variables شامل کریں۔"
         },
-        "googleButton": "Continue with Google",
-        "emailSeparator": "or continue with email",
-        "emailLabel": "Email address",
+        "googleButton": "Google کے ساتھ جاری رکھیں",
+        "emailSeparator": "یا ای میل کے ساتھ جاری رکھیں",
+        "emailLabel": "ای میل پتہ",
         "emailPlaceholder": "you@example.com",
-        "passwordLabel": "Password",
-        "passwordPlaceholder": "Enter your password",
-        "signingIn": "Signing in...",
-        "signIn": "Sign In",
-        "footerPrompt": "Need to go back?",
-        "returnHome": "Return home",
-        "bottomText": "Protected access for SahiDawa community tools.",
+        "passwordLabel": "پاس ورڈ",
+        "passwordPlaceholder": "اپنا پاس ورڈ درج کریں",
+        "signingIn": "سائن ان ہو رہا ہے...",
+        "signIn": "سائن ان کریں",
+        "footerPrompt": "واپس جانا چاہتے ہیں؟",
+        "returnHome": "ہوم پر واپس جائیں",
+        "bottomText": "SahiDawa کمیونٹی ٹولز کے لیے محفوظ رسائی۔",
         "errors": {
-            "databaseNotConfigured": "Authentication is not configured for this environment.",
-            "generic": "Unable to sign in. Please try again."
+            "databaseNotConfigured": "اس ماحول کے لیے توثیق ترتیب نہیں دی گئی۔",
+            "generic": "سائن ان نہیں ہو سکا۔ دوبارہ کوشش کریں۔"
         }
     },
     "AdminLayout": {
-        "accessDeniedTitle": "Access denied",
-        "accessDeniedDescription": "You need administrator or moderator privileges to view this page.",
-        "returnHome": "Return home"
+        "accessDeniedTitle": "رسائی مسترد",
+        "accessDeniedDescription": "اس صفحے کو دیکھنے کے لیے ایڈمن یا موڈریٹر کی اجازت درکار ہے۔",
+        "returnHome": "ہوم پر واپس جائیں"
     },
     "AdminDashboard": {
-        "brandSuffix": "Admin",
-        "version": "SahiDawa Admin v1.0",
+        "brandSuffix": "ایڈمن",
+        "version": "SahiDawa ایڈمن v1.0",
         "nav": {
-            "reports": "Reports",
-            "medicine": "Medicine Master",
-            "logs": "Audit Logs"
+            "reports": "رپورٹس",
+            "medicine": "میڈیسن ماسٹر",
+            "logs": "آڈٹ لاگز"
         },
         "header": {
-            "title": "Moderation Dashboard",
-            "subtitle": "Manage community-reported counterfeit medicines"
+            "title": "ماڈریشن ڈیش بورڈ",
+            "subtitle": "کمیونٹی کی جانب سے رپورٹ کی گئی جعلی ادویات کا انتظام کریں"
         },
-        "searchPlaceholder": "Search...",
+        "searchPlaceholder": "تلاش کریں...",
         "actions": {
-            "signIn": "Sign In",
-            "refresh": "Refresh",
-            "addMedicine": "Add Medicine",
-            "save": "Save",
-            "cancel": "Cancel",
-            "goToLogin": "Go to login",
-            "markFake": "Mark fake",
-            "falseAlarm": "False alarm"
+            "signIn": "سائن ان کریں",
+            "refresh": "ریفریش کریں",
+            "addMedicine": "دوا شامل کریں",
+            "save": "محفوظ کریں",
+            "cancel": "منسوخ کریں",
+            "goToLogin": "لاگ اِن پر جائیں",
+            "markFake": "جعلی قرار دیں",
+            "falseAlarm": "غلط انتباہ"
         },
         "stats": {
-            "pending": "Pending",
-            "resolved": "Resolved",
-            "districtsAffected": "Districts Affected"
+            "pending": "زیر التواء",
+            "resolved": "حل شدہ",
+            "districtsAffected": "متاثرہ اضلاع"
         },
         "errors": {
-            "notAuthenticated": "Not authenticated — please sign in as an admin.",
-            "accessDenied": "Access denied — admin or moderator role required.",
-            "apiUnavailable": "Cannot reach the API. Is the backend server running on port 4000?"
+            "notAuthenticated": "تصدیق نہیں ہوئی — براہ کرم ایڈمن کے طور پر سائن ان کریں۔",
+            "accessDenied": "رسائی مسترد — ایڈمن یا موڈریٹر کا کردار درکار ہے۔",
+            "apiUnavailable": "API تک رسائی حاصل نہیں ہو سکی۔ کیا بیک اینڈ سرور پورٹ 4000 پر چل رہا ہے؟"
         },
         "toasts": {
-            "markedFake": "Marked as Verified Fake",
-            "falseAlarm": "Marked as False Alarm",
-            "reportUpdateFailed": "Failed to update report",
-            "medicineAdded": "Medicine added",
-            "medicineAddFailed": "Failed to add medicine"
+            "markedFake": "تصدیق شدہ جعلی کے طور پر نشان زد کر دیا گیا",
+            "falseAlarm": "غلط انتباہ کے طور پر نشان زد کر دیا گیا",
+            "reportUpdateFailed": "رپورٹ اپ ڈیٹ کرنے میں ناکامی",
+            "medicineAdded": "دوا شامل کر دی گئی",
+            "medicineAddFailed": "دوا شامل کرنے میں ناکامی"
         },
         "medicine": {
-            "title": "Medicine Master",
-            "empty": "No medicines found",
+            "title": "میڈیسن ماسٹر",
+            "empty": "کوئی دوا نہیں ملی",
             "columns": {
-                "brand": "Brand",
-                "generic": "Generic",
-                "manufacturer": "Manufacturer",
-                "barcode": "Barcode",
-                "status": "Status"
+                "brand": "برانڈ",
+                "generic": "جنیرک",
+                "manufacturer": "کارخانہ دار",
+                "barcode": "بارکوڈ",
+                "status": "حیثیت"
             }
         },
         "status": {
-            "approved": "Approved",
-            "recalled": "Recalled",
-            "banned": "Banned"
+            "approved": "منظور شدہ",
+            "recalled": "واپس منگوائی گئی",
+            "banned": "ممنوع"
         },
         "logs": {
-            "title": "Audit Logs",
-            "subtitle": "Recent moderation and medicine catalog activity",
-            "loading": "Loading logs...",
-            "empty": "No audit logs yet"
+            "title": "آڈٹ لاگز",
+            "subtitle": "حالیہ ماڈریشن اور ادویات کی فہرست کی سرگرمیاں",
+            "loading": "لاگز لوڈ ہو رہے ہیں...",
+            "empty": "ابھی تک کوئی آڈٹ لاگ موجود نہیں"
         },
         "reports": {
-            "title": "Incoming Reports",
-            "pendingCount": "{count, plural, =0 {No pending reports} =1 {1 pending report} other {# pending reports}}",
-            "loading": "Loading reports...",
-            "empty": "No pending reports",
+            "title": "موصول ہونے والی رپورٹس",
+            "pendingCount": "{count, plural, =0 {کوئی زیر التواء رپورٹ نہیں} =1 {1 زیر التواء رپورٹ} other {# زیر التواء رپورٹس}}",
+            "loading": "رپورٹس لوڈ ہو رہی ہیں...",
+            "empty": "کوئی زیر التواء رپورٹ نہیں",
             "columns": {
-                "medicine": "Medicine",
-                "district": "District",
-                "barcode": "Barcode",
-                "reported": "Reported",
-                "actions": "Actions"
+                "medicine": "دوا",
+                "district": "ضلع",
+                "barcode": "بارکوڈ",
+                "reported": "رپورٹ کیا گیا",
+                "actions": "کارروائیاں"
             },
             "decisions": {
-                "verifiedFake": "Verified Fake",
-                "falseAlarm": "False Alarm"
+                "verifiedFake": "تصدیق شدہ جعلی",
+                "falseAlarm": "غلط انتباہ"
             }
         },
         "resolved": {
-            "title": "Recently Resolved",
-            "count": "{count, plural, =0 {No resolved reports} =1 {1 resolved report} other {# resolved reports}}",
-            "decision": "Decision"
+            "title": "حال ہی میں حل شدہ",
+            "count": "{count, plural, =0 {کوئی حل شدہ رپورٹ نہیں} =1 {1 حل شدہ رپورٹ} other {# حل شدہ رپورٹس}}",
+            "decision": "فیصلہ"
+        }
+    },
+    "AdminAnalytics": {
+        "title": "اثراتی تجزیاتی ڈیش بورڈ",
+        "subtitle": "کمیونٹی کی شمولیت کے اشاریے اور ترقی کے رجحانات",
+        "metrics": {
+            "totalMedicines": "کل ادویات",
+            "totalReports": "کل رپورٹس",
+            "resolved": "حل شدہ",
+            "districtsCovered": "احاطہ کیے گئے اضلاع"
+        },
+        "charts": {
+            "monthlyGrowth": "ماہانہ ترقی کا رجحان",
+            "reportStatus": "رپورٹ کی حیثیت کی تقسیم",
+            "topDistricts": "رپورٹس کی بنیاد پر سرفہرست اضلاع",
+            "recentActivity": "حالیہ سرگرمی"
+        },
+        "overview": {
+            "title": "پلیٹ فارم کا جائزہ",
+            "avgReportsPerDay": "روزانہ اوسط رپورٹس",
+            "resolutionRate": "حل کی شرح",
+            "thisWeekReports": "اس ہفتے کی رپورٹس",
+            "thisWeekMedicines": "اس ہفتے کی ادویات"
         }
     },
     "vaccineHub": {

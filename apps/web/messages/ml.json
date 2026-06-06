@@ -374,174 +374,227 @@
         }
     },
     "Alerts": {
-        "backHome": "Back to Home Page",
-        "badge": "Live Alerts",
-        "title": "Live CDSCO Alerts",
-        "subtitle": "Complete historical safety logging stream directly mapped to the master CDSCO registry.",
-        "regionBadge": "India Region",
-        "totalCount": "Total Count: {count}",
-        "brandPlaceholder": "Search by Brand Name...",
-        "regionPlaceholder": "Filter by State/District...",
-        "error": "Database synchronization error encountered while fetching active logs.",
-        "loading": "Loading alerts...",
-        "systemUpdate": "System Update",
-        "alertType": "Alert: {type}",
-        "noDetails": "No details available",
-        "batchLabel": "Batch:",
-        "manufacturerLabel": "Manufacturer:",
-        "regionLabel": "Region:",
-        "empty": "No health alerts matching your criteria were found.",
-        "previous": "Previous",
-        "next": "Next"
+        "backHome": "ഹോം പേജിലേക്ക് മടങ്ങുക",
+        "badge": "തത്സമയ അലേർട്ടുകൾ",
+        "title": "തത്സമയ CDSCO അലേർട്ടുകൾ",
+        "subtitle": "CDSCO രജിസ്ട്രിയുമായി നേരിട്ട് ബന്ധിപ്പിച്ച സമ്പൂർണ്ണ ചരിത്ര സുരക്ഷാ രേഖ.",
+        "regionBadge": "ഇന്ത്യ മേഖല",
+        "totalCount": "ആകെ എണ്ണം: {count}",
+        "brandPlaceholder": "ബ്രാൻഡ് പേര് ഉപയോഗിച്ച് തിരയുക...",
+        "regionPlaceholder": "സംസ്ഥാനം/ജില്ല പ്രകാരം ഫിൽട്ടർ ചെയ്യുക...",
+        "error": "സജീവ രേഖകൾ ലഭ്യമാക്കുന്നതിനിടെ ഡാറ്റാബേസ് സമന്വയ പിശക് സംഭവിച്ചു.",
+        "loading": "അലേർട്ടുകൾ ലോഡ് ചെയ്യുന്നു...",
+        "systemUpdate": "സിസ്റ്റം അപ്ഡേറ്റ്",
+        "alertType": "അലേർട്ട്: {type}",
+        "noDetails": "വിശദാംശങ്ങൾ ലഭ്യമല്ല",
+        "batchLabel": "ബാച്ച്:",
+        "manufacturerLabel": "നിർമ്മാതാവ്:",
+        "regionLabel": "മേഖല:",
+        "empty": "നിങ്ങളുടെ മാനദണ്ഡങ്ങൾക്ക് അനുയോജ്യമായ ആരോഗ്യ അലേർട്ടുകളൊന്നും കണ്ടെത്തിയില്ല.",
+        "previous": "മുമ്പത്തെത്",
+        "next": "അടുത്തത്"
     },
     "Compare": {
-        "pageTitle": "Compare medicines",
-        "pageSubtitle": "Brand vs generic side by side",
-        "firstMedicine": "First medicine",
-        "secondMedicine": "Second medicine",
-        "searchPlaceholder": "Search brand or generic name",
-        "findPharmacies": "Find pharmacies",
-        "emptyComparison": "Select two medicines above to see the comparison.",
-        "fieldHeader": "Field",
-        "medicineA": "Medicine A",
-        "medicineB": "Medicine B",
-        "priceUnavailable": "Price unavailable",
-        "noSavings": "No savings",
-        "saveAmount": "Save ₹{amount} ({percent}%)",
+        "pageTitle": "മരുന്നുകൾ താരതമ്യം ചെയ്യുക",
+        "pageSubtitle": "ബ്രാൻഡും ജനറിക്കും തമ്മിൽ താരതമ്യം ചെയ്യുക",
+        "firstMedicine": "ആദ്യ മരുന്ന്",
+        "secondMedicine": "രണ്ടാമത്തെ മരുന്ന്",
+        "searchPlaceholder": "ബ്രാൻഡ് അല്ലെങ്കിൽ ജനറിക് പേര് തിരയുക",
+        "findPharmacies": "ഫാർമസികൾ കണ്ടെത്തുക",
+        "emptyComparison": "താരതമ്യം കാണാൻ മുകളിൽ രണ്ട് മരുന്നുകൾ തിരഞ്ഞെടുക്കുക.",
+        "fieldHeader": "വിഭാഗം",
+        "medicineA": "മരുന്ന് A",
+        "medicineB": "മരുന്ന് B",
+        "priceUnavailable": "വില ലഭ്യമല്ല",
+        "noSavings": "ലാഭമില്ല",
+        "saveAmount": "₹{amount} ലാഭിക്കുക ({percent}%)",
         "rows": {
-            "brandName": "Brand name",
-            "genericName": "Generic name",
-            "composition": "Composition",
-            "manufacturer": "Manufacturer",
-            "type": "Type",
-            "cdscoStatus": "CDSCO status",
-            "expiryDate": "Expiry date",
-            "marketPrice": "Market price (MRP)",
-            "janAushadhiPrice": "Jan Aushadhi price",
-            "savings": "Savings vs MRP"
+            "brandName": "ബ്രാൻഡ് പേര്",
+            "genericName": "ജനറിക് പേര്",
+            "composition": "ഘടന",
+            "manufacturer": "നിർമ്മാതാവ്",
+            "type": "തരം",
+            "cdscoStatus": "CDSCO നില",
+            "expiryDate": "കാലാവധി തീയതി",
+            "marketPrice": "വിപണി വില (MRP)",
+            "janAushadhiPrice": "ജനൗഷധി വില",
+            "savings": "MRP-യുമായി താരതമ്യത്തിലുള്ള ലാഭം"
         },
         "medicineTypes": {
-            "brand": "Brand",
-            "generic": "Generic"
+            "brand": "ബ്രാൻഡ്",
+            "generic": "ജനറിക്"
         },
         "status": {
-            "approved": "Approved",
-            "recalled": "Recalled",
-            "banned": "Banned"
+            "approved": "അംഗീകരിച്ചത്",
+            "recalled": "തിരിച്ചുവിളിച്ചത്",
+            "banned": "നിരോധിച്ചത്"
         }
     },
+    "ExpiryTracker": {
+        "title": "മരുന്ന് കാലാവധി ട്രാക്കർ",
+        "subtitle": "നിങ്ങളുടെ മരുന്ന് ശേഖരം പ്രാദേശികമായി നിയന്ത്രിക്കുകയും നിരീക്ഷിക്കുകയും ചെയ്യുക",
+        "addMedicine": "മരുന്ന് ചേർക്കുക",
+        "name": "പേര്",
+        "expiryDate": "കാലാവധി തീയതി",
+        "batchNumber": "ബാച്ച് നമ്പർ (ഐച്ഛികം)",
+        "batchPlaceholder": "ഉദാ: B12345",
+        "namePlaceholder": "ഉദാ: പാരസിറ്റമോൾ",
+        "addToTracker": "ട്രാക്കറിലേക്ക് ചേർക്കുക",
+        "trackedMedicines": "നിരീക്ഷിച്ച മരുന്നുകൾ",
+        "total": "ആകെ",
+        "noMedicines": "ഇതുവരെ മരുന്നുകളൊന്നും ചേർത്തിട്ടില്ല.",
+        "loading": "ട്രാക്കർ ഡാറ്റ ലോഡ് ചെയ്യുന്നു...",
+        "searchPlaceholder": "മരുന്നുകൾ തിരയുക...",
+        "sortBy": "ക്രമീകരിക്കുക",
+        "sortExpirySoonest": "കാലാവധി തീയതി (ഏറ്റവും അടുത്തത്)",
+        "sortExpiryLatest": "കാലാവധി തീയതി (ഏറ്റവും പിന്നീടുള്ളത്)",
+        "sortAlpha": "പേര് (അ-ഹ)",
+        "filterAll": "എല്ലാം",
+        "filterExpired": "കാലാവധി കഴിഞ്ഞത്",
+        "filterExpiringSoon": "ഉടൻ കാലാവധി അവസാനിക്കും",
+        "filterSafe": "സുരക്ഷിതം",
+        "exportBackup": "ബാക്കപ്പ് എക്സ്പോർട്ട് ചെയ്യുക",
+        "importBackup": "ബാക്കപ്പ് ഇംപോർട്ട് ചെയ്യുക",
+        "importError": "അസാധുവായ ബാക്കപ്പ് ഫയൽ. സാധുവായ JSON ബാക്കപ്പ് അപ്‌ലോഡ് ചെയ്യുക.",
+        "statusExpired": "കാലാവധി കഴിഞ്ഞു",
+        "statusExpiringSoon": "ഉടൻ കാലാവധി അവസാനിക്കും ({days} ദിവസം)",
+        "statusSafe": "സുരക്ഷിതം"
+    },
     "Login": {
-        "brandSubtitle": "Medicine safety platform",
-        "heading": "Welcome back",
-        "description": "Sign in to continue tracking medicine safety reports and verification results.",
+        "brandSubtitle": "മരുന്ന് സുരക്ഷാ പ്ലാറ്റ്ഫോം",
+        "heading": "വീണ്ടും സ്വാഗതം",
+        "description": "മരുന്ന് സുരക്ഷാ റിപ്പോർട്ടുകളും പരിശോധനാ ഫലങ്ങളും നിരീക്ഷിക്കാൻ സൈൻ ഇൻ ചെയ്യുക.",
         "missingConfig": {
-            "title": "Authentication is not configured",
-            "description": "Supabase URL or anon key is missing. Add the environment variables before signing in."
+            "title": "ഓതന്റിക്കേഷൻ കോൺഫിഗർ ചെയ്തിട്ടില്ല",
+            "description": "Supabase URL അല്ലെങ്കിൽ anon key ലഭ്യമല്ല. സൈൻ ഇൻ ചെയ്യുന്നതിന് മുമ്പ് environment variables ചേർക്കുക."
         },
-        "googleButton": "Continue with Google",
-        "emailSeparator": "or continue with email",
-        "emailLabel": "Email address",
+        "googleButton": "Google ഉപയോഗിച്ച് തുടരുക",
+        "emailSeparator": "അല്ലെങ്കിൽ ഇമെയിൽ ഉപയോഗിച്ച് തുടരുക",
+        "emailLabel": "ഇമെയിൽ വിലാസം",
         "emailPlaceholder": "you@example.com",
-        "passwordLabel": "Password",
-        "passwordPlaceholder": "Enter your password",
-        "signingIn": "Signing in...",
-        "signIn": "Sign In",
-        "footerPrompt": "Need to go back?",
-        "returnHome": "Return home",
-        "bottomText": "Protected access for SahiDawa community tools.",
+        "passwordLabel": "പാസ്‌വേഡ്",
+        "passwordPlaceholder": "നിങ്ങളുടെ പാസ്‌വേഡ് നൽകുക",
+        "signingIn": "സൈൻ ഇൻ ചെയ്യുന്നു...",
+        "signIn": "സൈൻ ഇൻ ചെയ്യുക",
+        "footerPrompt": "തിരികെ പോകണോ?",
+        "returnHome": "ഹോമിലേക്ക് മടങ്ങുക",
+        "bottomText": "SahiDawa കമ്മ്യൂണിറ്റി ഉപകരണങ്ങൾക്കായുള്ള സുരക്ഷിത പ്രവേശനം.",
         "errors": {
-            "databaseNotConfigured": "Authentication is not configured for this environment.",
-            "generic": "Unable to sign in. Please try again."
+            "databaseNotConfigured": "ഈ പരിതസ്ഥിതിക്ക് ഓതന്റിക്കേഷൻ കോൺഫിഗർ ചെയ്തിട്ടില്ല.",
+            "generic": "സൈൻ ഇൻ ചെയ്യാൻ കഴിഞ്ഞില്ല. ദയവായി വീണ്ടും ശ്രമിക്കുക."
         }
     },
     "AdminLayout": {
-        "accessDeniedTitle": "Access denied",
-        "accessDeniedDescription": "You need administrator or moderator privileges to view this page.",
-        "returnHome": "Return home"
+        "accessDeniedTitle": "പ്രവേശനം നിഷേധിച്ചു",
+        "accessDeniedDescription": "ഈ പേജ് കാണാൻ അഡ്മിനിസ്ട്രേറ്റർ അല്ലെങ്കിൽ മോഡറേറ്റർ അനുമതി ആവശ്യമാണ്.",
+        "returnHome": "ഹോമിലേക്ക് മടങ്ങുക"
     },
     "AdminDashboard": {
-        "brandSuffix": "Admin",
-        "version": "SahiDawa Admin v1.0",
+        "brandSuffix": "അഡ്മിൻ",
+        "version": "SahiDawa അഡ്മിൻ v1.0",
         "nav": {
-            "reports": "Reports",
-            "medicine": "Medicine Master",
-            "logs": "Audit Logs"
+            "reports": "റിപ്പോർട്ടുകൾ",
+            "medicine": "മരുന്ന് മാസ്റ്റർ",
+            "logs": "ഓഡിറ്റ് ലോഗുകൾ"
         },
         "header": {
-            "title": "Moderation Dashboard",
-            "subtitle": "Manage community-reported counterfeit medicines"
+            "title": "മോഡറേഷൻ ഡാഷ്ബോർഡ്",
+            "subtitle": "സമൂഹം റിപ്പോർട്ട് ചെയ്ത വ്യാജ മരുന്നുകൾ നിയന്ത്രിക്കുക"
         },
-        "searchPlaceholder": "Search...",
+        "searchPlaceholder": "തിരയുക...",
         "actions": {
-            "signIn": "Sign In",
-            "refresh": "Refresh",
-            "addMedicine": "Add Medicine",
-            "save": "Save",
-            "cancel": "Cancel",
-            "goToLogin": "Go to login",
-            "markFake": "Mark fake",
-            "falseAlarm": "False alarm"
+            "signIn": "സൈൻ ഇൻ ചെയ്യുക",
+            "refresh": "പുതുക്കുക",
+            "addMedicine": "മരുന്ന് ചേർക്കുക",
+            "save": "സംരക്ഷിക്കുക",
+            "cancel": "റദ്ദാക്കുക",
+            "goToLogin": "ലോഗിൻ പേജിലേക്ക് പോകുക",
+            "markFake": "വ്യാജമായി അടയാളപ്പെടുത്തുക",
+            "falseAlarm": "തെറ്റായ അലേർട്ട്"
         },
         "stats": {
-            "pending": "Pending",
-            "resolved": "Resolved",
-            "districtsAffected": "Districts Affected"
+            "pending": "തീർപ്പാക്കാത്തത്",
+            "resolved": "പരിഹരിച്ചത്",
+            "districtsAffected": "ബാധിത ജില്ലകൾ"
         },
         "errors": {
-            "notAuthenticated": "Not authenticated — please sign in as an admin.",
-            "accessDenied": "Access denied — admin or moderator role required.",
-            "apiUnavailable": "Cannot reach the API. Is the backend server running on port 4000?"
+            "notAuthenticated": "സാക്ഷ്യപ്പെടുത്തിയിട്ടില്ല — ദയവായി അഡ്മിനായി സൈൻ ഇൻ ചെയ്യുക.",
+            "accessDenied": "പ്രവേശനം നിഷേധിച്ചു — അഡ്മിൻ അല്ലെങ്കിൽ മോഡറേറ്റർ പദവി ആവശ്യമാണ്.",
+            "apiUnavailable": "API-യിൽ എത്തിച്ചേരാനായില്ല. ബാക്ക്‌എൻഡ് സെർവർ 4000 പോർട്ടിൽ പ്രവർത്തിക്കുന്നുണ്ടോ?"
         },
         "toasts": {
-            "markedFake": "Marked as Verified Fake",
-            "falseAlarm": "Marked as False Alarm",
-            "reportUpdateFailed": "Failed to update report",
-            "medicineAdded": "Medicine added",
-            "medicineAddFailed": "Failed to add medicine"
+            "markedFake": "സ്ഥിരീകരിച്ച വ്യാജമായി അടയാളപ്പെടുത്തി",
+            "falseAlarm": "തെറ്റായ അലേർട്ടായി അടയാളപ്പെടുത്തി",
+            "reportUpdateFailed": "റിപ്പോർട്ട് അപ്‌ഡേറ്റ് ചെയ്യാൻ പരാജയപ്പെട്ടു",
+            "medicineAdded": "മരുന്ന് ചേർത്തു",
+            "medicineAddFailed": "മരുന്ന് ചേർക്കാൻ പരാജയപ്പെട്ടു"
         },
         "medicine": {
-            "title": "Medicine Master",
-            "empty": "No medicines found",
+            "title": "മരുന്ന് മാസ്റ്റർ",
+            "empty": "മരുന്നുകളൊന്നും കണ്ടെത്തിയില്ല",
             "columns": {
-                "brand": "Brand",
-                "generic": "Generic",
-                "manufacturer": "Manufacturer",
-                "barcode": "Barcode",
-                "status": "Status"
+                "brand": "ബ്രാൻഡ്",
+                "generic": "ജനറിക്",
+                "manufacturer": "നിർമ്മാതാവ്",
+                "barcode": "ബാർകോഡ്",
+                "status": "നില"
             }
         },
         "status": {
-            "approved": "Approved",
-            "recalled": "Recalled",
-            "banned": "Banned"
+            "approved": "അംഗീകരിച്ചത്",
+            "recalled": "തിരിച്ചുവിളിച്ചത്",
+            "banned": "നിരോധിച്ചത്"
         },
         "logs": {
-            "title": "Audit Logs",
-            "subtitle": "Recent moderation and medicine catalog activity",
-            "loading": "Loading logs...",
-            "empty": "No audit logs yet"
+            "title": "ഓഡിറ്റ് ലോഗുകൾ",
+            "subtitle": "സമീപകാല മോഡറേഷൻ, മരുന്ന് കാറ്റലോഗ് പ്രവർത്തനങ്ങൾ",
+            "loading": "ലോഗുകൾ ലോഡ് ചെയ്യുന്നു...",
+            "empty": "ഇതുവരെ ഓഡിറ്റ് ലോഗുകളൊന്നുമില്ല"
         },
         "reports": {
-            "title": "Incoming Reports",
-            "pendingCount": "{count, plural, =0 {No pending reports} =1 {1 pending report} other {# pending reports}}",
-            "loading": "Loading reports...",
-            "empty": "No pending reports",
+            "title": "ലഭിച്ച റിപ്പോർട്ടുകൾ",
+            "pendingCount": "{count, plural, =0 {തീർപ്പാക്കാത്ത റിപ്പോർട്ടുകളില്ല} =1 {1 തീർപ്പാക്കാത്ത റിപ്പോർട്ട്} other {# തീർപ്പാക്കാത്ത റിപ്പോർട്ടുകൾ}}",
+            "loading": "റിപ്പോർട്ടുകൾ ലോഡ് ചെയ്യുന്നു...",
+            "empty": "തീർപ്പാക്കാത്ത റിപ്പോർട്ടുകളില്ല",
             "columns": {
-                "medicine": "Medicine",
-                "district": "District",
-                "barcode": "Barcode",
-                "reported": "Reported",
-                "actions": "Actions"
+                "medicine": "മരുന്ന്",
+                "district": "ജില്ല",
+                "barcode": "ബാർകോഡ്",
+                "reported": "റിപ്പോർട്ട് ചെയ്തത്",
+                "actions": "പ്രവർത്തനങ്ങൾ"
             },
             "decisions": {
-                "verifiedFake": "Verified Fake",
-                "falseAlarm": "False Alarm"
+                "verifiedFake": "സ്ഥിരീകരിച്ച വ്യാജം",
+                "falseAlarm": "തെറ്റായ അലേർട്ട്"
             }
         },
         "resolved": {
-            "title": "Recently Resolved",
-            "count": "{count, plural, =0 {No resolved reports} =1 {1 resolved report} other {# resolved reports}}",
-            "decision": "Decision"
+            "title": "അടുത്തിടെ പരിഹരിച്ചവ",
+            "count": "{count, plural, =0 {പരിഹരിച്ച റിപ്പോർട്ടുകളില്ല} =1 {1 പരിഹരിച്ച റിപ്പോർട്ട്} other {# പരിഹരിച്ച റിപ്പോർട്ടുകൾ}}",
+            "decision": "തീരുമാനം"
+        }
+    },
+    "AdminAnalytics": {
+        "title": "പ്രഭാവ വിശകലന ഡാഷ്ബോർഡ്",
+        "subtitle": "സമൂഹ പങ്കാളിത്ത മാനദണ്ഡങ്ങളും വളർച്ചാ പ്രവണതകളും",
+        "metrics": {
+            "totalMedicines": "ആകെ മരുന്നുകൾ",
+            "totalReports": "ആകെ റിപ്പോർട്ടുകൾ",
+            "resolved": "പരിഹരിച്ചത്",
+            "districtsCovered": "ഉൾപ്പെടുത്തിയ ജില്ലകൾ"
+        },
+        "charts": {
+            "monthlyGrowth": "മാസാന്ത്യ വളർച്ചാ പ്രവണത",
+            "reportStatus": "റിപ്പോർട്ട് നില വിതരണം",
+            "topDistricts": "റിപ്പോർട്ടുകളുടെ അടിസ്ഥാനത്തിൽ മുൻനിര ജില്ലകൾ",
+            "recentActivity": "സമീപകാല പ്രവർത്തനം"
+        },
+        "overview": {
+            "title": "പ്ലാറ്റ്ഫോം അവലോകനം",
+            "avgReportsPerDay": "പ്രതിദിന ശരാശരി റിപ്പോർട്ടുകൾ",
+            "resolutionRate": "പരിഹാര നിരക്ക്",
+            "thisWeekReports": "ഈ ആഴ്ചയിലെ റിപ്പോർട്ടുകൾ",
+            "thisWeekMedicines": "ഈ ആഴ്ചയിലെ മരുന്നുകൾ"
         }
     },
     "vaccineHub": {
