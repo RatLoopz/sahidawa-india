@@ -24,6 +24,7 @@ import { LiveMessage } from "@/components/ui/LiveMessage";
 import { MedicinePhotoUpload } from "@/components/medicine";
 import { createBrowserClient } from "@supabase/ssr";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
+import { toast } from "sonner";
 
 // ─── Cloudinary env ────────────────────────────────────────────────────────────
 // Uploads are now securely routed through our backend API (/api/upload),
@@ -796,11 +797,12 @@ export default function ReportWizard() {
             setReportId(report.id);
             setDone(true);
         } catch (e) {
-            setSubmitErr(
+            const errorMsg =
                 e instanceof Error
                     ? e.message
-                    : "Submission failed. Please check your connection and try again."
-            );
+                    : "Submission failed. Please check your connection and try again.";
+            setSubmitErr(errorMsg);
+            toast.error(errorMsg);
         } finally {
             setSubmitting(false);
         }

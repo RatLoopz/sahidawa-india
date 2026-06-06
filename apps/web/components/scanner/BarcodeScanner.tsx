@@ -170,17 +170,7 @@ export function BarcodeScanner({
                     setErrorMessage(
                         "Camera access was denied. Please allow camera permissions in your browser settings."
                     );
-                    onPermissionDenied?.(); // Add this line
-                }
-
-                if (
-                    errorObj.name === "NotAllowedError" ||
-                    errorObj.name === "PermissionDeniedError"
-                ) {
-                    setStatus("permission-denied");
-                    setErrorMessage(
-                        "Camera access was denied. Please allow camera permissions in your browser settings."
-                    );
+                    onPermissionDenied?.();
                 } else if (
                     errorObj.name === "NotFoundError" ||
                     errorObj.name === "DevicesNotFoundError"
