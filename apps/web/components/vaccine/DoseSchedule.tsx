@@ -2,7 +2,7 @@
 
 import { VaccineProfile } from "@/lib/vaccineData";
 import { CheckCircle, AlertCircle, Calendar } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useFormatter } from "next-intl";
 
 interface DoseScheduleProps {
     vaccine: VaccineProfile;
@@ -11,6 +11,7 @@ interface DoseScheduleProps {
 
 export function DoseSchedule({ vaccine, initialDate }: DoseScheduleProps) {
     const t = useTranslations("vaccineHub");
+    const format = useFormatter();
     const calculateMilestoneDate = (weeksOffset: number): Date | null => {
         if (!initialDate) return null;
 
@@ -134,7 +135,7 @@ export function DoseSchedule({ vaccine, initialDate }: DoseScheduleProps) {
                                                               : "text-slate-700 dark:text-slate-300"
                                                     }`}
                                                 >
-                                                    {milestoneDate.toLocaleDateString("en-IN", {
+                                                    {format.dateTime(milestoneDate, {
                                                         day: "numeric",
                                                         month: "short",
                                                         year: "numeric",
