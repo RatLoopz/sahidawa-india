@@ -620,7 +620,7 @@
         "commonEffects": "सामान्याः पश्चाद्प्रभावाः",
         "severeReactions": "तीव्राः प्रतिक्रियाः",
         "aftercareHeading": "तत्कालिका पश्चाद्परिचर्या"
-   },
+    },
     "CommandPalette": {
         "placeholder": "Search pages or actions...",
         "noResults": "No results found.",

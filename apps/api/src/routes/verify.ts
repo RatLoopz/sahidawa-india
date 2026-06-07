@@ -238,7 +238,11 @@ router.post(
                 },
             ]);
             if (insertError) {
-                logger.error({ message: "Failed to record scan history", error: insertError, route: "/api/verify" });
+                logger.error({
+                    message: "Failed to record scan history",
+                    error: insertError,
+                    route: "/api/verify",
+                });
             }
 
             res.status(200).json({
@@ -260,7 +264,11 @@ router.post(
                 },
             });
         } catch (err) {
-            logger.error({ message: "Unexpected error in /api/verify", error: err, route: "/api/verify" });
+            logger.error({
+                message: "Unexpected error in /api/verify",
+                error: err,
+                route: "/api/verify",
+            });
             res.status(500).json({
                 verified: false,
                 message: "An unexpected error occurred",

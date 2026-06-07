@@ -82,7 +82,6 @@ describe("ExpiryTrackerPage", () => {
     });
 });
 
-
 describe("ExpiryTrackerPage import", () => {
     beforeEach(() => {
         localStorage.clear();
@@ -139,9 +138,7 @@ describe("ExpiryTrackerPage import", () => {
     it("rejects import when expiryDate is not in YYYY-MM-DD format", async () => {
         render(<ExpiryTrackerPage />);
 
-        const backup = [
-            { id: "1", name: "Wrong Format", expiryDate: "00/00/0000" },
-        ];
+        const backup = [{ id: "1", name: "Wrong Format", expiryDate: "00/00/0000" }];
         const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
         expect(fileInput).toBeInTheDocument();
 

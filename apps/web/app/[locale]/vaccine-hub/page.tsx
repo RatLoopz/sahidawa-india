@@ -88,6 +88,22 @@ export default function VaccineHubPage() {
     const exportToCalendar = () => {
         if (!vaccine || !initialDate) return;
 
+        const dtstamp = new Date();
+        const formatICSDate = (d: Date) =>
+            d.getFullYear().toString() +
+            String(d.getMonth() + 1).padStart(2, "0") +
+            String(d.getDate()).padStart(2, "0");
+
+        const formatICSDateTime = (d: Date) =>
+            d.getUTCFullYear().toString() +
+            String(d.getUTCMonth() + 1).padStart(2, "0") +
+            String(d.getUTCDate()).padStart(2, "0") +
+            "T" +
+            String(d.getUTCHours()).padStart(2, "0") +
+            String(d.getUTCMinutes()).padStart(2, "0") +
+            String(d.getUTCSeconds()).padStart(2, "0") +
+            "Z";
+
         const events = vaccine.dosing_intervals_weeks
             .map((weeks, index) => {
                 const date = new Date(initialDate);
@@ -96,16 +112,20 @@ export default function VaccineHubPage() {
                 const endDate = new Date(date);
                 endDate.setDate(endDate.getDate() + 1);
 
-                const formatICSDate = (d: Date) =>
-                    d.getFullYear().toString() +
-                    String(d.getMonth() + 1).padStart(2, "0") +
-                    String(d.getDate()).padStart(2, "0");
+                const uidKey = selectedVaccine || vaccine.disease_name.replace(/\s+/g, "-");
 
                 return [
                     "BEGIN:VEVENT",
+                    `UID:sahidawa-${uidKey}-${index}-${formatICSDateTime(dtstamp)}`,
+                    `DTSTAMP:${formatICSDateTime(dtstamp)}`,
                     `SUMMARY:SahiDawa - ${vaccine.disease_name} Dose ${index + 1}`,
                     `DTSTART;VALUE=DATE:${formatICSDate(date)}`,
                     `DTEND;VALUE=DATE:${formatICSDate(endDate)}`,
+                    "BEGIN:VALARM",
+                    "ACTION:DISPLAY",
+                    "DESCRIPTION:Reminder: Vaccine dose is due tomorrow.",
+                    "TRIGGER:-P1D",
+                    "END:VALARM",
                     "END:VEVENT",
                 ].join("\r\n");
             })

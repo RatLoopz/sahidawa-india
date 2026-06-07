@@ -3,7 +3,19 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
-import { Search, X, Home, Camera, MapPin, Bell, Clock, GitCompare, Syringe, FileText, User } from "lucide-react";
+import {
+    Search,
+    X,
+    Home,
+    Camera,
+    MapPin,
+    Bell,
+    Clock,
+    GitCompare,
+    Syringe,
+    FileText,
+    User,
+} from "lucide-react";
 
 interface Command {
     id: string;
@@ -23,15 +35,69 @@ export default function CommandPalette() {
     const [activeIndex, setActiveIndex] = useState(0);
 
     const commands: Command[] = [
-        { id: "home", label: t("nav_home"), href: "/", icon: <Home size={16} />, group: t("pages") },
-        { id: "scan", label: t("nav_scan"), href: "/scan", icon: <Camera size={16} />, group: t("pages") },
-        { id: "map", label: t("nav_map"), href: "/map", icon: <MapPin size={16} />, group: t("pages") },
-        { id: "alerts", label: t("nav_alerts"), href: "/alerts", icon: <Bell size={16} />, group: t("pages") },
-        { id: "expiry", label: t("nav_expiry"), href: "/expiry-tracker", icon: <Clock size={16} />, group: t("pages") },
-        { id: "compare", label: t("nav_compare"), href: "/compare", icon: <GitCompare size={16} />, group: t("pages") },
-        { id: "vaccine", label: t("nav_vaccine"), href: "/vaccine-hub", icon: <Syringe size={16} />, group: t("pages") },
-        { id: "reports", label: t("nav_reports"), href: "/reports/me", icon: <FileText size={16} />, group: t("pages") },
-        { id: "profile", label: t("nav_profile"), href: "/profile", icon: <User size={16} />, group: t("pages") },
+        {
+            id: "home",
+            label: t("nav_home"),
+            href: "/",
+            icon: <Home size={16} />,
+            group: t("pages"),
+        },
+        {
+            id: "scan",
+            label: t("nav_scan"),
+            href: "/scan",
+            icon: <Camera size={16} />,
+            group: t("pages"),
+        },
+        {
+            id: "map",
+            label: t("nav_map"),
+            href: "/map",
+            icon: <MapPin size={16} />,
+            group: t("pages"),
+        },
+        {
+            id: "alerts",
+            label: t("nav_alerts"),
+            href: "/alerts",
+            icon: <Bell size={16} />,
+            group: t("pages"),
+        },
+        {
+            id: "expiry",
+            label: t("nav_expiry"),
+            href: "/expiry-tracker",
+            icon: <Clock size={16} />,
+            group: t("pages"),
+        },
+        {
+            id: "compare",
+            label: t("nav_compare"),
+            href: "/compare",
+            icon: <GitCompare size={16} />,
+            group: t("pages"),
+        },
+        {
+            id: "vaccine",
+            label: t("nav_vaccine"),
+            href: "/vaccine-hub",
+            icon: <Syringe size={16} />,
+            group: t("pages"),
+        },
+        {
+            id: "reports",
+            label: t("nav_reports"),
+            href: "/reports/me",
+            icon: <FileText size={16} />,
+            group: t("pages"),
+        },
+        {
+            id: "profile",
+            label: t("nav_profile"),
+            href: "/profile",
+            icon: <User size={16} />,
+            group: t("pages"),
+        },
     ];
 
     const filtered = commands.filter((cmd) =>
@@ -109,12 +175,18 @@ export default function CommandPalette() {
                         ref={inputRef}
                         type="text"
                         value={query}
-                        onChange={(e) => { setQuery(e.target.value); setActiveIndex(0); }}
+                        onChange={(e) => {
+                            setQuery(e.target.value);
+                            setActiveIndex(0);
+                        }}
                         onKeyDown={handleKeyDown}
                         placeholder={t("placeholder")}
-                        className="flex-1 bg-transparent text-sm outline-none text-(--color-text-primary) placeholder:opacity-50"
+                        className="flex-1 bg-transparent text-sm text-(--color-text-primary) outline-none placeholder:opacity-50"
                     />
-                    <button onClick={() => setIsOpen(false)} className="shrink-0 opacity-50 hover:opacity-100">
+                    <button
+                        onClick={() => setIsOpen(false)}
+                        className="shrink-0 opacity-50 hover:opacity-100"
+                    >
                         <X size={16} />
                     </button>
                 </div>
@@ -126,7 +198,7 @@ export default function CommandPalette() {
                     ) : (
                         groups.map((group) => (
                             <div key={group} className="mb-2">
-                                <p className="mb-1 px-2 text-[10px] font-bold uppercase tracking-wider opacity-40">
+                                <p className="mb-1 px-2 text-[10px] font-bold tracking-wider uppercase opacity-40">
                                     {group}
                                 </p>
                                 {filtered
@@ -155,7 +227,7 @@ export default function CommandPalette() {
                 </div>
 
                 {/* Footer hint */}
-                <div className="border-t border-(--color-border-muted) px-4 py-2 text-[11px] opacity-40 flex justify-between">
+                <div className="flex justify-between border-t border-(--color-border-muted) px-4 py-2 text-[11px] opacity-40">
                     <span>{t("hint")}</span>
                     <span>↑↓ navigate · ↵ select</span>
                 </div>

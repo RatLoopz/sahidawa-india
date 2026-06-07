@@ -774,27 +774,12 @@ export default function ScanPage() {
             setTimeout(() => setCopied(false), 2000);
         };
 
-        try {
-            if (!navigator.clipboard?.writeText) {
-                throw new Error("Clipboard API unavailable");
-            }
-            await navigator.clipboard.writeText(details);
+        const copiedSuccessfully = await copyTextToClipboard(details);
+
+        if (copiedSuccessfully) {
             showCopied();
-        } catch {
-            const textArea = document.createElement("textarea");
-            textArea.value = details;
-            textArea.setAttribute("readonly", "");
-            textArea.style.position = "fixed";
-            textArea.style.opacity = "0";
-            document.body.appendChild(textArea);
-            textArea.select();
-            const copiedWithFallback = document.execCommand("copy");
-            document.body.removeChild(textArea);
-            if (copiedWithFallback) {
-                showCopied();
-            } else {
-                toast.error("Unable to copy medicine details");
-            }
+        } else {
+            toast.error("Unable to copy medicine details");
         }
     }, [verifyResult]);
 
@@ -1092,12 +1077,15 @@ export default function ScanPage() {
             input?.focus();
         }, 300);
     }, []);
-    const handleBarcodeScan = async (scannedText: string) => {
-        setIsVerifying(true);
-        setApiError(null);
-        await handleVerify(scannedText, "barcode");
-        setIsVerifying(false);
-    };
+    const handleBarcodeScan = useCallback(
+        async (scannedText: string) => {
+            setIsVerifying(true);
+            setApiError(null);
+            await handleVerify(scannedText, "barcode");
+            setIsVerifying(false);
+        },
+        [handleVerify]
+    );
 
     const handleScanAgain = async () => {
         if (ocrWorkerRef.current) {

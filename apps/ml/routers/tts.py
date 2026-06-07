@@ -14,6 +14,7 @@ import logging
 import hashlib
 import base64
 from pathlib import Path
+import tempfile
 
 logger = logging.getLogger(__name__)
 
@@ -42,9 +43,55 @@ AZURE_VOICES_MAP = {
     "te-IN": "te-IN-ShrutiNeural",    # Telugu
 }
 
-# Cache configuration
-CACHE_DIR = Path("/tmp/tts_cache")
-CACHE_DIR.mkdir(exist_ok=True)
+# Cache configuration using cross-platform temp directory
+CACHE_DIR = Path(tempfile.gettempdir()) / "tts_cache"
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+# Cache limit configuration from environment
+MAX_CACHE_SIZE_MB = int(os.getenv("MAX_CACHE_SIZE_MB", "100"))
+MAX_CACHE_FILES = int(os.getenv("MAX_CACHE_FILES", "500"))
+
+
+def prune_cache():
+    """Prune oldest cache files if cache limits (size or file count) are exceeded."""
+    try:
+        if not CACHE_DIR.exists():
+            return
+
+        files = []
+        total_size = 0
+        for p in CACHE_DIR.glob("*.mp3"):
+            if p.is_file():
+                try:
+                    stat = p.stat()
+                    # Use st_atime if available (fallback to st_mtime)
+                    atime = stat.st_atime if stat.st_atime else stat.st_mtime
+                    size = stat.st_size
+                    files.append((p, atime, size))
+                    total_size += size
+                except Exception as e:
+                    logger.warning(f"Failed to stat cache file {p}: {e}")
+
+        max_size_bytes = MAX_CACHE_SIZE_MB * 1024 * 1024
+        if len(files) <= MAX_CACHE_FILES and total_size <= max_size_bytes:
+            return
+
+        # Sort files by last access/modification time (oldest first)
+        files.sort(key=lambda x: x[1])
+
+        removed_count = 0
+        for path, _, size in files:
+            if (len(files) - removed_count) <= MAX_CACHE_FILES and total_size <= max_size_bytes:
+                break
+            try:
+                path.unlink(missing_ok=True)
+                total_size -= size
+                removed_count += 1
+                logger.info(f"✓ Pruned cache file {path} (size: {size} bytes)")
+            except Exception as e:
+                logger.warning(f"Failed to delete cache file {path}: {e}")
+    except Exception as e:
+        logger.warning(f"Error during cache pruning: {e}")
 
 # Provider detection from environment
 TTS_PROVIDER = os.getenv("TTS_PROVIDER", "google").lower()
@@ -220,6 +267,12 @@ async def generate_tts(request: TTSRequest):
     # Check cache first
     if cache_file.exists():
         try:
+            # Update access time to implement LRU cache policy
+            try:
+                cache_file.touch(exist_ok=True)
+            except Exception as te:
+                logger.warning(f"Failed to update cache file access time: {te}")
+
             with open(cache_file, "rb") as f:
                 audio_data = f.read()
             
@@ -252,6 +305,10 @@ async def generate_tts(request: TTSRequest):
             with open(cache_file, "wb") as f:
                 f.write(audio_content)
             logger.info(f"✓ Cached TTS result to {cache_file}")
+            try:
+                prune_cache()
+            except Exception as pe:
+                logger.warning(f"Cache pruning failed: {pe}")
         except Exception as e:
             logger.warning(f"Cache write failed: {e}")
 
