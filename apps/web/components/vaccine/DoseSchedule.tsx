@@ -11,7 +11,7 @@ interface DoseScheduleProps {
 
 export function DoseSchedule({ vaccine, initialDate }: DoseScheduleProps) {
     const t = useTranslations("vaccineHub");
-    const calculateMilestoneDate = (weeksOffset: number): string | null => {
+    const calculateMilestoneDate = (weeksOffset: number): Date | null => {
         if (!initialDate) return null;
 
         const reference = new Date(initialDate);
@@ -20,11 +20,7 @@ export function DoseSchedule({ vaccine, initialDate }: DoseScheduleProps) {
         const targetDate = new Date(reference.getTime());
         targetDate.setDate(targetDate.getDate() + weeksOffset * 7);
 
-        return targetDate.toLocaleDateString("en-IN", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-        });
+        return targetDate;
     };
 
     const getDoseLabel = (weeks: number, index: number): string => {
@@ -35,17 +31,17 @@ export function DoseSchedule({ vaccine, initialDate }: DoseScheduleProps) {
         }
     };
 
-    const getDoseStatus = (dateString: string | null): "scheduled" | "pending" | "today" => {
-        if (!dateString) return "pending";
+    const getDoseStatus = (doseDate: Date | null): "scheduled" | "pending" | "today" => {
+        if (!doseDate) return "pending";
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const doseDate = new Date(dateString);
-        doseDate.setHours(0, 0, 0, 0);
+        const targetDate = new Date(doseDate.getTime());
+        targetDate.setHours(0, 0, 0, 0);
 
-        if (doseDate.getTime() === today.getTime()) return "today";
-        if (doseDate.getTime() < today.getTime()) return "scheduled";
+        if (targetDate.getTime() === today.getTime()) return "today";
+        if (targetDate.getTime() < today.getTime()) return "scheduled";
         return "pending";
     };
 
@@ -69,8 +65,8 @@ export function DoseSchedule({ vaccine, initialDate }: DoseScheduleProps) {
 
             <div className="space-y-3">
                 {(vaccine.dosing_intervals_weeks || []).map((weeks, index) => {
-                    const dateString = calculateMilestoneDate(weeks);
-                    const status = getDoseStatus(dateString);
+                    const milestoneDate = calculateMilestoneDate(weeks);
+                    const status = getDoseStatus(milestoneDate);
                     const label = getDoseLabel(weeks, index);
 
                     return (
@@ -109,7 +105,7 @@ export function DoseSchedule({ vaccine, initialDate }: DoseScheduleProps) {
                                             {label}
                                         </p>
 
-                                        {dateString ? (
+                                        {milestoneDate ? (
                                             <p className="mt-1 flex items-center gap-2 text-sm font-medium">
                                                 <span
                                                     className={`inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-semibold ${
@@ -138,7 +134,11 @@ export function DoseSchedule({ vaccine, initialDate }: DoseScheduleProps) {
                                                               : "text-slate-700 dark:text-slate-300"
                                                     }`}
                                                 >
-                                                    {dateString}
+                                                    {milestoneDate.toLocaleDateString("en-IN", {
+                                                        day: "numeric",
+                                                        month: "short",
+                                                        year: "numeric",
+                                                    })}
                                                 </span>
                                             </p>
                                         ) : (

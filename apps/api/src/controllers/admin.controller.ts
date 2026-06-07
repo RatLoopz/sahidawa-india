@@ -21,6 +21,11 @@ const medicineSchema = z.object({
     status: z.enum(["safe", "suspicious", "recalled", "pending_review"]).default("safe").optional(),
 });
 
+const paginationSchema = z.object({
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(50),
+});
+
 export const getPendingReports = async (
     req: AuthenticatedRequest,
     res: Response
@@ -121,8 +126,17 @@ export const updateReportStatus = async (
 
 export const getAllMedicines = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        const page = parseInt(req.query.page as string) || 1;
-        const limit = parseInt(req.query.limit as string) || 50;
+        const parsed = paginationSchema.safeParse(req.query);
+
+        if (!parsed.success) {
+            res.status(400).json({
+                error: "Invalid pagination parameters",
+                details: parsed.error.issues,
+            });
+            return;
+        }
+
+        const { page, limit } = parsed.data;
         const offset = (page - 1) * limit;
 
         const { data, error, count } = await supabase
@@ -180,8 +194,19 @@ export const createMedicine = async (req: AuthenticatedRequest, res: Response): 
 
 export const getAuditLogs = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        const page = parseInt(req.query.page as string) || 1;
-        const limit = parseInt(req.query.limit as string) || 20;
+        const parsed = paginationSchema
+            .extend({ limit: z.coerce.number().int().min(1).max(100).default(20) })
+            .safeParse(req.query);
+
+        if (!parsed.success) {
+            res.status(400).json({
+                error: "Invalid pagination parameters",
+                details: parsed.error.issues,
+            });
+            return;
+        }
+
+        const { page, limit } = parsed.data;
         const offset = (page - 1) * limit;
 
         const { data, error, count } = await supabase

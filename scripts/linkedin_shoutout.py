@@ -35,7 +35,7 @@ import requests
 PROJECT_NAME = "SahiDawa"
 PROJECT_TAGLINE = "India's open-source medicine safety platform for 1.4 billion people 🇮🇳"
 PROJECT_GITHUB_URL = "https://github.com/RatLoopz/sahidawa-india"
-PROJECT_HASHTAGS = "#SahiDawa #OpenSource #GSSoC2026 #BuildForIndia #HealthTech #IndiaStack"
+PROJECT_HASHTAGS = "#GSSoC2026 #OpenSource #girlscriptsummerofcode #RatLoopz #community #mentorship #leadership #developerJourney #collaboration #contributors #TechCommunity #GSSoC #GitHub #SahiDawa #BuildForIndia"
 
 LABEL_TIER_MAP = {
     "level:critical": ("⚡ Critical-Level", "mission-critical"),
@@ -293,7 +293,7 @@ def evaluate_pr_impact(pr: dict) -> None:
         
         if "REJECT" in verdict:
             print(f"🛑 AI GATEKEEPER REJECTED: This PR appears to be trivial/bloat despite its size.")
-            print(f"   Verdict received: {verdict}")
+            print("   Verdict received: REJECTED")
             print("   Exiting gracefully to prevent a fake shoutout.")
             sys.exit(0)
             
@@ -301,6 +301,35 @@ def evaluate_pr_impact(pr: dict) -> None:
         
     except Exception as exc:
         print(f"⚠️  AI Gatekeeper evaluation failed ({exc}). Bypassing semantic check.")
+
+
+def get_contributor_name(github_username: str) -> str:
+    """Fetch actual full name from GitHub, fallback to parsed username."""
+    token = os.environ.get("GH_TOKEN", "")
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28"
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+        
+    try:
+        url = f"https://api.github.com/users/{github_username}"
+        resp = requests.get(url, headers=headers, timeout=10)
+        if resp.status_code == 200:
+            name = resp.json().get("name")
+            if name and name.strip():
+                return name.strip()
+    except Exception as e:
+        print(f"⚠️ Failed to fetch GitHub name: {e}")
+
+    # Fallback: Strip trailing numbers/suffixes, split on - or _ and capitalize first part
+    parts = re.split(r'[-_]', github_username)
+    if parts:
+        name = re.sub(r'\d+$', '', parts[0])
+        if name:
+            return name.capitalize()
+    return github_username
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -313,6 +342,7 @@ def generate_post_with_gemini(pr: dict, tier_display: str, tier_desc: str) -> st
     Falls back to static template if API unavailable.
     """
     gemini_api_key = get_env_or_exit("GEMINI_API_KEY")
+    contributor_name = get_contributor_name(pr['author'])
 
     system_prompt = (
         f"You are the core maintainer of '{PROJECT_NAME}'. "
@@ -320,12 +350,14 @@ def generate_post_with_gemini(pr: dict, tier_display: str, tier_desc: str) -> st
         "It MUST sound like a real human engineer expressing sincere gratitude from the heart. "
         "Do not use corporate buzzwords. Keep it concise, high-quality, and impactful. "
         "Use minimal formatting and very few emojis. It should feel like a personal shoutout, not a bot. "
-        "Never start with 'I am' or 'We are'."
+        "Never start with 'I am' or 'We are'. "
+        "IMPORTANT: Do NOT use @github-username style mentions — this is a LinkedIn post and GitHub handles "
+        "don't work as LinkedIn tags. Instead refer to the person by their first name."
     )
 
     user_prompt = (
         f"Write a short, genuine LinkedIn shoutout for this contributor:\n\n"
-        f"Contributor: {pr['author']} (LinkedIn: {pr['linkedin_url']})\n"
+        f"Contributor first name: {contributor_name} (GitHub: @{pr['author']}, LinkedIn: {pr['linkedin_url']})\n"
         f"PR Title: {pr['title']}\n"
         f"PR Number: #{pr['number']}\n"
         f"Tier: {tier_display}\n"
@@ -335,13 +367,15 @@ def generate_post_with_gemini(pr: dict, tier_display: str, tier_desc: str) -> st
         f"### Technical Context (Use this to explain their impact) ###\n"
         f"{pr['diff'][:15000] if pr.get('diff') else 'No diff provided.'}\n\n"
         f"CRITICAL REQUIREMENTS:\n"
-        f"1. Start by directly thanking the contributor (refer to them by their GitHub username @{pr['author']}) in a warm, personal way. Do NOT include their LinkedIn profile link in the very first sentence or at the top of the post.\n"
-        f"2. Look at the Technical Context (the code diff) and briefly summarize the technical impact they made (e.g. 'They optimized the notification module'). Make them feel proud of the exact files/logic they improved.\n"
-        f"3. Make them feel truly valued. Tell them their hard work is making a real difference in this {tier_display} task. Motivate them to keep solving issues.\n"
-        f"4. Include their LinkedIn profile link near the bottom of the post in a line like: 'Connect with the contributor: {pr['linkedin_url']}'\n"
+        f"1. Start by directly thanking {contributor_name} by their first name in a warm, personal way. "
+        f"Do NOT use @{pr['author']} (GitHub handle) — LinkedIn won't recognize it. Do NOT put their LinkedIn link in the very first sentence.\n"
+        f"2. Look at the Technical Context (the code diff) and briefly summarize the technical impact they made. Make them feel proud.\n"
+        f"3. Make them feel truly valued. Tell them their hard work is making a real difference. Motivate them.\n"
+        f"4. Include their LinkedIn profile link near the bottom of the post in a line like: 'Connect with {contributor_name}: {pr['linkedin_url']}'\n"
         f"5. End by warmly welcoming new developers to join the journey (GSSoC2026), with the repo link: {PROJECT_GITHUB_URL}\n"
-        f"6. Keep the text short and easy to read. Do NOT use heavy bullet points, bolding, or too many emojis.\n"
-        f"7. Do NOT include hashtags at the end (they are added automatically later)."
+        f"6. Keep the text complete and easy to read. Do NOT use heavy bullet points, bolding, or too many emojis.\n"
+        f"7. Do NOT include hashtags at the end (they are added automatically later). "
+        f"8. IMPORTANT: Write a COMPLETE post. Do not cut off mid-sentence."
     )
 
     url = (
@@ -390,6 +424,17 @@ def generate_post_with_gemini(pr: dict, tier_display: str, tier_desc: str) -> st
                 
             text = parts[0].get("text", "").strip()
             
+            # Validate the response is actually complete and not truncated
+            if len(text) < 100:
+                print(f"⚠️ Gemini returned suspiciously short content ({len(text)} chars). Using static fallback.")
+                return _static_fallback(pr, tier_display)
+            
+            # Check if the post ends mid-sentence (sign of truncation)
+            finish_reason = candidate.get("finishReason", "")
+            if finish_reason not in ("STOP", "stop", "") and finish_reason is not None:
+                print(f"⚠️ Gemini finished with reason '{finish_reason}' (not STOP). Using static fallback.")
+                return _static_fallback(pr, tier_display)
+            
             print("\n✅ Script completed successfully!")
             print("✅ Gemini post generated successfully.")
             return text
@@ -407,39 +452,42 @@ def generate_post_with_gemini(pr: dict, tier_display: str, tier_desc: str) -> st
 def _static_fallback(pr: dict, tier_display: str) -> str:
     """
     Generates a highly dynamic, heartfelt, and professional appreciation post
-    when the Gemini AI API hits its daily free-tier quota (429).
+    when the Gemini AI API hits its daily free-tier quota (429) or returns incomplete content.
     Deterministically rotates between distinct human-written layout formats.
+    Note: Uses contributor's actual name, NOT @github-handle (LinkedIn doesn't support GitHub mentions).
     """
+    contributor_name = get_contributor_name(pr['author'])
+    
     templates = [
         # Template 1: Focus on impact
         (
-            "A huge shoutout to @{author} for landing an outstanding {tier_display} contribution! 🚀\n\n"
+            "A huge shoutout to {name} for landing an outstanding {tier_display} contribution! 🚀\n\n"
             "They just merged PR #{number}: \"{title}\". This optimization/feature represents significant engineering effort "
             "and makes a direct impact on {project_name}'s mission to build India's open-source medicine safety platform. "
             "We are incredibly grateful for your time, skill, and dedication to the community. Keep up the amazing work!\n\n"
-            "Connect with the contributor: {linkedin_url}\n\n"
+            "Connect with {name}: {linkedin_url}\n\n"
             "If you're inspired and want to build for India's digital health infrastructure, join us in GSSoC 2026! 🇮🇳\n\n"
             "Explore the repository: {github_url}\n"
             "View the contribution: {pr_url}"
         ),
         # Template 2: Heartfelt thank you
         (
-            "Huge congratulations and thanks to @{author}! 🎉\n\n"
+            "Huge congratulations and thanks to {name}! 🎉\n\n"
             "Their merged PR #{number} (\"{title}\") is a major addition to {project_name}. "
-            "Designing and scaling {tier_desc} tasks takes true developer craftsmanship, and {author}'s work is a stellar example. "
+            "Tackling {tier_desc} engineering challenges takes true developer craftsmanship, and {name}'s work is a stellar example. "
             "Thank you for helping us make medicine safety accessible to 1.4 billion Indians. We are thrilled to have you in our contributor community!\n\n"
-            "Connect with the contributor: {linkedin_url}\n\n"
+            "Connect with {name}: {linkedin_url}\n\n"
             "Ready to make a difference? GSSoC 2026 contributors are actively scaling {project_name}. Jump in now!\n\n"
             "GitHub Repository: {github_url}\n"
             "Check out the PR: {pr_url}"
         ),
         # Template 3: Direct community welcome
         (
-            "Let's celebrate another landmark contribution by @{author}! 🌟\n\n"
+            "Let's celebrate another landmark contribution by {name}! 🌟\n\n"
             "With PR #{number} (\"{title}\"), they tackled a {tier_display} task with exceptional skill. "
             "Every line of code merged brings {project_name} closer to securing medicine health tracking for everyone. "
             "Your hard work is deeply appreciated by the core maintainers. Keep shining and coding!\n\n"
-            "Connect with the contributor: {linkedin_url}\n\n"
+            "Connect with {name}: {linkedin_url}\n\n"
             "Want to contribute to India's open-source stack? Join the GSSoC 2026 wave on our repo:\n\n"
             "Codebase: {github_url}\n"
             "Merged PR: {pr_url}"
@@ -458,7 +506,7 @@ def _static_fallback(pr: dict, tier_display: str) -> str:
     tier_desc = "mission-critical" if "level:critical" in labels else "highly complex"
     
     return selected_template.format(
-        author=pr['author'],
+        name=contributor_name,
         linkedin_url=pr['linkedin_url'],
         tier_display=tier_display,
         tier_desc=tier_desc,
@@ -587,7 +635,7 @@ def send_to_make_webhook(post_text: str, pr: dict) -> None:
 
     if "dry-run" in webhook_url.lower() or "mock" in webhook_url.lower():
         print("🧪 Dry-run/Mock webhook URL detected. Skipping actual HTTP request to Make.com.")
-        print("Payload:", json.dumps(payload, indent=2))
+        print("Payload data omitted for security.")
         return
 
     print("📤 Sending post to Make.com webhook...")
@@ -641,7 +689,7 @@ def main():
     print("\n" + "─" * 60)
     print("📝 FINAL POST PREVIEW:")
     print("─" * 60)
-    print(final_post)
+    print("<Final post preview omitted for security>")
     print("─" * 60 + "\n")
 
     send_to_make_webhook(final_post, pr)

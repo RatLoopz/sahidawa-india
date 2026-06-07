@@ -1,6 +1,7 @@
 import { z } from "zod";
 import supabase from "../db/supabase";
 import logger from "../utils/logger";
+import { escapeIlike } from "../utils/db";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -269,7 +270,7 @@ export async function retrieveRelevantMedicines(
     });
 
     // Tier 3 — in-memory ILIKE filter over the table.
-    const pattern = `%${query}%`;
+    const pattern = `%${escapeIlike(query)}%`;
     const { data: tableData, error: tableError } = await supabase
         .from("medicines")
         .select(

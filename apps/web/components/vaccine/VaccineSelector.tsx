@@ -1,7 +1,7 @@
 "use client";
 
 import { vaccineDatabase, VaccineKey } from "@/lib/vaccineData";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useId } from "react";
 import { useTranslations } from "next-intl";
 import { ChevronDown, Search } from "lucide-react";
 
@@ -21,7 +21,8 @@ export function VaccineSelector({
     const t = useTranslations("vaccineHub");
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
-
+    const [activeIndex, setActiveIndex] = useState(-1);
+    const listId = useId();
     // Group vaccines by target groups for better organization
     const groupedVaccines = useMemo(() => {
         const groups: Record<string, (VaccineKey | string)[]> = {
@@ -88,6 +89,7 @@ export function VaccineSelector({
                 aria-haspopup="listbox"
                 aria-expanded={isOpen}
                 aria-label="Select a vaccine"
+                aria-controls={isOpen ? listId : undefined}
             >
                 <span className="flex items-center gap-2">
                     {selectedVaccine ? (
@@ -125,10 +127,53 @@ export function VaccineSelector({
                                 aria-hidden="true"
                             />
                             <input
+                                role="combobox"
+                                aria-autocomplete="list"
+                                aria-expanded={isOpen}
+                                aria-controls={isOpen ? listId : undefined}
+                                aria-activedescendant={
+                                    activeIndex >= 0 ? `${listId}-option-${activeIndex}` : undefined
+                                }
                                 type="text"
                                 placeholder="Search vaccines or diseases..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={(e) => {
+                                    const allVaccines = Object.values(filteredVaccines).flat();
+
+                                    if (!allVaccines.length) return;
+
+                                    switch (e.key) {
+                                        case "ArrowDown":
+                                            e.preventDefault();
+                                            setActiveIndex((prev) =>
+                                                prev < allVaccines.length - 1 ? prev + 1 : 0
+                                            );
+                                            break;
+
+                                        case "ArrowUp":
+                                            e.preventDefault();
+                                            setActiveIndex((prev) =>
+                                                prev > 0 ? prev - 1 : allVaccines.length - 1
+                                            );
+                                            break;
+
+                                        case "Enter":
+                                            e.preventDefault();
+
+                                            if (activeIndex >= 0) {
+                                                handleSelect(
+                                                    allVaccines[activeIndex] as VaccineKey
+                                                );
+                                            }
+                                            break;
+
+                                        case "Escape":
+                                            setIsOpen(false);
+                                            setActiveIndex(-1);
+                                            break;
+                                    }
+                                }}
                                 className="w-full rounded-md border border-slate-300 bg-(--color-surface-muted) py-2 pr-3 pl-9 text-sm placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400"
                                 aria-label="Search vaccines"
                             />
@@ -136,7 +181,7 @@ export function VaccineSelector({
                     </div>
 
                     {/* Vaccine Groups */}
-                    <div role="listbox" className="max-h-64 overflow-y-auto">
+                    <div id={listId} role="listbox" className="max-h-64 overflow-y-auto">
                         {Object.entries(filteredVaccines).length > 0 ? (
                             Object.entries(filteredVaccines).map(([group, vaccines]) => (
                                 <div key={group}>
@@ -145,13 +190,21 @@ export function VaccineSelector({
                                     </div>
                                     {vaccines.map((key) => {
                                         const vaccine = vaccineDatabase[key as VaccineKey];
+                                        const allVaccines = Object.values(filteredVaccines).flat();
+                                        const optionIndex = allVaccines.indexOf(key);
                                         return (
                                             <button
                                                 key={key}
+                                                id={`${listId}-option-${optionIndex}`}
                                                 onClick={() => handleSelect(key as VaccineKey)}
                                                 role="option"
-                                                aria-selected={value === key}
-                                                className={`w-full px-4 py-3 text-left text-sm transition-colors hover:bg-emerald-50 focus:bg-emerald-50 focus:outline-none dark:hover:bg-slate-700 dark:focus:bg-slate-700 ${
+                                                onMouseEnter={() => {
+                                                    const allVaccines =
+                                                        Object.values(filteredVaccines).flat();
+                                                    setActiveIndex(allVaccines.indexOf(key));
+                                                }}
+                                                aria-selected={activeIndex === optionIndex}
+                                                className={`w-full px-4 py-3 text-left text-sm transition-colors hover:bg-emerald-50 focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:hover:bg-slate-700 dark:focus:bg-slate-700 ${
                                                     value === key
                                                         ? "bg-emerald-100 font-semibold text-emerald-900 dark:bg-emerald-900 dark:text-emerald-100"
                                                         : "text-slate-700 dark:text-slate-200"

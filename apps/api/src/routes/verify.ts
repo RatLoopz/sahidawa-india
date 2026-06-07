@@ -4,6 +4,7 @@ import { supabase } from "../db/client";
 import { verifyLimiter } from "../middleware/rateLimit";
 import { optionalAuth } from "../middleware/auth";
 import logger from "../utils/logger";
+import { escapeIlike } from "../utils/db";
 
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim())
@@ -155,10 +156,7 @@ router.post(
 
         const { batchNumber, latitude, longitude } = parsed.data;
 
-        const escaped = batchNumber
-            .replace(/\\/g, "\\\\")
-            .replace(/%/g, "\\%")
-            .replace(/_/g, "\\_");
+        const escaped = escapeIlike(batchNumber);
 
         try {
             const { data, error } = await supabase
@@ -240,7 +238,11 @@ router.post(
                 },
             ]);
             if (insertError) {
-                logger.error({ message: "Failed to record scan history", error: insertError, route: "/api/verify" });
+                logger.error({
+                    message: "Failed to record scan history",
+                    error: insertError,
+                    route: "/api/verify",
+                });
             }
 
             res.status(200).json({
@@ -262,7 +264,11 @@ router.post(
                 },
             });
         } catch (err) {
-            logger.error({ message: "Unexpected error in /api/verify", error: err, route: "/api/verify" });
+            logger.error({
+                message: "Unexpected error in /api/verify",
+                error: err,
+                route: "/api/verify",
+            });
             res.status(500).json({
                 verified: false,
                 message: "An unexpected error occurred",

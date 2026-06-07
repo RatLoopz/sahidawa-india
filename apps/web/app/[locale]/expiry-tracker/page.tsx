@@ -86,6 +86,17 @@ export default function ExpiryTrackerPage() {
         return new Date(year, month - 1, day);
     };
 
+    const isValidDateString = (dateStr: string): boolean => {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
+        const [year, month, day] = dateStr.split("-").map(Number);
+        if (month < 1 || month > 12) return false;
+        if (day < 1 || day > 31) return false;
+        const date = new Date(year, month - 1, day);
+        return (
+            date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
+        );
+    };
+
     const getDiffDays = (dateStr: string) => {
         const expiry = parseLocalDate(dateStr);
         const today = new Date();
@@ -142,8 +153,13 @@ export default function ExpiryTrackerPage() {
                     (item) =>
                         typeof item.id === "string" &&
                         typeof item.name === "string" &&
-                        typeof item.expiryDate === "string"
+                        typeof item.expiryDate === "string" &&
+                        isValidDateString(item.expiryDate)
                 );
+                if (valid.length !== parsed.length) {
+                    setImportError(t("importDateError"));
+                    return;
+                }
                 const existingIds = new Set(medicines.map((m) => m.id));
                 const merged = [...medicines, ...valid.filter((m) => !existingIds.has(m.id))];
                 saveToLocalStorage(merged);
@@ -184,7 +200,7 @@ export default function ExpiryTrackerPage() {
             <main className="mx-auto max-w-6xl p-6 pt-32 md:pt-40">
                 <div className="mt-4 grid grid-cols-1 gap-8 md:grid-cols-3">
                     {/* Sidebar */}
-                    <div className="md:sticky md:top-32 h-fit rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) p-6 shadow-sm md:col-span-1">
+                    <div className="h-fit rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) p-6 shadow-sm md:sticky md:top-32 md:col-span-1">
                         <h2 className="mb-4 text-lg font-bold tracking-tight uppercase">
                             {t("addMedicine")}
                         </h2>

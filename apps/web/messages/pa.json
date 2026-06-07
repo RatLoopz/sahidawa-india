@@ -620,5 +620,22 @@
         "commonEffects": "ਆਮ ਮਾੜੇ ਪ੍ਰਭਾਵ",
         "severeReactions": "ਗੰਭੀਰ ਪ੍ਰਤੀਕਿਰਿਆਵਾਂ",
         "aftercareHeading": "ਤੁਰੰਤ ਦੇਖਭਾਲ ਦੇ ਨਿਰਦੇਸ਼"
+    },
+    "CommandPalette": {
+        "placeholder": "Search pages or actions...",
+        "noResults": "No results found.",
+        "hint": "Press Esc to close",
+        "pages": "Pages",
+        "actions": "Actions",
+        "open": "Open command palette",
+        "nav_home": "Go to Home",
+        "nav_scan": "Scan a Medicine",
+        "nav_map": "Find Nearby Pharmacy",
+        "nav_alerts": "View Alerts",
+        "nav_expiry": "Medicine Expiry Tracker",
+        "nav_compare": "Compare Medicines",
+        "nav_vaccine": "Vaccine Hub",
+        "nav_reports": "My Reports",
+        "nav_profile": "My Profile"
     }
 }

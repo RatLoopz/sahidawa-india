@@ -9,16 +9,7 @@ import { getMlServiceUrl, MISSING_ML_SERVICE_URL_MESSAGE } from "../config/mlSer
 import { validateUploadSize } from "../middleware/uploadSizeValidator";
 import { uploadRateLimiter } from "../middleware/uploadRateLimit";
 
-/**
- * Escape ILIKE wildcard characters in a string derived from untrusted input
- * (e.g. OCR text). In PostgreSQL ILIKE patterns, % matches any sequence of
- * characters and _ matches any single character. Leaving them unescaped in
- * OCR-derived text causes overly broad matches that return far more rows than
- * intended and may expose unrelated medicine records.
- */
-function escapeIlike(word: string): string {
-    return word.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
-}
+import { escapeIlike } from "../utils/db";
 
 const router = Router();
 
@@ -228,6 +219,17 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
         const mlServiceUrl = getMlServiceUrl();
         if (!mlServiceUrl) {
             logger.error(MISSING_ML_SERVICE_URL_MESSAGE, { route: "/api/v1/scan/extract" });
+
+            // Clean up temp file before returning
+            if (tempFilePath && fs.existsSync(tempFilePath)) {
+                try {
+                    fs.unlinkSync(tempFilePath);
+                    logger.info(`Cleaned up temp file: ${tempFilePath}`);
+                } catch (err) {
+                    logger.error(`Failed to delete temp file ${tempFilePath}:`, err);
+                }
+            }
+
             res.status(500).json({
                 error: "OCR service is not configured.",
                 code: "ML_SERVICE_URL_MISSING",
@@ -655,10 +657,11 @@ router.post("/match", async (req: Request, res: Response) => {
 
     try {
         const keyword = query.trim().split(/\s+/)[0];
+        const safeKeyword = escapeIlike(keyword);
         const { data, error } = await supabase
             .from("medicines")
             .select("brand_name, generic_name")
-            .or(`brand_name.ilike.%${keyword}%,generic_name.ilike.%${keyword}%`)
+            .or(`brand_name.ilike.%${safeKeyword}%,generic_name.ilike.%${safeKeyword}%`)
             .limit(100);
 
         if (error) {
