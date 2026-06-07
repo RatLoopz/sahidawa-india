@@ -287,7 +287,7 @@ def evaluate_pr_impact(pr: dict) -> None:
         parts = content.get("parts", [])
         if not parts:
             finish_reason = candidate.get("finishReason")
-            raise KeyError(f"No content parts returned. finishReason: {finish_reason}")
+            raise KeyError("No content parts returned. Missing or invalid finishReason.")
             
         verdict = parts[0].get("text", "").strip().upper()
         
@@ -420,7 +420,7 @@ def generate_post_with_gemini(pr: dict, tier_display: str, tier_desc: str) -> st
             parts = content.get("parts", [])
             if not parts:
                 finish_reason = candidate.get("finishReason")
-                raise KeyError(f"No content parts returned. finishReason: {finish_reason}")
+                raise KeyError("No content parts returned. Missing or invalid finishReason.")
                 
             text = parts[0].get("text", "").strip()
             
@@ -432,7 +432,7 @@ def generate_post_with_gemini(pr: dict, tier_display: str, tier_desc: str) -> st
             # Check if the post ends mid-sentence (sign of truncation)
             finish_reason = candidate.get("finishReason", "")
             if finish_reason not in ("STOP", "stop", "") and finish_reason is not None:
-                print(f"⚠️ Gemini finished with reason '{finish_reason}' (not STOP). Using static fallback.")
+                print("⚠️ Gemini finished with an incomplete reason (not STOP). Using static fallback.")
                 return _static_fallback(pr, tier_display)
             
             print("\n✅ Script completed successfully!")
