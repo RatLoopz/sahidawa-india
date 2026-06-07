@@ -19,6 +19,7 @@ BATCH INSERTS:
 
 import json
 import os
+import random
 import re
 import time
 from collections.abc import Callable
@@ -338,11 +339,13 @@ class SupabaseLoader:
                     or not self._is_transient_upsert_error(e)
                 ):
                     raise
-
-                wait_seconds = min(
+                base_wait = min(
                     BATCH_UPSERT_INITIAL_BACKOFF_SEC * (2 ** (attempt - 1)),
                     BATCH_UPSERT_MAX_BACKOFF_SEC,
                 )
+
+                wait_seconds = base_wait + random.uniform(0.1, 1.0)
+
                 logger.warning(
                     f"[Loader] {context} transient failure "
                     f"(attempt {attempt}/{BATCH_UPSERT_MAX_ATTEMPTS}): {e} — "

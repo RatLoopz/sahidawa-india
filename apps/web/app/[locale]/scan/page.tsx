@@ -57,6 +57,10 @@ type ScanHistoryContext = Omit<
     "id" | "scannedAt" | "result" | "errorMessage"
 >;
 
+import { saveScanHistory } from "@/lib/db/scanHistory";
+
+import { structuredLog } from "@/lib/structuredLogger";
+
 function formatExpiryForBadge(isoDate: string | null | undefined): string | undefined {
     if (!isoDate) return undefined;
     const d = new Date(isoDate);
@@ -67,6 +71,18 @@ function formatExpiryForBadge(isoDate: string | null | undefined): string | unde
 function expiryToIso(expiryStr: string): string {
     const [month, year] = expiryStr.split("/");
     return `${year}-${month.padStart(2, "0")}-01T00:00:00.000Z`;
+}
+
+function getScanHistoryStatus(result: VerifyResult): string {
+    if (!result.verified) return "SUSPICIOUS";
+    return result.medicine.is_counterfeit_alert ? "FAKE" : "VERIFIED";
+}
+
+function getScanHistoryMedicineName(result: VerifyResult, fallbackBrandName?: string): string {
+    if (result.verified) {
+        return result.medicine.brand_name || fallbackBrandName || "Unknown medicine";
+    }
+    return fallbackBrandName || "Unknown medicine";
 }
 
 function CdscoStatusBadge({ status }: { status: string }) {
@@ -570,97 +586,89 @@ export default function ScanPage() {
         unknownManufacturer: tScan("share.unknown_manufacturer"),
     };
 
-    const recordScanHistory = useCallback(
-        ({
-            result,
-            errorMessage,
-            ...context
-        }: ScanHistoryContext & {
-            result?: VerifyResult;
-            errorMessage?: string;
-        }) => {
-            const query =
-                context.query.trim() ||
-                context.fallbackBatchNumber ||
-                context.fallbackBrandName ||
-                "Uploaded photo";
-            const entry = buildLocalScanHistoryEntry({
-                ...context,
-                query,
-                result,
-                errorMessage,
+    const processVerificationResult = async (result: VerifyResult, fallbackBrandName?: string) => {
+        if (!result.verified) {
+            setVerifyResult(result);
+
+            void saveScanHistory({
+                id: crypto.randomUUID(),
+                timestamp: Date.now(),
+                medicineName: getScanHistoryMedicineName(result, fallbackBrandName),
+                status: getScanHistoryStatus(result),
+            }).catch((error) => {
+                console.error("Failed to save scan history:", error);
             });
 
-            void saveLocalScanHistoryEntry(entry).catch((error) => {
-                structuredLog({
-                    log_level: "warn",
-                    route: "/scan",
-                    meta: {
-                        message: "[scan] Failed to save local scan history",
-                        error: error instanceof Error ? error.message : String(error),
-                    },
-                });
-            });
-        },
-        []
-    );
+            setShowResult(true);
 
-    const processVerificationResult = useCallback(
-        async (
-            result: VerifyResult,
-            fallbackBrandName?: string,
-            historyContext?: ScanHistoryContext
-        ) => {
-            if (historyContext) {
-                recordScanHistory({
-                    ...historyContext,
-                    fallbackBrandName: fallbackBrandName || historyContext.fallbackBrandName,
-                    result,
-                });
-            }
-
-            if (!result.verified) {
+            return;
+        }
+        try {
+            const medicineName = result.medicine.brand_name || fallbackBrandName;
+            if (!medicineName) {
                 setVerifyResult(result);
+
+                void saveScanHistory({
+                    id: crypto.randomUUID(),
+                    timestamp: Date.now(),
+                    medicineName: getScanHistoryMedicineName(result, fallbackBrandName),
+                    status: getScanHistoryStatus(result),
+                }).catch((error) => {
+                    console.error("Failed to save scan history:", error);
+                });
+
                 setShowResult(true);
+
                 return;
             }
-
-            try {
-                const medicineName = result.medicine.brand_name || fallbackBrandName;
-                if (!medicineName) {
-                    setVerifyResult(result);
-                    setShowResult(true);
-                    return;
-                }
-                const lasaRes = await checkLasaConflicts(medicineName);
-                if (lasaRes.hasConflicts && lasaRes.matches.length > 0) {
-                    setLasaMatches(lasaRes.matches);
-                    setPendingVerifyResult(result);
-                    setShowLasaConfirmation(true);
-                    setShowResult(true);
-                } else {
-                    setVerifyResult(result);
-                    setShowResult(true);
-                }
-            } catch (error) {
-                structuredLog({
-                    log_level: "warn",
-                    route: "/scan",
-                    meta: {
-                        message: "[scan] LASA check failed",
-                        error: error instanceof Error ? error.message : String(error),
-                    },
-                });
+            const lasaRes = await checkLasaConflicts(medicineName);
+            if (lasaRes.hasConflicts && lasaRes.matches.length > 0) {
+                setLasaMatches(lasaRes.matches);
+                setPendingVerifyResult(result);
+                setShowLasaConfirmation(true);
+                setShowResult(true);
+            } else {
                 setVerifyResult(result);
+
+                void saveScanHistory({
+                    id: crypto.randomUUID(),
+                    timestamp: Date.now(),
+                    medicineName: getScanHistoryMedicineName(result, fallbackBrandName),
+                    status: getScanHistoryStatus(result),
+                }).catch((error) => {
+                    console.error("Failed to save scan history:", error);
+                });
+
                 setShowResult(true);
             }
-        },
-        [recordScanHistory]
-    );
+        } catch (error) {
+            console.error("LASA check error:", error);
+            setVerifyResult(result);
+
+            void saveScanHistory({
+                id: crypto.randomUUID(),
+                timestamp: Date.now(),
+                medicineName: getScanHistoryMedicineName(result, fallbackBrandName),
+                status: getScanHistoryStatus(result),
+            }).catch((historyError) => {
+                console.error("Failed to save scan history:", historyError);
+            });
+
+            setShowResult(true);
+        }
+    };
 
     const handleConfirmScanned = () => {
         if (pendingVerifyResult) {
             setVerifyResult(pendingVerifyResult);
+            void saveScanHistory({
+                id: crypto.randomUUID(),
+                timestamp: Date.now(),
+                medicineName: getScanHistoryMedicineName(pendingVerifyResult),
+                status: getScanHistoryStatus(pendingVerifyResult),
+            }).catch((error) => {
+                console.error("Failed to save scan history:", error);
+            });
             setShowLasaConfirmation(false);
             setPendingVerifyResult(null);
         }
@@ -749,6 +757,14 @@ export default function ScanPage() {
                     errorMessage: errorMsg,
                 });
                 setVerifyError(errorMsg);
+                void saveScanHistory({
+                    id: crypto.randomUUID(),
+                    timestamp: Date.now(),
+                    medicineName: batch.trim() || "Unknown Medicine",
+                    status: "SUSPICIOUS",
+                }).catch((error) => {
+                    console.error("Failed to save scan history:", error);
+                });
                 setShowResult(true);
             } finally {
                 if (isMountedRef.current && !controller.signal.aborted) {
@@ -1077,11 +1093,15 @@ export default function ScanPage() {
             input?.focus();
         }, 300);
     }, []);
-    const handleBarcodeScan = useCallback(
-        async (scannedText: string) => {
-            setIsVerifying(true);
-            setApiError(null);
-            await handleVerify(scannedText, "barcode");
+    const handleBarcodeScan = async (scannedText: string) => {
+        setIsVerifying(true);
+        setApiError(null);
+
+        try {
+            await handleVerify(scannedText);
+        } catch (error: any) {
+            setApiError(error.message || "Failed to verify medicine with CDSCO.");
+        } finally {
             setIsVerifying(false);
         },
         [handleVerify]
@@ -1187,7 +1207,6 @@ export default function ScanPage() {
                                 setApiError(null);
                                 setIsCameraActive(false);
                             }}
-                            onPermissionDenied={handleCameraPermissionDenied}
                         />
                     ) : uploadedImage ? (
                         <LazyImage

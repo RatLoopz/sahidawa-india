@@ -19,6 +19,13 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            // 🛑 PREVENT BOT LOOPS
+            // If the label was added or removed by a bot (like actions/labeler), ignore it so it doesn't cascade.
+            if (context.payload.sender && context.payload.sender.type === 'Bot') {
+              console.log("Action performed by a Bot (" + context.payload.sender.login + "). Ignoring to prevent infinite loops.");
+              return;
+            }
+
             async function getLinkedIssues(prNumber, prBody) {
               const linkedIssues = new Set();
               
