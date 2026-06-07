@@ -29,6 +29,7 @@ export default function Chatbot() {
     const [input, setInput] = useState("");
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const activeRequestRef = useRef<AbortController | null>(null);
+    const previousWelcomeRef = useRef(t("welcome"));
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -37,6 +38,24 @@ export default function Chatbot() {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    useEffect(() => {
+        setMessages((prev) => {
+            if (prev.length > 0 && prev[0].isBot && prev[0].text === previousWelcomeRef.current) {
+                const updated = [...prev];
+                updated[0] = {
+                    ...updated[0],
+                    text: t("welcome"),
+                };
+
+                previousWelcomeRef.current = t("welcome");
+                return updated;
+            }
+
+            previousWelcomeRef.current = t("welcome");
+            return prev;
+        });
+    }, [t]);
 
     useEffect(() => {
         return () => {
