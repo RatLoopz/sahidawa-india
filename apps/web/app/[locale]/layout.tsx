@@ -1,3 +1,4 @@
+
 import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
@@ -10,7 +11,7 @@ import { OfflineErrorBoundary } from "@/components/OfflineErrorBoundary";
 import { ServiceWorkerProvider } from "@/components/ServiceWorkerProvider";
 import BackToTopButton from "./components/BackToTopButton";
 import Chatbot from "./components/Chatbot";
-import Navbar from "./components/Navbar";
+import Navbar from "./components/Navbar";  // <-- Sirf ek baar
 import "./globals.css";
 import "../../src/styles/print.css";
 import { Toaster } from "sonner";
