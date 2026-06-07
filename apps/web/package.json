@@ -25,6 +25,7 @@
         "clsx": "^2.1.1",
         "framer-motion": "^12.39.0",
         "google-auth-library": "^10.6.2",
+        "idb": "^8.0.3",
         "leaflet": "^1.9.4",
         "lucide-react": "^1.16.0",
         "markdown-to-jsx": "^9.8.1",
