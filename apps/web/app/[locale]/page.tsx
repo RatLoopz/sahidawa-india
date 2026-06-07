@@ -1,5 +1,6 @@
 "use client";
 
+import { MedicineSafetyPanel } from "@/components/medicine";
 import React, { useEffect, useState } from "react";
 import {
     Camera,
@@ -89,6 +90,7 @@ export default function SahiDawaHome() {
 
     const [homepageAlerts, setHomepageAlerts] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    const [activeSearchQuery, setActiveSearchQuery] = useState<string>("");
 
     useEffect(() => {
         async function fetchAlerts() {
@@ -158,8 +160,19 @@ export default function SahiDawaHome() {
 
                     {/* Search Bar */}
                     <div className="mx-auto w-full max-w-2xl pt-2">
-                        <SearchBar />
+                        <SearchBar onSearchChange={(query) => setActiveSearchQuery(query)} />
                     </div>
+
+                    {/* Medicine Safety Panel — shown inline on home page, NO redirect */}
+                    {activeSearchQuery && (
+                        <div className="animate-in fade-in slide-in-from-top-4 mx-auto mt-4 w-full max-w-2xl text-left duration-200">
+                            <MedicineSafetyPanel
+                                key={activeSearchQuery}
+                                searchQuery={activeSearchQuery}
+                                onClose={() => setActiveSearchQuery("")}
+                            />
+                        </div>
+                    )}
                 </section>
 
                 <div className="container mx-auto max-w-6xl px-4">
