@@ -598,33 +598,6 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
 
 // ── Fuzzy Brand Matching & Verification Helper ────────────────────────────────
 
-function getLevenshteinDistance(a: string, b: string): number {
-    const matrix: number[][] = [];
-    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-    for (let i = 1; i <= b.length; i++) {
-        for (let j = 1; j <= a.length; j++) {
-            if (b.charAt(i - 1) === a.charAt(j - 1)) {
-                matrix[i][j] = matrix[i - 1][j - 1];
-            } else {
-                matrix[i][j] = Math.min(
-                    matrix[i - 1][j - 1] + 1, // substitution
-                    matrix[i][j - 1] + 1, // insertion
-                    matrix[i - 1][j] + 1 // deletion
-                );
-            }
-        }
-    }
-    return matrix[b.length][a.length];
-}
-
-function getSimilarity(a: string, b: string): number {
-    const distance = getLevenshteinDistance(a.toLowerCase(), b.toLowerCase());
-    const maxLength = Math.max(a.length, b.length);
-    if (maxLength === 0) return 100;
-    return Math.round((1 - distance / maxLength) * 100);
-}
-
 /**
  * @openapi
  * /api/v1/scan/match:
@@ -656,13 +629,10 @@ router.post("/match", async (req: Request, res: Response) => {
     }
 
     try {
-        const keyword = query.trim().split(/\s+/)[0];
-        const safeKeyword = escapeIlike(keyword);
-        const { data, error } = await supabase
-            .from("medicines")
-            .select("brand_name, generic_name")
-            .or(`brand_name.ilike.%${safeKeyword}%,generic_name.ilike.%${safeKeyword}%`)
-            .limit(100);
+        const { data, error } = await supabase.rpc("search_medicines_text", {
+            query_text: query,
+            match_count: 3,
+        });
 
         if (error) {
             logger.error(`Database error during match: ${error.message}`);
@@ -675,19 +645,16 @@ router.post("/match", async (req: Request, res: Response) => {
             return;
         }
 
-        const candidates = Array.from(
-            new Set(data.flatMap((m) => [m.brand_name, m.generic_name]).filter(Boolean) as string[])
+        const matches = data.map(
+            (medicine: {
+                brand_name: string | null;
+                generic_name: string;
+                similarity: number | null;
+            }) => ({
+                name: medicine.brand_name || medicine.generic_name,
+                score: Math.round((medicine.similarity ?? 0) * 100),
+            })
         );
-
-        const scored = candidates.map((name) => {
-            const score = getSimilarity(query, name);
-            return { name, score };
-        });
-
-        const matches = scored
-            .filter((m) => m.score >= 50)
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 3);
 
         res.status(200).json(matches);
     } catch (err) {
