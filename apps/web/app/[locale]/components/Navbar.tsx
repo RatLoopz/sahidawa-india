@@ -11,8 +11,6 @@ import {
     MessageCircle,
     Menu,
     X,
-    Globe,
-    Moon,
     LogIn,
     Camera,
 } from "lucide-react";

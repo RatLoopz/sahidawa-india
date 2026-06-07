@@ -23,7 +23,7 @@ export async function generateMetadata({
 }: {
     params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
-    const { locale } = await params;
+    await params;
     const baseUrl = "https://sahidawa.in";
 
     // Generate alternates for all locales

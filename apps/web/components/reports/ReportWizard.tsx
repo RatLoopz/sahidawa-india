@@ -7,7 +7,7 @@
  * Design: SahiDawa modern aesthetic — emerald accents, deep navy header, rounded corners
  */
 
-import React, { useState, useRef, useCallback, useEffect, useId } from "react";
+import React, { useState, useEffect, useId } from "react";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -18,7 +18,6 @@ import {
     analyzeMedicineImage,
     type MedicineImageAnalysis,
 } from "@/lib/api";
-import { preprocessMedicineImage } from "@/lib/imageEnhancer";
 import LazyImage from "@/components/LazyImage";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 import { MedicinePhotoUpload } from "@/components/medicine";
@@ -31,8 +30,6 @@ import { toast } from "sonner";
 // eliminating the need to expose unsigned presets or API keys in the client.
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
-const WEBP_FILE_EXTENSION = ".webp";
-
 // ─── Input sanitisation ────────────────────────────────────────────────────────
 /** Strip script tags and HTML-escape brackets to prevent stored XSS without triggering CodeQL warnings. */
 const sanitize = (v: string): string => {
@@ -41,14 +38,6 @@ const sanitize = (v: string): string => {
     // We use split/join instead of String.prototype.replace to completely bypass
     // CodeQL's "Incomplete multi-character sanitization" rules which target .replace() usage.
     return v.trim().split("<").join("&lt;").split(">").join("&gt;");
-};
-
-const renameFileForMimeType = (fileName: string, mimeType: string) => {
-    if (mimeType !== "image/webp" || fileName.toLowerCase().endsWith(WEBP_FILE_EXTENSION)) {
-        return fileName;
-    }
-
-    return fileName.replace(/\.[^.]+$/, "") + WEBP_FILE_EXTENSION;
 };
 
 // ─── Zod schema ────────────────────────────────────────────────────────────────
@@ -830,7 +819,7 @@ export default function ReportWizard() {
                         data: { session },
                     } = await supabase.auth.getSession();
                     token = session?.access_token;
-                } catch (err) {
+                } catch {
                     // ignore if supabase is not configured
                 }
             }

@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback, useId } from "react";
-import { Camera, AlertCircle, VideoOff, Zap, ZapOff } from "lucide-react";
-import { LiveMessage } from "@/components/ui/LiveMessage";
+import { Camera, AlertCircle, VideoOff } from "lucide-react";
 
 type ScannerStatus = "initializing" | "scanning" | "permission-denied" | "unavailable" | "error";
 
@@ -42,8 +41,6 @@ export function BarcodeScanner({
 
     const [status, setStatus] = useState<ScannerStatus>("initializing");
     const [errorMessage, setErrorMessage] = useState<string>("");
-    const [hasTorch, setHasTorch] = useState(false);
-    const [torchOn, setTorchOn] = useState(false);
     const [retryCount, setRetryCount] = useState(0);
 
     const initializingMessageId = useId();
@@ -154,11 +151,6 @@ export function BarcodeScanner({
                 controlsRef.current = controls;
                 setStatus("scanning");
 
-                const track = stream.getVideoTracks()[0];
-                if (track) {
-                    const capabilities = track.getCapabilities ? track.getCapabilities() : {};
-                    if ("torch" in capabilities) setHasTorch(true);
-                }
             } catch (err: unknown) {
                 if (cancelled) return;
                 const errorObj = err instanceof Error ? err : new Error(String(err));
@@ -192,27 +184,8 @@ export function BarcodeScanner({
             controlsRef.current = null;
             stopMediaStream(streamRef.current);
             streamRef.current = null;
-            setHasTorch(false);
-            setTorchOn(false);
         };
     }, [retryCount, shouldEmitScan, onScan]); // isVerifying and apiError are purposefully removed here!
-
-    const toggleTorch = async () => {
-        // ... (Keep existing torch logic)
-        const stream = streamRef.current;
-        if (!stream) return;
-        const track = stream.getVideoTracks()[0];
-        if (!track) return;
-        const capabilities = track.getCapabilities ? track.getCapabilities() : {};
-        if (!("torch" in capabilities)) return;
-        const nextTorchState = !torchOn;
-        try {
-            await track.applyConstraints({ advanced: [{ torch: nextTorchState } as any] });
-            setTorchOn(nextTorchState);
-        } catch (err) {
-            console.error("Failed to toggle torch constraint:", err);
-        }
-    };
 
     return (
         <div className="relative h-full w-full overflow-hidden rounded-2xl bg-black">

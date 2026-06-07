@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import VaccineHubPage from "../page";
 
@@ -193,7 +193,7 @@ describe("VaccineHubPage Integration Tests", () => {
         // Unmount and remount
         unmount();
 
-        const { rerender } = render(<VaccineHubPage />);
+        render(<VaccineHubPage />);
 
         // Verify persistence
         await waitFor(() => {
