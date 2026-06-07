@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
-import { requireAuth, requireRole } from "../middleware/auth";
+import { requireAuth, requireRole, AuthenticatedRequest } from "../middleware/auth";
 import {
     getMockRecallFeed,
     getVapidPublicKey,
@@ -26,7 +26,7 @@ router.get("/vapid-public-key", (_req, res) => {
     });
 });
 
-router.post("/subscriptions", async (req, res) => {
+router.post("/subscriptions", requireAuth, async (req: AuthenticatedRequest, res) => {
     const parsed = pushSubscriptionSchema.safeParse(req.body);
 
     if (!parsed.success) {
@@ -37,7 +37,7 @@ router.post("/subscriptions", async (req, res) => {
         return;
     }
 
-    const result = await savePushSubscription(parsed.data);
+    const result = await savePushSubscription(parsed.data, req.user!.id);
 
     res.status(201).json({
         endpoint: result.stored.endpoint,
@@ -48,7 +48,7 @@ router.post("/subscriptions", async (req, res) => {
     });
 });
 
-router.delete("/subscriptions", async (req, res) => {
+router.delete("/subscriptions", requireAuth, async (req: AuthenticatedRequest, res) => {
     const parsed = unsubscribeSchema.safeParse(req.body);
 
     if (!parsed.success) {
@@ -67,17 +67,13 @@ router.get("/recalls/mock", (_req, res) => {
     res.json({ recalls: getMockRecallFeed() });
 });
 
-router.post(
-    "/recalls/mock/trigger",
-    requireAuth,
-    requireRole("admin"),
-    async (req, res) => {
-        if (process.env.NODE_ENV === "production") {
-            res.status(403).json({ error: "Mock triggers are disabled in production" });
-            return;
-        }
+router.post("/recalls/mock/trigger", requireAuth, requireRole("admin"), async (req, res) => {
+    if (process.env.NODE_ENV === "production") {
+        res.status(403).json({ error: "Mock triggers are disabled in production" });
+        return;
+    }
 
-        const feed = getMockRecallFeed();
+    const feed = getMockRecallFeed();
     const parsed = recallAlertSchema.partial({ id: true }).safeParse(req.body ?? {});
 
     if (!parsed.success) {

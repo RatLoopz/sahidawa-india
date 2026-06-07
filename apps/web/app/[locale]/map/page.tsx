@@ -27,8 +27,12 @@ import { fetchPharmacies, fetchPharmaciesInBounds, type OverpassPharmacy } from 
 import {
     fetchVerifiedPharmacies,
     fetchVerifiedPharmaciesInBounds,
+    fetchNearbyAshaWorkers,
     type VerifiedPharmacy,
+    type ApiAshaWorker,
 } from "../../../lib/api";
+import { type AshaWorker } from "./PharmacyMap";
+import MapHeaderLoadingIndicator from "./MapHeaderLoadingIndicator";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const DEFAULT_CENTER = { lat: 28.6139, lng: 77.209 }; // New Delhi
@@ -137,6 +141,17 @@ function toVerifiedPharmacy(vp: VerifiedPharmacy, id: number): Pharmacy {
     };
 }
 
+function toAshaWorker(aw: ApiAshaWorker): AshaWorker {
+    return {
+        id: aw.id,
+        name: aw.name,
+        district: aw.district,
+        coordinates: { lat: aw.lat, lng: aw.lng },
+        contact: aw.contact,
+        distanceKm: aw.distance_km,
+    };
+}
+
 function deduplicateOsm(verified: Pharmacy[], osm: Pharmacy[]): Pharmacy[] {
     if (verified.length === 0) return osm;
     return osm.filter((osmP) => {
@@ -188,7 +203,7 @@ function BottomDrawer({
             <button
                 onClick={expandDrawer}
                 data-testid="mobile-pharmacy-pill"
-                className="pointer-events-auto absolute right-4 bottom-5 z-1000 flex items-center gap-2 rounded-full bg-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 px-4 py-2.5 text-xs font-bold text-white shadow-xl transition-all hover:bg-slate-800 active:scale-95 md:hidden"
+                className="pointer-events-auto absolute right-4 bottom-5 z-1000 flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-xs font-bold text-white shadow-xl transition-all hover:bg-slate-800 active:scale-95 md:hidden dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
                 aria-label={`Show nearby pharmacies list with ${count} results`}
             >
                 <ChevronUp size={14} />
@@ -257,6 +272,7 @@ export default function PharmacyMapPage() {
 
     // Live data state (PR #147 engine)
     const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
+    const [ashaWorkers, setAshaWorkers] = useState<AshaWorker[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [fetchError, setFetchError] = useState<string | null>(null);
     const [showSearchArea, setShowSearchArea] = useState(false);
@@ -272,9 +288,10 @@ export default function PharmacyMapPage() {
         setShowSearchArea(false);
         try {
             const radiusKm = Math.round(radius / 1000);
-            const [verifiedResult, osmResult] = await Promise.allSettled([
+            const [verifiedResult, osmResult, ashaResult] = await Promise.allSettled([
                 fetchVerifiedPharmacies(lat, lng, radiusKm),
                 fetchPharmacies(lat, lng, radius),
+                fetchNearbyAshaWorkers(lat, lng, radiusKm),
             ]);
 
             const verified =
@@ -282,6 +299,8 @@ export default function PharmacyMapPage() {
                     ? verifiedResult.value.map((vp, i) => toVerifiedPharmacy(vp, -(i + 1)))
                     : [];
             const osm = osmResult.status === "fulfilled" ? osmResult.value.map(toPharmacy) : [];
+            const asha =
+                ashaResult.status === "fulfilled" ? ashaResult.value.map(toAshaWorker) : [];
 
             const dedupedOsm = deduplicateOsm(verified, osm);
             const merged = [...verified, ...dedupedOsm].sort((a, b) => {
@@ -298,6 +317,7 @@ export default function PharmacyMapPage() {
             }
 
             setPharmacies(merged);
+            setAshaWorkers(asha);
             setPharmacyCount(merged.length);
             initialFetchDone.current = true;
         } catch (err) {
@@ -308,31 +328,34 @@ export default function PharmacyMapPage() {
             setIsLoading(false);
         }
     }, []);
-    
-   useEffect(() => {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                setUserLocation(loc);
-                fetchNearby(loc.lat, loc.lng);
-            },
-            () => {
-                fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-        );
-    } else {
-        fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
-    }
-}, [fetchNearby]); 
+
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    setUserLocation(loc);
+                    fetchNearby(loc.lat, loc.lng);
+                },
+                () => {
+                    fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+            );
+        } else {
+            fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
+        }
+    }, [fetchNearby]);
 
     const fetchInBounds = useCallback(async (bounds: MapBounds) => {
         setIsLoading(true);
         setFetchError(null);
         setShowSearchArea(false);
         try {
-            const [verifiedResult, osmResult] = await Promise.allSettled([
+            const centerLat = bounds.center.lat;
+            const centerLng = bounds.center.lng;
+            const radiusKm = 15;
+            const [verifiedResult, osmResult, ashaResult] = await Promise.allSettled([
                 fetchVerifiedPharmaciesInBounds(
                     bounds.south,
                     bounds.west,
@@ -340,6 +363,7 @@ export default function PharmacyMapPage() {
                     bounds.east
                 ),
                 fetchPharmaciesInBounds(bounds.south, bounds.west, bounds.north, bounds.east),
+                fetchNearbyAshaWorkers(centerLat, centerLng, radiusKm),
             ]);
 
             const verified =
@@ -347,6 +371,8 @@ export default function PharmacyMapPage() {
                     ? verifiedResult.value.map((vp, i) => toVerifiedPharmacy(vp, -(i + 1)))
                     : [];
             const osm = osmResult.status === "fulfilled" ? osmResult.value.map(toPharmacy) : [];
+            const asha =
+                ashaResult.status === "fulfilled" ? ashaResult.value.map(toAshaWorker) : [];
 
             const dedupedOsm = deduplicateOsm(verified, osm);
             const merged = [...verified, ...dedupedOsm].sort((a, b) => {
@@ -363,6 +389,7 @@ export default function PharmacyMapPage() {
             }
 
             setPharmacies(merged);
+            setAshaWorkers(asha);
             setPharmacyCount(merged.length);
         } catch (err) {
             console.error("Critical error in bound pharmacy rendering:", err);
@@ -373,7 +400,7 @@ export default function PharmacyMapPage() {
         }
     }, []);
 
-     // Geolocation
+    // Geolocation
     const handleLocateUser = useCallback(() => {
         if (!navigator.geolocation) {
             setLocationError("Geolocation is not supported by your browser");
@@ -403,11 +430,11 @@ export default function PharmacyMapPage() {
         );
     }, [fetchNearby]);
 
-const handleMapReady = useCallback(() => {
-    if (!initialFetchDone.current) {
-        fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
-    }
-}, [fetchNearby]);
+    const handleMapReady = useCallback(() => {
+        if (!initialFetchDone.current) {
+            fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
+        }
+    }, [fetchNearby]);
 
     const handleMapMoveEnd = useCallback((bounds: MapBounds) => {
         if (initialFetchDone.current) {
@@ -457,30 +484,39 @@ const handleMapReady = useCallback(() => {
     };
 
     const filters = [
-        { id: "all", label: "All Stores", activeClass: "bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white shadow-md" },
+        {
+            id: "all",
+            label: "All Stores",
+            activeClass:
+                "bg-emerald-600 text-white shadow-lg shadow-emerald-200/70 ring-1 ring-emerald-500/20 dark:bg-emerald-500 dark:text-slate-950 dark:shadow-emerald-950/20",
+        },
         {
             id: "verified",
             label: "Verified Partners",
             icon: <Shield size={11} className="text-current" />,
-            activeClass: "bg-emerald-600 text-white shadow-md shadow-emerald-200 dark:shadow-emerald-950/20",
+            activeClass:
+                "bg-emerald-600 text-white shadow-lg shadow-emerald-200/70 ring-1 ring-emerald-500/20 dark:bg-emerald-500 dark:text-slate-950 dark:shadow-emerald-950/20",
         },
         {
             id: "govt",
             label: "Jan Aushadhi",
             icon: <Globe size={11} />,
-            activeClass: "bg-emerald-600 text-white shadow-md shadow-emerald-200 dark:shadow-emerald-950/20",
+            activeClass:
+                "bg-teal-600 text-white shadow-lg shadow-teal-200/70 ring-1 ring-teal-500/20 dark:bg-teal-400 dark:text-slate-950 dark:shadow-teal-950/20",
         },
         {
             id: "named",
             label: "Named Only",
             icon: <Star size={11} className="fill-current" />,
-            activeClass: "bg-amber-500 text-white shadow-md shadow-amber-200 dark:shadow-amber-950/20",
+            activeClass:
+                "bg-amber-500 text-white shadow-lg shadow-amber-200/70 ring-1 ring-amber-500/20 dark:bg-amber-400 dark:text-slate-950 dark:shadow-amber-950/20",
         },
         {
             id: "more",
             label: "Filters",
             icon: <Filter size={11} />,
-            activeClass: "bg-(--color-surface-muted) text-(--color-text-secondary)",
+            activeClass:
+                "bg-slate-900 text-white shadow-lg shadow-slate-300/60 ring-1 ring-slate-900/10 dark:bg-slate-100 dark:text-slate-950 dark:shadow-slate-950/30",
         },
     ] as const;
 
@@ -520,128 +556,147 @@ const handleMapReady = useCallback(() => {
     };
 
     return (
-        <div className="flex h-screen flex-col overflow-hidden bg-(--color-surface-muted) font-sans">
+        <div className="flex h-screen flex-col overflow-hidden bg-(--color-surface-muted) font-sans dark:bg-[#0d1117]">
             <h1 className="sr-only">Pharmacy Map — Find Verified Pharmacies Near You</h1>
 
             {/* ── Header with search ── */}
-            <PageHeader backHref="/" variant="light">
+            <PageHeader
+                backHref="/"
+                variant="light"
+                contentClassName="mx-auto w-full max-w-4xl justify-start rounded-[1.65rem] border border-(--color-border-muted) bg-(--color-surface-page)/95 p-1.5 shadow-[0_18px_52px_-34px_rgba(15,23,42,0.75)] ring-1 ring-white/80 backdrop-blur-xl dark:bg-slate-950/90 dark:ring-white/5"
+                backButtonClassName="border border-transparent bg-emerald-50 text-emerald-700 shadow-sm hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/70"
+                rightActionsClassName="hidden"
+            >
                 <div
-                    className="flex flex-1 items-center rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-2 transition-all focus-within:border-emerald-500 focus-within:bg-(--color-surface-page)"
-                    role="search"
+                    data-testid="pharmacy-map-command-bar"
+                    className="flex min-w-0 flex-1 items-center"
                 >
-                    <Search size={17} className="shrink-0 text-(--color-text-muted)" aria-hidden />
-                    <input
-                        type="text"
-                        placeholder="Search verified pharmacies..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full border-none bg-transparent px-3 py-1.5 text-sm font-medium text-(--color-text-primary) outline-none placeholder:text-(--color-text-muted)"
-                        aria-label="Search verified pharmacies"
-                    />
-                    {searchQuery && (
-                        <button
-                            onClick={() => setSearchQuery("")}
-                            className="shrink-0 text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
-                        >
-                            <X size={15} />
-                        </button>
-                    )}
+                    <div
+                        data-testid="pharmacy-map-search"
+                        className="flex min-w-0 flex-1 items-center rounded-[1.35rem] border border-transparent bg-(--color-surface-muted) px-3 py-2 transition-all duration-200 focus-within:border-emerald-400 focus-within:bg-(--color-surface-page) focus-within:ring-4 focus-within:ring-emerald-500/10 sm:px-4 md:max-w-[42rem]"
+                        role="search"
+                    >
+                        <Search
+                            size={17}
+                            className="shrink-0 text-(--color-text-muted)"
+                            aria-hidden
+                        />
+                        <input
+                            type="text"
+                            placeholder="Search verified pharmacies..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="min-w-0 flex-1 border-none bg-transparent px-3 py-1.5 text-sm font-semibold text-(--color-text-primary) outline-none placeholder:text-(--color-text-muted)"
+                            aria-label="Search verified pharmacies"
+                        />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery("")}
+                                className="shrink-0 rounded-full p-1 text-(--color-text-muted) transition-colors hover:bg-(--color-surface-muted) hover:text-(--color-text-primary)"
+                                aria-label="Clear pharmacy search"
+                            >
+                                <X size={15} />
+                            </button>
+                        )}
+                    </div>
                 </div>
             </PageHeader>
 
             {/* ── Filter chips ── */}
-            <div className="relative z-20 border-b border-(--color-border-muted) bg-(--color-surface-page) p-4 pt-0 pb-4 shadow-sm">
-                <div
-                    className="no-scrollbar flex gap-2 overflow-x-auto pb-1"
-                    role="group"
-                    aria-label="Filter pharmacies"
-                >
-                    {filters.map((f) => (
-                        <button
-                            key={f.id}
-                            onClick={() => {
-                                if (f.id === "more") setShowFilterPanel((open) => !open);
-                                else setActiveFilter(f.id as any);
-                            }}
-                            aria-pressed={
-                                f.id === "more"
-                                    ? showFilterPanel || activeAdvancedFilterCount > 0
-                                    : activeFilter === f.id
-                            }
-                            aria-expanded={f.id === "more" ? showFilterPanel : undefined}
-                            className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold whitespace-nowrap transition-all ${
-                                (
-                                    f.id === "more"
-                                        ? activeAdvancedFilterCount > 0
-                                        : activeFilter === f.id
-                                )
-                                    ? f.activeClass
-                                    : "bg-(--color-surface-muted) text-(--color-text-secondary) hover:bg-(--color-border-muted)"
-                            }`}
-                        >
-                            {"icon" in f && f.icon}
-                            {f.label}
-                            {f.id === "more" && activeAdvancedFilterCount > 0 && (
-                                <span className="ml-0.5 rounded-full bg-(--color-text-primary) px-1.5 py-0.5 text-[9px] text-(--color-surface-page)">
-                                    {activeAdvancedFilterCount}
-                                </span>
-                            )}
-                        </button>
-                    ))}
-                </div>
-
-                {showFilterPanel && (
-                    <div className="absolute top-[calc(100%-0.5rem)] right-4 left-4 z-30 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-3 shadow-xl md:right-auto md:w-80">
-                        <div className="mb-2 flex items-center justify-between">
-                            <p className="text-xs font-bold text-(--color-text-primary)">Filters</p>
+            <div
+                data-testid="pharmacy-filter-shell"
+                className="relative z-20 border-b border-(--color-border-muted) bg-(--color-surface-page) px-4 pt-0 pb-4 shadow-[0_12px_34px_-30px_rgba(15,23,42,0.65)]"
+            >
+                <div className="mx-auto w-full max-w-4xl rounded-[1.35rem] border border-(--color-border-muted) bg-(--color-surface-page)/90 p-2 shadow-sm ring-1 ring-white/70 backdrop-blur dark:ring-white/5">
+                    <div
+                        className="no-scrollbar flex gap-2 overflow-x-auto p-0.5"
+                        role="group"
+                        aria-label="Filter pharmacies"
+                    >
+                        {filters.map((f) => (
                             <button
-                                onClick={() =>
-                                    setAdvancedFilters({
-                                        hasAddress: false,
-                                        hasPhone: false,
-                                        withinFiveKm: false,
-                                    })
+                                key={f.id}
+                                onClick={() => {
+                                    if (f.id === "more") setShowFilterPanel((open) => !open);
+                                    else setActiveFilter(f.id as any);
+                                }}
+                                aria-pressed={
+                                    f.id === "more"
+                                        ? showFilterPanel || activeAdvancedFilterCount > 0
+                                        : activeFilter === f.id
                                 }
-                                className="text-[11px] font-semibold text-(--color-text-secondary) transition-colors hover:text-(--color-text-primary)"
+                                aria-expanded={f.id === "more" ? showFilterPanel : undefined}
+                                className={`flex shrink-0 items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-bold whitespace-nowrap transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 ${
+                                    (
+                                        f.id === "more"
+                                            ? activeAdvancedFilterCount > 0
+                                            : activeFilter === f.id
+                                    )
+                                        ? `border-transparent ${f.activeClass}`
+                                        : "border-(--color-border-muted) bg-(--color-surface-muted)/80 text-(--color-text-secondary) hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 hover:shadow-sm dark:hover:border-emerald-900 dark:hover:bg-emerald-950/30 dark:hover:text-emerald-300"
+                                }`}
                             >
-                                Clear
+                                {"icon" in f && f.icon}
+                                {f.label}
+                                {f.id === "more" && activeAdvancedFilterCount > 0 && (
+                                    <span className="ml-0.5 rounded-full bg-white/20 px-1.5 py-0.5 text-[9px] text-current ring-1 ring-white/30">
+                                        {activeAdvancedFilterCount}
+                                    </span>
+                                )}
                             </button>
-                        </div>
-                        <div className="space-y-2">
-                            {[
-                                ["hasAddress", "Has address details"],
-                                ["hasPhone", "Has phone number"],
-                                ["withinFiveKm", "Within 5 km"],
-                            ].map(([key, label]) => (
-                                <label
-                                    key={key}
-                                    className="flex cursor-pointer items-center justify-between rounded-xl bg-(--color-surface-muted) px-3 py-2 text-xs font-semibold text-(--color-text-secondary) hover:bg-(--color-border-muted)"
-                                >
-                                    <span>{label}</span>
-                                    <input
-                                        type="checkbox"
-                                        checked={advancedFilters[key as keyof AdvancedFilters]}
-                                        onChange={() =>
-                                            updateAdvancedFilter(key as keyof AdvancedFilters)
-                                        }
-                                        className="h-4 w-4 accent-emerald-600"
-                                    />
-                                </label>
-                            ))}
-                        </div>
+                        ))}
                     </div>
-                )}
 
-                {/* Results count bar */}
-                <div className="mt-2 flex items-center gap-2 px-1">
-                    <p className="text-[11px] font-medium text-(--color-text-muted)">
+                    {showFilterPanel && (
+                        <div className="absolute top-[calc(100%-0.5rem)] right-4 left-4 z-30 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-3 shadow-xl md:right-auto md:w-80">
+                            <div className="mb-2 flex items-center justify-between">
+                                <p className="text-xs font-bold text-(--color-text-primary)">
+                                    Filters
+                                </p>
+                                <button
+                                    onClick={() =>
+                                        setAdvancedFilters({
+                                            hasAddress: false,
+                                            hasPhone: false,
+                                            withinFiveKm: false,
+                                        })
+                                    }
+                                    className="text-[11px] font-semibold text-(--color-text-secondary) transition-colors hover:text-(--color-text-primary)"
+                                >
+                                    Clear
+                                </button>
+                            </div>
+                            <div className="space-y-2">
+                                {[
+                                    ["hasAddress", "Has address details"],
+                                    ["hasPhone", "Has phone number"],
+                                    ["withinFiveKm", "Within 5 km"],
+                                ].map(([key, label]) => (
+                                    <label
+                                        key={key}
+                                        className="flex cursor-pointer items-center justify-between rounded-xl bg-(--color-surface-muted) px-3 py-2 text-xs font-semibold text-(--color-text-secondary) hover:bg-(--color-border-muted)"
+                                    >
+                                        <span>{label}</span>
+                                        <input
+                                            type="checkbox"
+                                            checked={advancedFilters[key as keyof AdvancedFilters]}
+                                            onChange={() =>
+                                                updateAdvancedFilter(key as keyof AdvancedFilters)
+                                            }
+                                            className="h-4 w-4 accent-emerald-600"
+                                        />
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Results count bar */}
+                    <div className="mt-2 flex min-h-10 items-center gap-2 px-1">
                         {isLoading ? (
-                            <span className="flex items-center gap-1.5">
-                                <Loader2 size={10} className="animate-spin" />
-                                Fetching pharmacies…
-                            </span>
+                            <MapHeaderLoadingIndicator />
                         ) : (
-                            <>
+                            <p className="text-[11px] font-semibold text-(--color-text-muted)">
                                 {filteredPharmacies.length} pharmacies found
                                 {searchQuery && <> for &ldquo;{searchQuery}&rdquo;</>}
                                 {pharmacyCount > 0 && (
@@ -651,9 +706,9 @@ const handleMapReady = useCallback(() => {
                                             : " • Live from OSM"}
                                     </span>
                                 )}
-                            </>
+                            </p>
                         )}
-                    </p>
+                    </div>
                 </div>
             </div>
 
@@ -678,6 +733,7 @@ const handleMapReady = useCallback(() => {
                     >
                         <PharmacyMap
                             pharmacies={filteredPharmacies}
+                            ashaWorkers={ashaWorkers}
                             selectedPharmacyId={selectedPharmacyId}
                             userLocation={userLocation}
                             onMapMoveEnd={handleMapMoveEnd}
@@ -728,17 +784,17 @@ const handleMapReady = useCallback(() => {
                                         ? "animate-pulse bg-emerald-500/10 text-emerald-600"
                                         : userLocation
                                           ? "bg-emerald-600 text-white hover:bg-emerald-700"
-                                          : "bg-(--color-surface-page) text-emerald-600 hover:text-emerald-500 dark:hover:text-emerald-400 hover:shadow-xl"
+                                          : "bg-(--color-surface-page) text-emerald-600 hover:text-emerald-500 hover:shadow-xl dark:hover:text-emerald-400"
                                 }`}
                                 aria-label="Find my location"
                                 title="Find my location"
-                             >
+                            >
                                 <Navigation size={20} />
                             </button>
                         </div>
 
                         {(locationError || fetchError) && (
-                            <div className="animate-in slide-in-from-top-2 absolute top-4 right-16 left-4 z-1000 rounded-2xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20 px-4 py-3 text-xs font-semibold text-red-700 dark:text-red-400 shadow-lg duration-300">
+                            <div className="animate-in slide-in-from-top-2 absolute top-4 right-16 left-4 z-1000 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700 shadow-lg duration-300 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-400">
                                 {locationError || fetchError}
                             </div>
                         )}

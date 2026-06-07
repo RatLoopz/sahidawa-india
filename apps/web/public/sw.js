@@ -29,7 +29,20 @@ const ASSETS_CACHE_NAME = `sahidawa-assets-${CACHE_VERSION}`;
 const TILES_CACHE_NAME = `sahidawa-tiles-${CACHE_VERSION}`;
 
 /** Pages to pre-cache on install so they are available offline immediately */
-const PRECACHE_PAGES = ["/", "/en", "/hi", "/en/offline", "/hi/offline"];
+const PRECACHE_PAGES = [
+    "/",
+    "/en",
+    "/hi",
+    "/gu",
+    "/ta",
+    "/bn",
+    "/mr",
+    "/te",
+    "/en/offline",
+    "/hi/offline",
+    "/gu/offline",
+    "/ta/offline",
+];
 
 /** Maximum age (ms) for a stale API response before forcing a network refresh */
 const API_CACHE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutes
@@ -280,7 +293,15 @@ async function networkFirstWithCache(request, cacheName) {
     const cache = await caches.open(cacheName);
 
     try {
-        const networkResponse = await fetch(request);
+        // 8s timeout for API calls — important for slow networks
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+        const networkResponse = await fetch(request, {
+            signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
         if (networkResponse.ok) {
             cache.put(request, networkResponse.clone()).catch(() => {});
         }

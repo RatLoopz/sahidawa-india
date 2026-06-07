@@ -1,7 +1,6 @@
 # Contributing to SahiDawa 🩺
 
 > **⚠️ CRITICAL RULE FOR CONTRIBUTORS: We have a strict assignment policy. You MUST request assignment on an issue and wait for a maintainer to assign you before writing any code. Any Pull Requests submitted without assignment will be closed automatically to prevent duplicate work.**
-> 
 
 Thank you for wanting to contribute to SahiDawa! Every PR you submit helps protect a real person from a fake medicine. Read this guide fully before submitting your first contribution — it will save you time and help your PR get merged faster.
 
@@ -103,17 +102,63 @@ git push origin feat/your-feature-name
 
 ---
 
+## 🛑 Git Best Practices: Keeping Your PR Clean
+
+One of the biggest reasons PRs get rejected or delayed is because they include **unrelated files**. A PR that is supposed to fix a 1-line bug should not have 20 files changed.
+
+### 1. DO NOT use `git add .` blindly
+
+Always check what you are committing:
+
+```bash
+# Good: Check what changed first
+git status
+
+# Good: Add only the specific files you edited
+git add apps/web/components/MyComponent.tsx
+
+# Bad: Adds everything, including files you didn't mean to change
+git add .
+```
+
+### 2. How to fix a messy branch (Reverting unrelated files)
+
+If you accidentally modified or formatted files that have nothing to do with your issue, **do not commit them**. If you already committed them, you can revert those specific files back to how they look in `main`:
+
+```bash
+# Make sure your main is up to date first
+git fetch upstream
+
+# Revert a specific file back to its state in the main branch
+git checkout upstream/main -- path/to/unrelated_file.ts
+
+# Then commit the fix
+git commit -m "chore: revert unrelated file"
+```
+
+### 3. Always branch from an up-to-date `main`
+
+Never branch off another feature branch or an outdated `main` branch.
+
+```bash
+git checkout main
+git pull upstream main
+git checkout -b feat/my-new-branch
+```
+
+---
+
 ## Development Setup
 
 ### Requirements
 
-| Tool    | Version    | Install                            |
-| ------- | ---------- | ---------------------------------- |
-| Node.js | >= 18.0.0  | [nodejs.org](https://nodejs.org)   |
-| Python  | >= 3.10    | [python.org](https://python.org)   |
-| Docker  | >= 24.0    | [docker.com](https://docker.com)   |
-| Git     | Any recent | [git-scm.com](https://git-scm.com) |
-| Supabase CLI | Latest | [supabase.com](https://supabase.com/docs/guides/cli/getting-started) |
+| Tool         | Version    | Install                                                              |
+| ------------ | ---------- | -------------------------------------------------------------------- |
+| Node.js      | >= 18.0.0  | [nodejs.org](https://nodejs.org)                                     |
+| Python       | >= 3.10    | [python.org](https://python.org)                                     |
+| Docker       | >= 24.0    | [docker.com](https://docker.com)                                     |
+| Git          | Any recent | [git-scm.com](https://git-scm.com)                                   |
+| Supabase CLI | Latest     | [supabase.com](https://supabase.com/docs/guides/cli/getting-started) |
 
 ### Environment Variables
 
@@ -268,6 +313,7 @@ Example:
 - Write tests in `apps/api/tests/`
 
 **Swagger/OpenAPI Documentation**
+
 - **Access Instructions:** You can open the interactive Swagger UI at `http://localhost:4000/api/docs` while the API is running.
 - **Backend Guidelines:** When adding new API routes to `apps/api/src/routes/`, use the `@openapi` JSDoc annotations to document the request/response schemas.
 - **Frontend Benefit:** Frontend developers can use this UI instead of Postman to explore and test endpoints directly from the browser.
@@ -313,18 +359,16 @@ Example:
 
 ```typescript
 // ✅ Good — typed, descriptive, handles errors
-async function verifyMedicine(
-  batchNumber: string,
-): Promise<VerificationResult> {
-  if (!batchNumber || batchNumber.length < 4) {
-    throw new ValidationError("Invalid batch number");
-  }
-  // ...
+async function verifyMedicine(batchNumber: string): Promise<VerificationResult> {
+    if (!batchNumber || batchNumber.length < 4) {
+        throw new ValidationError("Invalid batch number");
+    }
+    // ...
 }
 
 // ❌ Bad — untyped, vague name, no error handling
 async function check(b: any) {
-  // ...
+    // ...
 }
 ```
 

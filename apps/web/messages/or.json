@@ -21,6 +21,7 @@
         "ai_chat": "AI ଚାଟ୍",
         "ai_health_assistant_description": "ତୁରନ୍ତ ସ୍ୱାସ୍ଥ୍ୟ ପରାମର୍ଶ, ଲକ୍ଷଣ ଯାଞ୍ଚ ଏବଂ ପ୍ରେସ୍କ୍ରିପ୍ସନ୍ ମାର୍ଗଦର୍ଶନ ପାଆନ୍ତୁ",
         "chat_now": "ଏବେ ଚାଟ୍ କରନ୍ତୁ",
+        "explore_features": "ବୈଶିଷ୍ଟ୍ୟ ଅନୁସନ୍ଧାନ କରନ୍ତୁ",
         "live_cdsco_alerts": "ଲାଇଭ୍ CDSCO ସତର୍କ ସୂଚନା",
         "india_region": "ଭାରତ ଅଞ୍ଚଳ",
         "alerts_empty_title": "ସବୁ ଠିକ୍ ଅଛି!",
@@ -142,8 +143,13 @@
             "generic_title": "କିଛି ଅସୁବିଧା ହେଲା",
             "generic_message": "ବର୍ତ୍ତମାନ ଆମେ ଆପଣଙ୍କ ଭଏସ୍ ଇନପୁଟ୍ ପ୍ରକ୍ରିୟାକରଣ କରି ପାରିଲୁ ନାହିଁ । ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ ।",
             "api_title": "SahiDawa AI ଅନୁପଲବ୍ଧ",
-            "api_message": "ଆମେ ବର୍ତ୍ତମାନ ଚିକିତ୍ସା ମାର୍ଗଦର୍ଶନ ଆଣି ପାରୁ ନାହୁଁ । ଦୟାକରି କିଛି ସମୟ ପରେ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ ।"
-        }
+            "api_message": "ଆମେ ବର୍ତ୍ତମାନ ଚିକିତ୍ସା ମାର୍ଗଦର୍ଶନ ଆଣି ପାରୁ ନାହୁଁ । ଦୟାକରି କିଛି ସମୟ ପରେ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ ।",
+            "service_unavailable_title": "Voice service unavailable",
+            "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
+            "timeout_title": "Voice request timed out",
+            "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input."
+        },
+        "switch_to_text_button": "Type Instead"
     },
     "offline": {
         "bannerOffline": "ଆପଣ ଅଫ‌ଲାଇନ୍ ଅଛନ୍ତି",
@@ -313,5 +319,323 @@
                 "answer": "CDSCO ର ଅର୍ଥ Central Drugs Standard Control Organisation। ଏହା କସ୍ମେଟିକ୍ସ, ଔଷଧ ଏବଂ ଚିକିତ୍ସା ଉପକରଣ ପାଇଁ ଭାରତର ଜାତୀୟ ନିୟାମକ ସଂସ୍ଥା। SahiDawa ସେମାନଙ୍କର ଅଧିକୃତ ଡାଟାବେସ୍ ସହିତ ଔଷଧଗୁଡ଼ିକୁ ଯାଞ୍ଚ କରେ।"
             }
         }
+    },
+    "Scan": {
+        "share": {
+            "avoid_and_report": "Please avoid and report to your nearest health worker.",
+            "batch_label": "Batch",
+            "button": "Share Result",
+            "copy_success": "Result copied to clipboard",
+            "failure": "Unable to share this result right now",
+            "manufacturer_label": "Manufacturer",
+            "real_status": "Verified REAL",
+            "shared_success": "Result shared successfully",
+            "suspicious_status": "Marked SUSPICIOUS",
+            "title": "SahiDawa Medicine Verification Result",
+            "unknown_batch": "Unknown batch",
+            "unknown_manufacturer": "Unknown manufacturer",
+            "unknown_medicine": "Unknown medicine",
+            "verified_by": "by SahiDawa",
+            "verify_yourself": "Verify yourself",
+            "warning_prefix": "WARNING"
+        }
+    },
+    "chat": {
+        "actions": {
+            "pharmacy": {
+                "description": "Locate verified stores",
+                "label": "Find Pharmacy"
+            },
+            "scan": {
+                "description": "Verify authenticity",
+                "label": "Scan Medicine"
+            },
+            "symptoms": {
+                "description": "AI-assisted guidance",
+                "label": "Check Symptoms"
+            }
+        },
+        "footer": "For informational use only • Consult a doctor",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "quick_actions": "Quick actions",
+        "welcome": "Namaste, I'm SahiDawa, your trusted health companion. I can help you verify medicines, understand symptoms, or find nearby care. What would you like help with today?"
+    },
+    "chatbot": {
+        "placeholder": "Ask me about a medicine...",
+        "status": "Online",
+        "title": "SahiDawa AI",
+        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"
+    },
+    "Alerts": {
+        "backHome": "ମୁଖ୍ୟ ପୃଷ୍ଠାକୁ ଫେରନ୍ତୁ",
+        "badge": "ସଜୀବ ସତର୍କବାର୍ତ୍ତା",
+        "title": "ସଜୀବ CDSCO ସତର୍କବାର୍ତ୍ତା",
+        "subtitle": "CDSCO ରେଜିଷ୍ଟ୍ରି ସହ ସିଧାସଳଖ ସଂଯୁକ୍ତ ସମ୍ପୂର୍ଣ୍ଣ ଐତିହାସିକ ସୁରକ୍ଷା ଲଗ୍।",
+        "regionBadge": "ଭାରତ ଅଞ୍ଚଳ",
+        "totalCount": "ମୋଟ ସଂଖ୍ୟା: {count}",
+        "brandPlaceholder": "ବ୍ରାଣ୍ଡ ନାମ ଦ୍ୱାରା ଖୋଜନ୍ତୁ...",
+        "regionPlaceholder": "ରାଜ୍ୟ/ଜିଲ୍ଲା ଅନୁଯାୟୀ ଫିଲ୍ଟର କରନ୍ତୁ...",
+        "error": "ସକ୍ରିୟ ଲଗ୍ ପ୍ରାପ୍ତ କରିବା ସମୟରେ ଡାଟାବେସ୍ ସମନ୍ୱୟ ତ୍ରୁଟି ଘଟିଛି।",
+        "loading": "ସତର୍କବାର୍ତ୍ତା ଲୋଡ୍ ହେଉଛି...",
+        "systemUpdate": "ସିଷ୍ଟମ୍ ଅଦ୍ୟତନ",
+        "alertType": "ସତର୍କବାର୍ତ୍ତା: {type}",
+        "noDetails": "କୌଣସି ବିବରଣୀ ଉପଲବ୍ଧ ନାହିଁ",
+        "batchLabel": "ବ୍ୟାଚ୍:",
+        "manufacturerLabel": "ଉତ୍ପାଦକ:",
+        "regionLabel": "ଅଞ୍ଚଳ:",
+        "empty": "ଆପଣଙ୍କ ମାନଦଣ୍ଡ ସହ ମେଳ ଖାଉଥିବା କୌଣସି ସ୍ୱାସ୍ଥ୍ୟ ସତର୍କବାର୍ତ୍ତା ମିଳିଲା ନାହିଁ।",
+        "previous": "ପୂର୍ବ",
+        "next": "ପରବର୍ତ୍ତୀ"
+    },
+    "Compare": {
+        "pageTitle": "ଔଷଧ ତୁଳନା କରନ୍ତୁ",
+        "pageSubtitle": "ବ୍ରାଣ୍ଡ ଏବଂ ଜେନେରିକ ଔଷଧର ପାର୍ଶ୍ୱ ତୁଳନା",
+        "firstMedicine": "ପ୍ରଥମ ଔଷଧ",
+        "secondMedicine": "ଦ୍ୱିତୀୟ ଔଷଧ",
+        "searchPlaceholder": "ବ୍ରାଣ୍ଡ କିମ୍ବା ଜେନେରିକ ନାମ ଖୋଜନ୍ତୁ",
+        "findPharmacies": "ଫାର୍ମାସି ଖୋଜନ୍ତୁ",
+        "emptyComparison": "ତୁଳନା ଦେଖିବା ପାଇଁ ଉପରୁ ଦୁଇଟି ଔଷଧ ବାଛନ୍ତୁ।",
+        "fieldHeader": "କ୍ଷେତ୍ର",
+        "medicineA": "ଔଷଧ A",
+        "medicineB": "ଔଷଧ B",
+        "priceUnavailable": "ମୂଲ୍ୟ ଉପଲବ୍ଧ ନାହିଁ",
+        "noSavings": "କୌଣସି ସଞ୍ଚୟ ନାହିଁ",
+        "saveAmount": "₹{amount} ସଞ୍ଚୟ ({percent}%)",
+        "rows": {
+            "brandName": "ବ୍ରାଣ୍ଡ ନାମ",
+            "genericName": "ଜେନେରିକ ନାମ",
+            "composition": "ସଂରଚନା",
+            "manufacturer": "ଉତ୍ପାଦକ",
+            "type": "ପ୍ରକାର",
+            "cdscoStatus": "CDSCO ସ୍ଥିତି",
+            "expiryDate": "ମିଆଦ ଶେଷ ତାରିଖ",
+            "marketPrice": "ବଜାର ମୂଲ୍ୟ (MRP)",
+            "janAushadhiPrice": "ଜନ ଔଷଧି ମୂଲ୍ୟ",
+            "savings": "MRP ତୁଳନାରେ ସଞ୍ଚୟ"
+        },
+        "medicineTypes": {
+            "brand": "ବ୍ରାଣ୍ଡ",
+            "generic": "ଜେନେରିକ"
+        },
+        "status": {
+            "approved": "ଅନୁମୋଦିତ",
+            "recalled": "ପ୍ରତ୍ୟାହୃତ",
+            "banned": "ନିଷିଦ୍ଧ"
+        }
+    },
+    "ExpiryTracker": {
+        "title": "ଔଷଧ ମିଆଦ ଟ୍ରାକର",
+        "subtitle": "ଆପଣଙ୍କ ଔଷଧ ଭଣ୍ଡାରକୁ ସ୍ଥାନୀୟ ଭାବରେ ପରିଚାଳନା ଏବଂ ଟ୍ରାକ୍ କରନ୍ତୁ",
+        "addMedicine": "ଔଷଧ ଯୋଡନ୍ତୁ",
+        "name": "ନାମ",
+        "expiryDate": "ମିଆଦ ଶେଷ ତାରିଖ",
+        "batchNumber": "ବ୍ୟାଚ୍ ନମ୍ବର (ଇଚ୍ଛାଧୀନ)",
+        "batchPlaceholder": "ଉଦାହରଣ: B12345",
+        "namePlaceholder": "ଉଦାହରଣ: ପାରାସିଟାମଲ",
+        "addToTracker": "ଟ୍ରାକରରେ ଯୋଡନ୍ତୁ",
+        "trackedMedicines": "ଟ୍ରାକ୍ କରାଯାଇଥିବା ଔଷଧ",
+        "total": "ମୋଟ",
+        "noMedicines": "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ଔଷଧ ଯୋଡାଯାଇନାହିଁ।",
+        "loading": "ଟ୍ରାକର ତଥ୍ୟ ଲୋଡ୍ ହେଉଛି...",
+        "searchPlaceholder": "ଔଷଧ ଖୋଜନ୍ତୁ...",
+        "sortBy": "କ୍ରମବଦ୍ଧ କରନ୍ତୁ",
+        "sortExpirySoonest": "ମିଆଦ ତାରିଖ (ଶୀଘ୍ରତମ)",
+        "sortExpiryLatest": "ମିଆଦ ତାରିଖ (ବିଳମ୍ବିତ)",
+        "sortAlpha": "ନାମ (ଅ-ହ)",
+        "filterAll": "ସମସ୍ତ",
+        "filterExpired": "ମିଆଦ ଶେଷ",
+        "filterExpiringSoon": "ଶୀଘ୍ର ମିଆଦ ଶେଷ ହେବ",
+        "filterSafe": "ସୁରକ୍ଷିତ",
+        "exportBackup": "ବ୍ୟାକଅପ୍ ରପ୍ତାନି କରନ୍ତୁ",
+        "importBackup": "ବ୍ୟାକଅପ୍ ଆମଦାନି କରନ୍ତୁ",
+        "importError": "ଅବୈଧ ବ୍ୟାକଅପ୍ ଫାଇଲ୍। ଦୟାକରି ବୈଧ JSON ବ୍ୟାକଅପ୍ ଅପଲୋଡ୍ କରନ୍ତୁ।",
+        "statusExpired": "ମିଆଦ ଶେଷ",
+        "statusExpiringSoon": "ଶୀଘ୍ର ମିଆଦ ଶେଷ ହେବ ({days} ଦିନ)",
+        "statusSafe": "ସୁରକ୍ଷିତ"
+    },
+    "Login": {
+        "brandSubtitle": "ଔଷଧ ସୁରକ୍ଷା ପ୍ଲାଟଫର୍ମ",
+        "heading": "ପୁନର୍ବାର ସ୍ୱାଗତ",
+        "description": "ଔଷଧ ସୁରକ୍ଷା ରିପୋର୍ଟ ଏବଂ ଯାଞ୍ଚ ଫଳାଫଳ ଟ୍ରାକ୍ କରିବା ପାଇଁ ସାଇନ୍ ଇନ୍ କରନ୍ତୁ।",
+        "missingConfig": {
+            "title": "ପ୍ରମାଣୀକରଣ ବିନ୍ୟାସିତ ହୋଇନାହିଁ",
+            "description": "Supabase URL କିମ୍ବା anon key ଉପଲବ୍ଧ ନାହିଁ। ସାଇନ୍ ଇନ୍ କରିବା ପୂର୍ବରୁ environment variables ଯୋଡନ୍ତୁ।"
+        },
+        "googleButton": "Google ସହ ଜାରି ରଖନ୍ତୁ",
+        "emailSeparator": "କିମ୍ବା ଇମେଲ୍ ସହ ଜାରି ରଖନ୍ତୁ",
+        "emailLabel": "ଇମେଲ୍ ଠିକଣା",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "ପାସୱାର୍ଡ",
+        "passwordPlaceholder": "ଆପଣଙ୍କ ପାସୱାର୍ଡ ଲେଖନ୍ତୁ",
+        "signingIn": "ସାଇନ୍ ଇନ୍ ହେଉଛି...",
+        "signIn": "ସାଇନ୍ ଇନ୍ କରନ୍ତୁ",
+        "footerPrompt": "ଫେରିବାକୁ ଚାହୁଁଛନ୍ତି କି?",
+        "returnHome": "ମୁଖ୍ୟ ପୃଷ୍ଠାକୁ ଫେରନ୍ତୁ",
+        "bottomText": "SahiDawa ସମୁଦାୟ ଉପକରଣ ପାଇଁ ସୁରକ୍ଷିତ ପ୍ରବେଶ।",
+        "errors": {
+            "databaseNotConfigured": "ଏହି ପରିବେଶ ପାଇଁ ପ୍ରମାଣୀକରଣ ବିନ୍ୟାସିତ ହୋଇନାହିଁ।",
+            "generic": "ସାଇନ୍ ଇନ୍ କରିବାରେ ବିଫଳ। ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।"
+        }
+    },
+    "AdminLayout": {
+        "accessDeniedTitle": "ପ୍ରବେଶ ଅସ୍ୱୀକୃତ",
+        "accessDeniedDescription": "ଏହି ପୃଷ୍ଠା ଦେଖିବା ପାଇଁ ଆପଣଙ୍କୁ ଆଡମିନ୍ କିମ୍ବା ମଡେରେଟର ଅନୁମତି ଆବଶ୍ୟକ।",
+        "returnHome": "ମୁଖ୍ୟ ପୃଷ୍ଠାକୁ ଫେରନ୍ତୁ"
+    },
+    "AdminDashboard": {
+        "brandSuffix": "ଆଡମିନ୍",
+        "version": "SahiDawa ଆଡମିନ୍ v1.0",
+        "nav": {
+            "reports": "ରିପୋର୍ଟଗୁଡ଼ିକ",
+            "medicine": "ଔଷଧ ମାଷ୍ଟର",
+            "logs": "ଅଡିଟ୍ ଲଗ୍"
+        },
+        "header": {
+            "title": "ମଡରେସନ୍ ଡ୍ୟାସବୋର୍ଡ",
+            "subtitle": "ସମୁଦାୟ ଦ୍ୱାରା ରିପୋର୍ଟ ହୋଇଥିବା ନକଲି ଔଷଧଗୁଡ଼ିକୁ ପରିଚାଳନା କରନ୍ତୁ"
+        },
+        "searchPlaceholder": "ଖୋଜନ୍ତୁ...",
+        "actions": {
+            "signIn": "ସାଇନ୍ ଇନ୍ କରନ୍ତୁ",
+            "refresh": "ରିଫ୍ରେଶ କରନ୍ତୁ",
+            "addMedicine": "ଔଷଧ ଯୋଡନ୍ତୁ",
+            "save": "ସଂରକ୍ଷଣ କରନ୍ତୁ",
+            "cancel": "ବାତିଲ୍ କରନ୍ତୁ",
+            "goToLogin": "ଲଗଇନ୍ କୁ ଯାଆନ୍ତୁ",
+            "markFake": "ନକଲି ଭାବେ ଚିହ୍ନିତ କରନ୍ତୁ",
+            "falseAlarm": "ଭୁଲ ସତର୍କବାର୍ତ୍ତା"
+        },
+        "stats": {
+            "pending": "ବିଚାରାଧୀନ",
+            "resolved": "ସମାଧାନ ହୋଇଛି",
+            "districtsAffected": "ପ୍ରଭାବିତ ଜିଲ୍ଲା"
+        },
+        "errors": {
+            "notAuthenticated": "ପ୍ରମାଣିତ ହୋଇନାହିଁ — ଦୟାକରି ଆଡମିନ୍ ଭାବରେ ସାଇନ୍ ଇନ୍ କରନ୍ତୁ।",
+            "accessDenied": "ପ୍ରବେଶ ଅସ୍ୱୀକୃତ — ଆଡମିନ୍ କିମ୍ବା ମଡେରେଟର ଭୂମିକା ଆବଶ୍ୟକ।",
+            "apiUnavailable": "API ସହ ସଂଯୋଗ ହୋଇପାରିଲା ନାହିଁ। ବ୍ୟାକଏଣ୍ଡ ସର୍ଭର କି 4000 ପୋର୍ଟରେ ଚାଲୁଛି?"
+        },
+        "toasts": {
+            "markedFake": "ଯାଞ୍ଚିତ ନକଲି ଭାବେ ଚିହ୍ନିତ କରାଗଲା",
+            "falseAlarm": "ଭୁଲ ସତର୍କବାର୍ତ୍ତା ଭାବେ ଚିହ୍ନିତ କରାଗଲା",
+            "reportUpdateFailed": "ରିପୋର୍ଟ ଅଦ୍ୟତନ କରିବାରେ ବିଫଳ",
+            "medicineAdded": "ଔଷଧ ଯୋଡାଗଲା",
+            "medicineAddFailed": "ଔଷଧ ଯୋଡିବାରେ ବିଫଳ"
+        },
+        "medicine": {
+            "title": "ଔଷଧ ମାଷ୍ଟର",
+            "empty": "କୌଣସି ଔଷଧ ମିଳିଲା ନାହିଁ",
+            "columns": {
+                "brand": "ବ୍ରାଣ୍ଡ",
+                "generic": "ଜେନେରିକ",
+                "manufacturer": "ଉତ୍ପାଦକ",
+                "barcode": "ବାରକୋଡ୍",
+                "status": "ସ୍ଥିତି"
+            }
+        },
+        "status": {
+            "approved": "ଅନୁମୋଦିତ",
+            "recalled": "ପ୍ରତ୍ୟାହୃତ",
+            "banned": "ନିଷିଦ୍ଧ"
+        },
+        "logs": {
+            "title": "ଅଡିଟ୍ ଲଗ୍",
+            "subtitle": "ସାମ୍ପ୍ରତିକ ମଡରେସନ୍ ଏବଂ ଔଷଧ ତାଲିକା କାର୍ଯ୍ୟକଳାପ",
+            "loading": "ଲଗ୍ ଲୋଡ୍ ହେଉଛି...",
+            "empty": "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ଅଡିଟ୍ ଲଗ୍ ନାହିଁ"
+        },
+        "reports": {
+            "title": "ଆସୁଥିବା ରିପୋର୍ଟଗୁଡ଼ିକ",
+            "pendingCount": "{count, plural, =0 {କୌଣସି ବିଚାରାଧୀନ ରିପୋର୍ଟ ନାହିଁ} =1 {1 ବିଚାରାଧୀନ ରିପୋର୍ଟ} other {# ବିଚାରାଧୀନ ରିପୋର୍ଟଗୁଡ଼ିକ}}",
+            "loading": "ରିପୋର୍ଟଗୁଡ଼ିକ ଲୋଡ୍ ହେଉଛି...",
+            "empty": "କୌଣସି ବିଚାରାଧୀନ ରିପୋର୍ଟ ନାହିଁ",
+            "columns": {
+                "medicine": "ଔଷଧ",
+                "district": "ଜିଲ୍ଲା",
+                "barcode": "ବାରକୋଡ୍",
+                "reported": "ରିପୋର୍ଟ କରାଯାଇଛି",
+                "actions": "କାର୍ଯ୍ୟ"
+            },
+            "decisions": {
+                "verifiedFake": "ଯାଞ୍ଚିତ ନକଲି",
+                "falseAlarm": "ଭୁଲ ସତର୍କବାର୍ତ୍ତା"
+            }
+        },
+        "resolved": {
+            "title": "ସମ୍ପ୍ରତି ସମାଧାନ ହୋଇଥିବା",
+            "count": "{count, plural, =0 {କୌଣସି ସମାଧାନ ହୋଇଥିବା ରିପୋର୍ଟ ନାହିଁ} =1 {1 ସମାଧାନ ହୋଇଥିବା ରିପୋର୍ଟ} other {# ସମାଧାନ ହୋଇଥିବା ରିପୋର୍ଟଗୁଡ଼ିକ}}",
+            "decision": "ନିଷ୍ପତ୍ତି"
+        }
+    },
+    "AdminAnalytics": {
+        "title": "ପ୍ରଭାବ ବିଶ୍ଳେଷଣ ଡ୍ୟାସବୋର୍ଡ",
+        "subtitle": "ସମୁଦାୟ ଅଂଶଗ୍ରହଣ ମାପଦଣ୍ଡ ଏବଂ ବିକାଶ ଧାରା",
+        "metrics": {
+            "totalMedicines": "ମୋଟ ଔଷଧ",
+            "totalReports": "ମୋଟ ରିପୋର୍ଟ",
+            "resolved": "ସମାଧାନ ହୋଇଛି",
+            "districtsCovered": "ଆବୃତ ଜିଲ୍ଲା"
+        },
+        "charts": {
+            "monthlyGrowth": "ମାସିକ ବିକାଶ ଧାରା",
+            "reportStatus": "ରିପୋର୍ଟ ସ୍ଥିତି ବଣ୍ଟନ",
+            "topDistricts": "ରିପୋର୍ଟ ଆଧାରିତ ଶୀର୍ଷ ଜିଲ୍ଲା",
+            "recentActivity": "ସାମ୍ପ୍ରତିକ କାର୍ଯ୍ୟକଳାପ"
+        },
+        "overview": {
+            "title": "ପ୍ଲାଟଫର୍ମ ସମୀକ୍ଷା",
+            "avgReportsPerDay": "ପ୍ରତିଦିନ ହାରାହାରି ରିପୋର୍ଟ",
+            "resolutionRate": "ସମାଧାନ ହାର",
+            "thisWeekReports": "ଏହି ସପ୍ତାହର ରିପୋର୍ଟ",
+            "thisWeekMedicines": "ଏହି ସପ୍ତାହର ଔଷଧ"
+        }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "ଟିକାକରଣ ହବ୍",
+        "pageHeaderSubtitle": "ଟିକାକରଣ ଟ୍ରାକର୍",
+        "title": "ଟିକାକରଣ ହବ୍ ଏବଂ ଟ୍ରାକର୍",
+        "subtitle": "ଉତ୍ତମ ଜନସ୍ୱାସ୍ଥ୍ୟ ସଚେତନତା ପାଇଁ ଟିକା ସୂଚୀ, ସୁରକ୍ଷା ସୂଚନା ଏବଂ ପରବର୍ତ୍ତୀ ଯତ୍ନ ମାର୍ଗଦର୍ଶନ ବିଷୟରେ ଜାଣନ୍ତୁ।",
+        "selectLabel": "ରୋଗ / ଟିକା ଚୟନ କରନ୍ତୁ",
+        "placeholder": "ଏକ ଟିକା ପ୍ରୋଫାଇଲ୍ ବାଛନ୍ତୁ...",
+        "childBirthDate": "ଶିଶୁର ଜନ୍ମ ତାରିଖ",
+        "milestoneBaseDate": "ପ୍ରଥମ ଡୋଜ୍ ଆଧାର ତାରିଖ",
+        "noVaccineSelected": "କୌଣସି ଟିକା ଚୟନ କରାଯାଇ ନାହିଁ",
+        "chooseVaccinePrompt": "ଟ୍ରାକିଂ ଟୁଲ୍ସ ବ୍ୟବହାର କରିବା ପାଇଁ ଉପରେ ଏକ ଟିକା ବାଛନ୍ତୁ:",
+        "featureSchedule": "ଡାଇନାମିକ ଅନୁମାନିତ ଟିକାକରଣ ସୂଚୀ",
+        "featureSideEffects": "ପାର୍ଶ୍ୱ ପ୍ରତିକ୍ରିୟାର ବର୍ଗୀକରଣ (ସାମାନ୍ୟ ବନାମ ଗମ୍ଭୀର)",
+        "featureAftercare": "ପର୍ଯ୍ୟାୟକ୍ରମିକ ଚିକିତ୍ସା ଯତ୍ନ ନିର୍ଦ୍ଦେଶାବଳୀ",
+        "targetGroups": "ଲକ୍ଷ୍ୟ ଗୋଷ୍ଠୀ",
+        "totalDoses": "ମୋଟ ଡୋଜ୍",
+        "effectiveness": "ପ୍ରଭାବଶାଳୀତା",
+        "classification": "ବର୍ଗୀକରଣ",
+        "aboutDisease": "ରୋଗ ବିଷୟରେ:",
+        "scheduleLayoutHeading": "ଟିକାକରଣ ସୂଚୀ",
+        "atBirth": "ଜନ୍ମ ସମୟରେ ପ୍ରଦାନ",
+        "atWeeks": "{weeks} ସପ୍ତାହ ବୟସରେ",
+        "baseline": "ପ୍ରାରମ୍ଭିକ ପ୍ରଦାନ (ଆଧାରରେଖା)",
+        "doseStep": "ଡୋଜ୍ ପର୍ଯ୍ୟାୟ {index} (+{weeks} ସପ୍ତାହ ପରେ)",
+        "targetDate": "ଧାର୍ଯ୍ୟ ତାରିଖ: {date}",
+        "selectDateWarning": "ସମୟସୀମା ଆକଳନ କରିବା ପାଇଁ ଉପରେ ଏକ ତାରିଖ ଚୟନ କରନ୍ତୁ",
+        "commonEffects": "ସାଧାରଣ ପାର୍ଶ୍ୱ ପ୍ରତିକ୍ରିୟା",
+        "severeReactions": "ଗମ୍ଭୀର ପ୍ରତିକ୍ରିୟା",
+        "aftercareHeading": "ତତ୍କାଳ ପରବର୍ତ୍ତୀ ଯତ୍ନ ମାର୍ଗଦର୍ଶନ"
+    },
+    "CommandPalette": {
+        "placeholder": "Search pages or actions...",
+        "noResults": "No results found.",
+        "hint": "Press Esc to close",
+        "pages": "Pages",
+        "actions": "Actions",
+        "open": "Open command palette",
+        "nav_home": "Go to Home",
+        "nav_scan": "Scan a Medicine",
+        "nav_map": "Find Nearby Pharmacy",
+        "nav_alerts": "View Alerts",
+        "nav_expiry": "Medicine Expiry Tracker",
+        "nav_compare": "Compare Medicines",
+        "nav_vaccine": "Vaccine Hub",
+        "nav_reports": "My Reports",
+        "nav_profile": "My Profile"
     }
 }

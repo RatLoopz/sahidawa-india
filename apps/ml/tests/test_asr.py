@@ -5,6 +5,7 @@ import numpy as np
 from fastapi.testclient import TestClient
 import sys
 import os
+import shutil
 from types import SimpleNamespace
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -14,6 +15,22 @@ from routers import asr as asr_router
 client = TestClient(app)
 
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
+
+
+class _MockInfo:
+    language = "en"
+    language_probability = 0.95
+
+
+class _MockWhisperModel:
+    @staticmethod
+    def transcribe(audio, **kwargs):
+        return [SimpleNamespace(text="")], _MockInfo()
+
+
+@pytest.fixture(autouse=True)
+def _mock_asr_model(monkeypatch):
+    monkeypatch.setattr(asr_router, "get_model", lambda: _MockWhisperModel())
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -201,8 +218,9 @@ def test_health_endpoint():
 # Run locally after downloading real audio samples.
 
 @pytest.mark.skipif(
-    not os.path.exists(os.path.join(FIXTURES_DIR, "hindi_sample.wav")),
-    reason="Hindi fixture not found",
+    not os.path.exists(os.path.join(FIXTURES_DIR, "hindi_sample.wav"))
+    or shutil.which("ffmpeg") is None,
+    reason="Hindi fixture not found or ffmpeg not available",
 )
 def test_hindi_language_detection():
     """Real Hindi audio must be detected as 'hi' or 'ur' (Whisper limitation)."""
@@ -217,8 +235,9 @@ def test_hindi_language_detection():
 
 
 @pytest.mark.skipif(
-    not os.path.exists(os.path.join(FIXTURES_DIR, "tamil_sample.wav")),
-    reason="Tamil fixture not found",
+    not os.path.exists(os.path.join(FIXTURES_DIR, "tamil_sample.wav"))
+    or shutil.which("ffmpeg") is None,
+    reason="Tamil fixture not found or ffmpeg not available",
 )
 def test_tamil_language_detection():
     """Real Tamil audio must be detected as 'ta'."""
@@ -232,8 +251,9 @@ def test_tamil_language_detection():
 
 
 @pytest.mark.skipif(
-    not os.path.exists(os.path.join(FIXTURES_DIR, "bengali_sample.wav")),
-    reason="Bengali fixture not found",
+    not os.path.exists(os.path.join(FIXTURES_DIR, "bengali_sample.wav"))
+    or shutil.which("ffmpeg") is None,
+    reason="Bengali fixture not found or ffmpeg not available",
 )
 def test_bengali_language_detection():
     """Real Bengali audio must be detected as 'bn'."""

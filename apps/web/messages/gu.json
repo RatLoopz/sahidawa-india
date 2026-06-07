@@ -21,6 +21,7 @@
         "ai_chat": "AI ચેટ",
         "ai_health_assistant_description": "તાત્કાલિક આરોગ્ય સલાહ, લક્ષણોની તપાસ અને પ્રિસ્ક્રિપ્શન માર્ગદર્શન મેળવો",
         "chat_now": "હમણાં ચેટ કરો",
+        "explore_features": "વિશેષતાઓ શોધો",
         "live_cdsco_alerts": "લાઇવ CDSCO સૂચનાઓ",
         "india_region": "ભારત પ્રદેશ",
         "alerts_empty_title": "બધું ઠીક છે!",
@@ -135,8 +136,20 @@
             "timeout_title": "Voice request timed out",
             "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input.",
             "api_title": "SahiDawa AI અનુપલબ્ધ છે",
-            "api_message": "અમે હમણાં તબીબી માર્ગદર્શન મેળવી શક્યા નહીં. કૃપા કરીને થોડીવાર પછી ફરી પ્રયાસ કરો."
-        }
+            "api_message": "અમે હમણાં તબીબી માર્ગદર્શન મેળવી શક્યા નહીં. કૃપા કરીને થોડીવાર પછી ફરી પ્રયાસ કરો.",
+            "language_not_supported_title": "This browser cannot capture that voice language",
+            "language_not_supported_message": "{language} voice input is limited in this browser. Try Chrome or Edge, or start a new check with another voice language."
+        },
+        "skip_to_main_content": "Skip to main content",
+        "announcements": {
+            "recording_started": "Recording started",
+            "processing_started": "Processing your symptoms",
+            "results_ready": "Results ready"
+        },
+        "streaming_connecting_hint": "Connecting to live transcription…",
+        "streaming_live_hint": "Live transcript is updating",
+        "streaming_fallback_hint": "Connection is unstable. SahiDawa will finish processing after you stop speaking.",
+        "tts_fallback_message": "Your browser may read this summary aloud in a different voice because {language} text-to-speech support is limited."
     },
     "offline": {
         "bannerOffline": "તમે ઑફલાઇન છો",
@@ -159,6 +172,42 @@
         "cachedVerifications": "કૅશ કરેલી ચકાસણીઓ",
         "savedPharmacies": "સાચવેલી ફાર્મસીઓ",
         "browsedMedicines": "જોયેલી દવાઓ"
+    },
+    "contact": {
+        "badge": "GSSoC 2026 ઓપન સોર્સ પ્રોજેક્ટ",
+        "heroTitle": {
+            "prefix": "સંપર્ક",
+            "highlight": "કરો"
+        },
+        "heroSubtitle": "કોઈ પ્રશ્ન, વિચાર છે અથવા યોગદાન આપવા માંગો છો? અમને તમારા તરફથી સાંભળવાનું ગમશે.",
+        "cards": {
+            "email": {
+                "title": "અમને ઈમેલ કરો",
+                "description": "ગોપનીયતા સંબંધિત પ્રશ્નો, ભાગીદારી અથવા ગંભીર ચિંતાઓ માટે"
+            },
+            "discord": {
+                "title": "Discord કોમ્યુનિટી",
+                "description": "યોગદાન આપનારાઓ સાથે જોડાઓ, પ્રશ્નો પૂછો અને નવી ઘોષણાઓ મેળવો.",
+                "cta": "Discord સાથે જોડાઓ"
+            },
+            "bug": {
+                "title": "બગની જાણ કરો",
+                "description": "કોઈ સમસ્યા મળી? GitHub પર ઇશ્યૂ ઓપન કરો અને અમે તેને ઝડપથી ઠીક કરીશું.",
+                "cta": "ઇશ્યૂ ઓપન કરો"
+            },
+            "contribute": {
+                "title": "યોગદાન આપો",
+                "description": "SahiDawa બનાવવામાં મદદ કરવા માંગો છો? અમારી કન્ટ્રીબ્યુટીંગ ગાઈડ વાંચો.",
+                "cta": "ગાઈડ વાંચો"
+            }
+        },
+        "quickLinks": {
+            "title": "ઉપયોગી લિંક્સ",
+            "about": "SahiDawa વિશે",
+            "privacy": "ગોપનીયતા નીતિ",
+            "faq": "વારંવાર પૂછાતા પ્રશ્નો"
+        },
+        "footer": "SahiDawa મફત છે, ઓપન-સોર્સ છે, અને 140 કરોડ ભારતીયો માટે બનાવવામાં આવ્યું છે. કોઈ જાહેરાતો નથી. કોઈ પ્રીમિયમ નથી. કોઈ ડેટા વેચાતો નથી. ક્યારેય."
     },
     "about": {
         "badge": "GSSoC 2026 ઓપન સોર્સ પ્રોજેક્ટ",
@@ -270,5 +319,324 @@
                 "answer": "CDSCO નો અર્થ Central Drugs Standard Control Organisation થાય છે. તે કોસ્મેટિક્સ, ફાર્માસ્યુટિકલ્સ અને મેડિકલ ડિવાઇસીસ માટે ભારતનું રાષ્ટ્રીય નિયમનકારી સંગઠન છે. SahiDawa તેમની સત્તાવાર ડેટાબેઝ સામે દવાઓની ચકાસણી કરે છે."
             }
         }
+    },
+    "Scan": {
+        "share": {
+            "avoid_and_report": "Please avoid and report to your nearest health worker.",
+            "batch_label": "Batch",
+            "button": "Share Result",
+            "copy_success": "Result copied to clipboard",
+            "failure": "Unable to share this result right now",
+            "manufacturer_label": "Manufacturer",
+            "real_status": "Verified REAL",
+            "shared_success": "Result shared successfully",
+            "suspicious_status": "Marked SUSPICIOUS",
+            "title": "SahiDawa Medicine Verification Result",
+            "unknown_batch": "Unknown batch",
+            "unknown_manufacturer": "Unknown manufacturer",
+            "unknown_medicine": "Unknown medicine",
+            "verified_by": "by SahiDawa",
+            "verify_yourself": "Verify yourself",
+            "warning_prefix": "WARNING"
+        }
+    },
+    "chat": {
+        "actions": {
+            "pharmacy": {
+                "description": "Locate verified stores",
+                "label": "Find Pharmacy"
+            },
+            "scan": {
+                "description": "Verify authenticity",
+                "label": "Scan Medicine"
+            },
+            "symptoms": {
+                "description": "AI-assisted guidance",
+                "label": "Check Symptoms"
+            }
+        },
+        "footer": "For informational use only • Consult a doctor",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "quick_actions": "Quick actions",
+        "welcome": "Namaste, I'm SahiDawa, your trusted health companion. I can help you verify medicines, understand symptoms, or find nearby care. What would you like help with today?"
+    },
+    "chatbot": {
+        "placeholder": "Ask me about a medicine...",
+        "status": "Online",
+        "title": "SahiDawa AI",
+        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"
+    },
+    "Alerts": {
+        "backHome": "મુખ્ય પૃષ્ઠ પર પાછા જાઓ",
+        "badge": "લાઇવ ચેતવણીઓ",
+        "title": "લાઇવ CDSCO ચેતવણીઓ",
+        "subtitle": "CDSCO રજિસ્ટ્રી સાથે સીધી રીતે જોડાયેલ સંપૂર્ણ ઐતિહાસિક સુરક્ષા લોગ.",
+        "regionBadge": "ભારત વિસ્તાર",
+        "totalCount": "કુલ સંખ્યા: {count}",
+        "brandPlaceholder": "બ્રાન્ડ નામ દ્વારા શોધો...",
+        "regionPlaceholder": "રાજ્ય/જિલ્લા દ્વારા ફિલ્ટર કરો...",
+        "error": "સક્રિય લોગ્સ મેળવતી વખતે ડેટાબેઝ સુમેળ ભૂલ આવી.",
+        "loading": "ચેતવણીઓ લોડ થઈ રહી છે...",
+        "systemUpdate": "સિસ્ટમ અપડેટ",
+        "alertType": "ચેતવણી: {type}",
+        "noDetails": "કોઈ વિગતો ઉપલબ્ધ નથી",
+        "batchLabel": "બેચ:",
+        "manufacturerLabel": "ઉત્પાદક:",
+        "regionLabel": "વિસ્તાર:",
+        "empty": "તમારા માપદંડો સાથે મેળ ખાતી કોઈ આરોગ્ય ચેતવણી મળી નથી.",
+        "previous": "પાછળ",
+        "next": "આગળ"
+    },
+    "Compare": {
+        "pageTitle": "દવાઓની સરખામણી કરો",
+        "pageSubtitle": "બ્રાન્ડ અને જેનરિકની બાજુબાજુ સરખામણી",
+        "firstMedicine": "પ્રથમ દવા",
+        "secondMedicine": "બીજી દવા",
+        "searchPlaceholder": "બ્રાન્ડ અથવા જેનરિક નામ શોધો",
+        "findPharmacies": "ફાર્મસી શોધો",
+        "emptyComparison": "સરખામણી જોવા માટે ઉપર બે દવાઓ પસંદ કરો.",
+        "fieldHeader": "ક્ષેત્ર",
+        "medicineA": "દવા A",
+        "medicineB": "દવા B",
+        "priceUnavailable": "કિંમત ઉપલબ્ધ નથી",
+        "noSavings": "કોઈ બચત નથી",
+        "saveAmount": "₹{amount} ની બચત ({percent}%)",
+        "rows": {
+            "brandName": "બ્રાન્ડ નામ",
+            "genericName": "જેનરિક નામ",
+            "composition": "ઘટકો",
+            "manufacturer": "ઉત્પાદક",
+            "type": "પ્રકાર",
+            "cdscoStatus": "CDSCO સ્થિતિ",
+            "expiryDate": "સમાપ્તિ તારીખ",
+            "marketPrice": "બજાર કિંમત (MRP)",
+            "janAushadhiPrice": "જન ઔષધિ કિંમત",
+            "savings": "MRP સામે બચત"
+        },
+        "medicineTypes": {
+            "brand": "બ્રાન્ડ",
+            "generic": "જેનરિક"
+        },
+        "status": {
+            "approved": "મંજૂર",
+            "recalled": "પાછી મંગાવવામાં આવી",
+            "banned": "પ્રતિબંધિત"
+        }
+    },
+    "ExpiryTracker": {
+        "title": "દવાની સમાપ્તિ ટ્રેકર",
+        "subtitle": "તમારા દવાના સ્ટોકને સ્થાનિક રીતે સંચાલિત અને ટ્રેક કરો",
+        "addMedicine": "દવા ઉમેરો",
+        "name": "નામ",
+        "expiryDate": "સમાપ્તિ તારીખ",
+        "batchNumber": "બેચ નંબર (વૈકલ્પિક)",
+        "batchPlaceholder": "ઉદાહરણ: B12345",
+        "namePlaceholder": "ઉદાહરણ: પેરાસિટામોલ",
+        "addToTracker": "ટ્રેકરમાં ઉમેરો",
+        "trackedMedicines": "ટ્રેક કરેલી દવાઓ",
+        "total": "કુલ",
+        "noMedicines": "હજુ સુધી કોઈ દવા ઉમેરાઈ નથી.",
+        "loading": "ટ્રેકર ડેટા લોડ થઈ રહ્યો છે...",
+        "searchPlaceholder": "દવાઓ શોધો...",
+        "sortBy": "ક્રમબદ્ધ કરો",
+        "sortExpirySoonest": "સમાપ્તિ તારીખ (સૌથી વહેલી)",
+        "sortExpiryLatest": "સમાપ્તિ તારીખ (સૌથી મોડે)",
+        "sortAlpha": "નામ (A-Z)",
+        "filterAll": "બધા",
+        "filterExpired": "સમાપ્ત",
+        "filterExpiringSoon": "ટૂંક સમયમાં સમાપ્ત થનાર",
+        "filterSafe": "સુરક્ષિત",
+        "exportBackup": "બેકઅપ નિકાસ કરો",
+        "importBackup": "બેકઅપ આયાત કરો",
+        "importError": "અમાન્ય બેકઅપ ફાઇલ. કૃપા કરીને માન્ય JSON બેકઅપ અપલોડ કરો.",
+        "statusExpired": "સમાપ્ત",
+        "statusExpiringSoon": "ટૂંક સમયમાં સમાપ્ત થશે ({days} દિવસ)",
+        "statusSafe": "સુરક્ષિત"
+    },
+
+    "Login": {
+        "brandSubtitle": "દવા સુરક્ષા પ્લેટફોર્મ",
+        "heading": "ફરીથી સ્વાગત છે",
+        "description": "દવા સુરક્ષા રિપોર્ટ્સ અને ચકાસણી પરિણામો ટ્રેક કરવા માટે સાઇન ઇન કરો.",
+        "missingConfig": {
+            "title": "પ્રમાણીકરણ ગોઠવાયેલ નથી",
+            "description": "Supabase URL અથવા anon key ઉપલબ્ધ નથી. સાઇન ઇન કરતા પહેલાં environment variables ઉમેરો."
+        },
+        "googleButton": "Google સાથે ચાલુ રાખો",
+        "emailSeparator": "અથવા ઇમેઇલ સાથે ચાલુ રાખો",
+        "emailLabel": "ઇમેઇલ સરનામું",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "પાસવર્ડ",
+        "passwordPlaceholder": "તમારો પાસવર્ડ દાખલ કરો",
+        "signingIn": "સાઇન ઇન થઈ રહ્યું છે...",
+        "signIn": "સાઇન ઇન કરો",
+        "footerPrompt": "પાછા જવું છે?",
+        "returnHome": "મુખ્ય પૃષ્ઠ પર પાછા જાઓ",
+        "bottomText": "SahiDawa સમુદાય સાધનો માટે સુરક્ષિત ઍક્સેસ.",
+        "errors": {
+            "databaseNotConfigured": "આ પર્યાવરણ માટે પ્રમાણીકરણ ગોઠવાયેલ નથી.",
+            "generic": "સાઇન ઇન કરવામાં અસમર્થ. કૃપા કરીને ફરી પ્રયાસ કરો."
+        }
+    },
+    "AdminLayout": {
+        "accessDeniedTitle": "પ્રવેશ નકારવામાં આવ્યો",
+        "accessDeniedDescription": "આ પૃષ્ઠ જોવા માટે તમને એડમિનિસ્ટ્રેટર અથવા મોડરેટર અધિકારોની જરૂર છે.",
+        "returnHome": "મુખ્ય પૃષ્ઠ પર પાછા જાઓ"
+    },
+    "AdminDashboard": {
+        "brandSuffix": "એડમિન",
+        "version": "SahiDawa એડમિન v1.0",
+        "nav": {
+            "reports": "રિપોર્ટ્સ",
+            "medicine": "દવા માસ્ટર",
+            "logs": "ઓડિટ લોગ્સ"
+        },
+        "header": {
+            "title": "મોડરેશન ડેશબોર્ડ",
+            "subtitle": "સમુદાય દ્વારા રિપોર્ટ કરાયેલ નકલી દવાઓનું સંચાલન કરો"
+        },
+        "searchPlaceholder": "શોધો...",
+        "actions": {
+            "signIn": "સાઇન ઇન કરો",
+            "refresh": "રિફ્રેશ કરો",
+            "addMedicine": "દવા ઉમેરો",
+            "save": "સાચવો",
+            "cancel": "રદ કરો",
+            "goToLogin": "લોગિન પર જાઓ",
+            "markFake": "નકલી તરીકે ચિહ્નિત કરો",
+            "falseAlarm": "ખોટી ચેતવણી"
+        },
+        "stats": {
+            "pending": "બાકી",
+            "resolved": "ઉકેલાયેલ",
+            "districtsAffected": "પ્રભાવિત જિલ્લાઓ"
+        },
+        "errors": {
+            "notAuthenticated": "પ્રમાણિત નથી — કૃપા કરીને એડમિન તરીકે સાઇન ઇન કરો.",
+            "accessDenied": "પ્રવેશ નકારવામાં આવ્યો — એડમિન અથવા મોડરેટર ભૂમિકા જરૂરી છે.",
+            "apiUnavailable": "API સુધી પહોંચી શકાતું નથી. શું બેકએન્ડ સર્વર પોર્ટ 4000 પર ચાલી રહ્યું છે?"
+        },
+        "toasts": {
+            "markedFake": "ચકાસાયેલ નકલી તરીકે ચિહ્નિત કરવામાં આવ્યું",
+            "falseAlarm": "ખોટી ચેતવણી તરીકે ચિહ્નિત કરવામાં આવ્યું",
+            "reportUpdateFailed": "રિપોર્ટ અપડેટ કરવામાં નિષ્ફળ",
+            "medicineAdded": "દવા ઉમેરવામાં આવી",
+            "medicineAddFailed": "દવા ઉમેરવામાં નિષ્ફળ"
+        },
+        "medicine": {
+            "title": "દવા માસ્ટર",
+            "empty": "કોઈ દવા મળી નથી",
+            "columns": {
+                "brand": "બ્રાન્ડ",
+                "generic": "જેનરિક",
+                "manufacturer": "ઉત્પાદક",
+                "barcode": "બારકોડ",
+                "status": "સ્થિતિ"
+            }
+        },
+        "status": {
+            "approved": "મંજૂર",
+            "recalled": "પાછી મંગાવવામાં આવી",
+            "banned": "પ્રતિબંધિત"
+        },
+        "logs": {
+            "title": "ઓડિટ લોગ્સ",
+            "subtitle": "તાજેતરની મોડરેશન અને દવા કેટલોગ પ્રવૃત્તિ",
+            "loading": "લોગ્સ લોડ થઈ રહ્યા છે...",
+            "empty": "હજુ સુધી કોઈ ઓડિટ લોગ નથી"
+        },
+        "reports": {
+            "title": "આવતી રિપોર્ટ્સ",
+            "pendingCount": "{count, plural, =0 {કોઈ બાકી રિપોર્ટ નથી} =1 {1 બાકી રિપોર્ટ} other {# બાકી રિપોર્ટ્સ}}",
+            "loading": "રિપોર્ટ્સ લોડ થઈ રહી છે...",
+            "empty": "કોઈ બાકી રિપોર્ટ નથી",
+            "columns": {
+                "medicine": "દવા",
+                "district": "જિલ્લો",
+                "barcode": "બારકોડ",
+                "reported": "રિપોર્ટ કરાયેલ",
+                "actions": "કાર્યો"
+            },
+            "decisions": {
+                "verifiedFake": "ચકાસાયેલ નકલી",
+                "falseAlarm": "ખોટી ચેતવણી"
+            }
+        },
+        "resolved": {
+            "title": "તાજેતરમાં ઉકેલાયેલ",
+            "count": "{count, plural, =0 {કોઈ ઉકેલાયેલ રિપોર્ટ નથી} =1 {1 ઉકેલાયેલ રિપોર્ટ} other {# ઉકેલાયેલ રિપોર્ટ્સ}}",
+            "decision": "નિર્ણય"
+        }
+    },
+    "AdminAnalytics": {
+        "title": "અસર વિશ્લેષણ ડેશબોર્ડ",
+        "subtitle": "સમુદાય જોડાણ મેટ્રિક્સ અને વૃદ્ધિ પ્રવાહો",
+        "metrics": {
+            "totalMedicines": "કુલ દવાઓ",
+            "totalReports": "કુલ રિપોર્ટ્સ",
+            "resolved": "ઉકેલાયેલ",
+            "districtsCovered": "આવરી લેવાયેલા જિલ્લાઓ"
+        },
+        "charts": {
+            "monthlyGrowth": "માસિક વૃદ્ધિ પ્રવાહ",
+            "reportStatus": "રિપોર્ટ સ્થિતિ વિતરણ",
+            "topDistricts": "રિપોર્ટ્સ મુજબ ટોચના જિલ્લાઓ",
+            "recentActivity": "તાજેતરની પ્રવૃત્તિ"
+        },
+        "overview": {
+            "title": "પ્લેટફોર્મ અવલોકન",
+            "avgReportsPerDay": "દરરોજ સરેરાશ રિપોર્ટ્સ",
+            "resolutionRate": "ઉકેલ દર",
+            "thisWeekReports": "આ અઠવાડિયાના રિપોર્ટ્સ",
+            "thisWeekMedicines": "આ અઠવાડિયાની દવાઓ"
+        }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "વેક્સિન હબ",
+        "pageHeaderSubtitle": "ઇમ્યુનાઇઝેશન ટ્રેકર",
+        "title": "વેક્સિન હબ અને ઇમ્યુનાઇઝેશન ટ્રેકર",
+        "subtitle": "જાહેર આરોગ્ય જાગૃતિ માટે વેક્સિનના સમયપત્રક, સુરક્ષા માહિતી અને સારસંભાળ માર્ગદર્શન મેળવો.",
+        "selectLabel": "રોગ / વેક્સિન પસંદ કરો",
+        "placeholder": "વેક્સિન પ્રોફાઇલ પસંદ કરો...",
+        "childBirthDate": "બાળકની જન્મ તારીખ",
+        "milestoneBaseDate": "પ્રથમ ડોઝ માટેની આધાર તારીખ",
+        "noVaccineSelected": "કોઈ વેક્સિન પસંદ કરેલ નથી",
+        "chooseVaccinePrompt": "ટ્રેકિંગ ટૂલ્સનો ઉપયોગ કરવા માટે ઉપરથી વેક્સિન પસંદ કરો:",
+        "featureSchedule": "ડાયનેમિક અનુમાનિત ઇમ્યુનાઇઝેશન સમયપત્રક",
+        "featureSideEffects": "આડઅસરોના વિભાજિત માપદંડો (હળવી વિરુદ્ધ ગંભીર)",
+        "featureAftercare": "ક્લિનિકલ તબક્કાવાર સારસંભાળ સૂચનાઓ",
+        "targetGroups": "લક્ષિત જૂથો",
+        "totalDoses": "કુલ ડોઝ",
+        "effectiveness": "અસરકારકતા",
+        "classification": "વર્ગીકરણ",
+        "aboutDisease": "રોગ વિશે:",
+        "scheduleLayoutHeading": "ઇમ્યુનાઇઝેશન સમયપત્રક",
+        "atBirth": "જન્મ સમયે આપવાનો ડોઝ",
+        "atWeeks": "{weeks} અઠવાડિયાની ઉંમરે",
+        "baseline": "પ્રારંભિક વહીવટ (આધારરેખા)",
+        "doseStep": "ડોઝ સ્ટેપ {index} (+{weeks} અઠવાડિયા પછી)",
+        "targetDate": "લક્ષિત તારીખ: {date}",
+        "selectDateWarning": "સમયરેખા જોવા માટે ઉપરની તારીખ પસંદ કરો",
+        "commonEffects": "સામાન્ય આડઅસરો",
+        "severeReactions": "ગંભીર પ્રતિક્રિયાઓ",
+        "aftercareHeading": "તાત્કાલિક સારસંભાળ માર્ગદર્શન"
+    },
+    "CommandPalette": {
+        "placeholder": "Search pages or actions...",
+        "noResults": "No results found.",
+        "hint": "Press Esc to close",
+        "pages": "Pages",
+        "actions": "Actions",
+        "open": "Open command palette",
+        "nav_home": "Go to Home",
+        "nav_scan": "Scan a Medicine",
+        "nav_map": "Find Nearby Pharmacy",
+        "nav_alerts": "View Alerts",
+        "nav_expiry": "Medicine Expiry Tracker",
+        "nav_compare": "Compare Medicines",
+        "nav_vaccine": "Vaccine Hub",
+        "nav_reports": "My Reports",
+        "nav_profile": "My Profile"
     }
 }

@@ -9,16 +9,13 @@ import numpy as np
 import pytest
 from fastapi import HTTPException
 
-if importlib.util.find_spec("noisereduce") is None:
-    sys.modules["noisereduce"] = types.SimpleNamespace(reduce_noise=lambda y, sr: y)
+sys.modules["noisereduce"] = types.SimpleNamespace(reduce_noise=lambda y, sr: y)
 
-if importlib.util.find_spec("faster_whisper") is None:
-    sys.modules["faster_whisper"] = types.SimpleNamespace(WhisperModel=object)
+sys.modules["faster_whisper"] = types.SimpleNamespace(WhisperModel=object)
 
-if importlib.util.find_spec("soundfile") is None:
-    sys.modules["soundfile"] = types.SimpleNamespace(
-        read=lambda _path: (_ for _ in ()).throw(RuntimeError("stubbed"))
-    )
+sys.modules["soundfile"] = types.SimpleNamespace(
+    read=lambda _path: (_ for _ in ()).throw(RuntimeError("stubbed"))
+)
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 

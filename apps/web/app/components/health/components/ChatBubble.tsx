@@ -1,5 +1,7 @@
 "use client";
 
+import { ChatMarkdown } from "@/app/components/ChatMarkdown";
+
 // ─── ChatBubble ────────────────────────────────────────────────────────────────
 // Single chat message: avatar · bubble · timestamp · optional error state.
 
@@ -81,6 +83,10 @@ const ErrorContent = ({ onRetry, msgId }: { onRetry?: (id: string) => void; msgI
     </div>
 );
 
+const PlainMessageContent = ({ content }: { content: string }) => (
+    <span className="whitespace-pre-wrap">{content}</span>
+);
+
 export function ChatBubble({ msg, onRetry }: ChatBubbleProps) {
     const isUser = msg.role === "user";
 
@@ -105,7 +111,13 @@ export function ChatBubble({ msg, onRetry }: ChatBubbleProps) {
                               : "rounded-bl-sm border border-white/40 bg-white/50 text-slate-800 backdrop-blur-xl dark:border-white/10 dark:bg-slate-800/50 dark:text-slate-200"
                     }`}
                 >
-                    {msg.isError ? <ErrorContent onRetry={onRetry} msgId={msg.id} /> : msg.content}
+                    {msg.isError ? (
+                        <ErrorContent onRetry={onRetry} msgId={msg.id} />
+                    ) : isUser ? (
+                        <PlainMessageContent content={msg.content} />
+                    ) : (
+                        <ChatMarkdown content={msg.content} />
+                    )}
                 </div>
 
                 <time

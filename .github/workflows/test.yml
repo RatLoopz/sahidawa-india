@@ -50,6 +50,8 @@ jobs:
                   python -m pip install --upgrade pip
                   if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-            - name: 🔍 Check ML Syntax
+            - name: 🧪 Run ML Tests
               working-directory: ./apps/ml
-              run: python -m py_compile main.py
+              run: python -m pytest tests/ -v --timeout=60
+              env:
+                  WHISPER_MODEL_SIZE: base

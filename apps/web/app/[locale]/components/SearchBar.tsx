@@ -4,6 +4,7 @@ import { Search } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useTranslations } from "next-intl";
+import { fuzzyMatchBrand } from "@/lib/api";
 import SearchSuggestions from "@/components/SearchSuggestions";
 /** Maximum number of suggestions shown at once */
 const MAX_SUGGESTIONS = 8;
@@ -24,12 +25,15 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
     const locale = params.locale as string;
     const tHome = useTranslations("Home");
     // ── State ──────────────────────────────────────────────────────────────────
+    const [error, setError] = useState<string | null>(null);
+    const [noResults, setNoResults] = useState(false);
     const [query, setQuery] = useState<string>("");
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [activeIndex, setActiveIndex] = useState<number>(-1);
+
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    // ── Refs ───────────────────────────────────────────────────────────────────
+    // ── Refs ───────────────────────────────────────────────────────────────────D
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -47,10 +51,14 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
     }, []);
     // ── Fetch suggestions from Supabase (debounced) ────────────────────────────
     const fetchSuggestions = useCallback(async (trimmed: string) => {
+        setError(null);
+        setNoResults(false);
         if (!trimmed) {
             setSuggestions([]);
             setIsOpen(false);
             setIsLoading(false);
+            setError(null);
+            setNoResults(false);
             return;
         }
         // Check if offline
@@ -84,31 +92,53 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
                 setIsOpen(false);
                 return;
             }
-            if (!data || data.length === 0) {
-                setSuggestions([]);
-                setIsOpen(false);
-                return;
-            }
-            // Deduplicate and build a flat list of relevant strings.
+
             const seen = new Set<string>();
             const results: string[] = [];
-            for (const row of data) {
-                const candidates = [
-                    row.brand_name as string | null,
-                    row.batch_number as string | null,
-                ];
-                for (const c of candidates) {
-                    if (c && c.toLowerCase().includes(trimmed.toLowerCase()) && !seen.has(c)) {
-                        seen.add(c);
-                        results.push(c);
-                        if (results.length >= MAX_SUGGESTIONS) break;
+            if (data && data.length > 0) {
+                // Deduplicate and build a flat list of relevant strings.
+                for (const row of data) {
+                    const candidates = [
+                        row.brand_name as string | null,
+                        row.batch_number as string | null,
+                    ];
+                    for (const c of candidates) {
+                        if (c && c.toLowerCase().includes(trimmed.toLowerCase()) && !seen.has(c)) {
+                            seen.add(c);
+                            results.push(c);
+                            if (results.length >= MAX_SUGGESTIONS) break;
+                        }
                     }
+                    if (results.length >= MAX_SUGGESTIONS) break;
                 }
-                if (results.length >= MAX_SUGGESTIONS) break;
             }
+
+            // Typo-tolerance: if we got few or no exact results, query fuzzy matching from the backend!
+            if (results.length < 3) {
+                try {
+                    const fuzzyResults = await fuzzyMatchBrand(trimmed, controller.signal);
+                    for (const match of fuzzyResults) {
+                        if (match.name && !seen.has(match.name) && match.score >= 50) {
+                            seen.add(match.name);
+                            results.push(match.name);
+                            if (results.length >= MAX_SUGGESTIONS) break;
+                        }
+                    }
+                } catch (fuzzyErr) {
+                    // Ignore fuzzy errors and stick with what we have
+                    console.warn("[SearchBar] Fuzzy matching fallback error:", fuzzyErr);
+                }
+            }
+
             setSuggestions(results);
+            if (results.length === 0) {
+                setNoResults(true);
+                setIsOpen(true);
+            } else {
+                setNoResults(false);
+                setIsOpen(true);
+            }
             setActiveIndex(-1);
-            setIsOpen(results.length > 0);
         } catch (err) {
             if (err instanceof Error && err.name === "AbortError") {
                 // Silently ignore aborted suggestions queries
@@ -116,7 +146,8 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
             }
             console.error("[SearchBar] Unexpected error fetching suggestions:", err);
             setSuggestions([]);
-            setIsOpen(false);
+            setError("Unable to fetch medicine suggestions.");
+            setIsOpen(true);
         } finally {
             if (!controller.signal.aborted) {
                 setIsLoading(false);
@@ -205,17 +236,17 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
     return (
         <div ref={containerRef} className="relative w-full">
             <div
-                className={`relative rounded-2xl border transition-all duration-300 ${
+                className={`relative rounded-2xl border transition-all duration-300 ease-out ${
                     dark
                         ? isOpen
-                            ? "border-emerald-500/60 bg-[#1a2a3a] shadow-[0_0_0_3px_rgba(16,185,129,0.15)]"
-                            : "border-white/10 bg-[#1a2a3a] focus-within:border-emerald-500/60 focus-within:shadow-[0_0_0_3px_rgba(16,185,129,0.15)]"
+                            ? "border-emerald-500 bg-[#16222f] shadow-md ring-1 shadow-emerald-950/20 ring-emerald-500"
+                            : "border-slate-800 bg-[#16222f] hover:border-slate-700"
                         : isOpen
-                          ? "border-emerald-400/60 bg-white/60 shadow-[0_0_0_4px_rgba(16,185,129,0.12)] dark:bg-slate-900/60"
-                          : "border-white/50 bg-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.06)] focus-within:border-emerald-400/60 focus-within:shadow-[0_0_0_4px_rgba(16,185,129,0.12)] dark:border-white/10 dark:bg-slate-900/50"
-                } backdrop-blur-2xl`}
+                          ? "border-emerald-500 bg-white shadow-md ring-1 shadow-emerald-50/50 ring-emerald-500 dark:border-emerald-500 dark:bg-slate-900 dark:shadow-none dark:ring-emerald-500"
+                          : "border-slate-200 bg-white shadow-sm hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700"
+                }`}
             >
-                <div className="flex items-center gap-3 px-4 py-3">
+                <div className="flex items-center gap-2 p-1.5 pl-3 sm:gap-3 sm:p-2 sm:pl-4">
                     <Search
                         className={`shrink-0 transition-all duration-300 ${
                             isLoading
@@ -224,7 +255,7 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
                                   ? "text-slate-500"
                                   : "text-slate-400 dark:text-slate-500"
                         }`}
-                        size={22}
+                        size={20}
                         aria-hidden="true"
                     />
                     <input
@@ -243,10 +274,10 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
                         onChange={handleInputChange}
                         onKeyDown={handleKeyDown}
                         onFocus={() => {
-                            if (suggestions.length > 0) setIsOpen(true);
+                            setIsOpen(true);
                         }}
                         placeholder={tHome("search_placeholder")}
-                        className={`w-full border-none bg-transparent py-1.5 text-base font-medium outline-none ${
+                        className={`w-full border-none bg-transparent py-1 text-sm font-medium outline-none sm:text-base ${
                             dark
                                 ? "text-slate-100 placeholder:text-slate-500"
                                 : "text-slate-800 placeholder:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-500"
@@ -255,11 +286,11 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
                     />
                     <button
                         onClick={() => performSearch(query)}
-                        className="flex shrink-0 items-center gap-2 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-500/35 active:scale-95"
+                        className="flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 p-2.5 text-sm font-bold text-white shadow-md shadow-emerald-500/25 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-500/30 active:scale-95 sm:px-5 sm:py-2.5"
                         aria-label="Submit search"
                     >
-                        <Search size={16} />
-                        {tHome("search_button")}
+                        <Search size={16} aria-hidden="true" />
+                        <span className="hidden sm:inline">{tHome("search_button")}</span>
                     </button>
                 </div>
             </div>
@@ -270,6 +301,10 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
                 activeIndex={activeIndex}
                 onSelect={selectSuggestion}
                 visible={isOpen}
+                isLoading={isLoading}
+                error={error}
+                noResults={noResults}
+                onRetry={() => fetchSuggestions(query.trim())}
             />
         </div>
     );

@@ -21,25 +21,25 @@ Before this PR, several UI components, notably our `Chatbot` and `ChatUI` interf
 The core of this implementation involved integrating `next-intl`'s `useTranslations` hook into the affected components and externalizing their user-facing strings into our locale message files.
 
 1.  **`apps/web/app/[locale]/components/Chatbot.tsx`**:
-    *   We imported the `useTranslations` hook from `next-intl`.
-    *   Inside the `Chatbot` functional component, we initialized the translation function by calling `const t = useTranslations("chatbot");`. This binds the `t` function to the `chatbot` namespace defined in our `messages/*.json` files.
-    *   The following hardcoded strings were replaced with dynamic translation calls:
-        *   The initial welcome message `"Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"` was replaced with `{t("welcome")}`.
-        *   The chatbot's title `"SahiDawa AI"` was replaced with `{t("title")}`.
-        *   The online status `"Online"` was replaced with `{t("status")}`.
-        *   The input placeholder text `"Ask me about a medicine..."` was replaced with `placeholder={t("placeholder")}`.
-    *   This ensures that all these UI elements within the `Chatbot` component will now update their content dynamically based on the currently selected locale.
+    - We imported the `useTranslations` hook from `next-intl`.
+    - Inside the `Chatbot` functional component, we initialized the translation function by calling `const t = useTranslations("chatbot");`. This binds the `t` function to the `chatbot` namespace defined in our `messages/*.json` files.
+    - The following hardcoded strings were replaced with dynamic translation calls:
+        - The initial welcome message `"Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"` was replaced with `{t("welcome")}`.
+        - The chatbot's title `"SahiDawa AI"` was replaced with `{t("title")}`.
+        - The online status `"Online"` was replaced with `{t("status")}`.
+        - The input placeholder text `"Ask me about a medicine..."` was replaced with `placeholder={t("placeholder")}`.
+    - This ensures that all these UI elements within the `Chatbot` component will now update their content dynamically based on the currently selected locale.
 
 2.  **`apps/web/app/components/health/ChatUI.tsx`**:
-    *   We imported the `useTranslations` hook from `next-intl`.
-    *   Inside the `ChatUI` functional component, we initialized the translation function by calling `const t = useTranslations("chat");`. This binds the `t` function to the `chat` namespace.
-    *   While the provided diff does not explicitly show existing hardcoded strings being replaced with `t()` calls within `ChatUI.tsx`, the addition of the `useTranslations` hook and the corresponding `chat` namespace in `en.json` indicates the intent and readiness for dynamic localization of its UI elements. The `sendMessage` callback was slightly refactored to use a `trimmed` variable for clarity, but its core functionality remains unchanged.
+    - We imported the `useTranslations` hook from `next-intl`.
+    - Inside the `ChatUI` functional component, we initialized the translation function by calling `const t = useTranslations("chat");`. This binds the `t` function to the `chat` namespace.
+    - While the provided diff does not explicitly show existing hardcoded strings being replaced with `t()` calls within `ChatUI.tsx`, the addition of the `useTranslations` hook and the corresponding `chat` namespace in `en.json` indicates the intent and readiness for dynamic localization of its UI elements. The `sendMessage` callback was slightly refactored to use a `trimmed` variable for clarity, but its core functionality remains unchanged.
 
 3.  **`apps/web/messages/en.json`**:
-    *   We introduced two new top-level JSON objects to serve as namespaces for our translations:
-        *   `"chat"`: This namespace was created to house all English strings related to the `ChatUI` component. It includes keys such as `"welcome"`, `"listening"`, `"placeholder"`, `"quick_actions"`, `"footer"`, and nested objects for `"actions"` like `"scan"`, `"symptoms"`, and `"pharmacy"`, each with `label` and `description` keys.
-        *   `"chatbot"`: This namespace was created for the `Chatbot` component's English strings. It includes keys like `"title"`, `"status"`, `"welcome"`, and `"placeholder"`.
-    *   These additions provide the base English translations that `next-intl` will use, and which can be extended to other locale files (e.g., `hi.json`) for full multilingual support.
+    - We introduced two new top-level JSON objects to serve as namespaces for our translations:
+        - `"chat"`: This namespace was created to house all English strings related to the `ChatUI` component. It includes keys such as `"welcome"`, `"listening"`, `"placeholder"`, `"quick_actions"`, `"footer"`, and nested objects for `"actions"` like `"scan"`, `"symptoms"`, and `"pharmacy"`, each with `label` and `description` keys.
+        - `"chatbot"`: This namespace was created for the `Chatbot` component's English strings. It includes keys like `"title"`, `"status"`, `"welcome"`, and `"placeholder"`.
+    - These additions provide the base English translations that `next-intl` will use, and which can be extended to other locale files (e.g., `hi.json`) for full multilingual support.
 
 ## Technical Decisions
 
@@ -83,9 +83,10 @@ To implement dynamic localization for a new or existing component using `next-in
 6.  **Verify Functionality:** Run the application locally and switch between different languages to ensure that all translated strings update correctly. Check for any layout issues caused by varying string lengths.
 
 **Gotchas:**
-*   Ensure the namespace provided to `useTranslations` exactly matches the key in your `messages/*.json` files.
-*   Remember to add all new translation keys to *all* supported locale files (e.g., `en.json`, `hi.json`). Missing keys will typically display the key itself or a fallback, which is undesirable.
-*   For complex translations involving variables, plurals, or rich text, refer to the `next-intl` documentation for advanced features.
+
+- Ensure the namespace provided to `useTranslations` exactly matches the key in your `messages/*.json` files.
+- Remember to add all new translation keys to _all_ supported locale files (e.g., `en.json`, `hi.json`). Missing keys will typically display the key itself or a fallback, which is undesirable.
+- For complex translations involving variables, plurals, or rich text, refer to the `next-intl` documentation for advanced features.
 
 ## Impact on System Architecture
 
@@ -96,6 +97,7 @@ This PR further solidifies our frontend's internationalization architecture by e
 The author performed local testing, as indicated by the "Contributor Checklist" and the provided screenshot. The screenshot demonstrates the `Chatbot` component's UI, implying visual verification of the changes. The checklist also confirms that the project ran locally without compile/build errors and that a self-review was conducted.
 
 **Edge Cases:** Not documented in this PR. However, typical edge cases for i18n that would require further testing include:
-*   **Missing Translations:** What happens if a key exists in `en.json` but is missing in another locale file (e.g., `hi.json`)? `next-intl` typically falls back or displays the key, which should be handled gracefully.
-*   **String Length Variations:** Translations can vary significantly in length. UI elements containing these strings should be tested to ensure they do not overflow or cause layout shifts in different languages.
-*   **Dynamic Content:** If any part of the chatbot's response or `ChatUI`'s content is generated dynamically (e.g., from an API), ensuring that dynamic content is also localized or handled appropriately is crucial. This PR primarily addresses static UI strings.
+
+- **Missing Translations:** What happens if a key exists in `en.json` but is missing in another locale file (e.g., `hi.json`)? `next-intl` typically falls back or displays the key, which should be handled gracefully.
+- **String Length Variations:** Translations can vary significantly in length. UI elements containing these strings should be tested to ensure they do not overflow or cause layout shifts in different languages.
+- **Dynamic Content:** If any part of the chatbot's response or `ChatUI`'s content is generated dynamically (e.g., from an API), ensuring that dynamic content is also localized or handled appropriately is crucial. This PR primarily addresses static UI strings.

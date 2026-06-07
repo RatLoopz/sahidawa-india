@@ -1,4 +1,4 @@
-import { detectLasaConflicts } from "../src/services/lasa.service";
+import { detectLasaConflicts, clearLasaCache } from "../src/services/lasa.service";
 import { supabase } from "../src/db/client";
 
 // Mock the Supabase client
@@ -11,6 +11,7 @@ jest.mock("../src/db/client", () => ({
 describe("LASA Detection Service", () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        clearLasaCache();
     });
 
     const mockDatabaseResponse = (matches: { name: string; match_type: string }[]) => {

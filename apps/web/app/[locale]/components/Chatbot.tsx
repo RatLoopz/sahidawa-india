@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { MessageSquare, X, Send, Bot } from "lucide-react";
 import { getChatbotPanelClasses, getChatbotPositionClasses } from "./chatbotPosition";
+import { ChatMarkdown } from "@/app/components/ChatMarkdown";
+import { isAbortError, readChatErrorMessage, readTextResponseStream } from "@/lib/chatStream";
 
 type Message = {
     text: string;
@@ -12,15 +14,22 @@ type Message = {
     isTyping?: boolean;
 };
 
+const MessageContent = ({ msg }: { msg: Message }) =>
+    msg.isBot ? (
+        <ChatMarkdown content={msg.text} />
+    ) : (
+        <span className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</span>
+    );
+
 export default function Chatbot() {
     const pathname = usePathname();
     const t = useTranslations("chatbot");
     const [isOpen, setIsOpen] = useState(false);
-    const [messages, setMessages] = useState<Message[]>([
-        { text: t("welcome"), isBot: true },
-    ]);
+    const [messages, setMessages] = useState<Message[]>([{ text: t("welcome"), isBot: true }]);
     const [input, setInput] = useState("");
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const activeRequestRef = useRef<AbortController | null>(null);
+    const previousWelcomeRef = useRef(t("welcome"));
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -30,14 +39,41 @@ export default function Chatbot() {
         scrollToBottom();
     }, [messages]);
 
+    useEffect(() => {
+        setMessages((prev) => {
+            if (prev.length > 0 && prev[0].isBot && prev[0].text === previousWelcomeRef.current) {
+                const updated = [...prev];
+                updated[0] = {
+                    ...updated[0],
+                    text: t("welcome"),
+                };
+
+                previousWelcomeRef.current = t("welcome");
+                return updated;
+            }
+
+            previousWelcomeRef.current = t("welcome");
+            return prev;
+        });
+    }, [t]);
+
+    useEffect(() => {
+        return () => {
+            activeRequestRef.current?.abort();
+        };
+    }, []);
+
     // Securely check route-based visibility after hook declarations to satisfy React Rules of Hooks
     if (pathname && pathname.includes("/health")) {
         return null;
     }
 
     const handleSend = async () => {
-        if (!input.trim()) return;
+        if (!input.trim() || messages.some((message) => message.isTyping)) return;
 
+        activeRequestRef.current?.abort();
+        const requestController = new AbortController();
+        activeRequestRef.current = requestController;
         const userMessage = { text: input, isBot: false };
         const currentMessages = [...messages, userMessage];
         setMessages(currentMessages);
@@ -50,22 +86,34 @@ export default function Chatbot() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ messages: currentMessages }),
+                signal: requestController.signal,
             });
-
-            const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.error || "Failed to fetch response");
+                throw new Error(await readChatErrorMessage(response, "Failed to fetch response"));
             }
 
+            let streamedReply = "";
+            const reply = await readTextResponseStream(
+                response,
+                (chunk) => {
+                    streamedReply += chunk;
+                    setMessages((prev) =>
+                        prev.map((msg) =>
+                            msg.isTyping ? { ...msg, text: streamedReply || "Thinking..." } : msg
+                        )
+                    );
+                },
+                { signal: requestController.signal }
+            );
+
             setMessages((prev) => {
-                const withoutTyping = prev.filter((msg) => !msg.isTyping);
-                return [
-                    ...withoutTyping,
-                    { text: data.text || "Sorry, I received an empty response.", isBot: true },
-                ];
+                const finalText = reply || "Sorry, I received an empty response.";
+                return prev.map((msg) => (msg.isTyping ? { text: finalText, isBot: true } : msg));
             });
         } catch (error: any) {
+            if (isAbortError(error)) return;
+
             console.error("Chatbot API Error:", error);
             setMessages((prev) => {
                 const withoutTyping = prev.filter((msg) => !msg.isTyping);
@@ -79,6 +127,10 @@ export default function Chatbot() {
                     },
                 ];
             });
+        } finally {
+            if (activeRequestRef.current === requestController) {
+                activeRequestRef.current = null;
+            }
         }
     };
 
@@ -94,12 +146,13 @@ export default function Chatbot() {
                             </div>
                             <div>
                                 <h3 className="text-sm font-bold">{t("title")}</h3>
-                                <p className="text-xs text-white/80">{t("status")}</p>
+                                <p className="text-xs text-white/95">{t("status")}</p>
                             </div>
                         </div>
                         <button
                             onClick={() => setIsOpen(false)}
                             className="rounded-full p-2 text-white transition-colors hover:bg-white/20"
+                            aria-label="Close chat"
                         >
                             <X size={20} />
                         </button>
@@ -116,7 +169,7 @@ export default function Chatbot() {
                                         : "self-end rounded-tr-sm bg-green-600 text-white dark:bg-green-700"
                                 }`}
                             >
-                                <p className="text-sm leading-relaxed">{msg.text}</p>
+                                <MessageContent msg={msg} />
                             </div>
                         ))}
                         <div ref={messagesEndRef} />
@@ -136,6 +189,7 @@ export default function Chatbot() {
                             onClick={handleSend}
                             disabled={!input.trim()}
                             className="flex h-11 w-11 items-center justify-center rounded-full bg-green-600 p-3 text-white shadow-md transition-colors hover:bg-green-700 disabled:opacity-50 dark:bg-green-700 dark:hover:bg-green-800"
+                            aria-label="Send message"
                         >
                             <Send size={18} className="relative right-[1px] bottom-[1px]" />
                         </button>
@@ -153,6 +207,7 @@ export default function Chatbot() {
                 <button
                     onClick={() => setIsOpen(!isOpen)}
                     className="relative z-50 flex h-14 w-14 items-center justify-center rounded-full bg-green-600 text-white shadow-[0_8px_20px_rgba(22,163,74,0.3)] transition-all hover:scale-105 hover:shadow-[0_8px_25px_rgba(22,163,74,0.4)] active:scale-95 dark:bg-green-700 dark:hover:bg-green-800"
+                    aria-label={isOpen ? "Close AI chat" : "Open AI chat"}
                 >
                     {isOpen ? <X size={28} /> : <MessageSquare size={28} />}
                 </button>

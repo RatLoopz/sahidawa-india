@@ -31,70 +31,70 @@ Prior to this PR, the "About Us" page (`apps/web/app/[locale]/about/page.tsx`) w
 The core of this implementation involved two main steps: updating the "About Us" page component to use `next-intl`'s translation capabilities and populating the necessary translation keys across all our supported locale JSON files.
 
 1.  **`apps/web/app/[locale]/about/page.tsx` Modifications:**
-    *   We imported the `useTranslations` hook from `next-intl` at the top of the file: `import { useTranslations } from "next-intl";`.
-    *   Inside the `AboutPage` functional component, we initialized the translation function by calling `const t = useTranslations("about");`. This tells `next-intl` to load translations from the `about` namespace within our message files.
-    *   All static text strings within the JSX were systematically replaced with dynamic translation calls using the `t()` function. For example:
-        *   `GSSoC 2026 Open Source Project` became `{t("badge")}`.
-        *   The main hero title `About <span className="text-emerald-600 dark:text-emerald-400">SahiDawa</span>` was converted to use `t.rich()` to preserve the inline styling for "SahiDawa": `{t.rich('heroTitle',{ highlight:(chunks)=>( <span className="text-emerald-600 dark:text-emerald-400">{chunks}</span> ) })}`. This allows us to define the "SahiDawa" part as a rich text component within the translation string.
-        *   The hero subtitle `India's first open-source citizen medicine verifier & rural health bridge. Built for Bharat. Not just India.` became `{t("heroSubtitle")}`.
-        *   Feature badges like `100% Free. Forever.` became `<Lock size={14} /> {t("features.free")}`.
-        *   Section titles and descriptions, such as `The Problem We're Solving` and its accompanying paragraph, were replaced with `{t("problemSection.title")}` and `{t("problemSection.description")}` respectively.
-        *   The content for the problem cards (Fake Medicines, Rural Healthcare Gap, Language Barrier) was also dynamically translated using keys like `t("cards.fakeMedicines.title")` and `t("cards.fakeMedicines.description")`.
-        *   The "Real Incident" section also utilized `t.rich()` for its main text to highlight specific phrases: `{t.rich('realIncident.text',{ highlight:(chunks)=>( <span className="font-bold text-orange-600 dark:text-orange-400">{chunks}</span> )})}`.
-        *   Mission, Vision, and Core Values sections followed the same pattern, using keys like `t("mission.title")`, `t("vision.description")`, `t("coreValues.cards.openSource.title")`, etc.
+    - We imported the `useTranslations` hook from `next-intl` at the top of the file: `import { useTranslations } from "next-intl";`.
+    - Inside the `AboutPage` functional component, we initialized the translation function by calling `const t = useTranslations("about");`. This tells `next-intl` to load translations from the `about` namespace within our message files.
+    - All static text strings within the JSX were systematically replaced with dynamic translation calls using the `t()` function. For example:
+        - `GSSoC 2026 Open Source Project` became `{t("badge")}`.
+        - The main hero title `About <span className="text-emerald-600 dark:text-emerald-400">SahiDawa</span>` was converted to use `t.rich()` to preserve the inline styling for "SahiDawa": `{t.rich('heroTitle',{ highlight:(chunks)=>( <span className="text-emerald-600 dark:text-emerald-400">{chunks}</span> ) })}`. This allows us to define the "SahiDawa" part as a rich text component within the translation string.
+        - The hero subtitle `India's first open-source citizen medicine verifier & rural health bridge. Built for Bharat. Not just India.` became `{t("heroSubtitle")}`.
+        - Feature badges like `100% Free. Forever.` became `<Lock size={14} /> {t("features.free")}`.
+        - Section titles and descriptions, such as `The Problem We're Solving` and its accompanying paragraph, were replaced with `{t("problemSection.title")}` and `{t("problemSection.description")}` respectively.
+        - The content for the problem cards (Fake Medicines, Rural Healthcare Gap, Language Barrier) was also dynamically translated using keys like `t("cards.fakeMedicines.title")` and `t("cards.fakeMedicines.description")`.
+        - The "Real Incident" section also utilized `t.rich()` for its main text to highlight specific phrases: `{t.rich('realIncident.text',{ highlight:(chunks)=>( <span className="font-bold text-orange-600 dark:text-orange-400">{chunks}</span> )})}`.
+        - Mission, Vision, and Core Values sections followed the same pattern, using keys like `t("mission.title")`, `t("vision.description")`, `t("coreValues.cards.openSource.title")`, etc.
 
 2.  **Locale JSON Files (`apps/web/messages/*.json`) Updates:**
-    *   In `apps/web/messages/en.json`, a new top-level `about` object was created. This object encapsulates all translation keys specific to the "About Us" page, providing a clear and organized structure.
-    *   Example structure in `en.json`:
+    - In `apps/web/messages/en.json`, a new top-level `about` object was created. This object encapsulates all translation keys specific to the "About Us" page, providing a clear and organized structure.
+    - Example structure in `en.json`:
         ```json
         {
-          "about": {
-            "badge": "GSSoC 2026 Open Source Project",
-            "heroTitle": "About <highlight>SahiDawa</highlight>",
-            "heroSubtitle": "India's first open-source citizen medicine verifier & rural health bridge. Built for Bharat. Not just India.",
-            "features": {
-              "free": "100% Free. Forever.",
-              "languages": "22 Indian Languages",
-              "license": "Open Source MIT License"
-            },
-            "problemSection": {
-              "title": "The Problem We're Solving",
-              "description": "India has a three-layer healthcare crisis that no existing platform solves simultaneously."
-            },
-            "cards": {
-              "fakeMedicines": {
-                "title": "Fake Medicines",
-                "description": "12–25% of medicines in India are fake or substandard — putting 1.4 billion people at risk with zero citizen-facing verification tool."
-              },
-              // ... other cards
-            },
-            "realIncident": {
-              "title": "Real Incident — July 2025",
-              "text": "Delhi Police busted a counterfeit medicine ring supplying fake Johnson & Johnson and GSK medicines — made of chalk powder and starch — all the way into government hospitals. Patients had <highlight>zero way to verify</highlight> these medicines before consuming them.",
-              "highlight": "SahiDawa fixes this. For free. Forever. Open source."
-            },
-            "mission": {
-              "title": "Our Mission",
-              "description": "To empower every Indian citizen — regardless of language, location, or literacy — with the ability to instantly verify medicines, access qualified health guidance, and report counterfeit drugs in their community."
-            },
-            "vision": {
-              "title": "Our Vision",
-              "description": "A Bharat where no child dies from a fake medicine, no farmer's family is misdiagnosed for lack of a doctor, and no language is a barrier to healthcare. Free. Open. Forever."
-            },
-            "coreValues": {
-              "title": "Our Core Values",
-              "cards": {
-                "openSource": {
-                  "title": "Open Source",
-                  "description": "MIT Licensed. Always."
+            "about": {
+                "badge": "GSSoC 2026 Open Source Project",
+                "heroTitle": "About <highlight>SahiDawa</highlight>",
+                "heroSubtitle": "India's first open-source citizen medicine verifier & rural health bridge. Built for Bharat. Not just India.",
+                "features": {
+                    "free": "100% Free. Forever.",
+                    "languages": "22 Indian Languages",
+                    "license": "Open Source MIT License"
                 },
-                // ... other core value cards
-              }
+                "problemSection": {
+                    "title": "The Problem We're Solving",
+                    "description": "India has a three-layer healthcare crisis that no existing platform solves simultaneously."
+                },
+                "cards": {
+                    "fakeMedicines": {
+                        "title": "Fake Medicines",
+                        "description": "12–25% of medicines in India are fake or substandard — putting 1.4 billion people at risk with zero citizen-facing verification tool."
+                    }
+                    // ... other cards
+                },
+                "realIncident": {
+                    "title": "Real Incident — July 2025",
+                    "text": "Delhi Police busted a counterfeit medicine ring supplying fake Johnson & Johnson and GSK medicines — made of chalk powder and starch — all the way into government hospitals. Patients had <highlight>zero way to verify</highlight> these medicines before consuming them.",
+                    "highlight": "SahiDawa fixes this. For free. Forever. Open source."
+                },
+                "mission": {
+                    "title": "Our Mission",
+                    "description": "To empower every Indian citizen — regardless of language, location, or literacy — with the ability to instantly verify medicines, access qualified health guidance, and report counterfeit drugs in their community."
+                },
+                "vision": {
+                    "title": "Our Vision",
+                    "description": "A Bharat where no child dies from a fake medicine, no farmer's family is misdiagnosed for lack of a doctor, and no language is a barrier to healthcare. Free. Open. Forever."
+                },
+                "coreValues": {
+                    "title": "Our Core Values",
+                    "cards": {
+                        "openSource": {
+                            "title": "Open Source",
+                            "description": "MIT Licensed. Always."
+                        }
+                        // ... other core value cards
+                    }
+                }
             }
-          }
         }
         ```
-    *   Corresponding `about` objects with translated values were added to all other locale JSON files: `bn.json`, `gu.json`, `hi.json`, `kn.json`, `mr.json`, `od.json`, `pa.json`, `sa.json`, `ta.json`, `te.json`, and `ur.json`. The translations for these files were generated with the assistance of Google Translate and AI-supported tools, with efforts made to ensure accuracy and consistency.
+    - Corresponding `about` objects with translated values were added to all other locale JSON files: `bn.json`, `gu.json`, `hi.json`, `kn.json`, `mr.json`, `od.json`, `pa.json`, `sa.json`, `ta.json`, `te.json`, and `ur.json`. The translations for these files were generated with the assistance of Google Translate and AI-supported tools, with efforts made to ensure accuracy and consistency.
 
 This approach ensures that the "About Us" page dynamically renders content based on the user's selected locale, leveraging `next-intl`'s robust i18n capabilities.
 
@@ -123,27 +123,28 @@ If you need to implement internationalization for a new page or component within
     }
     ```
 5.  **Define Translation Keys in `en.json`:**
-    *   Open `apps/web/messages/en.json`.
-    *   Add a new top-level object with your chosen namespace (if it doesn't exist).
-    *   Define all the necessary translation keys and their English values within this object. Use nested objects for better organization (e.g., `yourNamespace.section.title`).
-    *   For text that requires inline styling or components, use `t.rich()` syntax in your JSON value, e.g., `"myKey": "This is <highlight>important</highlight> text."`.
+    - Open `apps/web/messages/en.json`.
+    - Add a new top-level object with your chosen namespace (if it doesn't exist).
+    - Define all the necessary translation keys and their English values within this object. Use nested objects for better organization (e.g., `yourNamespace.section.title`).
+    - For text that requires inline styling or components, use `t.rich()` syntax in your JSON value, e.g., `"myKey": "This is <highlight>important</highlight> text."`.
     ```json
     {
-      "yourNamespace": {
-        "pageTitle": "My Awesome Page",
-        "welcomeMessage": "Welcome to <bold>SahiDawa</bold>!",
-        "section": {
-          "heading": "Section Heading",
-          "description": "This is a description for the section."
+        "yourNamespace": {
+            "pageTitle": "My Awesome Page",
+            "welcomeMessage": "Welcome to <bold>SahiDawa</bold>!",
+            "section": {
+                "heading": "Section Heading",
+                "description": "This is a description for the section."
+            }
         }
-      }
     }
     ```
 6.  **Add Translations to Other Locale Files:**
-    *   For *every* other locale file in `apps/web/messages/` (e.g., `hi.json`, `bn.json`, `ta.json`), add the *exact same structure* of keys under your namespace.
-    *   Translate the values accurately into the respective language. Pay close attention to context and cultural nuances. For rich text keys, ensure the rich text markers (e.g., `<bold>`) are preserved around the translated words.
-    *   *Note:* As seen in this PR, AI-supported tools can assist with initial translations, but human review is crucial for accuracy and consistency.
+    - For _every_ other locale file in `apps/web/messages/` (e.g., `hi.json`, `bn.json`, `ta.json`), add the _exact same structure_ of keys under your namespace.
+    - Translate the values accurately into the respective language. Pay close attention to context and cultural nuances. For rich text keys, ensure the rich text markers (e.g., `<bold>`) are preserved around the translated words.
+    - _Note:_ As seen in this PR, AI-supported tools can assist with initial translations, but human review is crucial for accuracy and consistency.
 7.  **Replace Static Text in JSX:** In your component, replace all static text strings with calls to your `t` function:
+
     ```typescript
     // Before
     // <h1>My Awesome Page</h1>
@@ -161,6 +162,7 @@ If you need to implement internationalization for a new page or component within
         <p>{t("section.description")}</p>
     </section>
     ```
+
 8.  **Test Thoroughly:** Run the application locally and navigate to the page. Change the locale in the URL (e.g., `/en/about`, `/hi/about`) to verify that all text renders correctly in each supported language. Check for any missing translations (which would display the key itself) or incorrect formatting.
 
 ## Impact on System Architecture
@@ -177,11 +179,11 @@ This change significantly strengthens the internationalization capabilities of o
 
 The testing for this change primarily involved visual verification across all supported locales.
 
-*   **Manual UI Testing:** The author verified that the translations rendered correctly in all supported locales by navigating to the "About Us" page (`apps/web/app/[locale]/about`) for each language.
-*   **Screenshot Proof:** Screenshots were provided in the PR description, demonstrating the "About Us" page content displayed in English and other Indian languages (specifically Hindi and Bengali were shown), confirming the successful application of translations.
-*   **Edge Cases:** Not documented in this PR, but typical edge cases for i18n would include:
-    *   Missing translation keys (which would typically display the key string itself).
-    *   Incorrect locale loading (e.g., default English showing for a Hindi locale).
-    *   Malformed JSON in translation files leading to parsing errors.
-    *   Text overflow or layout issues with longer translated strings.
-    These were implicitly covered by the visual verification across multiple languages.
+- **Manual UI Testing:** The author verified that the translations rendered correctly in all supported locales by navigating to the "About Us" page (`apps/web/app/[locale]/about`) for each language.
+- **Screenshot Proof:** Screenshots were provided in the PR description, demonstrating the "About Us" page content displayed in English and other Indian languages (specifically Hindi and Bengali were shown), confirming the successful application of translations.
+- **Edge Cases:** Not documented in this PR, but typical edge cases for i18n would include:
+    - Missing translation keys (which would typically display the key string itself).
+    - Incorrect locale loading (e.g., default English showing for a Hindi locale).
+    - Malformed JSON in translation files leading to parsing errors.
+    - Text overflow or layout issues with longer translated strings.
+      These were implicitly covered by the visual verification across multiple languages.

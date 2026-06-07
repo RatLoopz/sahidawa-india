@@ -3,14 +3,18 @@
         "title": "Your Health, Verified & Protected.",
         "subtitle": "India's open-source citizen platform to instantly verify medicine authenticity, find safe pharmacies, and receive critical health alerts.",
         "scan_button": "Scan Medicine",
+        "scan_medicine": "Scan Medicine",
+        "scan_now": "Scan Now",
         "scan_subtitle": "Point camera at packaging or barcode",
         "upload_photo": "Upload Photo",
         "upload_subtitle": "Select from gallery",
         "voice_triage": "Voice Triage",
         "voice_subtitle": "Speak symptoms",
+        "find_pharmacy": "Find Pharmacy",
         "pharmacy_map": "Pharmacy Map",
         "pharmacy_subtitle": "Find verified stores",
         "report_fake": "Report Fake",
+        "report_subtitle": "Report suspicious medicine",
         "report_fake_subtitle": "Report suspicious medicine",
         "search_placeholder": "Search medicine or batch...",
         "search_button": "Search",
@@ -21,8 +25,11 @@
         "ai_chat": "AI Chat",
         "ai_health_assistant_description": "Get instant health advice, symptom checking & prescription guidance",
         "chat_now": "Chat Now",
+        "explore_features": "Explore Features",
         "live_cdsco_alerts": "Live CDSCO Alerts",
         "india_region": "India Region",
+        "real_time": "REAL TIME",
+        "alerts_description": "Stay updated with the latest medicine safety alerts and recalls.",
         "alerts_empty_title": "All clear!",
         "alerts_empty_description": "No active regulatory alerts right now. Stay safe and verify your medicines.",
         "view_full_alert_log": "View Full Alert Log",
@@ -228,72 +235,72 @@
         },
         "footer": "SahiDawa is free, open-source, and built for 1.4 billion Indians. No ads. No premium. No data sold. Ever."
     },
-    "about":{
+    "about": {
         "badge": "GSSoC 2026 Open Source Project",
-        "heroTitle":"About <highlight>SahiDawa</highlight>",
-        "heroSubtitle":"India's first open-source citizen medicine verifier & rural health bridge. Built for Bharat. Not just India.",
-       "features":{
-        "free":"100% Free. Forever.",
-        "languages":"22 Indian Languages",
-        "license":"Open Source MIT License"
-       },
-       "problemSection":{
-        "title":"The Problem We're Solving",
-        "description":"India has a three-layer healthcare crisis that no existing platform solves simultaneously."
-       },
-       "cards":{
-        "fakeMedicines":{
-            "title":"Fake Medicines",
-            "description":"12–25% of medicines in India are fake or substandard — putting 1.4 billion people at risk with zero citizen-facing verification tool."
+        "heroTitle": "About <highlight>SahiDawa</highlight>",
+        "heroSubtitle": "India's first open-source citizen medicine verifier & rural health bridge. Built for Bharat. Not just India.",
+        "features": {
+            "free": "100% Free. Forever.",
+            "languages": "22 Indian Languages",
+            "license": "Open Source MIT License"
         },
-        "ruralHealthcare":{
-            "title":"Rural Healthcare Gap",
-            "description":"65% of India's population lives in rural areas with almost no qualified doctors — over 900 million people without accessible healthcare."
+        "problemSection": {
+            "title": "The Problem We're Solving",
+            "description": "India has a three-layer healthcare crisis that no existing platform solves simultaneously."
         },
-        "languageBarrier":{
-            "title":"Language Barrier",
-            "description":"22 official languages — but health information is mostly in English or Hindi, leaving 500M+ non-Hindi speakers behind."
-        }
-       },
-       "realIncident":{
-        "title":"Real Incident — July 2025",
-        "text":"Delhi Police busted a counterfeit medicine ring supplying fake Johnson & Johnson and GSK medicines — made of chalk powder and starch — all the way into government hospitals. Patients had <highlight>zero way to verify</highlight> these medicines before consuming them.",        
-        "highlight":"SahiDawa fixes this. For free. Forever. Open source."
-       },
-       "mission":{
-        "title":"Our Mission",
-        "description":"To empower every Indian citizen — regardless of language, location, or literacy — with the ability to instantly verify medicines, access qualified health guidance, and report counterfeit drugs in their community."
-       },
-       "vision":{
-        "title":"Our Vision",
-        "description":"A Bharat where no child dies from a fake medicine, no farmer's family is misdiagnosed for lack of a doctor, and no language is a barrier to healthcare. Free. Open. Forever."
-       },
-       "coreValues":{
-        "title":"Our Core Values",
-        "cards":{
-            "openSource":{
-                "title":"Open Source",
-                "description":"MIT Licensed. Always."
+        "cards": {
+            "fakeMedicines": {
+                "title": "Fake Medicines",
+                "description": "12–25% of medicines in India are fake or substandard — putting 1.4 billion people at risk with zero citizen-facing verification tool."
             },
-            "freeForever":{
-                "title":"Free Forever",
-                "description":"No hidden costs. Ever."
+            "ruralHealthcare": {
+                "title": "Rural Healthcare Gap",
+                "description": "65% of India's population lives in rural areas with almost no qualified doctors — over 900 million people without accessible healthcare."
             },
-            "inclusive":{
-                "title":"Inclusive",
-                "description":"22 languages. All of Bharat."
-            },
-            "privacy":{
-                "title":"Privacy First",
-                "description":"No data sold. No ads."
+            "languageBarrier": {
+                "title": "Language Barrier",
+                "description": "22 official languages — but health information is mostly in English or Hindi, leaving 500M+ non-Hindi speakers behind."
             }
+        },
+        "realIncident": {
+            "title": "Real Incident — July 2025",
+            "text": "Delhi Police busted a counterfeit medicine ring supplying fake Johnson & Johnson and GSK medicines — made of chalk powder and starch — all the way into government hospitals. Patients had <highlight>zero way to verify</highlight> these medicines before consuming them.",
+            "highlight": "SahiDawa fixes this. For free. Forever. Open source."
+        },
+        "mission": {
+            "title": "Our Mission",
+            "description": "To empower every Indian citizen — regardless of language, location, or literacy — with the ability to instantly verify medicines, access qualified health guidance, and report counterfeit drugs in their community."
+        },
+        "vision": {
+            "title": "Our Vision",
+            "description": "A Bharat where no child dies from a fake medicine, no farmer's family is misdiagnosed for lack of a doctor, and no language is a barrier to healthcare. Free. Open. Forever."
+        },
+        "coreValues": {
+            "title": "Our Core Values",
+            "cards": {
+                "openSource": {
+                    "title": "Open Source",
+                    "description": "MIT Licensed. Always."
+                },
+                "freeForever": {
+                    "title": "Free Forever",
+                    "description": "No hidden costs. Ever."
+                },
+                "inclusive": {
+                    "title": "Inclusive",
+                    "description": "22 languages. All of Bharat."
+                },
+                "privacy": {
+                    "title": "Privacy First",
+                    "description": "No data sold. No ads."
+                }
+            }
+        },
+        "contactUs": {
+            "title": "Get In Touch",
+            "subtitle": "Have questions, ideas, or want to contribute? We'd love to hear from you."
         }
-       },
-       "contactUs":{
-        "title":"Get In Touch",
-        "subtitle":"Have questions, ideas, or want to contribute? We'd love to hear from you."       
-       } 
-    },       
+    },
     "Faq": {
         "badge": "GSSoC 2026 Open Source Project",
         "title": "Frequently Asked",
@@ -346,9 +353,18 @@
         "quick_actions": "Quick actions",
         "footer": "For informational use only • Consult a doctor",
         "actions": {
-            "scan": { "label": "Scan Medicine", "description": "Verify authenticity" },
-            "symptoms": { "label": "Check Symptoms", "description": "AI-assisted guidance" },
-            "pharmacy": { "label": "Find Pharmacy", "description": "Locate verified stores" }
+            "scan": {
+                "label": "Scan Medicine",
+                "description": "Verify authenticity"
+            },
+            "symptoms": {
+                "label": "Check Symptoms",
+                "description": "AI-assisted guidance"
+            },
+            "pharmacy": {
+                "label": "Find Pharmacy",
+                "description": "Locate verified stores"
+            }
         }
     },
     "chatbot": {
@@ -356,5 +372,280 @@
         "status": "Online",
         "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?",
         "placeholder": "Ask me about a medicine..."
+    },
+    "Alerts": {
+        "backHome": "Back to Home Page",
+        "badge": "Live Alerts",
+        "title": "Live CDSCO Alerts",
+        "subtitle": "Complete historical safety logging stream directly mapped to the master CDSCO registry.",
+        "regionBadge": "India Region",
+        "totalCount": "Total Count: {count}",
+        "brandPlaceholder": "Search by Brand Name...",
+        "regionPlaceholder": "Filter by State/District...",
+        "error": "Database synchronization error encountered while fetching active logs.",
+        "loading": "Loading alerts...",
+        "systemUpdate": "System Update",
+        "alertType": "Alert: {type}",
+        "noDetails": "No details available",
+        "batchLabel": "Batch:",
+        "manufacturerLabel": "Manufacturer:",
+        "regionLabel": "Region:",
+        "empty": "No health alerts matching your criteria were found.",
+        "previous": "Previous",
+        "next": "Next"
+    },
+    "Compare": {
+        "pageTitle": "Compare medicines",
+        "pageSubtitle": "Brand vs generic side by side",
+        "reportTitle": "SahiDawa Medicine Comparison Report",
+        "generatedOn": "Generated on {date}",
+        "printExport": "Print / Export PDF",
+        "firstMedicine": "First medicine",
+        "secondMedicine": "Second medicine",
+        "searchPlaceholder": "Search brand or generic name",
+        "findPharmacies": "Find pharmacies",
+        "emptyComparison": "Select two medicines above to see the comparison.",
+        "fieldHeader": "Field",
+        "medicineA": "Medicine A",
+        "medicineB": "Medicine B",
+        "priceUnavailable": "Price unavailable",
+        "noSavings": "No savings",
+        "saveAmount": "Save ₹{amount} ({percent}%)",
+        "rows": {
+            "brandName": "Brand name",
+            "genericName": "Generic name",
+            "composition": "Composition",
+            "manufacturer": "Manufacturer",
+            "type": "Type",
+            "cdscoStatus": "CDSCO status",
+            "expiryDate": "Expiry date",
+            "marketPrice": "Market price (MRP)",
+            "janAushadhiPrice": "Jan Aushadhi price",
+            "savings": "Savings vs MRP"
+        },
+        "medicineTypes": {
+            "brand": "Brand",
+            "generic": "Generic"
+        },
+        "status": {
+            "approved": "Approved",
+            "recalled": "Recalled",
+            "banned": "Banned"
+        }
+    },
+    "ExpiryTracker": {
+        "title": "Medicine Expiry Tracker",
+        "subtitle": "Manage and track your medicine stock locally",
+        "addMedicine": "Add Medicine",
+        "name": "Name",
+        "expiryDate": "Expiry Date",
+        "batchNumber": "Batch Number (Optional)",
+        "batchPlaceholder": "e.g. B12345",
+        "namePlaceholder": "e.g. Paracetamol",
+        "addToTracker": "Add to Tracker",
+        "trackedMedicines": "Tracked Medicines",
+        "total": "Total",
+        "noMedicines": "No medicines added yet.",
+        "loading": "Loading tracker data...",
+        "searchPlaceholder": "Search medicines...",
+        "sortBy": "Sort by",
+        "sortExpirySoonest": "Expiry Date (Soonest first)",
+        "sortExpiryLatest": "Expiry Date (Latest first)",
+        "sortAlpha": "Name (A-Z)",
+        "filterAll": "All",
+        "filterExpired": "Expired",
+        "filterExpiringSoon": "Expiring Soon",
+        "filterSafe": "Safe",
+        "exportBackup": "Export Backup",
+        "importBackup": "Import Backup",
+        "importError": "Invalid backup file. Please upload a valid JSON backup.",
+        "importDateError": "Invalid date format found in backup. All dates must be in YYYY-MM-DD format.",
+        "statusExpired": "Expired",
+        "statusExpiringSoon": "Expiring soon ({days}d)",
+        "statusSafe": "Safe"
+    },
+    "Login": {
+        "brandSubtitle": "Medicine safety platform",
+        "heading": "Welcome back",
+        "description": "Sign in to continue tracking medicine safety reports and verification results.",
+        "missingConfig": {
+            "title": "Authentication is not configured",
+            "description": "Supabase URL or anon key is missing. Add the environment variables before signing in."
+        },
+        "googleButton": "Continue with Google",
+        "emailSeparator": "or continue with email",
+        "emailLabel": "Email address",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Enter your password",
+        "signingIn": "Signing in...",
+        "signIn": "Sign In",
+        "footerPrompt": "Need to go back?",
+        "returnHome": "Return home",
+        "bottomText": "Protected access for SahiDawa community tools.",
+        "errors": {
+            "databaseNotConfigured": "Authentication is not configured for this environment.",
+            "generic": "Unable to sign in. Please try again."
+        }
+    },
+    "AdminLayout": {
+        "accessDeniedTitle": "Access denied",
+        "accessDeniedDescription": "You need administrator or moderator privileges to view this page.",
+        "returnHome": "Return home"
+    },
+    "AdminDashboard": {
+        "brandSuffix": "Admin",
+        "version": "SahiDawa Admin v1.0",
+        "nav": {
+            "reports": "Reports",
+            "medicine": "Medicine Master",
+            "logs": "Audit Logs"
+        },
+        "header": {
+            "title": "Moderation Dashboard",
+            "subtitle": "Manage community-reported counterfeit medicines"
+        },
+        "searchPlaceholder": "Search...",
+        "actions": {
+            "signIn": "Sign In",
+            "refresh": "Refresh",
+            "addMedicine": "Add Medicine",
+            "save": "Save",
+            "cancel": "Cancel",
+            "goToLogin": "Go to login",
+            "markFake": "Mark fake",
+            "falseAlarm": "False alarm"
+        },
+        "stats": {
+            "pending": "Pending",
+            "resolved": "Resolved",
+            "districtsAffected": "Districts Affected"
+        },
+        "errors": {
+            "notAuthenticated": "Not authenticated — please sign in as an admin.",
+            "accessDenied": "Access denied — admin or moderator role required.",
+            "apiUnavailable": "Cannot reach the API. Is the backend server running on port 4000?"
+        },
+        "toasts": {
+            "markedFake": "Marked as Verified Fake",
+            "falseAlarm": "Marked as False Alarm",
+            "reportUpdateFailed": "Failed to update report",
+            "medicineAdded": "Medicine added",
+            "medicineAddFailed": "Failed to add medicine"
+        },
+        "medicine": {
+            "title": "Medicine Master",
+            "empty": "No medicines found",
+            "columns": {
+                "brand": "Brand",
+                "generic": "Generic",
+                "manufacturer": "Manufacturer",
+                "barcode": "Barcode",
+                "status": "Status"
+            }
+        },
+        "status": {
+            "approved": "Approved",
+            "recalled": "Recalled",
+            "banned": "Banned"
+        },
+        "logs": {
+            "title": "Audit Logs",
+            "subtitle": "Recent moderation and medicine catalog activity",
+            "loading": "Loading logs...",
+            "empty": "No audit logs yet"
+        },
+        "reports": {
+            "title": "Incoming Reports",
+            "pendingCount": "{count, plural, =0 {No pending reports} =1 {1 pending report} other {# pending reports}}",
+            "loading": "Loading reports...",
+            "empty": "No pending reports",
+            "columns": {
+                "medicine": "Medicine",
+                "district": "District",
+                "barcode": "Barcode",
+                "reported": "Reported",
+                "actions": "Actions"
+            },
+            "decisions": {
+                "verifiedFake": "Verified Fake",
+                "falseAlarm": "False Alarm"
+            }
+        },
+        "resolved": {
+            "title": "Recently Resolved",
+            "count": "{count, plural, =0 {No resolved reports} =1 {1 resolved report} other {# resolved reports}}",
+            "decision": "Decision"
+        }
+    },
+    "AdminAnalytics": {
+        "title": "Impact Analytics Dashboard",
+        "subtitle": "Community engagement metrics and growth trends",
+        "metrics": {
+            "totalMedicines": "Total Medicines",
+            "totalReports": "Total Reports",
+            "resolved": "Resolved",
+            "districtsCovered": "Districts Covered"
+        },
+        "charts": {
+            "monthlyGrowth": "Monthly Growth Trend",
+            "reportStatus": "Report Status Distribution",
+            "topDistricts": "Top Districts by Reports",
+            "recentActivity": "Recent Activity"
+        },
+        "overview": {
+            "title": "Platform Overview",
+            "avgReportsPerDay": "Avg Reports/Day",
+            "resolutionRate": "Resolution Rate",
+            "thisWeekReports": "This Week Reports",
+            "thisWeekMedicines": "This Week Medicines"
+        }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "Vaccine Hub",
+        "pageHeaderSubtitle": "Immunization Tracker",
+        "title": "Vaccine Hub & Immunization Tracker",
+        "subtitle": "Explore vaccine schedules, safety information, and aftercare guidance for better public health awareness.",
+        "selectLabel": "Select Disease / Vaccine",
+        "placeholder": "Choose a Vaccine Profile...",
+        "childBirthDate": "Child's Birth Date",
+        "milestoneBaseDate": "First Dose Milestone Base Date",
+        "noVaccineSelected": "No vaccine selected",
+        "chooseVaccinePrompt": "Choose a vaccine above to unlock tracking tools:",
+        "featureSchedule": "Dynamic projected immunization schedule",
+        "featureSideEffects": "Side effects split parameters (mild vs severe)",
+        "featureAftercare": "Clinical step-by-step aftercare instructions",
+        "targetGroups": "Target Groups",
+        "totalDoses": "Total Doses",
+        "effectiveness": "Effectiveness",
+        "classification": "Classification",
+        "aboutDisease": "About Disease:",
+        "scheduleLayoutHeading": "Immunization Schedule",
+        "atBirth": "At Birth Administration",
+        "atWeeks": "At {weeks} Weeks of Age",
+        "baseline": "Initial Administration (Baseline)",
+        "doseStep": "Dose Step {index} (+{weeks} weeks later)",
+        "targetDate": "Target Date: {date}",
+        "selectDateWarning": "Select a date above to project timelines",
+        "commonEffects": "Common Post-Effects",
+        "severeReactions": "Severe Reactions",
+        "aftercareHeading": "Immediate Aftercare Guidance"
+    },
+    "CommandPalette": {
+        "placeholder": "Search pages or actions...",
+        "noResults": "No results found.",
+        "hint": "Press Esc to close",
+        "pages": "Pages",
+        "actions": "Actions",
+        "open": "Open command palette",
+        "nav_home": "Go to Home",
+        "nav_scan": "Scan a Medicine",
+        "nav_map": "Find Nearby Pharmacy",
+        "nav_alerts": "View Alerts",
+        "nav_expiry": "Medicine Expiry Tracker",
+        "nav_compare": "Compare Medicines",
+        "nav_vaccine": "Vaccine Hub",
+        "nav_reports": "My Reports",
+        "nav_profile": "My Profile"
     }
 }

@@ -1,10 +1,25 @@
 /**
+ * @jest-environment jsdom
+ */
+/**
  * Tests for offline support functionality
  * Run with: npm test apps/web -- offline.test.ts
  */
 
 import { join } from "path";
+import * as fs from "fs";
+import React, { act } from "react";
+import { renderHook, render, screen, fireEvent } from "@testing-library/react";
+import "@testing-library/jest-dom";
 import { fetchWithRetry, offlineRequestQueue } from "@/lib/apiWithRetry";
+import { useOfflineStatus } from "@/hooks/useOfflineStatus";
+import { OfflineBanner } from "@/components/OfflineBanner";
+import { OfflineErrorBoundary } from "@/components/OfflineErrorBoundary";
+
+// Mock next-intl for OfflineBanner translations
+jest.mock("next-intl", () => ({
+    useTranslations: () => (key: string) => key,
+}));
 
 describe("Offline Support", () => {
     describe("fetchWithRetry", () => {
@@ -172,32 +187,223 @@ describe("Offline Support", () => {
     });
 
     describe("useOfflineStatus", () => {
-        // These would need to be tested with React Testing Library
-        // Tests for:
-        // 1. isOffline state updates on online/offline events
-        // 2. registerRetryCallback registration
-        // 3. Callback execution on reconnect
+        it("should initialize isOffline to false when navigator.onLine is true", () => {
+            const { result } = renderHook(() => useOfflineStatus());
+            expect(result.current.isOffline).toBe(false);
+        });
+
+        it("should set isOffline to true on offline event", () => {
+            const { result } = renderHook(() => useOfflineStatus());
+            act(() => {
+                window.dispatchEvent(new Event("offline"));
+            });
+            expect(result.current.isOffline).toBe(true);
+        });
+
+        it("should set isOffline to false on online event", () => {
+            const { result } = renderHook(() => useOfflineStatus());
+            act(() => {
+                window.dispatchEvent(new Event("offline"));
+            });
+            expect(result.current.isOffline).toBe(true);
+
+            act(() => {
+                window.dispatchEvent(new Event("online"));
+            });
+            expect(result.current.isOffline).toBe(false);
+        });
+
+        it("should register and execute retry callbacks on reconnect", () => {
+            const { result } = renderHook(() => useOfflineStatus());
+            const callback = jest.fn();
+
+            act(() => {
+                result.current.registerRetryCallback(callback);
+            });
+
+            // Go offline then online — callbacks should fire on reconnect
+            act(() => {
+                window.dispatchEvent(new Event("offline"));
+            });
+            act(() => {
+                window.dispatchEvent(new Event("online"));
+            });
+
+            expect(callback).toHaveBeenCalledTimes(1);
+        });
+
+        it("should clear retry callbacks after execution", () => {
+            const { result } = renderHook(() => useOfflineStatus());
+            const callback = jest.fn();
+
+            act(() => {
+                result.current.registerRetryCallback(callback);
+            });
+
+            act(() => {
+                window.dispatchEvent(new Event("offline"));
+            });
+            act(() => {
+                window.dispatchEvent(new Event("online"));
+            });
+
+            expect(callback).toHaveBeenCalledTimes(1);
+
+            // Go offline and back online again — callback should not fire again
+            act(() => {
+                window.dispatchEvent(new Event("offline"));
+            });
+            act(() => {
+                window.dispatchEvent(new Event("online"));
+            });
+
+            expect(callback).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe("OfflineBanner", () => {
-        // Tests using React Testing Library:
-        // 1. Renders when offline
-        // 2. Hides when online
-        // 3. Shows correct messages from i18n
-        // 4. Dismiss button works
+        it("should not render when online", () => {
+            render(<OfflineBanner />);
+            expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+        });
+
+        it("should render offline message when offline", () => {
+            render(<OfflineBanner />);
+            act(() => {
+                window.dispatchEvent(new Event("offline"));
+            });
+            expect(screen.getByRole("alert")).toBeInTheDocument();
+            expect(screen.getByText("bannerOffline")).toBeInTheDocument();
+        });
+
+        it("should show back-online message when reconnecting", () => {
+            jest.useFakeTimers();
+            render(<OfflineBanner />);
+
+            act(() => {
+                window.dispatchEvent(new Event("offline"));
+            });
+            expect(screen.getByText("bannerOffline")).toBeInTheDocument();
+
+            act(() => {
+                window.dispatchEvent(new Event("online"));
+            });
+            expect(screen.getByText("bannerOnline")).toBeInTheDocument();
+
+            act(() => {
+                jest.advanceTimersByTime(3000);
+            });
+            expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+
+            jest.useRealTimers();
+        });
+
+        it("should dismiss when dismiss button is clicked", () => {
+            render(<OfflineBanner />);
+            act(() => {
+                window.dispatchEvent(new Event("offline"));
+            });
+            expect(screen.getByRole("alert")).toBeInTheDocument();
+
+            fireEvent.click(screen.getByLabelText("dismiss"));
+            expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+        });
     });
 
     describe("OfflineErrorBoundary", () => {
-        // Tests using React Testing Library:
-        // 1. Catches errors
-        // 2. Displays fallback UI
-        // 3. Retry button works
-        // 4. Distinguishes network errors
+        beforeEach(() => {
+            jest.spyOn(console, "error").mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        function ThrowComponent({ message = "Something went wrong" }: { message?: string }) {
+            throw new Error(message);
+        }
+
+        it("should catch errors and display fallback UI", () => {
+            render(
+                <OfflineErrorBoundary>
+                    <ThrowComponent />
+                </OfflineErrorBoundary>
+            );
+            expect(screen.getByText("Something Went Wrong")).toBeInTheDocument();
+        });
+
+        it("should display Connection Lost message for network errors", () => {
+            function NetworkThrowComponent() {
+                throw new TypeError("Failed to fetch");
+            }
+
+            render(
+                <OfflineErrorBoundary>
+                    <NetworkThrowComponent />
+                </OfflineErrorBoundary>
+            );
+            expect(screen.getByText("Connection Lost")).toBeInTheDocument();
+        });
+
+        it("should display generic message for non-network errors", () => {
+            function NonNetworkThrowComponent() {
+                throw new Error("Random error");
+            }
+
+            render(
+                <OfflineErrorBoundary>
+                    <NonNetworkThrowComponent />
+                </OfflineErrorBoundary>
+            );
+            expect(screen.getByText("Something Went Wrong")).toBeInTheDocument();
+        });
+
+        it("should reset and render children when retry is clicked and error is resolved", () => {
+            let shouldThrow = true;
+
+            function ConditionalThrow() {
+                if (shouldThrow) {
+                    throw new Error("fetch failed");
+                }
+                return <div>Content loaded successfully</div>;
+            }
+
+            render(
+                <OfflineErrorBoundary>
+                    <ConditionalThrow />
+                </OfflineErrorBoundary>
+            );
+            expect(screen.getByText("Connection Lost")).toBeInTheDocument();
+
+            shouldThrow = false;
+
+            fireEvent.click(screen.getByText("Try Again"));
+            expect(screen.getByText("Content loaded successfully")).toBeInTheDocument();
+        });
+
+        it("should show checking state when retry is clicked while offline", () => {
+            jest.spyOn(navigator, "onLine", "get").mockReturnValue(false);
+
+            function NetworkThrowComponent() {
+                throw new TypeError("Failed to fetch");
+            }
+
+            render(
+                <OfflineErrorBoundary>
+                    <NetworkThrowComponent />
+                </OfflineErrorBoundary>
+            );
+            expect(screen.getByText("Connection Lost")).toBeInTheDocument();
+
+            fireEvent.click(screen.getByText("Try Again"));
+            expect(screen.getByText("Checking...")).toBeInTheDocument();
+
+            jest.restoreAllMocks();
+        });
     });
 
     describe("Service Worker", () => {
         it("exists as a valid JS file", () => {
-            const fs = require("fs");
             const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
             expect(swContent).toContain("self.addEventListener");
             expect(swContent).toContain("install");
@@ -206,7 +412,6 @@ describe("Offline Support", () => {
         });
 
         it("defines expected cache strategies", () => {
-            const fs = require("fs");
             const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
             expect(swContent).toContain("sahidawa-offline-");
             expect(swContent).toContain("sahidawa-api-");
@@ -217,14 +422,12 @@ describe("Offline Support", () => {
         });
 
         it("handles OSM tile origin for offline maps", () => {
-            const fs = require("fs");
             const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
             expect(swContent).toContain("tile.openstreetmap.org");
             expect(swContent).toContain("sahidawa-tiles-");
         });
 
         it("caches medicine lookup APIs with StaleWhileRevalidate", () => {
-            const fs = require("fs");
             const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
             expect(swContent).toContain("/api/medicines/");
             expect(swContent).toContain("/api/verify");
@@ -234,7 +437,6 @@ describe("Offline Support", () => {
         });
 
         it("caches icons and manifest with CacheFirst", () => {
-            const fs = require("fs");
             const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
             expect(swContent).toContain("/icons/");
             expect(swContent).toContain("/manifest.json");
@@ -242,27 +444,23 @@ describe("Offline Support", () => {
         });
 
         it("handles push notification events", () => {
-            const fs = require("fs");
             const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
             expect(swContent).toContain('"push"');
             expect(swContent).toContain("showNotification");
         });
 
         it("handles notificationclick events", () => {
-            const fs = require("fs");
             const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
             expect(swContent).toContain('"notificationclick"');
             expect(swContent).toContain("clients.openWindow");
         });
 
         it("handles SKIP_WAITING message", () => {
-            const fs = require("fs");
             const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
             expect(swContent).toContain("SKIP_WAITING");
         });
 
         it("registers service worker via ServiceWorkerProvider", () => {
-            const fs = require("fs");
             const swProviderPath = join(process.cwd(), "components/ServiceWorkerProvider.tsx");
             const providerContent = fs.readFileSync(swProviderPath, "utf8");
             expect(providerContent).toContain('serviceWorker.register("/sw.js"');

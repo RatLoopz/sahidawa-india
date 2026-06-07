@@ -24,6 +24,28 @@ _Built for Bharat. Not just India._
 
 ---
 
+## Table of Contents
+
+- [🩺 SahiDawa — सही दवा](#-sahidawa--सही-दवा)
+- [🚨 The Problem We're Solving](#-the-problem-were-solving)
+- [✨ What SahiDawa Does](#-what-sahidawa-does)
+- [🏗️ Architecture](#%EF%B8%8F-architecture)
+- [🛠️ Tech Stack](#%EF%B8%8F-tech-stack)
+- [🗺️ Roadmap & Phases](#%EF%B8%8F-roadmap--phases)
+- [🚀 Getting Started](#-getting-started)
+- [📁 Project Structure](#-project-structure)
+- [🤝 Contributing](#-contributing)
+- [🌏 Supported Languages](#-supported-languages)
+- [📊 Data Sources (All Free & Public)](#-data-sources-all-free--public)
+- [🏆 GSSoC 2026](#-gssoc-2026)
+- [💬 Community](#-community)
+- [📜 License](#-license)
+- [👥 Contributors](#-contributors)
+- [🙏 Acknowledgements](#-acknowledgements)
+- [❤️ Why Open Source?](#%EF%B8%8F-why-open-source)
+
+---
+
 ## 🚨 The Problem We're Solving
 
 India has a three-layer healthcare crisis that **no existing platform solves simultaneously**:

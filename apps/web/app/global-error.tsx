@@ -2,7 +2,6 @@
 
 import { useEffect, useId } from "react";
 import { AlertTriangle, RotateCw, Home } from "lucide-react";
-import "./[locale]/globals.css";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 
 interface GlobalErrorProps {

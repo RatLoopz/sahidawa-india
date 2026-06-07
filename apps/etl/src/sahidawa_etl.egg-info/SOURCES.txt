@@ -16,4 +16,5 @@ src/utils/__init__.py
 src/utils/logger.py
 src/validators/__init__.py
 src/validators/cdsco_validator.py
+tests/test_cdsco_validator_optimization.py
 tests/test_loader.py

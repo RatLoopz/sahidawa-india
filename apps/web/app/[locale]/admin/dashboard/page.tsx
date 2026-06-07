@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useId } from "react";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 import {
     AlertTriangle,
     Database,
@@ -16,6 +17,7 @@ import {
     Clock,
     Pill,
     FileText,
+    Activity,
 } from "lucide-react";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 import { ADMIN_API_BASE } from "@/lib/adminApi";
@@ -67,6 +69,7 @@ function getToken(): string {
 }
 
 export default function AdminDashboard() {
+    const t = useTranslations("AdminDashboard");
     const [tab, setTab] = useState<Tab>("reports");
     const [reports, setReports] = useState<Report[]>([]);
     const [resolved, setResolved] = useState<(Report & { resolvedStatus: ReportStatus })[]>([]);
@@ -102,21 +105,21 @@ export default function AdminDashboard() {
         try {
             const res = await fetch(`${ADMIN_API_BASE}/reports`, { headers: authHeaders() });
             if (res.status === 401) {
-                setAuthError("Not authenticated — please sign in as an admin.");
+                setAuthError(t("errors.notAuthenticated"));
                 return;
             }
             if (res.status === 403) {
-                setAuthError("Access denied — admin or moderator role required.");
+                setAuthError(t("errors.accessDenied"));
                 return;
             }
             const json = await res.json();
             setReports(json.reports ?? []);
         } catch {
-            setAuthError("Cannot reach the API. Is the backend server running on port 4000?");
+            setAuthError(t("errors.apiUnavailable"));
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [t]);
 
     const fetchMedicines = useCallback(async () => {
         try {
@@ -171,11 +174,11 @@ export default function AdminDashboard() {
             notify(
                 status === "verified_fake" ? (
                     <>
-                        <AlertTriangle className="mr-1 inline h-4 w-4" /> Marked as Verified Fake
+                        <AlertTriangle className="mr-1 inline h-4 w-4" /> {t("toasts.markedFake")}
                     </>
                 ) : (
                     <>
-                        <CheckCircle className="mr-1 inline h-4 w-4" /> Marked as False Alarm
+                        <CheckCircle className="mr-1 inline h-4 w-4" /> {t("toasts.falseAlarm")}
                     </>
                 ),
                 status !== "verified_fake"
@@ -183,7 +186,7 @@ export default function AdminDashboard() {
         } catch {
             notify(
                 <>
-                    <XCircle className="mr-1 inline h-4 w-4" /> Failed to update report
+                    <XCircle className="mr-1 inline h-4 w-4" /> {t("toasts.reportUpdateFailed")}
                 </>,
                 false
             );
@@ -213,13 +216,13 @@ export default function AdminDashboard() {
             setShowForm(false);
             notify(
                 <>
-                    <CheckCircle className="mr-1 inline h-4 w-4" /> Medicine added
+                    <CheckCircle className="mr-1 inline h-4 w-4" /> {t("toasts.medicineAdded")}
                 </>
             );
         } catch {
             notify(
                 <>
-                    <XCircle className="mr-1 inline h-4 w-4" /> Failed to add medicine
+                    <XCircle className="mr-1 inline h-4 w-4" /> {t("toasts.medicineAddFailed")}
                 </>,
                 false
             );
@@ -239,30 +242,37 @@ export default function AdminDashboard() {
                         S
                     </div>
                     <span className="font-bold text-slate-800">
-                        SahiDawa <span className="text-blue-600">Admin</span>
+                        SahiDawa <span className="text-blue-600">{t("brandSuffix")}</span>
                     </span>
                 </div>
                 <nav className="flex flex-1 flex-col gap-0.5">
                     <NavItem
                         icon={AlertTriangle}
-                        label="Reports"
+                        label={t("nav.reports")}
                         active={tab === "reports"}
                         onClick={() => setTab("reports")}
                     />
                     <NavItem
                         icon={Database}
-                        label="Medicine Master"
+                        label={t("nav.medicine")}
                         active={tab === "medicine"}
                         onClick={() => setTab("medicine")}
                     />
                     <NavItem
                         icon={History}
-                        label="Audit Logs"
+                        label={t("nav.logs")}
                         active={tab === "logs"}
                         onClick={() => setTab("logs")}
                     />
+                    <Link
+                        href="/admin/analytics"
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-slate-500 transition-all hover:bg-slate-50 hover:text-slate-800"
+                    >
+                        <Activity className="h-4 w-4 text-slate-400" />
+                        Analytics
+                    </Link>
                 </nav>
-                <p className="px-1 text-xs text-slate-400">SahiDawa Admin v1.0</p>
+                <p className="px-1 text-xs text-slate-400">{t("version")}</p>
             </aside>
 
             {/* Main */}
@@ -270,30 +280,28 @@ export default function AdminDashboard() {
                 {/* Header */}
                 <header className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-8 py-4">
                     <div>
-                        <h1 className="text-lg font-bold text-slate-900">Moderation Dashboard</h1>
-                        <p className="text-xs text-slate-400">
-                            Manage community-reported counterfeit medicines
-                        </p>
+                        <h1 className="text-lg font-bold text-slate-900">{t("header.title")}</h1>
+                        <p className="text-xs text-slate-400">{t("header.subtitle")}</p>
                     </div>
                     <div className="flex items-center gap-3">
                         <Link
-                            href="/en/login"
+                            href="/login"
                             className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700"
                         >
-                            Sign In
+                            {t("actions.signIn")}
                         </Link>
                         <div className="relative">
                             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
                             <input
                                 type="text"
-                                placeholder="Search..."
+                                placeholder={t("searchPlaceholder")}
                                 className="w-56 rounded-full border border-slate-200 bg-slate-50 py-2 pr-4 pl-9 text-sm focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
                             />
                         </div>
                         <button
                             onClick={fetchReports}
                             className="rounded-full bg-slate-100 p-2 text-slate-500 transition hover:bg-slate-200"
-                            title="Refresh"
+                            title={t("actions.refresh")}
                         >
                             <RefreshCw className="h-4 w-4" />
                         </button>
@@ -304,21 +312,21 @@ export default function AdminDashboard() {
                     {/* Stats */}
                     <div className="grid grid-cols-3 gap-4">
                         <StatCard
-                            label="Pending"
+                            label={t("stats.pending")}
                             value={pendingCount}
                             icon={AlertTriangle}
                             color="text-amber-500"
                             bg="bg-amber-50"
                         />
                         <StatCard
-                            label="Resolved"
+                            label={t("stats.resolved")}
                             value={resolvedCount}
                             icon={CheckCircle}
                             color="text-green-500"
                             bg="bg-green-50"
                         />
                         <StatCard
-                            label="Districts Affected"
+                            label={t("stats.districtsAffected")}
                             value={districtCount}
                             icon={ShieldAlert}
                             color="text-purple-500"
@@ -335,8 +343,9 @@ export default function AdminDashboard() {
                                 authError={authError}
                                 acting={acting}
                                 onAction={handleReportAction}
+                                t={t}
                             />
-                            {resolved.length > 0 && <ResolvedTable resolved={resolved} />}
+                            {resolved.length > 0 && <ResolvedTable resolved={resolved} t={t} />}
                         </>
                     )}
 
@@ -344,12 +353,14 @@ export default function AdminDashboard() {
                     {tab === "medicine" && (
                         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                             <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-                                <h2 className="font-semibold text-slate-800">Medicine Master</h2>
+                                <h2 className="font-semibold text-slate-800">
+                                    {t("medicine.title")}
+                                </h2>
                                 <button
                                     onClick={() => setShowForm((v) => !v)}
                                     className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-700"
                                 >
-                                    <Plus className="h-3.5 w-3.5" /> Add Medicine
+                                    <Plus className="h-3.5 w-3.5" /> {t("actions.addMedicine")}
                                 </button>
                             </div>
 
@@ -390,9 +401,9 @@ export default function AdminDashboard() {
                                             }
                                             className="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none"
                                         >
-                                            <option value="approved">Approved</option>
-                                            <option value="recalled">Recalled</option>
-                                            <option value="banned">Banned</option>
+                                            <option value="approved">{t("status.approved")}</option>
+                                            <option value="recalled">{t("status.recalled")}</option>
+                                            <option value="banned">{t("status.banned")}</option>
                                         </select>
                                     </div>
                                     <div className="flex gap-2">
@@ -400,13 +411,13 @@ export default function AdminDashboard() {
                                             onClick={handleAddMedicine}
                                             className="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-700"
                                         >
-                                            Save
+                                            {t("actions.save")}
                                         </button>
                                         <button
                                             onClick={() => setShowForm(false)}
                                             className="rounded-lg bg-slate-200 px-4 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-300"
                                         >
-                                            Cancel
+                                            {t("actions.cancel")}
                                         </button>
                                     </div>
                                 </div>
@@ -415,11 +426,19 @@ export default function AdminDashboard() {
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="bg-slate-50 text-xs font-semibold tracking-wider text-slate-400 uppercase">
-                                        <th className="px-6 py-3">Brand</th>
-                                        <th className="px-6 py-3">Generic</th>
-                                        <th className="px-6 py-3">Manufacturer</th>
-                                        <th className="px-6 py-3">Barcode</th>
-                                        <th className="px-6 py-3">Status</th>
+                                        <th className="px-6 py-3">{t("medicine.columns.brand")}</th>
+                                        <th className="px-6 py-3">
+                                            {t("medicine.columns.generic")}
+                                        </th>
+                                        <th className="px-6 py-3">
+                                            {t("medicine.columns.manufacturer")}
+                                        </th>
+                                        <th className="px-6 py-3">
+                                            {t("medicine.columns.barcode")}
+                                        </th>
+                                        <th className="px-6 py-3">
+                                            {t("medicine.columns.status")}
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
@@ -429,7 +448,7 @@ export default function AdminDashboard() {
                                                 colSpan={5}
                                                 className="px-6 py-10 text-center text-sm text-slate-400"
                                             >
-                                                No medicines found.
+                                                {t("medicine.empty")}
                                             </td>
                                         </tr>
                                     )}
@@ -454,7 +473,10 @@ export default function AdminDashboard() {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-3">
-                                                <StatusBadge status={m.cdsco_approval_status} />
+                                                <StatusBadge
+                                                    status={m.cdsco_approval_status}
+                                                    t={t}
+                                                />
                                             </td>
                                         </tr>
                                     ))}
@@ -467,18 +489,18 @@ export default function AdminDashboard() {
                     {tab === "logs" && (
                         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                             <div className="border-b border-slate-100 px-6 py-4">
-                                <h2 className="font-semibold text-slate-800">Audit Log</h2>
+                                <h2 className="font-semibold text-slate-800">{t("logs.title")}</h2>
                                 <p className="mt-0.5 text-xs text-slate-400">
-                                    Every administrative action is recorded here
+                                    {t("logs.subtitle")}
                                 </p>
                             </div>
                             {logsLoading ? (
                                 <div className="flex items-center justify-center gap-2 py-16 text-slate-400">
-                                    <Loader2 className="h-5 w-5 animate-spin" /> Loading audit logs…
+                                    <Loader2 className="h-5 w-5 animate-spin" /> {t("logs.loading")}
                                 </div>
                             ) : auditLogs.length === 0 ? (
                                 <div className="py-16 text-center text-sm text-slate-400">
-                                    No audit entries yet.
+                                    {t("logs.empty")}
                                 </div>
                             ) : (
                                 <div className="divide-y divide-slate-100">
@@ -577,7 +599,10 @@ function StatCard({
     );
 }
 
-function StatusBadge({ status }: Readonly<{ status: MedicineStatus }>) {
+function StatusBadge({
+    status,
+    t,
+}: Readonly<{ status: MedicineStatus; t: ReturnType<typeof useTranslations> }>) {
     const styles: Record<MedicineStatus, string> = {
         approved: "bg-green-50 text-green-600",
         recalled: "bg-amber-50 text-amber-600",
@@ -585,7 +610,7 @@ function StatusBadge({ status }: Readonly<{ status: MedicineStatus }>) {
     };
     return (
         <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${styles[status]}`}>
-            {status.charAt(0).toUpperCase() + status.slice(1)}
+            {t(`status.${status}`)}
         </span>
     );
 }
@@ -596,20 +621,24 @@ function ReportsTable({
     authError,
     acting,
     onAction,
+    t,
 }: Readonly<{
     reports: Report[];
     loading: boolean;
     authError: string | null;
     acting: string | null;
     onAction: (id: string, s: ReportStatus) => void;
+    t: ReturnType<typeof useTranslations>;
 }>) {
     const authErrorMessageId = useId();
 
     return (
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-                <h2 className="font-semibold text-slate-800">Pending Reports</h2>
-                <span className="text-xs text-slate-400">{reports.length} pending</span>
+                <h2 className="font-semibold text-slate-800">{t("reports.title")}</h2>
+                <span className="text-xs text-slate-400">
+                    {t("reports.pendingCount", { count: reports.length })}
+                </span>
             </div>
 
             {authError && (
@@ -624,24 +653,24 @@ function ReportsTable({
                     </div>
 
                     <Link
-                        href="/en/login"
+                        href="/login"
                         className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700"
                     >
-                        Go to Login
+                        {t("actions.goToLogin")}
                     </Link>
                 </LiveMessage>
             )}
 
             {loading && !authError && (
                 <div className="flex items-center justify-center gap-2 py-16 text-slate-400">
-                    <Loader2 className="h-5 w-5 animate-spin" /> Loading reports…
+                    <Loader2 className="h-5 w-5 animate-spin" /> {t("reports.loading")}
                 </div>
             )}
 
             {!loading && !authError && reports.length === 0 && (
                 <div className="py-16 text-center text-slate-400">
                     <CheckCircle className="mx-auto mb-2 h-10 w-10 text-green-400" />
-                    <p className="text-sm">No pending reports</p>
+                    <p className="text-sm">{t("reports.empty")}</p>
                 </div>
             )}
 
@@ -649,11 +678,11 @@ function ReportsTable({
                 <table className="w-full text-left">
                     <thead>
                         <tr className="bg-slate-50 text-xs font-semibold tracking-wider text-slate-400 uppercase">
-                            <th className="px-6 py-3">Medicine</th>
-                            <th className="px-6 py-3">District</th>
-                            <th className="px-6 py-3">Barcode</th>
-                            <th className="px-6 py-3">Reported</th>
-                            <th className="px-6 py-3">Actions</th>
+                            <th className="px-6 py-3">{t("reports.columns.medicine")}</th>
+                            <th className="px-6 py-3">{t("reports.columns.district")}</th>
+                            <th className="px-6 py-3">{t("reports.columns.barcode")}</th>
+                            <th className="px-6 py-3">{t("reports.columns.reported")}</th>
+                            <th className="px-6 py-3">{t("reports.columns.actions")}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -676,7 +705,7 @@ function ReportsTable({
                                 <td className="px-6 py-3">
                                     <div className="flex gap-2">
                                         <ActionBtn
-                                            label="Mark Fake"
+                                            label={t("actions.markFake")}
                                             icon={XCircle}
                                             color="red"
                                             loading={acting === r.id + "verified_fake"}
@@ -684,7 +713,7 @@ function ReportsTable({
                                             onClick={() => onAction(r.id, "verified_fake")}
                                         />
                                         <ActionBtn
-                                            label="False Alarm"
+                                            label={t("actions.falseAlarm")}
                                             icon={CheckCircle}
                                             color="green"
                                             loading={acting === r.id + "false_alarm"}
@@ -704,19 +733,25 @@ function ReportsTable({
 
 function ResolvedTable({
     resolved,
-}: Readonly<{ resolved: (Report & { resolvedStatus: ReportStatus })[] }>) {
+    t,
+}: Readonly<{
+    resolved: (Report & { resolvedStatus: ReportStatus })[];
+    t: ReturnType<typeof useTranslations>;
+}>) {
     return (
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-                <h2 className="font-semibold text-slate-800">Resolved</h2>
-                <span className="text-xs text-slate-400">{resolved.length} resolved</span>
+                <h2 className="font-semibold text-slate-800">{t("resolved.title")}</h2>
+                <span className="text-xs text-slate-400">
+                    {t("resolved.count", { count: resolved.length })}
+                </span>
             </div>
             <table className="w-full text-left">
                 <thead>
                     <tr className="bg-slate-50 text-xs font-semibold tracking-wider text-slate-400 uppercase">
-                        <th className="px-6 py-3">Medicine</th>
-                        <th className="px-6 py-3">District</th>
-                        <th className="px-6 py-3">Decision</th>
+                        <th className="px-6 py-3">{t("reports.columns.medicine")}</th>
+                        <th className="px-6 py-3">{t("reports.columns.district")}</th>
+                        <th className="px-6 py-3">{t("resolved.decision")}</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -734,11 +769,13 @@ function ResolvedTable({
                                 >
                                     {r.resolvedStatus === "verified_fake" ? (
                                         <>
-                                            <XCircle className="h-3.5 w-3.5" /> Verified Fake
+                                            <XCircle className="h-3.5 w-3.5" />{" "}
+                                            {t("reports.decisions.verifiedFake")}
                                         </>
                                     ) : (
                                         <>
-                                            <CheckCircle className="h-3.5 w-3.5" /> False Alarm
+                                            <CheckCircle className="h-3.5 w-3.5" />{" "}
+                                            {t("reports.decisions.falseAlarm")}
                                         </>
                                     )}
                                 </span>

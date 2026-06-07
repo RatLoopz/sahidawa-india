@@ -1,21 +1,21 @@
 import { HTMLAttributes } from "react";
 
 type CardProps = HTMLAttributes<HTMLElement> & {
-  as?: "article" | "div" | "section";
+    as?: "article" | "div" | "section";
 };
 
 export default function Card({
-  as: Component = "article",
-  className = "",
-  children,
-  ...props
+    as: Component = "article",
+    className = "",
+    children,
+    ...props
 }: CardProps) {
-  return (
-    <Component
-      className={`bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden ${className}`}
-      {...props}
-    >
-      {children}
-    </Component>
-  );
+    return (
+        <Component
+            className={`overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm ${className}`}
+            {...props}
+        >
+            {children}
+        </Component>
+    );
 }

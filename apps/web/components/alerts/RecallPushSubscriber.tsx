@@ -60,9 +60,19 @@ export default function RecallPushSubscriber() {
                 applicationServerKey: urlBase64ToUint8Array(publicKey),
             });
 
+            const token = localStorage.getItem("sb-access-token");
+            if (!token) {
+                setState("error");
+                setMessage("Please sign in to enable push alerts.");
+                return;
+            }
+
             const res = await fetch(`${API_BASE}/api/notifications/subscriptions`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
                 body: JSON.stringify(subscription),
             });
 
@@ -81,15 +91,17 @@ export default function RecallPushSubscriber() {
     const isSubscribed = state === "subscribed";
 
     return (
-        <section className="mb-6 rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm">
+        <section className="mb-6 rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm dark:border-emerald-900/30 dark:bg-slate-900/55">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-start gap-3">
-                    <div className="rounded-full bg-emerald-50 p-2 text-emerald-600">
+                    <div className="rounded-full bg-emerald-50 p-2 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400">
                         {isSubscribed ? <Bell size={18} /> : <BellOff size={18} />}
                     </div>
                     <div>
-                        <h2 className="text-sm font-bold text-slate-900">Recall push alerts</h2>
-                        <p className="mt-1 max-w-2xl text-sm font-medium text-slate-500">
+                        <h2 className="text-sm font-bold text-slate-900 dark:text-(--color-text-primary)">
+                            Recall push alerts
+                        </h2>
+                        <p className="mt-1 max-w-2xl text-sm font-medium text-slate-500 dark:text-(--color-text-secondary)">
                             Get notified when the mock CDSCO recall feed flags a medicine you should
                             avoid.
                         </p>
@@ -98,7 +110,9 @@ export default function RecallPushSubscriber() {
                                 as="p"
                                 tone={isSubscribed ? "polite" : "critical"}
                                 className={`mt-2 text-xs font-semibold ${
-                                    isSubscribed ? "text-emerald-600" : "text-slate-500"
+                                    isSubscribed
+                                        ? "text-emerald-600 dark:text-emerald-400"
+                                        : "text-slate-500 dark:text-slate-400"
                                 }`}
                             >
                                 {message}
@@ -110,7 +124,7 @@ export default function RecallPushSubscriber() {
                     type="button"
                     onClick={subscribe}
                     disabled={state === "subscribing" || isSubscribed}
-                    className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition-all duration-300 hover:scale-105 hover:bg-emerald-700 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed disabled:bg-slate-300"
+                    className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition-all duration-300 hover:scale-105 hover:bg-emerald-700 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
                 >
                     {state === "subscribing"
                         ? "Enabling..."

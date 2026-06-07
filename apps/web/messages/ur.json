@@ -21,6 +21,7 @@
         "ai_chat": "AI چیٹ",
         "ai_health_assistant_description": "فوری صحت مشورہ، علامات کی جانچ اور نسخے کی رہنمائی حاصل کریں",
         "chat_now": "ابھی چیٹ کریں",
+        "explore_features": "خصوصیات دریافت کریں",
         "live_cdsco_alerts": "لائیو CDSCO الرٹس",
         "india_region": "بھارت خطہ",
         "alerts_empty_title": "سب صاف ہے!",
@@ -142,8 +143,13 @@
             "generic_title": "کچھ غلط ہو گیا",
             "generic_message": "ہم اس بار آپ کے وائس ان پٹ پر کارروائی نہیں کر سکے۔ براہ کرم دوبارہ کوشش کریں۔",
             "api_title": "SahiDawa AI دستیاب نہیں ہے",
-            "api_message": "ہمیں اس وقت طبی رہنمائی حاصل نہیں ہو سکی۔ براہ کرم تھوڑی دیر بعد دوبارہ کوشش کریں۔"
-        }
+            "api_message": "ہمیں اس وقت طبی رہنمائی حاصل نہیں ہو سکی۔ براہ کرم تھوڑی دیر بعد دوبارہ کوشش کریں۔",
+            "service_unavailable_title": "Voice service unavailable",
+            "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
+            "timeout_title": "Voice request timed out",
+            "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input."
+        },
+        "switch_to_text_button": "Type Instead"
     },
     "offline": {
         "bannerOffline": "آپ آف لائن ہیں",
@@ -313,5 +319,323 @@
                 "answer": "CDSCO کا مطلب Central Drugs Standard Control Organisation ہے۔ یہ کاسمیٹکس، فارماسیوٹیکلز اور میڈیکل ڈیوائسز کے لیے بھارت کا قومی ریگولیٹری ادارہ ہے۔ SahiDawa ان کے سرکاری ڈیٹابیس کے مطابق ادویات کی تصدیق کرتا ہے۔"
             }
         }
+    },
+    "Scan": {
+        "share": {
+            "avoid_and_report": "Please avoid and report to your nearest health worker.",
+            "batch_label": "Batch",
+            "button": "Share Result",
+            "copy_success": "Result copied to clipboard",
+            "failure": "Unable to share this result right now",
+            "manufacturer_label": "Manufacturer",
+            "real_status": "Verified REAL",
+            "shared_success": "Result shared successfully",
+            "suspicious_status": "Marked SUSPICIOUS",
+            "title": "SahiDawa Medicine Verification Result",
+            "unknown_batch": "Unknown batch",
+            "unknown_manufacturer": "Unknown manufacturer",
+            "unknown_medicine": "Unknown medicine",
+            "verified_by": "by SahiDawa",
+            "verify_yourself": "Verify yourself",
+            "warning_prefix": "WARNING"
+        }
+    },
+    "chat": {
+        "actions": {
+            "pharmacy": {
+                "description": "Locate verified stores",
+                "label": "Find Pharmacy"
+            },
+            "scan": {
+                "description": "Verify authenticity",
+                "label": "Scan Medicine"
+            },
+            "symptoms": {
+                "description": "AI-assisted guidance",
+                "label": "Check Symptoms"
+            }
+        },
+        "footer": "For informational use only • Consult a doctor",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "quick_actions": "Quick actions",
+        "welcome": "Namaste, I'm SahiDawa, your trusted health companion. I can help you verify medicines, understand symptoms, or find nearby care. What would you like help with today?"
+    },
+    "chatbot": {
+        "placeholder": "Ask me about a medicine...",
+        "status": "Online",
+        "title": "SahiDawa AI",
+        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"
+    },
+    "Alerts": {
+        "backHome": "ہوم پیج پر واپس جائیں",
+        "badge": "براہِ راست انتباہات",
+        "title": "براہِ راست CDSCO انتباہات",
+        "subtitle": "CDSCO رجسٹری سے براہِ راست منسلک مکمل تاریخی حفاظتی لاگ۔",
+        "regionBadge": "بھارت کا علاقہ",
+        "totalCount": "کل تعداد: {count}",
+        "brandPlaceholder": "برانڈ نام سے تلاش کریں...",
+        "regionPlaceholder": "ریاست/ضلع کے مطابق فلٹر کریں...",
+        "error": "فعال لاگز حاصل کرتے وقت ڈیٹابیس ہم آہنگی میں خرابی پیش آئی۔",
+        "loading": "انتباہات لوڈ ہو رہے ہیں...",
+        "systemUpdate": "سسٹم اپ ڈیٹ",
+        "alertType": "انتباہ: {type}",
+        "noDetails": "کوئی تفصیلات دستیاب نہیں",
+        "batchLabel": "بیچ:",
+        "manufacturerLabel": "کارخانہ دار:",
+        "regionLabel": "علاقہ:",
+        "empty": "آپ کے معیار سے مطابقت رکھنے والا کوئی صحتی انتباہ نہیں ملا۔",
+        "previous": "پچھلا",
+        "next": "اگلا"
+    },
+    "Compare": {
+        "pageTitle": "ادویات کا موازنہ کریں",
+        "pageSubtitle": "برانڈ اور جنیرک ادویات کا ساتھ ساتھ موازنہ",
+        "firstMedicine": "پہلی دوا",
+        "secondMedicine": "دوسری دوا",
+        "searchPlaceholder": "برانڈ یا جنیرک نام تلاش کریں",
+        "findPharmacies": "فارمیسیاں تلاش کریں",
+        "emptyComparison": "موازنہ دیکھنے کے لیے اوپر دو ادویات منتخب کریں۔",
+        "fieldHeader": "فیلڈ",
+        "medicineA": "دوا A",
+        "medicineB": "دوا B",
+        "priceUnavailable": "قیمت دستیاب نہیں",
+        "noSavings": "کوئی بچت نہیں",
+        "saveAmount": "₹{amount} کی بچت ({percent}%)",
+        "rows": {
+            "brandName": "برانڈ نام",
+            "genericName": "جنیرک نام",
+            "composition": "ترکیب",
+            "manufacturer": "کارخانہ دار",
+            "type": "قسم",
+            "cdscoStatus": "CDSCO حیثیت",
+            "expiryDate": "میعاد ختم ہونے کی تاریخ",
+            "marketPrice": "مارکیٹ قیمت (MRP)",
+            "janAushadhiPrice": "جن اوشدھی قیمت",
+            "savings": "MRP کے مقابلے میں بچت"
+        },
+        "medicineTypes": {
+            "brand": "برانڈ",
+            "generic": "جنیرک"
+        },
+        "status": {
+            "approved": "منظور شدہ",
+            "recalled": "واپس منگوائی گئی",
+            "banned": "ممنوع"
+        }
+    },
+    "ExpiryTracker": {
+        "title": "ادویات کی میعاد ٹریکر",
+        "subtitle": "اپنے ادویات کے ذخیرے کو مقامی طور پر منظم اور ٹریک کریں",
+        "addMedicine": "دوا شامل کریں",
+        "name": "نام",
+        "expiryDate": "میعاد ختم ہونے کی تاریخ",
+        "batchNumber": "بیچ نمبر (اختیاری)",
+        "batchPlaceholder": "مثال: B12345",
+        "namePlaceholder": "مثال: پیراسٹامول",
+        "addToTracker": "ٹریکر میں شامل کریں",
+        "trackedMedicines": "ٹریک کی گئی ادویات",
+        "total": "کل",
+        "noMedicines": "ابھی تک کوئی دوا شامل نہیں کی گئی۔",
+        "loading": "ٹریکر کا ڈیٹا لوڈ ہو رہا ہے...",
+        "searchPlaceholder": "ادویات تلاش کریں...",
+        "sortBy": "ترتیب دیں",
+        "sortExpirySoonest": "میعاد ختم ہونے کی تاریخ (جلد ترین)",
+        "sortExpiryLatest": "میعاد ختم ہونے کی تاریخ (سب سے بعد)",
+        "sortAlpha": "نام (ا-ی)",
+        "filterAll": "سب",
+        "filterExpired": "میعاد ختم",
+        "filterExpiringSoon": "جلد میعاد ختم ہونے والی",
+        "filterSafe": "محفوظ",
+        "exportBackup": "بیک اپ برآمد کریں",
+        "importBackup": "بیک اپ درآمد کریں",
+        "importError": "غلط بیک اپ فائل۔ براہ کرم درست JSON بیک اپ اپ لوڈ کریں۔",
+        "statusExpired": "میعاد ختم",
+        "statusExpiringSoon": "جلد میعاد ختم ہوگی ({days} دن)",
+        "statusSafe": "محفوظ"
+    },
+    "Login": {
+        "brandSubtitle": "ادویات کی حفاظت کا پلیٹ فارم",
+        "heading": "دوبارہ خوش آمدید",
+        "description": "ادویات کی حفاظتی رپورٹس اور تصدیقی نتائج کو ٹریک کرنے کے لیے سائن ان کریں۔",
+        "missingConfig": {
+            "title": "توثیق ترتیب نہیں دی گئی",
+            "description": "Supabase URL یا anon key موجود نہیں۔ سائن ان کرنے سے پہلے environment variables شامل کریں۔"
+        },
+        "googleButton": "Google کے ساتھ جاری رکھیں",
+        "emailSeparator": "یا ای میل کے ساتھ جاری رکھیں",
+        "emailLabel": "ای میل پتہ",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "پاس ورڈ",
+        "passwordPlaceholder": "اپنا پاس ورڈ درج کریں",
+        "signingIn": "سائن ان ہو رہا ہے...",
+        "signIn": "سائن ان کریں",
+        "footerPrompt": "واپس جانا چاہتے ہیں؟",
+        "returnHome": "ہوم پر واپس جائیں",
+        "bottomText": "SahiDawa کمیونٹی ٹولز کے لیے محفوظ رسائی۔",
+        "errors": {
+            "databaseNotConfigured": "اس ماحول کے لیے توثیق ترتیب نہیں دی گئی۔",
+            "generic": "سائن ان نہیں ہو سکا۔ دوبارہ کوشش کریں۔"
+        }
+    },
+    "AdminLayout": {
+        "accessDeniedTitle": "رسائی مسترد",
+        "accessDeniedDescription": "اس صفحے کو دیکھنے کے لیے ایڈمن یا موڈریٹر کی اجازت درکار ہے۔",
+        "returnHome": "ہوم پر واپس جائیں"
+    },
+    "AdminDashboard": {
+        "brandSuffix": "ایڈمن",
+        "version": "SahiDawa ایڈمن v1.0",
+        "nav": {
+            "reports": "رپورٹس",
+            "medicine": "میڈیسن ماسٹر",
+            "logs": "آڈٹ لاگز"
+        },
+        "header": {
+            "title": "ماڈریشن ڈیش بورڈ",
+            "subtitle": "کمیونٹی کی جانب سے رپورٹ کی گئی جعلی ادویات کا انتظام کریں"
+        },
+        "searchPlaceholder": "تلاش کریں...",
+        "actions": {
+            "signIn": "سائن ان کریں",
+            "refresh": "ریفریش کریں",
+            "addMedicine": "دوا شامل کریں",
+            "save": "محفوظ کریں",
+            "cancel": "منسوخ کریں",
+            "goToLogin": "لاگ اِن پر جائیں",
+            "markFake": "جعلی قرار دیں",
+            "falseAlarm": "غلط انتباہ"
+        },
+        "stats": {
+            "pending": "زیر التواء",
+            "resolved": "حل شدہ",
+            "districtsAffected": "متاثرہ اضلاع"
+        },
+        "errors": {
+            "notAuthenticated": "تصدیق نہیں ہوئی — براہ کرم ایڈمن کے طور پر سائن ان کریں۔",
+            "accessDenied": "رسائی مسترد — ایڈمن یا موڈریٹر کا کردار درکار ہے۔",
+            "apiUnavailable": "API تک رسائی حاصل نہیں ہو سکی۔ کیا بیک اینڈ سرور پورٹ 4000 پر چل رہا ہے؟"
+        },
+        "toasts": {
+            "markedFake": "تصدیق شدہ جعلی کے طور پر نشان زد کر دیا گیا",
+            "falseAlarm": "غلط انتباہ کے طور پر نشان زد کر دیا گیا",
+            "reportUpdateFailed": "رپورٹ اپ ڈیٹ کرنے میں ناکامی",
+            "medicineAdded": "دوا شامل کر دی گئی",
+            "medicineAddFailed": "دوا شامل کرنے میں ناکامی"
+        },
+        "medicine": {
+            "title": "میڈیسن ماسٹر",
+            "empty": "کوئی دوا نہیں ملی",
+            "columns": {
+                "brand": "برانڈ",
+                "generic": "جنیرک",
+                "manufacturer": "کارخانہ دار",
+                "barcode": "بارکوڈ",
+                "status": "حیثیت"
+            }
+        },
+        "status": {
+            "approved": "منظور شدہ",
+            "recalled": "واپس منگوائی گئی",
+            "banned": "ممنوع"
+        },
+        "logs": {
+            "title": "آڈٹ لاگز",
+            "subtitle": "حالیہ ماڈریشن اور ادویات کی فہرست کی سرگرمیاں",
+            "loading": "لاگز لوڈ ہو رہے ہیں...",
+            "empty": "ابھی تک کوئی آڈٹ لاگ موجود نہیں"
+        },
+        "reports": {
+            "title": "موصول ہونے والی رپورٹس",
+            "pendingCount": "{count, plural, =0 {کوئی زیر التواء رپورٹ نہیں} =1 {1 زیر التواء رپورٹ} other {# زیر التواء رپورٹس}}",
+            "loading": "رپورٹس لوڈ ہو رہی ہیں...",
+            "empty": "کوئی زیر التواء رپورٹ نہیں",
+            "columns": {
+                "medicine": "دوا",
+                "district": "ضلع",
+                "barcode": "بارکوڈ",
+                "reported": "رپورٹ کیا گیا",
+                "actions": "کارروائیاں"
+            },
+            "decisions": {
+                "verifiedFake": "تصدیق شدہ جعلی",
+                "falseAlarm": "غلط انتباہ"
+            }
+        },
+        "resolved": {
+            "title": "حال ہی میں حل شدہ",
+            "count": "{count, plural, =0 {کوئی حل شدہ رپورٹ نہیں} =1 {1 حل شدہ رپورٹ} other {# حل شدہ رپورٹس}}",
+            "decision": "فیصلہ"
+        }
+    },
+    "AdminAnalytics": {
+        "title": "اثراتی تجزیاتی ڈیش بورڈ",
+        "subtitle": "کمیونٹی کی شمولیت کے اشاریے اور ترقی کے رجحانات",
+        "metrics": {
+            "totalMedicines": "کل ادویات",
+            "totalReports": "کل رپورٹس",
+            "resolved": "حل شدہ",
+            "districtsCovered": "احاطہ کیے گئے اضلاع"
+        },
+        "charts": {
+            "monthlyGrowth": "ماہانہ ترقی کا رجحان",
+            "reportStatus": "رپورٹ کی حیثیت کی تقسیم",
+            "topDistricts": "رپورٹس کی بنیاد پر سرفہرست اضلاع",
+            "recentActivity": "حالیہ سرگرمی"
+        },
+        "overview": {
+            "title": "پلیٹ فارم کا جائزہ",
+            "avgReportsPerDay": "روزانہ اوسط رپورٹس",
+            "resolutionRate": "حل کی شرح",
+            "thisWeekReports": "اس ہفتے کی رپورٹس",
+            "thisWeekMedicines": "اس ہفتے کی ادویات"
+        }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "ویکسین حب",
+        "pageHeaderSubtitle": "حفاظتی ٹیکہ جات ٹریکر",
+        "title": "ویکسین حب اور حفاظتی ٹیکہ جات ٹریکر",
+        "subtitle": "عوامی صحت کی بہتری اور آگاہی کے لیے ویکسین کے نظام الاوقات، حفاظت کی معلومات، اور بعد از ویکسین دیکھ بھال کی رہنمائی حاصل کریں۔",
+        "selectLabel": "بیماری / ویکسین کا انتخاب کریں",
+        "placeholder": "ویکسین پروفائل منتخب کریں...",
+        "childBirthDate": "بچے کی تاریخ پیدائش",
+        "milestoneBaseDate": "پہلی خوراک کی بنیادی تاریخ",
+        "noVaccineSelected": "کوئی ویکسین منتخب نہیں کی گئی",
+        "chooseVaccinePrompt": "ٹریکنگ ٹولز استعمال کرنے کے لیے اوپر کوئی ویکسین منتخب کریں:",
+        "featureSchedule": "متحرک طور پر متوقع حفاظتی ٹیکوں کا شیڈول",
+        "featureSideEffects": "ضمنی اثرات کی تقسیم (ہلکے بمقابلہ شدید)",
+        "featureAftercare": "مرحلہ وار کلینیکل دیکھ بھال کی ہدایات",
+        "targetGroups": "ہدف گروپس",
+        "totalDoses": "کل خوراکیں",
+        "effectiveness": "افادیت",
+        "classification": "درجہ بندی",
+        "aboutDisease": "بیماری کے بارے میں:",
+        "scheduleLayoutHeading": "حفاظتی ٹیکوں کا شیڈول",
+        "atBirth": "پیدائش کے وقت دی جانے والی خوراک",
+        "atWeeks": "{weeks} ہفتے کی عمر پر",
+        "baseline": "ابتدائی خوراک (بنیاد)",
+        "doseStep": "خوراک کا مرحلہ {index} (+{weeks} ہفتوں بعد)",
+        "targetDate": "مقررہ تاریخ: {date}",
+        "selectDateWarning": "ٹائم لائن دیکھنے کے لیے اوپر ایک تاریخ منتخب کریں",
+        "commonEffects": "عام ضمنی اثرات",
+        "severeReactions": "شدید ردعمل",
+        "aftercareHeading": "فوری دیکھ بھال کی رہنمائی"
+    },
+    "CommandPalette": {
+        "placeholder": "Search pages or actions...",
+        "noResults": "No results found.",
+        "hint": "Press Esc to close",
+        "pages": "Pages",
+        "actions": "Actions",
+        "open": "Open command palette",
+        "nav_home": "Go to Home",
+        "nav_scan": "Scan a Medicine",
+        "nav_map": "Find Nearby Pharmacy",
+        "nav_alerts": "View Alerts",
+        "nav_expiry": "Medicine Expiry Tracker",
+        "nav_compare": "Compare Medicines",
+        "nav_vaccine": "Vaccine Hub",
+        "nav_reports": "My Reports",
+        "nav_profile": "My Profile"
     }
 }

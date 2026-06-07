@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { supabase } from "../db/client";
 import { batchLimiter } from "../middleware/rateLimit";
+import logger from "../utils/logger";
 
 const router = Router();
 
@@ -52,6 +53,7 @@ const reportBatchSchema = z.object({
  *     description: >
  *       Returns medicine details, manufacturer information, batch recall status,
  *       and expiry color warning for a given batch number.
+ *       Results are cached for 2 minutes.
  *     parameters:
  *       - in: path
  *         name: batchNumber
@@ -59,9 +61,26 @@ const reportBatchSchema = z.object({
  *         schema:
  *           type: string
  *           example: "BN2024001"
+ *         description: The batch number printed on the medicine packaging
  *     responses:
  *       200:
  *         description: Batch found with full traceability details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 found:
+ *                   type: boolean
+ *                 batch:
+ *                   type: object
+ *                 medicine:
+ *                   type: object
+ *                 manufacturer:
+ *                   type: object
+ *                 expiry_status:
+ *                   type: string
+ *                   enum: [green, yellow, red, unknown]
  *       400:
  *         description: Invalid batch number format
  *       404:
@@ -86,16 +105,18 @@ router.get("/:batchNumber", batchLimiter, async (req: Request, res: Response) =>
         // ── Single query with joins (fixes N+1) ───────────────────────────────
         const { data: batchData, error: batchError } = await supabase
             .from("batches")
-            .select(`
+            .select(
+                `
                 *,
                 medicine:medicines(id, brand_name, generic_name, cdsco_approval_status, is_counterfeit_alert),
                 manufacturer:manufacturers(*)
-            `)
+            `
+            )
             .eq("batch_number", batchNumber)
             .maybeSingle();
 
         if (batchError) {
-            console.error("Batch lookup failed:", batchError);
+            logger.error({ message: "Batch lookup failed", error: batchError, route: "/api/verify/batch" });
             res.status(500).json({ error: "Database lookup failed" });
             return;
         }
@@ -112,7 +133,7 @@ router.get("/:batchNumber", batchLimiter, async (req: Request, res: Response) =>
                 .maybeSingle();
 
             if (medicineError) {
-                console.error("Medicine fallback lookup failed:", medicineError);
+                logger.error({ message: "Medicine fallback lookup failed", error: medicineError, route: "/api/verify/batch" });
                 res.status(500).json({ error: "Database lookup failed" });
                 return;
             }
@@ -155,36 +176,36 @@ router.get("/:batchNumber", batchLimiter, async (req: Request, res: Response) =>
                 },
                 manufacturer: manufacturerData
                     ? {
-                        name: manufacturerData.name,
-                        license_number: manufacturerData.license_number,
-                        address: manufacturerData.address,
-                        city: manufacturerData.city,
-                        state: manufacturerData.state,
-                        pincode: manufacturerData.pincode,
-                        phone: manufacturerData.phone,
-                        email: manufacturerData.email,
-                        website: manufacturerData.website,
-                        gmp_certified: manufacturerData.gmp_certified,
-                        coordinates: manufacturerData.location
-                            ? {
-                                lat: manufacturerData.location.coordinates?.[1],
-                                lng: manufacturerData.location.coordinates?.[0],
-                            }
-                            : null,
-                    }
+                          name: manufacturerData.name,
+                          license_number: manufacturerData.license_number,
+                          address: manufacturerData.address,
+                          city: manufacturerData.city,
+                          state: manufacturerData.state,
+                          pincode: manufacturerData.pincode,
+                          phone: manufacturerData.phone,
+                          email: manufacturerData.email,
+                          website: manufacturerData.website,
+                          gmp_certified: manufacturerData.gmp_certified,
+                          coordinates: manufacturerData.location
+                              ? {
+                                    lat: manufacturerData.location.coordinates?.[1],
+                                    lng: manufacturerData.location.coordinates?.[0],
+                                }
+                              : null,
+                      }
                     : {
-                        name: medicineData.manufacturer,
-                        license_number: null,
-                        address: null,
-                        city: null,
-                        state: null,
-                        pincode: null,
-                        phone: null,
-                        email: null,
-                        website: null,
-                        gmp_certified: false,
-                        coordinates: null,
-                    },
+                          name: medicineData.manufacturer,
+                          license_number: null,
+                          address: null,
+                          city: null,
+                          state: null,
+                          pincode: null,
+                          phone: null,
+                          email: null,
+                          website: null,
+                          gmp_certified: false,
+                          coordinates: null,
+                      },
                 expiry_status: getExpiryStatus(medicineData.expiry_date),
             });
             return;
@@ -207,39 +228,38 @@ router.get("/:batchNumber", batchLimiter, async (req: Request, res: Response) =>
             },
             medicine: medicine
                 ? {
-                    id: medicine.id,
-                    brand_name: medicine.brand_name,
-                    generic_name: medicine.generic_name,
-                    cdsco_approval_status: medicine.cdsco_approval_status,
-                    is_counterfeit_alert: medicine.is_counterfeit_alert,
-                }
+                      id: medicine.id,
+                      brand_name: medicine.brand_name,
+                      generic_name: medicine.generic_name,
+                      cdsco_approval_status: medicine.cdsco_approval_status,
+                      is_counterfeit_alert: medicine.is_counterfeit_alert,
+                  }
                 : null,
             manufacturer: manufacturer
                 ? {
-                    name: manufacturer.name,
-                    license_number: manufacturer.license_number,
-                    address: manufacturer.address,
-                    city: manufacturer.city,
-                    state: manufacturer.state,
-                    pincode: manufacturer.pincode,
-                    phone: manufacturer.phone,
-                    email: manufacturer.email,
-                    website: manufacturer.website,
-                    gmp_certified: manufacturer.gmp_certified,
-                    coordinates: manufacturer.location
-                        ? {
-                            lat: manufacturer.location.coordinates?.[1],
-                            lng: manufacturer.location.coordinates?.[0],
-                        }
-                        : null,
-                }
+                      name: manufacturer.name,
+                      license_number: manufacturer.license_number,
+                      address: manufacturer.address,
+                      city: manufacturer.city,
+                      state: manufacturer.state,
+                      pincode: manufacturer.pincode,
+                      phone: manufacturer.phone,
+                      email: manufacturer.email,
+                      website: manufacturer.website,
+                      gmp_certified: manufacturer.gmp_certified,
+                      coordinates: manufacturer.location
+                          ? {
+                                lat: manufacturer.location.coordinates?.[1],
+                                lng: manufacturer.location.coordinates?.[0],
+                            }
+                          : null,
+                  }
                 : null,
             expiry_status: getExpiryStatus(batchData.expiry_date),
         });
-
     } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Unknown error";
-        console.error("Batch traceability error:", message);
+        logger.error({ message: "Batch traceability error", error: message, route: "/api/verify/batch" });
         res.status(500).json({ error: "Internal server error" });
     }
 });
@@ -270,6 +290,12 @@ router.get("/:batchNumber", batchLimiter, async (req: Request, res: Response) =>
  *               description:
  *                 type: string
  *                 example: "Tablet colour was different from usual"
+ *               city:
+ *                 type: string
+ *               state:
+ *                 type: string
+ *               pharmacyName:
+ *                 type: string
  *     responses:
  *       201:
  *         description: Report submitted successfully
@@ -289,14 +315,7 @@ router.post("/report", batchLimiter, async (req: Request, res: Response) => {
         return;
     }
 
-    const {
-        batchNumber,
-        description,
-        city,
-        state,
-        pincode,
-        pharmacyName,
-    } = parsed.data;
+    const { batchNumber, description, city, state, pincode, pharmacyName } = parsed.data;
 
     try {
         // Use .eq() instead of .ilike() — exact match, no wildcard risk
@@ -324,7 +343,7 @@ router.post("/report", batchLimiter, async (req: Request, res: Response) => {
         });
 
         if (error) {
-            console.error("Failed to insert batch report:", error);
+            logger.error({ message: "Failed to insert batch report", error, route: "/api/verify/batch/report" });
             res.status(500).json({ error: "Failed to submit report" });
             return;
         }
@@ -333,10 +352,9 @@ router.post("/report", batchLimiter, async (req: Request, res: Response) => {
             success: true,
             message: "Batch issue reported successfully. Thank you for helping keep India safe.",
         });
-
     } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Unknown error";
-        console.error("Batch report error:", message);
+        logger.error({ message: "Batch report error", error: message, route: "/api/verify/batch/report" });
         res.status(500).json({ error: "Internal server error" });
     }
 });

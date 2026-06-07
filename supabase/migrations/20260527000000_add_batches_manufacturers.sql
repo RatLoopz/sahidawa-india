@@ -46,6 +46,7 @@ ALTER TABLE medicines
     ADD COLUMN IF NOT EXISTS manufacturer_id UUID REFERENCES manufacturers(id) ON DELETE SET NULL;
 
 CREATE INDEX IF NOT EXISTS idx_medicines_manufacturer_id ON medicines(manufacturer_id);
+
 -- Row Level Security
 ALTER TABLE public.manufacturers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.batches ENABLE ROW LEVEL SECURITY;

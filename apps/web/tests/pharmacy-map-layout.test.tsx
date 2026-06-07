@@ -1,10 +1,26 @@
 import { renderToStaticMarkup } from "react-dom/server";
 
+import MapHeaderLoadingIndicator from "../app/[locale]/map/MapHeaderLoadingIndicator";
 import PharmacyMapPage from "../app/[locale]/map/page";
 
 jest.mock("../app/[locale]/components/PageHeader", () => ({
-    PageHeader: ({ children }: { children?: React.ReactNode }) => (
-        <header data-testid="page-header">{children}</header>
+    PageHeader: ({
+        children,
+        backHref,
+        contentClassName,
+    }: {
+        children?: React.ReactNode;
+        backHref: string;
+        contentClassName?: string;
+    }) => (
+        <header data-testid="page-header">
+            <div data-testid="page-header-content" className={contentClassName}>
+                <a href={backHref} data-testid="map-back-control">
+                    Back
+                </a>
+                {children}
+            </div>
+        </header>
     ),
 }));
 
@@ -18,6 +34,30 @@ function countOccurrences(markup: string, text: string): number {
 }
 
 describe("PharmacyMapPage responsive layout", () => {
+    it("renders a premium command header with constrained search and elevated filters", () => {
+        const markup = renderToStaticMarkup(<PharmacyMapPage />);
+
+        expect(markup).toContain('data-testid="pharmacy-map-command-bar"');
+        expect(markup).toContain("max-w-4xl");
+        expect(markup).toContain('data-testid="pharmacy-map-search"');
+        expect(markup).toContain("focus-within:ring-4");
+        expect(markup).toContain('data-testid="pharmacy-filter-shell"');
+        expect(markup).toContain("rounded-[1.35rem]");
+        expect(markup).toContain("hover:-translate-y-0.5");
+        expect(markup).toContain("bg-emerald-600");
+    });
+
+    it("renders a structured header loading indicator instead of plain fetching text", () => {
+        const markup = renderToStaticMarkup(<MapHeaderLoadingIndicator />);
+
+        expect(markup).toContain('data-testid="pharmacy-header-loading-card"');
+        expect(markup).toContain('role="status"');
+        expect(markup).toContain("Finding trusted pharmacies");
+        expect(markup).toContain("Checking verified partners and OSM stores");
+        expect(markup).toContain("animate-pulse");
+        expect(markup).not.toContain("Fetching pharmacies");
+    });
+
     it("renders a split desktop shell and reuses the shared panels outside the map pane", () => {
         const markup = renderToStaticMarkup(<PharmacyMapPage />);
 
