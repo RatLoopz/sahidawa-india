@@ -91,16 +91,30 @@ export default function LanguageSwitcher() {
         }
     };
 
-    // Close dropdown on Escape key
+    // Handle global dismiss events (Escape key and outside clicks)
     useEffect(() => {
-        function handleEscape(e: KeyboardEvent) {
-            if (e.key === "Escape") {
+        if (!open) return;
+
+        function handleDismiss(e: MouseEvent | KeyboardEvent) {
+            if (e instanceof KeyboardEvent && e.key === "Escape") {
+                setOpen(false);
+                triggerRef.current?.focus();
+            } else if (
+                e instanceof MouseEvent &&
+                ref.current &&
+                !ref.current.contains(e.target as Node)
+            ) {
                 setOpen(false);
             }
         }
-        document.addEventListener("keydown", handleEscape);
-        return () => document.removeEventListener("keydown", handleEscape);
-    }, []);
+
+        document.addEventListener("mousedown", handleDismiss);
+        document.addEventListener("keydown", handleDismiss);
+        return () => {
+            document.removeEventListener("mousedown", handleDismiss);
+            document.removeEventListener("keydown", handleDismiss);
+        };
+    }, [open]);
 
     const current = languages.find((l) => l.code === locale) || languages[0];
 
