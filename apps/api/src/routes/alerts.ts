@@ -3,6 +3,7 @@ import { supabase } from "../db/client";
 import { z } from "zod";
 import { triggerRecallAlert } from "../services/notifications";
 import { validateMedicineStatus, getValidStatusList } from "../validators/medicine.validator";
+import { escapeIlike } from "../utils/db";
 
 const AlertSchema = z
     .object({
@@ -52,10 +53,10 @@ alertsRouter.get("/", async (req: Request, res: Response) => {
     let query = supabase.from("drug_alerts").select("*", { count: "exact" });
 
     if (brand) {
-        query = query.ilike("reported_brand_name", `%${brand}%`);
+        query = query.ilike("reported_brand_name", `%${escapeIlike(brand)}%`);
     }
     if (region) {
-        query = query.ilike("state", `%${region}%`);
+        query = query.ilike("state", `%${escapeIlike(region)}%`);
     }
     if (batchNumber) {
         query = query.eq("batch_number", batchNumber);

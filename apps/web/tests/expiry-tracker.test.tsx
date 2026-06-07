@@ -81,3 +81,75 @@ describe("ExpiryTrackerPage", () => {
         expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null")).toEqual([]);
     });
 });
+
+
+describe("ExpiryTrackerPage import", () => {
+    beforeEach(() => {
+        localStorage.clear();
+    });
+
+    const createFile = (data: unknown): File => {
+        const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+        return new File([blob], "backup.json", { type: "application/json" });
+    };
+
+    it("imports valid JSON backup with correct YYYY-MM-DD dates", async () => {
+        render(<ExpiryTrackerPage />);
+
+        const backup = [
+            { id: "1", name: "Ibuprofen", expiryDate: "2027-06-15" },
+            { id: "2", name: "Aspirin", expiryDate: "2028-01-20" },
+        ];
+        const file = createFile(backup);
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        expect(fileInput).toBeInTheDocument();
+
+        fireEvent.change(fileInput, { target: { files: [file] } });
+
+        await waitFor(() => {
+            expect(screen.getByRole("heading", { name: "Ibuprofen" })).toBeInTheDocument();
+            expect(screen.getByRole("heading", { name: "Aspirin" })).toBeInTheDocument();
+        });
+
+        const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
+        expect(stored).toHaveLength(2);
+    });
+
+    it("rejects import if a date is malformed and shows error message", async () => {
+        render(<ExpiryTrackerPage />);
+
+        const backup = [
+            { id: "1", name: "Bad Date", expiryDate: "2025-13-45" },
+            { id: "2", name: "Good Date", expiryDate: "2027-06-15" },
+        ];
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        expect(fileInput).toBeInTheDocument();
+
+        fireEvent.change(fileInput, { target: { files: [createFile(backup)] } });
+
+        await waitFor(() => {
+            expect(screen.getByText("importDateError")).toBeInTheDocument();
+        });
+
+        expect(screen.queryByRole("heading", { name: "Bad Date" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: "Good Date" })).not.toBeInTheDocument();
+        expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]")).toEqual([]);
+    });
+
+    it("rejects import when expiryDate is not in YYYY-MM-DD format", async () => {
+        render(<ExpiryTrackerPage />);
+
+        const backup = [
+            { id: "1", name: "Wrong Format", expiryDate: "00/00/0000" },
+        ];
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        expect(fileInput).toBeInTheDocument();
+
+        fireEvent.change(fileInput, { target: { files: [createFile(backup)] } });
+
+        await waitFor(() => {
+            expect(screen.getByText("importDateError")).toBeInTheDocument();
+        });
+        expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]")).toEqual([]);
+    });
+});

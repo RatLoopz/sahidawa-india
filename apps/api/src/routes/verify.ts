@@ -4,6 +4,7 @@ import { supabase } from "../db/client";
 import { verifyLimiter } from "../middleware/rateLimit";
 import { optionalAuth } from "../middleware/auth";
 import logger from "../utils/logger";
+import { escapeIlike } from "../utils/db";
 
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim())
@@ -155,10 +156,7 @@ router.post(
 
         const { batchNumber, latitude, longitude } = parsed.data;
 
-        const escaped = batchNumber
-            .replace(/\\/g, "\\\\")
-            .replace(/%/g, "\\%")
-            .replace(/_/g, "\\_");
+        const escaped = escapeIlike(batchNumber);
 
         try {
             const { data, error } = await supabase

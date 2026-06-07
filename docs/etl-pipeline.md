@@ -29,9 +29,10 @@ The `apps/etl/` workspace is the single source of truth for all data ingestion i
 │                          │                                  │
 │                          ▼  validated pd.DataFrame          │
 │  STEP 3  SupabaseLoader.load()                              │
-│          └─ Batched upserts (100 rows/batch)                │
-│          └─ Conflict key: generic_name+strength+            │
-│             dosage_form+source                              │
+│          └─ Skips unchanged rows already matching Supabase  │
+│          └─ Batched upserts for changed rows (100/batch)    │
+│          └─ Conflict key: generic_name+brand_name+          │
+│             manufacturer+barcode_id                         │
 │          └─ Failed rows → etl_failed_rows table + CSV       │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -46,6 +47,15 @@ The `apps/etl/` workspace is the single source of truth for all data ingestion i
 | Validate    | DataFrame + reference CSV | DataFrame + 6 new columns                       | `src/validators/cdsco_validator.py` |
 | Load        | validated DataFrame       | Supabase `medicines` table                      | `src/loaders/supabase_loader.py`    |
 | Retry       | `etl_failed_rows` table   | updated rows in Supabase                        | `src/loaders/supabase_loader.py`    |
+
+### Loader change detection
+
+`SupabaseLoader.load()` reads the current Supabase rows for the incoming medicine
+identity keys and hashes the exact payload that would be written. Rows are
+skipped only when the target database already contains the same values, which
+reduces Supabase write operations without relying on local cache files. Empty,
+rebuilt, or repointed databases naturally receive fresh upserts because they have
+no matching rows to compare.
 
 ### CDSCO validation scoring
 
