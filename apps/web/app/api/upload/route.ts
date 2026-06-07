@@ -2,9 +2,64 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 
 const MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const UPLOAD_RATE_LIMIT = 10;
+const UPLOAD_RATE_WINDOW_MS = 60 * 1000;
+
+const uploadRateBuckets = new Map<string, { count: number; resetAt: number }>();
+
+function getUploadClientIp(req: NextRequest) {
+    const forwardedFor = req.headers.get("x-forwarded-for");
+    const realIp = req.headers.get("x-real-ip");
+
+    return forwardedFor?.split(",")[0]?.trim() || realIp?.trim() || "127.0.0.1";
+}
+
+function pruneExpiredUploadBuckets(now: number) {
+    for (const [ip, bucket] of uploadRateBuckets) {
+        if (bucket.resetAt <= now) {
+            uploadRateBuckets.delete(ip);
+        }
+    }
+}
+
+function consumeUploadQuota(ip: string, now = Date.now()) {
+    pruneExpiredUploadBuckets(now);
+
+    const bucket = uploadRateBuckets.get(ip);
+
+    if (!bucket || bucket.resetAt <= now) {
+        uploadRateBuckets.set(ip, { count: 1, resetAt: now + UPLOAD_RATE_WINDOW_MS });
+        return { allowed: true, retryAfter: 0 };
+    }
+
+    if (bucket.count >= UPLOAD_RATE_LIMIT) {
+        return {
+            allowed: false,
+            retryAfter: Math.max(1, Math.ceil((bucket.resetAt - now) / 1000)),
+        };
+    }
+
+    bucket.count += 1;
+    return { allowed: true, retryAfter: 0 };
+}
 
 export async function POST(req: NextRequest) {
     try {
+        const quota = consumeUploadQuota(getUploadClientIp(req));
+        if (!quota.allowed) {
+            return NextResponse.json(
+                {
+                    error: "Too many upload requests. Please try again later.",
+                    retryAfter: quota.retryAfter,
+                },
+                {
+                    status: 429,
+                    headers: { "Retry-After": quota.retryAfter.toString() },
+                }
+            );
+        }
+
         const formData = await req.formData();
         const file = formData.get("file") as File | null;
 
@@ -12,20 +67,19 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "No file provided" }, { status: 400 });
         }
 
-        if (file.size > MAX_UPLOAD_SIZE) {
-                    
-        const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
         if (!ALLOWED_MIME_TYPES.includes(file.type)) {
             return NextResponse.json(
-                { 
+                {
                     error: "invalid_file_type",
                     message: "Invalid file type. Only JPEG, PNG, and WEBP images are allowed.",
                     allowedTypes: ALLOWED_MIME_TYPES,
-                    receivedType: file.type
+                    receivedType: file.type,
                 },
                 { status: 400 }
             );
         }
+
+        if (file.size > MAX_UPLOAD_SIZE) {
             return NextResponse.json(
                 {
                     error: "file_too_large",
@@ -36,7 +90,7 @@ export async function POST(req: NextRequest) {
                 { status: 413 }
             );
         }
-        
+
         const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
         const apiKey = process.env.CLOUDINARY_API_KEY;
         const apiSecret = process.env.CLOUDINARY_API_SECRET;
