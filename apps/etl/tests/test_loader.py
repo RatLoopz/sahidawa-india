@@ -90,6 +90,13 @@ class FakeTable:
 
         if self.operation == "upsert":
             payload = self.pending_payload
+            if isinstance(payload, list) and len(payload) > 1:
+                self.client.transient_batch_attempts += 1
+                if (
+                    self.client.transient_batch_attempts
+                    <= self.client.transient_batch_failures
+                ):
+                    raise TimeoutError("connection timed out during batch upsert")
             if isinstance(payload, list) and len(payload) > 1 and self.client.fail_batches:
                 raise Exception("22P02: invalid input syntax for type double precision")
             rows = payload if isinstance(payload, list) else [payload]
@@ -115,6 +122,7 @@ class FakeSupabaseClient:
         errors_by_generic_name=None,
         update_fail_ids=None,
         table_rows=None,
+        transient_batch_failures=0,
     ):
         self.fail_batches = fail_batches
         self.fail_generic_names = set(fail_generic_names or [])
@@ -122,6 +130,8 @@ class FakeSupabaseClient:
         self.retry_rows = retry_rows or []
         self.update_fail_ids = set(update_fail_ids or [])
         self.table_rows = table_rows if table_rows is not None else {"medicines": []}
+        self.transient_batch_failures = transient_batch_failures
+        self.transient_batch_attempts = 0
         self.upsert_calls = []
         self.insert_calls = []
         self.update_calls = []
@@ -172,6 +182,64 @@ def test_batch_success_returns_summary_without_failed_rows_csv(tmp_path):
     assert stats["error_counts"] == {}
     assert stats["failed_rows_csv"] is None
     assert len(client.upsert_calls) == 1
+
+
+def test_transient_batch_upsert_retries_with_exponential_backoff(tmp_path, monkeypatch):
+    client = FakeSupabaseClient(transient_batch_failures=2)
+    loader = make_loader(client, tmp_path)
+    sleep_calls = []
+    monkeypatch.setattr(
+        "src.loaders.supabase_loader.time.sleep",
+        lambda seconds: sleep_calls.append(seconds),
+    )
+    df = pd.DataFrame(
+        [
+            {"generic_name": "Paracetamol", "strength": "500mg", "dosage_form": "Tablet"},
+            {"generic_name": "Cetirizine", "strength": "10mg", "dosage_form": "Tablet"},
+        ]
+    )
+
+    stats = loader.load(df)
+
+    assert stats["total"] == 2
+    assert stats["inserted"] == 2
+    assert stats["failed"] == 0
+    assert stats["failed_rows_csv"] is None
+    assert client.transient_batch_attempts == 3
+    assert len(client.upsert_calls) == 3
+    assert all(len(payload) == 2 for _, payload, _ in client.upsert_calls)
+    assert sleep_calls == [2.0, 4.0]
+
+
+def test_transient_batch_upsert_falls_back_after_retries(tmp_path, monkeypatch):
+    client = FakeSupabaseClient(transient_batch_failures=4)
+    loader = make_loader(client, tmp_path)
+    sleep_calls = []
+    monkeypatch.setattr(
+        "src.loaders.supabase_loader.time.sleep",
+        lambda seconds: sleep_calls.append(seconds),
+    )
+    df = pd.DataFrame(
+        [
+            {"generic_name": "Paracetamol", "strength": "500mg", "dosage_form": "Tablet"},
+            {"generic_name": "Cetirizine", "strength": "10mg", "dosage_form": "Tablet"},
+        ]
+    )
+
+    stats = loader.load(df)
+
+    assert stats["inserted"] == 2
+    assert stats["failed"] == 0
+    assert client.transient_batch_attempts == 4
+    assert [len(payload) for _, payload, _ in client.upsert_calls] == [
+        2,
+        2,
+        2,
+        2,
+        1,
+        1,
+    ]
+    assert sleep_calls == [2.0, 4.0, 8.0]
 
 
 def test_load_skips_unchanged_rows_already_present_in_target_db(tmp_path):
@@ -323,6 +391,7 @@ def test_load_does_not_cache_failed_rows_until_successful_upsert(tmp_path):
     assert first_stats["inserted"] == 1
     assert first_stats["failed"] == 1
     assert first_stats["skipped_unchanged"] == 0
+    assert failing_client.transient_batch_attempts == 1
 
     assert retry_stats["inserted"] == 1
     assert retry_stats["failed"] == 0
@@ -448,15 +517,34 @@ class MergeFakeTable(FakeTable):
 class MergeFakeSupabaseClient:
     """Minimal Supabase fake for merge_jan_aushadhi_price tests."""
 
-    def __init__(self, medicines=None):
+    def __init__(self, medicines=None, transient_batch_failures=0):
         self.medicines = medicines or []
         self.update_calls = []
+        self.upsert_calls = []
+        self.transient_batch_failures = transient_batch_failures
+        self.transient_batch_attempts = 0
 
     def table(self, name):
         t = MergeFakeTable(name, self)
         original_execute = t.execute
 
         def patched_execute():
+            if t.operation == "upsert":
+                payload = t.pending_payload
+                rows = payload if isinstance(payload, list) else [payload]
+                if isinstance(payload, list) and len(payload) > 1:
+                    self.transient_batch_attempts += 1
+                    if self.transient_batch_attempts <= self.transient_batch_failures:
+                        raise TimeoutError(
+                            "connection timed out during Jan Aushadhi price batch upsert"
+                        )
+                for update in rows:
+                    row_id = update.get("id")
+                    for med in self.medicines:
+                        if med.get("id") == row_id:
+                            med.update(update)
+                return FakeExecuteResponse()
+
             if t.operation == "update":
                 row_id = next((v for c, v in t.eq_filters if c == "id"), None)
                 self.update_calls.append((name, t.pending_update, t.eq_filters))
@@ -498,6 +586,40 @@ def test_ja_backfill_updates_null_jan_aushadhi_price_rows(tmp_path):
     assert stats["updated"] == 2
     assert stats["skipped"] == 0
     assert stats["failed"] == 0
+    assert medicines[0]["jan_aushadhi_price"] == 18.50
+    assert medicines[1]["jan_aushadhi_price"] == 25.00
+
+
+def test_ja_backfill_retries_transient_batch_upsert_before_fallback(tmp_path, monkeypatch):
+    medicines = [
+        {"id": "m1", "generic_name": "Paracetamol", "strength": "500mg",
+         "source": "commercial", "jan_aushadhi_price": None},
+        {"id": "m2", "generic_name": "Cetirizine", "strength": "10mg",
+         "source": "commercial", "jan_aushadhi_price": None},
+    ]
+    nppa_csv = _write_nppa_csv(tmp_path, [
+        {"generic_name": "paracetamol", "strength": "500mg", "mrp": "18.50"},
+        {"generic_name": "cetirizine", "strength": "10mg", "mrp": "25.00"},
+    ])
+    client = MergeFakeSupabaseClient(
+        medicines=medicines,
+        transient_batch_failures=2,
+    )
+    loader = make_merge_loader(client, tmp_path)
+    sleep_calls = []
+    monkeypatch.setattr(
+        "src.loaders.supabase_loader.time.sleep",
+        lambda seconds: sleep_calls.append(seconds),
+    )
+
+    stats = loader.merge_jan_aushadhi_price(nppa_csv=nppa_csv)
+
+    assert stats["updated"] == 2
+    assert stats["failed"] == 0
+    assert client.transient_batch_attempts == 3
+    assert len(client.upsert_calls) == 3
+    assert client.update_calls == []
+    assert sleep_calls == [2.0, 4.0]
     assert medicines[0]["jan_aushadhi_price"] == 18.50
     assert medicines[1]["jan_aushadhi_price"] == 25.00
 
