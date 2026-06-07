@@ -802,3 +802,4 @@
 | [#1360](https://github.com/RatLoopz/sahidawa-india/pull/1360) | 2026-06-06 | Frontend | 5 | @Avinash-sdbegin | [View Doc](devtrack/2026-06/PR-1360-feat-web-add-print-and-pdf-export-support-for-medi.md) |
 | [#1333](https://github.com/RatLoopz/sahidawa-india/pull/1333) | 2026-06-06 | Frontend | 5 | @hrx01-dev | [View Doc](devtrack/2026-06/PR-1333-optimized-debounce-and-validate-geocode-pincode-is.md) |
 | [#1327](https://github.com/RatLoopz/sahidawa-india/pull/1327) | 2026-06-06 | Frontend | 10 | @Pcmhacker-piro | [View Doc](devtrack/2026-06/PR-1327-feat-scan-add-interactive-skeleton-loading-states-.md) |
+| [#1441](https://github.com/RatLoopz/sahidawa-india/pull/1441) | 2026-06-07 | Frontend | 5 | @shauryavardhan1307 | [View Doc](devtrack/2026-06/PR-1441-fix-web-resolve-localized-date-parsing-bug-in-dose.md) |
