@@ -293,7 +293,7 @@ def evaluate_pr_impact(pr: dict) -> None:
         
         if "REJECT" in verdict:
             print(f"🛑 AI GATEKEEPER REJECTED: This PR appears to be trivial/bloat despite its size.")
-            print(f"   Verdict received: {verdict}")
+            print("   Verdict received: REJECTED")
             print("   Exiting gracefully to prevent a fake shoutout.")
             sys.exit(0)
             
@@ -587,7 +587,7 @@ def send_to_make_webhook(post_text: str, pr: dict) -> None:
 
     if "dry-run" in webhook_url.lower() or "mock" in webhook_url.lower():
         print("🧪 Dry-run/Mock webhook URL detected. Skipping actual HTTP request to Make.com.")
-        print("Payload:", json.dumps(payload, indent=2))
+        print("Payload data omitted for security.")
         return
 
     print("📤 Sending post to Make.com webhook...")
@@ -641,7 +641,7 @@ def main():
     print("\n" + "─" * 60)
     print("📝 FINAL POST PREVIEW:")
     print("─" * 60)
-    print(final_post)
+    print("<Final post preview omitted for security>")
     print("─" * 60 + "\n")
 
     send_to_make_webhook(final_post, pr)
