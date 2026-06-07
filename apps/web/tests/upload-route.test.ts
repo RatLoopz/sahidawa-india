@@ -15,7 +15,6 @@ const mockLimit = jest.fn().mockImplementation(async (ip: string) => {
     }
     bucket.count += 1;
     if (bucket.count > 10) {
-        const retryAfter = Math.max(1, Math.ceil((bucket.resetAt - now) / 1000));
         return { success: false, limit: 10, remaining: 0, reset: bucket.resetAt };
     }
     return { success: true, limit: 10, remaining: 10 - bucket.count, reset: bucket.resetAt };
@@ -53,11 +52,11 @@ describe("POST /api/upload", () => {
     let fetchMock: jest.Mock;
     let post: UploadPost;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.resetModules();
         limitBuckets.clear();
         mockLimit.mockClear();
-        ({ POST: post } = require("../app/api/upload/route") as {
+        ({ POST: post } = (await import("../app/api/upload/route")) as {
             POST: UploadPost;
         });
 

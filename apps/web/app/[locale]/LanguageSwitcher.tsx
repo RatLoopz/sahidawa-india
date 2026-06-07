@@ -2,7 +2,7 @@
 
 import { useLocale } from "next-intl";
 import { useRouter, usePathname } from "@/i18n/routing";
-import { Globe, ChevronDown, Check } from "lucide-react";
+import { Globe, ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 const languages = [

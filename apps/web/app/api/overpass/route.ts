@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
         // Promise.any returns the first successfully resolved promise
         const fastestData = await Promise.any(fetchPromises);
         return NextResponse.json(fastestData);
-    } catch (err) {
+    } catch {
         return NextResponse.json(
             { error: "All parallel Overpass mirrors failed" },
             { status: 503 }

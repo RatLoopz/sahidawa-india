@@ -49,7 +49,7 @@ async function queryOverpass(query: string): Promise<any> {
 
     try {
         return await Promise.any(fetchPromises);
-    } catch (err) {
+    } catch {
         // Silent fallback — direct browser calls failed (e.g., CORS or adblocker). Proceeding to proxy.
     }
 
