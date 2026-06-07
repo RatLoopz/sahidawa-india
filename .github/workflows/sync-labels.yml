@@ -1,0 +1,182 @@
+name: 🔄 Sync Labels Between PR and Linked Issue
+
+on:
+  pull_request:
+    types: [opened, edited, labeled, unlabeled]
+  issues:
+    types: [labeled, unlabeled]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  sync-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🔄 Event-driven Delta Label Sync
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            function getLinkedIssues(body) {
+              const linkedIssues = new Set();
+              if (!body) return linkedIssues;
+              
+              const issueRegex = /(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s+#(\d+)/gi;
+              let match;
+              while ((match = issueRegex.exec(body)) !== null) {
+                linkedIssues.add(parseInt(match[1]));
+              }
+              return linkedIssues;
+            }
+
+            async function getTargetLabels(targetNumber) {
+              try {
+                const { data: issue } = await github.rest.issues.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: targetNumber
+                });
+                return (issue.labels || []).map(l => l.name);
+              } catch (e) {
+                console.error(`Could not fetch labels for #${targetNumber}:`, e);
+                return [];
+              }
+            }
+
+            const action = context.payload.action;
+            const eventName = context.eventName;
+
+            console.log(`Triggered by Event: ${eventName}, Action: ${action}`);
+
+            if (eventName === 'pull_request') {
+              const pr = context.payload.pull_request;
+              const linkedIssues = getLinkedIssues(pr.body);
+              console.log(`PR #${pr.number} body parsed. Linked issues: ${Array.from(linkedIssues).join(', ')}`);
+
+              if (action === 'opened' || action === 'edited') {
+                const prLabels = (pr.labels || []).map(l => l.name);
+                for (const issueNumber of linkedIssues) {
+                  try {
+                    const issueLabels = await getTargetLabels(issueNumber);
+                    const toAdd = issueLabels.filter(l => !prLabels.includes(l));
+                    if (toAdd.length > 0) {
+                      console.log(`Adding labels from Issue #${issueNumber} to PR #${pr.number}: ${toAdd.join(', ')}`);
+                      await github.rest.issues.addLabels({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        issue_number: pr.number,
+                        labels: toAdd
+                      });
+                    } else {
+                      console.log(`No new labels to copy from Issue #${issueNumber} to PR #${pr.number}`);
+                    }
+                  } catch (e) {
+                    console.error(`Failed to copy labels from Issue #${issueNumber} to PR #${pr.number}:`, e);
+                  }
+                }
+              } else if (action === 'labeled' || action === 'unlabeled') {
+                const labelName = context.payload.label.name;
+                console.log(`Label action detected on PR #${pr.number}: ${action} label "${labelName}"`);
+
+                for (const issueNumber of linkedIssues) {
+                  try {
+                    const issueLabels = await getTargetLabels(issueNumber);
+                    if (action === 'labeled') {
+                      if (!issueLabels.includes(labelName)) {
+                        console.log(`Syncing addition: Adding label "${labelName}" to Issue #${issueNumber}`);
+                        await github.rest.issues.addLabels({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          issue_number: issueNumber,
+                          labels: [labelName]
+                        });
+                      } else {
+                        console.log(`Issue #${issueNumber} already has label "${labelName}". Skipping.`);
+                      }
+                    } else if (action === 'unlabeled') {
+                      if (issueLabels.includes(labelName)) {
+                        console.log(`Syncing removal: Removing label "${labelName}" from Issue #${issueNumber}`);
+                        try {
+                          await github.rest.issues.removeLabel({
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            issue_number: issueNumber,
+                            name: labelName
+                          });
+                        } catch (e) {
+                          console.error(`Failed to remove label "${labelName}" from Issue #${issueNumber}:`, e);
+                        }
+                      } else {
+                        console.log(`Issue #${issueNumber} does not have label "${labelName}". Skipping.`);
+                      }
+                    }
+                  } catch (e) {
+                    console.error(`Failed to sync label event for Issue #${issueNumber}:`, e);
+                  }
+                }
+              }
+            } else if (eventName === 'issues') {
+              const issue = context.payload.issue;
+              if (action === 'labeled' || action === 'unlabeled') {
+                const labelName = context.payload.label.name;
+                console.log(`Label action detected on Issue #${issue.number}: ${action} label "${labelName}"`);
+
+                // Find all open PRs in the repo
+                let prs = [];
+                try {
+                  const { data } = await github.rest.pulls.list({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    state: 'open',
+                    per_page: 100
+                  });
+                  prs = data;
+                } catch (e) {
+                  console.error('Failed to fetch open PRs:', e);
+                }
+
+                for (const pr of prs) {
+                  try {
+                    const linkedIssues = getLinkedIssues(pr.body);
+                    if (linkedIssues.has(issue.number)) {
+                      console.log(`PR #${pr.number} is linked to Issue #${issue.number}. Checking label sync.`);
+                      const prLabels = (pr.labels || []).map(l => l.name);
+
+                      if (action === 'labeled') {
+                        if (!prLabels.includes(labelName)) {
+                          console.log(`Syncing addition: Adding label "${labelName}" to PR #${pr.number}`);
+                          await github.rest.issues.addLabels({
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            issue_number: pr.number,
+                            labels: [labelName]
+                          });
+                        } else {
+                          console.log(`PR #${pr.number} already has label "${labelName}". Skipping.`);
+                        }
+                      } else if (action === 'unlabeled') {
+                        if (prLabels.includes(labelName)) {
+                          console.log(`Syncing removal: Removing label "${labelName}" from PR #${pr.number}`);
+                          try {
+                            await github.rest.issues.removeLabel({
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              issue_number: pr.number,
+                              name: labelName
+                            });
+                          } catch (e) {
+                            console.error(`Failed to remove label "${labelName}" from PR #${pr.number}:`, e);
+                          }
+                        } else {
+                          console.log(`PR #${pr.number} does not have label "${labelName}". Skipping.`);
+                        }
+                      }
+                    }
+                  } catch (e) {
+                    console.error(`Failed to sync label event for PR #${pr.number}:`, e);
+                  }
+                }
+              }
+            }
