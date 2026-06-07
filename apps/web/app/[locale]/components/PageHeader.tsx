@@ -15,6 +15,10 @@ interface PageHeaderProps {
     showLanguage?: boolean;
     languageName?: string;
     showThemeToggle?: boolean;
+    contentClassName?: string;
+    childrenWrapperClassName?: string;
+    backButtonClassName?: string;
+    rightActionsClassName?: string;
     children?: React.ReactNode;
 }
 
@@ -26,6 +30,10 @@ export const PageHeader = ({
     showLanguage = false,
     languageName,
     showThemeToggle = true,
+    contentClassName = "",
+    childrenWrapperClassName = "min-w-0 flex-1",
+    backButtonClassName = "",
+    rightActionsClassName = "",
     children,
 }: PageHeaderProps) => {
     const isDark = variant === "dark";
@@ -34,7 +42,8 @@ export const PageHeader = ({
         <header
             className={`no-print ${isDark ? "absolute top-0 right-0 left-0 bg-gradient-to-b from-black/70 to-transparent text-white" : "relative border-b border-(--color-border-muted) bg-(--color-surface-page) text-(--color-text-primary) shadow-sm"} z-50 flex flex-col gap-4 p-4`}
         >
-            <div className="flex items-center justify-between gap-2">
+            <div className={`flex items-center justify-between gap-2 ${contentClassName}`}>
+                {/* BACK BUTTON */}
                 <Link
                     href={backHref}
                     aria-label="Go back to previous page"
@@ -42,7 +51,7 @@ export const PageHeader = ({
                         isDark
                             ? "bg-white/10 backdrop-blur-md hover:bg-white/20"
                             : "bg-(--color-surface-muted) hover:bg-(--color-border-muted)"
-                    }`}
+                    } ${backButtonClassName}`}
                 >
                     <ArrowLeft
                         size={24}
@@ -52,23 +61,29 @@ export const PageHeader = ({
                     <span className="sr-only">Go back</span>
                 </Link>
 
+                {/* MAIN HEADER TITLE / RUNTIME CHILDREN */}
                 {children ? (
-                    <div className="min-w-0 flex-1">{children}</div>
+                    <div className={childrenWrapperClassName}>{children}</div>
                 ) : (
                     <div className="flex min-w-0 flex-1 flex-col items-center px-2 text-center">
-                        <span
+                        <h1
                             className={`w-full truncate text-[10px] font-bold tracking-widest uppercase sm:text-xs ${isDark ? "text-emerald-400" : "text-emerald-600 dark:text-emerald-400"}`}
                         >
                             {title}
-                        </span>
+                        </h1>
                         <span className="w-full truncate text-xs font-medium sm:text-sm">
                             {subtitle}
                         </span>
                     </div>
                 )}
 
-                <div className="flex shrink-0 items-center justify-end gap-2">
+                {/* RIGHT ACTIONS BLOCK (Features & Utilities) */}
+                <div
+                    className={`flex shrink-0 items-center justify-end gap-2 ${rightActionsClassName}`}
+                >
+                    {/* STATUS OR QUICK ACTIONS CONTAINER */}
                     {showThemeToggle && <ThemeToggle />}
+
                     {showLanguage ? (
                         <div
                             className="flex items-center gap-1.5 rounded-full border border-(--color-border-muted) bg-(--color-surface-page) px-3 py-1.5 shadow-sm"
@@ -90,7 +105,7 @@ export const PageHeader = ({
                             <span className="sr-only">Quick actions</span>
                         </button>
                     ) : (
-                        <div className="w-10" />
+                        <div className="w-2" />
                     )}
                 </div>
             </div>

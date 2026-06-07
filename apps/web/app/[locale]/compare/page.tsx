@@ -1,9 +1,13 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
-import ComparisonGrid, { type Medicine } from "@/src/components/ComparisonGrid";
+import ComparisonGrid, {
+    type ComparisonGridLabels,
+    type Medicine,
+} from "@/src/components/ComparisonGrid";
 import MedicineSearchSelect from "@/src/components/MedicineSearchSelect";
 import { COMPARE_SELECT_FIELDS } from "@/src/lib/compareSelectFields";
 import { supabase } from "@/lib/supabase";
@@ -28,15 +32,46 @@ async function searchMedicines(query: string): Promise<Medicine[]> {
 }
 
 export default function ComparePage() {
+    const t = useTranslations("Compare");
     const [medicine1, setMedicine1] = useState<Medicine | null>(null);
     const [medicine2, setMedicine2] = useState<Medicine | null>(null);
     const handleSearch = useCallback((q: string) => searchMedicines(q), []);
+    const comparisonLabels: ComparisonGridLabels = {
+        emptyComparison: t("emptyComparison"),
+        fieldHeader: t("fieldHeader"),
+        medicineA: t("medicineA"),
+        medicineB: t("medicineB"),
+        priceUnavailable: t("priceUnavailable"),
+        noSavings: t("noSavings"),
+        saveAmount: (amount, percent) => t("saveAmount", { amount, percent }),
+        rows: {
+            brandName: t("rows.brandName"),
+            genericName: t("rows.genericName"),
+            composition: t("rows.composition"),
+            manufacturer: t("rows.manufacturer"),
+            type: t("rows.type"),
+            cdscoStatus: t("rows.cdscoStatus"),
+            expiryDate: t("rows.expiryDate"),
+            marketPrice: t("rows.marketPrice"),
+            janAushadhiPrice: t("rows.janAushadhiPrice"),
+            savings: t("rows.savings"),
+        },
+        medicineTypes: {
+            brand: t("medicineTypes.brand"),
+            generic: t("medicineTypes.generic"),
+        },
+        status: {
+            approved: t("status.approved"),
+            recalled: t("status.recalled"),
+            banned: t("status.banned"),
+        },
+    };
 
     return (
         <div className="min-h-screen bg-(--color-surface-muted) text-(--color-text-primary)">
             <PageHeader
-                title="Compare medicines"
-                subtitle="Brand vs generic side by side"
+                title={t("pageTitle")}
+                subtitle={t("pageSubtitle")}
                 backHref="/"
                 variant="light"
             />
@@ -44,26 +79,32 @@ export default function ComparePage() {
                 <section className="rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) p-5 transition-all duration-300 hover:border-emerald-500/20 hover:shadow-md">
                     <div className="grid gap-4 sm:grid-cols-2">
                         <MedicineSearchSelect
-                            label="First medicine"
+                            label={t("firstMedicine")}
                             value={medicine1}
                             onChange={setMedicine1}
                             onSearch={handleSearch}
+                            placeholder={t("searchPlaceholder")}
                         />
                         <MedicineSearchSelect
-                            label="Second medicine"
+                            label={t("secondMedicine")}
                             value={medicine2}
                             onChange={setMedicine2}
                             onSearch={handleSearch}
+                            placeholder={t("searchPlaceholder")}
                         />
                     </div>
                 </section>
-                <ComparisonGrid medicine1={medicine1} medicine2={medicine2} />
+                <ComparisonGrid
+                    medicine1={medicine1}
+                    medicine2={medicine2}
+                    labels={comparisonLabels}
+                />
                 <p className="text-center text-sm text-(--color-text-secondary)">
                     <Link
                         href="/map"
                         className="text-emerald-700 hover:underline dark:text-emerald-400"
                     >
-                        Find pharmacies
+                        {t("findPharmacies")}
                     </Link>
                 </p>
             </main>

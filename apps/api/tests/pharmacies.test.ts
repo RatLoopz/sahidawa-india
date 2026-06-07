@@ -376,3 +376,94 @@ describe("GET /api/pharmacies/in-bounds", () => {
         expect(response.body.pharmacies[0].name).toBe("Inside Bounds Pharmacy");
     });
 });
+
+describe("POST /api/pharmacies", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    const mockPayload = {
+        name: "Test Pharmacy",
+        licenseId: "LIC-123456",
+        address: "123 Main St",
+        district: "South Delhi",
+        state: "Delhi",
+        phone_number: "+919876543210",
+        lat: 28.56,
+        lng: 77.2,
+    };
+
+    it("registers a new pharmacy successfully", async () => {
+        const selectMock = jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+                maybeSingle: jest.fn().mockResolvedValueOnce({ data: null, error: null }),
+            }),
+        });
+
+        const insertMock = jest.fn().mockReturnValue({
+            select: jest.fn().mockReturnValue({
+                single: jest.fn().mockResolvedValueOnce({
+                    data: { id: "new-pharmacy-uuid", name: "Test Pharmacy" },
+                    error: null,
+                }),
+            }),
+        });
+
+        (supabase.from as jest.Mock).mockImplementation((table) => {
+            if (table === "pharmacies") {
+                return {
+                    select: selectMock,
+                    insert: insertMock,
+                };
+            }
+            return {};
+        });
+
+        const response = await request(app).post("/api/pharmacies").send(mockPayload);
+
+        expect(response.status).toBe(201);
+        expect(response.body.pharmacy).toHaveProperty("id", "new-pharmacy-uuid");
+        expect(insertMock).toHaveBeenCalledWith({
+            name: mockPayload.name,
+            license_id: mockPayload.licenseId,
+            address: mockPayload.address,
+            district: mockPayload.district,
+            state: mockPayload.state,
+            phone_number: mockPayload.phone_number,
+            location: "POINT(77.2 28.56)",
+            is_verified: false,
+        });
+    });
+
+    it("returns 409 when the license ID already exists", async () => {
+        const selectMock = jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+                maybeSingle: jest.fn().mockResolvedValueOnce({
+                    data: { id: "existing-uuid" },
+                    error: null,
+                }),
+            }),
+        });
+
+        (supabase.from as jest.Mock).mockImplementation((table) => {
+            if (table === "pharmacies") {
+                return {
+                    select: selectMock,
+                };
+            }
+            return {};
+        });
+
+        const response = await request(app).post("/api/pharmacies").send(mockPayload);
+
+        expect(response.status).toBe(409);
+        expect(response.body.error).toContain("already registered");
+    });
+
+    it("returns 400 for invalid payload", async () => {
+        const response = await request(app).post("/api/pharmacies").send({ name: "" });
+
+        expect(response.status).toBe(400);
+        expect(response.body.error).toBe("Invalid pharmacy payload");
+    });
+});

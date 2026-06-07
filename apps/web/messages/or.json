@@ -21,6 +21,7 @@
         "ai_chat": "AI ଚାଟ୍",
         "ai_health_assistant_description": "ତୁରନ୍ତ ସ୍ୱାସ୍ଥ୍ୟ ପରାମର୍ଶ, ଲକ୍ଷଣ ଯାଞ୍ଚ ଏବଂ ପ୍ରେସ୍କ୍ରିପ୍ସନ୍ ମାର୍ଗଦର୍ଶନ ପାଆନ୍ତୁ",
         "chat_now": "ଏବେ ଚାଟ୍ କରନ୍ତୁ",
+        "explore_features": "ବୈଶିଷ୍ଟ୍ୟ ଅନୁସନ୍ଧାନ କରନ୍ତୁ",
         "live_cdsco_alerts": "ଲାଇଭ୍ CDSCO ସତର୍କ ସୂଚନା",
         "india_region": "ଭାରତ ଅଞ୍ଚଳ",
         "alerts_empty_title": "ସବୁ ଠିକ୍ ଅଛି!",
@@ -142,8 +143,13 @@
             "generic_title": "କିଛି ଅସୁବିଧା ହେଲା",
             "generic_message": "ବର୍ତ୍ତମାନ ଆମେ ଆପଣଙ୍କ ଭଏସ୍ ଇନପୁଟ୍ ପ୍ରକ୍ରିୟାକରଣ କରି ପାରିଲୁ ନାହିଁ । ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ ।",
             "api_title": "SahiDawa AI ଅନୁପଲବ୍ଧ",
-            "api_message": "ଆମେ ବର୍ତ୍ତମାନ ଚିକିତ୍ସା ମାର୍ଗଦର୍ଶନ ଆଣି ପାରୁ ନାହୁଁ । ଦୟାକରି କିଛି ସମୟ ପରେ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ ।"
-        }
+            "api_message": "ଆମେ ବର୍ତ୍ତମାନ ଚିକିତ୍ସା ମାର୍ଗଦର୍ଶନ ଆଣି ପାରୁ ନାହୁଁ । ଦୟାକରି କିଛି ସମୟ ପରେ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ ।",
+            "service_unavailable_title": "Voice service unavailable",
+            "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
+            "timeout_title": "Voice request timed out",
+            "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input."
+        },
+        "switch_to_text_button": "Type Instead"
     },
     "offline": {
         "bannerOffline": "ଆପଣ ଅଫ‌ଲାଇନ୍ ଅଛନ୍ତି",
@@ -313,5 +319,253 @@
                 "answer": "CDSCO ର ଅର୍ଥ Central Drugs Standard Control Organisation। ଏହା କସ୍ମେଟିକ୍ସ, ଔଷଧ ଏବଂ ଚିକିତ୍ସା ଉପକରଣ ପାଇଁ ଭାରତର ଜାତୀୟ ନିୟାମକ ସଂସ୍ଥା। SahiDawa ସେମାନଙ୍କର ଅଧିକୃତ ଡାଟାବେସ୍ ସହିତ ଔଷଧଗୁଡ଼ିକୁ ଯାଞ୍ଚ କରେ।"
             }
         }
+    },
+    "Scan": {
+        "share": {
+            "avoid_and_report": "Please avoid and report to your nearest health worker.",
+            "batch_label": "Batch",
+            "button": "Share Result",
+            "copy_success": "Result copied to clipboard",
+            "failure": "Unable to share this result right now",
+            "manufacturer_label": "Manufacturer",
+            "real_status": "Verified REAL",
+            "shared_success": "Result shared successfully",
+            "suspicious_status": "Marked SUSPICIOUS",
+            "title": "SahiDawa Medicine Verification Result",
+            "unknown_batch": "Unknown batch",
+            "unknown_manufacturer": "Unknown manufacturer",
+            "unknown_medicine": "Unknown medicine",
+            "verified_by": "by SahiDawa",
+            "verify_yourself": "Verify yourself",
+            "warning_prefix": "WARNING"
+        }
+    },
+    "chat": {
+        "actions": {
+            "pharmacy": {
+                "description": "Locate verified stores",
+                "label": "Find Pharmacy"
+            },
+            "scan": {
+                "description": "Verify authenticity",
+                "label": "Scan Medicine"
+            },
+            "symptoms": {
+                "description": "AI-assisted guidance",
+                "label": "Check Symptoms"
+            }
+        },
+        "footer": "For informational use only • Consult a doctor",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "quick_actions": "Quick actions",
+        "welcome": "Namaste, I'm SahiDawa, your trusted health companion. I can help you verify medicines, understand symptoms, or find nearby care. What would you like help with today?"
+    },
+    "chatbot": {
+        "placeholder": "Ask me about a medicine...",
+        "status": "Online",
+        "title": "SahiDawa AI",
+        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"
+    },
+    "Alerts": {
+        "backHome": "Back to Home Page",
+        "badge": "Live Alerts",
+        "title": "Live CDSCO Alerts",
+        "subtitle": "Complete historical safety logging stream directly mapped to the master CDSCO registry.",
+        "regionBadge": "India Region",
+        "totalCount": "Total Count: {count}",
+        "brandPlaceholder": "Search by Brand Name...",
+        "regionPlaceholder": "Filter by State/District...",
+        "error": "Database synchronization error encountered while fetching active logs.",
+        "loading": "Loading alerts...",
+        "systemUpdate": "System Update",
+        "alertType": "Alert: {type}",
+        "noDetails": "No details available",
+        "batchLabel": "Batch:",
+        "manufacturerLabel": "Manufacturer:",
+        "regionLabel": "Region:",
+        "empty": "No health alerts matching your criteria were found.",
+        "previous": "Previous",
+        "next": "Next"
+    },
+    "Compare": {
+        "pageTitle": "Compare medicines",
+        "pageSubtitle": "Brand vs generic side by side",
+        "firstMedicine": "First medicine",
+        "secondMedicine": "Second medicine",
+        "searchPlaceholder": "Search brand or generic name",
+        "findPharmacies": "Find pharmacies",
+        "emptyComparison": "Select two medicines above to see the comparison.",
+        "fieldHeader": "Field",
+        "medicineA": "Medicine A",
+        "medicineB": "Medicine B",
+        "priceUnavailable": "Price unavailable",
+        "noSavings": "No savings",
+        "saveAmount": "Save ₹{amount} ({percent}%)",
+        "rows": {
+            "brandName": "Brand name",
+            "genericName": "Generic name",
+            "composition": "Composition",
+            "manufacturer": "Manufacturer",
+            "type": "Type",
+            "cdscoStatus": "CDSCO status",
+            "expiryDate": "Expiry date",
+            "marketPrice": "Market price (MRP)",
+            "janAushadhiPrice": "Jan Aushadhi price",
+            "savings": "Savings vs MRP"
+        },
+        "medicineTypes": {
+            "brand": "Brand",
+            "generic": "Generic"
+        },
+        "status": {
+            "approved": "Approved",
+            "recalled": "Recalled",
+            "banned": "Banned"
+        }
+    },
+    "Login": {
+        "brandSubtitle": "Medicine safety platform",
+        "heading": "Welcome back",
+        "description": "Sign in to continue tracking medicine safety reports and verification results.",
+        "missingConfig": {
+            "title": "Authentication is not configured",
+            "description": "Supabase URL or anon key is missing. Add the environment variables before signing in."
+        },
+        "googleButton": "Continue with Google",
+        "emailSeparator": "or continue with email",
+        "emailLabel": "Email address",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Enter your password",
+        "signingIn": "Signing in...",
+        "signIn": "Sign In",
+        "footerPrompt": "Need to go back?",
+        "returnHome": "Return home",
+        "bottomText": "Protected access for SahiDawa community tools.",
+        "errors": {
+            "databaseNotConfigured": "Authentication is not configured for this environment.",
+            "generic": "Unable to sign in. Please try again."
+        }
+    },
+    "AdminLayout": {
+        "accessDeniedTitle": "Access denied",
+        "accessDeniedDescription": "You need administrator or moderator privileges to view this page.",
+        "returnHome": "Return home"
+    },
+    "AdminDashboard": {
+        "brandSuffix": "Admin",
+        "version": "SahiDawa Admin v1.0",
+        "nav": {
+            "reports": "Reports",
+            "medicine": "Medicine Master",
+            "logs": "Audit Logs"
+        },
+        "header": {
+            "title": "Moderation Dashboard",
+            "subtitle": "Manage community-reported counterfeit medicines"
+        },
+        "searchPlaceholder": "Search...",
+        "actions": {
+            "signIn": "Sign In",
+            "refresh": "Refresh",
+            "addMedicine": "Add Medicine",
+            "save": "Save",
+            "cancel": "Cancel",
+            "goToLogin": "Go to login",
+            "markFake": "Mark fake",
+            "falseAlarm": "False alarm"
+        },
+        "stats": {
+            "pending": "Pending",
+            "resolved": "Resolved",
+            "districtsAffected": "Districts Affected"
+        },
+        "errors": {
+            "notAuthenticated": "Not authenticated — please sign in as an admin.",
+            "accessDenied": "Access denied — admin or moderator role required.",
+            "apiUnavailable": "Cannot reach the API. Is the backend server running on port 4000?"
+        },
+        "toasts": {
+            "markedFake": "Marked as Verified Fake",
+            "falseAlarm": "Marked as False Alarm",
+            "reportUpdateFailed": "Failed to update report",
+            "medicineAdded": "Medicine added",
+            "medicineAddFailed": "Failed to add medicine"
+        },
+        "medicine": {
+            "title": "Medicine Master",
+            "empty": "No medicines found",
+            "columns": {
+                "brand": "Brand",
+                "generic": "Generic",
+                "manufacturer": "Manufacturer",
+                "barcode": "Barcode",
+                "status": "Status"
+            }
+        },
+        "status": {
+            "approved": "Approved",
+            "recalled": "Recalled",
+            "banned": "Banned"
+        },
+        "logs": {
+            "title": "Audit Logs",
+            "subtitle": "Recent moderation and medicine catalog activity",
+            "loading": "Loading logs...",
+            "empty": "No audit logs yet"
+        },
+        "reports": {
+            "title": "Incoming Reports",
+            "pendingCount": "{count, plural, =0 {No pending reports} =1 {1 pending report} other {# pending reports}}",
+            "loading": "Loading reports...",
+            "empty": "No pending reports",
+            "columns": {
+                "medicine": "Medicine",
+                "district": "District",
+                "barcode": "Barcode",
+                "reported": "Reported",
+                "actions": "Actions"
+            },
+            "decisions": {
+                "verifiedFake": "Verified Fake",
+                "falseAlarm": "False Alarm"
+            }
+        },
+        "resolved": {
+            "title": "Recently Resolved",
+            "count": "{count, plural, =0 {No resolved reports} =1 {1 resolved report} other {# resolved reports}}",
+            "decision": "Decision"
+        }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "ଟିକାକରଣ ହବ୍",
+        "pageHeaderSubtitle": "ଟିକାକରଣ ଟ୍ରାକର୍",
+        "title": "ଟିକାକରଣ ହବ୍ ଏବଂ ଟ୍ରାକର୍",
+        "subtitle": "ଉତ୍ତମ ଜନସ୍ୱାସ୍ଥ୍ୟ ସଚେତନତା ପାଇଁ ଟିକା ସୂଚୀ, ସୁରକ୍ଷା ସୂଚନା ଏବଂ ପରବର୍ତ୍ତୀ ଯତ୍ନ ମାର୍ଗଦର୍ଶନ ବିଷୟରେ ଜାଣନ୍ତୁ।",
+        "selectLabel": "ରୋଗ / ଟିକା ଚୟନ କରନ୍ତୁ",
+        "placeholder": "ଏକ ଟିକା ପ୍ରୋଫାଇଲ୍ ବାଛନ୍ତୁ...",
+        "childBirthDate": "ଶିଶୁର ଜନ୍ମ ତାରିଖ",
+        "milestoneBaseDate": "ପ୍ରଥମ ଡୋଜ୍ ଆଧାର ତାରିଖ",
+        "noVaccineSelected": "କୌଣସି ଟିକା ଚୟନ କରାଯାଇ ନାହିଁ",
+        "chooseVaccinePrompt": "ଟ୍ରାକିଂ ଟୁଲ୍ସ ବ୍ୟବହାର କରିବା ପାଇଁ ଉପରେ ଏକ ଟିକା ବାଛନ୍ତୁ:",
+        "featureSchedule": "ଡାଇନାମିକ ଅନୁମାନିତ ଟିକାକରଣ ସୂଚୀ",
+        "featureSideEffects": "ପାର୍ଶ୍ୱ ପ୍ରତିକ୍ରିୟାର ବର୍ଗୀକରଣ (ସାମାନ୍ୟ ବନାମ ଗମ୍ଭୀର)",
+        "featureAftercare": "ପର୍ଯ୍ୟାୟକ୍ରମିକ ଚିକିତ୍ସା ଯତ୍ନ ନିର୍ଦ୍ଦେଶାବଳୀ",
+        "targetGroups": "ଲକ୍ଷ୍ୟ ଗୋଷ୍ଠୀ",
+        "totalDoses": "ମୋଟ ଡୋଜ୍",
+        "effectiveness": "ପ୍ରଭାବଶାଳୀତା",
+        "classification": "ବର୍ଗୀକରଣ",
+        "aboutDisease": "ରୋଗ ବିଷୟରେ:",
+        "scheduleLayoutHeading": "ଟିକାକରଣ ସୂଚୀ",
+        "atBirth": "ଜନ୍ମ ସମୟରେ ପ୍ରଦାନ",
+        "atWeeks": "{weeks} ସପ୍ତାହ ବୟସରେ",
+        "baseline": "ପ୍ରାରମ୍ଭିକ ପ୍ରଦାନ (ଆଧାରରେଖା)",
+        "doseStep": "ଡୋଜ୍ ପର୍ଯ୍ୟାୟ {index} (+{weeks} ସପ୍ତାହ ପରେ)",
+        "targetDate": "ଧାର୍ଯ୍ୟ ତାରିଖ: {date}",
+        "selectDateWarning": "ସମୟସୀମା ଆକଳନ କରିବା ପାଇଁ ଉପରେ ଏକ ତାରିଖ ଚୟନ କରନ୍ତୁ",
+        "commonEffects": "ସାଧାରଣ ପାର୍ଶ୍ୱ ପ୍ରତିକ୍ରିୟା",
+        "severeReactions": "ଗମ୍ଭୀର ପ୍ରତିକ୍ରିୟା",
+        "aftercareHeading": "ତତ୍କାଳ ପରବର୍ତ୍ତୀ ଯତ୍ନ ମାର୍ଗଦର୍ଶନ"
     }
 }

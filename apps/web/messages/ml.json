@@ -21,6 +21,7 @@
         "ai_chat": "AI ചാറ്റ്",
         "ai_health_assistant_description": "ഉടനടി ആരോഗ്യ ഉപദേശം, ലക്ഷണ പരിശോധന & പ്രിസ്ക്രിപ്ഷൻ മാർഗ്ഗനിർദ്ദേശം ലഭിക്കുക",
         "chat_now": "ഇപ്പോൾ ചാറ്റ് ചെയ്യുക",
+        "explore_features": "സവിശേഷതകൾ പര്യവേക്ഷണം ചെയ്യുക",
         "live_cdsco_alerts": "തത്സമയ CDSCO അലേർട്ടുകൾ",
         "india_region": "ഇന്ത്യ മേഖല",
         "alerts_empty_title": "എല്ലാം ശരിയാണ്!",
@@ -29,7 +30,13 @@
         "heroTitle": {
             "prefix": "നിങ്ങളുടെ ആരോഗ്യം, ",
             "highlight": "പരിശോധിക്കപ്പെട്ടതും സംരക്ഷിക്കപ്പെട്ടതും."
-        }
+        },
+        "scan_medicine": "Scan Medicine",
+        "scan_now": "Scan Now",
+        "find_pharmacy": "Find Pharmacy",
+        "report_subtitle": "Report suspicious medicine",
+        "real_time": "REAL TIME",
+        "alerts_description": "Stay updated with the latest medicine safety alerts and recalls."
     },
     "Navigation": {
         "how_it_works": "എങ്ങനെ പ്രവർത്തിക്കുന്നു",
@@ -252,5 +259,319 @@
                 "answer": "CDSCO എന്നത് Central Drugs Standard Control Organisation എന്നതിന്റെ ചുരുക്കെഴുത്താണ്. ഇത് ഇന്ത്യയുടെ ദേശീയ ഔഷധ, ഫാർമസ്യൂട്ടിക്കൽ, മെഡിക്കൽ ഉപകരണ നിയന്ത്രണ സംഘടനയാണ്. SahiDawa ഇവരുടെ ഔദ്യോഗിക ഡേറ്റാബേസ് ഉപയോഗിച്ച് മരുന്നുകൾ പരിശോധിക്കുന്നു."
             }
         }
+    },
+    "Scan": {
+        "share": {
+            "avoid_and_report": "Please avoid and report to your nearest health worker.",
+            "batch_label": "Batch",
+            "button": "Share Result",
+            "copy_success": "Result copied to clipboard",
+            "failure": "Unable to share this result right now",
+            "manufacturer_label": "Manufacturer",
+            "real_status": "Verified REAL",
+            "shared_success": "Result shared successfully",
+            "suspicious_status": "Marked SUSPICIOUS",
+            "title": "SahiDawa Medicine Verification Result",
+            "unknown_batch": "Unknown batch",
+            "unknown_manufacturer": "Unknown manufacturer",
+            "unknown_medicine": "Unknown medicine",
+            "verified_by": "by SahiDawa",
+            "verify_yourself": "Verify yourself",
+            "warning_prefix": "WARNING"
+        }
+    },
+    "chat": {
+        "actions": {
+            "pharmacy": {
+                "description": "Locate verified stores",
+                "label": "Find Pharmacy"
+            },
+            "scan": {
+                "description": "Verify authenticity",
+                "label": "Scan Medicine"
+            },
+            "symptoms": {
+                "description": "AI-assisted guidance",
+                "label": "Check Symptoms"
+            }
+        },
+        "footer": "For informational use only • Consult a doctor",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "quick_actions": "Quick actions",
+        "welcome": "Namaste, I'm SahiDawa, your trusted health companion. I can help you verify medicines, understand symptoms, or find nearby care. What would you like help with today?"
+    },
+    "chatbot": {
+        "placeholder": "Ask me about a medicine...",
+        "status": "Online",
+        "title": "SahiDawa AI",
+        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"
+    },
+    "about": {
+        "badge": "GSSoC 2026 Open Source Project",
+        "heroTitle": "About <highlight>SahiDawa</highlight>",
+        "heroSubtitle": "India's first open-source citizen medicine verifier & rural health bridge. Built for Bharat. Not just India.",
+        "features": {
+            "free": "100% Free. Forever.",
+            "languages": "22 Indian Languages",
+            "license": "Open Source MIT License"
+        },
+        "problemSection": {
+            "title": "The Problem We're Solving",
+            "description": "India has a three-layer healthcare crisis that no existing platform solves simultaneously."
+        },
+        "cards": {
+            "fakeMedicines": {
+                "title": "Fake Medicines",
+                "description": "12–25% of medicines in India are fake or substandard — putting 1.4 billion people at risk with zero citizen-facing verification tool."
+            },
+            "ruralHealthcare": {
+                "title": "Rural Healthcare Gap",
+                "description": "65% of India's population lives in rural areas with almost no qualified doctors — over 900 million people without accessible healthcare."
+            },
+            "languageBarrier": {
+                "title": "Language Barrier",
+                "description": "22 official languages — but health information is mostly in English or Hindi, leaving 500M+ non-Hindi speakers behind."
+            }
+        },
+        "realIncident": {
+            "title": "Real Incident — July 2025",
+            "text": "Delhi Police busted a counterfeit medicine ring supplying fake Johnson & Johnson and GSK medicines — made of chalk powder and starch — all the way into government hospitals. Patients had <highlight>zero way to verify</highlight> these medicines before consuming them.",
+            "highlight": "SahiDawa fixes this. For free. Forever. Open source."
+        },
+        "mission": {
+            "title": "Our Mission",
+            "description": "To empower every Indian citizen — regardless of language, location, or literacy — with the ability to instantly verify medicines, access qualified health guidance, and report counterfeit drugs in their community."
+        },
+        "vision": {
+            "title": "Our Vision",
+            "description": "A Bharat where no child dies from a fake medicine, no farmer's family is misdiagnosed for lack of a doctor, and no language is a barrier to healthcare. Free. Open. Forever."
+        },
+        "coreValues": {
+            "title": "Our Core Values",
+            "cards": {
+                "openSource": {
+                    "title": "Open Source",
+                    "description": "MIT Licensed. Always."
+                },
+                "freeForever": {
+                    "title": "Free Forever",
+                    "description": "No hidden costs. Ever."
+                },
+                "inclusive": {
+                    "title": "Inclusive",
+                    "description": "22 languages. All of Bharat."
+                },
+                "privacy": {
+                    "title": "Privacy First",
+                    "description": "No data sold. No ads."
+                }
+            }
+        },
+        "contactUs": {
+            "title": "Get In Touch",
+            "subtitle": "Have questions, ideas, or want to contribute? We'd love to hear from you."
+        }
+    },
+    "Alerts": {
+        "backHome": "Back to Home Page",
+        "badge": "Live Alerts",
+        "title": "Live CDSCO Alerts",
+        "subtitle": "Complete historical safety logging stream directly mapped to the master CDSCO registry.",
+        "regionBadge": "India Region",
+        "totalCount": "Total Count: {count}",
+        "brandPlaceholder": "Search by Brand Name...",
+        "regionPlaceholder": "Filter by State/District...",
+        "error": "Database synchronization error encountered while fetching active logs.",
+        "loading": "Loading alerts...",
+        "systemUpdate": "System Update",
+        "alertType": "Alert: {type}",
+        "noDetails": "No details available",
+        "batchLabel": "Batch:",
+        "manufacturerLabel": "Manufacturer:",
+        "regionLabel": "Region:",
+        "empty": "No health alerts matching your criteria were found.",
+        "previous": "Previous",
+        "next": "Next"
+    },
+    "Compare": {
+        "pageTitle": "Compare medicines",
+        "pageSubtitle": "Brand vs generic side by side",
+        "firstMedicine": "First medicine",
+        "secondMedicine": "Second medicine",
+        "searchPlaceholder": "Search brand or generic name",
+        "findPharmacies": "Find pharmacies",
+        "emptyComparison": "Select two medicines above to see the comparison.",
+        "fieldHeader": "Field",
+        "medicineA": "Medicine A",
+        "medicineB": "Medicine B",
+        "priceUnavailable": "Price unavailable",
+        "noSavings": "No savings",
+        "saveAmount": "Save ₹{amount} ({percent}%)",
+        "rows": {
+            "brandName": "Brand name",
+            "genericName": "Generic name",
+            "composition": "Composition",
+            "manufacturer": "Manufacturer",
+            "type": "Type",
+            "cdscoStatus": "CDSCO status",
+            "expiryDate": "Expiry date",
+            "marketPrice": "Market price (MRP)",
+            "janAushadhiPrice": "Jan Aushadhi price",
+            "savings": "Savings vs MRP"
+        },
+        "medicineTypes": {
+            "brand": "Brand",
+            "generic": "Generic"
+        },
+        "status": {
+            "approved": "Approved",
+            "recalled": "Recalled",
+            "banned": "Banned"
+        }
+    },
+    "Login": {
+        "brandSubtitle": "Medicine safety platform",
+        "heading": "Welcome back",
+        "description": "Sign in to continue tracking medicine safety reports and verification results.",
+        "missingConfig": {
+            "title": "Authentication is not configured",
+            "description": "Supabase URL or anon key is missing. Add the environment variables before signing in."
+        },
+        "googleButton": "Continue with Google",
+        "emailSeparator": "or continue with email",
+        "emailLabel": "Email address",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Enter your password",
+        "signingIn": "Signing in...",
+        "signIn": "Sign In",
+        "footerPrompt": "Need to go back?",
+        "returnHome": "Return home",
+        "bottomText": "Protected access for SahiDawa community tools.",
+        "errors": {
+            "databaseNotConfigured": "Authentication is not configured for this environment.",
+            "generic": "Unable to sign in. Please try again."
+        }
+    },
+    "AdminLayout": {
+        "accessDeniedTitle": "Access denied",
+        "accessDeniedDescription": "You need administrator or moderator privileges to view this page.",
+        "returnHome": "Return home"
+    },
+    "AdminDashboard": {
+        "brandSuffix": "Admin",
+        "version": "SahiDawa Admin v1.0",
+        "nav": {
+            "reports": "Reports",
+            "medicine": "Medicine Master",
+            "logs": "Audit Logs"
+        },
+        "header": {
+            "title": "Moderation Dashboard",
+            "subtitle": "Manage community-reported counterfeit medicines"
+        },
+        "searchPlaceholder": "Search...",
+        "actions": {
+            "signIn": "Sign In",
+            "refresh": "Refresh",
+            "addMedicine": "Add Medicine",
+            "save": "Save",
+            "cancel": "Cancel",
+            "goToLogin": "Go to login",
+            "markFake": "Mark fake",
+            "falseAlarm": "False alarm"
+        },
+        "stats": {
+            "pending": "Pending",
+            "resolved": "Resolved",
+            "districtsAffected": "Districts Affected"
+        },
+        "errors": {
+            "notAuthenticated": "Not authenticated — please sign in as an admin.",
+            "accessDenied": "Access denied — admin or moderator role required.",
+            "apiUnavailable": "Cannot reach the API. Is the backend server running on port 4000?"
+        },
+        "toasts": {
+            "markedFake": "Marked as Verified Fake",
+            "falseAlarm": "Marked as False Alarm",
+            "reportUpdateFailed": "Failed to update report",
+            "medicineAdded": "Medicine added",
+            "medicineAddFailed": "Failed to add medicine"
+        },
+        "medicine": {
+            "title": "Medicine Master",
+            "empty": "No medicines found",
+            "columns": {
+                "brand": "Brand",
+                "generic": "Generic",
+                "manufacturer": "Manufacturer",
+                "barcode": "Barcode",
+                "status": "Status"
+            }
+        },
+        "status": {
+            "approved": "Approved",
+            "recalled": "Recalled",
+            "banned": "Banned"
+        },
+        "logs": {
+            "title": "Audit Logs",
+            "subtitle": "Recent moderation and medicine catalog activity",
+            "loading": "Loading logs...",
+            "empty": "No audit logs yet"
+        },
+        "reports": {
+            "title": "Incoming Reports",
+            "pendingCount": "{count, plural, =0 {No pending reports} =1 {1 pending report} other {# pending reports}}",
+            "loading": "Loading reports...",
+            "empty": "No pending reports",
+            "columns": {
+                "medicine": "Medicine",
+                "district": "District",
+                "barcode": "Barcode",
+                "reported": "Reported",
+                "actions": "Actions"
+            },
+            "decisions": {
+                "verifiedFake": "Verified Fake",
+                "falseAlarm": "False Alarm"
+            }
+        },
+        "resolved": {
+            "title": "Recently Resolved",
+            "count": "{count, plural, =0 {No resolved reports} =1 {1 resolved report} other {# resolved reports}}",
+            "decision": "Decision"
+        }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "വാക്സിൻ ഹബ്",
+        "pageHeaderSubtitle": "ഇമ്മ്യൂണൈസേഷൻ ട്രാക്കർ",
+        "title": "വാക്സിൻ ഹബ്ബും ഇമ്മ്യൂണൈസേഷൻ ട്രാക്കറും",
+        "subtitle": "മെച്ചപ്പെട്ട പൊതുജനാരോഗ്യ അവബോധത്തിനായി വാക്സിൻ ഷെഡ്യൂളുകൾ, സുരക്ഷാ വിവരങ്ങൾ, പരിചരണ മാർഗ്ഗനിർദ്ദേശങ്ങൾ എന്നിവ മനസ്സിലാക്കുക.",
+        "selectLabel": "രോഗം / വാക്സിൻ തിരഞ്ഞെടുക്കുക",
+        "placeholder": "ഒരു വാക്സിൻ പ്രൊഫൈൽ തിരഞ്ഞെടുക്കുക...",
+        "childBirthDate": "കുട്ടിയുടെ ജനനത്തീയതി",
+        "milestoneBaseDate": "ആദ്യ ഡോസിന്റെ അടിസ്ഥാന തീയതി",
+        "noVaccineSelected": "വാക്സിനുകളൊന്നും തിരഞ്ഞെടുത്തിട്ടില്ല",
+        "chooseVaccinePrompt": "ട്രാക്കിംഗ് ടൂളുകൾ ലഭ്യമാക്കാൻ മുകളിൽ ഒരു വാക്സിൻ തിരഞ്ഞെടുക്കുക:",
+        "featureSchedule": "ഡൈനാമിക് പ്രൊജക്റ്റഡ് ഇമ്മ്യൂണൈസേഷൻ ഷെഡ്യൂൾ",
+        "featureSideEffects": "പാർശ്വഫലങ്ങളുടെ വിവരങ്ങൾ (ലഘുവായതും കഠിനമായതും)",
+        "featureAftercare": "ഘട്ടം ഘട്ടമായുള്ള ക്ലിനിക്കൽ പരിചരണ നിർദ്ദേശങ്ങൾ",
+        "targetGroups": "ലക്ഷ്യ ഗ്രൂപ്പുകൾ",
+        "totalDoses": "ആകെ ഡോസുകൾ",
+        "effectiveness": "ഫലപ്രാപ്തി",
+        "classification": "വർഗ്ഗീകരണം",
+        "aboutDisease": "രോഗത്തെക്കുറിച്ച്:",
+        "scheduleLayoutHeading": "ഇമ്മ്യൂണൈസേഷൻ ഷെഡ്യൂൾ",
+        "atBirth": "ജനനസമയത്ത് നൽകേണ്ടത്",
+        "atWeeks": "{weeks} ആഴ്ച പ്രായത്തിൽ",
+        "baseline": "പ്രാഥമിക ഡോസ് (അടിസ്ഥാനം)",
+        "doseStep": "ഡോസ് ഘട്ടം {index} (+{weeks} ആഴ്ചകൾക്ക് ശേഷം)",
+        "targetDate": "ലക്ഷ്യ തീയതി: {date}",
+        "selectDateWarning": "സമയക്രമം കണക്കാക്കാൻ മുകളിൽ ഒരു തീയതി തിരഞ്ഞെടുക്കുക",
+        "commonEffects": "സാധാരണ പാർശ്വഫലങ്ങൾ",
+        "severeReactions": "ഗുരുതരമായ പ്രതികരണങ്ങൾ",
+        "aftercareHeading": "ഉടൻ ചെയ്യേണ്ട പരിചരണ മാർഗ്ഗനിർദ്ദേശങ്ങൾ"
     }
 }

@@ -50,7 +50,7 @@ export default function BackToTopButton() {
                     }
 
                     const docH = document.documentElement.scrollHeight - window.innerHeight;
-                    
+
                     // Sync the progress ring with scroll directly via CSS variable on refs
                     const progress = docH > 0 ? Math.min(100, Math.max(0, (y / docH) * 100)) : 0;
                     const progressStr = progress.toFixed(2);
@@ -74,8 +74,7 @@ export default function BackToTopButton() {
 
         const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
         setPrefersReducedMotion(mq.matches);
-        const mqListener = (e: MediaQueryListEvent) =>
-            setPrefersReducedMotion(e.matches);
+        const mqListener = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
         mq.addEventListener("change", mqListener);
 
         return () => {
@@ -136,22 +135,22 @@ export default function BackToTopButton() {
      * This achieves native high performance transitions.
      */
     const baseClasses =
-        "fixed bottom-[152px] right-[28px] md:right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950 md:bottom-24 md:h-14 md:w-14 transition-all duration-300 ease-out";
+        "fixed bottom-[152px] right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950 md:bottom-24 md:right-6 md:h-14 md:w-14";
 
     const motionClasses = prefersReducedMotion
-        ? (isVisible
+        ? isVisible
             ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"
-            : "opacity-0 translate-y-0 scale-100 pointer-events-none")
-        : (isVisible
-            ? "opacity-100 translate-y-0 scale-100 pointer-events-auto hover:scale-108 hover:-translate-y-0.5 active:scale-92"
-            : "opacity-0 translate-y-5 scale-90 pointer-events-none");
+            : "opacity-0 translate-y-0 scale-100 pointer-events-none"
+        : isVisible
+          ? "opacity-100 translate-y-0 scale-100 pointer-events-auto hover:scale-108 hover:-translate-y-0.5 active:scale-92"
+          : "opacity-0 translate-y-5 scale-90 pointer-events-none";
 
     return (
         <>
             {/* Sleek top-of-viewport scroll progress bar */}
             <div
                 ref={progressBarRef}
-                className="fixed top-0 left-0 right-0 z-50 h-[3px] origin-left bg-linear-to-r from-green-400 to-green-600 pointer-events-none"
+                className="pointer-events-none fixed top-0 right-0 left-0 z-50 h-[3px] origin-left bg-linear-to-r from-green-400 to-green-600"
                 style={{
                     transform: "scaleX(calc(var(--scroll-progress, 0) / 100))",
                 }}
@@ -178,7 +177,7 @@ export default function BackToTopButton() {
             >
                 {/* Scroll progress ring */}
                 <svg
-                    className="absolute inset-0 -rotate-90 h-full w-full"
+                    className="absolute inset-0 h-full w-full -rotate-90"
                     viewBox="0 0 56 56"
                     aria-hidden="true"
                 >
@@ -216,7 +215,7 @@ export default function BackToTopButton() {
                     strokeWidth="3.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="relative z-10 h-5 w-5 text-white md:h-6 md:w-6 transition-transform duration-300"
+                    className="relative z-10 h-5 w-5 text-white transition-transform duration-300 md:h-6 md:w-6"
                     aria-hidden="true"
                 >
                     <path d="M12 19V5" />

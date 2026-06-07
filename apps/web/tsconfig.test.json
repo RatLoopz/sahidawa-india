@@ -4,7 +4,7 @@
         "module": "node16",
         "moduleResolution": "node16",
         "rootDir": ".",
-        "types": ["node", "jest"],
+        "types": ["node", "jest", "react", "react-dom"],
         "baseUrl": ".",
         "ignoreDeprecations": "6.0",
         "paths": {

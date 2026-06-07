@@ -1,4 +1,5 @@
 import pytest
+import shutil
 import io
 import wave
 import numpy as np
@@ -6,7 +7,10 @@ from fastapi.testclient import TestClient
 import sys
 import os
 from types import SimpleNamespace
-
+pytestmark = pytest.mark.skipif(
+    shutil.which("ffmpeg") is None,
+    reason="ffmpeg not installed in CI",
+)
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from main import app
 from routers import asr as asr_router

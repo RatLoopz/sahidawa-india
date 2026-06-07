@@ -1,8 +1,13 @@
 import io
+import shutil
 import os
 import sys
+import pytest
 from types import SimpleNamespace
-
+pytestmark = pytest.mark.skipif(
+    shutil.which("ffmpeg") is None,
+    reason="ffmpeg not installed in CI",
+)
 import numpy as np
 from fastapi.testclient import TestClient
 from starlette.routing import _DefaultLifespan

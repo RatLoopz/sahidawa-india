@@ -12,7 +12,12 @@ from fastapi import HTTPException
 if importlib.util.find_spec("noisereduce") is None:
     sys.modules["noisereduce"] = types.SimpleNamespace(reduce_noise=lambda y, sr: y)
 
-if importlib.util.find_spec("faster_whisper") is None:
+try:
+    import faster_whisper
+except Exception:
+    faster_whisper = None
+
+if faster_whisper is None:
     sys.modules["faster_whisper"] = types.SimpleNamespace(WhisperModel=object)
 
 if importlib.util.find_spec("soundfile") is None:

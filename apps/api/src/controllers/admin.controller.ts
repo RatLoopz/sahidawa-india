@@ -8,12 +8,17 @@ const reportStatusSchema = z.object({
     status: z.enum(["pending", "verified_fake", "false_alarm"]),
 });
 
+const medicineStatusSchema = z.object({
+    status: z.enum(["safe", "suspicious", "recalled", "pending_review"]),
+});
+
 const medicineSchema = z.object({
     brand_name: z.string().min(1),
     generic_name: z.string().min(1),
     manufacturer: z.string().min(1),
     barcode_id: z.string().optional(),
     cdsco_approval_status: z.enum(["approved", "recalled", "banned"]).default("approved"),
+    status: z.enum(["safe", "suspicious", "recalled", "pending_review"]).default("safe").optional(),
 });
 
 export const getPendingReports = async (
@@ -116,14 +121,10 @@ export const updateReportStatus = async (
 
 export const getAllMedicines = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        // 1. Parse query parameters with fallbacks
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 50;
-
-        // 2. Calculate the offset for Supabase
         const offset = (page - 1) * limit;
 
-        // 3. Fetch data and total count using .range() instead of .limit()
         const { data, error, count } = await supabase
             .from("medicines")
             .select("*", { count: "exact" })
@@ -134,7 +135,6 @@ export const getAllMedicines = async (req: AuthenticatedRequest, res: Response):
             return;
         }
 
-        // 4. Return data along with pagination metadata so the frontend knows what to do
         res.json({
             medicines: data,
             meta: {
@@ -149,6 +149,7 @@ export const getAllMedicines = async (req: AuthenticatedRequest, res: Response):
         res.status(500).json({ error: "Internal server error" });
     }
 };
+
 export const createMedicine = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const parsed = medicineSchema.safeParse(req.body);

@@ -12,12 +12,12 @@ SahiDawa is structured as a **Monorepo** (Monolithic Repository). Instead of hav
 ### Directory Layout
 
 - **`apps/`**: Contains the actual runnable applications.
-  - **`apps/web`**: Next.js 16 Frontend (React 19, Tailwind CSS v4).
-  - **`apps/api`**: Node.js/Express Backend (will connect to Supabase).
-  - **`apps/ml`**: Python FastAPI service (for Machine Learning and Voice/Vision Processing).
+    - **`apps/web`**: Next.js 16 Frontend (React 19, Tailwind CSS v4).
+    - **`apps/api`**: Node.js/Express Backend (will connect to Supabase).
+    - **`apps/ml`**: Python FastAPI service (for Machine Learning and Voice/Vision Processing).
 
 - **`packages/`**: Contains shared code that can be used across multiple apps.
-  - *Example*: If we build a shared UI component library or common database schemas in the future, they will live here. Even if this folder is currently empty, do not delete it, as it is pre-configured for future scalability.
+    - _Example_: If we build a shared UI component library or common database schemas in the future, they will live here. Even if this folder is currently empty, do not delete it, as it is pre-configured for future scalability.
 
 ---
 
@@ -35,20 +35,20 @@ When you clone the repository, navigate to the **root folder (`sahidawa-india`)*
 npm install
 ```
 
-*This will automatically install and link all dependencies for all apps and packages.*
+_This will automatically install and link all dependencies for all apps and packages._
 
 ### 2. Adding New Packages
 
 If you need to install a new package for a specific app, stay in the **root folder** and use the `-w` (workspace) flag:
 
 - To add a package to the frontend:
-  ```bash
-  npm install <package-name> -w web
-  ```
+    ```bash
+    npm install <package-name> -w web
+    ```
 - To add a package to the backend:
-  ```bash
-  npm install <package-name> -w api
-  ```
+    ```bash
+    npm install <package-name> -w api
+    ```
 
 ---
 
@@ -57,13 +57,13 @@ If you need to install a new package for a specific app, stay in the **root fold
 You can start any app from the **root folder** using the workspace flag:
 
 - **Run Frontend (Next.js):**
-  ```bash
-  npm run dev -w web
-  ```
+    ```bash
+    npm run dev -w web
+    ```
 - **Run Backend (Express):**
-  ```bash
-  npm run dev -w api
-  ```
+    ```bash
+    npm run dev -w api
+    ```
 
 ---
 
@@ -75,10 +75,12 @@ We strictly use exact versions or locked ranges (e.g., `^16.2.4`) in our `packag
 If we used `"latest"`, two contributors cloning the repo on different days might get different versions of Next.js or React, leading to severe version mismatch errors and broken builds.
 
 By locking the versions:
+
 1. Every contributor runs the exact same environment.
 2. The `package-lock.json` at the root guarantees deterministic installations.
 
 **Current Tech Stack Versions (Locked):**
+
 - Next.js: `v16.2.4`
 - React: `v19.x`
 - Tailwind CSS: `v4.x`
@@ -109,19 +111,19 @@ By locking the versions:
 
 #### Directories That Are EMPTY (Need Contributors)
 
-| Directory             | What Should Go Here                                                    |
-| --------------------- | ---------------------------------------------------------------------- |
-| `components/health/`  | Health score, medicine detail card components                          |
-| `components/map/`     | Leaflet map wrapper, pharmacy card, pin components                     |
-| `components/reports/` | ReportWizard.tsx (counterfeit report form with wizard steps)           |
-| `components/scanner/` | BarcodeScanner.tsx, ExpiryBadge.tsx                                    |
-| `hooks/`              | useOnlineRetry.ts, useOfflineStatus.ts, useInstallPrompt.ts            |
-| `lib/`                | API client (`lib/api.ts`), Supabase browser client (`lib/supabase.ts`) |
-| `messages/`           | 12 locale files: en.json, hi.json, ur.json, ta.json, te.json, kn.json, gu.json, od.json, pa.json, sa.json, bn.json, mr.json |
-| `public/`             | App icons, manifest.json, static images                                |
-| `app/[locale]/not-found.tsx` | Localized 404 page                                               |
-| `app/loading.tsx`     | Global loading skeleton                                                |
-| `app/global-error.tsx`| Global error boundary                                                  |
+| Directory                    | What Should Go Here                                                                                                         |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `components/health/`         | Health score, medicine detail card components                                                                               |
+| `components/map/`            | Leaflet map wrapper, pharmacy card, pin components                                                                          |
+| `components/reports/`        | ReportWizard.tsx (counterfeit report form with wizard steps)                                                                |
+| `components/scanner/`        | BarcodeScanner.tsx, ExpiryBadge.tsx                                                                                         |
+| `hooks/`                     | useOnlineRetry.ts, useOfflineStatus.ts, useInstallPrompt.ts                                                                 |
+| `lib/`                       | API client (`lib/api.ts`), Supabase browser client (`lib/supabase.ts`)                                                      |
+| `messages/`                  | 12 locale files: en.json, hi.json, ur.json, ta.json, te.json, kn.json, gu.json, od.json, pa.json, sa.json, bn.json, mr.json |
+| `public/`                    | App icons, manifest.json, static images                                                                                     |
+| `app/[locale]/not-found.tsx` | Localized 404 page                                                                                                          |
+| `app/loading.tsx`            | Global loading skeleton                                                                                                     |
+| `app/global-error.tsx`       | Global error boundary                                                                                                       |
 
 #### Key Patterns in Existing Pages
 
@@ -164,11 +166,11 @@ const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 
 #### Directories That Are EMPTY (Need Contributors)
 
-| Directory         | What Belongs Here                                           |
-| ----------------- | ----------------------------------------------------------- |
+| Directory         | What Belongs Here                                                                                              |
+| ----------------- | -------------------------------------------------------------------------------------------------------------- |
 | `src/routes/`     | `verify.ts`, `pharmacies.ts`, `reports.ts`, `alerts.ts`, `ml.ts`, `analytics.ts`, `lasa.ts`, `admin.routes.ts` |
-| `src/services/`   | `medicineService.ts`, `pharmacyService.ts`                  |
-| `src/middleware/` | `rateLimit.ts`, `validate.ts`, `auth.ts`, `errorHandler.ts` |
+| `src/services/`   | `medicineService.ts`, `pharmacyService.ts`                                                                     |
+| `src/middleware/` | `rateLimit.ts`, `validate.ts`, `auth.ts`, `errorHandler.ts`                                                    |
 
 #### How to Add a New Route
 

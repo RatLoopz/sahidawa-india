@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { supabase } from "../db/client";
 import { z } from "zod";
 import { triggerRecallAlert } from "../services/notifications";
-
+import { validateMedicineStatus, getValidStatusList } from "../validators/medicine.validator";
 
 const AlertSchema = z
     .object({
@@ -61,25 +61,30 @@ alertsRouter.get("/", async (req: Request, res: Response) => {
         query = query.eq("batch_number", batchNumber);
     }
 
-    const { data, error, count } = await query
-        .order("created_at", { ascending: false })
-        .range(offset, offset + limit - 1);
+    try {
+        const { data, error, count } = await query
+            .order("created_at", { ascending: false })
+            .range(offset, offset + limit - 1);
 
-    if (error) {
-        res.status(500).json({ error: "Failed to fetch alerts" });
-        return;
+        if (error) {
+            res.status(500).json({ error: "Failed to fetch alerts" });
+            return;
+        }
+
+        const totalCount = count ?? 0;
+        const totalPageCount = Math.ceil(totalCount / limit);
+
+        res.json({
+            data: data ?? [],
+            pageIndex: page,
+            pageSize: (data ?? []).length,
+            totalCount,
+            totalPageCount,
+        });
+    } catch (err) {
+        console.error("Unexpected error in GET /api/alerts:", err);
+        res.status(500).json({ error: "An unexpected error occurred" });
     }
-
-    const totalCount = count ?? 0;
-    const totalPageCount = Math.ceil(totalCount / limit);
-
-    res.json({
-        data: data ?? [],
-        pageIndex: page,
-        pageSize: (data ?? []).length,
-        totalCount,
-        totalPageCount,
-    });
 });
 
 /**
@@ -88,10 +93,13 @@ alertsRouter.get("/", async (req: Request, res: Response) => {
  */
 alertsRouter.post("/ingest", async (req: Request, res: Response) => {
     // 1. Validate Secret Header & Environment Setup
+    // Issue fixed: API_SECRET_KEY is validated here instead of at startup, so a missing key no longer crashes the server.
     const expectedSecret = process.env.API_SECRET_KEY;
     if (!expectedSecret) {
         console.error("Server Configuration Error: API_SECRET_KEY is not configured.");
-        res.status(500).json({ error: "Ingestion is disabled because API_SECRET_KEY is not configured on the server." });
+        res.status(500).json({
+            error: "Ingestion is disabled because API_SECRET_KEY is not configured on the server.",
+        });
         return;
     }
 
@@ -124,11 +132,19 @@ alertsRouter.post("/ingest", async (req: Request, res: Response) => {
         }
 
         // 3. Update medicines table based on matched batches
+        const medicineStatus = "recalled";
+        if (!validateMedicineStatus(medicineStatus)) {
+            res.status(400).json({
+                error: `Invalid medicine status. Valid values are: ${getValidStatusList()}`,
+            });
+            return;
+        }
+
         const updatePromises = validatedAlerts.map((alert) => {
             if (alert.batch_number) {
                 let q = supabase
                     .from("medicines")
-                    .update({ status: "recalled", is_counterfeit_alert: true })
+                    .update({ status: medicineStatus, is_counterfeit_alert: true })
                     .eq("batch_number", alert.batch_number);
 
                 if (alert.manufacturer) {
