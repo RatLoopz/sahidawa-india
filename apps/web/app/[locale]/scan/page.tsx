@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import { SkeletonLoader } from "@/components/scanner/SkeletonLoader";
 import {
     Camera,
     ShieldCheck,
@@ -46,6 +47,10 @@ import { useOfflineStatus } from "@/hooks/useOfflineStatus";
 import { useTranslations } from "next-intl";
 import { buildVerificationShareText, type VerificationShareCopy } from "@/lib/verificationShare";
 
+import { saveScanHistory } from "@/lib/db/scanHistory";
+
+import { structuredLog } from "@/lib/structuredLogger";
+
 function formatExpiryForBadge(isoDate: string | null | undefined): string | undefined {
     if (!isoDate) return undefined;
     const d = new Date(isoDate);
@@ -56,6 +61,18 @@ function formatExpiryForBadge(isoDate: string | null | undefined): string | unde
 function expiryToIso(expiryStr: string): string {
     const [month, year] = expiryStr.split("/");
     return `${year}-${month.padStart(2, "0")}-01T00:00:00.000Z`;
+}
+
+function getScanHistoryStatus(result: VerifyResult): string {
+    if (!result.verified) return "SUSPICIOUS";
+    return result.medicine.is_counterfeit_alert ? "FAKE" : "VERIFIED";
+}
+
+function getScanHistoryMedicineName(result: VerifyResult, fallbackBrandName?: string): string {
+    if (result.verified) {
+        return result.medicine.brand_name || fallbackBrandName || "Unknown medicine";
+    }
+    return fallbackBrandName || "Unknown medicine";
 }
 
 function CdscoStatusBadge({ status }: { status: string }) {
@@ -179,6 +196,7 @@ function LoadingSkeleton({ ocrStatus, ocrProgress }: { ocrStatus: string; ocrPro
 // Result views with dark/light mode surface tokens and variables support
 function VerifiedSafeResult({
     medicine,
+    scanMeta,
     onScanAgain,
     onShare,
     onCopyMedicineDetails,
@@ -186,6 +204,12 @@ function VerifiedSafeResult({
     copied,
 }: {
     medicine: VerifiedMedicine;
+    scanMeta?: {
+        recentScanCount24h: number;
+        recentScanCount7d: number;
+        suspicious: boolean;
+        suspicionReasons: string[];
+    };
     onScanAgain: () => void;
     onShare: () => void;
     onCopyMedicineDetails: () => void;
@@ -207,6 +231,18 @@ function VerifiedSafeResult({
                 </div>
 
                 <CdscoStatusBadge status={medicine.cdsco_approval_status} />
+
+                {scanMeta?.suspicious && (
+                    <div className="border-amber-250 flex w-full items-start gap-3 rounded-2xl border bg-amber-50 p-4 text-left dark:border-amber-900 dark:bg-amber-950/20">
+                        <AlertTriangle
+                            size={18}
+                            className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400"
+                        />
+                        <p className="text-xs leading-relaxed font-medium text-amber-800 dark:text-amber-400">
+                            {scanMeta.suspicionReasons.join(" ")}
+                        </p>
+                    </div>
+                )}
 
                 <div className="grid w-full grid-cols-2 gap-3 pt-2">
                     <div className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) p-3">
@@ -595,12 +631,36 @@ export default function ScanPage() {
     const processVerificationResult = async (result: VerifyResult, fallbackBrandName?: string) => {
         if (!result.verified) {
             setVerifyResult(result);
+
+            void saveScanHistory({
+                id: crypto.randomUUID(),
+                timestamp: Date.now(),
+                medicineName: getScanHistoryMedicineName(result, fallbackBrandName),
+                status: getScanHistoryStatus(result),
+            }).catch((error) => {
+                console.error("Failed to save scan history:", error);
+            });
+
+            setShowResult(true);
+
             return;
         }
         try {
             const medicineName = result.medicine.brand_name || fallbackBrandName;
             if (!medicineName) {
                 setVerifyResult(result);
+
+                void saveScanHistory({
+                    id: crypto.randomUUID(),
+                    timestamp: Date.now(),
+                    medicineName: getScanHistoryMedicineName(result, fallbackBrandName),
+                    status: getScanHistoryStatus(result),
+                }).catch((error) => {
+                    console.error("Failed to save scan history:", error);
+                });
+
+                setShowResult(true);
+
                 return;
             }
             const lasaRes = await checkLasaConflicts(medicineName);
@@ -608,18 +668,49 @@ export default function ScanPage() {
                 setLasaMatches(lasaRes.matches);
                 setPendingVerifyResult(result);
                 setShowLasaConfirmation(true);
+                setShowResult(true);
             } else {
                 setVerifyResult(result);
+
+                void saveScanHistory({
+                    id: crypto.randomUUID(),
+                    timestamp: Date.now(),
+                    medicineName: getScanHistoryMedicineName(result, fallbackBrandName),
+                    status: getScanHistoryStatus(result),
+                }).catch((error) => {
+                    console.error("Failed to save scan history:", error);
+                });
+
+                setShowResult(true);
             }
         } catch (error) {
             console.error("LASA check error:", error);
             setVerifyResult(result);
+
+            void saveScanHistory({
+                id: crypto.randomUUID(),
+                timestamp: Date.now(),
+                medicineName: getScanHistoryMedicineName(result, fallbackBrandName),
+                status: getScanHistoryStatus(result),
+            }).catch((historyError) => {
+                console.error("Failed to save scan history:", historyError);
+            });
+
+            setShowResult(true);
         }
     };
 
     const handleConfirmScanned = () => {
         if (pendingVerifyResult) {
             setVerifyResult(pendingVerifyResult);
+            void saveScanHistory({
+                id: crypto.randomUUID(),
+                timestamp: Date.now(),
+                medicineName: getScanHistoryMedicineName(pendingVerifyResult),
+                status: getScanHistoryStatus(pendingVerifyResult),
+            }).catch((error) => {
+                console.error("Failed to save scan history:", error);
+            });
             setShowLasaConfirmation(false);
             setPendingVerifyResult(null);
         }
@@ -687,6 +778,14 @@ export default function ScanPage() {
                     return;
                 }
                 setVerifyError(errorMsg);
+                void saveScanHistory({
+                    id: crypto.randomUUID(),
+                    timestamp: Date.now(),
+                    medicineName: batch.trim() || "Unknown Medicine",
+                    status: "SUSPICIOUS",
+                }).catch((error) => {
+                    console.error("Failed to save scan history:", error);
+                });
                 setShowResult(true);
             } finally {
                 if (isMountedRef.current && !controller.signal.aborted) {
@@ -806,8 +905,15 @@ export default function ScanPage() {
                     await handleVerify(barcodeText);
                     return;
                 }
-            } catch {
-                // ZXing failed — continue to OCR fallback
+            } catch (error) {
+                structuredLog({
+                    log_level: "warn",
+                    route: "/scan",
+                    meta: {
+                        message: "[scan] Barcode detection (ZXing) failed, falling back to OCR",
+                        error: error instanceof Error ? error.message : String(error),
+                    },
+                });
             }
 
             if (!isMountedRef.current || controller.signal.aborted) return;
@@ -879,8 +985,16 @@ export default function ScanPage() {
                     if (batchRes.verified) {
                         finalResult = batchRes;
                     }
-                } catch {
-                    // Silent fallback
+                } catch (error) {
+                    structuredLog({
+                        log_level: "warn",
+                        route: "/scan",
+                        meta: {
+                            message: "[scan] Batch verification failed, trying brand match",
+                            batch: parsedBatchNum,
+                            error: error instanceof Error ? error.message : String(error),
+                        },
+                    });
                 }
             }
 
@@ -902,8 +1016,16 @@ export default function ScanPage() {
                             }
                         }
                     }
-                } catch {
-                    // Silent fallback
+                } catch (error) {
+                    structuredLog({
+                        log_level: "warn",
+                        route: "/scan",
+                        meta: {
+                            message: "[scan] Fuzzy brand match verification failed",
+                            brand: medName,
+                            error: error instanceof Error ? error.message : String(error),
+                        },
+                    });
                 }
             }
 
@@ -958,7 +1080,19 @@ export default function ScanPage() {
             }
         }
     };
-
+    const handleCameraPermissionDenied = useCallback(() => {
+        setIsCameraActive(false);
+        toast.error("Camera access denied. Please enter batch number manually.", {
+            duration: 4000,
+        });
+        // Auto focus batch input
+        setTimeout(() => {
+            const input = document.querySelector(
+                'input[placeholder="Enter batch number"]'
+            ) as HTMLInputElement;
+            input?.focus();
+        }, 300);
+    }, []);
     const handleBarcodeScan = async (scannedText: string) => {
         setIsVerifying(true);
         setApiError(null);
@@ -1046,7 +1180,7 @@ export default function ScanPage() {
     };
 
     return (
-        <div className="relative flex min-h-screen flex-col overflow-x-clip bg-(--color-surface-page) font-sans text-(--color-text-primary)">
+        <div className="relative flex min-h-[calc(100vh-4rem)] flex-col overflow-x-clip bg-(--color-surface-page) font-sans text-(--color-text-primary)">
             <input
                 type="file"
                 id="medicine-upload"
@@ -1059,7 +1193,7 @@ export default function ScanPage() {
                 title="Scanner Mode"
                 subtitle="Position the Barcode"
                 backHref="/"
-                variant="dark"
+                variant="light"
             />
 
             <div className="relative flex flex-1 items-center justify-center">
@@ -1070,7 +1204,10 @@ export default function ScanPage() {
                             debounceMs={2500}
                             isVerifying={isVerifying}
                             apiError={apiError}
-                            onRetry={() => setApiError(null)}
+                            onRetry={() => {
+                                setApiError(null);
+                                setIsCameraActive(false);
+                            }}
                         />
                     ) : uploadedImage ? (
                         <LazyImage
@@ -1104,7 +1241,7 @@ export default function ScanPage() {
                     )}
                 </div>
 
-                {isScanning && <LoadingSkeleton ocrStatus={ocrStatus} ocrProgress={ocrProgress} />}
+                {isScanning && <SkeletonLoader />}
 
                 {showResult && (
                     <div className="animate-in fade-in zoom-in absolute inset-0 z-30 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm duration-300">
