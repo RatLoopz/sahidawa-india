@@ -300,7 +300,7 @@ def evaluate_pr_impact(pr: dict) -> None:
         print("✅ AI Gatekeeper Approved: PR is a genuine contribution.")
         
     except Exception as exc:
-        print(f"⚠️  AI Gatekeeper evaluation failed ({exc}). Bypassing semantic check.")
+        print(f"⚠️  AI Gatekeeper evaluation failed ({str(exc).replace(gemini_api_key, '***')}). Bypassing semantic check.")
 
 
 def get_contributor_name(github_username: str) -> str:
@@ -441,9 +441,9 @@ def generate_post_with_gemini(pr: dict, tier_display: str, tier_desc: str) -> st
             
         except Exception as exc:
             if attempt == max_retries:
-                print(f"⚠️  Gemini AI failed after {max_retries} attempts ({exc}). Using static fallback.")
+                print(f"⚠️  Gemini AI failed after {max_retries} attempts ({str(exc).replace(gemini_api_key, '***')}). Using static fallback.")
                 return _static_fallback(pr, tier_display)
-            print(f"⚠️  Gemini AI failed ({exc}). Retrying in 10 seconds...")
+            print(f"⚠️  Gemini AI failed ({str(exc).replace(gemini_api_key, '***')}). Retrying in 10 seconds...")
             time.sleep(10)
             
     return _static_fallback(pr, tier_display)
@@ -639,7 +639,7 @@ def send_to_make_webhook(post_text: str, pr: dict) -> None:
         return
 
     print("📤 Sending post to Make.com webhook...")
-    print(f"   Webhook: {webhook_url[:50]}...")
+    print(f"   Webhook: {webhook_url[:15]}***")
     resp = requests.post(
         webhook_url,
         headers={"Content-Type": "application/json"},
