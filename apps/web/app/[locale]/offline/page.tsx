@@ -19,17 +19,13 @@ import {
  */
 export default function OfflinePage() {
     const t = useTranslations("offline");
-    const [isOnline, setIsOnline] = useState(false);
     const [isRetrying, setIsRetrying] = useState(false);
     const [retryCount, setRetryCount] = useState(0);
     const [showReconnected, setShowReconnected] = useState(false);
 
     // Sync initial state from navigator.onLine after mount
     useEffect(() => {
-        setIsOnline(window.navigator.onLine);
-
         const handleOnline = () => {
-            setIsOnline(true);
             setShowReconnected(true);
             // Auto-redirect after a short confirmation delay
             setTimeout(() => {
@@ -38,7 +34,6 @@ export default function OfflinePage() {
         };
 
         const handleOffline = () => {
-            setIsOnline(false);
             setShowReconnected(false);
         };
 

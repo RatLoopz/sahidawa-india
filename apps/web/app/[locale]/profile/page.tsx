@@ -1,9 +1,112 @@
 "use client";
 
-import { Link } from "@/i18n/routing";
-import { User, ShieldCheck, Bell, ChevronRight, ArrowLeft } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useRouter } from "@/i18n/routing";
+import { User, ShieldCheck, Bell, ChevronRight, ArrowLeft, LogIn, LogOut } from "lucide-react";
+
+const ACCESS_TOKEN_KEY = "sb-access-token";
+
+type ProfileSession =
+    | { status: "checking" }
+    | { status: "guest" }
+    | {
+          status: "authenticated";
+          displayName: string;
+      };
+
+type AccessTokenPayload = {
+    email?: unknown;
+    sub?: unknown;
+    exp?: unknown;
+    user_metadata?: Record<string, unknown> | null;
+};
+
+function getString(value: unknown): string | null {
+    return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function decodeBase64Url(value: string): string {
+    const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+    const binary = window.atob(padded);
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+
+    return new TextDecoder().decode(bytes);
+}
+
+function readSessionFromToken(token: string | null): {
+    session: ProfileSession;
+    clearToken: boolean;
+} {
+    if (!token) {
+        return { session: { status: "guest" }, clearToken: false };
+    }
+
+    try {
+        const [, payloadPart] = token.split(".");
+
+        if (!payloadPart) {
+            return { session: { status: "guest" }, clearToken: true };
+        }
+
+        const payload = JSON.parse(decodeBase64Url(payloadPart)) as AccessTokenPayload;
+
+        if (typeof payload.exp === "number" && payload.exp * 1000 <= Date.now()) {
+            return { session: { status: "guest" }, clearToken: true };
+        }
+
+        const displayName =
+            getString(payload.user_metadata?.full_name) ??
+            getString(payload.user_metadata?.name) ??
+            getString(payload.email) ??
+            getString(payload.sub) ??
+            "Signed-in User";
+
+        return {
+            session: {
+                status: "authenticated",
+                displayName,
+            },
+            clearToken: false,
+        };
+    } catch {
+        return { session: { status: "guest" }, clearToken: true };
+    }
+}
 
 export default function ProfilePage() {
+    const router = useRouter();
+    const [session, setSession] = useState<ProfileSession>({ status: "checking" });
+
+    const accountTitle =
+        session.status === "authenticated"
+            ? session.displayName
+            : session.status === "checking"
+              ? "Checking account status"
+              : "Guest User";
+    const accountSubtitle =
+        session.status === "authenticated"
+            ? "Authenticated account"
+            : session.status === "checking"
+              ? "Reading your local session"
+              : "No account connected";
+
+    useEffect(() => {
+        const result = readSessionFromToken(localStorage.getItem(ACCESS_TOKEN_KEY));
+
+        if (result.clearToken) {
+            localStorage.removeItem(ACCESS_TOKEN_KEY);
+        }
+
+        setSession(result.session);
+    }, []);
+
+    const handleSignOut = () => {
+        localStorage.removeItem(ACCESS_TOKEN_KEY);
+        setSession({ status: "guest" });
+        router.push("/");
+    };
+
     return (
         <div className="flex-grow bg-(--color-surface-muted) px-6 py-8 text-(--color-text-primary)">
             <div className="mx-auto max-w-3xl">
@@ -37,26 +140,61 @@ export default function ProfilePage() {
                 {/* Profile Card */}
                 <div className="overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) shadow-sm">
                     {/* User Info */}
-                    <div className="flex items-center justify-between border-b border-(--color-border-muted) p-6">
-                        <div>
-                            <h2 className="font-bold text-(--color-text-primary)">Guest User</h2>
+                    <div className="flex flex-col gap-4 border-b border-(--color-border-muted) p-6 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-(--color-surface-muted)">
+                                <ShieldCheck
+                                    className="text-emerald-600 dark:text-emerald-400"
+                                    size={24}
+                                />
+                            </div>
 
-                            <p className="mt-1 text-sm text-(--color-text-secondary)">
-                                No account connected
-                            </p>
+                            <div>
+                                <h2 className="font-bold break-all text-(--color-text-primary)">
+                                    {accountTitle}
+                                </h2>
+
+                                <p className="mt-1 text-sm text-(--color-text-secondary)">
+                                    {accountSubtitle}
+                                </p>
+                            </div>
                         </div>
 
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-(--color-surface-muted)">
-                            <ShieldCheck
-                                className="text-emerald-600 dark:text-emerald-400"
-                                size={24}
-                            />
-                        </div>
+                        {session.status === "guest" && (
+                            <Link
+                                href="/login"
+                                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                            >
+                                <LogIn size={18} />
+                                Sign In / Register
+                            </Link>
+                        )}
                     </div>
 
                     {/* Menu Items */}
                     <div className="divide-y divide-(--color-border-muted)">
-                        <button className="flex w-full items-center justify-between p-5 transition-colors hover:bg-(--color-surface-muted)">
+                        {session.status === "authenticated" && (
+                            <button
+                                type="button"
+                                onClick={handleSignOut}
+                                className="flex w-full items-center justify-between p-5 text-left transition-colors hover:bg-(--color-surface-muted)"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <LogOut size={20} className="text-red-500" />
+
+                                    <span className="font-semibold text-(--color-text-primary)">
+                                        Sign Out
+                                    </span>
+                                </div>
+
+                                <ChevronRight size={18} className="text-(--color-text-muted)" />
+                            </button>
+                        )}
+
+                        <button
+                            type="button"
+                            className="flex w-full items-center justify-between p-5 transition-colors hover:bg-(--color-surface-muted)"
+                        >
                             <div className="flex items-center gap-3">
                                 <Bell size={20} className="text-red-500" />
 
@@ -68,7 +206,10 @@ export default function ProfilePage() {
                             <ChevronRight size={18} className="text-(--color-text-muted)" />
                         </button>
 
-                        <button className="flex w-full items-center justify-between p-5 transition-colors hover:bg-(--color-surface-muted)">
+                        <button
+                            type="button"
+                            className="flex w-full items-center justify-between p-5 transition-colors hover:bg-(--color-surface-muted)"
+                        >
                             <div className="flex items-center gap-3">
                                 <ShieldCheck
                                     size={20}

@@ -12,7 +12,7 @@ jest.mock("react", () => {
 
 import LanguageSwitcher from "../app/[locale]/LanguageSwitcher";
 
-let activeLocale = "en";
+const activeLocale = "en";
 
 jest.mock("next-intl", () => ({
     useLocale: () => activeLocale,

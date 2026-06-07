@@ -7,6 +7,7 @@
  */
 
 import { join } from "path";
+import * as fs from "fs";
 import React, { act } from "react";
 import { renderHook, render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
@@ -403,7 +404,6 @@ describe("Offline Support", () => {
 
     describe("Service Worker", () => {
         it("exists as a valid JS file", () => {
-            const fs = require("fs");
             const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
             expect(swContent).toContain("self.addEventListener");
             expect(swContent).toContain("install");
@@ -412,7 +412,6 @@ describe("Offline Support", () => {
         });
 
         it("defines expected cache strategies", () => {
-            const fs = require("fs");
             const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
             expect(swContent).toContain("sahidawa-offline-");
             expect(swContent).toContain("sahidawa-api-");
@@ -423,14 +422,12 @@ describe("Offline Support", () => {
         });
 
         it("handles OSM tile origin for offline maps", () => {
-            const fs = require("fs");
             const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
             expect(swContent).toContain("tile.openstreetmap.org");
             expect(swContent).toContain("sahidawa-tiles-");
         });
 
         it("caches medicine lookup APIs with StaleWhileRevalidate", () => {
-            const fs = require("fs");
             const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
             expect(swContent).toContain("/api/medicines/");
             expect(swContent).toContain("/api/verify");
@@ -440,7 +437,6 @@ describe("Offline Support", () => {
         });
 
         it("caches icons and manifest with CacheFirst", () => {
-            const fs = require("fs");
             const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
             expect(swContent).toContain("/icons/");
             expect(swContent).toContain("/manifest.json");
@@ -448,27 +444,23 @@ describe("Offline Support", () => {
         });
 
         it("handles push notification events", () => {
-            const fs = require("fs");
             const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
             expect(swContent).toContain('"push"');
             expect(swContent).toContain("showNotification");
         });
 
         it("handles notificationclick events", () => {
-            const fs = require("fs");
             const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
             expect(swContent).toContain('"notificationclick"');
             expect(swContent).toContain("clients.openWindow");
         });
 
         it("handles SKIP_WAITING message", () => {
-            const fs = require("fs");
             const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
             expect(swContent).toContain("SKIP_WAITING");
         });
 
         it("registers service worker via ServiceWorkerProvider", () => {
-            const fs = require("fs");
             const swProviderPath = join(process.cwd(), "components/ServiceWorkerProvider.tsx");
             const providerContent = fs.readFileSync(swProviderPath, "utf8");
             expect(providerContent).toContain('serviceWorker.register("/sw.js"');

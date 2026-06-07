@@ -81,8 +81,22 @@ jobs:
             const issueData = await github.rest.issues.get({ owner: repo.owner, repo: repo.repo, issue_number: issueNumber });
             const currentAssignees = (issueData.data.assignees || []).map(a => a.login);
             const isUnassigned = currentAssignees.length === 0;
+            const issueAuthor = issueData.data.user.login;
 
             core.info('Audit trigger: @' + commenter + ' attempting assignment on #' + issueNumber);
+
+            // ── Block assignment if the issue was created by a Maintainer/Owner ──
+            try {
+              const { data: authorPerm } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: repo.owner, repo: repo.repo, username: issueAuthor
+              });
+              if (authorPerm.permission === 'admin' || authorPerm.permission === 'write') {
+                core.info('Issue was crafted by Maintainer/Owner — blocking auto-assignment silently.');
+                return;
+              }
+            } catch (err) {
+              core.warning('Could not check permissions for issue author @' + issueAuthor + ': ' + err.message);
+            }
 
             // ── 2a. Enforce 3-issue cap ─────────────────────────────────────
             const assignedList = await github.rest.issues.listForRepo({

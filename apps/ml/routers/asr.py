@@ -242,19 +242,29 @@ def _transcribe_audio_bytes(
 
         normalized_path = tmp_path + "_norm.wav"
 
-        ffmpeg_result = subprocess.run(
-            [
-                "ffmpeg",
-                "-y",
-                "-i", tmp_path,
-                "-ar", "16000",
-                "-ac", "1",
-                "-f", "wav",
-                normalized_path,
-            ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
+        try:
+            ffmpeg_result = subprocess.run(
+                [
+                    "ffmpeg",
+                    "-y",
+                    "-i", tmp_path,
+                    "-ar", "16000",
+                    "-ac", "1",
+                    "-f", "wav",
+                    normalized_path,
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+        except FileNotFoundError:
+            logger.error(
+                "ffmpeg executable not found. Install ffmpeg on the ML host "
+                "(e.g. `sudo apt install ffmpeg`) so uploaded audio can be transcoded."
+            )
+            raise HTTPException(
+                status_code=503,
+                detail="Voice transcription is temporarily unavailable. Please try again later.",
+            )
 
         if ffmpeg_result.returncode != 0:
             ffmpeg_stderr = ffmpeg_result.stderr.decode("utf-8", errors="ignore")
@@ -318,7 +328,7 @@ def _transcribe_audio_bytes(
         logger.error(f"ASR transcription error: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to transcribe audio: {str(e)}"
+            detail="Oops..! Please try again later."
         )
 
     finally:

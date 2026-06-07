@@ -33,12 +33,16 @@ app.add_middleware(
 
 # Include ASR as a required router and OCR as optional so voice triage can boot
 # even when OCR-only dependencies are not installed in the current environment.
+# TTS is optional - app boots without it but cloud TTS is disabled.
 include_router_if_available(app, "routers.verify", required=True)
 include_router_if_available(app, "routers.asr", required=True)
 include_router_if_available(app, "routers.analyze", required=True)
 ocr_loaded = include_router_if_available(app, "routers.ocr", required=False)
 if not ocr_loaded:
     logger.warning("OCR routes are disabled in this runtime.")
+tts_loaded = include_router_if_available(app, "routers.tts", required=False)
+if not tts_loaded:
+    logger.warning("TTS routes are disabled. Install google-cloud-texttospeech or configure Azure TTS.")
 
 @app.get("/")
 def read_root():

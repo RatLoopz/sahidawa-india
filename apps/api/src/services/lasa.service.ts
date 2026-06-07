@@ -26,6 +26,8 @@ export interface LasaMatch {
 //   TOCTOU window where two requests both miss the cache and both hit the DB.
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
+const MAX_CACHE_SIZE = 1000;
+const MAX_INFLIGHT = 100;
 
 interface CacheEntry {
     value: LasaMatch[];
@@ -46,6 +48,12 @@ function getCached(key: string): LasaMatch[] | null {
 }
 
 function setCached(key: string, value: LasaMatch[]): void {
+    if (cache.size >= MAX_CACHE_SIZE) {
+        const oldestKey = cache.keys().next().value;
+        if (oldestKey !== undefined) {
+            cache.delete(oldestKey);
+        }
+    }
     cache.set(key, { value, expiresAt: Date.now() + CACHE_TTL_MS });
 }
 
@@ -90,6 +98,9 @@ export const detectLasaConflicts = async (medicineName: string): Promise<LasaMat
         }
     })();
 
+    if (inFlight.size >= MAX_INFLIGHT) {
+        inFlight.clear();
+    }
     inFlight.set(cacheKey, promise);
     return promise;
 };

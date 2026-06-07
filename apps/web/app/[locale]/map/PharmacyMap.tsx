@@ -34,6 +34,7 @@ export interface Pharmacy {
     address?: string;
     phone?: string;
     isVerified?: boolean;
+    operatingHours?: string;
 }
 
 export interface MapBounds {

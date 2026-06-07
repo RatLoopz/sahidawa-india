@@ -1,0 +1,198 @@
+name: "🎉 LinkedIn Contributor Shoutout"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TRIGGER: Fires on every PR close event.
+# The job itself only runs when:
+#   1. The PR was actually MERGED (not just closed/rejected)
+#   2. The PR has 'level:advanced' OR 'level:critical' label
+# ─────────────────────────────────────────────────────────────────────────────
+on:
+    pull_request_target:
+        types: [closed, labeled, edited]
+
+# Write permission on pull-requests needed to post celebratory comment.
+permissions:
+    pull-requests: write
+    contents: read
+
+jobs:
+    linkedin-shoutout:
+        name: "Post Shoutout to LinkedIn"
+
+        # ─────────────────────────────────────────────────────────────────────
+        # GATE CONDITIONS (evaluated before any code runs):
+        #   - PR must be merged (not just closed)
+        # Run only when PR is explicitly merged AND has the 'shoutout:approved' admin label
+        # AND has either level:advanced or level:critical
+        # ─────────────────────────────────────────────────────────────────────
+        if: |
+            github.event.pull_request.merged == true &&
+            contains(github.event.pull_request.labels.*.name, 'shoutout:approved') &&
+            !contains(github.event.pull_request.labels.*.name, 'shoutout:published') &&
+            (
+              contains(github.event.pull_request.labels.*.name, 'level:advanced') ||
+              contains(github.event.pull_request.labels.*.name, 'level:critical')
+            ) &&
+            (
+              github.event.action == 'closed' ||
+              github.event.action == 'edited' ||
+              (
+                github.event.action == 'labeled' &&
+                (
+                  github.event.label.name == 'shoutout:approved' ||
+                  github.event.label.name == 'level:advanced' ||
+                  github.event.label.name == 'level:critical'
+                )
+              )
+            )
+
+        runs-on: ubuntu-latest
+
+        steps:
+            # ─────────────────────────────────────────────────────────────────
+            # Step 1: Checkout repo (needed to access scripts/ directory)
+            # ─────────────────────────────────────────────────────────────────
+            - name: "📦 Checkout Repository"
+              uses: actions/checkout@v4
+
+            # ─────────────────────────────────────────────────────────────────
+            # Step 2: Set up Python 3.12
+            # ─────────────────────────────────────────────────────────────────
+            - name: "🐍 Setup Python 3.12"
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
+
+            # ─────────────────────────────────────────────────────────────────
+            # Step 3: Install required Python packages
+            #   - requests: For LinkedIn API call
+            #   (google-genai SDK not needed — we use requests for Gemini REST)
+            # ─────────────────────────────────────────────────────────────────
+            - name: "📥 Install Dependencies"
+              run: pip install requests pillow
+
+            # ─────────────────────────────────────────────────────────────────
+            # Step 4: Collect ALL PR metadata and expose as environment vars.
+            # This runs a GitHub Actions script (JS) to safely read PR context.
+            # We extract labels as a comma-separated string for the Python script.
+            # ─────────────────────────────────────────────────────────────────
+            - name: "🔍 Extract PR Metadata"
+              id: pr_meta
+              uses: actions/github-script@v7
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  script: |
+                      const pr = context.payload.pull_request;
+                      const labels = pr.labels.map(l => l.name).join(',');
+                      const body = (pr.body || '').substring(0, 500); // Cap body at 500 chars
+
+                      // Fetch full PR object to get accurate additions/deletions
+                      const { data: pullRequest } = await github.rest.pulls.get({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        pull_number: pr.number
+                      });
+                      const linesChanged = pullRequest.additions + pullRequest.deletions;
+
+                      core.setOutput('pr_title', pr.title);
+                      core.setOutput('pr_author', pr.user.login);
+                      core.setOutput('pr_url', pr.html_url);
+                      core.setOutput('pr_number', pr.number.toString());
+                      core.setOutput('pr_labels', labels);
+                      core.setOutput('pr_body', body);
+                      core.setOutput('pr_repo', context.repo.owner + '/' + context.repo.repo);
+                      core.setOutput('pr_lines_changed', linesChanged.toString());
+                      core.setOutput('pr_author_avatar', pr.user.avatar_url);
+
+                      console.log(`PR: #${pr.number} "${pr.title}" by @${pr.user.login}`);
+                      console.log(`Labels: ${labels}`);
+                      console.log(`Lines Changed: ${linesChanged}`);
+
+            # ─────────────────────────────────────────────────────────────────
+            # Step 5: Extract git diff (Truncated for AI context)
+            - name: "📄 Extract git diff"
+              id: diff
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  PR_NUM="${{ steps.pr_meta.outputs.pr_number }}"
+                  # Truncate to 140k chars to stay within Gemini token limits safely
+                  DIFF=$(gh pr diff "$PR_NUM" --repo "${{ github.repository }}" 2>/dev/null | head -c 140000 || echo "Diff unavailable")
+                  echo "git_diff<<ENDDIFF" >> $GITHUB_OUTPUT
+                  echo "$DIFF" >> $GITHUB_OUTPUT
+                  echo "ENDDIFF" >> $GITHUB_OUTPUT
+
+            # ─────────────────────────────────────────────────────────────────
+            # Step 6: Run the Python script that:
+            #   A) Generates a unique post using Gemini AI
+            #   B) Publishes the post to LinkedIn via UGC Posts API
+            #
+            # All secrets are passed as env vars — the script never hardcodes them.
+            # ─────────────────────────────────────────────────────────────────
+            - name: "🚀 Generate & Post LinkedIn Shoutout"
+              id: shoutout
+              env:
+                  # Make.com Webhook URL (stored in GitHub Secrets)
+                  MAKE_WEBHOOK_URL: ${{ secrets.MAKE_WEBHOOK_URL }}
+
+                  # Gemini AI Key (already in repo secrets)
+                  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+                  # PR Metadata from previous step
+                  PR_TITLE: ${{ steps.pr_meta.outputs.pr_title }}
+                  PR_AUTHOR: ${{ steps.pr_meta.outputs.pr_author }}
+                  PR_AUTHOR_AVATAR: ${{ steps.pr_meta.outputs.pr_author_avatar }}
+                  PR_URL: ${{ steps.pr_meta.outputs.pr_url }}
+                  PR_NUMBER: ${{ steps.pr_meta.outputs.pr_number }}
+                  PR_LABELS: ${{ steps.pr_meta.outputs.pr_labels }}
+                  PR_BODY: ${{ steps.pr_meta.outputs.pr_body }}
+                  PR_REPO: ${{ steps.pr_meta.outputs.pr_repo }}
+                  PR_LINES_CHANGED: ${{ steps.pr_meta.outputs.pr_lines_changed }}
+                  PR_GIT_DIFF: ${{ steps.diff.outputs.git_diff }}
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: python scripts/linkedin_shoutout.py
+
+            # ─────────────────────────────────────────────────────────────────
+            # Step 6: Also post a celebratory comment on the PR itself
+            # (Same pattern as autocomment-pr-merge.yml — already in our stack)
+            # ─────────────────────────────────────────────────────────────────
+            - name: "💬 Post Celebratory PR Comment"
+              if: steps.shoutout.outputs.shoutout_status == 'published'
+              uses: actions/github-script@v7
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  script: |
+                      const pr = context.payload.pull_request;
+                      const labels = pr.labels.map(l => l.name);
+
+                      const tier = labels.includes('level:critical')
+                        ? '⚡ **Critical-Level**'
+                        : '🔥 **Advanced-Level**';
+
+                      const message = `## 🎉 Epic Contribution Merged!
+
+                      Congratulations @${pr.user.login}! Your ${tier} PR has been merged into SahiDawa! 🇮🇳
+
+                      This achievement has been shared on our **LinkedIn** to give you the public recognition you deserve.
+
+                      **What this means for your GSSoC 2026 journey:**
+                      - ✅ This is logged as a high-impact contribution
+                      - 🏆 Advanced/Critical PRs carry significantly higher point multipliers
+                      - 🌟 Your contribution is now part of India's open-source healthcare infrastructure
+
+                      Thank you for your exceptional work on **SahiDawa** — keep building! 🚀`;
+
+                      await github.rest.issues.createComment({
+                        issue_number: pr.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        body: message
+                      });
+                      
+                      // Add 'shoutout:published' label to prevent duplicate triggers
+                      await github.rest.issues.addLabels({
+                        issue_number: pr.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        labels: ['shoutout:published']
+                      });

@@ -4,37 +4,51 @@ import React from "react";
 
 export function SkeletonLoader() {
     return (
-        <div className="animate-fadeIn mx-auto mt-4 w-full max-w-md space-y-5 rounded-2xl border border-emerald-500/20 bg-slate-900/40 p-5 shadow-xl backdrop-blur-md">
-            {/* 1. Header Metadata Processing Title */}
-            <div className="flex items-center gap-3">
-                <div className="h-10 w-10 animate-pulse rounded-xl border border-emerald-500/20 bg-emerald-500/10" />
-                <div className="flex-1 space-y-2">
-                    <div className="h-4 w-1/3 animate-pulse rounded bg-emerald-500/20" />
-                    <div className="h-3 w-1/4 animate-pulse rounded bg-slate-700" />
+        <div className="animate-in fade-in zoom-in absolute inset-0 z-20 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm duration-300">
+            <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] border border-(--color-border-muted) bg-(--color-surface-page) p-8 shadow-2xl">
+                <div className="absolute top-0 right-0 left-0 h-2 animate-pulse bg-slate-600" />
+
+                <div className="flex flex-col items-center space-y-4 text-center">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-800 shadow-inner">
+                        <div className="h-10 w-10 animate-pulse rounded-full bg-slate-700" />
+                    </div>
+
+                    <div className="space-y-2">
+                        <div className="mx-auto h-6 w-44 animate-[shimmer_1.5s_infinite] rounded bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 bg-[length:200%_100%]" />
+                        <div className="mx-auto h-4 w-36 animate-[shimmer_1.5s_infinite] rounded bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 bg-[length:200%_100%]" />
+                    </div>
+
+                    <div className="mx-auto h-6 w-28 animate-pulse rounded-full bg-slate-800" />
+
+                    <div className="grid w-full grid-cols-2 gap-3 pt-2">
+                        <div className="space-y-2 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) p-3">
+                            <div className="mx-auto h-3 w-3/4 animate-pulse rounded bg-slate-800" />
+                            <div className="mx-auto h-5 w-1/2 animate-pulse rounded bg-slate-700" />
+                        </div>
+                        <div className="space-y-2 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) p-3">
+                            <div className="mx-auto h-3 w-3/4 animate-pulse rounded bg-slate-800" />
+                            <div className="mx-auto h-5 w-1/2 animate-pulse rounded bg-slate-700" />
+                        </div>
+                    </div>
+
+                    <div className="grid w-full grid-cols-2 gap-3">
+                        <div className="space-y-2 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) p-3">
+                            <div className="mx-auto h-3 w-3/4 animate-pulse rounded bg-slate-800" />
+                            <div className="mx-auto h-5 w-1/2 animate-pulse rounded bg-slate-700" />
+                        </div>
+                        <div className="space-y-2 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) p-3">
+                            <div className="mx-auto h-3 w-3/4 animate-pulse rounded bg-slate-800" />
+                            <div className="mx-auto h-5 w-1/2 animate-pulse rounded bg-slate-700" />
+                        </div>
+                    </div>
+
+                    <div className="mx-auto h-12 w-full animate-pulse rounded-2xl bg-slate-800" />
+
+                    <div className="flex w-full gap-3">
+                        <div className="h-4 flex-1 animate-pulse rounded bg-slate-800" />
+                        <div className="h-4 w-16 animate-pulse rounded bg-slate-800" />
+                    </div>
                 </div>
-            </div>
-
-            <div className="border-b border-white/5" />
-
-            {/* 2. Mimic Prescription Image Frame with Sliding Shimmer Loop */}
-            <div className="relative flex h-40 w-full animate-[shimmer_1.5s_infinite] flex-col items-center justify-center gap-2 rounded-xl border border-white/5 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 bg-[length:200%_100%]">
-                <div className="h-2 w-24 animate-bounce rounded bg-emerald-400/40" />
-                <span className="font-mono text-2xl font-bold tracking-widest text-emerald-400/60">
-                    OCR
-                </span>
-            </div>
-
-            {/* 3. Text Extraction Matrix Line Placeholders */}
-            <div className="space-y-2.5">
-                <div className="h-3 w-full animate-pulse rounded bg-slate-800" />
-                <div className="h-3 w-11/12 animate-pulse rounded bg-slate-800" />
-                <div className="h-3 w-3/4 animate-pulse rounded bg-slate-700/60" />
-            </div>
-
-            {/* 4. Verified Metadata Action Pill Footers */}
-            <div className="flex gap-2 pt-1">
-                <div className="h-5 w-16 animate-pulse rounded-full border border-emerald-500/20 bg-emerald-500/10" />
-                <div className="h-5 w-20 animate-pulse rounded-full bg-slate-800" />
             </div>
         </div>
     );

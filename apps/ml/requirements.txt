@@ -31,6 +31,10 @@ soundfile>=0.12.1
 noisereduce>=3.0.0
 numpy>=1.26.0
 
+# TTS (Text-to-Speech) - Optional
+# Google Cloud TTS
+google-cloud-texttospeech>=2.14.0  # For cloud-based high-quality speech synthesis
+
 # Testing
 pytest>=8.0
 pytest-timeout>=2.3.0

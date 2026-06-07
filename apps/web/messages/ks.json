@@ -6,9 +6,6 @@
         "scan_medicine": "دَوا سکین کَریو",
         "scan_now": "وَعکِے سکین کَریو",
         "scan_subtitle": "کیمرا دَواہ کِس پیکیجَس یا بارکوڈَس کُن کَریو",
-        "vaccine_title": "ویکسین ہَب تہٕ ٹریکر",
-        "vaccine_subtitle": "اپنٕے مُطابِق قومی حفاظتی ٹیکہ کاری شیڈول چیک کریو، اَہم ضمنی اثرات وُچھو تہٕ مائل سٹونز عمل درآمد ٹائم لائن ٹریک کریو۔",
-        "vaccine_open": "ٹریکر کھولیو",
         "upload_photo": "فوٹو اَپلوڈ کَریو",
         "upload_subtitle": "گیلری مَنٛز کَریو اِنتِخاب",
         "voice_triage": "آواز ہِنٛز رَہنُمٲیی",
@@ -356,9 +353,18 @@
         "quick_actions": "فcurrent کٲم",
         "footer": "صِرَف مَعلوٗمات خٲطرِ • ڈاکٹرَس سٲتؠ مَشورہِ کَریو",
         "actions": {
-            "scan": { "label": "دَوا سکین کَریو", "description": "اَصلیَت تصدیق کَریو" },
-            "symptoms": { "label": "علامت چیک کَریو", "description": "اے آئی مَدَدگار رَہنُمٲیی" },
-            "pharmacy": { "label": "میڈیکل سٹور لَبِیو", "description": "تصدیق شُدہ دُکان" }
+            "scan": {
+                "label": "دَوا سکین کَریو",
+                "description": "اَصلیَت تصدیق کَریو"
+            },
+            "symptoms": {
+                "label": "علامت چیک کَریو",
+                "description": "اے آئی مَدَدگار رَہنُمٲیی"
+            },
+            "pharmacy": {
+                "label": "میڈیکل سٹور لَبِیو",
+                "description": "تصدیق شُدہ دُکان"
+            }
         }
     },
     "chatbot": {
@@ -366,6 +372,230 @@
         "status": "آن لائن",
         "welcome": "خوش آمدید! بِہ چُھس صحیح دَوا اے آئی مَدَدگار۔ اَز کیا دَواہَن مُتلِق مَدَد کَرو؟",
         "placeholder": "دَوا مُتلِق پُچھِیو..."
+    },
+    "Alerts": {
+        "backHome": "ہوم صفحس پؠٹھ واپس گژھٕو",
+        "badge": "براہِ راست خبرداری",
+        "title": "براہِ راست CDSCO خبرداری",
+        "subtitle": "CDSCO رجسٹری سۭتۍ براہِ راست جُڈٕتھ مکمل حفاظتی ریکارڈ۔",
+        "regionBadge": "ہِنٛدُستان علاقہ",
+        "totalCount": "کُل تعداد: {count}",
+        "brandPlaceholder": "برانڈ ناو سۭتۍ ژھانڈٕو...",
+        "regionPlaceholder": "ریاست یا ضلعہ مُطابق فلٹر کٔریو...",
+        "error": "ڈیٹابیس سِنکرونائزیشن خٲمی پیش آو۔",
+        "loading": "خبرداری لوڈ گژھان...",
+        "systemUpdate": "سسٹم اپڈیٹ",
+        "alertType": "خبرداری: {type}",
+        "noDetails": "کٲنٛہ تفصیل دستیاب نَہ",
+        "batchLabel": "بیچ:",
+        "manufacturerLabel": "تیار کُن:",
+        "regionLabel": "علاقہ:",
+        "empty": "تُہند معیارس مُطابق کٲنٛہ خبرداری مِل نَہ۔",
+        "previous": "پَتِم",
+        "next": "اَگٕم"
+    },
+    "Compare": {
+        "pageTitle": "دواین ہُنٛد موازنہ",
+        "pageSubtitle": "برانڈ تہٕ جینرک دواین ہُنٛد موازنہ",
+        "firstMedicine": "پٲٹھِم دوا",
+        "secondMedicine": "دۄیِم دوا",
+        "searchPlaceholder": "برانڈ یا جینرک ناو ژھانڈٕو",
+        "findPharmacies": "فارمیسی ژھانڈٕو",
+        "emptyComparison": "موازنہ وُچھنہٕ خٲطرٕ دۄی دوا ژٲریو۔",
+        "fieldHeader": "خانہ",
+        "medicineA": "دوا A",
+        "medicineB": "دوا B",
+        "priceUnavailable": "قیمت دستیاب نَہ",
+        "noSavings": "کٲنٛہ بچت نَہ",
+        "saveAmount": "₹{amount} بچت ({percent}%)",
+        "rows": {
+            "brandName": "برانڈ ناو",
+            "genericName": "جینرک ناو",
+            "composition": "ترکیب",
+            "manufacturer": "تیار کُن",
+            "type": "قسم",
+            "cdscoStatus": "CDSCO حیثیت",
+            "expiryDate": "میعاد ختم تاریخ",
+            "marketPrice": "بازار قیمت (MRP)",
+            "janAushadhiPrice": "جن اوشدھی قیمت",
+            "savings": "MRP مُقابلہ بچت"
+        },
+        "medicineTypes": {
+            "brand": "برانڈ",
+            "generic": "جینرک"
+        },
+        "status": {
+            "approved": "منظور",
+            "recalled": "واپس گژھان",
+            "banned": "بند"
+        }
+    },
+    "ExpiryTracker": {
+        "title": "دوا میعاد ٹریکر",
+        "subtitle": "اپنٕن دواین سٹاکس کَرِو منظم تہٕ نگرانی",
+        "addMedicine": "دوا شامل کٔریو",
+        "name": "ناو",
+        "expiryDate": "میعاد ختم تاریخ",
+        "batchNumber": "بیچ نمبر (اختیاری)",
+        "batchPlaceholder": "مثال: B12345",
+        "namePlaceholder": "مثال: پیراسٹامول",
+        "addToTracker": "ٹریکرس منٛز شامل کٔریو",
+        "trackedMedicines": "نگرانی کٔرتھ دوای",
+        "total": "کُل",
+        "noMedicines": "اَتھ تک کٲنٛہ دوا شامل نَہ۔",
+        "loading": "ٹریکر ڈیٹا لوڈ گژھان...",
+        "searchPlaceholder": "دوای ژھانڈٕو...",
+        "sortBy": "ترتیب دِیو",
+        "sortExpirySoonest": "میعاد ختم (جلد)",
+        "sortExpiryLatest": "میعاد ختم (دیر)",
+        "sortAlpha": "ناو (ا-ی)",
+        "filterAll": "سٲری",
+        "filterExpired": "میعاد ختم",
+        "filterExpiringSoon": "جلد ختم گژھان",
+        "filterSafe": "محفوظ",
+        "exportBackup": "بیک اپ ایکسپورٹ کٔریو",
+        "importBackup": "بیک اپ امپورٹ کٔریو",
+        "importError": "غلط بیک اپ فائل۔",
+        "statusExpired": "میعاد ختم",
+        "statusExpiringSoon": "({days} دۄہ) باقٕی",
+        "statusSafe": "محفوظ"
+    },
+    "Login": {
+        "brandSubtitle": "دوا حفاظت پلیٹ فارم",
+        "heading": "پھرۍ خوش آمدید",
+        "description": "حفاظتی رپورٹ تہٕ تصدیق نتیجٕن ہُنٛد جائزہ لینہٕ خٲطرٕ سائن اِن کٔریو۔",
+        "missingConfig": {
+            "title": "تصدیق ترتیب نَہ دِی گٔژھ",
+            "description": "Supabase URL یا anon key موجود نَہ۔"
+        },
+        "googleButton": "Google سۭتۍ جاری تھٲو",
+        "emailSeparator": "یا ای میل سۭتۍ جاری تھٲو",
+        "emailLabel": "ای میل پتہ",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "پاس ورڈ",
+        "passwordPlaceholder": "پاس ورڈ دِیو",
+        "signingIn": "سائن اِن گژھان...",
+        "signIn": "سائن اِن",
+        "footerPrompt": "واپس گژھنہٕ چھُو؟",
+        "returnHome": "ہومس پؠٹھ واپس گژھٕو",
+        "bottomText": "SahiDawa کمیونٹی ٹولز خٲطرٕ محفوظ رسائی۔",
+        "errors": {
+            "databaseNotConfigured": "تصدیق ترتیب نَہ دِی گٔژھ۔",
+            "generic": "سائن اِن ناکام۔ دوبارہ کوشش کٔریو۔"
+        }
+    },
+    "AdminLayout": {
+        "accessDeniedTitle": "رسائی منع",
+        "accessDeniedDescription": "یہ صفحہ وُچھنہٕ خٲطرٕ ایڈمن یا موڈریٹر اجازت ضروری۔",
+        "returnHome": "ہومس پؠٹھ واپس گژھٕو"
+    },
+    "AdminDashboard": {
+        "brandSuffix": "ایڈمن",
+        "version": "SahiDawa ایڈمن v1.0",
+        "nav": {
+            "reports": "رپورٹ",
+            "medicine": "دواین ماسٹر",
+            "logs": "آڈٹ لاگ"
+        },
+        "header": {
+            "title": "ماڈریشن ڈیش بورڈ",
+            "subtitle": "کمیونٹی رپورٹ کٔرتھ جعلی دواین ہُنٛد انتظام"
+        },
+        "searchPlaceholder": "ژھانڈٕو...",
+        "actions": {
+            "signIn": "سائن اِن",
+            "refresh": "ریفریش",
+            "addMedicine": "دوا شامل کٔریو",
+            "save": "محفوظ کٔریو",
+            "cancel": "منسوخ",
+            "goToLogin": "لاگ اِن پؠٹھ گژھٕو",
+            "markFake": "جعلی قرار دِیو",
+            "falseAlarm": "غلط خبرداری"
+        },
+        "stats": {
+            "pending": "زیر التواء",
+            "resolved": "حل گٔژھ",
+            "districtsAffected": "متاثر ضلعہ"
+        },
+        "errors": {
+            "notAuthenticated": "تصدیق نَہ گٔژھ — مہربٲنی کٔرِتھ ایڈمن طور سائن اِن کٔریو۔",
+            "accessDenied": "رسائی منع — ایڈمن یا موڈریٹر کردار ضروری۔",
+            "apiUnavailable": "API تام رسائی ممکن نَہ۔ کیا بیک اینڈ سرور پورٹ 4000 پؠٹھ چلان؟"
+        },
+        "toasts": {
+            "markedFake": "تصدیق شُدہ جعلی قرار دِیو",
+            "falseAlarm": "غلط خبرداری قرار دِیو",
+            "reportUpdateFailed": "رپورٹ اپڈیٹ ناکام",
+            "medicineAdded": "دوا شامل گٔژھ",
+            "medicineAddFailed": "دوا شامل کرنس منٛز ناکامی"
+        },
+        "medicine": {
+            "title": "دواین ماسٹر",
+            "empty": "کٲنٛہ دوا مِل نَہ",
+            "columns": {
+                "brand": "برانڈ",
+                "generic": "جینرک",
+                "manufacturer": "تیار کُن",
+                "barcode": "بارکوڈ",
+                "status": "حیثیت"
+            }
+        },
+        "status": {
+            "approved": "منظور",
+            "recalled": "واپس گژھان",
+            "banned": "بند"
+        },
+        "logs": {
+            "title": "آڈٹ لاگ",
+            "subtitle": "حالیہ ماڈریشن تہٕ دواین فہرست سرگرمی",
+            "loading": "لاگ لوڈ گژھان...",
+            "empty": "اَتھ تک کٲنٛہ آڈٹ لاگ نَہ"
+        },
+        "reports": {
+            "title": "موصول رپورٹ",
+            "pendingCount": "{count, plural, =0 {کٲنٛہ زیر التواء رپورٹ نَہ} =1 {1 زیر التواء رپورٹ} other {# زیر التواء رپورٹ}}",
+            "loading": "رپورٹ لوڈ گژھان...",
+            "empty": "کٲنٛہ زیر التواء رپورٹ نَہ",
+            "columns": {
+                "medicine": "دوا",
+                "district": "ضلعہ",
+                "barcode": "بارکوڈ",
+                "reported": "رپورٹ کٔرتھ",
+                "actions": "کارروائی"
+            },
+            "decisions": {
+                "verifiedFake": "تصدیق شُدہ جعلی",
+                "falseAlarm": "غلط خبرداری"
+            }
+        },
+        "resolved": {
+            "title": "حال ہی منٛز حل گٔژھ",
+            "count": "{count, plural, =0 {کٲنٛہ حل شُدہ رپورٹ نَہ} =1 {1 حل شُدہ رپورٹ} other {# حل شُدہ رپورٹ}}",
+            "decision": "فیصلہ"
+        }
+    },
+    "AdminAnalytics": {
+        "title": "اثر تجزیہ ڈیش بورڈ",
+        "subtitle": "کمیونٹی شمولیت پیمانہ تہٕ ترقی رجحان",
+        "metrics": {
+            "totalMedicines": "کُل دوای",
+            "totalReports": "کُل رپورٹ",
+            "resolved": "حل گٔژھ",
+            "districtsCovered": "احاطہ ضلعہ"
+        },
+        "charts": {
+            "monthlyGrowth": "ماہانہ ترقی رجحان",
+            "reportStatus": "رپورٹ حیثیت تقسیم",
+            "topDistricts": "رپورٹ بنیاد پؠٹھ سرفہرست ضلعہ",
+            "recentActivity": "حالیہ سرگرمی"
+        },
+        "overview": {
+            "title": "پلیٹ فارم جائزہ",
+            "avgReportsPerDay": "روزانہ اوسط رپورٹ",
+            "resolutionRate": "حل شرح",
+            "thisWeekReports": "اَمہ ہفتہک رپورٹ",
+            "thisWeekMedicines": "اَمہ ہفتہک دوای"
+        }
     },
     "vaccineHub": {
         "pageHeaderTitle": "ویکسین ہب",
@@ -396,5 +626,22 @@
         "commonEffects": "عام سائیڈ ایفیکٹس",
         "severeReactions": "شدید ردعمل",
         "aftercareHeading": "فوری دیکھ بھال ہنز ہدایات"
+    },
+    "CommandPalette": {
+        "placeholder": "Search pages or actions...",
+        "noResults": "No results found.",
+        "hint": "Press Esc to close",
+        "pages": "Pages",
+        "actions": "Actions",
+        "open": "Open command palette",
+        "nav_home": "Go to Home",
+        "nav_scan": "Scan a Medicine",
+        "nav_map": "Find Nearby Pharmacy",
+        "nav_alerts": "View Alerts",
+        "nav_expiry": "Medicine Expiry Tracker",
+        "nav_compare": "Compare Medicines",
+        "nav_vaccine": "Vaccine Hub",
+        "nav_reports": "My Reports",
+        "nav_profile": "My Profile"
     }
 }

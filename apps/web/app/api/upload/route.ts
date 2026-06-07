@@ -1,15 +1,52 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import { rateLimit } from "@/lib/rateLimit";
 
 const MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+function getUploadClientIp(req: NextRequest) {
+    const forwardedFor = req.headers.get("x-forwarded-for");
+    const realIp = req.headers.get("x-real-ip");
+
+    return forwardedFor?.split(",")[0]?.trim() || realIp?.trim() || "127.0.0.1";
+}
 
 export async function POST(req: NextRequest) {
     try {
+        const ip = getUploadClientIp(req);
+        const { success, reset } = await rateLimit.limit(ip);
+        if (!success) {
+            const retryAfter = Math.max(1, Math.ceil((reset - Date.now()) / 1000));
+            return NextResponse.json(
+                {
+                    error: "Too many upload requests. Please try again later.",
+                    retryAfter,
+                },
+                {
+                    status: 429,
+                    headers: { "Retry-After": retryAfter.toString() },
+                }
+            );
+        }
+
         const formData = await req.formData();
         const file = formData.get("file") as File | null;
 
         if (!file) {
             return NextResponse.json({ error: "No file provided" }, { status: 400 });
+        }
+
+        if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+            return NextResponse.json(
+                {
+                    error: "invalid_file_type",
+                    message: "Invalid file type. Only JPEG, PNG, and WEBP images are allowed.",
+                    allowedTypes: ALLOWED_MIME_TYPES,
+                    receivedType: file.type,
+                },
+                { status: 400 }
+            );
         }
 
         if (file.size > MAX_UPLOAD_SIZE) {
@@ -23,7 +60,6 @@ export async function POST(req: NextRequest) {
                 { status: 413 }
             );
         }
-
         const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
         const apiKey = process.env.CLOUDINARY_API_KEY;
         const apiSecret = process.env.CLOUDINARY_API_SECRET;

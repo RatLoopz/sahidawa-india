@@ -86,6 +86,7 @@ export default function MedicineSearchSelect({
     const [results, setResults] = useState<Medicine[]>([]);
     const [loading, setLoading] = useState(false);
     const [history, setHistory] = useState<HistoryEntry[]>([]);
+    const [activeIndex, setActiveIndex] = useState(-1);
 
     // Load history once on mount
     useEffect(() => {
@@ -105,7 +106,7 @@ export default function MedicineSearchSelect({
             try {
                 const res = await onSearch(q);
                 setResults(res);
-
+                setActiveIndex(res.length ? 0 : -1);
                 // Only persist to history when we actually got results back
                 if (res.length > 0) {
                     setHistory((prev) => pushToHistory(q, prev));
@@ -172,6 +173,13 @@ export default function MedicineSearchSelect({
                         />
                         <input
                             ref={inputRef}
+                            role="combobox"
+                            aria-autocomplete="list"
+                            aria-expanded={open}
+                            aria-controls={open ? listId : undefined}
+                            aria-activedescendant={
+                                activeIndex >= 0 ? `${listId}-option-${activeIndex}` : undefined
+                            }
                             type="search"
                             value={query}
                             onChange={(e) => {
@@ -179,10 +187,45 @@ export default function MedicineSearchSelect({
                                 setOpen(true);
                             }}
                             onFocus={() => setOpen(true)}
+                            onKeyDown={(e) => {
+                                if (!results.length) return;
+
+                                switch (e.key) {
+                                    case "ArrowDown":
+                                        e.preventDefault();
+                                        setActiveIndex((prev) =>
+                                            prev < results.length - 1 ? prev + 1 : 0
+                                        );
+                                        break;
+
+                                    case "ArrowUp":
+                                        e.preventDefault();
+                                        setActiveIndex((prev) =>
+                                            prev > 0 ? prev - 1 : results.length - 1
+                                        );
+                                        break;
+
+                                    case "Enter":
+                                        e.preventDefault();
+
+                                        if (activeIndex >= 0) {
+                                            const selected = results[activeIndex];
+
+                                            onChange(selected);
+                                            setQuery("");
+                                            setOpen(false);
+                                            setActiveIndex(-1);
+                                        }
+                                        break;
+
+                                    case "Escape":
+                                        setOpen(false);
+                                        setActiveIndex(-1);
+                                        break;
+                                }
+                            }}
                             placeholder={placeholder}
-                            className="w-full rounded-lg border border-slate-300 bg-white py-2 pr-3 pl-9 text-sm outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-                            aria-expanded={open}
-                            aria-controls={open ? listId : undefined}
+                            className="w-full rounded-lg border border-slate-300 bg-white py-2 pr-3 pl-9 text-sm focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600 focus:outline-none"
                             autoComplete="off"
                         />
                     </div>
@@ -247,11 +290,21 @@ export default function MedicineSearchSelect({
                         <li className="px-3 py-2 text-sm text-slate-500">No results</li>
                     )}
                     {!loading &&
-                        results.map((m) => (
-                            <li key={m.id} role="option" aria-selected={false}>
+                        results.map((m, index) => (
+                            <li
+                                key={m.id}
+                                id={`${listId}-option-${index}`}
+                                role="option"
+                                aria-selected={activeIndex === index}
+                            >
                                 <button
                                     type="button"
-                                    className="w-full px-3 py-2 text-left text-sm hover:bg-slate-50"
+                                    onMouseEnter={() => setActiveIndex(index)}
+                                    className={`w-full px-3 py-2 text-left text-sm focus:outline-none ${
+                                        activeIndex === index
+                                            ? "bg-emerald-100"
+                                            : "hover:bg-slate-50"
+                                    }`}
                                     onClick={() => {
                                         onChange(m);
                                         setQuery("");

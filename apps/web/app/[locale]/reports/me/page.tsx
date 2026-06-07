@@ -7,14 +7,12 @@ import {
     Clock,
     FileText,
     ImageOff,
-    Loader2,
     LogIn,
     MapPin,
     RefreshCw,
     ShieldCheck,
     XCircle,
 } from "lucide-react";
-import { Link } from "@/i18n/routing";
 import { PageHeader } from "../../components/PageHeader";
 import Card from "@/components/Card";
 import LazyImage from "@/components/LazyImage";
@@ -215,7 +213,6 @@ export default function MyReportsPage() {
                 subtitle="Status of reports you have filed"
                 backHref="/"
                 variant="light"
-                showThemeToggle={false}
             />
 
             <main className="container mx-auto w-full max-w-3xl flex-1 px-4 py-6 md:px-6 md:py-10">

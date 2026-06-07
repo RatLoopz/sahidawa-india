@@ -8,7 +8,7 @@ import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
 const intlMiddleware = createMiddleware(routing);
 
 export default async function middleware(req: NextRequest) {
-    let res = intlMiddleware(req);
+    const res = intlMiddleware(req);
 
     const supabase = createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
         cookies: {
@@ -41,6 +41,5 @@ export default async function middleware(req: NextRequest) {
 }
 
 export const config = {
-    // Match only internationalized pathnames
-    matcher: ["/", "/(ta|en|bn|te|mr|gu|ur|or|hi|kn|pa)/:path*"],
+    matcher: ["/", "/(ta|en|bn|te|mr|gu|ur|or|hi|kn|pa|as)/:path*"],
 };

@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import type { HeatmapMode, Pharmacy } from "./PharmacyMap";
+import { PharmacyStatusBadge } from "@/components/PharmacyCard";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 
@@ -205,6 +206,7 @@ function PharmacyPanelRow({
                         <Heart size={6} />
                         {pharmacy.type === "govt" ? "Jan Aushadhi" : "Private"}
                     </span>
+                    <PharmacyStatusBadge operatingHours={pharmacy.operatingHours} />
                 </div>
             </button>
 

@@ -3,6 +3,8 @@ import { z } from "zod";
 import { supabase } from "../db/client";
 import { verifyLimiter } from "../middleware/rateLimit";
 import { optionalAuth } from "../middleware/auth";
+import logger from "../utils/logger";
+import { escapeIlike } from "../utils/db";
 
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim())
@@ -154,10 +156,7 @@ router.post(
 
         const { batchNumber, latitude, longitude } = parsed.data;
 
-        const escaped = batchNumber
-            .replace(/\\/g, "\\\\")
-            .replace(/%/g, "\\%")
-            .replace(/_/g, "\\_");
+        const escaped = escapeIlike(batchNumber);
 
         try {
             const { data, error } = await supabase
@@ -170,7 +169,7 @@ router.post(
                 .maybeSingle();
 
             if (error) {
-                console.error("Medicine lookup failed:", error);
+                logger.error({ message: "Medicine lookup failed", error, route: "/api/verify" });
                 res.status(500).json({
                     verified: false,
                     message: "Database lookup failed",
@@ -239,7 +238,11 @@ router.post(
                 },
             ]);
             if (insertError) {
-                console.error("Failed to record scan history:", insertError);
+                logger.error({
+                    message: "Failed to record scan history",
+                    error: insertError,
+                    route: "/api/verify",
+                });
             }
 
             res.status(200).json({
@@ -261,7 +264,11 @@ router.post(
                 },
             });
         } catch (err) {
-            console.error("Unexpected error in /api/verify:", err);
+            logger.error({
+                message: "Unexpected error in /api/verify",
+                error: err,
+                route: "/api/verify",
+            });
             res.status(500).json({
                 verified: false,
                 message: "An unexpected error occurred",

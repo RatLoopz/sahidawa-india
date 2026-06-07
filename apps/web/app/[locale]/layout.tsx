@@ -16,23 +16,19 @@ import "../../src/styles/print.css";
 import { Toaster } from "sonner";
 import Footer from "./components/Footer";
 import { AuthSync } from "@/src/components/AuthSync";
+import CommandPalette from "./components/CommandPalette";
 
 export async function generateMetadata({
     params,
 }: {
     params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
-    const { locale } = await params;
+    await params;
     const baseUrl = "https://sahidawa.in";
 
     // Generate alternates for all locales
     const alternates = {
-        languages: Object.fromEntries(
-            routing.locales.map((lang) => [
-                lang,
-                locale === routing.defaultLocale ? `${baseUrl}/${lang}` : `${baseUrl}/${lang}`,
-            ])
-        ),
+        languages: Object.fromEntries(routing.locales.map((lang) => [lang, `${baseUrl}/${lang}`])),
     };
 
     // Add x-default for default locale
@@ -82,10 +78,10 @@ export default async function LocaleLayout({
     }
 
     const messages = await getMessages();
-    const isRtl = ['ur', 'ks'].includes(locale);
+    const isRtl = ["ur", "ks"].includes(locale);
 
     return (
-        <html lang={locale} dir={isRtl ? 'rtl' : 'ltr'} suppressHydrationWarning>
+        <html lang={locale} dir={isRtl ? "rtl" : "ltr"} suppressHydrationWarning>
             <head>
                 <script
                     dangerouslySetInnerHTML={{
@@ -115,6 +111,7 @@ export default async function LocaleLayout({
                             <div className="no-print">
                                 <BackToTopButton />
                                 <Chatbot />
+                                <CommandPalette />
                             </div>
                         </NextIntlClientProvider>
                         <div className="no-print">

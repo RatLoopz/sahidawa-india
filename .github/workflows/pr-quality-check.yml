@@ -102,8 +102,9 @@ jobs:
             - [ ] Linked the related issue (e.g., `fixes #123` or `closes #123`)
             - [ ] Used a conventional commit title (e.g., `feat(ui): add button` or `fix(api): ...`)
 
-            Beginners often miss these, and that's perfectly okay! Just update your PR description or title, and this check will automatically re-run.
+            ⚠️ **Because the PR Template was not used, this PR has been automatically closed.** 
+            Please edit your PR description to include the template, fill it out, and then you may reopen this PR.
 
-          # Crucial Fix: NEVER auto-close PRs to maintain a welcoming environment
-          close-pr: false
+          # Crucial: Automatically close PRs if they bypass the template to enforce strict adherence
+          close-pr: true
           lock-pr: false

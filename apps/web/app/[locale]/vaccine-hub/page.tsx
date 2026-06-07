@@ -1,44 +1,158 @@
 "use client";
 
 import { PageHeader } from "../components/PageHeader";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { vaccineDatabase, VaccineKey, VACCINE_GLOBAL_DISCLAIMER } from "@/lib/vaccineData";
 import {
-    Syringe,
-    Calendar,
-    ShieldAlert,
-    HeartPulse,
-    Target,
-    AlertTriangle,
-    CheckCircle2,
-    XCircle,
-    ChevronDown,
-    Search,
-} from "lucide-react";
+    VaccineSelector,
+    DoseSchedule,
+    VaccineDetails,
+    SafetyInfo,
+    AftercareGuidance,
+    DateInitializer,
+} from "@/components/vaccine";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { BookOpen, Syringe, Calendar, AlertTriangle, HeartPulse } from "lucide-react";
+
+const STORAGE_KEYS = {
+    selectedVaccine: "vaccine-hub-selected-vaccine",
+    initialDate: "vaccine-hub-initial-date",
+};
 
 export default function VaccineHubPage() {
     const t = useTranslations("vaccineHub");
     const [selectedVaccine, setSelectedVaccine] = useState<VaccineKey | "">("");
     const [initialDate, setInitialDate] = useState<string>("");
+    const [isLoading, setIsLoading] = useState(true);
 
     const vaccine = selectedVaccine ? vaccineDatabase[selectedVaccine] : null;
 
-    // Safely converts tracking week offsets into an absolute calendar string representation
-    const calculateMilestoneDate = (weeksOffset: number) => {
-        if (!initialDate) return null;
+    // Load from localStorage on mount
+    useEffect(() => {
+        const savedVaccine = localStorage.getItem(STORAGE_KEYS.selectedVaccine);
+        const savedDate = localStorage.getItem(STORAGE_KEYS.initialDate);
 
-        const reference = new Date(initialDate);
-        if (isNaN(reference.getTime())) return null; // Edge-case syntax protection fallback
+        if (savedVaccine && Object.keys(vaccineDatabase).includes(savedVaccine)) {
+            setSelectedVaccine(savedVaccine as VaccineKey);
+        }
 
-        const targetDate = new Date(reference.getTime());
-        targetDate.setDate(targetDate.getDate() + weeksOffset * 7);
+        if (savedDate) {
+            setInitialDate(savedDate);
+        }
 
-        return targetDate.toLocaleDateString("en-IN", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-        });
+        setIsLoading(false);
+    }, []);
+
+    // Persist vaccine selection to localStorage
+    const handleVaccineChange = (vaccine: VaccineKey | "") => {
+        setSelectedVaccine(vaccine);
+        if (vaccine) {
+            localStorage.setItem(STORAGE_KEYS.selectedVaccine, vaccine);
+        } else {
+            localStorage.removeItem(STORAGE_KEYS.selectedVaccine);
+        }
+        setInitialDate(""); // Clear date when switching vaccines
+        localStorage.removeItem(STORAGE_KEYS.initialDate);
+    };
+
+    // Persist date to localStorage
+    const handleDateChange = (date: string) => {
+        setInitialDate(date);
+        if (date) {
+            localStorage.setItem(STORAGE_KEYS.initialDate, date);
+        } else {
+            localStorage.removeItem(STORAGE_KEYS.initialDate);
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <>
+                <PageHeader
+                    title={t("pageHeaderTitle")}
+                    subtitle={t("pageHeaderSubtitle")}
+                    backHref="/"
+                    variant="light"
+                />
+                <div className="min-h-screen bg-(--color-surface-muted) p-6 md:p-10 dark:bg-slate-900">
+                    <div className="mx-auto max-w-6xl animate-pulse space-y-6">
+                        <div className="h-32 rounded-lg bg-(--color-border-muted)" />
+                        <div className="h-64 rounded-lg bg-(--color-border-muted)" />
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    const exportToCalendar = () => {
+        if (!vaccine || !initialDate) return;
+
+        const dtstamp = new Date();
+        const formatICSDate = (d: Date) =>
+            d.getFullYear().toString() +
+            String(d.getMonth() + 1).padStart(2, "0") +
+            String(d.getDate()).padStart(2, "0");
+
+        const formatICSDateTime = (d: Date) =>
+            d.getUTCFullYear().toString() +
+            String(d.getUTCMonth() + 1).padStart(2, "0") +
+            String(d.getUTCDate()).padStart(2, "0") +
+            "T" +
+            String(d.getUTCHours()).padStart(2, "0") +
+            String(d.getUTCMinutes()).padStart(2, "0") +
+            String(d.getUTCSeconds()).padStart(2, "0") +
+            "Z";
+
+        const events = vaccine.dosing_intervals_weeks
+            .map((weeks, index) => {
+                const date = new Date(initialDate);
+                date.setDate(date.getDate() + weeks * 7);
+
+                const endDate = new Date(date);
+                endDate.setDate(endDate.getDate() + 1);
+
+                const uidKey = selectedVaccine || vaccine.disease_name.replace(/\s+/g, "-");
+
+                return [
+                    "BEGIN:VEVENT",
+                    `UID:sahidawa-${uidKey}-${index}-${formatICSDateTime(dtstamp)}`,
+                    `DTSTAMP:${formatICSDateTime(dtstamp)}`,
+                    `SUMMARY:SahiDawa - ${vaccine.disease_name} Dose ${index + 1}`,
+                    `DTSTART;VALUE=DATE:${formatICSDate(date)}`,
+                    `DTEND;VALUE=DATE:${formatICSDate(endDate)}`,
+                    "BEGIN:VALARM",
+                    "ACTION:DISPLAY",
+                    "DESCRIPTION:Reminder: Vaccine dose is due tomorrow.",
+                    "TRIGGER:-P1D",
+                    "END:VALARM",
+                    "END:VEVENT",
+                ].join("\r\n");
+            })
+            .join("\r\n");
+
+        const icsContent = [
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//SahiDawa//Vaccine Hub//EN",
+            "CALSCALE:GREGORIAN",
+            events,
+            "END:VCALENDAR",
+        ].join("\r\n");
+
+        const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "vaccine-schedule.ics";
+
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        URL.revokeObjectURL(url);
     };
 
     return (
@@ -49,241 +163,127 @@ export default function VaccineHubPage() {
                 backHref="/"
                 variant="light"
             />
-            <div className="min-h-screen bg-(--color-surface-muted) p-6 text-(--color-text-primary) transition-colors duration-200 md:p-10">
-                {/* HEADER */}
-                <div className="mx-auto mb-8 max-w-5xl border-b border-(--color-border-muted) pb-5">
-                    <h1 className="flex items-center gap-2 text-3xl font-extrabold tracking-tight text-emerald-600">
-                        <Syringe className="h-7 w-7 shrink-0 text-emerald-600" /> {t("title")}
-                    </h1>
-                    <p className="mt-2 max-w-2xl text-sm text-(--color-text-secondary)">
-                        {t("subtitle")}
-                    </p>
-                </div>
 
-                {/* CONTROLS AREA (Dropdown + Optional Dynamic Date Tracker Grid) */}
-                <div className="mx-auto mb-8 grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-2">
-                    {/* SELECT DROPDOWN */}
-                    <div>
-                        <label className="mb-2 block text-xs font-bold tracking-wider text-emerald-800 uppercase">
-                            {t("selectLabel")}
-                        </label>
-                        <div className="relative">
-                            <select
-                                className="w-full cursor-pointer appearance-none rounded-xl border-2 border-(--color-border-muted) bg-(--color-surface-page) py-3 pr-4 pl-10 font-medium text-(--color-text-primary) shadow-sm transition-all duration-200 hover:border-emerald-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
-                                value={selectedVaccine}
-                                onChange={(e) => {
-                                    setSelectedVaccine(e.target.value as VaccineKey);
-                                    setInitialDate("");
-                                }}
-                            >
-                                <option value="">{t("placeholder")}</option>
-                                {(Object.keys(vaccineDatabase) as VaccineKey[]).map((key) => (
-                                    <option key={key} value={key}>
-                                        {vaccineDatabase[key].disease_name}
-                                    </option>
-                                ))}
-                            </select>
-                            <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-(--color-text-secondary)" />
-                            <ChevronDown className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-(--color-text-secondary)" />
-                        </div>
+            <div className="min-h-screen bg-(--color-surface-muted) p-4 transition-colors duration-200 sm:p-6 md:p-10 dark:bg-slate-900">
+                <div className="mx-auto max-w-7xl space-y-8">
+                    {/* Hero Section */}
+                    <div className="space-y-2 text-center">
+                        <h1 className="text-3xl font-bold text-(--color-text-primary) sm:text-4xl dark:text-white">
+                            <Syringe className="mr-2 inline h-8 w-8 shrink-0 text-emerald-600" />{" "}
+                            {t("title")}
+                        </h1>
+                        <p className="mx-auto max-w-2xl text-(--color-text-secondary)">
+                            {t("subtitle")}
+                        </p>
                     </div>
 
-                    {/* TIME GENERATOR CONTROL */}
-                    {vaccine && (
+                    {/* Controls */}
+                    <div className="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:grid-cols-2 dark:border-slate-700 dark:bg-slate-800">
                         <div>
-                            <label className="mb-2 block text-xs font-bold tracking-wider text-emerald-800 uppercase">
-                                {vaccine.is_relative_to_birth
-                                    ? t("childBirthDate")
-                                    : t("milestoneBaseDate")}
-                            </label>
-                            <input
-                                type="date"
-                                className="w-full rounded-lg border border-(--color-border-muted) bg-(--color-surface-page) p-3 font-medium text-(--color-text-primary) shadow-sm outline-none focus:ring-2 focus:ring-emerald-500"
-                                value={initialDate}
-                                onChange={(e) => setInitialDate(e.target.value)}
+                            <VaccineSelector
+                                value={selectedVaccine}
+                                onChange={handleVaccineChange}
                             />
+                        </div>
+
+                        {vaccine && (
+                            <div>
+                                <DateInitializer
+                                    vaccine={vaccine}
+                                    value={initialDate}
+                                    onChange={handleDateChange}
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Empty State */}
+                    {!vaccine && (
+                        <div className="py-12">
+                            <EmptyState
+                                icon={<BookOpen size={32} className="text-emerald-600" />}
+                                title={t("noVaccineSelected")}
+                                description={t("chooseVaccinePrompt")}
+                                className="mx-auto max-w-md"
+                            />
+
+                            <div className="mx-auto mt-8 grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
+                                <div className="rounded-lg border border-slate-200 bg-white p-4 text-center dark:border-slate-700 dark:bg-slate-800">
+                                    <div className="mb-2 inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50">
+                                        <Calendar className="h-6 w-6 text-emerald-700" />
+                                    </div>
+                                    <p className="mt-1 text-sm font-semibold text-(--color-text-primary)">
+                                        {t("featureSchedule")}
+                                    </p>
+                                </div>
+                                <div className="rounded-lg border border-slate-200 bg-white p-4 text-center dark:border-slate-700 dark:bg-slate-800">
+                                    <div className="mb-2 inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-50">
+                                        <AlertTriangle className="h-6 w-6 text-amber-600" />
+                                    </div>
+                                    <p className="mt-1 text-sm font-semibold text-(--color-text-primary)">
+                                        {t("featureSideEffects")}
+                                    </p>
+                                </div>
+                                <div className="rounded-lg border border-slate-200 bg-white p-4 text-center dark:border-slate-700 dark:bg-slate-800">
+                                    <div className="mb-2 inline-flex h-12 w-12 items-center justify-center rounded-full bg-sky-50">
+                                        <HeartPulse className="h-6 w-6 text-sky-600" />
+                                    </div>
+                                    <p className="mt-1 text-sm font-semibold text-(--color-text-primary)">
+                                        {t("featureAftercare")}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Main Content */}
+                    {vaccine && (
+                        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                            {/* Left Column - Sticky Details */}
+                            <div className="lg:col-span-1">
+                                <div className="sticky top-20 space-y-6">
+                                    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                                        <VaccineDetails vaccine={vaccine} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Right Columns - Scrollable Content */}
+                            <div className="space-y-6 lg:col-span-2">
+                                <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                                    <div className="mb-4 flex justify-end">
+                                        <button
+                                            onClick={exportToCalendar}
+                                            disabled={!initialDate}
+                                            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            Export to Calendar
+                                        </button>
+                                    </div>
+
+                                    <DoseSchedule vaccine={vaccine} initialDate={initialDate} />
+                                </div>
+
+                                {/* Safety Info */}
+                                <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                                    <SafetyInfo vaccine={vaccine} />
+                                </div>
+
+                                {/* Aftercare Guidance */}
+                                <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                                    <AftercareGuidance vaccine={vaccine} />
+                                </div>
+
+                                {/* Disclaimer */}
+                                <div className="border-t border-slate-200 pt-6 text-center dark:border-slate-700">
+                                    <p className="text-xs text-(--color-text-muted) italic dark:text-slate-400">
+                                        {VACCINE_GLOBAL_DISCLAIMER}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
-
-                {/* EMPTY STATE */}
-                {!vaccine && (
-                    <div className="mx-auto max-w-2xl rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) px-8 py-14 text-center shadow-sm">
-                        <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 ring-1 ring-emerald-200">
-                            <Calendar className="h-6 w-6 text-emerald-700" />
-                        </div>
-                        <p className="text-xl font-bold text-(--color-text-primary)">
-                            {t("noVaccineSelected")}
-                        </p>
-                        <p className="mt-1 text-sm text-(--color-text-secondary)">
-                            {t("chooseVaccinePrompt")}
-                        </p>
-                        <ul className="mx-auto mt-4 max-w-sm space-y-2.5 rounded-lg border border-(--color-border-muted) bg-(--color-surface-muted) p-4 text-left">
-                            <li className="flex items-center gap-3 text-sm text-(--color-text-secondary)">
-                                <Calendar className="h-4 w-4 shrink-0 text-emerald-500" />
-                                {t("featureSchedule")}
-                            </li>
-                            <li className="flex items-center gap-3 text-sm text-(--color-text-secondary)">
-                                <ShieldAlert className="h-4 w-4 shrink-0 text-amber-500" />
-                                {t("featureSideEffects")}
-                            </li>
-                            <li className="flex items-center gap-3 text-sm text-(--color-text-secondary)">
-                                <HeartPulse className="h-4 w-4 shrink-0 text-sky-500" />
-                                {t("featureAftercare")}
-                            </li>
-                        </ul>
-                    </div>
-                )}
-
-                {/* MAIN CONTENT CANVAS */}
-                {vaccine && (
-                    <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-3">
-                        {/* LEFT COLUMN: VACCINE DETAILS METADATA */}
-                        <div className="flex h-fit flex-col justify-between rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 shadow-sm lg:sticky lg:top-6">
-                            <div>
-                                <h2 className="text-2xl font-bold tracking-tight text-(--color-text-primary)">
-                                    {vaccine.disease_name}
-                                </h2>
-                                <span className="mt-2 inline-block rounded-md border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800">
-                                    {vaccine.vaccine_name}
-                                </span>
-
-                                <div className="mt-5 space-y-3 border-t border-(--color-border-muted) pt-4 text-sm text-(--color-text-secondary)">
-                                    <p>
-                                        <b className="font-semibold text-(--color-text-primary)">
-                                            {t("targetGroups")}:
-                                        </b>{" "}
-                                        {vaccine.target_groups.join(", ")}
-                                    </p>
-                                    <p>
-                                        <b className="font-semibold text-(--color-text-primary)">
-                                            {t("totalDoses")}:
-                                        </b>{" "}
-                                        {vaccine.total_doses}
-                                    </p>
-                                    <p>
-                                        <b className="font-semibold text-(--color-text-primary)">
-                                            {t("effectiveness")}:
-                                        </b>{" "}
-                                        {vaccine.effectiveness}
-                                    </p>
-                                    <p>
-                                        <b className="font-semibold text-(--color-text-primary)">
-                                            {t("classification")}:
-                                        </b>{" "}
-                                        {vaccine.category}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="mt-6 rounded-lg border border-t border-(--color-border-muted) bg-slate-50 p-3 pt-4 text-xs leading-relaxed text-(--color-text-secondary)">
-                                <span className="mb-1 block font-bold text-(--color-text-secondary) not-italic dark:text-gray-900">
-                                    {t("aboutDisease")}
-                                </span>
-                                <span className="italic dark:text-gray-900">
-                                    {vaccine.disease_summary}
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* MIDDLE & RIGHT COMBINED COLUMN: TIMELINE, SYMPTOMS & SAFETY INSIGHTS */}
-                        <div className="space-y-6 lg:col-span-2">
-                            <h3 className="flex items-center gap-2 text-lg font-bold text-(--color-text-primary)">
-                                <Calendar className="h-5 w-5 text-emerald-600" />{" "}
-                                {t("scheduleLayoutHeading")}
-                            </h3>
-
-                            {/* GENERATED DOSES RENDER LOOP */}
-                            <div className="space-y-3">
-                                {(vaccine.dosing_intervals_weeks || []).map((weeks, index) => {
-                                    const dateString = calculateMilestoneDate(weeks);
-
-                                    let labelHeader = "";
-                                    if (vaccine.is_relative_to_birth) {
-                                        labelHeader =
-                                            weeks === 0 ? t("atBirth") : t("atWeeks", { weeks });
-                                    } else {
-                                        labelHeader =
-                                            index === 0
-                                                ? t("baseline")
-                                                : t("doseStep", { index: index + 1, weeks });
-                                    }
-
-                                    return (
-                                        <div
-                                            key={index}
-                                            className="flex cursor-default items-center gap-4 rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md"
-                                        >
-                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white shadow-sm ring-2 ring-emerald-100">
-                                                {index + 1}
-                                            </div>
-
-                                            <div className="min-w-0 flex-1">
-                                                <p className="text-sm font-bold text-(--color-text-primary) sm:text-base">
-                                                    {labelHeader}
-                                                </p>
-                                                {dateString ? (
-                                                    <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 sm:text-sm">
-                                                        <Target className="h-3.5 w-3.5 shrink-0" />
-                                                        {t("targetDate", { date: dateString })}
-                                                    </span>
-                                                ) : (
-                                                    <span className="mt-1 flex w-fit items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
-                                                        <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                                                        {t("selectDateWarning")}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            {/* SIDE EFFECTS CONDITIONAL ARRAYS GRID */}
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:items-start">
-                                <div className="rounded-xl border border-emerald-200/60 bg-emerald-50/40 p-4">
-                                    <h4 className="flex items-center gap-2 text-sm font-bold tracking-wide text-emerald-800 uppercase">
-                                        <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />{" "}
-                                        {t("commonEffects")}
-                                    </h4>
-                                    <ul className="mt-2.5 ml-5 list-disc space-y-1.5 text-xs font-medium text-amber-950 sm:text-sm">
-                                        {vaccine.side_effects.common.map((effect, index) => (
-                                            <li key={index}>{effect}</li>
-                                        ))}
-                                    </ul>
-                                </div>
-
-                                <div className="rounded-xl border border-rose-200/60 bg-rose-50/60 p-4">
-                                    <h4 className="flex items-center gap-2 text-sm font-bold tracking-wide text-rose-800 uppercase">
-                                        <XCircle className="h-4 w-4 shrink-0 text-rose-600" />{" "}
-                                        {t("severeReactions")}
-                                    </h4>
-                                    <ul className="mt-2.5 ml-5 list-disc space-y-1.5 text-xs font-medium text-rose-950 sm:text-sm">
-                                        {vaccine.side_effects.severe.map((effect, index) => (
-                                            <li key={index}>{effect}</li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            </div>
-
-                            {/* AFTERCARE DATA FRAME */}
-                            <div className="rounded-xl border border-sky-200/60 bg-sky-50 p-4">
-                                <h4 className="flex items-center gap-2 text-sm font-bold tracking-wide text-sky-800 uppercase">
-                                    <HeartPulse className="h-4 w-4 shrink-0 text-sky-600" />{" "}
-                                    {t("aftercareHeading")}
-                                </h4>
-                                <p className="mt-2 text-xs leading-relaxed font-medium text-sky-950 sm:text-sm">
-                                    {vaccine.aftercare_text}
-                                </p>
-                            </div>
-
-                            {/* SYSTEM LEGAL DISCLAIMER FOOTER COMPONENT */}
-                            <p className="mt-6 block border-t border-(--color-border-muted) pt-4 text-center text-[11px] leading-normal text-(--color-text-secondary) italic">
-                                {VACCINE_GLOBAL_DISCLAIMER}
-                            </p>
-                        </div>
-                    </div>
-                )}
             </div>
         </>
     );

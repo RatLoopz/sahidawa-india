@@ -11,7 +11,13 @@ async function getCsrfToken(): Promise<string> {
     const res = await fetch(`${API_BASE}/api/csrf-token`, {
         credentials: "include",
     });
+    if (!res.ok) {
+        throw new Error(`Failed to fetch CSRF token: ${res.status} ${res.statusText}`);
+    }
     const data = await res.json();
+    if (!data.csrfToken) {
+        throw new Error("CSRF token not found in response body");
+    }
     csrfTokenCache = data.csrfToken;
     return csrfTokenCache!;
 }
@@ -131,7 +137,10 @@ export async function geocodePincode(
         const lng = parseFloat(arr[0].lon);
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
         return { latitude: lat, longitude: lng };
-    } catch {
+    } catch (error) {
+        if (typeof window !== "undefined") {
+            console.warn(`[api] Geocoding pincode ${pincode} failed: ${error instanceof Error ? error.message : String(error)}`);
+        }
         return null;
     }
 }

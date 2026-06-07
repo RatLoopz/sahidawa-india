@@ -7,19 +7,22 @@ Shared loader used by all ETL pipelines.
 Accepts any normalized pd.DataFrame and upserts it into a Supabase table.
 
 UPSERT STRATEGY:
-    Conflict key: (generic_name, strength, dosage_form, source)
+    Conflict key: (generic_name, brand_name, manufacturer, barcode_id)
     On conflict → UPDATE (handles re-runs and MRP changes safely).
 
 BATCH INSERTS:
     Rows are inserted in batches of 100 to reduce network round-trips.
-    On batch failure → falls back to row-by-row retry.
+    Transient batch failures are retried with exponential backoff.
+    On final batch failure → falls back to row-by-row retry.
     Persistent failures are written to etl_failed_rows table + local CSV.
 """
 
 import json
 import os
+import random
 import re
 import time
+from collections.abc import Callable
 from collections import Counter
 from datetime import datetime, timezone
 from hashlib import sha256
@@ -41,9 +44,21 @@ SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
 BATCH_SIZE = 100
 DELAY_SEC = 0.5
+BATCH_UPSERT_MAX_ATTEMPTS = 4
+BATCH_UPSERT_INITIAL_BACKOFF_SEC = 2.0
+BATCH_UPSERT_MAX_BACKOFF_SEC = 8.0
 RETRY_TABLE = "etl_failed_rows"
 SUCCESS_RATE_ALERT_THRESHOLD = 95.0
 FAILED_ROWS_BASE_DIR = Path(__file__).resolve().parents[4] / "data" / "failed"
+
+CONFLICT_COLUMNS = {
+    "medicines": (
+        "generic_name",
+        "brand_name",
+        "manufacturer",
+        "barcode_id",
+    ),
+}
 
 ALLOWED_COLUMNS = {
     "medicines": {
@@ -85,6 +100,38 @@ ALLOWED_COLUMNS = {
         "updated_at",
     }
 }
+
+TRANSIENT_UPSERT_ERROR_KEYWORDS = (
+    "bad gateway",
+    "connection aborted",
+    "connection closed",
+    "connection refused",
+    "connection reset",
+    "gateway timeout",
+    "network",
+    "remote protocol",
+    "server disconnected",
+    "service unavailable",
+    "ssl",
+    "temporarily unavailable",
+    "timed out",
+    "timeout",
+    "too many requests",
+    "502",
+    "503",
+    "504",
+)
+
+TRANSIENT_UPSERT_EXCEPTION_NAME_KEYWORDS = (
+    "connect",
+    "connection",
+    "network",
+    "pooltimeout",
+    "readerror",
+    "remoteprotocol",
+    "timeout",
+    "writeerror",
+)
 
 
 # ── Loader ─────────────────────────────────────────────────────────────────────
@@ -132,33 +179,53 @@ class SupabaseLoader:
         logger.info(f"[Loader] Loading {total} records into '{table}'...")
 
         raw_records = df.to_dict(orient="records")
-        records = [
-            {
-                "row_index": i,
-                "payload": {k: (None if pd.isna(v) else v) for k, v in row.items()},
-            }
-            for i, row in enumerate(raw_records)
-        ]
+        records = []
+        for i, row in enumerate(raw_records):
+            payload = {k: (None if pd.isna(v) else v) for k, v in row.items()}
+            records.append(
+                {
+                    "row_index": i,
+                    "payload": payload,
+                    "write_payload": self._prepare_payload(payload, table),
+                }
+            )
 
         inserted, failures = 0, []
+        records_to_write, skipped_unchanged = self._filter_unchanged_records(
+            records,
+            table,
+        )
 
-        for batch_start in range(0, total, BATCH_SIZE):
-            batch = records[batch_start: batch_start + BATCH_SIZE]
+        if skipped_unchanged:
+            logger.info(
+                f"[Loader] Skipping {skipped_unchanged} unchanged records for "
+                f"'{table}' based on current Supabase state"
+            )
+
+        writable_total = len(records_to_write)
+        for batch_start in range(0, writable_total, BATCH_SIZE):
+            batch = records_to_write[batch_start: batch_start + BATCH_SIZE]
             batch_end = batch_start + len(batch)
             try:
-                self._upsert_payloads([item["payload"] for item in batch], table)
+                self._upsert_batch_payloads_with_retries(
+                    [item["write_payload"] for item in batch],
+                    table,
+                )
                 inserted += len(batch)
-                logger.info(f"[Loader] Batch {batch_start}–{batch_end} ✅  ({inserted}/{total})")
+                logger.info(
+                    f"[Loader] Batch {batch_start}–{batch_end} ✅  "
+                    f"({inserted}/{writable_total} writes, {inserted + skipped_unchanged}/{total} processed)"
+                )
             except Exception as e:
                 logger.warning(f"[Loader] Batch {batch_start}–{batch_end} ❌ {e} — retrying row-by-row")
                 bi, bf = self._load_batch_row_by_row(batch, table)
                 inserted += bi
                 failures.extend(bf)
 
-            if batch_end < total:
+            if batch_end < writable_total:
                 time.sleep(DELAY_SEC)
 
-        stats = self._build_stats(total, inserted, failures)
+        stats = self._build_stats(total, inserted, failures, skipped_unchanged)
         stats["failed_rows_csv"] = self._export_failed_rows(failures)
         self._print_summary(stats)
         return stats
@@ -230,11 +297,15 @@ class SupabaseLoader:
 
     # ── Private helpers ────────────────────────────────────────────────────────
 
-    def _load_batch_row_by_row(self, batch: list[dict], table: str) -> tuple[int, list[dict]]:
+    def _load_batch_row_by_row(
+        self,
+        batch: list[dict],
+        table: str,
+    ) -> tuple[int, list[dict]]:
         inserted, failures = 0, []
         for item in batch:
             try:
-                self._upsert_payloads([item["payload"]], table)
+                self._upsert_payloads([item["write_payload"]], table)
                 inserted += 1
             except Exception as e:
                 failure = self._build_failure(item["payload"], item["row_index"], e)
@@ -243,17 +314,159 @@ class SupabaseLoader:
                 self._persist_failure(failure, table)
         return inserted, failures
 
+    def _upsert_batch_payloads_with_retries(
+        self,
+        payloads: list[dict],
+        table: str,
+    ) -> None:
+        self._run_upsert_with_transient_retries(
+            lambda: self._upsert_payloads(payloads, table),
+            "Batch upsert",
+        )
+
+    def _run_upsert_with_transient_retries(
+        self,
+        operation: Callable[[], object],
+        context: str,
+    ) -> None:
+        for attempt in range(1, BATCH_UPSERT_MAX_ATTEMPTS + 1):
+            try:
+                operation()
+                return
+            except Exception as e:
+                if (
+                    attempt == BATCH_UPSERT_MAX_ATTEMPTS
+                    or not self._is_transient_upsert_error(e)
+                ):
+                    raise
+                base_wait = min(
+                    BATCH_UPSERT_INITIAL_BACKOFF_SEC * (2 ** (attempt - 1)),
+                    BATCH_UPSERT_MAX_BACKOFF_SEC,
+                )
+
+                wait_seconds = base_wait + random.uniform(0.1, 1.0)
+
+                logger.warning(
+                    f"[Loader] {context} transient failure "
+                    f"(attempt {attempt}/{BATCH_UPSERT_MAX_ATTEMPTS}): {e} — "
+                    f"retrying in {wait_seconds:g}s"
+                )
+                time.sleep(wait_seconds)
+
     def _upsert_payloads(self, payloads: list[dict], table: str) -> None:
-        if table in ALLOWED_COLUMNS:
-            allowed = ALLOWED_COLUMNS[table]
-            payloads = [
-                {k: v for k, v in p.items() if k in allowed}
-                for p in payloads
-            ]
+        payloads = [self._prepare_payload(payload, table) for payload in payloads]
+        if not payloads:
+            return
+        conflict_columns = CONFLICT_COLUMNS.get(table)
         self.client.table(table).upsert(
             payloads,
-            on_conflict="generic_name,brand_name,strength,dosage_form,source,barcode_id",
+            on_conflict=",".join(conflict_columns) if conflict_columns else None,
         ).execute()
+
+    @staticmethod
+    def _is_transient_upsert_error(error: Exception) -> bool:
+        for current in SupabaseLoader._iter_exception_chain(error):
+            if isinstance(current, (TimeoutError, ConnectionError)):
+                return True
+
+            class_name = current.__class__.__name__.lower()
+            message = str(current).lower()
+
+            if any(
+                keyword in class_name
+                for keyword in TRANSIENT_UPSERT_EXCEPTION_NAME_KEYWORDS
+            ):
+                return True
+
+            if any(keyword in message for keyword in TRANSIENT_UPSERT_ERROR_KEYWORDS):
+                return True
+
+        return False
+
+    @staticmethod
+    def _iter_exception_chain(error: Exception):
+        current = error
+        seen = set()
+        while current is not None and id(current) not in seen:
+            seen.add(id(current))
+            yield current
+            current = current.__cause__ or current.__context__
+
+    def _prepare_payload(self, payload: dict, table: str) -> dict:
+        if table in ALLOWED_COLUMNS:
+            allowed = ALLOWED_COLUMNS[table]
+            return {k: v for k, v in payload.items() if k in allowed}
+        return dict(payload)
+
+    def _filter_unchanged_records(
+        self,
+        records: list[dict],
+        table: str,
+    ) -> tuple[list[dict], int]:
+        existing_by_key = self._load_existing_rows_by_key(records, table)
+        if not existing_by_key:
+            return records, 0
+
+        changed = []
+        skipped = 0
+        for item in records:
+            cache_key = self._cache_key(item["write_payload"], table)
+            existing = existing_by_key.get(cache_key)
+            if existing and self._payload_matches_existing(item["write_payload"], existing):
+                skipped += 1
+                continue
+            changed.append(item)
+        return changed, skipped
+
+    def _load_existing_rows_by_key(self, records: list[dict], table: str) -> dict[str, dict]:
+        if not records or table not in CONFLICT_COLUMNS:
+            return {}
+
+        columns = sorted(
+            set(CONFLICT_COLUMNS[table]).union(
+                *[set(item["write_payload"].keys()) for item in records]
+            )
+        )
+        selected_columns = ",".join(columns)
+        existing_by_key: dict[str, dict] = {}
+        page_size = 1000
+        offset = 0
+
+        try:
+            while True:
+                response = (
+                    self.client.table(table)
+                    .select(selected_columns)
+                    .range(offset, offset + page_size - 1)
+                    .execute()
+                )
+                rows = getattr(response, "data", None) or []
+                for row in rows:
+                    existing_by_key[self._cache_key(row, table)] = row
+                if len(rows) < page_size:
+                    break
+                offset += page_size
+        except Exception as e:
+            logger.warning(
+                f"[Loader] Could not read existing '{table}' rows for ETL change detection; "
+                f"writing all incoming records instead: {e}"
+            )
+            return {}
+
+        return existing_by_key
+
+    def _cache_key(self, payload: dict, table: str) -> str:
+        key_columns = CONFLICT_COLUMNS.get(table)
+        if key_columns:
+            key_payload = {column: payload.get(column) for column in key_columns}
+        else:
+            key_payload = payload
+        encoded = json.dumps(key_payload, default=str, separators=(",", ":"), sort_keys=True)
+        return sha256(encoded.encode("utf-8")).hexdigest()
+
+    def _payload_matches_existing(self, payload: dict, existing: dict) -> bool:
+        existing_subset = {key: existing.get(key) for key in payload}
+        return self._row_fingerprint(payload) == self._row_fingerprint(existing_subset)
 
     def _build_failure(self, payload: dict, row_index: int, error: Exception) -> dict:
         msg = str(error)
@@ -348,12 +561,20 @@ class SupabaseLoader:
         pd.DataFrame(rows).to_csv(output_path, index=False)
         return str(output_path)
 
-    def _build_stats(self, total: int, inserted: int, failures: list[dict]) -> dict:
+    def _build_stats(
+        self,
+        total: int,
+        inserted: int,
+        failures: list[dict],
+        skipped_unchanged: int = 0,
+    ) -> dict:
         failed = len(failures)
-        success_rate = round((inserted / total) * 100, 2) if total else 100.0
+        successful = inserted + skipped_unchanged
+        success_rate = round((successful / total) * 100, 2) if total else 100.0
         return {
             "inserted": inserted,
             "failed": failed,
+            "skipped_unchanged": skipped_unchanged,
             "total": total,
             "success_rate": success_rate,
             "error_counts": dict(Counter(f["error_category"] for f in failures)),
@@ -363,6 +584,7 @@ class SupabaseLoader:
         logger.info(
             f"[Loader] Summary — total: {stats['total']}, "
             f"inserted: {stats['inserted']}, failed: {stats['failed']}, "
+            f"skipped_unchanged: {stats.get('skipped_unchanged', 0)}, "
             f"success_rate: {stats['success_rate']}%"
         )
         if stats["error_counts"]:
@@ -517,6 +739,7 @@ class SupabaseLoader:
             if not page:
                 break
 
+            page_updates: list[dict] = []
             for record in page:
                 checked += 1
                 record_id = record.get("id")
@@ -536,17 +759,15 @@ class SupabaseLoader:
                     skipped += 1
                     continue
 
-                try:
-                    self.client.table(table).update(
-                        {"jan_aushadhi_price": ja_price}
-                    ).eq("id", record_id).execute()
-                    updated += 1
-                except Exception as e:
-                    logger.warning(
-                        f"[Loader] merge_jan_aushadhi_price: failed to update "
-                        f"id={record_id}: {e}"
-                    )
-                    failed += 1
+                page_updates.append({"id": record_id, "jan_aushadhi_price": ja_price})
+
+            if page_updates:
+                page_updated, page_failed = self._upsert_ja_price_update_batches(
+                    page_updates,
+                    table,
+                )
+                updated += page_updated
+                failed += page_failed
 
             last_id = page[-1].get("id")
             if len(page) < page_size:
@@ -557,3 +778,67 @@ class SupabaseLoader:
             f"updated: {updated}, skipped: {skipped}, failed: {failed}"
         )
         return {"checked": checked, "updated": updated, "skipped": skipped, "failed": failed}
+
+    def _upsert_ja_price_update_batches(
+        self,
+        updates: list[dict],
+        table: str,
+    ) -> tuple[int, int]:
+        updated = failed = 0
+        total = len(updates)
+        total_batches = (total + BATCH_SIZE - 1) // BATCH_SIZE
+
+        for batch_start in range(0, total, BATCH_SIZE):
+            batch = updates[batch_start: batch_start + BATCH_SIZE]
+            batch_number = (batch_start // BATCH_SIZE) + 1
+            batch_end = batch_start + len(batch)
+
+            try:
+                self._run_upsert_with_transient_retries(
+                    lambda: self.client.table(table).upsert(batch).execute(),
+                    f"merge_jan_aushadhi_price batch {batch_number}/{total_batches} upsert",
+                )
+                updated += len(batch)
+                logger.info(
+                    f"[Loader] merge_jan_aushadhi_price: batch "
+                    f"{batch_number}/{total_batches} upserted {len(batch)} rows "
+                    f"({updated}/{total} page matches)"
+                )
+            except Exception as e:
+                logger.warning(
+                    f"[Loader] merge_jan_aushadhi_price: batch "
+                    f"{batch_number}/{total_batches} rows {batch_start}-{batch_end} "
+                    f"failed: {e} - retrying row-by-row"
+                )
+                batch_updated, batch_failed = self._update_ja_price_rows_one_by_one(
+                    batch,
+                    table,
+                )
+                updated += batch_updated
+                failed += batch_failed
+
+        return updated, failed
+
+    def _update_ja_price_rows_one_by_one(
+        self,
+        updates: list[dict],
+        table: str,
+    ) -> tuple[int, int]:
+        updated = failed = 0
+
+        for update in updates:
+            record_id = update.get("id")
+            try:
+                self.client.table(table).update(
+                    {"jan_aushadhi_price": update.get("jan_aushadhi_price")}
+                ).eq("id", record_id).execute()
+                updated += 1
+            except Exception as e:
+                logger.warning(
+                    f"[Loader] merge_jan_aushadhi_price: failed row fallback "
+                    f"update id={record_id}, "
+                    f"jan_aushadhi_price={update.get('jan_aushadhi_price')}: {e}"
+                )
+                failed += 1
+
+        return updated, failed
