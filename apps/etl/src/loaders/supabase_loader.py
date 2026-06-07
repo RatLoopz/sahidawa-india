@@ -12,7 +12,8 @@ UPSERT STRATEGY:
 
 BATCH INSERTS:
     Rows are inserted in batches of 100 to reduce network round-trips.
-    On batch failure → falls back to row-by-row retry.
+    Transient batch failures are retried with exponential backoff.
+    On final batch failure → falls back to row-by-row retry.
     Persistent failures are written to etl_failed_rows table + local CSV.
 """
 
@@ -20,6 +21,7 @@ import json
 import os
 import re
 import time
+from collections.abc import Callable
 from collections import Counter
 from datetime import datetime, timezone
 from hashlib import sha256
@@ -41,6 +43,9 @@ SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
 BATCH_SIZE = 100
 DELAY_SEC = 0.5
+BATCH_UPSERT_MAX_ATTEMPTS = 4
+BATCH_UPSERT_INITIAL_BACKOFF_SEC = 2.0
+BATCH_UPSERT_MAX_BACKOFF_SEC = 8.0
 RETRY_TABLE = "etl_failed_rows"
 SUCCESS_RATE_ALERT_THRESHOLD = 95.0
 FAILED_ROWS_BASE_DIR = Path(__file__).resolve().parents[4] / "data" / "failed"
@@ -94,6 +99,38 @@ ALLOWED_COLUMNS = {
         "updated_at",
     }
 }
+
+TRANSIENT_UPSERT_ERROR_KEYWORDS = (
+    "bad gateway",
+    "connection aborted",
+    "connection closed",
+    "connection refused",
+    "connection reset",
+    "gateway timeout",
+    "network",
+    "remote protocol",
+    "server disconnected",
+    "service unavailable",
+    "ssl",
+    "temporarily unavailable",
+    "timed out",
+    "timeout",
+    "too many requests",
+    "502",
+    "503",
+    "504",
+)
+
+TRANSIENT_UPSERT_EXCEPTION_NAME_KEYWORDS = (
+    "connect",
+    "connection",
+    "network",
+    "pooltimeout",
+    "readerror",
+    "remoteprotocol",
+    "timeout",
+    "writeerror",
+)
 
 
 # ── Loader ─────────────────────────────────────────────────────────────────────
@@ -169,7 +206,10 @@ class SupabaseLoader:
             batch = records_to_write[batch_start: batch_start + BATCH_SIZE]
             batch_end = batch_start + len(batch)
             try:
-                self._upsert_payloads([item["write_payload"] for item in batch], table)
+                self._upsert_batch_payloads_with_retries(
+                    [item["write_payload"] for item in batch],
+                    table,
+                )
                 inserted += len(batch)
                 logger.info(
                     f"[Loader] Batch {batch_start}–{batch_end} ✅  "
@@ -273,6 +313,43 @@ class SupabaseLoader:
                 self._persist_failure(failure, table)
         return inserted, failures
 
+    def _upsert_batch_payloads_with_retries(
+        self,
+        payloads: list[dict],
+        table: str,
+    ) -> None:
+        self._run_upsert_with_transient_retries(
+            lambda: self._upsert_payloads(payloads, table),
+            "Batch upsert",
+        )
+
+    def _run_upsert_with_transient_retries(
+        self,
+        operation: Callable[[], object],
+        context: str,
+    ) -> None:
+        for attempt in range(1, BATCH_UPSERT_MAX_ATTEMPTS + 1):
+            try:
+                operation()
+                return
+            except Exception as e:
+                if (
+                    attempt == BATCH_UPSERT_MAX_ATTEMPTS
+                    or not self._is_transient_upsert_error(e)
+                ):
+                    raise
+
+                wait_seconds = min(
+                    BATCH_UPSERT_INITIAL_BACKOFF_SEC * (2 ** (attempt - 1)),
+                    BATCH_UPSERT_MAX_BACKOFF_SEC,
+                )
+                logger.warning(
+                    f"[Loader] {context} transient failure "
+                    f"(attempt {attempt}/{BATCH_UPSERT_MAX_ATTEMPTS}): {e} — "
+                    f"retrying in {wait_seconds:g}s"
+                )
+                time.sleep(wait_seconds)
+
     def _upsert_payloads(self, payloads: list[dict], table: str) -> None:
         payloads = [self._prepare_payload(payload, table) for payload in payloads]
         if not payloads:
@@ -282,6 +359,35 @@ class SupabaseLoader:
             payloads,
             on_conflict=",".join(conflict_columns) if conflict_columns else None,
         ).execute()
+
+    @staticmethod
+    def _is_transient_upsert_error(error: Exception) -> bool:
+        for current in SupabaseLoader._iter_exception_chain(error):
+            if isinstance(current, (TimeoutError, ConnectionError)):
+                return True
+
+            class_name = current.__class__.__name__.lower()
+            message = str(current).lower()
+
+            if any(
+                keyword in class_name
+                for keyword in TRANSIENT_UPSERT_EXCEPTION_NAME_KEYWORDS
+            ):
+                return True
+
+            if any(keyword in message for keyword in TRANSIENT_UPSERT_ERROR_KEYWORDS):
+                return True
+
+        return False
+
+    @staticmethod
+    def _iter_exception_chain(error: Exception):
+        current = error
+        seen = set()
+        while current is not None and id(current) not in seen:
+            seen.add(id(current))
+            yield current
+            current = current.__cause__ or current.__context__
 
     def _prepare_payload(self, payload: dict, table: str) -> dict:
         if table in ALLOWED_COLUMNS:
@@ -685,7 +791,10 @@ class SupabaseLoader:
             batch_end = batch_start + len(batch)
 
             try:
-                self.client.table(table).upsert(batch).execute()
+                self._run_upsert_with_transient_retries(
+                    lambda: self.client.table(table).upsert(batch).execute(),
+                    f"merge_jan_aushadhi_price batch {batch_number}/{total_batches} upsert",
+                )
                 updated += len(batch)
                 logger.info(
                     f"[Loader] merge_jan_aushadhi_price: batch "
