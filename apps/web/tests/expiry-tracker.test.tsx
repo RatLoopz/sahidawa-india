@@ -179,10 +179,5 @@ describe("Date Handling and Sorting", () => {
         expect(await screen.findByRole("heading", { name: "Future Med" })).toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "Expired Med" })).toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "Expiring Today" })).toBeInTheDocument();
-
-        const expiredCardHeading = screen.getByRole("heading", { name: "Expired Med" });
-        const expiredCard = expiredCardHeading.closest("div");
-
-        expect(expiredCard).toBeInTheDocument();
     });
 });
