@@ -259,6 +259,53 @@ describe("Offline Support", () => {
 
             expect(callback).toHaveBeenCalledTimes(1);
         });
+
+        it("should register and execute persistent callbacks on reconnect", () => {
+            const { result } = renderHook(() => useOfflineStatus());
+            const callback = jest.fn();
+
+            act(() => {
+                result.current.registerPersistentCallback(callback);
+            });
+
+            act(() => {
+                window.dispatchEvent(new Event("offline"));
+            });
+            act(() => {
+                window.dispatchEvent(new Event("online"));
+            });
+
+            expect(callback).toHaveBeenCalledTimes(1);
+        });
+
+        it("should NOT clear persistent callbacks after execution and survive multiple cycles", () => {
+            const { result } = renderHook(() => useOfflineStatus());
+            const callback = jest.fn();
+
+            act(() => {
+                result.current.registerPersistentCallback(callback);
+            });
+
+            // Cycle 1
+            act(() => {
+                window.dispatchEvent(new Event("offline"));
+            });
+            act(() => {
+                window.dispatchEvent(new Event("online"));
+            });
+
+            expect(callback).toHaveBeenCalledTimes(1);
+
+            // Cycle 2
+            act(() => {
+                window.dispatchEvent(new Event("offline"));
+            });
+            act(() => {
+                window.dispatchEvent(new Event("online"));
+            });
+
+            expect(callback).toHaveBeenCalledTimes(2);
+        });
     });
 
     describe("OfflineBanner", () => {

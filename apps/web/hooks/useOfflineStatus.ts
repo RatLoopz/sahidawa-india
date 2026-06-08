@@ -10,6 +10,7 @@ export const useOfflineStatus = () => {
     const [isStatusDirty, setIsStatusDirty] = useState(false);
     const [isTestMode, setIsTestMode] = useState(false);
     const retryCallbacksRef = useRef<Set<() => void>>(new Set());
+    const persistentCallbacksRef = useRef<Set<() => void>>(new Set());
 
     useEffect(() => {
         // Check if we're in test mode
@@ -37,6 +38,16 @@ export const useOfflineStatus = () => {
                 }
             });
             retryCallbacksRef.current.clear();
+
+            // Execute all persistent callbacks when coming back online
+            persistentCallbacksRef.current.forEach((callback) => {
+                try {
+                    callback();
+                } catch (error) {
+                    console.error("Error executing persistent callback:", error);
+                }
+            });
+
             // Reset dirty flag after a short delay so UI can update
             setTimeout(() => setIsStatusDirty(false), 1000);
         };
@@ -68,11 +79,21 @@ export const useOfflineStatus = () => {
         retryCallbacksRef.current.delete(callback);
     }, []);
 
+    const registerPersistentCallback = useCallback((callback: () => void) => {
+        persistentCallbacksRef.current.add(callback);
+    }, []);
+
+    const unregisterPersistentCallback = useCallback((callback: () => void) => {
+        persistentCallbacksRef.current.delete(callback);
+    }, []);
+
     return {
         isOffline,
         isStatusDirty,
         isTestMode,
         registerRetryCallback,
         unregisterRetryCallback,
+        registerPersistentCallback,
+        unregisterPersistentCallback,
     };
 };
