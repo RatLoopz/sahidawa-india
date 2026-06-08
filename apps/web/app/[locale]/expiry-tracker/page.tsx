@@ -378,7 +378,7 @@ export default function ExpiryTrackerPage() {
                                     required
                                     value={expiryDate}
                                     onChange={(e) => setExpiryDate(e.target.value)}
-                                    className="w-full rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) p-3 text-(--color-text-primary) [color-scheme:light] transition outline-none focus:ring-2 focus:ring-emerald-500 dark:[color-scheme:dark]"
+                                    className="w-full rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) p-3 text-(--color-text-primary) scheme-light transition outline-none focus:ring-2 focus:ring-emerald-500 dark:scheme-dark"
                                 />
                             </div>
                             <div>
