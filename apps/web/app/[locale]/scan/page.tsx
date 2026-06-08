@@ -59,8 +59,6 @@ type ScanHistoryContext = Omit<
 
 import { saveScanHistory } from "@/lib/db/scanHistory";
 
-import { structuredLog } from "@/lib/structuredLogger";
-
 function formatExpiryForBadge(isoDate: string | null | undefined): string | undefined {
     if (!isoDate) return undefined;
     const d = new Date(isoDate);
@@ -691,23 +689,21 @@ export default function ScanPage() {
             const brandRes = await verifyMedicineByBrand(conflictName, controller.signal);
             if (!isMountedRef.current || controller.signal.aborted) return;
             setParsedBrand(conflictName);
-            await processVerificationResult(brandRes, conflictName, {
-                query: conflictName,
-                source: "manual",
-                fallbackBrandName: conflictName,
-            });
+            await processVerificationResult(brandRes, conflictName);
         } catch (err) {
             if (!isMountedRef.current || controller.signal.aborted) return;
             const errorMsg = err instanceof Error ? err.message : "Verification failed";
             if (errorMsg === "Request was cancelled.") {
                 return;
             }
-            recordScanHistory({
-                query: conflictName,
-                source: "manual",
-                fallbackBrandName: conflictName,
-                errorMessage: errorMsg,
-            });
+            void saveLocalScanHistoryEntry(
+                buildLocalScanHistoryEntry({
+                    query: conflictName,
+                    source: "manual",
+                    fallbackBrandName: conflictName,
+                    errorMessage: errorMsg,
+                })
+            );
             setVerifyError(errorMsg);
             setShowResult(true);
         } finally {
@@ -739,23 +735,21 @@ export default function ScanPage() {
             try {
                 const result = await verifyMedicine(normalizedBatch, controller.signal);
                 if (!isMountedRef.current || controller.signal.aborted) return;
-                await processVerificationResult(result, undefined, {
-                    query: normalizedBatch,
-                    source,
-                    fallbackBatchNumber: normalizedBatch,
-                });
+                await processVerificationResult(result, undefined);
             } catch (err) {
                 if (!isMountedRef.current || controller.signal.aborted) return;
                 const errorMsg = err instanceof Error ? err.message : "Verification failed";
                 if (errorMsg === "Request was cancelled.") {
                     return;
                 }
-                recordScanHistory({
-                    query: normalizedBatch,
-                    source,
-                    fallbackBatchNumber: normalizedBatch,
-                    errorMessage: errorMsg,
-                });
+                void saveLocalScanHistoryEntry(
+                    buildLocalScanHistoryEntry({
+                        query: normalizedBatch,
+                        source,
+                        fallbackBatchNumber: normalizedBatch,
+                        errorMessage: errorMsg,
+                    })
+                );
                 setVerifyError(errorMsg);
                 void saveScanHistory({
                     id: crypto.randomUUID(),
@@ -772,7 +766,7 @@ export default function ScanPage() {
                 }
             }
         },
-        [processVerificationResult, recordScanHistory]
+        [processVerificationResult]
     );
 
     // Keep handleVerifyRef current
@@ -1006,14 +1000,7 @@ export default function ScanPage() {
                 }
                 await processVerificationResult(
                     { verified: true, medicine: updatedMedicine },
-                    parsedBrand,
-                    {
-                        query: parsedBatchNum || medName || "Uploaded photo",
-                        source: "photo",
-                        fallbackBrandName: parsedBrand || medName || undefined,
-                        fallbackBatchNumber: parsedBatchNum || undefined,
-                        fallbackExpiryDate: parsedExpiryStr ? expiryToIso(parsedExpiryStr) : null,
-                    }
+                    parsedBrand
                 );
             } else {
                 const unverifiedResult =
@@ -1022,14 +1009,16 @@ export default function ScanPage() {
                         verified: false,
                         message: "No match found in CDSCO Database",
                     } satisfies VerifyResult);
-                recordScanHistory({
-                    query: parsedBatchNum || medName || "Uploaded photo",
-                    source: "photo",
-                    result: unverifiedResult,
-                    fallbackBrandName: parsedBrand || medName || undefined,
-                    fallbackBatchNumber: parsedBatchNum || undefined,
-                    fallbackExpiryDate: parsedExpiryStr ? expiryToIso(parsedExpiryStr) : null,
-                });
+                void saveLocalScanHistoryEntry(
+                    buildLocalScanHistoryEntry({
+                        query: parsedBatchNum || medName || "Uploaded photo",
+                        source: "photo",
+                        result: unverifiedResult,
+                        fallbackBrandName: parsedBrand || medName || undefined,
+                        fallbackBatchNumber: parsedBatchNum || undefined,
+                        fallbackExpiryDate: parsedExpiryStr ? expiryToIso(parsedExpiryStr) : null,
+                    })
+                );
                 setVerifyResult(unverifiedResult);
                 setShowResult(true);
             }
@@ -1048,29 +1037,33 @@ export default function ScanPage() {
                 setVerifyError(
                     "The scan took too long. Please ensure the image is clear and try again."
                 );
-                recordScanHistory({
-                    query: parsedBatch || parsedBrand || "Uploaded photo",
-                    source: "photo",
-                    fallbackBrandName: parsedBrand,
-                    fallbackBatchNumber: parsedBatch,
-                    fallbackExpiryDate: parsedExpiry ? expiryToIso(parsedExpiry) : null,
-                    errorMessage:
-                        "The scan took too long. Please ensure the image is clear and try again.",
-                });
+                void saveLocalScanHistoryEntry(
+                    buildLocalScanHistoryEntry({
+                        query: parsedBatch || parsedBrand || "Uploaded photo",
+                        source: "photo",
+                        fallbackBrandName: parsedBrand,
+                        fallbackBatchNumber: parsedBatch,
+                        fallbackExpiryDate: parsedExpiry ? expiryToIso(parsedExpiry) : null,
+                        errorMessage:
+                            "The scan took too long. Please ensure the image is clear and try again.",
+                    })
+                );
             } else {
                 toast.error("Failed to extract text from image.");
                 setVerifyError(
                     "Unable to read text from this image. Please try a clearer photo or enter the batch number manually."
                 );
-                recordScanHistory({
-                    query: parsedBatch || parsedBrand || "Uploaded photo",
-                    source: "photo",
-                    fallbackBrandName: parsedBrand,
-                    fallbackBatchNumber: parsedBatch,
-                    fallbackExpiryDate: parsedExpiry ? expiryToIso(parsedExpiry) : null,
-                    errorMessage:
-                        "Unable to read text from this image. Please try a clearer photo or enter the batch number manually.",
-                });
+                void saveLocalScanHistoryEntry(
+                    buildLocalScanHistoryEntry({
+                        query: parsedBatch || parsedBrand || "Uploaded photo",
+                        source: "photo",
+                        fallbackBrandName: parsedBrand,
+                        fallbackBatchNumber: parsedBatch,
+                        fallbackExpiryDate: parsedExpiry ? expiryToIso(parsedExpiry) : null,
+                        errorMessage:
+                            "Unable to read text from this image. Please try a clearer photo or enter the batch number manually.",
+                    })
+                );
             }
             setOcrStatus("error");
         } finally {
@@ -1103,9 +1096,8 @@ export default function ScanPage() {
             setApiError(error.message || "Failed to verify medicine with CDSCO.");
         } finally {
             setIsVerifying(false);
-        },
-        [handleVerify]
-    );
+        }
+    };
 
     const handleScanAgain = async () => {
         if (ocrWorkerRef.current) {
