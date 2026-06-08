@@ -30,7 +30,6 @@
         "dotenv": "^17.4.2",
         "express": "^5.2.1",
         "helmet": "^8.2.0",
-        "lightningcss-win32-x64-msvc": "^1.32.0",
         "morgan": "^1.10.1",
         "redis": "^5.12.1",
         "winston-daily-rotate-file": "^5.0.0",
