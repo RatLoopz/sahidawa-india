@@ -808,3 +808,4 @@
 | [#1467](https://github.com/RatLoopz/sahidawa-india/pull/1467) | 2026-06-07 | Frontend | 10 | @hrx01-dev | [View Doc](devtrack/2026-06/PR-1467-added-copy-to-clipboard-button-in-pharmacy-details.md) |
 | [#1476](https://github.com/RatLoopz/sahidawa-india/pull/1476) | 2026-06-07 | Frontend | 81 | @CopperFlame14 | [View Doc](devtrack/2026-06/PR-1476-fix-resolve-unused-component-and-hook-variables-in.md) / [ADR](devtrack/adr/ADR-028-fix-resolve-unused-component-and-hook-variables-in.md) |
 | [#1482](https://github.com/RatLoopz/sahidawa-india/pull/1482) | 2026-06-07 | Backend | 9 | @Avinash-sdbegin | [View Doc](devtrack/2026-06/PR-1482-fix-api-restrict-admin-write-routes.md) |
+| [#1510](https://github.com/RatLoopz/sahidawa-india/pull/1510) | 2026-06-08 | Frontend | 15 | @Shan7Usmani | [View Doc](devtrack/2026-06/PR-1510-feat-add-home-navigation-to-chat-interface.md) / [ADR](devtrack/adr/ADR-029-feat-add-home-navigation-to-chat-interface.md) |
