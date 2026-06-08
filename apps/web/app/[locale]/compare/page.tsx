@@ -21,7 +21,7 @@ async function searchMedicines(query: string): Promise<Medicine[]> {
     const { data, error } = await supabase
         .from("medicines")
         .select(COMPARE_SELECT_FIELDS)
-        .or(`brand_name.ilike.${pattern},generic_name.ilike.${pattern}`)
+        .or(`brand_name.ilike."${pattern}",generic_name.ilike."${pattern}"`)
         .limit(25);
 
     if (error) {
