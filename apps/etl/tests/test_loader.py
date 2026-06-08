@@ -208,7 +208,10 @@ def test_transient_batch_upsert_retries_with_exponential_backoff(tmp_path, monke
     assert client.transient_batch_attempts == 3
     assert len(client.upsert_calls) == 3
     assert all(len(payload) == 2 for _, payload, _ in client.upsert_calls)
-    assert sleep_calls == [2.0, 4.0]
+    assert len(sleep_calls) == 2
+
+    assert 2.1 <= sleep_calls[0] <= 3.0
+    assert 4.1 <= sleep_calls[1] <= 5.0
 
 
 def test_transient_batch_upsert_falls_back_after_retries(tmp_path, monkeypatch):
@@ -239,7 +242,11 @@ def test_transient_batch_upsert_falls_back_after_retries(tmp_path, monkeypatch):
         1,
         1,
     ]
-    assert sleep_calls == [2.0, 4.0, 8.0]
+    assert len(sleep_calls) == 3
+
+    assert 2.1 <= sleep_calls[0] <= 3.0
+    assert 4.1 <= sleep_calls[1] <= 5.0
+    assert 8.1 <= sleep_calls[2] <= 9.0
 
 
 def test_load_skips_unchanged_rows_already_present_in_target_db(tmp_path):
@@ -619,7 +626,10 @@ def test_ja_backfill_retries_transient_batch_upsert_before_fallback(tmp_path, mo
     assert client.transient_batch_attempts == 3
     assert len(client.upsert_calls) == 3
     assert client.update_calls == []
-    assert sleep_calls == [2.0, 4.0]
+    assert len(sleep_calls) == 2
+
+    assert 2.1 <= sleep_calls[0] <= 3.0
+    assert 4.1 <= sleep_calls[1] <= 5.0
     assert medicines[0]["jan_aushadhi_price"] == 18.50
     assert medicines[1]["jan_aushadhi_price"] == 25.00
 

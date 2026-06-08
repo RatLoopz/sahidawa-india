@@ -2,7 +2,6 @@
 
 import {
     ShieldCheck,
-    Heart,
     Globe,
     MapPin,
     Mic,

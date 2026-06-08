@@ -44,8 +44,6 @@ const PRECACHE_PAGES = [
     "/ta/offline",
 ];
 
-/** Maximum age (ms) for a stale API response before forcing a network refresh */
-const API_CACHE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutes
 
 // ---------------------------------------------------------------------------
 // INSTALL — precache core shell pages

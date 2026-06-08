@@ -2,9 +2,9 @@ name: 🔄 Sync Labels Between PR and Linked Issue
 
 on:
   pull_request_target:
-    types: [opened, edited, labeled]
+    types: [opened, edited, labeled, unlabeled]
   issues:
-    types: [labeled]
+    types: [labeled, unlabeled]
 
 permissions:
   issues: write
@@ -19,6 +19,13 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            // 🛑 PREVENT BOT LOOPS
+            // If the label was added or removed by a bot (like actions/labeler), ignore it so it doesn't cascade.
+            if (context.payload.sender && context.payload.sender.type === 'Bot') {
+              console.log("Action performed by a Bot (" + context.payload.sender.login + "). Ignoring to prevent infinite loops.");
+              return;
+            }
+
             async function getLinkedIssues(prNumber, prBody) {
               const linkedIssues = new Set();
               
@@ -103,23 +110,41 @@ jobs:
                     console.error(`Failed to copy labels from Issue #${issueNumber} to PR #${pr.number}:`, e);
                   }
                 }
-              } else if (action === 'labeled') {
+              } else if (action === 'labeled' || action === 'unlabeled') {
                 const labelName = context.payload.label.name;
                 console.log(`Label action detected on PR #${pr.number}: ${action} label "${labelName}"`);
 
                 for (const issueNumber of linkedIssues) {
                   try {
                     const issueLabels = await getTargetLabels(issueNumber);
-                    if (!issueLabels.includes(labelName)) {
-                      console.log(`Syncing addition: Adding label "${labelName}" to Issue #${issueNumber}`);
-                      await github.rest.issues.addLabels({
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        issue_number: issueNumber,
-                        labels: [labelName]
-                      });
-                    } else {
-                      console.log(`Issue #${issueNumber} already has label "${labelName}". Skipping.`);
+                    if (action === 'labeled') {
+                      if (!issueLabels.includes(labelName)) {
+                        console.log(`Syncing addition: Adding label "${labelName}" to Issue #${issueNumber}`);
+                        await github.rest.issues.addLabels({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          issue_number: issueNumber,
+                          labels: [labelName]
+                        });
+                      } else {
+                        console.log(`Issue #${issueNumber} already has label "${labelName}". Skipping.`);
+                      }
+                    } else if (action === 'unlabeled') {
+                      if (issueLabels.includes(labelName)) {
+                        console.log(`Syncing removal: Removing label "${labelName}" from Issue #${issueNumber}`);
+                        try {
+                          await github.rest.issues.removeLabel({
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            issue_number: issueNumber,
+                            name: labelName
+                          });
+                        } catch (e) {
+                          console.error(`Failed to remove label "${labelName}" from Issue #${issueNumber}:`, e);
+                        }
+                      } else {
+                        console.log(`Issue #${issueNumber} does not have label "${labelName}". Skipping.`);
+                      }
                     }
                   } catch (e) {
                     console.error(`Failed to sync label event for Issue #${issueNumber}:`, e);
@@ -128,7 +153,7 @@ jobs:
               }
             } else if (eventName === 'issues') {
               const issue = context.payload.issue;
-              if (action === 'labeled') {
+              if (action === 'labeled' || action === 'unlabeled') {
                 const labelName = context.payload.label.name;
                 console.log(`Label action detected on Issue #${issue.number}: ${action} label "${labelName}"`);
 
@@ -153,16 +178,34 @@ jobs:
                       console.log(`PR #${pr.number} is linked to Issue #${issue.number}. Checking label sync.`);
                       const prLabels = (pr.labels || []).map(l => l.name);
 
-                      if (!prLabels.includes(labelName)) {
-                        console.log(`Syncing addition: Adding label "${labelName}" to PR #${pr.number}`);
-                        await github.rest.issues.addLabels({
-                          owner: context.repo.owner,
-                          repo: context.repo.repo,
-                          issue_number: pr.number,
-                          labels: [labelName]
-                        });
-                      } else {
-                        console.log(`PR #${pr.number} already has label "${labelName}". Skipping.`);
+                      if (action === 'labeled') {
+                        if (!prLabels.includes(labelName)) {
+                          console.log(`Syncing addition: Adding label "${labelName}" to PR #${pr.number}`);
+                          await github.rest.issues.addLabels({
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            issue_number: pr.number,
+                            labels: [labelName]
+                          });
+                        } else {
+                          console.log(`PR #${pr.number} already has label "${labelName}". Skipping.`);
+                        }
+                      } else if (action === 'unlabeled') {
+                        if (prLabels.includes(labelName)) {
+                          console.log(`Syncing removal: Removing label "${labelName}" from PR #${pr.number}`);
+                          try {
+                            await github.rest.issues.removeLabel({
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              issue_number: pr.number,
+                              name: labelName
+                            });
+                          } catch (e) {
+                            console.error(`Failed to remove label "${labelName}" from PR #${pr.number}:`, e);
+                          }
+                        } else {
+                          console.log(`PR #${pr.number} does not have label "${labelName}". Skipping.`);
+                        }
                       }
                     }
                   } catch (e) {

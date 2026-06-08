@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Activity, ArrowLeft, Filter, AlertTriangle, AlertCircle, Search } from "lucide-react";
+import { Activity, ArrowLeft, Filter, AlertTriangle, Search } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { Globe } from "lucide-react";

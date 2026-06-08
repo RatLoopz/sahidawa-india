@@ -20,6 +20,7 @@ jobs:
       - uses: actions/labeler@v6
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          sync-labels: true
 
   apply-gssoc-label:
     name: "Apply default GSSoC 2026 label"

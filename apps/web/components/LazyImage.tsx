@@ -7,8 +7,6 @@ type LazyImageProps = Omit<ImgHTMLAttributes<HTMLImageElement>, "src"> & {
     src: string;
     wrapperClassName?: string;
     placeholderClassName?: string;
-    rootMargin?: string;
-    threshold?: number;
 };
 
 export default function LazyImage({
@@ -17,8 +15,6 @@ export default function LazyImage({
     className = "",
     wrapperClassName = "",
     placeholderClassName = "",
-    rootMargin, // Next.js Image does not use these, kept for compatibility
-    threshold,
     onLoad,
     ...imgProps
 }: LazyImageProps) {
