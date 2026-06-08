@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "../components/PageHeader";
+import { supabase } from "@/lib/supabase";
 import {
     Calendar,
     Trash2,
@@ -21,12 +22,33 @@ interface Medicine {
     batchNumber?: string;
 }
 
+/** Shape of a row returned from the `expiry_tracker_items` table. */
+interface DbRow {
+    id: string;
+    brand_name: string;
+    expiry_date: string;
+    batch_number?: string | null;
+}
+
 type FilterStatus = "all" | "expired" | "expiringSoon" | "safe";
 type SortOption = "expirySoonest" | "expiryLatest" | "alpha";
+
+const LOCAL_STORAGE_KEY = "sahidawa_expiry_tracker";
+
+/** Map a DB row to the UI Medicine shape. */
+function dbRowToMedicine(row: DbRow): Medicine {
+    return {
+        id: row.id,
+        name: row.brand_name,
+        expiryDate: row.expiry_date,
+        batchNumber: row.batch_number ?? undefined,
+    };
+}
 
 export default function ExpiryTrackerPage() {
     const t = useTranslations("ExpiryTracker");
     const [medicines, setMedicines] = useState<Medicine[]>([]);
+    const [userId, setUserId] = useState<string | null>(null);
     const [name, setName] = useState("");
     const [expiryDate, setExpiryDate] = useState("");
     const [batchNumber, setBatchNumber] = useState("");
@@ -37,64 +59,235 @@ export default function ExpiryTrackerPage() {
     const [importError, setImportError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // ─── Auth + initial data load ───────────────────────────────────────────
     useEffect(() => {
+        let authSubscription: { unsubscribe: () => void } | null = null;
+
+        const init = async () => {
+            try {
+                const {
+                    data: { session },
+                } = await supabase.auth.getSession();
+
+                const currentUserId = session?.user?.id ?? null;
+                setUserId(currentUserId);
+
+                if (currentUserId) {
+                    await loadFromDb(currentUserId);
+                } else {
+                    loadFromLocalStorage();
+                }
+            } catch (e) {
+                console.error("Failed to initialise expiry tracker:", e);
+                loadFromLocalStorage();
+            } finally {
+                setIsLoaded(true);
+            }
+
+            // Listen for sign-in / sign-out events
+            const { data } = supabase.auth.onAuthStateChange(async (_event, session) => {
+                const uid = session?.user?.id ?? null;
+                setUserId(uid);
+
+                if (uid) {
+                    await loadFromDb(uid);
+                } else {
+                    loadFromLocalStorage();
+                }
+            });
+            authSubscription = data.subscription;
+        };
+
+        init();
+
+        return () => {
+            authSubscription?.unsubscribe();
+        };
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // ─── Helpers ────────────────────────────────────────────────────────────
+    const loadFromLocalStorage = () => {
         try {
             if (typeof window !== "undefined" && window.localStorage) {
-                const saved = window.localStorage.getItem("sahidawa_expiry_tracker");
+                const saved = window.localStorage.getItem(LOCAL_STORAGE_KEY);
                 if (saved) setMedicines(JSON.parse(saved));
+                else setMedicines([]);
             }
         } catch (e) {
             console.error("Failed to load medicines from localStorage:", e);
-        } finally {
-            setIsLoaded(true);
         }
-    }, []);
+    };
+
+    const loadFromDb = async (uid: string) => {
+        try {
+            const { data, error } = await supabase
+                .from("expiry_tracker_items")
+                .select("id, brand_name, expiry_date, batch_number")
+                .eq("user_id", uid)
+                .order("expiry_date", { ascending: true });
+
+            if (error) throw error;
+            setMedicines((data ?? []).map(dbRowToMedicine));
+        } catch (e) {
+            console.error("Failed to load medicines from DB:", e);
+        }
+    };
 
     const saveToLocalStorage = (updatedList: Medicine[]) => {
         setMedicines(updatedList);
         try {
             if (typeof window !== "undefined" && window.localStorage) {
-                window.localStorage.setItem("sahidawa_expiry_tracker", JSON.stringify(updatedList));
+                window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedList));
             }
         } catch (e) {
             console.error("Failed to save medicines to localStorage:", e);
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    // ─── Add ────────────────────────────────────────────────────────────────
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!name || !expiryDate) return;
 
-        const newMedicine: Medicine = {
-            id: Date.now().toString(),
-            name,
-            expiryDate,
-            batchNumber,
-        };
-        saveToLocalStorage([...medicines, newMedicine]);
+        if (userId) {
+            // Authenticated: insert into DB
+            try {
+                const { data, error } = await supabase
+                    .from("expiry_tracker_items")
+                    .insert({
+                        user_id: userId,
+                        brand_name: name,
+                        expiry_date: expiryDate,
+                        batch_number: batchNumber || null,
+                    })
+                    .select("id, brand_name, expiry_date, batch_number")
+                    .single();
+
+                if (error) throw error;
+                if (data) {
+                    setMedicines((prev) => [...prev, dbRowToMedicine(data as DbRow)]);
+                }
+            } catch (e) {
+                console.error("Failed to insert medicine to DB:", e);
+            }
+        } else {
+            // Guest: persist to localStorage
+            const newMedicine: Medicine = {
+                id: Date.now().toString(),
+                name,
+                expiryDate,
+                batchNumber,
+            };
+            saveToLocalStorage([...medicines, newMedicine]);
+        }
+
         setName("");
         setExpiryDate("");
         setBatchNumber("");
     };
 
-    const handleDelete = (id: string) => {
-        saveToLocalStorage(medicines.filter((med) => med.id !== id));
+    // ─── Delete ─────────────────────────────────────────────────────────────
+    const handleDelete = async (id: string) => {
+        if (userId) {
+            try {
+                const { error } = await supabase.from("expiry_tracker_items").delete().eq("id", id);
+
+                if (error) throw error;
+                setMedicines((prev) => prev.filter((med) => med.id !== id));
+            } catch (e) {
+                console.error("Failed to delete medicine from DB:", e);
+            }
+        } else {
+            saveToLocalStorage(medicines.filter((med) => med.id !== id));
+        }
     };
 
+    // ─── Export ─────────────────────────────────────────────────────────────
+    const handleExport = () => {
+        const blob = new Blob([JSON.stringify(medicines, null, 2)], {
+            type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "sahidawa_expiry_backup.json";
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    // ─── Import ─────────────────────────────────────────────────────────────
+    const isValidYYYYMMDD = (dateStr: string): boolean => {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
+        const [year, month, day] = dateStr.split("-").map(Number);
+        const d = new Date(year, month - 1, day);
+        return d.getFullYear() === year && d.getMonth() === month - 1 && d.getDate() === day;
+    };
+
+    const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setImportError(null);
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            try {
+                const parsed = JSON.parse(event.target?.result as string);
+                if (!Array.isArray(parsed)) throw new Error("Not an array");
+
+                // Validate shape: must have id, name, and expiryDate strings
+                const valid = parsed.filter(
+                    (item) =>
+                        typeof item.id === "string" &&
+                        typeof item.name === "string" &&
+                        typeof item.expiryDate === "string"
+                );
+
+                // Reject the entire file if any record has a bad date format or
+                // a logically impossible calendar date (e.g. month 13, day 45)
+                const hasInvalidDate = valid.some((item) => !isValidYYYYMMDD(item.expiryDate));
+                if (hasInvalidDate) {
+                    setImportError(t("importDateError"));
+                    return;
+                }
+
+                const existingIds = new Set(medicines.map((m) => m.id));
+                const toAdd = valid.filter((m) => !existingIds.has(m.id));
+
+                if (userId) {
+                    // Authenticated: bulk-insert new records into DB
+                    if (toAdd.length > 0) {
+                        const rows = toAdd.map((m) => ({
+                            user_id: userId,
+                            brand_name: m.name,
+                            expiry_date: m.expiryDate,
+                            batch_number: m.batchNumber ?? null,
+                        }));
+
+                        const { data, error } = await supabase
+                            .from("expiry_tracker_items")
+                            .insert(rows)
+                            .select("id, brand_name, expiry_date, batch_number");
+
+                        if (error) throw error;
+                        setMedicines((prev) => [...prev, ...(data ?? []).map(dbRowToMedicine)]);
+                    }
+                } else {
+                    // Guest: merge into localStorage
+                    const merged = [...medicines, ...toAdd];
+                    saveToLocalStorage(merged);
+                }
+            } catch {
+                setImportError(t("importError"));
+            }
+        };
+        reader.readAsText(file);
+        e.target.value = "";
+    };
+
+    // ─── Utility ────────────────────────────────────────────────────────────
     const parseLocalDate = (dateStr: string) => {
         const [year, month, day] = dateStr.split("-").map(Number);
         return new Date(year, month - 1, day);
-    };
-
-    const isValidDateString = (dateStr: string): boolean => {
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
-        const [year, month, day] = dateStr.split("-").map(Number);
-        if (month < 1 || month > 12) return false;
-        if (day < 1 || day > 31) return false;
-        const date = new Date(year, month - 1, day);
-        return (
-            date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
-        );
     };
 
     const getDiffDays = (dateStr: string) => {
@@ -128,50 +321,7 @@ export default function ExpiryTrackerPage() {
         };
     };
 
-    // Export
-    const handleExport = () => {
-        const blob = new Blob([JSON.stringify(medicines, null, 2)], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "sahidawa_expiry_backup.json";
-        a.click();
-        URL.revokeObjectURL(url);
-    };
-
-    // Import
-    const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setImportError(null);
-        const file = e.target.files?.[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            try {
-                const parsed = JSON.parse(event.target?.result as string);
-                if (!Array.isArray(parsed)) throw new Error("Not an array");
-                const valid = parsed.filter(
-                    (item) =>
-                        typeof item.id === "string" &&
-                        typeof item.name === "string" &&
-                        typeof item.expiryDate === "string" &&
-                        isValidDateString(item.expiryDate)
-                );
-                if (valid.length !== parsed.length) {
-                    setImportError(t("importDateError"));
-                    return;
-                }
-                const existingIds = new Set(medicines.map((m) => m.id));
-                const merged = [...medicines, ...valid.filter((m) => !existingIds.has(m.id))];
-                saveToLocalStorage(merged);
-            } catch {
-                setImportError(t("importError"));
-            }
-        };
-        reader.readAsText(file);
-        e.target.value = "";
-    };
-
-    // Filter + Search + Sort
+    // ─── Filter + Search + Sort ─────────────────────────────────────────────
     const processedMedicines = medicines
         .filter((med) => {
             if (filterStatus === "all") return true;
@@ -193,6 +343,7 @@ export default function ExpiryTrackerPage() {
         { key: "safe", label: t("filterSafe") },
     ];
 
+    // ─── Render ─────────────────────────────────────────────────────────────
     return (
         <div className="min-h-screen bg-(--color-surface-page) text-(--color-text-primary) transition-colors duration-300">
             <PageHeader title={t("title")} subtitle={t("subtitle")} backHref="/" variant="light" />

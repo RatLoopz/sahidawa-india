@@ -5,10 +5,12 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 
 import ExpiryTrackerPage from "../app/[locale]/expiry-tracker/page";
 
+// ─── Mock next-intl ────────────────────────────────────────────────────────
 jest.mock("next-intl", () => ({
     useTranslations: () => (key: string) => key,
 }));
 
+// ─── Mock PageHeader ───────────────────────────────────────────────────────
 jest.mock("../app/[locale]/components/PageHeader", () => ({
     PageHeader: ({ title, subtitle }: { title?: string; subtitle?: string }) => (
         <header>
@@ -19,11 +21,31 @@ jest.mock("../app/[locale]/components/PageHeader", () => ({
     ),
 }));
 
+// ─── Mock Supabase (unauthenticated by default) ────────────────────────────
+// Most tests exercise the guest / localStorage path; individual tests that
+// need the authenticated path override these mocks.
+const mockGetSession = jest.fn().mockResolvedValue({ data: { session: null } });
+const mockOnAuthStateChange = jest.fn().mockReturnValue({
+    data: { subscription: { unsubscribe: jest.fn() } },
+});
+
+jest.mock("../lib/supabase", () => ({
+    supabase: {
+        auth: {
+            getSession: () => mockGetSession(),
+            onAuthStateChange: (...args: unknown[]) => mockOnAuthStateChange(...args),
+        },
+        from: jest.fn(),
+    },
+}));
+
 const STORAGE_KEY = "sahidawa_expiry_tracker";
 
-describe("ExpiryTrackerPage", () => {
+// ─── Guest / localStorage tests ────────────────────────────────────────────
+describe("ExpiryTrackerPage (guest — localStorage)", () => {
     beforeEach(() => {
         localStorage.clear();
+        mockGetSession.mockResolvedValue({ data: { session: null } });
     });
 
     it("renders the add-medicine form with name, expiry and batch inputs", () => {
@@ -82,9 +104,11 @@ describe("ExpiryTrackerPage", () => {
     });
 });
 
-describe("ExpiryTrackerPage import", () => {
+// ─── Import tests ──────────────────────────────────────────────────────────
+describe("ExpiryTrackerPage import (guest)", () => {
     beforeEach(() => {
         localStorage.clear();
+        mockGetSession.mockResolvedValue({ data: { session: null } });
     });
 
     const createFile = (data: unknown): File => {
@@ -148,5 +172,48 @@ describe("ExpiryTrackerPage import", () => {
             expect(screen.getByText("importDateError")).toBeInTheDocument();
         });
         expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]")).toEqual([]);
+    });
+});
+
+// ─── Authenticated / Supabase path tests ──────────────────────────────────
+describe("ExpiryTrackerPage (authenticated — Supabase)", () => {
+    const MOCK_USER_ID = "test-user-uuid-1234";
+
+    beforeEach(() => {
+        localStorage.clear();
+        // Simulate an authenticated session
+        mockGetSession.mockResolvedValue({
+            data: { session: { user: { id: MOCK_USER_ID } } },
+        });
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("loads medicines from the database on mount for authenticated users", async () => {
+        const dbRows = [
+            {
+                id: "db-id-1",
+                brand_name: "Atorvastatin",
+                expiry_date: "2027-08-01",
+                batch_number: "ATV-10",
+            },
+        ];
+
+        // Build a proper Supabase fluent-builder mock
+        // Chain: .from().select().eq().order() → resolves with data
+        const orderMock = jest.fn().mockResolvedValue({ data: dbRows, error: null });
+        const eqMock = jest.fn().mockReturnValue({ order: orderMock });
+        const selectMock = jest.fn().mockReturnValue({ eq: eqMock });
+
+        const { supabase } = jest.requireMock("../lib/supabase");
+        supabase.from.mockReturnValue({ select: selectMock });
+
+        render(<ExpiryTrackerPage />);
+
+        await waitFor(() => {
+            expect(screen.getByRole("heading", { name: "Atorvastatin" })).toBeInTheDocument();
+        });
     });
 });
