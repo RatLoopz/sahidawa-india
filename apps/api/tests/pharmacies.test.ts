@@ -1,15 +1,13 @@
 process.env.SUPABASE_URL = process.env.SUPABASE_URL || "http://localhost:54321";
-process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "test-anon-key";
+process.env.SUPABASE_SERVICE_ROLE_KEY =
+    process.env.SUPABASE_SERVICE_ROLE_KEY || "test-service-role-key";
 
 (global as any).WebSocket = (global as any).WebSocket || class {};
 
 jest.mock("../src/db/client", () => ({
     supabase: {
-        from: jest.fn().mockReturnThis(),
-        select: jest.fn().mockReturnThis(),
-        ilike: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockReturnThis(),
-        maybeSingle: jest.fn(),
+        rpc: jest.fn(),
+        from: jest.fn(),
     },
 }));
 
@@ -23,9 +21,12 @@ jest.mock("../src/db/supabase", () => ({
 
 import request from "supertest";
 import app from "../src/app";
-import supabase from "../src/db/supabase";
 
-const mockedSupabase = supabase as jest.Mocked<typeof supabase>;
+// After mocks are registered, grab the shared mock object from the client mock
+// (the route uses ../db/client, so this is the one that matters)
+const { supabase: mockedSupabase } = jest.requireMock("../src/db/client") as {
+    supabase: { rpc: jest.Mock; from: jest.Mock };
+};
 
 describe("GET /api/pharmacies/nearest", () => {
     beforeEach(() => {
@@ -409,7 +410,7 @@ describe("POST /api/pharmacies", () => {
             }),
         });
 
-        (supabase.from as jest.Mock).mockImplementation((table) => {
+        mockedSupabase.from.mockImplementation((table) => {
             if (table === "pharmacies") {
                 return {
                     select: selectMock,
@@ -445,7 +446,7 @@ describe("POST /api/pharmacies", () => {
             }),
         });
 
-        (supabase.from as jest.Mock).mockImplementation((table) => {
+        mockedSupabase.from.mockImplementation((table) => {
             if (table === "pharmacies") {
                 return {
                     select: selectMock,

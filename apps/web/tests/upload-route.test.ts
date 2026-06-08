@@ -3,7 +3,7 @@ import crypto from "crypto";
 const CLOUD_NAME = "test-cloud";
 const API_KEY = "test-key";
 const API_SECRET = "test-secret";
-type UploadPost = typeof import("../app/api/upload/route").POST;
+type UploadPost = (req: any) => Promise<any>;
 
 const limitBuckets = new Map<string, { count: number; resetAt: number }>();
 const mockLimit = jest.fn().mockImplementation(async (ip: string) => {
@@ -56,9 +56,8 @@ describe("POST /api/upload", () => {
         jest.resetModules();
         limitBuckets.clear();
         mockLimit.mockClear();
-        ({ POST: post } = (await import("../app/api/upload/route")) as {
-            POST: UploadPost;
-        });
+        const routeModule = require("../app/api/upload/route") as { POST: UploadPost };
+        post = routeModule.POST;
 
         process.env.CLOUDINARY_CLOUD_NAME = CLOUD_NAME;
         process.env.CLOUDINARY_API_KEY = API_KEY;
