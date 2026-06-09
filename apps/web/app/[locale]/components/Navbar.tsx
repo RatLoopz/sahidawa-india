@@ -178,6 +178,10 @@ export default function Navbar() {
                         className="ml-6 hidden items-center justify-center gap-6 text-sm font-semibold text-(--color-text-secondary) lg:flex"
                         aria-label="Main navigation"
                     >
+                        <Link href="/" className={desktopNavLinkClassName}>
+                            <Home size={14} className="mr-1 inline" />
+                            {tNav("home")}
+                        </Link>
                         <Link href="/how-it-works" className={desktopNavLinkClassName}>
                             {tNav("how_it_works")}
                         </Link>
