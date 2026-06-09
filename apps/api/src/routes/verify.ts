@@ -6,6 +6,30 @@ import { optionalAuth } from "../middleware/auth";
 import logger from "../utils/logger";
 import { escapeIlike } from "../utils/db";
 
+function maskClientIp(ip: string | undefined): string | null {
+    if (!ip) return null;
+
+    // Express behind proxies sometimes gives ::ffff:x.x.x.x
+    const normalized = ip.replace(/^::ffff:/, "");
+
+    // IPv4
+    if (normalized.includes(".")) {
+        const parts = normalized.split(".");
+        if (parts.length === 4) {
+            parts[3] = "0";
+            return parts.join(".");
+        }
+    }
+
+    // IPv6
+    if (normalized.includes(":")) {
+        const parts = normalized.split(":");
+        return parts.slice(0, 4).concat(["0000", "0000", "0000", "0000"]).join(":");
+    }
+
+    return null;
+}
+
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim())
     : [
@@ -230,7 +254,7 @@ router.post(
                     batch_number: data.batch_number,
                     medicine_id: data.id,
                     barcode_id: data.barcode_id,
-                    client_ip: req.ip || null,
+                    client_ip: maskClientIp(req.ip),
                     origin: req.headers.origin ?? null,
                     user_agent: req.headers["user-agent"] ?? null,
                     latitude: latitude ?? null,

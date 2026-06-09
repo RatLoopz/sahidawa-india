@@ -2,6 +2,7 @@
 
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 import ExpiryTrackerPage from "../app/[locale]/expiry-tracker/page";
 
@@ -103,7 +104,8 @@ describe("ExpiryTrackerPage import", () => {
         const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
         expect(fileInput).toBeInTheDocument();
 
-        fireEvent.change(fileInput, { target: { files: [file] } });
+        const user = userEvent.setup();
+        await user.upload(fileInput, file);
 
         await waitFor(() => {
             expect(screen.getByRole("heading", { name: "Ibuprofen" })).toBeInTheDocument();
@@ -124,7 +126,8 @@ describe("ExpiryTrackerPage import", () => {
         const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
         expect(fileInput).toBeInTheDocument();
 
-        fireEvent.change(fileInput, { target: { files: [createFile(backup)] } });
+        const user = userEvent.setup();
+        await user.upload(fileInput, createFile(backup));
 
         await waitFor(() => {
             expect(screen.getByText("importDateError")).toBeInTheDocument();
@@ -142,11 +145,43 @@ describe("ExpiryTrackerPage import", () => {
         const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
         expect(fileInput).toBeInTheDocument();
 
-        fireEvent.change(fileInput, { target: { files: [createFile(backup)] } });
+        const user = userEvent.setup();
+        await user.upload(fileInput, createFile(backup));
 
         await waitFor(() => {
             expect(screen.getByText("importDateError")).toBeInTheDocument();
         });
         expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]")).toEqual([]);
+    });
+});
+describe("Date Handling and Sorting", () => {
+    beforeAll(() => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date("2026-06-08T00:00:00Z"));
+    });
+
+    afterAll(() => {
+        jest.useRealTimers();
+    });
+
+    beforeEach(() => {
+        localStorage.clear();
+    });
+
+    it("loads initial data from localStorage, handles date boundaries, and sorts correctly", async () => {
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify([
+                { id: "1", name: "Future Med", expiryDate: "2028-01-01", batchNumber: "F-1" },
+                { id: "2", name: "Expired Med", expiryDate: "2025-01-01", batchNumber: "E-1" },
+                { id: "3", name: "Expiring Today", expiryDate: "2026-06-08", batchNumber: "T-1" },
+            ])
+        );
+
+        render(<ExpiryTrackerPage />);
+
+        expect(await screen.findByRole("heading", { name: "Future Med" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Expired Med" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Expiring Today" })).toBeInTheDocument();
     });
 });

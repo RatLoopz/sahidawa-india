@@ -33,6 +33,9 @@
         "alerts_empty_title": "All clear!",
         "alerts_empty_description": "No active regulatory alerts right now. Stay safe and verify your medicines.",
         "view_full_alert_log": "View Full Alert Log",
+        "vaccine_title": "Vaccine Hub & Immunization Tracker",
+        "vaccine_subtitle": "Explore vaccine schedules, safety info, and aftercare guidance for better public health awareness.",
+        "vaccine_open": "Open Vaccine Hub",
         "heroTitle": {
             "prefix": "Your Health, ",
             "highlight": "Verified & Protected."
@@ -647,5 +650,38 @@
         "nav_vaccine": "Vaccine Hub",
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
+    },
+    "medicineSafety": {
+        "guideTitle": "Usage & Safety Guide",
+        "noDosageInfo": "No dosage info available for this age group.",
+        "closeButton": "Close Safety Info",
+        "tabs": {
+            "sideEffects": "Side Effects",
+            "dosage": "Dosage",
+            "dietaryIntake": "Dietary Intake"
+        },
+        "sideEffects": {
+            "standardSymptoms": "Standard Symptoms",
+            "severeRedFlags": "Severe Red Flags — Seek Medical Attention"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "Kids",
+                "adults": "Adults",
+                "elderly": "Elderly"
+            },
+            "doseLabel": "Dose:",
+            "frequencyLabel": "Frequency:",
+            "notesHeading": "Notes",
+            "warningsHeading": "Warnings"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "Dietary Intake"
+            },
+            "storageHeading": "Storage",
+            "pregnancyHeading": "Pregnancy"
+        },
+        "disclaimer": "This information is educational and does not replace professional medical advice."
     }
 }

@@ -87,6 +87,7 @@ export default function MedicineSearchSelect({
     const [loading, setLoading] = useState(false);
     const [history, setHistory] = useState<HistoryEntry[]>([]);
     const [activeIndex, setActiveIndex] = useState(-1);
+    const latestQueryRef = useRef("");
 
     // Load history once on mount
     useEffect(() => {
@@ -101,10 +102,12 @@ export default function MedicineSearchSelect({
             setResults([]);
             return;
         }
+        latestQueryRef.current = q;
         const t = setTimeout(async () => {
             setLoading(true);
             try {
                 const res = await onSearch(q);
+                if (latestQueryRef.current !== q) return;
                 setResults(res);
                 setActiveIndex(res.length ? 0 : -1);
                 // Only persist to history when we actually got results back

@@ -35,7 +35,7 @@ export function createCorsOptions(env: NodeJS.ProcessEnv = process.env): CorsOpt
 
     return {
         origin(origin, callback) {
-            if (!origin || allowedOrigins.includes(origin)) {
+            if (origin && allowedOrigins.includes(origin)) {
                 callback(null, true);
                 return;
             }

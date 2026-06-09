@@ -7,7 +7,7 @@ import {
     Store,
     BellRing,
     AlertTriangle,
-    ArrowLeft,
+    ArrowRight,
     QrCode,
     MapPin,
     Shield,
@@ -17,6 +17,7 @@ import {
 // commit 8359882 / PR #918 ("fix(web): use i18n routing link and remove
 // hardcoded locale in how-it-works"). Hrefs below are intentionally relative.
 import { Link } from "@/i18n/routing";
+import { PageHeader } from "../components/PageHeader";
 
 const steps = [
     {
@@ -113,6 +114,7 @@ const timelineSteps = [
 export default function HowItWorksPage() {
     return (
         <main className="min-h-screen overflow-x-hidden bg-gradient-to-b from-(--color-surface-page) via-emerald-500/[0.03] to-(--color-surface-page) text-(--color-text-primary)">
+            <PageHeader backHref="/" variant="light"/>
             {/* Hero Section */}
             <section className="relative px-6 pt-24 pb-20">
                 {/* Glow Effects */}
@@ -120,13 +122,7 @@ export default function HowItWorksPage() {
                 <div className="absolute right-0 bottom-0 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl" />
 
                 <div className="relative mx-auto max-w-6xl text-center">
-                    <Link
-                        href="/"
-                        aria-label="Back to Home"
-                        className="absolute top-6 left-6 flex h-12 w-12 items-center justify-center rounded-full border border-(--color-border-muted) bg-(--color-surface-muted) shadow-sm transition-all duration-300 hover:scale-105 hover:bg-(--color-border-muted)"
-                    >
-                        <ArrowLeft size={22} className="text-(--color-text-secondary)" />
-                    </Link>
+                  
                     <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-5 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
                         <span className="h-2 w-2 rounded-full bg-emerald-500" />
                         Safe Healthcare • AI Powered
@@ -175,7 +171,7 @@ export default function HowItWorksPage() {
                                 className="group relative min-w-[250px] flex-shrink-0 snap-start sm:min-w-[280px] md:min-w-0"
                             >
                                 <div
-                                    className={`flex h-full flex-col items-center rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 text-center shadow-xs transition-all duration-500 hover:-translate-y-2 hover:shadow-xl active:scale-[0.99] ${step.borderClass}`}
+                                    className={`flex h-full flex-col items-center rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-8 text-center shadow-xs transition-all duration-500 hover:-translate-y-2 hover:shadow-xl active:scale-[0.99] ${step.borderClass}`}
                                 >
                                     {/* Icon Container with Floating Number Badge */}
                                     <div
@@ -222,9 +218,9 @@ export default function HowItWorksPage() {
                         {steps.map((step, index) => (
                             <div
                                 key={index}
-                                className="group rounded-[32px] border border-(--color-border-muted) bg-(--color-surface-page) p-8 shadow-sm transition-all duration-500 hover:-translate-y-3 hover:border-emerald-300/40 hover:shadow-2xl active:scale-[0.99]"
+                                className="group rounded-[28px] border border-(--color-border-muted) bg-(--color-surface-page) p-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-lg active:scale-[0.99]"
                             >
-                                <div className="dark:text-emerald-450 mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-100 to-blue-100 text-emerald-600 transition-transform duration-300 group-hover:scale-110 dark:from-emerald-950/20 dark:to-blue-950/20">
+                                <div className="dark:text-emerald-450 mb-6 flex h-16 w-16 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100 transition-all duration-300 group-hover:scale-105 dark:bg-emerald-950/40 dark:ring-emerald-900">
                                     {step.icon}
                                 </div>
 
@@ -243,7 +239,12 @@ export default function HowItWorksPage() {
 
             {/* Bottom CTA */}
             <section className="px-6 pb-24">
-                <div className="mx-auto max-w-5xl rounded-[40px] bg-gradient-to-r from-emerald-600 to-teal-500 p-12 text-center text-white shadow-2xl">
+                <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[40px] bg-gradient-to-br from-emerald-700 via-emerald-600 to-teal-600 p-12 text-center text-white shadow-2xl">
+                    <div className="pointer-events-none absolute inset-0 rounded-[40px] ring-1 ring-white/10" />
+
+                    <div className="pointer-events-none absolute -top-20 -right-20 h-64 w-64 rounded-full border-2 border-white/20" />
+
+                    <div className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full border-2 border-white/20" />
                     <h2 className="mb-6 text-4xl font-black md:text-5xl">
                         Safer Healthcare Starts Here
                     </h2>
@@ -256,14 +257,14 @@ export default function HowItWorksPage() {
                     <div className="mt-10 flex flex-wrap justify-center gap-4">
                         <Link
                             href="/scan"
-                            className="rounded-2xl bg-white px-8 py-4 font-bold text-emerald-700 transition-transform duration-300 hover:scale-105"
+                            className="flex h-12 items-center justify-center rounded-2xl bg-white px-8 font-bold text-emerald-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98]"
                         >
                             Scan Medicine
                         </Link>
 
                         <Link
                             href="/alerts"
-                            className="rounded-2xl border border-white/40 px-8 py-4 font-bold transition-all duration-300 hover:bg-white/10"
+                            className="flex h-12 items-center justify-center rounded-2xl border border-white/40 px-8 font-bold shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/10 active:scale-[0.98]"
                         >
                             View Alerts
                         </Link>

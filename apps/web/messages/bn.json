@@ -637,5 +637,38 @@
         "nav_vaccine": "Vaccine Hub",
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
-    }
+    },
+  "medicineSafety": {
+    "guideTitle": "ব্যবহার ও নিরাপত্তা নির্দেশিকা",
+    "noDosageInfo": "এই বয়সের জন্য ডোজ সংক্রান্ত তথ্য উপলব্ধ নয়।",
+    "closeButton": "নিরাপত্তা তথ্য বন্ধ করুন",
+    "tabs": {
+      "sideEffects": "পার্শ্বপ্রতিক্রিয়া",
+      "dosage": "ডোজ",
+      "dietaryIntake": "খাদ্য গ্রহণ"
+    },
+    "sideEffects": {
+      "standardSymptoms": "সাধারণ উপসর্গ",
+      "severeRedFlags": "গুরুতর সতর্ক সংকেত — চিকিৎসা সহায়তা নিন"
+    },
+    "dosage": {
+      "tabs": {
+        "kids": "শিশু",
+        "adults": "প্রাপ্তবয়স্ক",
+        "elderly": "বয়স্ক"
+      },
+      "doseLabel": "ডোজ:",
+      "frequencyLabel": "বারংবারতা:",
+      "notesHeading": "নোট",
+      "warningsHeading": "সতর্কতা"
+    },
+    "dietary": {
+      "tabs": {
+        "dietaryIntake": "খাদ্য গ্রহণ"
+      },
+      "storageHeading": "সংরক্ষণ",
+      "pregnancyHeading": "গর্ভাবস্থা"
+    },
+    "disclaimer": "এই তথ্য শিক্ষামূলক এবং পেশাদার চিকিৎসা পরামর্শের বিকল্প নয়।"
+  }
 }
