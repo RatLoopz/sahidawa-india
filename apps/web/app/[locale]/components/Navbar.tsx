@@ -149,7 +149,7 @@ export default function Navbar() {
     return (
         <>
             {/* ── Top Navigation ── */}
-            <header className="sticky top-0 z-50 w-full border-b border-white/30 bg-white/60 shadow-sm shadow-black/5 backdrop-blur-md dark:border-white/10 dark:bg-slate-900/60">
+            <header className="sticky top-0 z-[100] w-full border-b border-white/30 bg-white/60 shadow-sm shadow-black/5 backdrop-blur-md dark:border-white/10 dark:bg-slate-900/60">
                 <div className="container mx-auto flex h-16 items-center justify-between gap-1 px-2 sm:gap-3 sm:px-4 md:px-6">
                     {/* Left — Logo & Brand Title */}
                     <div className="flex min-w-0 flex-1 items-center">
@@ -210,7 +210,7 @@ export default function Navbar() {
                             >
                                 <MessageCircle size={16} />
                             </Link>
-                            <div className="pointer-events-none absolute top-full left-1/2 z-50 mt-2 -translate-x-1/2 rounded-md bg-slate-900 px-2 py-1 text-xs font-medium whitespace-nowrap text-white opacity-0 transition-all duration-200 group-hover:opacity-100">
+                            <div className="pointer-events-none absolute top-full left-1/2 z-[100] mt-2 -translate-x-1/2 rounded-md bg-slate-900 px-2 py-1 text-xs font-medium whitespace-nowrap text-white opacity-0 transition-all duration-200 group-hover:opacity-100">
                                 Health Companion
                             </div>
                         </div>
@@ -244,7 +244,7 @@ export default function Navbar() {
 
                             {/* Dropdown Vertical Panel Menu */}
                             {isMenuOpen && (
-                                <div className="animate-in fade-in slide-in-from-top-2 absolute top-full right-0 z-50 mt-2 w-52 origin-top-right rounded-xl border border-slate-200 bg-white p-2 shadow-xl duration-150 dark:border-slate-800 dark:bg-slate-950">
+                                <div className="animate-in fade-in slide-in-from-top-2 absolute top-full right-0 z-[100] mt-2 w-44 origin-top-right rounded-xl border border-slate-200 bg-white p-2 shadow-xl duration-150 dark:border-slate-800 dark:bg-slate-950">
                                     <div className="flex flex-col gap-1.5">
                                         {/* Added Core Navigation Links */}
                                         <div className="flex flex-col gap-1 px-1">
