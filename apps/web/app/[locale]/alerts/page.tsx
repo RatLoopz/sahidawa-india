@@ -64,7 +64,7 @@ export default function FullAlertsLogPage() {
                 setTotalCount(data.totalCount || 0);
             } catch (err) {
                 // Log silently to avoid Next.js dev overlay popup
-                console.log("Fetch failed:", err instanceof Error ? err.message : err);
+                
                 setError(true);
             } finally {
                 setLoading(false);

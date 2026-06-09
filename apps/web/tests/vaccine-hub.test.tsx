@@ -49,7 +49,57 @@ describe("VaccineHubPage Integration Tests", () => {
         render(<VaccineHubPage />);
 
         expect(screen.getByText("title")).toBeInTheDocument();
+        expect(
+            screen.getByRole("heading", { name: "Child Vaccination Tracker" })
+        ).toBeInTheDocument();
         expect(screen.getByText("noVaccineSelected")).toBeInTheDocument();
+    });
+
+    it("generates a personalized child schedule and toggles completed doses", async () => {
+        render(<VaccineHubPage />);
+        const user = userEvent.setup();
+
+        await user.type(screen.getByLabelText("Child name"), "Aarav");
+        await user.type(screen.getByLabelText("Date of birth"), "2024-01-01");
+
+        await waitFor(() => {
+            expect(screen.getByText("Aarav")).toBeInTheDocument();
+            expect(screen.getByText("BCG")).toBeInTheDocument();
+            expect(screen.getByText("OPV-1")).toBeInTheDocument();
+        });
+
+        await user.click(screen.getByRole("button", { name: /mark BCG completed/i }));
+
+        expect(screen.getByRole("button", { name: /mark BCG due/i })).toBeInTheDocument();
+    });
+
+    it("does not persist child date of birth to localStorage", async () => {
+        render(<VaccineHubPage />);
+        const user = userEvent.setup();
+
+        await user.type(screen.getByLabelText("Date of birth"), "2024-01-01");
+
+        expect(localStorage.getItem("vaccine-hub-child-tracker-v1")).toBeNull();
+    });
+
+    it("shows a validation message for future child dates of birth", async () => {
+        render(<VaccineHubPage />);
+        const user = userEvent.setup();
+        const futureDate = new Date();
+        futureDate.setDate(futureDate.getDate() + 1);
+
+        await user.type(
+            screen.getByLabelText("Date of birth"),
+            futureDate.toISOString().split("T")[0]
+        );
+
+        expect(screen.getByText("Date of birth cannot be in the future.")).toBeInTheDocument();
+    });
+
+    it("limits child profile names to a mobile-safe length", () => {
+        render(<VaccineHubPage />);
+
+        expect(screen.getByLabelText("Child name")).toHaveAttribute("maxLength", "80");
     });
 
     it("shows vaccine selector control", () => {
@@ -102,7 +152,7 @@ describe("VaccineHubPage Integration Tests", () => {
         await user.click(selector);
 
         await waitFor(() => {
-            screen.getAllByText(/Poliomyelitis/i)[0];
+            expect(screen.getAllByText(/Poliomyelitis/i)[0]).toBeInTheDocument();
         });
 
         const polioOption = screen.getAllByText(/Poliomyelitis/i)[0];
@@ -124,7 +174,7 @@ describe("VaccineHubPage Integration Tests", () => {
         await user.click(selector);
 
         await waitFor(() => {
-            screen.getAllByText(/Poliomyelitis/i)[0];
+            expect(screen.getAllByText(/Poliomyelitis/i)[0]).toBeInTheDocument();
         });
 
         const polioOption = screen.getAllByText(/Poliomyelitis/i)[0];
@@ -149,7 +199,7 @@ describe("VaccineHubPage Integration Tests", () => {
         await user.click(selector);
 
         await waitFor(() => {
-            screen.getAllByText(/Poliomyelitis/i)[0];
+            expect(screen.getAllByText(/Poliomyelitis/i)[0]).toBeInTheDocument();
         });
 
         const polioOption = screen.getAllByText(/Poliomyelitis/i)[0];
@@ -171,7 +221,7 @@ describe("VaccineHubPage Integration Tests", () => {
         await user.click(selector);
 
         await waitFor(() => {
-            screen.getAllByText(/Poliomyelitis/i)[0];
+            expect(screen.getAllByText(/Poliomyelitis/i)[0]).toBeInTheDocument();
         });
 
         const polioOption = screen.getAllByText(/Poliomyelitis/i)[0];
@@ -192,7 +242,7 @@ describe("VaccineHubPage Integration Tests", () => {
         await user.click(selector);
 
         await waitFor(() => {
-            screen.getAllByText(/Poliomyelitis/i)[0];
+            expect(screen.getAllByText(/Poliomyelitis/i)[0]).toBeInTheDocument();
         });
 
         const polioOption = screen.getAllByText(/Poliomyelitis/i)[0];
@@ -224,7 +274,7 @@ describe("VaccineHubPage Integration Tests", () => {
         await user.click(selector);
 
         await waitFor(() => {
-            screen.getAllByText(/Poliomyelitis/i)[0];
+            expect(screen.getAllByText(/Poliomyelitis/i)[0]).toBeInTheDocument();
         });
 
         const polioOption = screen.getAllByText(/Poliomyelitis/i)[0];

@@ -4,3 +4,4 @@ export { VaccineDetails } from "./VaccineDetails";
 export { SafetyInfo } from "./SafetyInfo";
 export { AftercareGuidance } from "./AftercareGuidance";
 export { DateInitializer } from "./DateInitializer";
+export { ChildVaccinationTracker } from "./ChildVaccinationTracker";
