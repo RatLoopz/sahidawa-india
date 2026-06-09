@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { SkeletonLoader } from "@/components/scanner/SkeletonLoader";
+import imageCompression from "browser-image-compression";
 import {
     Camera,
     ShieldCheck,
@@ -782,15 +783,31 @@ export default function ScanPage() {
     }, [verifyResult]);
 
     const MAX_FILE_SIZE = 10 * 1024 * 1024;
+    const COMPRESSION_THRESHOLD = 2 * 1024 * 1024;
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        let processedFile = file;
+
         if (file.size > MAX_FILE_SIZE) {
             toast.error("File exceeds 10MB limit");
             e.target.value = "";
             return;
+        }
+
+        if (file.size > COMPRESSION_THRESHOLD) {
+            try {
+                processedFile = await imageCompression(file, {
+                    maxSizeMB: 1,
+                    maxWidthOrHeight: 1920,
+                    useWebWorker: true,
+                });
+            } catch {
+                toast.error("Failed to compress image");
+                return;
+            }
         }
 
         const reader = new FileReader();
@@ -799,7 +816,7 @@ export default function ScanPage() {
             dataUrl = await new Promise<string>((resolve, reject) => {
                 reader.onloadend = () => resolve(reader.result as string);
                 reader.onerror = () => reject(new Error("Failed to read image file"));
-                reader.readAsDataURL(file);
+                reader.readAsDataURL(processedFile);
             });
         } catch {
             toast.error("Could not read the image file. Please try again.");

@@ -19,7 +19,10 @@ export function isPharmacyOpen(operatingHours: string): boolean {
     const openMinutes = openH * 60 + openM;
     const closeMinutes = closeH * 60 + closeM;
 
-    return currentMinutes >= openMinutes && currentMinutes < closeMinutes;
+    if (openMinutes < closeMinutes) {
+        return currentMinutes >= openMinutes && currentMinutes < closeMinutes;
+    }
+    return currentMinutes >= openMinutes || currentMinutes < closeMinutes;
 }
 
 interface PharmacyStatusBadgeProps {

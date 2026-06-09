@@ -77,6 +77,7 @@ class CDSCOValidator:
         self._cdsco_df: pd.DataFrame | None = None
         self._exact_product_map = {}
         self._first_letter_map = {}
+        self._all_choices_data = []
 
     def load_reference(self, cdsco_df: pd.DataFrame) -> None:
         """
@@ -98,6 +99,7 @@ class CDSCOValidator:
         # Build optimized lookup structures
         self._exact_product_map = {}
         self._first_letter_map = {}
+        self._all_choices_data = []
 
         for _, row in df.iterrows():
             norm_p = row["_norm_product"]
@@ -117,12 +119,15 @@ class CDSCOValidator:
                 first_char = norm_p[0]
                 if first_char not in self._first_letter_map:
                     self._first_letter_map[first_char] = []
-                self._first_letter_map[first_char].append({
+                entry = {
                     "brand_name": row["brand_name"],
                     "firm_name": row["firm_name"],
                     "norm_p": norm_p,
                     "norm_m": norm_m
-                })
+                }
+
+                self._first_letter_map[first_char].append(entry)
+                self._all_choices_data.append(entry)
 
         logger.info(f"[Validator] Loaded {len(df)} CDSCO reference rows and built lookup indexes")
 
@@ -238,21 +243,52 @@ class CDSCOValidator:
             if best_score >= self.threshold:
                 return best_cand, best_score
 
-        # 2. Fuzzy match lookup using first-letter partition
+        # 2. Fuzzy match lookup using first-letter partition (fast path)
         first_char = norm_product[0]
         choices_data = self._first_letter_map.get(first_char, [])
-        if not choices_data:
-            return None, 0.0
 
-        choices = [c["norm_p"] for c in choices_data]
-        product_match = process.extractOne(norm_product, choices, scorer=fuzz.token_sort_ratio)
-        if not product_match:
-            return None, 0.0
+        product_match = None
 
-        _, product_score, idx = product_match
-        cdsco_cand = choices_data[idx]
-        manufacturer_score = fuzz.token_sort_ratio(norm_manufacturer, cdsco_cand["norm_m"])
-        final_score = PRODUCT_WEIGHT * product_score + MANUFACTURER_WEIGHT * manufacturer_score
+        if choices_data:
+            choices = [c["norm_p"] for c in choices_data]
+            product_match = process.extractOne(
+                norm_product,
+                choices,
+                scorer=fuzz.token_sort_ratio
+            )
+
+        # 3. Fallback global search when partition lookup fails
+        if (
+            not product_match
+            or product_match[1] < self.threshold
+        ):
+            global_choices = [c["norm_p"] for c in self._all_choices_data]
+
+            product_match = process.extractOne(
+                norm_product,
+                global_choices,
+                scorer=fuzz.token_sort_ratio
+            )
+
+            if not product_match:
+                return None, 0.0
+
+            _, product_score, idx = product_match
+            cdsco_cand = self._all_choices_data[idx]
+
+        else:
+            _, product_score, idx = product_match
+            cdsco_cand = choices_data[idx]
+
+        manufacturer_score = fuzz.token_sort_ratio(
+            norm_manufacturer,
+            cdsco_cand["norm_m"]
+        )
+
+        final_score = (
+            PRODUCT_WEIGHT * product_score
+            + MANUFACTURER_WEIGHT * manufacturer_score
+        )
 
         return {
             "matched_product": cdsco_cand["brand_name"],
@@ -260,3 +296,4 @@ class CDSCOValidator:
             "product_score": round(product_score, 2),
             "manufacturer_score": round(manufacturer_score, 2),
         }, final_score
+

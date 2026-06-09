@@ -1,7 +1,20 @@
 import { Router, Request, Response } from "express";
 import { supabase } from "../db/client";
+import { rateLimit } from "express-rate-limit";
 
 const router = Router();
+
+/**
+ * Rate limiter for map-related endpoints.
+ * Prevents DoS and scraping by limiting requests to 30 per minute per IP.
+ */
+const mapLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 30,
+    message: { error: "Too many map requests from this IP. Please try again later." },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
 interface PharmacyRpcResult {
     id: string;
@@ -38,7 +51,7 @@ function formatNearbyPharmacy(pharmacy: PharmacyRpcResult) {
 }
 
 // GET /api/map/nearby?lat=18.52&lng=73.85&radius_km=10
-router.get("/nearby", async (req: Request, res: Response) => {
+router.get("/nearby", mapLimiter, async (req: Request, res: Response) => {
     const lat = parseFloat(req.query.lat as string);
     const lng = parseFloat(req.query.lng as string);
     const radius_km = parseFloat((req.query.radius_km as string) || "10");
@@ -47,11 +60,16 @@ router.get("/nearby", async (req: Request, res: Response) => {
         return res.status(400).json({ error: "lat and lng are required query params" });
     }
 
+    if (!Number.isFinite(radius_km) || radius_km <= 0) {
+        return res.status(400).json({ error: "radius_km must be a positive number" });
+    }
+    const clampedRadius = Math.min(radius_km, 100);
+
     try {
         const pharmaciesRes = await supabase.rpc("get_nearest_pharmacies", {
             query_lat: lat,
             query_lng: lng,
-            search_radius_km: radius_km,
+            search_radius_km: clampedRadius,
         });
 
         if (pharmaciesRes.error) throw pharmaciesRes.error;
