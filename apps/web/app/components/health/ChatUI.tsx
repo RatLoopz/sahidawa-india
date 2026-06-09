@@ -8,7 +8,7 @@ import { ChatBubble, type Message } from "./components/ChatBubble";
 import { ActionCard } from "./components/ActionCard";
 import { TypingIndicator } from "./components/TypingIndicator";
 import { TrustBar } from "./components/TrustBar";
-import { Camera, Pill, MapPin, Home  } from "lucide-react";
+import { Camera, Pill, MapPin, Home } from "lucide-react";
 import { isAbortError, readChatErrorMessage, readTextResponseStream } from "@/lib/chatStream";
 
 const genId = () => Math.random().toString(36).slice(2, 10);
@@ -366,9 +366,12 @@ export default function ChatUI() {
                         </Link>
 
                         <div className="flex items-baseline gap-2">
-                            <h1 className="text-xl font-semibold text-slate-800 dark:text-white">
+                            <Link
+                                href={`/${locale}`}
+                                className="text-xl font-semibold text-slate-800 no-underline transition-colors hover:text-emerald-600 dark:text-white dark:hover:text-emerald-400"
+                            >
                                 SahiDawa
-                            </h1>
+                            </Link>
 
                             <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-600">
                                 CDSCO
