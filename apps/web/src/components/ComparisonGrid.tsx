@@ -134,6 +134,34 @@ function getSavingsText(medicine: Medicine | null, labels: ComparisonGridLabels)
     const percent = computeSavingsPercent(medicine.mrp, medicine.jan_aushadhi_price);
     return labels.saveAmount(amount.toFixed(2), percent.toFixed(1));
 }
+function getDirectComparison(medicine1: Medicine | null, medicine2: Medicine | null) {
+    if (!medicine1 || !medicine2) return null;
+
+    if (!hasValidMrp(medicine1) || !hasValidMrp(medicine2)) {
+        return null;
+    }
+
+    if (medicine1.mrp === medicine2.mrp) {
+        return {
+            type: "equal" as const,
+        };
+    }
+
+    const cheaper = medicine1.mrp < medicine2.mrp ? medicine1 : medicine2;
+    const expensive = medicine1.mrp > medicine2.mrp ? medicine1 : medicine2;
+
+    const savings = expensive.mrp - cheaper.mrp;
+
+    const percentage = computeSavingsPercent(expensive.mrp, cheaper.mrp);
+
+    return {
+        type: "savings" as const,
+        cheaper,
+        expensive,
+        savings,
+        percentage,
+    };
+}
 
 export default function ComparisonGrid({
     medicine1,
@@ -151,6 +179,8 @@ export default function ComparisonGrid({
             </div>
         );
     }
+
+    const directComparison = getDirectComparison(medicine1, medicine2);
 
     const rows: { label: string; getValue: (m: Medicine) => string }[] = [
         { label: labels.rows.brandName, getValue: (m) => m.brand_name?.trim() || "—" },
@@ -209,6 +239,30 @@ export default function ComparisonGrid({
                     ))}
                 </tbody>
             </table>
+            {directComparison && (
+                <div className="border-t border-slate-200 bg-slate-50 p-4">
+                    {directComparison.type === "equal" ? (
+                        <p className="text-center text-sm text-slate-700">
+                            Both medicines have the same market price.
+                        </p>
+                    ) : (
+                        <p className="text-center text-sm font-medium text-slate-800">
+                            By choosing{" "}
+                            <span className="font-semibold">
+                                {displayName(directComparison.cheaper)}
+                            </span>{" "}
+                            instead of{" "}
+                            <span className="font-semibold">
+                                {displayName(directComparison.expensive)}
+                            </span>
+                            , you save ₹{directComparison.savings.toFixed(2)}
+                            {" ("}
+                            {directComparison.percentage.toFixed(1)}
+                            %).
+                        </p>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

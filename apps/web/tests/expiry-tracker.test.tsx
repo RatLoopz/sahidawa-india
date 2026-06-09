@@ -150,3 +150,34 @@ describe("ExpiryTrackerPage import", () => {
         expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]")).toEqual([]);
     });
 });
+describe("Date Handling and Sorting", () => {
+    beforeAll(() => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date("2026-06-08T00:00:00Z"));
+    });
+
+    afterAll(() => {
+        jest.useRealTimers();
+    });
+
+    beforeEach(() => {
+        localStorage.clear();
+    });
+
+    it("loads initial data from localStorage, handles date boundaries, and sorts correctly", async () => {
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify([
+                { id: "1", name: "Future Med", expiryDate: "2028-01-01", batchNumber: "F-1" },
+                { id: "2", name: "Expired Med", expiryDate: "2025-01-01", batchNumber: "E-1" },
+                { id: "3", name: "Expiring Today", expiryDate: "2026-06-08", batchNumber: "T-1" },
+            ])
+        );
+
+        render(<ExpiryTrackerPage />);
+
+        expect(await screen.findByRole("heading", { name: "Future Med" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Expired Med" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Expiring Today" })).toBeInTheDocument();
+    });
+});

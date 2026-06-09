@@ -4,3 +4,4 @@ export { validateMedicineFile } from "./validateMedicineFile";
 export type { ValidationResult } from "./validateMedicineFile";
 export { useUpload } from "./useUpload";
 export type { UploadState, UseUploadReturn } from "./useUpload";
+export { MedicineSafetyPanel } from "./MedicineSafetyPanel";
