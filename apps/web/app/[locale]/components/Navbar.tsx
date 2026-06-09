@@ -154,19 +154,15 @@ export default function Navbar() {
                     {/* Left — Logo & Brand Title */}
                     <div className="flex min-w-0 flex-1 items-center">
                         <Link href="/" className="flex min-w-0 items-center gap-1.5 sm:gap-2">
-                            <div
-                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 shadow-sm sm:h-10 sm:w-10 dark:bg-emerald-950/30 dark:text-emerald-400"
+                            <Image
+                                src="/icons/sahidawa-logo.png"
+                                alt="SahiDawa Logo"
                                 aria-label="SahiDawa Logo"
-                            >
-                                <Image
-                                    src="/favicon.ico"
-                                    alt=""
-                                    aria-hidden="true"
-                                    className="h-5 w-5 object-contain sm:h-7 sm:w-7"
-                                    width={28}
-                                    height={28}
-                                />
-                            </div>
+                                className="h-8 w-8 shrink-0 object-contain sm:h-10 sm:w-10"
+                                width={40}
+                                height={40}
+                                priority
+                            />
                             <h1 className="xxs:text-lg text-base font-extrabold tracking-tight text-(--color-text-primary) sm:text-xl md:text-2xl">
                                 SahiDawa
                             </h1>
