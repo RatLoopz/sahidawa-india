@@ -33,7 +33,6 @@ import {
 } from "lucide-react";
 import {
     getSafetyProfile,
-    SAFETY_DISCLAIMER,
     type MedicineSafetyProfile,
     type AgeGroup,
     type DietaryRule,
