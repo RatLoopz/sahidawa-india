@@ -291,7 +291,7 @@ export default function SahiDawaHome() {
                             {/* Upload Photo */}
                             <button
                                 onClick={() => handleNavigation("scan")}
-                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white/60 p-6 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 select-none hover:-translate-y-2 hover:scale-[1.02] hover:border-emerald-400/50 hover:bg-white/90 hover:shadow-[0_20px_40px_-15px_rgba(16,185,129,0.3)] focus-visible:-translate-y-2 focus-visible:scale-[1.02] focus-visible:border-emerald-400/50 focus-visible:ring-emerald-500/50 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800/60 dark:bg-slate-900/40 dark:hover:border-emerald-500/50 dark:hover:bg-slate-800/80"
+                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-200 select-none hover:-translate-y-1 hover:border-emerald-500 hover:shadow-md focus-visible:-translate-y-1 focus-visible:border-emerald-500 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800 dark:bg-slate-900"
                                 aria-label="Upload photo"
                             >
                                 <div className="absolute inset-0 -z-10 bg-linear-to-br from-emerald-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-emerald-500/20"></div>
@@ -325,7 +325,7 @@ export default function SahiDawaHome() {
                             {/* Voice Triage */}
                             <button
                                 onClick={() => handleNavigation("voice")}
-                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white/60 p-6 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 select-none hover:-translate-y-2 hover:scale-[1.02] hover:border-blue-400/50 hover:bg-white/90 hover:shadow-[0_20px_40px_-15px_rgba(59,130,246,0.3)] focus-visible:-translate-y-2 focus-visible:scale-[1.02] focus-visible:border-blue-400/50 focus-visible:ring-blue-500/50 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800/60 dark:bg-slate-900/40 dark:hover:border-blue-500/50 dark:hover:bg-slate-800/80"
+                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-200 select-none hover:-translate-y-1 hover:border-blue-500 hover:shadow-md focus-visible:-translate-y-1 focus-visible:border-blue-500 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800 dark:bg-slate-900"
                                 aria-label="Voice triage"
                             >
                                 <div className="absolute inset-0 -z-10 bg-linear-to-br from-blue-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-blue-500/20"></div>
@@ -366,7 +366,7 @@ export default function SahiDawaHome() {
                             {/* Pharmacy Map */}
                             <button
                                 onClick={() => handleNavigation("map")}
-                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white/60 p-6 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 select-none hover:-translate-y-2 hover:scale-[1.02] hover:border-amber-400/50 hover:bg-white/90 hover:shadow-[0_20px_40px_-15px_rgba(245,158,11,0.3)] focus-visible:-translate-y-2 focus-visible:scale-[1.02] focus-visible:border-amber-400/50 focus-visible:ring-amber-500/50 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800/60 dark:bg-slate-900/40 dark:hover:border-amber-500/50 dark:hover:bg-slate-800/80"
+                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-200 select-none hover:-translate-y-1 hover:border-amber-500 hover:shadow-md focus-visible:-translate-y-1 focus-visible:border-amber-500 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800 dark:bg-slate-900"
                                 aria-label="Pharmacy map"
                             >
                                 <div className="absolute inset-0 -z-10 bg-linear-to-br from-amber-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-amber-500/20"></div>
@@ -411,22 +411,20 @@ export default function SahiDawaHome() {
                             {/* Report Fake Medicine */}
                             <button
                                 onClick={() => handleNavigation("report")}
-                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white/60 p-6 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 select-none hover:-translate-y-2 hover:scale-[1.02] hover:border-red-400/50 hover:bg-white/90 hover:shadow-[0_20px_40px_-15px_rgba(239,68,68,0.3)] focus-visible:-translate-y-2 focus-visible:scale-[1.02] focus-visible:border-red-400/50 focus-visible:ring-red-500/50 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800/60 dark:bg-slate-900/40 dark:hover:border-red-500/50 dark:hover:bg-slate-800/80"
+                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-200 select-none hover:-translate-y-1 hover:border-red-500 hover:shadow-md focus-visible:-translate-y-1 focus-visible:border-red-500 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800 dark:bg-slate-900"
                                 aria-label="Report fake medicine"
                             >
-                                <div className="absolute inset-0 -z-10 bg-linear-to-br from-red-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-red-500/20"></div>
-
-                                <div className="absolute right-0 bottom-0 h-24 w-24 translate-x-8 translate-y-8 rounded-full bg-red-500/5 blur-2xl transition-all duration-500 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:bg-red-500/20"></div>
+                                <div className="absolute right-0 bottom-0 h-24 w-24 translate-x-8 translate-y-8 rounded-full bg-red-500/5 transition-all duration-500 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:bg-red-500/10"></div>
 
                                 <div className="relative z-10 flex items-start justify-between gap-4">
-                                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-red-100 to-red-50 text-red-600 shadow-inner transition-all duration-500 group-hover:scale-110 group-hover:rotate-12 group-hover:from-red-500 group-hover:to-rose-400 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] dark:from-red-950/60 dark:to-red-900/40 dark:text-red-400">
+                                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-red-100 to-red-50 text-red-600 shadow-inner transition-all duration-500 group-hover:scale-110 group-hover:rotate-12 group-hover:from-red-500 group-hover:to-rose-400 group-hover:text-white dark:from-red-950/60 dark:to-red-900/40 dark:text-red-400">
                                         <AlertTriangle
                                             size={26}
                                             strokeWidth={2.5}
                                             className="transition-transform duration-500"
                                         />
                                     </div>
-                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100/50 opacity-0 backdrop-blur-md transition-all duration-300 group-hover:opacity-100 dark:bg-slate-800/50">
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100/50 opacity-0 transition-all duration-300 group-hover:opacity-100 dark:bg-slate-800/50">
                                         <ChevronRight
                                             className="h-5 w-5 text-red-600 dark:text-red-400"
                                             aria-hidden="true"
@@ -664,7 +662,7 @@ export default function SahiDawaHome() {
                                 {[...testimonials, ...testimonials].map((testimonial, index) => (
                                     <article
                                         key={`${testimonial.name}-${index}`}
-                                        className="flex h-[250px] w-[300px] shrink-0 flex-col justify-between rounded-2xl border border-slate-200/70 bg-white/85 p-6 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-300/70 hover:shadow-md sm:w-[360px] dark:border-slate-800/70 dark:bg-slate-950/55 dark:hover:border-emerald-400/40"
+                                        className="flex h-[250px] w-[300px] shrink-0 flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50 p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-emerald-500 hover:shadow-md sm:w-[360px] dark:border-slate-800 dark:bg-slate-900"
                                     >
                                         <div>
                                             <Quote
