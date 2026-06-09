@@ -643,5 +643,38 @@
         "nav_vaccine": "Vaccine Hub",
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
-    }
+    },
+  "medicineSafety": {
+    "guideTitle": "ব্যৱহাৰ আৰু সুৰক্ষা নিৰ্দেশিকা",
+    "noDosageInfo": "এই বয়স গোটৰ বাবে ড'জৰ তথ্য উপলব্ধ নহয়।",
+    "closeButton": "সুৰক্ষা তথ্য বন্ধ কৰক",
+    "tabs": {
+      "sideEffects": "পাৰ্শ্ব প্ৰতিক্ৰিয়া",
+      "dosage": "ড'জ",
+      "dietaryIntake": "খাদ্য গ্ৰহণ"
+    },
+    "sideEffects": {
+      "standardSymptoms": "সাধাৰণ লক্ষণসমূহ",
+      "severeRedFlags": "গুৰুতৰ সতৰ্কবাণী — তৎক্ষণাত চিকিৎসা সহায় লওক"
+    },
+    "dosage": {
+      "tabs": {
+        "kids": "শিশু",
+        "adults": "প্ৰাপ্তবয়স্ক",
+        "elderly": "বয়োজ্যেষ্ঠ"
+      },
+      "doseLabel": "ড'জ:",
+      "frequencyLabel": "আৱৃত্তি:",
+      "notesHeading": "টোকা",
+      "warningsHeading": "সতৰ্কবাণী"
+    },
+    "dietary": {
+      "tabs": {
+        "dietaryIntake": "খাদ্য গ্ৰহণ"
+      },
+      "storageHeading": "সংৰক্ষণ",
+      "pregnancyHeading": "গৰ্ভাৱস্থা"
+    },
+    "disclaimer": "এই তথ্য শিক্ষামূলক আৰু পেছাদাৰী চিকিৎসা পৰামৰ্শৰ বিকল্প নহয়।"
+  }
 }

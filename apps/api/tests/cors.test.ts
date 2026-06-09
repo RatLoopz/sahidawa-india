@@ -118,14 +118,14 @@ describe("CORS configuration", () => {
         expect(result.allowed).toBe(true);
     });
 
-    it("allows requests without an Origin header for server-to-server and health checks", () => {
+    it("rejects requests without an Origin header to prevent unintended network access", () => {
         const result = resolveOrigin(
             { ALLOWED_ORIGINS: "https://sahidawa-india-web.vercel.app" },
             undefined
         );
 
         expect(result.error).toBeNull();
-        expect(result.allowed).toBe(true);
+        expect(result.allowed).toBe(false);
     });
 
     it.each([

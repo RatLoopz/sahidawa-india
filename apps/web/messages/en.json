@@ -650,5 +650,38 @@
         "nav_vaccine": "Vaccine Hub",
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
+    },
+    "medicineSafety": {
+        "guideTitle": "Usage & Safety Guide",
+        "noDosageInfo": "No dosage info available for this age group.",
+        "closeButton": "Close Safety Info",
+        "tabs": {
+            "sideEffects": "Side Effects",
+            "dosage": "Dosage",
+            "dietaryIntake": "Dietary Intake"
+        },
+        "sideEffects": {
+            "standardSymptoms": "Standard Symptoms",
+            "severeRedFlags": "Severe Red Flags — Seek Medical Attention"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "Kids",
+                "adults": "Adults",
+                "elderly": "Elderly"
+            },
+            "doseLabel": "Dose:",
+            "frequencyLabel": "Frequency:",
+            "notesHeading": "Notes",
+            "warningsHeading": "Warnings"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "Dietary Intake"
+            },
+            "storageHeading": "Storage",
+            "pregnancyHeading": "Pregnancy"
+        },
+        "disclaimer": "This information is educational and does not replace professional medical advice."
     }
 }

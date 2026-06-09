@@ -765,6 +765,3 @@ export function getSafetyProfile(query: string | undefined | null): MedicineSafe
 }
 
 export { safetyProfiles };
-
-export const SAFETY_DISCLAIMER =
-    "This information is for educational purposes only and should not replace professional medical advice. Always consult a qualified healthcare professional before starting, changing, or stopping any medication.";

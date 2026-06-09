@@ -45,7 +45,19 @@ import {
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
 import { useTranslations } from "next-intl";
 import { buildVerificationShareText, type VerificationShareCopy } from "@/lib/verificationShare";
+import {
+    buildLocalScanHistoryEntry,
+    saveLocalScanHistoryEntry,
+    type BuildLocalScanHistoryEntryOptions,
+    type LocalScanHistorySource,
+} from "@/lib/localScanHistory";
+import { CopyButton } from "@/components/ui/CopyButton";
 import { structuredLog } from "@/lib/structuredLogger";
+
+type ScanHistoryContext = Omit<
+    BuildLocalScanHistoryEntryOptions,
+    "id" | "scannedAt" | "result" | "errorMessage"
+>;
 
 import { saveScanHistory } from "@/lib/db/scanHistory";
 
@@ -198,18 +210,10 @@ function VerifiedSafeResult({
                             <span className="font-bold text-(--color-text-primary)">
                                 {medicine.batch_number}
                             </span>
-                            <button
-                                onClick={onCopyMedicineDetails}
-                                aria-label="Copy medicine details"
-                                title="Copy medicine details"
-                                className={`shrink-0 rounded-lg p-1.5 transition-all duration-200 ${
-                                    copied
-                                        ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                        : "bg-(--color-surface-muted) text-(--color-text-muted) hover:bg-(--color-border-muted) hover:text-(--color-text-primary)"
-                                }`}
-                            >
-                                {copied ? <Check size={14} strokeWidth={3} /> : <Copy size={14} />}
-                            </button>
+                            <CopyButton
+                                text={formatMedicineDetails(medicine)}
+                                toastMessage="Medicine Details copied!"
+                            />
                         </div>
                     </div>
                     <ExpiryBadge expiryDate={formatExpiryForBadge(medicine.expiry_date)} />

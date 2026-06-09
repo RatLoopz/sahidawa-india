@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
     ShieldCheck,
     Pill,
@@ -32,7 +33,6 @@ import {
 } from "lucide-react";
 import {
     getSafetyProfile,
-    SAFETY_DISCLAIMER,
     type MedicineSafetyProfile,
     type AgeGroup,
     type DietaryRule,
@@ -81,6 +81,8 @@ function DietIcon({ name, className }: { name: string; className?: string }) {
 export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPanelProps) {
     const profile: MedicineSafetyProfile | null = getSafetyProfile(searchQuery);
 
+    const t = useTranslations("medicineSafety");
+
     const [activeTab, setActiveTab] = useState<TabType>("sideEffects");
     const [ageGroup, setAgeGroup] = useState<AgeGroupKey>("adults");
 
@@ -94,15 +96,15 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
     const dosageInfo = profile.ageBasedDosage.find((d) => d.group === ageGroup);
 
     const AGE_GROUPS: { key: AgeGroupKey; label: string; Icon: React.ElementType }[] = [
-        { key: "children", label: "Kids", Icon: Baby },
-        { key: "adults", label: "Adults", Icon: User },
-        { key: "elderly", label: "Elderly", Icon: Users },
+        { key: "children", label: t("dosage.tabs.kids"), Icon: Baby },
+        { key: "adults", label: t("dosage.tabs.adults"), Icon: User },
+        { key: "elderly", label: t("dosage.tabs.elderly"), Icon: Users },
     ];
 
     const TABS: { key: TabType; label: string; Icon: React.ElementType }[] = [
-        { key: "sideEffects", label: "Side Effects", Icon: AlertTriangle },
-        { key: "dosage", label: "Dosage", Icon: Syringe },
-        { key: "diet", label: "Dietary Intake", Icon: Utensils },
+        { key: "sideEffects", label: t("tabs.sideEffects"), Icon: AlertTriangle },
+        { key: "dosage", label: t("tabs.dosage"), Icon: Syringe },
+        { key: "diet", label: t("tabs.dietaryIntake"), Icon: Utensils },
     ];
 
     return (
@@ -112,7 +114,7 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                 <div className="flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-emerald-500" />
                     <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                        Usage &amp; Safety Guide
+                        {t("guideTitle")}
                     </h3>
                 </div>
                 <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
@@ -149,7 +151,7 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                             <div className="mb-2 flex items-center gap-1.5">
                                 <Info className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
                                 <span className="font-semibold text-amber-700 dark:text-amber-300">
-                                    Standard Symptoms
+                                    {t("sideEffects.standardSymptoms")}
                                 </span>
                             </div>
                             <ul className="space-y-1 pl-1">
@@ -178,7 +180,7 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                                 <div className="mb-2 flex items-center gap-1.5">
                                     <AlertCircle className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
                                     <span className="font-semibold text-red-700 dark:text-red-300">
-                                        Severe Red Flags — Seek Medical Attention
+                                        {t("sideEffects.severeRedFlags")}
                                     </span>
                                 </div>
                                 <ul className="space-y-1 pl-1">
@@ -236,7 +238,7 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                                     <Pill className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500 dark:text-emerald-400" />
                                     <p className="text-slate-700 dark:text-slate-200">
                                         <span className="font-semibold text-emerald-700 dark:text-emerald-400">
-                                            Dose:{" "}
+                                            {t("dosage.doseLabel")}{" "}
                                         </span>
                                         {dosageInfo.dose}
                                     </p>
@@ -247,7 +249,7 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                                     <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500 dark:text-emerald-400" />
                                     <p className="text-slate-700 dark:text-slate-200">
                                         <span className="font-semibold text-emerald-700 dark:text-emerald-400">
-                                            Frequency:{" "}
+                                            {t("dosage.frequencyLabel")}{" "}
                                         </span>
                                         {dosageInfo.frequency}
                                     </p>
@@ -259,7 +261,7 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                                         <div className="mb-1 flex items-center gap-1.5">
                                             <NotepadText className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                                             <span className="font-semibold text-blue-700 dark:text-blue-300">
-                                                Notes
+                                                {t("dosage.notesHeading")}
                                             </span>
                                         </div>
                                         <ul className="space-y-0.5 pl-1">
@@ -282,7 +284,7 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                                         <div className="mb-1 flex items-center gap-1.5">
                                             <TriangleAlert className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
                                             <span className="font-semibold text-red-700 dark:text-red-300">
-                                                Warnings
+                                                {t("dosage.warningsHeading")}
                                             </span>
                                         </div>
                                         <ul className="space-y-0.5 pl-1">
@@ -301,7 +303,7 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                             </div>
                         ) : (
                             <p className="text-slate-500 dark:text-slate-400">
-                                No dosage info available for this age group.
+                                {t("noDosageInfo")}
                             </p>
                         )}
                     </div>
@@ -365,7 +367,7 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                             <Package className="mt-0.5 h-4 w-4 shrink-0 text-blue-500 dark:text-blue-400" />
                             <div>
                                 <span className="block text-[11px] font-bold tracking-wide text-blue-700 uppercase dark:text-blue-300">
-                                    Storage
+                                    {t("dietary.storageHeading")}
                                 </span>
                                 <span className="leading-snug text-blue-600 dark:text-blue-300">
                                     {profile.storageNote}
@@ -379,7 +381,7 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                                 <HeartPulse className="mt-0.5 h-4 w-4 shrink-0 text-purple-500 dark:text-purple-400" />
                                 <div>
                                     <span className="block text-[11px] font-bold tracking-wide text-purple-700 uppercase dark:text-purple-300">
-                                        Pregnancy
+                                        {t("dietary.pregnancyHeading")}
                                     </span>
                                     <span className="leading-snug text-purple-600 dark:text-purple-300">
                                         {profile.pregnancyCategory}
@@ -395,7 +397,7 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
             <div className="border-t border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800">
                 <div className="flex items-start gap-1.5 rounded-lg border border-amber-200 bg-amber-50 p-2 text-[11px] text-amber-800 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-300">
                     <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500 dark:text-amber-400" />
-                    {SAFETY_DISCLAIMER}
+                    {t("disclaimer")}
                 </div>
 
                 {/* Close / Back button at bottom */}
@@ -406,7 +408,7 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                         className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-100 hover:text-slate-800 active:scale-95 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:bg-slate-600 dark:hover:text-white"
                     >
                         <ChevronLeft className="h-3.5 w-3.5" />
-                        Close Safety Info
+                        {t("closeButton")}
                     </button>
                 </div>
             </div>

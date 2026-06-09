@@ -34,7 +34,7 @@ import {
 } from "../../../lib/api";
 import { type AshaWorker } from "./PharmacyMap";
 import MapHeaderLoadingIndicator from "./MapHeaderLoadingIndicator";
-import { useOfflineStatus } from "./useOfflineStatus";
+import { useOfflineStatus } from "@/hooks/useOfflineStatus";
 import { buildCacheKey, saveToCache, loadFromCache } from "./usePharmacyCache";
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -616,7 +616,6 @@ export default function PharmacyMapPage() {
             <PageHeader
                 backHref="/"
                 variant="light"
-                showThemeToggle={false}
                 contentClassName="mx-auto w-full max-w-4xl justify-start rounded-[1.65rem] border border-(--color-border-muted) bg-(--color-surface-page)/95 p-1.5 shadow-[0_18px_52px_-34px_rgba(15,23,42,0.75)] ring-1 ring-white/80 backdrop-blur-xl dark:bg-slate-950/90 dark:ring-white/5"
                 backButtonClassName="border border-transparent bg-emerald-50 text-emerald-700 shadow-sm hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/70"
                 rightActionsClassName="hidden"
@@ -852,7 +851,8 @@ export default function PharmacyMapPage() {
 
                         {/* ── Offline cached data banner ── */}
                         {isShowingCached && (
-                            <div className="animate-in slide-in-from-top-2 absolute top-4 right-16 left-4 z-1000 flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-700 shadow-lg duration-300 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-400"
+                            <div
+                                className="animate-in slide-in-from-top-2 absolute top-4 right-16 left-4 z-1000 flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-700 shadow-lg duration-300 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-400"
                                 role="alert"
                                 aria-live="polite"
                             >

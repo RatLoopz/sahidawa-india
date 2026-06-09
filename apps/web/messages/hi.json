@@ -643,5 +643,38 @@
         "nav_vaccine": "Vaccine Hub",
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
-    }
+    },
+  "medicineSafety": {
+    "guideTitle": "उपयोग और सुरक्षा मार्गदर्शिका",
+    "noDosageInfo": "इस आयु वर्ग के लिए खुराक की जानकारी उपलब्ध नहीं है।",
+    "closeButton": "सुरक्षा जानकारी बंद करें",
+    "tabs": {
+      "sideEffects": "दुष्प्रभाव",
+      "dosage": "खुराक",
+      "dietaryIntake": "आहार"
+    },
+    "sideEffects": {
+      "standardSymptoms": "सामान्य लक्षण",
+      "severeRedFlags": "गंभीर चेतावनी संकेत — तुरंत चिकित्सा सहायता लें"
+    },
+    "dosage": {
+      "tabs": {
+        "kids": "बच्चे",
+        "adults": "वयस्क",
+        "elderly": "वृद्ध"
+      },
+      "doseLabel": "खुराक:",
+      "frequencyLabel": "आवृत्ति:",
+      "notesHeading": "टिप्पणियाँ",
+      "warningsHeading": "चेतावनियाँ"
+    },
+    "dietary": {
+      "tabs": {
+        "dietaryIntake": "आहार"
+      },
+      "storageHeading": "भंडारण",
+      "pregnancyHeading": "गर्भावस्था"
+    },
+    "disclaimer": "यह जानकारी शैक्षिक उद्देश्य के लिए है और पेशेवर चिकित्सा सलाह का विकल्प नहीं है।"
+  }
 }

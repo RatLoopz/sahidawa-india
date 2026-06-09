@@ -637,5 +637,38 @@
         "nav_vaccine": "Vaccine Hub",
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
-    }
+    },
+  "medicineSafety": {
+    "guideTitle": "వినియోగం మరియు భద్రతా మార్గదర్శిని",
+    "noDosageInfo": "ఈ వయస్సు వర్గానికి మోతాదు సమాచారం అందుబాటులో లేదు.",
+    "closeButton": "భద్రతా సమాచారాన్ని మూసివేయండి",
+    "tabs": {
+      "sideEffects": "దుష్ప్రభావాలు",
+      "dosage": "మోతాదు",
+      "dietaryIntake": "ఆహార వినియోగం"
+    },
+    "sideEffects": {
+      "standardSymptoms": "సాధారణ లక్షణాలు",
+      "severeRedFlags": "తీవ్రమైన హెచ్చరికలు — వెంటనే వైద్య సహాయం పొందండి"
+    },
+    "dosage": {
+      "tabs": {
+        "kids": "పిల్లలు",
+        "adults": "వయోజనులు",
+        "elderly": "వృద్ధులు"
+      },
+      "doseLabel": "మోతాదు:",
+      "frequencyLabel": "తరచుదనం:",
+      "notesHeading": "గమనికలు",
+      "warningsHeading": "హెచ్చరికలు"
+    },
+    "dietary": {
+      "tabs": {
+        "dietaryIntake": "ఆహార వినియోగం"
+      },
+      "storageHeading": "నిల్వ",
+      "pregnancyHeading": "గర్భధారణ"
+    },
+    "disclaimer": "ఈ సమాచారం విద్యాపరమైనది మాత్రమే; ఇది వృత్తిపరమైన వైద్య సలహాకు ప్రత్యామ్నాయం కాదు."
+  }
 }

@@ -637,5 +637,38 @@
         "nav_vaccine": "Vaccine Hub",
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
-    }
+    },
+  "medicineSafety": {
+    "guideTitle": "பயன்பாடு மற்றும் பாதுகாப்பு வழிகாட்டி",
+    "noDosageInfo": "இந்த வயது குழுவிற்கான மருந்தளவு தகவல் கிடைக்கவில்லை.",
+    "closeButton": "பாதுகாப்பு தகவலை மூடு",
+    "tabs": {
+      "sideEffects": "பக்க விளைவுகள்",
+      "dosage": "மருந்தளவு",
+      "dietaryIntake": "உணவு உட்கொள்ளல்"
+    },
+    "sideEffects": {
+      "standardSymptoms": "சாதாரண அறிகுறிகள்",
+      "severeRedFlags": "கடுமையான எச்சரிக்கைகள் — உடனடியாக மருத்துவ உதவி பெறவும்"
+    },
+    "dosage": {
+      "tabs": {
+        "kids": "குழந்தைகள்",
+        "adults": "பெரியவர்கள்",
+        "elderly": "முதியவர்கள்"
+      },
+      "doseLabel": "மருந்தளவு:",
+      "frequencyLabel": "அடிக்கடி:",
+      "notesHeading": "குறிப்புகள்",
+      "warningsHeading": "எச்சரிக்கைகள்"
+    },
+    "dietary": {
+      "tabs": {
+        "dietaryIntake": "உணவு உட்கொள்ளல்"
+      },
+      "storageHeading": "சேமிப்பு",
+      "pregnancyHeading": "கர்ப்பம்"
+    },
+    "disclaimer": "இந்த தகவல் கல்வி நோக்கத்திற்கானது; இது தொழில்முறை மருத்துவ ஆலோசனைக்கு மாற்றாகாது."
+  }
 }
