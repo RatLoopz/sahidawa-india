@@ -7,11 +7,12 @@ import { useState, useRef, useEffect } from "react";
 
 const languages = [
     { code: "en", label: "English", native: "English" },
-    { code: "hi", label: "Hindi", native: "हिन्दी" },
+
     { code: "ta", label: "Tamil", native: "தமிழ்" },
     { code: "bn", label: "Bengali", native: "বাংলা" },
     { code: "te", label: "Telugu", native: "తెలుగు" },
     { code: "mr", label: "Marathi", native: "मराठी" },
+    { code: "hi", label: "Hindi", native: "हिन्दी" },
     { code: "gu", label: "Gujarati", native: "ગુજરાતી" },
     { code: "ur", label: "Urdu", native: "اردو" },
     { code: "or", label: "Odia", native: "ଓଡ଼ିଆ" },
