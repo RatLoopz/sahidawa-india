@@ -638,5 +638,38 @@
         "nav_vaccine": "Vaccine Hub",
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
-    }
+    },
+  "medicineSafety": {
+    "guideTitle": "ઉપયોગ અને સુરક્ષા માર્ગદર્શિકા",
+    "noDosageInfo": "આ વય જૂથ માટે ડોઝની માહિતી ઉપલબ્ધ નથી.",
+    "closeButton": "સુરક્ષા માહિતી બંધ કરો",
+    "tabs": {
+      "sideEffects": "આડઅસરો",
+      "dosage": "ડોઝ",
+      "dietaryIntake": "આહાર"
+    },
+    "sideEffects": {
+      "standardSymptoms": "સામાન્ય લક્ષણો",
+      "severeRedFlags": "ગંભીર ચેતવણીઓ — તાત્કાલિક તબીબી સહાય લો"
+    },
+    "dosage": {
+      "tabs": {
+        "kids": "બાળકો",
+        "adults": "વયસ્કો",
+        "elderly": "વૃદ્ધો"
+      },
+      "doseLabel": "ડોઝ:",
+      "frequencyLabel": "આવર્તન:",
+      "notesHeading": "નોંધો",
+      "warningsHeading": "ચેતવણીઓ"
+    },
+    "dietary": {
+      "tabs": {
+        "dietaryIntake": "આહાર"
+      },
+      "storageHeading": "સંગ્રહ",
+      "pregnancyHeading": "ગર્ભાવસ્થા"
+    },
+    "disclaimer": "આ માહિતી શૈક્ષણિક હેતુ માટે છે અને વ્યાવસાયિક તબીબી સલાહનો વિકલ્પ નથી."
+  }
 }

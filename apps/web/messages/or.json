@@ -637,5 +637,38 @@
         "nav_vaccine": "Vaccine Hub",
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
-    }
+    },
+  "medicineSafety": {
+    "guideTitle": "ବ୍ୟବହାର ଓ ସୁରକ୍ଷା ମାର୍ଗଦର୍ଶିକା",
+    "noDosageInfo": "ଏହି ବୟସ ଗୋଷ୍ଠୀ ପାଇଁ ଡୋଜ୍ ସୂଚନା ଉପଲବ୍ଧ ନାହିଁ।",
+    "closeButton": "ସୁରକ୍ଷା ସୂଚନା ବନ୍ଦ କରନ୍ତୁ",
+    "tabs": {
+      "sideEffects": "ପାର୍ଶ୍ୱ ପ୍ରତିକ୍ରିୟା",
+      "dosage": "ଡୋଜ୍",
+      "dietaryIntake": "ଖାଦ୍ୟ ଗ୍ରହଣ"
+    },
+    "sideEffects": {
+      "standardSymptoms": "ସାଧାରଣ ଲକ୍ଷଣ",
+      "severeRedFlags": "ଗୁରୁତର ସତର୍କ ସଙ୍କେତ — ତୁରନ୍ତ ଚିକିତ୍ସା ସହାୟତା ନିଅନ୍ତୁ"
+    },
+    "dosage": {
+      "tabs": {
+        "kids": "ଶିଶୁ",
+        "adults": "ବୟସ୍କ",
+        "elderly": "ବୃଦ୍ଧ"
+      },
+      "doseLabel": "ଡୋଜ୍:",
+      "frequencyLabel": "ଆବୃତ୍ତି:",
+      "notesHeading": "ଟିପ୍ପଣୀ",
+      "warningsHeading": "ଚେତାବନୀ"
+    },
+    "dietary": {
+      "tabs": {
+        "dietaryIntake": "ଖାଦ୍ୟ ଗ୍ରହଣ"
+      },
+      "storageHeading": "ସଂରକ୍ଷଣ",
+      "pregnancyHeading": "ଗର୍ଭାବସ୍ଥା"
+    },
+    "disclaimer": "ଏହି ସୂଚନା ଶିକ୍ଷାମୂଳକ ଏବଂ ବୃତ୍ତିଗତ ଚିକିତ୍ସା ପରାମର୍ଶର ବିକଳ୍ପ ନୁହେଁ।"
+  }
 }
