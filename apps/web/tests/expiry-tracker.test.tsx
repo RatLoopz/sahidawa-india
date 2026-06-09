@@ -2,6 +2,7 @@
 
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 import ExpiryTrackerPage from "../app/[locale]/expiry-tracker/page";
 
@@ -103,7 +104,8 @@ describe("ExpiryTrackerPage import", () => {
         const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
         expect(fileInput).toBeInTheDocument();
 
-        fireEvent.change(fileInput, { target: { files: [file] } });
+        const user = userEvent.setup();
+        await user.upload(fileInput, file);
 
         await waitFor(() => {
             expect(screen.getByRole("heading", { name: "Ibuprofen" })).toBeInTheDocument();
@@ -124,7 +126,8 @@ describe("ExpiryTrackerPage import", () => {
         const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
         expect(fileInput).toBeInTheDocument();
 
-        fireEvent.change(fileInput, { target: { files: [createFile(backup)] } });
+        const user = userEvent.setup();
+        await user.upload(fileInput, createFile(backup));
 
         await waitFor(() => {
             expect(screen.getByText("importDateError")).toBeInTheDocument();
@@ -142,7 +145,8 @@ describe("ExpiryTrackerPage import", () => {
         const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
         expect(fileInput).toBeInTheDocument();
 
-        fireEvent.change(fileInput, { target: { files: [createFile(backup)] } });
+        const user = userEvent.setup();
+        await user.upload(fileInput, createFile(backup));
 
         await waitFor(() => {
             expect(screen.getByText("importDateError")).toBeInTheDocument();

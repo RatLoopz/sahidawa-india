@@ -637,5 +637,38 @@
         "nav_vaccine": "Vaccine Hub",
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
-    }
+    },
+  "medicineSafety": {
+    "guideTitle": "वापर आणि सुरक्षितता मार्गदर्शक",
+    "noDosageInfo": "या वयोगटासाठी डोसची माहिती उपलब्ध नाही.",
+    "closeButton": "सुरक्षितता माहिती बंद करा",
+    "tabs": {
+      "sideEffects": "दुष्परिणाम",
+      "dosage": "डोस",
+      "dietaryIntake": "आहार"
+    },
+    "sideEffects": {
+      "standardSymptoms": "सामान्य लक्षणे",
+      "severeRedFlags": "गंभीर इशारे — त्वरित वैद्यकीय मदत घ्या"
+    },
+    "dosage": {
+      "tabs": {
+        "kids": "मुले",
+        "adults": "प्रौढ",
+        "elderly": "ज्येष्ठ"
+      },
+      "doseLabel": "डोस:",
+      "frequencyLabel": "वारंवारता:",
+      "notesHeading": "नोंदी",
+      "warningsHeading": "इशारे"
+    },
+    "dietary": {
+      "tabs": {
+        "dietaryIntake": "आहार"
+      },
+      "storageHeading": "साठवण",
+      "pregnancyHeading": "गर्भधारणा"
+    },
+    "disclaimer": "ही माहिती शैक्षणिक उद्देशांसाठी आहे आणि व्यावसायिक वैद्यकीय सल्ल्याचा पर्याय नाही."
+  }
 }

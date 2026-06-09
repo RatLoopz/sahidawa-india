@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 
 import { getScanHistory, deleteScanHistory } from "@/lib/db/scanHistory";
+import { CopyButton } from "@/components/ui/CopyButton";
 import { Download } from "lucide-react";
-
 export default function HistoryPage() {
     const [history, setHistory] = useState<any[]>([]);
 
@@ -113,7 +113,15 @@ export default function HistoryPage() {
                             >
                                 <div className="flex items-start justify-between gap-4">
                                     <div>
-                                        <h2 className="text-xl font-bold">{item.medicineName}</h2>
+                                        <div className="flex items-center gap-1">
+                                            <h2 className="text-xl font-bold">
+                                                {item.medicineName}
+                                            </h2>
+                                            <CopyButton
+                                                text={item.medicineName}
+                                                toastMessage="Medicine name copied!"
+                                            />
+                                        </div>
 
                                         <p className="mt-2">
                                             Status:

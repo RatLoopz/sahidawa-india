@@ -629,5 +629,38 @@
         "commonEffects": "सामान्य बाद-प्रभाव",
         "severeReactions": "गंभीर प्रतिक्रिया",
         "aftercareHeading": "तत्काल देखभाल मार्गदर्शन"
-    }
+    },
+  "medicineSafety": {
+    "guideTitle": "उपयोग आ सुरक्षा मार्गदर्शिका",
+    "noDosageInfo": "एहि आयु वर्ग लेल खुराकक जानकारी उपलब्ध नहि अछि।",
+    "closeButton": "सुरक्षा जानकारी बन्द करू",
+    "tabs": {
+      "sideEffects": "दुष्प्रभाव",
+      "dosage": "खुराक",
+      "dietaryIntake": "आहार"
+    },
+    "sideEffects": {
+      "standardSymptoms": "सामान्य लक्षण",
+      "severeRedFlags": "गंभीर चेतावनी — तुरन्त चिकित्सकीय सहायता लिअ"
+    },
+    "dosage": {
+      "tabs": {
+        "kids": "बच्चा",
+        "adults": "वयस्क",
+        "elderly": "वृद्ध"
+      },
+      "doseLabel": "खुराक:",
+      "frequencyLabel": "आवृत्ति:",
+      "notesHeading": "टिप्पणी",
+      "warningsHeading": "चेतावनी"
+    },
+    "dietary": {
+      "tabs": {
+        "dietaryIntake": "आहार"
+      },
+      "storageHeading": "भण्डारण",
+      "pregnancyHeading": "गर्भावस्था"
+    },
+    "disclaimer": "ई जानकारी शैक्षिक उद्देश्य लेल अछि आ पेशेवर चिकित्सकीय सलाहक विकल्प नहि अछि।"
+  }
 }

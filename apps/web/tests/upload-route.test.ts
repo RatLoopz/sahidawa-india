@@ -56,9 +56,8 @@ describe("POST /api/upload", () => {
         jest.resetModules();
         limitBuckets.clear();
         mockLimit.mockClear();
-        ({ POST: post } = (await import("../app/api/upload/route")) as {
-            POST: UploadPost;
-        });
+        const route = require("../app/api/upload/route");
+        post = route.POST;
 
         process.env.CLOUDINARY_CLOUD_NAME = CLOUD_NAME;
         process.env.CLOUDINARY_API_KEY = API_KEY;
