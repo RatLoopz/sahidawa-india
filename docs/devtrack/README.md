@@ -812,3 +812,4 @@
 | [#1479](https://github.com/RatLoopz/sahidawa-india/pull/1479) | 2026-06-07 | Backend | 9 | @ash1shkumar | [View Doc](devtrack/2026-06/PR-1479-refactor-move-medicine-matching-to-trigram-rpc.md) |
 | [#1482](https://github.com/RatLoopz/sahidawa-india/pull/1482) | 2026-06-07 | Backend | 9 | @Avinash-sdbegin | [View Doc](devtrack/2026-06/PR-1482-fix-api-restrict-admin-write-routes.md) |
 | [#1510](https://github.com/RatLoopz/sahidawa-india/pull/1510) | 2026-06-08 | Frontend | 15 | @Shan7Usmani | [View Doc](devtrack/2026-06/PR-1510-feat-add-home-navigation-to-chat-interface.md) / [ADR](devtrack/adr/ADR-029-feat-add-home-navigation-to-chat-interface.md) |
+| [#1498](https://github.com/RatLoopz/sahidawa-india/pull/1498) | 2026-06-09 | Frontend | 10 | @Mahesh-forcode | [View Doc](devtrack/2026-06/PR-1498-feat-map-offline-indexeddb-cache-with-24h-ttl-fall.md) |
