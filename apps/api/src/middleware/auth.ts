@@ -83,10 +83,7 @@ export const createOptionalAuthMiddleware =
         const { data, error } = await client.auth.getUser(token);
 
         if (error || !data.user) {
-            res.status(401).json({
-                error: "Unauthorized: Invalid or expired token",
-            });
-            return;
+            return next();
         }
 
         req.user = {
