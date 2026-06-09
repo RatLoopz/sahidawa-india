@@ -60,6 +60,13 @@ router.get("/nearby", mapLimiter, async (req: Request, res: Response) => {
         return res.status(400).json({ error: "lat and lng are required query params" });
     }
 
+    // Explicit bounds checking for lat and lng
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        return res.status(400).json({
+            error: "Latitude must be between -90 and 90, and longitude between -180 and 180.",
+        });
+    }
+
     if (!Number.isFinite(radius_km) || radius_km <= 0) {
         return res.status(400).json({ error: "radius_km must be a positive number" });
     }
