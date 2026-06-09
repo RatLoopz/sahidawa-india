@@ -146,7 +146,7 @@ export default function LanguageSwitcher() {
                     aria-activedescendant={`lang-option-${focusedIndex}`}
                     onKeyDown={handleListKeyDown}
                     tabIndex={-1}
-                    className="absolute right-0 z-50 mt-2 w-40 overflow-hidden rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) shadow-lg outline-none"
+                    className="absolute right-0 z-[100] mt-2 w-40 overflow-hidden rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) shadow-lg outline-none"
                 >
                     {languages.map((lang, index) => {
                         const isSelected = locale === lang.code;
