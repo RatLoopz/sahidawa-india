@@ -3,6 +3,14 @@ import express from "express";
 import request from "supertest";
 import mlRouter from "../src/routes/ml";
 
+jest.mock("../src/middleware/auth", () => ({
+    requireAuth: (req: any, _res: any, next: any) => {
+        req.user = { id: "test-user", email: "test@example.com", role: "user" };
+        next();
+    },
+    AuthenticatedRequest: Object,
+}));
+
 function buildApp() {
     const app = express();
     app.use(express.json());
@@ -64,5 +72,53 @@ describe("ml routes", () => {
 
         assert.equal(response.status, 500);
         assert.equal(response.body.code, "ML_SERVICE_URL_MISSING");
+    });
+
+    it("rejects requests to private IP addresses (SSRF protection)", async () => {
+        const response = await request(buildApp())
+            .post("/api/ml/analyze")
+            .send({ imageUrl: "https://192.168.1.1/admin" });
+
+        assert.equal(response.status, 400);
+    });
+
+    it("rejects requests to localhost (SSRF protection)", async () => {
+        const response = await request(buildApp())
+            .post("/api/ml/analyze")
+            .send({ imageUrl: "https://localhost:8080/secret" });
+
+        assert.equal(response.status, 400);
+    });
+
+    it("rejects requests to 127.0.0.1 (SSRF protection)", async () => {
+        const response = await request(buildApp())
+            .post("/api/ml/analyze")
+            .send({ imageUrl: "https://127.0.0.1/internal" });
+
+        assert.equal(response.status, 400);
+    });
+
+    it("rejects requests to 10.x.x.x private addresses (SSRF protection)", async () => {
+        const response = await request(buildApp())
+            .post("/api/ml/analyze")
+            .send({ imageUrl: "https://10.0.0.1/config" });
+
+        assert.equal(response.status, 400);
+    });
+
+    it("rejects requests to .internal hostnames (SSRF protection)", async () => {
+        const response = await request(buildApp())
+            .post("/api/ml/analyze")
+            .send({ imageUrl: "https://internal-admin-panel.internal/secret" });
+
+        assert.equal(response.status, 400);
+    });
+
+    it("rejects requests to .local hostnames (SSRF protection)", async () => {
+        const response = await request(buildApp())
+            .post("/api/ml/analyze")
+            .send({ imageUrl: "https://service.local/api" });
+
+        assert.equal(response.status, 400);
     });
 });

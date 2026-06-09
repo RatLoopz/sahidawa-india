@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { getMlServiceUrl, MISSING_ML_SERVICE_URL_MESSAGE } from "../config/mlService";
+import { requireAuth, AuthenticatedRequest } from "../middleware/auth";
 import logger from "../utils/logger";
 
 const router = Router();
@@ -16,15 +17,41 @@ const analyzeResponseSchema = z.object({
     details: z.string(),
 });
 
+const PRIVATE_HOST_RE =
+    /^(localhost|127\.\d{1,3}\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|::1|0\.0\.0\.0)$/;
+
+function isPrivateHostname(urlStr: string): boolean {
+    try {
+        const hostname = new URL(urlStr).hostname;
+        if (PRIVATE_HOST_RE.test(hostname)) return true;
+        if (hostname.endsWith(".local") || hostname.endsWith(".internal")) return true;
+        return false;
+    } catch {
+        return true;
+    }
+}
+
 const ML_ANALYSIS_TIMEOUT_MS = 8000;
 
-router.post("/analyze", async (req: Request, res: Response) => {
+router.post("/analyze", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     const parsed = analyzeRequestSchema.safeParse(req.body);
 
     if (!parsed.success) {
         res.status(400).json({
             error: "Invalid request body",
             details: parsed.error.issues,
+        });
+        return;
+    }
+
+    if (isPrivateHostname(parsed.data.imageUrl)) {
+        logger.warn("SSRF attempt blocked", {
+            imageUrl: parsed.data.imageUrl,
+            caller: req.user?.email ?? req.user?.id,
+        });
+        res.status(400).json({
+            error: "Invalid request body",
+            details: [{ message: "imageUrl must point to a public HTTPS resource" }],
         });
         return;
     }
