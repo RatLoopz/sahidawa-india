@@ -1,6 +1,6 @@
-barcode_id,brand_name,generic_name,manufacturer,batch_number,manufacturing_date,expiry_date,composition,cdsco_approval_status,is_counterfeit_alert
-8901234567890,Dolo 650,Paracetamol 650mg,Micro Labs Ltd,DL23X1,2025-01-10,2028-01-09,"Paracetamol IP 650mg",approved,false
-8902345678901,Augmentin 625 Duo,Amoxicillin + Clavulanic Acid,GSK,AUG625D,2025-02-15,2027-02-14,"Amoxicillin 500mg, Clavulanic Acid 125mg",approved,false
-8903456789012,Allegra 120,Fexofenadine 120mg,Sanofi India,ALG120M,2024-11-20,2026-11-19,"Fexofenadine Hydrochloride 120mg",approved,false
-8904567890123,Pan 40,Pantoprazole 40mg,Alkem Laboratories,PAN40T,2025-03-01,2027-02-28,"Pantoprazole Sodium 40mg",approved,false
-8905678901234,Fake Dolo 650,Paracetamol 650mg,Micro Labs Ltd,DL23X9,2025-01-10,2028-01-09,"Chalk Powder",banned,true
+barcode_id,brand_name,generic_name,manufacturer,batch_number,manufacturing_date,expiry_date,composition,cdsco_approval_status,is_counterfeit_alert,schedule,dosage_form,strength,active_ingredient_key,pregnancy_category,storage_instructions,requires_prescription
+8901234567890,Dolo 650,Paracetamol 650mg,Micro Labs Ltd,DL23X1,2025-01-10,2028-01-09,"Paracetamol IP 650mg",approved,false,OTC,Tablet,650mg,paracetamol,Category B,Store below 25°C away from moisture and sunlight,false
+8902345678901,Augmentin 625 Duo,Amoxicillin + Clavulanic Acid,GSK,AUG625D,2025-02-15,2027-02-14,"Amoxicillin 500mg, Clavulanic Acid 125mg",approved,false,H,Tablet,625mg,amoxicillin_clavulanate,Category B,Store below 25°C; refrigerate suspension after reconstitution,true
+8903456789012,Allegra 120,Fexofenadine 120mg,Sanofi India,ALG120M,2024-11-20,2026-11-19,"Fexofenadine Hydrochloride 120mg",approved,false,OTC,Tablet,120mg,fexofenadine,Category C,Store at 15–30°C in original packaging,false
+8904567890123,Pan 40,Pantoprazole 40mg,Alkem Laboratories,PAN40T,2025-03-01,2027-02-28,"Pantoprazole Sodium 40mg",approved,false,H,Enteric-Coated Tablet,40mg,pantoprazole,Category B,Store below 25°C away from moisture,true
+8905678901234,Fake Dolo 650,Paracetamol 650mg,Micro Labs Ltd,DL23X9,2025-01-10,2028-01-09,"Chalk Powder",banned,true,COUNTERFEIT,Unknown,Unknown,unknown,Unknown,DO NOT USE — COUNTERFEIT PRODUCT,false
