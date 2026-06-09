@@ -3,7 +3,7 @@ import { join } from "path";
 
 describe("SearchBar debounced suggestions", () => {
     const source = readFileSync(
-        join(process.cwd(), "app/[locale]/components/SearchBar.tsx"),
+        join(__dirname, "../app/[locale]/components/SearchBar.tsx"),
         "utf8"
     );
 
