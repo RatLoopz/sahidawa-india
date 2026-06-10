@@ -6,6 +6,8 @@ import {
     getAllMedicines,
     createMedicine,
     getAuditLogs,
+    getPendingPharmacies,
+    updatePharmacyStatus,
 } from "../controllers/admin.controller";
 import { getPushNotificationAnalytics } from "./analytics";
 
@@ -17,6 +19,8 @@ router.get("/reports", getPendingReports);
 router.patch("/reports/:id/status", updateReportStatus);
 router.get("/medicines", getAllMedicines);
 router.post("/medicines", createMedicine);
+router.get("/pharmacies/pending", getPendingPharmacies);
+router.patch("/pharmacies/:id/status", updatePharmacyStatus);
 router.get("/logs", getAuditLogs);
 router.get("/push-notifications/analytics", getPushNotificationAnalytics);
 
