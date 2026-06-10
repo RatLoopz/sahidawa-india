@@ -74,6 +74,33 @@ function getScanHistoryMedicineName(result: VerifyResult, fallbackBrandName?: st
     return fallbackBrandName || "Unknown medicine";
 }
 
+function isLowConfidenceScore(score: number | null | undefined): boolean {
+    if (score == null) return false;
+    return score < 50;
+}
+
+function LowConfidenceBanner({ score }: { score: number | null | undefined }) {
+    if (!isLowConfidenceScore(score)) return null;
+    return (
+        <div className="flex w-full items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-left dark:border-amber-800 dark:bg-amber-950/30">
+            <AlertTriangle
+                size={20}
+                className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400"
+            />
+            <div>
+                <p className="text-sm font-bold text-amber-800 dark:text-amber-300">
+                    Low Confidence Match
+                </p>
+                <p className="mt-0.5 text-xs leading-relaxed font-medium text-amber-700 dark:text-amber-400">
+                    This result may not be accurate
+                    {score != null ? ` (match score: ${Math.round(score)}%)` : ""}. Please verify
+                    this medicine independently before use.
+                </p>
+            </div>
+        </div>
+    );
+}
+
 function CdscoStatusBadge({ status }: { status: string }) {
     const config: Record<string, { label: string; className: string }> = {
         approved: {
@@ -146,6 +173,7 @@ function VerifiedSafeResult({
     onScanAgain,
     onShare,
     shareLabel,
+    fuzzyScore,
 }: {
     medicine: VerifiedMedicine;
     scanMeta?: {
@@ -157,6 +185,7 @@ function VerifiedSafeResult({
     onScanAgain: () => void;
     onShare: () => void;
     shareLabel: string;
+    fuzzyScore?: number | null;
 }) {
     return (
         <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] border border-(--color-border-muted) bg-(--color-surface-page) p-8 text-(--color-text-primary) shadow-2xl">
@@ -173,6 +202,8 @@ function VerifiedSafeResult({
                 </div>
 
                 <CdscoStatusBadge status={medicine.cdsco_approval_status} />
+
+                <LowConfidenceBanner score={fuzzyScore} />
 
                 {scanMeta?.suspicious && (
                     <div className="border-amber-250 flex w-full items-start gap-3 rounded-2xl border bg-amber-50 p-4 text-left dark:border-amber-900 dark:bg-amber-950/20">
@@ -267,6 +298,7 @@ function CounterfeitAlertResult({
     onCopyMedicineDetails,
     shareLabel,
     copied,
+    fuzzyScore,
 }: {
     medicine: VerifiedMedicine;
     onScanAgain: () => void;
@@ -274,6 +306,7 @@ function CounterfeitAlertResult({
     onCopyMedicineDetails: () => void;
     shareLabel: string;
     copied: boolean;
+    fuzzyScore?: number | null;
 }) {
     return (
         <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] border border-(--color-border-muted) bg-(--color-surface-page) p-8 text-(--color-text-primary) shadow-2xl">
@@ -290,6 +323,8 @@ function CounterfeitAlertResult({
                         {medicine.brand_name}
                     </p>
                 </div>
+
+                <LowConfidenceBanner score={fuzzyScore} />
 
                 <div className="grid w-full grid-cols-2 gap-3 pt-2">
                     <div className="border-red-250/30 rounded-2xl border bg-red-500/10 p-3 dark:border-red-900/30">
@@ -506,6 +541,7 @@ export default function ScanPage() {
     const [parsedBrand, setParsedBrand] = useState<string>("");
     const [parsedBatch, setParsedBatch] = useState<string>("");
     const [parsedExpiry, setParsedExpiry] = useState<string>("");
+    const [fuzzyScore, setFuzzyScore] = useState<number | null>(null);
     const [isCameraActive, setIsCameraActive] = useState(false);
     const [ocrStatus, setOcrStatus] = useState<
         "idle" | "scanning-barcode" | "extracting-text" | "done" | "error"
@@ -717,6 +753,7 @@ export default function ScanPage() {
             setShowResult(false);
             setVerifyResult(null);
             setVerifyError(null);
+            setFuzzyScore(null);
 
             try {
                 const result = await verifyMedicine(normalizedBatch, controller.signal);
@@ -830,6 +867,7 @@ export default function ScanPage() {
         setParsedBrand("");
         setParsedBatch("");
         setParsedExpiry("");
+        setFuzzyScore(null);
 
         ocrCancelledRef.current = false;
 
@@ -960,6 +998,7 @@ export default function ScanPage() {
                         const topMatch = matchRes[0];
                         if (topMatch.score >= 60) {
                             setParsedBrand(topMatch.name);
+                            setFuzzyScore(topMatch.score);
                             const brandRes = await verifyMedicineByBrand(
                                 topMatch.name,
                                 controller.signal
@@ -1086,6 +1125,7 @@ export default function ScanPage() {
         setParsedBrand("");
         setParsedBatch("");
         setParsedExpiry("");
+        setFuzzyScore(null);
         setIsCameraActive(false);
         setOcrStatus("idle");
     };
@@ -1101,6 +1141,7 @@ export default function ScanPage() {
         setParsedBrand("");
         setParsedBatch("");
         setParsedExpiry("");
+        setFuzzyScore(null);
         setOcrStatus("idle");
     };
 
@@ -1242,6 +1283,7 @@ export default function ScanPage() {
                                             onCopyMedicineDetails={handleCopyMedicineDetails}
                                             shareLabel={tScan("share.button")}
                                             copied={copied}
+                                            fuzzyScore={fuzzyScore}
                                         />
                                     )}
                                 {!verifyError &&
@@ -1253,6 +1295,7 @@ export default function ScanPage() {
                                             onScanAgain={handleScanAgain}
                                             onShare={handleShare}
                                             shareLabel={tScan("share.button")}
+                                            fuzzyScore={fuzzyScore}
                                         />
                                     )}
                                 {!verifyError && verifyResult && !verifyResult.verified && (
