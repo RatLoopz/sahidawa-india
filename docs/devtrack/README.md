@@ -814,3 +814,4 @@
 | [#1510](https://github.com/RatLoopz/sahidawa-india/pull/1510) | 2026-06-08 | Frontend | 15 | @Shan7Usmani | [View Doc](devtrack/2026-06/PR-1510-feat-add-home-navigation-to-chat-interface.md) / [ADR](devtrack/adr/ADR-029-feat-add-home-navigation-to-chat-interface.md) |
 | [#1498](https://github.com/RatLoopz/sahidawa-india/pull/1498) | 2026-06-09 | Frontend | 10 | @Mahesh-forcode | [View Doc](devtrack/2026-06/PR-1498-feat-map-offline-indexeddb-cache-with-24h-ttl-fall.md) |
 | [#1566](https://github.com/RatLoopz/sahidawa-india/pull/1566) | 2026-06-09 | Frontend | 6 | @vipul674 | [View Doc](devtrack/2026-06/PR-1566-fix-expand-extractmedicinename-skip-regex-with-com.md) |
+| [#1596](https://github.com/RatLoopz/sahidawa-india/pull/1596) | 2026-06-10 | Backend | 36 | @Pcmhacker-piro | [View Doc](devtrack/2026-06/PR-1596-fix-auth-replace-shared-api-secret-key-with-per-ca.md) / [ADR](devtrack/adr/ADR-030-fix-auth-replace-shared-api-secret-key-with-per-ca.md) |
