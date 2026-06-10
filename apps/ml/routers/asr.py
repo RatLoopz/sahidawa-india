@@ -393,26 +393,36 @@ class StreamingAudioDecoder:
         self._stdout_cursor = 0
         self._lock = threading.Lock()
         self._data_event = threading.Event()
-        self._process = subprocess.Popen(
-            [
-                "ffmpeg",
-                "-loglevel",
-                "error",
-                "-i",
-                "pipe:0",
-                "-ac",
-                "1",
-                "-ar",
-                str(STREAM_SAMPLE_RATE),
-                "-f",
-                "s16le",
-                "pipe:1",
-            ],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            bufsize=0,
-        )
+        try:
+            self._process = subprocess.Popen(
+                [
+                    "ffmpeg",
+                    "-loglevel",
+                    "error",
+                    "-i",
+                    "pipe:0",
+                    "-ac",
+                    "1",
+                    "-ar",
+                    str(STREAM_SAMPLE_RATE),
+                    "-f",
+                    "s16le",
+                    "pipe:1",
+                ],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                bufsize=0,
+            )
+        except FileNotFoundError as exc:
+            logger.error(
+                "ffmpeg executable not found. Install ffmpeg on the ML host "
+                "(e.g. `sudo apt install ffmpeg`) so streaming audio can be decoded."
+            )
+            raise HTTPException(
+                status_code=503,
+                detail="Voice transcription is temporarily unavailable. Please try again later.",
+            ) from exc
         self._stdout_thread = threading.Thread(target=self._drain_stdout, daemon=True)
         self._stderr_thread = threading.Thread(target=self._drain_stderr, daemon=True)
         self._stdout_thread.start()
