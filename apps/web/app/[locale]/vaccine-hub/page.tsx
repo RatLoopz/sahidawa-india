@@ -11,6 +11,7 @@ import {
     SafetyInfo,
     AftercareGuidance,
     DateInitializer,
+    ChildVaccinationTracker,
 } from "@/components/vaccine";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { BookOpen, Syringe, Calendar, AlertTriangle, HeartPulse } from "lucide-react";
@@ -85,6 +86,76 @@ export default function VaccineHubPage() {
         );
     }
 
+    const exportToCalendar = () => {
+        if (!vaccine || !initialDate) return;
+
+        const dtstamp = new Date();
+        const formatICSDate = (d: Date) =>
+            d.getFullYear().toString() +
+            String(d.getMonth() + 1).padStart(2, "0") +
+            String(d.getDate()).padStart(2, "0");
+
+        const formatICSDateTime = (d: Date) =>
+            d.getUTCFullYear().toString() +
+            String(d.getUTCMonth() + 1).padStart(2, "0") +
+            String(d.getUTCDate()).padStart(2, "0") +
+            "T" +
+            String(d.getUTCHours()).padStart(2, "0") +
+            String(d.getUTCMinutes()).padStart(2, "0") +
+            String(d.getUTCSeconds()).padStart(2, "0") +
+            "Z";
+
+        const events = vaccine.dosing_intervals_weeks
+            .map((weeks, index) => {
+                const date = new Date(initialDate);
+                date.setDate(date.getDate() + weeks * 7);
+
+                const endDate = new Date(date);
+                endDate.setDate(endDate.getDate() + 1);
+
+                const uidKey = selectedVaccine || vaccine.disease_name.replace(/\s+/g, "-");
+
+                return [
+                    "BEGIN:VEVENT",
+                    `UID:sahidawa-${uidKey}-${index}-${formatICSDateTime(dtstamp)}`,
+                    `DTSTAMP:${formatICSDateTime(dtstamp)}`,
+                    `SUMMARY:SahiDawa - ${vaccine.disease_name} Dose ${index + 1}`,
+                    `DTSTART;VALUE=DATE:${formatICSDate(date)}`,
+                    `DTEND;VALUE=DATE:${formatICSDate(endDate)}`,
+                    "BEGIN:VALARM",
+                    "ACTION:DISPLAY",
+                    "DESCRIPTION:Reminder: Vaccine dose is due tomorrow.",
+                    "TRIGGER:-P1D",
+                    "END:VALARM",
+                    "END:VEVENT",
+                ].join("\r\n");
+            })
+            .join("\r\n");
+
+        const icsContent = [
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//SahiDawa//Vaccine Hub//EN",
+            "CALSCALE:GREGORIAN",
+            events,
+            "END:VCALENDAR",
+        ].join("\r\n");
+
+        const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "vaccine-schedule.ics";
+
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        URL.revokeObjectURL(url);
+    };
+
     return (
         <>
             <PageHeader
@@ -106,6 +177,8 @@ export default function VaccineHubPage() {
                             {t("subtitle")}
                         </p>
                     </div>
+
+                    <ChildVaccinationTracker />
 
                     {/* Controls */}
                     <div className="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:grid-cols-2 dark:border-slate-700 dark:bg-slate-800">
@@ -180,8 +253,17 @@ export default function VaccineHubPage() {
 
                             {/* Right Columns - Scrollable Content */}
                             <div className="space-y-6 lg:col-span-2">
-                                {/* Dose Schedule */}
                                 <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                                    <div className="mb-4 flex justify-end">
+                                        <button
+                                            onClick={exportToCalendar}
+                                            disabled={!initialDate}
+                                            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            Export to Calendar
+                                        </button>
+                                    </div>
+
                                     <DoseSchedule vaccine={vaccine} initialDate={initialDate} />
                                 </div>
 

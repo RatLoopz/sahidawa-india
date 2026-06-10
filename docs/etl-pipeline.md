@@ -164,7 +164,9 @@ apps/etl/
 
 ## Error handling & retry
 
-When a batch upsert fails, the loader automatically falls back to row-by-row inserts. Rows that still fail are:
+When a batch upsert fails with a transient network/server error, the loader retries
+the batch with exponential backoff before falling back to row-by-row inserts. Rows
+that still fail are:
 
 1. Logged as structured JSON to stdout (for CI/log aggregators)
 2. Written to `data/failed/<pipeline>/failed_rows_<timestamp>.csv`

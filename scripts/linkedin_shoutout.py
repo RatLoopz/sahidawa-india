@@ -287,7 +287,7 @@ def evaluate_pr_impact(pr: dict) -> None:
         parts = content.get("parts", [])
         if not parts:
             finish_reason = candidate.get("finishReason")
-            raise KeyError(f"No content parts returned. finishReason: {finish_reason}")
+            raise KeyError("No content parts returned. Missing or invalid finishReason.")
             
         verdict = parts[0].get("text", "").strip().upper()
         
@@ -300,7 +300,7 @@ def evaluate_pr_impact(pr: dict) -> None:
         print("✅ AI Gatekeeper Approved: PR is a genuine contribution.")
         
     except Exception as exc:
-        print(f"⚠️  AI Gatekeeper evaluation failed ({exc}). Bypassing semantic check.")
+        print(f"⚠️  AI Gatekeeper evaluation failed ({str(exc).replace(gemini_api_key, '***')}). Bypassing semantic check.")
 
 
 def get_contributor_name(github_username: str) -> str:
@@ -420,7 +420,7 @@ def generate_post_with_gemini(pr: dict, tier_display: str, tier_desc: str) -> st
             parts = content.get("parts", [])
             if not parts:
                 finish_reason = candidate.get("finishReason")
-                raise KeyError(f"No content parts returned. finishReason: {finish_reason}")
+                raise KeyError("No content parts returned. Missing or invalid finishReason.")
                 
             text = parts[0].get("text", "").strip()
             
@@ -432,7 +432,7 @@ def generate_post_with_gemini(pr: dict, tier_display: str, tier_desc: str) -> st
             # Check if the post ends mid-sentence (sign of truncation)
             finish_reason = candidate.get("finishReason", "")
             if finish_reason not in ("STOP", "stop", "") and finish_reason is not None:
-                print(f"⚠️ Gemini finished with reason '{finish_reason}' (not STOP). Using static fallback.")
+                print("⚠️ Gemini finished with an incomplete reason (not STOP). Using static fallback.")
                 return _static_fallback(pr, tier_display)
             
             print("\n✅ Script completed successfully!")
@@ -441,9 +441,9 @@ def generate_post_with_gemini(pr: dict, tier_display: str, tier_desc: str) -> st
             
         except Exception as exc:
             if attempt == max_retries:
-                print(f"⚠️  Gemini AI failed after {max_retries} attempts ({exc}). Using static fallback.")
+                print(f"⚠️  Gemini AI failed after {max_retries} attempts ({str(exc).replace(gemini_api_key, '***')}). Using static fallback.")
                 return _static_fallback(pr, tier_display)
-            print(f"⚠️  Gemini AI failed ({exc}). Retrying in 10 seconds...")
+            print(f"⚠️  Gemini AI failed ({str(exc).replace(gemini_api_key, '***')}). Retrying in 10 seconds...")
             time.sleep(10)
             
     return _static_fallback(pr, tier_display)
@@ -639,7 +639,7 @@ def send_to_make_webhook(post_text: str, pr: dict) -> None:
         return
 
     print("📤 Sending post to Make.com webhook...")
-    print(f"   Webhook: {webhook_url[:50]}...")
+    print(f"   Webhook: {webhook_url[:15]}***")
     resp = requests.post(
         webhook_url,
         headers={"Content-Type": "application/json"},

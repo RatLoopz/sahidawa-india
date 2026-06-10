@@ -1,7 +1,7 @@
 name: 🔄 Sync Labels Between PR and Linked Issue
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, edited, labeled, unlabeled]
   issues:
     types: [labeled, unlabeled]
@@ -19,6 +19,13 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            // 🛑 PREVENT BOT LOOPS
+            // If the label was added or removed by a bot (like actions/labeler), ignore it so it doesn't cascade.
+            if (context.payload.sender && context.payload.sender.type === 'Bot') {
+              console.log("Action performed by a Bot (" + context.payload.sender.login + "). Ignoring to prevent infinite loops.");
+              return;
+            }
+
             async function getLinkedIssues(prNumber, prBody) {
               const linkedIssues = new Set();
               
@@ -77,7 +84,7 @@ jobs:
 
             console.log(`Triggered by Event: ${eventName}, Action: ${action}`);
 
-            if (eventName === 'pull_request') {
+            if (eventName === 'pull_request' || eventName === 'pull_request_target') {
               const pr = context.payload.pull_request;
               const linkedIssues = await getLinkedIssues(pr.number, pr.body);
               console.log(`PR #${pr.number} parsed. Linked issues: ${Array.from(linkedIssues).join(', ')}`);

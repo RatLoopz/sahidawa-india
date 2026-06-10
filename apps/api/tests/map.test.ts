@@ -44,36 +44,23 @@ describe("GET /api/map/nearby", () => {
         expect(rpcMock).not.toHaveBeenCalled();
     });
 
-    it("returns nearby pharmacies and ASHA workers from PostGIS RPC responses", async () => {
-        const pharmacies = [
+    it("returns canonical PostGIS pharmacies and preserves an empty ASHA key", async () => {
+        const rpcPharmacies = [
             {
-                id: 1,
+                id: "9cb1ba95-ae3c-4c8b-a6f8-c02d1b447b94",
                 name: "Jan Aushadhi Kendra Pune",
-                type: "Jan Aushadhi",
-                lat: 18.5204,
-                lng: 73.8567,
                 address: "Shivajinagar",
                 district: "Pune",
                 state: "Maharashtra",
-                verified: true,
-                distance_km: 1.24,
-            },
-        ];
-        const ashaWorkers = [
-            {
-                id: 11,
-                name: "Meera Patil",
-                district: "Pune",
+                phone_number: "+912012345678",
+                is_verified: true,
                 lat: 18.521,
                 lng: 73.855,
-                contact: "+919876543210",
-                distance_km: 0.72,
+                distance: 1.24,
             },
         ];
 
-        rpcMock
-            .mockResolvedValueOnce({ data: pharmacies, error: null })
-            .mockResolvedValueOnce({ data: ashaWorkers, error: null });
+        rpcMock.mockResolvedValueOnce({ data: rpcPharmacies, error: null });
 
         const response = await request(app).get(
             "/api/map/nearby?lat=18.5204&lng=73.8567&radius_km=5"
@@ -81,18 +68,30 @@ describe("GET /api/map/nearby", () => {
 
         expect(response.status).toBe(200);
         expect(response.body).toEqual({
-            pharmacies,
-            asha_workers: ashaWorkers,
+            pharmacies: [
+                {
+                    id: "9cb1ba95-ae3c-4c8b-a6f8-c02d1b447b94",
+                    name: "Jan Aushadhi Kendra Pune",
+                    type: "Jan Aushadhi",
+                    lat: 18.521,
+                    lng: 73.855,
+                    address: "Shivajinagar",
+                    district: "Pune",
+                    state: "Maharashtra",
+                    phone_number: "+912012345678",
+                    is_verified: true,
+                    verified: true,
+                    distance: 1.24,
+                    distance_km: 1.24,
+                },
+            ],
+            asha_workers: [],
         });
-        expect(rpcMock).toHaveBeenNthCalledWith(1, "get_nearby_pharmacies", {
-            user_lat: 18.5204,
-            user_lng: 73.8567,
-            radius_m: 5000,
-        });
-        expect(rpcMock).toHaveBeenNthCalledWith(2, "get_nearby_asha_workers", {
-            user_lat: 18.5204,
-            user_lng: 73.8567,
-            radius_m: 5000,
+        expect(rpcMock).toHaveBeenCalledTimes(1);
+        expect(rpcMock).toHaveBeenCalledWith("get_nearest_pharmacies", {
+            query_lat: 18.5204,
+            query_lng: 73.8567,
+            search_radius_km: 5,
         });
     });
 
@@ -102,15 +101,11 @@ describe("GET /api/map/nearby", () => {
         const response = await request(app).get("/api/map/nearby?lat=18.5204&lng=73.8567");
 
         expect(response.status).toBe(200);
-        expect(rpcMock).toHaveBeenNthCalledWith(1, "get_nearby_pharmacies", {
-            user_lat: 18.5204,
-            user_lng: 73.8567,
-            radius_m: 10000,
-        });
-        expect(rpcMock).toHaveBeenNthCalledWith(2, "get_nearby_asha_workers", {
-            user_lat: 18.5204,
-            user_lng: 73.8567,
-            radius_m: 10000,
+        expect(rpcMock).toHaveBeenCalledTimes(1);
+        expect(rpcMock).toHaveBeenCalledWith("get_nearest_pharmacies", {
+            query_lat: 18.5204,
+            query_lng: 73.8567,
+            search_radius_km: 10,
         });
     });
 
@@ -118,12 +113,10 @@ describe("GET /api/map/nearby", () => {
         const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => undefined);
 
         try {
-            rpcMock
-                .mockResolvedValueOnce({
-                    data: null,
-                    error: { message: "PostGIS function unavailable" },
-                })
-                .mockResolvedValueOnce({ data: [], error: null });
+            rpcMock.mockResolvedValueOnce({
+                data: null,
+                error: { message: "PostGIS function unavailable" },
+            });
 
             const response = await request(app).get(
                 "/api/map/nearby?lat=18.5204&lng=73.8567&radius_km=5"

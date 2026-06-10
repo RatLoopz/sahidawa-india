@@ -31,18 +31,42 @@ export const getPendingReports = async (
     res: Response
 ): Promise<void> => {
     try {
-        const { data, error } = await supabase
+        const parsed = paginationSchema.safeParse(req.query);
+
+        if (!parsed.success) {
+            res.status(400).json({
+                error: "Invalid pagination parameters",
+                details: parsed.error.issues,
+            });
+            return;
+        }
+
+        const { page, limit } = parsed.data;
+        const offset = (page - 1) * limit;
+
+        const { data, error, count } = await supabase
             .from("counterfeit_reports")
-            .select("*, medicines(brand_name, generic_name)")
+            .select("*, medicines(brand_name, generic_name)", {
+                count: "exact",
+            })
             .eq("status", "pending")
-            .order("created_at", { ascending: false });
+            .order("created_at", { ascending: false })
+            .range(offset, offset + limit - 1);
 
         if (error) {
             res.status(500).json({ error: "Failed to fetch reports" });
             return;
         }
 
-        res.json({ reports: data });
+        res.json({
+            reports: data,
+            meta: {
+                total: count || 0,
+                page,
+                limit,
+                totalPages: count ? Math.ceil(count / limit) : 0,
+            },
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Internal server error" });

@@ -7,7 +7,7 @@
  * Design: SahiDawa modern aesthetic — emerald accents, deep navy header, rounded corners
  */
 
-import React, { useState, useRef, useCallback, useEffect, useId } from "react";
+import React, { useState, useEffect, useId } from "react";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -18,7 +18,6 @@ import {
     analyzeMedicineImage,
     type MedicineImageAnalysis,
 } from "@/lib/api";
-import { preprocessMedicineImage } from "@/lib/imageEnhancer";
 import LazyImage from "@/components/LazyImage";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 import { MedicinePhotoUpload } from "@/components/medicine";
@@ -31,8 +30,6 @@ import { toast } from "sonner";
 // eliminating the need to expose unsigned presets or API keys in the client.
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
-const WEBP_FILE_EXTENSION = ".webp";
-
 // ─── Input sanitisation ────────────────────────────────────────────────────────
 /** Strip script tags and HTML-escape brackets to prevent stored XSS without triggering CodeQL warnings. */
 const sanitize = (v: string): string => {
@@ -41,14 +38,6 @@ const sanitize = (v: string): string => {
     // We use split/join instead of String.prototype.replace to completely bypass
     // CodeQL's "Incomplete multi-character sanitization" rules which target .replace() usage.
     return v.trim().split("<").join("&lt;").split(">").join("&gt;");
-};
-
-const renameFileForMimeType = (fileName: string, mimeType: string) => {
-    if (mimeType !== "image/webp" || fileName.toLowerCase().endsWith(WEBP_FILE_EXTENSION)) {
-        return fileName;
-    }
-
-    return fileName.replace(/\.[^.]+$/, "") + WEBP_FILE_EXTENSION;
 };
 
 // ─── Zod schema ────────────────────────────────────────────────────────────────
@@ -737,7 +726,7 @@ function Success({ onReset, reportId }: { onReset: () => void; reportId: string 
                     damping: 22,
                     delay: 0.12,
                 }}
-                className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-emerald-100 bg-emerald-50 shadow-inner"
+                className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-emerald-100 bg-emerald-50 shadow-inner dark:border-emerald-900/30 dark:bg-emerald-950/20"
             >
                 <svg viewBox="0 0 24 24" fill="none" className="h-10 w-10 text-emerald-500">
                     <path
@@ -771,7 +760,7 @@ function Success({ onReset, reportId }: { onReset: () => void; reportId: string 
             <button
                 type="button"
                 onClick={onReset}
-                className="mt-2 rounded-xl bg-emerald-50 px-6 py-2.5 text-sm font-bold text-emerald-600 transition-colors duration-200 hover:bg-emerald-100 hover:text-emerald-700 active:scale-95"
+                className="mt-2 rounded-xl bg-emerald-50 px-6 py-2.5 text-sm font-bold text-emerald-600 transition-colors duration-200 hover:bg-emerald-100 hover:text-emerald-700 active:scale-95 dark:bg-emerald-950/20 dark:text-emerald-300 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-200"
             >
                 Submit another report
             </button>
@@ -830,7 +819,7 @@ export default function ReportWizard() {
                         data: { session },
                     } = await supabase.auth.getSession();
                     token = session?.access_token;
-                } catch (err) {
+                } catch {
                     // ignore if supabase is not configured
                 }
             }
@@ -934,7 +923,7 @@ export default function ReportWizard() {
                                             <LiveMessage
                                                 tone="critical"
                                                 id={submitErrorId}
-                                                className="mt-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-medium text-red-600 shadow-sm"
+                                                className="mt-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-medium text-red-600 shadow-sm dark:border-red-950 dark:bg-red-950/20 dark:text-red-400"
                                             >
                                                 <span className="mt-0.5">
                                                     <Icon.Alert />

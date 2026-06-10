@@ -643,5 +643,38 @@
         "nav_vaccine": "Vaccine Hub",
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
-    }
+    },
+  "medicineSafety": {
+    "guideTitle": "ഉപയോഗവും സുരക്ഷാ മാർഗ്ഗനിർദ്ദേശവും",
+    "noDosageInfo": "ഈ പ്രായവിഭാഗത്തിനായുള്ള ഡോസ് വിവരങ്ങൾ ലഭ്യമല്ല.",
+    "closeButton": "സുരക്ഷാ വിവരങ്ങൾ അടയ്ക്കുക",
+    "tabs": {
+      "sideEffects": "പാർശ്വഫലങ്ങൾ",
+      "dosage": "ഡോസ്",
+      "dietaryIntake": "ഭക്ഷണക്രമം"
+    },
+    "sideEffects": {
+      "standardSymptoms": "സാധാരണ ലക്ഷണങ്ങൾ",
+      "severeRedFlags": "ഗുരുതര മുന്നറിയിപ്പുകൾ — ഉടൻ വൈദ്യസഹായം തേടുക"
+    },
+    "dosage": {
+      "tabs": {
+        "kids": "കുട്ടികൾ",
+        "adults": "മുതിർന്നവർ",
+        "elderly": "വയോജനങ്ങൾ"
+      },
+      "doseLabel": "ഡോസ്:",
+      "frequencyLabel": "ആവൃത്തി:",
+      "notesHeading": "കുറിപ്പുകൾ",
+      "warningsHeading": "മുന്നറിയിപ്പുകൾ"
+    },
+    "dietary": {
+      "tabs": {
+        "dietaryIntake": "ഭക്ഷണക്രമം"
+      },
+      "storageHeading": "സംഭരണം",
+      "pregnancyHeading": "ഗർഭകാലം"
+    },
+    "disclaimer": "ഈ വിവരങ്ങൾ വിദ്യാഭ്യാസ ആവശ്യങ്ങൾക്കായുള്ളതാണ്; ഇത് വൈദ്യോപദേശത്തിന് പകരമല്ല."
+  }
 }

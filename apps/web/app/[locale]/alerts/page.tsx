@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Activity, ArrowLeft, Filter, AlertTriangle, AlertCircle, Search } from "lucide-react";
+import { Activity, ArrowLeft, Filter, AlertTriangle, Search } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { Globe } from "lucide-react";
@@ -62,9 +62,9 @@ export default function FullAlertsLogPage() {
                 const data = await res.json();
                 setAllAlerts(data.data || []);
                 setTotalCount(data.totalCount || 0);
-            } catch (err) {
+            } catch {
                 // Log silently to avoid Next.js dev overlay popup
-                console.log("Fetch failed:", err instanceof Error ? err.message : err);
+
                 setError(true);
             } finally {
                 setLoading(false);

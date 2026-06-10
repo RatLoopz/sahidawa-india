@@ -205,13 +205,13 @@ docker >= 24.0 (optional, for full stack)
 git clone https://github.com/RatLoopz/sahidawa-india.git
 cd sahidawa-india
 
-# 2. Install frontend dependencies
+# 2. Copy environment variables
+cp .env.example apps/web/.env.local
+# Fill in your Supabase URL + anon key (free at supabase.com)
+
+# 3. Install frontend dependencies
 cd apps/web
 npm install
-
-# 3. Copy environment variables
-cp .env.example .env.local
-# Fill in your Supabase URL + anon key (free at supabase.com)
 
 # 4. Run development server
 npm run dev

@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from "react-dom/server";
-
+import { describe, it, expect } from "@jest/globals";
 import ComparisonGrid, { type Medicine } from "../src/components/ComparisonGrid";
 import { COMPARE_SELECT_FIELDS } from "../src/lib/compareSelectFields";
 import { mapMedicineRow } from "../src/lib/mapMedicineRow";
@@ -132,5 +132,39 @@ describe("compare pricing", () => {
         );
 
         expect(markup).toContain("No savings");
+    });
+    it("shows direct savings comparison between two medicines", () => {
+        const markup = renderToStaticMarkup(
+            <ComparisonGrid
+                medicine1={buildMedicine({
+                    brand_name: "Brand Medicine",
+                    mrp: 120,
+                })}
+                medicine2={buildMedicine({
+                    id: "med-2",
+                    brand_name: "Generic Medicine",
+                    generic_name: "Paracetamol",
+                    mrp: 30,
+                })}
+            />
+        );
+
+        expect(markup).toContain("you save ₹90.00");
+        expect(markup).toContain("75.0%");
+    });
+    it("shows equal price message when both medicines have the same price", () => {
+        const markup = renderToStaticMarkup(
+            <ComparisonGrid
+                medicine1={buildMedicine({
+                    mrp: 100,
+                })}
+                medicine2={buildMedicine({
+                    id: "med-2",
+                    mrp: 100,
+                })}
+            />
+        );
+
+        expect(markup).toContain("Both medicines have the same market price.");
     });
 });

@@ -41,24 +41,81 @@ def extract_alerts_from_text(text: str) -> List[Dict[str, Any]]:
             return []
 
         llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", temperature=0, google_api_key=api_key)
-        parser = PydanticOutputParser(pydantic_object=AlertList)
+        # parser = PydanticOutputParser(pydantic_object=AlertList)
+        structured_llm = llm.with_structured_output(AlertList)
         
         prompt = ChatPromptTemplate.from_messages([
             ("system", "You are an expert at extracting structured information from pharmaceutical recall and alert notices."),
-            ("human", "Extract the list of recalled or NSQ (Not of Standard Quality) medicines from the following text.\n\n{format_instructions}\n\nTEXT:\n{text}")
+            ("human", "Extract the list of recalled or NSQ (Not of Standard Quality) medicines from the following text.\n\nTEXT:\n{text}")
         ])
         
-        chain = prompt | llm | parser
+        chain = prompt | structured_llm
         
-        # We can implement chunking here if needed for very large PDFs, 
-        # but for now we rely on the large context window of gemini-1.5-pro.
-        result = chain.invoke({
-            "text": text,
-            "format_instructions": parser.get_format_instructions()
-        })
+        # Define chunk size and overlap for handling very large PDFs.
+        # 40k characters (~8k-10k tokens) ensures we stay well within context/generation limits.
+
+
+        # The context is a CDSCO alert pdf which is well structured and defined. 
+        # Therefore, for the extraction task, sticking with the character/token-based sliding window with overlap is recommended. 
+        # It guarantees exhaustive scanning (no alerts are missed).
+        # It has zero additional latency/cost (no pre-chunking embedding calls).
+        # The overlap (e.g., 2,000 characters) is a highly reliable, low-cost safety net that ensures any record split on a boundary is captured completely in the adjacent chunk.
+    
+        max_chunk_size = 40000
+        overlap = 2000
         
-        # result is now an AlertList instance
-        return [alert.dict() for alert in result.alerts]
+        chunks = []
+        if len(text) <= max_chunk_size:
+            chunks.append(text)
+        else:
+            start = 0
+            while start < len(text):
+                end = min(start + max_chunk_size, len(text))
+                chunks.append(text[start:end])
+                if end == len(text):
+                    break
+                start = end - overlap
+
+        all_alerts = []
+        seen_keys = set()
+        
+        for i, chunk in enumerate(chunks):
+            logging.info(f"Processing PDF chunk {i + 1}/{len(chunks)} ({len(chunk)} characters)...")
+            try:
+                result = chain.invoke({"text": chunk})
+                
+                if result:
+                    alerts_to_add = []
+                    if hasattr(result, "alerts"):
+                        alerts_to_add = result.alerts
+                    elif isinstance(result, dict) and "alerts" in result:
+                        alerts_to_add = result["alerts"]
+                        
+                    for alert in alerts_to_add:
+                        if isinstance(alert, dict):
+                            brand = alert.get("reported_brand_name", "")
+                            batch = alert.get("batch_number", "")
+                            mfg = alert.get("manufacturer", "")
+                            alert_dict = alert
+                        else:
+                            brand = getattr(alert, "reported_brand_name", "")
+                            batch = getattr(alert, "batch_number", "")
+                            mfg = getattr(alert, "manufacturer", "")
+                            alert_dict = alert.dict() if hasattr(alert, "dict") else dict(alert)
+                            
+                        # Unique key for in-memory deduplication across chunks
+                        key = (
+                            str(brand).strip().lower(),
+                            str(batch).strip().lower(),
+                            str(mfg).strip().lower()
+                        )
+                        if key not in seen_keys:
+                            seen_keys.add(key)
+                            all_alerts.append(alert_dict)
+            except Exception as chunk_exc:
+                logging.error(f"Error extracting alerts from chunk {i + 1}: {chunk_exc}")
+                
+        return all_alerts
     except Exception as e:
         logging.error(f"Error extracting alerts: {e}")
         return []
