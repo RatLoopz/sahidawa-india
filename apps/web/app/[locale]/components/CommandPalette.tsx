@@ -92,6 +92,13 @@ export default function CommandPalette() {
             group: t("pages"),
         },
         {
+            id: "schedule",
+            label: t("nav_schedule"),
+            href: "/schedule",
+            icon: <Clock size={16} />,
+            group: t("pages"),
+        },
+        {
             id: "profile",
             label: t("nav_profile"),
             href: "/profile",

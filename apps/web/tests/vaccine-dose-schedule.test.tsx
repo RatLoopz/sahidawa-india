@@ -1,7 +1,18 @@
-import { describe, it, expect } from "vitest";
+/** @jest-environment jsdom */
+import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
-import { DoseSchedule } from "../DoseSchedule";
+import { DoseSchedule } from "@/components/vaccine/DoseSchedule";
 import { VaccineProfile } from "@/lib/vaccineData";
+
+jest.mock("next-intl", () => ({
+    useTranslations: () => (key: string) => key,
+    useFormatter: () => ({
+        dateTime: (date: Date) => {
+            const d = new Date(date);
+            return `${d.getDate()} ${d.toLocaleString("en-US", { month: "short" })} ${d.getFullYear()}`;
+        },
+    }),
+}));
 
 const mockVaccine: VaccineProfile = {
     id: "test-vaccine",
@@ -26,15 +37,15 @@ describe("DoseSchedule", () => {
     it("renders the component without date", () => {
         render(<DoseSchedule vaccine={mockVaccine} initialDate="" />);
 
-        expect(screen.getByText("Immunization Schedule")).toBeInTheDocument();
-        expect(screen.getByText(/Select a birth date above to see projected/i)).toBeInTheDocument();
+        expect(screen.getByText("scheduleLayoutHeading")).toBeInTheDocument();
+        expect(screen.getAllByText("selectDateWarning")[0]).toBeInTheDocument();
     });
 
     it("renders all doses", () => {
         render(<DoseSchedule vaccine={mockVaccine} initialDate="2024-01-01" />);
 
         mockVaccine.dosing_intervals_weeks.forEach((_, index) => {
-            expect(screen.getByText(String(index + 1))).toBeInTheDocument();
+            expect(screen.getAllByText(String(index + 1))[0]).toBeInTheDocument();
         });
     });
 
@@ -48,17 +59,17 @@ describe("DoseSchedule", () => {
     it("displays summary information", () => {
         render(<DoseSchedule vaccine={mockVaccine} initialDate="2024-01-01" />);
 
-        expect(screen.getByText(/Total Doses:/)).toBeInTheDocument();
-        expect(screen.getByText("4")).toBeInTheDocument();
-        expect(screen.getByText(/Effectiveness:/)).toBeInTheDocument();
+        expect(screen.getByText(/totalDoses/)).toBeInTheDocument();
+        expect(screen.getAllByText("4")[0]).toBeInTheDocument();
+        expect(screen.getByText(/effectiveness/)).toBeInTheDocument();
         expect(screen.getByText("95%")).toBeInTheDocument();
     });
 
     it("handles relative to birth vaccines correctly", () => {
         render(<DoseSchedule vaccine={mockVaccine} initialDate="2024-01-01" />);
 
-        expect(screen.getByText("At Birth Administration")).toBeInTheDocument();
-        expect(screen.getByText("At 6 Weeks of Age")).toBeInTheDocument();
+        expect(screen.getByText("atBirth")).toBeInTheDocument();
+        expect(screen.getAllByText("atWeeks").length).toBeGreaterThan(0);
     });
 
     it("handles relative to first dose vaccines correctly", () => {
@@ -70,14 +81,14 @@ describe("DoseSchedule", () => {
 
         render(<DoseSchedule vaccine={firstDoseVaccine} initialDate="2024-01-01" />);
 
-        expect(screen.getByText("Initial Administration (Baseline)")).toBeInTheDocument();
-        expect(screen.getByText("Dose Step 2 (+26 weeks later)")).toBeInTheDocument();
+        expect(screen.getByText("baseline")).toBeInTheDocument();
+        expect(screen.getByText("doseStep")).toBeInTheDocument();
     });
 
     it("shows pending state when no date is selected", () => {
         render(<DoseSchedule vaccine={mockVaccine} initialDate="" />);
 
-        expect(screen.getByText(/Enter a date above to calculate/i)).toBeInTheDocument();
+        expect(screen.getAllByText("selectDateWarning")[0]).toBeInTheDocument();
     });
 
     it("marks past doses as scheduled", () => {

@@ -5,9 +5,18 @@ export function extractExpiryDate(text: string): string | null {
     if (dmy) {
         const day = parseInt(dmy[1], 10);
         const month = parseInt(dmy[2], 10);
-        if (day >= 1 && day <= 31 && month >= 1 && month <= 12) {
-            return `${dmy[2]}/${dmy[3]}`;
+        const year = parseInt(dmy[3], 10);
+        if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+            const date = new Date(year, month - 1, day);
+            if (
+                date.getFullYear() === year &&
+                date.getMonth() === month - 1 &&
+                date.getDate() === day
+            ) {
+                return `${dmy[2]}/${dmy[3]}`;
+            }
         }
+        return null;
     }
 
     // 2. Named months: JAN 2024
@@ -102,7 +111,7 @@ export function extractMedicineName(text: string): string | null {
         .map((l) => l.trim())
         .filter(Boolean);
     const skip =
-        /^(exp(?:iry)?|batch|b\.?\s*no|mfg|date|composition|tablet|capsule|mg|mrp|rs|inr|use|manufacture|store|keep|dosage)/i;
+        /^(exp(?:iry)?|batch|b\.?\s*no|mfg|date|composition|tablet(?:s)?|capsule(?:s)?|strip(?:s)?|drops?|syrup|injection|suspension|solution|ointment|cream|gel|powder|granules?|spray|inhaler|mg|mrp|rs|inr|use|manufacture|store|keep|dosage)/i;
 
     for (const line of lines) {
         if (skip.test(line)) continue;

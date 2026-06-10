@@ -6,6 +6,30 @@ import { optionalAuth } from "../middleware/auth";
 import logger from "../utils/logger";
 import { escapeIlike } from "../utils/db";
 
+function maskClientIp(ip: string | undefined): string | null {
+    if (!ip) return null;
+
+    // Express behind proxies sometimes gives ::ffff:x.x.x.x
+    const normalized = ip.replace(/^::ffff:/, "");
+
+    // IPv4
+    if (normalized.includes(".")) {
+        const parts = normalized.split(".");
+        if (parts.length === 4) {
+            parts[3] = "0";
+            return parts.join(".");
+        }
+    }
+
+    // IPv6
+    if (normalized.includes(":")) {
+        const parts = normalized.split(":");
+        return parts.slice(0, 4).concat(["0000", "0000", "0000", "0000"]).join(":");
+    }
+
+    return null;
+}
+
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim())
     : [
@@ -30,8 +54,16 @@ const verifySchema = z.object({
     batchNumber: z
         .string({ message: "batchNumber is required and must be a string" })
         .min(3, "batchNumber must be at least 3 characters long"),
-    latitude: z.number().optional(),
-    longitude: z.number().optional(),
+    latitude: z
+        .number()
+        .min(-90, "Latitude must be between -90 and 90")
+        .max(90, "Latitude must be between -90 and 90")
+        .optional(),
+    longitude: z
+        .number()
+        .min(-180, "Longitude must be between -180 and 180")
+        .max(180, "Longitude must be between -180 and 180")
+        .optional(),
 });
 
 /**
@@ -230,7 +262,7 @@ router.post(
                     batch_number: data.batch_number,
                     medicine_id: data.id,
                     barcode_id: data.barcode_id,
-                    client_ip: req.ip || null,
+                    client_ip: maskClientIp(req.ip),
                     origin: req.headers.origin ?? null,
                     user_agent: req.headers["user-agent"] ?? null,
                     latitude: latitude ?? null,

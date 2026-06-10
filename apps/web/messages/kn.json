@@ -637,5 +637,38 @@
         "nav_vaccine": "Vaccine Hub",
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
-    }
+    },
+  "medicineSafety": {
+    "guideTitle": "ಬಳಕೆ ಮತ್ತು ಸುರಕ್ಷತಾ ಮಾರ್ಗದರ್ಶಿ",
+    "noDosageInfo": "ಈ ವಯೋಮಾನದವರಿಗೆ ಡೋಸ್ ಮಾಹಿತಿ ಲಭ್ಯವಿಲ್ಲ.",
+    "closeButton": "ಸುರಕ್ಷತಾ ಮಾಹಿತಿಯನ್ನು ಮುಚ್ಚಿ",
+    "tabs": {
+      "sideEffects": "ಅಡ್ಡ ಪರಿಣಾಮಗಳು",
+      "dosage": "ಡೋಸ್",
+      "dietaryIntake": "ಆಹಾರ ಸೇವನೆ"
+    },
+    "sideEffects": {
+      "standardSymptoms": "ಸಾಮಾನ್ಯ ಲಕ್ಷಣಗಳು",
+      "severeRedFlags": "ಗಂಭೀರ ಎಚ್ಚರಿಕೆಗಳು — ತಕ್ಷಣ ವೈದ್ಯಕೀಯ ಸಹಾಯ ಪಡೆಯಿರಿ"
+    },
+    "dosage": {
+      "tabs": {
+        "kids": "ಮಕ್ಕಳು",
+        "adults": "ವಯಸ್ಕರು",
+        "elderly": "ಹಿರಿಯರು"
+      },
+      "doseLabel": "ಡೋಸ್:",
+      "frequencyLabel": "ಆವರ್ತನೆ:",
+      "notesHeading": "ಟಿಪ್ಪಣಿಗಳು",
+      "warningsHeading": "ಎಚ್ಚರಿಕೆಗಳು"
+    },
+    "dietary": {
+      "tabs": {
+        "dietaryIntake": "ಆಹಾರ ಸೇವನೆ"
+      },
+      "storageHeading": "ಸಂಗ್ರಹಣೆ",
+      "pregnancyHeading": "ಗರ್ಭಾವಸ್ಥೆ"
+    },
+    "disclaimer": "ಈ ಮಾಹಿತಿ ಶೈಕ್ಷಣಿಕ ಉದ್ದೇಶಕ್ಕಾಗಿ ಮಾತ್ರವಾಗಿದ್ದು ವೃತ್ತಿಪರ ವೈದ್ಯಕೀಯ ಸಲಹೆಗೆ ಪರ್ಯಾಯವಲ್ಲ."
+  }
 }

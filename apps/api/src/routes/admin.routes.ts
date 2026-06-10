@@ -13,15 +13,30 @@ import { getPushNotificationAnalytics } from "./analytics";
 
 const router = Router();
 
-router.use(requireAuth, requireRole("admin", "moderator"));
+router.get("/reports", requireAuth, requireRole("admin", "moderator"), getPendingReports);
 
-router.get("/reports", getPendingReports);
-router.patch("/reports/:id/status", updateReportStatus);
-router.get("/medicines", getAllMedicines);
-router.post("/medicines", createMedicine);
-router.get("/pharmacies/pending", getPendingPharmacies);
-router.patch("/pharmacies/:id/status", updatePharmacyStatus);
-router.get("/logs", getAuditLogs);
-router.get("/push-notifications/analytics", getPushNotificationAnalytics);
+router.get("/medicines", requireAuth, requireRole("admin", "moderator"), getAllMedicines);
+
+router.get(
+    "/pharmacies/pending",
+    requireAuth,
+    requireRole("admin", "moderator"),
+    getPendingPharmacies
+);
+
+router.get("/logs", requireAuth, requireRole("admin", "moderator"), getAuditLogs);
+
+router.get(
+    "/push-notifications/analytics",
+    requireAuth,
+    requireRole("admin", "moderator"),
+    getPushNotificationAnalytics
+);
+
+router.patch("/reports/:id/status", requireAuth, requireRole("admin"), updateReportStatus);
+
+router.post("/medicines", requireAuth, requireRole("admin"), createMedicine);
+
+router.patch("/pharmacies/:id/status", requireAuth, requireRole("admin"), updatePharmacyStatus);
 
 export default router;

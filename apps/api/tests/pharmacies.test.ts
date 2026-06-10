@@ -10,20 +10,13 @@ jest.mock("../src/db/client", () => ({
         ilike: jest.fn().mockReturnThis(),
         limit: jest.fn().mockReturnThis(),
         maybeSingle: jest.fn(),
-    },
-}));
-
-jest.mock("../src/db/supabase", () => ({
-    __esModule: true,
-    default: {
         rpc: jest.fn(),
-        from: jest.fn(),
     },
 }));
 
 import request from "supertest";
 import app from "../src/app";
-import supabase from "../src/db/supabase";
+import { supabase } from "../src/db/client";
 
 const mockedSupabase = supabase as jest.Mocked<typeof supabase>;
 

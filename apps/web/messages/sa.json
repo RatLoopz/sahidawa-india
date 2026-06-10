@@ -637,5 +637,38 @@
         "nav_vaccine": "Vaccine Hub",
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
-    }
+    },
+  "medicineSafety": {
+    "guideTitle": "उपयोगः तथा सुरक्षा मार्गदर्शिका",
+    "noDosageInfo": "अस्य वयःसमूहस्य कृते मात्रा-विवरणं न उपलब्धम्।",
+    "closeButton": "सुरक्षा-विवरणं पिधत",
+    "tabs": {
+      "sideEffects": "पार्श्वप्रभावाः",
+      "dosage": "मात्रा",
+      "dietaryIntake": "आहार-सेवनम्"
+    },
+    "sideEffects": {
+      "standardSymptoms": "सामान्यलक्षणानि",
+      "severeRedFlags": "गम्भीरचेतावनी — शीघ्रं वैद्यसहाय्यं प्राप्नुत"
+    },
+    "dosage": {
+      "tabs": {
+        "kids": "बालकाः",
+        "adults": "प्रौढाः",
+        "elderly": "वृद्धाः"
+      },
+      "doseLabel": "मात्रा:",
+      "frequencyLabel": "आवृत्तिः:",
+      "notesHeading": "टिप्पण्यः",
+      "warningsHeading": "चेतावन्यः"
+    },
+    "dietary": {
+      "tabs": {
+        "dietaryIntake": "आहार-सेवनम्"
+      },
+      "storageHeading": "संग्रहणम्",
+      "pregnancyHeading": "गर्भावस्था"
+    },
+    "disclaimer": "एषा सूचना शैक्षिकप्रयोजनार्थम् अस्ति, न तु व्यावसायिकवैद्यकीयपरामर्शस्य विकल्पः।"
+  }
 }

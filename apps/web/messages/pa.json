@@ -637,5 +637,38 @@
         "nav_vaccine": "Vaccine Hub",
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
-    }
+    },
+  "medicineSafety": {
+    "guideTitle": "ਵਰਤੋਂ ਅਤੇ ਸੁਰੱਖਿਆ ਗਾਈਡ",
+    "noDosageInfo": "ਇਸ ਉਮਰ ਸਮੂਹ ਲਈ ਖੁਰਾਕ ਦੀ ਜਾਣਕਾਰੀ ਉਪਲਬਧ ਨਹੀਂ ਹੈ।",
+    "closeButton": "ਸੁਰੱਖਿਆ ਜਾਣਕਾਰੀ ਬੰਦ ਕਰੋ",
+    "tabs": {
+      "sideEffects": "ਸਾਈਡ ਇਫੈਕਟ",
+      "dosage": "ਖੁਰਾਕ",
+      "dietaryIntake": "ਖੁਰਾਕੀ ਸੇਵਨ"
+    },
+    "sideEffects": {
+      "standardSymptoms": "ਆਮ ਲੱਛਣ",
+      "severeRedFlags": "ਗੰਭੀਰ ਚੇਤਾਵਨੀਆਂ — ਤੁਰੰਤ ਡਾਕਟਰੀ ਮਦਦ ਲਵੋ"
+    },
+    "dosage": {
+      "tabs": {
+        "kids": "ਬੱਚੇ",
+        "adults": "ਵਯਸਕ",
+        "elderly": "ਬਜ਼ੁਰਗ"
+      },
+      "doseLabel": "ਖੁਰਾਕ:",
+      "frequencyLabel": "ਆਵ੍ਰਿਤੀ:",
+      "notesHeading": "ਨੋਟਸ",
+      "warningsHeading": "ਚੇਤਾਵਨੀਆਂ"
+    },
+    "dietary": {
+      "tabs": {
+        "dietaryIntake": "ਖੁਰਾਕੀ ਸੇਵਨ"
+      },
+      "storageHeading": "ਸਟੋਰੇਜ",
+      "pregnancyHeading": "ਗਰਭਾਵਸਥਾ"
+    },
+    "disclaimer": "ਇਹ ਜਾਣਕਾਰੀ ਸਿੱਖਿਆਤਮਕ ਹੈ ਅਤੇ ਪੇਸ਼ੇਵਰ ਡਾਕਟਰੀ ਸਲਾਹ ਦਾ ਬਦਲ ਨਹੀਂ ਹੈ।"
+  }
 }

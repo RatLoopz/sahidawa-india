@@ -1,5 +1,6 @@
 "use client";
 
+import { MedicineSafetyPanel } from "@/components/medicine";
 import React, { useEffect, useState } from "react";
 import {
     Camera,
@@ -90,6 +91,7 @@ export default function SahiDawaHome() {
 
     const [homepageAlerts, setHomepageAlerts] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    const [activeSearchQuery, setActiveSearchQuery] = useState<string>("");
 
     useEffect(() => {
         async function fetchAlerts() {
@@ -159,8 +161,19 @@ export default function SahiDawaHome() {
 
                     {/* Search Bar */}
                     <div className="mx-auto w-full max-w-2xl pt-2">
-                        <SearchBar />
+                        <SearchBar onSearchChange={(query) => setActiveSearchQuery(query)} />
                     </div>
+
+                    {/* Medicine Safety Panel — shown inline on home page, NO redirect */}
+                    {activeSearchQuery && (
+                        <div className="animate-in fade-in slide-in-from-top-4 mx-auto mt-4 w-full max-w-2xl text-left duration-200">
+                            <MedicineSafetyPanel
+                                key={activeSearchQuery}
+                                searchQuery={activeSearchQuery}
+                                onClose={() => setActiveSearchQuery("")}
+                            />
+                        </div>
+                    )}
                 </section>
 
                 <div className="container mx-auto max-w-6xl px-4">
@@ -200,34 +213,55 @@ export default function SahiDawaHome() {
 
                     {/* ── Vaccine Hub & Tracker ── */}
                     <section className="mb-6">
-                        <h2 className="sr-only">Featured Services</h2>
+                        <h2 className="sr-only">Vaccine Hub</h2>
                         <Link
                             href="/vaccine-hub"
-                            className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-md focus-visible:-translate-y-1 focus-visible:scale-[1.01] focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-emerald-400/30 dark:hover:shadow-emerald-400/5 dark:focus-visible:ring-offset-slate-900"
+                            className="group relative flex w-full transform-gpu cursor-pointer flex-col overflow-hidden rounded-3xl border border-emerald-200/60 bg-white p-6 shadow-[0_4px_24px_rgba(16,185,129,0.07)] transition-all duration-300 select-none hover:-translate-y-1 hover:border-emerald-300/80 hover:shadow-[0_12px_32px_rgba(16,185,129,0.15)] focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:outline-none dark:border-slate-700/60 dark:bg-slate-900/70 dark:hover:border-emerald-500/40 dark:hover:shadow-[0_12px_32px_rgba(16,185,129,0.08)]"
+                            aria-label="Open Vaccine Hub"
                         >
-                            <div>
-                                {/* Icon Container */}
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-colors group-hover:bg-emerald-600 group-hover:text-white">
-                                    <Syringe size={24} />
+                            {/* Subtle gradient wash */}
+                            <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-emerald-500/5 via-transparent to-teal-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-emerald-500/10 dark:to-teal-500/10" />
+
+                            {/* Header row: icon badge + CTA arrow */}
+                            <div className="relative z-10 flex items-start justify-between gap-4">
+                                {/* Circular icon badge */}
+                                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-emerald-100 to-teal-50 text-emerald-600 shadow-inner transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:from-emerald-500 group-hover:to-teal-400 group-hover:text-white group-hover:shadow-[0_0_18px_rgba(16,185,129,0.4)] dark:from-emerald-950/60 dark:to-teal-900/40 dark:text-emerald-400">
+                                    <Syringe
+                                        size={26}
+                                        strokeWidth={2.5}
+                                        className="transition-transform duration-300"
+                                    />
                                 </div>
 
-                                {/* Text Context */}
-                                <h3 className="mt-4 text-lg font-bold text-slate-900 dark:text-white">
+                                {/* Animated arrow indicator */}
+                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 opacity-0 transition-all duration-300 group-hover:opacity-100 dark:bg-emerald-900/40">
+                                    <ChevronRight
+                                        className="h-5 w-5 text-emerald-600 dark:text-emerald-400"
+                                        aria-hidden="true"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Text hierarchy */}
+                            <div className="relative z-10 mt-4">
+                                <h3 className="text-xl font-bold tracking-tight text-slate-900 transition-colors group-hover:text-emerald-700 dark:text-white dark:group-hover:text-emerald-300">
                                     {tHome("vaccine_title")}
                                 </h3>
-                                <p className="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                                <p className="mt-2 text-sm leading-relaxed font-medium text-slate-500 transition-colors group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-300">
                                     {tHome("vaccine_subtitle")}
                                 </p>
                             </div>
 
-                            {/* Action Footer Indicator */}
-                            <div className="mt-6 flex items-center gap-1.5 text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                                <span>{tHome("vaccine_open")}</span>
-                                <ArrowRight
-                                    size={16}
-                                    className="transition-transform group-hover:translate-x-1"
-                                    aria-hidden="true"
-                                />
+                            {/* Pill-shaped CTA button */}
+                            <div className="relative z-10 mt-6">
+                                <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 transition-all duration-300 group-hover:border-emerald-400 group-hover:bg-emerald-600 group-hover:text-white dark:border-emerald-800/60 dark:bg-emerald-900/30 dark:text-emerald-400 dark:group-hover:border-emerald-500 dark:group-hover:bg-emerald-600 dark:group-hover:text-white">
+                                    {tHome("vaccine_open")}
+                                    <ArrowRight
+                                        size={15}
+                                        className="transition-transform duration-300 group-hover:translate-x-0.5"
+                                        aria-hidden="true"
+                                    />
+                                </span>
                             </div>
                         </Link>
                     </section>
@@ -257,7 +291,7 @@ export default function SahiDawaHome() {
                             {/* Upload Photo */}
                             <button
                                 onClick={() => handleNavigation("scan")}
-                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white/60 p-6 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 select-none hover:-translate-y-2 hover:scale-[1.02] hover:border-emerald-400/50 hover:bg-white/90 hover:shadow-[0_20px_40px_-15px_rgba(16,185,129,0.3)] focus-visible:-translate-y-2 focus-visible:scale-[1.02] focus-visible:border-emerald-400/50 focus-visible:ring-emerald-500/50 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800/60 dark:bg-slate-900/40 dark:hover:border-emerald-500/50 dark:hover:bg-slate-800/80"
+                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-200 select-none hover:-translate-y-1 hover:border-emerald-500 hover:shadow-md focus-visible:-translate-y-1 focus-visible:border-emerald-500 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800 dark:bg-slate-900"
                                 aria-label="Upload photo"
                             >
                                 <div className="absolute inset-0 -z-10 bg-linear-to-br from-emerald-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-emerald-500/20"></div>
@@ -291,7 +325,7 @@ export default function SahiDawaHome() {
                             {/* Voice Triage */}
                             <button
                                 onClick={() => handleNavigation("voice")}
-                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white/60 p-6 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 select-none hover:-translate-y-2 hover:scale-[1.02] hover:border-blue-400/50 hover:bg-white/90 hover:shadow-[0_20px_40px_-15px_rgba(59,130,246,0.3)] focus-visible:-translate-y-2 focus-visible:scale-[1.02] focus-visible:border-blue-400/50 focus-visible:ring-blue-500/50 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800/60 dark:bg-slate-900/40 dark:hover:border-blue-500/50 dark:hover:bg-slate-800/80"
+                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-200 select-none hover:-translate-y-1 hover:border-blue-500 hover:shadow-md focus-visible:-translate-y-1 focus-visible:border-blue-500 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800 dark:bg-slate-900"
                                 aria-label="Voice triage"
                             >
                                 <div className="absolute inset-0 -z-10 bg-linear-to-br from-blue-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-blue-500/20"></div>
@@ -332,7 +366,7 @@ export default function SahiDawaHome() {
                             {/* Pharmacy Map */}
                             <button
                                 onClick={() => handleNavigation("map")}
-                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white/60 p-6 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 select-none hover:-translate-y-2 hover:scale-[1.02] hover:border-amber-400/50 hover:bg-white/90 hover:shadow-[0_20px_40px_-15px_rgba(245,158,11,0.3)] focus-visible:-translate-y-2 focus-visible:scale-[1.02] focus-visible:border-amber-400/50 focus-visible:ring-amber-500/50 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800/60 dark:bg-slate-900/40 dark:hover:border-amber-500/50 dark:hover:bg-slate-800/80"
+                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-200 select-none hover:-translate-y-1 hover:border-amber-500 hover:shadow-md focus-visible:-translate-y-1 focus-visible:border-amber-500 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800 dark:bg-slate-900"
                                 aria-label="Pharmacy map"
                             >
                                 <div className="absolute inset-0 -z-10 bg-linear-to-br from-amber-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-amber-500/20"></div>
@@ -377,22 +411,20 @@ export default function SahiDawaHome() {
                             {/* Report Fake Medicine */}
                             <button
                                 onClick={() => handleNavigation("report")}
-                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200/50 bg-white/60 p-6 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 select-none hover:-translate-y-2 hover:scale-[1.02] hover:border-red-400/50 hover:bg-white/90 hover:shadow-[0_20px_40px_-15px_rgba(239,68,68,0.3)] focus-visible:-translate-y-2 focus-visible:scale-[1.02] focus-visible:border-red-400/50 focus-visible:ring-red-500/50 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800/60 dark:bg-slate-900/40 dark:hover:border-red-500/50 dark:hover:bg-slate-800/80"
+                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-200 select-none hover:-translate-y-1 hover:border-red-500 hover:shadow-md focus-visible:-translate-y-1 focus-visible:border-red-500 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800 dark:bg-slate-900"
                                 aria-label="Report fake medicine"
                             >
-                                <div className="absolute inset-0 -z-10 bg-linear-to-br from-red-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-red-500/20"></div>
-
-                                <div className="absolute right-0 bottom-0 h-24 w-24 translate-x-8 translate-y-8 rounded-full bg-red-500/5 blur-2xl transition-all duration-500 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:bg-red-500/20"></div>
+                                <div className="absolute right-0 bottom-0 h-24 w-24 translate-x-8 translate-y-8 rounded-full bg-red-500/5 transition-all duration-500 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:bg-red-500/10"></div>
 
                                 <div className="relative z-10 flex items-start justify-between gap-4">
-                                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-red-100 to-red-50 text-red-600 shadow-inner transition-all duration-500 group-hover:scale-110 group-hover:rotate-12 group-hover:from-red-500 group-hover:to-rose-400 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] dark:from-red-950/60 dark:to-red-900/40 dark:text-red-400">
+                                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-red-100 to-red-50 text-red-600 shadow-inner transition-all duration-500 group-hover:scale-110 group-hover:rotate-12 group-hover:from-red-500 group-hover:to-rose-400 group-hover:text-white dark:from-red-950/60 dark:to-red-900/40 dark:text-red-400">
                                         <AlertTriangle
                                             size={26}
                                             strokeWidth={2.5}
                                             className="transition-transform duration-500"
                                         />
                                     </div>
-                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100/50 opacity-0 backdrop-blur-md transition-all duration-300 group-hover:opacity-100 dark:bg-slate-800/50">
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100/50 opacity-0 transition-all duration-300 group-hover:opacity-100 dark:bg-slate-800/50">
                                         <ChevronRight
                                             className="h-5 w-5 text-red-600 dark:text-red-400"
                                             aria-hidden="true"
@@ -630,7 +662,7 @@ export default function SahiDawaHome() {
                                 {[...testimonials, ...testimonials].map((testimonial, index) => (
                                     <article
                                         key={`${testimonial.name}-${index}`}
-                                        className="flex h-[250px] w-[300px] shrink-0 flex-col justify-between rounded-2xl border border-slate-200/70 bg-white/85 p-6 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-300/70 hover:shadow-md sm:w-[360px] dark:border-slate-800/70 dark:bg-slate-950/55 dark:hover:border-emerald-400/40"
+                                        className="flex h-[250px] w-[300px] shrink-0 flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50 p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-emerald-500 hover:shadow-md sm:w-[360px] dark:border-slate-800 dark:bg-slate-900"
                                     >
                                         <div>
                                             <Quote

@@ -8,6 +8,7 @@ import { validateMlServiceConfig } from "./config/mlService";
 import cookieParser from "cookie-parser";
 import { doubleCsrf } from "csrf-csrf";
 import mapRouter from "./routes/map";
+import medicineSchedulesRouter from "./routes/medicineSchedules";
 
 // ── Environment Configuration ──────────────────────────────────────────────
 const rootEnvPath = path.resolve(__dirname, "../../../.env");
@@ -205,6 +206,7 @@ app.use("/api/v1/alerts", alertsRouter);
 app.use("/api/ml", mlRouter);
 app.use("/api/triage", triageRouter);
 app.use("/api/map", mapRouter);
+app.use("/api/schedules", medicineSchedulesRouter);
 
 // ── Swagger UI Documentation (/api/docs) ──────────────────────────────────
 app.use(

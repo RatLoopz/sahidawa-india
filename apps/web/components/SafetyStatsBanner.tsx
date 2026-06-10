@@ -201,13 +201,17 @@ export default function SafetyStatsBanner() {
         async function fetchAlerts() {
             const now = new Date();
             const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString();
+            const startOfNextMonth = new Date(
+                now.getFullYear(),
+                now.getMonth() + 1,
+                1
+            ).toISOString();
 
             const { data, error } = await supabase
                 .from("drug_alerts")
                 .select("alert_type")
                 .gte("created_at", startOfMonth)
-                .lte("created_at", endOfMonth);
+                .lt("created_at", startOfNextMonth);
 
             if (!error && data) {
                 let b = 0,

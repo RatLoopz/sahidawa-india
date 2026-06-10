@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
-import { MessageSquare, X, Send, Bot } from "lucide-react";
+import { MessageSquare, X, Send, Bot, Home } from "lucide-react";
+import { Link } from "@/i18n/routing";
 import { getChatbotPanelClasses, getChatbotPositionClasses } from "./chatbotPosition";
 import { ChatMarkdown } from "@/app/components/ChatMarkdown";
 import { isAbortError, readChatErrorMessage, readTextResponseStream } from "@/lib/chatStream";
@@ -149,13 +150,22 @@ export default function Chatbot() {
                                 <p className="text-xs text-white/95">{t("status")}</p>
                             </div>
                         </div>
-                        <button
-                            onClick={() => setIsOpen(false)}
-                            className="rounded-full p-2 text-white transition-colors hover:bg-white/20"
-                            aria-label="Close chat"
-                        >
-                            <X size={20} />
-                        </button>
+                        <div className="flex items-center gap-1">
+                            <Link
+                                href="/"
+                                className="rounded-full p-2 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+                                aria-label="Go to homepage"
+                            >
+                                <Home size={18} />
+                            </Link>
+                            <button
+                                onClick={() => setIsOpen(false)}
+                                className="rounded-full p-2 text-white transition-colors hover:bg-white/20"
+                                aria-label="Close chat"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
                     </div>
 
                     {/* Messages */}
