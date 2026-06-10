@@ -45,19 +45,8 @@ import {
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
 import { useTranslations } from "next-intl";
 import { buildVerificationShareText, type VerificationShareCopy } from "@/lib/verificationShare";
-import {
-    buildLocalScanHistoryEntry,
-    saveLocalScanHistoryEntry,
-    type BuildLocalScanHistoryEntryOptions,
-    type LocalScanHistorySource,
-} from "@/lib/localScanHistory";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { structuredLog } from "@/lib/structuredLogger";
-
-type ScanHistoryContext = Omit<
-    BuildLocalScanHistoryEntryOptions,
-    "id" | "scannedAt" | "result" | "errorMessage"
->;
 
 import { saveScanHistory } from "@/lib/db/scanHistory";
 
@@ -156,9 +145,7 @@ function VerifiedSafeResult({
     scanMeta,
     onScanAgain,
     onShare,
-    onCopyMedicineDetails,
     shareLabel,
-    copied,
 }: {
     medicine: VerifiedMedicine;
     scanMeta?: {
@@ -169,9 +156,7 @@ function VerifiedSafeResult({
     };
     onScanAgain: () => void;
     onShare: () => void;
-    onCopyMedicineDetails: () => void;
     shareLabel: string;
-    copied: boolean;
 }) {
     return (
         <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] border border-(--color-border-muted) bg-(--color-surface-page) p-8 text-(--color-text-primary) shadow-2xl">
@@ -1267,9 +1252,7 @@ export default function ScanPage() {
                                             scanMeta={verifyResult.scanMeta}
                                             onScanAgain={handleScanAgain}
                                             onShare={handleShare}
-                                            onCopyMedicineDetails={handleCopyMedicineDetails}
                                             shareLabel={tScan("share.button")}
-                                            copied={copied}
                                         />
                                     )}
                                 {!verifyError && verifyResult && !verifyResult.verified && (

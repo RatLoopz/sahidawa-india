@@ -14,6 +14,7 @@ const config = [
         rules: {
             "@next/next/no-html-link-for-pages": "off",
             "@typescript-eslint/no-explicit-any": "off",
+            "@typescript-eslint/no-unused-vars": "error",
             "react-hooks/purity": "off",
             "react-hooks/refs": "off",
             "react-hooks/set-state-in-effect": "off",

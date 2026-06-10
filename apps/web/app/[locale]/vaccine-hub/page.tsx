@@ -11,6 +11,7 @@ import {
     SafetyInfo,
     AftercareGuidance,
     DateInitializer,
+    ChildVaccinationTracker,
 } from "@/components/vaccine";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { BookOpen, Syringe, Calendar, AlertTriangle, HeartPulse } from "lucide-react";
@@ -176,6 +177,8 @@ export default function VaccineHubPage() {
                             {t("subtitle")}
                         </p>
                     </div>
+
+                    <ChildVaccinationTracker />
 
                     {/* Controls */}
                     <div className="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:grid-cols-2 dark:border-slate-700 dark:bg-slate-800">

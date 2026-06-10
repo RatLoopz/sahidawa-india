@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
+import { getAdminRoleFromSession } from "@/lib/adminAuth";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
@@ -44,7 +45,7 @@ export default async function AdminLayout({
         return redirect(`/${resolvedParams.locale}/login`);
     }
 
-    const role = session.user.app_metadata?.role || session.user.user_metadata?.role;
+    const role = getAdminRoleFromSession(session);
 
     if (role !== "admin" && role !== "moderator") {
         return (

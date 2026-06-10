@@ -7,7 +7,6 @@ import {
     Store,
     BellRing,
     AlertTriangle,
-    ArrowRight,
     QrCode,
     MapPin,
     Shield,
@@ -114,7 +113,7 @@ const timelineSteps = [
 export default function HowItWorksPage() {
     return (
         <main className="min-h-screen overflow-x-hidden bg-gradient-to-b from-(--color-surface-page) via-emerald-500/[0.03] to-(--color-surface-page) text-(--color-text-primary)">
-            <PageHeader backHref="/" variant="light"/>
+            <PageHeader backHref="/" variant="light" />
             {/* Hero Section */}
             <section className="relative px-6 pt-24 pb-20">
                 {/* Glow Effects */}
@@ -122,7 +121,6 @@ export default function HowItWorksPage() {
                 <div className="absolute right-0 bottom-0 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl" />
 
                 <div className="relative mx-auto max-w-6xl text-center">
-                  
                     <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-5 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
                         <span className="h-2 w-2 rounded-full bg-emerald-500" />
                         Safe Healthcare • AI Powered
