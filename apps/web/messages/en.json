@@ -683,5 +683,14 @@
             "pregnancyHeading": "Pregnancy"
         },
         "disclaimer": "This information is educational and does not replace professional medical advice."
+    },
+    "Map": {
+        "errors": {
+            "denied": "Location access denied. Please enable it in browser settings.",
+            "unavailable": "Location information unavailable.",
+            "timeout": "Location request timed out.",
+            "generic": "Unable to get your location.",
+            "notSupported": "Geolocation is not supported by your browser."
+        }
     }
 }

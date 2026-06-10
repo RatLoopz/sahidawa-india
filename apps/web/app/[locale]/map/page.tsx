@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import {
     Search,
     Navigation,
@@ -259,6 +260,7 @@ type AdvancedFilters = {
 };
 
 export default function PharmacyMapPage() {
+    const t = useTranslations("Map");
     const [activeFilter, setActiveFilter] = useState<"all" | "verified" | "govt" | "named">("all");
     const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({
         hasAddress: false,
@@ -456,7 +458,7 @@ export default function PharmacyMapPage() {
     // Geolocation
     const handleLocateUser = useCallback(() => {
         if (!navigator.geolocation) {
-            setLocationError("Geolocation is not supported by your browser");
+            setLocationError(t("errors.notSupported"));
             setTimeout(() => setLocationError(null), 3000);
             return;
         }
@@ -472,16 +474,16 @@ export default function PharmacyMapPage() {
             (err) => {
                 setIsLocating(false);
                 const messages: Record<number, string> = {
-                    1: "Location access denied. Please enable it in browser settings.",
-                    2: "Location information unavailable.",
-                    3: "Location request timed out.",
+                    1: t("errors.denied"),
+                    2: t("errors.unavailable"),
+                    3: t("errors.timeout"),
                 };
-                setLocationError(messages[err.code] || "Unable to get your location.");
+                setLocationError(messages[err.code] || t("errors.generic"));
                 setTimeout(() => setLocationError(null), 4000);
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
         );
-    }, [fetchNearby]);
+    }, [fetchNearby, t]);
 
     const handleMapReady = useCallback(() => {
         if (!initialFetchDone.current) {
