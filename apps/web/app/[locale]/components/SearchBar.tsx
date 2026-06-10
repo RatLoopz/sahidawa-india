@@ -40,7 +40,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const { state: voiceState, startRecording, cancelRecording, supportsRecording } = useVoiceSearch();
+    const { state: voiceState, startRecording, supportsRecording } = useVoiceSearch();
 
     // ── Refs ───────────────────────────────────────────────────────────────────
     const containerRef = useRef<HTMLDivElement>(null);
