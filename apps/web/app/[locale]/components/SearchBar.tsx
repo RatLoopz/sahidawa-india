@@ -1,10 +1,11 @@
 "use client";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Search } from "lucide-react";
+import { Mic, Search } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useTranslations } from "next-intl";
 import { fuzzyMatchBrand } from "@/lib/api";
 import SearchSuggestions from "@/components/SearchSuggestions";
+import { useVoiceSearch } from "./useVoiceSearch";
 
 /** Maximum number of suggestions shown at once */
 const MAX_SUGGESTIONS = 8;
@@ -38,6 +39,8 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
 
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    const { state: voiceState, startRecording, cancelRecording, supportsRecording } = useVoiceSearch();
 
     // ── Refs ───────────────────────────────────────────────────────────────────
     const containerRef = useRef<HTMLDivElement>(null);
@@ -290,6 +293,18 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
         }
     };
 
+    // ── Voice input handler ─────────────────────────────────────────────────────
+    const handleVoiceSearch = useCallback(async () => {
+        try {
+            const result = await startRecording();
+            setQuery(result.transcript);
+            setActiveIndex(-1);
+            onSearchChange?.(result.transcript);
+        } catch {
+            // error state is managed by the hook
+        }
+    }, [startRecording, onSearchChange]);
+
     // ── Input change ───────────────────────────────────────────────────────────
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setQuery(e.target.value);
@@ -348,6 +363,34 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                         }`}
                         aria-label="Search medicine or batch"
                     />
+                    {supportsRecording && (
+                        <button
+                            type="button"
+                            onClick={handleVoiceSearch}
+                            disabled={voiceState.status === "recording" || voiceState.status === "transcribing" || voiceState.status === "requesting"}
+                            className={`flex shrink-0 cursor-pointer items-center justify-center rounded-xl p-2.5 transition-all duration-300 ${
+                                voiceState.status === "recording"
+                                    ? "animate-pulse text-red-500"
+                                    : voiceState.status === "transcribing"
+                                      ? "text-amber-400"
+                                      : voiceState.status === "error"
+                                        ? "text-red-400"
+                                        : "text-slate-400 hover:text-emerald-500 dark:text-slate-500 dark:hover:text-emerald-400"
+                            }`}
+                            aria-label={voiceState.status === "recording" ? "Recording" : "Search by voice"}
+                            title={
+                                voiceState.status === "error"
+                                    ? voiceState.message
+                                    : "Search medicine by voice"
+                            }
+                        >
+                            {voiceState.status === "requesting" || voiceState.status === "transcribing" ? (
+                                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                            ) : (
+                                <Mic size={18} aria-hidden="true" />
+                            )}
+                        </button>
+                    )}
                     <button
                         onClick={() => performSearch(query)}
                         className="flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 p-2.5 text-sm font-bold text-white shadow-md shadow-emerald-500/25 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-500/30 active:scale-95 sm:px-5 sm:py-2.5"

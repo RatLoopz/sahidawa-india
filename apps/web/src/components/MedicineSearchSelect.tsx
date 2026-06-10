@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
-import { Clock, Loader2, Search, X } from "lucide-react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { Clock, Loader2, Mic, Search, X } from "lucide-react";
 import type { Medicine } from "./ComparisonGrid";
+import { useVoiceSearch } from "./useVoiceSearch";
 
 // ─── constants ────────────────────────────────────────────────────────────────
 const HISTORY_KEY = "sahidawa_search_history";
@@ -88,6 +89,18 @@ export default function MedicineSearchSelect({
     const [history, setHistory] = useState<HistoryEntry[]>([]);
     const [activeIndex, setActiveIndex] = useState(-1);
     const latestQueryRef = useRef("");
+
+    const { state: voiceState, startRecording, supportsRecording } = useVoiceSearch();
+
+    const handleVoiceSearch = useCallback(async () => {
+        try {
+            const result = await startRecording();
+            setQuery(result.transcript);
+            setOpen(true);
+        } catch {
+            // error state is managed by the hook
+        }
+    }, [startRecording]);
 
     // Load history once on mount
     useEffect(() => {
@@ -228,9 +241,37 @@ export default function MedicineSearchSelect({
                                 }
                             }}
                             placeholder={placeholder}
-                            className="w-full rounded-lg border border-slate-300 bg-white py-2 pr-3 pl-9 text-sm focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600 focus:outline-none"
+                            className="w-full rounded-lg border border-slate-300 bg-white py-2 pr-10 pl-9 text-sm focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600 focus:outline-none"
                             autoComplete="off"
                         />
+                        {supportsRecording && (
+                            <button
+                                type="button"
+                                onClick={handleVoiceSearch}
+                                disabled={voiceState.status === "recording" || voiceState.status === "transcribing" || voiceState.status === "requesting"}
+                                className={`absolute top-1/2 right-2 -translate-y-1/2 rounded p-1 transition-colors ${
+                                    voiceState.status === "recording"
+                                        ? "animate-pulse text-red-500"
+                                        : voiceState.status === "transcribing"
+                                          ? "text-amber-400"
+                                          : voiceState.status === "error"
+                                            ? "text-red-400"
+                                            : "text-slate-400 hover:text-emerald-600"
+                                }`}
+                                aria-label="Search by voice"
+                                title={
+                                    voiceState.status === "error"
+                                        ? voiceState.message
+                                        : "Search medicine by voice"
+                                }
+                            >
+                                {voiceState.status === "requesting" || voiceState.status === "transcribing" ? (
+                                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                ) : (
+                                    <Mic size={16} aria-hidden="true" />
+                                )}
+                            </button>
+                        )}
                     </div>
 
                     {/* ── recent searches chips ── */}
