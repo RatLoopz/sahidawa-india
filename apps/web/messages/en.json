@@ -754,5 +754,19 @@
             "pregnancyHeading": "Pregnancy"
         },
         "disclaimer": "This information is educational and does not replace professional medical advice."
+    },
+    "ScanHistory": {
+        "export_modal_title": "Export Scan History",
+        "export_range_label": "Select Date Range",
+        "export_status_label": "Filter by Status",
+        "range_7d": "Last 7 Days",
+        "range_30d": "Last 30 Days",
+        "range_all": "All Time",
+        "status_all": "All Statuses",
+        "status_verified": "Verified Only",
+        "status_suspicious": "Suspicious Only",
+        "status_fake": "Fake Only",
+        "export_button": "Generate CSV",
+        "cancel": "Cancel"
     }
 }
