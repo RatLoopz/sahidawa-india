@@ -78,7 +78,7 @@ function getScanHistoryMedicineName(result: VerifyResult, fallbackBrandName?: st
 
 function isLowConfidenceScore(score: number | null | undefined): boolean {
     if (score == null) return false;
-    return score < 50;
+    return score < 75;
 }
 
 function LowConfidenceBanner({ score }: { score: number | null | undefined }) {
@@ -1321,6 +1321,7 @@ export default function ScanPage() {
                                                 onScanAgain={handleScanAgain}
                                                 onShare={handleShare}
                                                 shareLabel={tScan("share.button")}
+                                                fuzzyScore={fuzzyScore}
                                             />
                                             {loadingAlternative && (
                                                 <div className="flex w-full items-center justify-center rounded-[2.5rem] border border-(--color-border-muted) bg-slate-50 p-6 dark:bg-slate-900">
