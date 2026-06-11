@@ -10,7 +10,7 @@
         "test": "jest"
     },
     "dependencies": {
-        "@supabase/supabase-js": "^2.106.2",
+        "@supabase/supabase-js": "^2.108.1",
         "compression": "^1.8.1",
         "cookie-parser": "^1.4.7",
         "cors": "^2.8.5",
@@ -22,7 +22,7 @@
         "morgan": "^1.10.0",
         "multer": "^2.1.1",
         "natural": "^8.1.1",
-        "redis": "^5.12.1",
+        "redis": "^6.0.0",
         "swagger-jsdoc": "^6.3.0",
         "swagger-ui-express": "^5.0.1",
         "web-push": "^3.6.7",
@@ -38,7 +38,7 @@
         "@types/jest": "^30.0.0",
         "@types/morgan": "^1.9.9",
         "@types/multer": "^2.1.0",
-        "@types/node": "^25.9.1",
+        "@types/node": "^25.9.3",
         "@types/supertest": "^7.2.0",
         "@types/swagger-jsdoc": "^6.0.4",
         "@types/swagger-ui-express": "^4.1.8",
