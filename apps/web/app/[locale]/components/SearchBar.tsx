@@ -1,11 +1,12 @@
 "use client";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useTranslations } from "next-intl";
 import { fuzzyMatchBrand } from "@/lib/api";
 import SearchSuggestions from "@/components/SearchSuggestions";
+import { escapePostgrest } from "@/lib/supabase/utils";
 /** Maximum number of suggestions shown at once */
 const MAX_SUGGESTIONS = 8;
 /** Debounce delay in milliseconds */
@@ -77,10 +78,11 @@ export default function SearchBar({ dark = false }: { dark?: boolean }) {
         setIsLoading(true);
         try {
             // Query both brand_name and batch_number columns for partial matches.
+            const escapedPattern = escapePostgrest(`%${trimmed.replace(/[%_\\]/g, "\\$&")}%`);
             const { data, error } = await supabase
                 .from("medicines")
                 .select("brand_name, batch_number")
-                .or(`brand_name.ilike.%${trimmed}%,batch_number.ilike.%${trimmed}%`)
+                .or(`brand_name.ilike.${escapedPattern},batch_number.ilike.${escapedPattern}`)
                 .abortSignal(controller.signal)
                 .limit(MAX_SUGGESTIONS);
             if (controller.signal.aborted) {

@@ -7,13 +7,14 @@ import ComparisonGrid, { type Medicine } from "@/src/components/ComparisonGrid";
 import MedicineSearchSelect from "@/src/components/MedicineSearchSelect";
 import { COMPARE_SELECT_FIELDS } from "@/src/lib/compareSelectFields";
 import { supabase } from "@/lib/supabase";
+import { escapePostgrest } from "@/lib/supabase/utils";
 import { mapMedicineRow } from "@/src/lib/mapMedicineRow";
 
 async function searchMedicines(query: string): Promise<Medicine[]> {
     const q = query.trim();
     if (q.length < 2) return [];
 
-    const pattern = `%${q.replace(/[%_\\]/g, "\\$&")}%`;
+    const pattern = escapePostgrest(`%${q.replace(/[%_\\]/g, "\\$&")}%`);
     const { data, error } = await supabase
         .from("medicines")
         .select(COMPARE_SELECT_FIELDS)

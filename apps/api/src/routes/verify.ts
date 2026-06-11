@@ -3,6 +3,7 @@ import { z } from "zod";
 import { supabase } from "../db/client";
 import { verifyLimiter } from "../middleware/rateLimit";
 import { optionalAuth } from "../middleware/auth";
+import { escapePostgrest } from "../utils/postgrest";
 
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim())
@@ -165,7 +166,7 @@ router.post(
                 .select(
                     "id, barcode_id, brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert"
                 )
-                .ilike("batch_number", escaped)
+                .ilike("batch_number", escapePostgrest(escaped))
                 .limit(1)
                 .maybeSingle();
 

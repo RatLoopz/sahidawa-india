@@ -8,6 +8,7 @@ import { supabase } from "../db/client";
 import { getMlServiceUrl, MISSING_ML_SERVICE_URL_MESSAGE } from "../config/mlService";
 import { validateUploadSize } from "../middleware/uploadSizeValidator";
 import { uploadRateLimiter } from "../middleware/uploadRateLimit";
+import { escapePostgrest } from "../utils/postgrest";
 
 /**
  * Escape ILIKE wildcard characters in a string derived from untrusted input
@@ -370,7 +371,7 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
                     const orFilter = searchWords
                         .map((w) => {
                             const safe = escapeIlike(w);
-                            return `brand_name.ilike.%${safe}%,generic_name.ilike.%${safe}%`;
+                            return `brand_name.ilike.${escapePostgrest(`%${safe}%`)},generic_name.ilike.${escapePostgrest(`%${safe}%`)}`;
                         })
                         .join(",");
 
@@ -658,7 +659,9 @@ router.post("/match", async (req: Request, res: Response) => {
         const { data, error } = await supabase
             .from("medicines")
             .select("brand_name, generic_name")
-            .or(`brand_name.ilike.%${keyword}%,generic_name.ilike.%${keyword}%`)
+            .or(
+                `brand_name.ilike.${escapePostgrest(`%${keyword}%`)},generic_name.ilike.${escapePostgrest(`%${keyword}%`)}`
+            )
             .limit(100);
 
         if (error) {
@@ -731,7 +734,9 @@ router.post("/verify-brand", async (req: Request, res: Response) => {
                 "brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert"
             )
             .or(
-                `brand_name.ilike.%${escapeIlike(brandName)}%,generic_name.ilike.%${escapeIlike(brandName)}%`
+                `brand_name.ilike.${escapePostgrest(
+                    `%${escapeIlike(brandName)}%`
+                )},generic_name.ilike.${escapePostgrest(`%${escapeIlike(brandName)}%`)}`
             )
             .limit(1)
             .maybeSingle();
