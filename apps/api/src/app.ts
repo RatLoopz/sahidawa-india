@@ -8,6 +8,7 @@ import { validateMlServiceConfig } from "./config/mlService";
 import cookieParser from "cookie-parser";
 import { doubleCsrf } from "csrf-csrf";
 import mapRouter from "./routes/map";
+import medicineSchedulesRouter from "./routes/medicineSchedules";
 
 // ── Environment Configuration ──────────────────────────────────────────────
 const rootEnvPath = path.resolve(__dirname, "../../../.env");
@@ -31,6 +32,17 @@ if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
 // Execute configuration validation after import completes
 validateMlServiceConfig();
 
+if (
+    process.env.NODE_ENV !== "development" &&
+    process.env.NODE_ENV !== "test" &&
+    !process.env.CSRF_SECRET
+) {
+    logger.error(
+        "Missing CSRF_SECRET environment variable. The default fallback is predictable and insecure."
+    );
+    process.exit(1);
+}
+
 // ── Feature & Route Imports ────────────────────────────────────────────────
 import cors from "cors";
 import helmet from "helmet";
@@ -49,6 +61,9 @@ import alertsRouter from "./routes/alerts";
 import lasaRouter from "./routes/lasa";
 import mlRouter from "./routes/ml";
 import triageRouter from "./routes/triage";
+import interactionsRouter from "./routes/interactions";
+import alternativesRouter from "./routes/alternatives";
+import eligibilityRouter from "./routes/eligibility";
 import { supabase } from "./db/client";
 import { createCorsOptions } from "./config/cors";
 import { errorHandler } from "./middleware/errorHandler";
@@ -58,6 +73,9 @@ const app: Express = express();
 app.set("trust proxy", 1); // Trust first proxy (Nginx) — fixes req.ip for rate limiters
 
 app.use(compression());
+
+// Security: restrict CORS to known origins and allow credentials for secure cookies
+app.use(cors(createCorsOptions()));
 
 // ── Global Middleware Configuration ───────────────────────────────────────
 app.use(cookieParser());
@@ -102,9 +120,6 @@ app.use(
         },
     })
 );
-
-// Security: restrict CORS to known origins and allow credentials for secure cookies
-app.use(cors(createCorsOptions()));
 
 app.use(express.json({ limit: "1mb" }));
 
@@ -197,7 +212,7 @@ app.use("/reports", reportsRouter);
 app.use("/api/pharmacies", pharmaciesRouter);
 app.use("/api/verify/batch", batchRouter);
 app.use("/api/verify", verifyRouter);
-app.use("/api/analytics", analyticsRoutes);
+app.use("/api/analytics", requireAuth, requireRole("admin", "moderator"), analyticsRoutes);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/v1/scan", scanRouter);
 app.use("/api/v1/lasa", lasaRouter);
@@ -205,6 +220,10 @@ app.use("/api/v1/alerts", alertsRouter);
 app.use("/api/ml", mlRouter);
 app.use("/api/triage", triageRouter);
 app.use("/api/map", mapRouter);
+app.use("/api/v1/interactions", interactionsRouter);
+app.use("/api/schedules", medicineSchedulesRouter);
+app.use("/api/v1/alternatives", alternativesRouter);
+app.use("/api/v1/scheme-eligibility", eligibilityRouter);
 
 // ── Swagger UI Documentation (/api/docs) ──────────────────────────────────
 app.use(

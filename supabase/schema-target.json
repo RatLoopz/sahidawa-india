@@ -60,6 +60,57 @@
       "rls": false,
       "policies": []
     },
+    "drug_alerts": {
+      "columns": [
+        "id",
+        "medicine_id",
+        "reported_brand_name",
+        "manufacturer",
+        "batch_number",
+        "alert_type",
+        "risk_level",
+        "district",
+        "state",
+        "source_url",
+        "reported_at",
+        "created_at"
+      ],
+      "rls": true,
+      "policies": [
+        "drug_alerts_public_read",
+        "drug_alerts_service_write"
+      ]
+    },
+    "audit_logs": {
+      "columns": [
+        "id",
+        "admin_id",
+        "action",
+        "target_type",
+        "target_id",
+        "details",
+        "created_at"
+      ],
+      "rls": true,
+      "policies": [
+        "audit_logs_service_only"
+      ]
+    },
+    "district_alerts": {
+      "columns": [
+        "id",
+        "district",
+        "state",
+        "alert_level",
+        "medicine_name",
+        "is_active",
+        "created_at"
+      ],
+      "rls": true,
+      "policies": [
+        "district_alerts_service_only"
+      ]
+    },
     "push_subscriptions": {
       "columns": [
         "id",

@@ -5,6 +5,7 @@ import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { Globe } from "lucide-react";
 import RecallPushSubscriber from "@/components/alerts/RecallPushSubscriber";
+import { CopyButton } from "@/components/ui/CopyButton";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 import { API_BASE } from "@/lib/api";
 import BackToTopButton from "@/app/[locale]/components/BackToTopButton";
@@ -252,12 +253,15 @@ export default function FullAlertsLogPage() {
                                         {/* Render metadata bottom line layout only if it's not a system update card */}
                                         {!isSystem && (
                                             <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] font-semibold text-(--color-text-muted)">
-                                                <span>
-                                                    {t("batchLabel")}{" "}
-                                                    <span className="font-bold text-(--color-text-primary)">
-                                                        {alert.batch_number}
+                                                <div className="flex items-center gap-2">
+                                                    <span>
+                                                        {t("batchLabel")}{" "}
+                                                        <span className="font-bold text-(--color-text-primary)">
+                                                            {alert.batch_number}
+                                                        </span>
                                                     </span>
-                                                </span>
+                                                    <CopyButton text={alert.batch_number} />
+                                                </div>
                                                 <span>•</span>
                                                 <span>
                                                     {t("manufacturerLabel")}{" "}

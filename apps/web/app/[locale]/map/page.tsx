@@ -289,6 +289,20 @@ export default function PharmacyMapPage() {
     const pendingBoundsRef = useRef<MapBounds | null>(null);
     const initialFetchDone = useRef(false);
 
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            const filterParam = params.get("filter");
+            if (filterParam === "govt" || filterParam === "verified" || filterParam === "named") {
+                setActiveFilter(filterParam as any);
+            }
+            const queryParam = params.get("query");
+            if (queryParam) {
+                setSearchQuery(queryParam);
+            }
+        }
+    }, []);
+
     const fetchNearby = useCallback(async (lat: number, lng: number, radius = 10000) => {
         setIsLoading(true);
         setFetchError(null);
@@ -361,7 +375,6 @@ export default function PharmacyMapPage() {
             setIsShowingCached(false);
         }
     }, [isOffline, isShowingCached]);
-
     useEffect(() => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(

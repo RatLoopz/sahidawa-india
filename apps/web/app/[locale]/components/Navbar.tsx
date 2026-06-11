@@ -14,6 +14,8 @@ import {
     X,
     LogIn,
     Camera,
+    Clock,
+    ShieldCheck,
 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
@@ -189,6 +191,18 @@ export default function Navbar() {
                             {tNav("pharmacy_map")}
                         </Link>
                         <Link
+                            href="/scheme-eligibility"
+                            className={`${desktopNavLinkClassName} flex items-center gap-1`}
+                        >
+                            <ShieldCheck size={14} /> {tNav("scheme_eligibility")}
+                        </Link>
+                        <Link
+                            href="/schedule"
+                            className={`${desktopNavLinkClassName} flex items-center gap-1`}
+                        >
+                            <Clock size={14} /> {tNav("schedule")}
+                        </Link>
+                        <Link
                             href="/reports/me"
                             className={`${desktopNavLinkClassName} flex items-center gap-1`}
                         >
@@ -270,11 +284,26 @@ export default function Navbar() {
                                                 {tNav("pharmacy_map")}
                                             </Link>
                                             <Link
+                                                href="/scheme-eligibility"
+                                                onClick={() => setIsMenuOpen(false)}
+                                                className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                                            >
+                                                <ShieldCheck size={14} />
+                                                {tNav("scheme_eligibility")}
+                                            </Link>
+                                            <Link
                                                 href="/reports/me"
                                                 onClick={() => setIsMenuOpen(false)}
                                                 className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                                             >
                                                 <History size={14} /> {tNav("my_reports")}
+                                            </Link>
+                                            <Link
+                                                href="/schedule"
+                                                onClick={() => setIsMenuOpen(false)}
+                                                className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                                            >
+                                                <Clock size={14} /> {tNav("schedule")}
                                             </Link>
                                         </div>
 

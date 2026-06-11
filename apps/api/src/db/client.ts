@@ -106,6 +106,10 @@ export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseKey, {
     },
 });
 
+export const dbConfig = {
+    isSupabaseOffline: false,
+};
+
 // ── Graceful shutdown ─────────────────────────────────────────────────────────
 
 function gracefulShutdown(signal: string) {

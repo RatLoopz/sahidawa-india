@@ -266,7 +266,6 @@ export default function SahiDawaHome() {
                         </Link>
                     </section>
 
-                    {/* ── Explore Features Section ── */}
                     <section className="relative mb-20">
                         {/* Decorative Background for Section */}
                         <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent opacity-50 dark:from-emerald-900/20"></div>
@@ -287,7 +286,7 @@ export default function SahiDawaHome() {
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
                             {/* Upload Photo */}
                             <button
                                 onClick={() => handleNavigation("scan")}
@@ -404,6 +403,40 @@ export default function SahiDawaHome() {
                                     </h3>
                                     <p className="mt-2 text-sm leading-snug font-medium text-slate-500 transition-colors group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-300">
                                         {tHome("pharmacy_subtitle")}
+                                    </p>
+                                </div>
+                            </button>
+
+                            {/* Scheme Eligibility */}
+                            <button
+                                onClick={() => handleNavigation("scheme-eligibility")}
+                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-200 select-none hover:-translate-y-1 hover:border-emerald-500 hover:shadow-md focus-visible:-translate-y-1 focus-visible:border-emerald-500 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800 dark:bg-slate-900"
+                                aria-label={tHome("scheme_eligibility")}
+                            >
+                                <div className="absolute inset-0 -z-10 bg-linear-to-br from-emerald-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-emerald-500/20"></div>
+
+                                <div className="relative z-10 flex items-start justify-between gap-4">
+                                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-emerald-100 to-emerald-50 text-emerald-600 shadow-inner transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 group-hover:from-emerald-500 group-hover:to-teal-400 group-hover:text-white group-hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] dark:from-emerald-950/60 dark:to-emerald-900/40 dark:text-emerald-400">
+                                        <ShieldCheck
+                                            size={26}
+                                            strokeWidth={2.5}
+                                            className="transition-transform duration-500"
+                                        />
+                                    </div>
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100/50 opacity-0 backdrop-blur-md transition-all duration-300 group-hover:opacity-100 dark:bg-slate-800/50">
+                                        <ChevronRight
+                                            className="h-5 w-5 text-emerald-600 dark:text-emerald-400"
+                                            aria-hidden="true"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="relative z-10 pt-4">
+                                    <h3 className="text-xl font-bold tracking-tight text-slate-900 transition-colors group-hover:text-emerald-700 dark:text-white dark:group-hover:text-emerald-300">
+                                        {tHome("scheme_eligibility")}
+                                    </h3>
+                                    <p className="mt-2 text-sm leading-snug font-medium text-slate-500 transition-colors group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-300">
+                                        {tHome("scheme_eligibility_subtitle")}
                                     </p>
                                 </div>
                             </button>

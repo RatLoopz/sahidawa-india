@@ -35,13 +35,24 @@ jobs:
               const username = pr.user.login;
 
               // Fetch detailed PR information to retrieve the mergeable state
-              const prDetails = await github.rest.pulls.get({
-                owner: repo.owner,
-                repo: repo.repo,
-                pull_number: prNumber
-              });
-
-              const isMergeable = prDetails.data.mergeable;
+              let isMergeable = null;
+              let retries = 3;
+              
+              while (retries > 0) {
+                const prDetails = await github.rest.pulls.get({
+                  owner: repo.owner,
+                  repo: repo.repo,
+                  pull_number: prNumber
+                });
+                
+                isMergeable = prDetails.data.mergeable;
+                
+                if (isMergeable !== null) break;
+                
+                console.log(`PR #${prNumber} mergeable is null. Retrying in 3 seconds...`);
+                await new Promise(r => setTimeout(r, 3000));
+                retries--;
+              }
               const hasConflictLabel = pr.labels.some(l => l.name === LABEL_NAME);
 
               console.log(`PR #${prNumber} by @${username}: mergeable = ${isMergeable}, hasConflictLabel = ${hasConflictLabel}`);

@@ -4,6 +4,8 @@ import { z } from "zod";
 import { triggerRecallAlert } from "../services/notifications";
 import { validateMedicineStatus, getValidStatusList } from "../validators/medicine.validator";
 import { escapeIlike } from "../utils/db";
+import { requireApiKey, ApiKeyRequest } from "../middleware/apiKeyAuth";
+import logger from "../utils/logger";
 
 const AlertSchema = z
     .object({
@@ -83,7 +85,7 @@ alertsRouter.get("/", async (req: Request, res: Response) => {
             totalPageCount,
         });
     } catch (err) {
-        console.error("Unexpected error in GET /api/alerts:", err);
+        logger.error("Unexpected error in GET /api/alerts", { error: err });
         res.status(500).json({ error: "An unexpected error occurred" });
     }
 });
@@ -92,24 +94,7 @@ alertsRouter.get("/", async (req: Request, res: Response) => {
  * POST /api/v1/alerts/ingest
  * Protected endpoint to ingest parsed CDSCO alerts from the ML agent.
  */
-alertsRouter.post("/ingest", async (req: Request, res: Response) => {
-    // 1. Validate Secret Header & Environment Setup
-    // Issue fixed: API_SECRET_KEY is validated here instead of at startup, so a missing key no longer crashes the server.
-    const expectedSecret = process.env.API_SECRET_KEY;
-    if (!expectedSecret) {
-        console.error("Server Configuration Error: API_SECRET_KEY is not configured.");
-        res.status(500).json({
-            error: "Ingestion is disabled because API_SECRET_KEY is not configured on the server.",
-        });
-        return;
-    }
-
-    const authHeader = req.headers["x-api-secret"];
-    if (!authHeader || authHeader !== expectedSecret) {
-        res.status(401).json({ error: "Unauthorized access" });
-        return;
-    }
-
+alertsRouter.post("/ingest", requireApiKey, async (req: ApiKeyRequest, res: Response) => {
     const { alerts } = req.body;
     const parseResult = AlertsArraySchema.safeParse(alerts);
     if (!parseResult.success) {
@@ -127,7 +112,7 @@ alertsRouter.post("/ingest", async (req: Request, res: Response) => {
             .select();
 
         if (insertError) {
-            console.error("Error inserting alerts:", insertError);
+            logger.error("Error inserting alerts", { error: insertError });
             res.status(500).json({ error: "Database error inserting alerts" });
             return;
         }
@@ -177,13 +162,18 @@ alertsRouter.post("/ingest", async (req: Request, res: Response) => {
             await Promise.all(pushPromises);
         }
 
+        logger.info("Alerts ingested successfully", {
+            caller: req.apiKey?.callerName,
+            count: insertedAlerts?.length,
+        });
+
         res.status(200).json({
             success: true,
             message: "Alerts ingested and notifications dispatched",
             inserted: insertedAlerts?.length,
         });
     } catch (error) {
-        console.error("Unexpected error in /ingest:", error);
+        logger.error("Unexpected error in /ingest", { error, caller: req.apiKey?.callerName });
         res.status(500).json({ error: "Internal server error" });
     }
 });
