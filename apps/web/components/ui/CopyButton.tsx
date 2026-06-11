@@ -37,6 +37,7 @@ export const CopyButton = ({
 
     return (
         <button
+            type="button"
             onClick={handleCopy}
             className={clsx(
                 "inline-flex items-center justify-center rounded-md p-1.5 transition-all hover:bg-slate-100 active:scale-95 dark:hover:bg-slate-800",
