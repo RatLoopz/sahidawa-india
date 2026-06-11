@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
@@ -35,6 +35,33 @@ export default function ComparePage() {
     const t = useTranslations("Compare");
     const [medicine1, setMedicine1] = useState<Medicine | null>(null);
     const [medicine2, setMedicine2] = useState<Medicine | null>(null);
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+
+        const m1 = params.get("m1");
+        const m2 = params.get("m2");
+
+        if (!m1 || !m2) return;
+
+        const loadMedicines = async () => {
+            const { data, error } = await supabase
+                .from("medicines")
+                .select(COMPARE_SELECT_FIELDS)
+                .in("id", [m1, m2]);
+
+            if (error || !data) return;
+
+            const medicines = data.map((row) => mapMedicineRow(row as Record<string, unknown>));
+
+            const first = medicines.find((m) => m.id === m1);
+            const second = medicines.find((m) => m.id === m2);
+
+            if (first) setMedicine1(first);
+            if (second) setMedicine2(second);
+        };
+
+        loadMedicines();
+    }, []);
     const handleSearch = useCallback((q: string) => searchMedicines(q), []);
     const comparisonLabels: ComparisonGridLabels = {
         emptyComparison: t("emptyComparison"),

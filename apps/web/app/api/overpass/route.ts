@@ -13,8 +13,10 @@ export async function POST(req: NextRequest) {
         const { query } = await req.json();
 
         // Query all mirrors in parallel (race them) for maximum speed and zero timeout chaining
+        const controllers: AbortController[] = [];
         const fetchPromises = OVERPASS_MIRRORS.map(async (mirror) => {
             const controller = new AbortController();
+            controllers.push(controller);
             const timeoutId = setTimeout(() => controller.abort(), 8000); // 8-second timeout per mirror
 
             try {
@@ -50,6 +52,10 @@ export async function POST(req: NextRequest) {
 
         // Promise.any returns the first successfully resolved promise
         const fastestData = await Promise.any(fetchPromises);
+        // Abort remaining in-flight requests now that we have a result
+        for (const c of controllers) {
+            if (!c.signal.aborted) c.abort();
+        }
         return NextResponse.json(fastestData);
     } catch {
         return NextResponse.json(

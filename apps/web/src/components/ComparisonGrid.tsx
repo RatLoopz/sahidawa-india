@@ -163,6 +163,16 @@ function getDirectComparison(medicine1: Medicine | null, medicine2: Medicine | n
     };
 }
 
+function shareComparison(medicine1: Medicine | null, medicine2: Medicine | null) {
+    if (!medicine1 || !medicine2) return;
+
+    const url =
+        `${window.location.origin}${window.location.pathname}` +
+        `?m1=${medicine1.id}&m2=${medicine2.id}`;
+
+    navigator.clipboard.writeText(url);
+}
+
 export default function ComparisonGrid({
     medicine1,
     medicine2,
@@ -239,6 +249,17 @@ export default function ComparisonGrid({
                     ))}
                 </tbody>
             </table>
+            {medicine1 && medicine2 && (
+                <div className="flex justify-end border-t border-slate-200 p-4">
+                    <button
+                        type="button"
+                        onClick={() => shareComparison(medicine1, medicine2)}
+                        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                    >
+                        Share Comparison
+                    </button>
+                </div>
+            )}
             {directComparison && (
                 <div className="border-t border-slate-200 bg-slate-50 p-4">
                     {directComparison.type === "equal" ? (

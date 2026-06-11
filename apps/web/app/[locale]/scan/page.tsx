@@ -34,6 +34,8 @@ import {
     type VerifiedMedicine,
 } from "@/lib/api";
 import LasaConfirmation from "@/components/scanner/LasaConfirmation";
+import GenericAlternativeCard from "@/components/GenericAlternativeCard";
+import { fetchGenericAlternatives } from "@/lib/api/alternatives";
 import { BarcodeScanner } from "@/components/scanner/BarcodeScanner";
 import LazyImage from "@/components/LazyImage";
 import Tesseract from "tesseract.js";
@@ -567,10 +569,28 @@ export default function ScanPage() {
         unknownManufacturer: tScan("share.unknown_manufacturer"),
     };
 
+    // Alternative Finder State
+    const [alternativeData, setAlternativeData] = useState<any | null>(null);
+    const [loadingAlternative, setLoadingAlternative] = useState<boolean>(false);
+
+    const fetchAlternativesForMedicine = useCallback(async (medicineNameOrId: string) => {
+        setLoadingAlternative(true);
+        setAlternativeData(null);
+        try {
+            const data = await fetchGenericAlternatives(medicineNameOrId);
+            setAlternativeData(data);
+        } catch (err) {
+            console.error("Failed to fetch alternatives:", err);
+        } finally {
+            setLoadingAlternative(false);
+        }
+    }, []);
+
     const processVerificationResult = useCallback(
         async (result: VerifyResult, fallbackBrandName?: string) => {
             if (!result.verified) {
                 setVerifyResult(result);
+                setAlternativeData(null);
 
                 void saveScanHistory({
                     id: crypto.randomUUID(),
@@ -589,6 +609,7 @@ export default function ScanPage() {
                 const medicineName = result.medicine.brand_name || fallbackBrandName;
                 if (!medicineName) {
                     setVerifyResult(result);
+                    setAlternativeData(null);
 
                     void saveScanHistory({
                         id: crypto.randomUUID(),
@@ -603,6 +624,10 @@ export default function ScanPage() {
 
                     return;
                 }
+
+                // Start fetching generic alternatives
+                void fetchAlternativesForMedicine(medicineName);
+
                 const lasaRes = await checkLasaConflicts(medicineName);
                 if (lasaRes.hasConflicts && lasaRes.matches.length > 0) {
                     setLasaMatches(lasaRes.matches);
@@ -639,7 +664,7 @@ export default function ScanPage() {
                 setShowResult(true);
             }
         },
-        []
+        [fetchAlternativesForMedicine]
     );
 
     const handleConfirmScanned = () => {
@@ -1247,13 +1272,28 @@ export default function ScanPage() {
                                 {!verifyError &&
                                     verifyResult?.verified &&
                                     !verifyResult.medicine.is_counterfeit_alert && (
-                                        <VerifiedSafeResult
-                                            medicine={verifyResult.medicine}
-                                            scanMeta={verifyResult.scanMeta}
-                                            onScanAgain={handleScanAgain}
-                                            onShare={handleShare}
-                                            shareLabel={tScan("share.button")}
-                                        />
+                                        <div className="flex w-full max-w-sm flex-col items-center gap-6">
+                                            <VerifiedSafeResult
+                                                medicine={verifyResult.medicine}
+                                                scanMeta={verifyResult.scanMeta}
+                                                onScanAgain={handleScanAgain}
+                                                onShare={handleShare}
+                                                shareLabel={tScan("share.button")}
+                                            />
+                                            {loadingAlternative && (
+                                                <div className="flex w-full items-center justify-center rounded-[2.5rem] border border-(--color-border-muted) bg-slate-50 p-6 dark:bg-slate-900">
+                                                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent"></div>
+                                                    <span className="ml-3 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                                                        Finding cheaper alternatives...
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {!loadingAlternative && alternativeData && (
+                                                <GenericAlternativeCard
+                                                    alternative={alternativeData}
+                                                />
+                                            )}
+                                        </div>
                                     )}
                                 {!verifyError && verifyResult && !verifyResult.verified && (
                                     <UnverifiedResult

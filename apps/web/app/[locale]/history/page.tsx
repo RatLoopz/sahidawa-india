@@ -1,16 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
-import { getScanHistory, deleteScanHistory } from "@/lib/db/scanHistory";
+import { getScanHistory, deleteScanHistory, ScanHistoryEntry } from "@/lib/db/scanHistory";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { Download } from "lucide-react";
+import ExportModal from "./ExportModal";
+
 export default function HistoryPage() {
-    const [history, setHistory] = useState<any[]>([]);
+    const [history, setHistory] = useState<ScanHistoryEntry[]>([]);
 
     useEffect(() => {
         loadHistory();
     }, []);
+
+    const t = useTranslations("ScanHistory");
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
     async function loadHistory() {
         try {
@@ -39,30 +45,17 @@ export default function HistoryPage() {
     ).length;
 
     const fakeCount = history.filter((item) => item.status?.toLowerCase() === "fake").length;
-    function exportToCSV() {
-        if (history.length === 0) return;
-        const headers = ["Scan Date", "Medicine Name", "Status"];
-        const rows = history.map((item) => [
-            new Date(item.timestamp).toLocaleString(),
-            `"${item.medicineName}"`,
-            item.status,
-        ]);
-        const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
-        const blob = new Blob([csv], { type: "text/csv" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "sahidawa_scan_history.csv";
-        a.click();
-        URL.revokeObjectURL(url);
-    }
+
+    const openExportModal = () => setIsExportModalOpen(true);
+    const closeExportModal = () => setIsExportModalOpen(false);
+
     return (
         <div className="min-h-screen bg-(--color-surface-page) p-6 text-(--color-text-primary)">
             <div className="mx-auto max-w-3xl">
                 <h1 className="mb-6 text-4xl font-black">Scan History</h1>
                 {history.length > 0 && (
                     <button
-                        onClick={exportToCSV}
+                        onClick={openExportModal}
                         className="mb-6 flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg transition hover:bg-emerald-700 active:scale-95"
                     >
                         <Download size={16} /> Export to CSV
@@ -154,6 +147,13 @@ export default function HistoryPage() {
                         ))}
                     </div>
                 )}
+
+                <ExportModal
+                    isOpen={isExportModalOpen}
+                    onClose={closeExportModal}
+                    history={history}
+                    t={t}
+                />
             </div>
         </div>
     );

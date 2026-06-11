@@ -29,14 +29,14 @@ export const useOfflineStatus = () => {
             setIsOffline(false);
             setIsStatusDirty(true);
             // Execute all retry callbacks when coming back online
-            retryCallbacksRef.current.forEach((callback) => {
+            const callbacksToExecute = new Set(retryCallbacksRef.current);
+            callbacksToExecute.forEach((callback) => {
                 try {
                     callback();
                 } catch (error) {
                     console.error("Error executing retry callback:", error);
                 }
             });
-            retryCallbacksRef.current.clear();
             // Reset dirty flag after a short delay so UI can update
             setTimeout(() => setIsStatusDirty(false), 1000);
         };

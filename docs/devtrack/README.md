@@ -814,3 +814,4 @@
 | [#1510](https://github.com/RatLoopz/sahidawa-india/pull/1510) | 2026-06-08 | Frontend | 15 | @Shan7Usmani | [View Doc](devtrack/2026-06/PR-1510-feat-add-home-navigation-to-chat-interface.md) / [ADR](devtrack/adr/ADR-029-feat-add-home-navigation-to-chat-interface.md) |
 | [#1498](https://github.com/RatLoopz/sahidawa-india/pull/1498) | 2026-06-09 | Frontend | 10 | @Mahesh-forcode | [View Doc](devtrack/2026-06/PR-1498-feat-map-offline-indexeddb-cache-with-24h-ttl-fall.md) |
 | [#1566](https://github.com/RatLoopz/sahidawa-india/pull/1566) | 2026-06-09 | Frontend | 6 | @vipul674 | [View Doc](devtrack/2026-06/PR-1566-fix-expand-extractmedicinename-skip-regex-with-com.md) |
+| [#1589](https://github.com/RatLoopz/sahidawa-india/pull/1589) | 2026-06-09 | Frontend | 17 | @shashank03-dev | [View Doc](devtrack/2026-06/PR-1589-feat-admin-gate-mutation-controls-by-role.md) / [ADR](devtrack/adr/ADR-030-feat-admin-gate-mutation-controls-by-role.md) |
