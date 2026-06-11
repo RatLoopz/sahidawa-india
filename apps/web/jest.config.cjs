@@ -7,6 +7,7 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
 
 module.exports = {
     testEnvironment: "node",
+    setupFiles: ["<rootDir>/jest.env.cjs"],
     roots: ["<rootDir>/tests"],
     moduleNameMapper: {
         "^leaflet$": "<rootDir>/tests/mocks/leaflet.ts",
