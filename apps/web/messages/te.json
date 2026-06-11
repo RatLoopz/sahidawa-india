@@ -468,6 +468,8 @@
         "emailPlaceholder": "you@example.com",
         "passwordLabel": "పాస్‌వర్డ్",
         "passwordPlaceholder": "మీ పాస్‌వర్డ్‌ను నమోదు చేయండి",
+        "showPassword": "పాస్‌వర్డ్ చూపించు",
+        "hidePassword": "పాస్‌వర్డ్ దాచు",
         "signingIn": "సైన్ ఇన్ అవుతోంది...",
         "signIn": "సైన్ ఇన్ చేయండి",
         "footerPrompt": "వెనక్కి వెళ్లాలనుకుంటున్నారా?",

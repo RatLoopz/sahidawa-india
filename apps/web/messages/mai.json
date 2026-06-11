@@ -477,6 +477,8 @@
         "emailPlaceholder": "you@example.com",
         "passwordLabel": "पासवर्ड",
         "passwordPlaceholder": "अपन पासवर्ड दिअ",
+        "showPassword": "पासवर्ड देखाउ",
+        "hidePassword": "पासवर्ड नुकाउ",
         "signingIn": "साइन इन भऽ रहल अछि...",
         "signIn": "साइन इन करू",
         "footerPrompt": "वापस जेबाक अछि?",

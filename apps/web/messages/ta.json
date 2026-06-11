@@ -468,6 +468,8 @@
         "emailPlaceholder": "you@example.com",
         "passwordLabel": "கடவுச்சொல்",
         "passwordPlaceholder": "உங்கள் கடவுச்சொல்லை உள்ளிடவும்",
+        "showPassword": "கடவுச்சொல்லைக் காட்டு",
+        "hidePassword": "கடவுச்சொல்லை மறை",
         "signingIn": "உள்நுழைகிறது...",
         "signIn": "உள்நுழையவும்",
         "footerPrompt": "திரும்பிச் செல்ல வேண்டுமா?",

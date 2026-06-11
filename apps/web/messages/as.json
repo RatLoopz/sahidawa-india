@@ -474,6 +474,8 @@
         "emailPlaceholder": "you@example.com",
         "passwordLabel": "পাছৱৰ্ড",
         "passwordPlaceholder": "আপোনাৰ পাছৱৰ্ড দিয়ক",
+        "showPassword": "পাছৱৰ্ড দেখুৱাওক",
+        "hidePassword": "পাছৱৰ্ড লুকুৱাওক",
         "signingIn": "চাইন ইন হৈছে...",
         "signIn": "চাইন ইন কৰক",
         "footerPrompt": "ঘূৰি যাব লাগিব?",

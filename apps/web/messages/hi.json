@@ -481,6 +481,8 @@
         "emailPlaceholder": "you@example.com",
         "passwordLabel": "पासवर्ड",
         "passwordPlaceholder": "अपना पासवर्ड दर्ज करें",
+        "showPassword": "पासवर्ड दिखाएँ",
+        "hidePassword": "पासवर्ड छिपाएँ",
         "signingIn": "साइन इन किया जा रहा है...",
         "signIn": "साइन इन करें",
         "footerPrompt": "वापस जाना चाहते हैं?",

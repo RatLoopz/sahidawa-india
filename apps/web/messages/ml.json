@@ -474,6 +474,8 @@
         "emailPlaceholder": "you@example.com",
         "passwordLabel": "പാസ്‌വേഡ്",
         "passwordPlaceholder": "നിങ്ങളുടെ പാസ്‌വേഡ് നൽകുക",
+        "showPassword": "പാസ്‌വേഡ് കാണിക്കുക",
+        "hidePassword": "പാസ്‌വേഡ് മറയ്ക്കുക",
         "signingIn": "സൈൻ ഇൻ ചെയ്യുന്നു...",
         "signIn": "സൈൻ ഇൻ ചെയ്യുക",
         "footerPrompt": "തിരികെ പോകണോ?",

@@ -1,6 +1,15 @@
 "use client";
 
-import { Mail, Lock, ShieldCheck, ArrowRight, Hand, AlertTriangle } from "lucide-react";
+import {
+    Mail,
+    Lock,
+    ShieldCheck,
+    ArrowRight,
+    Hand,
+    AlertTriangle,
+    Eye,
+    EyeOff,
+} from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
@@ -18,6 +27,7 @@ export default function LoginPage() {
     const supabase = createBrowserClient(supabaseUrl, supabaseKey);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -186,7 +196,7 @@ export default function LoginPage() {
                                 <Lock className="h-5 w-5 text-(--color-text-muted)" />
 
                                 <input
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     placeholder={t("passwordPlaceholder")}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -194,6 +204,23 @@ export default function LoginPage() {
                                     disabled={isMissingEnvVars}
                                     className="w-full bg-transparent text-(--color-text-primary) outline-none placeholder:text-(--color-text-muted) disabled:cursor-not-allowed disabled:opacity-50"
                                 />
+
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword((current) => !current)}
+                                    disabled={isMissingEnvVars}
+                                    aria-label={
+                                        showPassword ? t("hidePassword") : t("showPassword")
+                                    }
+                                    aria-pressed={showPassword}
+                                    className="rounded-full p-1 text-(--color-text-muted) transition hover:text-(--color-text-primary) focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    {showPassword ? (
+                                        <EyeOff className="h-5 w-5" aria-hidden="true" />
+                                    ) : (
+                                        <Eye className="h-5 w-5" aria-hidden="true" />
+                                    )}
+                                </button>
                             </div>
                         </div>
 

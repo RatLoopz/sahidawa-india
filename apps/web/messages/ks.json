@@ -474,6 +474,8 @@
         "emailPlaceholder": "you@example.com",
         "passwordLabel": "پاس ورڈ",
         "passwordPlaceholder": "پاس ورڈ دِیو",
+        "showPassword": "پاس ورڈ ہٲویو",
+        "hidePassword": "پاس ورڈ چھُپٲویو",
         "signingIn": "سائن اِن گژھان...",
         "signIn": "سائن اِن",
         "footerPrompt": "واپس گژھنہٕ چھُو؟",

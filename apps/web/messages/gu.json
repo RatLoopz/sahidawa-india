@@ -469,6 +469,8 @@
         "emailPlaceholder": "you@example.com",
         "passwordLabel": "પાસવર્ડ",
         "passwordPlaceholder": "તમારો પાસવર્ડ દાખલ કરો",
+        "showPassword": "પાસવર્ડ બતાવો",
+        "hidePassword": "પાસવર્ડ છુપાવો",
         "signingIn": "સાઇન ઇન થઈ રહ્યું છે...",
         "signIn": "સાઇન ઇન કરો",
         "footerPrompt": "પાછા જવું છે?",

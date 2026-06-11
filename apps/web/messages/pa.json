@@ -468,6 +468,8 @@
         "emailPlaceholder": "you@example.com",
         "passwordLabel": "ਪਾਸਵਰਡ",
         "passwordPlaceholder": "ਆਪਣਾ ਪਾਸਵਰਡ ਦਰਜ ਕਰੋ",
+        "showPassword": "ਪਾਸਵਰਡ ਵੇਖਾਓ",
+        "hidePassword": "ਪਾਸਵਰਡ ਲੁਕਾਓ",
         "signingIn": "ਸਾਈਨ ਇਨ ਹੋ ਰਿਹਾ ਹੈ...",
         "signIn": "ਸਾਈਨ ਇਨ ਕਰੋ",
         "footerPrompt": "ਵਾਪਸ ਜਾਣਾ ਚਾਹੁੰਦੇ ਹੋ?",

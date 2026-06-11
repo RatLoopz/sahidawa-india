@@ -468,6 +468,8 @@
         "emailPlaceholder": "you@example.com",
         "passwordLabel": "गुह्यशब्दः",
         "passwordPlaceholder": "स्वीयं गुह्यशब्दं प्रविशन्तु",
+        "showPassword": "गुप्तशब्दं दर्शयतु",
+        "hidePassword": "गुप्तशब्दं गोपयतु",
         "signingIn": "प्रवेशः क्रियते...",
         "signIn": "प्रविशतु",
         "footerPrompt": "प्रतिगन्तुम् इच्छथ?",

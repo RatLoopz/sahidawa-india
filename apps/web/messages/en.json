@@ -485,6 +485,8 @@
         "emailPlaceholder": "you@example.com",
         "passwordLabel": "Password",
         "passwordPlaceholder": "Enter your password",
+        "showPassword": "Show password",
+        "hidePassword": "Hide password",
         "signingIn": "Signing in...",
         "signIn": "Sign In",
         "footerPrompt": "Need to go back?",
