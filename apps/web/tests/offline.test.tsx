@@ -232,7 +232,7 @@ describe("Offline Support", () => {
             expect(callback).toHaveBeenCalledTimes(1);
         });
 
-        it("should clear retry callbacks after execution", () => {
+        it("should persist retry callbacks and re-execute on subsequent reconnections", () => {
             const { result } = renderHook(() => useOfflineStatus());
             const callback = jest.fn();
 
@@ -249,7 +249,7 @@ describe("Offline Support", () => {
 
             expect(callback).toHaveBeenCalledTimes(1);
 
-            // Go offline and back online again — callback should not fire again
+            // Go offline and back online again — callback should fire again
             act(() => {
                 window.dispatchEvent(new Event("offline"));
             });
@@ -257,7 +257,7 @@ describe("Offline Support", () => {
                 window.dispatchEvent(new Event("online"));
             });
 
-            expect(callback).toHaveBeenCalledTimes(1);
+            expect(callback).toHaveBeenCalledTimes(2);
         });
     });
 

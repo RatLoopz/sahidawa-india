@@ -8,6 +8,7 @@ import { validateMlServiceConfig } from "./config/mlService";
 import cookieParser from "cookie-parser";
 import { doubleCsrf } from "csrf-csrf";
 import mapRouter from "./routes/map";
+import medicineSchedulesRouter from "./routes/medicineSchedules";
 
 // ── Environment Configuration ──────────────────────────────────────────────
 const rootEnvPath = path.resolve(__dirname, "../../../.env");
@@ -30,6 +31,11 @@ if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
 
 // Execute configuration validation after import completes
 validateMlServiceConfig();
+
+if (process.env.NODE_ENV !== "development" && !process.env.CSRF_SECRET) {
+    logger.error("Missing CSRF_SECRET environment variable. The default fallback is predictable and insecure.");
+    process.exit(1);
+}
 
 // ── Feature & Route Imports ────────────────────────────────────────────────
 import cors from "cors";
@@ -205,6 +211,7 @@ app.use("/api/v1/alerts", alertsRouter);
 app.use("/api/ml", mlRouter);
 app.use("/api/triage", triageRouter);
 app.use("/api/map", mapRouter);
+app.use("/api/schedules", medicineSchedulesRouter);
 
 // ── Swagger UI Documentation (/api/docs) ──────────────────────────────────
 app.use(
