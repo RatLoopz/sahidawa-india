@@ -1,6 +1,6 @@
 # ADR — feat(scan): share verification results
 
-> **Date:** 2024-07-20 | **PR:** [PR_NUMBER] | **Status:** Accepted
+> **Date:** 2026-07-20 | **PR:** [PR_NUMBER] | **Status:** Accepted
 
 ## Context
 
