@@ -13,7 +13,7 @@ updates:
 
   # Maintain dependencies for Python (FastAPI/ML)
   - package-ecosystem: "pip"
-    directory: "/ml_service"
+    directory: "/apps/ml"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
