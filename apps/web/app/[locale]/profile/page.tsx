@@ -1,22 +1,14 @@
 "use client";
 
-import Link from "next/link";
-import { User, ShieldCheck, Bell, ChevronRight, ArrowLeft } from "lucide-react";
+import { User, ShieldCheck, Bell, ChevronRight } from "lucide-react";
+import { PageHeader } from "../components/PageHeader";
 
 export default function ProfilePage() {
     return (
-        <div className="flex-grow bg-(--color-surface-muted) px-6 py-8 text-(--color-text-primary)">
-            <div className="mx-auto max-w-3xl">
-                {/* Back Button */}
-                <Link
-                    href="/"
-                    className="mb-6 inline-flex items-center gap-2 rounded-xl px-3 py-2 font-medium text-(--color-text-secondary) transition-all hover:bg-(--color-surface-page) hover:text-emerald-600 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none dark:hover:text-emerald-400"
-                >
-                    <ArrowLeft size={18} />
+        <main className="min-h-screen bg-(--color-surface-muted) text-(--color-text-primary)">
+            <PageHeader backHref="/" variant="light" showThemeToggle={false} />
 
-                    <span className="font-medium">Back to Home</span>
-                </Link>
-
+            <div className="mx-auto max-w-3xl px-6 py-8">
                 {/* Header */}
                 <div className="mb-8 flex items-center gap-4">
                     <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-100 text-emerald-600 shadow-sm dark:bg-emerald-950/30 dark:text-emerald-400">
@@ -85,6 +77,6 @@ export default function ProfilePage() {
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
     );
 }
