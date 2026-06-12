@@ -1,7 +1,7 @@
 # ============================================================
 # Stage 1: deps — Install all dependencies (dev + prod)
 # ============================================================
-FROM node:22-alpine AS deps
+FROM node:22-bookworm-slim AS deps
 
 WORKDIR /app
 
@@ -38,7 +38,7 @@ RUN npm run build -w apps/web
 # ============================================================
 # Stage 4: runner — Minimal production image (~150 MB)
 # ============================================================
-FROM node:22-alpine AS runner
+FROM node:22-bookworm-slim AS runner
 
 WORKDIR /app
 
@@ -67,7 +67,7 @@ EXPOSE 3000
 
 # Health check — verify the Next.js server is responding
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/ || exit 1
+    CMD node -e "fetch('http://127.0.0.1:3000/').then((res) => { if (!res.ok) process.exit(1); }).catch(() => process.exit(1))"
 
 # The standalone output creates a server.js at the workspace path
 CMD ["node", "apps/web/server.js"]
