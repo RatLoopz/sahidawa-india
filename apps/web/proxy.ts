@@ -41,5 +41,5 @@ export default async function middleware(req: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/", "/(ta|en|bn|te|mr|gu|ur|or|hi|kn|pa|as)/:path*"],
+    matcher: ["/", "/(ta|en|bn|te|mr|gu|ur|or|hi|kn|pa|as|ml)/:path*"],
 };

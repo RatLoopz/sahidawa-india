@@ -27,7 +27,7 @@ jobs:
             
             if (changedFilesCount > threshold) {
               const warningMessage = `
-              🚨 **WARNING: Large Pull Request Detected!** 🚨
+              **Warning: Large Pull Request Detected**
               
               This PR modifies **${changedFilesCount} files**. 
               
@@ -49,7 +49,7 @@ jobs:
               });
               
               const hasWarningComment = comments.data.some(comment => 
-                comment.body.includes('WARNING: Large Pull Request Detected!')
+                comment.body.includes('Warning: Large Pull Request Detected')
               );
               
               if (!hasWarningComment) {

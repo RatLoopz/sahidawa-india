@@ -65,12 +65,12 @@ jobs:
               if (!alreadyWarned) {
                 await github.rest.issues.createComment({
                   owner, repo, issue_number,
-                  body: `## ⚠️ Issue quality check failed\n\n` +
-                        `Hi @${username}, thank you for opening this issue! However, it currently lacks sufficient detail for our maintainers to take action.\n\n` +
-                        `**Please edit your issue description to provide:**\n` +
-                        `- Clearer explanation or reproduction steps\n` +
-                        `- Expected behavior vs actual behavior\n` +
-                        `- Technical implementation details or context\n\n`
+                  body: `Issue quality check failed.\n\n` +
+                        `@${username}, this issue lacks sufficient detail for maintainers to take action.\n\n` +
+                        `Please edit the issue description to provide:\n` +
+                        `- Clear explanation or reproduction steps\n` +
+                        `- Expected vs actual behavior\n` +
+                        `- Technical implementation details or context`
                 });
 
                 await github.rest.issues.addLabels({
@@ -154,11 +154,11 @@ jobs:
               if (!alreadyFlagged) {
                 await github.rest.issues.createComment({
                   owner, repo, issue_number,
-                  body: `## 🔁 Possible Duplicate Issue Detected\n\n` +
-                        `Hi @${username}, this issue seems very similar to an existing one:\n\n` +
-                        `➡️ #${duplicateIssue.number} (${duplicateIssue.state})\n\n` +
-                        `Please review it to see if your request is already being tracked or has been resolved. ` +
-                        `If you believe your issue is completely different, please update the title and description to clarify the distinction.`
+                  body: `Possible Duplicate Issue.\n\n` +
+                        `@${username}, this issue is similar to:\n\n` +
+                        `#${duplicateIssue.number} (${duplicateIssue.state})\n\n` +
+                        `Please review it to see if your request is already tracked. ` +
+                        `If your issue is different, please update the title and description to clarify.`
                 });
 
                 await github.rest.issues.addLabels({
@@ -180,7 +180,7 @@ jobs:
                     });
                     await github.rest.issues.createComment({
                       owner, repo, issue_number,
-                      body: `✅ **Duplicate Flag Removed**\n\nThank you @${username} for updating the issue title and details! This issue has been reviewed and is no longer flagged as a duplicate.`
+                      body: `@${username}, the duplicate flag has been removed following your updates.`
                     });
                     core.info(`Duplicate flag removed from #${issue_number}`);
                   } catch (err) {

@@ -1,6 +1,6 @@
 # ADR — refactor(web): centralize layout colors into theme tokens
 
-> **Date:** 2024-05-21 | **PR:** #377 | **Status:** Accepted
+> **Date:** 2026-05-21 | **PR:** #377 | **Status:** Accepted
 
 ## Context
 

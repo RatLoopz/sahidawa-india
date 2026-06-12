@@ -656,7 +656,7 @@
         "nav_schedule": "Medicine Schedule",
         "nav_profile": "My Profile"
     },
-    "howItWorks":{
+    "howItWorks": {
         "badge": "Safe Healthcare • AI Powered",
         "heroTitle": "How <highlight>SahiDawa</highlight> Works",
         "heroSubtitle": "Learn how SahiDawa helps users verify medicines, discover trusted pharmacies, receive official alerts, and stay protected from counterfeit drugs using AI-powered healthcare tools.",
@@ -757,6 +757,51 @@
             "pregnancyHeading": "Pregnancy"
         },
         "disclaimer": "This information is educational and does not replace professional medical advice."
+    },
+    "Settings": {
+        "title": "Notification Preferences",
+        "subtitle": "Receive critical alerts via SMS and WhatsApp",
+        "phoneLabel": "Phone Number",
+        "phonePlaceholder": "Enter 10-digit mobile number",
+        "channelsLabel": "Preferred Channels",
+        "smsLabel": "SMS Alerts",
+        "smsDesc": "Get text messages for CDSCO recalls and counterfeit warnings",
+        "whatsappLabel": "WhatsApp Alerts",
+        "whatsappDesc": "Get rich messages and templates directly in WhatsApp",
+        "langLabel": "Alert Language",
+        "langDesc": "Preferred language for received text alerts",
+        "districtLabel": "District",
+        "districtDesc": "Receive alerts specific to this district",
+        "districtPlaceholder": "e.g. South West Delhi",
+        "saveButton": "Save Preferences",
+        "optOutButton": "Opt Out / Unsubscribe",
+        "saving": "Saving...",
+        "successMessage": "Preferences saved successfully!",
+        "optOutSuccess": "Successfully opted out of all notifications.",
+        "errorMessage": "Failed to update settings. Please try again.",
+        "phoneInvalid": "Please enter a valid 10-digit Indian phone number.",
+        "districtRequired": "Please specify a district to get localized warnings."
+    },
+    "Interactions": {
+        "title": "Medicine Interaction Checker",
+        "subtitle": "Check potential harmful interactions between multiple medications",
+        "searchLabel": "Search Medicine",
+        "searchPlaceholder": "Enter brand name or generic name...",
+        "addButton": "Add",
+        "checkButton": "Check Interactions",
+        "myMedicines": "My Medicines List",
+        "noMedicines": "No medicines added to your check list yet.",
+        "clearAll": "Clear All",
+        "resultsHeading": "Interaction Report",
+        "noInteractions": "All clear! No interactions detected between selected medicines.",
+        "severityCritical": "Critical Alert",
+        "severitySerious": "Serious Warning",
+        "severityModerate": "Moderate Caution",
+        "severityMinor": "Minor Precaution",
+        "clinicalRecommendation": "Clinical Recommendation:",
+        "mechanism": "Mechanism:",
+        "source": "Source:",
+        "errorMessage": "Failed to complete interaction check. Please try again."
     },
     "ScanHistory": {
         "export_modal_title": "Export Scan History",

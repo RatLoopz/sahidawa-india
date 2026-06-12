@@ -1,6 +1,17 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import dotenv from "dotenv";
+import path from "path";
 import logger from "../utils/logger";
 import { CONNECTION_TIMEOUT_MS, MAX_RETRIES, RETRY_DELAY_MS, fetchWithRetry } from "./fetchUtils";
+
+export const dbConfig = {
+    isSupabaseOffline: false,
+};
+
+dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
+if (!process.env.SUPABASE_URL) {
+    dotenv.config();
+}
 
 // ── Environment resolution ────────────────────────────────────────────────────
 
@@ -139,3 +150,25 @@ setInterval(() => {
         logger.warn(`DB pool pressure: ${active}/${max} active, ${queued} queued`);
     }
 }, 5_000);
+
+// Quick check on startup to see if Supabase is offline
+if (process.env.NODE_ENV !== "test") {
+    const checkTimeout = AbortSignal.timeout ? AbortSignal.timeout(1500) : undefined;
+    fetch(`${supabaseUrl}/auth/v1/health`, { signal: checkTimeout })
+        .then((res) => {
+            if (!res.ok) {
+                dbConfig.isSupabaseOffline = true;
+                logger.warn(
+                    "Supabase database health check failed. Setting database state to offline fallback mode."
+                );
+            } else {
+                logger.info("Supabase database health check passed. Supabase is online.");
+            }
+        })
+        .catch(() => {
+            dbConfig.isSupabaseOffline = true;
+            logger.warn(
+                "Supabase database is offline. Setting database state to offline fallback mode."
+            );
+        });
+}

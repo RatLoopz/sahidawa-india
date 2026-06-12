@@ -143,19 +143,26 @@ jobs:
                     await github.rest.issues.removeAssignees({
                       owner, repo, issue_number: issue.number, assignees: [assignee]
                     });
+                    // NEW: Add 'status: open-for-all' label so others can claim it
+                    try {
+                      await github.rest.issues.addLabels({
+                        owner, repo, issue_number: issue.number, labels: ['status: open-for-all']
+                      });
+                    } catch (labelErr) {
+                      core.warning(`Failed to add open-for-all label: ${labelErr.message}`);
+                    }
                     try {
                       await github.rest.issues.createComment({
                         owner, repo, issue_number: issue.number,
-                        body: `⚠️ @${assignee} has been auto-unassigned due to inactivity for over ${rules.maxDays} days.\n\n` +
-                              `Per our contribution guidelines, we ask that you share updates or open a draft PR to keep your assignment active. ` +
-                              `If you'd still like to work on this, feel free to drop a comment and ask to be reassigned! 🚀`
+                        body: `@${assignee} has been auto-unassigned due to inactivity for over ${rules.maxDays} days.\n\n` +
+                              `If you would still like to work on this, please drop a comment to be reassigned.`
                       });
                     } catch (commentErr) {
                       core.warning(`Failed to post unassign comment on #${issue.number}: ${commentErr.message}`);
                     }
                   } else if (lastActivityAt <= warnCutoff) {
                     // WARN
-                    const warningMarker = `⚠️ @${assignee}, friendly reminder!`;
+                    const warningMarker = `Reminder: @${assignee}`;
                     const alreadyWarned = comments.some(c => 
                       c.user && 
                       c.user.login === 'github-actions[bot]' && 
@@ -170,9 +177,9 @@ jobs:
                         await github.rest.issues.createComment({
                           owner, repo, issue_number: issue.number,
                           body: `${warningMarker}\n\n` +
-                                `It looks like there hasn't been any activity on this issue since your last update on ${lastActivityAt.toUTCString()}.\n` +
-                                `To keep this assignment, please share a progress update or open a Draft PR within the next **${hoursLeft} hours**. ` +
-                                `Otherwise, you will be automatically unassigned to let other contributors have a chance. Thank you! 💙`
+                                `There has been no activity on this issue since ${lastActivityAt.toUTCString()}.\n` +
+                                `Please share a progress update or open a Draft PR within the next ${hoursLeft} hours to keep your assignment. ` +
+                                `Otherwise, you will be automatically unassigned.`
                         });
                       } catch (commentErr) {
                         core.warning(`Failed to post warn comment on #${issue.number}: ${commentErr.message}`);

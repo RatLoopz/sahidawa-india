@@ -1,6 +1,6 @@
 # ADR — [Critical] refactor: extract shared fetch-timeout-retry logic from duplicated Supabase client files
 
-> **Date:** 2024-07-30 | **PR:** #1270 | **Status:** Accepted
+> **Date:** 2026-07-30 | **PR:** #1270 | **Status:** Accepted
 
 ## Context
 

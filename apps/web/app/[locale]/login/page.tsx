@@ -1,6 +1,15 @@
 "use client";
 
-import { Mail, Lock, ShieldCheck, ArrowRight, Hand, AlertTriangle } from "lucide-react";
+import {
+    Mail,
+    Lock,
+    ShieldCheck,
+    ArrowRight,
+    Hand,
+    AlertTriangle,
+    Eye,
+    EyeOff,
+} from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
@@ -20,6 +29,7 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -186,7 +196,7 @@ export default function LoginPage() {
                                 <Lock className="h-5 w-5 text-(--color-text-muted)" />
 
                                 <input
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     placeholder={t("passwordPlaceholder")}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -194,6 +204,20 @@ export default function LoginPage() {
                                     disabled={isMissingEnvVars}
                                     className="w-full bg-transparent text-(--color-text-primary) outline-none placeholder:text-(--color-text-muted) disabled:cursor-not-allowed disabled:opacity-50"
                                 />
+
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword((v) => !v)}
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                    aria-pressed={showPassword}
+                                    className="shrink-0 rounded text-(--color-text-muted) transition hover:text-(--color-text-primary) focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                                >
+                                    {showPassword ? (
+                                        <EyeOff className="h-5 w-5" />
+                                    ) : (
+                                        <Eye className="h-5 w-5" />
+                                    )}
+                                </button>
                             </div>
                         </div>
 
