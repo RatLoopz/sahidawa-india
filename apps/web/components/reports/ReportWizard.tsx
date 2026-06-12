@@ -8,6 +8,7 @@
  */
 
 import React, { useState, useEffect, useId } from "react";
+import { useSearchParams } from "next/navigation";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -772,6 +773,7 @@ function Success({ onReset, reportId }: { onReset: () => void; reportId: string 
 // MAIN EXPORT
 // ─────────────────────────────────────────────────────────────────────────────
 export default function ReportWizard() {
+    const searchParams = useSearchParams();
     const [step, setStep] = useState(1);
     const [dir, setDir] = useState(1);
     const [images, setImages] = useState<ImageEntry[]>([]);
@@ -779,7 +781,19 @@ export default function ReportWizard() {
     const [submitErr, setSubmitErr] = useState<string | null>(null);
     const [done, setDone] = useState(false);
     const [reportId, setReportId] = useState<string | null>(null);
+    const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
+    const [medicineId, setMedicineId] = useState<string | null>(null);
     const submitErrorId = useId();
+
+    // Extract barcode and medicineId from URL query parameters
+    useEffect(() => {
+        if (searchParams) {
+            const barcode = searchParams.get("barcode");
+            const medId = searchParams.get("medicineId");
+            if (barcode) setScannedBarcode(barcode);
+            if (medId) setMedicineId(medId);
+        }
+    }, [searchParams]);
 
     // Cleanup blob URLs on unmount to prevent memory leaks
     useEffect(() => {
@@ -824,7 +838,13 @@ export default function ReportWizard() {
                 }
             }
             const geo = await geocodePincode(data.pincode);
-            const { report } = await submitReport({ ...data, ...(geo ?? {}) }, token);
+            const reportData = {
+                ...data,
+                ...(geo ?? {}),
+                ...(scannedBarcode && { scannedBarcode }),
+                ...(medicineId && { medicineId }),
+            };
+            const { report } = await submitReport(reportData, token);
             setReportId(report.id);
             setDone(true);
         } catch (e) {
