@@ -94,9 +94,7 @@ describe("GET /api/analytics/heatmap", () => {
             },
         ]);
 
-        const response = await request(app)
-            .get("/api/analytics/heatmap")
-            .set("Authorization", "Bearer admin-token");
+        const response = await request(app).get("/api/analytics/heatmap");
 
         expect(response.status).toBe(200);
         expect(response.body).toMatchObject({
@@ -130,9 +128,7 @@ describe("GET /api/analytics/heatmap", () => {
             },
         ]);
 
-        const response = await request(app)
-            .get("/api/analytics/heatmap?days=7")
-            .set("Authorization", "Bearer admin-token");
+        const response = await request(app).get("/api/analytics/heatmap?days=7");
 
         expect(response.status).toBe(200);
         expect(response.body.features).toEqual([
@@ -152,9 +148,7 @@ describe("GET /api/analytics/heatmap", () => {
     it("returns an empty FeatureCollection when no incidents have coordinates", async () => {
         mockHeatmapRows([]);
 
-        const response = await request(app)
-            .get("/api/analytics/heatmap")
-            .set("Authorization", "Bearer admin-token");
+        const response = await request(app).get("/api/analytics/heatmap");
 
         expect(response.status).toBe(200);
         expect(response.body).toEqual({
@@ -182,9 +176,7 @@ describe("GET /api/analytics/heatmap", () => {
             },
         ]);
 
-        const response = await request(app)
-            .get("/api/analytics/heatmap")
-            .set("Authorization", "Bearer admin-token");
+        const response = await request(app).get("/api/analytics/heatmap");
 
         expect(response.status).toBe(200);
         expect(response.body.features).toHaveLength(2);
@@ -216,9 +208,7 @@ describe("GET /api/analytics/heatmap", () => {
         jest.spyOn(Date, "now").mockReturnValue(new Date("2026-06-05T12:00:00.000Z").getTime());
         mockHeatmapRows([]);
 
-        const response = await request(app)
-            .get("/api/analytics/heatmap?days=3")
-            .set("Authorization", "Bearer admin-token");
+        const response = await request(app).get("/api/analytics/heatmap?days=3");
 
         expect(response.status).toBe(200);
         expect(mockedSupabase.from).toHaveBeenCalledWith("scan_history");
@@ -360,6 +350,6 @@ describe("GET /api/analytics/push-notifications", () => {
     it("does not expose push analytics on the public analytics router", async () => {
         const response = await request(app).get("/api/analytics/push-notifications");
 
-        expect(response.status).toBe(401);
+        expect(response.status).toBe(404);
     });
 });

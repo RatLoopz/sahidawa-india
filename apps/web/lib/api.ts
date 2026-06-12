@@ -6,7 +6,7 @@ export const API_BASE = configuredApiUrl.replace(/\/+$/, "");
 
 let csrfTokenCache: string | null = null;
 
-export async function getCsrfToken(): Promise<string> {
+async function getCsrfToken(): Promise<string> {
     if (csrfTokenCache) return csrfTokenCache;
     const res = await fetch(`${API_BASE}/api/csrf-token`, {
         credentials: "include",

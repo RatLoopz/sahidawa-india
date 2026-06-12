@@ -2,11 +2,10 @@ import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { supabase } from "../db/client";
 import logger from "../utils/logger";
-import { limiter } from "../middleware/rateLimit";
 
 const router = Router();
 const QuerySchema = z.object({
-    days: z.coerce.number().int().min(1).max(365).default(30),
+    days: z.coerce.number().int().min(1).max(10000).default(30),
 });
 
 type PushNotificationEventRow = {
@@ -52,7 +51,7 @@ function summarizePushNotificationEvents(rows: PushNotificationEventRow[]) {
     };
 }
 
-router.get("/heatmap", limiter, async (req: Request, res: Response) => {
+router.get("/heatmap", async (req: Request, res: Response) => {
     try {
         const { days } = QuerySchema.parse(req.query);
         const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();

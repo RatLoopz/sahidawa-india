@@ -10,6 +10,7 @@ interface PageHeaderProps {
     title?: string;
     subtitle?: string;
     backHref: string;
+    hideBackButton?: boolean;
     variant?: "dark" | "light";
     showLanguage?: boolean;
     languageName?: string;
@@ -24,6 +25,7 @@ export const PageHeader = ({
     title,
     subtitle,
     backHref,
+    hideBackButton = false,
     variant = "dark",
     showLanguage = false,
     languageName,
@@ -41,22 +43,26 @@ export const PageHeader = ({
         >
             <div className={`flex items-center justify-between gap-2 ${contentClassName}`}>
                 {/* BACK BUTTON */}
-                <Link
-                    href={backHref}
-                    aria-label="Go back to previous page"
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${pageHeaderFocusRingClass} ${
-                        isDark
-                            ? "bg-white/10 backdrop-blur-md hover:bg-white/20"
-                            : "bg-(--color-surface-muted) hover:bg-(--color-border-muted)"
-                    } ${backButtonClassName}`}
-                >
-                    <ArrowLeft
-                        size={24}
-                        aria-hidden="true"
-                        className={isDark ? "text-white" : "text-(--color-text-secondary)"}
-                    />
-                    <span className="sr-only">Go back</span>
-                </Link>
+                {!hideBackButton ? (
+                    <Link
+                        href={backHref}
+                        aria-label="Go back to previous page"
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${pageHeaderFocusRingClass} ${
+                            isDark
+                                ? "bg-white/10 backdrop-blur-md hover:bg-white/20"
+                                : "bg-(--color-surface-muted) hover:bg-(--color-border-muted)"
+                        } ${backButtonClassName}`}
+                    >
+                        <ArrowLeft
+                            size={24}
+                            aria-hidden="true"
+                            className={isDark ? "text-white" : "text-(--color-text-secondary)"}
+                        />
+                        <span className="sr-only">Go back</span>
+                    </Link>
+                ) : (
+                    <div className={`w-10 shrink-0 ${backButtonClassName}`} />
+                )}
 
                 {/* MAIN HEADER TITLE / RUNTIME CHILDREN */}
                 {children ? (

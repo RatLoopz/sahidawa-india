@@ -4,7 +4,6 @@ import { useLocale } from "next-intl";
 import { useRouter, usePathname } from "@/i18n/routing";
 import { Globe, ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 
 const languages = [
     { code: "en", label: "English", native: "English" },
@@ -93,16 +92,30 @@ export default function LanguageSwitcher() {
         }
     };
 
-    useOnClickOutside(
-        ref,
-        (e) => {
-            setOpen(false);
+    // Handle global dismiss events (Escape key and outside clicks)
+    useEffect(() => {
+        if (!open) return;
+
+        function handleDismiss(e: MouseEvent | KeyboardEvent) {
             if (e instanceof KeyboardEvent && e.key === "Escape") {
+                setOpen(false);
                 triggerRef.current?.focus();
+            } else if (
+                e instanceof MouseEvent &&
+                ref.current &&
+                !ref.current.contains(e.target as Node)
+            ) {
+                setOpen(false);
             }
-        },
-        open
-    );
+        }
+
+        document.addEventListener("mousedown", handleDismiss);
+        document.addEventListener("keydown", handleDismiss);
+        return () => {
+            document.removeEventListener("mousedown", handleDismiss);
+            document.removeEventListener("keydown", handleDismiss);
+        };
+    }, [open]);
 
     const current = languages.find((l) => l.code === locale) || languages[0];
 

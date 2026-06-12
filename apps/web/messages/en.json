@@ -16,8 +16,6 @@
         "report_fake": "Report Fake",
         "report_subtitle": "Report suspicious medicine",
         "report_fake_subtitle": "Report suspicious medicine",
-        "scheme_eligibility": "Scheme Eligibility",
-        "scheme_eligibility_subtitle": "Check public health insurance eligibility",
         "search_placeholder": "Search medicine or batch...",
         "search_button": "Search",
         "sign_in": "Sign In",
@@ -49,7 +47,6 @@
         "pharmacy_map": "Pharmacy Map",
         "my_reports": "My Reports",
         "schedule": "Schedule",
-        "scheme_eligibility": "Scheme Eligibility",
         "home": "Home",
         "scans": "Scans",
         "map": "Map",
@@ -757,40 +754,5 @@
             "pregnancyHeading": "Pregnancy"
         },
         "disclaimer": "This information is educational and does not replace professional medical advice."
-    },
-    "Interactions": {
-        "title": "Medicine Interaction Checker",
-        "subtitle": "Check potential harmful interactions between multiple medications",
-        "searchLabel": "Search Medicine",
-        "searchPlaceholder": "Enter brand name or generic name...",
-        "addButton": "Add",
-        "checkButton": "Check Interactions",
-        "myMedicines": "My Medicines List",
-        "noMedicines": "No medicines added to your check list yet.",
-        "clearAll": "Clear All",
-        "resultsHeading": "Interaction Report",
-        "noInteractions": "All clear! No interactions detected between selected medicines.",
-        "severityCritical": "Critical Alert",
-        "severitySerious": "Serious Warning",
-        "severityModerate": "Moderate Caution",
-        "severityMinor": "Minor Precaution",
-        "clinicalRecommendation": "Clinical Recommendation:",
-        "mechanism": "Mechanism:",
-        "source": "Source:",
-        "errorMessage": "Failed to complete interaction check. Please try again."
-    },
-    "ScanHistory": {
-        "export_modal_title": "Export Scan History",
-        "export_range_label": "Select Date Range",
-        "export_status_label": "Filter by Status",
-        "range_7d": "Last 7 Days",
-        "range_30d": "Last 30 Days",
-        "range_all": "All Time",
-        "status_all": "All Statuses",
-        "status_verified": "Verified Only",
-        "status_suspicious": "Suspicious Only",
-        "status_fake": "Fake Only",
-        "export_button": "Generate CSV",
-        "cancel": "Cancel"
     }
 }

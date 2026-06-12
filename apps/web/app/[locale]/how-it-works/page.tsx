@@ -19,7 +19,6 @@ import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
 import { useTranslations } from "next-intl";
 
-
 const steps = [
     {
         icon: <ShieldCheck size={34} />,
@@ -28,7 +27,7 @@ const steps = [
     },
     {
         icon: <Search size={34} />,
-       titleKey: "features.cards.scanOrSearch.title",
+        titleKey: "features.cards.scanOrSearch.title",
         descriptionKey: "features.cards.scanOrSearch.description",
     },
     {
@@ -57,8 +56,7 @@ const timelineSteps = [
     {
         icon: <QrCode size={24} />,
         titleKey: "steps.scan.title",
-        descriptionKey:
-            "steps.scan.description",
+        descriptionKey: "steps.scan.description",
         bgClass: "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400",
         badgeClass: "bg-emerald-600 dark:bg-emerald-500",
         borderClass:
@@ -67,8 +65,7 @@ const timelineSteps = [
     {
         icon: <ShieldCheck size={24} />,
         titleKey: "steps.verify.title",
-        descriptionKey:
-            "steps.verify.description",
+        descriptionKey: "steps.verify.description",
         bgClass: "bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400",
         badgeClass: "bg-blue-600 dark:bg-blue-500",
         borderClass:
@@ -77,8 +74,7 @@ const timelineSteps = [
     {
         icon: <BellRing size={24} />,
         titleKey: "steps.alerts.title",
-        descriptionKey:
-            "steps.alerts.description",
+        descriptionKey: "steps.alerts.description",
         bgClass: "bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400",
         badgeClass: "bg-amber-600 dark:bg-amber-500",
         borderClass:
@@ -87,8 +83,7 @@ const timelineSteps = [
     {
         icon: <MapPin size={24} />,
         titleKey: "steps.pharmacies.title",
-        descriptionKey:
-            "steps.pharmacies.description",
+        descriptionKey: "steps.pharmacies.description",
         bgClass: "bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400",
         badgeClass: "bg-purple-600 dark:bg-purple-500",
         borderClass:
@@ -97,8 +92,7 @@ const timelineSteps = [
     {
         icon: <Shield size={24} />,
         titleKey: "steps.protect.title",
-        descriptionKey:
-            "steps.protect.description",
+        descriptionKey: "steps.protect.description",
         bgClass: "bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400",
         badgeClass: "bg-rose-600 dark:bg-rose-500",
         borderClass:
@@ -107,10 +101,10 @@ const timelineSteps = [
 ];
 
 export default function HowItWorksPage() {
-    const t = useTranslations("howItWorks")
+    const t = useTranslations("howItWorks");
     return (
         <main className="min-h-screen overflow-x-hidden bg-gradient-to-b from-(--color-surface-page) via-emerald-500/[0.03] to-(--color-surface-page) text-(--color-text-primary)">
-            <PageHeader backHref="/" variant="light" hideBackButton />
+            <PageHeader backHref="/" variant="light" />
             {/* Hero Section */}
             <section className="relative px-6 pt-24 pb-20">
                 {/* Glow Effects */}
@@ -124,7 +118,7 @@ export default function HowItWorksPage() {
                     </div>
 
                     <h1 className="text-4xl leading-tight font-black tracking-tight text-(--color-text-primary) sm:text-5xl md:text-7xl">
-                       {t.rich("heroTitle", {
+                        {t.rich("heroTitle", {
                             highlight: (chunks) => (
                                 <span className="text-emerald-600 dark:text-emerald-400">
                                     {chunks}
@@ -134,7 +128,7 @@ export default function HowItWorksPage() {
                     </h1>
 
                     <p className="mx-auto mt-6 max-w-3xl text-lg leading-relaxed text-(--color-text-secondary) md:text-xl">
-                       {t("heroSubtitle")}
+                        {t("heroSubtitle")}
                     </p>
 
                     {/* CTA Buttons */}
@@ -186,12 +180,12 @@ export default function HowItWorksPage() {
 
                                     {/* Title */}
                                     <h3 className="mb-2 text-base font-extrabold text-(--color-text-primary) md:text-lg">
-                                       { t(step.titleKey)}
+                                        {t(step.titleKey)}
                                     </h3>
 
                                     {/* Description */}
                                     <p className="text-xs leading-relaxed text-(--color-text-secondary) md:text-sm">
-                                       { t(step.descriptionKey)}
+                                        {t(step.descriptionKey)}
                                     </p>
                                 </div>
                             </div>
@@ -209,7 +203,7 @@ export default function HowItWorksPage() {
                         </h2>
 
                         <p className="mt-4 text-lg text-(--color-text-secondary)">
-                             {t("features.subtitle")}
+                            {t("features.subtitle")}
                         </p>
                     </div>
 
@@ -244,12 +238,10 @@ export default function HowItWorksPage() {
                     <div className="pointer-events-none absolute -top-20 -right-20 h-64 w-64 rounded-full border-2 border-white/20" />
 
                     <div className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full border-2 border-white/20" />
-                    <h2 className="mb-6 text-4xl font-black md:text-5xl">
-                        {t("ctaBanner.title")}
-                    </h2>
+                    <h2 className="mb-6 text-4xl font-black md:text-5xl">{t("ctaBanner.title")}</h2>
 
                     <p className="mx-auto max-w-3xl text-lg leading-relaxed text-white/90 md:text-xl">
-                       {t("ctaBanner.subtitle")}
+                        {t("ctaBanner.subtitle")}
                     </p>
 
                     <div className="mt-10 flex flex-wrap justify-center gap-4">
