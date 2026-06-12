@@ -17,6 +17,7 @@ import { Link, useRouter } from "@/i18n/routing";
 import { createBrowserClient } from "@supabase/ssr";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
+import { FaGithub } from "react-icons/fa6";
 export default function LoginPage() {
     const router = useRouter();
     const locale = useLocale();
@@ -92,6 +93,33 @@ export default function LoginPage() {
             setLoading(false);
         }
     };
+    const handleGithubLogin = async () => {
+        setLoading(true);
+        setError("");
+
+        if (isMissingEnvVars) {
+            setError(t("errors.databaseNotConfigured"));
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: "github",
+                options: {
+                    redirectTo: `${window.location.origin}/${locale}/reports/me`,
+                },
+            });
+
+            if (error) {
+                setError(error.message);
+                setLoading(false);
+            }
+        } catch {
+            setError(t("errors.generic"));
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-[var(--color-surface-login)] [background-image:radial-gradient(ellipse_at_top_left,rgba(16,185,129,0.08)_0%,transparent_50%),radial-gradient(ellipse_at_bottom_right,rgba(5,150,105,0.06)_0%,transparent_50%)] px-4 py-10">
@@ -153,6 +181,15 @@ export default function LoginPage() {
                     >
                         <FcGoogle size={20} />
                         {t("googleButton")}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleGithubLogin}
+                        disabled={loading || isMissingEnvVars}
+                        className="mb-6 flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 font-medium text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
+                    >
+                        <FaGithub size={20} />
+                        {t("githubButton")}
                     </button>
 
                     {/* OR Separator */}

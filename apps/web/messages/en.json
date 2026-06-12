@@ -480,6 +480,7 @@
             "description": "Supabase URL or anon key is missing. Add the environment variables before signing in."
         },
         "googleButton": "Continue with Google",
+        "githubButton": "Continue with Github",
         "emailSeparator": "or continue with email",
         "emailLabel": "Email address",
         "emailPlaceholder": "you@example.com",
