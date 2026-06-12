@@ -18,7 +18,32 @@
 --    Add ownership so subscriptions can be linked to auth.users(id).
 -- ─────────────────────────────────────────────────────────────────────────────
 ALTER TABLE public.push_subscriptions
-  ADD COLUMN IF NOT EXISTS user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE;
+  ADD COLUMN IF NOT EXISTS user_id UUID;
+
+-- Legacy rows from 20260518000000_create_push_subscriptions.sql were stored
+-- without an authenticated owner. There is no reliable way to infer the user
+-- for those browser endpoints, and keeping ownerless rows would either fail the
+-- NOT NULL enforcement below or bypass the per-user RLS model. Remove only rows
+-- that are still ownerless before enforcing the ownership contract.
+DELETE FROM public.push_subscriptions
+WHERE user_id IS NULL;
+
+ALTER TABLE public.push_subscriptions
+  ALTER COLUMN user_id SET NOT NULL;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'push_subscriptions_user_id_fkey'
+      AND conrelid = 'public.push_subscriptions'::regclass
+  ) THEN
+    ALTER TABLE public.push_subscriptions
+      ADD CONSTRAINT push_subscriptions_user_id_fkey
+      FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
 
 -- Authenticated users can read, insert, update, and delete only their own rows

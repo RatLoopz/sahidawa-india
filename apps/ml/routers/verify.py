@@ -1,22 +1,117 @@
+import os
+import logging
+from datetime import date
+from pathlib import Path
+from typing import Literal, Optional
+
+import pandas as pd
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Literal, Optional
-import pandas as pd
-import os
-from datetime import date
 
 router = APIRouter(prefix="/verify", tags=["Verification"])
 
-CSV_PATH = os.path.join(
-    os.path.dirname(__file__),
-    "../../../data/seeds/medicines.csv"
-)
+logger = logging.getLogger(__name__)
+
+ENV_CSV_PATH = "MEDICINES_CSV_PATH"
+CONTAINER_CSV_PATH = Path("/data/seeds/medicines.csv")
+APP_DIR = Path(__file__).resolve().parents[1]
+REPO_ROOT_CSV_PATH = APP_DIR.parent.parent / "data/seeds/medicines.csv"
+LOCAL_CWD_CSV_PATH = Path.cwd() / "data/seeds/medicines.csv"
+REQUIRED_COLUMNS = {
+    "batch_number",
+    "brand_name",
+    "generic_name",
+    "manufacturer",
+    "composition",
+    "expiry_date",
+    "cdsco_approval_status",
+    "is_counterfeit_alert",
+}
+
+
+def _dedupe_paths(paths: list[Path]) -> list[Path]:
+    seen = set()
+    unique_paths = []
+
+    for path in paths:
+        key = str(path)
+        if key in seen:
+            continue
+
+        seen.add(key)
+        unique_paths.append(path)
+
+    return unique_paths
+
+
+def medicine_csv_candidates() -> list[Path]:
+    configured_path = os.getenv(ENV_CSV_PATH)
+
+    if configured_path:
+        return [Path(configured_path).expanduser()]
+
+    return _dedupe_paths([
+        CONTAINER_CSV_PATH,
+        REPO_ROOT_CSV_PATH,
+        LOCAL_CWD_CSV_PATH,
+    ])
+
+
+def resolve_medicines_csv_path() -> Path:
+    candidates = medicine_csv_candidates()
+
+    for path in candidates:
+        if path.is_file():
+            return path
+
+    checked_paths = ", ".join(str(path) for path in candidates)
+    raise FileNotFoundError(
+        "Medicine seed CSV not found. Set "
+        f"{ENV_CSV_PATH} to a readable CSV file. Checked: {checked_paths}"
+    )
+
+
+def load_medicines_dataframe(csv_path: Path | str | None = None) -> pd.DataFrame:
+    path = Path(csv_path).expanduser() if csv_path else resolve_medicines_csv_path()
+
+    if not path.is_file():
+        raise FileNotFoundError(
+            f"{ENV_CSV_PATH} points to a missing medicine seed CSV: {path}"
+        )
+
+    try:
+        medicines_df = pd.read_csv(path)
+    except Exception as exc:
+        raise RuntimeError(
+            f"Failed to read medicine seed CSV at {path}: {exc}"
+        ) from exc
+
+    medicines_df.columns = medicines_df.columns.str.strip().str.lower()
+
+    missing_columns = REQUIRED_COLUMNS - set(medicines_df.columns)
+    if missing_columns:
+        missing = ", ".join(sorted(missing_columns))
+        raise RuntimeError(
+            f"Medicine seed CSV at {path} is missing required columns: {missing}"
+        )
+
+    if medicines_df.empty:
+        raise RuntimeError(f"Medicine seed CSV at {path} contains no records")
+
+    logger.info(
+        "Loaded %s medicine seed records from %s",
+        len(medicines_df),
+        path,
+    )
+    return medicines_df
+
 
 try:
-    df = pd.read_csv(CSV_PATH)
-    df.columns = df.columns.str.strip().str.lower()
-except Exception:
-    df = pd.DataFrame()
+    CSV_PATH = resolve_medicines_csv_path()
+    df = load_medicines_dataframe(CSV_PATH)
+except Exception as exc:
+    logger.exception("Verification medicine database failed to load: %s", exc)
+    raise
 
 
 class BatchVerifyRequest(BaseModel):
@@ -41,7 +136,7 @@ async def verify_batch(request: BatchVerifyRequest):
     if df.empty:
         raise HTTPException(
             status_code=503,
-            detail="Medicine database unavailable"
+            detail=f"Medicine database unavailable from {CSV_PATH}"
         )
 
     # Match batch number (case-insensitive)

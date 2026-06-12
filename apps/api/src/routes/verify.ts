@@ -4,6 +4,7 @@ import { supabase } from "../db/client";
 import { verifyLimiter } from "../middleware/rateLimit";
 import { optionalAuth } from "../middleware/auth";
 import logger from "../utils/logger";
+import { lookupDrugByBatch } from "../services/drugLookup.service";
 import { escapeIlike } from "../utils/db";
 
 function maskClientIp(ip: string | undefined): string | null {
@@ -188,26 +189,8 @@ router.post(
 
         const { batchNumber, latitude, longitude } = parsed.data;
 
-        const escaped = escapeIlike(batchNumber);
-
         try {
-            const { data, error } = await supabase
-                .from("medicines")
-                .select(
-                    "id, barcode_id, brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert"
-                )
-                .ilike("batch_number", escaped)
-                .limit(1)
-                .maybeSingle();
-
-            if (error) {
-                logger.error({ message: "Medicine lookup failed", error, route: "/api/verify" });
-                res.status(500).json({
-                    verified: false,
-                    message: "Database lookup failed",
-                });
-                return;
-            }
+            const data = await lookupDrugByBatch(batchNumber);
 
             if (!data) {
                 res.status(404).json({

@@ -3,6 +3,8 @@
         "title": "તમારું સ્વાસ્થ્ય, ચકાસાયેલ અને સુરક્ષિત.",
         "subtitle": "દવાઓની અસ્સલતા તાત્કાલિક ચકાસવા, સુરક્ષિત ફાર્મસી શોધવા અને મહત્વપૂર્ણ આરોગ્ય સૂચનાઓ મેળવવા માટે ભારતનું ઓપન-સોર્સ નાગરિક પ્લેટફોર્મ.",
         "scan_button": "દવા સ્કૅન કરો",
+        "scan_medicine": "દવા સ્કૅન કરો",
+        "scan_now": "હમણાં સ્કૅન કરો",
         "scan_subtitle": "પૅકેજિંગ અથવા બારકોડ પર કૅમેરા રાખો",
         "upload_photo": "ફોટો અપલોડ કરો",
         "upload_subtitle": "ગૅલેરીમાંથી પસંદ કરો",
@@ -10,8 +12,12 @@
         "voice_subtitle": "લક્ષણો બોલો",
         "pharmacy_map": "ફાર્મસી નકશો",
         "pharmacy_subtitle": "ચકાસાયેલ સ્ટોર શોધો",
+        "find_pharmacy": "ફાર્મસી શોધો",
         "report_fake": "નકલી રિપોર્ટ કરો",
         "report_fake_subtitle": "શંકાસ્પદ દવાની જાણ કરો",
+        "report_subtitle": "શંકાસ્પદ દવાની જાણ કરો",
+        "scheme_eligibility": "યોજના પાત્રતા",
+        "scheme_eligibility_subtitle": "જાહેર આરોગ્ય વીમા પાત્રતા તપાસો",
         "search_placeholder": "દવા અથવા બૅચ શોધો...",
         "search_button": "શોધો",
         "sign_in": "Sign In",
@@ -24,9 +30,14 @@
         "explore_features": "વિશેષતાઓ શોધો",
         "live_cdsco_alerts": "લાઇવ CDSCO સૂચનાઓ",
         "india_region": "ભારત પ્રદેશ",
+        "real_time": "રિયલ ટાઇમ",
+        "alerts_description": "નવીનતમ દવા સુરક્ષા ચેતવણીઓ અને રિકોલ સાથે અપડેટ રહો.",
         "alerts_empty_title": "બધું ઠીક છે!",
         "alerts_empty_description": "હાલમાં કોઈ સક્રિય નિયમનકારી સૂચનાઓ નથી. સુરક્ષિત રહો અને તમારી દવાઓ ચકાસો.",
         "view_full_alert_log": "સંપૂર્ણ સૂચના લૉગ જુઓ",
+        "vaccine_title": "વેક્સિન હબ અને ઇમ્યુનાઇઝેશન ટ્રેકર",
+        "vaccine_subtitle": "વધુ સારી જાહેર આરોગ્ય જાગૃતિ માટે વેક્સિનના સમયપત્રક, સુરક્ષા માહિતી અને સારસંભાળ માર્ગદર્શન મેળવો.",
+        "vaccine_open": "વેક્સિન હબ ખોલો",
         "heroTitle": {
             "prefix": "તમારું સ્વાસ્થ્ય, ",
             "highlight": "ચકાસાયેલ અને સુરક્ષિત."
@@ -37,6 +48,8 @@
         "alerts": "સૂચનાઓ",
         "pharmacy_map": "ફાર્મસી નકશો",
         "my_reports": "મારા રિપોર્ટ",
+        "schedule": "સમયપત્રક",
+        "scheme_eligibility": "યોજના પાત્રતા",
         "home": "હોમ",
         "scans": "સ્કૅન",
         "map": "નકશો",
@@ -164,7 +177,7 @@
         "goHome": "હોમ પર જાઓ",
         "footer": "જ્યારે તમારું કનેક્શન પાછું આવશે ત્યારે SahiDawa આપમેળે સિંક થઈ જશે.",
         "cachedContent": "તમે અગાઉ લોડ કરેલ સામગ્રી હજુ પણ ઍક્સેસ કરી શકો છો",
-        "noCache": "આ પૃષ્ઠ કૅશ થયું ન હતું અને ઑફલાઇન ઉપલબ્ধ નથી",
+        "noCache": "આ પૃષ્ઠ કૅશ થયું ન હતું અને ઑફલાઇન ઉપલબ્ધ નથી",
         "redirecting": "તમને SahiDawa પર રીડાયરેક્ટ કરી રહ્યાં છે…",
         "attempt": "(પ્રયાસ {retryCount})",
         "checkingConnection": "કનેક્શન તપાસી રહ્યું છે…",
@@ -308,7 +321,7 @@
             },
             "5": {
                 "question": "શું SahiDawa સાથે મારો ડેટા સુરક્ષિત છે?",
-                "answer": "ખરેખર. SahiDawa તમારો ડેટા વેચતું નથી, જાહેરાતો બતાવતું નથી અને કોઈ પ્રીમિયમ પ્લાન રાખતું નથી. તમારી ગોપનીયતા અમારી સર્વોચ્ચ પ્રાથમિકતા છે."
+                "answer": "ખરેખર. SahiDawa તમારો ડેટા વેચતું નથી, જાહેરાતો બતાવતું નથી અને કોઈ પ્રીમિયમ પ્લાન રાખતું નથી. તમારી ગોપનીયતા અમારી સર્વોચ્ચ પ્રાધાન્ય છે."
             },
             "6": {
                 "question": "હું SahiDawa માં કેવી રીતે યોગદાન આપી શકું?",
@@ -371,12 +384,12 @@
         "backHome": "મુખ્ય પૃષ્ઠ પર પાછા જાઓ",
         "badge": "લાઇવ ચેતવણીઓ",
         "title": "લાઇવ CDSCO ચેતવણીઓ",
-        "subtitle": "CDSCO રજિસ્ટ્રી સાથે સીધી રીતે જોડાયેલ સંપૂર્ણ ઐતિહાસિક સુરક્ષા લોગ.",
+        "subtitle": "CDSCO રજિસ્ટ્રી સાથે સીધી રીતે જોડાયેલ સંપૂર્ણ ઐતિહાસિક સુરક્ષા લૉગ.",
         "regionBadge": "ભારત વિસ્તાર",
         "totalCount": "કુલ સંખ્યા: {count}",
         "brandPlaceholder": "બ્રાન્ડ નામ દ્વારા શોધો...",
         "regionPlaceholder": "રાજ્ય/જિલ્લા દ્વારા ફિલ્ટર કરો...",
-        "error": "સક્રિય લોગ્સ મેળવતી વખતે ડેટાબેઝ સુમેળ ભૂલ આવી.",
+        "error": "સક્રિય લૉગ્સ મેળવતી વખતે ડેટાબેઝ સુમેળ ભૂલ આવી.",
         "loading": "ચેતવણીઓ લોડ થઈ રહી છે...",
         "systemUpdate": "સિસ્ટમ અપડેટ",
         "alertType": "ચેતવણી: {type}",
@@ -391,6 +404,9 @@
     "Compare": {
         "pageTitle": "દવાઓની સરખામણી કરો",
         "pageSubtitle": "બ્રાન્ડ અને જેનરિકની બાજુબાજુ સરખામણી",
+        "reportTitle": "SahiDawa દવા સરખામણી રિપોર્ટ",
+        "generatedOn": "{date} ના રોજ બનાવવામાં આવ્યો",
+        "printExport": "પ્રિન્ટ / PDF નિકાસ કરો",
         "firstMedicine": "પ્રથમ દવા",
         "secondMedicine": "બીજી દવા",
         "searchPlaceholder": "બ્રાન્ડ અથવા જેનરિક નામ શોધો",
@@ -450,11 +466,11 @@
         "exportBackup": "બેકઅપ નિકાસ કરો",
         "importBackup": "બેકઅપ આયાત કરો",
         "importError": "અમાન્ય બેકઅપ ફાઇલ. કૃપા કરીને માન્ય JSON બેકઅપ અપલોડ કરો.",
+        "importDateError": "બેકઅપમાં અમાન્ય તારીખ ફોર્મેટ મળ્યો. બધી તારીખો YYYY-MM-DD ફોર્મેટમાં હોવી જોઈએ.",
         "statusExpired": "સમાપ્ત",
         "statusExpiringSoon": "ટૂંક સમયમાં સમાપ્ત થશે ({days} દિવસ)",
         "statusSafe": "સુરક્ષિત"
     },
-
     "Login": {
         "brandSubtitle": "દવા સુરક્ષા પ્લેટફોર્મ",
         "heading": "ફરીથી સ્વાગત છે",
@@ -490,7 +506,7 @@
         "nav": {
             "reports": "રિપોર્ટ્સ",
             "medicine": "દવા માસ્ટર",
-            "logs": "ઓડિટ લોગ્સ"
+            "logs": "ઓડિટ લૉગ્સ"
         },
         "header": {
             "title": "મોડરેશન ડેશબોર્ડ",
@@ -503,7 +519,7 @@
             "addMedicine": "દવા ઉમેરો",
             "save": "સાચવો",
             "cancel": "રદ કરો",
-            "goToLogin": "લોગિન પર જાઓ",
+            "goToLogin": "લૉગિન પર જાઓ",
             "markFake": "નકલી તરીકે ચિહ્નિત કરો",
             "falseAlarm": "ખોટી ચેતવણી"
         },
@@ -541,10 +557,10 @@
             "banned": "પ્રતિબંધિત"
         },
         "logs": {
-            "title": "ઓડિટ લોગ્સ",
+            "title": "ઓડિટ લૉગ્સ",
             "subtitle": "તાજેતરની મોડરેશન અને દવા કેટલોગ પ્રવૃત્તિ",
-            "loading": "લોગ્સ લોડ થઈ રહ્યા છે...",
-            "empty": "હજુ સુધી કોઈ ઓડિટ લોગ નથી"
+            "loading": "લૉગ્સ લોડ થઈ રહ્યા છે...",
+            "empty": "હજુ સુધી કોઈ ઓડિટ લૉગ નથી"
         },
         "reports": {
             "title": "આવતી રિપોર્ટ્સ",
@@ -637,9 +653,10 @@
         "nav_compare": "Compare Medicines",
         "nav_vaccine": "Vaccine Hub",
         "nav_reports": "My Reports",
+        "nav_schedule": "દવા સમયપત્રક",
         "nav_profile": "My Profile"
     },
-    "howItWorks":{
+    "howItWorks": {
         "badge": "સુરક્ષિત આરોગ્ય સેવા • AI દ્વારા સંચાલિત",
         "heroTitle": "<highlight>SahiDawa</highlight> કેવી રીતે કામ કરે છે",
         "heroSubtitle": "જાણો કે કેવી રીતે SahiDawa વપરાશકર્તાઓને દવાઓ પ્રમાણિત કરવામાં, વિશ્વસનીય ફાર્મસીઓ શોધવામાં, સત્તાવાર એલર્ટ મેળવવામાં અને AI-સંચાલિત હેલ્થ ટૂલ્સનો ઉપયોગ કરીને નકલી દવાઓથી સુરક્ષિત રહેવામાં મદદ કરે છે.",
@@ -658,7 +675,7 @@
             },
             "alerts": {
                 "title": "એલર્ટ ચેક કરો",
-                "description": "જો દવાનો કોઈ બેચ પાછો ખેંચવામાં આવ્યો હોય , પ્રતિબંધિત હોય અથવા નબળી ગુણવત્તાનો હોય, તો રિયલ-ટાઇમ સુરક્ષા એલર્ટ મેળવો."
+                "description": "જો દવાનો કોઈ બેચ પાછો ખેંચવામાં આવ્યો હોય, પ્રતિબંધિત હોય અથવા નબળી ગુણવત્તાનો હોય, તો રિયલ-ટાઇમ સુરક્ષા એલર્ટ મેળવો."
             },
             "pharmacies": {
                 "title": "ફાર્મસી શોધો",
@@ -708,37 +725,72 @@
             }
         }
     },
-  "medicineSafety": {
-    "guideTitle": "ઉપયોગ અને સુરક્ષા માર્ગદર્શિકા",
-    "noDosageInfo": "આ વય જૂથ માટે ડોઝની માહિતી ઉપલબ્ધ નથી.",
-    "closeButton": "સુરક્ષા માહિતી બંધ કરો",
-    "tabs": {
-      "sideEffects": "આડઅસરો",
-      "dosage": "ડોઝ",
-      "dietaryIntake": "આહાર"
+    "medicineSafety": {
+        "guideTitle": "ઉપયોગ અને સુરક્ષા માર્ગદર્શિકા",
+        "noDosageInfo": "આ વય જૂથ માટે ડોઝની માહિતી ઉપલબ્ધ નથી.",
+        "closeButton": "સુરક્ષા માહિતી બંધ કરો",
+        "tabs": {
+            "sideEffects": "આડઅસરો",
+            "dosage": "ડોઝ",
+            "dietaryIntake": "આહાર"
+        },
+        "sideEffects": {
+            "standardSymptoms": "સામાન્ય લક્ષણો",
+            "severeRedFlags": "ગંભીર ચેતવણીઓ — તાત્કાલિક તબીબી સહાય લો"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "બાળકો",
+                "adults": "વયસ્કો",
+                "elderly": "વૃદ્ધો"
+            },
+            "doseLabel": "ડોઝ:",
+            "frequencyLabel": "આવર્તન:",
+            "notesHeading": "નોંધો",
+            "warningsHeading": "ચેતવણીઓ"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "આહાર"
+            },
+            "storageHeading": "સંગ્રહ",
+            "pregnancyHeading": "ગર્ભાવસ્થા"
+        },
+        "disclaimer": "આ માહિતી શૈક્ષણિક હેતુ માટે છે અને વ્યાવસાયિક તબીબી સલાહનો વિકલ્પ નથી."
     },
-    "sideEffects": {
-      "standardSymptoms": "સામાન્ય લક્ષણો",
-      "severeRedFlags": "ગંભીર ચેતવણીઓ — તાત્કાલિક તબીબી સહાય લો"
+    "Interactions": {
+        "title": "દવા ક્રિયાપ્રતિક્રિયા તપાસ",
+        "subtitle": "બહુવિધ દવાઓ વચ્ચે સંભવિત હાનિકારક ક્રિયાપ્રતિક્રિયાઓ તપાસો",
+        "searchLabel": "દવા શોધો",
+        "searchPlaceholder": "બ્રાન્ડ નામ અથવા જેનરિક નામ દાખલ કરો...",
+        "addButton": "ઉમેરો",
+        "checkButton": "ક્રિયાપ્રતિક્રિયાઓ તપાસો",
+        "myMedicines": "મારી દવાઓની સૂચિ",
+        "noMedicines": "હજુ સુધી કોઈ દવા ઉમેરાઈ નથી.",
+        "clearAll": "બધું સાફ કરો",
+        "resultsHeading": "ક્રિયાપ્રતિક્રિયા રિપોર્ટ",
+        "noInteractions": "બધું ઠીક છે! પસંદ કરેલી દવાઓ વચ્ચે કોઈ ક્રિયાપ્રતિક્રિયા મળી નથી.",
+        "severityCritical": "ગંભીર ચેતવણી",
+        "severitySerious": "મહત્વની ચેતવણી",
+        "severityModerate": "મધ્યમ સાવચેતી",
+        "severityMinor": "નાની સાવચેતી",
+        "clinicalRecommendation": "ક્લિનિકલ ભલામણ:",
+        "mechanism": "પ્રક્રિયા:",
+        "source": "સ્રોત:",
+        "errorMessage": "ક્રિયાપ્રતિક્રિયા તપાસ પૂર્ણ કરવામાં નિષ્ફળ. કૃપા કરીને ફરી પ્રયાસ કરો."
     },
-    "dosage": {
-      "tabs": {
-        "kids": "બાળકો",
-        "adults": "વયસ્કો",
-        "elderly": "વૃદ્ધો"
-      },
-      "doseLabel": "ડોઝ:",
-      "frequencyLabel": "આવર્તન:",
-      "notesHeading": "નોંધો",
-      "warningsHeading": "ચેતવણીઓ"
-    },
-    "dietary": {
-      "tabs": {
-        "dietaryIntake": "આહાર"
-      },
-      "storageHeading": "સંગ્રહ",
-      "pregnancyHeading": "ગર્ભાવસ્થા"
-    },
-    "disclaimer": "આ માહિતી શૈક્ષણિક હેતુ માટે છે અને વ્યાવસાયિક તબીબી સલાહનો વિકલ્પ નથી."
-  }
+    "ScanHistory": {
+        "export_modal_title": "સ્કૅન ઇતિહાસ નિકાસ કરો",
+        "export_range_label": "તારીખ શ્રેણી પસંદ કરો",
+        "export_status_label": "સ્થિતિ દ્વારા ફિલ્ટર કરો",
+        "range_7d": "છેલ્લા ૭ દિવસ",
+        "range_30d": "છેલ્લા ૩૦ દિવસ",
+        "range_all": "બધો સમય",
+        "status_all": "બધી સ્થિતિઓ",
+        "status_verified": "માત્ર ચકાસાયેલ",
+        "status_suspicious": "માત્ર શંકાસ્પદ",
+        "status_fake": "માત્ર નકલી",
+        "export_button": "CSV બનાવો",
+        "cancel": "રદ કરો"
+    }
 }

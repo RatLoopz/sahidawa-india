@@ -57,9 +57,17 @@ services:
     working_dir: /app
     volumes:
       - ./apps/ml:/app
+      - type: bind
+        source: ./data/seeds/medicines.csv
+        target: /data/seeds/medicines.csv
+        read_only: true
+        bind:
+          create_host_path: false
     command: uvicorn main:app --host 0.0.0.0 --port 8000
     ports:
       - "8000:8000"
+    environment:
+      - MEDICINES_CSV_PATH=/data/seeds/medicines.csv
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
