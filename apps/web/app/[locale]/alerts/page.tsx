@@ -155,7 +155,7 @@ export default function FullAlertsLogPage() {
                         {t("backHome")}
                     </Link>
 
-                    <div className="animate-in fade-in slide-in-from-bottom-4 inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-4.5 py-1.5 text-xs font-black text-emerald-700 duration-700 dark:border-emerald-900/30 dark:bg-emerald-950/20 dark:text-emerald-400">
+                    <div className="animate-in fade-in slide-in-from-bottom-4 inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-4 py-1.5 text-xs font-black text-emerald-700 duration-700 dark:border-emerald-900/30 dark:bg-emerald-950/20 dark:text-emerald-400">
                         <span className="relative flex h-2 w-2">
                             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                             <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
@@ -176,7 +176,7 @@ export default function FullAlertsLogPage() {
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
-                        <span className="border-red-150 hidden rounded-full border bg-red-50 px-3 py-1 text-xs font-bold tracking-wider text-red-600 uppercase sm:block dark:border-red-900/30 dark:bg-red-950/20 dark:text-red-400">
+                        <span className="hidden rounded-full border border-red-100 bg-red-50 px-3 py-1 text-xs font-bold tracking-wider text-red-600 uppercase sm:block dark:border-red-900/30 dark:bg-red-950/20 dark:text-red-400">
                             {t("regionBadge")}
                         </span>
                     </div>
@@ -187,7 +187,7 @@ export default function FullAlertsLogPage() {
                 {/* Dashboard Stats Panel */}
                 <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
                     {/* Stat Card 1: Total Alerts */}
-                    <div className="relative overflow-hidden rounded-3xl border border-(--color-border-muted) bg-linear-to-br from-(--color-surface-page) to-(--color-surface-muted) p-5.5 shadow-xs transition-all duration-350 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800">
+                    <div className="relative overflow-hidden rounded-3xl border border-(--color-border-muted) bg-linear-to-br from-(--color-surface-page) to-(--color-surface-muted) p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800">
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-black tracking-wider text-(--color-text-muted) uppercase">
                                 Registered Safety Logs
@@ -197,24 +197,24 @@ export default function FullAlertsLogPage() {
                             </div>
                         </div>
                         <div className="mt-4 flex items-baseline gap-2">
-                            <span className="text-3.5xl font-black tracking-tight text-(--color-text-primary)">
+                            <span className="text-3xl font-black tracking-tight text-(--color-text-primary)">
                                 {totalCount}
                             </span>
                             <span className="flex items-center gap-1 text-xs font-bold text-emerald-500">
                                 <span className="relative flex h-1.5 w-1.5">
                                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-50"></span>
+                                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                                 </span>
                                 Live Sync
                             </span>
                         </div>
-                        <p className="mt-1 text-[11px] font-semibold text-(--color-text-muted)">
+                        <p className="mt-2 text-[11px] font-semibold text-(--color-text-muted)">
                             Active CDSCO safety notifications
                         </p>
                     </div>
 
                     {/* Stat Card 2: Banned Drugs */}
-                    <div className="relative overflow-hidden rounded-3xl border border-(--color-border-muted) bg-linear-to-br from-(--color-surface-page) to-(--color-surface-muted) p-5.5 shadow-xs transition-all duration-350 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800">
+                    <div className="relative overflow-hidden rounded-3xl border border-(--color-border-muted) bg-linear-to-br from-(--color-surface-page) to-(--color-surface-muted) p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800">
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-black tracking-wider text-(--color-text-muted) uppercase">
                                 Critical / Banned
@@ -224,18 +224,18 @@ export default function FullAlertsLogPage() {
                             </div>
                         </div>
                         <div className="mt-4 flex items-baseline gap-2">
-                            <span className="text-3.5xl font-black tracking-tight text-(--color-text-primary)">
+                            <span className="text-3xl font-black tracking-tight text-(--color-text-primary)">
                                 {loading ? "..." : criticalCount}
                             </span>
                             <span className="text-xs font-bold text-red-500">On Current Page</span>
                         </div>
-                        <p className="mt-1 text-[11px] font-semibold text-(--color-text-muted)">
+                        <p className="mt-2 text-[11px] font-semibold text-(--color-text-muted)">
                             High-severity banned formulation counts
                         </p>
                     </div>
 
                     {/* Stat Card 3: Affected Regions */}
-                    <div className="relative overflow-hidden rounded-3xl border border-(--color-border-muted) bg-linear-to-br from-(--color-surface-page) to-(--color-surface-muted) p-5.5 shadow-xs transition-all duration-350 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800">
+                    <div className="relative overflow-hidden rounded-3xl border border-(--color-border-muted) bg-linear-to-br from-(--color-surface-page) to-(--color-surface-muted) p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800">
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-black tracking-wider text-(--color-text-muted) uppercase">
                                 Impacted Areas
@@ -245,21 +245,21 @@ export default function FullAlertsLogPage() {
                             </div>
                         </div>
                         <div className="mt-4 flex items-baseline gap-2">
-                            <span className="text-3.5xl font-black tracking-tight text-(--color-text-primary)">
+                            <span className="text-3xl font-black tracking-tight text-(--color-text-primary)">
                                 {loading ? "..." : uniqueRegionsCount}
                             </span>
                             <span className="text-xs font-bold text-amber-500">
                                 States Affected
                             </span>
                         </div>
-                        <p className="mt-1 text-[11px] font-semibold text-(--color-text-muted)">
+                        <p className="mt-2 text-[11px] font-semibold text-(--color-text-muted)">
                             Unique regional origins detected
                         </p>
                     </div>
                 </div>
 
                 {/* Glassmorphic Filters Section */}
-                <div className="mb-6 rounded-3xl border border-(--color-border-muted) bg-slate-50/40 p-5 shadow-xs backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/30">
+                <div className="mb-6 rounded-3xl border border-(--color-border-muted) bg-slate-50/40 p-5 shadow-sm backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/30">
                     <div className="mb-3 flex items-center gap-2 text-xs font-bold tracking-wider text-(--color-text-secondary) uppercase">
                         <Filter size={14} className="text-emerald-500" />
                         Refine Safety Registry
@@ -277,7 +277,7 @@ export default function FullAlertsLogPage() {
                                     setBrandSearch(e.target.value);
                                     setPage(1);
                                 }}
-                                className="block w-full rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted)/40 p-3.5 pl-11 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) shadow-inner transition-all focus:border-emerald-500/80 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 focus:outline-hidden dark:focus:bg-slate-900/50"
+                                className="block w-full rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted)/40 p-3 pl-11 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) shadow-inner transition-all focus:border-emerald-500/80 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 focus:outline-hidden dark:focus:bg-slate-900/50"
                             />
                         </div>
                         <div className="relative flex-1">
@@ -292,7 +292,7 @@ export default function FullAlertsLogPage() {
                                     setRegionSearch(e.target.value);
                                     setPage(1);
                                 }}
-                                className="block w-full rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted)/40 p-3.5 pl-11 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) shadow-inner transition-all focus:border-emerald-500/80 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 focus:outline-hidden dark:focus:bg-slate-900/50"
+                                className="block w-full rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted)/40 p-3 pl-11 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) shadow-inner transition-all focus:border-emerald-500/80 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 focus:outline-hidden dark:focus:bg-slate-900/50"
                             />
                         </div>
                     </div>
@@ -301,7 +301,7 @@ export default function FullAlertsLogPage() {
                 {error && (
                     <LiveMessage
                         tone="critical"
-                        className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4.5 text-sm font-semibold text-red-800 dark:border-red-900 dark:bg-red-950/20 dark:text-red-400"
+                        className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm font-semibold text-red-800 dark:border-red-900 dark:bg-red-950/20 dark:text-red-400"
                     >
                         {t("error")}
                     </LiveMessage>
@@ -345,7 +345,7 @@ export default function FullAlertsLogPage() {
                                             tabIndex={0}
                                             role="button"
                                             aria-expanded={expandedAlertId === alert.id}
-                                            className={`group relative flex cursor-pointer flex-col overflow-hidden rounded-3xl border bg-(--color-surface-page) p-5.5 shadow-xs transition-all duration-350 hover:-translate-y-0.5 hover:shadow-md focus:ring-2 focus:ring-emerald-500/20 focus:outline-hidden ${
+                                            className={`group relative flex cursor-pointer flex-col overflow-hidden rounded-3xl border bg-(--color-surface-page) p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md focus:ring-2 focus:ring-emerald-500/20 focus:outline-hidden ${
                                                 expandedAlertId === alert.id
                                                     ? "border-emerald-500/30 ring-2 ring-emerald-500/5 dark:border-emerald-500/20"
                                                     : isSystem
@@ -374,7 +374,7 @@ export default function FullAlertsLogPage() {
                                                             ? "bg-blue-50 text-blue-500 group-hover:bg-blue-100 dark:bg-blue-950/30 dark:text-blue-400"
                                                             : isCritical
                                                               ? "bg-red-50 text-red-500 group-hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400"
-                                                              : "dark:text-amber-450 bg-amber-50 text-amber-600 group-hover:bg-amber-100 dark:bg-amber-950/30"
+                                                              : "bg-amber-50 text-amber-600 group-hover:bg-amber-100 dark:bg-amber-950/30 dark:text-amber-400"
                                                     }`}
                                                 >
                                                     {isSystem ? (
@@ -405,7 +405,7 @@ export default function FullAlertsLogPage() {
                                                                     className={`w-fit rounded-full px-2.5 py-0.5 text-[10px] font-black tracking-wider uppercase ${
                                                                         isCritical
                                                                             ? "bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400"
-                                                                            : "text-amber-650 dark:text-amber-405 bg-amber-50 dark:bg-amber-950/30"
+                                                                            : "bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400"
                                                                     }`}
                                                                 >
                                                                     {alert.cdsco_approval_status ||
@@ -422,7 +422,7 @@ export default function FullAlertsLogPage() {
                                                         </span>
                                                     </div>
 
-                                                    <p className="mt-1.5 text-sm leading-relaxed font-semibold text-(--color-text-secondary)">
+                                                    <p className="mt-2 text-sm leading-relaxed font-semibold text-(--color-text-secondary)">
                                                         {alert.alert_type
                                                             ? t("alertType", {
                                                                   type: alert.alert_type,
@@ -494,7 +494,7 @@ export default function FullAlertsLogPage() {
                                                     )}
                                                 </div>
 
-                                                <div className="shrink-0 text-slate-400 transition-colors group-hover:text-slate-600">
+                                                <div className="group-hover:text-slate-650 shrink-0 text-slate-400 transition-colors">
                                                     <ChevronDown
                                                         size={18}
                                                         className={`transition-transform duration-300 ${
@@ -530,7 +530,7 @@ export default function FullAlertsLogPage() {
                                                             ) : (
                                                                 <>
                                                                     {/* Compliance Advisory Checklist */}
-                                                                    <div className="mb-4.5">
+                                                                    <div className="mb-4">
                                                                         <h5 className="mb-2.5 text-xs font-extrabold tracking-wider text-slate-500 uppercase dark:text-slate-400">
                                                                             Patient Safety Advisory
                                                                         </h5>
@@ -556,7 +556,7 @@ export default function FullAlertsLogPage() {
                                                                             <li className="flex items-start gap-2.5 text-xs leading-relaxed font-semibold text-(--color-text-secondary)">
                                                                                 <CheckCircle2
                                                                                     size={15}
-                                                                                    className="mt-0.5 shrink-0 text-amber-500"
+                                                                                    className="text-amber-550 mt-0.5 shrink-0"
                                                                                 />
                                                                                 <span>
                                                                                     Stop taking this
@@ -572,7 +572,7 @@ export default function FullAlertsLogPage() {
                                                                             <li className="flex items-start gap-2.5 text-xs leading-relaxed font-semibold text-(--color-text-secondary)">
                                                                                 <CheckCircle2
                                                                                     size={15}
-                                                                                    className="mt-0.5 shrink-0 text-emerald-500"
+                                                                                    className="text-emerald-550 mt-0.5 shrink-0"
                                                                                 />
                                                                                 <span>
                                                                                     Return unused
@@ -597,7 +597,7 @@ export default function FullAlertsLogPage() {
                                                                             onClick={(e) =>
                                                                                 e.stopPropagation()
                                                                             }
-                                                                            className="inline-flex items-center gap-1.5 rounded-2xl bg-slate-900 px-4.5 py-2.5 text-xs font-bold text-white transition-all hover:scale-[1.02] hover:bg-slate-800 active:scale-95 dark:bg-slate-800 dark:hover:bg-slate-700"
+                                                                            className="inline-flex items-center gap-1.5 rounded-2xl bg-slate-900 px-5 py-2.5 text-xs font-bold text-white transition-all hover:scale-[1.02] hover:bg-slate-800 active:scale-95 dark:bg-slate-800 dark:hover:bg-slate-700"
                                                                         >
                                                                             <ExternalLink
                                                                                 size={13}
@@ -613,7 +613,7 @@ export default function FullAlertsLogPage() {
                                                                                     alert
                                                                                 )
                                                                             }
-                                                                            className="inline-flex items-center gap-1.5 rounded-2xl border border-(--color-border-muted) bg-white px-4.5 py-2.5 text-xs font-bold text-(--color-text-primary) transition-all hover:scale-[1.02] hover:bg-slate-50 active:scale-95 dark:bg-slate-900 dark:hover:bg-slate-800"
+                                                                            className="inline-flex items-center gap-1.5 rounded-2xl border border-(--color-border-muted) bg-white px-5 py-2.5 text-xs font-bold text-(--color-text-primary) transition-all hover:scale-[1.02] hover:bg-slate-50 active:scale-95 dark:bg-slate-900 dark:hover:bg-slate-800"
                                                                         >
                                                                             <Share2 size={13} />
                                                                             Share Safety Details
@@ -645,7 +645,7 @@ export default function FullAlertsLogPage() {
                             setPage((p) => p - 1);
                             window.scrollTo({ top: 0, behavior: "smooth" });
                         }}
-                        className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) px-5 py-2.5 text-sm font-extrabold text-(--color-text-primary) shadow-xs transition-all hover:bg-(--color-surface-muted) active:scale-95 disabled:scale-100 disabled:cursor-not-allowed disabled:opacity-40"
+                        className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) px-5 py-2.5 text-sm font-extrabold text-(--color-text-primary) shadow-sm transition-all hover:bg-(--color-surface-muted) active:scale-95 disabled:scale-100 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                         {t("previous")}
                     </button>
@@ -663,7 +663,7 @@ export default function FullAlertsLogPage() {
                             setPage((p) => p + 1);
                             window.scrollTo({ top: 0, behavior: "smooth" });
                         }}
-                        className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) px-5 py-2.5 text-sm font-extrabold text-(--color-text-primary) shadow-xs transition-all hover:bg-(--color-surface-muted) active:scale-95 disabled:scale-100 disabled:cursor-not-allowed disabled:opacity-40"
+                        className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) px-5 py-2.5 text-sm font-extrabold text-(--color-text-primary) shadow-sm transition-all hover:bg-(--color-surface-muted) active:scale-95 disabled:scale-100 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                         {t("next")}
                     </button>
