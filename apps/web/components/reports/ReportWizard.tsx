@@ -34,6 +34,51 @@ const WEBP_FILE_EXTENSION = ".webp";
 /** Strip HTML/script tags and trim whitespace to prevent stored XSS. */
 const sanitize = (v: string) => v.replace(/<[^>]*>/g, "").trim();
 
+// ─── Scan context ──────────────────────────────────────────────────────────────
+/**
+ * Optional scan details carried from the medicine scanner into the report.
+ * When the wizard is opened from a scan result, the URL carries `barcode`
+ * and/or `medicineId` so the filed report can be linked back to the scan.
+ */
+interface ScanContext {
+    scannedBarcode?: string;
+    medicineId?: string;
+}
+
+// UUID v1–v5, matching the backend's z.string().uuid() expectation for medicineId.
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+// scanned_barcode is VARCHAR(100) in the schema; mirror that bound client-side.
+const MAX_BARCODE_LENGTH = 100;
+
+/**
+ * Reads and validates scan context from a URL query string. Only well-formed
+ * values are returned so the wizard never forwards data the backend would
+ * reject with a 400 (e.g. a malformed medicineId or an over-long barcode).
+ *
+ * @param search - location.search, e.g. "?barcode=123&medicineId=<uuid>"
+ * @returns Validated scan context (fields omitted when absent or invalid)
+ */
+const parseScanContext = (search: string): ScanContext => {
+    const context: ScanContext = {};
+    try {
+        const params = new URLSearchParams(search);
+
+        const barcode = params.get("barcode")?.trim();
+        if (barcode && barcode.length > 0 && barcode.length <= MAX_BARCODE_LENGTH) {
+            context.scannedBarcode = barcode;
+        }
+
+        const medicineId = params.get("medicineId")?.trim();
+        if (medicineId && UUID_PATTERN.test(medicineId)) {
+            context.medicineId = medicineId;
+        }
+    } catch {
+        // Malformed query string; fall back to an empty context.
+    }
+    return context;
+};
+
 const renameFileForMimeType = (fileName: string, mimeType: string) => {
     if (mimeType !== "image/webp" || fileName.toLowerCase().endsWith(WEBP_FILE_EXTENSION)) {
         return fileName;
@@ -747,6 +792,16 @@ export default function ReportWizard() {
     const [reportId, setReportId] = useState<string | null>(null);
     const submitErrorId = useId();
 
+    // Scan context (barcode / medicineId) carried in the URL when the wizard is
+    // opened from a scan result. Held in a ref because it never changes after
+    // mount and must not trigger re-renders.
+    const scanContextRef = useRef<ScanContext>({});
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            scanContextRef.current = parseScanContext(window.location.search);
+        }
+    }, []);
+
     // Cleanup blob URLs on unmount to prevent memory leaks
     useEffect(() => {
         return () => {
@@ -782,7 +837,10 @@ export default function ReportWizard() {
                     ? (localStorage.getItem("sb-access-token") ?? undefined)
                     : undefined;
             const geo = await geocodePincode(data.pincode);
-            const { report } = await submitReport({ ...data, ...(geo ?? {}) }, token);
+            const { report } = await submitReport(
+                { ...data, ...(geo ?? {}), ...scanContextRef.current },
+                token
+            );
             setReportId(report.id);
             setDone(true);
         } catch (e) {

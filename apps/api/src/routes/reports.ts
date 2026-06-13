@@ -46,6 +46,13 @@ const createReportSchema = z.object({
     city: z.string().min(2),
     state: z.string().min(2),
     pincode: z.string().regex(/^\d{6}$/),
+    // Optional scan context that links a Report Wizard submission back to the
+    // medicine scan it originated from. scanned_barcode is VARCHAR(100) and
+    // medicine_id is a UUID FK to medicines(id) in the schema, so the bounds
+    // here match the database constraints to fail fast with a 400 rather than a
+    // 500 on insert.
+    scannedBarcode: z.string().max(100).optional(),
+    medicineId: z.string().uuid().optional(),
     latitude: z.number().optional(),
     longitude: z.number().optional(),
 });
@@ -87,6 +94,11 @@ reportsRouter.post("/", optionalAuth, async (req: AuthenticatedRequest, res: Res
                 pincode: data.pincode,
                 district: data.city,
                 report_location: buildReportLocation(data.latitude, data.longitude),
+                // Link the report back to the originating scan when present.
+                // This mirrors the batch report route (/api/verify/batch/report),
+                // closing the gap where wizard-filed reports lost the scan context.
+                scanned_barcode: data.scannedBarcode ?? null,
+                medicine_id: data.medicineId ?? null,
                 reporter_id: req.user?.id ?? null,
                 status: "pending",
             })

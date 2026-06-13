@@ -173,6 +173,112 @@ describe("Reports API Routes", () => {
             expect(response.status).toBe(201);
             expect(response.body.report.report_location).toBe("POINT(72.8777 19.0760)");
         });
+
+        it("persists scanned_barcode and medicine_id when provided", async () => {
+            const medicineId = "11111111-1111-4111-8111-111111111111";
+            const payload = {
+                medicineName: "Aspirin 500mg",
+                manufacturer: "TestCo",
+                description: "This is a detailed description of the issue",
+                images: ["https://example.com/image1.jpg"],
+                pharmacyName: "Test Pharmacy",
+                address: "123 Main St",
+                city: "Delhi",
+                state: "Delhi",
+                pincode: "110001",
+                scannedBarcode: "8901234567890",
+                medicineId,
+            };
+
+            const insertMock = jest.fn().mockReturnValue({
+                select: jest.fn().mockReturnValue({
+                    single: jest.fn().mockResolvedValueOnce({
+                        data: { id: "report-id-789", created_at: "2026-06-04T00:00:00Z" },
+                        error: null,
+                    }),
+                }),
+            });
+            mockedSupabase.insert = insertMock;
+
+            const response = await request(app).post("/api/reports").send(payload);
+
+            expect(response.status).toBe(201);
+            expect(insertMock).toHaveBeenCalledTimes(1);
+            const insertedRow = insertMock.mock.calls[0][0];
+            expect(insertedRow.scanned_barcode).toBe("8901234567890");
+            expect(insertedRow.medicine_id).toBe(medicineId);
+        });
+
+        it("defaults scanned_barcode and medicine_id to null when omitted", async () => {
+            const payload = {
+                medicineName: "Aspirin 500mg",
+                manufacturer: "TestCo",
+                description: "This is a detailed description of the issue",
+                images: ["https://example.com/image1.jpg"],
+                pharmacyName: "Test Pharmacy",
+                address: "123 Main St",
+                city: "Delhi",
+                state: "Delhi",
+                pincode: "110001",
+            };
+
+            const insertMock = jest.fn().mockReturnValue({
+                select: jest.fn().mockReturnValue({
+                    single: jest.fn().mockResolvedValueOnce({
+                        data: { id: "report-id-790", created_at: "2026-06-04T00:00:00Z" },
+                        error: null,
+                    }),
+                }),
+            });
+            mockedSupabase.insert = insertMock;
+
+            const response = await request(app).post("/api/reports").send(payload);
+
+            expect(response.status).toBe(201);
+            const insertedRow = insertMock.mock.calls[0][0];
+            expect(insertedRow.scanned_barcode).toBeNull();
+            expect(insertedRow.medicine_id).toBeNull();
+        });
+
+        it("returns 400 when medicineId is not a valid UUID", async () => {
+            const payload = {
+                medicineName: "Aspirin 500mg",
+                manufacturer: "TestCo",
+                description: "This is a detailed description of the issue",
+                images: ["https://example.com/image1.jpg"],
+                pharmacyName: "Test Pharmacy",
+                address: "123 Main St",
+                city: "Delhi",
+                state: "Delhi",
+                pincode: "110001",
+                medicineId: "not-a-uuid",
+            };
+
+            const response = await request(app).post("/api/reports").send(payload);
+
+            expect(response.status).toBe(400);
+            expect(response.body.error).toBe("Invalid report payload");
+        });
+
+        it("returns 400 when scannedBarcode exceeds 100 characters", async () => {
+            const payload = {
+                medicineName: "Aspirin 500mg",
+                manufacturer: "TestCo",
+                description: "This is a detailed description of the issue",
+                images: ["https://example.com/image1.jpg"],
+                pharmacyName: "Test Pharmacy",
+                address: "123 Main St",
+                city: "Delhi",
+                state: "Delhi",
+                pincode: "110001",
+                scannedBarcode: "x".repeat(101),
+            };
+
+            const response = await request(app).post("/api/reports").send(payload);
+
+            expect(response.status).toBe(400);
+            expect(response.body.error).toBe("Invalid report payload");
+        });
     });
 
     describe("GET /api/reports/mine", () => {

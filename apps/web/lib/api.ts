@@ -28,6 +28,11 @@ export type ReportPayload = {
     pincode: string;
     latitude?: number;
     longitude?: number;
+    // Optional scan context forwarded when the wizard is opened from a scan
+    // result, so the backend can link the report to the scanned barcode and
+    // medicine record.
+    scannedBarcode?: string;
+    medicineId?: string;
 };
 
 export type SubmittedReport = {
