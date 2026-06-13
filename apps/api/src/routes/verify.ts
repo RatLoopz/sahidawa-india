@@ -189,6 +189,50 @@ router.post(
 
         const { batchNumber, latitude, longitude } = parsed.data;
 
+        const upperBatch = batchNumber.toUpperCase();
+        const ALLOWED_MOCK_BATCHES = new Set([
+            "DOLO 650",
+            "DOLO-650",
+            "MOCK-DOLO-650",
+            "BN2024001",
+            "AUG625D",
+        ]);
+
+        if (process.env.VERIFY_ENABLE_MOCKS === "true" && ALLOWED_MOCK_BATCHES.has(upperBatch)) {
+            const brandName = upperBatch.includes("DOLO")
+                ? "Dolo 650"
+                : upperBatch === "AUG625D"
+                  ? "Augmentin 625"
+                  : "Mock Medicine";
+            const genericName = upperBatch.includes("DOLO")
+                ? "Paracetamol"
+                : upperBatch === "AUG625D"
+                  ? "Amoxicillin + Clavulanic Acid"
+                  : "Mock Generic";
+
+            const mockMedicine = {
+                id: "mock-id-dolo",
+                barcode_id: "8901148220042",
+                brand_name: brandName,
+                generic_name: genericName,
+                manufacturer: "Micro Labs Ltd",
+                batch_number: upperBatch,
+                expiry_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000 * 2).toISOString(), // 2 years expiry
+                cdsco_approval_status: "approved",
+                is_counterfeit_alert: false,
+            };
+            res.status(200).json({
+                verified: true,
+                medicine: mockMedicine,
+                scanMeta: {
+                    recentScanCount24h: 1,
+                    recentScanCount7d: 1,
+                    suspicious: false,
+                    suspicionReasons: [],
+                },
+            });
+            return;
+        }
         try {
             const data = await lookupDrugByBatch(batchNumber);
 

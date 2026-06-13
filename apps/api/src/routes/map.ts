@@ -73,23 +73,30 @@ router.get("/nearby", mapLimiter, async (req: Request, res: Response) => {
     const clampedRadius = Math.min(radius_km, 100);
 
     try {
-        const pharmaciesRes = await supabase.rpc("get_nearest_pharmacies", {
-            query_lat: lat,
-            query_lng: lng,
-            search_radius_km: clampedRadius,
-        });
+        const [pharmaciesRes, ashaWorkersRes] = await Promise.all([
+            supabase.rpc("get_nearest_pharmacies", {
+                query_lat: lat,
+                query_lng: lng,
+                search_radius_km: clampedRadius,
+            }),
+            supabase.rpc("get_nearest_asha_workers", {
+                query_lat: lat,
+                query_lng: lng,
+                search_radius_km: clampedRadius,
+            }),
+        ]);
 
         if (pharmaciesRes.error) throw pharmaciesRes.error;
-
+        if (ashaWorkersRes.error) throw ashaWorkersRes.error;
         const pharmacies = Array.isArray(pharmaciesRes.data)
             ? (pharmaciesRes.data as PharmacyRpcResult[]).map(formatNearbyPharmacy)
             : [];
 
+        const ashaWorkers = Array.isArray(ashaWorkersRes.data) ? ashaWorkersRes.data : [];
+
         res.json({
             pharmacies,
-            // Canonical Supabase migrations currently define pharmacy geo RPCs only.
-            // Keep the legacy response key stable until an ASHA schema/RPC exists.
-            asha_workers: [],
+            asha_workers: ashaWorkers,
         });
     } catch (err) {
         console.error(err);

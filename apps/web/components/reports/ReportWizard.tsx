@@ -24,6 +24,14 @@ import { MedicinePhotoUpload } from "@/components/medicine";
 import { createBrowserClient } from "@supabase/ssr";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
 import { toast } from "sonner";
+import {
+    saveDraft,
+    getDraft,
+    clearDraft,
+    queueReport,
+    getPendingCount,
+} from "@/lib/offlineStorage";
+import { initBackgroundSync } from "@/lib/backgroundSync";
 
 // ─── Cloudinary env ────────────────────────────────────────────────────────────
 // Uploads are now securely routed through our backend API (/api/upload),
@@ -71,7 +79,7 @@ const schema = z.object({
                 )
         ),
 });
-type FormValues = z.infer<typeof schema>;
+export type FormValues = z.infer<typeof schema>;
 
 const EMPTY: FormValues = {
     medicineName: "",
@@ -242,6 +250,21 @@ const Icon = {
                 d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
             />
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4" />
+        </svg>
+    ),
+    Cloud: () => (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            className="h-3.5 w-3.5 flex-shrink-0"
+        >
+            <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 15a4 4 0 014-4 5 5 0 019.6-1.5A4.5 4.5 0 0121 14.5 3.5 3.5 0 0117.5 18H7a4 4 0 01-4-3z"
+            />
         </svg>
     ),
 };
@@ -707,7 +730,15 @@ function Step3() {
 // ─────────────────────────────────────────────────────────────────────────────
 // SUCCESS
 // ─────────────────────────────────────────────────────────────────────────────
-function Success({ onReset, reportId }: { onReset: () => void; reportId: string | null }) {
+function Success({
+    onReset,
+    reportId,
+    queuedOffline,
+}: {
+    onReset: () => void;
+    reportId: string | null;
+    queuedOffline?: boolean;
+}) {
     const ref = reportId ? `RPT-${reportId.slice(0, 8).toUpperCase()}` : "RPT-PENDING";
     return (
         <motion.div
@@ -728,34 +759,43 @@ function Success({ onReset, reportId }: { onReset: () => void; reportId: string 
                 }}
                 className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-emerald-100 bg-emerald-50 shadow-inner dark:border-emerald-900/30 dark:bg-emerald-950/20"
             >
-                <svg viewBox="0 0 24 24" fill="none" className="h-10 w-10 text-emerald-500">
-                    <path
-                        d="M4 12.5l5 5L20 7"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    />
-                </svg>
+                {queuedOffline ? (
+                    <Icon.Cloud />
+                ) : (
+                    <svg viewBox="0 0 24 24" fill="none" className="h-10 w-10 text-emerald-500">
+                        <path
+                            d="M4 12.5l5 5L20 7"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        />
+                    </svg>
+                )}
             </motion.div>
 
             <div className="space-y-2">
                 <h3 className="text-2xl font-extrabold tracking-tight text-(--color-text-primary)">
-                    Report Submitted
+                    {queuedOffline ? "Report Saved Locally" : "Report Submitted"}
                 </h3>
                 <p className="mx-auto max-w-sm text-base leading-relaxed font-medium text-(--color-text-secondary)">
-                    Your report has been securely received and will be reviewed by our
-                    pharmacovigilance team within 48 hours.
+                    {queuedOffline
+                        ? "Network unavailable. Your report has been saved on this device and will auto-submit once your connection improves."
+                        : "Your report has been securely received and will be reviewed by our pharmacovigilance team within 48 hours."}
                 </p>
             </div>
 
             {/* Reference */}
-            <div className="mx-auto w-full max-w-xs rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-6 py-4 shadow-sm">
-                <p className="mb-1 text-xs font-bold tracking-wider text-(--color-text-muted) uppercase">
-                    Reference ID
-                </p>
-                <p className="text-lg font-bold tracking-wide text-(--color-text-primary)">{ref}</p>
-            </div>
+            {!queuedOffline && (
+                <div className="mx-auto w-full max-w-xs rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-6 py-4 shadow-sm">
+                    <p className="mb-1 text-xs font-bold tracking-wider text-(--color-text-muted) uppercase">
+                        Reference ID
+                    </p>
+                    <p className="text-lg font-bold tracking-wide text-(--color-text-primary)">
+                        {ref}
+                    </p>
+                </div>
+            )}
 
             <button
                 type="button"
@@ -779,7 +819,17 @@ export default function ReportWizard() {
     const [submitErr, setSubmitErr] = useState<string | null>(null);
     const [done, setDone] = useState(false);
     const [reportId, setReportId] = useState<string | null>(null);
+    const [queuedOffline, setQueuedOffline] = useState(false);
+    const [pendingCount, setPendingCount] = useState(0);
+    const [restoredDraft, setRestoredDraft] = useState(false);
     const submitErrorId = useId();
+
+    const methods = useForm<FormValues>({
+        resolver: zodResolver(schema),
+        defaultValues: EMPTY,
+        mode: "onTouched",
+    });
+    const { trigger, handleSubmit, reset } = methods;
 
     // Cleanup blob URLs on unmount to prevent memory leaks
     useEffect(() => {
@@ -788,12 +838,50 @@ export default function ReportWizard() {
         };
     }, []);
 
-    const methods = useForm<FormValues>({
-        resolver: zodResolver(schema),
-        defaultValues: EMPTY,
-        mode: "onTouched",
-    });
-    const { trigger, handleSubmit, reset } = methods;
+    // Restore any saved draft on mount
+    useEffect(() => {
+        (async () => {
+            try {
+                const draft = await getDraft<{
+                    values: FormValues;
+                    step: number;
+                    images: ImageEntry[];
+                }>();
+                if (draft?.values) {
+                    methods.reset(draft.values);
+                    setStep(draft.step ?? 1);
+                    setImages(draft.images ?? []);
+                    toast.info("Restored your unsaved report draft.");
+                }
+            } catch (err) {
+                console.error("Failed to restore draft:", err);
+            } finally {
+                setRestoredDraft(true);
+            }
+        })();
+    }, []);
+
+    // Background sync of queued offline reports
+    useEffect(() => {
+        const cleanup = initBackgroundSync((count) => {
+            toast.success(
+                `${count} pending report${count > 1 ? "s" : ""} submitted now that you're back online.`
+            );
+            setPendingCount((c) => Math.max(0, c - count));
+        });
+        void getPendingCount().then(setPendingCount);
+        return cleanup;
+    }, []);
+
+    // Autosave draft as the user fills the form (skip until initial restore is done)
+    const watchedValues = methods.watch();
+    useEffect(() => {
+        if (!restoredDraft || done) return;
+        const timer = setTimeout(() => {
+            void saveDraft({ values: watchedValues, step, images });
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [JSON.stringify(watchedValues), step, images, restoredDraft, done]);
 
     // Navigation
     const next = async () => {
@@ -810,24 +898,75 @@ export default function ReportWizard() {
     const onSubmit = async (data: FormValues) => {
         setSubmitting(true);
         setSubmitErr(null);
-        try {
-            let token: string | undefined = undefined;
-            if (typeof window !== "undefined") {
-                try {
-                    const supabase = createBrowserClient(getSupabaseUrl(), getSupabaseAnonKey());
-                    const {
-                        data: { session },
-                    } = await supabase.auth.getSession();
-                    token = session?.access_token;
-                } catch {
-                    // ignore if supabase is not configured
-                }
+
+        let token: string | undefined = undefined;
+        if (typeof window !== "undefined") {
+            try {
+                const supabase = createBrowserClient(getSupabaseUrl(), getSupabaseAnonKey());
+                const {
+                    data: { session },
+                } = await supabase.auth.getSession();
+                token = session?.access_token;
+            } catch {
+                // ignore if supabase is not configured
             }
+        }
+
+        // If already offline, skip the network attempt entirely
+        if (typeof navigator !== "undefined" && !navigator.onLine) {
+            try {
+                const geo = await geocodePincode(data.pincode).catch(() => null);
+                await queueReport({ ...data, ...(geo ?? {}) });
+                await clearDraft();
+                setPendingCount((c) => c + 1);
+                setReportId(null);
+                setQueuedOffline(true);
+                setDone(true);
+                toast.info(
+                    "You're offline. Your report has been saved locally and will auto-submit once connection improves."
+                );
+            } catch (queueErr) {
+                console.error("Failed to queue report offline:", queueErr);
+                setSubmitErr(
+                    "You're offline and the report could not be saved locally. Please try again."
+                );
+                toast.error("Failed to save report locally.");
+            } finally {
+                setSubmitting(false);
+            }
+            return;
+        }
+
+        try {
             const geo = await geocodePincode(data.pincode);
             const { report } = await submitReport({ ...data, ...(geo ?? {}) }, token);
             setReportId(report.id);
+            setQueuedOffline(false);
+            await clearDraft();
             setDone(true);
         } catch (e) {
+            const isNetworkError =
+                e instanceof TypeError ||
+                (e instanceof Error && /network|fetch|timeout|failed/i.test(e.message));
+
+            if (isNetworkError) {
+                try {
+                    const geo = await geocodePincode(data.pincode).catch(() => null);
+                    await queueReport({ ...data, ...(geo ?? {}) });
+                    await clearDraft();
+                    setPendingCount((c) => c + 1);
+                    setReportId(null);
+                    setQueuedOffline(true);
+                    setDone(true);
+                    toast.info(
+                        "Network slow. Your report has been saved locally and will auto-submit once connection improves."
+                    );
+                    return;
+                } catch (queueErr) {
+                    console.error("Failed to queue report offline:", queueErr);
+                }
+            }
+
             const errorMsg =
                 e instanceof Error
                     ? e.message
@@ -847,8 +986,10 @@ export default function ReportWizard() {
         setSubmitErr(null);
         setDone(false);
         setReportId(null);
+        setQueuedOffline(false);
         setStep(1);
         setDir(1);
+        void clearDraft();
     };
 
     return (
@@ -870,6 +1011,12 @@ export default function ReportWizard() {
                             <span className="text-xs font-bold tracking-wider text-emerald-400 uppercase">
                                 MedWatch Report
                             </span>
+                            {pendingCount > 0 && !done && (
+                                <span className="ml-auto flex items-center gap-1.5 rounded-full bg-amber-500/15 px-2.5 py-1 text-[10px] font-bold tracking-wide text-amber-300 uppercase">
+                                    <Icon.Cloud />
+                                    {pendingCount} pending sync
+                                </span>
+                            )}
                         </div>
                         <h2 className="relative z-10 text-3xl leading-tight font-extrabold tracking-tight text-white">
                             {done ? "Report Received" : STEPS[step - 1].title}
@@ -886,7 +1033,11 @@ export default function ReportWizard() {
                     {/* ── Body ── */}
                     <div className="flex-1 bg-(--color-surface-page) px-8 py-8">
                         {done ? (
-                            <Success onReset={handleReset} reportId={reportId} />
+                            <Success
+                                onReset={handleReset}
+                                reportId={reportId}
+                                queuedOffline={queuedOffline}
+                            />
                         ) : (
                             <>
                                 <Progress current={step} />

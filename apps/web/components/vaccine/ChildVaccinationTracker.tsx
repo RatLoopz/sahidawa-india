@@ -9,6 +9,7 @@ import {
     getTodayDateInput,
     validateChildDateOfBirth,
 } from "@/lib/childVaccinationSchedule";
+import { supabase } from "@/lib/supabase";
 import {
     AlertCircle,
     Baby,
@@ -19,7 +20,7 @@ import {
     Download,
 } from "lucide-react";
 import { useFormatter } from "next-intl";
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 interface ChildTrackerState {
     childName: string;
@@ -35,6 +36,22 @@ const EMPTY_TRACKER_STATE: ChildTrackerState = {
 
 const CHILD_NAME_MAX_LENGTH = 80;
 const VALID_DOSE_IDS = new Set(NATIONAL_IMMUNIZATION_SCHEDULE.map((item) => item.id));
+const TRACKER_STORAGE_KEY = "vaccine-hub-child-tracker-v1";
+
+type SyncContext =
+    | { status: "loading" }
+    | { status: "local" }
+    | { status: "cloud"; userId: string; profileId: string | null };
+
+interface CloudChildProfile {
+    id: string;
+    name: string;
+    date_of_birth: string;
+}
+
+interface CloudCompletedVaccination {
+    dose_id: string;
+}
 
 const TRACKER_COPY = {
     childTrackerTitle: "Child Vaccination Tracker",
@@ -97,6 +114,10 @@ export function ChildVaccinationTracker() {
     const dobInputId = useId();
     const todayDateInput = useMemo(() => getTodayDateInput(), []);
     const [tracker, setTracker] = useState<ChildTrackerState>(EMPTY_TRACKER_STATE);
+    const [syncContext, setSyncContext] = useState<SyncContext>({ status: "loading" });
+    const hasUserEditedRef = useRef(false);
+    const profileSyncSignatureRef = useRef<string | null>(null);
+    const cloudCompletedDoseIdsRef = useRef<Set<string>>(new Set());
 
     const dobValidation = validateChildDateOfBirth(tracker.dateOfBirth, todayDateInput);
     const schedule = useMemo(
@@ -112,13 +133,171 @@ export function ChildVaccinationTracker() {
     );
     const statusCounts = useMemo(() => getStatusCounts(schedule), [schedule]);
     const childDisplayName = tracker.childName.trim() || TRACKER_COPY.childDefaultName;
+    const cloudUserId = syncContext.status === "cloud" ? syncContext.userId : null;
+    const cloudProfileId = syncContext.status === "cloud" ? syncContext.profileId : null;
 
     const validationMessage =
         !dobValidation.isValid && dobValidation.reason !== "missing"
             ? getDobValidationMessage(dobValidation.reason)
             : null;
 
+    useEffect(() => {
+        let isActive = true;
+
+        const loadTrackerState = async () => {
+            try {
+                const {
+                    data: { session },
+                } = await supabase.auth.getSession();
+                const userId = session?.user?.id;
+
+                if (!isActive) return;
+
+                if (!userId) {
+                    if (!hasUserEditedRef.current) {
+                        setTracker(readLocalTrackerState());
+                    }
+                    setSyncContext({ status: "local" });
+                    return;
+                }
+
+                setSyncContext({ status: "cloud", userId, profileId: null });
+
+                const { data: profile, error: profileError } = await supabase
+                    .from("child_profiles")
+                    .select("id,name,date_of_birth")
+                    .eq("user_id", userId)
+                    .maybeSingle();
+
+                if (!isActive || profileError || !profile) return;
+
+                const typedProfile = profile as CloudChildProfile;
+                const { data: completedRows, error: completedError } = await supabase
+                    .from("child_completed_vaccinations")
+                    .select("dose_id")
+                    .eq("child_profile_id", typedProfile.id);
+
+                if (!isActive || completedError) return;
+
+                const completedDoseIds = normalizeCompletedDoseIds(
+                    ((completedRows ?? []) as CloudCompletedVaccination[]).map((row) => row.dose_id)
+                );
+
+                profileSyncSignatureRef.current = getProfileSyncSignature({
+                    childName: typedProfile.name,
+                    dateOfBirth: typedProfile.date_of_birth,
+                });
+                cloudCompletedDoseIdsRef.current = new Set(completedDoseIds);
+                if (!hasUserEditedRef.current) {
+                    setTracker({
+                        childName: typedProfile.name,
+                        dateOfBirth: typedProfile.date_of_birth,
+                        completedDoseIds,
+                    });
+                }
+                setSyncContext({ status: "cloud", userId, profileId: typedProfile.id });
+            } catch {
+                if (!isActive) return;
+
+                if (!hasUserEditedRef.current) {
+                    setTracker(readLocalTrackerState());
+                }
+                setSyncContext({ status: "local" });
+            }
+        };
+
+        loadTrackerState();
+
+        return () => {
+            isActive = false;
+        };
+    }, []);
+
+    useEffect(() => {
+        if (syncContext.status !== "local") return;
+
+        writeLocalTrackerState(tracker);
+    }, [syncContext.status, tracker]);
+
+    useEffect(() => {
+        if (!cloudUserId || !dobValidation.isValid) return;
+
+        const profileState = {
+            user_id: cloudUserId,
+            name: childDisplayName,
+            date_of_birth: tracker.dateOfBirth,
+        };
+        const signature = getProfileSyncSignature({
+            childName: profileState.name,
+            dateOfBirth: profileState.date_of_birth,
+        });
+
+        if (profileSyncSignatureRef.current === signature) return;
+
+        let isActive = true;
+
+        const syncProfile = async () => {
+            const { data, error } = await supabase
+                .from("child_profiles")
+                .upsert(profileState, { onConflict: "user_id" })
+                .select("id,name,date_of_birth")
+                .single();
+
+            if (!isActive || error || !data) return;
+
+            const profile = data as CloudChildProfile;
+            profileSyncSignatureRef.current = signature;
+            setSyncContext((current) =>
+                current.status === "cloud" ? { ...current, profileId: profile.id } : current
+            );
+        };
+
+        syncProfile();
+
+        return () => {
+            isActive = false;
+        };
+    }, [childDisplayName, cloudUserId, dobValidation.isValid, tracker.dateOfBirth]);
+
+    useEffect(() => {
+        if (!cloudProfileId) return;
+
+        const nextCompletedDoseIds = new Set(normalizeCompletedDoseIds(tracker.completedDoseIds));
+        const previousCompletedDoseIds = cloudCompletedDoseIdsRef.current;
+        const addedDoseIds = Array.from(nextCompletedDoseIds).filter(
+            (doseId) => !previousCompletedDoseIds.has(doseId)
+        );
+        const removedDoseIds = Array.from(previousCompletedDoseIds).filter(
+            (doseId) => !nextCompletedDoseIds.has(doseId)
+        );
+
+        if (!addedDoseIds.length && !removedDoseIds.length) return;
+
+        cloudCompletedDoseIdsRef.current = nextCompletedDoseIds;
+
+        const syncCompletedDoseIds = async () => {
+            await Promise.all([
+                ...addedDoseIds.map((doseId) =>
+                    supabase.from("child_completed_vaccinations").insert({
+                        child_profile_id: cloudProfileId,
+                        dose_id: doseId,
+                    })
+                ),
+                ...removedDoseIds.map((doseId) =>
+                    supabase
+                        .from("child_completed_vaccinations")
+                        .delete()
+                        .eq("child_profile_id", cloudProfileId)
+                        .eq("dose_id", doseId)
+                ),
+            ]);
+        };
+
+        syncCompletedDoseIds();
+    }, [cloudProfileId, tracker.completedDoseIds]);
+
     const handleNameChange = (childName: string) => {
+        hasUserEditedRef.current = true;
         setTracker((current) => ({
             ...current,
             childName: childName.slice(0, CHILD_NAME_MAX_LENGTH),
@@ -126,6 +305,7 @@ export function ChildVaccinationTracker() {
     };
 
     const handleDateOfBirthChange = (dateOfBirth: string) => {
+        hasUserEditedRef.current = true;
         setTracker((current) => ({
             ...current,
             dateOfBirth,
@@ -134,6 +314,7 @@ export function ChildVaccinationTracker() {
     };
 
     const toggleDose = (doseId: string) => {
+        hasUserEditedRef.current = true;
         setTracker((current) => {
             const completed = new Set(current.completedDoseIds);
 
@@ -329,6 +510,63 @@ export function ChildVaccinationTracker() {
             )}
         </section>
     );
+}
+
+function readLocalTrackerState(): ChildTrackerState {
+    if (typeof window === "undefined") return EMPTY_TRACKER_STATE;
+
+    try {
+        const stored = window.localStorage.getItem(TRACKER_STORAGE_KEY);
+
+        if (!stored) return EMPTY_TRACKER_STATE;
+
+        const parsed = JSON.parse(stored) as Partial<ChildTrackerState>;
+
+        return {
+            childName:
+                typeof parsed.childName === "string"
+                    ? parsed.childName.slice(0, CHILD_NAME_MAX_LENGTH)
+                    : "",
+            dateOfBirth: typeof parsed.dateOfBirth === "string" ? parsed.dateOfBirth : "",
+            completedDoseIds: Array.isArray(parsed.completedDoseIds)
+                ? normalizeCompletedDoseIds(parsed.completedDoseIds)
+                : [],
+        };
+    } catch {
+        return EMPTY_TRACKER_STATE;
+    }
+}
+
+function writeLocalTrackerState(state: ChildTrackerState) {
+    if (typeof window === "undefined") return;
+
+    const normalizedState = {
+        ...state,
+        completedDoseIds: normalizeCompletedDoseIds(state.completedDoseIds),
+    };
+
+    if (
+        !normalizedState.childName &&
+        !normalizedState.dateOfBirth &&
+        !normalizedState.completedDoseIds.length
+    ) {
+        window.localStorage.removeItem(TRACKER_STORAGE_KEY);
+        return;
+    }
+
+    window.localStorage.setItem(TRACKER_STORAGE_KEY, JSON.stringify(normalizedState));
+}
+
+function normalizeCompletedDoseIds(doseIds: unknown[]): string[] {
+    return Array.from(
+        new Set(
+            doseIds.filter((id): id is string => typeof id === "string" && VALID_DOSE_IDS.has(id))
+        )
+    );
+}
+
+function getProfileSyncSignature(state: Pick<ChildTrackerState, "childName" | "dateOfBirth">) {
+    return `${state.childName}\n${state.dateOfBirth}`;
 }
 
 function ScheduleTimelineItem({

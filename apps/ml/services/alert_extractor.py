@@ -119,3 +119,99 @@ def extract_alerts_from_text(text: str) -> List[Dict[str, Any]]:
     except Exception as e:
         logging.error(f"Error extracting alerts: {e}")
         return []
+
+def extract_alerts_from_pdf_images(pdf_bytes: bytes) -> List[Dict[str, Any]]:
+    """
+    Extracts structured alert information from scanned/image-based PDFs
+    by rendering pages to PNG images and analyzing them with Gemini-1.5-Flash.
+    """
+    if not LANGCHAIN_AVAILABLE:
+        logging.error("LangChain dependencies missing.")
+        return []
+
+    try:
+        api_key = os.getenv("GOOGLE_API_KEY")
+        if not api_key:
+            logging.warning("GOOGLE_API_KEY not set. Cannot extract alerts using Gemini.")
+            return []
+
+        # Use fitz (PyMuPDF) to render PDF pages
+        import fitz
+        import base64
+        from langchain_core.messages import HumanMessage
+
+        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+        if len(doc) == 0:
+            logging.warning("Empty PDF document.")
+            return []
+
+        # Use gemini-1.5-flash since it's highly optimized for multimodal tasks (and cost-efficient)
+        llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0, google_api_key=api_key)
+        structured_llm = llm.with_structured_output(AlertList)
+
+        all_alerts = []
+        seen_keys = set()
+
+        for page_num in range(len(doc)):
+            logging.info(f"Rendering and parsing PDF page {page_num + 1}/{len(doc)} using Gemini Multimodal...")
+            page = doc.load_page(page_num)
+            pix = page.get_pixmap(dpi=150) # Render at 150 DPI for good text legibility and reasonable file size
+            png_bytes = pix.tobytes("png")
+            b64_image = base64.b64encode(png_bytes).decode("utf-8")
+
+            # Prepare the multimodal prompt
+            prompt_text = (
+                "You are an expert at extracting structured information from pharmaceutical recall and alert notices.\n"
+                "Please analyze this image of a CDSCO drug recall page and extract all the recalled or NSQ (Not of Standard Quality) medicines.\n"
+                "Extract the brand name, batch number, manufacturer, alert type (e.g., NSQ, Spurious, Banned), state, district, and date (YYYY-MM-DD if possible).\n"
+                "Ensure that you are extremely precise with spelling, especially for drug brand names and batch numbers."
+            )
+
+            message = HumanMessage(
+                content=[
+                    {"type": "text", "text": prompt_text},
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:image/png;base64,{b64_image}"}
+                    }
+                ]
+            )
+
+            try:
+                result = structured_llm.invoke([message])
+                if result:
+                    alerts_to_add = []
+                    if hasattr(result, "alerts"):
+                        alerts_to_add = result.alerts
+                    elif isinstance(result, dict) and "alerts" in result:
+                        alerts_to_add = result["alerts"]
+
+                    for alert in alerts_to_add:
+                        if isinstance(alert, dict):
+                            brand = alert.get("reported_brand_name", "")
+                            batch = alert.get("batch_number", "")
+                            mfg = alert.get("manufacturer", "")
+                            alert_dict = alert
+                        else:
+                            brand = getattr(alert, "reported_brand_name", "")
+                            batch = getattr(alert, "batch_number", "")
+                            mfg = getattr(alert, "manufacturer", "")
+                            alert_dict = alert.dict() if hasattr(alert, "dict") else dict(alert)
+
+                        key = (
+                            str(brand).strip().lower(),
+                            str(batch).strip().lower(),
+                            str(mfg).strip().lower()
+                        )
+                        if key not in seen_keys:
+                            seen_keys.add(key)
+                            all_alerts.append(alert_dict)
+            except Exception as page_exc:
+                logging.error(f"Error extracting alerts from page {page_num + 1} with Gemini: {page_exc}")
+
+        return all_alerts
+
+    except Exception as e:
+        logging.error(f"Error in extract_alerts_from_pdf_images: {e}")
+        return []
+

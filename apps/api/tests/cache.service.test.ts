@@ -16,6 +16,8 @@ const mockRedis = {
     del: jest.fn(),
     incr: jest.fn(),
     connect: jest.fn(),
+    zIncrBy: jest.fn(),
+    zRangeWithScores: jest.fn(),
 };
 
 jest.mock("../src/db/client", () => ({
@@ -33,7 +35,9 @@ import {
     getCachedDrug,
     setCachedDrug,
     incrementHitCount,
+    incrementMissCount,
     invalidateDrugCache,
+    getCacheStats,
     TTL_TIERS,
     HIT_THRESHOLDS,
 } from "../src/services/cache.service";
@@ -111,14 +115,19 @@ describe("Redis Caching and Drug Lookup Services", () => {
     describe("getCachedDrug", () => {
         it("should return parsed drug data and increment hits count on cache hit", async () => {
             const mockMed = { id: "med-1", brand_name: "Crocin" };
-            mockRedis.get.mockResolvedValueOnce(JSON.stringify(mockMed));
-            mockRedis.incr.mockResolvedValueOnce(1);
+            mockRedis.get.mockResolvedValueOnce(JSON.stringify(mockMed)); // Cache lookup
+            mockRedis.get.mockResolvedValueOnce(null); // TTL tier check
+            mockRedis.incr.mockResolvedValue(1);
+            mockRedis.zIncrBy.mockResolvedValue(1);
 
             const result = await getCachedDrug("BATCH-1");
 
             expect(result).toEqual(mockMed);
             expect(mockRedis.get).toHaveBeenCalledWith("drug:batch:BATCH-1");
             expect(mockRedis.incr).toHaveBeenCalledWith("hits:drug:med-1");
+            expect(mockRedis.incr).toHaveBeenCalledWith("stats:hits");
+            expect(mockRedis.incr).toHaveBeenCalledWith("stats:tier:cold");
+            expect(mockRedis.zIncrBy).toHaveBeenCalledWith("stats:top_drugs", 1, "Crocin");
         });
 
         it("should return null on cache miss", async () => {
@@ -146,13 +155,15 @@ describe("Redis Caching and Drug Lookup Services", () => {
     });
 
     describe("incrementHitCount", () => {
-        it("should increment the drug hit count key", async () => {
+        it("should increment the drug hit count key and update sorted set", async () => {
             mockRedis.incr.mockResolvedValueOnce(42);
+            mockRedis.zIncrBy.mockResolvedValueOnce(42);
 
-            const hits = await incrementHitCount("med-1");
+            const hits = await incrementHitCount("med-1", "Crocin");
 
             expect(hits).toBe(42);
             expect(mockRedis.incr).toHaveBeenCalledWith("hits:drug:med-1");
+            expect(mockRedis.zIncrBy).toHaveBeenCalledWith("stats:top_drugs", 1, "Crocin");
         });
     });
 
@@ -192,17 +203,70 @@ describe("Redis Caching and Drug Lookup Services", () => {
             mockRedis.get.mockResolvedValueOnce("0");
 
             mockSupabase.maybeSingle.mockResolvedValueOnce({ data: mockMed, error: null });
+            mockRedis.incr.mockResolvedValue(1);
+            mockRedis.zIncrBy.mockResolvedValue(1);
 
             const result = await lookupDrugByBatch("BATCH-1");
 
             expect(result).toEqual(mockMed);
             expect(mockSupabase.from).toHaveBeenCalledWith("medicines");
+            expect(mockRedis.incr).toHaveBeenCalledWith("stats:misses");
             expect(mockRedis.incr).toHaveBeenCalledWith("hits:drug:med-1");
+            expect(mockRedis.zIncrBy).toHaveBeenCalledWith("stats:top_drugs", 1, "Crocin");
             expect(mockRedis.set).toHaveBeenCalledWith(
                 "drug:batch:BATCH-1",
                 JSON.stringify(mockMed),
                 { EX: TTL_TIERS.COLD }
             );
+        });
+    });
+
+    describe("incrementMissCount", () => {
+        it("should increment the global miss counter", async () => {
+            mockRedis.incr.mockResolvedValueOnce(5);
+
+            const misses = await incrementMissCount();
+
+            expect(misses).toBe(5);
+            expect(mockRedis.incr).toHaveBeenCalledWith("stats:misses");
+        });
+    });
+
+    describe("getCacheStats", () => {
+        it("should return correct cache statistics from Redis", async () => {
+            mockRedis.get
+                .mockResolvedValueOnce("80") // stats:hits
+                .mockResolvedValueOnce("20") // stats:misses
+                .mockResolvedValueOnce("40") // stats:tier:hot
+                .mockResolvedValueOnce("30") // stats:tier:warm
+                .mockResolvedValueOnce("10"); // stats:tier:cold
+
+            mockRedis.zRangeWithScores.mockResolvedValueOnce([
+                { value: "Paracetamol", score: 50 },
+                { value: "Crocin", score: 30 },
+            ]);
+
+            const stats = await getCacheStats();
+
+            expect(stats).toEqual({
+                hits: 80,
+                misses: 20,
+                hitRate: 80,
+                tierBreakdown: { hot: 40, warm: 30, cold: 10 },
+                topDrugs: [
+                    { name: "Paracetamol", count: 50 },
+                    { name: "Crocin", count: 30 },
+                ],
+            });
+
+            expect(mockRedis.get).toHaveBeenCalledWith("stats:hits");
+            expect(mockRedis.get).toHaveBeenCalledWith("stats:misses");
+            expect(mockRedis.get).toHaveBeenCalledWith("stats:tier:hot");
+            expect(mockRedis.get).toHaveBeenCalledWith("stats:tier:warm");
+            expect(mockRedis.get).toHaveBeenCalledWith("stats:tier:cold");
+            expect(mockRedis.zRangeWithScores).toHaveBeenCalledWith("stats:top_drugs", 0, 9, {
+                REV: true,
+            });
         });
     });
 });

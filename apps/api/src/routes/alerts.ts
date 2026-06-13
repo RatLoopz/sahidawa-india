@@ -107,10 +107,14 @@ alertsRouter.post("/ingest", requireApiKey, async (req: ApiKeyRequest, res: Resp
     const validatedAlerts = parseResult.data;
 
     try {
-        // 2. Insert alerts into drug_alerts table
+        // 2. Upsert alerts — ON CONFLICT DO NOTHING prevents duplicate rows
+        // when concurrent scraper instances race past the pre-check in deduplicate_alerts().
         const { data: insertedAlerts, error: insertError } = await supabase
             .from("drug_alerts")
-            .insert(validatedAlerts)
+            .upsert(validatedAlerts, {
+                onConflict: "batch_number,manufacturer,reported_brand_name",
+                ignoreDuplicates: true,
+            })
             .select();
 
         if (insertError) {

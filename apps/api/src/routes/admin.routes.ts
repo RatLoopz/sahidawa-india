@@ -7,7 +7,7 @@ import {
     createMedicine,
     getAuditLogs,
 } from "../controllers/admin.controller";
-import { invalidateDrugCache, KEY_PREFIXES } from "../services/cache.service";
+import { invalidateDrugCache, getCacheStats, KEY_PREFIXES } from "../services/cache.service";
 import { redisClient } from "../utils/redis";
 import { getPushNotificationAnalytics } from "./analytics";
 
@@ -63,6 +63,20 @@ router.post(
             }
 
             res.status(200).json({ success: true, message: "Cache invalidated successfully" });
+        } catch (err) {
+            res.status(500).json({ success: false, error: (err as Error).message });
+        }
+    }
+);
+
+router.get(
+    "/cache/stats",
+    requireAuth,
+    requireRole("admin", "moderator"),
+    async (req: Request, res: Response) => {
+        try {
+            const stats = await getCacheStats();
+            res.status(200).json({ success: true, data: stats });
         } catch (err) {
             res.status(500).json({ success: false, error: (err as Error).message });
         }

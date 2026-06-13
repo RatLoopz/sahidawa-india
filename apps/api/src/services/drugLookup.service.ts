@@ -1,5 +1,10 @@
 import { supabase } from "../db/client";
-import { getCachedDrug, setCachedDrug, incrementHitCount } from "./cache.service";
+import {
+    getCachedDrug,
+    setCachedDrug,
+    incrementHitCount,
+    incrementMissCount,
+} from "./cache.service";
 import logger from "../utils/logger";
 
 /**
@@ -20,6 +25,7 @@ export async function lookupDrugByBatch(batchNumber: string): Promise<any | null
 
     // 2. Cache miss, query PostgreSQL database
     logger.info(`Cache MISS for drug batch: ${batchNumber}. Querying database...`);
+    await incrementMissCount();
 
     try {
         const { data, error } = await supabase
@@ -41,8 +47,8 @@ export async function lookupDrugByBatch(batchNumber: string): Promise<any | null
         }
 
         if (data) {
-            // Increment the hit count for the drug ID so that its TTL tier increases
-            await incrementHitCount(data.id);
+            // Increment the hit count for the drug ID so that its TTL tier increases and update the top drugs sorted set
+            await incrementHitCount(data.id, data.brand_name || data.generic_name);
             // Save the drug to cache with a tiered TTL determined dynamically
             await setCachedDrug(batchNumber, data);
         }

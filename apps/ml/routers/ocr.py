@@ -1,4 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
+from starlette.concurrency import run_in_threadpool
 from PIL import Image
 import pytesseract
 import io
@@ -29,10 +30,14 @@ async def extract_text(file: UploadFile = File(...)):
 
         # Perform OCR to extract text
         # We can also use lang='eng+hin' if we want to support Hindi
-        text = pytesseract.image_to_string(image)
+        text = await run_in_threadpool(pytesseract.image_to_string, image)
         
         # Extract detailed data to calculate overall confidence
-        data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
+        data = await run_in_threadpool(
+            pytesseract.image_to_data, 
+            image, 
+            output_type=pytesseract.Output.DICT
+        )
         
         # Tesseract returns confidence as integers from 0 to 100. -1 indicates no text.
         valid_confidences = [

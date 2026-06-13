@@ -146,7 +146,17 @@ export async function getCachedDrug(batchNumber: string): Promise<any | null> {
         const cached = await redisClient.get(cacheKey);
         if (cached) {
             const med = JSON.parse(cached);
-            await incrementHitCount(med.id);
+
+            // Increment drug-specific hit count and top drugs sorted set
+            await incrementHitCount(med.id, med.brand_name || med.generic_name);
+
+            // Increment overall cache hit counter
+            await redisClient.incr("stats:hits");
+
+            // Increment cache hit tier counter
+            const tier = await getTierForDrug(med.id);
+            await redisClient.incr(`stats:tier:${tier}`);
+
             return med;
         }
     } catch (err) {
@@ -174,14 +184,33 @@ export async function setCachedDrug(batchNumber: string, medicine: any): Promise
 /**
  * Increments the hit counter for a drug in Redis.
  */
-export async function incrementHitCount(drugId: string): Promise<number> {
+export async function incrementHitCount(drugId: string, drugName?: string): Promise<number> {
     if (!redisClient.isOpen) return 0;
     try {
         const hitKey = `${KEY_PREFIXES.DRUG_HITS}${drugId}`;
         const count = await redisClient.incr(hitKey);
+
+        // Maintain a Redis Sorted Set for the top drugs
+        const member = drugName || drugId;
+        await redisClient.zIncrBy("stats:top_drugs", 1, member);
+
         return count;
     } catch (err) {
         logger.error(`Error incrementing hit count for drug ${drugId}`, err);
+        return 0;
+    }
+}
+
+/**
+ * Increments the miss counter for cache misses in Redis.
+ */
+export async function incrementMissCount(): Promise<number> {
+    if (!redisClient.isOpen) return 0;
+    try {
+        const count = await redisClient.incr("stats:misses");
+        return count;
+    } catch (err) {
+        logger.error("Error incrementing miss count", err);
         return 0;
     }
 }
@@ -218,5 +247,63 @@ export async function invalidateDrugCache(drugIds: string[]): Promise<void> {
         }
     } catch (err) {
         logger.error("Error invalidating cache", err);
+    }
+}
+
+/**
+ * Returns cache performance stats: hit/miss counts, tier breakdown, top drugs.
+ */
+export async function getCacheStats(): Promise<{
+    hits: number;
+    misses: number;
+    hitRate: number;
+    tierBreakdown: { hot: number; warm: number; cold: number };
+    topDrugs: { name: string; count: number }[];
+}> {
+    if (!redisClient.isOpen) {
+        return {
+            hits: 0,
+            misses: 0,
+            hitRate: 0,
+            tierBreakdown: { hot: 0, warm: 0, cold: 0 },
+            topDrugs: [],
+        };
+    }
+    try {
+        const hits = parseInt((await redisClient.get("stats:hits")) ?? "0", 10);
+        const misses = parseInt((await redisClient.get("stats:misses")) ?? "0", 10);
+        const total = hits + misses;
+        const hitRate = total > 0 ? Math.round((hits / total) * 100) : 0;
+
+        const hotHits = parseInt((await redisClient.get("stats:tier:hot")) ?? "0", 10);
+        const warmHits = parseInt((await redisClient.get("stats:tier:warm")) ?? "0", 10);
+        const coldHits = parseInt((await redisClient.get("stats:tier:cold")) ?? "0", 10);
+
+        // Fetch top 10 drugs from the sorted set
+        const rawTopDrugs = await redisClient.zRangeWithScores("stats:top_drugs", 0, 9, {
+            REV: true,
+        });
+
+        const topDrugs = rawTopDrugs.map((item) => ({
+            name: item.value,
+            count: item.score,
+        }));
+
+        return {
+            hits,
+            misses,
+            hitRate,
+            tierBreakdown: { hot: hotHits, warm: warmHits, cold: coldHits },
+            topDrugs,
+        };
+    } catch (err) {
+        logger.error("Error fetching cache stats", err);
+        return {
+            hits: 0,
+            misses: 0,
+            hitRate: 0,
+            tierBreakdown: { hot: 0, warm: 0, cold: 0 },
+            topDrugs: [],
+        };
     }
 }

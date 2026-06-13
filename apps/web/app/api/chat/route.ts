@@ -173,38 +173,83 @@ export async function POST(req: Request) {
 
         if (mode === "voice-triage") {
             const deterministicEmergency = detectEmergencyKeywords(latestMessageText);
-            const response = await ai.models.generateContent({
-                model: "gemini-2.5-flash",
-                contents: buildVoiceTriagePrompt(
-                    latestMessageText,
-                    typeof responseLanguage === "string" && responseLanguage.trim().length > 0
-                        ? responseLanguage.trim()
-                        : "English"
-                ),
-                config: {
-                    systemInstruction:
-                        "You are the SahiDawa voice triage assistant for India. Help users understand possible next steps based on symptoms, but never claim certainty or replace medical professionals. Be calm, concise, practical, and safety-first.",
-                    responseMimeType: "application/json",
-                    responseSchema: VOICE_TRIAGE_SCHEMA,
-                },
-            });
+            
+            let parsedResponse;
+            let emergencyFromML = false;
+            
+            try {
+                const mlServiceUrl = process.env.ML_SERVICE_URL?.trim() || process.env.NEXT_PUBLIC_ML_SERVICE_URL?.trim() || "http://localhost:8000";
+                const formattedMessages = (messages || []).map((m: any) => ({
+                    role: m.role === "assistant" || m.role === "model" ? "assistant" : "user",
+                    content: m.text || m.content || ""
+                }));
+                
+                // If there's no history, initialize with the current message
+                if (formattedMessages.length === 0) {
+                    formattedMessages.push({ role: "user", content: latestMessageText });
+                }
 
-            const latency_ms = Date.now() - startTime;
-            structuredLog({
-                log_level: "info",
-                route: ROUTE,
-                latency_ms,
-                metrics: {
-                    input_tokens: response.usageMetadata?.promptTokenCount,
-                    output_tokens: response.usageMetadata?.candidatesTokenCount,
-                },
-                meta: { mode: "voice-triage", responseLanguage },
-            });
+                const mlResponse = await fetch(`${mlServiceUrl}/triage/chat`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        messages: formattedMessages,
+                        locale: locale || "en"
+                    })
+                });
 
-            const parsedResponse = parseVoiceTriageResponse(response.text ?? "");
+                if (!mlResponse.ok) {
+                    throw new Error(`ML service returned status ${mlResponse.status}`);
+                }
+
+                const mlData = await mlResponse.json();
+                parsedResponse = {
+                    text: mlData.response,
+                    summary: mlData.summary || mlData.response,
+                    recommendations: mlData.recommendations || [],
+                    disclaimer: mlData.disclaimer || DEFAULT_DISCLAIMER,
+                    emergency: Boolean(mlData.emergency)
+                };
+                emergencyFromML = Boolean(mlData.emergency);
+                
+                structuredLog({
+                    log_level: "info",
+                    route: ROUTE,
+                    latency_ms: Date.now() - startTime,
+                    meta: { mode: "voice-triage", source: "langgraph-ml-service", responseLanguage }
+                });
+
+            } catch (mlError: any) {
+                structuredLog({
+                    log_level: "warn",
+                    route: ROUTE,
+                    meta: { reason: "ml_service_triage_failed", error: mlError.message, fallback: "direct_gemini" }
+                });
+
+                // Fallback direct Gemini call
+                const response = await ai.models.generateContent({
+                    model: "gemini-2.5-flash",
+                    contents: buildVoiceTriagePrompt(
+                        latestMessageText,
+                        typeof responseLanguage === "string" && responseLanguage.trim().length > 0
+                            ? responseLanguage.trim()
+                            : "English"
+                    ),
+                    config: {
+                        systemInstruction:
+                            "You are the SahiDawa voice triage assistant for India. Help users understand possible next steps based on symptoms, but never claim certainty or replace medical professionals. Be calm, concise, practical, and safety-first.",
+                        responseMimeType: "application/json",
+                        responseSchema: VOICE_TRIAGE_SCHEMA,
+                    },
+                });
+
+                parsedResponse = parseVoiceTriageResponse(response.text ?? "");
+                emergencyFromML = parsedResponse.emergency;
+            }
+
             return NextResponse.json({
                 ...parsedResponse,
-                emergency: parsedResponse.emergency || deterministicEmergency.isEmergency,
+                emergency: emergencyFromML || deterministicEmergency.isEmergency,
             });
         }
 

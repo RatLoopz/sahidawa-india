@@ -145,6 +145,13 @@ async def verify_batch(request: BatchVerifyRequest):
         == request.batch_number.upper()
     ]
 
+    # Match manufacturer if provided (case-insensitive)
+    if request.manufacturer:
+        result = result[
+            result["manufacturer"].astype(str).str.upper()
+            == request.manufacturer.upper()
+        ]
+
     if result.empty:
         return BatchVerifyResponse(status="not_found")
 

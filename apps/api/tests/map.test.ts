@@ -60,7 +60,9 @@ describe("GET /api/map/nearby", () => {
             },
         ];
 
-        rpcMock.mockResolvedValueOnce({ data: rpcPharmacies, error: null });
+        rpcMock
+            .mockResolvedValueOnce({ data: rpcPharmacies, error: null })
+            .mockResolvedValueOnce({ data: [], error: null });
 
         const response = await request(app).get(
             "/api/map/nearby?lat=18.5204&lng=73.8567&radius_km=5"
@@ -87,8 +89,13 @@ describe("GET /api/map/nearby", () => {
             ],
             asha_workers: [],
         });
-        expect(rpcMock).toHaveBeenCalledTimes(1);
+        expect(rpcMock).toHaveBeenCalledTimes(2);
         expect(rpcMock).toHaveBeenCalledWith("get_nearest_pharmacies", {
+            query_lat: 18.5204,
+            query_lng: 73.8567,
+            search_radius_km: 5,
+        });
+        expect(rpcMock).toHaveBeenCalledWith("get_nearest_asha_workers", {
             query_lat: 18.5204,
             query_lng: 73.8567,
             search_radius_km: 5,
@@ -96,13 +103,20 @@ describe("GET /api/map/nearby", () => {
     });
 
     it("uses a default 10 km radius when radius_km is omitted", async () => {
-        rpcMock.mockResolvedValue({ data: [], error: null });
+        rpcMock
+            .mockResolvedValueOnce({ data: [], error: null })
+            .mockResolvedValueOnce({ data: [], error: null });
 
         const response = await request(app).get("/api/map/nearby?lat=18.5204&lng=73.8567");
 
         expect(response.status).toBe(200);
-        expect(rpcMock).toHaveBeenCalledTimes(1);
+        expect(rpcMock).toHaveBeenCalledTimes(2);
         expect(rpcMock).toHaveBeenCalledWith("get_nearest_pharmacies", {
+            query_lat: 18.5204,
+            query_lng: 73.8567,
+            search_radius_km: 10,
+        });
+        expect(rpcMock).toHaveBeenCalledWith("get_nearest_asha_workers", {
             query_lat: 18.5204,
             query_lng: 73.8567,
             search_radius_km: 10,
