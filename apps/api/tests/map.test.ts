@@ -123,6 +123,20 @@ describe("GET /api/map/nearby", () => {
         });
     });
 
+    it.each([
+        ["latitude exceeds 90", "/api/map/nearby?lat=91&lng=73.85"],
+        ["latitude below -90", "/api/map/nearby?lat=-91&lng=73.85"],
+        ["longitude exceeds 180", "/api/map/nearby?lat=18.52&lng=181"],
+        ["longitude below -180", "/api/map/nearby?lat=18.52&lng=-181"],
+        ["both out of range", "/api/map/nearby?lat=999&lng=999"],
+    ])("returns 400 when %s", async (_desc, path) => {
+        const response = await request(app).get(path);
+
+        expect(response.status).toBe(400);
+        expect(response.body.error).toMatch(/must be between/);
+        expect(rpcMock).not.toHaveBeenCalled();
+    });
+
     it("returns 500 when a Supabase RPC reports an error", async () => {
         const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => undefined);
 

@@ -60,10 +60,19 @@ router.get("/nearby", mapLimiter, async (req: Request, res: Response) => {
         return res.status(400).json({ error: "lat and lng are required query params" });
     }
 
-    // Explicit bounds checking for lat and lng
-    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-        return res.status(400).json({
-            error: "Latitude must be between -90 and 90, and longitude between -180 and 180.",
+    if (lat < -90 || lat > 90) {
+        return res.status(400).json({ error: "Latitude must be between -90 and 90" });
+    }
+
+    if (lng < -180 || lng > 180) {
+        return res.status(400).json({ error: "Longitude must be between -180 and 180" });
+    }
+
+    try {
+        const pharmaciesRes = await supabase.rpc("get_nearest_pharmacies", {
+            query_lat: lat,
+            query_lng: lng,
+            search_radius_km: radius_km,
         });
     }
 
