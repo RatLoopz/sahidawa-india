@@ -292,6 +292,66 @@
     .animate-in.slide-in-from-top-2 {
         animation: slide-in-from-top-2 0.3s ease-out;
     }
+
+    /* ── Scan Medicine Banner: Entry animation ── */
+    @keyframes scan-banner-enter {
+        0% {
+            opacity: 0;
+            transform: translateY(20px) scale(0.98);
+        }
+        60% {
+            opacity: 1;
+            transform: translateY(-3px) scale(1.004);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    .animate-scan-banner-enter {
+        animation: scan-banner-enter 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    /* ── Scan Medicine Banner: Shine glide on hover ── */
+    @keyframes shine-glide {
+        0% {
+            left: -80%;
+            opacity: 0;
+        }
+        10% {
+            opacity: 1;
+        }
+        85% {
+            opacity: 0.9;
+        }
+        100% {
+            left: 130%;
+            opacity: 0;
+        }
+    }
+    .shine-glide-track::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -80%;
+        width: 55%;
+        height: 100%;
+        background: linear-gradient(
+            105deg,
+            transparent 20%,
+            rgba(255, 255, 255, 0.18) 45%,
+            rgba(255, 255, 255, 0.38) 50%,
+            rgba(255, 255, 255, 0.18) 55%,
+            transparent 80%
+        );
+        transform: skewX(-15deg);
+        pointer-events: none;
+        opacity: 0;
+        transition: none;
+    }
+    .shine-glide-track:hover::after {
+        animation: shine-glide 0.75s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
 }
 
 @theme {

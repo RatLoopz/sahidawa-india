@@ -165,36 +165,66 @@ export default function SahiDawaHome() {
 
                 <div className="container mx-auto max-w-6xl px-4">
                     {/* ── Primary Action: Scan Medicine ── */}
-                    <section className="mt-4 mb-10">
+                    <section className="animate-scan-banner-enter mt-4 mb-10">
                         <button
                             onClick={() => handleNavigation("scan")}
-                            className="group relative flex w-full transform-gpu cursor-pointer flex-col justify-center overflow-hidden rounded-3xl border border-emerald-400/30 p-8 text-left text-white shadow-xl shadow-emerald-500/10 transition-all duration-300 select-none hover:scale-[1.01] hover:shadow-emerald-500/20 active:scale-[0.99] md:p-10"
+                            className="shine-glide-track group relative flex w-full cursor-pointer overflow-hidden rounded-2xl border border-white/10 text-left text-white shadow-2xl shadow-emerald-900/30 transition-all duration-500 select-none hover:scale-[1.012] hover:shadow-emerald-700/40 focus-visible:ring-4 focus-visible:ring-emerald-400/50 focus-visible:outline-none active:scale-[0.988]"
+                            style={{
+                                background:
+                                    "linear-gradient(135deg, #065f46 0%, #059669 40%, #10b981 75%, #34d399 100%)",
+                            }}
                             aria-label="Scan medicine"
                         >
-                            <div className="absolute inset-0 z-0 bg-linear-to-tr from-emerald-700 via-emerald-600 to-emerald-500"></div>
-                            <div className="absolute -top-10 -right-10 h-64 w-64 rounded-full bg-white/10 blur-2xl"></div>
-                            <div className="relative z-10 flex flex-col justify-between gap-6 md:flex-row md:items-center">
-                                <div className="flex items-center gap-6 md:gap-8">
-                                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-white/15 shadow-sm transition-all duration-300 group-hover:scale-105 group-hover:rotate-2 md:h-24 md:w-24">
-                                        <Camera
-                                            className="h-10 w-10 text-white drop-shadow-md md:h-12 md:w-12"
-                                            strokeWidth={2}
-                                        />
-                                    </div>
-                                    <div>
-                                        <span className="block text-3xl font-bold tracking-wide drop-shadow-sm md:text-4xl">
-                                            {tHome("scan_button")}
-                                        </span>
-                                        <span className="mt-2 block text-sm font-medium text-emerald-100 opacity-90 md:text-lg">
-                                            {tHome("scan_subtitle")}
-                                        </span>
-                                    </div>
+                            {/* Deep inner top highlight */}
+                            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/25" />
+
+                            {/* Ambient glow blob */}
+                            <div className="pointer-events-none absolute -top-12 -right-12 h-52 w-52 rounded-full bg-emerald-300/20 blur-3xl transition-all duration-700 group-hover:scale-125 group-hover:bg-emerald-200/25" />
+                            <div className="pointer-events-none absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-teal-400/10 blur-2xl" />
+
+                            {/* Content */}
+                            <div className="relative z-10 flex w-full items-center gap-5 px-6 py-5 md:px-8 md:py-6">
+                                {/* Icon container */}
+                                <div className="relative flex h-[68px] w-[68px] shrink-0 items-center justify-center rounded-xl bg-white/10 shadow-inner ring-1 ring-white/15 transition-all duration-500 group-hover:scale-110 group-hover:rotate-2 group-hover:bg-white/20 group-hover:shadow-[0_0_24px_rgba(255,255,255,0.2)] md:h-20 md:w-20">
+                                    <Camera
+                                        className="h-9 w-9 text-white drop-shadow-md transition-transform duration-500 group-hover:scale-110 md:h-10 md:w-10"
+                                        strokeWidth={1.8}
+                                    />
+                                    {/* Live indicator */}
+                                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-200 opacity-70" />
+                                        <span className="relative inline-flex h-3 w-3 rounded-full bg-white/90" />
+                                    </span>
                                 </div>
+
+                                {/* Text */}
+                                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                                    {/* Pill label */}
+                                    <span className="mb-1 inline-flex w-fit items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-0.5 text-[10px] font-bold tracking-widest text-emerald-100 uppercase ring-1 ring-white/20">
+                                        <span className="relative flex h-1.5 w-1.5">
+                                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-200 opacity-70" />
+                                            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
+                                        </span>
+                                        Tap to Scan
+                                    </span>
+
+                                    <span className="block text-2xl font-black tracking-tight drop-shadow-sm md:text-3xl">
+                                        {tHome("scan_button")}
+                                    </span>
+                                    <span className="block text-sm font-medium text-emerald-100/85 md:text-base">
+                                        {tHome("scan_subtitle")}
+                                    </span>
+                                </div>
+
+                                {/* Chevron */}
                                 <ChevronRight
-                                    size={36}
-                                    className="hidden shrink-0 text-emerald-100 opacity-70 transition-all group-hover:translate-x-2 group-hover:opacity-100 md:block"
+                                    size={28}
+                                    className="shrink-0 text-white/50 transition-all duration-300 group-hover:translate-x-1.5 group-hover:text-white/90"
                                 />
                             </div>
+
+                            {/* Bottom inner shadow for depth */}
+                            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-black/10" />
                         </button>
                     </section>
 
