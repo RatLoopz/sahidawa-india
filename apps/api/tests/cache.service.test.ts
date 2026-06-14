@@ -60,7 +60,8 @@ describe("Redis Caching and Drug Lookup Services", () => {
                 },
             ];
 
-            mockSupabase.or.mockResolvedValueOnce({ data: mockMedicines, error: null });
+            mockSupabase.in.mockResolvedValueOnce({ data: mockMedicines, error: null });
+            mockSupabase.in.mockResolvedValueOnce({ data: [], error: null });
             mockRedis.get.mockResolvedValue(null);
 
             await warmCache();
