@@ -178,35 +178,49 @@ export default function SahiDawaHome() {
 
                 <div className="container mx-auto max-w-6xl px-4">
                     {/* ── Primary Action: Scan Medicine ── */}
-                    <section className="mt-4 mb-10">
+                    <section className="animate-in slide-in-from-bottom-8 fade-in fill-mode-both mt-4 mb-10 duration-700">
                         <button
                             onClick={() => handleNavigation("scan")}
-                            className="group relative flex w-full transform-gpu cursor-pointer flex-col justify-center overflow-hidden rounded-3xl border border-emerald-400/30 p-8 text-left text-white shadow-xl shadow-emerald-500/10 transition-all duration-300 select-none hover:scale-[1.01] hover:shadow-emerald-500/20 active:scale-[0.99] md:p-10"
+                            className="group relative flex w-full transform-gpu cursor-pointer flex-col justify-center overflow-hidden rounded-[2.5rem] border border-white/10 p-8 text-left text-white shadow-2xl shadow-emerald-900/20 transition-all duration-500 hover:-translate-y-2 hover:shadow-emerald-500/30 active:scale-[0.98] md:p-10"
                             aria-label="Scan medicine"
                         >
-                            <div className="absolute inset-0 z-0 bg-linear-to-tr from-emerald-700 via-emerald-600 to-emerald-500"></div>
-                            <div className="absolute -top-10 -right-10 h-64 w-64 rounded-full bg-white/10 blur-2xl"></div>
-                            <div className="relative z-10 flex flex-col justify-between gap-6 md:flex-row md:items-center">
+                            {/* Rich Depth Background */}
+                            <div className="absolute inset-0 z-0 bg-linear-to-br from-emerald-600 via-emerald-500 to-teal-700"></div>
+
+                            {/* Inner Glow / Vignette */}
+                            <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent"></div>
+                            <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-black/10 via-transparent to-transparent"></div>
+
+                            {/* Floating decorative blobs */}
+                            <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-teal-400/30 mix-blend-overlay blur-3xl transition-transform duration-700 group-hover:translate-x-10 group-hover:scale-110"></div>
+                            <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-emerald-300/20 mix-blend-overlay blur-3xl transition-transform duration-700 group-hover:-translate-x-10 group-hover:scale-110"></div>
+
+                            {/* Premium reflective shine effect */}
+                            <div className="absolute inset-0 z-10 -translate-x-[150%] skew-x-[-30deg] bg-linear-to-r from-transparent via-white/30 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%]"></div>
+
+                            <div className="relative z-20 flex flex-col justify-between gap-6 md:flex-row md:items-center">
                                 <div className="flex items-center gap-6 md:gap-8">
-                                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-white/15 shadow-sm transition-all duration-300 group-hover:scale-105 group-hover:rotate-2 md:h-24 md:w-24">
+                                    <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/30 bg-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.1)] backdrop-blur-md transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 group-hover:bg-white/30 md:h-24 md:w-24">
+                                        <div className="absolute inset-0 bg-linear-to-tr from-white/0 to-white/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
                                         <Camera
-                                            className="h-10 w-10 text-white drop-shadow-md md:h-12 md:w-12"
+                                            className="h-10 w-10 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)] transition-transform duration-500 group-hover:scale-110 md:h-12 md:w-12"
                                             strokeWidth={2}
                                         />
                                     </div>
                                     <div>
-                                        <span className="block text-3xl font-bold tracking-wide drop-shadow-sm md:text-4xl">
+                                        <span className="block bg-linear-to-r from-white to-emerald-100 bg-clip-text text-3xl font-extrabold tracking-tight text-transparent drop-shadow-md md:text-5xl">
                                             {tHome("scan_button")}
                                         </span>
-                                        <span className="mt-2 block text-sm font-medium text-emerald-100 opacity-90 md:text-lg">
+                                        <span className="mt-2 block text-sm font-medium text-emerald-50 opacity-90 drop-shadow-sm md:text-lg">
                                             {tHome("scan_subtitle")}
                                         </span>
                                     </div>
                                 </div>
-                                <ChevronRight
-                                    size={36}
-                                    className="hidden shrink-0 text-emerald-100 opacity-70 transition-all group-hover:translate-x-2 group-hover:opacity-100 md:block"
-                                />
+
+                                {/* Refined Arrow */}
+                                <div className="hidden h-14 w-14 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 backdrop-blur-sm transition-all duration-500 group-hover:translate-x-2 group-hover:bg-white/20 md:flex">
+                                    <ChevronRight size={28} className="text-white drop-shadow-md" />
+                                </div>
                             </div>
                         </button>
                     </section>
