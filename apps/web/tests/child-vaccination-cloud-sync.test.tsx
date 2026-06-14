@@ -16,6 +16,7 @@ jest.mock("@/lib/supabase", () => ({
 }));
 
 jest.mock("next-intl", () => ({
+    useTranslations: () => (key: string) => key,
     useFormatter: () => ({
         dateTime: (date: Date) => {
             const d = new Date(date);
@@ -128,8 +129,8 @@ describe("ChildVaccinationTracker cloud sync", () => {
         render(<ChildVaccinationTracker />);
 
         await waitFor(() => {
-            expect(screen.getByLabelText("Child name")).toHaveValue("Aarav");
-            expect(screen.getByLabelText("Date of birth")).toHaveValue("2024-01-01");
+            expect(screen.getByLabelText("childNameLabel")).toHaveValue("Aarav");
+            expect(screen.getByLabelText("childDobLabel")).toHaveValue("2024-01-01");
         });
 
         expect(screen.getByRole("button", { name: /mark BCG due/i })).toBeInTheDocument();
@@ -143,10 +144,10 @@ describe("ChildVaccinationTracker cloud sync", () => {
 
         render(<ChildVaccinationTracker />);
 
-        fireEvent.change(screen.getByLabelText("Child name"), {
+        fireEvent.change(screen.getByLabelText("childNameLabel"), {
             target: { value: "Maya" },
         });
-        fireEvent.change(screen.getByLabelText("Date of birth"), {
+        fireEvent.change(screen.getByLabelText("childDobLabel"), {
             target: { value: "2024-01-01" },
         });
 
@@ -173,10 +174,10 @@ describe("ChildVaccinationTracker cloud sync", () => {
 
         render(<ChildVaccinationTracker />);
 
-        fireEvent.change(screen.getByLabelText("Child name"), {
+        fireEvent.change(screen.getByLabelText("childNameLabel"), {
             target: { value: "Maya" },
         });
-        fireEvent.change(screen.getByLabelText("Date of birth"), {
+        fireEvent.change(screen.getByLabelText("childDobLabel"), {
             target: { value: "2024-01-01" },
         });
 

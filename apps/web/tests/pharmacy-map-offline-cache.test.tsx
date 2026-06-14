@@ -16,6 +16,10 @@ jest.mock("../app/[locale]/components/PageHeader", () => ({
     ),
 }));
 
+jest.mock("next-intl", () => ({
+    useTranslations: () => (key: string) => key,
+}));
+
 jest.mock("../app/[locale]/map/PharmacyMap", () => ({
     __esModule: true,
     default: ({ pharmacies }: { pharmacies: Pharmacy[] }) => (

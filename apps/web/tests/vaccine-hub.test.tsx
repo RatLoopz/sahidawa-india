@@ -60,17 +60,15 @@ describe("VaccineHubPage Integration Tests", () => {
         render(<VaccineHubPage />);
 
         expect(screen.getByText("title")).toBeInTheDocument();
-        expect(
-            screen.getByRole("heading", { name: "Child Vaccination Tracker" })
-        ).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "childTrackerTitle" })).toBeInTheDocument();
         expect(screen.getByText("noVaccineSelected")).toBeInTheDocument();
     });
 
     it("generates a personalized child schedule and toggles completed doses", async () => {
         render(<VaccineHubPage />);
 
-        await user.type(screen.getByLabelText("Child name"), "Aarav");
-        await user.type(screen.getByLabelText("Date of birth"), "2024-01-01");
+        await user.type(screen.getByLabelText("childNameLabel"), "Aarav");
+        await user.type(screen.getByLabelText("childDobLabel"), "2024-01-01");
 
         await waitFor(() => {
             expect(screen.getByText("Aarav")).toBeInTheDocument();
@@ -86,8 +84,8 @@ describe("VaccineHubPage Integration Tests", () => {
     it("persists child tracker state to localStorage when signed out", async () => {
         render(<VaccineHubPage />);
 
-        await user.type(screen.getByLabelText("Child name"), "Maya");
-        await user.type(screen.getByLabelText("Date of birth"), "2024-01-01");
+        await user.type(screen.getByLabelText("childNameLabel"), "Maya");
+        await user.type(screen.getByLabelText("childDobLabel"), "2024-01-01");
 
         await waitFor(() => {
             expect(
@@ -106,17 +104,17 @@ describe("VaccineHubPage Integration Tests", () => {
         futureDate.setDate(futureDate.getDate() + 1);
 
         await user.type(
-            screen.getByLabelText("Date of birth"),
+            screen.getByLabelText("childDobLabel"),
             futureDate.toISOString().split("T")[0]
         );
 
-        expect(screen.getByText("Date of birth cannot be in the future.")).toBeInTheDocument();
+        expect(screen.getByText("childDobFutureError")).toBeInTheDocument();
     });
 
     it("limits child profile names to a mobile-safe length", () => {
         render(<VaccineHubPage />);
 
-        expect(screen.getByLabelText("Child name")).toHaveAttribute("maxLength", "80");
+        expect(screen.getByLabelText("childNameLabel")).toHaveAttribute("maxLength", "80");
     });
 
     it("shows vaccine selector control", () => {
