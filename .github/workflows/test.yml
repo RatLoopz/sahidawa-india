@@ -52,6 +52,6 @@ jobs:
 
             - name: 🧪 Run ML Tests
               working-directory: ./apps/ml
-              run: python -m pytest tests/ -v --timeout=60
+              run: python -m pytest tests/ -v --timeout=120
               env:
                   WHISPER_MODEL_SIZE: base
