@@ -27,7 +27,6 @@
         "google-auth-library": "^10.6.2",
         "idb": "^8.0.3",
         "leaflet": "^1.9.4",
-        "lightningcss-darwin-arm64": "^1.32.0",
         "lucide-react": "^1.16.0",
         "markdown-to-jsx": "^9.8.1",
         "next": "^16.2.6",

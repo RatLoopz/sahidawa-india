@@ -91,20 +91,17 @@ export default function RecallPushSubscriber() {
     const isSubscribed = state === "subscribed";
 
     return (
-        <section className="relative mb-6 overflow-hidden rounded-2xl border border-emerald-500/30 bg-linear-to-r from-emerald-50/60 to-teal-50/40 p-5 shadow-md backdrop-blur-md dark:border-emerald-500/20 dark:from-emerald-950/20 dark:to-slate-900/40">
-            {/* Subtle glow effect */}
-            <div className="pointer-events-none absolute -top-12 -left-12 h-24 w-24 rounded-full bg-emerald-400/20 blur-xl dark:bg-emerald-500/10"></div>
-
-            <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div className="flex items-start gap-3.5">
-                    <div className="rounded-xl bg-emerald-500/10 p-2.5 text-emerald-600 shadow-inner dark:text-emerald-400">
-                        {isSubscribed ? <Bell size={20} /> : <BellOff size={20} />}
+        <section className="mb-6 rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm dark:border-emerald-900/30 dark:bg-slate-900/55">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="flex items-start gap-3">
+                    <div className="rounded-full bg-emerald-50 p-2 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400">
+                        {isSubscribed ? <Bell size={18} /> : <BellOff size={18} />}
                     </div>
                     <div>
-                        <h2 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
+                        <h2 className="text-sm font-bold text-slate-900 dark:text-(--color-text-primary)">
                             Recall push alerts
                         </h2>
-                        <p className="dark:text-slate-350 mt-1 max-w-2xl text-sm font-medium text-slate-600">
+                        <p className="mt-1 max-w-2xl text-sm font-medium text-slate-500 dark:text-(--color-text-secondary)">
                             Get notified when the mock CDSCO recall feed flags a medicine you should
                             avoid.
                         </p>
@@ -115,7 +112,7 @@ export default function RecallPushSubscriber() {
                                 className={`mt-2 text-xs font-semibold ${
                                     isSubscribed
                                         ? "text-emerald-600 dark:text-emerald-400"
-                                        : "dark:text-rose-450 text-rose-500"
+                                        : "text-slate-500 dark:text-slate-400"
                                 }`}
                             >
                                 {message}
@@ -127,7 +124,7 @@ export default function RecallPushSubscriber() {
                     type="button"
                     onClick={subscribe}
                     disabled={state === "subscribing" || isSubscribed}
-                    className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white transition-all duration-300 hover:scale-102 hover:bg-emerald-500 hover:shadow-lg hover:shadow-emerald-500/20 active:scale-98 disabled:scale-100 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+                    className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition-all duration-300 hover:scale-105 hover:bg-emerald-700 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
                 >
                     {state === "subscribing"
                         ? "Enabling..."

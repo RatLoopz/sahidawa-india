@@ -165,120 +165,69 @@ export default function SahiDawaHome() {
 
                 <div className="container mx-auto max-w-6xl px-4">
                     {/* ── Primary Action: Scan Medicine ── */}
-                    <section className="animate-scan-banner-enter mt-4 mb-10">
+                    <section className="mt-4 mb-10">
                         <button
                             onClick={() => handleNavigation("scan")}
-                            className="shine-glide-track group relative flex w-full cursor-pointer overflow-hidden rounded-2xl border border-white/10 text-left text-white shadow-2xl shadow-emerald-900/30 transition-all duration-500 select-none hover:scale-[1.012] hover:shadow-emerald-700/40 focus-visible:ring-4 focus-visible:ring-emerald-400/50 focus-visible:outline-none active:scale-[0.988]"
-                            style={{
-                                background:
-                                    "linear-gradient(135deg, #065f46 0%, #059669 40%, #10b981 75%, #34d399 100%)",
-                            }}
+                            className="group relative flex w-full transform-gpu cursor-pointer flex-col justify-center overflow-hidden rounded-3xl border border-emerald-400/30 p-8 text-left text-white shadow-xl shadow-emerald-500/10 transition-all duration-300 select-none hover:scale-[1.01] hover:shadow-emerald-500/20 active:scale-[0.99] md:p-10"
                             aria-label="Scan medicine"
                         >
-                            {/* Deep inner top highlight */}
-                            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/25" />
-
-                            {/* Ambient glow blob */}
-                            <div className="pointer-events-none absolute -top-12 -right-12 h-52 w-52 rounded-full bg-emerald-300/20 blur-3xl transition-all duration-700 group-hover:scale-125 group-hover:bg-emerald-200/25" />
-                            <div className="pointer-events-none absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-teal-400/10 blur-2xl" />
-
-                            {/* Content */}
-                            <div className="relative z-10 flex w-full items-center gap-5 px-6 py-5 md:px-8 md:py-6">
-                                {/* Icon container */}
-                                <div className="relative flex h-[68px] w-[68px] shrink-0 items-center justify-center rounded-xl bg-white/10 shadow-inner ring-1 ring-white/15 transition-all duration-500 group-hover:scale-110 group-hover:rotate-2 group-hover:bg-white/20 group-hover:shadow-[0_0_24px_rgba(255,255,255,0.2)] md:h-20 md:w-20">
-                                    <Camera
-                                        className="h-9 w-9 text-white drop-shadow-md transition-transform duration-500 group-hover:scale-110 md:h-10 md:w-10"
-                                        strokeWidth={1.8}
-                                    />
-                                    {/* Live indicator */}
-                                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-200 opacity-70" />
-                                        <span className="relative inline-flex h-3 w-3 rounded-full bg-white/90" />
-                                    </span>
-                                </div>
-
-                                {/* Text */}
-                                <div className="flex min-w-0 flex-1 flex-col gap-1">
-                                    {/* Pill label */}
-                                    <span className="mb-1 inline-flex w-fit items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-0.5 text-[10px] font-bold tracking-widest text-emerald-100 uppercase ring-1 ring-white/20">
-                                        <span className="relative flex h-1.5 w-1.5">
-                                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-200 opacity-70" />
-                                            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
+                            <div className="absolute inset-0 z-0 bg-linear-to-tr from-emerald-700 via-emerald-600 to-emerald-500"></div>
+                            <div className="absolute -top-10 -right-10 h-64 w-64 rounded-full bg-white/10 blur-2xl"></div>
+                            <div className="relative z-10 flex flex-col justify-between gap-6 md:flex-row md:items-center">
+                                <div className="flex items-center gap-6 md:gap-8">
+                                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-white/15 shadow-sm transition-all duration-300 group-hover:scale-105 group-hover:rotate-2 md:h-24 md:w-24">
+                                        <Camera
+                                            className="h-10 w-10 text-white drop-shadow-md md:h-12 md:w-12"
+                                            strokeWidth={2}
+                                        />
+                                    </div>
+                                    <div>
+                                        <span className="block text-3xl font-bold tracking-wide drop-shadow-sm md:text-4xl">
+                                            {tHome("scan_button")}
                                         </span>
-                                        Tap to Scan
-                                    </span>
-
-                                    <span className="block text-2xl font-black tracking-tight drop-shadow-sm md:text-3xl">
-                                        {tHome("scan_button")}
-                                    </span>
-                                    <span className="block text-sm font-medium text-emerald-100/85 md:text-base">
-                                        {tHome("scan_subtitle")}
-                                    </span>
+                                        <span className="mt-2 block text-sm font-medium text-emerald-100 opacity-90 md:text-lg">
+                                            {tHome("scan_subtitle")}
+                                        </span>
+                                    </div>
                                 </div>
-
-                                {/* Chevron */}
                                 <ChevronRight
-                                    size={28}
-                                    className="shrink-0 text-white/50 transition-all duration-300 group-hover:translate-x-1.5 group-hover:text-white/90"
+                                    size={36}
+                                    className="hidden shrink-0 text-emerald-100 opacity-70 transition-all group-hover:translate-x-2 group-hover:opacity-100 md:block"
                                 />
                             </div>
-
-                            {/* Bottom inner shadow for depth */}
-                            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-black/10" />
                         </button>
                     </section>
 
                     {/* ── Vaccine Hub & Tracker ── */}
                     <section className="mb-6">
-                        <h2 className="sr-only">Vaccine Hub</h2>
+                        <h2 className="sr-only">Featured Services</h2>
                         <Link
                             href="/vaccine-hub"
-                            className="group relative flex w-full transform-gpu cursor-pointer flex-col overflow-hidden rounded-3xl border border-emerald-200/60 bg-white p-6 shadow-[0_4px_24px_rgba(16,185,129,0.07)] transition-all duration-300 select-none hover:-translate-y-1 hover:border-emerald-300/80 hover:shadow-[0_12px_32px_rgba(16,185,129,0.15)] focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:outline-none dark:border-slate-700/60 dark:bg-slate-900/70 dark:hover:border-emerald-500/40 dark:hover:shadow-[0_12px_32px_rgba(16,185,129,0.08)]"
-                            aria-label="Open Vaccine Hub"
+                            className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-md focus-visible:-translate-y-1 focus-visible:scale-[1.01] focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:outline-none dark:border-slate-800/50 dark:bg-slate-900/55 dark:hover:border-emerald-400/30 dark:hover:shadow-emerald-400/5 dark:focus-visible:ring-offset-slate-900"
                         >
-                            {/* Subtle gradient wash */}
-                            <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-emerald-500/5 via-transparent to-teal-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-emerald-500/10 dark:to-teal-500/10" />
-
-                            {/* Header row: icon badge + CTA arrow */}
-                            <div className="relative z-10 flex items-start justify-between gap-4">
-                                {/* Circular icon badge */}
-                                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-emerald-100 to-teal-50 text-emerald-600 shadow-inner transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:from-emerald-500 group-hover:to-teal-400 group-hover:text-white group-hover:shadow-[0_0_18px_rgba(16,185,129,0.4)] dark:from-emerald-950/60 dark:to-teal-900/40 dark:text-emerald-400">
-                                    <Syringe
-                                        size={26}
-                                        strokeWidth={2.5}
-                                        className="transition-transform duration-300"
-                                    />
+                            <div>
+                                {/* Icon Container */}
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-colors group-hover:bg-emerald-600 group-hover:text-white">
+                                    <Syringe size={24} />
                                 </div>
 
-                                {/* Animated arrow indicator */}
-                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 opacity-0 transition-all duration-300 group-hover:opacity-100 dark:bg-emerald-900/40">
-                                    <ChevronRight
-                                        className="h-5 w-5 text-emerald-600 dark:text-emerald-400"
-                                        aria-hidden="true"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Text hierarchy */}
-                            <div className="relative z-10 mt-4">
-                                <h3 className="text-xl font-bold tracking-tight text-slate-900 transition-colors group-hover:text-emerald-700 dark:text-white dark:group-hover:text-emerald-300">
+                                {/* Text Context */}
+                                <h3 className="mt-4 text-lg font-bold text-slate-900 dark:text-white">
                                     {tHome("vaccine_title")}
                                 </h3>
-                                <p className="mt-2 text-sm leading-relaxed font-medium text-slate-500 transition-colors group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-300">
+                                <p className="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                                     {tHome("vaccine_subtitle")}
                                 </p>
                             </div>
 
-                            {/* Pill-shaped CTA button */}
-                            <div className="relative z-10 mt-6">
-                                <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 transition-all duration-300 group-hover:border-emerald-400 group-hover:bg-emerald-600 group-hover:text-white dark:border-emerald-800/60 dark:bg-emerald-900/30 dark:text-emerald-400 dark:group-hover:border-emerald-500 dark:group-hover:bg-emerald-600 dark:group-hover:text-white">
-                                    {tHome("vaccine_open")}
-                                    <ArrowRight
-                                        size={15}
-                                        className="transition-transform duration-300 group-hover:translate-x-0.5"
-                                        aria-hidden="true"
-                                    />
-                                </span>
+                            {/* Action Footer Indicator */}
+                            <div className="mt-6 flex items-center gap-1.5 text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                                <span>{tHome("vaccine_open")}</span>
+                                <ArrowRight
+                                    size={16}
+                                    className="transition-transform group-hover:translate-x-1"
+                                    aria-hidden="true"
+                                />
                             </div>
                         </Link>
                     </section>

@@ -83,80 +83,71 @@ export default function FullAlertsLogPage() {
         <>
             <div
                 id="main-content"
-                className="mx-auto max-w-5xl px-4 py-8 text-slate-900 dark:text-white"
+                className="mx-auto max-w-5xl px-4 py-8 text-(--color-text-primary)"
             >
-                <div className="mb-4">
+                <div className="mb-6 flex flex-col items-start gap-4">
                     <Link
                         href="/"
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                        className="inline-flex items-center gap-2 text-sm font-semibold text-(--color-text-secondary) transition-colors hover:text-(--color-text-primary)"
                     >
                         <ArrowLeft size={16} />
                         {t("backHome")}
                     </Link>
+
+                    <div className="animate-in fade-in slide-in-from-bottom-4 inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 duration-700 dark:border-emerald-900/30 dark:bg-emerald-950/20 dark:text-emerald-400">
+                        <span className="relative flex h-2 w-2">
+                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                        </span>
+                        {t("badge")}
+                    </div>
                 </div>
 
-                {/* Header Section */}
-                <div className="mb-8 flex flex-col gap-6 border-b border-slate-100 pb-6 md:flex-row md:items-center md:justify-between dark:border-slate-800">
-                    <div className="flex flex-col gap-3">
-                        <div className="flex items-center gap-3">
-                            <div className="flex items-center justify-center rounded-xl bg-red-50 p-2.5 text-red-500 dark:bg-red-950/30 dark:text-red-400">
-                                <Activity className="animate-pulse" size={24} />
-                            </div>
-                            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                                {t("title")}
-                            </h1>
-                        </div>
-                        <p className="font-medium text-slate-500 dark:text-slate-400">
+                <div className="mb-8 flex flex-col justify-between gap-4 border-b border-(--color-border-muted) pb-6 md:flex-row md:items-center">
+                    <div>
+                        <h1 className="flex items-center gap-3 text-3xl font-extrabold tracking-tight text-(--color-text-primary)">
+                            <Activity className="text-red-500" size={28} />
+                            {t("title")}
+                        </h1>
+                        <p className="mt-1 font-medium text-(--color-text-secondary)">
                             {t("subtitle")}
                         </p>
                     </div>
-
-                    {/* Grouped status markers in minimalist capsule badges */}
-                    <div className="flex flex-wrap items-center gap-2">
-                        <div className="animate-in fade-in slide-in-from-bottom-4 inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3.5 py-1.5 text-xs font-bold text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-950/20 dark:text-emerald-400">
-                            <span className="relative flex h-2.5 w-2.5">
-                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
-                            </span>
-                            {t("badge")}
-                        </div>
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-red-100 bg-red-50 px-3.5 py-1.5 text-xs font-bold tracking-wider text-red-700 uppercase dark:border-red-900/30 dark:bg-red-950/20 dark:text-red-400">
-                            <Globe size={12} />
-                            {t("regionBadge")}
-                        </span>
-                        <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-700 shadow-xs dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
-                            <Filter size={12} />
-                            {t("totalCount", { count: totalCount })}
-                        </div>
+                    <span className="hidden rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold tracking-wider text-red-600 uppercase sm:block dark:bg-red-950/30 dark:text-red-400">
+                        {t("regionBadge")}
+                    </span>
+                    <div className="inline-flex items-center gap-2 self-start rounded-xl border border-(--color-border-muted) bg-(--color-surface-page) px-4 py-2 text-sm font-bold text-(--color-text-primary) shadow-sm md:self-auto">
+                        <Filter size={16} />
+                        {t("totalCount", { count: totalCount })}
                     </div>
                 </div>
 
                 <RecallPushSubscriber />
 
-                {/* Filters Section with soft ambient shadows */}
+                {/* Filters Section */}
                 <div className="mb-6 flex flex-col gap-4 md:flex-row">
                     <div className="relative flex-1">
-                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                            <Search size={18} className="text-slate-400 dark:text-slate-500" />
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                            <Search size={18} className="text-(--color-text-muted)" />
                         </div>
                         <input
                             type="text"
                             placeholder={t("brandPlaceholder")}
                             value={brandSearch}
                             onChange={(e) => setBrandSearch(e.target.value)}
-                            className="block w-full rounded-2xl border border-slate-100 bg-white p-3.5 pl-11 text-sm text-slate-900 placeholder-slate-400 shadow-md transition-all duration-250 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-hidden dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder-slate-500"
+                            className="block w-full rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) p-3 pl-10 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) shadow-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-hidden"
                         />
                     </div>
                     <div className="relative flex-1">
-                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                            <Globe size={18} className="text-slate-400 dark:text-slate-500" />
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                            <Globe size={18} className="text-(--color-text-muted)" />
                         </div>
                         <input
                             type="text"
                             placeholder={t("regionPlaceholder")}
                             value={regionSearch}
                             onChange={(e) => setRegionSearch(e.target.value)}
-                            className="block w-full rounded-2xl border border-slate-100 bg-white p-3.5 pl-11 text-sm text-slate-900 placeholder-slate-400 shadow-md transition-all duration-250 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-hidden dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder-slate-500"
+                            className="block w-full rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) p-3 pl-10 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) shadow-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-hidden"
                         />
                     </div>
                 </div>
@@ -172,7 +163,7 @@ export default function FullAlertsLogPage() {
 
                 <div role="feed" aria-busy={loading} className="space-y-4">
                     {loading ? (
-                        <div className="rounded-2xl border border-slate-100 bg-white py-16 text-center font-medium text-slate-400 shadow-md dark:border-slate-800 dark:bg-slate-900">
+                        <div className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) py-16 text-center font-medium text-(--color-text-muted)">
                             {t("loading")}
                         </div>
                     ) : allAlerts.length > 0 ? (
@@ -186,138 +177,115 @@ export default function FullAlertsLogPage() {
                                 alert.is_counterfeit_alert ||
                                 alert.alert_type === "Banned";
 
-                            const statusText = isSystem
-                                ? "Update"
-                                : alert.cdsco_approval_status || alert.alert_type || "NSQ";
-
                             return (
                                 <div
                                     key={alert.id}
                                     role="article"
-                                    className="group relative flex flex-col justify-between gap-4 overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-md transition-all duration-300 hover:shadow-lg md:flex-row md:items-center dark:border-slate-800 dark:bg-slate-900"
+                                    className="group relative flex cursor-pointer items-start gap-4 overflow-hidden rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-4 shadow-sm transition-shadow hover:shadow-md"
                                 >
-                                    {/* Left accent colored strip */}
+                                    {/* Left edge colored strip */}
                                     <div
                                         className={`absolute top-0 bottom-0 left-0 w-1.5 ${
                                             isSystem
                                                 ? "bg-blue-500"
                                                 : isCritical
-                                                  ? "bg-rose-500"
-                                                  : "bg-amber-500"
+                                                  ? "bg-red-500"
+                                                  : "bg-orange-400"
                                         }`}
                                     ></div>
 
-                                    {/* Left content: Icon + Title & Badges + Subtitle */}
-                                    <div className="flex flex-1 items-start gap-4">
-                                        {/* Alert Icon */}
-                                        <div
-                                            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-all duration-300 ${
-                                                isSystem
-                                                    ? "bg-blue-50 text-blue-600 group-hover:bg-blue-100 dark:bg-blue-950/40 dark:text-blue-400"
-                                                    : isCritical
-                                                      ? "dark:text-rose-450 bg-rose-50 text-rose-600 group-hover:bg-rose-100 dark:bg-rose-950/40"
-                                                      : "bg-amber-50 text-amber-600 group-hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-400"
-                                            }`}
-                                        >
-                                            {isSystem ? (
-                                                <Globe size={22} strokeWidth={2.2} />
-                                            ) : (
-                                                <AlertTriangle size={22} strokeWidth={2.2} />
-                                            )}
-                                        </div>
+                                    {/* Dynamic Alert Icon Wrapper */}
+                                    <div
+                                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${
+                                            isSystem
+                                                ? "bg-blue-50 text-blue-500 group-hover:bg-blue-100 dark:bg-blue-950/30 dark:text-blue-400 dark:group-hover:bg-blue-900/30"
+                                                : isCritical
+                                                  ? "bg-red-50 text-red-500 group-hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400 dark:group-hover:bg-red-900/30"
+                                                  : "bg-orange-50 text-orange-500 group-hover:bg-orange-100 dark:bg-orange-950/30 dark:text-orange-400 dark:group-hover:bg-orange-900/30"
+                                        }`}
+                                    >
+                                        {isSystem ? (
+                                            <Globe size={20} strokeWidth={2.5} />
+                                        ) : (
+                                            <AlertTriangle size={20} strokeWidth={2.5} />
+                                        )}
+                                    </div>
 
-                                        {/* Details */}
-                                        <div className="flex-1 space-y-1">
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <h4 className="text-base leading-tight font-extrabold tracking-tight text-slate-900 dark:text-white">
+                                    {/* Text Content */}
+                                    <div className="flex-1">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                                <h4 className="leading-tight font-bold text-(--color-text-primary)">
                                                     {isSystem
                                                         ? t("systemUpdate")
                                                         : alert.reported_brand_name ||
                                                           alert.brand_name ||
                                                           alert.brand}
                                                 </h4>
-
-                                                {/* Semi-transparent status badge */}
-                                                <span
-                                                    className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase backdrop-blur-xs ${
-                                                        isSystem
-                                                            ? "bg-blue-500/10 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400"
-                                                            : isCritical
-                                                              ? "bg-rose-500/10 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400"
-                                                              : "bg-amber-500/10 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400"
-                                                    }`}
-                                                >
-                                                    {statusText}
-                                                </span>
+                                                {!isSystem && (
+                                                    <span
+                                                        className={`w-fit rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase ${
+                                                            isCritical
+                                                                ? "dark:text-red-450 bg-red-50 text-red-600 dark:bg-red-950/30"
+                                                                : "dark:text-orange-450 bg-orange-50 text-orange-600 dark:bg-orange-950/30"
+                                                        }`}
+                                                    >
+                                                        {alert.cdsco_approval_status ||
+                                                            alert.alert_type ||
+                                                            "NSQ"}
+                                                    </span>
+                                                )}
                                             </div>
-
-                                            <p className="dark:text-slate-350 text-sm font-medium text-slate-600">
-                                                {alert.alert_type
-                                                    ? t("alertType", { type: alert.alert_type })
-                                                    : alert.composition || t("noDetails")}
-                                            </p>
-
-                                            {/* Grouped Metadata */}
-                                            {!isSystem && (
-                                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 pt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                                                    <span className="flex items-center gap-1">
-                                                        <span className="font-normal text-slate-400 dark:text-slate-500">
-                                                            {t("batchLabel")}
-                                                        </span>
-                                                        <span className="font-bold text-slate-700 dark:text-slate-300">
-                                                            {alert.batch_number}
-                                                        </span>
-                                                    </span>
-                                                    <span className="text-slate-300 dark:text-slate-700">
-                                                        •
-                                                    </span>
-                                                    <span className="flex items-center gap-1">
-                                                        <span className="font-normal text-slate-400 dark:text-slate-500">
-                                                            {t("manufacturerLabel")}
-                                                        </span>
-                                                        <span className="line-clamp-1 max-w-[180px] font-bold text-slate-700 sm:max-w-[240px] dark:text-slate-300">
-                                                            {alert.manufacturer}
-                                                        </span>
-                                                    </span>
-                                                    {(alert.state || alert.district) && (
-                                                        <>
-                                                            <span className="text-slate-300 dark:text-slate-700">
-                                                                •
-                                                            </span>
-                                                            <span className="flex items-center gap-1">
-                                                                <span className="font-normal text-slate-400 dark:text-slate-500">
-                                                                    {t("regionLabel")}
-                                                                </span>
-                                                                <span className="font-bold text-slate-700 dark:text-slate-300">
-                                                                    {[alert.state, alert.district]
-                                                                        .filter(Boolean)
-                                                                        .join(", ")}
-                                                                </span>
-                                                            </span>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            )}
+                                            <span className="shrink-0 text-[11px] font-medium text-(--color-text-muted)">
+                                                {formatRelativeTime(
+                                                    alert.reported_at || alert.created_at
+                                                )}
+                                            </span>
                                         </div>
-                                    </div>
 
-                                    {/* Right side anchor: Date & Interactive action */}
-                                    <div className="flex shrink-0 items-center justify-between gap-2 border-t border-slate-50 pt-3 md:flex-col md:items-end md:justify-center md:border-0 md:pt-0 dark:border-slate-800/50">
-                                        <span className="text-xs font-semibold text-slate-400 md:mb-1 dark:text-slate-500">
-                                            {formatRelativeTime(
-                                                alert.reported_at || alert.created_at
-                                            )}
-                                        </span>
-                                        <span className="hover:text-emerald-750 inline-flex items-center gap-1 text-xs font-extrabold text-emerald-600 transition-colors duration-200 group-hover:translate-x-0.5 dark:text-emerald-400 dark:hover:text-emerald-300">
-                                            View Details{" "}
-                                            <span className="text-sm font-bold">→</span>
-                                        </span>
+                                        <p className="mt-1 text-sm leading-snug font-medium text-(--color-text-secondary)">
+                                            {alert.alert_type
+                                                ? t("alertType", { type: alert.alert_type })
+                                                : alert.composition || t("noDetails")}
+                                        </p>
+
+                                        {/* Render metadata bottom line layout only if it's not a system update card */}
+                                        {!isSystem && (
+                                            <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] font-semibold text-(--color-text-muted)">
+                                                <span>
+                                                    {t("batchLabel")}{" "}
+                                                    <span className="font-bold text-(--color-text-primary)">
+                                                        {alert.batch_number}
+                                                    </span>
+                                                </span>
+                                                <span>•</span>
+                                                <span>
+                                                    {t("manufacturerLabel")}{" "}
+                                                    <span className="font-bold text-(--color-text-primary)">
+                                                        {alert.manufacturer}
+                                                    </span>
+                                                </span>
+                                                {(alert.state || alert.district) && (
+                                                    <>
+                                                        <span>•</span>
+                                                        <span>
+                                                            {t("regionLabel")}{" "}
+                                                            <span className="font-bold text-(--color-text-primary)">
+                                                                {[alert.state, alert.district]
+                                                                    .filter(Boolean)
+                                                                    .join(", ")}
+                                                            </span>
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             );
                         })
                     ) : (
-                        <div className="rounded-2xl border border-slate-100 bg-white py-16 text-center font-medium text-slate-400 shadow-md dark:border-slate-800 dark:bg-slate-900">
+                        <div className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) py-16 text-center font-medium text-(--color-text-muted)">
                             {t("empty")}
                         </div>
                     )}
@@ -327,14 +295,14 @@ export default function FullAlertsLogPage() {
                     <button
                         disabled={page === 1}
                         onClick={() => setPage((p) => p - 1)}
-                        className="dark:hover:bg-slate-750 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                        className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold disabled:opacity-50"
                     >
                         {t("previous")}
                     </button>
                     <button
                         disabled={page * 50 >= totalCount}
                         onClick={() => setPage((p) => p + 1)}
-                        className="dark:hover:bg-slate-750 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                        className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         {t("next")}
                     </button>

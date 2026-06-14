@@ -26,13 +26,10 @@
     "license": "MIT",
     "dependencies": {
         "@supabase/supabase-js": "^2.106.2",
-        "@swc/core-darwin-arm64": "^1.15.41",
-        "@tailwindcss/oxide-darwin-arm64": "^4.3.1",
         "cors": "^2.8.6",
         "dotenv": "^17.4.2",
         "express": "^5.2.1",
         "helmet": "^8.2.0",
-        "lightningcss-darwin-arm64": "^1.32.0",
         "morgan": "^1.10.1",
         "redis": "^5.12.1",
         "winston-daily-rotate-file": "^5.0.0",
