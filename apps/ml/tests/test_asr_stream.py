@@ -115,6 +115,9 @@ def test_stream_returns_empty_final_when_stopped_before_audio():
         assert final == {
             "type": "final",
             "transcript": "",
+            "corrected_name": "",
+            "suggestion_applied": False,
+            "message": None,
             "language": None,
             "languageConfidence": None,
         }
