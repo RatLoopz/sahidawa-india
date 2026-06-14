@@ -14,7 +14,8 @@ import { supabase } from "@/lib/supabase";
 import { mapMedicineRow } from "@/src/lib/mapMedicineRow";
 
 async function searchMedicines(query: string): Promise<Medicine[]> {
-    const q = query.trim();
+    // Strip double quotes to prevent breaking the PostgREST filter structure in the .or() builder
+    const q = query.replace(/"/g, "").trim();
     if (q.length < 2) return [];
 
     const pattern = `%${q.replace(/[%_\\]/g, "\\$&")}%`;
