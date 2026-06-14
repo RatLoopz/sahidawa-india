@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bell, BellOff } from "lucide-react";
 import { API_BASE } from "@/lib/api";
 import { LiveMessage } from "@/components/ui/LiveMessage";
@@ -34,6 +34,55 @@ async function getVapidPublicKey() {
 export default function RecallPushSubscriber() {
     const [state, setState] = useState<SubscribeState>("idle");
     const [message, setMessage] = useState<string | null>(null);
+
+    useEffect(() => {
+        async function checkExistingSubscription() {
+            if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+                setState("unsupported");
+                return;
+            }
+            try {
+                const registration = await navigator.serviceWorker.getRegistration("/sw.js");
+                if (!registration) return;
+                const existing = await registration.pushManager.getSubscription();
+                if (existing) {
+                    setState("subscribed");
+                    setMessage("Recall notifications are active for this device.");
+                }
+            } catch {
+                // silently ignore
+            }
+        }
+        void checkExistingSubscription();
+    }, []);
+
+    async function unsubscribe() {
+        setState("subscribing");
+        setMessage(null);
+        try {
+            const registration = await navigator.serviceWorker.getRegistration("/sw.js");
+            const existing = await registration?.pushManager.getSubscription();
+            if (existing) {
+                await existing.unsubscribe();
+                const token = localStorage.getItem("sb-access-token");
+                if (token) {
+                    await fetch(`${API_BASE}/api/notifications/subscriptions`, {
+                        method: "DELETE",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({ endpoint: existing.endpoint }),
+                    });
+                }
+            }
+            setState("idle");
+            setMessage(null);
+        } catch {
+            setState("subscribed");
+            setMessage("Unable to disable alerts. Please try again.");
+        }
+    }
 
     async function subscribe() {
         if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
@@ -130,17 +179,23 @@ export default function RecallPushSubscriber() {
                 </div>
                 <button
                     type="button"
-                    onClick={subscribe}
-                    disabled={state === "subscribing" || isSubscribed}
-                    className="relative shrink-0 overflow-hidden rounded-2xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-sm shadow-emerald-500/10 transition-all duration-300 hover:scale-[1.03] hover:bg-emerald-500 hover:shadow-md hover:shadow-emerald-500/20 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-800 dark:disabled:text-slate-600"
+                    onClick={isSubscribed ? unsubscribe : subscribe}
+                    disabled={state === "subscribing"}
+                    className={`relative shrink-0 overflow-hidden rounded-2xl px-6 py-3 text-sm font-bold shadow-sm transition-all duration-300 hover:scale-[1.03] hover:shadow-md active:scale-95 disabled:scale-100 disabled:cursor-not-allowed ${
+                        isSubscribed
+                            ? "bg-rose-100 text-rose-700 shadow-rose-500/10 hover:bg-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-900/60"
+                            : "bg-emerald-600 text-white shadow-emerald-500/10 hover:bg-emerald-500 disabled:bg-slate-300 dark:disabled:bg-slate-800 dark:disabled:text-slate-600"
+                    }`}
                 >
                     {state === "subscribing" ? (
                         <span className="flex items-center gap-2">
-                            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
-                            Enabling...
+                            <span
+                                className={`h-3.5 w-3.5 animate-spin rounded-full border-2 border-t-transparent ${isSubscribed ? "border-rose-700 dark:border-rose-400" : "border-white"}`}
+                            ></span>
+                            {isSubscribed ? "Disabling..." : "Enabling..."}
                         </span>
                     ) : isSubscribed ? (
-                        "Enabled"
+                        "Disable alerts"
                     ) : (
                         "Enable alerts"
                     )}

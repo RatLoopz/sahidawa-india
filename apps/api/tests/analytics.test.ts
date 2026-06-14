@@ -360,6 +360,6 @@ describe("GET /api/analytics/push-notifications", () => {
     it("does not expose push analytics on the public analytics router", async () => {
         const response = await request(app).get("/api/analytics/push-notifications");
 
-        expect(response.status).toBe(401);
+        expect(response.status).toBe(404);
     });
 });

@@ -112,6 +112,15 @@ reportsRouter.post(
                 req.user?.id ?? null
             );
 
+            console.log("DEBUG SUPABASE TYPE:", typeof supabase);
+            console.log("DEBUG FROM TYPE:", typeof supabase.from);
+            console.log("DEBUG INSERT TYPE:", typeof supabase.insert);
+            console.log("DEBUG FROM() TYPE:", typeof supabase.from("counterfeit_reports"));
+            console.log(
+                "DEBUG FROM().INSERT TYPE:",
+                typeof supabase.from("counterfeit_reports").insert
+            );
+
             const { data: report, error } = await supabase
                 .from("counterfeit_reports")
                 .insert({
@@ -157,7 +166,11 @@ reportsRouter.post(
             res.status(201).json(response);
         } catch (err) {
             console.error("Unexpected error in POST /api/reports:", err);
-            res.status(500).json({ error: "An unexpected error occurred" });
+            res.status(500).json({
+                error: "An unexpected error occurred",
+                details: err instanceof Error ? err.message : String(err),
+                stack: err instanceof Error ? err.stack : undefined,
+            });
         }
     }
 );
