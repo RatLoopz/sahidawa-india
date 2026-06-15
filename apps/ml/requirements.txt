@@ -45,6 +45,7 @@ locust>=2.31.8
 # Agentic Orchestration and PDF rendering
 langgraph>=0.1.4
 pymupdf>=1.24.0
+cloudinary>=1.36.0
 
 # ScispaCy for Medical NER
 scispacy>=0.5.4

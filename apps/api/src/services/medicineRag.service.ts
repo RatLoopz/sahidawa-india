@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { anonSupabase } from "../db/supabase";
 import logger from "../utils/logger";
-import { escapeIlike } from "../utils/db";
+import { escapeIlike, escapePostgrest } from "../utils/db";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -277,7 +277,7 @@ export async function retrieveRelevantMedicines(
             "id, brand_name, generic_name, manufacturer, composition, strength, dosage_form, schedule, mrp, jan_aushadhi_price"
         )
         .or(
-            `generic_name.ilike.${pattern},brand_name.ilike.${pattern},composition.ilike.${pattern}`
+            `generic_name.ilike."${escapePostgrest(pattern)}",brand_name.ilike."${escapePostgrest(pattern)}",composition.ilike."${escapePostgrest(pattern)}"`
         )
         .limit(limit);
 

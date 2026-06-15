@@ -8,7 +8,9 @@ import { supabase } from "../db/client";
 import { getMlServiceUrl, MISSING_ML_SERVICE_URL_MESSAGE } from "../config/mlService";
 import { validateUploadSize } from "../middleware/uploadSizeValidator";
 import { uploadRateLimiter } from "../middleware/uploadRateLimit";
+import { scanQueryLimiter } from "../middleware/rateLimit";
 
+import { escapePostgrest } from "../utils/db";
 import { escapeIlike } from "../utils/db";
 
 const router = Router();
@@ -507,7 +509,7 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
                                 "composition, mrp, jan_aushadhi_price"
                         )
                         .or(
-                            `brand_name.ilike.%${escapeIlike(matchedName)}%,generic_name.ilike.%${escapeIlike(matchedName)}%`
+                            `brand_name.ilike."%${escapePostgrest(matchedName!)}%",generic_name.ilike."%${escapePostgrest(matchedName!)}%"`
                         )
                         .limit(1)
                         .maybeSingle();
@@ -621,7 +623,7 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
  *       200:
  *         description: Match suggestions found
  */
-router.post("/match", async (req: Request, res: Response) => {
+router.post("/match", scanQueryLimiter, async (req: Request, res: Response) => {
     const { query } = req.body;
     if (!query || typeof query !== "string") {
         res.status(400).json({ error: "query parameter is required and must be a string" });
@@ -687,7 +689,7 @@ router.post("/match", async (req: Request, res: Response) => {
  *       200:
  *         description: Medicine verified successfully
  */
-router.post("/verify-brand", async (req: Request, res: Response) => {
+router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Response) => {
     const { brandName } = req.body;
     if (!brandName || typeof brandName !== "string") {
         res.status(400).json({ error: "brandName is required and must be a string" });
@@ -701,7 +703,7 @@ router.post("/verify-brand", async (req: Request, res: Response) => {
                 "brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert"
             )
             .or(
-                `brand_name.ilike.%${escapeIlike(brandName)}%,generic_name.ilike.%${escapeIlike(brandName)}%`
+                `brand_name.ilike."%${escapePostgrest(brandName)}%",generic_name.ilike."%${escapePostgrest(brandName)}%"`
             )
             .limit(1)
             .maybeSingle();

@@ -7,3 +7,10 @@
 export function escapeIlike(word: string): string {
     return word.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
 }
+/**
+ * Escapes a value for safe use in PostgREST .or() filters.
+ * Wraps in double quotes to prevent comma injection.
+ */
+export function escapePostgrest(val: string): string {
+    return val.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_").replace(/"/g, '""');
+}

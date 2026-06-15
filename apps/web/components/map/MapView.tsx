@@ -34,30 +34,11 @@ const Marker = dynamic(() => import("react-leaflet").then((m) => m.Marker), { ss
 const Popup = dynamic(() => import("react-leaflet").then((m) => m.Popup), { ssr: false });
 
 import "leaflet/dist/leaflet.css";
-import L from "leaflet";
 import { CopyButton } from "@/components/ui/CopyButton";
+import { greenIcon, blueIcon, orangeIcon } from "./mapIcons";
 
-// Fix default marker icon broken in webpack
-const greenIcon = L.icon({
-    iconUrl:
-        "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
-    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-});
-const orangeIcon = L.icon({
-    iconUrl:
-        "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png",
-    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-});
-const blueIcon = L.icon({
-    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-});
+// Default radius for nearby search in kilometers
+const DEFAULT_RADIUS_KM = 50;
 
 export default function MapView() {
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);

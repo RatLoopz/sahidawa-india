@@ -18,6 +18,7 @@ const AlertSchema = z
         state: z.string().optional(),
         district: z.string().optional(),
         reported_at: z.string().optional(),
+        proof_image_url: z.string().optional().nullable(),
     })
     .passthrough();
 

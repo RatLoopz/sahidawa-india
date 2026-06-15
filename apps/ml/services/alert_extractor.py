@@ -21,6 +21,7 @@ class AlertInfo(BaseModel):
     state: Optional[str] = Field(description="The state mentioned")
     district: Optional[str] = Field(description="The district mentioned")
     reported_at: Optional[str] = Field(description="The date of the alert in YYYY-MM-DD if possible")
+    proof_image_url: Optional[str] = Field(default=None, description="The Cloudinary URL of the original document snapshot proof")
 
 class AlertList(BaseModel):
     alerts: List[AlertInfo] = Field(description="List of alerts extracted from the text")
@@ -124,6 +125,7 @@ def extract_alerts_from_pdf_images(pdf_bytes: bytes) -> List[Dict[str, Any]]:
     """
     Extracts structured alert information from scanned/image-based PDFs
     by rendering pages to PNG images and analyzing them with Gemini-1.5-Flash.
+    Also uploads the page screenshots to Cloudinary to serve as audit proof.
     """
     if not LANGCHAIN_AVAILABLE:
         logging.error("LangChain dependencies missing.")
@@ -134,6 +136,29 @@ def extract_alerts_from_pdf_images(pdf_bytes: bytes) -> List[Dict[str, Any]]:
         if not api_key:
             logging.warning("GOOGLE_API_KEY not set. Cannot extract alerts using Gemini.")
             return []
+
+        # Configure Cloudinary if credentials are available
+        cloudinary_configured = False
+        cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME")
+        api_key_cloud = os.getenv("CLOUDINARY_API_KEY")
+        api_secret_cloud = os.getenv("CLOUDINARY_API_SECRET")
+
+        if cloud_name and api_key_cloud and api_secret_cloud:
+            try:
+                import cloudinary
+                import cloudinary.uploader
+                cloudinary.config(
+                    cloud_name=cloud_name,
+                    api_key=api_key_cloud,
+                    api_secret=api_secret_cloud,
+                    secure=True
+                )
+                cloudinary_configured = True
+                logging.info("Cloudinary client configured successfully for CDSCO scraper proof archiving.")
+            except Exception as config_exc:
+                logging.warning(f"Failed to configure Cloudinary SDK: {config_exc}")
+        else:
+            logging.warning("Cloudinary environment variables missing, skipping proof uploads.")
 
         # Use fitz (PyMuPDF) to render PDF pages
         import fitz
@@ -158,6 +183,28 @@ def extract_alerts_from_pdf_images(pdf_bytes: bytes) -> List[Dict[str, Any]]:
             pix = page.get_pixmap(dpi=150) # Render at 150 DPI for good text legibility and reasonable file size
             png_bytes = pix.tobytes("png")
             b64_image = base64.b64encode(png_bytes).decode("utf-8")
+
+            # Upload the rendered page snapshot to Cloudinary if configured
+            proof_image_url = None
+            if cloudinary_configured:
+                try:
+                    import cloudinary.uploader
+                    import time
+                    timestamp = int(time.time())
+                    public_id = f"cdsco_alert_page_{page_num + 1}_{timestamp}"
+                    
+                    logging.info(f"Uploading page {page_num + 1} screenshot to Cloudinary as {public_id}...")
+                    upload_res = cloudinary.uploader.upload(
+                        png_bytes,
+                        folder="sahidawa/cdsco_proofs",
+                        public_id=public_id,
+                        overwrite=True,
+                        resource_type="image"
+                    )
+                    proof_image_url = upload_res.get("secure_url")
+                    logging.info(f"Cloudinary upload success: {proof_image_url}")
+                except Exception as upload_exc:
+                    logging.error(f"Cloudinary upload failed for page {page_num + 1}: {upload_exc}")
 
             # Prepare the multimodal prompt
             prompt_text = (
@@ -205,6 +252,8 @@ def extract_alerts_from_pdf_images(pdf_bytes: bytes) -> List[Dict[str, Any]]:
                         )
                         if key not in seen_keys:
                             seen_keys.add(key)
+                            # Ingest the Cloudinary proof URL
+                            alert_dict["proof_image_url"] = proof_image_url
                             all_alerts.append(alert_dict)
             except Exception as page_exc:
                 logging.error(f"Error extracting alerts from page {page_num + 1} with Gemini: {page_exc}")

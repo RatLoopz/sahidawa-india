@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useTranslations } from "next-intl";
 import { fuzzyMatchBrand } from "@/lib/api";
 import SearchSuggestions, { HistoryItem } from "@/components/SearchSuggestions";
+import { escapePostgrest } from "@/lib/supabase/utils";
 
 /** Maximum number of suggestions shown at once */
 const MAX_SUGGESTIONS = 8;
@@ -161,7 +162,9 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                 const response = await supabase
                     .from("medicines")
                     .select("brand_name, batch_number")
-                    .or(`brand_name.ilike.%${trimmed}%,batch_number.ilike.%${trimmed}%`)
+                    .or(
+                        `brand_name.ilike."%${escapePostgrest(trimmed)}%",batch_number.ilike."%${escapePostgrest(trimmed)}%"`
+                    )
                     .abortSignal(controller.signal)
                     .limit(MAX_SUGGESTIONS);
 
