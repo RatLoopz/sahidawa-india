@@ -18,9 +18,7 @@ import {
     Users,
     Package,
     HeartPulse,
-    ThumbsUp,
     Info,
-    X,
     ChevronLeft,
     Syringe,
     FlaskConical,
@@ -31,12 +29,7 @@ import {
     TriangleAlert,
     Refrigerator,
 } from "lucide-react";
-import {
-    SAFETY_DISCLAIMER,
-    type MedicineSafetyProfile,
-    type AgeGroup,
-    type DietaryRule,
-} from "./MedicineSafetyData";
+import { type MedicineSafetyProfile, type AgeGroup } from "./MedicineSafetyData";
 import { fetchSafetyProfile } from "@/lib/medicineSafetyService";
 
 // ── Props ─────────────────────────────────────────────────────────────────────
