@@ -74,7 +74,7 @@ jobs:
                     owner: repo.owner,
                     repo: repo.repo,
                     issue_number: prNumber,
-                    body: `⚠️ **Merge Conflict Detected**\n\nHi @${username}, we detected merge conflicts in your pull request. \n\nPlease resolve the conflicts locally and update your branch within **12 hours**. If the conflicts remain unresolved after 12 hours, this pull request will be automatically closed to keep the repository maintainable.\n\nThank you for your cooperation! 🤝`
+                    body: `Merge conflict detected.\n\n@${username}, please resolve the conflicts locally and update your branch within 12 hours. If unresolved, this PR will be closed.`
                   });
                 } else {
                   // Conflict label already exists, check duration
@@ -106,7 +106,7 @@ jobs:
                         owner: repo.owner,
                         repo: repo.repo,
                         issue_number: prNumber,
-                        body: `🔒 **Pull Request Closed: Unresolved Merge Conflict**\n\nHi @${username}, this pull request has been automatically closed because the merge conflicts were not resolved within the 12-hour grace period.\n\nTo merge your changes, please resolve the conflicts locally on your branch and submit a **new pull request** without merge conflicts. We appreciate your contribution! 🤝`
+                        body: `Pull Request closed due to unresolved merge conflicts.\n\n@${username}, conflicts were not resolved within the 12-hour grace period. Please resolve the conflicts locally and submit a new PR.`
                       });
 
                       await github.rest.pulls.update({
@@ -134,7 +134,7 @@ jobs:
                     owner: repo.owner,
                     repo: repo.repo,
                     issue_number: prNumber,
-                    body: `✅ **Merge Conflicts Resolved**\n\nThank you @${username}! The conflicts have been successfully resolved, and the merge conflict warning label has been removed.`
+                    body: `@${username}, merge conflicts have been resolved.`
                   });
                 } catch (err) {
                   console.log(`Failed to remove label or post comment: ${err.message}`);

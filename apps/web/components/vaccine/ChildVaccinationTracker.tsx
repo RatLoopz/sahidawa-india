@@ -9,6 +9,7 @@ import {
     getTodayDateInput,
     validateChildDateOfBirth,
 } from "@/lib/childVaccinationSchedule";
+import { supabase } from "@/lib/supabase";
 import {
     AlertCircle,
     Baby,
@@ -17,9 +18,10 @@ import {
     Circle,
     Clock,
     Download,
+    ScanLine,
 } from "lucide-react";
-import { useFormatter } from "next-intl";
-import { useId, useMemo, useState } from "react";
+import { useFormatter, useTranslations } from "next-intl";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 interface ChildTrackerState {
     childName: string;
@@ -35,31 +37,22 @@ const EMPTY_TRACKER_STATE: ChildTrackerState = {
 
 const CHILD_NAME_MAX_LENGTH = 80;
 const VALID_DOSE_IDS = new Set(NATIONAL_IMMUNIZATION_SCHEDULE.map((item) => item.id));
+const TRACKER_STORAGE_KEY = "vaccine-hub-child-tracker-v1";
 
-const TRACKER_COPY = {
-    childTrackerTitle: "Child Vaccination Tracker",
-    childTrackerSubtitle:
-        "Enter a child profile to generate a personalized National Immunization Schedule timeline with completion tracking.",
-    childReminderButton: "Download reminders",
-    childNameLabel: "Child name",
-    childNamePlaceholder: "Enter child name",
-    childDobLabel: "Date of birth",
-    childDefaultName: "Child",
-    childDobPrompt: "Enter a date of birth to generate the personalized vaccination timeline.",
-    childDobFutureError: "Date of birth cannot be in the future.",
-    childDobInvalidError: "Enter a valid date of birth.",
-    childProfileSummary: "Child profile",
-    scheduleSourceLabel: "Schedule basis",
-    childTimelineHeading: "Personalized timeline",
-    whereApplicableBadge: "Where applicable",
-    dueDateLabel: "Due date",
-    officialTimingLabel: "Official timing",
-    completedStatus: "Completed",
-    dueStatus: "Due",
-    overdueStatus: "Overdue",
-    upcomingStatus: "Upcoming",
-    markCompleteButton: "Mark completed",
-} as const;
+type SyncContext =
+    | { status: "loading" }
+    | { status: "local" }
+    | { status: "cloud"; userId: string; profileId: string | null };
+
+interface CloudChildProfile {
+    id: string;
+    name: string;
+    date_of_birth: string;
+}
+
+interface CloudCompletedVaccination {
+    dose_id: string;
+}
 
 const STATUS_STYLES: Record<
     VaccinationStatus,
@@ -93,10 +86,18 @@ const STATUS_STYLES: Record<
 
 export function ChildVaccinationTracker() {
     const format = useFormatter();
+    const t = useTranslations("ChildVaccinationTracker");
     const nameInputId = useId();
     const dobInputId = useId();
     const todayDateInput = useMemo(() => getTodayDateInput(), []);
     const [tracker, setTracker] = useState<ChildTrackerState>(EMPTY_TRACKER_STATE);
+    const [isOcrScanning, setIsOcrScanning] = useState(false);
+    const [ocrError, setOcrError] = useState<string | null>(null);
+    const scanInputRef = useRef<HTMLInputElement>(null);
+    const [syncContext, setSyncContext] = useState<SyncContext>({ status: "loading" });
+    const hasUserEditedRef = useRef(false);
+    const profileSyncSignatureRef = useRef<string | null>(null);
+    const cloudCompletedDoseIdsRef = useRef<Set<string>>(new Set());
 
     const dobValidation = validateChildDateOfBirth(tracker.dateOfBirth, todayDateInput);
     const schedule = useMemo(
@@ -111,14 +112,172 @@ export function ChildVaccinationTracker() {
         [dobValidation.isValid, todayDateInput, tracker.completedDoseIds, tracker.dateOfBirth]
     );
     const statusCounts = useMemo(() => getStatusCounts(schedule), [schedule]);
-    const childDisplayName = tracker.childName.trim() || TRACKER_COPY.childDefaultName;
+    const childDisplayName = tracker.childName.trim() || t("childDefaultName");
+    const cloudUserId = syncContext.status === "cloud" ? syncContext.userId : null;
+    const cloudProfileId = syncContext.status === "cloud" ? syncContext.profileId : null;
 
     const validationMessage =
         !dobValidation.isValid && dobValidation.reason !== "missing"
-            ? getDobValidationMessage(dobValidation.reason)
+            ? getDobValidationMessage(dobValidation.reason, t)
             : null;
 
+    useEffect(() => {
+        let isActive = true;
+
+        const loadTrackerState = async () => {
+            try {
+                const {
+                    data: { session },
+                } = await supabase.auth.getSession();
+                const userId = session?.user?.id;
+
+                if (!isActive) return;
+
+                if (!userId) {
+                    if (!hasUserEditedRef.current) {
+                        setTracker(readLocalTrackerState());
+                    }
+                    setSyncContext({ status: "local" });
+                    return;
+                }
+
+                setSyncContext({ status: "cloud", userId, profileId: null });
+
+                const { data: profile, error: profileError } = await supabase
+                    .from("child_profiles")
+                    .select("id,name,date_of_birth")
+                    .eq("user_id", userId)
+                    .maybeSingle();
+
+                if (!isActive || profileError || !profile) return;
+
+                const typedProfile = profile as CloudChildProfile;
+                const { data: completedRows, error: completedError } = await supabase
+                    .from("child_completed_vaccinations")
+                    .select("dose_id")
+                    .eq("child_profile_id", typedProfile.id);
+
+                if (!isActive || completedError) return;
+
+                const completedDoseIds = normalizeCompletedDoseIds(
+                    ((completedRows ?? []) as CloudCompletedVaccination[]).map((row) => row.dose_id)
+                );
+
+                profileSyncSignatureRef.current = getProfileSyncSignature({
+                    childName: typedProfile.name,
+                    dateOfBirth: typedProfile.date_of_birth,
+                });
+                cloudCompletedDoseIdsRef.current = new Set(completedDoseIds);
+                if (!hasUserEditedRef.current) {
+                    setTracker({
+                        childName: typedProfile.name,
+                        dateOfBirth: typedProfile.date_of_birth,
+                        completedDoseIds,
+                    });
+                }
+                setSyncContext({ status: "cloud", userId, profileId: typedProfile.id });
+            } catch {
+                if (!isActive) return;
+
+                if (!hasUserEditedRef.current) {
+                    setTracker(readLocalTrackerState());
+                }
+                setSyncContext({ status: "local" });
+            }
+        };
+
+        loadTrackerState();
+
+        return () => {
+            isActive = false;
+        };
+    }, []);
+
+    useEffect(() => {
+        if (syncContext.status !== "local") return;
+
+        writeLocalTrackerState(tracker);
+    }, [syncContext.status, tracker]);
+
+    useEffect(() => {
+        if (!cloudUserId || !dobValidation.isValid) return;
+
+        const profileState = {
+            user_id: cloudUserId,
+            name: childDisplayName,
+            date_of_birth: tracker.dateOfBirth,
+        };
+        const signature = getProfileSyncSignature({
+            childName: profileState.name,
+            dateOfBirth: profileState.date_of_birth,
+        });
+
+        if (profileSyncSignatureRef.current === signature) return;
+
+        let isActive = true;
+
+        const syncProfile = async () => {
+            const { data, error } = await supabase
+                .from("child_profiles")
+                .upsert(profileState, { onConflict: "user_id" })
+                .select("id,name,date_of_birth")
+                .single();
+
+            if (!isActive || error || !data) return;
+
+            const profile = data as CloudChildProfile;
+            profileSyncSignatureRef.current = signature;
+            setSyncContext((current) =>
+                current.status === "cloud" ? { ...current, profileId: profile.id } : current
+            );
+        };
+
+        syncProfile();
+
+        return () => {
+            isActive = false;
+        };
+    }, [childDisplayName, cloudUserId, dobValidation.isValid, tracker.dateOfBirth]);
+
+    useEffect(() => {
+        if (!cloudProfileId) return;
+
+        const nextCompletedDoseIds = new Set(normalizeCompletedDoseIds(tracker.completedDoseIds));
+        const previousCompletedDoseIds = cloudCompletedDoseIdsRef.current;
+        const addedDoseIds = Array.from(nextCompletedDoseIds).filter(
+            (doseId) => !previousCompletedDoseIds.has(doseId)
+        );
+        const removedDoseIds = Array.from(previousCompletedDoseIds).filter(
+            (doseId) => !nextCompletedDoseIds.has(doseId)
+        );
+
+        if (!addedDoseIds.length && !removedDoseIds.length) return;
+
+        cloudCompletedDoseIdsRef.current = nextCompletedDoseIds;
+
+        const syncCompletedDoseIds = async () => {
+            await Promise.all([
+                ...addedDoseIds.map((doseId) =>
+                    supabase.from("child_completed_vaccinations").insert({
+                        child_profile_id: cloudProfileId,
+                        dose_id: doseId,
+                    })
+                ),
+                ...removedDoseIds.map((doseId) =>
+                    supabase
+                        .from("child_completed_vaccinations")
+                        .delete()
+                        .eq("child_profile_id", cloudProfileId)
+                        .eq("dose_id", doseId)
+                ),
+            ]);
+        };
+
+        syncCompletedDoseIds();
+    }, [cloudProfileId, tracker.completedDoseIds]);
+
     const handleNameChange = (childName: string) => {
+        hasUserEditedRef.current = true;
         setTracker((current) => ({
             ...current,
             childName: childName.slice(0, CHILD_NAME_MAX_LENGTH),
@@ -126,6 +285,7 @@ export function ChildVaccinationTracker() {
     };
 
     const handleDateOfBirthChange = (dateOfBirth: string) => {
+        hasUserEditedRef.current = true;
         setTracker((current) => ({
             ...current,
             dateOfBirth,
@@ -134,6 +294,7 @@ export function ChildVaccinationTracker() {
     };
 
     const toggleDose = (doseId: string) => {
+        hasUserEditedRef.current = true;
         setTracker((current) => {
             const completed = new Set(current.completedDoseIds);
 
@@ -149,7 +310,58 @@ export function ChildVaccinationTracker() {
             };
         });
     };
+    const handleScanCard = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        e.target.value = "";
+        setIsOcrScanning(true);
+        setOcrError(null);
+        try {
+            const Tesseract = (await import("tesseract.js")).default;
+            const reader = new FileReader();
+            const dataUrl = await new Promise<string>((resolve, reject) => {
+                reader.onloadend = () => resolve(reader.result as string);
+                reader.onerror = () => reject(new Error("Failed to read file"));
+                reader.readAsDataURL(file);
+            });
+            const worker = await Tesseract.createWorker("eng");
+            const { data } = await worker.recognize(dataUrl);
+            await worker.terminate();
+            const text = data.text;
 
+            // Parse DOB: look for DD/MM/YYYY or DD-MM-YYYY patterns
+            const dobMatch = text.match(/\b(\d{2})[\/\-](\d{2})[\/\-](\d{4})\b/);
+            if (dobMatch) {
+                const isoDate = `${dobMatch[3]}-${dobMatch[2]}-${dobMatch[1]}`;
+                handleDateOfBirthChange(isoDate);
+            }
+
+            // Match vaccine names against schedule
+            const textUpper = text.toUpperCase();
+            const matched = NATIONAL_IMMUNIZATION_SCHEDULE.filter((item) =>
+                textUpper.includes(item.vaccineName.toUpperCase())
+            ).map((item) => item.id);
+
+            if (matched.length > 0) {
+                setTracker((current) => ({
+                    ...current,
+                    completedDoseIds: Array.from(
+                        new Set([...current.completedDoseIds, ...matched])
+                    ).filter((id) => VALID_DOSE_IDS.has(id)),
+                }));
+            }
+
+            if (!dobMatch && matched.length === 0) {
+                setOcrError(
+                    "Could not extract vaccination data from this image. Please try a clearer photo."
+                );
+            }
+        } catch {
+            setOcrError("Failed to scan image. Please try again.");
+        } finally {
+            setIsOcrScanning(false);
+        }
+    };
     const downloadCalendarReminders = () => {
         if (!schedule.length) return;
 
@@ -176,14 +388,30 @@ export function ChildVaccinationTracker() {
                     <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
                         <Baby size={22} aria-hidden="true" />
                         <h2 className="text-xl font-bold text-(--color-text-primary)">
-                            {TRACKER_COPY.childTrackerTitle}
+                            {t("childTrackerTitle")}
                         </h2>
                     </div>
                     <p className="max-w-3xl text-sm leading-6 text-(--color-text-secondary)">
-                        {TRACKER_COPY.childTrackerSubtitle}
+                        {t("childTrackerSubtitle")}
                     </p>
                 </div>
 
+                <input
+                    ref={scanInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleScanCard}
+                />
+                <button
+                    type="button"
+                    onClick={() => scanInputRef.current?.click()}
+                    disabled={isOcrScanning}
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-emerald-600 px-4 py-2 text-sm font-semibold text-emerald-700 shadow-sm transition-colors hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-emerald-300 dark:hover:bg-emerald-950/30"
+                >
+                    <ScanLine size={16} aria-hidden="true" />
+                    {isOcrScanning ? "Scanning..." : "Autofill via Scan"}
+                </button>
                 <button
                     type="button"
                     onClick={downloadCalendarReminders}
@@ -191,7 +419,7 @@ export function ChildVaccinationTracker() {
                     className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     <Download size={16} aria-hidden="true" />
-                    {TRACKER_COPY.childReminderButton}
+                    {t("childReminderButton")}
                 </button>
             </div>
 
@@ -201,7 +429,7 @@ export function ChildVaccinationTracker() {
                         htmlFor={nameInputId}
                         className="block text-xs font-bold tracking-wider text-emerald-800 uppercase dark:text-emerald-300"
                     >
-                        {TRACKER_COPY.childNameLabel}
+                        {t("childNameLabel")}
                     </label>
                     <input
                         id={nameInputId}
@@ -209,7 +437,7 @@ export function ChildVaccinationTracker() {
                         value={tracker.childName}
                         maxLength={CHILD_NAME_MAX_LENGTH}
                         onChange={(event) => handleNameChange(event.target.value)}
-                        placeholder={TRACKER_COPY.childNamePlaceholder}
+                        placeholder={t("childNamePlaceholder")}
                         className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-(--color-text-primary) shadow-sm transition-all outline-none hover:bg-(--color-surface-muted) focus:ring-2 focus:ring-emerald-500 focus:ring-inset dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-700"
                     />
                 </div>
@@ -219,7 +447,7 @@ export function ChildVaccinationTracker() {
                         htmlFor={dobInputId}
                         className="block text-xs font-bold tracking-wider text-emerald-800 uppercase dark:text-emerald-300"
                     >
-                        {TRACKER_COPY.childDobLabel}
+                        {t("childDobLabel")}
                     </label>
                     <input
                         id={dobInputId}
@@ -233,19 +461,10 @@ export function ChildVaccinationTracker() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 md:min-w-80">
-                    <TrackerMetric
-                        label={TRACKER_COPY.completedStatus}
-                        value={statusCounts.completed}
-                    />
-                    <TrackerMetric label={TRACKER_COPY.dueStatus} value={statusCounts.due} />
-                    <TrackerMetric
-                        label={TRACKER_COPY.overdueStatus}
-                        value={statusCounts.overdue}
-                    />
-                    <TrackerMetric
-                        label={TRACKER_COPY.upcomingStatus}
-                        value={statusCounts.upcoming}
-                    />
+                    <TrackerMetric label={t("completedStatus")} value={statusCounts.completed} />
+                    <TrackerMetric label={t("dueStatus")} value={statusCounts.due} />
+                    <TrackerMetric label={t("overdueStatus")} value={statusCounts.overdue} />
+                    <TrackerMetric label={t("upcomingStatus")} value={statusCounts.upcoming} />
                 </div>
             </div>
 
@@ -258,6 +477,15 @@ export function ChildVaccinationTracker() {
                 </div>
             )}
 
+            {ocrError && (
+                <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-900 dark:border-red-900 dark:bg-red-950/40 dark:text-red-100">
+                    <p className="flex items-start gap-2">
+                        <AlertCircle size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+                        <span>{ocrError}</span>
+                    </p>
+                </div>
+            )}
+
             {!tracker.dateOfBirth && (
                 <div className="mt-5 rounded-lg border border-dashed border-slate-300 bg-(--color-surface-muted) p-4 text-sm text-(--color-text-secondary) dark:border-slate-700 dark:bg-slate-900">
                     <p className="flex items-start gap-2">
@@ -266,7 +494,7 @@ export function ChildVaccinationTracker() {
                             className="mt-0.5 shrink-0 text-emerald-600"
                             aria-hidden="true"
                         />
-                        <span>{TRACKER_COPY.childDobPrompt}</span>
+                        <span>{t("childDobPrompt")}</span>
                     </p>
                 </div>
             )}
@@ -275,23 +503,21 @@ export function ChildVaccinationTracker() {
                 <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-[18rem_minmax(0,1fr)]">
                     <aside className="rounded-lg border border-slate-200 bg-(--color-surface-muted) p-4 dark:border-slate-700 dark:bg-slate-900">
                         <p className="text-xs font-bold tracking-wider text-(--color-text-muted) uppercase">
-                            {TRACKER_COPY.childProfileSummary}
+                            {t("childProfileSummary")}
                         </p>
                         <p className="mt-2 text-lg font-bold [overflow-wrap:anywhere] break-words text-(--color-text-primary)">
                             {childDisplayName}
                         </p>
                         <dl className="mt-4 space-y-3 text-sm">
                             <div>
-                                <dt className="text-(--color-text-muted)">
-                                    {TRACKER_COPY.childDobLabel}
-                                </dt>
+                                <dt className="text-(--color-text-muted)">{t("childDobLabel")}</dt>
                                 <dd className="font-semibold text-(--color-text-primary)">
                                     {formatDateForDisplay(tracker.dateOfBirth, format)}
                                 </dd>
                             </div>
                             <div>
                                 <dt className="text-(--color-text-muted)">
-                                    {TRACKER_COPY.scheduleSourceLabel}
+                                    {t("scheduleSourceLabel")}
                                 </dt>
                                 <dd className="font-medium text-(--color-text-secondary)">
                                     {NATIONAL_IMMUNIZATION_SOURCE}
@@ -305,7 +531,7 @@ export function ChildVaccinationTracker() {
                             <div className="flex items-center gap-2">
                                 <Clock size={18} className="text-emerald-600" aria-hidden="true" />
                                 <h3 className="text-lg font-bold text-(--color-text-primary)">
-                                    {TRACKER_COPY.childTimelineHeading}
+                                    {t("childTimelineHeading")}
                                 </h3>
                             </div>
                             <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-700 dark:text-slate-100">
@@ -319,6 +545,7 @@ export function ChildVaccinationTracker() {
                                     <ScheduleTimelineItem
                                         item={item}
                                         format={format}
+                                        t={t}
                                         onToggle={() => toggleDose(item.id)}
                                     />
                                 </li>
@@ -331,13 +558,72 @@ export function ChildVaccinationTracker() {
     );
 }
 
+function readLocalTrackerState(): ChildTrackerState {
+    if (typeof window === "undefined") return EMPTY_TRACKER_STATE;
+
+    try {
+        const stored = window.localStorage.getItem(TRACKER_STORAGE_KEY);
+
+        if (!stored) return EMPTY_TRACKER_STATE;
+
+        const parsed = JSON.parse(stored) as Partial<ChildTrackerState>;
+
+        return {
+            childName:
+                typeof parsed.childName === "string"
+                    ? parsed.childName.slice(0, CHILD_NAME_MAX_LENGTH)
+                    : "",
+            dateOfBirth: typeof parsed.dateOfBirth === "string" ? parsed.dateOfBirth : "",
+            completedDoseIds: Array.isArray(parsed.completedDoseIds)
+                ? normalizeCompletedDoseIds(parsed.completedDoseIds)
+                : [],
+        };
+    } catch {
+        return EMPTY_TRACKER_STATE;
+    }
+}
+
+function writeLocalTrackerState(state: ChildTrackerState) {
+    if (typeof window === "undefined") return;
+
+    const normalizedState = {
+        ...state,
+        completedDoseIds: normalizeCompletedDoseIds(state.completedDoseIds),
+    };
+
+    if (
+        !normalizedState.childName &&
+        !normalizedState.dateOfBirth &&
+        !normalizedState.completedDoseIds.length
+    ) {
+        window.localStorage.removeItem(TRACKER_STORAGE_KEY);
+        return;
+    }
+
+    window.localStorage.setItem(TRACKER_STORAGE_KEY, JSON.stringify(normalizedState));
+}
+
+function normalizeCompletedDoseIds(doseIds: unknown[]): string[] {
+    return Array.from(
+        new Set(
+            doseIds.filter((id): id is string => typeof id === "string" && VALID_DOSE_IDS.has(id))
+        )
+    );
+}
+
+function getProfileSyncSignature(state: Pick<ChildTrackerState, "childName" | "dateOfBirth">) {
+    return `${state.childName}\n${state.dateOfBirth}`;
+}
+
 function ScheduleTimelineItem({
     item,
     format,
+    t,
     onToggle,
 }: {
     item: ChildVaccinationScheduleItem;
     format: ReturnType<typeof useFormatter>;
+    t: ReturnType<typeof useTranslations>;
     onToggle: () => void;
 }) {
     const styles = STATUS_STYLES[item.status];
@@ -354,14 +640,14 @@ function ScheduleTimelineItem({
                         <span
                             className={`rounded-full px-2.5 py-1 text-xs font-bold ${styles.badge}`}
                         >
-                            {getStatusLabel(item.status)}
+                            {getStatusLabel(item.status, t)}
                         </span>
                         <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 dark:bg-slate-900 dark:text-slate-200 dark:ring-slate-700">
                             {item.stage}
                         </span>
                         {item.isAreaSpecific && (
                             <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-900/50 dark:text-amber-100">
-                                {TRACKER_COPY.whereApplicableBadge}
+                                {t("whereApplicableBadge")}
                             </span>
                         )}
                     </div>
@@ -378,7 +664,7 @@ function ScheduleTimelineItem({
                     <dl className="mt-3 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
                         <div>
                             <dt className="text-xs font-bold tracking-wider text-(--color-text-muted) uppercase">
-                                {TRACKER_COPY.dueDateLabel}
+                                {t("dueDateLabel")}
                             </dt>
                             <dd className="mt-1 flex items-center gap-2 font-semibold text-(--color-text-primary)">
                                 <CalendarDays
@@ -391,7 +677,7 @@ function ScheduleTimelineItem({
                         </div>
                         <div>
                             <dt className="text-xs font-bold tracking-wider text-(--color-text-muted) uppercase">
-                                {TRACKER_COPY.officialTimingLabel}
+                                {t("officialTimingLabel")}
                             </dt>
                             <dd className="mt-1 font-semibold text-(--color-text-primary)">
                                 {item.dueWindowEndDate
@@ -428,7 +714,7 @@ function ScheduleTimelineItem({
                     ) : (
                         <Circle size={16} aria-hidden="true" />
                     )}
-                    {isCompleted ? TRACKER_COPY.completedStatus : TRACKER_COPY.markCompleteButton}
+                    {isCompleted ? t("completedStatus") : t("markCompleteButton")}
                 </button>
             </div>
         </article>
@@ -462,23 +748,24 @@ function getStatusCounts(schedule: ChildVaccinationScheduleItem[]) {
     );
 }
 
-function getStatusLabel(status: VaccinationStatus) {
+function getStatusLabel(status: VaccinationStatus, t: ReturnType<typeof useTranslations>) {
     switch (status) {
         case "completed":
-            return TRACKER_COPY.completedStatus;
+            return t("completedStatus");
         case "due":
-            return TRACKER_COPY.dueStatus;
+            return t("dueStatus");
         case "overdue":
-            return TRACKER_COPY.overdueStatus;
+            return t("overdueStatus");
         case "upcoming":
-            return TRACKER_COPY.upcomingStatus;
+            return t("upcomingStatus");
     }
 }
 
-function getDobValidationMessage(reason: "invalid" | "future") {
-    return reason === "future"
-        ? TRACKER_COPY.childDobFutureError
-        : TRACKER_COPY.childDobInvalidError;
+function getDobValidationMessage(
+    reason: "invalid" | "future",
+    t: ReturnType<typeof useTranslations>
+) {
+    return reason === "future" ? t("childDobFutureError") : t("childDobInvalidError");
 }
 
 function formatDoseCount(count: number): string {

@@ -75,7 +75,7 @@ jobs:
           # ─────────────────────────────────────────────
           # AI / Spam Detection (Tuned Down)
           # ─────────────────────────────────────────────
-          max-emoji-count: 50
+          max-emoji-count: 30
           max-code-references: 20
           detect-spam-usernames: true
           require-public-profile: false

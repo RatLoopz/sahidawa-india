@@ -3,6 +3,14 @@ import { renderToStaticMarkup } from "react-dom/server";
 import MapHeaderLoadingIndicator from "../app/[locale]/map/MapHeaderLoadingIndicator";
 import PharmacyMapPage from "../app/[locale]/map/page";
 
+jest.mock("next-intl", () => ({
+    useTranslations: () => (key: string) => key,
+}));
+
+jest.mock("next-intl/server", () => ({
+    getTranslations: async () => (key: string) => key,
+}));
+
 jest.mock("../app/[locale]/components/PageHeader", () => ({
     PageHeader: ({
         children,

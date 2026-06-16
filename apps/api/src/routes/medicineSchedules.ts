@@ -37,6 +37,42 @@ const statsSchema = z.object({
     to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD"),
 });
 
+const summaryQuerySchema = z.object({
+    date: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD")
+        .optional(),
+    time: z
+        .string()
+        .regex(/^\d{2}:\d{2}$/, "Time must be HH:MM")
+        .optional(),
+});
+
+/**
+ * Returns the current date (YYYY-MM-DD) and time (HH:MM) in Indian Standard Time (IST).
+ * Used for matching medicine schedules which are stored against Indian calendar days.
+ */
+const getIstDateTime = () => {
+    const now = new Date();
+    const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Kolkata",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+    }).formatToParts(now);
+
+    const dateMap: Record<string, string> = {};
+    parts.forEach((p) => (dateMap[p.type] = p.value));
+
+    const today = `${dateMap.year}-${dateMap.month}-${dateMap.day}`;
+    const nowTime = `${dateMap.hour}:${dateMap.minute}`;
+
+    return { today, nowTime };
+};
+
 // List user's active schedules
 router.get("/", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -315,8 +351,19 @@ router.get("/:id/stats", requireAuth, async (req: AuthenticatedRequest, res: Res
 // Get today's pending doses for all user's active schedules
 router.get("/today/summary", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const today = new Date().toISOString().split("T")[0];
-        const nowTime = new Date().toTimeString().slice(0, 5);
+        const queryResult = summaryQuerySchema.safeParse(req.query);
+        if (!queryResult.success) {
+            res.status(400).json({
+                error: "Invalid query parameters",
+                details: queryResult.error.flatten().fieldErrors,
+            });
+            return;
+        }
+
+        const { today: istToday, nowTime: istNowTime } = getIstDateTime();
+
+        const today = queryResult.data.date || istToday;
+        const nowTime = queryResult.data.time || istNowTime;
 
         const { data: schedules, error: schedError } = await supabase
             .from("medicine_schedules")

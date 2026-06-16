@@ -463,6 +463,7 @@
             "description": "Supabase URL अथवा anon key न उपलब्धम्। प्रवेशात् पूर्वं environment variables योजयन्तु।"
         },
         "googleButton": "Google द्वारा प्रविशतु",
+        "githubButton": "GitHub द्वारा प्रविशतु",
         "emailSeparator": "अथवा ईमेलद्वारा प्रविशतु",
         "emailLabel": "ईमेल-पत्रम्",
         "emailPlaceholder": "you@example.com",
@@ -638,7 +639,7 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
-    "howItWorks":{
+    "howItWorks": {
         "badge": "सुरक्षितस्वास्थ्यसेवा • AI-द्वारा सञ्चालिता",
         "heroTitle": "<highlight>SahiDawa</highlight> कथं कार्यं करोति",
         "heroSubtitle": "जानीत यत् कथं SahiDawa उपयोक्तृणाम् औषधपरीक्षणे, विश्वसनीय-भेषजशालानां (pharmacies) अन्वेषणे, आधिकारिक-चेतावनीनां प्राप्तौ, तथा च AI-सञ्चालित-स्वास्थ्यसाधनानां साहाय्येन कृत्रिम-औषधेभ्यः सुरक्षिते भवितुं साहाय्यं करोति।",
@@ -707,37 +708,45 @@
             }
         }
     },
-  "medicineSafety": {
-    "guideTitle": "उपयोगः तथा सुरक्षा मार्गदर्शिका",
-    "noDosageInfo": "अस्य वयःसमूहस्य कृते मात्रा-विवरणं न उपलब्धम्।",
-    "closeButton": "सुरक्षा-विवरणं पिधत",
-    "tabs": {
-      "sideEffects": "पार्श्वप्रभावाः",
-      "dosage": "मात्रा",
-      "dietaryIntake": "आहार-सेवनम्"
+    "medicineSafety": {
+        "guideTitle": "उपयोगः तथा सुरक्षा मार्गदर्शिका",
+        "noDosageInfo": "अस्य वयःसमूहस्य कृते मात्रा-विवरणं न उपलब्धम्।",
+        "closeButton": "सुरक्षा-विवरणं पिधत",
+        "tabs": {
+            "sideEffects": "पार्श्वप्रभावाः",
+            "dosage": "मात्रा",
+            "dietaryIntake": "आहार-सेवनम्"
+        },
+        "sideEffects": {
+            "standardSymptoms": "सामान्यलक्षणानि",
+            "severeRedFlags": "गम्भीरचेतावनी — शीघ्रं वैद्यसहाय्यं प्राप्नुत"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "बालकाः",
+                "adults": "प्रौढाः",
+                "elderly": "वृद्धाः"
+            },
+            "doseLabel": "मात्रा:",
+            "frequencyLabel": "आवृत्तिः:",
+            "notesHeading": "टिप्पण्यः",
+            "warningsHeading": "चेतावन्यः"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "आहार-सेवनम्"
+            },
+            "storageHeading": "संग्रहणम्",
+            "pregnancyHeading": "गर्भावस्था"
+        },
+        "disclaimer": "एषा सूचना शैक्षिकप्रयोजनार्थम् अस्ति, न तु व्यावसायिकवैद्यकीयपरामर्शस्य विकल्पः।"
     },
-    "sideEffects": {
-      "standardSymptoms": "सामान्यलक्षणानि",
-      "severeRedFlags": "गम्भीरचेतावनी — शीघ्रं वैद्यसहाय्यं प्राप्नुत"
-    },
-    "dosage": {
-      "tabs": {
-        "kids": "बालकाः",
-        "adults": "प्रौढाः",
-        "elderly": "वृद्धाः"
-      },
-      "doseLabel": "मात्रा:",
-      "frequencyLabel": "आवृत्तिः:",
-      "notesHeading": "टिप्पण्यः",
-      "warningsHeading": "चेतावन्यः"
-    },
-    "dietary": {
-      "tabs": {
-        "dietaryIntake": "आहार-सेवनम्"
-      },
-      "storageHeading": "संग्रहणम्",
-      "pregnancyHeading": "गर्भावस्था"
-    },
-    "disclaimer": "एषा सूचना शैक्षिकप्रयोजनार्थम् अस्ति, न तु व्यावसायिकवैद्यकीयपरामर्शस्य विकल्पः।"
-  }
+    "Map": {
+        "errors": {
+            "denied": "स्थानप्रवेशः अस्वीकृतः। कृपया भवतः जालगवाक्ष-नियमनेषु (browser settings) एतत् ಸක්‍රियं करोतु।",
+            "unavailable": "स्थानसूचना उपलब्धा नास्ति।",
+            "timeout": "स्थानयाचनायाः समयः समाप्तः।",
+            "generic": "भवतः स्थानं प्राप्तुं न शक్యते।"
+        }
+    }
 }

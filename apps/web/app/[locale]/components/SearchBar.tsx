@@ -4,7 +4,8 @@ import { Search } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useTranslations } from "next-intl";
 import { fuzzyMatchBrand } from "@/lib/api";
-import SearchSuggestions from "@/components/SearchSuggestions";
+import SearchSuggestions, { HistoryItem } from "@/components/SearchSuggestions";
+import { escapePostgrest } from "@/lib/supabase/utils";
 
 /** Maximum number of suggestions shown at once */
 const MAX_SUGGESTIONS = 8;
@@ -38,6 +39,75 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
 
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    // Search History State
+    const [history, setHistory] = useState<HistoryItem[]>([]);
+
+    useEffect(() => {
+        const stored = localStorage.getItem("sahidawa_search_history");
+        if (stored) {
+            try {
+                setHistory(JSON.parse(stored));
+            } catch (e) {
+                console.error("Failed to parse search history:", e);
+            }
+        }
+    }, []);
+
+    const addToHistory = useCallback((searchQuery: string) => {
+        const trimmed = searchQuery.trim();
+        if (!trimmed) return;
+
+        setHistory((prev) => {
+            const filtered = prev.filter(
+                (item) => item.query.toLowerCase() !== trimmed.toLowerCase()
+            );
+            const existingItem = prev.find(
+                (item) => item.query.toLowerCase() === trimmed.toLowerCase()
+            );
+            const newItem: HistoryItem = {
+                query: existingItem ? existingItem.query : trimmed,
+                pinned: existingItem ? existingItem.pinned : false,
+                timestamp: Date.now(),
+            };
+            const sorted = [newItem, ...filtered];
+            // Sort: pinned first, then by timestamp descending
+            const sortedFinal = [...sorted]
+                .sort((a, b) => {
+                    if (a.pinned && !b.pinned) return -1;
+                    if (!a.pinned && b.pinned) return 1;
+                    return b.timestamp - a.timestamp;
+                })
+                .slice(0, 10); // Limit to 10 items
+
+            localStorage.setItem("sahidawa_search_history", JSON.stringify(sortedFinal));
+            return sortedFinal;
+        });
+    }, []);
+
+    const togglePin = useCallback((searchQuery: string) => {
+        setHistory((prev) => {
+            const updated = prev.map((item) => {
+                if (item.query.toLowerCase() === searchQuery.toLowerCase()) {
+                    return { ...item, pinned: !item.pinned };
+                }
+                return item;
+            });
+            const sortedFinal = [...updated].sort((a, b) => {
+                if (a.pinned && !b.pinned) return -1;
+                if (!a.pinned && b.pinned) return 1;
+                return b.timestamp - a.timestamp;
+            });
+
+            localStorage.setItem("sahidawa_search_history", JSON.stringify(sortedFinal));
+            return sortedFinal;
+        });
+    }, []);
+
+    const clearHistory = useCallback(() => {
+        setHistory([]);
+        localStorage.removeItem("sahidawa_search_history");
+    }, []);
 
     // ── Refs ───────────────────────────────────────────────────────────────────
     const containerRef = useRef<HTMLDivElement>(null);
@@ -92,7 +162,9 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                 const response = await supabase
                     .from("medicines")
                     .select("brand_name, batch_number")
-                    .or(`brand_name.ilike.%${trimmed}%,batch_number.ilike.%${trimmed}%`)
+                    .or(
+                        `brand_name.ilike."%${escapePostgrest(trimmed)}%",batch_number.ilike."%${escapePostgrest(trimmed)}%"`
+                    )
                     .abortSignal(controller.signal)
                     .limit(MAX_SUGGESTIONS);
 
@@ -202,7 +274,6 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
             }
         }
     }, []);
-
     useEffect(() => {
         const trimmed = query.trim();
 
@@ -212,7 +283,6 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
 
         if (!trimmed) {
             setSuggestions([]);
-            setIsOpen(false);
             setIsLoading(false);
             setNoResults(false);
             setError(null);
@@ -232,19 +302,16 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
         };
     }, [query, fetchSuggestions, onSearchChange]);
 
-    // // ── Debounce query changes ─────────────────────────────────────────────────
-    //  ----------------
     // ── Select a suggestion ────────────────────────────────────────────────────
-    // // ── Perform search (Enter without active suggestion, or Search button) ─────
     const selectSuggestion = useCallback(
         (value: string) => {
             setQuery(value);
             setIsOpen(false);
             setActiveIndex(-1);
+            addToHistory(value);
             if (onSearchChange) onSearchChange(value); // Sync query to safety panel
-
         },
-        [onSearchChange]
+        [onSearchChange, addToHistory]
     );
 
     // ── Perform search (Enter without active suggestion, or Search button) ─────
@@ -254,27 +321,35 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
             if (!trimmed) return;
             setIsOpen(false);
             setActiveIndex(-1);
+            addToHistory(trimmed);
             if (onSearchChange) onSearchChange(trimmed); // Sync query to safety panel
-
         },
-        [onSearchChange]
+        [onSearchChange, addToHistory]
     );
+
+    const isHistoryMode = query.trim() === "";
+    const listLength = isHistoryMode ? history.length : suggestions.length;
+
     // ── Keyboard navigation ────────────────────────────────────────────────────
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (!isOpen && e.key !== "Enter") return;
         switch (e.key) {
             case "ArrowDown":
                 e.preventDefault();
-                setActiveIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : 0));
+                setActiveIndex((prev) => (prev < listLength - 1 ? prev + 1 : 0));
                 break;
             case "ArrowUp":
                 e.preventDefault();
-                setActiveIndex((prev) => (prev > 0 ? prev - 1 : suggestions.length - 1));
+                setActiveIndex((prev) => (prev > 0 ? prev - 1 : listLength - 1));
                 break;
             case "Enter":
                 e.preventDefault();
-                if (activeIndex >= 0 && activeIndex < suggestions.length) {
-                    selectSuggestion(suggestions[activeIndex]);
+                if (activeIndex >= 0 && activeIndex < listLength) {
+                    if (isHistoryMode) {
+                        selectSuggestion(history[activeIndex].query);
+                    } else {
+                        selectSuggestion(suggestions[activeIndex]);
+                    }
                 } else {
                     performSearch(query);
                 }
@@ -369,6 +444,11 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                 error={error}
                 noResults={noResults}
                 onRetry={() => fetchSuggestions(query.trim())}
+                isHistory={query.trim() === ""}
+                historyItems={history}
+                onPinToggle={togglePin}
+                onClearHistory={clearHistory}
+                query={query.trim()}
             />
         </div>
     );

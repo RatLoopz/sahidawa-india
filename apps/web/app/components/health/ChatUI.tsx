@@ -138,17 +138,17 @@ function upsertAssistantMessage(
             : message
     );
 }
+const createInitialMessage = (locale: string): Message => ({
+    id: "init",
+    role: "assistant",
+    content: INITIAL_MESSAGES[locale as keyof typeof INITIAL_MESSAGES] || INITIAL_MESSAGES.en,
+    timestamp: new Date(),
+});
 
 export default function ChatUI() {
     const params = useParams();
     const locale = (params.locale as string) || "en";
-    const initialMessage: Message = {
-        id: "init",
-        role: "assistant",
-        content: INITIAL_MESSAGES[locale as keyof typeof INITIAL_MESSAGES] || INITIAL_MESSAGES.en,
-        timestamp: new Date(),
-    };
-    const [messages, setMessages] = useState<Message[]>([initialMessage]);
+    const [messages, setMessages] = useState<Message[]>(() => [createInitialMessage(locale)]);
     const [input, setInput] = useState("");
     const [isTyping, setIsTyping] = useState(false);
     const [isListening, setIsListening] = useState(false);
@@ -350,20 +350,28 @@ export default function ChatUI() {
     const handleAction = (prompt: string) => {
         sendMessage(prompt);
     };
-
+    const handleHomeClick = () => {
+        activeRequestRef.current?.abort();
+        lastUserText.current = "";
+        setMessages([createInitialMessage(locale)]);
+        setInput("");
+        setShowWelcome(true);
+        setIsTyping(false);
+        setStreamingAssistantId(null);
+    };
     return (
         <div className="relative flex h-screen w-full flex-col overflow-hidden bg-transparent font-sans">
             {/* Floating Header */}
             <header className="absolute top-4 right-4 left-4 z-20 mx-auto max-w-3xl rounded-3xl border border-white/30 bg-white/60 px-5 py-4 shadow-[0_8px_30px_rgb(0,0,0,0.08)] backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/60 dark:shadow-black/50">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <Link
-                            href={`/${locale}`}
+                        <button
+                            onClick={handleHomeClick}
                             className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
-                            aria-label="Go to homepage"
+                            aria-label="Return to chat home"
                         >
                             <Home size={18} />
-                        </Link>
+                        </button>
 
                         <div className="flex items-baseline gap-2">
                             <Link

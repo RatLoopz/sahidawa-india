@@ -469,6 +469,7 @@
             "description": "Supabase URL അല്ലെങ്കിൽ anon key ലഭ്യമല്ല. സൈൻ ഇൻ ചെയ്യുന്നതിന് മുമ്പ് environment variables ചേർക്കുക."
         },
         "googleButton": "Google ഉപയോഗിച്ച് തുടരുക",
+        "githubButton": "GitHub ഉപയോഗിച്ച് തുടരുക",
         "emailSeparator": "അല്ലെങ്കിൽ ഇമെയിൽ ഉപയോഗിച്ച് തുടരുക",
         "emailLabel": "ഇമെയിൽ വിലാസം",
         "emailPlaceholder": "you@example.com",
@@ -644,7 +645,7 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
-    "howItWorks":{
+    "howItWorks": {
         "badge": "സുരക്ഷിതമായ ആരോഗ്യസംരക്ഷണം • AI അധിഷ്ഠിതം",
         "heroTitle": "<highlight>SahiDawa</highlight> എങ്ങനെ പ്രവർത്തിക്കുന്നു",
         "heroSubtitle": "ഉപയോഗിക്കുന്ന മരുന്നുകളുടെ സത്യാവസ്ഥ പരിശോധിക്കുന്നതിനും, വിശ്വസനീയമായ ഫാർമസികൾ കണ്ടെത്തുന്നതിനും, ഔദ്യോഗിക മുന്നറിയിപ്പുകൾ ലഭിക്കുന്നതിനും, AI അധിഷ്ഠിത ഹെൽത്ത് ടൂളുകൾ ഉപയോഗിച്ച് വ്യാജ മരുന്നുകളിൽ നിന്ന് സുരക്ഷിതമായിരിക്കുന്നതിനും SahiDawa നിങ്ങളെ എങ്ങനെ സഹായിക്കുന്നുവെന്ന് മനസ്സിലാക്കുക.",
@@ -713,37 +714,45 @@
             }
         }
     },
-  "medicineSafety": {
-    "guideTitle": "ഉപയോഗവും സുരക്ഷാ മാർഗ്ഗനിർദ്ദേശവും",
-    "noDosageInfo": "ഈ പ്രായവിഭാഗത്തിനായുള്ള ഡോസ് വിവരങ്ങൾ ലഭ്യമല്ല.",
-    "closeButton": "സുരക്ഷാ വിവരങ്ങൾ അടയ്ക്കുക",
-    "tabs": {
-      "sideEffects": "പാർശ്വഫലങ്ങൾ",
-      "dosage": "ഡോസ്",
-      "dietaryIntake": "ഭക്ഷണക്രമം"
+    "medicineSafety": {
+        "guideTitle": "ഉപയോഗവും സുരക്ഷാ മാർഗ്ഗനിർദ്ദേശവും",
+        "noDosageInfo": "ഈ പ്രായവിഭാഗത്തിനായുള്ള ഡോസ് വിവരങ്ങൾ ലഭ്യമല്ല.",
+        "closeButton": "സുരക്ഷാ വിവരങ്ങൾ അടയ്ക്കുക",
+        "tabs": {
+            "sideEffects": "പാർശ്വഫലങ്ങൾ",
+            "dosage": "ഡോസ്",
+            "dietaryIntake": "ഭക്ഷണക്രമം"
+        },
+        "sideEffects": {
+            "standardSymptoms": "സാധാരണ ലക്ഷണങ്ങൾ",
+            "severeRedFlags": "ഗുരുതര മുന്നറിയിപ്പുകൾ — ഉടൻ വൈദ്യസഹായം തേടുക"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "കുട്ടികൾ",
+                "adults": "മുതിർന്നവർ",
+                "elderly": "വയോജനങ്ങൾ"
+            },
+            "doseLabel": "ഡോസ്:",
+            "frequencyLabel": "ആവൃത്തി:",
+            "notesHeading": "കുറിപ്പുകൾ",
+            "warningsHeading": "മുന്നറിയിപ്പുകൾ"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "ഭക്ഷണക്രമം"
+            },
+            "storageHeading": "സംഭരണം",
+            "pregnancyHeading": "ഗർഭകാലം"
+        },
+        "disclaimer": "ഈ വിവരങ്ങൾ വിദ്യാഭ്യാസ ആവശ്യങ്ങൾക്കായുള്ളതാണ്; ഇത് വൈദ്യോപദേശത്തിന് പകരമല്ല."
     },
-    "sideEffects": {
-      "standardSymptoms": "സാധാരണ ലക്ഷണങ്ങൾ",
-      "severeRedFlags": "ഗുരുതര മുന്നറിയിപ്പുകൾ — ഉടൻ വൈദ്യസഹായം തേടുക"
-    },
-    "dosage": {
-      "tabs": {
-        "kids": "കുട്ടികൾ",
-        "adults": "മുതിർന്നവർ",
-        "elderly": "വയോജനങ്ങൾ"
-      },
-      "doseLabel": "ഡോസ്:",
-      "frequencyLabel": "ആവൃത്തി:",
-      "notesHeading": "കുറിപ്പുകൾ",
-      "warningsHeading": "മുന്നറിയിപ്പുകൾ"
-    },
-    "dietary": {
-      "tabs": {
-        "dietaryIntake": "ഭക്ഷണക്രമം"
-      },
-      "storageHeading": "സംഭരണം",
-      "pregnancyHeading": "ഗർഭകാലം"
-    },
-    "disclaimer": "ഈ വിവരങ്ങൾ വിദ്യാഭ്യാസ ആവശ്യങ്ങൾക്കായുള്ളതാണ്; ഇത് വൈദ്യോപദേശത്തിന് പകരമല്ല."
-  }
+    "Map": {
+        "errors": {
+            "denied": "ലൊക്കേഷൻ അനുമതി നിരസിക്കപ്പെട്ടു. ദയവായി ബ്രൗസർ സെറ്റിംഗ്സിൽ ഇത് പ്രവർത്തനക്ഷമമാക്കുക.",
+            "unavailable": "ലൊക്കേഷൻ വിവരങ്ങൾ ലഭ്യമല്ല.",
+            "timeout": "ലൊക്കേഷൻ അഭ്യർത്ഥനയുടെ സമയപരിധി അവസാനിച്ചു.",
+            "generic": "നിങ്ങളുടെ ലൊക്കേഷൻ കണ്ടെത്താൻ സാധിക്കുന്നില്ല."
+        }
+    }
 }

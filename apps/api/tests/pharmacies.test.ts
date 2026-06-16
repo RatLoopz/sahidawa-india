@@ -191,16 +191,18 @@ describe("GET /api/pharmacies/nearest", () => {
                     lng: 77.595,
                     phone_number: "1111111111",
                     is_verified: true,
+                    status: "approved",
                     district: "Bengaluru Urban",
                     state: "Karnataka",
                 },
                 {
-                    name: "Far Pharmacy",
-                    address: "Far Away",
-                    lat: 13.5,
-                    lng: 78.2,
+                    name: "Pending Nearby Pharmacy",
+                    address: "Needs Review",
+                    lat: 12.972,
+                    lng: 77.595,
                     phone_number: "2222222222",
                     is_verified: false,
+                    status: "pending",
                     district: "Bengaluru Rural",
                     state: "Karnataka",
                 },
@@ -213,6 +215,7 @@ describe("GET /api/pharmacies/nearest", () => {
                     },
                     phone_number: null,
                     is_verified: true,
+                    status: "approved",
                     district: "Bengaluru Urban",
                     state: "Karnataka",
                 },
@@ -220,9 +223,10 @@ describe("GET /api/pharmacies/nearest", () => {
             error: null,
         });
 
-        const select = jest.fn().mockReturnValue({
+        const eq = jest.fn().mockReturnValue({
             limit,
         });
+        const select = jest.fn().mockReturnValue({ eq });
 
         mockedSupabase.from.mockReturnValueOnce({ select } as never);
 
@@ -241,9 +245,10 @@ describe("GET /api/pharmacies/nearest", () => {
         expect(mockedSupabase.from).toHaveBeenCalledWith("pharmacies");
 
         expect(select).toHaveBeenCalledWith(
-            "name, address, location, phone_number, is_verified, district, state"
+            "name, address, location, phone_number, is_verified, district, state, status"
         );
 
+        expect(eq).toHaveBeenCalledWith("status", "approved");
         expect(limit).toHaveBeenCalled();
 
         expect(response.body.pharmacies).toHaveLength(2);
@@ -341,15 +346,17 @@ describe("GET /api/pharmacies/in-bounds", () => {
                     location: { type: "Point", coordinates: [77.2, 28.6] },
                     phone_number: null,
                     is_verified: true,
+                    status: "approved",
                     district: "Delhi",
                     state: "Delhi",
                 },
                 {
-                    name: "Outside Bounds Pharmacy",
-                    address: "Outside",
-                    location: { type: "Point", coordinates: [80.0, 25.0] },
+                    name: "Pending Inside Bounds Pharmacy",
+                    address: "Inside",
+                    location: { type: "Point", coordinates: [77.2, 28.6] },
                     phone_number: null,
                     is_verified: false,
+                    status: "pending",
                     district: "Other",
                     state: "Other",
                 },
@@ -357,7 +364,8 @@ describe("GET /api/pharmacies/in-bounds", () => {
             error: null,
         });
 
-        const select = jest.fn().mockReturnValue({ limit });
+        const eq = jest.fn().mockReturnValue({ limit });
+        const select = jest.fn().mockReturnValue({ eq });
         mockedSupabase.from.mockReturnValueOnce({ select } as never);
 
         const response = await request(app).get(
@@ -367,6 +375,7 @@ describe("GET /api/pharmacies/in-bounds", () => {
         expect(response.status).toBe(200);
         expect(response.body.pharmacies).toHaveLength(1);
         expect(response.body.pharmacies[0].name).toBe("Inside Bounds Pharmacy");
+        expect(eq).toHaveBeenCalledWith("status", "approved");
     });
 });
 
@@ -425,6 +434,7 @@ describe("POST /api/pharmacies", () => {
             phone_number: mockPayload.phone_number,
             location: "POINT(77.2 28.56)",
             is_verified: false,
+            status: "pending",
         });
     });
 

@@ -77,18 +77,14 @@ jobs:
                 .join('\n');
 
               const capMsg = [
-                '## \u26a0\ufe0f Auto-Assignment Skipped \u2014 3-Issue Cap Reached',
+                'Issue Closed.',
                 '',
-                'Hi @' + opener + '! \uD83D\uDC4B You\'ve already been assigned to **' + activeIssues.length + ' open issues**:',
+                `@${opener}, you currently have ${activeIssues.length} open issues assigned to you without an active PR:`,
                 '',
                 list,
                 '',
-                'We cap active assignments at **3** to keep the queue fair for all contributors.',
-                '',
-                '**Please complete or close your existing work before this issue can be assigned to you.**',
-                'Once you\'re done, drop a comment with `/assign` here and a maintainer will assign you.',
-                '',
-                'In the meantime, this issue is open for other contributors to claim.'
+                'You cannot raise more than 3 issues at once while your current assignments lack PRs.',
+                'Please complete your existing tasks before raising new issues.'
               ].join('\n');
 
               await github.rest.issues.createComment({
@@ -96,7 +92,14 @@ jobs:
                 body: capMsg
               });
 
-              core.info('@' + opener + ' already has ' + activeIssues.length + ' active issues. Skipping auto-assign.');
+              // NEW: Close the issue automatically
+              await github.rest.issues.update({
+                owner, repo, issue_number: issueNo,
+                state: 'closed',
+                state_reason: 'not_planned'
+              });
+
+              core.info('@' + opener + ' has ' + activeIssues.length + ' active issues. Issue #' + issueNo + ' closed.');
               return;
             }
 
@@ -152,76 +155,16 @@ jobs:
 
             // ── 6. Post the detailed onboarding comment ─────────────────────
             const lines = [
-              '## \u2705 You\'ve been assigned \u2014 Issue #' + issueNo,
+              `@${opener}, you have been assigned to this issue.`,
               '',
-              'Hi @' + opener + '! \uD83D\uDC4B You\'ve been **automatically assigned** to this issue.',
-              'Here\'s everything you need to know to contribute successfully. Please read carefully.',
+              `- **Difficulty:** \`${level}\``,
+              `- **Deadline:** ${maxDays} days (\`${deadlineStr}\`)`,
+              `- **Warning sent after:** ${warnDays} days of inactivity`,
               '',
-              '---',
+              `Note: Please [search for similar issues/PRs](${searchURL}) before coding to avoid duplicate work.`,
               '',
-              '### \uD83D\uDCCB Assignment Summary',
-              '',
-              '| Field | Value |',
-              '|-------|-------|',
-              '| **Assigned to** | @' + opener + ' |',
-              '| **Difficulty** | ' + levelEmoji + ' `' + level + '` |',
-              '| **Deadline** | **' + maxDays + ' days** from now \u2192 `' + deadlineStr + '` |',
-              '| **Warning sent at** | ' + warnDays + ' day' + (warnDays > 1 ? 's' : '') + ' of inactivity |',
-              '',
-              '---',
-              '',
-              '### \u26a0\ufe0f IMPORTANT: Duplicate Check',
-              '',
-              '> **Before you start coding**, please verify this is not already being worked on or solved elsewhere.',
-              '',
-              '\uD83D\uDD0D **[Search for similar issues and PRs \u2192](' + searchURL + ')**',
-              '',
-              '**Check both:**',
-              '- Open issues & PRs that solve the same problem',
-              '- Closed issues where this was already fixed',
-              '',
-              'If this turns out to be a **duplicate**, your PR may be **closed without merge** even after all your hard work.',
-              'This happens when two contributors unknowingly solve the same problem. **You can avoid it by searching first.**',
-              '',
-              '---',
-              '',
-              '### \u23f1\ufe0f Time Limits & Consequences',
-              '',
-              'This is a **`' + level + '`** difficulty issue. The following deadlines apply:',
-              '',
-              '| Event | Timeline |',
-              '|-------|----------|',
-              '| \uD83D\uDFE1 **Warning comment** posted by bot | After **' + warnDays + ' day' + (warnDays > 1 ? 's' : '') + '** of no activity |',
-              '| \uD83D\uDD34 **Auto-unassigned** | After **' + maxDays + ' days** of no activity |',
-              '| \u267B\ufe0f Issue reassigned to next contributor | Immediately after unassignment |',
-              '',
-              '**Activity = any of the following:**',
-              '- \uD83D\uDCAC Dropping a progress comment on this issue',
-              '- \uD83D\uDD27 Opening a Draft PR with `Closes #' + issueNo + '` in the description',
-              '- \uD83D\uDCDD Pushing commits to a branch linked to this issue',
-              '',
-              '> If you are unable to complete the work by the deadline (exams, personal emergency, etc.),',
-              '> **please comment saying so** \u2014 maintainers can extend your deadline manually. We are human too! \uD83E\uDD1D',
-              '',
-              '---',
-              '',
-              '### \uD83D\uDE80 How to Deliver Quality Work',
-              '',
-              '1. **Fork & branch:** `git checkout -b fix/issue-' + issueNo + '-brief-description`',
-              '2. **Run tests locally:** `npm run test -w web` \u2014 all tests must pass before you PR',
-              '3. **Open a Draft PR early** with `Closes #' + issueNo + '` \u2014 this signals you\'re working and resets the inactivity timer',
-              '4. **Link the issue in your PR description** using `Closes #' + issueNo + '` or `Fixes #' + issueNo + '`',
-              '5. **Do not open a PR** without being assigned \u2014 it will be auto-closed by our bot',
-              '',
-              '---',
-              '',
-              '### \uD83D\uDCDE Need Help?',
-              '',
-              '- \uD83D\uDCAC **Discord:** [Join SahiDawa Discord](https://discord.gg/dvbDuJVwNa) \u2014 fastest way to reach maintainers',
-              '- \uD83D\uDCD6 **Docs:** [CONTRIBUTING.md](https://github.com/' + owner + '/' + repo + '/blob/main/CONTRIBUTING.md)',
-              '- \uD83D\uDCA1 **Discussions:** [GitHub Discussions](https://github.com/' + owner + '/' + repo + '/discussions)',
-              '',
-              'Good luck! We\'re excited to review your contribution. \uD83E\uDE7A\uD83C\uDDEE\uD83C\uDDF3'
+              'To keep your assignment active, post a progress comment or open a linked Draft PR.',
+              'Do not open a PR without being assigned to the issue.'
             ];
 
             await github.rest.issues.createComment({

@@ -1,6 +1,7 @@
 import app from "./app";
 import { createGracefulShutdown } from "./gracefulShutdown";
 import logger from "./utils/logger";
+import { startAlertBroadcaster } from "./cron/alert-broadcaster";
 import { connectRedis } from "./utils/redis";
 import { warmCache } from "./services/cache.service";
 
@@ -14,6 +15,8 @@ if (process.env.NODE_ENV !== "test") {
         await connectRedis();
         await warmCache();
     });
+
+    startAlertBroadcaster();
 
     const gracefulShutdown = createGracefulShutdown(server);
 

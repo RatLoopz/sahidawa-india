@@ -12,6 +12,10 @@ const medicineStatusSchema = z.object({
     status: z.enum(["safe", "suspicious", "recalled", "pending_review"]),
 });
 
+const pharmacyStatusSchema = z.object({
+    status: z.enum(["approved", "rejected"]),
+});
+
 const medicineSchema = z.object({
     brand_name: z.string().min(1),
     generic_name: z.string().min(1),
@@ -88,9 +92,14 @@ export const updateReportStatus = async (
 
         const { status } = parsed.data;
 
+        const updateFields: Record<string, unknown> = { status };
+        if (status === "verified_fake") {
+            updateFields.is_escalated = false;
+        }
+
         const { data, error } = await supabase
             .from("counterfeit_reports")
-            .update({ status })
+            .update(updateFields)
             .eq("id", id)
             .select()
             .single();
@@ -114,15 +123,23 @@ export const updateReportStatus = async (
         );
 
         // --- DISTRICT ALERT LOGIC ---
+        // Only reports that passed validation (low risk score) contribute to
+        // district alerts. Artificially amplified or duplicate reports should
+        // not directly escalate public risk indicators.
         if (status === "verified_fake" && data.district) {
             const { count } = await supabase
                 .from("counterfeit_reports")
                 .select("*", { count: "exact", head: true })
                 .eq("district", data.district)
-                .eq("status", "verified_fake");
+                .eq("status", "verified_fake")
+                .eq("is_escalated", false);
 
-            if (count && count >= 3) {
-                const alertLevel = count >= 10 ? "high" : "medium";
+            // Increased threshold: require 5 validated reports (was 3) so that
+            // a small cluster of reports cannot trigger public panic signals.
+            // Also requires is_escalated = false — reports flagged by the
+            // validation service (burst/duplicate patterns) are excluded.
+            if (count && count >= 5) {
+                const alertLevel = count >= 15 ? "high" : "medium";
 
                 // Replace the previous check-then-insert pattern with a single upsert.
                 // The old pattern had a TOCTOU race window: two concurrent admin actions
@@ -184,6 +201,81 @@ export const getAllMedicines = async (req: AuthenticatedRequest, res: Response):
         });
     } catch (err) {
         console.error("Error in getAllMedicines:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const getPendingPharmacies = async (
+    req: AuthenticatedRequest,
+    res: Response
+): Promise<void> => {
+    try {
+        const { data, error } = await supabase
+            .from("pharmacies")
+            .select(
+                "id, name, license_id, address, district, state, phone_number, is_verified, status, created_at"
+            )
+            .eq("status", "pending")
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            res.status(500).json({ error: "Failed to fetch pending pharmacies" });
+            return;
+        }
+
+        res.json({ pharmacies: data ?? [] });
+    } catch (err) {
+        console.error("Error in getPendingPharmacies:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const updatePharmacyStatus = async (
+    req: AuthenticatedRequest,
+    res: Response
+): Promise<void> => {
+    try {
+        const { id } = req.params;
+        const parsed = pharmacyStatusSchema.safeParse(req.body);
+
+        if (!parsed.success) {
+            res.status(400).json({ error: "Invalid status", details: parsed.error.issues });
+            return;
+        }
+
+        const { status } = parsed.data;
+
+        const { data, error } = await supabase
+            .from("pharmacies")
+            .update({
+                status,
+                is_verified: status === "approved",
+            })
+            .eq("id", id)
+            .select()
+            .single();
+
+        if (error) {
+            res.status(500).json({ error: "Failed to update pharmacy" });
+            return;
+        }
+
+        if (!data) {
+            res.status(404).json({ error: "Pharmacy not found" });
+            return;
+        }
+
+        await logAdminAction(
+            req.user!.id,
+            `PHARMACY_${status.toUpperCase()}`,
+            "PHARMACY",
+            id as string,
+            { status }
+        );
+
+        res.json({ message: "Pharmacy status updated", pharmacy: data });
+    } catch (err) {
+        console.error("Error in updatePharmacyStatus:", err);
         res.status(500).json({ error: "Internal server error" });
     }
 };

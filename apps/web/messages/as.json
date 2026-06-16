@@ -469,6 +469,7 @@
             "description": "Supabase URL বা anon key নাই। চাইন ইন কৰাৰ আগতে পৰিৱেশ চলকসমূহ যোগ কৰক।"
         },
         "googleButton": "Google-ৰে অব্যাহত ৰাখক",
+        "githubButton": "GitHub-ৰে অব্যাহত ৰাখক",
         "emailSeparator": "বা ইমেইলৰে অব্যাহত ৰাখক",
         "emailLabel": "ইমেইল ঠিকনা",
         "emailPlaceholder": "you@example.com",
@@ -644,7 +645,7 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
-    "howItWorks":{
+    "howItWorks": {
         "badge": "নিৰাপদ স্বাস্থ্যসেৱা • AI-চালিত",
         "heroTitle": "<highlight>SahiDawa</highlight> কেনেদৰে কাম কৰে",
         "heroSubtitle": "জানক কেনেকৈ SahiDawa-এ ব্যৱহাৰকাৰীসকলক ঔষধ পৰীক্ষা কৰিবলৈ, বিশ্বাসযোগ্য ফাৰ্মাচী বিচাৰি উলিয়াবলৈ, চৰকাৰী সতৰ্কবাণী লাভ কৰিবলৈ আৰু AI-চালিত স্বাস্থ্য সঁজুলি ব্যৱহাৰ কৰি নকল ঔষধৰ পৰা সুৰক্ষিত হৈ থাকিবলৈ সহায় কৰে।",
@@ -667,7 +668,7 @@
             },
             "pharmacies": {
                 "title": "ফাৰ্মাচী বিচাৰি উলিয়াওক",
-                "description": "জন ঔষধি কেন্দ্ৰ আৰু আচল ঔষধ উপলব্ধ থকা আপোনাৰ ওচৰৰ প্ৰমাণিত ফাৰ্মাচীসমূহৰ সন্ধান কৰক।Locate Jan Aushadhi stores and verified nearby pharmacies stocking real medicines."
+                "description": "জন ঔষধি কেন্দ্ৰ আৰু আচল ঔষধ উপলব্ধ থকা আপোনাৰ ওচৰৰ প্ৰমাণিত ফাৰ্মাচীসমূহৰ সন্ধান কৰক।"
             },
             "protect": {
                 "title": "সুৰক্ষিত হৈ থাকক",
@@ -680,7 +681,7 @@
             "cards": {
                 "verifyMedicines": {
                     "title": "ঔষধ পৰীক্ষা কৰা",
-                    "description": "Instantly verify medicine authenticity using barcode, batch number, or medicine details."
+                    "description": "বাৰক'ড, বেচ নম্বৰ, বা ঔষধৰ বিৱৰণ ব্যৱহাৰ কৰি ঔষধৰ সত্যতা তৎক্ষণাত পৰীক্ষা কৰক।"
                 },
                 "scanOrSearch": {
                     "title": "স্কেন বা সন্ধান কৰক",
@@ -713,37 +714,45 @@
             }
         }
     },
-  "medicineSafety": {
-    "guideTitle": "ব্যৱহাৰ আৰু সুৰক্ষা নিৰ্দেশিকা",
-    "noDosageInfo": "এই বয়স গোটৰ বাবে ড'জৰ তথ্য উপলব্ধ নহয়।",
-    "closeButton": "সুৰক্ষা তথ্য বন্ধ কৰক",
-    "tabs": {
-      "sideEffects": "পাৰ্শ্ব প্ৰতিক্ৰিয়া",
-      "dosage": "ড'জ",
-      "dietaryIntake": "খাদ্য গ্ৰহণ"
+    "medicineSafety": {
+        "guideTitle": "ব্যৱহাৰ আৰু সুৰক্ষা নিৰ্দেশিকা",
+        "noDosageInfo": "এই বয়স গোটৰ বাবে ড'জৰ তথ্য উপলব্ধ নহয়।",
+        "closeButton": "সুৰক্ষা তথ্য বন্ধ কৰক",
+        "tabs": {
+            "sideEffects": "পাৰ্শ্ব প্ৰতিক্ৰিয়া",
+            "dosage": "ড'জ",
+            "dietaryIntake": "খাদ্য গ্ৰহণ"
+        },
+        "sideEffects": {
+            "standardSymptoms": "সাধাৰণ লক্ষণসমূহ",
+            "severeRedFlags": "গুৰুতৰ সতৰ্কবাণী — তৎক্ষণাত চিকিৎসা সহায় লওক"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "শিশু",
+                "adults": "প্ৰাপ্তবয়স্ক",
+                "elderly": "বয়োজ্যেষ্ঠ"
+            },
+            "doseLabel": "ড'জ:",
+            "frequencyLabel": "আৱৃত্তি:",
+            "notesHeading": "টোকা",
+            "warningsHeading": "সতৰ্কবাণী"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "খাদ্য গ্ৰহণ"
+            },
+            "storageHeading": "সংৰক্ষণ",
+            "pregnancyHeading": "গৰ্ভাৱস্থা"
+        },
+        "disclaimer": "এই তথ্য শিক্ষামূলক আৰু পেছাদাৰী চিকিৎসা পৰামৰ্শৰ বিকল্প নহয়।"
     },
-    "sideEffects": {
-      "standardSymptoms": "সাধাৰণ লক্ষণসমূহ",
-      "severeRedFlags": "গুৰুতৰ সতৰ্কবাণী — তৎক্ষণাত চিকিৎসা সহায় লওক"
-    },
-    "dosage": {
-      "tabs": {
-        "kids": "শিশু",
-        "adults": "প্ৰাপ্তবয়স্ক",
-        "elderly": "বয়োজ্যেষ্ঠ"
-      },
-      "doseLabel": "ড'জ:",
-      "frequencyLabel": "আৱৃত্তি:",
-      "notesHeading": "টোকা",
-      "warningsHeading": "সতৰ্কবাণী"
-    },
-    "dietary": {
-      "tabs": {
-        "dietaryIntake": "খাদ্য গ্ৰহণ"
-      },
-      "storageHeading": "সংৰক্ষণ",
-      "pregnancyHeading": "গৰ্ভাৱস্থা"
-    },
-    "disclaimer": "এই তথ্য শিক্ষামূলক আৰু পেছাদাৰী চিকিৎসা পৰামৰ্শৰ বিকল্প নহয়।"
-  }
+    "Map": {
+        "errors": {
+            "denied": "স্থানৰ অনুমতি প্ৰত্যাখ্যান কৰা হৈছে। অনুগ্ৰহ কৰি ব্ৰাউজাৰ ছেটিংছত ইয়াক সক্ৰিয় কৰক।",
+            "unavailable": "স্থানৰ তথ্য উপলব্ধ নহয়।",
+            "timeout": "স্থানৰ অনুৰোধৰ সময়সীমা পাৰ হৈ গৈছে।",
+            "generic": "আপোনাৰ স্থান লাভ কৰিব পৰা নাই।"
+        }
+    }
 }

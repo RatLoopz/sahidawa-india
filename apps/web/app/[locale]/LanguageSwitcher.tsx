@@ -18,6 +18,7 @@ const languages = [
     { code: "ur", label: "Urdu", native: "اردو" },
     { code: "or", label: "Odia", native: "ଓଡ଼ିଆ" },
     { code: "kn", label: "Kannada", native: "ಕನ್ನಡ" },
+    { code: "kok", label: "Konkani", native: "कोंकणी" },
     { code: "pa", label: "Punjabi", native: "ਪੰਜਾਬੀ" },
     { code: "as", label: "Assamese", native: "অসমীয়া" },
 ];

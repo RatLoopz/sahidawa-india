@@ -463,6 +463,7 @@
             "description": "Supabase URL ਜਾਂ anon key ਉਪਲਬਧ ਨਹੀਂ। ਸਾਈਨ ਇਨ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ environment variables ਸ਼ਾਮਲ ਕਰੋ।"
         },
         "googleButton": "Google ਨਾਲ ਜਾਰੀ ਰੱਖੋ",
+        "githubButton": "GitHub ਨਾਲ ਜਾਰੀ ਰੱਖੋ",
         "emailSeparator": "ਜਾਂ ਈਮੇਲ ਨਾਲ ਜਾਰੀ ਰੱਖੋ",
         "emailLabel": "ਈਮੇਲ ਪਤਾ",
         "emailPlaceholder": "you@example.com",
@@ -638,7 +639,7 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
-    "howItWorks":{
+    "howItWorks": {
         "badge": "ਸੁਰੱਖਿਅਤ ਸਿਹਤ ਸੰਭਾਲ • AI ਸੰਚਾਲਿਤ",
         "heroTitle": "<highlight>SahiDawa</highlight> ਕਿਵੇਂ ਕੰਮ ਕਰਦਾ ਹੈ",
         "heroSubtitle": "ਜਾਣੋ ਕਿ ਕਿਵੇਂ SahiDawa ਵਰਤੋਂਕਾਰਾਂ ਨੂੰ ਦਵਾਈਆਂ ਦੀ ਪ੍ਰਮਾਣਿਕਤਾ ਦੀ ਜਾਂਚ ਕਰਨ, ਭਰੋਸੇਮੰਦ ਫਾਰਮੇਸੀਆਂ ਲੱਭਣ, ਸਰਕਾਰੀ ਅਲਰਟ ਪ੍ਰਾਪਤ ਕਰਨ, ਅਤੇ AI-ਸੰਚਾਲਿਤ ਸਿਹਤ ਸਾਧਨਾਂ ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਨਕਲੀ ਦਵਾਈਆਂ ਤੋਂ ਸੁਰੱਖਿਅਤ ਰਹਿਣ ਵਿੱਚ ਮਦਦ ਕਰਦਾ ਹੈ।",
@@ -707,37 +708,45 @@
             }
         }
     },
-  "medicineSafety": {
-    "guideTitle": "ਵਰਤੋਂ ਅਤੇ ਸੁਰੱਖਿਆ ਗਾਈਡ",
-    "noDosageInfo": "ਇਸ ਉਮਰ ਸਮੂਹ ਲਈ ਖੁਰਾਕ ਦੀ ਜਾਣਕਾਰੀ ਉਪਲਬਧ ਨਹੀਂ ਹੈ।",
-    "closeButton": "ਸੁਰੱਖਿਆ ਜਾਣਕਾਰੀ ਬੰਦ ਕਰੋ",
-    "tabs": {
-      "sideEffects": "ਸਾਈਡ ਇਫੈਕਟ",
-      "dosage": "ਖੁਰਾਕ",
-      "dietaryIntake": "ਖੁਰਾਕੀ ਸੇਵਨ"
+    "medicineSafety": {
+        "guideTitle": "ਵਰਤੋਂ ਅਤੇ ਸੁਰੱਖਿਆ ਗਾਈਡ",
+        "noDosageInfo": "ਇਸ ਉਮਰ ਸਮੂਹ ਲਈ ਖੁਰਾਕ ਦੀ ਜਾਣਕਾਰੀ ਉਪਲਬਧ ਨਹੀਂ ਹੈ।",
+        "closeButton": "ਸੁਰੱਖਿਆ ਜਾਣਕਾਰੀ ਬੰਦ ਕਰੋ",
+        "tabs": {
+            "sideEffects": "ਸਾਈਡ ਇਫੈਕਟ",
+            "dosage": "ਖੁਰਾਕ",
+            "dietaryIntake": "ਖੁਰਾਕੀ ਸੇਵਨ"
+        },
+        "sideEffects": {
+            "standardSymptoms": "ਆਮ ਲੱਛਣ",
+            "severeRedFlags": "ਗੰਭੀਰ ਚੇਤਾਵਨੀਆਂ — ਤੁਰੰਤ ਡਾਕਟਰੀ ਮਦਦ ਲਵੋ"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "ਬੱਚੇ",
+                "adults": "ਵਯਸਕ",
+                "elderly": "ਬਜ਼ੁਰਗ"
+            },
+            "doseLabel": "ਖੁਰਾਕ:",
+            "frequencyLabel": "ਆਵ੍ਰਿਤੀ:",
+            "notesHeading": "ਨੋਟਸ",
+            "warningsHeading": "ਚੇਤਾਵਨੀਆਂ"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "ਖੁਰਾਕੀ ਸੇਵਨ"
+            },
+            "storageHeading": "ਸਟੋਰੇਜ",
+            "pregnancyHeading": "ਗਰਭਾਵਸਥਾ"
+        },
+        "disclaimer": "ਇਹ ਜਾਣਕਾਰੀ ਸਿੱਖਿਆਤਮਕ ਹੈ ਅਤੇ ਪੇਸ਼ੇਵਰ ਡਾਕਟਰੀ ਸਲਾਹ ਦਾ ਬਦਲ ਨਹੀਂ ਹੈ।"
     },
-    "sideEffects": {
-      "standardSymptoms": "ਆਮ ਲੱਛਣ",
-      "severeRedFlags": "ਗੰਭੀਰ ਚੇਤਾਵਨੀਆਂ — ਤੁਰੰਤ ਡਾਕਟਰੀ ਮਦਦ ਲਵੋ"
-    },
-    "dosage": {
-      "tabs": {
-        "kids": "ਬੱਚੇ",
-        "adults": "ਵਯਸਕ",
-        "elderly": "ਬਜ਼ੁਰਗ"
-      },
-      "doseLabel": "ਖੁਰਾਕ:",
-      "frequencyLabel": "ਆਵ੍ਰਿਤੀ:",
-      "notesHeading": "ਨੋਟਸ",
-      "warningsHeading": "ਚੇਤਾਵਨੀਆਂ"
-    },
-    "dietary": {
-      "tabs": {
-        "dietaryIntake": "ਖੁਰਾਕੀ ਸੇਵਨ"
-      },
-      "storageHeading": "ਸਟੋਰੇਜ",
-      "pregnancyHeading": "ਗਰਭਾਵਸਥਾ"
-    },
-    "disclaimer": "ਇਹ ਜਾਣਕਾਰੀ ਸਿੱਖਿਆਤਮਕ ਹੈ ਅਤੇ ਪੇਸ਼ੇਵਰ ਡਾਕਟਰੀ ਸਲਾਹ ਦਾ ਬਦਲ ਨਹੀਂ ਹੈ।"
-  }
+    "Map": {
+        "errors": {
+            "denied": "ਲੋਕੇਸ਼ਨ ਐਕਸੈਸ ਦੀ ਇਜਾਜ਼ਤ ਨਹੀਂ ਦਿੱਤੀ ਗਈ। ਕਿਰਪਾ ਕਰਕੇ ਬ੍ਰਾਊਜ਼ਰ ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਇਸਨੂੰ ਚਾਲੂ ਕਰੋ।",
+            "unavailable": "ਲੋਕੇਸ਼ਨ ਦੀ ਜਾਣਕਾਰੀ ਉਪਲਬਧ ਨਹੀਂ ਹੈ।",
+            "timeout": "ਲੋਕੇਸ਼ਨ ਦੀ ਬੇਨਤੀ ਦਾ ਸਮਾਂ ਸਮਾਪਤ ਹੋ ਗਿਆ ਹੈ।",
+            "generic": "ਤੁਹਾਡੀ ਲੋਕੇਸ਼ਨ ਪ੍ਰਾਪਤ ਕਰਨ ਵਿੱਚ ਅਸਮਰਥ।"
+        }
+    }
 }

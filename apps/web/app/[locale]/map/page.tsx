@@ -1,5 +1,5 @@
 "use client";
-
+import { useTranslations } from "next-intl";
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import {
     Search,
@@ -23,7 +23,7 @@ import PharmacyMap, {
     type MapBounds,
     type RiskHotspot,
 } from "./PharmacyMap";
-import PharmacyPanels from "./PharmacyPanels";
+import PharmacyPanels, { calculateTrustBreakdown } from "./PharmacyPanels";
 import { fetchPharmacies, fetchPharmaciesInBounds, type OverpassPharmacy } from "./overpassApi";
 import {
     fetchVerifiedPharmacies,
@@ -123,6 +123,8 @@ function toPharmacy(op: OverpassPharmacy & { _distanceFormatted?: string }): Pha
         coordinates: { lat: op.lat, lng: op.lng },
         address: op.address,
         phone: op.phone,
+        operatingHours: op.openingHours,
+        website: op.website,
     };
 }
 
@@ -256,14 +258,21 @@ type AdvancedFilters = {
     hasAddress: boolean;
     hasPhone: boolean;
     withinFiveKm: boolean;
+    lowRisk: boolean;
+    mediumRisk: boolean;
+    highRisk: boolean;
 };
 
 export default function PharmacyMapPage() {
+    const t = useTranslations("Map");
     const [activeFilter, setActiveFilter] = useState<"all" | "verified" | "govt" | "named">("all");
     const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({
         hasAddress: false,
         hasPhone: false,
         withinFiveKm: false,
+        lowRisk: false,
+        mediumRisk: false,
+        highRisk: false,
     });
     const [showFilterPanel, setShowFilterPanel] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
@@ -280,6 +289,7 @@ export default function PharmacyMapPage() {
     const [fetchError, setFetchError] = useState<string | null>(null);
     const [showSearchArea, setShowSearchArea] = useState(false);
     const [pharmacyCount, setPharmacyCount] = useState(0);
+    const [radiusKm, setRadiusKm] = useState<number>(10);
     const [heatmapMode, setHeatmapMode] = useState<HeatmapMode>("none");
 
     // ── Offline cache state ───────────────────────────────────────────────────
@@ -303,71 +313,91 @@ export default function PharmacyMapPage() {
         }
     }, []);
 
-    const fetchNearby = useCallback(async (lat: number, lng: number, radius = 10000) => {
-        setIsLoading(true);
-        setFetchError(null);
-        setShowSearchArea(false);
-        try {
-            const radiusKm = Math.round(radius / 1000);
-            const [verifiedResult, osmResult, ashaResult] = await Promise.allSettled([
-                fetchVerifiedPharmacies(lat, lng, radiusKm),
-                fetchPharmacies(lat, lng, radius),
-                fetchNearbyAshaWorkers(lat, lng, radiusKm),
-            ]);
+    const restoreFromCache = useCallback(async (cacheKey: string): Promise<boolean> => {
+        const cached = await loadFromCache(cacheKey);
+        if (!cached) return false;
 
-            const verified =
-                verifiedResult.status === "fulfilled"
-                    ? verifiedResult.value.map((vp, i) => toVerifiedPharmacy(vp, -(i + 1)))
-                    : [];
-            const osm = osmResult.status === "fulfilled" ? osmResult.value.map(toPharmacy) : [];
-            const asha =
-                ashaResult.status === "fulfilled" ? ashaResult.value.map(toAshaWorker) : [];
-
-            const dedupedOsm = deduplicateOsm(verified, osm);
-            const merged = [...verified, ...dedupedOsm].sort((a, b) => {
-                if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
-                return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
-            });
-
-            if (osmResult.status === "rejected") {
-                setFetchError("Live search temporarily offline. Showing verified partners only.");
-                setTimeout(() => setFetchError(null), 6000);
-            } else if (merged.length === 0) {
-                setFetchError("No pharmacies found in this area. Try searching a wider region.");
-                setTimeout(() => setFetchError(null), 5000);
-            }
-
-            setPharmacies(merged);
-            setAshaWorkers(asha);
-            setPharmacyCount(merged.length);
-            initialFetchDone.current = true;
-
-            // ── Save to IndexedDB cache on successful fetch ───────────────
-            const cacheKey = buildCacheKey(lat, lng);
-            await saveToCache(cacheKey, merged, asha);
-            setIsShowingCached(false);
-        } catch (err) {
-            console.error("Critical error in pharmacy rendering:", err);
-
-            // ── Offline fallback: try loading from IndexedDB ──────────────
-            const cacheKey = buildCacheKey(lat, lng);
-            const cached = await loadFromCache(cacheKey);
-            if (cached) {
-                setPharmacies(cached.pharmacies);
-                setAshaWorkers(cached.ashaWorkers);
-                setPharmacyCount(cached.pharmacies.length);
-                setIsShowingCached(true);
-                initialFetchDone.current = true;
-                setIsLoading(false);
-                return;
-            }
-
-            setFetchError("Could not load pharmacies. Try again.");
-            setTimeout(() => setFetchError(null), 5000);
-        } finally {
-            setIsLoading(false);
-        }
+        setPharmacies(cached.pharmacies);
+        setAshaWorkers(cached.ashaWorkers);
+        setPharmacyCount(cached.pharmacies.length);
+        setIsShowingCached(true);
+        initialFetchDone.current = true;
+        return true;
     }, []);
+
+    const fetchNearby = useCallback(
+        async (lat: number, lng: number, radius = 10000) => {
+            setIsLoading(true);
+            setFetchError(null);
+            setShowSearchArea(false);
+            try {
+                const radiusKm = Math.round(radius / 1000);
+                const cacheKey = buildCacheKey(lat, lng);
+                const [verifiedResult, osmResult, ashaResult] = await Promise.allSettled([
+                    fetchVerifiedPharmacies(lat, lng, radiusKm),
+                    fetchPharmacies(lat, lng, radius),
+                    fetchNearbyAshaWorkers(lat, lng, radiusKm),
+                ]);
+
+                const verified =
+                    verifiedResult.status === "fulfilled"
+                        ? verifiedResult.value.map((vp, i) => toVerifiedPharmacy(vp, -(i + 1)))
+                        : [];
+                const osm = osmResult.status === "fulfilled" ? osmResult.value.map(toPharmacy) : [];
+                const asha =
+                    ashaResult.status === "fulfilled" ? ashaResult.value.map(toAshaWorker) : [];
+
+                const dedupedOsm = deduplicateOsm(verified, osm);
+                const merged = [...verified, ...dedupedOsm].sort((a, b) => {
+                    if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
+                    return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
+                });
+                const livePharmacyLoadFailed = osmResult.status === "rejected";
+                const shouldTryCache = merged.length === 0 && livePharmacyLoadFailed;
+
+                if (shouldTryCache && (await restoreFromCache(cacheKey))) {
+                    return;
+                }
+
+                if (livePharmacyLoadFailed) {
+                    setFetchError(
+                        "Live search temporarily offline. Showing verified partners only."
+                    );
+                    setTimeout(() => setFetchError(null), 6000);
+                } else if (merged.length === 0) {
+                    setFetchError(
+                        "No pharmacies found in this area. Try searching a wider region."
+                    );
+                    setTimeout(() => setFetchError(null), 5000);
+                }
+
+                setPharmacies(merged);
+                setAshaWorkers(asha);
+                setPharmacyCount(merged.length);
+                initialFetchDone.current = true;
+
+                // ── Save to IndexedDB cache on successful fetch ───────────────
+                if (!shouldTryCache) {
+                    await saveToCache(cacheKey, merged, asha);
+                }
+                setIsShowingCached(false);
+            } catch (err) {
+                console.error("Critical error in pharmacy rendering:", err);
+
+                // ── Offline fallback: try loading from IndexedDB ──────────────
+                const cacheKey = buildCacheKey(lat, lng);
+                if (await restoreFromCache(cacheKey)) {
+                    return;
+                }
+
+                setFetchError("Could not load pharmacies. Try again.");
+                setTimeout(() => setFetchError(null), 5000);
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [restoreFromCache]
+    );
 
     // ── Clear cached banner when back online ─────────────────────────────────
     useEffect(() => {
@@ -376,100 +406,125 @@ export default function PharmacyMapPage() {
         }
     }, [isOffline, isShowingCached]);
     useEffect(() => {
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            const latParam = params.get("lat");
+            const lngParam = params.get("lng");
+            if (latParam && lngParam) {
+                const lat = parseFloat(latParam);
+                const lng = parseFloat(lngParam);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    const loc = { lat, lng };
+                    setUserLocation(loc);
+                    fetchNearby(lat, lng);
+                    return;
+                }
+            }
+        }
+
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
                     const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                     setUserLocation(loc);
-                    fetchNearby(loc.lat, loc.lng);
+                    fetchNearby(loc.lat, loc.lng, radiusKm * 1000);
                 },
                 () => {
-                    fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
+                    fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radiusKm * 1000);
                 },
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
             );
         } else {
-            fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
+            fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radiusKm * 1000);
         }
     }, [fetchNearby]);
 
-    const fetchInBounds = useCallback(async (bounds: MapBounds) => {
-        setIsLoading(true);
-        setFetchError(null);
-        setShowSearchArea(false);
-        try {
-            const centerLat = bounds.center.lat;
-            const centerLng = bounds.center.lng;
-            const radiusKm = 15;
-            const [verifiedResult, osmResult, ashaResult] = await Promise.allSettled([
-                fetchVerifiedPharmaciesInBounds(
-                    bounds.south,
-                    bounds.west,
-                    bounds.north,
-                    bounds.east
-                ),
-                fetchPharmaciesInBounds(bounds.south, bounds.west, bounds.north, bounds.east),
-                fetchNearbyAshaWorkers(centerLat, centerLng, radiusKm),
-            ]);
+    const fetchInBounds = useCallback(
+        async (bounds: MapBounds) => {
+            setIsLoading(true);
+            setFetchError(null);
+            setShowSearchArea(false);
+            try {
+                const centerLat = bounds.center.lat;
+                const centerLng = bounds.center.lng;
+                const radiusKm = 15;
+                const cacheKey = buildCacheKey(centerLat, centerLng);
+                const [verifiedResult, osmResult, ashaResult] = await Promise.allSettled([
+                    fetchVerifiedPharmaciesInBounds(
+                        bounds.south,
+                        bounds.west,
+                        bounds.north,
+                        bounds.east
+                    ),
+                    fetchPharmaciesInBounds(bounds.south, bounds.west, bounds.north, bounds.east),
+                    fetchNearbyAshaWorkers(centerLat, centerLng, radiusKm),
+                ]);
 
-            const verified =
-                verifiedResult.status === "fulfilled"
-                    ? verifiedResult.value.map((vp, i) => toVerifiedPharmacy(vp, -(i + 1)))
-                    : [];
-            const osm = osmResult.status === "fulfilled" ? osmResult.value.map(toPharmacy) : [];
-            const asha =
-                ashaResult.status === "fulfilled" ? ashaResult.value.map(toAshaWorker) : [];
+                const verified =
+                    verifiedResult.status === "fulfilled"
+                        ? verifiedResult.value.map((vp, i) => toVerifiedPharmacy(vp, -(i + 1)))
+                        : [];
+                const osm = osmResult.status === "fulfilled" ? osmResult.value.map(toPharmacy) : [];
+                const asha =
+                    ashaResult.status === "fulfilled" ? ashaResult.value.map(toAshaWorker) : [];
 
-            const dedupedOsm = deduplicateOsm(verified, osm);
-            const merged = [...verified, ...dedupedOsm].sort((a, b) => {
-                if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
-                return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
-            });
+                const dedupedOsm = deduplicateOsm(verified, osm);
+                const merged = [...verified, ...dedupedOsm].sort((a, b) => {
+                    if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
+                    return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
+                });
+                const livePharmacyLoadFailed = osmResult.status === "rejected";
+                const shouldTryCache = merged.length === 0 && livePharmacyLoadFailed;
 
-            if (osmResult.status === "rejected") {
-                setFetchError("Live search temporarily offline. Showing verified partners only.");
-                setTimeout(() => setFetchError(null), 6000);
-            } else if (merged.length === 0) {
-                setFetchError("No pharmacies found in this area. Try searching a wider region.");
+                if (shouldTryCache && (await restoreFromCache(cacheKey))) {
+                    return;
+                }
+
+                if (livePharmacyLoadFailed) {
+                    setFetchError(
+                        "Live search temporarily offline. Showing verified partners only."
+                    );
+                    setTimeout(() => setFetchError(null), 6000);
+                } else if (merged.length === 0) {
+                    setFetchError(
+                        "No pharmacies found in this area. Try searching a wider region."
+                    );
+                    setTimeout(() => setFetchError(null), 5000);
+                }
+
+                setPharmacies(merged);
+                setAshaWorkers(asha);
+                setPharmacyCount(merged.length);
+
+                // ── Save bounds result to cache too ───────────────────────────
+                if (!shouldTryCache) {
+                    await saveToCache(cacheKey, merged, asha);
+                }
+                setIsShowingCached(false);
+            } catch (err) {
+                console.error("Critical error in bound pharmacy rendering:", err);
+
+                // ── Offline fallback for bounds fetch ─────────────────────────
+                const centerLat = bounds.center.lat;
+                const centerLng = bounds.center.lng;
+                const cacheKey = buildCacheKey(centerLat, centerLng);
+                if (await restoreFromCache(cacheKey)) {
+                    return;
+                }
+
+                setFetchError("Could not load pharmacies. Try again.");
                 setTimeout(() => setFetchError(null), 5000);
-            }
-
-            setPharmacies(merged);
-            setAshaWorkers(asha);
-            setPharmacyCount(merged.length);
-
-            // ── Save bounds result to cache too ───────────────────────────
-            const cacheKey = buildCacheKey(centerLat, centerLng);
-            await saveToCache(cacheKey, merged, asha);
-            setIsShowingCached(false);
-        } catch (err) {
-            console.error("Critical error in bound pharmacy rendering:", err);
-
-            // ── Offline fallback for bounds fetch ─────────────────────────
-            const centerLat = bounds.center.lat;
-            const centerLng = bounds.center.lng;
-            const cacheKey = buildCacheKey(centerLat, centerLng);
-            const cached = await loadFromCache(cacheKey);
-            if (cached) {
-                setPharmacies(cached.pharmacies);
-                setAshaWorkers(cached.ashaWorkers);
-                setPharmacyCount(cached.pharmacies.length);
-                setIsShowingCached(true);
+            } finally {
                 setIsLoading(false);
-                return;
             }
-
-            setFetchError("Could not load pharmacies. Try again.");
-            setTimeout(() => setFetchError(null), 5000);
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
+        },
+        [restoreFromCache]
+    );
 
     // Geolocation
     const handleLocateUser = useCallback(() => {
         if (!navigator.geolocation) {
-            setLocationError("Geolocation is not supported by your browser");
+            setLocationError(t("errors.generic"));
             setTimeout(() => setLocationError(null), 3000);
             return;
         }
@@ -480,27 +535,27 @@ export default function PharmacyMapPage() {
                 const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                 setUserLocation(loc);
                 setIsLocating(false);
-                fetchNearby(loc.lat, loc.lng);
+                fetchNearby(loc.lat, loc.lng, radiusKm * 1000);
             },
             (err) => {
                 setIsLocating(false);
                 const messages: Record<number, string> = {
-                    1: "Location access denied. Please enable it in browser settings.",
-                    2: "Location information unavailable.",
-                    3: "Location request timed out.",
+                    1: t("errors.denied"),
+                    2: t("errors.unavailable"),
+                    3: t("errors.timeout"),
                 };
-                setLocationError(messages[err.code] || "Unable to get your location.");
+                setLocationError(messages[err.code] || t("errors.generic"));
                 setTimeout(() => setLocationError(null), 4000);
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
         );
-    }, [fetchNearby]);
+    }, [fetchNearby, radiusKm]);
 
     const handleMapReady = useCallback(() => {
         if (!initialFetchDone.current) {
-            fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
+            fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radiusKm * 1000);
         }
-    }, [fetchNearby]);
+    }, [fetchNearby, radiusKm]);
 
     const handleMapMoveEnd = useCallback((bounds: MapBounds) => {
         if (initialFetchDone.current) {
@@ -525,6 +580,21 @@ export default function PharmacyMapPage() {
         if (advancedFilters.withinFiveKm) {
             list = list.filter((p) => typeof p.distanceKm === "number" && p.distanceKm <= 5);
         }
+
+        // Trust / Risk score filtering (Option A)
+        const hasRiskFilter =
+            advancedFilters.lowRisk || advancedFilters.mediumRisk || advancedFilters.highRisk;
+        if (hasRiskFilter) {
+            list = list.filter((p) => {
+                const breakdown = calculateTrustBreakdown(p);
+                const score = breakdown.score;
+                if (advancedFilters.lowRisk && score >= 80) return true;
+                if (advancedFilters.mediumRisk && score >= 50 && score < 80) return true;
+                if (advancedFilters.highRisk && score < 50) return true;
+                return false;
+            });
+        }
+
         if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase();
             list = list.filter(
@@ -725,6 +795,9 @@ export default function PharmacyMapPage() {
                                             hasAddress: false,
                                             hasPhone: false,
                                             withinFiveKm: false,
+                                            lowRisk: false,
+                                            mediumRisk: false,
+                                            highRisk: false,
                                         })
                                     }
                                     className="text-[11px] font-semibold text-(--color-text-secondary) transition-colors hover:text-(--color-text-primary)"
@@ -733,10 +806,37 @@ export default function PharmacyMapPage() {
                                 </button>
                             </div>
                             <div className="space-y-2">
+                                <p className="mt-1 text-[10px] font-bold tracking-wider text-(--color-text-secondary)/80 uppercase">
+                                    Location & Details
+                                </p>
                                 {[
                                     ["hasAddress", "Has address details"],
                                     ["hasPhone", "Has phone number"],
                                     ["withinFiveKm", "Within 5 km"],
+                                ].map(([key, label]) => (
+                                    <label
+                                        key={key}
+                                        className="flex cursor-pointer items-center justify-between rounded-xl bg-(--color-surface-muted) px-3 py-2 text-xs font-semibold text-(--color-text-secondary) hover:bg-(--color-border-muted)"
+                                    >
+                                        <span>{label}</span>
+                                        <input
+                                            type="checkbox"
+                                            checked={advancedFilters[key as keyof AdvancedFilters]}
+                                            onChange={() =>
+                                                updateAdvancedFilter(key as keyof AdvancedFilters)
+                                            }
+                                            className="h-4 w-4 accent-emerald-600"
+                                        />
+                                    </label>
+                                ))}
+
+                                <p className="mt-2 text-[10px] font-bold tracking-wider text-(--color-text-secondary)/80 uppercase">
+                                    Trust / Risk Level
+                                </p>
+                                {[
+                                    ["lowRisk", "🟢 Low Risk (Score ≥ 80%)"],
+                                    ["mediumRisk", "🟡 Medium Risk (Score 50-79%)"],
+                                    ["highRisk", "🔴 High Risk (Score < 50%)"],
                                 ].map(([key, label]) => (
                                     <label
                                         key={key}
@@ -834,7 +934,34 @@ export default function PharmacyMapPage() {
                                 </div>
                             </div>
                         )}
-
+                        {/* ── Radius slider + reset ── */}
+                        <div className="absolute bottom-6 left-1/2 z-1000 flex -translate-x-1/2 items-center gap-3 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page)/90 px-4 py-2.5 shadow-xl backdrop-blur-md">
+                            <span className="text-[11px] font-bold whitespace-nowrap text-(--color-text-secondary)">
+                                Radius
+                            </span>
+                            <input
+                                type="range"
+                                min={1}
+                                max={25}
+                                step={1}
+                                value={radiusKm}
+                                onChange={(e) => setRadiusKm(Number(e.target.value))}
+                                className="w-28 accent-emerald-600"
+                                aria-label="Search radius in kilometres"
+                            />
+                            <span className="w-10 text-xs font-bold text-emerald-600">
+                                {radiusKm} km
+                            </span>
+                            <button
+                                onClick={handleLocateUser}
+                                disabled={isLocating}
+                                className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-1.5 text-[11px] font-bold text-white transition-all hover:bg-emerald-700 active:scale-95 disabled:opacity-60"
+                                aria-label="Reset to my location"
+                            >
+                                <Navigation size={12} />
+                                My Location
+                            </button>
+                        </div>
                         <div className="absolute top-4 right-4 z-1000 flex flex-col gap-2">
                             <button
                                 data-testid="mobile-pharmacy-list-toggle"

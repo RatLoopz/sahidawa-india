@@ -463,6 +463,7 @@
             "description": "Supabase URL లేదా anon key లేదు. సైన్ ఇన్ చేయడానికి ముందు environment variables జోడించండి."
         },
         "googleButton": "Googleతో కొనసాగించండి",
+        "githubButton": "GitHubతో కొనసాగించండి",
         "emailSeparator": "లేదా ఇమెయిల్‌తో కొనసాగించండి",
         "emailLabel": "ఇమెయిల్ చిరునామా",
         "emailPlaceholder": "you@example.com",
@@ -638,7 +639,7 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
-    "howItWorks":{
+    "howItWorks": {
         "badge": "సురక్షితమైన ఆరోగ్య సంరక్షణ • AI ఆధారిత",
         "heroTitle": "<highlight>SahiDawa</highlight> ఎలా పనిచేస్తుంది",
         "heroSubtitle": "AI-ఆధారిత ఆరోగ్య సంరక్షణ సాధనాలను ఉపయోగించి, మందులను ధృవీకరించడానికి, నమ్మకమైన ఫార్మసీలను కనుగొనడానికి, అధికారిక హెచ్చరికలను స్వీకరించడానికి, మరియు నకిలీ మందుల నుండి రక్షించుకోవడానికి సహిదావా వినియోగదారులకు ఎలా సహాయపడుతుందో తెలుసుకోండి.",
@@ -707,37 +708,45 @@
             }
         }
     },
-  "medicineSafety": {
-    "guideTitle": "వినియోగం మరియు భద్రతా మార్గదర్శిని",
-    "noDosageInfo": "ఈ వయస్సు వర్గానికి మోతాదు సమాచారం అందుబాటులో లేదు.",
-    "closeButton": "భద్రతా సమాచారాన్ని మూసివేయండి",
-    "tabs": {
-      "sideEffects": "దుష్ప్రభావాలు",
-      "dosage": "మోతాదు",
-      "dietaryIntake": "ఆహార వినియోగం"
+    "medicineSafety": {
+        "guideTitle": "వినియోగం మరియు భద్రతా మార్గదర్శిని",
+        "noDosageInfo": "ఈ వయస్సు వర్గానికి మోతాదు సమాచారం అందుబాటులో లేదు.",
+        "closeButton": "భద్రతా సమాచారాన్ని మూసివేయండి",
+        "tabs": {
+            "sideEffects": "దుష్ప్రభావాలు",
+            "dosage": "మోతాదు",
+            "dietaryIntake": "ఆహార వినియోగం"
+        },
+        "sideEffects": {
+            "standardSymptoms": "సాధారణ లక్షణాలు",
+            "severeRedFlags": "తీవ్రమైన హెచ్చరికలు — వెంటనే వైద్య సహాయం పొందండి"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "పిల్లలు",
+                "adults": "వయోజనులు",
+                "elderly": "వృద్ధులు"
+            },
+            "doseLabel": "మోతాదు:",
+            "frequencyLabel": "తరచుదనం:",
+            "notesHeading": "గమనికలు",
+            "warningsHeading": "హెచ్చరికలు"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "ఆహార వినియోగం"
+            },
+            "storageHeading": "నిల్వ",
+            "pregnancyHeading": "గర్భధారణ"
+        },
+        "disclaimer": "ఈ సమాచారం విద్యాపరమైనది మాత్రమే; ఇది వృత్తిపరమైన వైద్య సలహాకు ప్రత్యామ్నాయం కాదు."
     },
-    "sideEffects": {
-      "standardSymptoms": "సాధారణ లక్షణాలు",
-      "severeRedFlags": "తీవ్రమైన హెచ్చరికలు — వెంటనే వైద్య సహాయం పొందండి"
-    },
-    "dosage": {
-      "tabs": {
-        "kids": "పిల్లలు",
-        "adults": "వయోజనులు",
-        "elderly": "వృద్ధులు"
-      },
-      "doseLabel": "మోతాదు:",
-      "frequencyLabel": "తరచుదనం:",
-      "notesHeading": "గమనికలు",
-      "warningsHeading": "హెచ్చరికలు"
-    },
-    "dietary": {
-      "tabs": {
-        "dietaryIntake": "ఆహార వినియోగం"
-      },
-      "storageHeading": "నిల్వ",
-      "pregnancyHeading": "గర్భధారణ"
-    },
-    "disclaimer": "ఈ సమాచారం విద్యాపరమైనది మాత్రమే; ఇది వృత్తిపరమైన వైద్య సలహాకు ప్రత్యామ్నాయం కాదు."
-  }
+    "Map": {
+        "errors": {
+            "denied": "లొకేషన్ యాక్సెస్ నిరాకరించబడింది. దయచేసి బ్రౌజర్ సెట్టింగ్స్‌లో దీన్ని అనుమతించండి.",
+            "unavailable": "లొకేషన్ సమాచారం అందుబాటులో లేదు.",
+            "timeout": "లొకేషన్ అభ్యర్థన సమయం ముగిసింది.",
+            "generic": "మీ లొకేషన్‌ను పొందడం సాధ్యపడలేదు."
+        }
+    }
 }

@@ -3,6 +3,11 @@ import { z } from "zod";
 import { supabase } from "../db/client";
 import { batchLimiter } from "../middleware/rateLimit";
 import logger from "../utils/logger";
+import {
+    validateReport,
+    anonymizeIp,
+    computeReportHash,
+} from "../services/reportValidation.service";
 
 const router = Router();
 
@@ -12,6 +17,7 @@ function getExpiryStatus(expiryDate: string | null): "green" | "yellow" | "red" 
     if (!expiryDate) return "unknown";
     const now = new Date();
     const expiry = new Date(expiryDate);
+    if (isNaN(expiry.getTime())) return "unknown";
     const diffMs = expiry.getTime() - now.getTime();
     const diffMonths = diffMs / (1000 * 60 * 60 * 24 * 30);
 
@@ -108,7 +114,7 @@ router.get("/:batchNumber", batchLimiter, async (req: Request, res: Response) =>
             .select(
                 `
                 *,
-                medicine:medicines(id, brand_name, generic_name, cdsco_approval_status, is_counterfeit_alert),
+                medicine:medicines(id, brand_name, generic_name, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score),
                 manufacturer:manufacturers(*)
             `
             )
@@ -116,7 +122,11 @@ router.get("/:batchNumber", batchLimiter, async (req: Request, res: Response) =>
             .maybeSingle();
 
         if (batchError) {
-            logger.error({ message: "Batch lookup failed", error: batchError, route: "/api/verify/batch" });
+            logger.error({
+                message: "Batch lookup failed",
+                error: batchError,
+                route: "/api/verify/batch",
+            });
             res.status(500).json({ error: "Database lookup failed" });
             return;
         }
@@ -126,14 +136,18 @@ router.get("/:batchNumber", batchLimiter, async (req: Request, res: Response) =>
             const { data: medicineData, error: medicineError } = await supabase
                 .from("medicines")
                 .select(
-                    "id, brand_name, generic_name, manufacturer, batch_number, manufacturing_date, expiry_date, cdsco_approval_status, is_counterfeit_alert, manufacturer_id"
+                    "id, brand_name, generic_name, manufacturer, batch_number, manufacturing_date, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score, manufacturer_id"
                 )
                 .eq("batch_number", batchNumber)
                 .limit(1)
                 .maybeSingle();
 
             if (medicineError) {
-                logger.error({ message: "Medicine fallback lookup failed", error: medicineError, route: "/api/verify/batch" });
+                logger.error({
+                    message: "Medicine fallback lookup failed",
+                    error: medicineError,
+                    route: "/api/verify/batch",
+                });
                 res.status(500).json({ error: "Database lookup failed" });
                 return;
             }
@@ -173,6 +187,12 @@ router.get("/:batchNumber", batchLimiter, async (req: Request, res: Response) =>
                     generic_name: medicineData.generic_name,
                     cdsco_approval_status: medicineData.cdsco_approval_status,
                     is_counterfeit_alert: medicineData.is_counterfeit_alert,
+                    is_cdsco_verified: medicineData.is_cdsco_verified,
+                    cdsco_match_score: medicineData.cdsco_match_score,
+                    matched_cdsco_product: medicineData.matched_cdsco_product,
+                    matched_cdsco_manufacturer: medicineData.matched_cdsco_manufacturer,
+                    product_match_score: medicineData.product_match_score,
+                    manufacturer_match_score: medicineData.manufacturer_match_score,
                 },
                 manufacturer: manufacturerData
                     ? {
@@ -233,6 +253,12 @@ router.get("/:batchNumber", batchLimiter, async (req: Request, res: Response) =>
                       generic_name: medicine.generic_name,
                       cdsco_approval_status: medicine.cdsco_approval_status,
                       is_counterfeit_alert: medicine.is_counterfeit_alert,
+                      is_cdsco_verified: medicine.is_cdsco_verified,
+                      cdsco_match_score: medicine.cdsco_match_score,
+                      matched_cdsco_product: medicine.matched_cdsco_product,
+                      matched_cdsco_manufacturer: medicine.matched_cdsco_manufacturer,
+                      product_match_score: medicine.product_match_score,
+                      manufacturer_match_score: medicine.manufacturer_match_score,
                   }
                 : null,
             manufacturer: manufacturer
@@ -259,7 +285,11 @@ router.get("/:batchNumber", batchLimiter, async (req: Request, res: Response) =>
         });
     } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Unknown error";
-        logger.error({ message: "Batch traceability error", error: message, route: "/api/verify/batch" });
+        logger.error({
+            message: "Batch traceability error",
+            error: message,
+            route: "/api/verify/batch",
+        });
         res.status(500).json({ error: "Internal server error" });
     }
 });
@@ -316,7 +346,29 @@ router.post("/report", batchLimiter, async (req: Request, res: Response) => {
     }
 
     const { batchNumber, description, city, state, pincode, pharmacyName } = parsed.data;
+    const hashedIp = anonymizeIp(req.ip);
 
+    const reportPayload = {
+        medicineName: batchNumber,
+        manufacturer: "",
+        description,
+        pharmacyName: pharmacyName ?? "",
+        address: "",
+        city: city ?? "",
+        state: state ?? "",
+        pincode: pincode ?? "",
+        district: city ?? "",
+    };
+
+    const validation = await validateReport(reportPayload, hashedIp, null);
+
+    if (!validation.passed) {
+        res.status(429).json({
+            error: "Report rejected due to abuse safeguards.",
+            reasons: validation.reasons,
+        });
+        return;
+    }
     try {
         // Use .eq() instead of .ilike() — exact match, no wildcard risk
         let medicine_id: string | null = null;
@@ -340,10 +392,19 @@ router.post("/report", batchLimiter, async (req: Request, res: Response) => {
             pincode: pincode ?? null,
             pharmacy_name: pharmacyName ?? null,
             status: "pending",
+            ip_address: hashedIp ?? null,
+            report_hash: computeReportHash(reportPayload),
+            risk_score: validation.riskScore,
+            is_escalated: validation.riskScore >= 0.6,
+            duplicate_group_id: validation.duplicateGroupId ?? null,
         });
 
         if (error) {
-            logger.error({ message: "Failed to insert batch report", error, route: "/api/verify/batch/report" });
+            logger.error({
+                message: "Failed to insert batch report",
+                error,
+                route: "/api/verify/batch/report",
+            });
             res.status(500).json({ error: "Failed to submit report" });
             return;
         }
@@ -354,7 +415,11 @@ router.post("/report", batchLimiter, async (req: Request, res: Response) => {
         });
     } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Unknown error";
-        logger.error({ message: "Batch report error", error: message, route: "/api/verify/batch/report" });
+        logger.error({
+            message: "Batch report error",
+            error: message,
+            route: "/api/verify/batch/report",
+        });
         res.status(500).json({ error: "Internal server error" });
     }
 });

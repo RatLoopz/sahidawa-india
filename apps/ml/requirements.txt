@@ -41,3 +41,16 @@ pytest-timeout>=2.3.0
 
 # Load testing
 locust>=2.31.8
+
+# Agentic Orchestration and PDF rendering
+langgraph>=0.1.4
+pymupdf>=1.24.0
+cloudinary>=1.36.0
+
+# ScispaCy for Medical NER
+scispacy>=0.5.4
+https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz
+
+# Phonetic Fuzzy Matching
+rapidfuzz>=3.0.0
+metaphone>=0.6

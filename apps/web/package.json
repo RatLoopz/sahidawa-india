@@ -7,7 +7,7 @@
         "build": "next build --webpack",
         "start": "next start",
         "lint": "eslint .",
-        "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --config jest.config.cjs",
+        "test": "cross-env NODE_OPTIONS=\"--experimental-vm-modules\" jest --config jest.config.cjs",
         "test:a11y:voice": "node scripts/voice-a11y-audit.mjs",
         "format": "prettier --write .",
         "format:check": "prettier --check ."
@@ -55,6 +55,7 @@
         "@types/node": "^25.9.1",
         "@types/react": "^19.2.15",
         "@types/react-dom": "^19.2.3",
+        "cross-env": "^7.0.3",
         "eslint": "^10.3.0",
         "eslint-config-next": "^16.2.6",
         "husky": "^9.1.7",

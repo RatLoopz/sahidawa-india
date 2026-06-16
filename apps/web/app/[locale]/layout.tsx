@@ -15,7 +15,7 @@ import "./globals.css";
 import "../../src/styles/print.css";
 import { Toaster } from "sonner";
 import Footer from "./components/Footer";
-import { AuthSync } from "@/src/components/AuthSync";
+import { AuthProvider } from "@/src/components/AuthProvider";
 import CommandPalette from "./components/CommandPalette";
 
 export async function generateMetadata({
@@ -24,7 +24,7 @@ export async function generateMetadata({
     params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
     await params;
-    const baseUrl = "https://sahidawa.in";
+    const baseUrl = "https://sahidawa-india-web.vercel.app";
 
     // Generate alternates for all locales
     const alternates = {
@@ -47,7 +47,7 @@ export async function generateMetadata({
             title: "SahiDawa — Verify Your Medicine",
             description:
                 "India's first open-source medicine verification platform. Scan, verify, and trust your medicines.",
-            url: "https://sahidawa.in",
+            url: baseUrl, // now uses the variable
             siteName: "SahiDawa",
         },
         twitter: {
@@ -101,18 +101,19 @@ export default async function LocaleLayout({
                 <ServiceWorkerProvider>
                     <ThemeProvider>
                         <NextIntlClientProvider messages={messages}>
-                            <AuthSync />
-                            <OfflineBanner />
-                            <Navbar />
-                            <main className="flex flex-grow flex-col">
-                                <OfflineErrorBoundary>{children}</OfflineErrorBoundary>
-                            </main>
-                            <Footer />
-                            <div className="no-print">
-                                <BackToTopButton />
-                                <Chatbot />
-                                <CommandPalette />
-                            </div>
+                            <AuthProvider>
+                                <OfflineBanner />
+                                <Navbar />
+                                <main className="flex flex-grow flex-col">
+                                    <OfflineErrorBoundary>{children}</OfflineErrorBoundary>
+                                </main>
+                                <Footer />
+                                <div className="no-print">
+                                    <BackToTopButton />
+                                    <Chatbot />
+                                    <CommandPalette />
+                                </div>
+                            </AuthProvider>
                         </NextIntlClientProvider>
                         <div className="no-print">
                             <Toaster richColors position="top-center" />

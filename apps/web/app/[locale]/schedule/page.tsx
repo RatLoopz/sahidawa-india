@@ -17,11 +17,7 @@ import Card from "@/components/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { fetchTodaySummary, logDose, type TodaySchedule } from "@/lib/scheduleApi";
-
-function getToken(): string {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("sb-access-token") ?? "";
-}
+import { useSession } from "@/src/components/AuthProvider";
 
 function formatTime(time: string): string {
     const [h, m] = time.split(":");
@@ -139,11 +135,11 @@ type LoadState =
     | { kind: "ready"; data: TodaySchedule[]; date: string };
 
 export default function SchedulePage() {
+    const { token, isLoading: authLoading } = useSession();
     const [state, setState] = useState<LoadState>({ kind: "loading" });
     const [doseStatus, setDoseStatus] = useState<Record<string, string>>({});
 
     const fetchData = useCallback(async () => {
-        const token = getToken();
         if (!token) {
             setState({ kind: "authError" });
             return;
@@ -169,11 +165,13 @@ export default function SchedulePage() {
                 message: "Cannot reach the API. Is the backend server running on port 4000?",
             });
         }
-    }, []);
+    }, [token]);
 
     useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+        if (!authLoading) {
+            fetchData();
+        }
+    }, [authLoading, fetchData]);
 
     const handleDoseChange = (scheduleId: string, time: string, status: "taken" | "skipped") => {
         setDoseStatus((prev) => ({ ...prev, [`${scheduleId}-${time}`]: status }));

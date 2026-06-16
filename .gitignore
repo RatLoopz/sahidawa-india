@@ -50,6 +50,7 @@ Thumbs.db
 .vscode/
 .idea/
 .vs/
+.history/
 *.swp
 *.swo
 

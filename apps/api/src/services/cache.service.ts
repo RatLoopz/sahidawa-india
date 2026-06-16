@@ -35,18 +35,29 @@ export async function warmCache(): Promise<void> {
         const genericNames = hotDrugs.map((d) => d.genericName);
         const brandNames = hotDrugs.flatMap((d) => d.brandNames);
 
-        // Fetch matching medicines from DB. Since Supabase uses PostgREST, we can filter using `in`
-        const orConditions = [
-            `generic_name.in.(${genericNames.map((g) => `"${g}"`).join(",")})`,
-            `brand_name.in.(${brandNames.map((b) => `"${b}"`).join(",")})`,
-        ].join(",");
-
-        const { data: medicines, error } = await supabase
+        const { data: genericMeds, error: error1 } = await supabase
             .from("medicines")
             .select(
-                "id, barcode_id, brand_name, generic_name, manufacturer, batch_number, manufacturing_date, expiry_date, cdsco_approval_status, is_counterfeit_alert, manufacturer_id"
+                "id, barcode_id, brand_name, generic_name, manufacturer, batch_number, manufacturing_date, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score, manufacturer_id"
             )
-            .or(orConditions);
+            .in("generic_name", genericNames);
+
+        const { data: brandMeds, error: error2 } = await supabase
+            .from("medicines")
+            .select(
+                "id, barcode_id, brand_name, generic_name, manufacturer, batch_number, manufacturing_date, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score, manufacturer_id"
+            )
+            .in("brand_name", brandNames);
+
+        const error = error1 || error2;
+
+        let medicines: any[] = [];
+        if (!error) {
+            const allMeds = [...(genericMeds || []), ...(brandMeds || [])];
+            const uniqueMeds = new Map();
+            allMeds.forEach((m) => uniqueMeds.set(m.id, m));
+            medicines = Array.from(uniqueMeds.values());
+        }
 
         if (error) {
             logger.error("Failed to fetch medicines for cache warming", error);
@@ -149,7 +160,7 @@ export async function getCachedDrug(batchNumber: string): Promise<any | null> {
             return med;
         }
     } catch (err) {
-        logger.error(`Error reading cache for batch ${batchNumber}`, err);
+        logger.error(`Error reading cache for batch ${batchNumber.replace(/[\r\n]/g, "")}`, err);
     }
     return null;
 }
@@ -166,7 +177,7 @@ export async function setCachedDrug(batchNumber: string, medicine: any): Promise
             EX: ttl,
         });
     } catch (err) {
-        logger.error(`Error setting cache for batch ${batchNumber}`, err);
+        logger.error(`Error setting cache for batch ${batchNumber.replace(/[\r\n]/g, "")}`, err);
     }
 }
 
@@ -229,7 +240,9 @@ export async function invalidateDrugCache(drugIds: string[]): Promise<void> {
 
             if (keysToDelete.length > 0) {
                 await redisClient.del(keysToDelete);
-                logger.info(`Invalidated cache keys: ${keysToDelete.join(", ")}`);
+                logger.info(
+                    `Invalidated cache keys: ${keysToDelete.join(", ").replace(/[\r\n]/g, "")}`
+                );
             }
         }
     } catch (err) {

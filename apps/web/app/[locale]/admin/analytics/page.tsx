@@ -23,6 +23,7 @@ import {
     XCircle,
 } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useSession } from "@/src/components/AuthProvider";
 
 const AnalyticsCharts = dynamic(() => import("@/components/admin/AnalyticsCharts"), {
     ssr: false,
@@ -41,19 +42,6 @@ const CacheStatsCard = dynamic(() => import("@/components/admin/CacheStatsCard")
         </div>
     ),
 });
-
-const COLORS = {
-    emerald: "#10b981",
-    blue: "#3b82f6",
-    amber: "#f59e0b",
-    red: "#ef4444",
-    purple: "#8b5cf6",
-    teal: "#14b8a6",
-    slate: "#64748b",
-    rose: "#f43f5e",
-    cyan: "#06b6d4",
-    indigo: "#6366f1",
-};
 
 type PushFailureReason = {
     reason: string;
@@ -109,8 +97,8 @@ function getToken(): string {
     if (typeof window === "undefined") return "";
     return localStorage.getItem("sb-access-token") ?? "";
 }
-
 export default function AnalyticsDashboard() {
+    const { token, isLoading: authLoading } = useSession();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [timeframe, setTimeframe] = useState<"7d" | "30d" | "90d" | "all">("30d");
@@ -130,6 +118,8 @@ export default function AnalyticsDashboard() {
     const filterDays = daysMap[timeframe];
 
     const fetchData = useCallback(async () => {
+        if (!token) return;
+
         setLoading(true);
         setError(null);
         setPushAnalyticsError(null);
@@ -140,7 +130,7 @@ export default function AnalyticsDashboard() {
                 fetch(`${ADMIN_API_BASE}/logs?page=1&limit=100`, {
                     cache: "no-store",
                     headers: {
-                        Authorization: `Bearer ${getToken()}`,
+                        Authorization: `Bearer ${token}`,
                     },
                 }),
             ]).catch((err) => {
@@ -154,7 +144,7 @@ export default function AnalyticsDashboard() {
                     {
                         cache: "no-store",
                         headers: {
-                            Authorization: `Bearer ${getToken()}`,
+                            Authorization: `Bearer ${token}`,
                         },
                     }
                 );
@@ -216,11 +206,13 @@ export default function AnalyticsDashboard() {
         } finally {
             setLoading(false);
         }
-    }, [filterDays, router]);
+    }, [filterDays, router, token]);
 
     useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+        if (!authLoading) {
+            fetchData();
+        }
+    }, [authLoading, fetchData]);
 
     const filteredReports = useMemo(() => {
         if (timeframe === "all") return reports;

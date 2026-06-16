@@ -213,7 +213,8 @@ def validate_linkedin_url(pr: dict) -> str:
                 f"👋 {comment_snippet}\n"
                 f"To get featured, please add your LinkedIn ID to your GitHub profile social links, "
                 f"or to the PR description like this:\n"
-                f"`LinkedIn: https://linkedin.com/in/your-username`"
+                f"`LinkedIn: https://linkedin.com/in/your-username`\n\n"
+                f"Follow our page to ensure you get properly tagged: https://www.linkedin.com/company/ratloopz/"
             )
             if not check_if_commented(pr_number, comment_snippet):
                 import subprocess

@@ -1,11 +1,35 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
-import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import VaccineHubPage from "@/app/[locale]/vaccine-hub/page";
 
 jest.mock("next-intl", () => ({
-    useTranslations: () => (key: string) => key,
+    useTranslations: () => {
+        const labels: Record<string, string> = {
+            childNameLabel: "Child name",
+            childDobLabel: "Date of birth",
+            childDobFutureError: "Date of birth cannot be in the future.",
+            childDefaultName: "My Child",
+            childTrackerTitle: "Child Vaccination Tracker",
+            childTrackerSubtitle: "Track vaccinations for your child",
+            completedStatus: "Completed",
+            dueStatus: "Due",
+            overdueStatus: "Overdue",
+            upcomingStatus: "Upcoming",
+            markCompleteButton: "Mark Complete",
+            childDobPrompt: "Enter date of birth to see schedule",
+            childReminderButton: "Download Reminders",
+            scheduleSourceLabel: "Schedule Source",
+            childTimelineHeading: "Vaccination Timeline",
+            childProfileSummary: "Child Profile",
+            childNamePlaceholder: "Enter child name",
+            childDobInvalidError: "Invalid date of birth",
+            whereApplicableBadge: "Where applicable",
+            dueDateLabel: "Due Date",
+            officialTimingLabel: "Official Timing",
+        };
+        return (key: string) => labels[key] ?? key;
+    },
     useFormatter: () => ({
         dateTime: (date: Date) => {
             const d = new Date(date);
@@ -36,6 +60,18 @@ Object.defineProperty(window, "localStorage", {
     value: localStorageMock,
 });
 
+const user = {
+    type: async (element: HTMLElement, value: string) => {
+        fireEvent.change(element, { target: { value } });
+    },
+    click: async (element: HTMLElement) => {
+        fireEvent.click(element);
+    },
+};
+const userEvent = {
+    setup: () => user,
+};
+
 describe("VaccineHubPage Integration Tests", () => {
     beforeEach(() => {
         localStorage.clear();
@@ -57,7 +93,6 @@ describe("VaccineHubPage Integration Tests", () => {
 
     it("generates a personalized child schedule and toggles completed doses", async () => {
         render(<VaccineHubPage />);
-        const user = userEvent.setup();
 
         await user.type(screen.getByLabelText("Child name"), "Aarav");
         await user.type(screen.getByLabelText("Date of birth"), "2024-01-01");
@@ -73,18 +108,25 @@ describe("VaccineHubPage Integration Tests", () => {
         expect(screen.getByRole("button", { name: /mark BCG due/i })).toBeInTheDocument();
     });
 
-    it("does not persist child date of birth to localStorage", async () => {
+    it("persists child tracker state to localStorage when signed out", async () => {
         render(<VaccineHubPage />);
-        const user = userEvent.setup();
 
+        await user.type(screen.getByLabelText("Child name"), "Maya");
         await user.type(screen.getByLabelText("Date of birth"), "2024-01-01");
 
-        expect(localStorage.getItem("vaccine-hub-child-tracker-v1")).toBeNull();
+        await waitFor(() => {
+            expect(
+                JSON.parse(localStorage.getItem("vaccine-hub-child-tracker-v1") ?? "{}")
+            ).toEqual({
+                childName: "Maya",
+                dateOfBirth: "2024-01-01",
+                completedDoseIds: [],
+            });
+        });
     });
 
     it("shows a validation message for future child dates of birth", async () => {
         render(<VaccineHubPage />);
-        const user = userEvent.setup();
         const futureDate = new Date();
         futureDate.setDate(futureDate.getDate() + 1);
 
@@ -111,7 +153,6 @@ describe("VaccineHubPage Integration Tests", () => {
 
     it("selects a vaccine and saves to localStorage", async () => {
         render(<VaccineHubPage />);
-        const user = userEvent.setup();
 
         // Open dropdown
         const selector = screen.getByRole("button", { name: /Select a vaccine/i });
@@ -145,7 +186,6 @@ describe("VaccineHubPage Integration Tests", () => {
 
     it("shows date input when vaccine is selected", async () => {
         render(<VaccineHubPage />);
-        const user = userEvent.setup();
 
         // Open dropdown and select vaccine
         const selector = screen.getByRole("button", { name: /Select a vaccine/i });
@@ -167,7 +207,6 @@ describe("VaccineHubPage Integration Tests", () => {
 
     it("calculates and displays dose schedule with date", async () => {
         render(<VaccineHubPage />);
-        const user = userEvent.setup();
 
         // Select vaccine
         const selector = screen.getByRole("button", { name: /Select a vaccine/i });
@@ -192,7 +231,6 @@ describe("VaccineHubPage Integration Tests", () => {
 
     it("displays safety information", async () => {
         render(<VaccineHubPage />);
-        const user = userEvent.setup();
 
         // Select vaccine
         const selector = screen.getByRole("button", { name: /Select a vaccine/i });

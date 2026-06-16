@@ -193,6 +193,8 @@ function getLiveStatusText(
     }
 
     switch (state.status) {
+        case "compressing":
+            return `Compressing image… ${state.progress}%`;
         case "uploading":
             return `Uploading… ${state.progress}%`;
         case "success":
@@ -266,9 +268,13 @@ export function MedicinePhotoUpload({
                     />
                 )}
 
-            {state.status === "uploading" && (
+            {(state.status === "compressing" || state.status === "uploading") && (
                 <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
-                    <p className="text-sm font-medium text-slate-700">Uploading your photo…</p>
+                    <p className="text-sm font-medium text-slate-700">
+                        {state.status === "compressing"
+                            ? `Compressing image… ${state.progress}%`
+                            : "Uploading your photo…"}
+                    </p>
                     <UploadProgressBar progress={state.progress} />
                     <button
                         type="button"

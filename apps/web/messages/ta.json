@@ -463,6 +463,7 @@
             "description": "Supabase URL அல்லது anon key இல்லை. உள்நுழைவதற்கு முன் environment variables ஐச் சேர்க்கவும்."
         },
         "googleButton": "Google மூலம் தொடரவும்",
+        "githubButton": "GitHub மூலம் தொடரவும்",
         "emailSeparator": "அல்லது மின்னஞ்சல் மூலம் தொடரவும்",
         "emailLabel": "மின்னஞ்சல் முகவரி",
         "emailPlaceholder": "you@example.com",
@@ -638,7 +639,7 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
-    "howItWorks":{
+    "howItWorks": {
         "badge": "பாதுகாப்பான சுகாதாரம் • AI-இயக்கப்படுகிறது",
         "heroTitle": "<highlight>SahiDawa</highlight> எவ்வாறு செயல்படுகிறது",
         "heroSubtitle": "பயனர்கள் மருந்துகளை சரிபார்க்கவும், நம்பகமான மருந்தகங்களை கண்டறியவும், அதிகாரப்பூர்வ எச்சரிக்கைகளைப் பெறவும் மற்றும் AI தொழில்நுட்ப ஆதரவுடன் போலி மருந்துகளிலிருந்து பாதுகாப்பாக இருக்கவும் SahiDawa எவ்வாறு உதவுகிறது என்பதைத் தெரிந்துகொள்ளுங்கள்.",
@@ -707,37 +708,45 @@
             }
         }
     },
-  "medicineSafety": {
-    "guideTitle": "பயன்பாடு மற்றும் பாதுகாப்பு வழிகாட்டி",
-    "noDosageInfo": "இந்த வயது குழுவிற்கான மருந்தளவு தகவல் கிடைக்கவில்லை.",
-    "closeButton": "பாதுகாப்பு தகவலை மூடு",
-    "tabs": {
-      "sideEffects": "பக்க விளைவுகள்",
-      "dosage": "மருந்தளவு",
-      "dietaryIntake": "உணவு உட்கொள்ளல்"
+    "medicineSafety": {
+        "guideTitle": "பயன்பாடு மற்றும் பாதுகாப்பு வழிகாட்டி",
+        "noDosageInfo": "இந்த வயது குழுவிற்கான மருந்தளவு தகவல் கிடைக்கவில்லை.",
+        "closeButton": "பாதுகாப்பு தகவலை மூடு",
+        "tabs": {
+            "sideEffects": "பக்க விளைவுகள்",
+            "dosage": "மருந்தளவு",
+            "dietaryIntake": "உணவு உட்கொள்ளல்"
+        },
+        "sideEffects": {
+            "standardSymptoms": "சாதாரண அறிகுறிகள்",
+            "severeRedFlags": "கடுமையான எச்சரிக்கைகள் — உடனடியாக மருத்துவ உதவி பெறவும்"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "குழந்தைகள்",
+                "adults": "பெரியவர்கள்",
+                "elderly": "முதியவர்கள்"
+            },
+            "doseLabel": "மருந்தளவு:",
+            "frequencyLabel": "அடிக்கடி:",
+            "notesHeading": "குறிப்புகள்",
+            "warningsHeading": "எச்சரிக்கைகள்"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "உணவு உட்கொள்ளல்"
+            },
+            "storageHeading": "சேமிப்பு",
+            "pregnancyHeading": "கர்ப்பம்"
+        },
+        "disclaimer": "இந்த தகவல் கல்வி நோக்கத்திற்கானது; இது தொழில்முறை மருத்துவ ஆலோசனைக்கு மாற்றாகாது."
     },
-    "sideEffects": {
-      "standardSymptoms": "சாதாரண அறிகுறிகள்",
-      "severeRedFlags": "கடுமையான எச்சரிக்கைகள் — உடனடியாக மருத்துவ உதவி பெறவும்"
-    },
-    "dosage": {
-      "tabs": {
-        "kids": "குழந்தைகள்",
-        "adults": "பெரியவர்கள்",
-        "elderly": "முதியவர்கள்"
-      },
-      "doseLabel": "மருந்தளவு:",
-      "frequencyLabel": "அடிக்கடி:",
-      "notesHeading": "குறிப்புகள்",
-      "warningsHeading": "எச்சரிக்கைகள்"
-    },
-    "dietary": {
-      "tabs": {
-        "dietaryIntake": "உணவு உட்கொள்ளல்"
-      },
-      "storageHeading": "சேமிப்பு",
-      "pregnancyHeading": "கர்ப்பம்"
-    },
-    "disclaimer": "இந்த தகவல் கல்வி நோக்கத்திற்கானது; இது தொழில்முறை மருத்துவ ஆலோசனைக்கு மாற்றாகாது."
-  }
+    "Map": {
+        "errors": {
+            "denied": "இருப்பிட அனுமதி மறுக்கப்பட்டது. தயவுசெய்து பிரவுசர் அமைப்புகளில் அதை இயக்கவும்.",
+            "unavailable": "இருப்பிடத் தகவல் கிடைக்கவில்லை.",
+            "timeout": "இருப்பிடக் கோரிக்கைக்கான கால அவகாசம் முடிந்தது.",
+            "generic": "உங்கள் இருப்பிடத்தைப் பெற முடியவில்லை."
+        }
+    }
 }

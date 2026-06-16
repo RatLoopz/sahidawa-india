@@ -1,7 +1,7 @@
 import { z } from "zod";
-import supabase from "../db/supabase";
+import { anonSupabase } from "../db/supabase";
 import logger from "../utils/logger";
-import { escapeIlike } from "../utils/db";
+import { escapeIlike, escapePostgrest } from "../utils/db";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -239,7 +239,7 @@ export async function retrieveRelevantMedicines(
     // Tier 1 — semantic vector search.
     const embedding = await embedQuery(query);
     if (embedding) {
-        const { data, error } = await supabase.rpc("match_medicines", {
+        const { data, error } = await anonSupabase.rpc("match_medicines", {
             query_embedding: embedding,
             match_count: limit,
         });
@@ -256,7 +256,7 @@ export async function retrieveRelevantMedicines(
     }
 
     // Tier 2 — trigram fuzzy search RPC.
-    const { data: trgmData, error: trgmError } = await supabase.rpc("search_medicines_text", {
+    const { data: trgmData, error: trgmError } = await anonSupabase.rpc("search_medicines_text", {
         query_text: query,
         match_count: limit,
     });
@@ -271,13 +271,13 @@ export async function retrieveRelevantMedicines(
 
     // Tier 3 — in-memory ILIKE filter over the table.
     const pattern = `%${escapeIlike(query)}%`;
-    const { data: tableData, error: tableError } = await supabase
+    const { data: tableData, error: tableError } = await anonSupabase
         .from("medicines")
         .select(
             "id, brand_name, generic_name, manufacturer, composition, strength, dosage_form, schedule, mrp, jan_aushadhi_price"
         )
         .or(
-            `generic_name.ilike.${pattern},brand_name.ilike.${pattern},composition.ilike.${pattern}`
+            `generic_name.ilike."${escapePostgrest(pattern)}",brand_name.ilike."${escapePostgrest(pattern)}",composition.ilike."${escapePostgrest(pattern)}"`
         )
         .limit(limit);
 

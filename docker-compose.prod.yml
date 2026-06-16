@@ -122,6 +122,14 @@ services:
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
+      - MEDICINES_CSV_PATH=/data/seeds/medicines.csv
+    volumes:
+      - type: bind
+        source: ./data/seeds/medicines.csv
+        target: /data/seeds/medicines.csv
+        read_only: true
+        bind:
+          create_host_path: false
     networks:
       - backend
     deploy:

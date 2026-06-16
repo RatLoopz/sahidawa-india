@@ -469,6 +469,7 @@
             "description": "Supabase URL یا anon key موجود نَہ۔"
         },
         "googleButton": "Google سۭتۍ جاری تھٲو",
+        "githubButton": "GitHub سۭتۍ جاری تھٲو",
         "emailSeparator": "یا ای میل سۭتۍ جاری تھٲو",
         "emailLabel": "ای میل پتہ",
         "emailPlaceholder": "you@example.com",
@@ -644,7 +645,7 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
-    "howItWorks":{
+    "howItWorks": {
         "badge": "Safe Healthcare • AI Powered",
         "heroTitle": "How <highlight>SahiDawa</highlight> Works",
         "heroSubtitle": "Learn how SahiDawa helps users verify medicines, discover trusted pharmacies, receive official alerts, and stay protected from counterfeit drugs using AI-powered healthcare tools.",
@@ -713,37 +714,45 @@
             }
         }
     },
-  "medicineSafety": {
-    "guideTitle": "استعمال تہٕ حفاظت رہنمائی",
-    "noDosageInfo": "یِم عمر گروپ خٲطرٕ خوراکٕچ جانکاری دستیاب نَہ چھِ.",
-    "closeButton": "حفاظتی جانکاری بند کٔریو",
-    "tabs": {
-      "sideEffects": "ضمنی اثرات",
-      "dosage": "خوراک",
-      "dietaryIntake": "غذائی استعمال"
+    "medicineSafety": {
+        "guideTitle": "استعمال تہٕ حفاظت رہنمائی",
+        "noDosageInfo": "یِم عمر گروپ خٲطرٕ خوراکٕچ جانکاری دستیاب نَہ چھِ.",
+        "closeButton": "حفاظتی جانکاری بند کٔریو",
+        "tabs": {
+            "sideEffects": "ضمنی اثرات",
+            "dosage": "خوراک",
+            "dietaryIntake": "غذائی استعمال"
+        },
+        "sideEffects": {
+            "standardSymptoms": "عام علامات",
+            "severeRedFlags": "سنگین انتباہ — فوری طبی امداد حاصل کریں"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "بچے",
+                "adults": "بالغ",
+                "elderly": "معمر"
+            },
+            "doseLabel": "خوراک:",
+            "frequencyLabel": "تعدد:",
+            "notesHeading": "نوٹس",
+            "warningsHeading": "انتباہات"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "غذائی استعمال"
+            },
+            "storageHeading": "ذخیرہ",
+            "pregnancyHeading": "حمل"
+        },
+        "disclaimer": "یہ معلومات تعلیمی مقصد کے لیے ہیں اور پیشہ ورانہ طبی مشورے کا متبادل نہیں ہیں۔"
     },
-    "sideEffects": {
-      "standardSymptoms": "عام علامات",
-      "severeRedFlags": "سنگین انتباہ — فوری طبی امداد حاصل کریں"
-    },
-    "dosage": {
-      "tabs": {
-        "kids": "بچے",
-        "adults": "بالغ",
-        "elderly": "معمر"
-      },
-      "doseLabel": "خوراک:",
-      "frequencyLabel": "تعدد:",
-      "notesHeading": "نوٹس",
-      "warningsHeading": "انتباہات"
-    },
-    "dietary": {
-      "tabs": {
-        "dietaryIntake": "غذائی استعمال"
-      },
-      "storageHeading": "ذخیرہ",
-      "pregnancyHeading": "حمل"
-    },
-    "disclaimer": "یہ معلومات تعلیمی مقصد کے لیے ہیں اور پیشہ ورانہ طبی مشورے کا متبادل نہیں ہیں۔"
-  }
+    "Map": {
+        "errors": {
+            "denied": "مقام تک رسائی کی اجازت نہیں دی گئی۔ براہ کرم براؤزر کی سیٹنگز میں اسے فعال کریں۔",
+            "unavailable": "مقام کی معلومات دستیاب نہیں ہیں۔",
+            "timeout": "مقام کی درخواست کا وقت ختم ہو گیا ہے۔",
+            "generic": "آپ کا مقام حاصل کرنے میں ناکامی۔"
+        }
+    }
 }

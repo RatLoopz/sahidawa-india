@@ -50,13 +50,16 @@
         "my_reports": "My Reports",
         "schedule": "Schedule",
         "scheme_eligibility": "Scheme Eligibility",
+        "calculator": "Savings Calculator",
         "home": "Home",
         "scans": "Scans",
         "map": "Map",
         "profile": "Profile",
-        "language": "English"
+        "language": "English",
+        "more": "More"
     },
     "Scan": {
+        "calculateSavings": "Calculate Savings",
         "share": {
             "button": "Share Result",
             "title": "SahiDawa Medicine Verification Result",
@@ -74,7 +77,12 @@
             "shared_success": "Result shared successfully",
             "copy_success": "Result copied to clipboard",
             "failure": "Unable to share this result right now"
-        }
+        },
+        "showMoreDetails": "Show More Details",
+        "showLess": "Show Less",
+        "genericName": "Generic Name",
+        "dosageForm": "Dosage Form",
+        "composition": "Composition"
     },
     "BackToTopButton": {
         "label": "Back to top"
@@ -447,10 +455,53 @@
             "banned": "Banned"
         }
     },
+    "Calculator": {
+        "pageTitle": "Medicine Cost Savings Calculator",
+        "pageSubtitle": "Discover generic equivalents and calculate your savings",
+        "searchLabel": "Select a medicine to calculate savings",
+        "searchPlaceholder": "Search brand or generic name",
+        "loading": "Loading generic alternatives...",
+        "error": "Failed to fetch alternative details.",
+        "brandPriceLabel": "Brand Price (MRP)",
+        "genericPriceLabel": "Jan Aushadhi Price",
+        "brandName": "Brand Name",
+        "genericName": "Generic Alternative",
+        "savingsLabel": "Savings per purchase",
+        "alternativeTitle": "Jan Aushadhi Alternative Details",
+        "noAlternative": "No Jan Aushadhi generic alternative mapped for this medicine yet.",
+        "quantityLabel": "Quantity (Strips/Packs per Month)",
+        "monthlySavings": "Monthly Savings",
+        "yearlySavings": "Annual Savings",
+        "perPurchaseSavings": "Savings Per Purchase",
+        "dosageSectionTitle": "Input Purchase Quantity",
+        "projectionsTitle": "Estimated Cost Savings Projections",
+        "brandCostLabel": "Brand Cost",
+        "genericCostLabel": "Generic Cost",
+        "costPerMonth": "per month",
+        "brandTierTitle": "Brand Prescribed",
+        "brandTierDesc": "Standard commercial brand price",
+        "genericTierTitle": "Generic Alternative",
+        "genericTierDesc": "Commercial branded generic equivalent",
+        "janAushadhiTierTitle": "Jan Aushadhi Generic",
+        "janAushadhiTierDesc": "Government-subsidized price-controlled generic",
+        "bestValue": "Best Value",
+        "mrpLabel": "MRP",
+        "estimatedLabel": "(Estimated)",
+        "costPerMonthGeneric": "Generic Cost",
+        "costPerMonthJanAushadhi": "Jan Aushadhi Cost",
+        "costPerMonthBrand": "Brand Cost",
+        "packUnit": "pack",
+        "packsUnit": "packs"
+    },
     "ExpiryTracker": {
         "title": "Medicine Expiry Tracker",
         "subtitle": "Manage and track your medicine stock locally",
         "addMedicine": "Add Medicine",
+        "editMedicine": "Edit Medicine",
+        "saveChanges": "Save Changes",
+        "cancel": "Cancel",
+        "notesLabel": "Notes (Optional)",
+        "notesPlaceholder": "Storage instructions or dosage notes...",
         "name": "Name",
         "expiryDate": "Expiry Date",
         "batchNumber": "Batch Number (Optional)",
@@ -476,7 +527,32 @@
         "importDateError": "Invalid date format found in backup. All dates must be in YYYY-MM-DD format.",
         "statusExpired": "Expired",
         "statusExpiringSoon": "Expiring soon ({days}d)",
-        "statusSafe": "Safe"
+        "statusSafe": "Safe",
+        "deleteSelected": "Delete Selected",
+        "selectMedicine": "Select {name}"
+    },
+    "ChildVaccinationTracker": {
+        "childTrackerTitle": "Child Vaccination Tracker",
+        "childTrackerSubtitle": "Enter a child profile to generate a personalized National Immunization Schedule timeline with completion tracking.",
+        "childReminderButton": "Download reminders",
+        "childNameLabel": "Child name",
+        "childNamePlaceholder": "Enter child name",
+        "childDobLabel": "Date of birth",
+        "childDefaultName": "Child",
+        "childDobPrompt": "Enter a date of birth to generate the personalized vaccination timeline.",
+        "childDobFutureError": "Date of birth cannot be in the future.",
+        "childDobInvalidError": "Enter a valid date of birth.",
+        "childProfileSummary": "Child profile",
+        "scheduleSourceLabel": "Schedule basis",
+        "childTimelineHeading": "Personalized timeline",
+        "whereApplicableBadge": "Where applicable",
+        "dueDateLabel": "Due date",
+        "officialTimingLabel": "Official timing",
+        "completedStatus": "Completed",
+        "dueStatus": "Due",
+        "overdueStatus": "Overdue",
+        "upcomingStatus": "Upcoming",
+        "markCompleteButton": "Mark completed"
     },
     "Login": {
         "brandSubtitle": "Medicine safety platform",
@@ -487,6 +563,7 @@
             "description": "Supabase URL or anon key is missing. Add the environment variables before signing in."
         },
         "googleButton": "Continue with Google",
+        "githubButton": "Continue with Github",
         "emailSeparator": "or continue with email",
         "emailLabel": "Email address",
         "emailPlaceholder": "you@example.com",
@@ -765,6 +842,30 @@
         },
         "disclaimer": "This information is educational and does not replace professional medical advice."
     },
+    "Settings": {
+        "title": "Notification Preferences",
+        "subtitle": "Receive critical alerts via SMS and WhatsApp",
+        "phoneLabel": "Phone Number",
+        "phonePlaceholder": "Enter 10-digit mobile number",
+        "channelsLabel": "Preferred Channels",
+        "smsLabel": "SMS Alerts",
+        "smsDesc": "Get text messages for CDSCO recalls and counterfeit warnings",
+        "whatsappLabel": "WhatsApp Alerts",
+        "whatsappDesc": "Get rich messages and templates directly in WhatsApp",
+        "langLabel": "Alert Language",
+        "langDesc": "Preferred language for received text alerts",
+        "districtLabel": "District",
+        "districtDesc": "Receive alerts specific to this district",
+        "districtPlaceholder": "e.g. South West Delhi",
+        "saveButton": "Save Preferences",
+        "optOutButton": "Opt Out / Unsubscribe",
+        "saving": "Saving...",
+        "successMessage": "Preferences saved successfully!",
+        "optOutSuccess": "Successfully opted out of all notifications.",
+        "errorMessage": "Failed to update settings. Please try again.",
+        "phoneInvalid": "Please enter a valid 10-digit Indian phone number.",
+        "districtRequired": "Please specify a district to get localized warnings."
+    },
     "Interactions": {
         "title": "Medicine Interaction Checker",
         "subtitle": "Check potential harmful interactions between multiple medications",
@@ -799,5 +900,38 @@
         "status_fake": "Fake Only",
         "export_button": "Generate CSV",
         "cancel": "Cancel"
+    },
+    "MyReports": {
+        "header_title": "My Reports",
+        "header_subtitle": "Status of reports you have filed",
+        "page_title": "My Reports",
+        "page_description": "Track what happened to the counterfeit medicines you reported.",
+        "refresh_button_aria_label": "Refresh reports",
+        "loading_aria_label": "Loading your reports",
+        "status_pending_review": "Pending Review",
+        "status_verified_fake": "Verified Fake",
+        "status_false_alarm": "False Alarm",
+        "auth_error_title": "Sign in required",
+        "auth_error_expired": "Your session has expired. Please sign in again.",
+        "auth_error_description": "Please sign in to view the reports you have filed.",
+        "auth_error_action": "Go to Login",
+        "network_error_title": "Connection Error",
+        "network_error_action": "Try again",
+        "network_error_api_unreachable": "Cannot reach the API. Is the backend server running on port 4000?",
+        "empty_state_title": "You haven't filed any reports yet",
+        "empty_state_description": "Spotted a suspicious or counterfeit medicine? Reporting it helps protect your community.",
+        "empty_state_action": "File your first report",
+        "no_photo_label": "No photo",
+        "report_card_district_label": "District",
+        "report_card_submitted_label": "Submitted",
+        "report_card_batch_label": "Batch"
+    },
+    "Map": {
+        "errors": {
+            "denied": "Location access denied. Please enable it in browser settings.",
+            "unavailable": "Location information unavailable.",
+            "timeout": "Location request timed out.",
+            "generic": "Unable to get your location."
+        }
     }
 }

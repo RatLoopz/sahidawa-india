@@ -472,6 +472,7 @@
             "description": "Supabase URL वा anon key नहि अछि। साइन इन करबासँ पहिने पर्यावरण चर जोड़ू।"
         },
         "googleButton": "Google सँ जारी राखू",
+        "githubButton": "GitHub सँ जारी राखू",
         "emailSeparator": "वा ईमेलसँ जारी राखू",
         "emailLabel": "ईमेल पता",
         "emailPlaceholder": "you@example.com",
@@ -630,7 +631,7 @@
         "severeReactions": "गंभीर प्रतिक्रिया",
         "aftercareHeading": "तत्काल देखभाल मार्गदर्शन"
     },
-    "howItWorks":{
+    "howItWorks": {
         "badge": "सुरक्षित स्वास्थ्य सेवा • AI द्वारा संचालित",
         "heroTitle": "<highlight>SahiDawa</highlight> कोना काज करैत अछि",
         "heroSubtitle": "जानू जे कोना SahiDawa यूजर सभ केँ कतहु सं दवाक प्रामाणिकता जाँचे, विश्वसनीय फार्मेसी खोजे, सरकारी अलर्ट प्राप्त करे आ AI-संचालित स्वास्थ्य उपकरणक मदद सं नकली दवा सभ सं सुरक्षित रहबाक लेल मदद करैत अछि।",
@@ -699,37 +700,45 @@
             }
         }
     },
-  "medicineSafety": {
-    "guideTitle": "उपयोग आ सुरक्षा मार्गदर्शिका",
-    "noDosageInfo": "एहि आयु वर्ग लेल खुराकक जानकारी उपलब्ध नहि अछि।",
-    "closeButton": "सुरक्षा जानकारी बन्द करू",
-    "tabs": {
-      "sideEffects": "दुष्प्रभाव",
-      "dosage": "खुराक",
-      "dietaryIntake": "आहार"
+    "medicineSafety": {
+        "guideTitle": "उपयोग आ सुरक्षा मार्गदर्शिका",
+        "noDosageInfo": "एहि आयु वर्ग लेल खुराकक जानकारी उपलब्ध नहि अछि।",
+        "closeButton": "सुरक्षा जानकारी बन्द करू",
+        "tabs": {
+            "sideEffects": "दुष्प्रभाव",
+            "dosage": "खुराक",
+            "dietaryIntake": "आहार"
+        },
+        "sideEffects": {
+            "standardSymptoms": "सामान्य लक्षण",
+            "severeRedFlags": "गंभीर चेतावनी — तुरन्त चिकित्सकीय सहायता लिअ"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "बच्चा",
+                "adults": "वयस्क",
+                "elderly": "वृद्ध"
+            },
+            "doseLabel": "खुराक:",
+            "frequencyLabel": "आवृत्ति:",
+            "notesHeading": "टिप्पणी",
+            "warningsHeading": "चेतावनी"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "आहार"
+            },
+            "storageHeading": "भण्डारण",
+            "pregnancyHeading": "गर्भावस्था"
+        },
+        "disclaimer": "ई जानकारी शैक्षिक उद्देश्य लेल अछि आ पेशेवर चिकित्सकीय सलाहक विकल्प नहि अछि।"
     },
-    "sideEffects": {
-      "standardSymptoms": "सामान्य लक्षण",
-      "severeRedFlags": "गंभीर चेतावनी — तुरन्त चिकित्सकीय सहायता लिअ"
-    },
-    "dosage": {
-      "tabs": {
-        "kids": "बच्चा",
-        "adults": "वयस्क",
-        "elderly": "वृद्ध"
-      },
-      "doseLabel": "खुराक:",
-      "frequencyLabel": "आवृत्ति:",
-      "notesHeading": "टिप्पणी",
-      "warningsHeading": "चेतावनी"
-    },
-    "dietary": {
-      "tabs": {
-        "dietaryIntake": "आहार"
-      },
-      "storageHeading": "भण्डारण",
-      "pregnancyHeading": "गर्भावस्था"
-    },
-    "disclaimer": "ई जानकारी शैक्षिक उद्देश्य लेल अछि आ पेशेवर चिकित्सकीय सलाहक विकल्प नहि अछि।"
-  }
+    "Map": {
+        "errors": {
+            "denied": "लोकेशन एक्सेस अस्वीकार कऽ देल गेल अछि। कृपया ब्राउज़र सेटिंग्स में एकरा सक्षम करू।",
+            "unavailable": "लोकेशन क जानकारी उपलब्ध नहि अछि।",
+            "timeout": "लोकेशन अनुरोधक समय समाप्त भऽ गेल अछि।",
+            "generic": "अहाँक लोकेशन प्राप्त करबा में असमर्थ।"
+        }
+    }
 }

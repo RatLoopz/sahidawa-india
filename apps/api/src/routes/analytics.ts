@@ -74,6 +74,8 @@ router.get("/heatmap", limiter, async (req: Request, res: Response) => {
         for (const scan of scans || []) {
             const lat = Math.round(parseFloat(scan.latitude as string) * 100) / 100;
             const lng = Math.round(parseFloat(scan.longitude as string) * 100) / 100;
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+            if (lat < -90 || lat > 90 || lng < -180 || lng > 180) continue;
             const key = `${lat},${lng}`;
             const entry = grouped.get(key) || { lat, lng, intensity: 0 };
             entry.intensity++;

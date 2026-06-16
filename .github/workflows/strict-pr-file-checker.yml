@@ -1,0 +1,102 @@
+name: Strict PR File Checker
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  issues: write
+  contents: read
+
+jobs:
+  check-files:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Validate PR files
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { owner, repo, number } = context.issue;
+            const username = context.payload.pull_request.user.login;
+            
+            // Exclude bots or admins from this strict check
+            const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner,
+              repo,
+              username
+            });
+            
+            if (["admin", "maintain", "write"].includes(permission.permission) || username.includes('[bot]')) {
+              core.info(`Skipping file checks for ${username} with permission ${permission.permission}`);
+              return;
+            }
+
+            // Fetch files changed
+            const files = await github.rest.pulls.listFiles({
+              owner,
+              repo,
+              pull_number: number,
+              per_page: 100
+            });
+
+            const changedFiles = files.data.map(f => f.filename);
+            let violations = [];
+
+            // 1. Check for strictly forbidden files/directories
+            const forbiddenPatterns = [
+              /(^|\/)node_modules\//,
+              /(^|\/)\.env/,
+              /(^|\/)\.vscode\//,
+              /(^|\/)\.idea\//,
+              /(^|\/)\.DS_Store/,
+              /(^|\/)\.next\//,
+              /(^|\/)dist\//,
+              /(^|\/)build\//
+            ];
+
+            const foundForbidden = changedFiles.filter(file => 
+              forbiddenPatterns.some(pattern => pattern.test(file))
+            );
+
+            if (foundForbidden.length > 0) {
+              violations.push(`**Forbidden Files Detected:**\nYou have committed build artifacts, local configs, or secrets. Please never commit these:\n${foundForbidden.map(f => `- \`${f}\``).join('\n')}`);
+            }
+
+            // 2. Validate package-lock.json integrity
+            const modifiedLockfile = changedFiles.find(file => file.endsWith('package-lock.json') || file.endsWith('yarn.lock'));
+            const modifiedPackageJson = changedFiles.some(file => file.endsWith('package.json'));
+
+            if (modifiedLockfile && !modifiedPackageJson) {
+              violations.push(`**Invalid Lockfile Regeneration Detected:**\nYou modified \`${modifiedLockfile}\` but did not change \`package.json\`. This happens when you delete your lockfile and run npm install, which randomly upgrades hundreds of background dependencies and breaks production. You must only commit lockfile changes if you explicitly added a new library.`);
+            }
+
+            if (violations.length > 0) {
+              const body = `Pull Request Denied.\n\n@${username}, your PR contains files that violate repository rules. To protect the stability and security of SahiDawa, this PR is being automatically closed.\n\n${violations.join('\n\n')}\n\n**How to Fix This:**\n1. Revert the offending files in your local branch (e.g., \`git checkout origin/main -- path/to/forbidden_file\`).\n2. Run \`git commit --amend\` to clean up your commit history.\n3. Open a brand new Pull Request once your branch is completely clean.`;
+
+              // Comment the violations
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: number,
+                body
+              });
+
+              // Close the PR
+              await github.rest.pulls.update({
+                owner,
+                repo,
+                pull_number: number,
+                state: 'closed'
+              });
+
+              core.setFailed("PR closed due to forbidden files or unverified lockfile modifications.");
+            } else {
+              core.info("File checks passed successfully.");
+            }
