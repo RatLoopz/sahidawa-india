@@ -27,6 +27,13 @@ jest.mock("../app/[locale]/LanguageSwitcher", () => ({
     default: () => <div data-testid="language-switcher" />,
 }));
 
+jest.mock("@/src/components/AuthProvider", () => ({
+    useSession: () => ({
+        session: null,
+        isLoading: false,
+    }),
+}));
+
 describe("navbar sign-in navigation", () => {
     it("renders sign-in and health actions as locale-aware links", () => {
         const markup = renderToStaticMarkup(<Navbar />);
