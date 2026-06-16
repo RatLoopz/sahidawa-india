@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Link } from "@/i18n/routing";
+import { Link, useRouter } from "@/i18n/routing";
 import { supabase } from "@/lib/supabase";
 import { ADMIN_API_BASE } from "@/lib/adminApi";
 import {
@@ -106,7 +106,7 @@ function formatPercent(rate: number): string {
 }
 
 function getToken(): string {
-    if (globalThis.window === undefined) return "";
+    if (typeof window === "undefined") return "";
     return localStorage.getItem("sb-access-token") ?? "";
 }
 
@@ -114,6 +114,7 @@ export default function AnalyticsDashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [timeframe, setTimeframe] = useState<"7d" | "30d" | "90d" | "all">("30d");
+    const router = useRouter();
 
     const [medicineCount, setMedicineCount] = useState(0);
     const [reportCount, setReportCount] = useState(0);
@@ -142,7 +143,9 @@ export default function AnalyticsDashboard() {
                         Authorization: `Bearer ${getToken()}`,
                     },
                 }),
-            ]);
+            ]).catch((err) => {
+                throw new Error("One or more core services are unreachable.");
+            });
 
             let pushData: PushAnalytics = { ...EMPTY_PUSH_ANALYTICS, days: filterDays };
             try {
@@ -157,8 +160,8 @@ export default function AnalyticsDashboard() {
                 );
 
                 if (!pushAnalyticsRes.ok) {
-                    if (pushAnalyticsRes.status === 401 && typeof window !== "undefined") {
-                        window.location.href = "/admin/login";
+                    if (pushAnalyticsRes.status === 401) {
+                        router.push("/login");
                         return;
                     }
                     const message =
@@ -203,18 +206,17 @@ export default function AnalyticsDashboard() {
             setMedicineCount(allMedicines.length);
             setReportCount(allReports.length);
             setResolvedCount(
-                allReports.filter(
-                    (r: any) => r.status === "verified_fake" || r.status === "false_alarm"
-                ).length
+                allReports.filter((r: any) => ["verified_fake", "false_alarm"].includes(r.status))
+                    .length
             );
             setDistrictCount(new Set(allReports.map((r: any) => r.district).filter(Boolean)).size);
         } catch (err) {
             console.error("Failed to fetch analytics data:", err);
-            setError("Failed to load analytics data. Please try again.");
+            setError(err instanceof Error ? err.message : "Failed to load analytics data.");
         } finally {
             setLoading(false);
         }
-    }, [filterDays]);
+    }, [filterDays, router]);
 
     useEffect(() => {
         fetchData();
@@ -556,7 +558,6 @@ export default function AnalyticsDashboard() {
                             monthlyTrend={monthlyTrend}
                             reportStatusDist={reportStatusDist}
                             topDistricts={topDistricts}
-                            cacheStatsCard={<CacheStatsCard />}
                         />
 
                         {/* Recent Activity */}
@@ -634,6 +635,8 @@ export default function AnalyticsDashboard() {
                     </div>
 
                     {/* Quick Stats Footer */}
+                    {/* Cache Performance Analytics */}
+                    <CacheStatsCard />
                     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                         <h3 className="mb-4 font-semibold text-slate-800">Platform Overview</h3>
                         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">

@@ -206,6 +206,13 @@
         "savedPharmacies": "Saved Pharmacies",
         "browsedMedicines": "Browsed Medicines"
     },
+    "ScanQueue": {
+        "title": "Pending Verifications",
+        "subtitle": "Scans waiting to be verified when you're back online",
+        "queued": "Scan saved locally. Verification will resume automatically.",
+        "syncing": "Verifying {count} queued scans...",
+        "empty": "No pending scans"
+    },
     "contact": {
         "badge": "GSSoC 2026 Open Source Project",
         "heroTitle": {
