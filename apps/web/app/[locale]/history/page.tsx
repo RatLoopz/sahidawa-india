@@ -3,9 +3,14 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
-import { getScanHistory, deleteScanHistory, ScanHistoryEntry } from "@/lib/db/scanHistory";
+import {
+    getScanHistory,
+    deleteScanHistory,
+    clearScanHistory,
+    ScanHistoryEntry,
+} from "@/lib/db/scanHistory";
 import { CopyButton } from "@/components/ui/CopyButton";
-import { Download, RefreshCw } from "lucide-react";
+import { Download, RefreshCw, Trash2 } from "lucide-react";
 import ExportModal from "./ExportModal";
 import { syncScanHistoryWithCloud } from "@/lib/scanHistoryCloudSync";
 
@@ -13,6 +18,7 @@ export default function HistoryPage() {
     const [history, setHistory] = useState<ScanHistoryEntry[]>([]);
     const [isSyncing, setIsSyncing] = useState(false);
     const [syncMessage, setSyncMessage] = useState<string | null>(null);
+    const [showClearConfirmation, setShowClearConfirmation] = useState(false);
 
     useEffect(() => {
         loadHistory();
@@ -55,6 +61,22 @@ export default function HistoryPage() {
         }
     }
 
+    const handleClearAllHistory = async () => {
+        try {
+            await clearScanHistory();
+            await loadHistory(); // Reload to show empty state
+            setShowClearConfirmation(false); // Hide confirmation
+            // Optional: Show a success toast
+            // toast.success(t("clear_all_success"));
+        } catch (error) {
+            console.error("Failed to clear all history:", error);
+            // Optional: Show an error toast
+            // toast.error(t("clear_all_error"));
+        }
+    };
+
+    const handleCancelClear = () => setShowClearConfirmation(false);
+
     const verifiedCount = history.filter(
         (item) => item.status?.toLowerCase() === "verified"
     ).length;
@@ -73,6 +95,7 @@ export default function HistoryPage() {
             <div className="mx-auto max-w-3xl">
                 <h1 className="mb-6 text-4xl font-black">Scan History</h1>
                 <div className="mb-6 flex flex-wrap gap-3">
+                    {/* Export to CSV button */}
                     {history.length > 0 && (
                         <button
                             onClick={openExportModal}
@@ -81,6 +104,7 @@ export default function HistoryPage() {
                             <Download size={16} /> Export to CSV
                         </button>
                     )}
+                    {/* Sync to Cloud button */}
                     <button
                         onClick={() => void syncHistoryFromCloud()}
                         disabled={isSyncing}
@@ -89,7 +113,36 @@ export default function HistoryPage() {
                         <RefreshCw size={16} className={isSyncing ? "animate-spin" : ""} />
                         Sync to Cloud
                     </button>
+                    {/* Clear All History Button */}
+                    {history.length > 0 && (
+                        <button
+                            onClick={() => setShowClearConfirmation(true)}
+                            aria-label={t("clear_all_button_aria_label")}
+                            className="flex items-center gap-2 rounded-xl bg-red-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg transition hover:bg-red-600 active:scale-95"
+                        >
+                            <Trash2 size={16} /> {t("clear_all_button")}
+                        </button>
+                    )}
                 </div>
+                {showClearConfirmation && (
+                    <div className="animate-in fade-in slide-in-from-top-2 z-20 mb-4 rounded-xl border border-red-400/30 bg-red-950/50 p-4 text-sm font-medium backdrop-blur-sm">
+                        <p className="mb-3 text-red-100">{t("clear_confirm_message")}</p>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={handleCancelClear}
+                                className="rounded-md px-4 py-2 text-white transition-colors hover:bg-white/10"
+                            >
+                                {t("clear_cancel_button")}
+                            </button>
+                            <button
+                                onClick={handleClearAllHistory}
+                                className="rounded-md bg-red-600 px-4 py-2 font-bold text-white transition-colors hover:bg-red-700"
+                            >
+                                {t("clear_confirm_button")}
+                            </button>
+                        </div>
+                    </div>
+                )}
                 {syncMessage && <p className="mb-4 text-sm opacity-70">{syncMessage}</p>}
                 <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
                     <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
