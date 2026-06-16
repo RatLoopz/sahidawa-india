@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
-import { Bell, ArrowLeft, Loader2, Save, Trash2, CheckCircle, AlertTriangle } from "lucide-react";
+import { Bell, Loader2, Save, Trash2, CheckCircle, AlertTriangle } from "lucide-react";
 import {
     getSubscriptionStatus,
     registerSubscription,
@@ -11,6 +10,7 @@ import {
     optOutSubscription,
 } from "@/lib/api/notifications";
 import { useSession } from "@/src/components/AuthProvider";
+import { PageHeader } from "../components/PageHeader";
 
 const GUEST_PHONE_KEY = "sahidawa-sms-phone";
 
@@ -200,14 +200,7 @@ export default function SettingsPage() {
     return (
         <div className="flex-grow bg-(--color-surface-muted) px-6 py-8 text-(--color-text-primary)">
             <div className="mx-auto max-w-2xl">
-                {/* Back Button */}
-                <Link
-                    href="/profile"
-                    className="mb-6 inline-flex items-center gap-2 rounded-xl px-3 py-2 font-medium text-(--color-text-secondary) transition-all hover:bg-(--color-surface-page) hover:text-emerald-600 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none dark:hover:text-emerald-400"
-                >
-                    <ArrowLeft size={18} />
-                    <span>Back to Profile</span>
-                </Link>
+                <PageHeader backHref="/profile" variant="light" />
 
                 {/* Header */}
                 <div className="mb-8 flex items-center gap-4">

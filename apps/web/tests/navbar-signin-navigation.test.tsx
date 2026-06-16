@@ -4,6 +4,13 @@ import { join } from "path";
 
 import Navbar from "../app/[locale]/components/Navbar";
 
+jest.mock("@/src/components/AuthProvider", () => ({
+    useSession: () => ({
+        session: null,
+        isLoading: false,
+    }),
+}));
+
 jest.mock("next/image", () => ({
     __esModule: true,
     default: ({ alt = "", ...props }: { alt?: string; [key: string]: unknown }) => (

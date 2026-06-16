@@ -55,7 +55,8 @@
         "scans": "Scans",
         "map": "Map",
         "profile": "Profile",
-        "language": "English"
+        "language": "English",
+        "more": "More"
     },
     "Scan": {
         "calculateSavings": "Calculate Savings",
@@ -76,7 +77,12 @@
             "shared_success": "Result shared successfully",
             "copy_success": "Result copied to clipboard",
             "failure": "Unable to share this result right now"
-        }
+        },
+        "showMoreDetails": "Show More Details",
+        "showLess": "Show Less",
+        "genericName": "Generic Name",
+        "dosageForm": "Dosage Form",
+        "composition": "Composition"
     },
     "BackToTopButton": {
         "label": "Back to top"

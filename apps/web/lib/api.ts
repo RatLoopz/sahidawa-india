@@ -164,6 +164,8 @@ export type VerifiedMedicine = {
     matched_cdsco_manufacturer?: string | null;
     product_match_score?: number;
     manufacturer_match_score?: number;
+    dosage_form?: string | null;
+    composition?: string | null;
 };
 
 export type ScanMeta = {

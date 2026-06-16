@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Link, useRouter } from "@/i18n/routing";
-import { User, ShieldCheck, Bell, ChevronRight, ArrowLeft, LogIn, LogOut } from "lucide-react";
+import { PageHeader } from "../components/PageHeader";
+import { User, ShieldCheck, Bell, ChevronRight, LogIn, LogOut } from "lucide-react";
 import { useSession } from "@/src/components/AuthProvider";
 
 type ProfileSession =
@@ -114,15 +115,7 @@ export default function ProfilePage() {
     return (
         <div className="flex-grow bg-(--color-surface-muted) px-6 py-8 text-(--color-text-primary)">
             <div className="mx-auto max-w-3xl">
-                {/* Back Button */}
-                <Link
-                    href="/"
-                    className="mb-6 inline-flex items-center gap-2 rounded-xl px-3 py-2 font-medium text-(--color-text-secondary) transition-all hover:bg-(--color-surface-page) hover:text-emerald-600 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none dark:hover:text-emerald-400"
-                >
-                    <ArrowLeft size={18} />
-
-                    <span className="font-medium">Back to Home</span>
-                </Link>
+                <PageHeader backHref="/" variant="light" />
 
                 {/* Header */}
                 <div className="mb-8 flex items-center gap-4">

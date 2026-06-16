@@ -12,25 +12,36 @@ import { isAbortError, readChatErrorMessage, readTextResponseStream } from "@/li
 type Message = {
     text: string;
     isBot: boolean;
+    isTranslationKey?: boolean;
     isTyping?: boolean;
 };
 
-const MessageContent = ({ msg }: { msg: Message }) =>
-    msg.isBot ? (
-        <ChatMarkdown content={msg.text} />
+const MessageContent = ({ msg }: { msg: Message }) => {
+    const t = useTranslations("chatbot");
+
+    const content = msg.isTranslationKey ? t(msg.text) : msg.text;
+
+    return msg.isBot ? (
+        <ChatMarkdown content={content} />
     ) : (
-        <span className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</span>
+        <span className="text-sm leading-relaxed whitespace-pre-wrap">{content}</span>
     );
+};
 
 export default function Chatbot() {
     const pathname = usePathname();
     const t = useTranslations("chatbot");
     const [isOpen, setIsOpen] = useState(false);
-    const [messages, setMessages] = useState<Message[]>([{ text: t("welcome"), isBot: true }]);
+    const [messages, setMessages] = useState<Message[]>([
+        {
+            text: "welcome",
+            isBot: true,
+            isTranslationKey: true,
+        },
+    ]);
     const [input, setInput] = useState("");
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const activeRequestRef = useRef<AbortController | null>(null);
-    const previousWelcomeRef = useRef(t("welcome"));
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -39,24 +50,6 @@ export default function Chatbot() {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
-
-    useEffect(() => {
-        setMessages((prev) => {
-            if (prev.length > 0 && prev[0].isBot && prev[0].text === previousWelcomeRef.current) {
-                const updated = [...prev];
-                updated[0] = {
-                    ...updated[0],
-                    text: t("welcome"),
-                };
-
-                previousWelcomeRef.current = t("welcome");
-                return updated;
-            }
-
-            previousWelcomeRef.current = t("welcome");
-            return prev;
-        });
-    }, [t]);
 
     useEffect(() => {
         return () => {

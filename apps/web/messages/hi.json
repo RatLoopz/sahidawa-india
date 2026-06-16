@@ -74,7 +74,8 @@
         "scans": "स्कैन",
         "map": "मानचित्र",
         "profile": "प्रोफ़ाइल",
-        "language": "हिन्दी"
+        "language": "हिन्दी",
+        "more": "और देखें (More)"
     },
     "BackToTopButton": {
         "label": "ऊपर जाएँ"
@@ -371,7 +372,12 @@
             "verified_by": "by SahiDawa",
             "verify_yourself": "Verify yourself",
             "warning_prefix": "WARNING"
-        }
+        },
+        "showMoreDetails": "और जानकारी देखें",
+        "showLess": "कम जानकारी देखें",
+        "genericName": "जेनेरिक नाम",
+        "dosageForm": "खुराक का रूप (Dosage Form)",
+        "composition": "सामग्री (Composition)"
     },
     "chat": {
         "actions": {
@@ -421,7 +427,6 @@
         "previous": "पिछला",
         "next": "अगला"
     },
-
     "Compare": {
         "pageTitle": "दवाओं की तुलना करें",
         "pageSubtitle": "ब्रांड और जेनेरिक की साथ-साथ तुलना",
@@ -458,7 +463,6 @@
             "banned": "प्रतिबंधित"
         }
     },
-
     "ExpiryTracker": {
         "title": "दवा समाप्ति ट्रैकर",
         "subtitle": "अपनी दवाओं के स्टॉक को स्थानीय रूप से प्रबंधित और ट्रैक करें",
@@ -494,7 +498,6 @@
         "statusExpiringSoon": "जल्द समाप्त होगी ({days} दिन)",
         "statusSafe": "सुरक्षित"
     },
-
     "Login": {
         "brandSubtitle": "दवा सुरक्षा मंच",
         "heading": "वापसी पर स्वागत है",
@@ -520,7 +523,6 @@
             "generic": "साइन इन नहीं हो सका। कृपया पुनः प्रयास करें।"
         }
     },
-
     "AdminLayout": {
         "accessDeniedTitle": "प्रवेश अस्वीकृत",
         "accessDeniedDescription": "इस पृष्ठ को देखने के लिए आपको प्रशासक या मॉडरेटर अधिकारों की आवश्यकता है।",
@@ -629,7 +631,6 @@
             "thisWeekMedicines": "इस सप्ताह की दवाएं"
         }
     },
-
     "vaccineHub": {
         "pageHeaderTitle": "वैक्सीन हब",
         "pageHeaderSubtitle": "टीकाकरण ट्रैकर",
