@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, Suspense } from "react";
+import { useState, useCallback, useEffect, Suspense, type KeyboardEvent } from "react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "../components/PageHeader";
 import MedicineSearchSelect from "@/src/components/MedicineSearchSelect";
@@ -77,6 +77,16 @@ function CalculatorPageContent() {
             );
         }
     }, [alternativeData, locale, router]);
+
+    const handleButtonKeyDown = useCallback(
+        (event: KeyboardEvent<HTMLButtonElement>, action: () => void) => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                action();
+            }
+        },
+        []
+    );
 
     const handleSearch = useCallback((q: string) => searchMedicines(q), []);
 
@@ -547,7 +557,11 @@ function CalculatorPageContent() {
                                     </span>
                                 </div>
                                 <button
+                                    type="button"
                                     onClick={handleFindStore}
+                                    onKeyDown={(event) =>
+                                        handleButtonKeyDown(event, handleFindStore)
+                                    }
                                     className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 text-sm font-black text-white shadow-lg shadow-emerald-600/15 transition-all duration-200 hover:bg-emerald-500 hover:shadow-emerald-500/25 active:scale-98"
                                 >
                                     <span>Find Nearest Jan Aushadhi Store</span>
