@@ -5,14 +5,18 @@ import { useTranslations } from "next-intl";
 
 import { getScanHistory, deleteScanHistory, ScanHistoryEntry } from "@/lib/db/scanHistory";
 import { CopyButton } from "@/components/ui/CopyButton";
-import { Download } from "lucide-react";
+import { Download, RefreshCw } from "lucide-react";
 import ExportModal from "./ExportModal";
+import { syncScanHistoryWithCloud } from "@/lib/scanHistoryCloudSync";
 
 export default function HistoryPage() {
     const [history, setHistory] = useState<ScanHistoryEntry[]>([]);
+    const [isSyncing, setIsSyncing] = useState(false);
+    const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
     useEffect(() => {
         loadHistory();
+        void syncHistoryFromCloud();
     }, []);
 
     const t = useTranslations("ScanHistory");
@@ -36,6 +40,21 @@ export default function HistoryPage() {
         await loadHistory();
     }
 
+    async function syncHistoryFromCloud() {
+        try {
+            setIsSyncing(true);
+            setSyncMessage(null);
+            await syncScanHistoryWithCloud();
+            await loadHistory();
+            setSyncMessage("History synced with cloud.");
+        } catch (error) {
+            console.error("History sync failed:", error);
+            setSyncMessage("Cloud sync unavailable right now.");
+        } finally {
+            setIsSyncing(false);
+        }
+    }
+
     const verifiedCount = history.filter(
         (item) => item.status?.toLowerCase() === "verified"
     ).length;
@@ -53,14 +72,25 @@ export default function HistoryPage() {
         <div className="min-h-screen bg-(--color-surface-page) p-6 text-(--color-text-primary)">
             <div className="mx-auto max-w-3xl">
                 <h1 className="mb-6 text-4xl font-black">Scan History</h1>
-                {history.length > 0 && (
+                <div className="mb-6 flex flex-wrap gap-3">
+                    {history.length > 0 && (
+                        <button
+                            onClick={openExportModal}
+                            className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg transition hover:bg-emerald-700 active:scale-95"
+                        >
+                            <Download size={16} /> Export to CSV
+                        </button>
+                    )}
                     <button
-                        onClick={openExportModal}
-                        className="mb-6 flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg transition hover:bg-emerald-700 active:scale-95"
+                        onClick={() => void syncHistoryFromCloud()}
+                        disabled={isSyncing}
+                        className="flex items-center gap-2 rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) px-5 py-2.5 text-sm font-bold transition hover:bg-(--color-surface-page) disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        <Download size={16} /> Export to CSV
+                        <RefreshCw size={16} className={isSyncing ? "animate-spin" : ""} />
+                        Sync to Cloud
                     </button>
-                )}
+                </div>
+                {syncMessage && <p className="mb-4 text-sm opacity-70">{syncMessage}</p>}
                 <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
                     <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                         <p className="text-sm opacity-70">Total</p>

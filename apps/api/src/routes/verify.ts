@@ -225,6 +225,12 @@ router.post(
                 expiry_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000 * 2).toISOString(), // 2 years expiry
                 cdsco_approval_status: "approved",
                 is_counterfeit_alert: false,
+                is_cdsco_verified: true,
+                cdsco_match_score: 100,
+                matched_cdsco_product: brandName,
+                matched_cdsco_manufacturer: "Micro Labs Ltd",
+                product_match_score: 100,
+                manufacturer_match_score: 100,
             };
             res.status(200).json({
                 verified: true,
@@ -320,6 +326,7 @@ router.post(
                 verified: true,
                 batch_status,
                 medicine: {
+                    id: data.id,
                     brand_name: data.brand_name,
                     generic_name: data.generic_name,
                     manufacturer: data.manufacturer,
@@ -327,6 +334,12 @@ router.post(
                     expiry_date: data.expiry_date,
                     cdsco_approval_status: data.cdsco_approval_status,
                     is_counterfeit_alert: data.is_counterfeit_alert,
+                    is_cdsco_verified: data.is_cdsco_verified,
+                    cdsco_match_score: data.cdsco_match_score,
+                    matched_cdsco_product: data.matched_cdsco_product,
+                    matched_cdsco_manufacturer: data.matched_cdsco_manufacturer,
+                    product_match_score: data.product_match_score,
+                    manufacturer_match_score: data.manufacturer_match_score,
                 },
                 scanMeta: {
                     recentScanCount24h,

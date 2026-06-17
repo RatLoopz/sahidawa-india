@@ -28,6 +28,7 @@ jest.mock("../src/services/reportValidation.service", () => ({
     computeReportHash: jest
         .fn()
         .mockReturnValue("abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"),
+    anonymizeIp: jest.fn().mockReturnValue("127.0.0.1"),
 }));
 
 jest.mock("../src/middleware/auth", () => {
@@ -79,6 +80,17 @@ const mockedSupabase = supabase as jest.Mocked<typeof supabase>;
 describe("Reports API Routes", () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        Object.assign(mockedSupabase, {
+            from: jest.fn().mockReturnThis(),
+            select: jest.fn().mockReturnThis(),
+            insert: jest.fn().mockReturnThis(),
+            update: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockReturnThis(),
+            gte: jest.fn().mockReturnThis(),
+            order: jest.fn().mockReturnThis(),
+            limit: jest.fn().mockReturnThis(),
+            single: jest.fn(),
+        });
     });
 
     describe("POST /api/reports", () => {
@@ -183,7 +195,10 @@ describe("Reports API Routes", () => {
                 }),
             });
 
-            const response = await request(app).post("/api/reports").send(payload);
+            const response = await request(app)
+                .post("/api/reports")
+                .set("X-Forwarded-For", "1.2.3.4")
+                .send(payload);
 
             expect(response.status).toBe(201);
             expect(response.body.report.report_location).toBe("POINT(72.8777 19.0760)");
@@ -228,7 +243,10 @@ describe("Reports API Routes", () => {
                 }),
             });
 
-            const response = await request(app).post("/api/reports").send(payload);
+            const response = await request(app)
+                .post("/api/reports")
+                .set("X-Forwarded-For", "1.2.3.5")
+                .send(payload);
 
             expect(response.status).toBe(201);
             expect(response.body).toHaveProperty("warning");
@@ -281,7 +299,7 @@ describe("Reports API Routes", () => {
                 };
             });
 
-            await request(app).post("/api/reports").send(payload);
+            await request(app).post("/api/reports").set("X-Forwarded-For", "1.2.3.6").send(payload);
 
             expect(insertedPayload.is_escalated).toBe(true);
             expect(insertedPayload.risk_score).toBe(0.9);
@@ -378,25 +396,10 @@ describe("Reports API Routes", () => {
         });
 
         it("returns 404 when report does not exist", async () => {
-            mockedSupabase.select = jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                    single: jest.fn().mockResolvedValueOnce({
-                        data: null,
-                        error: null,
-                    }),
-                }),
-            });
-
-            mockedSupabase.update = jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                    select: jest.fn().mockReturnValue({
-                        single: jest.fn().mockResolvedValueOnce({
-                            data: null,
-                            error: null,
-                        }),
-                    }),
-                }),
-            });
+            mockedSupabase.single = jest
+                .fn()
+                .mockResolvedValueOnce({ data: null, error: null })
+                .mockResolvedValueOnce({ data: null, error: null });
 
             const response = await request(app)
                 .patch("/api/reports/non-existent-id/status")
@@ -416,25 +419,10 @@ describe("Reports API Routes", () => {
                 created_at: "2026-06-01T00:00:00Z",
             };
 
-            mockedSupabase.select = jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                    single: jest.fn().mockResolvedValueOnce({
-                        data: { id: "report-id-123" },
-                        error: null,
-                    }),
-                }),
-            });
-
-            mockedSupabase.update = jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                    select: jest.fn().mockReturnValue({
-                        single: jest.fn().mockResolvedValueOnce({
-                            data: updatedReport,
-                            error: null,
-                        }),
-                    }),
-                }),
-            });
+            mockedSupabase.single = jest
+                .fn()
+                .mockResolvedValueOnce({ data: { id: "report-id-123" }, error: null })
+                .mockResolvedValueOnce({ data: updatedReport, error: null });
 
             const response = await request(app)
                 .patch("/api/reports/report-id-123/status")
@@ -456,25 +444,10 @@ describe("Reports API Routes", () => {
                 created_at: "2026-06-01T00:00:00Z",
             };
 
-            mockedSupabase.select = jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                    single: jest.fn().mockResolvedValueOnce({
-                        data: { id: "report-id-123" },
-                        error: null,
-                    }),
-                }),
-            });
-
-            mockedSupabase.update = jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                    select: jest.fn().mockReturnValue({
-                        single: jest.fn().mockResolvedValueOnce({
-                            data: updatedReport,
-                            error: null,
-                        }),
-                    }),
-                }),
-            });
+            mockedSupabase.single = jest
+                .fn()
+                .mockResolvedValueOnce({ data: { id: "report-id-123" }, error: null })
+                .mockResolvedValueOnce({ data: updatedReport, error: null });
 
             const response = await request(app)
                 .patch("/api/reports/report-id-123/status")
@@ -490,25 +463,10 @@ describe("Reports API Routes", () => {
             const validStatuses = ["pending", "verified_fake", "false_alarm"];
 
             for (const status of validStatuses) {
-                mockedSupabase.select = jest.fn().mockReturnValue({
-                    eq: jest.fn().mockReturnValue({
-                        single: jest.fn().mockResolvedValueOnce({
-                            data: { id: "report-id" },
-                            error: null,
-                        }),
-                    }),
-                });
-
-                mockedSupabase.update = jest.fn().mockReturnValue({
-                    eq: jest.fn().mockReturnValue({
-                        select: jest.fn().mockReturnValue({
-                            single: jest.fn().mockResolvedValueOnce({
-                                data: { id: "report-id", status },
-                                error: null,
-                            }),
-                        }),
-                    }),
-                });
+                mockedSupabase.single = jest
+                    .fn()
+                    .mockResolvedValueOnce({ data: { id: "report-id" }, error: null })
+                    .mockResolvedValueOnce({ data: { id: "report-id", status }, error: null });
 
                 const response = await request(app)
                     .patch(`/api/reports/report-id-${status}/status`)

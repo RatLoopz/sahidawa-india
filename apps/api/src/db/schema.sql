@@ -26,6 +26,12 @@ CREATE TABLE IF NOT EXISTS medicines (
     source VARCHAR(100) DEFAULT 'manual',
     cdsco_approval_status VARCHAR(50) DEFAULT 'approved', -- 'approved', 'recalled', 'banned'
     is_counterfeit_alert BOOLEAN DEFAULT FALSE,
+    is_cdsco_verified BOOLEAN DEFAULT FALSE,
+    cdsco_match_score DOUBLE PRECISION DEFAULT 0,
+    matched_cdsco_product TEXT,
+    matched_cdsco_manufacturer TEXT,
+    product_match_score DOUBLE PRECISION DEFAULT 0,
+    manufacturer_match_score DOUBLE PRECISION DEFAULT 0,
     mrp NUMERIC(10, 2),
     jan_aushadhi_price NUMERIC(10, 2),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

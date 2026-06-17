@@ -293,11 +293,58 @@ def test_load_skips_unchanged_rows_already_present_in_target_db(tmp_path):
     assert len(first_client.upsert_calls) == 1
 
     assert second_stats["total"] == 2
-    assert second_stats["inserted"] == 0
+    assert second_stats["inserted"] == 2
     assert second_stats["failed"] == 0
-    assert second_stats["skipped_unchanged"] == 2
+    assert second_stats["skipped_unchanged"] == 0
     assert second_stats["success_rate"] == 100.0
-    assert second_client.upsert_calls == []
+    assert len(second_client.upsert_calls) == 1
+    _, payload, _ = second_client.upsert_calls[0]
+    assert [row["cdsco_match_score"] for row in payload] == [88.1, 90.4]
+
+
+def test_load_persists_cdsco_validation_evidence_fields(tmp_path):
+    client = FakeSupabaseClient(table_rows={"medicines": []})
+    loader = make_loader(client, tmp_path)
+    df = pd.DataFrame(
+        [
+            {
+                "generic_name": "Paracetamol",
+                "brand_name": "Dolo 650",
+                "manufacturer": "Micro Labs",
+                "barcode_id": "8900000000012",
+                "cdsco_approval_status": "approved",
+                "is_counterfeit_alert": False,
+                "is_cdsco_verified": True,
+                "cdsco_match_score": 97.2,
+                "matched_cdsco_product": "Dolo 650",
+                "matched_cdsco_manufacturer": "Micro Labs",
+                "product_match_score": 96.0,
+                "manufacturer_match_score": 100.0,
+            }
+        ]
+    )
+
+    stats = loader.load(df)
+
+    assert stats["inserted"] == 1
+    assert len(client.upsert_calls) == 1
+    _, payload, _ = client.upsert_calls[0]
+    assert payload == [
+        {
+            "generic_name": "Paracetamol",
+            "brand_name": "Dolo 650",
+            "manufacturer": "Micro Labs",
+            "barcode_id": "8900000000012",
+            "cdsco_approval_status": "approved",
+            "is_counterfeit_alert": False,
+            "is_cdsco_verified": True,
+            "cdsco_match_score": 97.2,
+            "matched_cdsco_product": "Dolo 650",
+            "matched_cdsco_manufacturer": "Micro Labs",
+            "product_match_score": 96.0,
+            "manufacturer_match_score": 100.0,
+        }
+    ]
 
 
 def test_load_upserts_only_rows_whose_hash_changed(tmp_path):

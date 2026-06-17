@@ -541,46 +541,76 @@ router.post("/broadcast", requireAuth, requireRole("admin"), async (req, res) =>
     const { district, title, message } = parsed.data;
 
     try {
-        let query = supabase.from("notification_subscribers").select("*").eq("is_active", true);
+        let sentCount = 0;
+        let totalProcessed = 0;
+        let hasMore = true;
+        const BATCH_SIZE = 500;
+        const CONCURRENCY_LIMIT = 50;
+        const fullMessage = `${title}\n\n${message}`;
 
-        if (district && district.toLowerCase() !== "all") {
-            query = query.ilike("district", district);
+        while (hasMore) {
+            let query = supabase
+                .from("notification_subscribers")
+                .select("*")
+                .eq("is_active", true)
+                .order("id")
+                .range(totalProcessed, totalProcessed + BATCH_SIZE - 1);
+
+            if (district && district.toLowerCase() !== "all") {
+                query = query.ilike("district", district);
+            }
+
+            const { data: subscribers, error } = await query;
+
+            if (error) {
+                logger.error({ message: "Failed to fetch subscribers for broadcast", error });
+                res.status(500).json({ error: "Database error" });
+                return;
+            }
+
+            if (!subscribers || subscribers.length === 0) {
+                hasMore = false;
+                break;
+            }
+
+            for (let i = 0; i < subscribers.length; i += CONCURRENCY_LIMIT) {
+                const chunk = subscribers.slice(i, i + CONCURRENCY_LIMIT);
+
+                const chunkResults = await Promise.allSettled(
+                    chunk.map(async (sub) => {
+                        const subPromises: Promise<boolean>[] = [];
+                        if (sub.channels.includes("sms")) {
+                            subPromises.push(smsService.send(sub.phone, fullMessage, sub.language));
+                        }
+                        if (sub.channels.includes("whatsapp")) {
+                            subPromises.push(
+                                whatsappService.send(sub.phone, fullMessage, sub.language)
+                            );
+                        }
+                        if (subPromises.length === 0) return false;
+                        const res = await Promise.allSettled(subPromises);
+                        return res.some((r) => r.status === "fulfilled" && r.value === true);
+                    })
+                );
+
+                sentCount += chunkResults.filter(
+                    (r) => r.status === "fulfilled" && r.value === true
+                ).length;
+            }
+
+            totalProcessed += subscribers.length;
+            if (subscribers.length < BATCH_SIZE) {
+                hasMore = false;
+            }
         }
 
-        const { data: subscribers, error } = await query;
-
-        if (error) {
-            logger.error({ message: "Failed to fetch subscribers for broadcast", error });
-            res.status(500).json({ error: "Database error" });
-            return;
-        }
-
-        if (!subscribers || subscribers.length === 0) {
+        if (totalProcessed === 0) {
             res.json({
                 success: true,
                 sentCount: 0,
                 message: "No subscribers found matching criteria",
             });
             return;
-        }
-
-        let sentCount = 0;
-        const fullMessage = `${title}\n\n${message}`;
-
-        for (const sub of subscribers) {
-            const sendPromises: Promise<boolean>[] = [];
-
-            if (sub.channels.includes("sms")) {
-                sendPromises.push(smsService.send(sub.phone, fullMessage, sub.language));
-            }
-            if (sub.channels.includes("whatsapp")) {
-                sendPromises.push(whatsappService.send(sub.phone, fullMessage, sub.language));
-            }
-
-            const results = await Promise.all(sendPromises);
-            if (results.some((r) => r === true)) {
-                sentCount++;
-            }
         }
 
         res.json({ success: true, sentCount, message: `Broadcasted to ${sentCount} subscribers` });

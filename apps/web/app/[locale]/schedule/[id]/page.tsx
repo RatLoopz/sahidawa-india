@@ -16,11 +16,7 @@ import {
     type Schedule,
     type AdherenceStats,
 } from "@/lib/scheduleApi";
-
-function getToken(): string {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("sb-access-token") ?? "";
-}
+import { useSession } from "@/src/components/AuthProvider";
 
 type LoadState =
     | { kind: "loading" }
@@ -32,11 +28,11 @@ type LoadState =
 export default function ScheduleDetailPage() {
     const params = useParams<{ id: string }>();
     const router = useRouter();
+    const { token, isLoading: authLoading } = useSession();
     const [state, setState] = useState<LoadState>({ kind: "loading" });
     const [deleting, setDeleting] = useState(false);
 
     const fetchData = useCallback(async () => {
-        const token = getToken();
         if (!token) {
             setState({ kind: "authError" });
             return;
@@ -65,11 +61,13 @@ export default function ScheduleDetailPage() {
                 });
             }
         }
-    }, [params.id]);
+    }, [params.id, token]);
 
     useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+        if (!authLoading) {
+            fetchData();
+        }
+    }, [authLoading, fetchData]);
 
     const handleToggleActive = async () => {
         if (state.kind !== "ready") return;

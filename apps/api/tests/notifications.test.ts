@@ -21,6 +21,8 @@ const mockQueryBuilder = {
     delete: jest.fn().mockReturnThis(),
     eq: jest.fn().mockReturnThis(),
     ilike: jest.fn().mockReturnThis(),
+    order: jest.fn().mockReturnThis(),
+    range: jest.fn().mockReturnThis(),
     maybeSingle: jest
         .fn()
         .mockImplementation(() => Promise.resolve({ data: mockSubscriber, error: null })),

@@ -57,8 +57,6 @@ async function copyTextToClipboard(text: string) {
     }
 }
 
-// Result views with dark/light mode surface tokens and variables support
-
 export default function ScanPage() {
     const tScan = useTranslations("Scan");
     const [activeScanTab, setActiveScanTab] = useState<"strip" | "prescription">("strip");

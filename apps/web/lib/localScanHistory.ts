@@ -186,6 +186,47 @@ export async function saveLocalScanHistoryEntry(entry: LocalScanHistoryEntry): P
     }
 }
 
+export async function saveLocalScanHistoryEntries(entries: LocalScanHistoryEntry[]): Promise<void> {
+    const indexedDb = getIndexedDb();
+    if (!indexedDb || entries.length === 0) return;
+
+    const db = await openLocalScanHistoryDb(indexedDb);
+    try {
+        await putEntries(db, entries);
+    } finally {
+        db.close();
+    }
+}
+
+export async function getAllLocalScanHistoryEntries(): Promise<LocalScanHistoryEntry[]> {
+    const indexedDb = getIndexedDb();
+    if (!indexedDb) return [];
+
+    const db = await openLocalScanHistoryDb(indexedDb);
+    try {
+        return await readAllEntries(db);
+    } finally {
+        db.close();
+    }
+}
+
+export async function replaceLocalScanHistoryEntries(
+    entries: LocalScanHistoryEntry[]
+): Promise<void> {
+    const indexedDb = getIndexedDb();
+    if (!indexedDb) return;
+
+    const db = await openLocalScanHistoryDb(indexedDb);
+    try {
+        await clearEntries(db);
+        if (entries.length > 0) {
+            await putEntries(db, entries);
+        }
+    } finally {
+        db.close();
+    }
+}
+
 export async function getLocalScanHistoryPage(
     page = 1,
     pageSize = DEFAULT_LOCAL_SCAN_HISTORY_PAGE_SIZE
@@ -285,6 +326,12 @@ function putEntry(db: IDBDatabase, entry: LocalScanHistoryEntry): Promise<IDBVal
     return requestToPromise(store.put(entry));
 }
 
+function putEntries(db: IDBDatabase, entries: LocalScanHistoryEntry[]): Promise<IDBValidKey[]> {
+    const transaction = db.transaction(STORE_NAME, "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+    return Promise.all(entries.map((entry) => requestToPromise(store.put(entry))));
+}
+
 function clearEntries(db: IDBDatabase): Promise<undefined> {
     const transaction = db.transaction(STORE_NAME, "readwrite");
     const store = transaction.objectStore(STORE_NAME);
@@ -351,5 +398,16 @@ function readEntriesPage(
             }
             cursor.continue();
         };
+    });
+}
+
+function readAllEntries(db: IDBDatabase): Promise<LocalScanHistoryEntry[]> {
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(STORE_NAME, "readonly");
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.getAll();
+
+        request.onerror = () => reject(request.error ?? new Error("Unable to read scan history"));
+        request.onsuccess = () => resolve(request.result as LocalScanHistoryEntry[]);
     });
 }

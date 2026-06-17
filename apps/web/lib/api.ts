@@ -34,6 +34,8 @@ export type ReportPayload = {
     pincode: string;
     latitude?: number;
     longitude?: number;
+    scannedBarcode?: string;
+    medicineId?: string;
 };
 
 export type SubmittedReport = {
@@ -148,6 +150,7 @@ export async function geocodePincode(
 }
 
 export type VerifiedMedicine = {
+    id?: string;
     brand_name: string;
     generic_name: string;
     manufacturer: string;
@@ -155,6 +158,14 @@ export type VerifiedMedicine = {
     expiry_date: string | null;
     cdsco_approval_status: string;
     is_counterfeit_alert: boolean;
+    is_cdsco_verified?: boolean;
+    cdsco_match_score?: number;
+    matched_cdsco_product?: string | null;
+    matched_cdsco_manufacturer?: string | null;
+    product_match_score?: number;
+    manufacturer_match_score?: number;
+    dosage_form?: string | null;
+    composition?: string | null;
 };
 
 export type ScanMeta = {

@@ -8,6 +8,7 @@
  */
 
 import React, { useState, useEffect, useId } from "react";
+import { useSearchParams } from "next/navigation";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -78,6 +79,8 @@ const schema = z.object({
                     "Enter a valid 6-digit Indian Pincode (cannot start with 0)"
                 )
         ),
+    scannedBarcode: z.string().optional(),
+    medicineId: z.string().optional(),
 });
 export type FormValues = z.infer<typeof schema>;
 
@@ -91,6 +94,8 @@ const EMPTY: FormValues = {
     city: "",
     state: "",
     pincode: "",
+    scannedBarcode: undefined,
+    medicineId: undefined,
 };
 
 // ─── Per-step field keys ────────────────────────────────────────────────────────
@@ -823,13 +828,14 @@ export default function ReportWizard() {
     const [pendingCount, setPendingCount] = useState(0);
     const [restoredDraft, setRestoredDraft] = useState(false);
     const submitErrorId = useId();
+    const searchParams = useSearchParams();
 
     const methods = useForm<FormValues>({
         resolver: zodResolver(schema),
         defaultValues: EMPTY,
         mode: "onTouched",
     });
-    const { trigger, handleSubmit, reset } = methods;
+    const { trigger, handleSubmit, reset, setValue } = methods;
 
     // Cleanup blob URLs on unmount to prevent memory leaks
     useEffect(() => {
@@ -860,6 +866,14 @@ export default function ReportWizard() {
             }
         })();
     }, []);
+
+    // Extract barcode and medicineId from URL query parameters
+    useEffect(() => {
+        const barcode = searchParams.get("barcode");
+        const medicineId = searchParams.get("medicineId");
+        if (barcode) setValue("scannedBarcode", barcode);
+        if (medicineId) setValue("medicineId", medicineId);
+    }, [searchParams, setValue]);
 
     // Background sync of queued offline reports
     useEffect(() => {

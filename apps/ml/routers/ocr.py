@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/ocr", tags=["OCR"])
 
+MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024  # 5MB limit
+
 @router.post("/extract")
 async def extract_text(file: UploadFile = File(...)):
     """
@@ -22,6 +24,13 @@ async def extract_text(file: UploadFile = File(...)):
     # Validate file type
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File uploaded is not an image.")
+
+    # Validate file size to prevent Denial of Service (DoS) via memory exhaustion
+    if file.size and file.size > MAX_IMAGE_SIZE_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large. Maximum allowed size is {MAX_IMAGE_SIZE_BYTES // (1024 * 1024)}MB."
+        )
 
     try:
         # Read image content

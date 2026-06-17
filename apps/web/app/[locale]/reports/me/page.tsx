@@ -20,6 +20,7 @@ import LazyImage from "@/components/LazyImage";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { API_BASE } from "@/lib/api";
+import { useSession } from "@/src/components/AuthProvider";
 
 type ReportStatus = "pending" | "verified_fake" | "false_alarm";
 
@@ -38,11 +39,6 @@ interface MyReport {
     district: string | null;
     status: ReportStatus;
     created_at: string;
-}
-
-function getToken(): string {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("sb-access-token") ?? "";
 }
 
 function formatDate(iso: string): string {
@@ -164,12 +160,10 @@ type LoadState =
 
 export default function MyReportsPage() {
     const t = useTranslations("MyReports");
+    const { token, isLoading: authLoading } = useSession();
     const [state, setState] = useState<LoadState>({ kind: "loading" });
 
     const fetchMine = useCallback(async () => {
-        setState({ kind: "loading" });
-
-        const token = getToken();
         if (!token) {
             setState({
                 kind: "authError",
@@ -177,6 +171,8 @@ export default function MyReportsPage() {
             });
             return;
         }
+
+        setState({ kind: "loading" });
 
         try {
             const res = await fetch(`${API_BASE}/api/reports/mine`, {
@@ -207,11 +203,13 @@ export default function MyReportsPage() {
                 message: t("network_error_api_unreachable"),
             });
         }
-    }, [t]);
+    }, [t, token]);
 
     useEffect(() => {
-        fetchMine();
-    }, [fetchMine]);
+        if (!authLoading) {
+            fetchMine();
+        }
+    }, [authLoading, fetchMine]);
 
     const getStatusLabel = (status: ReportStatus): string => {
         switch (status) {

@@ -4,7 +4,32 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import VaccineHubPage from "@/app/[locale]/vaccine-hub/page";
 
 jest.mock("next-intl", () => ({
-    useTranslations: () => (key: string) => key,
+    useTranslations: () => {
+        const labels: Record<string, string> = {
+            childNameLabel: "Child name",
+            childDobLabel: "Date of birth",
+            childDobFutureError: "Date of birth cannot be in the future.",
+            childDefaultName: "My Child",
+            childTrackerTitle: "Child Vaccination Tracker",
+            childTrackerSubtitle: "Track vaccinations for your child",
+            completedStatus: "Completed",
+            dueStatus: "Due",
+            overdueStatus: "Overdue",
+            upcomingStatus: "Upcoming",
+            markCompleteButton: "Mark Complete",
+            childDobPrompt: "Enter date of birth to see schedule",
+            childReminderButton: "Download Reminders",
+            scheduleSourceLabel: "Schedule Source",
+            childTimelineHeading: "Vaccination Timeline",
+            childProfileSummary: "Child Profile",
+            childNamePlaceholder: "Enter child name",
+            childDobInvalidError: "Invalid date of birth",
+            whereApplicableBadge: "Where applicable",
+            dueDateLabel: "Due Date",
+            officialTimingLabel: "Official Timing",
+        };
+        return (key: string) => labels[key] ?? key;
+    },
     useFormatter: () => ({
         dateTime: (date: Date) => {
             const d = new Date(date);
