@@ -24,6 +24,10 @@ const BLOCKED_HOSTNAME_PATTERNS = [
  * private, loopback, or link-local hostname.
  */
 function isAllowedHostname(hostname: string): boolean {
+    // In development we allow localhost for local ML service.
+    if (process.env.NODE_ENV !== "production" && hostname === "localhost") {
+        return true;
+    }
     return !BLOCKED_HOSTNAME_PATTERNS.some((pattern) => pattern.test(hostname));
 }
 

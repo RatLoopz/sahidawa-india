@@ -22,6 +22,7 @@ import { useTranslations } from "next-intl";
 import { buildVerificationShareText, type VerificationShareCopy } from "@/lib/verificationShare";
 import { saveScanHistory } from "@/lib/db/scanHistory";
 import { recordScanHistory } from "@/lib/scanHistoryUtils";
+import { PrescriptionReader } from "@/components/scanner/PrescriptionReader";
 
 function formatMedicineDetails(medicine: VerifiedMedicine) {
     return [
@@ -60,6 +61,7 @@ async function copyTextToClipboard(text: string) {
 
 export default function ScanPage() {
     const tScan = useTranslations("Scan");
+    const [activeScanTab, setActiveScanTab] = useState<"strip" | "prescription">("strip");
     // Add these near the top of your component, inside the main function
     const [isVerifying, setIsVerifying] = useState(false);
     const [apiError, setApiError] = useState<string | null>(null);
@@ -305,211 +307,250 @@ export default function ScanPage() {
                 variant="light"
             />
 
-            <div className="relative flex flex-1 items-center justify-center">
-                <div className="absolute inset-0 overflow-hidden bg-slate-900">
-                    {isCameraActive ? (
-                        <BarcodeScanner
-                            onScan={handleBarcodeScan}
-                            debounceMs={2500}
-                            isVerifying={isVerifying}
-                            apiError={apiError}
-                            onRetry={() => {
-                                setApiError(null);
-                                setIsCameraActive(false);
-                            }}
-                        />
-                    ) : uploadedImage ? (
-                        <LazyImage
-                            src={uploadedImage}
-                            alt="Uploaded"
-                            wrapperClassName="h-full w-full"
-                            className="h-full w-full object-cover opacity-60"
-                        />
-                    ) : (
-                        <>
-                            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
-                            <div className="absolute inset-0 animate-pulse bg-emerald-500/5"></div>
-                        </>
-                    )}
-                </div>
+            {/* Toggle Switcher */}
+            <div className="z-10 mx-auto mt-6 flex w-fit rounded-full border border-(--color-border-muted) bg-(--color-surface-muted) p-1 shadow-sm">
+                <button
+                    onClick={() => setActiveScanTab("strip")}
+                    className={`rounded-full px-5 py-2 text-sm font-extrabold transition-all outline-none ${
+                        activeScanTab === "strip"
+                            ? "bg-emerald-500 text-white shadow-md"
+                            : "text-(--color-text-secondary) hover:text-(--color-text-primary)"
+                    }`}
+                >
+                    Verify Medicine Strip
+                </button>
+                <button
+                    onClick={() => setActiveScanTab("prescription")}
+                    className={`rounded-full px-5 py-2 text-sm font-extrabold transition-all outline-none ${
+                        activeScanTab === "prescription"
+                            ? "bg-emerald-500 text-white shadow-md"
+                            : "text-(--color-text-secondary) hover:text-(--color-text-primary)"
+                    }`}
+                >
+                    AI Prescription Explainer
+                </button>
+            </div>
 
-                <div className="relative z-10 h-72 w-72 md:h-96 md:w-96">
-                    <div className="absolute top-0 left-0 h-12 w-12 animate-pulse rounded-tl-2xl border-t-4 border-l-4 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.3)]"></div>
-                    <div className="absolute top-0 right-0 h-12 w-12 animate-pulse rounded-tr-2xl border-t-4 border-r-4 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.3)]"></div>
-                    <div className="absolute bottom-0 left-0 h-12 w-12 animate-pulse rounded-bl-2xl border-b-4 border-l-4 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.3)]"></div>
-                    <div className="absolute right-0 bottom-0 h-12 w-12 animate-pulse rounded-br-2xl border-r-4 border-b-4 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.3)]"></div>
+            {activeScanTab === "prescription" ? (
+                <PrescriptionReader />
+            ) : (
+                <>
+                    <div className="relative flex flex-1 items-center justify-center">
+                        <div className="absolute inset-0 overflow-hidden bg-slate-900">
+                            {isCameraActive ? (
+                                <BarcodeScanner
+                                    onScan={handleBarcodeScan}
+                                    debounceMs={2500}
+                                    isVerifying={isVerifying}
+                                    apiError={apiError}
+                                    onRetry={() => {
+                                        setApiError(null);
+                                        setIsCameraActive(false);
+                                    }}
+                                />
+                            ) : uploadedImage ? (
+                                <LazyImage
+                                    src={uploadedImage}
+                                    alt="Uploaded"
+                                    wrapperClassName="h-full w-full"
+                                    className="h-full w-full object-cover opacity-60"
+                                />
+                            ) : (
+                                <>
+                                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
+                                    <div className="absolute inset-0 animate-pulse bg-emerald-500/5"></div>
+                                </>
+                            )}
+                        </div>
 
-                    {isScanning && (
-                        <div className="animate-scan absolute right-4 left-4 z-20 h-[2px] bg-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.8)]"></div>
-                    )}
+                        <div className="relative z-10 h-72 w-72 md:h-96 md:w-96">
+                            <div className="absolute top-0 left-0 h-12 w-12 animate-pulse rounded-tl-2xl border-t-4 border-l-4 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.3)]"></div>
+                            <div className="absolute top-0 right-0 h-12 w-12 animate-pulse rounded-tr-2xl border-t-4 border-r-4 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.3)]"></div>
+                            <div className="absolute bottom-0 left-0 h-12 w-12 animate-pulse rounded-bl-2xl border-b-4 border-l-4 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.3)]"></div>
+                            <div className="absolute right-0 bottom-0 h-12 w-12 animate-pulse rounded-br-2xl border-r-4 border-b-4 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.3)]"></div>
 
-                    {!isScanning && !showResult && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <Camera size={48} className="animate-pulse text-emerald-500/30" />
+                            {isScanning && (
+                                <div className="animate-scan absolute right-4 left-4 z-20 h-[2px] bg-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.8)]"></div>
+                            )}
+
+                            {!isScanning && !showResult && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <Camera
+                                        size={48}
+                                        className="animate-pulse text-emerald-500/30"
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        {isScanning && <SkeletonLoader />}
+
+                        {showResult && (
+                            <div className="animate-in fade-in zoom-in absolute inset-0 z-30 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm duration-300">
+                                {showLasaConfirmation ? (
+                                    <LasaConfirmation
+                                        scannedName={
+                                            pendingVerifyResult?.verified
+                                                ? pendingVerifyResult.medicine.brand_name
+                                                : parsedBrand
+                                        }
+                                        matches={lasaMatches}
+                                        onConfirmScanned={handleConfirmScanned}
+                                        onSelectConflict={handleSelectConflict}
+                                    />
+                                ) : (
+                                    <>
+                                        <button
+                                            onClick={handleDismissResult}
+                                            className="absolute top-4 right-4 z-40 rounded-full bg-white/10 p-2 text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+                                        >
+                                            <X size={24} />
+                                        </button>
+                                        {verifyError && (
+                                            <ErrorResult
+                                                message={verifyError}
+                                                onRetry={() => handleVerify(batchInput)}
+                                                isOffline={isOffline}
+                                            />
+                                        )}
+                                        {!verifyError &&
+                                            verifyResult?.verified &&
+                                            verifyResult.medicine.is_counterfeit_alert && (
+                                                <CounterfeitAlertResult
+                                                    medicine={verifyResult.medicine}
+                                                    onScanAgain={handleScanAgain}
+                                                    onShare={handleShare}
+                                                    onCopyMedicineDetails={
+                                                        handleCopyMedicineDetails
+                                                    }
+                                                    shareLabel={tScan("share.button")}
+                                                    copied={copied}
+                                                />
+                                            )}
+                                        {!verifyError &&
+                                            verifyResult?.verified &&
+                                            !verifyResult.medicine.is_counterfeit_alert && (
+                                                <VerifiedSafeResult
+                                                    medicine={verifyResult.medicine}
+                                                    scanMeta={verifyResult.scanMeta}
+                                                    onScanAgain={handleScanAgain}
+                                                    onShare={handleShare}
+                                                    onCopyMedicineDetails={
+                                                        handleCopyMedicineDetails
+                                                    }
+                                                    shareLabel={tScan("share.button")}
+                                                    copied={copied}
+                                                />
+                                            )}
+                                        {!verifyError && verifyResult && !verifyResult.verified && (
+                                            <UnverifiedResult
+                                                brandName={parsedBrand}
+                                                batchNumber={parsedBatch}
+                                                expiryDate={parsedExpiry}
+                                                onScanAgain={handleDismissResult}
+                                                onShare={handleShare}
+                                                shareLabel={tScan("share.button")}
+                                            />
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {ocrText && (
+                        <div className="mx-auto my-4 w-full max-w-md rounded-2xl border border-emerald-500/30 bg-slate-900/90 p-4 text-xs backdrop-blur-md">
+                            <div className="mb-2 flex items-center justify-between border-b border-white/10 pb-2">
+                                <span className="font-bold text-emerald-400">
+                                    OCR Extracted Text
+                                </span>
+                                {ocrConfidence !== null && (
+                                    <span className="rounded bg-emerald-500/20 px-2 py-0.5 font-mono text-emerald-300">
+                                        Confidence: {Math.round(ocrConfidence * 100)}%
+                                    </span>
+                                )}
+                            </div>
+                            {batchInput && (
+                                <div className="mb-2 flex items-center gap-2 rounded-lg bg-emerald-500/10 px-3 py-1.5">
+                                    <span className="text-emerald-400">Batch detected:</span>
+                                    <span className="font-mono font-bold text-emerald-300">
+                                        {batchInput}
+                                    </span>
+                                </div>
+                            )}
+                            <pre className="max-h-32 overflow-y-auto font-mono whitespace-pre-wrap text-slate-300">
+                                {ocrText}
+                            </pre>
                         </div>
                     )}
-                </div>
 
-                {isScanning && <SkeletonLoader />}
-
-                {showResult && (
-                    <div className="animate-in fade-in zoom-in absolute inset-0 z-30 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm duration-300">
-                        {showLasaConfirmation ? (
-                            <LasaConfirmation
-                                scannedName={
-                                    pendingVerifyResult?.verified
-                                        ? pendingVerifyResult.medicine.brand_name
-                                        : parsedBrand
-                                }
-                                matches={lasaMatches}
-                                onConfirmScanned={handleConfirmScanned}
-                                onSelectConflict={handleSelectConflict}
+                    <div className="flex flex-col items-center gap-6 bg-linear-to-t from-(--color-surface-page) to-transparent p-8">
+                        <form
+                            onSubmit={handleBatchSubmit}
+                            className="flex w-full max-w-sm flex-col gap-3 sm:flex-row"
+                        >
+                            <input
+                                type="text"
+                                value={batchInput}
+                                onChange={(e) => setBatchInput(e.target.value)}
+                                placeholder="Enter batch number"
+                                className="flex-1 rounded-full border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 text-center text-sm font-medium text-(--color-text-primary) placeholder-(--color-text-muted) focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:border-white/20 dark:bg-white/10 dark:text-white dark:placeholder-white/40"
                             />
-                        ) : (
-                            <>
-                                <button
-                                    onClick={handleDismissResult}
-                                    className="absolute top-4 right-4 z-40 rounded-full bg-white/10 p-2 text-white backdrop-blur-sm transition-colors hover:bg-white/20"
-                                >
-                                    <X size={24} />
-                                </button>
-                                {verifyError && (
-                                    <ErrorResult
-                                        message={verifyError}
-                                        onRetry={() => handleVerify(batchInput)}
-                                        isOffline={isOffline}
-                                    />
-                                )}
-                                {!verifyError &&
-                                    verifyResult?.verified &&
-                                    verifyResult.medicine.is_counterfeit_alert && (
-                                        <CounterfeitAlertResult
-                                            medicine={verifyResult.medicine}
-                                            onScanAgain={handleScanAgain}
-                                            onShare={handleShare}
-                                            onCopyMedicineDetails={handleCopyMedicineDetails}
-                                            shareLabel={tScan("share.button")}
-                                            copied={copied}
-                                        />
-                                    )}
-                                {!verifyError &&
-                                    verifyResult?.verified &&
-                                    !verifyResult.medicine.is_counterfeit_alert && (
-                                        <VerifiedSafeResult
-                                            medicine={verifyResult.medicine}
-                                            scanMeta={verifyResult.scanMeta}
-                                            onScanAgain={handleScanAgain}
-                                            onShare={handleShare}
-                                            onCopyMedicineDetails={handleCopyMedicineDetails}
-                                            shareLabel={tScan("share.button")}
-                                            copied={copied}
-                                        />
-                                    )}
-                                {!verifyError && verifyResult && !verifyResult.verified && (
-                                    <UnverifiedResult
-                                        brandName={parsedBrand}
-                                        batchNumber={parsedBatch}
-                                        expiryDate={parsedExpiry}
-                                        onScanAgain={handleDismissResult}
-                                        onShare={handleShare}
-                                        shareLabel={tScan("share.button")}
-                                    />
-                                )}
-                            </>
-                        )}
-                    </div>
-                )}
-            </div>
+                            <button
+                                type="submit"
+                                disabled={isScanning || isOffline}
+                                className="flex items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <Search size={18} />
+                                {isOffline ? "Offline" : "Verify"}
+                            </button>
+                        </form>
 
-            {ocrText && (
-                <div className="mx-auto my-4 w-full max-w-md rounded-2xl border border-emerald-500/30 bg-slate-900/90 p-4 text-xs backdrop-blur-md">
-                    <div className="mb-2 flex items-center justify-between border-b border-white/10 pb-2">
-                        <span className="font-bold text-emerald-400">OCR Extracted Text</span>
-                        {ocrConfidence !== null && (
-                            <span className="rounded bg-emerald-500/20 px-2 py-0.5 font-mono text-emerald-300">
-                                Confidence: {Math.round(ocrConfidence * 100)}%
-                            </span>
-                        )}
-                    </div>
-                    {batchInput && (
-                        <div className="mb-2 flex items-center gap-2 rounded-lg bg-emerald-500/10 px-3 py-1.5">
-                            <span className="text-emerald-400">Batch detected:</span>
-                            <span className="font-mono font-bold text-emerald-300">
-                                {batchInput}
-                            </span>
+                        <p className="max-w-xs text-center text-sm font-medium text-slate-400">
+                            Enter the batch number from the medicine strip, or upload a photo from
+                            your gallery.
+                        </p>
+                        <Link
+                            href="/history"
+                            className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-white/20 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none dark:border-white/20"
+                        >
+                            <History size={18} />
+                            View history
+                        </Link>
+                        <div className="flex gap-4">
+                            <button
+                                onClick={() => setIsCameraActive((prev) => !prev)}
+                                disabled={isOffline}
+                                className={`flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-colors focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
+                                    isCameraActive
+                                        ? "bg-red-500 text-white hover:bg-red-400"
+                                        : "bg-emerald-500 text-white hover:bg-emerald-400"
+                                }`}
+                            >
+                                <ScanLine size={18} />
+                                {isCameraActive ? "Stop Scanner" : "Scan Barcode"}
+                            </button>
+                            <label
+                                htmlFor={isOffline ? undefined : "medicine-upload"}
+                                onClick={(e) => {
+                                    if (isOffline) {
+                                        e.preventDefault();
+                                        toast.error(
+                                            "You are currently offline. Please check your internet connection."
+                                        );
+                                    }
+                                }}
+                                className={`flex cursor-pointer items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black shadow-lg transition-colors hover:bg-slate-200 ${
+                                    isOffline ? "cursor-not-allowed opacity-50" : ""
+                                }`}
+                            >
+                                <Layers size={18} />
+                                Upload Photo
+                            </label>
                         </div>
-                    )}
-                    <pre className="max-h-32 overflow-y-auto font-mono whitespace-pre-wrap text-slate-300">
-                        {ocrText}
-                    </pre>
-                </div>
+                    </div>
+                </>
             )}
-
-            <div className="flex flex-col items-center gap-6 bg-linear-to-t from-(--color-surface-page) to-transparent p-8">
-                <form
-                    onSubmit={handleBatchSubmit}
-                    className="flex w-full max-w-sm flex-col gap-3 sm:flex-row"
-                >
-                    <input
-                        type="text"
-                        value={batchInput}
-                        onChange={(e) => setBatchInput(e.target.value)}
-                        placeholder="Enter batch number"
-                        className="flex-1 rounded-full border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 text-center text-sm font-medium text-(--color-text-primary) placeholder-(--color-text-muted) focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:border-white/20 dark:bg-white/10 dark:text-white dark:placeholder-white/40"
-                    />
-                    <button
-                        type="submit"
-                        disabled={isScanning || isOffline}
-                        className="flex items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                        <Search size={18} />
-                        {isOffline ? "Offline" : "Verify"}
-                    </button>
-                </form>
-
-                <p className="max-w-xs text-center text-sm font-medium text-slate-400">
-                    Enter the batch number from the medicine strip, or upload a photo from your
-                    gallery.
-                </p>
-                <Link
-                    href="/history"
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-white/20 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none dark:border-white/20"
-                >
-                    <History size={18} />
-                    View history
-                </Link>
-                <div className="flex gap-4">
-                    <button
-                        onClick={() => setIsCameraActive((prev) => !prev)}
-                        disabled={isOffline}
-                        className={`flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-colors focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
-                            isCameraActive
-                                ? "bg-red-500 text-white hover:bg-red-400"
-                                : "bg-emerald-500 text-white hover:bg-emerald-400"
-                        }`}
-                    >
-                        <ScanLine size={18} />
-                        {isCameraActive ? "Stop Scanner" : "Scan Barcode"}
-                    </button>
-                    <label
-                        htmlFor={isOffline ? undefined : "medicine-upload"}
-                        onClick={(e) => {
-                            if (isOffline) {
-                                e.preventDefault();
-                                toast.error(
-                                    "You are currently offline. Please check your internet connection."
-                                );
-                            }
-                        }}
-                        className={`flex cursor-pointer items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black shadow-lg transition-colors hover:bg-slate-200 ${
-                            isOffline ? "cursor-not-allowed opacity-50" : ""
-                        }`}
-                    >
-                        <Layers size={18} />
-                        Upload Photo
-                    </label>
-                </div>
-            </div>
         </div>
     );
 }

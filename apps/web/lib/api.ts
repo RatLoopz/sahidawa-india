@@ -420,3 +420,122 @@ export async function checkLasaConflicts(
 
     return res.json() as Promise<LasaCheckResult>;
 }
+
+export interface MedicineExplanation {
+    purpose: string;
+    precautions: string;
+    sideEffects: string;
+    usageGuidance: string;
+}
+
+export async function explainMedicine(
+    medicineName: string,
+    language: string = "English",
+    signal?: AbortSignal
+): Promise<MedicineExplanation> {
+    const csrfToken = await getCsrfToken();
+    const res = await fetchWithRetry(`${API_BASE}/api/v1/scan/explain`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "x-csrf-token": csrfToken,
+        },
+        body: JSON.stringify({ medicineName, language }),
+        timeout: 15000,
+        signal,
+    });
+
+    if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as {
+            error?: string;
+        };
+        throw new Error(body.error ?? "Failed to fetch medicine explanation.");
+    }
+
+    return res.json() as Promise<MedicineExplanation>;
+}
+
+export interface ScanExtractResult {
+    text: string;
+    confidence: number;
+    filename: string;
+    parsed: {
+        batch: string | null;
+        expiry: string | null;
+        brandName: string | null;
+    };
+    medicine:
+        | (VerifiedMedicine & {
+              composition: string | null;
+              mrp: number | null;
+              jan_aushadhi_price: number | null;
+          })
+        | null;
+    matched: boolean;
+    matchScore: number | null;
+    matchSource: string | null;
+}
+
+export async function extractPrescription(
+    file: File,
+    signal?: AbortSignal
+): Promise<ScanExtractResult> {
+    const csrfToken = await getCsrfToken();
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch(`${API_BASE}/api/v1/scan/extract`, {
+        method: "POST",
+        headers: {
+            "x-csrf-token": csrfToken,
+        },
+        body: formData,
+        signal,
+    });
+
+    if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as {
+            error?: string;
+        };
+        throw new Error(body.error ?? "Failed to extract text from prescription.");
+    }
+
+    return res.json() as Promise<ScanExtractResult>;
+}
+
+export interface AnalyzedMedicine {
+    brand_name: string;
+    generic_name: string;
+    composition: string;
+    purpose: string;
+    precautions: string;
+    sideEffects: string;
+    usageGuidance: string;
+}
+
+export async function analyzePrescriptionText(
+    ocrText: string,
+    language: string = "English",
+    signal?: AbortSignal
+): Promise<{ medicines: AnalyzedMedicine[] }> {
+    const csrfToken = await getCsrfToken();
+    const res = await fetchWithRetry(`${API_BASE}/api/v1/scan/analyze-prescription`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "x-csrf-token": csrfToken,
+        },
+        body: JSON.stringify({ ocrText, language }),
+        timeout: 20000,
+        signal,
+    });
+
+    if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as {
+            error?: string;
+        };
+        throw new Error(body.error ?? "Failed to analyze prescription using AI.");
+    }
+
+    return res.json() as Promise<{ medicines: AnalyzedMedicine[] }>;
+}
