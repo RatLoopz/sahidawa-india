@@ -541,7 +541,7 @@ function PharmacyPanelRow({
             </div>
 
             {/* Action Group Footer Buttons */}
-            <div className="mt-3 ml-11 flex flex-wrap gap-2">
+            <div className="mt-3 ml-0 flex flex-wrap gap-2 sm:ml-11">
                 <a
                     href={directionsUrl}
                     target="_blank"
@@ -614,7 +614,7 @@ export default function PharmacyPanels({
                 className || ""
             }`}
         >
-            <div className="shrink-0 border-b border-(--color-border-muted) px-5 py-4">
+            <div className="shrink-0 border-b border-(--color-border-muted) px-3 py-3 sm:px-5 sm:py-4">
                 <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-950/30">
                         <Store size={18} className="text-emerald-600" />
@@ -628,8 +628,8 @@ export default function PharmacyPanels({
                 </div>
             </div>
 
-            <div className="shrink-0 border-b border-(--color-border-muted) px-5 py-4">
-                <div className="grid grid-cols-3 gap-2">
+            <div className="shrink-0 border-b border-(--color-border-muted) px-3 py-3 sm:px-5 sm:py-4">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                     {[
                         { label: "Verified stores", value: verifiedCount },
                         { label: "Jan Aushadhi", value: govtCount },
@@ -637,12 +637,12 @@ export default function PharmacyPanels({
                     ].map((item) => (
                         <article
                             key={item.label}
-                            className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) p-3"
+                            className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) p-2.5 sm:p-3"
                         >
-                            <p className="text-[10px] font-semibold tracking-[0.18em] text-(--color-text-muted) uppercase">
+                            <p className="text-[9px] font-semibold tracking-[0.14em] text-(--color-text-muted) uppercase sm:text-[10px] sm:tracking-[0.18em]">
                                 {item.label}
                             </p>
-                            <p className="mt-1 text-xl font-black text-(--color-text-primary)">
+                            <p className="mt-1 text-base font-black text-(--color-text-primary) sm:text-xl">
                                 {item.value}
                             </p>
                         </article>
@@ -650,7 +650,7 @@ export default function PharmacyPanels({
                 </div>
             </div>
 
-            <div className="shrink-0 border-b border-(--color-border-muted) px-5 py-4">
+            <div className="shrink-0 border-b border-(--color-border-muted) px-3 py-3 sm:px-5 sm:py-4">
                 <div className="mb-2 flex items-center gap-1.5 text-[11px] font-bold text-(--color-text-secondary)">
                     <AlertCircle size={12} className="text-red-500" />
                     Risk layers
@@ -680,7 +680,7 @@ export default function PharmacyPanels({
                 ) : null}
             </div>
 
-            <div className="flex-1 space-y-2 overflow-y-auto px-4 py-4">
+            <div className="flex-1 space-y-2 overflow-y-auto px-3 py-3 sm:px-4 sm:py-4">
                 {isLoading ? (
                     <div className="flex flex-col gap-2">
                         <div className="py-2 text-center">
@@ -706,7 +706,7 @@ export default function PharmacyPanels({
                                         <Skeleton className="h-3 w-3/4" />
                                     </div>
                                 </div>
-                                <div className="mt-2 ml-11 flex flex-wrap items-center gap-2">
+                                <div className="mt-2 ml-0 flex flex-wrap items-center gap-2 sm:ml-11">
                                     <Skeleton className="h-4 w-16 rounded-full" />
                                 </div>
                             </div>
