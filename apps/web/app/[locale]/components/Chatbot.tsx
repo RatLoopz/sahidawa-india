@@ -252,7 +252,7 @@ export default function Chatbot() {
 
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="relative z-50 flex h-14 w-14 items-center justify-center rounded-full bg-green-600 text-white shadow-[0_8px_20px_rgba(22,163,74,0.3)] transition-all hover:scale-105 hover:shadow-[0_8px_25px_rgba(22,163,74,0.4)] active:scale-95 dark:bg-green-700 dark:hover:bg-green-800"
+                    className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full bg-green-600 text-white shadow-[0_8px_20px_rgba(22,163,74,0.3)] transition-all hover:scale-105 hover:shadow-[0_8px_25px_rgba(22,163,74,0.4)] active:scale-95 dark:bg-green-700 dark:hover:bg-green-800"
                     aria-label={isOpen ? "Close AI chat" : "Open AI chat"}
                 >
                     {isOpen ? <X size={28} /> : <MessageSquare size={28} />}

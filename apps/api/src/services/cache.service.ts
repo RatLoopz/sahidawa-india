@@ -2,6 +2,7 @@ import { supabase } from "../db/client";
 import { hotDrugs } from "../db/seeds/hot_drugs_seed";
 import { redisClient } from "../utils/redis";
 import logger from "../utils/logger";
+import { MedicineRow } from "./medicineRag.service";
 
 // TTL Tiers in seconds
 export const TTL_TIERS = {
@@ -51,7 +52,7 @@ export async function warmCache(): Promise<void> {
 
         const error = error1 || error2;
 
-        let medicines: any[] = [];
+        let medicines: MedicineRow[] = [];
         if (!error) {
             const allMeds = [...(genericMeds || []), ...(brandMeds || [])];
             const uniqueMeds = new Map();
@@ -139,13 +140,13 @@ export async function getTierForDrug(drugId: string): Promise<"hot" | "warm" | "
 /**
  * Retrieves a drug from cache by batch number and increments its lookup hits counter.
  */
-export async function getCachedDrug(batchNumber: string): Promise<any | null> {
+export async function getCachedDrug(batchNumber: string): Promise<MedicineRow | null> {
     if (!redisClient.isOpen) return null;
     try {
         const cacheKey = `${KEY_PREFIXES.DRUG_CACHE}${batchNumber}`;
         const cached = await redisClient.get(cacheKey);
         if (cached) {
-            const med = JSON.parse(cached);
+            const med = JSON.parse(cached) as MedicineRow;
 
             // Increment drug-specific hit count and top drugs sorted set
             await incrementHitCount(med.id, med.brand_name || med.generic_name);
@@ -168,7 +169,7 @@ export async function getCachedDrug(batchNumber: string): Promise<any | null> {
 /**
  * Sets a drug in the cache with the appropriate tiered TTL based on its lookup hit counts.
  */
-export async function setCachedDrug(batchNumber: string, medicine: any): Promise<void> {
+export async function setCachedDrug(batchNumber: string, medicine: MedicineRow): Promise<void> {
     if (!redisClient.isOpen) return;
     try {
         const cacheKey = `${KEY_PREFIXES.DRUG_CACHE}${batchNumber}`;
