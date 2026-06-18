@@ -6,13 +6,16 @@ import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { PageHeader } from "../../components/PageHeader";
 import Card from "@/components/Card";
+import MedicineSearchSelect from "@/src/components/MedicineSearchSelect";
 import { createSchedule } from "@/lib/scheduleApi";
+import { Medicine } from "@/src/components/ComparisonGrid";
 
 const DEFAULT_TIMES = ["08:00", "20:00"];
 
 export default function NewSchedulePage() {
     const router = useRouter();
     const [medicineName, setMedicineName] = useState("");
+    const [medicineId, setMedicineId] = useState<string | null>(null);
     const [dosage, setDosage] = useState("1 tablet");
     const [frequency, setFrequency] = useState(2);
     const [times, setTimes] = useState<string[]>(DEFAULT_TIMES);
@@ -53,6 +56,7 @@ export default function NewSchedulePage() {
         try {
             await createSchedule({
                 medicine_name: medicineName.trim(),
+                medicine_id: medicineId || undefined,
                 dosage: dosage.trim(),
                 frequency,
                 times,
@@ -93,13 +97,19 @@ export default function NewSchedulePage() {
                             >
                                 Medicine Name
                             </label>
-                            <input
-                                id="medicine_name"
-                                type="text"
-                                value={medicineName}
-                                onChange={(e) => setMedicineName(e.target.value)}
+                            <MedicineSearchSelect
+                                value={{ id: medicineId || "", brand_name: medicineName } as any}
+                                onSelect={(medicine: Medicine | null) => {
+                                    setMedicineName(medicine?.brand_name || "");
+                                    setMedicineId(medicine?.id || null);
+                                }}
+                                onChange={(value: Medicine | string | null) => {
+                                    const name =
+                                        typeof value === "string" ? value : value?.brand_name || "";
+                                    setMedicineName(name);
+                                    setMedicineId(null);
+                                }}
                                 placeholder="e.g. Paracetamol, Amoxicillin"
-                                className="rounded-lg border border-(--color-border-muted) bg-(--color-surface-muted) px-3 py-2.5 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
                             />
                         </div>
 
