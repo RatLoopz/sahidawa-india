@@ -48,6 +48,16 @@ function isValidDateString(dateStr: string): boolean {
     return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }
 
+function formatMonthYearInputValue(year: string, month: string): string | null {
+    const yearNumber = year.length === 2 ? 2000 + Number(year) : Number(year);
+    const monthNumber = Number(month);
+    if (yearNumber < 1000 || yearNumber > 9999) return null;
+    if (monthNumber < 1 || monthNumber > 12) return null;
+
+    const lastDayOfMonth = new Date(yearNumber, monthNumber, 0).getDate();
+    return `${yearNumber}-${String(monthNumber).padStart(2, "0")}-${String(lastDayOfMonth).padStart(2, "0")}`;
+}
+
 function formatDateInputValue(rawDate: string | null): string | null {
     if (!rawDate) return null;
 
@@ -66,16 +76,13 @@ function formatDateInputValue(rawDate: string | null): string | null {
         return null;
     }
 
-    const monthYearMatch = trimmedDate.match(/^(\d{1,2})\/(\d{4})$/);
-    if (monthYearMatch) {
-        const [, month, year] = monthYearMatch;
-        const monthNumber = Number(month);
-        if (monthNumber >= 1 && monthNumber <= 12) {
-            const lastDayOfMonth = new Date(Number(year), monthNumber, 0).getDate();
-            return `${year}-${String(monthNumber).padStart(2, "0")}-${String(lastDayOfMonth).padStart(2, "0")}`;
-        }
-        return null;
-    }
+    const slashMonthYearMatch = trimmedDate.match(/^(\d{1,2})\/(\d{2}|\d{4})$/);
+    if (slashMonthYearMatch)
+        return formatMonthYearInputValue(slashMonthYearMatch[2], slashMonthYearMatch[1]);
+
+    const hyphenYearMonthMatch = trimmedDate.match(/^(\d{4})-(\d{1,2})$/);
+    if (hyphenYearMonthMatch)
+        return formatMonthYearInputValue(hyphenYearMonthMatch[1], hyphenYearMonthMatch[2]);
 
     const parsedDate = new Date(trimmedDate);
     if (Number.isNaN(parsedDate.getTime())) return null;

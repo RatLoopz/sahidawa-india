@@ -125,33 +125,36 @@ describe("ExpiryTrackerPage", () => {
         ).not.toBeInTheDocument();
     });
 
-    it("uses the last day of the month when scanned expiry only has month and year", async () => {
-        mockedVerifyMedicine.mockResolvedValueOnce({
-            verified: true,
-            medicine: {
-                brand_name: "",
-                generic_name: "Cetirizine",
-                manufacturer: "Acme Pharma",
-                batch_number: "CET-7",
-                expiry_date: "04/2027",
-                cdsco_approval_status: "approved",
-                is_counterfeit_alert: false,
-            },
-        });
+    it.each(["04/2027", "04/27", "2027-04"])(
+        "uses the last day of the month for scanned %s expiry",
+        async (expiryDate) => {
+            mockedVerifyMedicine.mockResolvedValueOnce({
+                verified: true,
+                medicine: {
+                    brand_name: "",
+                    generic_name: "Cetirizine",
+                    manufacturer: "Acme Pharma",
+                    batch_number: "CET-7",
+                    expiry_date: expiryDate,
+                    cdsco_approval_status: "approved",
+                    is_counterfeit_alert: false,
+                },
+            });
 
-        const { container } = render(<ExpiryTrackerPage />);
-        await waitForInitialLoad();
+            const { container } = render(<ExpiryTrackerPage />);
+            await waitForInitialLoad();
 
-        fireEvent.click(screen.getByRole("button", { name: /scan barcode/i }));
-        fireEvent.click(screen.getByRole("button", { name: "Emit scan" }));
+            fireEvent.click(screen.getByRole("button", { name: /scan barcode/i }));
+            fireEvent.click(screen.getByRole("button", { name: "Emit scan" }));
 
-        await waitFor(() => {
-            expect(screen.getByPlaceholderText("namePlaceholder")).toHaveValue("Cetirizine");
-        });
+            await waitFor(() => {
+                expect(screen.getByPlaceholderText("namePlaceholder")).toHaveValue("Cetirizine");
+            });
 
-        expect(screen.getByPlaceholderText("batchPlaceholder")).toHaveValue("CET-7");
-        expect(container.querySelector('input[type="date"]')).toHaveValue("2027-04-30");
-    });
+            expect(screen.getByPlaceholderText("batchPlaceholder")).toHaveValue("CET-7");
+            expect(container.querySelector('input[type="date"]')).toHaveValue("2027-04-30");
+        }
+    );
 
     it("keeps an existing expiry date when verified scan has no expiry", async () => {
         mockedVerifyMedicine.mockResolvedValueOnce({
