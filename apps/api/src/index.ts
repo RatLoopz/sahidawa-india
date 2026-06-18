@@ -1,3 +1,4 @@
+import "./tracing"; // MUST be imported first for auto-instrumentation
 import app from "./app";
 import { createGracefulShutdown } from "./gracefulShutdown";
 import logger from "./utils/logger";

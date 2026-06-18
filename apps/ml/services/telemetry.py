@@ -18,6 +18,15 @@ def configure_telemetry_logging(level: int = logging.INFO) -> None:
     if not tracemalloc.is_tracing():
         tracemalloc.start()
 
+    from opentelemetry import trace
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
+
+    provider = TracerProvider()
+    processor = BatchSpanProcessor(ConsoleSpanExporter())
+    provider.add_span_processor(processor)
+    trace.set_tracer_provider(provider)
+
 
 def get_telemetry_logger() -> logging.Logger:
     return logging.getLogger(TELEMETRY_LOGGER_NAME)

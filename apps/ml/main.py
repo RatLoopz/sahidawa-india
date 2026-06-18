@@ -17,6 +17,9 @@ app = FastAPI(
     version="1.0.0"
 )
 
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+FastAPIInstrumentor.instrument_app(app)
+
 # Configure CORS - load dynamically from environment variables
 allowed_origins = os.getenv(
     "ALLOWED_ORIGINS",

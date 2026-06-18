@@ -13,6 +13,12 @@ requests>=2.32.0            # HTTP requests
 
 # Data processing
 pandas>=2.2.0               # CSV/tabular data manipulation
+scikit-image
+opencv-python-headless
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-instrumentation-fastapi
+opentelemetry-exporter-otlp
 python-Levenshtein>=0.26.0  # Fuzzy string matching for normalization
 
 # PDF parsing (for CDSCO alerts - Step 3)
