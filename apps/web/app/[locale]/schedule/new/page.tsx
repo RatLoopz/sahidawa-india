@@ -237,13 +237,6 @@ export default function NewSchedulePage() {
                         </div>
 
                         <div className="flex items-center gap-3 pt-2">
-                            <Link
-                                href="/schedule"
-                                className="inline-flex items-center gap-1.5 rounded-lg border border-(--color-border-muted) px-4 py-2.5 text-sm font-semibold text-(--color-text-secondary) transition hover:bg-(--color-surface-muted)"
-                            >
-                                <ArrowLeft size={16} />
-                                Cancel
-                            </Link>
                             <button
                                 type="submit"
                                 disabled={saving}

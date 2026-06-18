@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import "@testing-library/jest-dom";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 // import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import MedicineSearchSelect from "../src/components/MedicineSearchSelect";
@@ -66,7 +66,7 @@ describe("MedicineSearchSelect", () => {
     });
 
     test("clear button calls onChange with null", async () => {
-        const user = userEvent.setup();
+        const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
 
         const onChange = jest.fn();
 
@@ -106,7 +106,9 @@ describe("MedicineSearchSelect", () => {
 
         await user.type(input, "cro");
 
-        jest.advanceTimersByTime(300);
+        await act(async () => {
+            jest.advanceTimersByTime(300);
+        });
 
         await waitFor(() => {
             expect(onSearch).toHaveBeenCalled();
@@ -166,7 +168,7 @@ describe("MedicineSearchSelect", () => {
     });
 
     test("clear history removes history items", async () => {
-        const user = userEvent.setup();
+        const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
 
         localStorage.setItem(
             "sahidawa_search_history",

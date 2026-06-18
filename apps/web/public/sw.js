@@ -42,8 +42,11 @@ const PRECACHE_PAGES = [
     "/hi/offline",
     "/gu/offline",
     "/ta/offline",
+    "/en/scan",
+    "/hi/scan",
+    "/gu/scan",
+    "/ta/scan",
 ];
-
 
 // ---------------------------------------------------------------------------
 // INSTALL — precache core shell pages

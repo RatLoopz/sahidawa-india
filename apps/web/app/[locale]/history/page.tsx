@@ -8,11 +8,13 @@ import { CopyButton } from "@/components/ui/CopyButton";
 import { Download, RefreshCw } from "lucide-react";
 import ExportModal from "./ExportModal";
 import { syncScanHistoryWithCloud } from "@/lib/scanHistoryCloudSync";
+import { PageHeader } from "../components/PageHeader";
 
 export default function HistoryPage() {
     const [history, setHistory] = useState<ScanHistoryEntry[]>([]);
     const [isSyncing, setIsSyncing] = useState(false);
     const [syncMessage, setSyncMessage] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         loadHistory();
@@ -31,6 +33,8 @@ export default function HistoryPage() {
             setHistory(sorted);
         } catch (error) {
             console.error("History load failed:", error);
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -68,9 +72,41 @@ export default function HistoryPage() {
     const openExportModal = () => setIsExportModalOpen(true);
     const closeExportModal = () => setIsExportModalOpen(false);
 
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-(--color-surface-page) p-6 text-(--color-text-primary)">
+                <div className="mx-auto max-w-3xl">
+                    <div className="mb-6 h-10 w-64 animate-pulse rounded-xl bg-white/5" />
+                    <div className="mb-6 flex flex-wrap gap-3">
+                        <div className="h-10 w-36 animate-pulse rounded-xl bg-white/5" />
+                        <div className="h-10 w-36 animate-pulse rounded-xl bg-white/5" />
+                    </div>
+                    <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
+                        {[...Array(4)].map((_, i) => (
+                            <div
+                                key={i}
+                                className="h-24 animate-pulse rounded-2xl border border-white/10 bg-white/5"
+                            />
+                        ))}
+                    </div>
+                    <div className="space-y-4">
+                        {[...Array(3)].map((_, i) => (
+                            <div
+                                key={i}
+                                className="h-[128px] animate-pulse rounded-2xl border border-white/10 bg-white/5"
+                            />
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-(--color-surface-page) p-6 text-(--color-text-primary)">
             <div className="mx-auto max-w-3xl">
+                <PageHeader backHref="/" variant="light" title="Scan History" />
+
                 <h1 className="mb-6 text-4xl font-black">Scan History</h1>
                 <div className="mb-6 flex flex-wrap gap-3">
                     {history.length > 0 && (

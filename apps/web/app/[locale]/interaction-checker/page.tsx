@@ -327,12 +327,15 @@ export default function InteractionCheckerPage() {
                         </h2>
 
                         {interactions.length === 0 ? (
-                            <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/30 p-5 text-emerald-800 shadow-sm dark:border-emerald-900/30 dark:bg-emerald-950/10 dark:text-emerald-300">
-                                <CheckCircle2
-                                    className="shrink-0 text-emerald-600 dark:text-emerald-400"
-                                    size={24}
-                                />
-                                <span className="font-bold">{t("noInteractions")}</span>
+                            <div className="flex flex-col items-center gap-4 rounded-3xl border border-emerald-200 bg-emerald-50/30 px-6 py-12 text-center shadow-sm dark:border-emerald-900/30 dark:bg-emerald-950/10">
+                                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400">
+                                    <CheckCircle2 size={32} />
+                                </div>
+                                <div>
+                                    <p className="text-lg font-black text-emerald-800 dark:text-emerald-300">
+                                        {t("noInteractions")}
+                                    </p>
+                                </div>
                             </div>
                         ) : (
                             <div className="flex flex-col gap-4">

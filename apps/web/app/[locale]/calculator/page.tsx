@@ -547,6 +547,7 @@ function CalculatorPageContent() {
                                     </span>
                                 </div>
                                 <button
+                                    type="button"
                                     onClick={handleFindStore}
                                     className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 text-sm font-black text-white shadow-lg shadow-emerald-600/15 transition-all duration-200 hover:bg-emerald-500 hover:shadow-emerald-500/25 active:scale-98"
                                 >
