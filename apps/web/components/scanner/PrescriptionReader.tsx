@@ -32,21 +32,11 @@ import {
     type MedicineExplanation,
 } from "@/lib/api";
 import { CdscoStatusBadge } from "./results/CdscoStatusBadge";
-
-interface DashboardMedicine {
-    id: string;
-    verified: boolean;
-    brand_name: string;
-    generic_name: string;
-    manufacturer: string;
-    cdsco_approval_status: string;
-    composition?: string | null;
-    mrp?: number | null;
-    jan_aushadhi_price?: number | null;
-    explanation?: MedicineExplanation | null;
-    explanationLoading?: boolean;
-    explanationError?: string | null;
-}
+import { UploadDropzone } from "./prescription/UploadDropzone";
+import { ScanLoaders } from "./prescription/ScanLoaders";
+import { ManualSearch } from "./prescription/ManualSearch";
+import { MedicineExplanationCard } from "./prescription/MedicineExplanationCard";
+import type { DashboardMedicine } from "./prescription/types";
 
 const LANGUAGES = [
     { code: "English", label: "English" },
@@ -506,71 +496,18 @@ export function PrescriptionReader() {
 
             {/* Upload Area / States */}
             {status === "idle" && (
-                <button
-                    type="button"
+                <UploadDropzone
+                    isDragOver={isDragOver}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`flex w-full flex-col items-center justify-center gap-4 rounded-3xl border-2 border-dashed px-6 py-16 transition-all duration-300 focus:outline-none ${
-                        isDragOver
-                            ? "border-emerald-500 bg-emerald-50/20 shadow-[0_0_20px_rgba(16,185,129,0.1)] dark:bg-emerald-950/10"
-                            : "border-(--color-border-muted) bg-(--color-surface-muted) hover:border-emerald-400 hover:bg-emerald-50/10 dark:hover:bg-slate-800/20"
-                    }`}
-                >
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleFileChange}
-                    />
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100/80 text-emerald-600 shadow-inner dark:bg-emerald-950/50 dark:text-emerald-400">
-                        <Upload size={28} />
-                    </div>
-                    <div className="max-w-sm text-center">
-                        <p className="text-base font-bold text-(--color-text-primary)">
-                            Drag and drop prescription photo here
-                        </p>
-                        <p className="mt-1 text-xs font-semibold text-(--color-text-muted)">
-                            or click to browse from files · JPG, PNG, or WebP up to 10MB
-                        </p>
-                    </div>
-                </button>
+                    onFileChange={handleFileChange}
+                    fileInputRef={fileInputRef}
+                />
             )}
 
             {/* Loaders */}
-            {(status === "compressing" || status === "ocr" || status === "matching") && (
-                <div className="relative space-y-6 overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-muted) p-8 text-center shadow-xl">
-                    {/* Simulated laser scan line */}
-                    {status === "ocr" && (
-                        <div className="animate-scan absolute right-4 left-4 z-20 h-[2.5px] bg-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.8)]"></div>
-                    )}
-
-                    <div className="flex justify-center">
-                        <Loader2 className="animate-spin text-emerald-500" size={48} />
-                    </div>
-
-                    <div className="mx-auto max-w-sm space-y-2">
-                        <p className="text-base font-bold text-(--color-text-primary)">
-                            {statusMessage}
-                        </p>
-                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                            <div
-                                className="h-full rounded-full bg-emerald-500 transition-all duration-300"
-                                style={{
-                                    width:
-                                        status === "compressing"
-                                            ? `${progress}%`
-                                            : status === "ocr"
-                                              ? "60%"
-                                              : "90%",
-                                }}
-                            />
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ScanLoaders status={status} statusMessage={statusMessage} progress={progress} />
 
             {/* Dashboard / Done State */}
             {status === "done" && (
@@ -606,44 +543,13 @@ export function PrescriptionReader() {
                     </div>
 
                     {/* Dashboard Controls (Manual search) */}
-                    <div className="relative max-w-md">
-                        <label htmlFor="manual-med-search" className="sr-only">
-                            Search and add another medicine
-                        </label>
-                        <div className="flex items-center gap-2 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) px-3 py-1.5 shadow-xs focus-within:ring-2 focus-within:ring-emerald-500/50">
-                            <Search size={18} className="text-(--color-text-muted)" />
-                            <input
-                                id="manual-med-search"
-                                type="text"
-                                value={manualSearchQuery}
-                                onChange={handleSearchChange}
-                                placeholder="Search and add another medicine manually..."
-                                className="flex-1 bg-transparent text-sm text-(--color-text-primary) placeholder-(--color-text-muted) outline-none"
-                            />
-                            {searchLoading && (
-                                <Loader2 className="animate-spin text-emerald-500" size={16} />
-                            )}
-                        </div>
-
-                        {searchResults.length > 0 && (
-                            <ul className="animate-in fade-in absolute right-0 left-0 z-50 mt-1 max-h-60 overflow-y-auto rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-1.5 shadow-2xl duration-150">
-                                {searchResults.map((r, i) => (
-                                    <li key={i}>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleAddMedicine(r.name)}
-                                            className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm font-semibold text-(--color-text-primary) hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20"
-                                        >
-                                            <span>{r.name}</span>
-                                            <span className="flex items-center gap-1 text-xs font-bold text-emerald-500">
-                                                <Plus size={14} /> Add
-                                            </span>
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
+                    <ManualSearch
+                        manualSearchQuery={manualSearchQuery}
+                        searchLoading={searchLoading}
+                        searchResults={searchResults}
+                        onSearchChange={handleSearchChange}
+                        onAddMedicine={handleAddMedicine}
+                    />
 
                     {/* Grid of Medicine Explanation Cards */}
                     {detectedMedicines.length === 0 ? (
@@ -717,211 +623,6 @@ export function PrescriptionReader() {
                     </button>
                 </div>
             )}
-        </div>
-    );
-}
-
-// Medicine Card subcomponent
-function MedicineExplanationCard({
-    med,
-    onDelete,
-    onCopy,
-    copied,
-    onRetry,
-}: {
-    med: DashboardMedicine;
-    onDelete: () => void;
-    onCopy: () => void;
-    copied: boolean;
-    onRetry: () => void;
-}) {
-    // Current Active Tab for explanation details
-    const [activeTab, setActiveTab] = useState<"purpose" | "safety" | "sideEffects" | "usage">(
-        "purpose"
-    );
-
-    const renderTabContent = () => {
-        if (med.explanationLoading) {
-            return (
-                <div className="flex flex-col items-center justify-center space-y-2 py-8">
-                    <Loader2 className="animate-spin text-emerald-500" size={24} />
-                    <span className="text-xs font-semibold text-(--color-text-muted)">
-                        Generating AI clinical guide...
-                    </span>
-                </div>
-            );
-        }
-
-        if (med.explanationError) {
-            return (
-                <div className="border-red-250 rounded-2xl border bg-red-50/30 p-4 text-center dark:border-red-900/30 dark:bg-red-950/10">
-                    <p className="text-xs font-semibold text-red-800 dark:text-red-400">
-                        {med.explanationError}
-                    </p>
-                    <button
-                        onClick={onRetry}
-                        className="mt-2 text-xs font-bold text-emerald-500 underline hover:text-emerald-600"
-                    >
-                        Retry explanation
-                    </button>
-                </div>
-            );
-        }
-
-        if (!med.explanation) {
-            return (
-                <p className="py-6 text-center text-xs text-(--color-text-muted) italic">
-                    Explanation currently unavailable.
-                </p>
-            );
-        }
-
-        switch (activeTab) {
-            case "purpose":
-                return (
-                    <div className="animate-in fade-in space-y-1.5 duration-200">
-                        <h5 className="flex items-center gap-1 text-xs font-bold tracking-wider text-emerald-500 uppercase">
-                            <BookOpen size={12} /> What it is for
-                        </h5>
-                        <p className="text-xs leading-relaxed font-semibold text-(--color-text-primary)">
-                            {med.explanation.purpose}
-                        </p>
-                    </div>
-                );
-            case "safety":
-                return (
-                    <div className="animate-in fade-in space-y-1.5 duration-200">
-                        <h5 className="flex items-center gap-1 text-xs font-bold tracking-wider text-amber-500 uppercase">
-                            <ShieldAlert size={12} /> Warnings & Precautions
-                        </h5>
-                        <p className="text-xs leading-relaxed font-semibold text-(--color-text-primary)">
-                            {med.explanation.precautions}
-                        </p>
-                    </div>
-                );
-            case "sideEffects":
-                return (
-                    <div className="animate-in fade-in space-y-1.5 duration-200">
-                        <h5 className="flex items-center gap-1 text-xs font-bold tracking-wider text-red-500 uppercase">
-                            <AlertTriangle size={12} /> Potential Side Effects
-                        </h5>
-                        <p className="text-xs leading-relaxed font-semibold text-(--color-text-primary)">
-                            {med.explanation.sideEffects}
-                        </p>
-                    </div>
-                );
-            case "usage":
-                return (
-                    <div className="animate-in fade-in space-y-1.5 duration-200">
-                        <h5 className="flex items-center gap-1 text-xs font-bold tracking-wider text-blue-500 uppercase">
-                            <Clock size={12} /> Usage & Dosage Guidance
-                        </h5>
-                        <p className="text-xs leading-relaxed font-semibold text-(--color-text-primary)">
-                            {med.explanation.usageGuidance}
-                        </p>
-                    </div>
-                );
-        }
-    };
-
-    // Cost Savings Calculator
-    const hasSavings = med.mrp && med.jan_aushadhi_price && med.mrp > med.jan_aushadhi_price;
-    const savingsPercent = hasSavings
-        ? Math.round(((med.mrp! - med.jan_aushadhi_price!) / med.mrp!) * 100)
-        : 0;
-
-    return (
-        <div className="relative flex flex-col justify-between rounded-[2.2rem] border border-(--color-border-muted) bg-(--color-surface-page) p-6 shadow-md transition-all duration-300 hover:scale-[1.01] hover:shadow-xl">
-            <div className="absolute top-0 right-0 left-0 h-1.5 rounded-t-full bg-emerald-500"></div>
-
-            {/* Top row with name, status & actions */}
-            <div className="space-y-3">
-                <div className="flex items-start justify-between gap-2">
-                    <div>
-                        <h3 className="text-lg font-black tracking-tight text-(--color-text-primary)">
-                            {med.brand_name}
-                        </h3>
-                        <p className="mt-0.5 text-xs font-bold text-(--color-text-secondary)">
-                            {med.generic_name}
-                        </p>
-                    </div>
-
-                    <div className="flex shrink-0 items-center gap-1.5">
-                        <button
-                            onClick={onCopy}
-                            title="Copy clinical details"
-                            className={`rounded-lg p-1.5 transition-all ${
-                                copied
-                                    ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400"
-                                    : "bg-(--color-surface-muted) text-(--color-text-muted) hover:bg-(--color-border-muted) hover:text-(--color-text-primary)"
-                            }`}
-                        >
-                            {copied ? <Check size={14} strokeWidth={2.5} /> : <Copy size={14} />}
-                        </button>
-
-                        <button
-                            onClick={onDelete}
-                            title="Delete medicine card"
-                            className="rounded-lg bg-red-50 p-1.5 text-red-600 transition-all hover:bg-red-100 focus:outline-none dark:bg-red-950/20 dark:text-red-400 dark:hover:bg-red-950/40"
-                        >
-                            <Trash2 size={14} />
-                        </button>
-                    </div>
-                </div>
-
-                {/* Subtitle meta */}
-                <div className="flex flex-wrap items-center gap-2">
-                    <CdscoStatusBadge status={med.cdsco_approval_status} />
-                    <span className="rounded border border-(--color-border-muted) bg-(--color-surface-muted) px-2 py-0.5 text-[10px] font-bold text-(--color-text-muted)">
-                        {med.manufacturer}
-                    </span>
-                </div>
-
-                {/* Composition line */}
-                {med.composition && (
-                    <div className="rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) px-3 py-2 text-[11px] font-medium text-(--color-text-secondary)">
-                        <span className="font-bold text-(--color-text-primary)">Composition: </span>
-                        {med.composition}
-                    </div>
-                )}
-
-                {/* Cost Savings Badge */}
-                {hasSavings && (
-                    <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2">
-                        <TrendingDown size={14} className="shrink-0 text-emerald-500" />
-                        <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                            Generic Alternative (Jan Aushadhi) saves {savingsPercent}% cost! (₹
-                            {med.jan_aushadhi_price} vs MRP ₹{med.mrp})
-                        </span>
-                    </div>
-                )}
-
-                {/* Tab select bar */}
-                <div className="flex border-b border-(--color-border-muted) pt-2">
-                    {(["purpose", "safety", "sideEffects", "usage"] as const).map((tab) => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab)}
-                            className={`flex-1 border-b-2 pb-1.5 text-center text-[10px] font-extrabold tracking-wider uppercase transition-colors outline-none ${
-                                activeTab === tab
-                                    ? "border-emerald-500 text-emerald-500"
-                                    : "border-transparent text-(--color-text-muted) hover:text-(--color-text-secondary)"
-                            }`}
-                        >
-                            {tab === "purpose"
-                                ? "Use"
-                                : tab === "safety"
-                                  ? "Safety"
-                                  : tab === "sideEffects"
-                                    ? "Effects"
-                                    : "Dose"}
-                        </button>
-                    ))}
-                </div>
-
-                {/* Tab content area */}
-                <div className="min-h-24 pt-2">{renderTabContent()}</div>
-            </div>
         </div>
     );
 }
