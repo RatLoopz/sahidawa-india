@@ -49,7 +49,7 @@ async function searchMedicines(query: string): Promise<Medicine[]> {
 }
 
 function CalculatorPageContent() {
-    const translate = useTranslations("Calculator");
+    const t = useTranslations("Calculator");
     const router = useRouter();
     const params = useParams();
     const locale = Array.isArray(params.locale) ? params.locale[0] : params.locale || "en";
@@ -153,12 +153,12 @@ function CalculatorPageContent() {
                 }
             } catch (err) {
                 console.error("Failed to fetch alternatives:", err);
-                setError(translate("error"));
+                setError(t("error"));
             } finally {
                 setLoading(false);
             }
         },
-        [translate]
+        [t]
     );
 
     useEffect(() => {
@@ -183,7 +183,7 @@ function CalculatorPageContent() {
 
                 if (dbError) {
                     console.error("Database query failed:", dbError);
-                    setError(translate("error"));
+                    setError(t("error"));
                     setLoading(false);
                     return;
                 }
@@ -208,7 +208,7 @@ function CalculatorPageContent() {
             } catch (err) {
                 if (!active) return;
                 console.error("Unexpected error loading medicine:", err);
-                setError(translate("error"));
+                setError(t("error"));
                 setLoading(false);
             }
         };
@@ -218,7 +218,7 @@ function CalculatorPageContent() {
         return () => {
             active = false;
         };
-    }, [medicineId, handleMedicineChange, translate]);
+    }, [medicineId, handleMedicineChange, t]);
 
     // Savings calculations
     const brandPrice = alternativeData?.brand_price ?? selectedMedicine?.mrp ?? 0;
@@ -236,8 +236,8 @@ function CalculatorPageContent() {
     return (
         <div className="min-h-screen bg-(--color-surface-muted) text-(--color-text-primary)">
             <PageHeader
-                title={translate("pageTitle")}
-                subtitle={translate("pageSubtitle")}
+                title={t("pageTitle")}
+                subtitle={t("pageSubtitle")}
                 backHref="/"
                 variant="light"
             />
@@ -245,18 +245,18 @@ function CalculatorPageContent() {
                 {/* Search Panel */}
                 <section className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 shadow-sm">
                     <MedicineSearchSelect
-                        label={translate("searchLabel")}
+                        label={t("searchLabel")}
                         value={selectedMedicine}
                         onChange={handleMedicineChange}
                         onSearch={handleSearch}
-                        placeholder={translate("searchPlaceholder")}
+                        placeholder={t("searchPlaceholder")}
                     />
                 </section>
 
                 {loading && (
                     <div className="flex items-center justify-center gap-3 py-12 text-emerald-600 dark:text-emerald-400">
                         <Loader2 className="animate-spin" size={24} />
-                        <span className="text-sm font-bold">{translate("loading")}</span>
+                        <span className="text-sm font-bold">{t("loading")}</span>
                     </div>
                 )}
 
@@ -272,7 +272,7 @@ function CalculatorPageContent() {
                         {/* Phase 2: Quantity Selection Panel */}
                         <section className="space-y-4 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 shadow-sm">
                             <h3 className="text-sm font-bold tracking-wider text-slate-800 uppercase dark:text-slate-200">
-                                {translate("dosageSectionTitle")}
+                                {t("dosageSectionTitle")}
                             </h3>
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between text-sm font-semibold">
@@ -280,10 +280,10 @@ function CalculatorPageContent() {
                                         htmlFor="quantity-input"
                                         className="text-slate-600 dark:text-slate-300"
                                     >
-                                        {translate("quantityLabel")}
+                                        {t("quantityLabel")}
                                     </label>
                                     <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">
-                                        {quantity} {quantity === 1 ? translate("packUnit") : translate("packsUnit")}
+                                        {quantity} {quantity === 1 ? t("packUnit") : t("packsUnit")}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-4">
@@ -319,7 +319,7 @@ function CalculatorPageContent() {
                         <section className="space-y-4 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 shadow-sm">
                             <h3 className="flex items-center gap-2 text-base font-bold text-emerald-700 dark:text-emerald-400">
                                 <Pill size={18} />
-                                {translate("alternativeTitle")}
+                                {t("alternativeTitle")}
                             </h3>
 
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -328,10 +328,10 @@ function CalculatorPageContent() {
                                     <div className="space-y-2">
                                         <div className="flex items-center justify-between">
                                             <span className="block text-[10px] font-bold tracking-wider text-(--color-text-muted) uppercase">
-                                                {translate("brandTierTitle")}
+                                                {t("brandTierTitle")}
                                             </span>
                                             <span className="dark:text-slate-350 rounded-full bg-slate-200/60 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:bg-slate-700">
-                                                {translate("mrpLabel")}
+                                                {t("mrpLabel")}
                                             </span>
                                         </div>
                                         <h4 className="mt-1 block text-sm font-bold text-(--color-text-primary)">
@@ -341,12 +341,12 @@ function CalculatorPageContent() {
                                             {selectedMedicine.manufacturer || "Commercial Lab"}
                                         </p>
                                         <p className="text-[11px] text-(--color-text-muted) italic">
-                                            {translate("brandTierDesc")}
+                                            {t("brandTierDesc")}
                                         </p>
                                     </div>
                                     <div className="mt-4 flex items-baseline justify-between border-t border-(--color-border-muted) pt-3">
                                         <span className="text-xs font-medium text-slate-500">
-                                            {translate("brandPriceLabel")}
+                                            {t("brandPriceLabel")}
                                         </span>
                                         <span className="text-base font-bold text-slate-700 dark:text-slate-300">
                                             ₹{brandPrice.toFixed(2)}
@@ -359,11 +359,11 @@ function CalculatorPageContent() {
                                     <div className="space-y-2">
                                         <div className="flex items-center justify-between">
                                             <span className="text-sky-650 dark:text-sky-450 block text-[10px] font-bold tracking-wider uppercase">
-                                                {translate("genericTierTitle")}
+                                                {t("genericTierTitle")}
                                             </span>
                                             {genericAlternative?.isEstimated && (
                                                 <span className="text-sky-850 rounded bg-sky-100/80 px-1.5 py-0.5 text-[9px] font-bold dark:bg-sky-950 dark:text-sky-300">
-                                                    {translate("estimatedLabel")}
+                                                    {t("estimatedLabel")}
                                                 </span>
                                             )}
                                         </div>
@@ -375,7 +375,7 @@ function CalculatorPageContent() {
                                             {genericAlternative?.manufacturer || "Generic Lab"}
                                         </p>
                                         <p className="text-sky-650 text-[11px] italic dark:text-sky-400/60">
-                                            {translate("genericTierDesc")}
+                                            {t("genericTierDesc")}
                                         </p>
                                     </div>
                                     <div className="mt-4 border-t border-sky-500/10 pt-3">
@@ -404,10 +404,10 @@ function CalculatorPageContent() {
                                         <div className="flex items-center justify-between">
                                             <span className="block flex items-center gap-1 text-[10px] font-bold tracking-wider text-emerald-600 uppercase dark:text-emerald-400">
                                                 <Sparkles size={10} className="text-emerald-500" />
-                                                {translate("janAushadhiTierTitle")}
+                                                {t("janAushadhiTierTitle")}
                                             </span>
                                             <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[9px] font-extrabold tracking-wide text-white uppercase">
-                                                {translate("bestValue")}
+                                                {t("bestValue")}
                                             </span>
                                         </div>
                                         <h4 className="mt-1 block text-sm font-bold text-emerald-800 dark:text-emerald-300">
@@ -417,7 +417,7 @@ function CalculatorPageContent() {
                                             Jan Aushadhi (PMBJP)
                                         </p>
                                         <p className="text-[11px] text-emerald-700 italic dark:text-emerald-400/60">
-                                            {translate("janAushadhiTierDesc")}
+                                            {t("janAushadhiTierDesc")}
                                         </p>
                                     </div>
                                     <div className="mt-4 border-t border-emerald-500/10 pt-3">
@@ -443,13 +443,13 @@ function CalculatorPageContent() {
                         {/* Phase 2: Savings Dashboard / Projections Panel */}
                         <section className="space-y-4 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 shadow-sm">
                             <h3 className="text-sm font-bold tracking-wider text-slate-800 uppercase dark:text-slate-200">
-                                {translate("projectionsTitle")}
+                                {t("projectionsTitle")}
                             </h3>
 
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                                 <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-center dark:border-slate-800 dark:bg-slate-800/40">
                                     <span className="block text-xs font-semibold text-slate-500">
-                                        {translate("perPurchaseSavings")}
+                                        {t("perPurchaseSavings")}
                                     </span>
                                     <span className="mt-1 block text-lg font-black text-slate-800 dark:text-slate-200">
                                         ₹{savingsPerPurchase.toFixed(2)}
@@ -459,7 +459,7 @@ function CalculatorPageContent() {
                                 <div className="rounded-xl border border-emerald-500/15 bg-emerald-500/5 p-4 text-center shadow-md shadow-emerald-500/5 sm:scale-105">
                                     <span className="block flex items-center justify-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
                                         <DollarSign size={12} />
-                                        {translate("monthlySavings")}
+                                        {t("monthlySavings")}
                                     </span>
                                     <span className="mt-1 block text-xl font-extrabold text-emerald-700 dark:text-emerald-400">
                                         ₹{monthlySavings.toFixed(2)}
@@ -469,7 +469,7 @@ function CalculatorPageContent() {
                                 <div className="rounded-xl border border-teal-500/15 bg-teal-500/5 p-4 text-center">
                                     <span className="block flex items-center justify-center gap-1 text-xs font-bold text-teal-600 dark:text-teal-400">
                                         <Calendar size={12} />
-                                        {translate("yearlySavings")}
+                                        {t("yearlySavings")}
                                     </span>
                                     <span className="mt-1 block text-xl font-extrabold text-teal-700 dark:text-teal-400">
                                         ₹{yearlySavings.toFixed(2)}
@@ -481,7 +481,7 @@ function CalculatorPageContent() {
                             <div className="space-y-4 border-t border-slate-100 pt-4 dark:border-slate-800/60">
                                 <div className="space-y-1.5">
                                     <div className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400">
-                                        <span>{translate("costPerMonthBrand")}</span>
+                                        <span>{t("costPerMonthBrand")}</span>
                                         <span className="font-extrabold text-slate-800 dark:text-slate-200">
                                             ₹{brandMonthlyCost.toFixed(2)}
                                         </span>
@@ -496,7 +496,7 @@ function CalculatorPageContent() {
 
                                 <div className="space-y-1.5">
                                     <div className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400">
-                                        <span>{translate("costPerMonthGeneric")}</span>
+                                        <span>{t("costPerMonthGeneric")}</span>
                                         <span className="font-extrabold text-slate-800 dark:text-slate-200">
                                             ₹{genericMonthlyCost.toFixed(2)}
                                         </span>
@@ -516,7 +516,7 @@ function CalculatorPageContent() {
 
                                 <div className="space-y-1.5">
                                     <div className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400">
-                                        <span>{translate("costPerMonthJanAushadhi")}</span>
+                                        <span>{t("costPerMonthJanAushadhi")}</span>
                                         <span className="font-extrabold text-slate-800 dark:text-slate-200">
                                             ₹{janAushadhiMonthlyCost.toFixed(2)}
                                         </span>
