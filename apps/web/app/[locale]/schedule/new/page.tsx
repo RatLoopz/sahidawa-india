@@ -2,8 +2,7 @@
 
 import { useRouter } from "@/i18n/routing";
 import { useState } from "react";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
-import { Link } from "@/i18n/routing";
+import { Plus, Trash2 } from "lucide-react";
 import { PageHeader } from "../../components/PageHeader";
 import Card from "@/components/Card";
 import { createSchedule } from "@/lib/scheduleApi";
@@ -217,13 +216,6 @@ export default function NewSchedulePage() {
                         </div>
 
                         <div className="flex items-center gap-3 pt-2">
-                            <Link
-                                href="/schedule"
-                                className="inline-flex items-center gap-1.5 rounded-lg border border-(--color-border-muted) px-4 py-2.5 text-sm font-semibold text-(--color-text-secondary) transition hover:bg-(--color-surface-muted)"
-                            >
-                                <ArrowLeft size={16} />
-                                Cancel
-                            </Link>
                             <button
                                 type="submit"
                                 disabled={saving}
