@@ -10,9 +10,10 @@ import {
     ScanHistoryEntry,
 } from "@/lib/db/scanHistory";
 import { CopyButton } from "@/components/ui/CopyButton";
-import { Download, RefreshCw, Trash2 } from "lucide-react";
+import { ClipboardList, Download, RefreshCw, Trash2 } from "lucide-react";
 import ExportModal from "./ExportModal";
 import { syncScanHistoryWithCloud } from "@/lib/scanHistoryCloudSync";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 export default function HistoryPage() {
     const [history, setHistory] = useState<ScanHistoryEntry[]>([]);
@@ -52,10 +53,10 @@ export default function HistoryPage() {
             setSyncMessage(null);
             await syncScanHistoryWithCloud();
             await loadHistory();
-            setSyncMessage("History synced with cloud.");
+            setSyncMessage(t("sync_success"));
         } catch (error) {
             console.error("History sync failed:", error);
-            setSyncMessage("Cloud sync unavailable right now.");
+            setSyncMessage(t("sync_error"));
         } finally {
             setIsSyncing(false);
         }
@@ -93,7 +94,7 @@ export default function HistoryPage() {
     return (
         <div className="min-h-screen bg-(--color-surface-page) p-6 text-(--color-text-primary)">
             <div className="mx-auto max-w-3xl">
-                <h1 className="mb-6 text-4xl font-black">Scan History</h1>
+                <h1 className="mb-6 text-4xl font-black">{t("title")}</h1>
                 <div className="mb-6 flex flex-wrap gap-3">
                     {/* Export to CSV button */}
                     {history.length > 0 && (
@@ -101,7 +102,7 @@ export default function HistoryPage() {
                             onClick={openExportModal}
                             className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg transition hover:bg-emerald-700 active:scale-95"
                         >
-                            <Download size={16} /> Export to CSV
+                            <Download size={16} /> {t("export_csv_button")}
                         </button>
                     )}
                     {/* Sync to Cloud button */}
@@ -111,7 +112,7 @@ export default function HistoryPage() {
                         className="flex items-center gap-2 rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) px-5 py-2.5 text-sm font-bold transition hover:bg-(--color-surface-page) disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <RefreshCw size={16} className={isSyncing ? "animate-spin" : ""} />
-                        Sync to Cloud
+                        {t("sync_cloud_button")}
                     </button>
                     {/* Clear All History Button */}
                     {history.length > 0 && (
@@ -146,13 +147,13 @@ export default function HistoryPage() {
                 {syncMessage && <p className="mb-4 text-sm opacity-70">{syncMessage}</p>}
                 <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
                     <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                        <p className="text-sm opacity-70">Total</p>
+                        <p className="text-sm opacity-70">{t("stat_total")}</p>
 
                         <h2 className="mt-2 text-3xl font-bold">{history.length}</h2>
                     </div>
 
                     <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
-                        <p className="text-sm text-emerald-300">Verified</p>
+                        <p className="text-sm text-emerald-300">{t("stat_verified")}</p>
 
                         <h2 className="mt-2 text-3xl font-bold text-emerald-400">
                             {verifiedCount}
@@ -160,7 +161,7 @@ export default function HistoryPage() {
                     </div>
 
                     <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4">
-                        <p className="text-sm text-amber-300">Suspicious</p>
+                        <p className="text-sm text-amber-300">{t("stat_suspicious")}</p>
 
                         <h2 className="mt-2 text-3xl font-bold text-amber-400">
                             {suspiciousCount}
@@ -168,18 +169,18 @@ export default function HistoryPage() {
                     </div>
 
                     <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
-                        <p className="text-sm text-red-300">Fake</p>
+                        <p className="text-sm text-red-300">{t("stat_fake")}</p>
 
                         <h2 className="mt-2 text-3xl font-bold text-red-400">{fakeCount}</h2>
                     </div>
                 </div>
 
                 {history.length === 0 ? (
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
-                        <h2 className="text-2xl font-bold">No Scan History Yet</h2>
-
-                        <p className="mt-2 opacity-70">Your verified medicines will appear here.</p>
-                    </div>
+                    <EmptyState
+                        icon={<ClipboardList className="h-10 w-10 text-emerald-500" />}
+                        title={t("empty_title")}
+                        description={t("empty_description")}
+                    />
                 ) : (
                     <div className="space-y-4">
                         {history.map((item) => (
@@ -195,12 +196,12 @@ export default function HistoryPage() {
                                             </h2>
                                             <CopyButton
                                                 text={item.medicineName}
-                                                toastMessage="Medicine name copied!"
+                                                toastMessage={t("item_copy_success")}
                                             />
                                         </div>
 
                                         <p className="mt-2">
-                                            Status:
+                                            {t("item_status_label")}
                                             <span
                                                 className={`ml-2 font-semibold ${
                                                     item.status?.toLowerCase() === "verified"
@@ -223,7 +224,7 @@ export default function HistoryPage() {
                                         onClick={() => handleDelete(item.id)}
                                         className="rounded-lg bg-red-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-red-400"
                                     >
-                                        Delete
+                                        {t("item_delete_button")}
                                     </button>
                                 </div>
                             </div>
