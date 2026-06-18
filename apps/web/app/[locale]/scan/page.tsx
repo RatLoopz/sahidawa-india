@@ -18,6 +18,9 @@ import LasaConfirmation from "@/components/scanner/LasaConfirmation";
 import { BarcodeScanner } from "@/components/scanner/BarcodeScanner";
 import LazyImage from "@/components/LazyImage";
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
+import { useOfflineScanner } from "@/hooks/useOfflineScanner";
+import { usePendingScanQueue } from "@/hooks/usePendingScanQueue";
+import { PendingScanQueue } from "@/components/scanner/PendingScanQueue";
 import { useTranslations } from "next-intl";
 import { buildVerificationShareText, type VerificationShareCopy } from "@/lib/verificationShare";
 import { saveScanHistory } from "@/lib/db/scanHistory";
@@ -43,26 +46,23 @@ async function copyTextToClipboard(text: string) {
         await navigator.clipboard.writeText(text);
         return true;
     } catch {
-        try {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            textArea.setAttribute("readonly", "");
-            textArea.style.position = "fixed";
-            textArea.style.opacity = "0";
-            document.body.appendChild(textArea);
-            textArea.select();
-            const copied = document.execCommand("copy");
-            document.body.removeChild(textArea);
-            return copied;
-        } catch (err) {
-            console.error("Fallback copy failed:", err);
-            return false;
-        }
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.setAttribute("readonly", "");
+        textArea.style.position = "fixed";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.select();
+        const copied = document.execCommand("copy");
+        document.body.removeChild(textArea);
+        return copied;
     }
 }
 
 export default function ScanPage() {
     const tScan = useTranslations("Scan");
+    const { queueBarcode } = useOfflineScanner();
+    const { pending, isSyncing, refresh } = usePendingScanQueue();
     // Add these near the top of your component, inside the main function
     const [isVerifying, setIsVerifying] = useState(false);
     const [apiError, setApiError] = useState<string | null>(null);
@@ -89,7 +89,13 @@ export default function ScanPage() {
 
         handleVerify,
         processVerificationResult,
-    } = useMedicineVerification(abortControllerRef, isMountedRef, setIsScanning, setShowResult);
+    } = useMedicineVerification(abortControllerRef, isMountedRef, setIsScanning, setShowResult, {
+        queueBarcode,
+        onQueued: (barcode) => {
+            setBatchInput(barcode);
+            void refresh();
+        },
+    });
     const {
         uploadedImage,
         ocrText,
@@ -208,16 +214,20 @@ export default function ScanPage() {
         if (!verifyResult?.verified) return;
 
         const details = formatMedicineDetails(verifyResult.medicine);
-        const success = await copyTextToClipboard(details);
-
-        if (success) {
-            toast.success(tScan("share.copy_success"));
+        const showCopied = () => {
             setCopied(true);
+            toast.success("Medicine details copied!");
             setTimeout(() => setCopied(false), 2000);
+        };
+
+        const copiedSuccessfully = await copyTextToClipboard(details);
+
+        if (copiedSuccessfully) {
+            showCopied();
         } else {
-            toast.error("Failed to copy. Please copy manually.");
+            toast.error("Unable to copy medicine details");
         }
-    }, [verifyResult, tScan]);
+    }, [verifyResult]);
 
     const handleBarcodeScan = useCallback(
         async (scannedText: string) => {
@@ -445,6 +455,8 @@ export default function ScanPage() {
             )}
 
             <div className="flex flex-col items-center gap-6 bg-linear-to-t from-(--color-surface-page) to-transparent p-8">
+                <PendingScanQueue pending={pending} isSyncing={isSyncing} />
+
                 <form
                     onSubmit={handleBatchSubmit}
                     className="flex w-full max-w-sm flex-col gap-3 sm:flex-row"
@@ -458,11 +470,11 @@ export default function ScanPage() {
                     />
                     <button
                         type="submit"
-                        disabled={isScanning || isOffline}
+                        disabled={isScanning}
                         className="flex items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <Search size={18} />
-                        {isOffline ? "Offline" : "Verify"}
+                        {isOffline ? tScan("offlineVerify") : "Verify"}
                     </button>
                 </form>
 
@@ -480,8 +492,7 @@ export default function ScanPage() {
                 <div className="flex gap-4">
                     <button
                         onClick={() => setIsCameraActive((prev) => !prev)}
-                        disabled={isOffline}
-                        className={`flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-colors focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
+                        className={`flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-colors focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none ${
                             isCameraActive
                                 ? "bg-red-500 text-white hover:bg-red-400"
                                 : "bg-emerald-500 text-white hover:bg-emerald-400"
@@ -491,18 +502,8 @@ export default function ScanPage() {
                         {isCameraActive ? "Stop Scanner" : "Scan Barcode"}
                     </button>
                     <label
-                        htmlFor={isOffline ? undefined : "medicine-upload"}
-                        onClick={(e) => {
-                            if (isOffline) {
-                                e.preventDefault();
-                                toast.error(
-                                    "You are currently offline. Please check your internet connection."
-                                );
-                            }
-                        }}
-                        className={`flex cursor-pointer items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black shadow-lg transition-colors hover:bg-slate-200 ${
-                            isOffline ? "cursor-not-allowed opacity-50" : ""
-                        }`}
+                        htmlFor="medicine-upload"
+                        className="flex cursor-pointer items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black shadow-lg transition-colors hover:bg-slate-200"
                     >
                         <Layers size={18} />
                         Upload Photo

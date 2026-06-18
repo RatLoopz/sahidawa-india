@@ -136,6 +136,25 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
     const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
 
+    // ── Global keyboard shortcut (/) ──────────────────────────────────────────
+    useEffect(() => {
+        const handleGlobalKeyDown = (e: KeyboardEvent) => {
+            if (
+                e.key === "/" &&
+                document.activeElement?.tagName !== "INPUT" &&
+                document.activeElement?.tagName !== "TEXTAREA"
+            ) {
+                e.preventDefault();
+                inputRef.current?.focus();
+            }
+        };
+
+        window.addEventListener("keydown", handleGlobalKeyDown);
+        return () => {
+            window.removeEventListener("keydown", handleGlobalKeyDown);
+        };
+    }, []);
+
     // ── Close on click-outside ─────────────────────────────────────────────────
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -444,6 +463,13 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                         }`}
                         aria-label="Search medicine or batch"
                     />
+                    {!isOpen && !query && (
+                        <div className="hidden items-center pr-2 sm:flex">
+                            <kbd className="pointer-events-none inline-flex h-5 items-center rounded border border-slate-200 bg-slate-50 px-1.5 font-sans text-xs font-medium text-slate-400 select-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500">
+                                /
+                            </kbd>
+                        </div>
+                    )}
                     <button
                         onClick={() => performSearch(query)}
                         className="flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 p-2.5 text-sm font-bold text-white shadow-md shadow-emerald-500/25 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-500/30 active:scale-95 sm:px-5 sm:py-2.5"
