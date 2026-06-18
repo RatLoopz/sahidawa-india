@@ -936,5 +936,20 @@
             "timeout": "Location request timed out.",
             "generic": "Unable to get your location."
         }
+    },
+    "ABHA": {
+        "title": "ABHA Health Records",
+        "setupTitle": "ABHA Setup",
+        "recordsTitle": "ABHA Records",
+        "link": "Link ABHA",
+        "linked": "ABHA Linked",
+        "notLinked": "ABHA Not Linked",
+        "generateOtp": "Generate OTP",
+        "verifyOtp": "Verify OTP",
+        "enterAbha": "Enter ABHA Address",
+        "enterOtp": "Enter OTP",
+        "success": "ABHA successfully linked.",
+        "saveRecord": "Save to ABHA Record",
+        "noRecords": "No prescriptions found."
     }
 }

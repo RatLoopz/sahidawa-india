@@ -11,6 +11,7 @@ import mapRouter from "./routes/map";
 import medicineSchedulesRouter from "./routes/medicineSchedules";
 import trackingRouter from "./routes/tracking";
 import { initExpiryCron } from "./cron/expiry-check";
+import abhaRoutes from "./routes/abha";
 
 // ── Environment Configuration ──────────────────────────────────────────────
 const rootEnvPath = path.resolve(__dirname, "../../../.env");
@@ -230,6 +231,7 @@ app.use("/api/schedules", medicineSchedulesRouter);
 app.use("/api/v1/alternatives", alternativesRouter);
 app.use("/api/v1/scheme-eligibility", eligibilityRouter);
 app.use("/api/v1/medicines", trackingRouter);
+app.use("/api/v1/abha", abhaRoutes);
 
 // ── Swagger UI Documentation (/api/docs) ──────────────────────────────────
 app.use(
