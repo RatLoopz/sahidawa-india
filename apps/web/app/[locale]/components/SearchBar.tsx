@@ -44,65 +44,86 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
     const [history, setHistory] = useState<HistoryItem[]>([]);
 
     useEffect(() => {
-        const stored = localStorage.getItem("sahidawa_search_history");
-        if (stored) {
-            try {
+        try {
+            const stored = localStorage.getItem("sahidawa_search_history");
+            if (stored) {
                 setHistory(JSON.parse(stored));
-            } catch (e) {
-                console.error("Failed to parse search history:", e);
             }
+        } catch (e) {
+            console.error("Failed to access or parse search history:", e);
         }
     }, []);
 
-    const addToHistory = useCallback((searchQuery: string) => {
-        const trimmed = searchQuery.trim();
-        if (!trimmed) return;
+    const persistTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-        setHistory((prev) => {
-            const filtered = prev.filter(
-                (item) => item.query.toLowerCase() !== trimmed.toLowerCase()
-            );
-            const existingItem = prev.find(
-                (item) => item.query.toLowerCase() === trimmed.toLowerCase()
-            );
-            const newItem: HistoryItem = {
-                query: existingItem ? existingItem.query : trimmed,
-                pinned: existingItem ? existingItem.pinned : false,
-                timestamp: Date.now(),
-            };
-            const sorted = [newItem, ...filtered];
-            // Sort: pinned first, then by timestamp descending
-            const sortedFinal = [...sorted]
-                .sort((a, b) => {
+    const persistHistory = useCallback((newHistory: HistoryItem[]) => {
+        if (persistTimeoutRef.current) {
+            clearTimeout(persistTimeoutRef.current);
+        }
+        persistTimeoutRef.current = setTimeout(() => {
+            try {
+                localStorage.setItem("sahidawa_search_history", JSON.stringify(newHistory));
+            } catch (e) {
+                console.warn("Failed to persist search history:", e);
+            }
+        }, 300);
+    }, []);
+
+    const addToHistory = useCallback(
+        (searchQuery: string) => {
+            const trimmed = searchQuery.trim();
+            if (!trimmed) return;
+
+            setHistory((prev) => {
+                const filtered = prev.filter(
+                    (item) => item.query.toLowerCase() !== trimmed.toLowerCase()
+                );
+                const existingItem = prev.find(
+                    (item) => item.query.toLowerCase() === trimmed.toLowerCase()
+                );
+                const newItem: HistoryItem = {
+                    query: existingItem ? existingItem.query : trimmed,
+                    pinned: existingItem ? existingItem.pinned : false,
+                    timestamp: Date.now(),
+                };
+                const sorted = [newItem, ...filtered];
+                // Sort: pinned first, then by timestamp descending
+                const sortedFinal = [...sorted]
+                    .sort((a, b) => {
+                        if (a.pinned && !b.pinned) return -1;
+                        if (!a.pinned && b.pinned) return 1;
+                        return b.timestamp - a.timestamp;
+                    })
+                    .slice(0, 20); // Limit to 20 items
+
+                persistHistory(sortedFinal);
+                return sortedFinal;
+            });
+        },
+        [persistHistory]
+    );
+
+    const togglePin = useCallback(
+        (searchQuery: string) => {
+            setHistory((prev) => {
+                const updated = prev.map((item) => {
+                    if (item.query.toLowerCase() === searchQuery.toLowerCase()) {
+                        return { ...item, pinned: !item.pinned };
+                    }
+                    return item;
+                });
+                const sortedFinal = [...updated].sort((a, b) => {
                     if (a.pinned && !b.pinned) return -1;
                     if (!a.pinned && b.pinned) return 1;
                     return b.timestamp - a.timestamp;
-                })
-                .slice(0, 10); // Limit to 10 items
+                });
 
-            localStorage.setItem("sahidawa_search_history", JSON.stringify(sortedFinal));
-            return sortedFinal;
-        });
-    }, []);
-
-    const togglePin = useCallback((searchQuery: string) => {
-        setHistory((prev) => {
-            const updated = prev.map((item) => {
-                if (item.query.toLowerCase() === searchQuery.toLowerCase()) {
-                    return { ...item, pinned: !item.pinned };
-                }
-                return item;
+                persistHistory(sortedFinal);
+                return sortedFinal;
             });
-            const sortedFinal = [...updated].sort((a, b) => {
-                if (a.pinned && !b.pinned) return -1;
-                if (!a.pinned && b.pinned) return 1;
-                return b.timestamp - a.timestamp;
-            });
-
-            localStorage.setItem("sahidawa_search_history", JSON.stringify(sortedFinal));
-            return sortedFinal;
-        });
-    }, []);
+        },
+        [persistHistory]
+    );
 
     const clearHistory = useCallback(() => {
         setHistory([]);

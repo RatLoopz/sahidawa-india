@@ -105,6 +105,12 @@ export const updateReportStatus = async (
             .single();
 
         if (error) {
+            // Return 404 when the report does not exist
+            if (error.code === "PGRST116") {
+                res.status(404).json({ error: "Report not found" });
+                return;
+            }
+
             res.status(500).json({ error: "Failed to update report" });
             return;
         }

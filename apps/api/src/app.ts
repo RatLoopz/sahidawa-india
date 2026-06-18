@@ -9,6 +9,8 @@ import cookieParser from "cookie-parser";
 import { doubleCsrf } from "csrf-csrf";
 import mapRouter from "./routes/map";
 import medicineSchedulesRouter from "./routes/medicineSchedules";
+import trackingRouter from "./routes/tracking";
+import { initExpiryCron } from "./cron/expiry-check";
 
 // ── Environment Configuration ──────────────────────────────────────────────
 const rootEnvPath = path.resolve(__dirname, "../../../.env");
@@ -74,7 +76,7 @@ app.set("trust proxy", 1); // Trust first proxy (Nginx) — fixes req.ip for rat
 
 app.use(compression());
 app.use(cors(createCorsOptions()));
-
+initExpiryCron();
 // ── Global Middleware Configuration ───────────────────────────────────────
 app.use(cookieParser());
 
@@ -227,6 +229,7 @@ app.use("/api/v1/interactions", interactionsRouter);
 app.use("/api/schedules", medicineSchedulesRouter);
 app.use("/api/v1/alternatives", alternativesRouter);
 app.use("/api/v1/scheme-eligibility", eligibilityRouter);
+app.use("/api/v1/medicines", trackingRouter);
 
 // ── Swagger UI Documentation (/api/docs) ──────────────────────────────────
 app.use(

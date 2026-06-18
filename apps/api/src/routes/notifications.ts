@@ -1,6 +1,7 @@
 import express, { Router } from "express";
 import { z } from "zod";
 import { requireAuth, requireRole, optionalAuth, AuthenticatedRequest } from "../middleware/auth";
+import { verifyTwilioSignature } from "../middleware/twilioSignature";
 import { supabase, dbConfig } from "../db/client";
 import { smsService } from "../services/sms-service";
 import { whatsappService } from "../services/whatsapp-service";
@@ -620,70 +621,75 @@ router.post("/broadcast", requireAuth, requireRole("admin"), async (req, res) =>
     }
 });
 
-router.post("/twilio-webhook", express.urlencoded({ extended: true }), async (req, res) => {
-    const from = req.body.From;
-    const body = req.body.Body ? req.body.Body.trim().toUpperCase() : "";
+router.post(
+    "/twilio-webhook",
+    express.urlencoded({ extended: true }),
+    verifyTwilioSignature,
+    async (req, res) => {
+        const from = req.body.From;
+        const body = req.body.Body ? req.body.Body.trim().toUpperCase() : "";
 
-    if (!from) {
-        res.status(400).send("Missing From parameter");
-        return;
-    }
-
-    const formattedFrom = formatPhoneNumber(from);
-
-    try {
-        let replyMessage = "";
-
-        if (["STOP", "UNSUBSCRIBE", "QUIT", "CANCEL"].includes(body)) {
-            const { error } = await supabase
-                .from("notification_subscribers")
-                .update({ is_active: false })
-                .eq("phone", formattedFrom);
-
-            if (error) {
-                logger.error({
-                    message: "Failed to opt-out via Twilio STOP",
-                    error,
-                    phone: formattedFrom,
-                });
-                res.status(500).send("Database error");
-                return;
-            }
-
-            replyMessage =
-                "You have been unsubscribed from SahiDawa alerts. Reply START to subscribe again.";
-        } else if (["START", "SUBSCRIBE", "UNSTOP"].includes(body)) {
-            const { error } = await supabase
-                .from("notification_subscribers")
-                .update({ is_active: true })
-                .eq("phone", formattedFrom);
-
-            if (error) {
-                logger.error({
-                    message: "Failed to opt-in via Twilio START",
-                    error,
-                    phone: formattedFrom,
-                });
-                res.status(500).send("Database error");
-                return;
-            }
-
-            replyMessage =
-                "Welcome back to SahiDawa alerts! You will receive critical safety alerts for your district.";
-        } else {
-            replyMessage =
-                "SahiDawa Alerts: Reply STOP to unsubscribe, or START to receive safety alerts.";
+        if (!from) {
+            res.status(400).send("Missing From parameter");
+            return;
         }
 
-        res.setHeader("Content-Type", "text/xml");
-        res.send(`<?xml version="1.0" encoding="UTF-8"?>
+        const formattedFrom = formatPhoneNumber(from);
+
+        try {
+            let replyMessage = "";
+
+            if (["STOP", "UNSUBSCRIBE", "QUIT", "CANCEL"].includes(body)) {
+                const { error } = await supabase
+                    .from("notification_subscribers")
+                    .update({ is_active: false })
+                    .eq("phone", formattedFrom);
+
+                if (error) {
+                    logger.error({
+                        message: "Failed to opt-out via Twilio STOP",
+                        error,
+                        phone: formattedFrom,
+                    });
+                    res.status(500).send("Database error");
+                    return;
+                }
+
+                replyMessage =
+                    "You have been unsubscribed from SahiDawa alerts. Reply START to subscribe again.";
+            } else if (["START", "SUBSCRIBE", "UNSTOP"].includes(body)) {
+                const { error } = await supabase
+                    .from("notification_subscribers")
+                    .update({ is_active: true })
+                    .eq("phone", formattedFrom);
+
+                if (error) {
+                    logger.error({
+                        message: "Failed to opt-in via Twilio START",
+                        error,
+                        phone: formattedFrom,
+                    });
+                    res.status(500).send("Database error");
+                    return;
+                }
+
+                replyMessage =
+                    "Welcome back to SahiDawa alerts! You will receive critical safety alerts for your district.";
+            } else {
+                replyMessage =
+                    "SahiDawa Alerts: Reply STOP to unsubscribe, or START to receive safety alerts.";
+            }
+
+            res.setHeader("Content-Type", "text/xml");
+            res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Message>${replyMessage}</Message>
 </Response>`);
-    } catch (err) {
-        logger.error({ message: "Error in Twilio webhook", error: err });
-        res.status(500).send("Internal server error");
+        } catch (err) {
+            logger.error({ message: "Error in Twilio webhook", error: err });
+            res.status(500).send("Internal server error");
+        }
     }
-});
+);
 
 export default router;

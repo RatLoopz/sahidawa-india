@@ -765,3 +765,4 @@ export function getSafetyProfile(query: string | undefined | null): MedicineSafe
 }
 
 export { safetyProfiles };
+export { getSafetyProfile as getStaticSafetyProfile };

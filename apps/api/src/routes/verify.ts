@@ -6,6 +6,7 @@ import { optionalAuth } from "../middleware/auth";
 import logger from "../utils/logger";
 import { lookupDrugByBatch } from "../services/drugLookup.service";
 import { escapeIlike } from "../utils/db";
+import { isAllowedOrigin } from "../utils/originCheck";
 
 function getBatchStatus(recallStatus: string | null | undefined): "safe" | "recalled" | "unknown" {
     if (!recallStatus || recallStatus === "none") return "safe";
@@ -36,25 +37,7 @@ function maskClientIp(ip: string | undefined): string | null {
     return null;
 }
 
-const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim())
-    : [
-          "http://localhost:3000",
-          "http://localhost:5173",
-          "https://sahidawa.vercel.app",
-          "https://sahidawa-india.vercel.app",
-          "https://sahidawa.goswav.in",
-      ];
-
 const router = Router();
-
-function isAllowedOrigin(req: Request): boolean {
-    const origin = req.headers.origin;
-    const referer = req.headers.referer;
-    const source = origin || (referer ? new URL(referer).origin : null);
-    if (!source) return true; // Allow requests with no Origin/Referer header
-    return ALLOWED_ORIGINS.includes(source);
-}
 
 const verifySchema = z.object({
     batchNumber: z

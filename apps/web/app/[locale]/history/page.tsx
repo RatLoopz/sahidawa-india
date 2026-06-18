@@ -222,6 +222,7 @@ export default function HistoryPage() {
 
                                     <button
                                         onClick={() => handleDelete(item.id)}
+                                        aria-label={`Delete ${item.medicineName} from history`}
                                         className="rounded-lg bg-red-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-red-400"
                                     >
                                         {t("item_delete_button")}

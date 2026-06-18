@@ -53,7 +53,7 @@ class MultiTierLockManager:
         self.l2_capacity = l2_capacity
         
         # L1 Memory Lock (LFU implementation)
-        self.l1_lock: Dict[str, LFUNode] = {}
+        self.l1_cache: Dict[str, LFUNode] = {}
         self.freq_map: Dict[int, LFUDoublyLinkedList] = {}
         self.min_freq = 0
         self.l1_lock = threading.RLock()
@@ -83,8 +83,8 @@ class MultiTierLockManager:
 
     def get(self, key: str) -> Optional[Any]:
         with self.l1_lock:
-            if key in self.l1_lock:
-                node = self.l1_lock[key]
+            if key in self.l1_cache:
+                node = self.l1_cache[key]
                 self._update_freq(node)
                 logger.debug("L1 Lock HIT for key: %s", key)
                 return node.value
@@ -106,11 +106,11 @@ class MultiTierLockManager:
 
     def _promote_to_l1(self, key: str, value: Any):
         with self.l1_lock:
-            if len(self.l1_lock) >= self.l1_capacity:
+            if len(self.l1_cache) >= self.l1_capacity:
                 self._evict_l1()
             
             node = LFUNode(key, value, 1)
-            self.l1_lock[key] = node
+            self.l1_cache[key] = node
             if 1 not in self.freq_map:
                 self.freq_map[1] = LFUDoublyLinkedList()
             self.freq_map[1].insert_at_head(node)
@@ -118,16 +118,16 @@ class MultiTierLockManager:
 
     def put(self, key: str, value: Any):
         with self.l1_lock:
-            if key in self.l1_lock:
-                node = self.l1_lock[key]
+            if key in self.l1_cache:
+                node = self.l1_cache[key]
                 node.value = value
                 self._update_freq(node)
             else:
-                if len(self.l1_lock) >= self.l1_capacity:
+                if len(self.l1_cache) >= self.l1_capacity:
                     self._evict_l1()
                     
                 node = LFUNode(key, value, 1)
-                self.l1_lock[key] = node
+                self.l1_cache[key] = node
                 if 1 not in self.freq_map:
                     self.freq_map[1] = LFUDoublyLinkedList()
                 self.freq_map[1].insert_at_head(node)
@@ -140,7 +140,7 @@ class MultiTierLockManager:
         if self.min_freq in self.freq_map:
             evicted_node = self.freq_map[self.min_freq].remove_tail()
             if evicted_node:
-                del self.l1_lock[evicted_node.key]
+                del self.l1_cache[evicted_node.key]
                 logger.debug("Evicted key %s from L1 lock (freq: %d)", evicted_node.key, evicted_node.freq)
 
     def _background_sync(self):
@@ -171,10 +171,10 @@ class MultiTierLockManager:
 
     def invalidate(self, key: str):
         with self.l1_lock:
-            if key in self.l1_lock:
-                node = self.l1_lock[key]
+            if key in self.l1_cache:
+                node = self.l1_cache[key]
                 self.freq_map[node.freq].remove_node(node)
-                del self.l1_lock[key]
+                del self.l1_cache[key]
                 
         with self.l2_lock:
             if key in self.l2_store:
@@ -182,7 +182,7 @@ class MultiTierLockManager:
                 
     def get_stats(self) -> Dict[str, Any]:
         with self.l1_lock:
-            l1_size = len(self.l1_lock)
+            l1_size = len(self.l1_cache)
         with self.l2_lock:
             l2_size = len(self.l2_store)
             

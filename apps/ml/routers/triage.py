@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 import logging
 
+from starlette.concurrency import run_in_threadpool
 from services.triage_graph import run_triage_flow
 
 router = APIRouter(prefix="/triage", tags=["Triage"])
@@ -47,7 +48,7 @@ async def triage_chat(payload: TriageRequest):
 
     try:
         logging.info(f"Invoking triage flow for chat of length {len(messages_list)}")
-        result = run_triage_flow(messages_list, locale=payload.locale)
+        result = await run_in_threadpool(run_triage_flow, messages_list, locale=payload.locale)
         return TriageResponse(
             response=result.get("response", ""),
             emergency=result.get("emergency", False),

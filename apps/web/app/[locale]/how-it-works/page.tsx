@@ -179,10 +179,8 @@ export default function HowItWorksPage() {
                 <h2 className="sr-only">How It Works Steps</h2>
                 <div className="relative mx-auto max-w-6xl">
                     {/* Desktop Connected Path */}
-                    <div className="absolute top-[52px] right-[10%] left-[10%] z-0 hidden h-[2px] bg-gradient-to-r from-emerald-500/30 via-purple-500/30 to-rose-500/30 md:block" />
-
                     <motion.div
-                        className="no-scrollbar relative z-10 flex snap-x snap-mandatory flex-row gap-6 overflow-x-auto pb-6 md:grid md:grid-cols-5 md:gap-6 md:overflow-x-visible md:pb-0"
+                        className="no-scrollbar relative z-10 flex snap-x snap-mandatory flex-row gap-6 overflow-x-auto pb-6 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6 md:overflow-x-visible md:pb-0"
                         variants={timelineContainerVariants}
                         initial="hidden"
                         whileInView="visible"
@@ -192,10 +190,10 @@ export default function HowItWorksPage() {
                             <motion.div
                                 key={index}
                                 variants={timelineCardVariants}
-                                className="group relative min-w-[250px] flex-shrink-0 snap-start sm:min-w-[280px] md:min-w-0"
+                                className="w-[calc(100%-3rem)] max-w-sm flex-shrink-0 snap-center md:w-auto md:max-w-none"
                             >
                                 <div
-                                    className={`flex h-full flex-col items-center rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-8 text-center shadow-xs transition-all duration-500 hover:-translate-y-2 hover:shadow-xl active:scale-[0.99] ${step.borderClass}`}
+                                    className={`flex h-full flex-col items-center rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-8 mt-2 md:mt-0 text-center shadow-xs transition-all duration-500 hover:-translate-y-2 hover:shadow-xl active:scale-[0.99] ${step.borderClass}`}
                                 >
                                     {/* Icon Container with Floating Number Badge */}
                                     <div

@@ -386,7 +386,10 @@
         "title": "SahiDawa AI",
         "status": "Online",
         "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?",
-        "placeholder": "Ask me about a medicine..."
+        "placeholder": "Ask me about a medicine...",
+        "confirmClear": "Are you sure you want to clear this conversation? This action cannot be undone.",
+        "cancelClear": "Cancel",
+        "clear": "Clear"
     },
     "Alerts": {
         "backHome": "Back to Home Page",
@@ -945,5 +948,9 @@
             "timeout": "Location request timed out.",
             "generic": "Unable to get your location."
         }
+    },
+    "Tracking": {
+        "success": "Medicine tracked successfully!",
+        "trackButton": "Track Expiry"
     }
 }

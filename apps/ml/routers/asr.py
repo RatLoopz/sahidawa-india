@@ -18,7 +18,7 @@ import numpy as np
 import soundfile as sf
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from faster_whisper import WhisperModel
-
+from starlette.concurrency import run_in_threadpool
 from services.fuzzy_matcher import get_phonetic_fuzzy_match  # Imported utility service
 from services.telemetry import (
     get_audio_duration_seconds,
@@ -946,4 +946,4 @@ async def stream_transcription(websocket: WebSocket):
         return
     finally:
         if session is not None:
-            session.close()
+            await run_in_threadpool(session.close)

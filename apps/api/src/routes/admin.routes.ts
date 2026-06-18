@@ -14,6 +14,7 @@ import {
 import { invalidateDrugCache, KEY_PREFIXES } from "../services/cache.service";
 import { redisClient } from "../utils/redis";
 import { getPushNotificationAnalytics } from "./analytics";
+import { limiter } from "../middleware/rateLimit";
 
 const router = Router();
 
@@ -52,6 +53,7 @@ router.post(
     "/cache/invalidate",
     requireAuth,
     requireRole("admin", "moderator"),
+    limiter,
     async (req: Request, res: Response) => {
         try {
             const parsed = InvalidateCacheSchema.safeParse(req.body);

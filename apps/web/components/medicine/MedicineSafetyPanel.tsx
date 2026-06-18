@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import {
     ShieldCheck,
@@ -29,6 +29,13 @@ import {
     TriangleAlert,
     Refrigerator,
 } from "lucide-react";
+import {
+    SAFETY_DISCLAIMER,
+    type MedicineSafetyProfile,
+    type AgeGroup,
+    type DietaryRule,
+} from "./MedicineSafetyData";
+import { fetchSafetyProfile } from "@/lib/medicineSafetyService";
 import { getSafetyProfile, type MedicineSafetyProfile, type AgeGroup } from "./MedicineSafetyData";
 
 // ── Props ─────────────────────────────────────────────────────────────────────
@@ -72,18 +79,54 @@ function DietIcon({ name, className }: { name: string; className?: string }) {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPanelProps) {
-    const profile: MedicineSafetyProfile | null = getSafetyProfile(searchQuery);
+    const [profile, setProfile] = useState<MedicineSafetyProfile | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (!searchQuery) return;
+
+        let cancelled = false;
+        setIsLoading(true);
+        setProfile(null);
+
+        fetchSafetyProfile(searchQuery).then((result) => {
+            if (!cancelled) {
+                setProfile(result);
+                setIsLoading(false);
+            }
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [searchQuery]);
+
+    const t = useTranslations("medicineSafety");
 
     const t = useTranslations("medicineSafety");
 
     const [activeTab, setActiveTab] = useState<TabType>("sideEffects");
     const [ageGroup, setAgeGroup] = useState<AgeGroupKey>("adults");
 
-    // Visibility is fully controlled by the parent via onClose.
-    // No internal `visible` state — so searching the same medicine again
-    // always re-shows the panel without needing a remount.
-    if (!profile) return null;
+    if (isLoading) {
+        return (
+            <div className="mt-4 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                <div className="flex items-center gap-2 border-b border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800">
+                    <ShieldCheck className="h-4 w-4 animate-pulse text-emerald-500" />
+                    <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+                        Loading safety data…
+                    </span>
+                </div>
+                <div className="space-y-2 p-4">
+                    <div className="h-4 w-3/4 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                    <div className="h-4 w-1/2 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                    <div className="h-4 w-2/3 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                </div>
+            </div>
+        );
+    }
 
+    if (!profile) return null;
     const commonEffects = profile.sideEffects.filter((e) => e.severity === "common");
     const severeEffects = profile.sideEffects.filter((e) => e.severity === "severe");
     const dosageInfo = profile.ageBasedDosage.find((d) => d.group === ageGroup);

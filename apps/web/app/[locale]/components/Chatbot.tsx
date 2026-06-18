@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
-import { MessageSquare, X, Send, Bot, Home } from "lucide-react";
+import { MessageSquare, X, Send, Bot, Home, Trash2, Check } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { getChatbotPanelClasses, getChatbotPositionClasses } from "./chatbotPosition";
 import { ChatMarkdown } from "@/app/components/ChatMarkdown";
@@ -40,11 +40,25 @@ export default function Chatbot() {
         },
     ]);
     const [input, setInput] = useState("");
+    const [isConfirmingClear, setIsConfirmingClear] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const activeRequestRef = useRef<AbortController | null>(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    const handleClear = () => {
+        activeRequestRef.current?.abort();
+        setMessages([
+            {
+                text: "welcome",
+                isBot: true,
+                isTranslationKey: true,
+            },
+        ]);
+        setInput("");
+        setIsConfirmingClear(false);
     };
 
     useEffect(() => {
@@ -144,6 +158,35 @@ export default function Chatbot() {
                             </div>
                         </div>
                         <div className="flex items-center gap-1">
+                            {isConfirmingClear ? (
+                                <div className="flex items-center gap-1 rounded-full bg-white/10 px-1 py-0.5">
+                                    <button
+                                        onClick={handleClear}
+                                        className="rounded-full p-1.5 text-green-300 transition-colors hover:bg-white/20 hover:text-green-200"
+                                        aria-label="Confirm clear conversation"
+                                        title={t("confirmClear")}
+                                    >
+                                        <Check size={16} />
+                                    </button>
+                                    <button
+                                        onClick={() => setIsConfirmingClear(false)}
+                                        className="rounded-full p-1.5 text-red-300 transition-colors hover:bg-white/20 hover:text-red-200"
+                                        aria-label="Cancel clear conversation"
+                                        title={t("cancelClear")}
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => setIsConfirmingClear(true)}
+                                    className="rounded-full p-2 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+                                    aria-label={t("clear")}
+                                    title={t("clear")}
+                                >
+                                    <Trash2 size={18} />
+                                </button>
+                            )}
                             <Link
                                 href="/"
                                 className="rounded-full p-2 text-white/80 transition-colors hover:bg-white/20 hover:text-white"

@@ -8,6 +8,7 @@ import { requireApiKey, ApiKeyRequest } from "../middleware/apiKeyAuth";
 import logger from "../utils/logger";
 import { redisClient } from "../utils/redis";
 import { KEY_PREFIXES } from "../services/cache.service";
+import { limiter } from "../middleware/rateLimit";
 
 const AlertSchema = z
     .object({
@@ -97,7 +98,7 @@ alertsRouter.get("/", async (req: Request, res: Response) => {
  * POST /api/v1/alerts/ingest
  * Protected endpoint to ingest parsed CDSCO alerts from the ML agent.
  */
-alertsRouter.post("/ingest", requireApiKey, async (req: ApiKeyRequest, res: Response) => {
+alertsRouter.post("/ingest", requireApiKey, limiter, async (req: ApiKeyRequest, res: Response) => {
     const { alerts } = req.body;
     const parseResult = AlertsArraySchema.safeParse(alerts);
     if (!parseResult.success) {
