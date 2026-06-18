@@ -8,6 +8,7 @@ import { CopyButton } from "@/components/ui/CopyButton";
 import { Download, RefreshCw } from "lucide-react";
 import ExportModal from "./ExportModal";
 import { syncScanHistoryWithCloud } from "@/lib/scanHistoryCloudSync";
+import { PageHeader } from "../components/PageHeader";
 
 export default function HistoryPage() {
     const [history, setHistory] = useState<ScanHistoryEntry[]>([]);
@@ -71,6 +72,8 @@ export default function HistoryPage() {
     return (
         <div className="min-h-screen bg-(--color-surface-page) p-6 text-(--color-text-primary)">
             <div className="mx-auto max-w-3xl">
+                <PageHeader backHref="/" variant="light" title="Scan History" />
+
                 <h1 className="mb-6 text-4xl font-black">Scan History</h1>
                 <div className="mb-6 flex flex-wrap gap-3">
                     {history.length > 0 && (
