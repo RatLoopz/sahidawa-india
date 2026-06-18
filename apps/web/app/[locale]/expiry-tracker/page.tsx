@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useCallback, useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "../components/PageHeader";
 import { supabase } from "@/lib/supabase";
@@ -33,6 +33,61 @@ interface Medicine {
 
 type FilterStatus = "all" | "expired" | "expiringSoon" | "safe";
 type SortOption = "expirySoonest" | "expiryLatest" | "alpha";
+
+function parseLocalDate(dateStr: string) {
+    const [year, month, day] = dateStr.split("-").map(Number);
+    return new Date(year, month - 1, day);
+}
+
+function isValidDateString(dateStr: string): boolean {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
+    const [year, month, day] = dateStr.split("-").map(Number);
+    if (month < 1 || month > 12) return false;
+    if (day < 1 || day > 31) return false;
+    const date = new Date(year, month - 1, day);
+    return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+}
+
+function formatMonthYearInputValue(year: string, month: string): string | null {
+    const yearNumber = year.length === 2 ? 2000 + Number(year) : Number(year);
+    const monthNumber = Number(month);
+    if (yearNumber < 1000 || yearNumber > 9999) return null;
+    if (monthNumber < 1 || monthNumber > 12) return null;
+
+    const lastDayOfMonth = new Date(yearNumber, monthNumber, 0).getDate();
+    return `${yearNumber}-${String(monthNumber).padStart(2, "0")}-${String(lastDayOfMonth).padStart(2, "0")}`;
+}
+
+function formatDateInputValue(rawDate: string | null): string | null {
+    if (!rawDate) return null;
+
+    const trimmedDate = rawDate.trim();
+    const isoDateMatch = trimmedDate.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (isoDateMatch) {
+        const [, year, month, day] = isoDateMatch;
+        const date = parseLocalDate(`${year}-${month}-${day}`);
+        if (
+            date.getFullYear() === Number(year) &&
+            date.getMonth() === Number(month) - 1 &&
+            date.getDate() === Number(day)
+        ) {
+            return `${year}-${month}-${day}`;
+        }
+        return null;
+    }
+
+    const slashMonthYearMatch = trimmedDate.match(/^(\d{1,2})\/(\d{2}|\d{4})$/);
+    if (slashMonthYearMatch)
+        return formatMonthYearInputValue(slashMonthYearMatch[2], slashMonthYearMatch[1]);
+
+    const hyphenYearMonthMatch = trimmedDate.match(/^(\d{4})-(\d{1,2})$/);
+    if (hyphenYearMonthMatch)
+        return formatMonthYearInputValue(hyphenYearMonthMatch[1], hyphenYearMonthMatch[2]);
+
+    const parsedDate = new Date(trimmedDate);
+    if (Number.isNaN(parsedDate.getTime())) return null;
+    return parsedDate.toISOString().split("T")[0];
+}
 
 export default function ExpiryTrackerPage() {
     const t = useTranslations("ExpiryTracker");
@@ -298,48 +353,77 @@ export default function ExpiryTrackerPage() {
         }
     };
 
-    const handleBarcodeScan = async (scannedText: string) => {
-        setIsVerifying(true);
+    const handleScannerClose = useCallback(() => {
+        setIsScannerOpen(false);
         setApiError(null);
-        try {
-            const result = await verifyMedicine(scannedText);
-            if (result.verified) {
-                setName(result.medicine.brand_name || "");
-                setBatchNumber(result.medicine.batch_number || scannedText);
-                if (result.medicine.expiry_date) {
-                    try {
-                        const d = new Date(result.medicine.expiry_date);
-                        if (!isNaN(d.getTime())) {
-                            const formattedDate = d.toISOString().split("T")[0];
-                            setExpiryDate(formattedDate);
-                            setDateError("");
+    }, []);
 
-                            const selected = new Date(d);
-                            const today = new Date();
-                            today.setHours(0, 0, 0, 0);
-                            selected.setHours(0, 0, 0, 0);
-                            setIsExpired(selected < today);
-                        }
-                    } catch {
-                        // ignore
+    const updateExpiryState = useCallback((dateInputValue: string) => {
+        setExpiryDate(dateInputValue);
+        setDateError("");
+
+        const selected = parseLocalDate(dateInputValue);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        selected.setHours(0, 0, 0, 0);
+        setIsExpired(selected < today);
+    }, []);
+
+    const handleBarcodeScan = useCallback(
+        async (scannedText: string) => {
+            setIsVerifying(true);
+            setApiError(null);
+            try {
+                const result = await verifyMedicine(scannedText);
+                if (result.verified) {
+                    const medicine = result.medicine;
+                    const scannedName = medicine.brand_name || medicine.generic_name;
+                    if (scannedName) {
+                        setName(scannedName);
                     }
+                    setBatchNumber(medicine.batch_number || scannedText);
+
+                    const scannedExpiryDate = formatDateInputValue(medicine.expiry_date);
+                    if (scannedExpiryDate) {
+                        updateExpiryState(scannedExpiryDate);
+                    }
+
+                    const scannedDetails = [
+                        medicine.generic_name ? `Generic: ${medicine.generic_name}` : null,
+                        medicine.manufacturer ? `Manufacturer: ${medicine.manufacturer}` : null,
+                        medicine.cdsco_approval_status
+                            ? `CDSCO status: ${medicine.cdsco_approval_status}`
+                            : null,
+                    ]
+                        .filter(Boolean)
+                        .join("\n");
+
+                    if (scannedDetails) {
+                        setNotes((currentNotes) =>
+                            currentNotes.trim() ? currentNotes : scannedDetails
+                        );
+                    }
+
+                    toast.success("Medicine details auto-filled!");
+                    setIsScannerOpen(false);
+                } else {
+                    setBatchNumber(scannedText);
+                    toast.warning("Medicine not found in database. Batch number filled.");
+                    setIsScannerOpen(false);
                 }
-                toast.success("Medicine details auto-filled!");
-                setIsScannerOpen(false);
-            } else {
+            } catch (error: unknown) {
+                console.error("Scan error:", error);
+                const message =
+                    error instanceof Error ? error.message : "Failed to fetch medicine details.";
                 setBatchNumber(scannedText);
-                toast.warning("Medicine not found in database. Batch number filled.");
-                setIsScannerOpen(false);
+                setApiError(message);
+                toast.error("Failed to fetch medicine details. Batch number filled.");
+            } finally {
+                setIsVerifying(false);
             }
-        } catch (error: any) {
-            console.error("Scan error:", error);
-            setBatchNumber(scannedText);
-            setApiError(error.message || "Failed to fetch medicine details.");
-            toast.error("Failed to fetch medicine details. Batch number filled.");
-        } finally {
-            setIsVerifying(false);
-        }
-    };
+        },
+        [updateExpiryState]
+    );
 
     useEffect(() => {
         const loadData = async () => {
@@ -558,22 +642,6 @@ export default function ExpiryTrackerPage() {
             cancelNotificationsForMedicine(id);
         });
         setSelectedIds(new Set());
-    };
-
-    const parseLocalDate = (dateStr: string) => {
-        const [year, month, day] = dateStr.split("-").map(Number);
-        return new Date(year, month - 1, day);
-    };
-
-    const isValidDateString = (dateStr: string): boolean => {
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
-        const [year, month, day] = dateStr.split("-").map(Number);
-        if (month < 1 || month > 12) return false;
-        if (day < 1 || day > 31) return false;
-        const date = new Date(year, month - 1, day);
-        return (
-            date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
-        );
     };
 
     const getDiffDays = (dateStr: string) => {
@@ -994,17 +1062,23 @@ export default function ExpiryTrackerPage() {
             </main>
 
             {isScannerOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="expiry-tracker-scanner-title"
+                >
                     <div className="relative flex h-[80vh] w-full max-w-2xl flex-col rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 shadow-2xl dark:bg-slate-900">
                         <div className="mb-4 flex items-center justify-between">
-                            <h3 className="text-xl font-bold text-(--color-text-primary)">
+                            <h3
+                                id="expiry-tracker-scanner-title"
+                                className="text-xl font-bold text-(--color-text-primary)"
+                            >
                                 Scan Medicine Barcode
                             </h3>
                             <button
-                                onClick={() => {
-                                    setIsScannerOpen(false);
-                                    setApiError(null);
-                                }}
+                                type="button"
+                                onClick={handleScannerClose}
                                 className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                             >
                                 <span className="sr-only">Close</span>
