@@ -335,9 +335,6 @@ export default function InteractionCheckerPage() {
                                     <p className="text-lg font-black text-emerald-800 dark:text-emerald-300">
                                         {t("noInteractions")}
                                     </p>
-                                    <p className="mt-1 text-sm font-semibold text-emerald-700/80 dark:text-emerald-400/80">
-                                        No known interactions between these medicines.
-                                    </p>
                                 </div>
                             </div>
                         ) : (
