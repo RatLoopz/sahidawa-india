@@ -1,18 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronDown, ChevronUp, ShieldCheck, HelpCircle } from "lucide-react";
+import { ChevronDown, ShieldCheck, HelpCircle } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
 import { useTranslations } from "next-intl";
 
 export default function FAQPage() {
-    const [openIndex, setOpenIndex] = useState<number | null>(null);
     const t = useTranslations("Faq");
-
-    const toggle = (i: number) => {
-        setOpenIndex(openIndex === i ? null : i);
-    };
 
     return (
         <div className="min-h-screen bg-(--color-surface-muted) font-sans text-(--color-text-primary) transition-colors duration-300">
@@ -43,17 +37,11 @@ export default function FAQPage() {
             <section className="container mx-auto max-w-4xl px-4 py-16">
                 <div className="space-y-4">
                     {["0", "1", "2", "3", "4", "5", "6", "7"].map((key, i) => (
-                        <div
+                        <details
                             key={i}
-                            className="overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/30 hover:shadow-md active:scale-[0.998]"
+                            className="group overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/30 hover:shadow-md"
                         >
-                            <button
-                                onClick={() => toggle(i)}
-                                id={`faq-question-${i}`}
-                                aria-expanded={openIndex === i}
-                                aria-controls={`faq-answer-${i}`}
-                                className="flex w-full items-center justify-between px-6 py-5 text-left transition-colors duration-200 hover:bg-emerald-500/[0.01]"
-                            >
+                            <summary className="flex w-full list-none items-center justify-between px-6 py-5 text-left transition-colors duration-200 hover:bg-emerald-500/[0.01] [&::-webkit-details-marker]:hidden">
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
                                         <HelpCircle size={16} strokeWidth={2.5} />
@@ -63,24 +51,16 @@ export default function FAQPage() {
                                     </span>
                                 </div>
                                 <div className="ml-4 shrink-0 text-(--color-text-muted)">
-                                    {openIndex === i ? (
-                                        <ChevronUp size={20} />
-                                    ) : (
-                                        <ChevronDown size={20} />
-                                    )}
+                                    <ChevronDown
+                                        size={20}
+                                        className="transition-transform duration-200 group-open:rotate-180"
+                                    />
                                 </div>
-                            </button>
-                            {openIndex === i && (
-                                <div
-                                    id={`faq-answer-${i}`}
-                                    role="region"
-                                    aria-labelledby={`faq-question-${i}`}
-                                    className="border-t border-(--color-border-muted) px-6 pt-4 pb-5 text-sm leading-relaxed font-medium text-(--color-text-secondary)"
-                                >
-                                    {t(`items.${key}.answer`)}
-                                </div>
-                            )}
-                        </div>
+                            </summary>
+                            <div className="border-t border-(--color-border-muted) px-6 pt-4 pb-5 text-sm leading-relaxed font-medium text-(--color-text-secondary)">
+                                {t(`items.${key}.answer`)}
+                            </div>
+                        </details>
                     ))}
                 </div>
             </section>
