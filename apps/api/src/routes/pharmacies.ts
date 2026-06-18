@@ -91,6 +91,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
     }
 
     const data = parsed.data;
+    
     try {
         // Check for an existing pharmacy with the same licenseId before inserting.
         // Without this check concurrent or repeated requests can create duplicate
