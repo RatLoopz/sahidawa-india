@@ -12,6 +12,7 @@ import {
     ShieldCheck,
     PartyPopper,
 } from "lucide-react";
+import { PageHeader } from "../components/PageHeader";
 
 /**
  * OfflinePage — Premium offline fallback UI for SahiDawa.
@@ -91,6 +92,7 @@ export default function OfflinePage() {
     // ─── Offline state ────────────────────────────────────────────────────────
     return (
         <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6">
+            <PageHeader backHref="/" variant="light" hideBackButton />
             {/* Background glow blobs */}
             <div className="pointer-events-none absolute top-1/4 left-1/4 h-64 w-64 rounded-full bg-amber-500/5 blur-3xl" />
             <div className="pointer-events-none absolute right-1/4 bottom-1/4 h-80 w-80 rounded-full bg-emerald-500/5 blur-3xl" />
