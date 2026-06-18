@@ -77,7 +77,7 @@ export default function NewSchedulePage() {
             />
 
             <main className="container mx-auto w-full max-w-2xl flex-1 px-4 py-6 md:px-6 md:py-10">
-                <Card className="border-(--color-border-muted) bg-(--color-surface-page)">
+                <Card className="border-(--color-border-muted) bg-(--color-surface-page) dark:bg-slate-900 dark:border-slate-700">
                     <form onSubmit={handleSubmit} className="flex flex-col gap-5 p-6">
                         {error && (
                             <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-400">
