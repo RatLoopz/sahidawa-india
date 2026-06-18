@@ -74,7 +74,7 @@ describe("ExpiryTrackerPage", () => {
 
         const heading = await screen.findByRole("heading", { name: "Amoxicillin" });
         const card = heading.closest("div.rounded-2xl") as HTMLElement;
-        fireEvent.click(within(card).getByRole("button"));
+        fireEvent.click(within(card).getAllByRole("button")[1]);
 
         await waitFor(() => {
             expect(screen.queryByRole("heading", { name: "Amoxicillin" })).not.toBeInTheDocument();

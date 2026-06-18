@@ -5,6 +5,14 @@ import { render, screen } from "@testing-library/react";
 
 import ProfilePage from "../app/[locale]/profile/page";
 
+jest.mock("@/src/components/AuthProvider", () => ({
+    useSession: () => ({
+        session: null,
+        isLoading: false,
+        token: null,
+    }),
+}));
+
 describe("ProfilePage navigation and guest state", () => {
     beforeEach(() => {
         localStorage.clear();

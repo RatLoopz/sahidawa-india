@@ -50,13 +50,16 @@
         "my_reports": "My Reports",
         "schedule": "Schedule",
         "scheme_eligibility": "Scheme Eligibility",
+        "calculator": "Savings Calculator",
         "home": "Home",
         "scans": "Scans",
         "map": "Map",
         "profile": "Profile",
-        "language": "English"
+        "language": "English",
+        "more": "More"
     },
     "Scan": {
+        "calculateSavings": "Calculate Savings",
         "share": {
             "button": "Share Result",
             "title": "SahiDawa Medicine Verification Result",
@@ -74,7 +77,12 @@
             "shared_success": "Result shared successfully",
             "copy_success": "Result copied to clipboard",
             "failure": "Unable to share this result right now"
-        }
+        },
+        "showMoreDetails": "Show More Details",
+        "showLess": "Show Less",
+        "genericName": "Generic Name",
+        "dosageForm": "Dosage Form",
+        "composition": "Composition"
     },
     "BackToTopButton": {
         "label": "Back to top"
@@ -378,7 +386,10 @@
         "title": "SahiDawa AI",
         "status": "Online",
         "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?",
-        "placeholder": "Ask me about a medicine..."
+        "placeholder": "Ask me about a medicine...",
+        "confirmClear": "Are you sure you want to clear this conversation? This action cannot be undone.",
+        "cancelClear": "Cancel",
+        "clear": "Clear"
     },
     "Alerts": {
         "backHome": "Back to Home Page",
@@ -440,10 +451,53 @@
             "banned": "Banned"
         }
     },
+    "Calculator": {
+        "pageTitle": "Medicine Cost Savings Calculator",
+        "pageSubtitle": "Discover generic equivalents and calculate your savings",
+        "searchLabel": "Select a medicine to calculate savings",
+        "searchPlaceholder": "Search brand or generic name",
+        "loading": "Loading generic alternatives...",
+        "error": "Failed to fetch alternative details.",
+        "brandPriceLabel": "Brand Price (MRP)",
+        "genericPriceLabel": "Jan Aushadhi Price",
+        "brandName": "Brand Name",
+        "genericName": "Generic Alternative",
+        "savingsLabel": "Savings per purchase",
+        "alternativeTitle": "Jan Aushadhi Alternative Details",
+        "noAlternative": "No Jan Aushadhi generic alternative mapped for this medicine yet.",
+        "quantityLabel": "Quantity (Strips/Packs per Month)",
+        "monthlySavings": "Monthly Savings",
+        "yearlySavings": "Annual Savings",
+        "perPurchaseSavings": "Savings Per Purchase",
+        "dosageSectionTitle": "Input Purchase Quantity",
+        "projectionsTitle": "Estimated Cost Savings Projections",
+        "brandCostLabel": "Brand Cost",
+        "genericCostLabel": "Generic Cost",
+        "costPerMonth": "per month",
+        "brandTierTitle": "Brand Prescribed",
+        "brandTierDesc": "Standard commercial brand price",
+        "genericTierTitle": "Generic Alternative",
+        "genericTierDesc": "Commercial branded generic equivalent",
+        "janAushadhiTierTitle": "Jan Aushadhi Generic",
+        "janAushadhiTierDesc": "Government-subsidized price-controlled generic",
+        "bestValue": "Best Value",
+        "mrpLabel": "MRP",
+        "estimatedLabel": "(Estimated)",
+        "costPerMonthGeneric": "Generic Cost",
+        "costPerMonthJanAushadhi": "Jan Aushadhi Cost",
+        "costPerMonthBrand": "Brand Cost",
+        "packUnit": "pack",
+        "packsUnit": "packs"
+    },
     "ExpiryTracker": {
         "title": "Medicine Expiry Tracker",
         "subtitle": "Manage and track your medicine stock locally",
         "addMedicine": "Add Medicine",
+        "editMedicine": "Edit Medicine",
+        "saveChanges": "Save Changes",
+        "cancel": "Cancel",
+        "notesLabel": "Notes (Optional)",
+        "notesPlaceholder": "Storage instructions or dosage notes...",
         "name": "Name",
         "expiryDate": "Expiry Date",
         "batchNumber": "Batch Number (Optional)",
@@ -469,7 +523,32 @@
         "importDateError": "Invalid date format found in backup. All dates must be in YYYY-MM-DD format.",
         "statusExpired": "Expired",
         "statusExpiringSoon": "Expiring soon ({days}d)",
-        "statusSafe": "Safe"
+        "statusSafe": "Safe",
+        "deleteSelected": "Delete Selected",
+        "selectMedicine": "Select {name}"
+    },
+    "ChildVaccinationTracker": {
+        "childTrackerTitle": "Child Vaccination Tracker",
+        "childTrackerSubtitle": "Enter a child profile to generate a personalized National Immunization Schedule timeline with completion tracking.",
+        "childReminderButton": "Download reminders",
+        "childNameLabel": "Child name",
+        "childNamePlaceholder": "Enter child name",
+        "childDobLabel": "Date of birth",
+        "childDefaultName": "Child",
+        "childDobPrompt": "Enter a date of birth to generate the personalized vaccination timeline.",
+        "childDobFutureError": "Date of birth cannot be in the future.",
+        "childDobInvalidError": "Enter a valid date of birth.",
+        "childProfileSummary": "Child profile",
+        "scheduleSourceLabel": "Schedule basis",
+        "childTimelineHeading": "Personalized timeline",
+        "whereApplicableBadge": "Where applicable",
+        "dueDateLabel": "Due date",
+        "officialTimingLabel": "Official timing",
+        "completedStatus": "Completed",
+        "dueStatus": "Due",
+        "overdueStatus": "Overdue",
+        "upcomingStatus": "Upcoming",
+        "markCompleteButton": "Mark completed"
     },
     "Login": {
         "brandSubtitle": "Medicine safety platform",
@@ -850,5 +929,9 @@
             "timeout": "Location request timed out.",
             "generic": "Unable to get your location."
         }
+    },
+    "Tracking": {
+        "success": "Medicine tracked successfully!",
+        "trackButton": "Track Expiry"
     }
 }

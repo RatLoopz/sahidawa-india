@@ -8,6 +8,15 @@ import { TextDecoder as NodeTextDecoder } from "util";
 import ProfilePage from "../app/[locale]/profile/page";
 
 const mockPush = jest.fn();
+let mockToken: string | null = null;
+
+jest.mock("@/src/components/AuthProvider", () => ({
+    useSession: () => ({
+        session: null,
+        isLoading: false,
+        token: mockToken,
+    }),
+}));
 
 jest.mock("@/i18n/routing", () => ({
     Link: ({
@@ -48,12 +57,14 @@ describe("ProfilePage auth status", () => {
         }
 
         localStorage.clear();
+        mockToken = null;
         mockPush.mockClear();
     });
 
     it("renders a guest card with a localized sign-in CTA when no access token exists", async () => {
         expect(renderToStaticMarkup(<ProfilePage />)).toContain("Checking account status");
 
+        mockToken = null;
         render(<ProfilePage />);
 
         expect(await screen.findByText("Guest User")).toBeInTheDocument();
@@ -74,7 +85,7 @@ describe("ProfilePage auth status", () => {
             },
         });
 
-        localStorage.setItem("sb-access-token", token);
+        mockToken = token;
         render(<ProfilePage />);
 
         expect(await screen.findByText("Asha Sharma")).toBeInTheDocument();
@@ -84,6 +95,7 @@ describe("ProfilePage auth status", () => {
     });
 
     it("clears malformed access tokens instead of rendering them", async () => {
+        mockToken = "not-a-valid-jwt";
         localStorage.setItem("sb-access-token", "not-a-valid-jwt");
 
         render(<ProfilePage />);
@@ -98,13 +110,12 @@ describe("ProfilePage auth status", () => {
     });
 
     it("treats an expired access token as a guest session", async () => {
-        localStorage.setItem(
-            "sb-access-token",
-            createAccessToken({
-                email: "expired@example.com",
-                exp: Math.floor(Date.now() / 1000) - 60,
-            })
-        );
+        const token = createAccessToken({
+            email: "expired@example.com",
+            exp: Math.floor(Date.now() / 1000) - 60,
+        });
+        mockToken = token;
+        localStorage.setItem("sb-access-token", token);
 
         render(<ProfilePage />);
 
@@ -114,13 +125,12 @@ describe("ProfilePage auth status", () => {
     });
 
     it("signs out by clearing the local session and redirecting home", async () => {
-        localStorage.setItem(
-            "sb-access-token",
-            createAccessToken({
-                email: "asha@example.com",
-                exp: Math.floor(Date.now() / 1000) + 3600,
-            })
-        );
+        const token = createAccessToken({
+            email: "asha@example.com",
+            exp: Math.floor(Date.now() / 1000) + 3600,
+        });
+        mockToken = token;
+        localStorage.setItem("sb-access-token", token);
 
         render(<ProfilePage />);
 

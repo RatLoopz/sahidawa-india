@@ -340,7 +340,7 @@ describe("GET /api/schedules/today/summary", () => {
     });
 
     it("uses the IST calendar date before UTC midnight", async () => {
-        jest.spyOn(Date, "now").mockReturnValue(new Date("2026-06-13T20:00:00.000Z").getTime()); // 01:30 IST on 2026-06-14
+        jest.useFakeTimers().setSystemTime(new Date("2026-06-13T20:00:00.000Z")); // 01:30 IST on 2026-06-14
 
         const activeSchedules = [
             {
@@ -390,6 +390,7 @@ describe("GET /api/schedules/today/summary", () => {
             { time: "01:00", status: "pending" },
             { time: "08:00", status: "upcoming" },
         ]);
+        jest.useRealTimers();
     });
 });
 

@@ -7,6 +7,7 @@ jest.mock("../src/db/client", () => {
         from: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
         or: jest.fn().mockReturnThis(),
+        in: jest.fn().mockReturnThis(),
         limit: jest.fn().mockReturnThis(),
         maybeSingle: jest.fn(),
     };
@@ -20,6 +21,110 @@ jest.mock("../src/db/client", () => {
 });
 
 import { supabase, dbConfig } from "../src/db/client";
+
+describe("GET /api/v1/interactions", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        dbConfig.isSupabaseOffline = false;
+    });
+
+    it("returns 400 when fewer than two medicine ids are provided", async () => {
+        const missingIds = await request(app).get("/api/v1/interactions");
+        const singleId = await request(app).get("/api/v1/interactions?ids=med-1");
+
+        expect(missingIds.status).toBe(400);
+        expect(missingIds.body.error).toBe("At least two medicine ids are required");
+        expect(singleId.status).toBe(400);
+        expect(singleId.body.error).toBe("At least two medicine ids are required");
+    });
+
+    it("returns pair interaction warnings with High Risk, Moderate, and Safe tags", async () => {
+        const selectedGenerics = ["paracetamol", "warfarin", "ibuprofen"];
+
+        (supabase.in as jest.Mock)
+            .mockResolvedValueOnce({
+                data: [
+                    {
+                        id: "med-a",
+                        brand_name: "Crocin",
+                        generic_name: "paracetamol",
+                    },
+                    {
+                        id: "med-b",
+                        brand_name: "Warfarin",
+                        generic_name: "warfarin",
+                    },
+                    {
+                        id: "med-c",
+                        brand_name: "Brufen",
+                        generic_name: "ibuprofen",
+                    },
+                ],
+                error: null,
+            })
+            .mockReturnValueOnce(supabase)
+            .mockResolvedValueOnce({
+                data: [
+                    {
+                        drug_a_id: "paracetamol",
+                        drug_b_id: "warfarin",
+                        severity: "serious",
+                        description: "May increase bleeding risk.",
+                        clinical_recommendation: "Monitor INR and bleeding symptoms.",
+                        mechanism: "Enhanced anticoagulant effect.",
+                        source: "DrugBank",
+                    },
+                    {
+                        drug_a_id: "warfarin",
+                        drug_b_id: "ibuprofen",
+                        severity: "moderate",
+                        description: "May increase stomach bleeding risk.",
+                        clinical_recommendation: "Use only with clinician guidance.",
+                        mechanism: "Additive gastrointestinal toxicity.",
+                        source: "NLM RxNav",
+                    },
+                ],
+                error: null,
+            });
+
+        const res = await request(app).get("/api/v1/interactions?ids=med-a,med-b,med-c");
+
+        expect(res.status).toBe(200);
+        expect(supabase.from).toHaveBeenCalledTimes(2);
+        expect(supabase.from).toHaveBeenNthCalledWith(1, "medicines");
+        expect(supabase.from).toHaveBeenNthCalledWith(2, "drug_interactions");
+        expect(supabase.in).toHaveBeenCalledTimes(3);
+        expect(supabase.in).toHaveBeenNthCalledWith(2, "drug_a_id", selectedGenerics);
+        expect(supabase.in).toHaveBeenNthCalledWith(3, "drug_b_id", selectedGenerics);
+        expect(supabase.limit).not.toHaveBeenCalled();
+        expect(res.body.interactions).toEqual([
+            expect.objectContaining({
+                medicineAId: "med-a",
+                medicineBId: "med-b",
+                drugA: "Crocin",
+                drugB: "Warfarin",
+                severity: "High Risk",
+                description: "May increase bleeding risk.",
+                precautions: "Monitor INR and bleeding symptoms.",
+            }),
+            expect.objectContaining({
+                medicineAId: "med-a",
+                medicineBId: "med-c",
+                drugA: "Crocin",
+                drugB: "Brufen",
+                severity: "Safe",
+            }),
+            expect.objectContaining({
+                medicineAId: "med-b",
+                medicineBId: "med-c",
+                drugA: "Warfarin",
+                drugB: "Brufen",
+                severity: "Moderate",
+                sideEffects: "May increase stomach bleeding risk.",
+            }),
+        ]);
+    });
+});
 
 describe("POST /api/v1/interactions/check", () => {
     beforeEach(() => {

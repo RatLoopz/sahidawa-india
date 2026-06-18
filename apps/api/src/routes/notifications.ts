@@ -1,6 +1,7 @@
 import express, { Router } from "express";
 import { z } from "zod";
 import { requireAuth, requireRole, optionalAuth, AuthenticatedRequest } from "../middleware/auth";
+import { verifyTwilioSignature } from "../middleware/twilioSignature";
 import { supabase, dbConfig } from "../db/client";
 import { smsService } from "../services/sms-service";
 import { whatsappService } from "../services/whatsapp-service";
@@ -541,46 +542,76 @@ router.post("/broadcast", requireAuth, requireRole("admin"), async (req, res) =>
     const { district, title, message } = parsed.data;
 
     try {
-        let query = supabase.from("notification_subscribers").select("*").eq("is_active", true);
+        let sentCount = 0;
+        let totalProcessed = 0;
+        let hasMore = true;
+        const BATCH_SIZE = 500;
+        const CONCURRENCY_LIMIT = 50;
+        const fullMessage = `${title}\n\n${message}`;
 
-        if (district && district.toLowerCase() !== "all") {
-            query = query.ilike("district", district);
+        while (hasMore) {
+            let query = supabase
+                .from("notification_subscribers")
+                .select("*")
+                .eq("is_active", true)
+                .order("id")
+                .range(totalProcessed, totalProcessed + BATCH_SIZE - 1);
+
+            if (district && district.toLowerCase() !== "all") {
+                query = query.ilike("district", district);
+            }
+
+            const { data: subscribers, error } = await query;
+
+            if (error) {
+                logger.error({ message: "Failed to fetch subscribers for broadcast", error });
+                res.status(500).json({ error: "Database error" });
+                return;
+            }
+
+            if (!subscribers || subscribers.length === 0) {
+                hasMore = false;
+                break;
+            }
+
+            for (let i = 0; i < subscribers.length; i += CONCURRENCY_LIMIT) {
+                const chunk = subscribers.slice(i, i + CONCURRENCY_LIMIT);
+
+                const chunkResults = await Promise.allSettled(
+                    chunk.map(async (sub) => {
+                        const subPromises: Promise<boolean>[] = [];
+                        if (sub.channels.includes("sms")) {
+                            subPromises.push(smsService.send(sub.phone, fullMessage, sub.language));
+                        }
+                        if (sub.channels.includes("whatsapp")) {
+                            subPromises.push(
+                                whatsappService.send(sub.phone, fullMessage, sub.language)
+                            );
+                        }
+                        if (subPromises.length === 0) return false;
+                        const res = await Promise.allSettled(subPromises);
+                        return res.some((r) => r.status === "fulfilled" && r.value === true);
+                    })
+                );
+
+                sentCount += chunkResults.filter(
+                    (r) => r.status === "fulfilled" && r.value === true
+                ).length;
+            }
+
+            totalProcessed += subscribers.length;
+            if (subscribers.length < BATCH_SIZE) {
+                hasMore = false;
+            }
         }
 
-        const { data: subscribers, error } = await query;
-
-        if (error) {
-            logger.error({ message: "Failed to fetch subscribers for broadcast", error });
-            res.status(500).json({ error: "Database error" });
-            return;
-        }
-
-        if (!subscribers || subscribers.length === 0) {
+        if (totalProcessed === 0) {
             res.json({
                 success: true,
                 sentCount: 0,
                 message: "No subscribers found matching criteria",
             });
             return;
-        }
-
-        let sentCount = 0;
-        const fullMessage = `${title}\n\n${message}`;
-
-        for (const sub of subscribers) {
-            const sendPromises: Promise<boolean>[] = [];
-
-            if (sub.channels.includes("sms")) {
-                sendPromises.push(smsService.send(sub.phone, fullMessage, sub.language));
-            }
-            if (sub.channels.includes("whatsapp")) {
-                sendPromises.push(whatsappService.send(sub.phone, fullMessage, sub.language));
-            }
-
-            const results = await Promise.all(sendPromises);
-            if (results.some((r) => r === true)) {
-                sentCount++;
-            }
         }
 
         res.json({ success: true, sentCount, message: `Broadcasted to ${sentCount} subscribers` });
@@ -590,70 +621,75 @@ router.post("/broadcast", requireAuth, requireRole("admin"), async (req, res) =>
     }
 });
 
-router.post("/twilio-webhook", express.urlencoded({ extended: true }), async (req, res) => {
-    const from = req.body.From;
-    const body = req.body.Body ? req.body.Body.trim().toUpperCase() : "";
+router.post(
+    "/twilio-webhook",
+    express.urlencoded({ extended: true }),
+    verifyTwilioSignature,
+    async (req, res) => {
+        const from = req.body.From;
+        const body = req.body.Body ? req.body.Body.trim().toUpperCase() : "";
 
-    if (!from) {
-        res.status(400).send("Missing From parameter");
-        return;
-    }
-
-    const formattedFrom = formatPhoneNumber(from);
-
-    try {
-        let replyMessage = "";
-
-        if (["STOP", "UNSUBSCRIBE", "QUIT", "CANCEL"].includes(body)) {
-            const { error } = await supabase
-                .from("notification_subscribers")
-                .update({ is_active: false })
-                .eq("phone", formattedFrom);
-
-            if (error) {
-                logger.error({
-                    message: "Failed to opt-out via Twilio STOP",
-                    error,
-                    phone: formattedFrom,
-                });
-                res.status(500).send("Database error");
-                return;
-            }
-
-            replyMessage =
-                "You have been unsubscribed from SahiDawa alerts. Reply START to subscribe again.";
-        } else if (["START", "SUBSCRIBE", "UNSTOP"].includes(body)) {
-            const { error } = await supabase
-                .from("notification_subscribers")
-                .update({ is_active: true })
-                .eq("phone", formattedFrom);
-
-            if (error) {
-                logger.error({
-                    message: "Failed to opt-in via Twilio START",
-                    error,
-                    phone: formattedFrom,
-                });
-                res.status(500).send("Database error");
-                return;
-            }
-
-            replyMessage =
-                "Welcome back to SahiDawa alerts! You will receive critical safety alerts for your district.";
-        } else {
-            replyMessage =
-                "SahiDawa Alerts: Reply STOP to unsubscribe, or START to receive safety alerts.";
+        if (!from) {
+            res.status(400).send("Missing From parameter");
+            return;
         }
 
-        res.setHeader("Content-Type", "text/xml");
-        res.send(`<?xml version="1.0" encoding="UTF-8"?>
+        const formattedFrom = formatPhoneNumber(from);
+
+        try {
+            let replyMessage = "";
+
+            if (["STOP", "UNSUBSCRIBE", "QUIT", "CANCEL"].includes(body)) {
+                const { error } = await supabase
+                    .from("notification_subscribers")
+                    .update({ is_active: false })
+                    .eq("phone", formattedFrom);
+
+                if (error) {
+                    logger.error({
+                        message: "Failed to opt-out via Twilio STOP",
+                        error,
+                        phone: formattedFrom,
+                    });
+                    res.status(500).send("Database error");
+                    return;
+                }
+
+                replyMessage =
+                    "You have been unsubscribed from SahiDawa alerts. Reply START to subscribe again.";
+            } else if (["START", "SUBSCRIBE", "UNSTOP"].includes(body)) {
+                const { error } = await supabase
+                    .from("notification_subscribers")
+                    .update({ is_active: true })
+                    .eq("phone", formattedFrom);
+
+                if (error) {
+                    logger.error({
+                        message: "Failed to opt-in via Twilio START",
+                        error,
+                        phone: formattedFrom,
+                    });
+                    res.status(500).send("Database error");
+                    return;
+                }
+
+                replyMessage =
+                    "Welcome back to SahiDawa alerts! You will receive critical safety alerts for your district.";
+            } else {
+                replyMessage =
+                    "SahiDawa Alerts: Reply STOP to unsubscribe, or START to receive safety alerts.";
+            }
+
+            res.setHeader("Content-Type", "text/xml");
+            res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Message>${replyMessage}</Message>
 </Response>`);
-    } catch (err) {
-        logger.error({ message: "Error in Twilio webhook", error: err });
-        res.status(500).send("Internal server error");
+        } catch (err) {
+            logger.error({ message: "Error in Twilio webhook", error: err });
+            res.status(500).send("Internal server error");
+        }
     }
-});
+);
 
 export default router;

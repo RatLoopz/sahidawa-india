@@ -22,6 +22,32 @@ jest.mock("next-intl", () => ({
             return `${d.getDate()} ${d.toLocaleString("en-US", { month: "short" })} ${d.getFullYear()}`;
         },
     }),
+    useTranslations: () => {
+        const translations: Record<string, string> = {
+            childTrackerTitle: "Child Vaccination Tracker",
+            childTrackerSubtitle: "Track your child's vaccinations",
+            childNameLabel: "Child name",
+            childNamePlaceholder: "Enter child name",
+            childDobLabel: "Date of birth",
+            childDobPrompt: "Enter date of birth to see schedule",
+            childDobFutureError: "Date of birth cannot be in the future",
+            childDobInvalidError: "Invalid date of birth",
+            childReminderButton: "Download Reminders",
+            childProfileSummary: "Child Profile",
+            scheduleSourceLabel: "Schedule Source",
+            childTimelineHeading: "Vaccination Timeline",
+            childDefaultName: "My Child",
+            completedStatus: "Completed",
+            dueStatus: "Due",
+            overdueStatus: "Overdue",
+            upcomingStatus: "Upcoming",
+            markCompleteButton: "Mark Complete",
+            whereApplicableBadge: "Where applicable",
+            dueDateLabel: "Due Date",
+            officialTimingLabel: "Official Timing",
+        };
+        return (key: string) => translations[key] ?? key;
+    },
 }));
 
 const TRACKER_STORAGE_KEY = "vaccine-hub-child-tracker-v1";

@@ -18,7 +18,7 @@ import numpy as np
 import soundfile as sf
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from faster_whisper import WhisperModel
-
+from starlette.concurrency import run_in_threadpool
 from services.fuzzy_matcher import get_phonetic_fuzzy_match  # Imported utility service
 from services.telemetry import (
     get_audio_duration_seconds,
@@ -657,11 +657,7 @@ class StreamingAsrSession:
         self.audio_buffer = self.audio_buffer[samples_to_trim:]
         self.buffer_start_seconds += samples_to_trim / STREAM_SAMPLE_RATE
 
-<<<<<<< HEAD
     def _build_response(self, transcript: str, *, run_ner: bool = False) -> dict:
-        base: dict = {
-=======
-    def _build_response(self, transcript: str) -> dict[str, str | float | bool | None]:
         medicine_db = get_medicine_database_list()
         fuzzy_match = get_phonetic_fuzzy_match(transcript, medicine_db)
 
@@ -674,8 +670,7 @@ class StreamingAsrSession:
             suggestion_applied = True
             message = f"Showing results for {corrected_name} — did you mean this?"
 
-        return {
->>>>>>> pr-1840
+        base: dict = {
             "transcript": transcript,
             "corrected_name": corrected_name,
             "suggestion_applied": suggestion_applied,
@@ -686,6 +681,7 @@ class StreamingAsrSession:
         if run_ner and transcript:
             base.update(_run_ner(transcript))
         return base
+
 
     def _run_transcription(self, *, language: str | None, final: bool) -> dict:
         if self.audio_buffer.size == 0:
@@ -950,4 +946,4 @@ async def stream_transcription(websocket: WebSocket):
         return
     finally:
         if session is not None:
-            session.close()
+            await run_in_threadpool(session.close)

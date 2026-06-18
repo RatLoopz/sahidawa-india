@@ -62,6 +62,8 @@
     --color-text-primary: #f8fafc;
     --color-text-secondary: #cbd5e1;
     --color-text-muted: #94a3b8;
+    --color-text-subtle: #94a3b8;
+    --color-text-neutral: #cbd5e1;
 }
 @layer base {
     /* Scanner sweep animation */

@@ -43,20 +43,23 @@ async function copyTextToClipboard(text: string) {
         await navigator.clipboard.writeText(text);
         return true;
     } catch {
-        const textArea = document.createElement("textarea");
-        textArea.value = text;
-        textArea.setAttribute("readonly", "");
-        textArea.style.position = "fixed";
-        textArea.style.opacity = "0";
-        document.body.appendChild(textArea);
-        textArea.select();
-        const copied = document.execCommand("copy");
-        document.body.removeChild(textArea);
-        return copied;
+        try {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.setAttribute("readonly", "");
+            textArea.style.position = "fixed";
+            textArea.style.opacity = "0";
+            document.body.appendChild(textArea);
+            textArea.select();
+            const copied = document.execCommand("copy");
+            document.body.removeChild(textArea);
+            return copied;
+        } catch (err) {
+            console.error("Fallback copy failed:", err);
+            return false;
+        }
     }
 }
-
-// Result views with dark/light mode surface tokens and variables support
 
 export default function ScanPage() {
     const tScan = useTranslations("Scan");
@@ -205,20 +208,16 @@ export default function ScanPage() {
         if (!verifyResult?.verified) return;
 
         const details = formatMedicineDetails(verifyResult.medicine);
-        const showCopied = () => {
+        const success = await copyTextToClipboard(details);
+
+        if (success) {
+            toast.success(tScan("share.copy_success"));
             setCopied(true);
-            toast.success("Medicine details copied!");
             setTimeout(() => setCopied(false), 2000);
-        };
-
-        const copiedSuccessfully = await copyTextToClipboard(details);
-
-        if (copiedSuccessfully) {
-            showCopied();
         } else {
-            toast.error("Unable to copy medicine details");
+            toast.error("Failed to copy. Please copy manually.");
         }
-    }, [verifyResult]);
+    }, [verifyResult, tScan]);
 
     const handleBarcodeScan = useCallback(
         async (scannedText: string) => {

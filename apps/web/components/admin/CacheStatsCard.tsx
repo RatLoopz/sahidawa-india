@@ -1,33 +1,34 @@
-// @ts-nocheck
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { type ComponentType, useEffect, useState } from "react";
 import { ADMIN_API_BASE } from "@/lib/adminApi";
-
-function getToken(): string {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("sb-access-token") ?? "";
-}
+import { useSession } from "@/src/components/AuthProvider";
 
 // SSR-safe Recharts import — fixes hydration mismatch (issue #1303)
-const BarChart = dynamic(() => import("recharts").then((mod) => mod.BarChart as any), {
-    ssr: false,
-});
-const Bar = dynamic(() => import("recharts").then((mod) => mod.Bar as any), {
-    ssr: false,
-});
-const XAxis = dynamic(() => import("recharts").then((mod) => mod.XAxis as any), {
-    ssr: false,
-});
-const YAxis = dynamic(() => import("recharts").then((mod) => mod.YAxis as any), {
-    ssr: false,
-});
-const Tooltip = dynamic(() => import("recharts").then((mod) => mod.Tooltip as any), {
-    ssr: false,
-});
+const BarChart = dynamic(
+    () => import("recharts").then((mod) => mod.BarChart as unknown as ComponentType<any>),
+    { ssr: false }
+);
+const Bar = dynamic(
+    () => import("recharts").then((mod) => mod.Bar as unknown as ComponentType<any>),
+    { ssr: false }
+);
+const XAxis = dynamic(
+    () => import("recharts").then((mod) => mod.XAxis as unknown as ComponentType<any>),
+    { ssr: false }
+);
+const YAxis = dynamic(
+    () => import("recharts").then((mod) => mod.YAxis as unknown as ComponentType<any>),
+    { ssr: false }
+);
+const Tooltip = dynamic(
+    () => import("recharts").then((mod) => mod.Tooltip as unknown as ComponentType<any>),
+    { ssr: false }
+);
 const ResponsiveContainer = dynamic(
-    () => import("recharts").then((mod) => mod.ResponsiveContainer as any),
+    () =>
+        import("recharts").then((mod) => mod.ResponsiveContainer as unknown as ComponentType<any>),
     { ssr: false }
 );
 
@@ -40,13 +41,13 @@ interface CacheStats {
 }
 
 export default function CacheStatsCard() {
+    const { token } = useSession();
     const [stats, setStats] = useState<CacheStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const fetchStats = async () => {
         try {
-            const token = getToken();
             const res = await fetch(`${ADMIN_API_BASE}/cache/stats`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -67,11 +68,12 @@ export default function CacheStatsCard() {
     };
 
     useEffect(() => {
+        if (!token) return;
         fetchStats();
         // auto-refresh every 30 seconds
         const interval = setInterval(fetchStats, 30_000);
         return () => clearInterval(interval);
-    }, []);
+    }, [token]);
 
     if (loading)
         return (

@@ -34,23 +34,8 @@ const Marker = dynamic(() => import("react-leaflet").then((m) => m.Marker), { ss
 const Popup = dynamic(() => import("react-leaflet").then((m) => m.Popup), { ssr: false });
 
 import "leaflet/dist/leaflet.css";
-import L from "leaflet";
 import { CopyButton } from "@/components/ui/CopyButton";
-
-// Fix default marker icon broken in webpack
-const greenIcon = L.icon({
-    iconUrl:
-        "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
-    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-});
-const blueIcon = L.icon({
-    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-});
+import { greenIcon, blueIcon, orangeIcon } from "./mapIcons";
 
 export default function MapView() {
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
@@ -192,6 +177,25 @@ export default function MapView() {
                 </button>
             </div>
 
+            <div className="rounded-lg border bg-white p-3 text-sm shadow-sm">
+                <div className="mb-2 font-semibold">Map Legend</div>
+
+                <div className="flex items-center gap-2">
+                    <span className="h-3 w-3 rounded-full bg-green-600"></span>
+                    <span>Jan Aushadhi Kendra</span>
+                </div>
+
+                <div className="mt-1 flex items-center gap-2">
+                    <span className="h-3 w-3 rounded-full bg-orange-500"></span>
+                    <span>Private Pharmacy</span>
+                </div>
+
+                <div className="mt-1 flex items-center gap-2">
+                    <span className="h-3 w-3 rounded-full bg-blue-600"></span>
+                    <span>ASHA Worker</span>
+                </div>
+            </div>
+
             {/* Map */}
             <MapContainer
                 center={userLocation}
@@ -205,11 +209,15 @@ export default function MapView() {
 
                 {showPharmacies &&
                     pharmacies.map((p) => (
-                        <Marker key={`ph-${p.id}`} position={[p.lat, p.lng]} icon={greenIcon}>
+                        <Marker
+                            key={`ph-${p.id}`}
+                            position={[p.lat, p.lng]}
+                            icon={p.type === "Jan Aushadhi" ? greenIcon : orangeIcon}
+                        >
                             <Popup>
                                 <strong>{p.name}</strong>
                                 <br />
-                                Type: {p.type}
+                                <strong>Type:</strong> {p.type}
                                 <br />
                                 <div className="flex items-center gap-1">
                                     <span>Address: {p.address}</span>

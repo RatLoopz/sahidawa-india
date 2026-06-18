@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Globe, Zap } from "lucide-react";
+import { ArrowLeft, Globe } from "lucide-react";
 import { Link } from "@/i18n/routing";
 
 const pageHeaderFocusRingClass =
@@ -97,15 +97,6 @@ export const PageHeader = ({
                                 {languageName || "English"}
                             </span>
                         </div>
-                    ) : isDark ? (
-                        <button
-                            onClick={() => {}}
-                            aria-label="Quick actions"
-                            className={`flex h-10 w-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-md transition-colors hover:bg-white/20 ${pageHeaderFocusRingClass}`}
-                        >
-                            <Zap size={20} aria-hidden="true" className="text-amber-400" />
-                            <span className="sr-only">Quick actions</span>
-                        </button>
                     ) : (
                         <div className="w-2" />
                     )}

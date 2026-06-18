@@ -289,6 +289,7 @@ export default function PharmacyMapPage() {
     const [fetchError, setFetchError] = useState<string | null>(null);
     const [showSearchArea, setShowSearchArea] = useState(false);
     const [pharmacyCount, setPharmacyCount] = useState(0);
+    const [radiusKm, setRadiusKm] = useState<number>(10);
     const [heatmapMode, setHeatmapMode] = useState<HeatmapMode>("none");
 
     // ── Offline cache state ───────────────────────────────────────────────────
@@ -405,20 +406,36 @@ export default function PharmacyMapPage() {
         }
     }, [isOffline, isShowingCached]);
     useEffect(() => {
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            const latParam = params.get("lat");
+            const lngParam = params.get("lng");
+            if (latParam && lngParam) {
+                const lat = parseFloat(latParam);
+                const lng = parseFloat(lngParam);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    const loc = { lat, lng };
+                    setUserLocation(loc);
+                    fetchNearby(lat, lng);
+                    return;
+                }
+            }
+        }
+
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
                     const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                     setUserLocation(loc);
-                    fetchNearby(loc.lat, loc.lng);
+                    fetchNearby(loc.lat, loc.lng, radiusKm * 1000);
                 },
                 () => {
-                    fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
+                    fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radiusKm * 1000);
                 },
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
             );
         } else {
-            fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
+            fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radiusKm * 1000);
         }
     }, [fetchNearby]);
 
@@ -518,7 +535,7 @@ export default function PharmacyMapPage() {
                 const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                 setUserLocation(loc);
                 setIsLocating(false);
-                fetchNearby(loc.lat, loc.lng);
+                fetchNearby(loc.lat, loc.lng, radiusKm * 1000);
             },
             (err) => {
                 setIsLocating(false);
@@ -532,13 +549,13 @@ export default function PharmacyMapPage() {
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
         );
-    }, [fetchNearby, t]);
+    }, [fetchNearby, radiusKm]);
 
     const handleMapReady = useCallback(() => {
         if (!initialFetchDone.current) {
-            fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
+            fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radiusKm * 1000);
         }
-    }, [fetchNearby]);
+    }, [fetchNearby, radiusKm]);
 
     const handleMapMoveEnd = useCallback((bounds: MapBounds) => {
         if (initialFetchDone.current) {
@@ -917,7 +934,34 @@ export default function PharmacyMapPage() {
                                 </div>
                             </div>
                         )}
-
+                        {/* ── Radius slider + reset ── */}
+                        <div className="absolute bottom-6 left-1/2 z-1000 flex -translate-x-1/2 items-center gap-3 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page)/90 px-4 py-2.5 shadow-xl backdrop-blur-md">
+                            <span className="text-[11px] font-bold whitespace-nowrap text-(--color-text-secondary)">
+                                Radius
+                            </span>
+                            <input
+                                type="range"
+                                min={1}
+                                max={25}
+                                step={1}
+                                value={radiusKm}
+                                onChange={(e) => setRadiusKm(Number(e.target.value))}
+                                className="w-28 accent-emerald-600"
+                                aria-label="Search radius in kilometres"
+                            />
+                            <span className="w-10 text-xs font-bold text-emerald-600">
+                                {radiusKm} km
+                            </span>
+                            <button
+                                onClick={handleLocateUser}
+                                disabled={isLocating}
+                                className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-1.5 text-[11px] font-bold text-white transition-all hover:bg-emerald-700 active:scale-95 disabled:opacity-60"
+                                aria-label="Reset to my location"
+                            >
+                                <Navigation size={12} />
+                                My Location
+                            </button>
+                        </div>
                         <div className="absolute top-4 right-4 z-1000 flex flex-col gap-2">
                             <button
                                 data-testid="mobile-pharmacy-list-toggle"

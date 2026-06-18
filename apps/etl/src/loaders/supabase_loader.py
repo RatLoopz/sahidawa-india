@@ -44,6 +44,12 @@ SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
 BATCH_SIZE = 100
 DELAY_SEC = 0.5
+
+# Postgres RPC (supabase/migrations) for atomic Jan Aushadhi price back-fill.
+# Updates medicines.jan_aushadhi_price in place by id without an INSERT, so the
+# table's NOT NULL columns (e.g. generic_name) are never validated against the
+# {id, jan_aushadhi_price}-only payload.
+JA_PRICE_BULK_RPC = "bulk_update_jan_aushadhi_price"
 BATCH_UPSERT_MAX_ATTEMPTS = 4
 BATCH_UPSERT_INITIAL_BACKOFF_SEC = 2.0
 BATCH_UPSERT_MAX_BACKOFF_SEC = 8.0
@@ -73,6 +79,12 @@ ALLOWED_COLUMNS = {
         "composition",
         "cdsco_approval_status",
         "is_counterfeit_alert",
+        "is_cdsco_verified",
+        "cdsco_match_score",
+        "matched_cdsco_product",
+        "matched_cdsco_manufacturer",
+        "product_match_score",
+        "manufacturer_match_score",
         "mrp",
         "jan_aushadhi_price",
         "strength",
@@ -784,6 +796,12 @@ class SupabaseLoader:
         updates: list[dict],
         table: str,
     ) -> tuple[int, int]:
+        # The bulk RPC updates public.medicines.jan_aushadhi_price in place by id.
+        # Any other table (none today) must not reach it — fall back to per-row
+        # updates so behaviour stays correct if a caller passes a different table.
+        if table != "medicines":
+            return self._update_ja_price_rows_one_by_one(updates, table)
+
         updated = failed = 0
         total = len(updates)
         total_batches = (total + BATCH_SIZE - 1) // BATCH_SIZE
@@ -794,21 +812,44 @@ class SupabaseLoader:
             batch_end = batch_start + len(batch)
 
             try:
-                self._run_upsert_with_transient_retries(
-                    lambda: self.client.table(table).upsert(batch).execute(),
-                    f"merge_jan_aushadhi_price batch {batch_number}/{total_batches} upsert",
-                )
-                updated += len(batch)
+                response = self._bulk_update_ja_price(batch, batch_number, total_batches)
+                rpc_count = self._coerce_rpc_updated_count(response)
+                if rpc_count is None:
+                    # RPC committed (no exception → no INSERT, NOT NULL never hit)
+                    # but the row count came back in an unexpected shape. Assume the
+                    # whole batch landed and log loudly so a response-shape change is
+                    # visible rather than silently miscounted.
+                    logger.error(
+                        f"[Loader] merge_jan_aushadhi_price: batch "
+                        f"{batch_number}/{total_batches} bulk RPC returned an "
+                        f"unrecognized count shape {getattr(response, 'data', None)!r}; "
+                        f"assuming all {len(batch)} rows updated"
+                    )
+                    rpc_count = len(batch)
+                updated += rpc_count
+                # The selection guarantees every id was a real, still-NULL row, so a
+                # short count means rows vanished between the page scan and the UPDATE
+                # (e.g. deleted concurrently). Account for them as failed so the
+                # caller's checked == updated + skipped + failed invariant holds.
+                shortfall = len(batch) - rpc_count
+                if shortfall > 0:
+                    failed += shortfall
+                    logger.warning(
+                        f"[Loader] merge_jan_aushadhi_price: batch "
+                        f"{batch_number}/{total_batches} updated {rpc_count}/{len(batch)} "
+                        f"rows; {shortfall} unaccounted (rows missing at UPDATE time) "
+                        f"— counted as failed"
+                    )
                 logger.info(
                     f"[Loader] merge_jan_aushadhi_price: batch "
-                    f"{batch_number}/{total_batches} upserted {len(batch)} rows "
+                    f"{batch_number}/{total_batches} updated {rpc_count} rows "
                     f"({updated}/{total} page matches)"
                 )
             except Exception as e:
-                logger.warning(
+                logger.error(
                     f"[Loader] merge_jan_aushadhi_price: batch "
                     f"{batch_number}/{total_batches} rows {batch_start}-{batch_end} "
-                    f"failed: {e} - retrying row-by-row"
+                    f"bulk RPC failed: {e} - retrying row-by-row"
                 )
                 batch_updated, batch_failed = self._update_ja_price_rows_one_by_one(
                     batch,
@@ -818,6 +859,44 @@ class SupabaseLoader:
                 failed += batch_failed
 
         return updated, failed
+
+    def _bulk_update_ja_price(
+        self,
+        batch: list[dict],
+        batch_number: int,
+        total_batches: int,
+    ) -> object:
+        """Atomically update one batch via the bulk RPC, with transient retries."""
+        captured: dict = {}
+
+        def _call() -> None:
+            captured["response"] = self.client.rpc(
+                JA_PRICE_BULK_RPC,
+                {"p_updates": batch},
+            ).execute()
+
+        self._run_upsert_with_transient_retries(
+            _call,
+            f"merge_jan_aushadhi_price batch {batch_number}/{total_batches} bulk RPC",
+        )
+        return captured.get("response")
+
+    @staticmethod
+    def _coerce_rpc_updated_count(response: object) -> "int | None":
+        """Read the integer row count returned by the bulk RPC.
+
+        PostgREST returns a scalar function result as the raw value, but tolerate
+        a single-element list too. Returns ``None`` when the shape is unrecognized
+        so the caller can decide how to account for it rather than guessing here.
+        """
+        data = getattr(response, "data", None)
+        if isinstance(data, bool):  # bool is an int subclass — exclude it
+            return None
+        if isinstance(data, int):
+            return data
+        if isinstance(data, list) and len(data) == 1 and isinstance(data[0], int):
+            return data[0]
+        return None
 
     def _update_ja_price_rows_one_by_one(
         self,

@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 import { ScanHistoryEntry } from "@/lib/db/scanHistory";
-import { Download, X } from "lucide-react";
+import { Download, Loader, X } from "lucide-react";
 
 interface ExportModalProps {
     isOpen: boolean;
@@ -15,52 +15,66 @@ interface ExportModalProps {
 export default function ExportModal({ isOpen, onClose, history, t }: ExportModalProps) {
     const [dateRange, setDateRange] = useState("all");
     const [statusFilter, setStatusFilter] = useState("all");
+    const [isExporting, setIsExporting] = useState(false);
     const modalRef = useRef<HTMLDivElement>(null);
 
-    // Reuse our custom hook for modal dismissal
     useOnClickOutside(modalRef, onClose, isOpen);
 
     if (!isOpen) return null;
 
-    const handleExport = () => {
-        const now = Date.now();
-        const rangeMs: Record<string, number> = {
-            "7d": 7 * 24 * 60 * 60 * 1000,
-            "30d": 30 * 24 * 60 * 60 * 1000,
-            all: Infinity,
-        };
+    const handleExport = async () => {
+        try {
+            setIsExporting(true);
 
-        const filtered = history.filter((entry) => {
-            const matchesDate = now - entry.timestamp <= (rangeMs[dateRange] || Infinity);
-            const matchesStatus =
-                statusFilter === "all" ||
-                entry.status?.toUpperCase() === statusFilter.toUpperCase();
-            return matchesDate && matchesStatus;
-        });
+            // Allow React to render the loading state first
+            await new Promise((resolve) => setTimeout(resolve, 0));
 
-        // Generate CSV Content
-        const headers = ["ID", "Date", "Medicine Name", "Status"];
-        const rows = filtered.map((e) => [
-            e.id,
-            new Date(e.timestamp).toISOString(),
-            `"${e.medicineName}"`, // Escape commas in medicine names
-            e.status,
-        ]);
+            const now = Date.now();
+            const rangeMs: Record<string, number> = {
+                "7d": 7 * 24 * 60 * 60 * 1000,
+                "30d": 30 * 24 * 60 * 60 * 1000,
+                all: Infinity,
+            };
 
-        const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+            const filtered = history.filter((entry) => {
+                const matchesDate = now - entry.timestamp <= (rangeMs[dateRange] || Infinity);
 
-        // Trigger Download
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
+                const matchesStatus =
+                    statusFilter === "all" ||
+                    entry.status?.toUpperCase() === statusFilter.toUpperCase();
 
-        const filename = `sahidawa_history_${statusFilter.toLowerCase()}_${dateRange}.csv`;
+                return matchesDate && matchesStatus;
+            });
 
-        link.setAttribute("href", url);
-        link.setAttribute("download", filename);
-        link.click();
-        URL.revokeObjectURL(url);
-        onClose();
+            const headers = ["ID", "Date", "Medicine Name", "Status"];
+
+            const rows = filtered.map((e) => [
+                e.id,
+                new Date(e.timestamp).toISOString(),
+                `"${e.medicineName}"`,
+                e.status,
+            ]);
+
+            const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+
+            const blob = new Blob([csvContent], {
+                type: "text/csv;charset=utf-8;",
+            });
+
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+
+            const filename = `sahidawa_history_${statusFilter.toLowerCase()}_${dateRange}.csv`;
+
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            link.click();
+
+            URL.revokeObjectURL(url);
+            onClose();
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     return (
@@ -73,9 +87,11 @@ export default function ExportModal({ isOpen, onClose, history, t }: ExportModal
                     <h3 className="text-lg font-bold text-(--color-text-primary)">
                         {t("export_modal_title")}
                     </h3>
+
                     <button
                         onClick={onClose}
-                        className="rounded-full p-1 transition-colors hover:bg-(--color-surface-muted)"
+                        disabled={isExporting}
+                        className="rounded-full p-1 transition-colors hover:bg-(--color-surface-muted) disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <X size={20} />
                     </button>
@@ -86,10 +102,12 @@ export default function ExportModal({ isOpen, onClose, history, t }: ExportModal
                         <label className="text-sm font-semibold text-(--color-text-secondary)">
                             {t("export_range_label")}
                         </label>
+
                         <select
                             value={dateRange}
                             onChange={(e) => setDateRange(e.target.value)}
-                            className="w-full rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500/40"
+                            disabled={isExporting}
+                            className="w-full rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500/40 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             <option value="7d">{t("range_7d")}</option>
                             <option value="30d">{t("range_30d")}</option>
@@ -101,10 +119,12 @@ export default function ExportModal({ isOpen, onClose, history, t }: ExportModal
                         <label className="text-sm font-semibold text-(--color-text-secondary)">
                             {t("export_status_label")}
                         </label>
+
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="w-full rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500/40"
+                            disabled={isExporting}
+                            className="w-full rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500/40 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             <option value="all">{t("status_all")}</option>
                             <option value="VERIFIED">{t("status_verified")}</option>
@@ -115,10 +135,16 @@ export default function ExportModal({ isOpen, onClose, history, t }: ExportModal
 
                     <button
                         onClick={handleExport}
-                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 font-bold text-white transition-colors hover:bg-emerald-700"
+                        disabled={isExporting}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 font-bold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                        <Download size={18} />
-                        {t("export_button")}
+                        {isExporting ? (
+                            <Loader size={18} className="animate-spin" />
+                        ) : (
+                            <Download size={18} />
+                        )}
+
+                        {isExporting ? "Exporting..." : t("export_button")}
                     </button>
                 </div>
             </div>

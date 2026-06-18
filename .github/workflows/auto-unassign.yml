@@ -152,21 +152,30 @@ jobs:
                       core.warning(`Failed to add open-for-all label: ${labelErr.message}`);
                     }
                     
-                    // CLEAR PREVIOUS WARNING COMMENTS (The Comment Mesh)
-                    const warningMarker = `Reminder: @${assignee}`;
-                    const warningComments = comments.filter(c => 
-                      c.user && 
-                      c.user.login === 'github-actions[bot]' && 
-                      c.body.includes(warningMarker)
-                    );
-                    for (const wc of warningComments) {
+                    // CLEAR PREVIOUS BOT COMMENTS to make issue look clean and 'new'
+                    const assignmentPhrases = [
+                      "You've been assigned",
+                      "Reminder: @",
+                      "has been auto-unassigned",
+                      "Assignment Request Denied",
+                      "already assigned",
+                      "automatically unassigned"
+                    ];
+                    
+                    const botComments = comments.filter(c => {
+                      if (!c.user || c.user.login !== 'github-actions[bot]') return false;
+                      const body = c.body || '';
+                      return body.includes(`@${assignee}`) || assignmentPhrases.some(p => body.includes(p));
+                    });
+                    
+                    for (const bc of botComments) {
                       try {
                         await github.rest.issues.deleteComment({
-                          owner, repo, comment_id: wc.id
+                          owner, repo, comment_id: bc.id
                         });
-                        core.info(`Deleted previous warning comment ${wc.id} to clean up the thread`);
+                        core.info(`Deleted old bot comment ${bc.id} to clean up the thread`);
                       } catch (delErr) {
-                        core.warning(`Failed to delete warning comment ${wc.id}: ${delErr.message}`);
+                        core.warning(`Failed to delete bot comment ${bc.id}: ${delErr.message}`);
                       }
                     }
 

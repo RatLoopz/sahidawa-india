@@ -107,7 +107,34 @@ function isFlaggedStatus(status: string): boolean {
     const normalized = status.toLowerCase();
     return normalized === "recalled" || normalized === "banned";
 }
-
+function CdscoStatusBadge({ status }: { status: string }) {
+    const normalized = status.toLowerCase();
+    const config: Record<string, { label: string; className: string }> = {
+        approved: {
+            label: "Approved",
+            className: "bg-emerald-100 text-emerald-800 border-emerald-200",
+        },
+        recalled: {
+            label: "Recalled",
+            className: "bg-amber-100 text-amber-800 border-amber-200",
+        },
+        banned: {
+            label: "Banned",
+            className: "bg-red-100 text-red-800 border-red-200",
+        },
+    };
+    const c = config[normalized] ?? {
+        label: status,
+        className: "bg-slate-100 text-slate-700 border-slate-200",
+    };
+    return (
+        <span
+            className={`inline-block rounded-full border px-2.5 py-0.5 text-xs font-bold ${c.className}`}
+        >
+            {c.label}
+        </span>
+    );
+}
 function hasValidJanAushadhiPrice(
     m: Medicine | null | undefined
 ): m is Medicine & { jan_aushadhi_price: number } {
@@ -268,17 +295,42 @@ export default function ComparisonGrid({
                         </tr>
                     </thead>
                     <tbody>
-                        {rows.map(({ label, getValue }) => (
-                            <tr key={label} className="border-b border-slate-100 last:border-0">
-                                <td className="px-5 py-3 font-medium text-slate-600">{label}</td>
-                                <td className="px-5 py-3 text-center text-slate-800">
-                                    {medicine1 ? getValue(medicine1) : "—"}
-                                </td>
-                                <td className="px-5 py-3 text-center text-slate-800">
-                                    {medicine2 ? getValue(medicine2) : "—"}
-                                </td>
-                            </tr>
-                        ))}
+                        {rows.map(({ label, getValue }) => {
+                            const isCdsco = label === labels.rows.cdscoStatus;
+                            return (
+                                <tr key={label} className="border-b border-slate-100 last:border-0">
+                                    <td className="px-5 py-3 font-medium text-slate-600">
+                                        {label}
+                                    </td>
+                                    <td className="px-5 py-3 text-center text-slate-800">
+                                        {medicine1 ? (
+                                            isCdsco ? (
+                                                <CdscoStatusBadge
+                                                    status={medicine1.cdsco_approval_status}
+                                                />
+                                            ) : (
+                                                getValue(medicine1)
+                                            )
+                                        ) : (
+                                            "—"
+                                        )}
+                                    </td>
+                                    <td className="px-5 py-3 text-center text-slate-800">
+                                        {medicine2 ? (
+                                            isCdsco ? (
+                                                <CdscoStatusBadge
+                                                    status={medicine2.cdsco_approval_status}
+                                                />
+                                            ) : (
+                                                getValue(medicine2)
+                                            )
+                                        ) : (
+                                            "—"
+                                        )}
+                                    </td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
                 {medicine1 && medicine2 && (

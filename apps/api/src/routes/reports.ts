@@ -62,6 +62,8 @@ const createReportSchema = z.object({
         .min(-180, "Longitude must be between -180 and 180")
         .max(180, "Longitude must be between -180 and 180")
         .optional(),
+    scannedBarcode: z.string().optional(),
+    medicineId: z.string().uuid().optional(),
 });
 
 const buildReportLocation = (latitude?: number, longitude?: number) => {
@@ -134,6 +136,8 @@ reportsRouter.post(
                     is_escalated: !validation.passed,
                     duplicate_group_id: validation.duplicateGroupId ?? null,
                     status: "pending",
+                    scanned_barcode: data.scannedBarcode ?? null,
+                    medicine_id: data.medicineId ?? null,
                 })
                 .select()
                 .single();
@@ -157,7 +161,11 @@ reportsRouter.post(
             res.status(201).json(response);
         } catch (err) {
             console.error("Unexpected error in POST /api/reports:", err);
-            res.status(500).json({ error: "An unexpected error occurred" });
+            res.status(500).json({
+                error: "An unexpected error occurred",
+                details: err instanceof Error ? err.message : String(err),
+                stack: err instanceof Error ? err.stack : undefined,
+            });
         }
     }
 );

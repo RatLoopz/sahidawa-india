@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import {
     AlertTriangle,
-    ArrowLeft,
     Plus,
     Trash2,
     X,
@@ -17,6 +15,7 @@ import {
 } from "lucide-react";
 import { fuzzyMatchBrand } from "@/lib/api";
 import { checkInteractions, type InteractionResult } from "@/lib/api/interactions";
+import { PageHeader } from "../components/PageHeader";
 
 const STORAGE_KEY = "sahidawa-my-medicines";
 
@@ -179,14 +178,7 @@ export default function InteractionCheckerPage() {
     return (
         <div className="flex-grow bg-(--color-surface-muted) px-6 py-8 text-(--color-text-primary)">
             <div className="mx-auto max-w-3xl">
-                {/* Back Button */}
-                <Link
-                    href="/"
-                    className="mb-6 inline-flex items-center gap-2 rounded-xl px-3 py-2 font-medium text-(--color-text-secondary) transition-all hover:bg-(--color-surface-page) hover:text-emerald-600 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none dark:hover:text-emerald-400"
-                >
-                    <ArrowLeft size={18} />
-                    <span>Back to Home</span>
-                </Link>
+                <PageHeader backHref="/" variant="light" />
 
                 {/* Header */}
                 <div className="mb-8 flex items-center gap-4">

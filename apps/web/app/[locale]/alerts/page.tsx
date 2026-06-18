@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { PageHeader } from "../components/PageHeader";
 import {
     Activity,
-    ArrowLeft,
     Filter,
     AlertTriangle,
     Search,
@@ -16,7 +16,6 @@ import {
     CheckCircle2,
     ShieldAlert,
 } from "lucide-react";
-import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import RecallPushSubscriber from "@/components/alerts/RecallPushSubscriber";
 import { CopyButton } from "@/components/ui/CopyButton";
@@ -146,14 +145,8 @@ export default function FullAlertsLogPage() {
                 className="mx-auto max-w-5xl px-4 py-8 text-(--color-text-primary)"
             >
                 {/* Top Navigation Row */}
-                <div className="mb-6 flex flex-col items-start gap-4">
-                    <Link
-                        href="/"
-                        className="inline-flex items-center gap-2 text-sm font-bold text-(--color-text-secondary) transition-colors hover:text-(--color-text-primary)"
-                    >
-                        <ArrowLeft size={16} />
-                        {t("backHome")}
-                    </Link>
+                <div className="mb-6 flex flex-col gap-4">
+                    <PageHeader backHref="/" variant="light" />
 
                     <div className="animate-in fade-in slide-in-from-bottom-4 inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-4 py-1.5 text-xs font-black text-emerald-700 duration-700 dark:border-emerald-900/30 dark:bg-emerald-950/20 dark:text-emerald-400">
                         <span className="relative flex h-2 w-2">
