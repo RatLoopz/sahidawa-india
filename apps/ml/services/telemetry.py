@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 import time
 import tracemalloc
 from typing import Any
@@ -80,6 +81,8 @@ def get_memory_usage_mb() -> float:
         import resource
 
         usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        if sys.platform == "darwin":
+            return usage / (1024 * 1024)
         if os.name == "posix":
             return usage / 1024
         return usage / (1024 * 1024)

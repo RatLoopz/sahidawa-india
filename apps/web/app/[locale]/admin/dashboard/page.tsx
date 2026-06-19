@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback, useId } from "react";
 import { useTranslations } from "next-intl";
-import { createBrowserClient } from "@supabase/ssr";
 import { Link } from "@/i18n/routing";
 import {
     AlertTriangle,
@@ -19,11 +18,12 @@ import {
     Pill,
     FileText,
     Activity,
+    Store,
 } from "lucide-react";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 import { canMutateAdminData, getAdminRoleFromSession, type AdminRole } from "@/lib/adminAuth";
 import { ADMIN_API_BASE } from "@/lib/adminApi";
-import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/env";
+import { useSession } from "@/src/components/AuthProvider";
 
 type ReportStatus = "pending" | "verified_fake" | "false_alarm";
 type MedicineStatus = "approved" | "recalled" | "banned";
@@ -66,13 +66,9 @@ function timeAgo(dateStr: string): string {
     return `${d}d ago`;
 }
 
-function getToken(): string {
-    if (globalThis.window === undefined) return "";
-    return localStorage.getItem("sb-access-token") ?? "";
-}
-
 export default function AdminDashboard() {
     const t = useTranslations("AdminDashboard");
+    const { session, token, isLoading: authLoading } = useSession();
     const [tab, setTab] = useState<Tab>("reports");
     const [reports, setReports] = useState<Report[]>([]);
     const [resolved, setResolved] = useState<(Report & { resolvedStatus: ReportStatus })[]>([]);
@@ -101,7 +97,7 @@ export default function AdminDashboard() {
 
     const authHeaders = () => ({
         "Content-Type": "application/json",
-        Authorization: `Bearer ${getToken()}`,
+        Authorization: `Bearer ${token ?? ""}`,
     });
 
     const fetchReports = useCallback(async () => {
@@ -154,31 +150,16 @@ export default function AdminDashboard() {
     }, []);
 
     useEffect(() => {
-        let mounted = true;
-        const supabase = createBrowserClient(getSupabaseUrl(), getSupabaseAnonKey());
-
-        supabase.auth
-            .getSession()
-            .then(({ data }) => {
-                if (mounted) {
-                    setAdminRole(getAdminRoleFromSession(data.session));
-                }
-            })
-            .catch(() => {
-                if (mounted) {
-                    setAdminRole(null);
-                }
-            });
-
-        return () => {
-            mounted = false;
-        };
-    }, []);
+        if (authLoading) return;
+        setAdminRole(getAdminRoleFromSession(session));
+    }, [authLoading, token]);
 
     useEffect(() => {
-        fetchReports();
-        fetchMedicines();
-    }, [fetchReports, fetchMedicines]);
+        if (!authLoading) {
+            fetchReports();
+            fetchMedicines();
+        }
+    }, [authLoading, fetchReports, fetchMedicines]);
 
     useEffect(() => {
         if (tab === "logs") {
@@ -294,6 +275,13 @@ export default function AdminDashboard() {
                         active={tab === "logs"}
                         onClick={() => setTab("logs")}
                     />
+                    <Link
+                        href="/admin/pharmacies/pending"
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-slate-500 transition-all hover:bg-slate-50 hover:text-slate-800"
+                    >
+                        <Store className="h-4 w-4 text-slate-400" />
+                        Pharmacies
+                    </Link>
                     <Link
                         href="/admin/analytics"
                         className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-slate-500 transition-all hover:bg-slate-50 hover:text-slate-800"

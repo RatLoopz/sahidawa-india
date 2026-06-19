@@ -54,6 +54,10 @@ beforeEach(() => {
     jest.clearAllMocks();
 });
 
+afterEach(() => {
+    jest.restoreAllMocks();
+});
+
 describe("GET /api/schedules", () => {
     it("returns empty list when no schedules", async () => {
         mockedSupabase.single.mockResolvedValue({ data: null, error: null });
@@ -333,6 +337,60 @@ describe("GET /api/schedules/today/summary", () => {
         expect(res.status).toBe(200);
         expect(res.body.schedules).toHaveLength(1);
         expect(res.body.schedules[0].medicine_name).toBe("Paracetamol");
+    });
+
+    it("uses the IST calendar date before UTC midnight", async () => {
+        jest.useFakeTimers().setSystemTime(new Date("2026-06-13T20:00:00.000Z")); // 01:30 IST on 2026-06-14
+
+        const activeSchedules = [
+            {
+                id: "sched-1",
+                medicine_name: "Paracetamol",
+                dosage: "1 tablet",
+                times: ["01:00", "08:00"],
+                frequency: 2,
+                user_id: "test-user-id",
+                start_date: "2026-06-14",
+                end_date: null,
+                notes: null,
+                is_active: true,
+                created_at: "2026-06-14T00:00:00Z",
+                updated_at: "2026-06-14T00:00:00Z",
+            },
+        ];
+
+        (mockedSupabase.from as jest.Mock).mockReturnValue(mockedSupabase);
+        (mockedSupabase.select as jest.Mock).mockReturnValueOnce(mockedSupabase);
+        (mockedSupabase.eq as jest.Mock).mockReturnValueOnce(mockedSupabase);
+        (mockedSupabase.eq as jest.Mock).mockReturnValueOnce(mockedSupabase);
+        (mockedSupabase.lte as jest.Mock).mockReturnValueOnce(mockedSupabase);
+        (mockedSupabase.or as jest.Mock).mockResolvedValueOnce({
+            data: activeSchedules,
+            error: null,
+        });
+
+        (mockedSupabase.select as jest.Mock).mockReturnValueOnce(mockedSupabase);
+        (mockedSupabase.eq as jest.Mock).mockReturnValueOnce(mockedSupabase);
+        (mockedSupabase.eq as jest.Mock).mockReturnValueOnce(mockedSupabase);
+        (mockedSupabase.eq as jest.Mock).mockResolvedValueOnce({
+            data: [],
+            error: null,
+        });
+
+        const res = await request(app)
+            .get("/api/schedules/today/summary")
+            .set("Authorization", "Bearer test-token");
+
+        expect(res.status).toBe(200);
+        expect(res.body.date).toBe("2026-06-14");
+        expect(mockedSupabase.lte).toHaveBeenCalledWith("start_date", "2026-06-14");
+        expect(mockedSupabase.or).toHaveBeenCalledWith("end_date.is.null,end_date.gte.2026-06-14");
+        expect(mockedSupabase.eq).toHaveBeenCalledWith("log_date", "2026-06-14");
+        expect(res.body.schedules[0].doses).toEqual([
+            { time: "01:00", status: "pending" },
+            { time: "08:00", status: "upcoming" },
+        ]);
+        jest.useRealTimers();
     });
 });
 

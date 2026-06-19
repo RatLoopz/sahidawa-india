@@ -50,22 +50,32 @@ describe("Redis Caching and Drug Lookup Services", () => {
     });
 
     describe("warmCache", () => {
-        it("should warm cache with medicines from the database matching the hot seed", async () => {
+        it("should warm cache with medicines from the database matching the hot seed and keep CDSCO evidence fields", async () => {
             const mockMedicines = [
                 {
                     id: "med-1",
                     batch_number: "BATCH-1",
                     generic_name: "Paracetamol",
                     brand_name: "Crocin",
+                    is_cdsco_verified: true,
+                    cdsco_match_score: 98.4,
+                    matched_cdsco_product: "Crocin 500",
+                    matched_cdsco_manufacturer: "GSK",
+                    product_match_score: 97,
+                    manufacturer_match_score: 100,
                 },
             ];
 
-            mockSupabase.or.mockResolvedValueOnce({ data: mockMedicines, error: null });
+            mockSupabase.in
+                .mockResolvedValueOnce({ data: mockMedicines, error: null })
+                .mockResolvedValueOnce({ data: mockMedicines, error: null });
             mockRedis.get.mockResolvedValue(null);
 
             await warmCache();
 
             expect(mockSupabase.from).toHaveBeenCalledWith("medicines");
+            expect(mockSupabase.in).toHaveBeenNthCalledWith(1, "generic_name", expect.any(Array));
+            expect(mockSupabase.in).toHaveBeenNthCalledWith(2, "brand_name", expect.any(Array));
             expect(mockRedis.set).toHaveBeenCalledWith(
                 "drug:batch:BATCH-1",
                 JSON.stringify(mockMedicines[0]),
@@ -185,7 +195,16 @@ describe("Redis Caching and Drug Lookup Services", () => {
 
     describe("lookupDrugByBatch", () => {
         it("should return cached drug on cache hit and not query database", async () => {
-            const mockMed = { id: "med-1", brand_name: "Crocin" };
+            const mockMed = {
+                id: "med-1",
+                brand_name: "Crocin",
+                is_cdsco_verified: true,
+                cdsco_match_score: 98.4,
+                matched_cdsco_product: "Crocin 500",
+                matched_cdsco_manufacturer: "GSK",
+                product_match_score: 97,
+                manufacturer_match_score: 100,
+            };
             mockRedis.get.mockResolvedValueOnce(JSON.stringify(mockMed));
 
             const result = await lookupDrugByBatch("BATCH-1");

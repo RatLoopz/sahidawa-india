@@ -2,6 +2,8 @@ import { Router, Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { supabase } from "../db/client";
 import logger from "../utils/logger";
+import { requireAuth, AuthenticatedRequest } from "../middleware/auth";
+import { PharmacyRpcResult, FormattedPharmacy } from "../types/pharmacy.types";
 
 const router = Router();
 
@@ -23,33 +25,7 @@ interface PharmacyRow {
     is_verified: boolean;
     district: string | null;
     state: string | null;
-}
-
-/** Pharmacy row returned by PostGIS RPC functions */
-interface PharmacyRpcResult {
-    id: string;
-    name: string;
-    address: string;
-    district: string | null;
-    state: string | null;
-    phone_number: string | null;
-    is_verified: boolean;
-    lat: number;
-    lng: number;
-    distance: number;
-}
-
-/** Formatted pharmacy object returned in API responses */
-interface FormattedPharmacy {
-    name: string;
-    address: string;
-    lat: number;
-    lng: number;
-    distance: string;
-    phone_number: string | null;
-    is_verified: boolean;
-    district: string | null;
-    state: string | null;
+    status?: "pending" | "approved" | "rejected";
 }
 
 /** Internal type used during sorting (includes raw numeric distance) */
@@ -82,64 +58,83 @@ const registerPharmacySchema = z.object({
  * Register a new pharmacy. Returns 409 if a pharmacy with the same licenseId
  * already exists to prevent duplicate entries.
  */
-router.post("/", async (req: Request, res: Response, next: NextFunction) => {
-    const parsed = registerPharmacySchema.safeParse(req.body);
-    if (!parsed.success) {
-        res.status(400).json({ error: "Invalid pharmacy payload", issues: parsed.error.issues });
-        return;
-    }
-
-    const data = parsed.data;
-
-    try {
-        // Check for an existing pharmacy with the same licenseId before inserting.
-        // Without this check concurrent or repeated requests can create duplicate
-        // records for the same physical location, corrupting search results and
-        // user-facing data.
-        const { data: existing, error: lookupError } = await supabase
-            .from("pharmacies")
-            .select("id")
-            .eq("license_id", data.licenseId)
-            .maybeSingle();
-
-        if (lookupError) {
-            logger.error("Pharmacy duplicate check failed", { error: lookupError });
-            next(lookupError);
-            return;
-        }
-
-        if (existing) {
-            res.status(409).json({
-                error: "A pharmacy with this license ID is already registered",
+router.post(
+    "/",
+    requireAuth,
+    async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+        const parsed = registerPharmacySchema.safeParse(req.body);
+        if (!parsed.success) {
+            res.status(400).json({
+                error: "Invalid pharmacy payload",
+                issues: parsed.error.issues,
             });
             return;
         }
 
-        const { data: pharmacy, error: insertError } = await supabase
-            .from("pharmacies")
-            .insert({
-                name: data.name,
-                license_id: data.licenseId,
-                address: data.address,
-                district: data.district,
-                state: data.state,
-                phone_number: data.phone_number ?? null,
-                location: data.lng && data.lat ? `POINT(${data.lng} ${data.lat})` : null,
-                is_verified: false,
-            })
-            .select()
-            .single();
-
-        if (insertError) {
-            next(insertError);
+        if (!req.user) {
+            res.status(401).json({ error: "Unauthorized access" });
             return;
         }
 
-        res.status(201).json({ pharmacy });
-    } catch (err) {
-        next(err);
+        const data = {
+            ...parsed.data,
+            created_by: req.user.id,
+        };
+        try {
+            // Check for an existing pharmacy with the same licenseId before inserting.
+            // Without this check concurrent or repeated requests can create duplicate
+            // records for the same physical location, corrupting search results and
+            // user-facing data.
+            const { data: existing, error: lookupError } = await supabase
+                .from("pharmacies")
+                .select("id")
+                .eq("license_id", data.licenseId)
+                .maybeSingle();
+
+            if (lookupError) {
+                logger.error("Pharmacy duplicate check failed", { error: lookupError });
+                next(lookupError);
+                return;
+            }
+
+            if (existing) {
+                res.status(409).json({
+                    error: "A pharmacy with this license ID is already registered",
+                });
+                return;
+            }
+
+            const { data: pharmacy, error: insertError } = await supabase
+                .from("pharmacies")
+                .insert({
+                    name: data.name,
+                    license_id: data.licenseId,
+                    address: data.address,
+                    district: data.district,
+                    state: data.state,
+                    phone_number: data.phone_number ?? null,
+                    location:
+                        data.lat !== undefined && data.lng !== undefined
+                            ? `POINT(${data.lng} ${data.lat})`
+                            : null,
+                    is_verified: false,
+                    status: "pending",
+                    created_by: data.created_by,
+                })
+                .select()
+                .single();
+
+            if (insertError) {
+                next(insertError);
+                return;
+            }
+
+            res.status(201).json({ pharmacy });
+        } catch (err) {
+            next(err);
+        }
     }
-});
+);
 
 const nearestQuerySchema = z.object({
     lat: z.coerce.number().min(-90).max(90),
@@ -399,7 +394,8 @@ router.get("/nearest", async (req: Request, res: Response, next: NextFunction) =
 
         const { data: allPharmacies, error: fetchError } = await supabase
             .from("pharmacies")
-            .select("name, address, location, phone_number, is_verified, district, state")
+            .select("name, address, location, phone_number, is_verified, district, state, status")
+            .eq("status", "approved")
             .limit(3000);
 
         if (fetchError) {
@@ -408,6 +404,7 @@ router.get("/nearest", async (req: Request, res: Response, next: NextFunction) =
         }
 
         const pharmacies: FormattedPharmacy[] = ((allPharmacies || []) as PharmacyRow[])
+            .filter((p: PharmacyRow) => p.status === "approved")
             .map((p: PharmacyRow): PharmacyWithRawDistance => {
                 const coords = extractCoordinates(p);
                 const distanceKm = calculateDistanceKM(lat, lng, coords.lat, coords.lng);
@@ -568,7 +565,8 @@ router.get("/in-bounds", async (req: Request, res: Response, next: NextFunction)
 
         const { data: allPharmacies, error: fetchError } = await supabase
             .from("pharmacies")
-            .select("name, address, location, phone_number, is_verified, district, state")
+            .select("name, address, location, phone_number, is_verified, district, state, status")
+            .eq("status", "approved")
             .limit(3000);
 
         if (fetchError) {
@@ -577,6 +575,7 @@ router.get("/in-bounds", async (req: Request, res: Response, next: NextFunction)
         }
 
         const pharmacies: FormattedPharmacy[] = ((allPharmacies || []) as PharmacyRow[])
+            .filter((p: PharmacyRow) => p.status === "approved")
             .map((p: PharmacyRow) => {
                 const coords = extractCoordinates(p);
                 const distanceKm = calculateDistanceKM(

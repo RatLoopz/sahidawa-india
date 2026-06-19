@@ -12,6 +12,10 @@ const medicineStatusSchema = z.object({
     status: z.enum(["safe", "suspicious", "recalled", "pending_review"]),
 });
 
+const pharmacyStatusSchema = z.object({
+    status: z.enum(["approved", "rejected"]),
+});
+
 const medicineSchema = z.object({
     brand_name: z.string().min(1),
     generic_name: z.string().min(1),
@@ -25,6 +29,16 @@ const paginationSchema = z.object({
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().min(1).max(100).default(50),
 });
+
+interface AdminAuditLog {
+    id: string;
+    admin_id: string | null;
+    action: string;
+    target_type: "REPORT" | "MEDICINE" | "PHARMACY";
+    target_id: string;
+    details: Record<string, unknown> | string | null;
+    created_at: string;
+}
 
 export const getPendingReports = async (
     req: AuthenticatedRequest,
@@ -101,6 +115,12 @@ export const updateReportStatus = async (
             .single();
 
         if (error) {
+            // Return 404 when the report does not exist
+            if (error.code === "PGRST116") {
+                res.status(404).json({ error: "Report not found" });
+                return;
+            }
+
             res.status(500).json({ error: "Failed to update report" });
             return;
         }
@@ -137,6 +157,12 @@ export const updateReportStatus = async (
             if (count && count >= 5) {
                 const alertLevel = count >= 15 ? "high" : "medium";
 
+                // Replace the previous check-then-insert pattern with a single upsert.
+                // The old pattern had a TOCTOU race window: two concurrent admin actions
+                // on the same district could both pass the existingAlert check and
+                // produce duplicate rows. The upsert with onConflict is atomic and
+                // eliminates the window. The conflict target must match a unique
+                // constraint on (district) in the district_alerts table.
                 await supabase.from("district_alerts").upsert(
                     {
                         district: data.district,
@@ -191,6 +217,81 @@ export const getAllMedicines = async (req: AuthenticatedRequest, res: Response):
         });
     } catch (err) {
         console.error("Error in getAllMedicines:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const getPendingPharmacies = async (
+    req: AuthenticatedRequest,
+    res: Response
+): Promise<void> => {
+    try {
+        const { data, error } = await supabase
+            .from("pharmacies")
+            .select(
+                "id, name, license_id, address, district, state, phone_number, is_verified, status, created_at"
+            )
+            .eq("status", "pending")
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            res.status(500).json({ error: "Failed to fetch pending pharmacies" });
+            return;
+        }
+
+        res.json({ pharmacies: data ?? [] });
+    } catch (err) {
+        console.error("Error in getPendingPharmacies:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const updatePharmacyStatus = async (
+    req: AuthenticatedRequest,
+    res: Response
+): Promise<void> => {
+    try {
+        const { id } = req.params;
+        const parsed = pharmacyStatusSchema.safeParse(req.body);
+
+        if (!parsed.success) {
+            res.status(400).json({ error: "Invalid status", details: parsed.error.issues });
+            return;
+        }
+
+        const { status } = parsed.data;
+
+        const { data, error } = await supabase
+            .from("pharmacies")
+            .update({
+                status,
+                is_verified: status === "approved",
+            })
+            .eq("id", id)
+            .select()
+            .single();
+
+        if (error) {
+            res.status(500).json({ error: "Failed to update pharmacy" });
+            return;
+        }
+
+        if (!data) {
+            res.status(404).json({ error: "Pharmacy not found" });
+            return;
+        }
+
+        await logAdminAction(
+            req.user!.id,
+            `PHARMACY_${status.toUpperCase()}`,
+            "PHARMACY",
+            id as string,
+            { status }
+        );
+
+        res.json({ message: "Pharmacy status updated", pharmacy: data });
+    } catch (err) {
+        console.error("Error in updatePharmacyStatus:", err);
         res.status(500).json({ error: "Internal server error" });
     }
 };
@@ -251,7 +352,7 @@ export const getAuditLogs = async (req: AuthenticatedRequest, res: Response): Pr
             return;
         }
 
-        const formatDetails = (log: any): string => {
+        const formatDetails = (log: Pick<AdminAuditLog, "action" | "details">): string => {
             if (!log.details) return log.action;
             try {
                 const detailsObj =
@@ -268,7 +369,7 @@ export const getAuditLogs = async (req: AuthenticatedRequest, res: Response): Pr
             }
         };
 
-        const formattedLogs = (data || []).map((log: any) => ({
+        const formattedLogs = (data || []).map((log: AdminAuditLog) => ({
             ...log,
             details: formatDetails(log),
         }));

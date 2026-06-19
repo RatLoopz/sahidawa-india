@@ -1,17 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
-import { Bell, ArrowLeft, Loader2, Save, Trash2, CheckCircle, AlertTriangle } from "lucide-react";
+import { Bell, Loader2, Save, Trash2, CheckCircle, AlertTriangle } from "lucide-react";
 import {
     getSubscriptionStatus,
     registerSubscription,
     updateSubscription,
     optOutSubscription,
 } from "@/lib/api/notifications";
+import { useSession } from "@/src/components/AuthProvider";
+import { PageHeader } from "../components/PageHeader";
 
-const ACCESS_TOKEN_KEY = "sb-access-token";
 const GUEST_PHONE_KEY = "sahidawa-sms-phone";
 
 type FormState = {
@@ -24,6 +24,7 @@ type FormState = {
 
 export default function SettingsPage() {
     const t = useTranslations("Settings");
+    const { token: sessionToken, isLoading: authLoading } = useSession();
 
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [token, setToken] = useState<string | null>(null);
@@ -45,16 +46,17 @@ export default function SettingsPage() {
 
     // Decode JWT token loosely to verify authenticated status
     useEffect(() => {
-        const storedToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-        if (storedToken) {
-            setToken(storedToken);
+        if (authLoading) return;
+
+        if (sessionToken) {
+            setToken(sessionToken);
             setIsAuthenticated(true);
         }
 
         // Fetch subscription status on load
         const guestPhone = localStorage.getItem(GUEST_PHONE_KEY) || undefined;
 
-        getSubscriptionStatus(guestPhone, storedToken || undefined)
+        getSubscriptionStatus(guestPhone, sessionToken || undefined)
             .then((res) => {
                 if (res.registered) {
                     setForm({
@@ -72,7 +74,7 @@ export default function SettingsPage() {
             .finally(() => {
                 setIsLoading(false);
             });
-    }, []);
+    }, [authLoading, sessionToken]);
 
     const validateForm = (): boolean => {
         if (!/^\d{10}$/.test(form.phone.trim())) {
@@ -198,14 +200,7 @@ export default function SettingsPage() {
     return (
         <div className="flex-grow bg-(--color-surface-muted) px-6 py-8 text-(--color-text-primary)">
             <div className="mx-auto max-w-2xl">
-                {/* Back Button */}
-                <Link
-                    href="/profile"
-                    className="mb-6 inline-flex items-center gap-2 rounded-xl px-3 py-2 font-medium text-(--color-text-secondary) transition-all hover:bg-(--color-surface-page) hover:text-emerald-600 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none dark:hover:text-emerald-400"
-                >
-                    <ArrowLeft size={18} />
-                    <span>Back to Profile</span>
-                </Link>
+                <PageHeader backHref="/profile" variant="light" />
 
                 {/* Header */}
                 <div className="mb-8 flex items-center gap-4">

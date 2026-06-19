@@ -97,6 +97,43 @@ describe("ComparisonGrid", () => {
         expect(markup).toContain("Recalled");
     });
 
+    it("shows a safety alert banner when a medicine is recalled", () => {
+        const markup = renderToStaticMarkup(
+            <ComparisonGrid medicine1={medicineA} medicine2={medicineB} />
+        );
+
+        expect(markup).toContain('role="alert"');
+        expect(markup).toContain("Safety alert");
+        expect(markup).toContain("Dolo has been flagged as");
+    });
+
+    it("shows a safety alert banner when a medicine is banned", () => {
+        const bannedMedicine = {
+            ...medicineA,
+            cdsco_approval_status: "banned",
+        };
+
+        const markup = renderToStaticMarkup(
+            <ComparisonGrid medicine1={bannedMedicine} medicine2={null} />
+        );
+
+        expect(markup).toContain('role="alert"');
+        expect(markup).toContain("Crocin has been flagged as");
+    });
+
+    it("does not show a safety alert banner when both medicines are approved", () => {
+        const approvedMedicine = {
+            ...medicineB,
+            cdsco_approval_status: "approved",
+        };
+
+        const markup = renderToStaticMarkup(
+            <ComparisonGrid medicine1={medicineA} medicine2={approvedMedicine} />
+        );
+
+        expect(markup).not.toContain("Safety alert");
+    });
+
     it("shows unavailable text when prices are missing", () => {
         const medicine = {
             ...medicineA,

@@ -1,9 +1,13 @@
-import { render, screen, waitFor } from "@testing-library/react";
+/**
+ * @jest-environment jsdom
+ */
+import "@testing-library/jest-dom";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
+// import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import MedicineSearchSelect from "../src/components/MedicineSearchSelect";
 
-vi.mock("lucide-react", () => ({
+jest.mock("lucide-react", () => ({
     Clock: () => <span>Clock</span>,
     Loader2: () => <span>Loader</span>,
     Search: () => <span>Search</span>,
@@ -21,18 +25,18 @@ describe("MedicineSearchSelect", () => {
     const defaultProps = {
         label: "Medicine",
         value: null,
-        onChange: vi.fn(),
-        onSearch: vi.fn(),
+        onChange: jest.fn(),
+        onSearch: jest.fn(),
     };
 
     beforeEach(() => {
-        vi.clearAllMocks();
+        jest.clearAllMocks();
         localStorage.clear();
-        vi.useFakeTimers();
+        jest.useFakeTimers();
     });
 
     afterEach(() => {
-        vi.useRealTimers();
+        jest.useRealTimers();
     });
 
     test("renders search input", () => {
@@ -62,9 +66,9 @@ describe("MedicineSearchSelect", () => {
     });
 
     test("clear button calls onChange with null", async () => {
-        const user = userEvent.setup();
+        const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
 
-        const onChange = vi.fn();
+        const onChange = jest.fn();
 
         render(<MedicineSearchSelect {...defaultProps} value={mockMedicine} onChange={onChange} />);
 
@@ -78,7 +82,7 @@ describe("MedicineSearchSelect", () => {
     });
 
     test("shows minimum character guidance", async () => {
-        const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+        const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
 
         render(<MedicineSearchSelect {...defaultProps} />);
 
@@ -91,10 +95,10 @@ describe("MedicineSearchSelect", () => {
 
     test("renders search results", async () => {
         const user = userEvent.setup({
-            advanceTimers: vi.advanceTimersByTime,
+            advanceTimers: jest.advanceTimersByTime,
         });
 
-        const onSearch = vi.fn().mockResolvedValue([mockMedicine]);
+        const onSearch = jest.fn().mockResolvedValue([mockMedicine]);
 
         render(<MedicineSearchSelect {...defaultProps} onSearch={onSearch} />);
 
@@ -102,7 +106,9 @@ describe("MedicineSearchSelect", () => {
 
         await user.type(input, "cro");
 
-        vi.advanceTimersByTime(300);
+        await act(async () => {
+            jest.advanceTimersByTime(300);
+        });
 
         await waitFor(() => {
             expect(onSearch).toHaveBeenCalled();
@@ -115,10 +121,10 @@ describe("MedicineSearchSelect", () => {
 
     test("shows no results state", async () => {
         const user = userEvent.setup({
-            advanceTimers: vi.advanceTimersByTime,
+            advanceTimers: jest.advanceTimersByTime,
         });
 
-        const onSearch = vi.fn().mockResolvedValue([]);
+        const onSearch = jest.fn().mockResolvedValue([]);
 
         render(<MedicineSearchSelect {...defaultProps} onSearch={onSearch} />);
 
@@ -126,7 +132,7 @@ describe("MedicineSearchSelect", () => {
 
         await user.type(input, "xyz");
 
-        vi.advanceTimersByTime(300);
+        jest.advanceTimersByTime(300);
 
         await waitFor(() => {
             expect(onSearch).toHaveBeenCalled();
@@ -162,7 +168,7 @@ describe("MedicineSearchSelect", () => {
     });
 
     test("clear history removes history items", async () => {
-        const user = userEvent.setup();
+        const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
 
         localStorage.setItem(
             "sahidawa_search_history",

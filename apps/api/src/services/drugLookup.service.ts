@@ -31,7 +31,7 @@ export async function lookupDrugByBatch(batchNumber: string): Promise<any | null
         const { data, error } = await supabase
             .from("medicines")
             .select(
-                "id, barcode_id, brand_name, generic_name, manufacturer, batch_number, manufacturing_date, expiry_date, cdsco_approval_status, is_counterfeit_alert, manufacturer_id"
+                "id, barcode_id, brand_name, generic_name, manufacturer, batch_number, manufacturing_date, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score, manufacturer_id"
             )
             .eq("batch_number", batchNumber)
             .limit(1)

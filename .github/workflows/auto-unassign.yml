@@ -23,6 +23,24 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
+            const memoizedCollaborators = new Map();
+            async function isMaintainer(username) {
+              if (!username) return false;
+              if (memoizedCollaborators.has(username)) {
+                return memoizedCollaborators.get(username);
+              }
+              try {
+                const { data: perm } = await github.rest.repos.getCollaboratorPermissionLevel({
+                  owner, repo, username
+                });
+                const isM = perm.permission === 'admin' || perm.permission === 'write';
+                memoizedCollaborators.set(username, isM);
+                return isM;
+              } catch (err) {
+                return false;
+              }
+            }
+
             // ─────────────────────────────────────────────
             // Config & Rules Based on Labels
             // ─────────────────────────────────────────────
@@ -106,9 +124,11 @@ jobs:
                   // Check contributor activity & Linked PRs
                   // ─────────────────────────────────────────────
                   const linkedPR = prs.find(pr => {
-                    const body = (pr.body || '').toLowerCase();
-                    return pr.user && pr.user.login === assignee && 
-                           (body.includes(`#${issue.number}`) || body.includes(`closes #${issue.number}`) || body.includes(`fixes #${issue.number}`));
+                    if (!pr.user || pr.user.login !== assignee) return false;
+                    const body = pr.body || '';
+                    const title = pr.title || '';
+                    const issueRefRegex = new RegExp('(?:#|issues/)' + issue.number + '\\b', 'i');
+                    return issueRefRegex.test(body) || issueRefRegex.test(title);
                   });
 
                   if (linkedPR) {
@@ -152,21 +172,59 @@ jobs:
                       core.warning(`Failed to add open-for-all label: ${labelErr.message}`);
                     }
                     
-                    // CLEAR PREVIOUS WARNING COMMENTS (The Comment Mesh)
-                    const warningMarker = `Reminder: @${assignee}`;
-                    const warningComments = comments.filter(c => 
-                      c.user && 
-                      c.user.login === 'github-actions[bot]' && 
-                      c.body.includes(warningMarker)
-                    );
-                    for (const wc of warningComments) {
+                    // CLEAR PREVIOUS COMMENTS to make issue look clean and 'new'
+                    const commentsToDelete = [];
+                    for (const c of comments) {
+                      if (!c.user) continue;
+                      const commenter = c.user.login;
+                      const isBot = commenter === 'github-actions[bot]' || c.user.type === 'Bot';
+                      
+                      if (isBot) {
+                        commentsToDelete.push(c);
+                        continue;
+                      }
+                      if (commenter === assignee) {
+                        commentsToDelete.push(c);
+                        continue;
+                      }
+                      
+                      const cBody = c.body || '';
+                      const isAssignRequest = cBody.toLowerCase().includes('/assign') || 
+                                              cBody.toLowerCase().includes('please assign') || 
+                                              cBody.toLowerCase().includes('assign me') ||
+                                              cBody.toLowerCase().includes('claim');
+
+                      if (isAssignRequest) {
+                        commentsToDelete.push(c);
+                        continue;
+                      }
+
+                      // Check if commenter is a maintainer
+                      const isM = await isMaintainer(commenter);
+                      if (isM) {
+                        // Keep maintainer comments
+                        continue;
+                      }
+
+                      // Check if commenter is the issue author
+                      const isIssueAuthor = commenter === issue.user.login;
+                      if (isIssueAuthor) {
+                        // Keep issue author comments (unless they were assignment requests, which we already filtered above)
+                        continue;
+                      }
+
+                      // Delete all other comments to keep it clean
+                      commentsToDelete.push(c);
+                    }
+                    
+                    for (const comment of commentsToDelete) {
                       try {
                         await github.rest.issues.deleteComment({
-                          owner, repo, comment_id: wc.id
+                          owner, repo, comment_id: comment.id
                         });
-                        core.info(`Deleted previous warning comment ${wc.id} to clean up the thread`);
+                        core.info(`Deleted old comment ${comment.id} to clean up the thread`);
                       } catch (delErr) {
-                        core.warning(`Failed to delete warning comment ${wc.id}: ${delErr.message}`);
+                        core.warning(`Failed to delete comment ${comment.id}: ${delErr.message}`);
                       }
                     }
 

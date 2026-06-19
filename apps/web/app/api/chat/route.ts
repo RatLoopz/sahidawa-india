@@ -173,17 +173,20 @@ export async function POST(req: Request) {
 
         if (mode === "voice-triage") {
             const deterministicEmergency = detectEmergencyKeywords(latestMessageText);
-            
+
             let parsedResponse;
             let emergencyFromML = false;
-            
+
             try {
-                const mlServiceUrl = process.env.ML_SERVICE_URL?.trim() || process.env.NEXT_PUBLIC_ML_SERVICE_URL?.trim() || "http://localhost:8000";
+                const mlServiceUrl =
+                    process.env.ML_SERVICE_URL?.trim() ||
+                    process.env.NEXT_PUBLIC_ML_SERVICE_URL?.trim() ||
+                    "http://localhost:8000";
                 const formattedMessages = (messages || []).map((m: any) => ({
                     role: m.role === "assistant" || m.role === "model" ? "assistant" : "user",
-                    content: m.text || m.content || ""
+                    content: m.text || m.content || "",
                 }));
-                
+
                 // If there's no history, initialize with the current message
                 if (formattedMessages.length === 0) {
                     formattedMessages.push({ role: "user", content: latestMessageText });
@@ -194,8 +197,8 @@ export async function POST(req: Request) {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         messages: formattedMessages,
-                        locale: locale || "en"
-                    })
+                        locale: locale || "en",
+                    }),
                 });
 
                 if (!mlResponse.ok) {
@@ -208,22 +211,29 @@ export async function POST(req: Request) {
                     summary: mlData.summary || mlData.response,
                     recommendations: mlData.recommendations || [],
                     disclaimer: mlData.disclaimer || DEFAULT_DISCLAIMER,
-                    emergency: Boolean(mlData.emergency)
+                    emergency: Boolean(mlData.emergency),
                 };
                 emergencyFromML = Boolean(mlData.emergency);
-                
+
                 structuredLog({
                     log_level: "info",
                     route: ROUTE,
                     latency_ms: Date.now() - startTime,
-                    meta: { mode: "voice-triage", source: "langgraph-ml-service", responseLanguage }
+                    meta: {
+                        mode: "voice-triage",
+                        source: "langgraph-ml-service",
+                        responseLanguage,
+                    },
                 });
-
             } catch (mlError: any) {
                 structuredLog({
                     log_level: "warn",
                     route: ROUTE,
-                    meta: { reason: "ml_service_triage_failed", error: mlError.message, fallback: "direct_gemini" }
+                    meta: {
+                        reason: "ml_service_triage_failed",
+                        error: mlError.message,
+                        fallback: "direct_gemini",
+                    },
                 });
 
                 // Fallback direct Gemini call

@@ -27,7 +27,6 @@ export function useCloudTTS() {
 
             try {
                 setIsLoading(true);
-                options?.onStart?.();
 
                 // Request TTS audio from backend
                 const response = await fetch("/api/voice/tts", {

@@ -2,7 +2,7 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
 import path from "path";
 import logger from "../utils/logger";
-import { CONNECTION_TIMEOUT_MS, MAX_RETRIES, RETRY_DELAY_MS, fetchWithRetry } from "./fetchUtils";
+import { MAX_RETRIES, RETRY_DELAY_MS, fetchWithRetry } from "./fetchUtils";
 
 export const dbConfig = {
     isSupabaseOffline: false,
@@ -107,7 +107,8 @@ async function pooledFetch(input: RequestInfo | URL, init?: RequestInit): Promis
 
 // ── Supabase client ───────────────────────────────────────────────────────────
 
-export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseKey, {
+// Privileged backend client for server-side writes and admin-only access.
+export const serviceRoleSupabase: SupabaseClient = createClient(supabaseUrl, supabaseKey, {
     global: {
         fetch: pooledFetch as typeof fetch,
     },
@@ -116,6 +117,10 @@ export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseKey, {
         autoRefreshToken: false,
     },
 });
+
+// Backward-compatible alias for existing API modules. New code should import
+// serviceRoleSupabase so the permission level is clear at the call site.
+export const supabase = serviceRoleSupabase;
 
 // ── Graceful shutdown ─────────────────────────────────────────────────────────
 

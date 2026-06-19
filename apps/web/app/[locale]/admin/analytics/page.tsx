@@ -23,6 +23,7 @@ import {
     XCircle,
 } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useSession } from "@/src/components/AuthProvider";
 
 const AnalyticsCharts = dynamic(() => import("@/components/admin/AnalyticsCharts"), {
     ssr: false,
@@ -92,12 +93,8 @@ function formatPercent(rate: number): string {
     return `${Math.round(rate * 100)}%`;
 }
 
-function getToken(): string {
-    if (globalThis.window === undefined) return "";
-    return localStorage.getItem("sb-access-token") ?? "";
-}
-
 export default function AnalyticsDashboard() {
+    const { token, isLoading: authLoading } = useSession();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [timeframe, setTimeframe] = useState<"7d" | "30d" | "90d" | "all">("30d");
@@ -116,6 +113,8 @@ export default function AnalyticsDashboard() {
     const filterDays = daysMap[timeframe];
 
     const fetchData = useCallback(async () => {
+        if (!token) return;
+
         setLoading(true);
         setError(null);
         setPushAnalyticsError(null);
@@ -126,7 +125,7 @@ export default function AnalyticsDashboard() {
                 fetch(`${ADMIN_API_BASE}/logs?page=1&limit=100`, {
                     cache: "no-store",
                     headers: {
-                        Authorization: `Bearer ${getToken()}`,
+                        Authorization: `Bearer ${token}`,
                     },
                 }),
             ]);
@@ -138,7 +137,7 @@ export default function AnalyticsDashboard() {
                     {
                         cache: "no-store",
                         headers: {
-                            Authorization: `Bearer ${getToken()}`,
+                            Authorization: `Bearer ${token}`,
                         },
                     }
                 );
@@ -201,11 +200,13 @@ export default function AnalyticsDashboard() {
         } finally {
             setLoading(false);
         }
-    }, [filterDays]);
+    }, [filterDays, token]);
 
     useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+        if (!authLoading) {
+            fetchData();
+        }
+    }, [authLoading, fetchData]);
 
     const filteredReports = useMemo(() => {
         if (timeframe === "all") return reports;

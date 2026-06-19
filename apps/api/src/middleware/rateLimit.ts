@@ -77,3 +77,20 @@ export const lasaLimiter = rateLimit({
         });
     },
 });
+
+// ── Scan query limiter ───────────────────────────────────────────────────────
+// /scan/match calls search_medicines_text RPC (trigram full-text search).
+// /scan/verify-brand does ILIKE over the medicines table.
+// Both are unauthenticated and moderately expensive — throttle to prevent
+// medicine-database scraping and Supabase connection pool exhaustion.
+export const scanQueryLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: (_req, res) => {
+        res.status(429).json({
+            error: "Too many scan queries. Please try again later.",
+        });
+    },
+});

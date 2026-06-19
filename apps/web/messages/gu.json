@@ -469,7 +469,15 @@
         "importDateError": "બેકઅપમાં અમાન્ય તારીખ ફોર્મેટ મળ્યો. બધી તારીખો YYYY-MM-DD ફોર્મેટમાં હોવી જોઈએ.",
         "statusExpired": "સમાપ્ત",
         "statusExpiringSoon": "ટૂંક સમયમાં સમાપ્ત થશે ({days} દિવસ)",
-        "statusSafe": "સુરક્ષિત"
+        "statusSafe": "સુરક્ષિત",
+        "exportCSV": "CSV નિકાસ કરો",
+        "exportPDF": "PDF નિકાસ કરો",
+        "print": "પ્રિન્ટ કરો",
+        "csvExportSuccess": "CSV સફળતાપૂર્વક નિકાસ કરવામાં આવ્યું",
+        "pdfExportSuccess": "PDF સફળતાપૂર્વક નિકાસ કરવામાં આવ્યું",
+        "noMedicinesToDisplay": "દર્શાવવા માટે કોઈ દવાઓ નથી",
+        "generatedOn": " સમયમાં સમાપ્ત થ",
+        "deleteMedicine": "દવા કાઢી નાખો"
     },
     "Login": {
         "brandSubtitle": "દવા સુરક્ષા પ્લેટફોર્મ",
@@ -657,75 +665,6 @@
         "nav_schedule": "દવા સમયપત્રક",
         "nav_profile": "My Profile"
     },
-    "howItWorks": {
-        "badge": "સુરક્ષિત આરોગ્ય સેવા • AI દ્વારા સંચાલિત",
-        "heroTitle": "<highlight>SahiDawa</highlight> કેવી રીતે કામ કરે છે",
-        "heroSubtitle": "જાણો કે કેવી રીતે SahiDawa વપરાશકર્તાઓને દવાઓ પ્રમાણિત કરવામાં, વિશ્વસનીય ફાર્મસીઓ શોધવામાં, સત્તાવાર એલર્ટ મેળવવામાં અને AI-સંચાલિત હેલ્થ ટૂલ્સનો ઉપયોગ કરીને નકલી દવાઓથી સુરક્ષિત રહેવામાં મદદ કરે છે.",
-        "ctaButtons": {
-            "scan": "સ્કેનિંગ શરૂ કરો",
-            "map": "ફાર્મસી મેપ જુઓ"
-        },
-        "steps": {
-            "scan": {
-                "title": "દવા સ્કેન કરો",
-                "description": "તમારા ડિવાઇસના કેમેરાને કોઈપણ દવાના પેકેજિંગ પરના બારકોડ અથવા ક્યૂઆર કોડ (QR code) તરફ રાખો."
-            },
-            "verify": {
-                "title": "તાત્કાલિક ચકાસો",
-                "description": "અસલી-નકલી તપાસવા માટે AI સ્કેન કરેલી વિગતોને સીધી CDSCO ના સત્તાવાર રેકોર્ડ સાથે ક્રોસ-રેફરન્સ કરે છે."
-            },
-            "alerts": {
-                "title": "એલર્ટ ચેક કરો",
-                "description": "જો દવાનો કોઈ બેચ પાછો ખેંચવામાં આવ્યો હોય, પ્રતિબંધિત હોય અથવા નબળી ગુણવત્તાનો હોય, તો રિયલ-ટાઇમ સુરક્ષા એલર્ટ મેળવો."
-            },
-            "pharmacies": {
-                "title": "ફાર્મસી શોધો",
-                "description": "જન ઔષધિ કેન્દ્રો અને અસલી દવાઓ રાખતી તમારી આસપાસની વેરિફાઇડ ફાર્મસીઓ શોધો."
-            },
-            "protect": {
-                "title": "સુરક્ષિત રહો",
-                "description": "તમારા સ્કેનનો રેકોર્ડ રાખો, નકલી દવાઓની જાણ કરો અને તમારા પરિવારના સ્વાસ્થ્યને સુરક્ષિત કરો."
-            }
-        },
-        "features": {
-            "title": "પ્લેટફોર્મ સુવિધાઓ",
-            "subtitle": "સુરક્ષિત આરોગ્ય વિષયક નિર્ણયો લેવા માટે તમારે જે જોઈએ તે બધું અહીં છે.",
-            "cards": {
-                "verifyMedicines": {
-                    "title": "દવાઓ ચકાસો",
-                    "description": "બારકોડ, બેચ નંબર અથવા દવાની વિગતોનો ઉપયોગ કરીને તરત જ દવાઓની પ્રમાણિકતા તપાસો."
-                },
-                "scanOrSearch": {
-                    "title": "સ્કેન અથવા સર્ચ કરો",
-                    "description": "વિશ્વસનીય સ્વાસ્થ્ય માહિતી મેળવવા માટે પેકેજિંગ સ્કેન કરો અથવા મેન્યુઅલી દવાઓ શોધો."
-                },
-                "aiAssistant": {
-                    "title": "AI સ્વાસ્થ્ય સહાયક",
-                    "description": "લક્ષણો, આડઅસરો, સાવચેતીઓ અને દવાના ઉપયોગ માટે AI-સંચાલિત માર્ગદર્શન મેળવો."
-                },
-                "trustedPharmacies": {
-                    "title": "વિશ્વસનીય ફાર્મસીઓ",
-                    "description": "દવાઓની વિશ્વસનીય ઉપલબ્ધતા અને રેટિંગ્સ સાથે તમારી નજીકની વેરિફાઇડ ફાર્મસીઓ શોધો."
-                },
-                "cdscoAlerts": {
-                    "title": "CDSCO એલર્ટ",
-                    "description": "CDSCO દવાના સત્તાવાર રિકોલ, ચેતવણીઓ અને આરોગ્ય ચેતવણીઓ સાથે અપડેટ રહો."
-                },
-                "reportMedicines": {
-                    "title": "શંકાસ્પદ દવાઓની જાણ કરો",
-                    "description": "નકલી અથવા શંકાસ્પદ દવાઓની તાત્કાલિક જાણ કરીને સમુદાયને મદદ કરો."
-                }
-            }
-        },
-        "ctaBanner": {
-            "title": "સુરક્ષિત આરોગ્ય સેવાની શરૂઆત અહીંથી થાય છે",
-            "subtitle": "દવાઓ પ્રમાણિત કરો, વિશ્વસનીય સ્વાસ્થ્ય માહિતી મેળવો અને AI ની મદદથી નકલી દવાઓથી સુરક્ષિત રહો.",
-            "buttons": {
-                "scan": "દવા સ્કેન કરો",
-                "alerts": "એલર્ટ જુઓ"
-            }
-        }
-    },
     "medicineSafety": {
         "guideTitle": "ઉપયોગ અને સુરક્ષા માર્ગદર્શિકા",
         "noDosageInfo": "આ વય જૂથ માટે ડોઝની માહિતી ઉપલબ્ધ નથી.",
@@ -759,47 +698,31 @@
         },
         "disclaimer": "આ માહિતી શૈક્ષણિક હેતુ માટે છે અને વ્યાવસાયિક તબીબી સલાહનો વિકલ્પ નથી."
     },
-    "Interactions": {
-        "title": "દવા ક્રિયાપ્રતિક્રિયા તપાસ",
-        "subtitle": "બહુવિધ દવાઓ વચ્ચે સંભવિત હાનિકારક ક્રિયાપ્રતિક્રિયાઓ તપાસો",
-        "searchLabel": "દવા શોધો",
-        "searchPlaceholder": "બ્રાન્ડ નામ અથવા જેનરિક નામ દાખલ કરો...",
-        "addButton": "ઉમેરો",
-        "checkButton": "ક્રિયાપ્રતિક્રિયાઓ તપાસો",
-        "myMedicines": "મારી દવાઓની સૂચિ",
-        "noMedicines": "હજુ સુધી કોઈ દવા ઉમેરાઈ નથી.",
-        "clearAll": "બધું સાફ કરો",
-        "resultsHeading": "ક્રિયાપ્રતિક્રિયા રિપોર્ટ",
-        "noInteractions": "બધું ઠીક છે! પસંદ કરેલી દવાઓ વચ્ચે કોઈ ક્રિયાપ્રતિક્રિયા મળી નથી.",
-        "severityCritical": "ગંભીર ચેતવણી",
-        "severitySerious": "મહત્વની ચેતવણી",
-        "severityModerate": "મધ્યમ સાવચેતી",
-        "severityMinor": "નાની સાવચેતી",
-        "clinicalRecommendation": "ક્લિનિકલ ભલામણ:",
-        "mechanism": "પ્રક્રિયા:",
-        "source": "સ્રોત:",
-        "errorMessage": "ક્રિયાપ્રતિક્રિયા તપાસ પૂર્ણ કરવામાં નિષ્ફળ. કૃપા કરીને ફરી પ્રયાસ કરો."
+    "SchemeEligibility": {
+        "validationAgeError": "કૃપા કરીને માન્ય ઉંમર દાખલ કરો.",
+        "validationStateError": "કૃપા કરીને એક રાજ્ય પસંદ કરો."
     },
-    "ScanHistory": {
-        "export_modal_title": "સ્કૅન ઇતિહાસ નિકાસ કરો",
-        "export_range_label": "તારીખ શ્રેણી પસંદ કરો",
-        "export_status_label": "સ્થિતિ દ્વારા ફિલ્ટર કરો",
-        "range_7d": "છેલ્લા ૭ દિવસ",
-        "range_30d": "છેલ્લા ૩૦ દિવસ",
-        "range_all": "બધો સમય",
-        "status_all": "બધી સ્થિતિઓ",
-        "status_verified": "માત્ર ચકાસાયેલ",
-        "status_suspicious": "માત્ર શંકાસ્પદ",
-        "status_fake": "માત્ર નકલી",
-        "export_button": "CSV બનાવો",
-        "cancel": "રદ કરો"
-    },
-    "Map": {
-        "errors": {
-            "denied": "લોકેશન એક્સેસ નકારવામાં આવ્યું છે. કૃપા કરીને બ્રાઉઝર સેટિંગ્સમાં તેને સક્ષમ કરો.",
-            "unavailable": "લોકેશનની માહિતી ઉપલબ્ધ નથી.",
-            "timeout": "લોકેશન વિનંતીનો સમય સમાપ્ત થઈ ગયો છે.",
-            "generic": "તમારું લોકેશન મેળવવામાં અસમર્થ."
-        }
+    "Health": {
+        "quickActions": "Quick actions",
+        "scanMedicine": "Scan Medicine",
+        "verifyAuthenticity": "Verify authenticity",
+        "checkSymptoms": "Check Symptoms",
+        "symptomGuidance": "AI-assisted guidance",
+        "findPharmacy": "Find Pharmacy",
+        "locateStores": "Locate verified stores",
+        "replyFallback": "I'm here to help! Could you rephrase that?",
+        "tooManyRequests": "Too many requests. Please try again in a few moments.",
+        "failedResponse": "Failed to generate AI response",
+        "genericError": "Something went wrong",
+        "returnHome": "Return to chat home",
+        "chatConversation": "Chat conversation",
+        "startVoice": "Start voice input",
+        "stopVoice": "Stop voice input",
+        "healthQuestion": "Type your health question",
+        "voiceBrowserRequired": "Voice input is not supported in this browser.",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "sendMessage": "Send message",
+        "footer": "For informational use only • Consult a doctor"
     }
 }

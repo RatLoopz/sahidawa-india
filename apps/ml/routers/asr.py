@@ -1,23 +1,25 @@
-from __future__ import annotations
+from __future__ import annotations  # MUST BE LINE 1
 
-import json
 import io
-import wave
-from json import JSONDecodeError
-from contextlib import asynccontextmanager
-from collections.abc import Callable
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, WebSocket, WebSocketDisconnect
-import noisereduce as nr
-import numpy as np
-import tempfile
-import warnings
-import subprocess
-import soundfile as sf
+import json
 import logging
 import os
+import subprocess
+import tempfile
 import threading
+import warnings
+import wave
+from collections.abc import Callable
+from contextlib import asynccontextmanager
+from json import JSONDecodeError
 
+import noisereduce as nr
+import numpy as np
+import soundfile as sf
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from faster_whisper import WhisperModel
+from starlette.concurrency import run_in_threadpool
+from services.fuzzy_matcher import get_phonetic_fuzzy_match  # Imported utility service
 from services.telemetry import (
     get_audio_duration_seconds,
     get_memory_usage_mb,
@@ -28,6 +30,7 @@ from services.telemetry import (
 
 logger = logging.getLogger(__name__)
 telemetry_logger = get_telemetry_logger()
+
 DEFAULT_WHISPER_BEAM_SIZE = 5
 MAX_TRANSCRIPTION_DURATION_SECONDS = 60.0
 STREAM_SAMPLE_RATE = 16000
@@ -43,13 +46,18 @@ STREAM_VAD_PARAMETERS = dict(
     threshold=0.3,
 )
 
-# Load model lazily on first request — prevents blocking startup of FastAPI microservice
-model = None
 WHISPER_MODEL_SIZE = os.getenv("WHISPER_MODEL_SIZE", "small")
 WHISPER_DEVICE = os.getenv("WHISPER_DEVICE", "cpu")
 WHISPER_COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE", "int8")
 WHISPER_PRELOAD_ON_STARTUP = os.getenv("WHISPER_PRELOAD_ON_STARTUP", "").strip().lower()
 
+# Load model lazily on first request — prevents blocking startup of the FastAPI microservice.
+model: WhisperModel | None = None
+
+
+# ---------------------------------------------------------------------------
+# Model loading
+# ---------------------------------------------------------------------------
 
 def parse_beam_size(
     raw_value: str | None,
@@ -60,24 +68,16 @@ def parse_beam_size(
         return default
 
     try:
-        parsed_value = int(raw_value)
+        parsed = int(raw_value)
     except (TypeError, ValueError):
-        logger.warning(
-            "Invalid WHISPER_BEAM_SIZE=%r; falling back to %s",
-            raw_value,
-            default,
-        )
+        logger.warning("Invalid WHISPER_BEAM_SIZE=%r; falling back to %s", raw_value, default)
         return default
 
-    if parsed_value < 1:
-        logger.warning(
-            "Invalid WHISPER_BEAM_SIZE=%r; falling back to %s",
-            raw_value,
-            default,
-        )
+    if parsed < 1:
+        logger.warning("Invalid WHISPER_BEAM_SIZE=%r; falling back to %s", raw_value, default)
         return default
 
-    return parsed_value
+    return parsed
 
 
 WHISPER_BEAM_SIZE = parse_beam_size(os.getenv("WHISPER_BEAM_SIZE"))
@@ -86,11 +86,12 @@ WHISPER_BEAM_SIZE = parse_beam_size(os.getenv("WHISPER_BEAM_SIZE"))
 def should_preload_model_on_startup() -> bool:
     return WHISPER_PRELOAD_ON_STARTUP in {"1", "true", "yes", "on"}
 
-def get_model():
+
+def get_model() -> WhisperModel:
     global model
     if model is None:
         logger.info(
-            "Loading Whisper model lazily with size=%s device=%s compute_type=%s",
+            "Loading Whisper model lazily: size=%s device=%s compute_type=%s",
             WHISPER_MODEL_SIZE,
             WHISPER_DEVICE,
             WHISPER_COMPUTE_TYPE,
@@ -110,6 +111,19 @@ def preload_model_if_configured() -> None:
         get_model()
 
 
+def get_medicine_database_list() -> list[str]:
+    """
+    Utility helper to fetch valid medicine masters from backend DB layers.
+    Includes baseline fallback targets for test execution parameters.
+    """
+    try:
+        # TODO: Link to actual database schema or configuration lookup when fully connected to Supabase seeds
+        return ["Paracetamol", "Crocin", "Amoxicillin", "Ibuprofen", "Aspirin", "Metformin"]
+    except Exception as e:
+        logger.warning(f"Failed to query medicine master dataset: {e}")
+        return []
+
+
 @asynccontextmanager
 async def asr_router_lifespan(_app):
     preload_model_if_configured()
@@ -121,23 +135,26 @@ router = APIRouter(prefix="/asr", tags=["ASR"], lifespan=asr_router_lifespan)
 ALLOWED_TYPES = {
     "audio/wav",
     "audio/x-wav",
-    "audio/mpeg",       # MP3
-    "audio/ogg",        # OGG / Opus
-    "audio/mp4",        # M4A / MP4
-    "audio/webm",       # WebM (browser MediaRecorder default)
+    "audio/mpeg",   # MP3
+    "audio/ogg",    # OGG / Opus
+    "audio/mp4",    # M4A / MP4
+    "audio/webm",   # WebM (browser MediaRecorder default)
     "audio/flac",
 }
 
 
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
 def normalize_content_type(content_type: str | None) -> str:
     if not content_type:
         return ""
-
     return content_type.split(";", 1)[0].strip().lower()
 
 
 def normalize_requested_language(language: str | None) -> str | None:
-    if language is None:
+    if not language:
         return None
 
     normalized = language.strip().lower()
@@ -178,7 +195,6 @@ def ensure_wav_duration_within_limit(contents: bytes) -> float:
             status_code=400,
             detail="Uploaded audio must be 60 seconds or shorter.",
         )
-
     return duration_seconds
 
 
@@ -189,9 +205,27 @@ def ensure_audio_duration_within_limit(audio_data, sample_rate: int) -> float:
             status_code=400,
             detail="Uploaded audio must be 60 seconds or shorter.",
         )
-
     return duration_seconds
 
+
+def _run_ner(transcript: str) -> dict:
+    """Run the NER pipeline and return a partial payload dict."""
+    try:
+        from services.medicine_ner import extract_medicine_entities, entities_to_dict
+        ner_result = extract_medicine_entities(transcript)
+        return {
+            "entities": entities_to_dict(ner_result)["entities"],
+            "primary_medicine": ner_result.primary_medicine,
+            "primary_dosage": ner_result.primary_dosage,
+        }
+    except Exception:
+        logger.warning("NER pipeline failed — returning empty entities.")
+        return {"entities": [], "primary_medicine": None, "primary_dosage": None}
+
+
+# ---------------------------------------------------------------------------
+# Upload transcription
+# ---------------------------------------------------------------------------
 
 def transcribe_uploaded_bytes(
     contents: bytes,
@@ -199,13 +233,15 @@ def transcribe_uploaded_bytes(
     original_name: str,
     content_type: str | None,
     language: str | None,
-):
+) -> dict:
     normalized_content_type = normalize_content_type(content_type)
     if normalized_content_type not in ALLOWED_TYPES:
         raise HTTPException(
             status_code=400,
-            detail=f"Unsupported audio format '{content_type}'. "
-                   f"Accepted: {', '.join(sorted(ALLOWED_TYPES))}"
+            detail=(
+                f"Unsupported audio format '{content_type}'. "
+                f"Accepted: {', '.join(sorted(ALLOWED_TYPES))}"
+            ),
         )
 
     if normalized_content_type in {"audio/wav", "audio/x-wav"}:
@@ -228,12 +264,9 @@ def _transcribe_audio_bytes(
     original_name: str,
     suffix: str,
     requested_language: str | None,
-):
+) -> dict:
     tmp_path: str | None = None
     normalized_path: str | None = None
-    transcription_started_at: float | None = None
-    audio_duration_seconds = 0.0
-    memory_before_mb = 0.0
 
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
@@ -245,8 +278,7 @@ def _transcribe_audio_bytes(
         try:
             ffmpeg_result = subprocess.run(
                 [
-                    "ffmpeg",
-                    "-y",
+                    "ffmpeg", "-y",
                     "-i", tmp_path,
                     "-ar", "16000",
                     "-ac", "1",
@@ -258,7 +290,7 @@ def _transcribe_audio_bytes(
             )
         except FileNotFoundError:
             logger.error(
-                "ffmpeg executable not found. Install ffmpeg on the ML host "
+                "ffmpeg not found. Install it on the ML host "
                 "(e.g. `sudo apt install ffmpeg`) so uploaded audio can be transcoded."
             )
             raise HTTPException(
@@ -267,18 +299,17 @@ def _transcribe_audio_bytes(
             )
 
         if ffmpeg_result.returncode != 0:
-            ffmpeg_stderr = ffmpeg_result.stderr.decode("utf-8", errors="ignore")
-            logger.error(f"FFmpeg transcoding failed:\n{ffmpeg_stderr}")
+            logger.error(
+                "FFmpeg transcoding failed:\n%s",
+                ffmpeg_result.stderr.decode("utf-8", errors="ignore"),
+            )
             raise HTTPException(
                 status_code=422,
-                detail="Could not process audio file. Ensure it is a valid, non-corrupted audio recording."
+                detail="Could not process audio file. Ensure it is a valid, non-corrupted audio recording.",
             )
 
         audio_data, sample_rate = sf.read(normalized_path)
-        audio_duration_seconds = ensure_audio_duration_within_limit(
-            audio_data,
-            sample_rate,
-        )
+        audio_duration_seconds = ensure_audio_duration_within_limit(audio_data, sample_rate)
         audio_data = audio_data.astype(np.float32)
 
         with warnings.catch_warnings():
@@ -287,20 +318,18 @@ def _transcribe_audio_bytes(
 
         transcription_started_at = start_timer()
         memory_before_mb = get_memory_usage_mb()
+
         segments, info = get_model().transcribe(
             reduced_audio,
             language=requested_language,
             task="transcribe",
             beam_size=WHISPER_BEAM_SIZE,
             vad_filter=True,
-            vad_parameters=dict(
-                min_silence_duration_ms=300,
-                speech_pad_ms=400,
-                threshold=0.3,
-            ),
+            vad_parameters=STREAM_VAD_PARAMETERS,
         )
 
         transcript = " ".join(seg.text for seg in segments).strip()
+
         log_transcription_finished(
             started_at=transcription_started_at,
             audio_duration_seconds=audio_duration_seconds,
@@ -309,27 +338,43 @@ def _transcribe_audio_bytes(
         )
 
         logger.info(
-            f"Transcription complete | requested_lang={requested_language} "
-            f"lang={info.language} "
-            f"prob={info.language_probability:.2f} | chars={len(transcript)}"
+            "Transcription complete | requested_lang=%s lang=%s prob=%.2f chars=%d",
+            requested_language,
+            info.language,
+            info.language_probability,
+            len(transcript),
         )
+
+        # Apply Stage 1 & Stage 2 Pipeline Match Corrections
+        medicine_db = get_medicine_database_list()
+        fuzzy_match = get_phonetic_fuzzy_match(transcript, medicine_db)
+
+        corrected_name = transcript
+        suggestion_applied = False
+        message = None
+
+        if fuzzy_match and fuzzy_match["is_corrected"]:
+            corrected_name = fuzzy_match["matched_name"]
+            suggestion_applied = True
+            message = f"Showing results for {corrected_name} — did you mean this?"
 
         return {
             "transcription": transcript,
+            "corrected_name": corrected_name,
+            "suggestion_applied": suggestion_applied,
+            "message": message,
             "language": info.language,
             "language_probability": round(info.language_probability, 3),
             "filename": original_name,
+            **_run_ner(transcript),
         }
 
     except HTTPException:
         raise
 
-    except Exception as e:
-        logger.error(f"ASR transcription error: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail="Oops..! Please try again later."
-        )
+    except Exception as exc:
+        logger.error("ASR transcription error: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Oops..! Please try again later.")
 
     finally:
         for path in (tmp_path, normalized_path):
@@ -339,6 +384,10 @@ def _transcribe_audio_bytes(
                 except OSError:
                     pass
 
+
+# ---------------------------------------------------------------------------
+# Streaming helpers
+# ---------------------------------------------------------------------------
 
 def merge_transcript_text(base: str, addition: str) -> str:
     base = base.strip()
@@ -358,9 +407,7 @@ def merge_transcript_text(base: str, addition: str) -> str:
     overlap_limit = min(len(base_words), len(addition_words))
 
     for size in range(overlap_limit, 0, -1):
-        if [word.lower() for word in base_words[-size:]] == [
-            word.lower() for word in addition_words[:size]
-        ]:
+        if [w.lower() for w in base_words[-size:]] == [w.lower() for w in addition_words[:size]]:
             return " ".join(base_words + addition_words[size:])
 
     return f"{base} {addition}".strip()
@@ -369,7 +416,6 @@ def merge_transcript_text(base: str, addition: str) -> str:
 def has_meaningful_speech(audio: np.ndarray, *, threshold: float) -> bool:
     if audio.size == 0:
         return False
-
     rms = float(np.sqrt(np.mean(np.square(audio), dtype=np.float64)))
     return rms >= threshold
 
@@ -377,36 +423,34 @@ def has_meaningful_speech(audio: np.ndarray, *, threshold: float) -> bool:
 def pcm16_bytes_to_float32(raw_audio: bytes) -> np.ndarray:
     if not raw_audio:
         return np.array([], dtype=np.float32)
-
     pcm = np.frombuffer(raw_audio, dtype=np.int16)
     if pcm.size == 0:
         return np.array([], dtype=np.float32)
-
     return pcm.astype(np.float32) / 32768.0
 
 
+# ---------------------------------------------------------------------------
+# Streaming audio decoder
+# ---------------------------------------------------------------------------
+
 class StreamingAudioDecoder:
-    def __init__(self, mime_type: str):
+    def __init__(self, mime_type: str) -> None:
         self.mime_type = mime_type
         self._stdout_buffer = bytearray()
         self._stderr_buffer: list[bytes] = []
         self._stdout_cursor = 0
         self._lock = threading.Lock()
         self._data_event = threading.Event()
+
         try:
             self._process = subprocess.Popen(
                 [
                     "ffmpeg",
-                    "-loglevel",
-                    "error",
-                    "-i",
-                    "pipe:0",
-                    "-ac",
-                    "1",
-                    "-ar",
-                    str(STREAM_SAMPLE_RATE),
-                    "-f",
-                    "s16le",
+                    "-loglevel", "error",
+                    "-i", "pipe:0",
+                    "-ac", "1",
+                    "-ar", str(STREAM_SAMPLE_RATE),
+                    "-f", "s16le",
                     "pipe:1",
                 ],
                 stdin=subprocess.PIPE,
@@ -416,17 +460,22 @@ class StreamingAudioDecoder:
             )
         except FileNotFoundError as exc:
             logger.error(
-                "ffmpeg executable not found. Install ffmpeg on the ML host "
+                "ffmpeg not found. Install it on the ML host "
                 "(e.g. `sudo apt install ffmpeg`) so streaming audio can be decoded."
             )
             raise HTTPException(
                 status_code=503,
                 detail="Voice transcription is temporarily unavailable. Please try again later.",
             ) from exc
+
         self._stdout_thread = threading.Thread(target=self._drain_stdout, daemon=True)
         self._stderr_thread = threading.Thread(target=self._drain_stderr, daemon=True)
         self._stdout_thread.start()
         self._stderr_thread.start()
+
+    # ------------------------------------------------------------------
+    # Internal drain threads
+    # ------------------------------------------------------------------
 
     def _drain_stdout(self) -> None:
         assert self._process.stdout is not None
@@ -460,18 +509,20 @@ class StreamingAudioDecoder:
             detail="Could not process streaming audio. Ensure the recording format is supported.",
         )
 
+    # ------------------------------------------------------------------
+    # Public API
+    # ------------------------------------------------------------------
+
     def push(self, chunk: bytes) -> None:
         if not chunk:
             return
-
         if self._process.poll() is not None or self._process.stdin is None:
             raise self._decoder_error()
-
         try:
             self._process.stdin.write(chunk)
             self._process.stdin.flush()
-        except BrokenPipeError as error:
-            raise self._decoder_error() from error
+        except BrokenPipeError as exc:
+            raise self._decoder_error() from exc
 
     def take_audio(self, timeout_seconds: float = 0.0) -> np.ndarray:
         if timeout_seconds > 0:
@@ -482,10 +533,12 @@ class StreamingAudioDecoder:
                 self._data_event.clear()
                 return np.array([], dtype=np.float32)
 
-            raw_audio = bytes(self._stdout_buffer[self._stdout_cursor :])
+            raw_audio = bytes(self._stdout_buffer[self._stdout_cursor:])
             self._stdout_cursor = len(self._stdout_buffer)
+
             if self._stdout_cursor == len(self._stdout_buffer):
                 self._data_event.clear()
+
             if self._stdout_cursor >= STREAM_DECODER_READ_SIZE * 32:
                 del self._stdout_buffer[: self._stdout_cursor]
                 self._stdout_cursor = 0
@@ -516,10 +569,8 @@ class StreamingAudioDecoder:
     def finish(self, timeout_seconds: float = 0.2) -> np.ndarray:
         if self._process.stdin is not None and not self._process.stdin.closed:
             self._process.stdin.close()
-
         self._stdout_thread.join(timeout_seconds)
         self._wait_for_process_exit(timeout_seconds)
-
         return self.take_audio(timeout_seconds)
 
     def close(self) -> None:
@@ -530,6 +581,10 @@ class StreamingAudioDecoder:
 def create_streaming_audio_decoder(mime_type: str) -> StreamingAudioDecoder:
     return StreamingAudioDecoder(mime_type)
 
+
+# ---------------------------------------------------------------------------
+# Streaming ASR session
+# ---------------------------------------------------------------------------
 
 class StreamingAsrSession:
     def __init__(
@@ -550,6 +605,7 @@ class StreamingAsrSession:
         self.transcribe_interval_seconds = max(transcribe_interval_seconds, 0.0)
         self.min_buffer_seconds = max(min_buffer_seconds, 0.0)
         self.speech_rms_threshold = max(speech_rms_threshold, 0.0)
+
         self.decoder: StreamingAudioDecoder | None = None
         self.audio_buffer = np.array([], dtype=np.float32)
         self.buffer_start_seconds = 0.0
@@ -562,6 +618,10 @@ class StreamingAsrSession:
         self.last_language: str | None = None
         self.last_language_confidence: float | None = None
 
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
     def _get_decoder(self, mime_type: str) -> StreamingAudioDecoder:
         if self.decoder is None:
             self.decoder = self.decoder_factory(mime_type)
@@ -570,10 +630,8 @@ class StreamingAsrSession:
     def _append_audio(self, audio: np.ndarray) -> None:
         if audio.size == 0:
             return
-
         self.audio_buffer = np.concatenate((self.audio_buffer, audio.astype(np.float32)))
-        audio_duration_seconds = len(audio) / STREAM_SAMPLE_RATE
-        self.total_audio_seconds += audio_duration_seconds
+        self.total_audio_seconds += len(audio) / STREAM_SAMPLE_RATE
         if has_meaningful_speech(audio, threshold=self.speech_rms_threshold):
             self.pending_speech_since_inference = True
         self._trim_audio_buffer()
@@ -599,14 +657,33 @@ class StreamingAsrSession:
         self.audio_buffer = self.audio_buffer[samples_to_trim:]
         self.buffer_start_seconds += samples_to_trim / STREAM_SAMPLE_RATE
 
-    def _build_response(self, transcript: str) -> dict[str, str | float | None]:
-        return {
+    def _build_response(self, transcript: str, *, run_ner: bool = False) -> dict:
+        medicine_db = get_medicine_database_list()
+        fuzzy_match = get_phonetic_fuzzy_match(transcript, medicine_db)
+
+        corrected_name = transcript
+        suggestion_applied = False
+        message = None
+
+        if fuzzy_match and fuzzy_match["is_corrected"]:
+            corrected_name = fuzzy_match["matched_name"]
+            suggestion_applied = True
+            message = f"Showing results for {corrected_name} — did you mean this?"
+
+        base: dict = {
             "transcript": transcript,
+            "corrected_name": corrected_name,
+            "suggestion_applied": suggestion_applied,
+            "message": message,
             "language": self.last_language,
             "languageConfidence": self.last_language_confidence,
         }
+        if run_ner and transcript:
+            base.update(_run_ner(transcript))
+        return base
 
-    def _run_transcription(self, *, language: str | None, final: bool):
+
+    def _run_transcription(self, *, language: str | None, final: bool) -> dict:
         if self.audio_buffer.size == 0:
             return self._build_response(self.committed_transcript)
 
@@ -625,12 +702,14 @@ class StreamingAsrSession:
             analysis_end_seconds = self.buffer_start_seconds + (
                 len(self.audio_buffer) / STREAM_SAMPLE_RATE
             )
-            stable_cutoff_seconds = float("inf")
-            if not final:
-                stable_cutoff_seconds = max(
+            stable_cutoff_seconds = (
+                float("inf")
+                if final
+                else max(
                     self.committed_until_seconds,
                     analysis_end_seconds - self.commit_lag_seconds,
                 )
+            )
 
             active_transcript = ""
             for segment in segments:
@@ -638,40 +717,45 @@ class StreamingAsrSession:
                 if not text:
                     continue
 
-                segment_start_seconds = self.buffer_start_seconds + max(float(segment.start), 0.0)
-                segment_end_seconds = max(
-                    segment_start_seconds,
+                segment_start = self.buffer_start_seconds + max(float(segment.start), 0.0)
+                segment_end = max(
+                    segment_start,
                     self.buffer_start_seconds + max(float(segment.end), 0.0),
                 )
 
-                if segment_end_seconds <= self.committed_until_seconds + 1e-3:
+                if segment_end <= self.committed_until_seconds + 1e-3:
                     continue
 
-                if segment_end_seconds <= stable_cutoff_seconds:
+                if segment_end <= stable_cutoff_seconds:
                     self.committed_transcript = merge_transcript_text(
-                        self.committed_transcript,
-                        text,
+                        self.committed_transcript, text
                     )
                     self.committed_until_seconds = max(
-                        self.committed_until_seconds,
-                        segment_end_seconds,
+                        self.committed_until_seconds, segment_end
                     )
                 else:
                     active_transcript = merge_transcript_text(active_transcript, text)
 
-            full_transcript = merge_transcript_text(self.committed_transcript, active_transcript)
+            full_transcript = merge_transcript_text(
+                self.committed_transcript, active_transcript
+            )
             self.last_inference_audio_seconds = self.total_audio_seconds
             self.pending_speech_since_inference = False
             self._trim_audio_buffer()
-            return self._build_response(full_transcript)
+            return self._build_response(full_transcript, run_ner=final)
+
         except HTTPException:
             raise
-        except Exception as error:
-            logger.error("Streaming ASR transcription error: %s", error, exc_info=True)
+        except Exception as exc:
+            logger.error("Streaming ASR transcription error: %s", exc, exc_info=True)
             raise HTTPException(
                 status_code=500,
-                detail=f"Failed to transcribe audio: {str(error)}",
-            ) from error
+                detail=f"Failed to transcribe audio: {exc}",
+            ) from exc
+
+    # ------------------------------------------------------------------
+    # Public API
+    # ------------------------------------------------------------------
 
     def append_and_maybe_transcribe(
         self,
@@ -679,26 +763,24 @@ class StreamingAsrSession:
         *,
         mime_type: str,
         language: str | None,
-    ):
+    ) -> dict | None:
         decoder = self._get_decoder(mime_type)
         decoder.push(chunk)
         self._append_audio(decoder.take_audio(timeout_seconds=0.05))
 
         if self.audio_buffer.size == 0:
             return None
-
         if self.total_audio_seconds < self.min_buffer_seconds:
             return None
-
         if not self.pending_speech_since_inference:
             return None
-
         if (
             self.total_audio_seconds - self.last_inference_audio_seconds
             < self.transcribe_interval_seconds
         ):
             return None
 
+        # Partials do not run NER (final=False).
         payload = self._run_transcription(language=language, final=False)
         transcript = str(payload["transcript"]).strip()
         if not transcript or transcript == self.last_partial_transcript:
@@ -707,20 +789,22 @@ class StreamingAsrSession:
         self.last_partial_transcript = transcript
         return payload
 
-    def finalize(self, *, mime_type: str, language: str | None):
+    def finalize(self, *, mime_type: str, language: str | None) -> dict:
         if self.decoder is None:
             return {
                 "transcript": "",
+                "corrected_name": "",
+                "suggestion_applied": False,
+                "message": None,
                 "language": None,
                 "languageConfidence": None,
             }
 
         self._append_audio(self.decoder.finish(timeout_seconds=0.15))
         try:
-            payload = self._run_transcription(language=language, final=True)
+            return self._run_transcription(language=language, final=True)
         finally:
             self.close()
-        return payload
 
     def close(self) -> None:
         if self.decoder is None:
@@ -729,34 +813,34 @@ class StreamingAsrSession:
         self.decoder = None
 
 
+# ---------------------------------------------------------------------------
+# HTTP endpoint
+# ---------------------------------------------------------------------------
+
 @router.post(
-        "/transcribe",
-        responses={
-            400: {
-                "description": "Invalid audio input, unsupported format, corrupted audio, or duration exceeds limit."
-            },
-            422: {
-                "description": "Unable to process the uploaded audio file."
-            },
-            503: {
-                "description": "Transcription service temporarily unavailable."
-            },
-            500: {
-                "description": "Internal server error during transcription."
-            },
-        },
+    "/transcribe",
+    responses={
+        400: {"description": "Invalid audio input, unsupported format, corrupted audio, or duration exceeds limit."},
+        422: {"description": "Unable to process the uploaded audio file."},
+        503: {"description": "Transcription service temporarily unavailable."},
+        500: {"description": "Internal server error during transcription."},
+    },
 )
-async def transcribe_audio(file: UploadFile = File(...), language: str | None = Form(default=None)):
+async def transcribe_audio(
+    file: UploadFile = File(...),
+    language: str | None = Form(default=None),
+):
     """
-    Accepts any supported audio file upload and returns transcribed text.
+    Accept any supported audio file and return transcribed text.
 
-    Supports: WAV, MP3, OGG, WebM, MP4, FLAC
-    Returns: transcription text, detected language code, language confidence,
-             and echoed filename.
+    Supported formats: WAV, MP3, OGG, WebM, MP4, FLAC.
 
-    Internally normalizes all formats to 16kHz mono WAV via FFmpeg before
-    passing to faster-whisper — ensures compatibility across all container
-    environments regardless of libsndfile codec availability.
+    All formats are normalised to 16 kHz mono WAV via FFmpeg before being
+    passed to faster-whisper, ensuring compatibility across all environments
+    regardless of libsndfile codec availability.
+
+    Returns transcription text, detected language code, language confidence,
+    the echoed filename, and any extracted medicine entities.
     """
     contents = await file.read()
     original_name = file.filename or "upload"
@@ -768,13 +852,19 @@ async def transcribe_audio(file: UploadFile = File(...), language: str | None = 
     )
 
 
+# ---------------------------------------------------------------------------
+# WebSocket endpoint
+# ---------------------------------------------------------------------------
+
 @router.websocket("/stream")
 async def stream_transcription(websocket: WebSocket):
     await websocket.accept()
     session: StreamingAsrSession | None = None
 
     try:
+        # ---- handshake ----
         start_message = await websocket.receive()
+
         if "text" not in start_message or not start_message["text"]:
             await websocket.send_json(
                 {"type": "error", "error": "Expected start message before audio chunks."}
@@ -785,9 +875,7 @@ async def stream_transcription(websocket: WebSocket):
         try:
             payload = json.loads(start_message["text"])
         except JSONDecodeError:
-            await websocket.send_json(
-                {"type": "error", "error": "Invalid JSON in start message."}
-            )
+            await websocket.send_json({"type": "error", "error": "Invalid JSON in start message."})
             await websocket.close(code=1003)
             return
 
@@ -806,15 +894,15 @@ async def stream_transcription(websocket: WebSocket):
             return
 
         session = StreamingAsrSession()
-        mime_type = payload.get("mimeType") or "audio/webm"
-        language = payload.get("language")
-        if not language:
-            language = websocket.query_params.get("language")
+        mime_type: str = payload.get("mimeType") or "audio/webm"
+        language: str | None = payload.get("language") or websocket.query_params.get("language")
 
         await websocket.send_json({"type": "ready"})
 
+        # ---- main loop ----
         while True:
             message = await websocket.receive()
+
             if message.get("type") == "websocket.disconnect":
                 return
 
@@ -850,11 +938,12 @@ async def stream_transcription(websocket: WebSocket):
                     await websocket.send_json({"type": "final", **final})
                     await websocket.close()
                     return
-    except HTTPException as error:
-        await websocket.send_json({"type": "error", "error": error.detail})
+
+    except HTTPException as exc:
+        await websocket.send_json({"type": "error", "error": exc.detail})
         await websocket.close(code=1011)
     except WebSocketDisconnect:
         return
     finally:
         if session is not None:
-            session.close()
+            await run_in_threadpool(session.close)

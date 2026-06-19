@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from "express";
-import supabase from "../db/supabase";
+import { anonSupabase } from "../db/supabase";
 import logger from "../utils/logger";
 import {
     assessUrgency,
@@ -9,37 +9,12 @@ import {
     MEDICINE_RAG_DISCLAIMER,
     type MedicineMatch,
 } from "../services/medicineRag.service";
+import { PharmacyRpcResult, FormattedPharmacy } from "../types/pharmacy.types";
 
 const router = Router();
 
 /** Maximum number of pharmacies returned alongside a recommendation. */
 const MAX_PHARMACY_RESULTS = 5;
-
-/** Pharmacy row as returned by the get_nearest_pharmacies RPC. */
-interface PharmacyRpcResult {
-    name: string;
-    address: string;
-    district: string | null;
-    state: string | null;
-    phone_number: string | null;
-    is_verified: boolean;
-    lat: number;
-    lng: number;
-    distance: number;
-}
-
-/** Formatted pharmacy object returned in triage responses. */
-interface FormattedPharmacy {
-    name: string;
-    address: string;
-    lat: number;
-    lng: number;
-    distance: string;
-    phone_number: string | null;
-    is_verified: boolean;
-    district: string | null;
-    state: string | null;
-}
 
 function formatPharmacy(p: PharmacyRpcResult): FormattedPharmacy {
     return {
@@ -65,7 +40,7 @@ async function findNearestPharmacies(
     lng: number,
     radius: number
 ): Promise<FormattedPharmacy[]> {
-    const { data, error } = await supabase.rpc("get_nearest_pharmacies", {
+    const { data, error } = await anonSupabase.rpc("get_nearest_pharmacies", {
         query_lat: lat,
         query_lng: lng,
         search_radius_km: radius,

@@ -20,6 +20,7 @@ Previously, after a user scanned a medicine and received a CDSCO verified safe r
 The core of this feature involved modifications across both our API and web application.
 
 On the **web application (`apps/web/app/[locale]/scan/page.tsx`)**:
+
 1.  **Medicine Safety Panel Integration**: We imported the `<MedicineSafetyPanel />` component from `@/components/medicine`. This component is now conditionally rendered within the `showResult` block, specifically after the `<VerificationResultCard />` and `<ShareButton />` components, but before the `<GenericAlternativeCard />` loading state. The `MedicineSafetyPanel` receives its `searchQuery` prop from the `verifyResult.medicine.brand_name` or `verifyResult.medicine.generic_name`, ensuring it displays relevant information for the scanned medicine. A `showSafetyPanel` state variable, initialized to `true`, controls its visibility, allowing for future expansion where users might toggle it. It also accepts an `onClose` callback to update this state.
 2.  **Scrollable Result Modal Layout**: The main result overlay `div` (which previously had `absolute inset-0 z-30 flex items-center justify-center`) was updated. We changed its styling to `flex flex-col items-center justify-start overflow-y-auto bg-black/60 p-6 pt-20 pb-10 backdrop-blur-sm duration-300`. The key changes here are `flex-col` and `justify-start` to stack content vertically from the top, and `overflow-y-auto` to enable vertical scrolling when content exceeds the viewport height. The `pt-20 pb-10` padding ensures content is not obscured by the fixed header or footer.
 3.  **Fixed Close Button**: The close button for the result modal was repositioned from `absolute top-4 right-4` to `fixed top-4 right-4`. This ensures the button remains visible and clickable even when the modal content scrolls, improving user experience on smaller screens. An `aria-label="Close"` was also added for improved accessibility.
@@ -27,6 +28,7 @@ On the **web application (`apps/web/app/[locale]/scan/page.tsx`)**:
 5.  **State Reset**: The `showSafetyPanel` state is reset to `true` in both `handleDismissResult` and `handleResetScan` functions, ensuring the safety panel is visible by default upon a new scan result.
 
 On the **API (`apps/api/src/routes/verify.ts`)**:
+
 1.  **Local Development Mock Bypass**: Within the `router.post("/verify", ...)` handler, a new conditional block was introduced before the call to `lookupDrugByBatch`.
 2.  We defined a `Set` named `ALLOWED_MOCK_BATCHES` containing specific strings like `"DOLO 650"`, `"DOLO-650"`, `"MOCK-DOLO-650"`, `"BN2024001"`, and `"AUG625D"`.
 3.  The bypass logic activates if `process.env.VERIFY_ENABLE_MOCKS` is set to `"true"` and the `upperBatch` (the uppercase version of the `batchNumber` from the request) is present in `ALLOWED_MOCK_BATCHES`.
@@ -45,27 +47,27 @@ On the **API (`apps/api/src/routes/verify.ts`)**:
 To re-implement this feature or understand its exact flow, a contributor would follow these steps:
 
 1.  **Frontend - Integrating the Safety Panel and UI Enhancements:**
-    *   **Locate `ScanPage`**: Navigate to `apps/web/app/[locale]/scan/page.tsx`.
-    *   **Import `MedicineSafetyPanel`**: Add `import { MedicineSafetyPanel } from "@/components/medicine";` at the top of the file.
-    *   **Add State for Panel Visibility**: Declare a new state variable: `const [showSafetyPanel, setShowSafetyPanel] = useState(true);`
-    *   **Update Reset Functions**: In `handleDismissResult` and `handleResetScan`, ensure `setShowSafetyPanel(true)` is called to reset the panel's visibility for subsequent scans.
-    *   **Modify Result Overlay Layout**: Find the `div` element with `className="animate-in fade-in zoom-in absolute inset-0 z-30 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm duration-300"`. Change its `className` to `animate-in fade-in zoom-in absolute inset-0 z-30 flex flex-col items-center justify-start overflow-y-auto bg-black/60 p-6 pt-20 pb-10 backdrop-blur-sm duration-300`. This enables vertical scrolling and adjusts padding.
-    *   **Reposition Close Button**: Locate the `button` element for closing the result modal (containing `<X size={24} />`). Change its `className` from `absolute top-4 right-4` to `fixed top-4 right-4`. Add the `aria-label="Close"` attribute for accessibility.
-    *   **Render `MedicineSafetyPanel`**: Within the `verifyResult.verified` block, after the `<ShareButton />` component, add the conditional rendering for the safety panel:
+    - **Locate `ScanPage`**: Navigate to `apps/web/app/[locale]/scan/page.tsx`.
+    - **Import `MedicineSafetyPanel`**: Add `import { MedicineSafetyPanel } from "@/components/medicine";` at the top of the file.
+    - **Add State for Panel Visibility**: Declare a new state variable: `const [showSafetyPanel, setShowSafetyPanel] = useState(true);`
+    - **Update Reset Functions**: In `handleDismissResult` and `handleResetScan`, ensure `setShowSafetyPanel(true)` is called to reset the panel's visibility for subsequent scans.
+    - **Modify Result Overlay Layout**: Find the `div` element with `className="animate-in fade-in zoom-in absolute inset-0 z-30 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm duration-300"`. Change its `className` to `animate-in fade-in zoom-in absolute inset-0 z-30 flex flex-col items-center justify-start overflow-y-auto bg-black/60 p-6 pt-20 pb-10 backdrop-blur-sm duration-300`. This enables vertical scrolling and adjusts padding.
+    - **Reposition Close Button**: Locate the `button` element for closing the result modal (containing `<X size={24} />`). Change its `className` from `absolute top-4 right-4` to `fixed top-4 right-4`. Add the `aria-label="Close"` attribute for accessibility.
+    - **Render `MedicineSafetyPanel`**: Within the `verifyResult.verified` block, after the `<ShareButton />` component, add the conditional rendering for the safety panel:
         ```jsx
-        {showSafetyPanel && verifyResult.medicine && (
-            <MedicineSafetyPanel
-                searchQuery={
-                    verifyResult.medicine.brand_name ||
-                    verifyResult.medicine.generic_name ||
-                    ""
-                }
-                onClose={() => setShowSafetyPanel(false)}
-            />
-        )}
+        {
+            showSafetyPanel && verifyResult.medicine && (
+                <MedicineSafetyPanel
+                    searchQuery={
+                        verifyResult.medicine.brand_name || verifyResult.medicine.generic_name || ""
+                    }
+                    onClose={() => setShowSafetyPanel(false)}
+                />
+            );
+        }
         ```
         Note the additional `verifyResult.medicine` check for robustness.
-    *   **Fix "View history" Button Styling**: Find the `Link` component with `href="/history"`. Update its `className` to use semantic theme variables:
+    - **Fix "View history" Button Styling**: Find the `Link` component with `href="/history"`. Update its `className` to use semantic theme variables:
         ```html
         <Link
             href="/history"
@@ -77,9 +79,10 @@ To re-implement this feature or understand its exact flow, a contributor would f
         ```
 
 2.  **Backend - Implementing Local Mock Verification:**
-    *   **Locate `verify.ts`**: Navigate to `apps/api/src/routes/verify.ts`.
-    *   **Identify Verification Endpoint**: Find the `router.post("/verify", ...)` handler.
-    *   **Add Mock Bypass Logic**: Insert the following code block *before* the `try { const data = await lookupDrugByBatch(batchNumber); ... }` block:
+    - **Locate `verify.ts`**: Navigate to `apps/api/src/routes/verify.ts`.
+    - **Identify Verification Endpoint**: Find the `router.post("/verify", ...)` handler.
+    - **Add Mock Bypass Logic**: Insert the following code block _before_ the `try { const data = await lookupDrugByBatch(batchNumber); ... }` block:
+
         ```typescript
         const upperBatch = batchNumber.toUpperCase();
         const ALLOWED_MOCK_BATCHES = new Set([
@@ -126,7 +129,8 @@ To re-implement this feature or understand its exact flow, a contributor would f
             return; // Crucial to prevent further execution
         }
         ```
-    *   **Environment Variable Setup**: To enable this mock behavior in a local development environment, set `VERIFY_ENABLE_MOCKS=true` in your `.env.local` file for the API service.
+
+    - **Environment Variable Setup**: To enable this mock behavior in a local development environment, set `VERIFY_ENABLE_MOCKS=true` in your `.env.local` file for the API service.
 
 ## Impact on System Architecture
 
@@ -141,18 +145,19 @@ The UI/UX improvements, particularly the scrollable modal and fixed close button
 This change was verified through a combination of manual testing and visual inspection.
 
 1.  **Frontend Verification**:
-    *   **Medicine Safety Panel**: We manually scanned various mock batch numbers (e.g., "DOLO 650", "AUG625D") on the `ScanPage` in a local development environment with `VERIFY_ENABLE_MOCKS=true`. We confirmed that the `<MedicineSafetyPanel />` appeared correctly within the result overlay and displayed relevant information based on the `brand_name` or `generic_name` provided by the mock API response.
-    *   **Scrollable Modal**: We tested the `ScanPage` on various screen sizes and simulated long content within the result modal to ensure `overflow-y-auto` correctly enabled vertical scrolling.
-    *   **Fixed Close Button**: We verified that the close button remained `fixed` at the top-right corner and was always visible and clickable, even when the modal content was scrolled. The `aria-label="Close"` was confirmed via browser accessibility tools.
-    *   **"View history" Button**: We switched between light and dark modes to ensure the "View history" button's text and border were consistently visible and correctly themed, resolving the prior visibility bug.
+    - **Medicine Safety Panel**: We manually scanned various mock batch numbers (e.g., "DOLO 650", "AUG625D") on the `ScanPage` in a local development environment with `VERIFY_ENABLE_MOCKS=true`. We confirmed that the `<MedicineSafetyPanel />` appeared correctly within the result overlay and displayed relevant information based on the `brand_name` or `generic_name` provided by the mock API response.
+    - **Scrollable Modal**: We tested the `ScanPage` on various screen sizes and simulated long content within the result modal to ensure `overflow-y-auto` correctly enabled vertical scrolling.
+    - **Fixed Close Button**: We verified that the close button remained `fixed` at the top-right corner and was always visible and clickable, even when the modal content was scrolled. The `aria-label="Close"` was confirmed via browser accessibility tools.
+    - **"View history" Button**: We switched between light and dark modes to ensure the "View history" button's text and border were consistently visible and correctly themed, resolving the prior visibility bug.
 
 2.  **Backend Mock Verification**:
-    *   We started the API locally with `VERIFY_ENABLE_MOCKS=true` in the environment variables.
-    *   We sent POST requests to `/api/verify` with `batchNumber` values like "DOLO 650", "BN2024001", and "AUG625D".
-    *   We confirmed that the API returned a `200` status code with the expected `verified: true` payload containing the `mockMedicine` object, bypassing the actual `lookupDrugByBatch` function.
-    *   We also tested with a batch number not in `ALLOWED_MOCK_BATCHES` to ensure the mock bypass did not activate, and the request proceeded to the actual `lookupDrugByBatch` logic.
+    - We started the API locally with `VERIFY_ENABLE_MOCKS=true` in the environment variables.
+    - We sent POST requests to `/api/verify` with `batchNumber` values like "DOLO 650", "BN2024001", and "AUG625D".
+    - We confirmed that the API returned a `200` status code with the expected `verified: true` payload containing the `mockMedicine` object, bypassing the actual `lookupDrugByBatch` function.
+    - We also tested with a batch number not in `ALLOWED_MOCK_BATCHES` to ensure the mock bypass did not activate, and the request proceeded to the actual `lookupDrugByBatch` logic.
 
 **Edge Cases**:
-*   **No `verifyResult.medicine`**: The `MedicineSafetyPanel` is conditionally rendered only if `verifyResult.medicine` exists, preventing errors if the API response is malformed or incomplete.
-*   **Empty `searchQuery`**: The `searchQuery` for `MedicineSafetyPanel` defaults to an empty string if both `brand_name` and `generic_name` are missing, gracefully handling cases where medicine names might not be available.
-*   **`VERIFY_ENABLE_MOCKS` not set**: If `VERIFY_ENABLE_MOCKS` is not explicitly set to `"true"`, the mock bypass will not activate, ensuring production environments are unaffected.
+
+- **No `verifyResult.medicine`**: The `MedicineSafetyPanel` is conditionally rendered only if `verifyResult.medicine` exists, preventing errors if the API response is malformed or incomplete.
+- **Empty `searchQuery`**: The `searchQuery` for `MedicineSafetyPanel` defaults to an empty string if both `brand_name` and `generic_name` are missing, gracefully handling cases where medicine names might not be available.
+- **`VERIFY_ENABLE_MOCKS` not set**: If `VERIFY_ENABLE_MOCKS` is not explicitly set to `"true"`, the mock bypass will not activate, ensuring production environments are unaffected.

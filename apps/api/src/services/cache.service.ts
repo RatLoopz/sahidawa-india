@@ -2,7 +2,6 @@ import { supabase } from "../db/client";
 import { hotDrugs } from "../db/seeds/hot_drugs_seed";
 import { redisClient } from "../utils/redis";
 import logger from "../utils/logger";
-
 // TTL Tiers in seconds
 export const TTL_TIERS = {
     HOT: 86400, // 24 hours
@@ -38,14 +37,14 @@ export async function warmCache(): Promise<void> {
         const { data: genericMeds, error: error1 } = await supabase
             .from("medicines")
             .select(
-                "id, barcode_id, brand_name, generic_name, manufacturer, batch_number, manufacturing_date, expiry_date, cdsco_approval_status, is_counterfeit_alert, manufacturer_id"
+                "id, barcode_id, brand_name, generic_name, manufacturer, batch_number, manufacturing_date, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score, manufacturer_id"
             )
             .in("generic_name", genericNames);
 
         const { data: brandMeds, error: error2 } = await supabase
             .from("medicines")
             .select(
-                "id, barcode_id, brand_name, generic_name, manufacturer, batch_number, manufacturing_date, expiry_date, cdsco_approval_status, is_counterfeit_alert, manufacturer_id"
+                "id, barcode_id, brand_name, generic_name, manufacturer, batch_number, manufacturing_date, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score, manufacturer_id"
             )
             .in("brand_name", brandNames);
 
@@ -146,7 +145,6 @@ export async function getCachedDrug(batchNumber: string): Promise<any | null> {
         const cached = await redisClient.get(cacheKey);
         if (cached) {
             const med = JSON.parse(cached);
-
             // Increment drug-specific hit count and top drugs sorted set
             await incrementHitCount(med.id, med.brand_name || med.generic_name);
 

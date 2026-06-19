@@ -15,7 +15,7 @@ def mock_ffmpeg_deps(monkeypatch):
     monkeypatch.setattr(
         asr.subprocess,
         "run",
-        lambda *args, **kwargs: SimpleNamespace(returncode=0, stderr=b""),
+        lambda *args, **kwargs: SimpleNamespace(returncode=0, stderr=b"", stdout=b""),
     )
     monkeypatch.setattr(
         asr.sf,

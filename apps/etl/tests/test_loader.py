@@ -293,11 +293,58 @@ def test_load_skips_unchanged_rows_already_present_in_target_db(tmp_path):
     assert len(first_client.upsert_calls) == 1
 
     assert second_stats["total"] == 2
-    assert second_stats["inserted"] == 0
+    assert second_stats["inserted"] == 2
     assert second_stats["failed"] == 0
-    assert second_stats["skipped_unchanged"] == 2
+    assert second_stats["skipped_unchanged"] == 0
     assert second_stats["success_rate"] == 100.0
-    assert second_client.upsert_calls == []
+    assert len(second_client.upsert_calls) == 1
+    _, payload, _ = second_client.upsert_calls[0]
+    assert [row["cdsco_match_score"] for row in payload] == [88.1, 90.4]
+
+
+def test_load_persists_cdsco_validation_evidence_fields(tmp_path):
+    client = FakeSupabaseClient(table_rows={"medicines": []})
+    loader = make_loader(client, tmp_path)
+    df = pd.DataFrame(
+        [
+            {
+                "generic_name": "Paracetamol",
+                "brand_name": "Dolo 650",
+                "manufacturer": "Micro Labs",
+                "barcode_id": "8900000000012",
+                "cdsco_approval_status": "approved",
+                "is_counterfeit_alert": False,
+                "is_cdsco_verified": True,
+                "cdsco_match_score": 97.2,
+                "matched_cdsco_product": "Dolo 650",
+                "matched_cdsco_manufacturer": "Micro Labs",
+                "product_match_score": 96.0,
+                "manufacturer_match_score": 100.0,
+            }
+        ]
+    )
+
+    stats = loader.load(df)
+
+    assert stats["inserted"] == 1
+    assert len(client.upsert_calls) == 1
+    _, payload, _ = client.upsert_calls[0]
+    assert payload == [
+        {
+            "generic_name": "Paracetamol",
+            "brand_name": "Dolo 650",
+            "manufacturer": "Micro Labs",
+            "barcode_id": "8900000000012",
+            "cdsco_approval_status": "approved",
+            "is_counterfeit_alert": False,
+            "is_cdsco_verified": True,
+            "cdsco_match_score": 97.2,
+            "matched_cdsco_product": "Dolo 650",
+            "matched_cdsco_manufacturer": "Micro Labs",
+            "product_match_score": 96.0,
+            "manufacturer_match_score": 100.0,
+        }
+    ]
 
 
 def test_load_upserts_only_rows_whose_hash_changed(tmp_path):
@@ -528,8 +575,47 @@ class MergeFakeSupabaseClient:
         self.medicines = medicines or []
         self.update_calls = []
         self.upsert_calls = []
+        self.rpc_calls = []
         self.transient_batch_failures = transient_batch_failures
         self.transient_batch_attempts = 0
+        # When set, the RPC returns this as response.data instead of the real
+        # changed-row count — used to exercise short-count / unrecognized shapes.
+        self.rpc_data_override = None
+        self.rpc_override_set = False
+
+    def rpc(self, name, params):
+        """Fake the bulk_update_jan_aushadhi_price RPC: atomic UPDATE by id."""
+        client = self
+
+        class _FakeRpc:
+            def execute(self_inner):
+                client.rpc_calls.append((name, params))
+                updates = params.get("p_updates") or []
+
+                # Mirror the real loader's batch retry surface: a multi-row batch
+                # can hit a transient error before succeeding on a later attempt.
+                if len(updates) > 1:
+                    client.transient_batch_attempts += 1
+                    if client.transient_batch_attempts <= client.transient_batch_failures:
+                        raise TimeoutError(
+                            "connection timed out during Jan Aushadhi price bulk RPC"
+                        )
+
+                changed = 0
+                for update in updates:
+                    row_id = update.get("id")
+                    new_price = update.get("jan_aushadhi_price")
+                    if row_id is None or new_price is None:
+                        continue
+                    for med in client.medicines:
+                        if med.get("id") == row_id:
+                            med["jan_aushadhi_price"] = new_price
+                            changed += 1
+                if client.rpc_override_set:
+                    return FakeExecuteResponse(client.rpc_data_override)
+                return FakeExecuteResponse(changed)
+
+        return _FakeRpc()
 
     def table(self, name):
         t = MergeFakeTable(name, self)
@@ -597,7 +683,78 @@ def test_ja_backfill_updates_null_jan_aushadhi_price_rows(tmp_path):
     assert medicines[1]["jan_aushadhi_price"] == 25.00
 
 
-def test_ja_backfill_retries_transient_batch_upsert_before_fallback(tmp_path, monkeypatch):
+def test_ja_backfill_uses_bulk_rpc_with_id_and_price_only(tmp_path):
+    """Regression for #1966: back-fill goes through the bulk_update RPC with a
+    {id, jan_aushadhi_price}-only payload, never a PostgREST upsert (which would
+    fail the medicines.generic_name NOT NULL constraint and fall back to slow
+    row-by-row PATCHes)."""
+    medicines = [
+        {"id": "m1", "generic_name": "Paracetamol", "strength": "500mg",
+         "source": "commercial", "jan_aushadhi_price": None},
+    ]
+    nppa_csv = _write_nppa_csv(tmp_path, [
+        {"generic_name": "paracetamol", "strength": "500mg", "mrp": "18.50"},
+    ])
+    client = MergeFakeSupabaseClient(medicines=medicines)
+    loader = make_merge_loader(client, tmp_path)
+
+    stats = loader.merge_jan_aushadhi_price(nppa_csv=nppa_csv)
+
+    assert stats["updated"] == 1
+    assert stats["failed"] == 0
+    # No upsert and no row-by-row fallback were used.
+    assert client.upsert_calls == []
+    assert client.update_calls == []
+    # Exactly one bulk RPC call, carrying only id + jan_aushadhi_price.
+    assert len(client.rpc_calls) == 1
+    name, params = client.rpc_calls[0]
+    assert name == "bulk_update_jan_aushadhi_price"
+    assert params["p_updates"] == [{"id": "m1", "jan_aushadhi_price": 18.50}]
+
+
+def test_ja_backfill_counts_short_rpc_result_as_failed(tmp_path):
+    """If the bulk RPC updates fewer rows than the batch (a row vanished between
+    the page scan and the UPDATE), the shortfall is counted as failed so the
+    checked == updated + skipped + failed invariant holds — not silently dropped."""
+    medicines = [
+        {"id": "m1", "generic_name": "Paracetamol", "jan_aushadhi_price": None},
+    ]
+    client = MergeFakeSupabaseClient(medicines=medicines)
+    loader = make_merge_loader(client, tmp_path)
+
+    # m2 has no matching medicine row, so the RPC reports 1 updated, not 2.
+    batch = [
+        {"id": "m1", "jan_aushadhi_price": 18.50},
+        {"id": "m2", "jan_aushadhi_price": 25.00},
+    ]
+    updated, failed = loader._upsert_ja_price_update_batches(batch, "medicines")
+
+    assert updated == 1
+    assert failed == 1
+    assert medicines[0]["jan_aushadhi_price"] == 18.50
+    assert client.update_calls == []  # no row-by-row fallback was triggered
+
+
+def test_ja_backfill_assumes_full_batch_on_unrecognized_rpc_shape(tmp_path):
+    """An unrecognized RPC count shape is assumed to be a full success (the RPC
+    committed without raising) rather than miscounted as failed."""
+    medicines = [
+        {"id": "m1", "generic_name": "Paracetamol", "jan_aushadhi_price": None},
+    ]
+    client = MergeFakeSupabaseClient(medicines=medicines)
+    client.rpc_override_set = True
+    client.rpc_data_override = {"unexpected": "shape"}
+    loader = make_merge_loader(client, tmp_path)
+
+    batch = [{"id": "m1", "jan_aushadhi_price": 18.50}]
+    updated, failed = loader._upsert_ja_price_update_batches(batch, "medicines")
+
+    assert updated == 1
+    assert failed == 0
+    assert client.update_calls == []
+
+
+def test_ja_backfill_retries_transient_batch_rpc_before_fallback(tmp_path, monkeypatch):
     medicines = [
         {"id": "m1", "generic_name": "Paracetamol", "strength": "500mg",
          "source": "commercial", "jan_aushadhi_price": None},
@@ -624,7 +781,7 @@ def test_ja_backfill_retries_transient_batch_upsert_before_fallback(tmp_path, mo
     assert stats["updated"] == 2
     assert stats["failed"] == 0
     assert client.transient_batch_attempts == 3
-    assert len(client.upsert_calls) == 3
+    assert len(client.rpc_calls) == 3
     assert client.update_calls == []
     assert len(sleep_calls) == 2
 

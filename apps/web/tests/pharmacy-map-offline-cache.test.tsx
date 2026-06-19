@@ -10,6 +10,14 @@ import { buildCacheKey, loadFromCache, saveToCache } from "../app/[locale]/map/u
 import { fetchNearbyAshaWorkers, fetchVerifiedPharmacies } from "../lib/api";
 import { fetchPharmacies } from "../app/[locale]/map/overpassApi";
 
+jest.mock("next-intl", () => ({
+    useTranslations: () => (key: string) => key,
+}));
+
+jest.mock("next-intl/server", () => ({
+    getTranslations: async () => (key: string) => key,
+}));
+
 jest.mock("../app/[locale]/components/PageHeader", () => ({
     PageHeader: ({ children }: { children?: React.ReactNode }) => (
         <header data-testid="page-header">{children}</header>

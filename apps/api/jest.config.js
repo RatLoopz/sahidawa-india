@@ -1,7 +1,7 @@
 module.exports = {
     preset: "ts-jest",
     testEnvironment: "node",
-    testMatch: ["**/tests/**/*.test.ts"],
+    testMatch: ["**/tests/**/*.test.ts", "**/src/services/lasa.service.test.ts"],
     clearMocks: true,
     setupFiles: ["<rootDir>/tests/setup.ts"],
     transform: {

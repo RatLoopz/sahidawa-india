@@ -58,6 +58,13 @@ router.get("/:medicine_id", async (req: Request, res: Response): Promise<void> =
         const lat = req.query.lat ? parseFloat(req.query.lat as string) : undefined;
         const lng = req.query.lng ? parseFloat(req.query.lng as string) : undefined;
 
+        if (lat !== undefined && lng !== undefined) {
+            if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                res.status(400).json({ error: "Invalid coordinates: lat must be [-90, 90] and lng must be [-180, 180]" });
+                return;
+            }
+        }
+
         if (!medicine_id) {
             res.status(400).json({ error: "medicine_id is required" });
             return;

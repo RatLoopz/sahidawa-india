@@ -20,6 +20,7 @@ import LazyImage from "@/components/LazyImage";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { API_BASE } from "@/lib/api";
+import { useSession } from "@/src/components/AuthProvider";
 
 type ReportStatus = "pending" | "verified_fake" | "false_alarm";
 
@@ -40,11 +41,6 @@ interface MyReport {
     created_at: string;
 }
 
-function getToken(): string {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("sb-access-token") ?? "";
-}
-
 function formatDate(iso: string): string {
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return iso;
@@ -55,10 +51,7 @@ function formatDate(iso: string): string {
     });
 }
 
-const STATUS_STYLES: Record<
-    ReportStatus,
-    { icon: typeof Clock; chip: string; dot: string }
-> = {
+const STATUS_STYLES: Record<ReportStatus, { icon: typeof Clock; chip: string; dot: string }> = {
     pending: {
         icon: Clock,
         chip: "bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/30",
@@ -89,7 +82,21 @@ function StatusBadge({ status, label }: { status: string; label: string }) {
     );
 }
 
-function ReportCard({ report, statusLabel, districtLabel, submittedLabel, batchLabel, noPhotoLabel }: { report: MyReport; statusLabel: string; districtLabel: string; submittedLabel: string; batchLabel: string; noPhotoLabel: string }) {
+function ReportCard({
+    report,
+    statusLabel,
+    districtLabel,
+    submittedLabel,
+    batchLabel,
+    noPhotoLabel,
+}: {
+    report: MyReport;
+    statusLabel: string;
+    districtLabel: string;
+    submittedLabel: string;
+    batchLabel: string;
+    noPhotoLabel: string;
+}) {
     const title =
         report.reported_brand_name?.trim() || report.scanned_barcode || "Unnamed medicine";
 
@@ -153,12 +160,10 @@ type LoadState =
 
 export default function MyReportsPage() {
     const t = useTranslations("MyReports");
+    const { token, isLoading: authLoading } = useSession();
     const [state, setState] = useState<LoadState>({ kind: "loading" });
 
     const fetchMine = useCallback(async () => {
-        setState({ kind: "loading" });
-
-        const token = getToken();
         if (!token) {
             setState({
                 kind: "authError",
@@ -166,6 +171,8 @@ export default function MyReportsPage() {
             });
             return;
         }
+
+        setState({ kind: "loading" });
 
         try {
             const res = await fetch(`${API_BASE}/api/reports/mine`, {
@@ -196,11 +203,13 @@ export default function MyReportsPage() {
                 message: t("network_error_api_unreachable"),
             });
         }
-    }, [t]);
+    }, [t, token]);
 
     useEffect(() => {
-        fetchMine();
-    }, [fetchMine]);
+        if (!authLoading) {
+            fetchMine();
+        }
+    }, [authLoading, fetchMine]);
 
     const getStatusLabel = (status: ReportStatus): string => {
         switch (status) {

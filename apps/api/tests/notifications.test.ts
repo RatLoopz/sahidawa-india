@@ -1,5 +1,7 @@
 process.env.SUPABASE_URL = process.env.SUPABASE_URL || "http://localhost:54321";
 process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "test-anon-key";
+process.env.TWILIO_AUTH_TOKEN = "test-auth-token";
+process.env.TWILIO_WEBHOOK_PUBLIC_URL = "http://localhost";
 
 // Mock subscriber data
 const mockSubscriber = {
@@ -21,6 +23,8 @@ const mockQueryBuilder = {
     delete: jest.fn().mockReturnThis(),
     eq: jest.fn().mockReturnThis(),
     ilike: jest.fn().mockReturnThis(),
+    order: jest.fn().mockReturnThis(),
+    range: jest.fn().mockReturnThis(),
     maybeSingle: jest
         .fn()
         .mockImplementation(() => Promise.resolve({ data: mockSubscriber, error: null })),
@@ -60,6 +64,7 @@ jest.mock("../src/middleware/auth", () => {
 import express from "express";
 import request from "supertest";
 import notificationsRouter from "../src/routes/notifications";
+import { computeTwilioSignature } from "../src/middleware/twilioSignature";
 
 describe("notifications routes", () => {
     const app = express();
@@ -147,10 +152,18 @@ describe("notifications routes", () => {
     });
 
     it("handles twilio webhook opt-out (STOP command)", async () => {
+        const params = { From: "+919876543210", Body: "STOP" };
+        const signature = computeTwilioSignature(
+            "test-auth-token",
+            "http://localhost/api/notifications/twilio-webhook",
+            params
+        );
+
         const response = await request(app)
             .post("/api/notifications/twilio-webhook")
             .type("form")
-            .send({ From: "+919876543210", Body: "STOP" });
+            .set("X-Twilio-Signature", signature)
+            .send(params);
 
         expect(response.status).toBe(200);
         expect(response.headers["content-type"]).toContain("text/xml");

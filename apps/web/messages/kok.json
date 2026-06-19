@@ -469,7 +469,15 @@
         "importDateError": "बॅकअपांत चुकीचो तारीख फॉरमॅट मेळ्ळा. सगळ्यो तारखो YYYY-MM-DD फॉरमॅटांत आसूंक जाय.",
         "statusExpired": "एक्सपायर जाल्लें",
         "statusExpiringSoon": "बेगीन एक्सपायर जातलें ({days} दिसांत)",
-        "statusSafe": "सुरक्षित"
+        "statusSafe": "सुरक्षित",
+        "exportCSV": "CSV निर्यात करा",
+        "exportPDF": "PDF निर्यात करा",
+        "print": "प्रिंट करा",
+        "csvExportSuccess": "CSV यशस्वीरित्या निर्यात केले",
+        "pdfExportSuccess": "PDF यशस्वीरित्या निर्यात केले",
+        "noMedicinesToDisplay": "दाखवण्यासाठी कोणतीही औषधे नाहीत",
+        "generatedOn": "अप फाईल. कृपा करून योग्य ",
+        "deleteMedicine": "औषध हटवा"
     },
     "Login": {
         "brandSubtitle": "वखद सुरक्षितताय व्यासपीठ",
@@ -793,5 +801,32 @@
         "status_fake": "फक्त खोटीं",
         "export_button": "CSV तयार करात",
         "cancel": "रद्द करात"
+    },
+    "SchemeEligibility": {
+        "validationAgeError": "कृपया वैध वय दाखल करा.",
+        "validationStateError": "कृपया एक राज्य निवडा."
+    },
+    "Health": {
+        "quickActions": "Quick actions",
+        "scanMedicine": "Scan Medicine",
+        "verifyAuthenticity": "Verify authenticity",
+        "checkSymptoms": "Check Symptoms",
+        "symptomGuidance": "AI-assisted guidance",
+        "findPharmacy": "Find Pharmacy",
+        "locateStores": "Locate verified stores",
+        "replyFallback": "I'm here to help! Could you rephrase that?",
+        "tooManyRequests": "Too many requests. Please try again in a few moments.",
+        "failedResponse": "Failed to generate AI response",
+        "genericError": "Something went wrong",
+        "returnHome": "Return to chat home",
+        "chatConversation": "Chat conversation",
+        "startVoice": "Start voice input",
+        "stopVoice": "Stop voice input",
+        "healthQuestion": "Type your health question",
+        "voiceBrowserRequired": "Voice input is not supported in this browser.",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "sendMessage": "Send message",
+        "footer": "For informational use only • Consult a doctor"
     }
 }

@@ -33,6 +33,7 @@ export interface Pharmacy {
     coordinates: { lat: number; lng: number };
     address?: string;
     phone?: string;
+    website?: string;
     isVerified?: boolean;
     operatingHours?: string;
 }

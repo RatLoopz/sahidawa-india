@@ -21,7 +21,7 @@ jobs:
             const author = pr.user.login;
 
             const cleanBody = (pr.body || "").replace(/<!--[\s\S]*?-->/g, "");
-            const match = cleanBody.match(/(?:closes|fixes|resolves)\s+#(\d+)/i);
+            const match = cleanBody.match(/(?:closes|fixes|resolves)\s+(?:#|https?:\/\/github\.com\/[^\/]+\/[^\/]+\/issues\/|issues\/)?(\d+)/i);
 
             if (!match) return;
 

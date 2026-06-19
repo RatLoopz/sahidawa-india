@@ -452,7 +452,15 @@
         "importError": "ಅಮಾನ್ಯ ಬ್ಯಾಕಪ್ ಫೈಲ್. ದಯವಿಟ್ಟು ಮಾನ್ಯ JSON ಬ್ಯಾಕಪ್ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ.",
         "statusExpired": "ಅವಧಿ ಮುಗಿದಿದೆ",
         "statusExpiringSoon": "ಶೀಘ್ರದಲ್ಲೇ ಅವಧಿ ಮುಗಿಯಲಿದೆ ({days} ದಿನಗಳು)",
-        "statusSafe": "ಸುರಕ್ಷಿತ"
+        "statusSafe": "ಸುರಕ್ಷಿತ",
+        "exportCSV": "CSV ರಫ್ತು ಮಾಡಿ",
+        "exportPDF": "PDF ರಫ್ತು ಮಾಡಿ",
+        "print": "ಪ್ರಿಂಟ್ ಮಾಡಿ",
+        "csvExportSuccess": "CSV ಯಶಸ್ವಿಯಾಗಿ ರಫ್ತು ಮಾಡಲಾಗಿದೆ",
+        "pdfExportSuccess": "PDF ಯಶಸ್ವಿಯಾಗಿ ರಫ್ತು ಮಾಡಲಾಗಿದೆ",
+        "noMedicinesToDisplay": "ಪ್ರದರ್ಶಿಸಲು ಯಾವುದೇ ಔಷಧಗಳಿಲ್ಲ",
+        "generatedOn": "ದಲ್ಲೇ ಅವಧಿ ಮುಗಿಯ",
+        "deleteMedicine": "ಔಷಧವನ್ನು ಅಳಿಸಿ"
     },
     "Login": {
         "brandSubtitle": "ಔಷಧ ಸುರಕ್ಷತಾ ವೇದಿಕೆ",
@@ -639,75 +647,6 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
-    "howItWorks": {
-        "badge": "ಸುರಕ್ಷಿತ ಆರೋಗ್ಯ ಸೇವೆ • AI ಚಾಲಿತ",
-        "heroTitle": "<highlight>SahiDawa</highlight> ಹೇಗೆ ಕೆಲಸ ಮಾಡುತ್ತದೆ",
-        "heroSubtitle": "ಬಳಕೆದಾರರು ಔಷಧಗಳನ್ನು ಪರಿಶೀಲಿಸಲು, ವಿಶ್ವಾಸಾರ್ಹ ಫಾರ್ಮಸಿಗಳನ್ನು ಅನ್ವೇಷಿಸಲು, ಅಧಿಕೃತ ಎಚ್ಚರಿಕೆಗಳನ್ನು ಪಡೆಯಲು ಮತ್ತು AI-ಚಾಲಿತ ಆರೋಗ್ಯ ಪರಿಕರಗಳನ್ನು ಬಳಸಿಕೊಂಡು ನಕಲಿ ಔಷಧಗಳಿಂದ ಸುರಕ್ಷಿತವಾಗಿರಲು SahiDawa ಹೇಗೆ ಸಹಾಯ ಮಾಡುತ್ತದೆ ಎಂಬುದನ್ನು ತಿಳಿಯಿರಿ.",
-        "ctaButtons": {
-            "scan": "ಸ್ಕ್ಯಾನಿಂಗ್ ಪ್ರಾರಂಭಿಸಿ",
-            "map": "ಫಾರ್ಮಸಿ ನಕ್ಷೆ ನೋಡಿ"
-        },
-        "steps": {
-            "scan": {
-                "title": "ಔಷಧವನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ",
-                "description": "ಯಾವುದೇ ಔಷಧದ ಪ್ಯಾಕೇಜಿಂಗ್‌ನಲ್ಲಿರುವ ಬಾರ್‌ಕೋಡ್ ಅಥವಾ ಕ್ಯೂಆರ್ ಕೋಡ್ (QR code) ಕಡೆಗೆ ನಿಮ್ಮ ಸಾಧನದ ಕ್ಯಾಮೆರಾವನ್ನು ಹಿಡಿಯಿರಿ."
-            },
-            "verify": {
-                "title": "ತಕ್ಷಣ ಪರಿಶೀಲಿಸಿ",
-                "description": "ಔಷಧದ ಅಸಲಿತನವನ್ನು ಪರೀಕ್ಷಿಸಲು AI ಸ್ಕ್ಯಾನ್ ಮಾಡಿದ ವಿವರಗಳನ್ನು ನೇರವಾಗಿ CDSCO ನ ಅಧಿಕೃತ ದಾಖಲೆಗಳೊಂದಿಗೆ ಪರಿಶೀಲಿಸುತ್ತದೆ."
-            },
-            "alerts": {
-                "title": "ಎಚ್ಚರಿಕೆಗಳನ್ನು ಪರಿಶೀಲಿಸಿ",
-                "description": "ಬ್ಯಾಚ್ ಅನ್ನು ಮರುಪಡೆಯಲಾಗಿದ್ದರೆ, ನಿಷೇಧಿಸಿದ್ದರೆ ಅಥವಾ ಗುಣಮಟ್ಟ ಕಡಿಮೆಯಾಗಿದ್ದರೆ ನೈಜ-ಸಮಯದ ಸುರಕ್ಷತಾ ಎಚ್ಚರಿಕೆಗಳನ್ನು ಪಡೆಯಿರಿ."
-            },
-            "pharmacies": {
-                "title": "ಫಾರ್ಮಸಿಗಳನ್ನು ಹುಡುಕಿ",
-                "description": "ಜನೌಷಧಿ ಕೇಂದ್ರಗಳನ್ನು ಮತ್ತು ನಿಮ್ಮ ಹತ್ತಿರದಲ್ಲಿ ಅಸಲಿ ಔಷಧಗಳನ್ನು ಹೊಂದಿರುವ ಪ್ರಮಾಣೀಕೃತ ಫಾರ್ಮಸಿಗಳನ್ನು ಪತ್ತೆಹಚ್ಚಿ."
-            },
-            "protect": {
-                "title": "ಸುರಕ್ಷಿತವಾಗಿರಿ",
-                "description": "ನಿಮ್ಮ ಸ್ಕ್ಯಾನ್‌ಗಳ ದಾಖಲೆಯನ್ನು ಇಟ್ಟುಕೊಳ್ಳಿ, ನಕಲಿ ಔಷಧಗಳ ಬಗ್ಗೆ ವರದಿ ಮಾಡಿ ಮತ್ತು ನಿಮ್ಮ ಕುಟುಂಬದ ಆರೋಗ್ಯವನ್ನು ಸುರಕ್ಷಿತಗೊಳಿಸಿ."
-            }
-        },
-        "features": {
-            "title": "ಪ್ಲಾಟ್‌ಫಾರ್ಮ್‌ನ ವೈಶಿಷ್ಟ್ಯಗಳು",
-            "subtitle": "ಸುರಕ್ಷಿತ ಆರೋಗ್ಯ ನಿರ್ಧಾರಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳಲು ನಿಮಗೆ ಬೇಕಾದ ಎಲ್ಲವೂ ಇಲ್ಲಿದೆ.",
-            "cards": {
-                "verifyMedicines": {
-                    "title": "ಔಷಧಗಳನ್ನು ಪರಿಶೀಲಿಸಿ",
-                    "description": "ಬಾರ್‌ಕೋಡ್, ಬ್ಯಾಚ್ ಸಂಖ್ಯೆ ಅಥವಾ ಔಷಧದ ವಿವರಗಳನ್ನು ಬಳಸಿಕೊಂಡು ತಕ್ಷಣವೇ ಔಷಧಗಳ ಅಸಲಿತನವನ್ನು ಪರಿಶೀಲಿಸಿ."
-                },
-                "scanOrSearch": {
-                    "title": "ಸ್ಕ್ಯಾನ್ ಅಥವಾ ಹುಡುಕಾಟ",
-                    "description": "ವಿಶ್ವಾಸಾರ್ಹ ಆರೋಗ್ಯ ಮಾಹಿತಿಯನ್ನು ಪಡೆಯಲು ಪ್ಯಾಕೇಜಿಂಗ್ ಅನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಅಥವಾ ಔಷಧಗಳನ್ನು ಹಸ್ತಚಾಲಿತವಾಗಿ (manual) ಹುಡುಕಿ."
-                },
-                "aiAssistant": {
-                    "title": "AI ಆರೋಗ್ಯ ಸಹಾಯಕ",
-                    "description": "ರೋಗಲಕ್ಷಣಗಳು, ಅಡ್ಡಪರಿಣಾಮಗಳು , ಮುನ್ನೆಚ್ಚರಿಕೆಗಳು ಮತ್ತು ಔಷಧ ಬಳಕೆಯ ಬಗ್ಗೆ AI-ಚಾಲಿತ ಮಾರ್ಗದರ್ಶನವನ್ನು ಪಡೆಯಿರಿ."
-                },
-                "trustedPharmacies": {
-                    "title": "ವಿಶ್ವಾಸಾರ್ಹ ಫಾರ್ಮಸಿಗಳು",
-                    "description": "ಔಷಧಗಳ ವಿಶ್ವಾಸಾರ್ಹ ಲಭ್ಯತೆ ಮತ್ತು ರೇಟಿಂಗ್‌ಗಳೊಂದಿಗೆ ನಿಮ್ಮ ಹತ್ತಿರದ ಪ್ರಮಾಣೀಕೃತ ಫಾರ್ಮಸಿಗಳನ್ನು ಹುಡುಕಿ."
-                },
-                "cdscoAlerts": {
-                    "title": "CDSCO ಎಚ್ಚರಿಕೆಗಳು",
-                    "description": "CDSCO ನ ಅಧಿಕೃತ ಔಷಧ ಮರುಸ್ಥಾಪನೆಗಳು, ಎಚ್ಚರಿಕೆಗಳು ಮತ್ತು ಆರೋಗ್ಯ ಎಚ್ಚರಿಕೆಗಳೊಂದಿಗೆ ನವೀಕೃತವಾಗಿರಿ."
-                },
-                "reportMedicines": {
-                    "title": "ಸಂದೇಹಾಸ್ಪದ ಔಷಧಗಳನ್ನು ವರದಿ ಮಾಡಿ",
-                    "description": "ನಕಲಿ ಅಥವಾ ಸಂದೇಹಾಸ್ಪದ ಔಷಧಗಳ ಬಗ್ಗೆ ತಕ್ಷಣವೇ ವರದಿ ಮಾಡುವ ಮೂಲಕ ಸಮಾಜವನ್ನು ಸುರಕ್ಷಿತವಾಗಿಡಲು ಸಹಾಯ ಮಾಡಿ."
-                }
-            }
-        },
-        "ctaBanner": {
-            "title": "ಸುರಕ್ಷಿತ ಆರೋಗ್ಯ ಸೇವೆ ಇಲ್ಲಿಂದ ಪ್ರಾರಂಭವಾಗುತ್ತದೆ",
-            "subtitle": "ಔಷಧಗಳನ್ನು ಪರಿಶೀಲಿಸಿ, ವಿಶ್ವಾಸಾರ್ಹ ಆರೋಗ್ಯ ಮಾಹಿತಿಯನ್ನು ಪ್ರವೇಶಿಸಿ ಮತ್ತು AI ಸಹಾಯದೊಂದಿಗೆ ನಕಲಿ ಔಷಧಗಳಿಂದ ಸುರಕ್ಷಿತವಾಗಿರಿ.",
-            "buttons": {
-                "scan": "ಔಷಧ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ",
-                "alerts": "ಎಚ್ಚರಿಕೆಗಳನ್ನು ವೀಕ್ಷಿಸಿ"
-            }
-        }
-    },
     "medicineSafety": {
         "guideTitle": "ಬಳಕೆ ಮತ್ತು ಸುರಕ್ಷತಾ ಮಾರ್ಗದರ್ಶಿ",
         "noDosageInfo": "ಈ ವಯೋಮಾನದವರಿಗೆ ಡೋಸ್ ಮಾಹಿತಿ ಲಭ್ಯವಿಲ್ಲ.",
@@ -741,12 +680,31 @@
         },
         "disclaimer": "ಈ ಮಾಹಿತಿ ಶೈಕ್ಷಣಿಕ ಉದ್ದೇಶಕ್ಕಾಗಿ ಮಾತ್ರವಾಗಿದ್ದು ವೃತ್ತಿಪರ ವೈದ್ಯಕೀಯ ಸಲಹೆಗೆ ಪರ್ಯಾಯವಲ್ಲ."
     },
-    "Map": {
-        "errors": {
-            "denied": "ಸ್ಥಳದ ಪ್ರವೇಶವನ್ನು ನಿರಾಕರಿಸಲಾಗಿದೆ. ದಯವಿಟ್ಟು ಬ್ರೌಸರ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಇದನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ.",
-            "unavailable": "ಸ್ಥಳದ ಮಾಹಿತಿ ಲಭ್ಯವಿಲ್ಲ.",
-            "timeout": "ಸ್ಥಳದ ವಿನಂತಿಯ ಸಮಯ ಮೀರಿದೆ.",
-            "generic": "ನಿಮ್ಮ ಸ್ಥಳವನ್ನು ಪಡೆಯಲು ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ."
-        }
+    "SchemeEligibility": {
+        "validationAgeError": "ದಯವಿಟ್ಟು ಮಾನ್ಯವಾದ ವಯಸ್ಸನ್ನು ನಮೂದಿಸಿ.",
+        "validationStateError": "ದಯವಿಟ್ಟು ಒಂದು ರಾಜ್ಯವನ್ನು ಆಯ್ಕೆಮಾಡಿ."
+    },
+    "Health": {
+        "quickActions": "Quick actions",
+        "scanMedicine": "Scan Medicine",
+        "verifyAuthenticity": "Verify authenticity",
+        "checkSymptoms": "Check Symptoms",
+        "symptomGuidance": "AI-assisted guidance",
+        "findPharmacy": "Find Pharmacy",
+        "locateStores": "Locate verified stores",
+        "replyFallback": "I'm here to help! Could you rephrase that?",
+        "tooManyRequests": "Too many requests. Please try again in a few moments.",
+        "failedResponse": "Failed to generate AI response",
+        "genericError": "Something went wrong",
+        "returnHome": "Return to chat home",
+        "chatConversation": "Chat conversation",
+        "startVoice": "Start voice input",
+        "stopVoice": "Stop voice input",
+        "healthQuestion": "Type your health question",
+        "voiceBrowserRequired": "Voice input is not supported in this browser.",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "sendMessage": "Send message",
+        "footer": "For informational use only • Consult a doctor"
     }
 }
