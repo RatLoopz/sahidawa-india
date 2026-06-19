@@ -1,5 +1,5 @@
+import { handleApiError } from "@/lib/apiErrorHandler";
 import { useRef, useCallback, useState } from "react";
-import { toast } from "sonner";
 
 export interface UseCloudTTSOptions {
     onStart?: () => void;
@@ -110,12 +110,15 @@ export function useCloudTTS() {
                     URL.revokeObjectURL(audioUrl);
                 };
 
-                const handleError = (event: Event | string) => {
+                const handleError = async (event: Event | string) => {
                     const audioError = new Error("Audio playback error");
+
                     setIsLoading(false);
                     options?.onEnd?.();
                     options?.onError?.(audioError);
-                    toast.error("Failed to play audio");
+
+                    await handleApiError(audioError, "Failed to play audio");
+
                     console.error("Audio playback error:", event);
                 };
 

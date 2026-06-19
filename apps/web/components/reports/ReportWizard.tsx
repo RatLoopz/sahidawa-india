@@ -6,7 +6,7 @@
  * Tech: React Hook Form · Zod · @hookform/resolvers · Framer Motion · Tailwind CSS
  * Design: SahiDawa modern aesthetic — emerald accents, deep navy header, rounded corners
  */
-
+import { handleApiError } from "@/lib/apiErrorHandler";
 import React, { useState, useEffect, useId } from "react";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -930,7 +930,8 @@ export default function ReportWizard() {
                 setSubmitErr(
                     "You're offline and the report could not be saved locally. Please try again."
                 );
-                toast.error("Failed to save report locally.");
+
+                await handleApiError(queueErr, "Failed to save report locally.");
             } finally {
                 setSubmitting(false);
             }

@@ -1,5 +1,5 @@
 "use client";
-
+import { handleApiError } from "@/lib/apiErrorHandler";
 import React, { useState } from "react";
 import {
     CheckCircle,
@@ -117,8 +117,8 @@ export default function SchemeEligibilityPage() {
             setEligibleSchemes(res.eligible_schemes);
             setStep(4);
             toast.success("Eligibility checked successfully!");
-        } catch (error: any) {
-            toast.error(error.message || "Failed to check eligibility. Please try again.");
+        } catch (error) {
+            await handleApiError(error, "Failed to check eligibility. Please try again.");
         } finally {
             setLoading(false);
         }
