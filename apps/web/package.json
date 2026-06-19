@@ -18,6 +18,7 @@
         "@supabase/auth-helpers-nextjs": "^0.15.0",
         "@supabase/ssr": "^0.10.3",
         "@supabase/supabase-js": "^2.106.2",
+        "@tanstack/react-virtual": "^3.14.3",
         "@upstash/ratelimit": "^2.0.8",
         "@upstash/redis": "^1.38.0",
         "@zxing/browser": "^0.2.0",
