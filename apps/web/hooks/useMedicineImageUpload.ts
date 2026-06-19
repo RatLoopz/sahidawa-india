@@ -175,12 +175,21 @@ export function useMedicineImageUpload({
             if (!isMountedRef.current || controller.signal.aborted || ocrCancelledRef.current)
                 return;
 
+            let timeoutId: ReturnType<typeof setTimeout> | undefined;
             const timeoutPromise = new Promise<never>((_, reject) => {
-                setTimeout(() => reject(new Error("OCR timed out")), 30000);
+                timeoutId = setTimeout(() => reject(new Error("OCR timed out")), 30000);
             });
 
             const ocrPromise = ocrWorkerRef.current.recognize(dataUrl);
-            const { data } = await Promise.race([ocrPromise, timeoutPromise]);
+            let raceResult;
+            try {
+                raceResult = await Promise.race([ocrPromise, timeoutPromise]);
+            } finally {
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                }
+            }
+            const { data } = raceResult;
 
             if (!isMountedRef.current || controller.signal.aborted || ocrCancelledRef.current)
                 return;

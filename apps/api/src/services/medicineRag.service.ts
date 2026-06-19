@@ -54,13 +54,26 @@ export interface MedicineRow {
     brand_name: string | null;
     generic_name: string;
     manufacturer: string | null;
-    composition: string | null;
-    strength: string | null;
-    dosage_form: string | null;
-    schedule: string | null;
-    mrp: number | string | null;
-    jan_aushadhi_price: number | string | null;
+    composition?: string | null;
+    strength?: string | null;
+    dosage_form?: string | null;
+    schedule?: string | null;
+    mrp?: number | string | null;
+    jan_aushadhi_price?: number | string | null;
     similarity?: number | null;
+    batch_number?: string | null;
+    barcode_id?: string | null;
+    manufacturing_date?: string | null;
+    expiry_date?: string | null;
+    cdsco_approval_status?: string | null;
+    is_counterfeit_alert?: boolean | null;
+    is_cdsco_verified?: boolean | null;
+    cdsco_match_score?: number | null;
+    matched_cdsco_product?: string | null;
+    matched_cdsco_manufacturer?: string | null;
+    product_match_score?: number | null;
+    manufacturer_match_score?: number | null;
+    manufacturer_id?: string | null;
 }
 
 /** Formatted medicine returned in API responses. */

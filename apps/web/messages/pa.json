@@ -452,7 +452,15 @@
         "importError": "ਅਵੈਧ ਬੈਕਅੱਪ ਫ਼ਾਈਲ। ਕਿਰਪਾ ਕਰਕੇ ਵੈਧ JSON ਬੈਕਅੱਪ ਅੱਪਲੋਡ ਕਰੋ।",
         "statusExpired": "ਮਿਆਦ ਪੂਰੀ",
         "statusExpiringSoon": "ਜਲਦੀ ਮਿਆਦ ਪੂਰੀ ਹੋਵੇਗੀ ({days} ਦਿਨ)",
-        "statusSafe": "ਸੁਰੱਖਿਅਤ"
+        "statusSafe": "ਸੁਰੱਖਿਅਤ",
+        "exportCSV": "CSV ਐਕਸਪੋਰਟ ਕਰੋ",
+        "exportPDF": "PDF ਐਕਸਪੋਰਟ ਕਰੋ",
+        "print": "ਪ੍ਰਿੰਟ ਕਰੋ",
+        "csvExportSuccess": "CSV ਸਫਲਤਾਪੂਰਵਕ ਐਕਸਪੋਰਟ ਹੋ ਗਿਆ",
+        "pdfExportSuccess": "PDF ਸਫਲਤਾਪੂਰਵਕ ਐਕਸਪੋਰਟ ਹੋ ਗਿਆ",
+        "noMedicinesToDisplay": "ਦਿਖਾਉਣ ਲਈ ਕੋਈ ਦਵਾਈ ਨਹੀਂ ਹੈ",
+        "generatedOn": "ਦੀ ਮਿਆਦ ਪੂਰੀ ਹੋਵੇ",
+        "deleteMedicine": "ਦਵਾਈ ਹਟਾਓ"
     },
     "Login": {
         "brandSubtitle": "ਦਵਾਈ ਸੁਰੱਖਿਆ ਪਲੇਟਫਾਰਮ",
@@ -639,37 +647,60 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
-  "medicineSafety": {
-    "guideTitle": "ਵਰਤੋਂ ਅਤੇ ਸੁਰੱਖਿਆ ਗਾਈਡ",
-    "noDosageInfo": "ਇਸ ਉਮਰ ਸਮੂਹ ਲਈ ਖੁਰਾਕ ਦੀ ਜਾਣਕਾਰੀ ਉਪਲਬਧ ਨਹੀਂ ਹੈ।",
-    "closeButton": "ਸੁਰੱਖਿਆ ਜਾਣਕਾਰੀ ਬੰਦ ਕਰੋ",
-    "tabs": {
-      "sideEffects": "ਸਾਈਡ ਇਫੈਕਟ",
-      "dosage": "ਖੁਰਾਕ",
-      "dietaryIntake": "ਖੁਰਾਕੀ ਸੇਵਨ"
+    "medicineSafety": {
+        "guideTitle": "ਵਰਤੋਂ ਅਤੇ ਸੁਰੱਖਿਆ ਗਾਈਡ",
+        "noDosageInfo": "ਇਸ ਉਮਰ ਸਮੂਹ ਲਈ ਖੁਰਾਕ ਦੀ ਜਾਣਕਾਰੀ ਉਪਲਬਧ ਨਹੀਂ ਹੈ।",
+        "closeButton": "ਸੁਰੱਖਿਆ ਜਾਣਕਾਰੀ ਬੰਦ ਕਰੋ",
+        "tabs": {
+            "sideEffects": "ਸਾਈਡ ਇਫੈਕਟ",
+            "dosage": "ਖੁਰਾਕ",
+            "dietaryIntake": "ਖੁਰਾਕੀ ਸੇਵਨ"
+        },
+        "sideEffects": {
+            "standardSymptoms": "ਆਮ ਲੱਛਣ",
+            "severeRedFlags": "ਗੰਭੀਰ ਚੇਤਾਵਨੀਆਂ — ਤੁਰੰਤ ਡਾਕਟਰੀ ਮਦਦ ਲਵੋ"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "ਬੱਚੇ",
+                "adults": "ਵਯਸਕ",
+                "elderly": "ਬਜ਼ੁਰਗ"
+            },
+            "doseLabel": "ਖੁਰਾਕ:",
+            "frequencyLabel": "ਆਵ੍ਰਿਤੀ:",
+            "notesHeading": "ਨੋਟਸ",
+            "warningsHeading": "ਚੇਤਾਵਨੀਆਂ"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "ਖੁਰਾਕੀ ਸੇਵਨ"
+            },
+            "storageHeading": "ਸਟੋਰੇਜ",
+            "pregnancyHeading": "ਗਰਭਾਵਸਥਾ"
+        },
+        "disclaimer": "ਇਹ ਜਾਣਕਾਰੀ ਸਿੱਖਿਆਤਮਕ ਹੈ ਅਤੇ ਪੇਸ਼ੇਵਰ ਡਾਕਟਰੀ ਸਲਾਹ ਦਾ ਬਦਲ ਨਹੀਂ ਹੈ।"
     },
-    "sideEffects": {
-      "standardSymptoms": "ਆਮ ਲੱਛਣ",
-      "severeRedFlags": "ਗੰਭੀਰ ਚੇਤਾਵਨੀਆਂ — ਤੁਰੰਤ ਡਾਕਟਰੀ ਮਦਦ ਲਵੋ"
-    },
-    "dosage": {
-      "tabs": {
-        "kids": "ਬੱਚੇ",
-        "adults": "ਵਯਸਕ",
-        "elderly": "ਬਜ਼ੁਰਗ"
-      },
-      "doseLabel": "ਖੁਰਾਕ:",
-      "frequencyLabel": "ਆਵ੍ਰਿਤੀ:",
-      "notesHeading": "ਨੋਟਸ",
-      "warningsHeading": "ਚੇਤਾਵਨੀਆਂ"
-    },
-    "dietary": {
-      "tabs": {
-        "dietaryIntake": "ਖੁਰਾਕੀ ਸੇਵਨ"
-      },
-      "storageHeading": "ਸਟੋਰੇਜ",
-      "pregnancyHeading": "ਗਰਭਾਵਸਥਾ"
-    },
-    "disclaimer": "ਇਹ ਜਾਣਕਾਰੀ ਸਿੱਖਿਆਤਮਕ ਹੈ ਅਤੇ ਪੇਸ਼ੇਵਰ ਡਾਕਟਰੀ ਸਲਾਹ ਦਾ ਬਦਲ ਨਹੀਂ ਹੈ।"
-  }
+    "Health": {
+        "quickActions": "Quick actions",
+        "scanMedicine": "Scan Medicine",
+        "verifyAuthenticity": "Verify authenticity",
+        "checkSymptoms": "Check Symptoms",
+        "symptomGuidance": "AI-assisted guidance",
+        "findPharmacy": "Find Pharmacy",
+        "locateStores": "Locate verified stores",
+        "replyFallback": "I'm here to help! Could you rephrase that?",
+        "tooManyRequests": "Too many requests. Please try again in a few moments.",
+        "failedResponse": "Failed to generate AI response",
+        "genericError": "Something went wrong",
+        "returnHome": "Return to chat home",
+        "chatConversation": "Chat conversation",
+        "startVoice": "Start voice input",
+        "stopVoice": "Stop voice input",
+        "healthQuestion": "Type your health question",
+        "voiceBrowserRequired": "Voice input is not supported in this browser.",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "sendMessage": "Send message",
+        "footer": "For informational use only • Consult a doctor"
+    }
 }

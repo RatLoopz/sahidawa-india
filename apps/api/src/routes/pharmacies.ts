@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { supabase } from "../db/client";
 import logger from "../utils/logger";
+import { requireAuth, AuthenticatedRequest } from "../middleware/auth";
 
 const router = Router();
 
@@ -83,15 +84,22 @@ const registerPharmacySchema = z.object({
  * Register a new pharmacy. Returns 409 if a pharmacy with the same licenseId
  * already exists to prevent duplicate entries.
  */
-router.post("/", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/", requireAuth, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     const parsed = registerPharmacySchema.safeParse(req.body);
     if (!parsed.success) {
         res.status(400).json({ error: "Invalid pharmacy payload", issues: parsed.error.issues });
         return;
     }
 
-    const data = parsed.data;
+    if (!req.user) {
+        res.status(401).json({ error: "Unauthorized access" });
+        return;
+    }
 
+    const data = {
+        ...parsed.data,
+        created_by: req.user.id
+    };
     try {
         // Check for an existing pharmacy with the same licenseId before inserting.
         // Without this check concurrent or repeated requests can create duplicate
@@ -125,9 +133,10 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
                 district: data.district,
                 state: data.state,
                 phone_number: data.phone_number ?? null,
-                location: data.lng && data.lat ? `POINT(${data.lng} ${data.lat})` : null,
+                location: data.lat !== undefined && data.lng !== undefined ? `POINT(${data.lng} ${data.lat})` : null,
                 is_verified: false,
                 status: "pending",
+                created_by: data.created_by,
             })
             .select()
             .single();

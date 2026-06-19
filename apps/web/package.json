@@ -27,6 +27,8 @@
         "framer-motion": "^12.39.0",
         "google-auth-library": "^10.7.0",
         "idb": "^8.0.3",
+        "jspdf": "^4.2.1",
+        "jspdf-autotable": "^5.0.8",
         "leaflet": "^1.9.4",
         "lucide-react": "^1.20.0",
         "markdown-to-jsx": "^9.8.2",

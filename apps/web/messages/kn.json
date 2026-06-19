@@ -452,7 +452,15 @@
         "importError": "ಅಮಾನ್ಯ ಬ್ಯಾಕಪ್ ಫೈಲ್. ದಯವಿಟ್ಟು ಮಾನ್ಯ JSON ಬ್ಯಾಕಪ್ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ.",
         "statusExpired": "ಅವಧಿ ಮುಗಿದಿದೆ",
         "statusExpiringSoon": "ಶೀಘ್ರದಲ್ಲೇ ಅವಧಿ ಮುಗಿಯಲಿದೆ ({days} ದಿನಗಳು)",
-        "statusSafe": "ಸುರಕ್ಷಿತ"
+        "statusSafe": "ಸುರಕ್ಷಿತ",
+        "exportCSV": "CSV ರಫ್ತು ಮಾಡಿ",
+        "exportPDF": "PDF ರಫ್ತು ಮಾಡಿ",
+        "print": "ಪ್ರಿಂಟ್ ಮಾಡಿ",
+        "csvExportSuccess": "CSV ಯಶಸ್ವಿಯಾಗಿ ರಫ್ತು ಮಾಡಲಾಗಿದೆ",
+        "pdfExportSuccess": "PDF ಯಶಸ್ವಿಯಾಗಿ ರಫ್ತು ಮಾಡಲಾಗಿದೆ",
+        "noMedicinesToDisplay": "ಪ್ರದರ್ಶಿಸಲು ಯಾವುದೇ ಔಷಧಗಳಿಲ್ಲ",
+        "generatedOn": "ದಲ್ಲೇ ಅವಧಿ ಮುಗಿಯ",
+        "deleteMedicine": "ಔಷಧವನ್ನು ಅಳಿಸಿ"
     },
     "Login": {
         "brandSubtitle": "ಔಷಧ ಸುರಕ್ಷತಾ ವೇದಿಕೆ",
@@ -639,37 +647,60 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
-  "medicineSafety": {
-    "guideTitle": "ಬಳಕೆ ಮತ್ತು ಸುರಕ್ಷತಾ ಮಾರ್ಗದರ್ಶಿ",
-    "noDosageInfo": "ಈ ವಯೋಮಾನದವರಿಗೆ ಡೋಸ್ ಮಾಹಿತಿ ಲಭ್ಯವಿಲ್ಲ.",
-    "closeButton": "ಸುರಕ್ಷತಾ ಮಾಹಿತಿಯನ್ನು ಮುಚ್ಚಿ",
-    "tabs": {
-      "sideEffects": "ಅಡ್ಡ ಪರಿಣಾಮಗಳು",
-      "dosage": "ಡೋಸ್",
-      "dietaryIntake": "ಆಹಾರ ಸೇವನೆ"
+    "medicineSafety": {
+        "guideTitle": "ಬಳಕೆ ಮತ್ತು ಸುರಕ್ಷತಾ ಮಾರ್ಗದರ್ಶಿ",
+        "noDosageInfo": "ಈ ವಯೋಮಾನದವರಿಗೆ ಡೋಸ್ ಮಾಹಿತಿ ಲಭ್ಯವಿಲ್ಲ.",
+        "closeButton": "ಸುರಕ್ಷತಾ ಮಾಹಿತಿಯನ್ನು ಮುಚ್ಚಿ",
+        "tabs": {
+            "sideEffects": "ಅಡ್ಡ ಪರಿಣಾಮಗಳು",
+            "dosage": "ಡೋಸ್",
+            "dietaryIntake": "ಆಹಾರ ಸೇವನೆ"
+        },
+        "sideEffects": {
+            "standardSymptoms": "ಸಾಮಾನ್ಯ ಲಕ್ಷಣಗಳು",
+            "severeRedFlags": "ಗಂಭೀರ ಎಚ್ಚರಿಕೆಗಳು — ತಕ್ಷಣ ವೈದ್ಯಕೀಯ ಸಹಾಯ ಪಡೆಯಿರಿ"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "ಮಕ್ಕಳು",
+                "adults": "ವಯಸ್ಕರು",
+                "elderly": "ಹಿರಿಯರು"
+            },
+            "doseLabel": "ಡೋಸ್:",
+            "frequencyLabel": "ಆವರ್ತನೆ:",
+            "notesHeading": "ಟಿಪ್ಪಣಿಗಳು",
+            "warningsHeading": "ಎಚ್ಚರಿಕೆಗಳು"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "ಆಹಾರ ಸೇವನೆ"
+            },
+            "storageHeading": "ಸಂಗ್ರಹಣೆ",
+            "pregnancyHeading": "ಗರ್ಭಾವಸ್ಥೆ"
+        },
+        "disclaimer": "ಈ ಮಾಹಿತಿ ಶೈಕ್ಷಣಿಕ ಉದ್ದೇಶಕ್ಕಾಗಿ ಮಾತ್ರವಾಗಿದ್ದು ವೃತ್ತಿಪರ ವೈದ್ಯಕೀಯ ಸಲಹೆಗೆ ಪರ್ಯಾಯವಲ್ಲ."
     },
-    "sideEffects": {
-      "standardSymptoms": "ಸಾಮಾನ್ಯ ಲಕ್ಷಣಗಳು",
-      "severeRedFlags": "ಗಂಭೀರ ಎಚ್ಚರಿಕೆಗಳು — ತಕ್ಷಣ ವೈದ್ಯಕೀಯ ಸಹಾಯ ಪಡೆಯಿರಿ"
-    },
-    "dosage": {
-      "tabs": {
-        "kids": "ಮಕ್ಕಳು",
-        "adults": "ವಯಸ್ಕರು",
-        "elderly": "ಹಿರಿಯರು"
-      },
-      "doseLabel": "ಡೋಸ್:",
-      "frequencyLabel": "ಆವರ್ತನೆ:",
-      "notesHeading": "ಟಿಪ್ಪಣಿಗಳು",
-      "warningsHeading": "ಎಚ್ಚರಿಕೆಗಳು"
-    },
-    "dietary": {
-      "tabs": {
-        "dietaryIntake": "ಆಹಾರ ಸೇವನೆ"
-      },
-      "storageHeading": "ಸಂಗ್ರಹಣೆ",
-      "pregnancyHeading": "ಗರ್ಭಾವಸ್ಥೆ"
-    },
-    "disclaimer": "ಈ ಮಾಹಿತಿ ಶೈಕ್ಷಣಿಕ ಉದ್ದೇಶಕ್ಕಾಗಿ ಮಾತ್ರವಾಗಿದ್ದು ವೃತ್ತಿಪರ ವೈದ್ಯಕೀಯ ಸಲಹೆಗೆ ಪರ್ಯಾಯವಲ್ಲ."
-  }
+    "Health": {
+        "quickActions": "Quick actions",
+        "scanMedicine": "Scan Medicine",
+        "verifyAuthenticity": "Verify authenticity",
+        "checkSymptoms": "Check Symptoms",
+        "symptomGuidance": "AI-assisted guidance",
+        "findPharmacy": "Find Pharmacy",
+        "locateStores": "Locate verified stores",
+        "replyFallback": "I'm here to help! Could you rephrase that?",
+        "tooManyRequests": "Too many requests. Please try again in a few moments.",
+        "failedResponse": "Failed to generate AI response",
+        "genericError": "Something went wrong",
+        "returnHome": "Return to chat home",
+        "chatConversation": "Chat conversation",
+        "startVoice": "Start voice input",
+        "stopVoice": "Stop voice input",
+        "healthQuestion": "Type your health question",
+        "voiceBrowserRequired": "Voice input is not supported in this browser.",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "sendMessage": "Send message",
+        "footer": "For informational use only • Consult a doctor"
+    }
 }

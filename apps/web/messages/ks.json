@@ -458,7 +458,15 @@
         "importError": "غلط بیک اپ فائل۔",
         "statusExpired": "میعاد ختم",
         "statusExpiringSoon": "({days} دۄہ) باقٕی",
-        "statusSafe": "محفوظ"
+        "statusSafe": "محفوظ",
+        "exportCSV": "سی ایس وی (CSV) ایکسپورٹ کریں",
+        "exportPDF": "پی ڈی ایف (PDF) ایکسپورٹ کریں",
+        "print": "پرنٹ کریں",
+        "csvExportSuccess": "سی ایس وی (CSV) کامیابی کے ساتھ ایکسپورٹ ہو گیا",
+        "pdfExportSuccess": "پی ڈی ایف (PDF) کامیابی کے ساتھ ایکسپورٹ ہو گیا",
+        "noMedicinesToDisplay": "دکھانے کے لیے کوئی ادویات نہیں ہیں",
+        "generatedOn": "اپ امپورٹ کٔر",
+        "deleteMedicine": "دوا حذف کریں"
     },
     "Login": {
         "brandSubtitle": "دوا حفاظت پلیٹ فارم",
@@ -645,37 +653,60 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
-  "medicineSafety": {
-    "guideTitle": "استعمال تہٕ حفاظت رہنمائی",
-    "noDosageInfo": "یِم عمر گروپ خٲطرٕ خوراکٕچ جانکاری دستیاب نَہ چھِ.",
-    "closeButton": "حفاظتی جانکاری بند کٔریو",
-    "tabs": {
-      "sideEffects": "ضمنی اثرات",
-      "dosage": "خوراک",
-      "dietaryIntake": "غذائی استعمال"
+    "medicineSafety": {
+        "guideTitle": "استعمال تہٕ حفاظت رہنمائی",
+        "noDosageInfo": "یِم عمر گروپ خٲطرٕ خوراکٕچ جانکاری دستیاب نَہ چھِ.",
+        "closeButton": "حفاظتی جانکاری بند کٔریو",
+        "tabs": {
+            "sideEffects": "ضمنی اثرات",
+            "dosage": "خوراک",
+            "dietaryIntake": "غذائی استعمال"
+        },
+        "sideEffects": {
+            "standardSymptoms": "عام علامات",
+            "severeRedFlags": "سنگین انتباہ — فوری طبی امداد حاصل کریں"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "بچے",
+                "adults": "بالغ",
+                "elderly": "معمر"
+            },
+            "doseLabel": "خوراک:",
+            "frequencyLabel": "تعدد:",
+            "notesHeading": "نوٹس",
+            "warningsHeading": "انتباہات"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "غذائی استعمال"
+            },
+            "storageHeading": "ذخیرہ",
+            "pregnancyHeading": "حمل"
+        },
+        "disclaimer": "یہ معلومات تعلیمی مقصد کے لیے ہیں اور پیشہ ورانہ طبی مشورے کا متبادل نہیں ہیں۔"
     },
-    "sideEffects": {
-      "standardSymptoms": "عام علامات",
-      "severeRedFlags": "سنگین انتباہ — فوری طبی امداد حاصل کریں"
-    },
-    "dosage": {
-      "tabs": {
-        "kids": "بچے",
-        "adults": "بالغ",
-        "elderly": "معمر"
-      },
-      "doseLabel": "خوراک:",
-      "frequencyLabel": "تعدد:",
-      "notesHeading": "نوٹس",
-      "warningsHeading": "انتباہات"
-    },
-    "dietary": {
-      "tabs": {
-        "dietaryIntake": "غذائی استعمال"
-      },
-      "storageHeading": "ذخیرہ",
-      "pregnancyHeading": "حمل"
-    },
-    "disclaimer": "یہ معلومات تعلیمی مقصد کے لیے ہیں اور پیشہ ورانہ طبی مشورے کا متبادل نہیں ہیں۔"
-  }
+    "Health": {
+        "quickActions": "Quick actions",
+        "scanMedicine": "Scan Medicine",
+        "verifyAuthenticity": "Verify authenticity",
+        "checkSymptoms": "Check Symptoms",
+        "symptomGuidance": "AI-assisted guidance",
+        "findPharmacy": "Find Pharmacy",
+        "locateStores": "Locate verified stores",
+        "replyFallback": "I'm here to help! Could you rephrase that?",
+        "tooManyRequests": "Too many requests. Please try again in a few moments.",
+        "failedResponse": "Failed to generate AI response",
+        "genericError": "Something went wrong",
+        "returnHome": "Return to chat home",
+        "chatConversation": "Chat conversation",
+        "startVoice": "Start voice input",
+        "stopVoice": "Stop voice input",
+        "healthQuestion": "Type your health question",
+        "voiceBrowserRequired": "Voice input is not supported in this browser.",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "sendMessage": "Send message",
+        "footer": "For informational use only • Consult a doctor"
+    }
 }

@@ -4,7 +4,29 @@ import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
+jest.mock("../lib/supabase", () => ({
+    supabase: {
+        from: jest.fn(() => ({
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockReturnThis(),
+            single: jest.fn().mockResolvedValue({ data: null, error: null }),
+            order: jest.fn().mockReturnThis(),
+            insert: jest.fn().mockResolvedValue({ data: null, error: null }),
+            update: jest.fn().mockResolvedValue({ data: null, error: null }),
+            delete: jest.fn().mockReturnThis(),
+        })),
+        auth: {
+            getSession: jest.fn().mockResolvedValue({
+                data: { session: null },
+                error: null,
+            }),
+            getUser: jest.fn().mockResolvedValue({ data: { user: null }, error: null }),
+        },
+    },
+}));
+
 import ExpiryTrackerPage from "../app/[locale]/expiry-tracker/page";
+import { verifyMedicine } from "@/lib/api";
 
 jest.mock("next-intl", () => ({
     useTranslations: () => (key: string) => key,
@@ -20,20 +42,170 @@ jest.mock("../app/[locale]/components/PageHeader", () => ({
     ),
 }));
 
+jest.mock("@/components/scanner/BarcodeScanner", () => ({
+    BarcodeScanner: ({
+        onScan,
+        apiError,
+        onRetry,
+    }: {
+        onScan: (barcodeText: string) => void;
+        apiError?: string | null;
+        onRetry?: () => void;
+    }) => (
+        <div data-testid="barcode-scanner">
+            <button type="button" onClick={() => onScan("SCAN-123")}>
+                Emit scan
+            </button>
+            {apiError && (
+                <button type="button" onClick={onRetry}>
+                    Retry verification
+                </button>
+            )}
+        </div>
+    ),
+}));
+
+jest.mock("@/lib/api", () => ({
+    verifyMedicine: jest.fn(),
+}));
+
+jest.mock("sonner", () => ({
+    toast: {
+        success: jest.fn(),
+        warning: jest.fn(),
+        error: jest.fn(),
+    },
+}));
+
+const mockedVerifyMedicine = verifyMedicine as jest.MockedFunction<typeof verifyMedicine>;
 const STORAGE_KEY = "sahidawa_expiry_tracker";
+const waitForInitialLoad = async () => {
+    await waitFor(() => {
+        expect(screen.queryByText("loading")).not.toBeInTheDocument();
+    });
+};
 
 describe("ExpiryTrackerPage", () => {
     beforeEach(() => {
         localStorage.clear();
+        jest.clearAllMocks();
     });
 
-    it("renders the add-medicine form with name, expiry and batch inputs", () => {
+    it("renders the add-medicine form with name, expiry and batch inputs", async () => {
         const { container } = render(<ExpiryTrackerPage />);
+        await waitForInitialLoad();
 
         expect(screen.getByPlaceholderText("namePlaceholder")).toBeInTheDocument();
         expect(container.querySelector('input[type="date"]')).toBeInTheDocument();
         expect(screen.getByPlaceholderText("batchPlaceholder")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "addToTracker" })).toBeInTheDocument();
+    });
+
+    it("opens the barcode scanner from the add-medicine form", async () => {
+        render(<ExpiryTrackerPage />);
+        await waitForInitialLoad();
+
+        fireEvent.click(screen.getByRole("button", { name: /scan barcode/i }));
+
+        expect(screen.getByRole("dialog", { name: /scan medicine barcode/i })).toBeInTheDocument();
+        expect(screen.getByTestId("barcode-scanner")).toBeInTheDocument();
+    });
+
+    it("auto-fills medicine fields after a verified barcode scan", async () => {
+        mockedVerifyMedicine.mockResolvedValueOnce({
+            verified: true,
+            medicine: {
+                brand_name: "Calpol",
+                generic_name: "Paracetamol",
+                manufacturer: "Acme Pharma",
+                batch_number: "BATCH-42",
+                expiry_date: "2027-04-30T00:00:00+05:30",
+                cdsco_approval_status: "approved",
+                is_counterfeit_alert: false,
+            },
+        });
+
+        const { container } = render(<ExpiryTrackerPage />);
+        await waitForInitialLoad();
+
+        fireEvent.click(screen.getByRole("button", { name: /scan barcode/i }));
+        fireEvent.click(screen.getByRole("button", { name: "Emit scan" }));
+
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText("namePlaceholder")).toHaveValue("Calpol");
+        });
+
+        expect(mockedVerifyMedicine).toHaveBeenCalledWith("SCAN-123");
+        expect(screen.getByPlaceholderText("batchPlaceholder")).toHaveValue("BATCH-42");
+        expect(container.querySelector('input[type="date"]')).toHaveValue("2027-04-30");
+        expect(
+            (screen.getByPlaceholderText("notesPlaceholder") as HTMLTextAreaElement).value
+        ).toContain("Generic: Paracetamol");
+        expect(
+            screen.queryByRole("dialog", { name: /scan medicine barcode/i })
+        ).not.toBeInTheDocument();
+    });
+
+    it.each(["04/2027", "04/27", "2027-04"])(
+        "uses the last day of the month for scanned %s expiry",
+        async (expiryDate) => {
+            mockedVerifyMedicine.mockResolvedValueOnce({
+                verified: true,
+                medicine: {
+                    brand_name: "",
+                    generic_name: "Cetirizine",
+                    manufacturer: "Acme Pharma",
+                    batch_number: "CET-7",
+                    expiry_date: expiryDate,
+                    cdsco_approval_status: "approved",
+                    is_counterfeit_alert: false,
+                },
+            });
+
+            const { container } = render(<ExpiryTrackerPage />);
+            await waitForInitialLoad();
+
+            fireEvent.click(screen.getByRole("button", { name: /scan barcode/i }));
+            fireEvent.click(screen.getByRole("button", { name: "Emit scan" }));
+
+            await waitFor(() => {
+                expect(screen.getByPlaceholderText("namePlaceholder")).toHaveValue("Cetirizine");
+            });
+
+            expect(screen.getByPlaceholderText("batchPlaceholder")).toHaveValue("CET-7");
+            expect(container.querySelector('input[type="date"]')).toHaveValue("2027-04-30");
+        }
+    );
+
+    it("keeps an existing expiry date when verified scan has no expiry", async () => {
+        mockedVerifyMedicine.mockResolvedValueOnce({
+            verified: true,
+            medicine: {
+                brand_name: "Crocin",
+                generic_name: "Paracetamol",
+                manufacturer: "Acme Pharma",
+                batch_number: "CRO-9",
+                expiry_date: null,
+                cdsco_approval_status: "approved",
+                is_counterfeit_alert: false,
+            },
+        });
+
+        const { container } = render(<ExpiryTrackerPage />);
+        await waitForInitialLoad();
+
+        fireEvent.change(container.querySelector('input[type="date"]')!, {
+            target: { value: "2027-01-15" },
+        });
+        fireEvent.click(screen.getByRole("button", { name: /scan barcode/i }));
+        fireEvent.click(screen.getByRole("button", { name: "Emit scan" }));
+
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText("namePlaceholder")).toHaveValue("Crocin");
+        });
+
+        expect(screen.getByPlaceholderText("batchPlaceholder")).toHaveValue("CRO-9");
+        expect(container.querySelector('input[type="date"]')).toHaveValue("2027-01-15");
     });
 
     it("adds a submitted medicine to the tracked list and persists it to localStorage", async () => {

@@ -55,7 +55,7 @@ jobs:
               }
 
               if (prBody) {
-                const issueRegex = /(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved|issue|related to)\s+#(\d+)/gi;
+                const issueRegex = /(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved|issue|related to)\s+(?:#|https?:\/\/github\.com\/[^\/]+\/[^\/]+\/issues\/|issues\/)?(\d+)/gi;
                 let match;
                 while ((match = issueRegex.exec(prBody)) !== null) {
                   linkedIssues.add(parseInt(match[1]));

@@ -58,8 +58,41 @@
         "language": "English",
         "more": "More"
     },
+    "Health": {
+        "quickActions": "Quick actions",
+        "scanMedicine": "Scan Medicine",
+        "verifyAuthenticity": "Verify authenticity",
+        "checkSymptoms": "Check Symptoms",
+        "symptomGuidance": "AI-assisted guidance",
+        "findPharmacy": "Find Pharmacy",
+        "locateStores": "Locate verified stores",
+        "replyFallback": "I'm here to help! Could you rephrase that?",
+        "tooManyRequests": "Too many requests. Please try again in a few moments.",
+        "failedResponse": "Failed to generate AI response",
+        "genericError": "Something went wrong",
+        "returnHome": "Return to chat home",
+        "chatConversation": "Chat conversation",
+        "startVoice": "Start voice input",
+        "stopVoice": "Stop voice input",
+        "healthQuestion": "Type your health question",
+        "voiceBrowserRequired": "Voice input is not supported in this browser.",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "sendMessage": "Send message",
+        "footer": "For informational use only • Consult a doctor"
+    },
+
     "Scan": {
         "calculateSavings": "Calculate Savings",
+        "scanMedicine": "Scan Medicine",
+        "positionBarcode": "Position the Barcode",
+        "enterBatchNumber": "Enter batch number",
+        "verify": "Verify",
+        "batchNumberHelp": "Enter the batch number from the medicine strip, or upload a photo from your gallery.",
+        "viewHistory": "View history",
+        "stopScanner": "Stop Scanner",
+        "scanBarcode": "Scan Barcode",
+        "uploadPhoto": "Upload Photo",
         "share": {
             "button": "Share Result",
             "title": "SahiDawa Medicine Verification Result",
@@ -82,7 +115,8 @@
         "showLess": "Show Less",
         "genericName": "Generic Name",
         "dosageForm": "Dosage Form",
-        "composition": "Composition"
+        "composition": "Composition",
+        "offlineVerify": "Queue Scan"
     },
     "BackToTopButton": {
         "label": "Back to top"
@@ -213,6 +247,15 @@
         "cachedVerifications": "Cached Verifications",
         "savedPharmacies": "Saved Pharmacies",
         "browsedMedicines": "Browsed Medicines"
+    },
+    "ScanQueue": {
+        "title": "Pending Verifications",
+        "subtitle": "Scans waiting to be verified when you're back online",
+        "queued": "Scan saved locally. Verification will resume automatically.",
+        "syncing": "Verifying {count} queued scans...",
+        "synced": "{count} queued scan(s) verified successfully.",
+        "pendingBadge": "Pending",
+        "empty": "No pending scans"
     },
     "contact": {
         "badge": "GSSoC 2026 Open Source Project",
@@ -386,10 +429,7 @@
         "title": "SahiDawa AI",
         "status": "Online",
         "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?",
-        "placeholder": "Ask me about a medicine...",
-        "confirmClear": "Are you sure you want to clear this conversation? This action cannot be undone.",
-        "cancelClear": "Cancel",
-        "clear": "Clear"
+        "placeholder": "Ask me about a medicine..."
     },
     "Alerts": {
         "backHome": "Back to Home Page",
@@ -548,7 +588,15 @@
         "dueStatus": "Due",
         "overdueStatus": "Overdue",
         "upcomingStatus": "Upcoming",
-        "markCompleteButton": "Mark completed"
+        "markCompleteButton": "Mark completed",
+        "exportCSV": "Export CSV",
+        "exportPDF": "Export PDF",
+        "print": "Print",
+        "csvExportSuccess": "CSV exported successfully",
+        "pdfExportSuccess": "PDF exported successfully",
+        "noMedicinesToDisplay": "No medicines to display",
+        "generatedOn": "Generated On",
+        "deleteMedicine": "Delete medicine"
     },
     "Login": {
         "brandSubtitle": "Medicine safety platform",
@@ -895,7 +943,26 @@
         "status_suspicious": "Suspicious Only",
         "status_fake": "Fake Only",
         "export_button": "Generate CSV",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "title": "Scan History",
+        "export_csv_button": "Export to CSV",
+        "sync_cloud_button": "Sync to Cloud",
+        "clear_all_button": "Clear All History",
+        "clear_all_button_aria_label": "Clear all scan history",
+        "clear_confirm_message": "Are you sure you want to permanently delete all scan history? This action cannot be undone.",
+        "clear_cancel_button": "Cancel",
+        "clear_confirm_button": "Clear All",
+        "sync_success": "History synced with cloud.",
+        "sync_error": "Cloud sync unavailable right now.",
+        "stat_total": "Total",
+        "stat_verified": "Verified",
+        "stat_suspicious": "Suspicious",
+        "stat_fake": "Fake",
+        "empty_title": "No Scan History Yet",
+        "empty_description": "Your verified medicines will appear here.",
+        "item_status_label": "Status: ",
+        "item_delete_button": "Delete",
+        "item_copy_success": "Medicine name copied!"
     },
     "MyReports": {
         "header_title": "My Reports",
@@ -929,6 +996,21 @@
             "timeout": "Location request timed out.",
             "generic": "Unable to get your location."
         }
+    },
+    "ABHA": {
+        "title": "ABHA Health Records",
+        "setupTitle": "ABHA Setup",
+        "recordsTitle": "ABHA Records",
+        "link": "Link ABHA",
+        "linked": "ABHA Linked",
+        "notLinked": "ABHA Not Linked",
+        "generateOtp": "Generate OTP",
+        "verifyOtp": "Verify OTP",
+        "enterAbha": "Enter ABHA Address",
+        "enterOtp": "Enter OTP",
+        "success": "ABHA successfully linked.",
+        "saveRecord": "Save to ABHA Record",
+        "noRecords": "No prescriptions found."
     },
     "Tracking": {
         "success": "Medicine tracked successfully!",

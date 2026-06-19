@@ -1,0 +1,982 @@
+{
+    "Home": {
+        "title": "توهان جي صحت، تصديق ٿيل ۽ محفوظ.",
+        "subtitle": "ڀارت جو اوپن سورس شهري پليٽفارم، جيڪو دوائن جي اصليت جي فوري تصديق، محفوظ فارميسي ڳولڻ، ۽ اهم صحت وارن اطلاعن جي سهولت فراهم ڪري ٿو.",
+        "scan_button": "دوا اسڪين ڪريو",
+        "scan_medicine": "دوا اسڪين ڪريو",
+        "scan_now": "هاڻي اسڪين ڪريو",
+        "scan_subtitle": "پيڪيجنگ يا بارڪوڊ ڏانهن ڪيمرا رکو",
+        "upload_photo": "تصوير اپلوڊ ڪريو",
+        "upload_subtitle": "گيلري مان چونڊيو",
+        "voice_triage": "آواز ذريعي جائزو",
+        "voice_subtitle": "علامتون ٻڌايو",
+        "find_pharmacy": "فارميسي ڳوليو",
+        "pharmacy_map": "فارميسي جو نقشو",
+        "pharmacy_subtitle": "تصديق ٿيل دڪان ڳوليو",
+        "report_fake": "جعلي دوا جي رپورٽ ڪريو",
+        "report_subtitle": "مشڪوڪ دوا جي رپورٽ ڪريو",
+        "report_fake_subtitle": "مشڪوڪ دوا جي رپورٽ ڪريو",
+        "scheme_eligibility": "اسڪيم جي اهليت",
+        "scheme_eligibility_subtitle": "عوامي صحت انشورنس جي اهليت چيڪ ڪريو",
+        "search_placeholder": "دوا يا بيچ ڳوليو...",
+        "search_button": "ڳوليو",
+        "sign_in": "سائن ان",
+        "get_started": "شروعات ڪريو",
+        "open_ai_health_assistant": "AI صحت اسسٽنٽ کوليو",
+        "ai_health_assistant": "AI صحت اسسٽنٽ",
+        "ai_chat": "AI چيٽ",
+        "ai_health_assistant_description": "فوري صحت جي صلاح، علامتن جي جاچ ۽ نسخي بابت رهنمائي حاصل ڪريو",
+        "chat_now": "هاڻي چيٽ ڪريو",
+        "explore_features": "فيچرز ڏسو",
+        "live_cdsco_alerts": "زنده CDSCO الرٽس",
+        "india_region": "ڀارت علائقو",
+        "real_time": "حقيقي وقت",
+        "alerts_description": "دوائن جي حفاظت بابت جديد اطلاعن ۽ واپسي جي خبرن کان باخبر رهو.",
+        "alerts_empty_title": "سڀ ٺيڪ آهي!",
+        "alerts_empty_description": "هن وقت ڪو به فعال ضابطي وارو الرٽ موجود ناهي. محفوظ رهو ۽ پنهنجي دوائن جي تصديق ڪريو.",
+        "view_full_alert_log": "مڪمل الرٽ لاگ ڏسو",
+        "vaccine_title": "ويڪسين حب ۽ حفاظتي ٽريڪر",
+        "vaccine_subtitle": "بهتر عوامي صحت جي آگاهي لاءِ ويڪسين شيڊول، حفاظت بابت ڄاڻ ۽ بعد جي سنڀال جي هدايتن کي ڏسو.",
+        "vaccine_open": "ويڪسين حب کوليو",
+        "heroTitle": {
+            "prefix": "توهان جي صحت، ",
+            "highlight": "تصديق ٿيل ۽ محفوظ."
+        }
+    },
+    "Navigation": {
+        "how_it_works": "هي ڪيئن ڪم ڪري ٿو",
+        "alerts": "الرٽس",
+        "pharmacy_map": "فارميسي نقشو",
+        "my_reports": "منهنجون رپورٽون",
+        "schedule": "شيڊول",
+        "scheme_eligibility": "اسڪيم جي اهليت",
+        "calculator": "بچت ڪيلڪيوليٽر",
+        "home": "گهر",
+        "scans": "اسڪين",
+        "map": "نقشو",
+        "profile": "پروفائل",
+        "language": "سنڌي",
+        "more": "وڌيڪ"
+    },
+    "Scan": {
+        "calculateSavings": "بچت جو حساب ڪريو",
+        "share": {
+            "button": "نتيجو شيئر ڪريو",
+            "title": "SahiDawa دوا جي تصديق جو نتيجو",
+            "real_status": "تصديق ٿيل اصل",
+            "suspicious_status": "مشڪوڪ قرار ڏنل",
+            "warning_prefix": "خبردار",
+            "verified_by": "SahiDawa پاران تصديق ٿيل",
+            "batch_label": "بيچ",
+            "manufacturer_label": "ٺاهيندڙ",
+            "avoid_and_report": "مهرباني ڪري ان کان پاسو ڪريو ۽ ويجهي صحت ڪارڪن کي رپورٽ ڪريو.",
+            "verify_yourself": "پاڻ تصديق ڪريو",
+            "unknown_medicine": "اڻڄاتل دوا",
+            "unknown_batch": "اڻڄاتل بيچ",
+            "unknown_manufacturer": "اڻڄاتل ٺاهيندڙ",
+            "shared_success": "نتيجو ڪاميابي سان شيئر ڪيو ويو",
+            "copy_success": "نتيجو ڪلپ بورڊ تي ڪاپي ڪيو ويو",
+            "failure": "هن وقت نتيجو شيئر ڪرڻ ممڪن ناهي"
+        },
+        "showMoreDetails": "وڌيڪ تفصيل ڏيکاريو",
+        "showLess": "گهٽ ڏيکاريو",
+        "genericName": "عام نالو",
+        "dosageForm": "دوا جي شڪل",
+        "composition": "ترڪيب",
+        "offlineVerify": "اسڪين قطار ۾ شامل ڪريو"
+    },
+    "BackToTopButton": {
+        "label": "مٿي وڃو"
+    },
+    "VoicePage": {
+        "header_title": "آواز ذريعي جائزو",
+        "header_subtitle": "پنهنجون علامتون ٻڌايو",
+        "title": "AI آواز جائزو",
+        "subtitle": "پنهنجي مقامي ٻولي ۾ علامتون ٻڌايو. SahiDawa AI توهان کي ايندڙ قدمن بابت رهنمائي ڪندو.",
+        "language_selector": "آواز جي ٻولي",
+        "example_label": "هيئن چئي ڏسو",
+        "example_text": "\"مون کي بخار ۽ کنگهه آهي\"",
+        "assistant_label": "AI اسسٽنٽ",
+        "assistant_value": "24/7 ٻڌڻ لاءِ تيار",
+        "skip_to_main_content": "سڌو مکيه مواد ڏانهن وڃو",
+        "listening_placeholder": "پنهنجين علامتن بابت ڳالهائڻ شروع ڪريو…",
+        "listening_status": "علامتون ٻڌيون پيون وڃن",
+        "announcements": {
+            "recording_started": "رڪارڊنگ شروع ٿي وئي",
+            "processing_started": "توهان جي علامتن تي عمل جاري آهي",
+            "results_ready": "نتيجا تيار آهن"
+        },
+        "streaming_connecting_hint": "لائيو ٽرانسڪرپشن سان ڳنڍجي رهيو آهي…",
+        "streaming_live_hint": "لائيو ٽرانسڪرپٽ اپڊيٽ ٿي رهيو آهي",
+        "streaming_fallback_hint": "ڪنيڪشن غير مستحڪم آهي. SahiDawa توهان جي ڳالهائڻ بند ڪرڻ کان پوءِ پروسيس مڪمل ڪندو.",
+        "animation_toggle_label": "آواز جون اينيميشنون",
+        "animation_live_label": "لائيو ويئو فارم",
+        "animation_reduced_motion_label": "گهٽ حرڪت",
+        "visualizer_label": "مائڪروفون ويئو فارم",
+        "volume_label": "آواز جي سطح",
+        "volume_live_label": "لائيو",
+        "volume_still_label": "خاموش",
+        "visualizer_unavailable": "لائيو ويئو فارم دستياب ناهي",
+        "processing_title": "علامتن جو تجزيو ڪيو پيو وڃي",
+        "processing_subtitle": "SahiDawa AI سان توهان جي علامتن جي جاچ جاري آهي…",
+        "review_title": "مهرباني ڪري پنهنجي ٽرانسڪرپٽ جو جائزو وٺو",
+        "review_message": "مائڪروفون توهان جي علامتن کي گهٽ اعتماد سان رڪارڊ ڪيو آهي. توهان وڌيڪ واضح نتيجي لاءِ ٻيهر ڪوشش ڪري سگهو ٿا يا هن ٽرانسڪرپٽ جو تجزيو جاري رکي سگهو ٿا.",
+        "retry_button": "ٻيهر ڪوشش ڪريو",
+        "switch_to_text_button": "ان جي بدران لکو",
+        "analyse_anyway_button": "بهرحال تجزيو ڪريو",
+        "result_heading": "AI تجزيو",
+        "result_subheading": "طبي جائزو",
+        "transcript_label": "توهان جو ٽرانسڪرپٽ",
+        "confidence_label": "اعتماد",
+        "confidence_values": {
+            "high": "وڌيڪ",
+            "medium": "وچولو",
+            "low": "گهٽ",
+            "unavailable": "دستياب ناهي"
+        },
+        "recommendations_label": "تجويز ڪيل قدم",
+        "emergency_title": "فوري طبي امداد حاصل ڪريو",
+        "emergency_body": "اهي علامتون تڪڙي طبي سنڀال جي ضرورت ظاهر ڪري سگهن ٿيون. فوري طور 112 يا 108 تي ڪال ڪريو يا ويجهي ايمرجنسي مرڪز ڏانهن وڃو.",
+        "disclaimer": "هي رهنمائي صرف معلوماتي مقصد لاءِ آهي ۽ تشخيص نه آهي. خاص طور تي سخت يا وڌندڙ علامتن جي صورت ۾ ڊاڪٽر يا فارماسسٽ سان صلاح ڪريو.",
+        "share_button": "ڊاڪٽر سان شيئر ڪريو",
+        "speak_button": "بلند آواز سان پڙهو",
+        "stop_speaking_button": "آڊيو بند ڪريو",
+        "try_again_button": "نئين جاچ شروع ڪريو",
+        "tap_to_speak": "ڳالهائڻ لاءِ ٽيپ ڪريو",
+        "stop_listening_label": "روڪڻ لاءِ ٻيهر ٽيپ ڪريو",
+        "start_listening_aria": "پنهنجون علامتون ٻڌائڻ لاءِ ٽيپ ڪريو",
+        "stop_listening_aria": "علامتون ٻڌيون پيون وڃن. روڪڻ لاءِ ٽيپ ڪريو.",
+        "start_listening_sr": "آواز ذريعي ان پٽ شروع ڪريو",
+        "stop_listening_sr": "آواز ذريعي ان پٽ بند ڪريو",
+        "footer_note": "آواز تي ٻڌل رهنمائي صرف معلوماتي مقصد لاءِ آهي. سنگين علامتن جي صورت ۾ فوري طور لائسنس يافته ڊاڪٽر سان رابطو ڪريو.",
+        "share_title": "SahiDawa آواز جائزو رپورٽ",
+        "share_success": "رپورٽ ڪاميابي سان شيئر ڪئي وئي",
+        "copy_success": "رپورٽ ڪلپ بورڊ تي ڪاپي ڪئي وئي",
+        "share_failure": "هن وقت رپورٽ شيئر ڪرڻ ممڪن ناهي",
+        "tts_not_supported": "توهان جو برائوزر ٽيڪسٽ ٽو اسپيچ کي سپورٽ نٿو ڪري",
+        "tts_fallback_message": "توهان جو برائوزر هن خلاصي کي مختلف آواز ۾ پڙهي سگهي ٿو، ڇاڪاڻ ته {language} لاءِ ٽيڪسٽ ٽو اسپيچ سپورٽ محدود آهي.",
+        "fallback_summary": "SahiDawa جواب کي واضح نموني ترتيب نه ڏئي سگهيو. جيڪڏهن علامتون جاري رهن ته ڊاڪٽر سان صلاح ڪريو.",
+        "share_report": {
+            "title": "SahiDawa آواز جائزو رپورٽ",
+            "timestamp": "وقت",
+            "language": "ٻولي",
+            "transcript": "ٽرانسڪرپٽ",
+            "confidence": "اعتماد",
+            "emergency": "ايمرجنسي خبرداري",
+            "yes": "ها",
+            "no": "نه",
+            "summary": "خلاصو",
+            "recommendations": "سفارشون",
+            "disclaimer": "اعلان",
+            "default_recommendation": "ڊاڪٽر يا فارماسسٽ جي صلاح تي عمل ڪريو."
+        },
+        "errors": {
+            "unsupported_title": "آواز ذريعي ان پٽ دستياب ناهي",
+            "unsupported_message": "هي برائوزر اڃا تائين آواز جي سڃاڻپ کي سپورٽ نٿو ڪري. مهرباني ڪري Chrome يا Edge استعمال ڪريو.",
+            "language_not_supported_title": "هي برائوزر هن آواز واري ٻولي کي سپورٽ نٿو ڪري",
+            "language_not_supported_message": "{language} لاءِ آواز ان پٽ هن برائوزر ۾ محدود آهي. Chrome يا Edge استعمال ڪريو يا ٻي آواز واري ٻولي چونڊيو.",
+            "permission_title": "مائڪروفون جي اجازت روڪيل آهي",
+            "permission_message": "مهرباني ڪري برائوزر سيٽنگن ۾ مائڪروفون جي اجازت ڏيو ۽ ٻيهر ڪوشش ڪريو.",
+            "microphone_title": "ڪو مائڪروفون نه مليو",
+            "microphone_message": "پڪ ڪريو ته مائڪروفون ڳنڍيل آهي ۽ هن برائوزر ٽيب لاءِ دستياب آهي.",
+            "network_title": "ڪنيڪشن جي مسئلي سبب ٻڌڻ وارو عمل روڪجي ويو",
+            "network_message": "توهان جو برائوزر آواز جي رڪارڊنگ مڪمل نه ڪري سگهيو. مهرباني ڪري ڪنيڪشن چيڪ ڪريو ۽ ٻيهر ڪوشش ڪريو.",
+            "no_speech_title": "اسان ڪا به ڳالهه نه ٻڌي سگهياسين",
+            "no_speech_message": "خاموش هنڌ تي ٻيهر ڪوشش ڪريو يا مائڪروفون جي ويجهو ڳالهائو.",
+            "generic_title": "ڪجهه غلط ٿي ويو",
+            "generic_message": "هن ڀيري اسان توهان جي آواز واري ان پٽ تي عمل نه ڪري سگهياسين. مهرباني ڪري ٻيهر ڪوشش ڪريو.",
+            "service_unavailable_title": "آواز جي سروس دستياب ناهي",
+            "service_unavailable_message": "اسان جا آواز سرور هن وقت گهڻي لوڊ هيٺ آهن. مهرباني ڪري ڪجهه دير بعد ٻيهر ڪوشش ڪريو يا پنهنجون علامتون لکي موڪليو.",
+            "timeout_title": "آواز واري درخواست جو وقت ختم ٿي ويو",
+            "timeout_message": "آواز واري سروس توقع کان وڌيڪ وقت وٺي رهي آهي. مهرباني ڪري ٻيهر ڪوشش ڪريو يا ٽيڪسٽ ان پٽ استعمال ڪريو.",
+            "api_title": "SahiDawa AI دستياب ناهي",
+            "api_message": "اسان هن وقت طبي رهنمائي حاصل نه ڪري سگهياسين. مهرباني ڪري ڪجهه دير بعد ٻيهر ڪوشش ڪريو."
+        }
+    },
+    "offline": {
+        "bannerOffline": "توهان آف لائن آهيو",
+        "descriptionOffline": "ڪنيڪشن بحال ٿيڻ تي توهان جون تبديليون هم وقت ساز ٿينديون",
+        "bannerOnline": "ٻيهر آن لائن",
+        "descriptionOnline": "ناڪام درخواستن کي ٻيهر موڪليو پيو وڃي...",
+        "dismiss": "بند ڪريو",
+        "title": "آف لائن موڊ",
+        "description": "هن وقت توهان وٽ انٽرنيٽ ڪنيڪشن موجود ناهي.",
+        "subtitle": "آف لائن هجڻ دوران ڪجهه فيچرز دستياب نه هوندا. انٽرنيٽ سان ڳنڍجڻ جي ڪوشش ڪريو يا محفوظ ٿيل مواد ڏسو.",
+        "tryAgain": "ٻيهر ڪوشش ڪريو",
+        "goHome": "گهر واري صفحي ڏانهن وڃو",
+        "footer": "ڪنيڪشن بحال ٿيڻ تي SahiDawa پاڻمرادو هم وقت ساز ٿيندو.",
+        "cachedContent": "توهان اڳ ۾ لوڊ ٿيل مواد تائين اڃا به رسائي حاصل ڪري سگهو ٿا",
+        "noCache": "هي صفحو ڪيش نه ڪيو ويو هو ۽ آف لائن دستياب ناهي",
+        "redirecting": "توهان کي SahiDawa ڏانهن منتقل ڪيو پيو وڃي…",
+        "attempt": "(ڪوشش {retryCount})",
+        "checkingConnection": "ڪنيڪشن چيڪ ڪيو پيو وڃي…",
+        "cachedAvailable": "اڳ ۾ ڏٺل صفحا اڃا به دستياب ٿي سگهن ٿا",
+        "cachedVerifications": "ڪيش ٿيل تصديقون",
+        "savedPharmacies": "محفوظ ڪيل فارميسيون",
+        "browsedMedicines": "ڏٺل دوائون"
+    },
+    "ScanQueue": {
+        "title": "انتظار ۾ تصديقون",
+        "subtitle": "اسڪين جيڪي توهان جي ٻيهر آن لائن ٿيڻ تي تصديق ڪيا ويندا",
+        "queued": "اسڪين مقامي طور محفوظ ڪيو ويو. تصديق پاڻمرادو ٻيهر شروع ٿيندي.",
+        "syncing": "{count} قطار ۾ موجود اسڪينن جي تصديق ڪئي پئي وڃي...",
+        "synced": "{count} قطار ۾ موجود اسڪين ڪاميابي سان تصديق ٿي ويا.",
+        "pendingBadge": "انتظار ۾",
+        "empty": "ڪو به انتظار ۾ اسڪين موجود ناهي"
+    },
+    "contact": {
+        "badge": "GSSoC 2026 اوپن سورس پروجيڪٽ",
+        "heroTitle": {
+            "prefix": "رابطي ۾",
+            "highlight": "اچو"
+        },
+        "heroSubtitle": "ڪو سوال، خيال يا تعاون ڪرڻ جي خواهش آهي؟ اسان توهان کان ٻڌڻ چاهيون ٿا.",
+        "cards": {
+            "email": {
+                "title": "اسان کي اي ميل ڪريو",
+                "description": "رازداري بابت سوالن، ڀائيوارين يا اهم معاملن لاءِ."
+            },
+            "discord": {
+                "title": "Discord ڪميونٽي",
+                "description": "شريڪ ٿيندڙن سان ڳنڍيو، سوال پڇو ۽ اعلان حاصل ڪريو.",
+                "cta": "Discord ۾ شامل ٿيو"
+            },
+            "bug": {
+                "title": "بگ رپورٽ ڪريو",
+                "description": "ڪو مسئلو مليو؟ GitHub تي مسئلو کوليو ۽ اسان ان کي جلدي حل ڪنداسين.",
+                "cta": "Issue کوليو"
+            },
+            "contribute": {
+                "title": "تعاون ڪريو",
+                "description": "SahiDawa جي تعمير ۾ مدد ڪرڻ چاهيو ٿا؟ اسان جي تعاون واري رهنمائي پڙهو.",
+                "cta": "رهنمائي پڙهو"
+            }
+        },
+        "quickLinks": {
+            "title": "مفيد لنڪس",
+            "about": "SahiDawa بابت",
+            "privacy": "رازداري پاليسي",
+            "faq": "اڪثر پڇيا ويندڙ سوال"
+        },
+        "footer": "SahiDawa مفت، اوپن سورس ۽ 1.4 ارب هندستانين لاءِ ٺاهيو ويو آهي. نه اشتهار. نه پريميئم. نه ئي ڊيٽا وڪرو ٿيندي. ڪڏهن به نه."
+    },
+    "about": {
+        "badge": "GSSoC 2026 اوپن سورس پروجيڪٽ",
+        "heroTitle": "<highlight>SahiDawa</highlight> بابت",
+        "heroSubtitle": "ڀارت جو پهريون اوپن سورس شهري دوا تصديق ڪندڙ ۽ ڳوٺاڻي صحت جو پل. ڀارت لاءِ ٺهيل. صرف انڊيا لاءِ نه.",
+        "features": {
+            "free": "100٪ مفت. هميشه لاءِ.",
+            "languages": "22 هندستاني ٻوليون",
+            "license": "اوپن سورس MIT لائسنس"
+        },
+        "problemSection": {
+            "title": "اهو مسئلو جيڪو اسان حل ڪري رهيا آهيون",
+            "description": "ڀارت هڪ ٽن سطحن واري صحت جي بحران کي منهن ڏئي رهيو آهي، جنهن کي ڪو به موجوده پليٽفارم هڪ ئي وقت حل نٿو ڪري."
+        },
+        "cards": {
+            "fakeMedicines": {
+                "title": "جعلي دوائون",
+                "description": "ڀارت ۾ 12–25٪ دوائون جعلي يا غير معياري آهن، جيڪي 1.4 ارب ماڻهن کي خطري ۾ وجهن ٿيون ۽ شهرين لاءِ تصديق جو ڪو سڌو اوزار موجود ناهي."
+            },
+            "ruralHealthcare": {
+                "title": "ڳوٺاڻي صحت جي کوٽ",
+                "description": "ڀارت جي 65٪ آبادي ڳوٺاڻن علائقن ۾ رهي ٿي جتي ماهر ڊاڪٽر تقريباً موجود ناهن — 900 ملين کان وڌيڪ ماڻهو مناسب صحت جي سهولت کان محروم آهن."
+            },
+            "languageBarrier": {
+                "title": "ٻولي جي رڪاوٽ",
+                "description": "22 سرڪاري ٻوليون آهن، پر گهڻي صحت بابت معلومات انگريزي يا هندي ۾ آهي، جنهن سبب 500 ملين کان وڌيڪ غير هندي ڳالهائيندڙ پوئتي رهجي وڃن ٿا."
+            }
+        },
+        "realIncident": {
+            "title": "حقيقي واقعو — جولاءِ 2025",
+            "text": "دهلي پوليس هڪ جعلي دوائن جي گروهه کي پڪڙيو جيڪو جعلي Johnson & Johnson ۽ GSK دوائون فراهم ڪري رهيو هو — جيڪي چاڪ پائوڊر ۽ نشاستي مان ٺهيل هيون — ۽ سرڪاري اسپتالن تائين پهچي ويون هيون. مريضن وٽ انهن دوائن کي استعمال ڪرڻ کان اڳ <highlight>تصديق ڪرڻ جو ڪو طريقو نه هو</highlight>.",
+            "highlight": "SahiDawa هن مسئلي کي حل ڪري ٿو. مفت. هميشه لاءِ. اوپن سورس."
+        },
+        "mission": {
+            "title": "اسان جو مشن",
+            "description": "هر هندستاني شهري کي، ٻولي، جڳهه يا خواندگي کان سواءِ، دوائن جي فوري تصديق، قابل صحت رهنمائي تائين رسائي، ۽ پنهنجي برادري ۾ جعلي دوائن جي رپورٽ ڪرڻ جي صلاحيت ڏيڻ."
+        },
+        "vision": {
+            "title": "اسان جو ويزن",
+            "description": "اهڙو ڀارت جتي ڪا به ٻار جعلي دوا سبب نه مري، ڪنهن هاري جي خاندان جي غلط تشخيص نه ٿئي، ۽ ڪا به ٻولي صحت جي رڪاوٽ نه بڻجي. مفت. اوپن. هميشه لاءِ."
+        },
+        "coreValues": {
+            "title": "اسان جون بنيادي قدرون",
+            "cards": {
+                "openSource": {
+                    "title": "اوپن سورس",
+                    "description": "MIT لائسنس. هميشه."
+                },
+                "freeForever": {
+                    "title": "هميشه لاءِ مفت",
+                    "description": "ڪا به لڪل فيس ناهي. ڪڏهن به نه."
+                },
+                "inclusive": {
+                    "title": "شامل ڪندڙ",
+                    "description": "22 ٻوليون. سڄو ڀارت."
+                },
+                "privacy": {
+                    "title": "رازداري پهرين",
+                    "description": "ڪو به ڊيٽا وڪرو نه ٿيندو. نه اشتهار."
+                }
+            }
+        },
+        "contactUs": {
+            "title": "رابطي ۾ اچو",
+            "subtitle": "سوال، خيال يا تعاون ڪرڻ چاهيو ٿا؟ اسان توهان کان ٻڌڻ پسند ڪنداسين."
+        }
+    },
+    "Faq": {
+        "badge": "GSSoC 2026 اوپن سورس پروجيڪٽ",
+        "title": "اڪثر پڇيا ويندڙ",
+        "title_highlight": "سوال",
+        "subtitle": "SahiDawa بابت توهان کي ڄاڻڻ لاءِ هر شيءِ — ڀارت جو مفت، اوپن سورس دوا تصديق پليٽفارم.",
+        "cta": {
+            "title": "اڃا به سوال آهن؟",
+            "subtitle": "جيڪڏهن توهان کي گهربل جواب نه مليو هجي، ته اسان جي ڪميونٽي سان رابطو ڪريو.",
+            "button": "اسان سان رابطو ڪريو"
+        },
+        "items": {
+            "0": {
+                "question": "SahiDawa ڇا آهي؟",
+                "answer": "SahiDawa ڀارت جو پهريون اوپن سورس شهري دوا تصديق پليٽفارم آهي. اهو توهان کي دوائن جي اصليت چيڪ ڪرڻ، ويجهي محفوظ فارميسيون ڳولڻ، ۽ پنهنجي ٻولي ۾ صحت بابت رهنمائي حاصل ڪرڻ ۾ مدد ڪري ٿو."
+            },
+            "1": {
+                "question": "ڇا SahiDawa استعمال ڪرڻ لاءِ مفت آهي؟",
+                "answer": "ها! SahiDawa 100٪ هميشه لاءِ مفت آهي. نه اشتهار، نه پريميئم پلان، نه ڊيٽا وڪرو. ڪڏهن به نه. اهو ڪميونٽي طرفان ڀارت لاءِ ٺاهيو ويو آهي."
+            },
+            "2": {
+                "question": "دوا جي تصديق ڪيئن ڪم ڪري ٿي؟",
+                "answer": "توهان پنهنجي دوا جي پيڪنگ تي موجود بارڪوڊ يا QR ڪوڊ اسڪين ڪري سگهو ٿا. SahiDawa ان کي سرڪاري CDSCO ڊيٽابيس سان ملائي چيڪ ڪري ٿو ۽ ٻڌائي ٿو ته دوا اصلي، مشڪوڪ يا جعلي آهي."
+            },
+            "3": {
+                "question": "SahiDawa ڪهڙين ٻولين کي سپورٽ ڪري ٿو؟",
+                "answer": "SahiDawa ڀارت جي 22 سرڪاري ٻولين کي سپورٽ ڪري ٿو. توهان Whisper ۽ Sarvam AI سان هلندڙ Voice Health Assistant ذريعي پنهنجي ٻولي ۾ علامتون ٻڌائي سگهو ٿا."
+            },
+            "4": {
+                "question": "مان جعلي دوا جي رپورٽ ڪيئن ڪري سگهان ٿو؟",
+                "answer": "توهان هوم پيج تي موجود 'Report Fake' فيچر استعمال ڪري سگهو ٿا. توهان جي رپورٽ ڪميونٽي هيٽ ميپ ۾ شامل ٿيندي جيڪا ٻين ماڻهن کي جعلي دوائن بابت خبردار ڪرڻ ۾ مدد ڪندي."
+            },
+            "5": {
+                "question": "ڇا منهنجو ڊيٽا SahiDawa سان محفوظ آهي؟",
+                "answer": "بلڪل. SahiDawa توهان جو ڊيٽا نه وڪڻي ٿو، نه اشتهار ڏيکاري ٿو ۽ نه ئي ڪو پريميئم پلان رکي ٿو. توهان جي رازداري اسان جي پهرين ترجيح آهي."
+            },
+            "6": {
+                "question": "مان SahiDawa ۾ ڪيئن تعاون ڪري سگهان ٿو؟",
+                "answer": "SahiDawa MIT لائسنس تحت اوپن سورس آهي. توهان GitHub تي تعاون ڪري سگهو ٿا، بگ رپورٽ ڪري سگهو ٿا، نوان فيچر تجويز ڪري سگهو ٿا يا GSSoC 2026 جي شرڪت ڪندڙ طور شامل ٿي سگهو ٿا."
+            },
+            "7": {
+                "question": "CDSCO ڇا آهي؟",
+                "answer": "CDSCO جو مطلب Central Drugs Standard Control Organisation آهي. اهو ڀارت جو قومي ريگيوليٽري ادارو آهي جيڪو دوائن، طبي آلات ۽ ڪاسميٽڪس جي نگراني ڪري ٿو. SahiDawa دوائن جي تصديق انهن جي سرڪاري ڊيٽابيس سان ڪري ٿو."
+            }
+        }
+    },
+    "chat": {
+        "welcome": "نمستي، مان SahiDawa آهيان، توهان جو ڀروسي جوڳو صحت ساٿي. مان توهان کي دوائن جي تصديق، علامتن کي سمجهڻ يا ويجهي صحت سهولتون ڳولڻ ۾ مدد ڪري سگهان ٿو. اڄ توهان کي ڪهڙي مدد گهرجي؟",
+        "listening": "ٻڌي رهيو آهيان... مهرباني ڪري صاف ڳالهايو",
+        "placeholder": "پنهنجو صحت بابت سوال لکو...",
+        "quick_actions": "جلدي ڪارروايون",
+        "footer": "صرف معلوماتي مقصدن لاءِ • ڊاڪٽر سان صلاح ڪريو",
+        "actions": {
+            "scan": {
+                "label": "دوا اسڪين ڪريو",
+                "description": "اصليت جي تصديق ڪريو"
+            },
+            "symptoms": {
+                "label": "علامتون چيڪ ڪريو",
+                "description": "AI تي ٻڌل رهنمائي"
+            },
+            "pharmacy": {
+                "label": "فارميسي ڳوليو",
+                "description": "تصديق ٿيل اسٽور ڳوليو"
+            }
+        }
+    },
+    "chatbot": {
+        "title": "SahiDawa AI",
+        "status": "آن لائن",
+        "welcome": "سلام! مان SahiDawa AI اسسٽنٽ آهيان. اڄ آئون توهان جي دوائن بابت ڪيئن مدد ڪري سگهان ٿو؟",
+        "placeholder": "مون کان ڪنهن دوا بابت پڇو..."
+    },
+    "Alerts": {
+        "backHome": "هوم پيج ڏانهن واپس وڃو",
+        "badge": "لائيو الرٽس",
+        "title": "لائيو CDSCO الرٽس",
+        "subtitle": "مڪمل تاريخي حفاظتي لاگنگ اسٽريم جيڪا سڌو CDSCO جي ماسٽر رجسٽري سان ڳنڍيل آهي.",
+        "regionBadge": "ڀارت علائقو",
+        "totalCount": "ڪل تعداد: {count}",
+        "brandPlaceholder": "برانڊ نالي سان ڳوليو...",
+        "regionPlaceholder": "رياست/ضلعي موجب فلٽر ڪريو...",
+        "error": "فعال لاگز حاصل ڪرڻ دوران ڊيٽابيس هم وقت سازي ۾ غلطي پيش آئي.",
+        "loading": "الرٽس لوڊ ٿي رهيا آهن...",
+        "systemUpdate": "سسٽم اپڊيٽ",
+        "alertType": "الرٽ: {type}",
+        "noDetails": "ڪا به تفصيل موجود ناهي",
+        "batchLabel": "بيچ:",
+        "manufacturerLabel": "ٺاهيندڙ:",
+        "regionLabel": "علائقو:",
+        "empty": "توهان جي معيار سان ملندڙ ڪا به صحت الرٽ نه ملي.",
+        "previous": "پويون",
+        "next": "اڳيون"
+    },
+    "Compare": {
+        "pageTitle": "دوائن جو مقابلو ڪريو",
+        "pageSubtitle": "برانڊ ۽ جنرڪ جو پاسي پاسي مقابلو",
+        "reportTitle": "SahiDawa دوا مقابلي جي رپورٽ",
+        "generatedOn": "{date} تي تيار ڪئي وئي",
+        "printExport": "پرنٽ / PDF ايڪسپورٽ",
+        "firstMedicine": "پهرين دوا",
+        "secondMedicine": "ٻي دوا",
+        "searchPlaceholder": "برانڊ يا جنرڪ نالو ڳوليو",
+        "findPharmacies": "فاميسيون ڳوليو",
+        "emptyComparison": "مقابلو ڏسڻ لاءِ مٿان ٻه دوائون چونڊيو.",
+        "fieldHeader": "فيلڊ",
+        "medicineA": "دوا A",
+        "medicineB": "دوا B",
+        "priceUnavailable": "قيمت دستياب ناهي",
+        "noSavings": "ڪا بچت ناهي",
+        "saveAmount": "₹{amount} بچايو ({percent}%)",
+        "rows": {
+            "brandName": "برانڊ نالو",
+            "genericName": "جنرڪ نالو",
+            "composition": "ترڪيب",
+            "manufacturer": "ٺاهيندڙ",
+            "type": "قسم",
+            "cdscoStatus": "CDSCO حيثيت",
+            "expiryDate": "ختم ٿيڻ جي تاريخ",
+            "marketPrice": "مارڪيٽ قيمت (MRP)",
+            "janAushadhiPrice": "جن اوشدهي قيمت",
+            "savings": "MRP جي مقابلي ۾ بچت"
+        },
+        "medicineTypes": {
+            "brand": "برانڊ",
+            "generic": "جنرڪ"
+        },
+        "status": {
+            "approved": "منظور ٿيل",
+            "recalled": "واپس گهرايل",
+            "banned": "پابندي لڳل"
+        }
+    },
+    "Calculator": {
+        "pageTitle": "دوا خرچ بچت ڪيلڪيوليٽر",
+        "pageSubtitle": "جنرڪ متبادل ڳوليو ۽ پنهنجي بچت جو حساب لڳايو",
+        "searchLabel": "بچت حساب ڪرڻ لاءِ دوا چونڊيو",
+        "searchPlaceholder": "برانڊ يا جنرڪ نالو ڳوليو",
+        "loading": "جنرڪ متبادل لوڊ ٿي رهيا آهن...",
+        "error": "متبادل تفصيل حاصل ڪرڻ ۾ ناڪامي.",
+        "brandPriceLabel": "برانڊ قيمت (MRP)",
+        "genericPriceLabel": "جن اوشدهي قيمت",
+        "brandName": "برانڊ نالو",
+        "genericName": "جنرڪ متبادل",
+        "savingsLabel": "هر خريداري تي بچت",
+        "alternativeTitle": "جن اوشدهي متبادل تفصيل",
+        "noAlternative": "هن دوا لاءِ اڃا تائين ڪو جن اوشدهي جنرڪ متبادل موجود ناهي.",
+        "quantityLabel": "مقدار (پٽيون/پيڪ هر مهيني)",
+        "monthlySavings": "ماهوار بچت",
+        "yearlySavings": "سالياني بچت",
+        "perPurchaseSavings": "في خريداري بچت",
+        "dosageSectionTitle": "خريداري جي مقدار داخل ڪريو",
+        "projectionsTitle": "اندازي مطابق خرچ بچت جا نتيجا",
+        "brandCostLabel": "برانڊ خرچ",
+        "genericCostLabel": "جنرڪ خرچ",
+        "costPerMonth": "في مهينو",
+        "brandTierTitle": "تجويز ڪيل برانڊ",
+        "brandTierDesc": "عام تجارتي برانڊ جي قيمت",
+        "genericTierTitle": "جنرڪ متبادل",
+        "genericTierDesc": "برانڊڊ جنرڪ متبادل",
+        "janAushadhiTierTitle": "جن اوشدهي جنرڪ",
+        "janAushadhiTierDesc": "حڪومتي سبسڊي واري قيمت تي جنرڪ دوا",
+        "bestValue": "بهترين قدر",
+        "mrpLabel": "MRP",
+        "estimatedLabel": "(اندازي مطابق)",
+        "costPerMonthGeneric": "جنرڪ خرچ",
+        "costPerMonthJanAushadhi": "جن اوشدهي خرچ",
+        "costPerMonthBrand": "برانڊ خرچ",
+        "packUnit": "پيڪ",
+        "packsUnit": "پيڪ"
+    },
+    "ExpiryTracker": {
+        "title": "دوائن جي ختم ٿيڻ جي تاريخ ٽريڪر",
+        "subtitle": "پنهنجي دوا جي اسٽاڪ کي مقامي طور سنڀاليو ۽ ٽريڪ ڪريو",
+        "addMedicine": "دوا شامل ڪريو",
+        "editMedicine": "دوا ۾ ترميم ڪريو",
+        "saveChanges": "تبديليون محفوظ ڪريو",
+        "cancel": "منسوخ ڪريو",
+        "notesLabel": "نوٽس (اختياري)",
+        "notesPlaceholder": "اسٽوريج جون هدايتون يا ڊوز بابت نوٽس...",
+        "name": "نالو",
+        "expiryDate": "ختم ٿيڻ جي تاريخ",
+        "batchNumber": "بيچ نمبر (اختياري)",
+        "batchPlaceholder": "مثال: B12345",
+        "namePlaceholder": "مثال: پيراسيٽامول",
+        "addToTracker": "ٽريڪر ۾ شامل ڪريو",
+        "trackedMedicines": "ٽريڪ ڪيل دوائون",
+        "total": "ڪل",
+        "noMedicines": "اڃا تائين ڪا دوا شامل نه ڪئي وئي آهي.",
+        "loading": "ٽريڪر ڊيٽا لوڊ ٿي رهي آهي...",
+        "searchPlaceholder": "دوائون ڳوليو...",
+        "sortBy": "ترتيب ڏيو",
+        "sortExpirySoonest": "ختم ٿيڻ جي تاريخ (جلدي ختم ٿيندڙ پهرين)",
+        "sortExpiryLatest": "ختم ٿيڻ جي تاريخ (دير سان ختم ٿيندڙ پهرين)",
+        "sortAlpha": "نالو (A-Z)",
+        "filterAll": "سڀ",
+        "filterExpired": "ختم ٿيل",
+        "filterExpiringSoon": "جلدي ختم ٿيندڙ",
+        "filterSafe": "محفوظ",
+        "exportBackup": "بيڪ اپ برآمد ڪريو",
+        "importBackup": "بيڪ اپ درآمد ڪريو",
+        "importError": "غلط بيڪ اپ فائل. مهرباني ڪري صحيح JSON بيڪ اپ اپلوڊ ڪريو.",
+        "importDateError": "بيڪ اپ ۾ غلط تاريخ جو فارميٽ مليو. سڀ تاريخون YYYY-MM-DD فارميٽ ۾ هجڻ گهرجن.",
+        "statusExpired": "ختم ٿيل",
+        "statusExpiringSoon": "{days} ڏينهن ۾ ختم ٿيندي",
+        "statusSafe": "محفوظ",
+        "deleteSelected": "چونڊيل ختم ڪريو",
+        "selectMedicine": "{name} چونڊيو"
+    },
+    "ChildVaccinationTracker": {
+        "childTrackerTitle": "ٻار جي ويڪسين ٽريڪر",
+        "childTrackerSubtitle": "ذاتي قومي حفاظتي ٽيڪاڪاري شيڊول ۽ مڪمل ٿيڻ جي ٽريڪنگ لاءِ ٻار جو پروفائيل داخل ڪريو.",
+        "childReminderButton": "ياد ڏياريندڙ ڊائون لوڊ ڪريو",
+        "childNameLabel": "ٻار جو نالو",
+        "childNamePlaceholder": "ٻار جو نالو داخل ڪريو",
+        "childDobLabel": "پيدائش جي تاريخ",
+        "childDefaultName": "ٻار",
+        "childDobPrompt": "ذاتي ويڪسين ٽائم لائن ٺاهڻ لاءِ پيدائش جي تاريخ داخل ڪريو.",
+        "childDobFutureError": "پيدائش جي تاريخ مستقبل ۾ نه ٿي سگهي.",
+        "childDobInvalidError": "صحيح پيدائش جي تاريخ داخل ڪريو.",
+        "childProfileSummary": "ٻار جو پروفائيل",
+        "scheduleSourceLabel": "شيڊول جو بنياد",
+        "childTimelineHeading": "ذاتي ٽائم لائن",
+        "whereApplicableBadge": "جتي لاڳو ٿئي",
+        "dueDateLabel": "واجب تاريخ",
+        "officialTimingLabel": "سرڪاري وقت",
+        "completedStatus": "مڪمل",
+        "dueStatus": "واجب",
+        "overdueStatus": "دير ٿيل",
+        "upcomingStatus": "ايندڙ",
+        "markCompleteButton": "مڪمل طور نشان لڳايو"
+    },
+    "Login": {
+        "brandSubtitle": "دوا جي حفاظت جو پليٽفارم",
+        "heading": "واپس ڀليڪار",
+        "description": "دوا جي حفاظت جون رپورٽون ۽ تصديق جا نتيجا ٽريڪ ڪرڻ لاءِ سائن ان ڪريو.",
+        "missingConfig": {
+            "title": "تصديق جو نظام ترتيب ڏنل ناهي",
+            "description": "Supabase URL يا anon key موجود ناهي. سائن ان ڪرڻ کان اڳ ماحولياتي متغير شامل ڪريو."
+        },
+        "googleButton": "Google سان جاري رکو",
+        "githubButton": "GitHub سان جاري رکو",
+        "emailSeparator": "يا اي ميل سان جاري رکو",
+        "emailLabel": "اي ميل پتو",
+        "emailPlaceholder": "[you@example.com](mailto:you@example.com)",
+        "passwordLabel": "پاسورڊ",
+        "passwordPlaceholder": "پنهنجو پاسورڊ داخل ڪريو",
+        "signingIn": "سائن ان ٿي رهيو آهي...",
+        "signIn": "سائن ان",
+        "footerPrompt": "واپس وڃڻ چاهيو ٿا؟",
+        "returnHome": "هوم ڏانهن واپس وڃو",
+        "bottomText": "SahiDawa ڪميونٽي اوزارن لاءِ محفوظ رسائي.",
+        "errors": {
+            "databaseNotConfigured": "هن ماحول لاءِ تصديق جو نظام ترتيب ڏنل ناهي.",
+            "generic": "سائن ان نه ٿي سگهيو. مهرباني ڪري ٻيهر ڪوشش ڪريو."
+        }
+    },
+    "AdminLayout": {
+        "accessDeniedTitle": "رسائي رد ڪئي وئي",
+        "accessDeniedDescription": "هي صفحو ڏسڻ لاءِ توهان کي ايڊمن يا موڊريٽر جا اختيار گهرجن.",
+        "returnHome": "هوم ڏانهن واپس وڃو"
+    },
+    "AdminDashboard": {
+        "brandSuffix": "ايڊمن",
+        "version": "SahiDawa Admin v1.0",
+        "nav": {
+            "reports": "رپورٽون",
+            "medicine": "دوا ماسٽر",
+            "logs": "آڊٽ لاگز"
+        },
+        "header": {
+            "title": "موڊريشن ڊيش بورڊ",
+            "subtitle": "ڪميونٽي طرفان رپورٽ ڪيل جعلي دوائن جو انتظام ڪريو"
+        },
+        "searchPlaceholder": "ڳوليو...",
+        "actions": {
+            "signIn": "سائن ان",
+            "refresh": "ريفريش",
+            "addMedicine": "دوا شامل ڪريو",
+            "save": "محفوظ ڪريو",
+            "cancel": "منسوخ ڪريو",
+            "goToLogin": "لاگ ان صفحي ڏانهن وڃو",
+            "markFake": "جعلي طور نشان لڳايو",
+            "falseAlarm": "غلط اطلاع"
+        },
+        "stats": {
+            "pending": "انتظار ۾",
+            "resolved": "حل ٿيل",
+            "districtsAffected": "متاثر ضلعا"
+        },
+        "errors": {
+            "notAuthenticated": "تصديق ٿيل ناهي — مهرباني ڪري ايڊمن طور سائن ان ڪريو.",
+            "accessDenied": "رسائي رد ڪئي وئي — ايڊمن يا موڊريٽر جو ڪردار گهربل آهي.",
+            "apiUnavailable": "API تائين رسائي نه ٿي سگهي. ڇا backend سرور پورٽ 4000 تي هلي رهيو آهي؟"
+        },
+        "toasts": {
+            "markedFake": "تصديق ٿيل جعلي طور نشان لڳايو ويو",
+            "falseAlarm": "غلط اطلاع طور نشان لڳايو ويو",
+            "reportUpdateFailed": "رپورٽ اپڊيٽ نه ٿي سگهي",
+            "medicineAdded": "دوا شامل ڪئي وئي",
+            "medicineAddFailed": "دوا شامل ڪرڻ ۾ ناڪامي"
+        },
+        "medicine": {
+            "title": "دوا ماسٽر",
+            "empty": "ڪا دوا نه ملي",
+            "columns": {
+                "brand": "برانڊ",
+                "generic": "جنرڪ",
+                "manufacturer": "ٺاهيندڙ",
+                "barcode": "بارڪوڊ",
+                "status": "حيثيت"
+            }
+        },
+        "status": {
+            "approved": "منظور ٿيل",
+            "recalled": "واپس گهرايل",
+            "banned": "پابندي لڳل"
+        },
+        "logs": {
+            "title": "آڊٽ لاگز",
+            "subtitle": "تازيون موڊريشن ۽ دوا فهرست جون سرگرميون",
+            "loading": "لاگز لوڊ ٿي رهيا آهن...",
+            "empty": "اڃا تائين ڪو آڊٽ لاگ موجود ناهي"
+        },
+        "reports": {
+            "title": "ايندڙ رپورٽون",
+            "pendingCount": "{count, plural, =0 {ڪو به انتظار ۾ رپورٽ ناهي} =1 {1 انتظار ۾ رپورٽ} other {# انتظار ۾ رپورٽون}}",
+            "loading": "رپورٽون لوڊ ٿي رهيون آهن...",
+            "empty": "ڪو به انتظار ۾ رپورٽ ناهي",
+            "columns": {
+                "medicine": "دوا",
+                "district": "ضلعو",
+                "barcode": "بارڪوڊ",
+                "reported": "رپورٽ ٿيل",
+                "actions": "ڪارروايون"
+            },
+            "decisions": {
+                "verifiedFake": "تصديق ٿيل جعلي",
+                "falseAlarm": "غلط اطلاع"
+            }
+        },
+        "resolved": {
+            "title": "تازو حل ٿيل",
+            "count": "{count, plural, =0 {ڪو به حل ٿيل رپورٽ ناهي} =1 {1 حل ٿيل رپورٽ} other {# حل ٿيل رپورٽون}}",
+            "decision": "فيصلو"
+        }
+    },
+    "AdminAnalytics": {
+        "title": "اثر ۽ تجزياتي ڊيش بورڊ",
+        "subtitle": "ڪميونٽي جي شموليت جا انگ اکر ۽ واڌ جا رجحان",
+        "metrics": {
+            "totalMedicines": "ڪل دوائون",
+            "totalReports": "ڪل رپورٽون",
+            "resolved": "حل ٿيل",
+            "districtsCovered": "احاطي ۾ آيل ضلعا"
+        },
+        "charts": {
+            "monthlyGrowth": "ماهوار واڌ جو رجحان",
+            "reportStatus": "رپورٽ اسٽيٽس جي ورڇ",
+            "topDistricts": "رپورٽن موجب مٿيان ضلعا",
+            "recentActivity": "تازيون سرگرميون"
+        },
+        "overview": {
+            "title": "پليٽفارم جو جائزو",
+            "avgReportsPerDay": "اوسط رپورٽون / ڏينهن",
+            "resolutionRate": "حل ٿيڻ جي شرح",
+            "thisWeekReports": "هن هفتي جون رپورٽون",
+            "thisWeekMedicines": "هن هفتي جون دوائون"
+        }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "ويڪسين حب",
+        "pageHeaderSubtitle": "حفاظتي ٽيڪاڪاري ٽريڪر",
+        "title": "ويڪسين حب ۽ حفاظتي ٽيڪاڪاري ٽريڪر",
+        "subtitle": "بهتر عوامي صحت جي آگاهي لاءِ ويڪسين شيڊول، حفاظتي معلومات ۽ بعد جي سنڀال بابت رهنمائي ڳوليو.",
+        "selectLabel": "بيماري / ويڪسين چونڊيو",
+        "placeholder": "ويڪسين پروفائل چونڊيو...",
+        "childBirthDate": "ٻار جي پيدائش جي تاريخ",
+        "milestoneBaseDate": "پهرين ڊوز جي بنيادي تاريخ",
+        "noVaccineSelected": "ڪو ويڪسين چونڊيل ناهي",
+        "chooseVaccinePrompt": "ٽريڪنگ جا اوزار کولڻ لاءِ مٿي ويڪسين چونڊيو:",
+        "featureSchedule": "متحرڪ متوقع حفاظتي ٽيڪاڪاري شيڊول",
+        "featureSideEffects": "ضمني اثرن جي ورڇ (هلڪا ۽ شديد)",
+        "featureAftercare": "ڪلينيڪل قدم بہ قدم بعد جي سنڀال جون هدايتون",
+        "targetGroups": "هدف وارا گروپ",
+        "totalDoses": "ڪل ڊوز",
+        "effectiveness": "اثرائيت",
+        "classification": "درجه بندي",
+        "aboutDisease": "بيماري بابت:",
+        "scheduleLayoutHeading": "حفاظتي ٽيڪاڪاري شيڊول",
+        "atBirth": "پيدائش وقت ڊوز",
+        "atWeeks": "{weeks} هفتن جي عمر تي",
+        "baseline": "شروعاتي ڊوز (بنيادي)",
+        "doseStep": "ڊوز مرحلو {index} (+{weeks} هفتا بعد)",
+        "targetDate": "هدف تاريخ: {date}",
+        "selectDateWarning": "ٽائم لائن ٺاهڻ لاءِ مٿي تاريخ چونڊيو",
+        "commonEffects": "عام بعد وارا اثر",
+        "severeReactions": "شديد ردعمل",
+        "aftercareHeading": "فوري بعد جي سنڀال بابت رهنمائي"
+    },
+    "CommandPalette": {
+        "placeholder": "صفحا يا ڪارروايون ڳوليو...",
+        "noResults": "ڪو نتيجو نه مليو.",
+        "hint": "بند ڪرڻ لاءِ Esc دٻايو",
+        "pages": "صفحا",
+        "actions": "ڪارروايون",
+        "open": "ڪمانڊ پيلٽ کوليو",
+        "nav_home": "هوم ڏانهن وڃو",
+        "nav_scan": "دوا اسڪين ڪريو",
+        "nav_map": "ويجهي فارميسي ڳوليو",
+        "nav_alerts": "الرٽس ڏسو",
+        "nav_expiry": "دوا ختم ٿيڻ جي تاريخ ٽريڪر",
+        "nav_compare": "دوائن جو مقابلو ڪريو",
+        "nav_vaccine": "ويڪسين حب",
+        "nav_reports": "منهنجون رپورٽون",
+        "nav_schedule": "دوا جو شيڊول",
+        "nav_profile": "منهنجو پروفائيل"
+    },
+    "howItWorks": {
+        "badge": "محفوظ صحت جي سار سنڀال • AI سان هلندڙ",
+        "heroTitle": "<highlight>SahiDawa</highlight> ڪيئن ڪم ڪري ٿو",
+        "heroSubtitle": "سکو ته SahiDawa ڪيئن AI تي ٻڌل صحت جي اوزارن ذريعي دوائن جي تصديق، قابل اعتماد فارميسيون ڳولڻ، سرڪاري الرٽ حاصل ڪرڻ ۽ جعلي دوائن کان تحفظ ۾ مدد ڪري ٿو.",
+        "ctaButtons": {
+            "scan": "اسڪين شروع ڪريو",
+            "map": "فارميسي نقشو ڏسو"
+        },
+        "steps": {
+            "scan": {
+                "title": "دوا اسڪين ڪريو",
+                "description": "پنهنجي ڊوائيس جي ڪئميرا کي دوا جي پيڪنگ تي موجود بارڪوڊ يا QR ڪوڊ ڏانهن رخ ڪريو."
+            },
+            "verify": {
+                "title": "فوري تصديق ڪريو",
+                "description": "AI اسڪين ڪيل معلومات کي CDSCO رڪارڊ سان ڀيٽي اصليت چيڪ ڪري ٿو."
+            },
+            "alerts": {
+                "title": "الرٽس چيڪ ڪريو",
+                "description": "جيڪڏهن بيچ واپس گهرايل، پابندي لڳل يا غير معياري هجي ته حقيقي وقت جا حفاظتي الرٽ حاصل ڪريو."
+            },
+            "pharmacies": {
+                "title": "فارميسيون ڳوليو",
+                "description": "جن اوشدهي اسٽور ۽ ويجهي تصديق ٿيل فارميسيون ڳوليو جيڪي اصلي دوائون فراهم ڪن ٿيون."
+            },
+            "protect": {
+                "title": "محفوظ رهو",
+                "description": "پنهنجن اسڪينن جا رڪارڊ رکو، جعلي دوائن جي رپورٽ ڪريو ۽ پنهنجي خاندان جي صحت جي حفاظت ڪريو."
+            }
+        },
+        "features": {
+            "title": "پليٽفارم جون خاصيتون",
+            "subtitle": "محفوظ صحت بابت فيصلا ڪرڻ لاءِ هر شيءِ جيڪا توهان کي گهرجي.",
+            "cards": {
+                "verifyMedicines": {
+                    "title": "دوائن جي تصديق",
+                    "description": "بارڪوڊ، بيچ نمبر يا دوا جي معلومات ذريعي فوري طور دوائن جي اصليت چيڪ ڪريو."
+                },
+                "scanOrSearch": {
+                    "title": "اسڪين يا ڳولا",
+                    "description": "پيڪنگ اسڪين ڪريو يا قابل اعتماد صحت بابت معلومات لاءِ دستي طور دوائون ڳوليو."
+                },
+                "aiAssistant": {
+                    "title": "AI صحت اسسٽنٽ",
+                    "description": "علامتن، ضمني اثرن، احتياطن ۽ دوا جي استعمال بابت AI تي ٻڌل رهنمائي حاصل ڪريو."
+                },
+                "trustedPharmacies": {
+                    "title": "قابل اعتماد فارميسيون",
+                    "description": "ويجهي تصديق ٿيل فارميسيون ڳوليو جتي دوائن جي دستيابي ۽ ريٽنگز قابل اعتماد هجن."
+                },
+                "cdscoAlerts": {
+                    "title": "CDSCO الرٽس",
+                    "description": "سرڪاري CDSCO دوائن جي واپسي، خبردارين ۽ صحت الرٽس بابت تازه ترين ڄاڻ حاصل ڪريو."
+                },
+                "reportMedicines": {
+                    "title": "مشڪوڪ دوائن جي رپورٽ ڪريو",
+                    "description": "جعلي يا مشڪوڪ دوائن جي فوري رپورٽ ڪري ڪميونٽي جي مدد ڪريو."
+                }
+            }
+        },
+        "ctaBanner": {
+            "title": "محفوظ صحت جي شروعات هتي کان",
+            "subtitle": "دوائن جي تصديق ڪريو، قابل اعتماد صحت جي معلومات حاصل ڪريو ۽ AI تي ٻڌل مدد سان جعلي دوائن کان محفوظ رهو.",
+            "buttons": {
+                "scan": "دوا اسڪين ڪريو",
+                "alerts": "الرٽس ڏسو"
+            }
+        }
+    },
+    "medicineSafety": {
+        "guideTitle": "استعمال ۽ حفاظتي رهنمائي",
+        "noDosageInfo": "هن عمر جي گروپ لاءِ ڊوز جي معلومات موجود ناهي.",
+        "closeButton": "حفاظتي معلومات بند ڪريو",
+        "tabs": {
+            "sideEffects": "ضمني اثرات",
+            "dosage": "ڊوز",
+            "dietaryIntake": "غذائي استعمال"
+        },
+        "sideEffects": {
+            "standardSymptoms": "عام علامتون",
+            "severeRedFlags": "شديد خبردار ڪندڙ نشانيون — فوري طبي مدد حاصل ڪريو"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "ٻار",
+                "adults": "بالغ",
+                "elderly": "بزرگ"
+            },
+            "doseLabel": "ڊوز:",
+            "frequencyLabel": "وقفي:",
+            "notesHeading": "نوٽس",
+            "warningsHeading": "خبردارين"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "غذائي استعمال"
+            },
+            "storageHeading": "ذخيرو ڪرڻ",
+            "pregnancyHeading": "حمل"
+        },
+        "disclaimer": "هي معلومات صرف تعليمي مقصدن لاءِ آهي ۽ پيشه ور طبي مشوري جو متبادل ناهي."
+    },
+    "Settings": {
+        "title": "نوٽيفڪيشن جون ترجيحات",
+        "subtitle": "SMS ۽ WhatsApp ذريعي اهم الرٽ حاصل ڪريو",
+        "phoneLabel": "فون نمبر",
+        "phonePlaceholder": "10 عددي موبائل نمبر داخل ڪريو",
+        "channelsLabel": "پسنديده چينلز",
+        "smsLabel": "SMS الرٽس",
+        "smsDesc": "CDSCO جي واپسي ۽ جعلي دوائن بابت خبرداريون ٽيڪسٽ پيغامن ذريعي حاصل ڪريو",
+        "whatsappLabel": "WhatsApp الرٽس",
+        "whatsappDesc": "WhatsApp تي سڌو سنئون تفصيلي پيغام ۽ ٽيمپليٽ حاصل ڪريو",
+        "langLabel": "الرٽ جي ٻولي",
+        "langDesc": "موصول ٿيندڙ ٽيڪسٽ الرٽس لاءِ پسنديده ٻولي",
+        "districtLabel": "ضلعو",
+        "districtDesc": "هن ضلعي سان لاڳاپيل مخصوص الرٽ حاصل ڪريو",
+        "districtPlaceholder": "مثال: ڏکڻ اولهه دهلي",
+        "saveButton": "ترجيحات محفوظ ڪريو",
+        "optOutButton": "ان سبسڪرائب / آپٽ آئوٽ",
+        "saving": "محفوظ ٿي رهيو آهي...",
+        "successMessage": "ترجيحات ڪاميابي سان محفوظ ٿي ويون!",
+        "optOutSuccess": "سڀني نوٽيفڪيشنن مان ڪاميابي سان آپٽ آئوٽ ڪيو ويو.",
+        "errorMessage": "سيٽنگون اپڊيٽ ڪرڻ ۾ ناڪامي. مهرباني ڪري ٻيهر ڪوشش ڪريو.",
+        "phoneInvalid": "مهرباني ڪري صحيح 10 عددي هندستاني فون نمبر داخل ڪريو.",
+        "districtRequired": "مقامي خبرداريون حاصل ڪرڻ لاءِ مهرباني ڪري ضلعو بيان ڪريو."
+    },
+    "Interactions": {
+        "title": "دوائن جي باهمي اثرن جي جاچ",
+        "subtitle": "گهڻين دوائن جي وچ ۾ ممڪن نقصانڪار باهمي اثرن جي جاچ ڪريو",
+        "searchLabel": "دوا ڳوليو",
+        "searchPlaceholder": "برانڊ نالو يا عام نالو داخل ڪريو...",
+        "addButton": "شامل ڪريو",
+        "checkButton": "باهمي اثرن جي جاچ ڪريو",
+        "myMedicines": "منهنجي دوائن جي فهرست",
+        "noMedicines": "اڃا تائين توهان جي جاچ واري فهرست ۾ ڪا دوا شامل ناهي.",
+        "clearAll": "سڀ صاف ڪريو",
+        "resultsHeading": "باهمي اثرن جي رپورٽ",
+        "noInteractions": "سڀ ٺيڪ آهي! چونڊيل دوائن جي وچ ۾ ڪو به باهمي اثر نه مليو.",
+        "severityCritical": "انتهايي خبرداري",
+        "severitySerious": "سنجيده خبرداري",
+        "severityModerate": "درمياني احتياط",
+        "severityMinor": "معمولي احتياط",
+        "clinicalRecommendation": "طبي سفارش:",
+        "mechanism": "طريقو:",
+        "source": "ذريعو:",
+        "errorMessage": "باهمي اثرن جي جاچ مڪمل نه ٿي سگهي. مهرباني ڪري ٻيهر ڪوشش ڪريو."
+    },
+    "ScanHistory": {
+        "export_modal_title": "اسڪين تاريخ ايڪسپورٽ ڪريو",
+        "export_range_label": "تاريخ جي حد چونڊيو",
+        "export_status_label": "اسٽيٽس موجب فلٽر ڪريو",
+        "range_7d": "گذريل 7 ڏينهن",
+        "range_30d": "گذريل 30 ڏينهن",
+        "range_all": "سڀ وقت",
+        "status_all": "سڀ اسٽيٽس",
+        "status_verified": "صرف تصديق ٿيل",
+        "status_suspicious": "صرف مشڪوڪ",
+        "status_fake": "صرف جعلي",
+        "export_button": "CSV تيار ڪريو",
+        "cancel": "منسوخ",
+        "title": "اسڪين تاريخ",
+        "export_csv_button": "CSV ڏانهن ايڪسپورٽ ڪريو",
+        "sync_cloud_button": "ڪلائوڊ سان هم وقت سازي",
+        "clear_all_button": "سڄي تاريخ صاف ڪريو",
+        "clear_all_button_aria_label": "سڄي اسڪين تاريخ صاف ڪريو",
+        "clear_confirm_message": "ڇا توهان پڪ آهيو ته سڄي اسڪين تاريخ مستقل طور ختم ڪرڻ چاهيو ٿا؟ هي عمل واپس نٿو آڻي سگهجي.",
+        "clear_cancel_button": "منسوخ",
+        "clear_confirm_button": "سڀ صاف ڪريو",
+        "sync_success": "تاريخ ڪلائوڊ سان هم وقت ساز ٿي وئي.",
+        "sync_error": "هن وقت ڪلائوڊ هم وقت سازي دستياب ناهي.",
+        "stat_total": "ڪل",
+        "stat_verified": "تصديق ٿيل",
+        "stat_suspicious": "مشڪوڪ",
+        "stat_fake": "جعلي",
+        "empty_title": "اڃا تائين ڪا اسڪين تاريخ ناهي",
+        "empty_description": "توهان جون تصديق ٿيل دوائون هتي ظاهر ٿينديون.",
+        "item_status_label": "اسٽيٽس: ",
+        "item_delete_button": "ختم ڪريو",
+        "item_copy_success": "دوا جو نالو ڪاپي ٿي ويو!"
+    },
+    "MyReports": {
+        "header_title": "منهنجون رپورٽون",
+        "header_subtitle": "توهان پاران جمع ڪرايل رپورٽن جي حالت",
+        "page_title": "منهنجون رپورٽون",
+        "page_description": "انهن جعلي دوائن بابت ڄاڻ رکو جن جي توهان رپورٽ ڪئي هئي.",
+        "refresh_button_aria_label": "رپورٽون تازيون ڪريو",
+        "loading_aria_label": "توهان جون رپورٽون لوڊ ٿي رهيون آهن",
+        "status_pending_review": "جائزي هيٺ",
+        "status_verified_fake": "جعلي هجڻ جي تصديق ٿي",
+        "status_false_alarm": "غلط اطلاع",
+        "auth_error_title": "سائن ان ضروري آهي",
+        "auth_error_expired": "توهان جو سيشن ختم ٿي ويو آهي. مهرباني ڪري ٻيهر سائن ان ڪريو.",
+        "auth_error_description": "توهان پاران جمع ڪرايل رپورٽون ڏسڻ لاءِ مهرباني ڪري سائن ان ڪريو.",
+        "auth_error_action": "لاگ ان ڏانهن وڃو",
+        "network_error_title": "ڪنيڪشن ۾ غلطي",
+        "network_error_action": "ٻيهر ڪوشش ڪريو",
+        "network_error_api_unreachable": "API تائين رسائي نٿي ٿي سگهي. ڇا بئڪ اينڊ سرور پورٽ 4000 تي هلي رهيو آهي؟",
+        "empty_state_title": "توهان اڃا تائين ڪا رپورٽ جمع نه ڪرائي آهي",
+        "empty_state_description": "ڪا مشڪوڪ يا جعلي دوا ڏٺي؟ ان جي رپورٽ ڪرڻ سان توهان پنهنجي ڪميونٽي جي حفاظت ۾ مدد ڪندا.",
+        "empty_state_action": "پنهنجي پهرين رپورٽ جمع ڪريو",
+        "no_photo_label": "تصوير موجود ناهي",
+        "report_card_district_label": "ضلعو",
+        "report_card_submitted_label": "جمع ڪرايل",
+        "report_card_batch_label": "بيچ"
+    },
+    "Map": {
+        "errors": {
+            "denied": "جڳھ تائين رسائي رد ڪئي وئي. مهرباني ڪري برائوزر سيٽنگن ۾ ان کي فعال ڪريو.",
+            "unavailable": "جڳھ جي معلومات دستياب ناهي.",
+            "timeout": "جڳھ جي درخواست جو وقت ختم ٿي ويو.",
+            "generic": "توهان جي جڳھ حاصل نه ٿي سگهي."
+        }
+    },
+    "Health": {
+        "quickActions": "Quick actions",
+        "scanMedicine": "Scan Medicine",
+        "verifyAuthenticity": "Verify authenticity",
+        "checkSymptoms": "Check Symptoms",
+        "symptomGuidance": "AI-assisted guidance",
+        "findPharmacy": "Find Pharmacy",
+        "locateStores": "Locate verified stores",
+        "replyFallback": "I'm here to help! Could you rephrase that?",
+        "tooManyRequests": "Too many requests. Please try again in a few moments.",
+        "failedResponse": "Failed to generate AI response",
+        "genericError": "Something went wrong",
+        "returnHome": "Return to chat home",
+        "chatConversation": "Chat conversation",
+        "startVoice": "Start voice input",
+        "stopVoice": "Stop voice input",
+        "healthQuestion": "Type your health question",
+        "voiceBrowserRequired": "Voice input is not supported in this browser.",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "sendMessage": "Send message",
+        "footer": "For informational use only • Consult a doctor"
+    }
+}

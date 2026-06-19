@@ -3,12 +3,17 @@ import { toast } from "sonner";
 import { verifyMedicine, checkLasaConflicts, type VerifyResult, type LasaMatch } from "@/lib/api";
 import { recordScanHistory } from "@/lib/scanHistoryUtils";
 import { saveScanHistory } from "@/lib/db/scanHistory";
+import { isNetworkFailure } from "@/lib/scanQueueSync";
 
 export function useMedicineVerification(
     abortControllerRef: RefObject<AbortController | null>,
     isMountedRef: RefObject<boolean>,
     setIsScanning: Dispatch<SetStateAction<boolean>>,
-    setShowResult: Dispatch<SetStateAction<boolean>>
+    setShowResult: Dispatch<SetStateAction<boolean>>,
+    options?: {
+        queueBarcode?: (barcode: string) => Promise<boolean>;
+        onQueued?: (barcode: string) => void;
+    }
 ) {
     const [verifyResult, setVerifyResult] = useState<VerifyResult | null>(null);
     const [verifyError, setVerifyError] = useState<string | null>(null);
@@ -79,6 +84,14 @@ export function useMedicineVerification(
             }
             const normalizedBatch = batch.trim();
 
+            if (typeof navigator !== "undefined" && !navigator.onLine && options?.queueBarcode) {
+                const queued = await options.queueBarcode(normalizedBatch);
+                if (queued) {
+                    options.onQueued?.(normalizedBatch);
+                }
+                return;
+            }
+
             if (abortControllerRef.current) {
                 abortControllerRef.current.abort();
             }
@@ -100,6 +113,13 @@ export function useMedicineVerification(
                 if (errorMsg === "Request was cancelled.") {
                     return;
                 }
+                if (options?.queueBarcode && isNetworkFailure(err)) {
+                    const queued = await options.queueBarcode(normalizedBatch);
+                    if (queued) {
+                        options.onQueued?.(normalizedBatch);
+                    }
+                    return;
+                }
                 setVerifyError(errorMsg);
                 void saveScanHistory({
                     id: crypto.randomUUID(),
@@ -116,7 +136,15 @@ export function useMedicineVerification(
                 }
             }
         },
-        [processVerificationResult, abortControllerRef, isMountedRef, setIsScanning, setShowResult]
+        [
+            processVerificationResult,
+            abortControllerRef,
+            isMountedRef,
+            setIsScanning,
+            setShowResult,
+            options?.queueBarcode,
+            options?.onQueued,
+        ]
     );
 
     return {

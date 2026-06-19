@@ -452,7 +452,15 @@
         "importError": "చెల్లని బ్యాకప్ ఫైల్. దయచేసి చెల్లుబాటు అయ్యే JSON బ్యాకప్‌ను అప్‌లోడ్ చేయండి.",
         "statusExpired": "గడువు ముగిసింది",
         "statusExpiringSoon": "త్వరలో గడువు ముగియనుంది ({days} రోజులు)",
-        "statusSafe": "సురక్షితం"
+        "statusSafe": "సురక్షితం",
+        "exportCSV": "CSVని ఎగుమతి చేయి",
+        "exportPDF": "PDFని ఎగుమతి చేయి",
+        "print": "ప్రింట్ చేయి",
+        "csvExportSuccess": "CSV విజయవంతంగా ఎగుమతి చేయబడింది",
+        "pdfExportSuccess": "PDF విజయవంతంగా ఎగుమతి చేయబడింది",
+        "noMedicinesToDisplay": "ప్రదర్శించడానికి ఎటువంటి మందులు లేవు",
+        "generatedOn": "లో గడువు ముగియనుం",
+        "deleteMedicine": "మందును తొలగించు"
     },
     "Login": {
         "brandSubtitle": "ఔషధ భద్రతా వేదిక",
@@ -639,37 +647,60 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
-  "medicineSafety": {
-    "guideTitle": "వినియోగం మరియు భద్రతా మార్గదర్శిని",
-    "noDosageInfo": "ఈ వయస్సు వర్గానికి మోతాదు సమాచారం అందుబాటులో లేదు.",
-    "closeButton": "భద్రతా సమాచారాన్ని మూసివేయండి",
-    "tabs": {
-      "sideEffects": "దుష్ప్రభావాలు",
-      "dosage": "మోతాదు",
-      "dietaryIntake": "ఆహార వినియోగం"
+    "medicineSafety": {
+        "guideTitle": "వినియోగం మరియు భద్రతా మార్గదర్శిని",
+        "noDosageInfo": "ఈ వయస్సు వర్గానికి మోతాదు సమాచారం అందుబాటులో లేదు.",
+        "closeButton": "భద్రతా సమాచారాన్ని మూసివేయండి",
+        "tabs": {
+            "sideEffects": "దుష్ప్రభావాలు",
+            "dosage": "మోతాదు",
+            "dietaryIntake": "ఆహార వినియోగం"
+        },
+        "sideEffects": {
+            "standardSymptoms": "సాధారణ లక్షణాలు",
+            "severeRedFlags": "తీవ్రమైన హెచ్చరికలు — వెంటనే వైద్య సహాయం పొందండి"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "పిల్లలు",
+                "adults": "వయోజనులు",
+                "elderly": "వృద్ధులు"
+            },
+            "doseLabel": "మోతాదు:",
+            "frequencyLabel": "తరచుదనం:",
+            "notesHeading": "గమనికలు",
+            "warningsHeading": "హెచ్చరికలు"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "ఆహార వినియోగం"
+            },
+            "storageHeading": "నిల్వ",
+            "pregnancyHeading": "గర్భధారణ"
+        },
+        "disclaimer": "ఈ సమాచారం విద్యాపరమైనది మాత్రమే; ఇది వృత్తిపరమైన వైద్య సలహాకు ప్రత్యామ్నాయం కాదు."
     },
-    "sideEffects": {
-      "standardSymptoms": "సాధారణ లక్షణాలు",
-      "severeRedFlags": "తీవ్రమైన హెచ్చరికలు — వెంటనే వైద్య సహాయం పొందండి"
-    },
-    "dosage": {
-      "tabs": {
-        "kids": "పిల్లలు",
-        "adults": "వయోజనులు",
-        "elderly": "వృద్ధులు"
-      },
-      "doseLabel": "మోతాదు:",
-      "frequencyLabel": "తరచుదనం:",
-      "notesHeading": "గమనికలు",
-      "warningsHeading": "హెచ్చరికలు"
-    },
-    "dietary": {
-      "tabs": {
-        "dietaryIntake": "ఆహార వినియోగం"
-      },
-      "storageHeading": "నిల్వ",
-      "pregnancyHeading": "గర్భధారణ"
-    },
-    "disclaimer": "ఈ సమాచారం విద్యాపరమైనది మాత్రమే; ఇది వృత్తిపరమైన వైద్య సలహాకు ప్రత్యామ్నాయం కాదు."
-  }
+    "Health": {
+        "quickActions": "Quick actions",
+        "scanMedicine": "Scan Medicine",
+        "verifyAuthenticity": "Verify authenticity",
+        "checkSymptoms": "Check Symptoms",
+        "symptomGuidance": "AI-assisted guidance",
+        "findPharmacy": "Find Pharmacy",
+        "locateStores": "Locate verified stores",
+        "replyFallback": "I'm here to help! Could you rephrase that?",
+        "tooManyRequests": "Too many requests. Please try again in a few moments.",
+        "failedResponse": "Failed to generate AI response",
+        "genericError": "Something went wrong",
+        "returnHome": "Return to chat home",
+        "chatConversation": "Chat conversation",
+        "startVoice": "Start voice input",
+        "stopVoice": "Stop voice input",
+        "healthQuestion": "Type your health question",
+        "voiceBrowserRequired": "Voice input is not supported in this browser.",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "sendMessage": "Send message",
+        "footer": "For informational use only • Consult a doctor"
+    }
 }

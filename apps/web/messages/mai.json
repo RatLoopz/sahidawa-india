@@ -461,7 +461,15 @@
         "importError": "अमान्य बैकअप फाइल। कृपया एकटा वैध JSON बैकअप अपलोड करू।",
         "statusExpired": "समाप्त",
         "statusExpiringSoon": "जल्दी समाप्त ({days}दिन)",
-        "statusSafe": "सुरक्षित"
+        "statusSafe": "सुरक्षित",
+        "exportCSV": "CSV निर्यात करें",
+        "exportPDF": "PDF निर्यात करें",
+        "print": "प्रिंट करें",
+        "csvExportSuccess": "CSV सफलतापूर्वक निर्यात किया गया",
+        "pdfExportSuccess": "PDF सफलतापूर्वक निर्यात किया गया",
+        "noMedicinesToDisplay": "प्रदर्शित करने के लिए कोई दवा नहीं है",
+        "generatedOn": "जल्दी समा",
+        "deleteMedicine": "दवा हटाएं"
     },
     "Login": {
         "brandSubtitle": "दवाइ सुरक्षा प्लेटफॉर्म",
@@ -631,37 +639,60 @@
         "severeReactions": "गंभीर प्रतिक्रिया",
         "aftercareHeading": "तत्काल देखभाल मार्गदर्शन"
     },
-  "medicineSafety": {
-    "guideTitle": "उपयोग आ सुरक्षा मार्गदर्शिका",
-    "noDosageInfo": "एहि आयु वर्ग लेल खुराकक जानकारी उपलब्ध नहि अछि।",
-    "closeButton": "सुरक्षा जानकारी बन्द करू",
-    "tabs": {
-      "sideEffects": "दुष्प्रभाव",
-      "dosage": "खुराक",
-      "dietaryIntake": "आहार"
+    "medicineSafety": {
+        "guideTitle": "उपयोग आ सुरक्षा मार्गदर्शिका",
+        "noDosageInfo": "एहि आयु वर्ग लेल खुराकक जानकारी उपलब्ध नहि अछि।",
+        "closeButton": "सुरक्षा जानकारी बन्द करू",
+        "tabs": {
+            "sideEffects": "दुष्प्रभाव",
+            "dosage": "खुराक",
+            "dietaryIntake": "आहार"
+        },
+        "sideEffects": {
+            "standardSymptoms": "सामान्य लक्षण",
+            "severeRedFlags": "गंभीर चेतावनी — तुरन्त चिकित्सकीय सहायता लिअ"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "बच्चा",
+                "adults": "वयस्क",
+                "elderly": "वृद्ध"
+            },
+            "doseLabel": "खुराक:",
+            "frequencyLabel": "आवृत्ति:",
+            "notesHeading": "टिप्पणी",
+            "warningsHeading": "चेतावनी"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "आहार"
+            },
+            "storageHeading": "भण्डारण",
+            "pregnancyHeading": "गर्भावस्था"
+        },
+        "disclaimer": "ई जानकारी शैक्षिक उद्देश्य लेल अछि आ पेशेवर चिकित्सकीय सलाहक विकल्प नहि अछि।"
     },
-    "sideEffects": {
-      "standardSymptoms": "सामान्य लक्षण",
-      "severeRedFlags": "गंभीर चेतावनी — तुरन्त चिकित्सकीय सहायता लिअ"
-    },
-    "dosage": {
-      "tabs": {
-        "kids": "बच्चा",
-        "adults": "वयस्क",
-        "elderly": "वृद्ध"
-      },
-      "doseLabel": "खुराक:",
-      "frequencyLabel": "आवृत्ति:",
-      "notesHeading": "टिप्पणी",
-      "warningsHeading": "चेतावनी"
-    },
-    "dietary": {
-      "tabs": {
-        "dietaryIntake": "आहार"
-      },
-      "storageHeading": "भण्डारण",
-      "pregnancyHeading": "गर्भावस्था"
-    },
-    "disclaimer": "ई जानकारी शैक्षिक उद्देश्य लेल अछि आ पेशेवर चिकित्सकीय सलाहक विकल्प नहि अछि।"
-  }
+    "Health": {
+        "quickActions": "Quick actions",
+        "scanMedicine": "Scan Medicine",
+        "verifyAuthenticity": "Verify authenticity",
+        "checkSymptoms": "Check Symptoms",
+        "symptomGuidance": "AI-assisted guidance",
+        "findPharmacy": "Find Pharmacy",
+        "locateStores": "Locate verified stores",
+        "replyFallback": "I'm here to help! Could you rephrase that?",
+        "tooManyRequests": "Too many requests. Please try again in a few moments.",
+        "failedResponse": "Failed to generate AI response",
+        "genericError": "Something went wrong",
+        "returnHome": "Return to chat home",
+        "chatConversation": "Chat conversation",
+        "startVoice": "Start voice input",
+        "stopVoice": "Stop voice input",
+        "healthQuestion": "Type your health question",
+        "voiceBrowserRequired": "Voice input is not supported in this browser.",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "sendMessage": "Send message",
+        "footer": "For informational use only • Consult a doctor"
+    }
 }

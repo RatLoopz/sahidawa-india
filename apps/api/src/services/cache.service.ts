@@ -2,7 +2,6 @@ import { supabase } from "../db/client";
 import { hotDrugs } from "../db/seeds/hot_drugs_seed";
 import { redisClient } from "../utils/redis";
 import logger from "../utils/logger";
-
 // TTL Tiers in seconds
 export const TTL_TIERS = {
     HOT: 86400, // 24 hours
@@ -146,7 +145,6 @@ export async function getCachedDrug(batchNumber: string): Promise<any | null> {
         const cached = await redisClient.get(cacheKey);
         if (cached) {
             const med = JSON.parse(cached);
-
             // Increment drug-specific hit count and top drugs sorted set
             await incrementHitCount(med.id, med.brand_name || med.generic_name);
 

@@ -59,10 +59,93 @@ jobs:
             if (context.payload.comment.user.type === 'Bot') return;
 
             // Check if it's an explicit /assign request
-            const requestKeywords = ['/assign', 'please assign', 'assign me'];
+            const requestKeywords = ['/assign', 'please assign', 'assign me', 'can i work', 'i want to work', 'assign this to me', 'would like to work on this'];
             const isRequest = requestKeywords.some(kw => commentBody.toLowerCase().includes(kw));
             
             if (!isRequest) return;
+
+            // Skip maintainers/owners from being auto-assigned via comments
+            try {
+              const { data: perm } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: repo.owner, repo: repo.repo, username: commenter
+              });
+              if (perm.permission === 'admin' || perm.permission === 'write') {
+                core.info('Maintainer/Owner commented — skipping auto-assignment.');
+                return;
+              }
+            } catch (err) {
+              core.warning('Could not check permissions for @' + commenter + ': ' + err.message);
+            }
+
+            // Fetch issue early to check unassigned status
+            const issueData = await github.rest.issues.get({ owner: repo.owner, repo: repo.repo, issue_number: issueNumber });
+            const currentAssignees = (issueData.data.assignees || []).map(a => a.login);
+            const isUnassigned = currentAssignees.length === 0;
+            const issueAuthor = issueData.data.user.login;
+
+            // Already assigned to this same person?
+            if (currentAssignees.includes(commenter)) {
+              await github.rest.issues.createComment({
+                owner: repo.owner, repo: repo.repo, issue_number: issueNumber,
+                body: `@${commenter}, you are already assigned to this issue. Please continue working on it.`
+              });
+              return;
+            }
+
+            // ── Enforce 3-issue cap early ─────────────────────────────────────
+            try {
+              const assignedList = await github.rest.issues.listForRepo({
+                owner: repo.owner, repo: repo.repo,
+                assignee: commenter,
+                state: 'open',
+                per_page: 100
+              });
+              const activeIssues = assignedList.data.filter(i => !i.pull_request && i.number !== issueNumber);
+
+              // Fetch open PRs created by this commenter to check for links
+              const prsList = await github.paginate(github.rest.pulls.list, {
+                owner: repo.owner, repo: repo.repo,
+                state: 'open',
+                per_page: 100
+              });
+              const commenterPRs = prsList.filter(pr => pr.user && pr.user.login === commenter);
+
+              // Filter active issues that do NOT have a linked PR authored by this contributor
+              const activeIssuesWithoutPR = [];
+              for (const issue of activeIssues) {
+                const hasPR = commenterPRs.some(pr => {
+                  const body = pr.body || '';
+                  const title = pr.title || '';
+                  const issueRefRegex = new RegExp('(?:#|issues/)' + issue.number + '\\b', 'i');
+                  return issueRefRegex.test(body) || issueRefRegex.test(title);
+                });
+                if (!hasPR) {
+                  activeIssuesWithoutPR.push(issue);
+                }
+              }
+
+              if (activeIssuesWithoutPR.length >= 3) {
+                const issueList = activeIssuesWithoutPR
+                  .map(i => '#' + i.number + ' ("' + i.title + '")')
+                  .join('\n- ');
+                core.info('Denying early: @' + commenter + ' already has ' + activeIssuesWithoutPR.length + ' active assignments.');
+                await github.rest.issues.createComment({
+                  owner: repo.owner, repo: repo.repo, issue_number: issueNumber,
+                  body: [
+                    'Request Denied.',
+                    '',
+                    `@${commenter}, contributors are limited to a maximum of 3 active assigned issues without pull requests.`,
+                    `You currently have ${activeIssuesWithoutPR.length} active tasks:`,
+                    `- ${issueList}`,
+                    '',
+                    'Please complete your current tasks or open a PR for them before requesting new assignments.'
+                  ].join('\n')
+                });
+                return;
+              }
+            } catch (err) {
+              core.warning('Error enforcing 3-issue limit early: ' + err.message);
+            }
 
             // NEW: Block empty assignment requests and delete them
             const cleanedBody = commentBody.replace(/\r?\n|\r/g, ' ').replace(/\/assign|please assign me|assign me/ig, '').trim();
@@ -90,25 +173,6 @@ jobs:
               }
               return;
             }
-
-            // Skip maintainers/owners from being auto-assigned via comments
-            try {
-              const { data: perm } = await github.rest.repos.getCollaboratorPermissionLevel({
-                owner: repo.owner, repo: repo.repo, username: commenter
-              });
-              if (perm.permission === 'admin' || perm.permission === 'write') {
-                core.info('Maintainer/Owner commented — skipping auto-assignment.');
-                return;
-              }
-            } catch (err) {
-              core.warning('Could not check permissions for @' + commenter + ': ' + err.message);
-            }
-
-            // Fetch issue early to check unassigned status
-            const issueData = await github.rest.issues.get({ owner: repo.owner, repo: repo.repo, issue_number: issueNumber });
-            const currentAssignees = (issueData.data.assignees || []).map(a => a.login);
-            const isUnassigned = currentAssignees.length === 0;
-            const issueAuthor = issueData.data.user.login;
 
             core.info('Audit trigger: @' + commenter + ' attempting assignment on #' + issueNumber);
 
@@ -149,35 +213,6 @@ jobs:
               }
             }
 
-            // ── 2a. Enforce 3-issue cap ─────────────────────────────────────
-            const assignedList = await github.rest.issues.listForRepo({
-              owner: repo.owner, repo: repo.repo,
-              assignee: commenter,
-              state: 'open',
-              per_page: 100
-            });
-            const activeIssues = assignedList.data.filter(i => !i.pull_request && i.number !== issueNumber);
-
-            if (activeIssues.length >= 3) {
-              const issueList = activeIssues
-                .map(i => '#' + i.number + ' ("' + i.title + '")')
-                .join('\n- ');
-              core.info('Denying: @' + commenter + ' already has ' + activeIssues.length + ' active assignments.');
-              await github.rest.issues.createComment({
-                owner: repo.owner, repo: repo.repo, issue_number: issueNumber,
-                body: [
-                  'Request Denied.',
-                  '',
-                  `@${commenter}, contributors are limited to a maximum of 3 active assigned issues.`,
-                  `You currently have ${activeIssues.length} active tasks:`,
-                  `- ${issueList}`,
-                  '',
-                  'Please complete your current tasks before requesting new assignments.'
-                ].join('\n')
-              });
-              return;
-            }
-
 
 
             // Already assigned to someone else?
@@ -191,15 +226,6 @@ jobs:
                   `@${commenter}, this issue is currently assigned to ${takenBy}.`,
                   'If they do not show activity within their deadline, they will be unassigned and the issue will become available.'
                 ].join('\n')
-              });
-              return;
-            }
-
-            // Already assigned to this same person?
-            if (currentAssignees.includes(commenter)) {
-              await github.rest.issues.createComment({
-                owner: repo.owner, repo: repo.repo, issue_number: issueNumber,
-                body: `@${commenter}, you are already assigned to this issue.`
               });
               return;
             }

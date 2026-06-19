@@ -12,19 +12,21 @@ The `isAllowedOrigin()` function and its associated `ALLOWED_ORIGINS` configurat
 
 ## Alternatives Considered
 
-| Alternative | Why Rejected |
-|---|---|
-| Duplicate the `isAllowedOrigin` logic in `batch.ts` | Created code duplication, increased maintenance overhead, and risked inconsistencies if the validation logic or allowed origins changed. |
+| Alternative                                                   | Why Rejected                                                                                                                                                                                                                      |
+| ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Duplicate the `isAllowedOrigin` logic in `batch.ts`           | Created code duplication, increased maintenance overhead, and risked inconsistencies if the validation logic or allowed origins changed.                                                                                          |
 | Implement origin validation as a dedicated Express middleware | While a valid pattern for reusable logic, it was considered overly broad for the immediate scope of two specific endpoints and could have required more significant refactoring to integrate compared to a simple utility import. |
 
 ## Consequences
 
 **Positive:**
+
 - Enhanced security for the `POST /api/verify/batch/report` endpoint by restricting access to approved origins, mitigating potential abuse.
 - Improved code maintainability and reduced duplication by centralizing the `isAllowedOrigin` logic and `ALLOWED_ORIGINS` configuration into a shared utility.
 - Ensured consistency in the security posture across critical verification and reporting endpoints.
 
 **Trade-offs:**
+
 - Introduced a new utility file (`originCheck.ts`), slightly increasing the project's file count and module dependencies.
 - Requires careful management of the `ALLOWED_ORIGINS` environment variable to ensure all legitimate client applications can access the API. Incorrect configuration could lead to legitimate requests being denied.
 

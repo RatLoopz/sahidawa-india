@@ -21,18 +21,18 @@ Prior to this PR, the `POST /api/verify/batch/report` endpoint lacked origin val
 The core of this change involved centralizing our origin validation logic.
 
 1.  **New Utility File (`apps/api/src/utils/originCheck.ts`):**
-    *   We created a new file, `apps/api/src/utils/originCheck.ts`, to house the shared origin validation logic.
-    *   This file exports a constant array, `ALLOWED_ORIGINS`, which is populated from the `process.env.ALLOWED_ORIGINS` environment variable. If the environment variable is not set, it defaults to a predefined list of trusted origins, including `http://localhost:3000`, `http://localhost:5173`, `https://sahidawa.vercel.app`, `https://sahidawa-india.vercel.app`, and `https://sahidawa.goswav.in`. The environment variable is expected to be a comma-separated string of origins.
-    *   It also exports the `isAllowedOrigin(req: Request)` function. This function inspects the `Origin` header of the incoming request. If the `Origin` header is absent, it falls back to extracting the origin from the `Referer` header. If neither header provides a source, the function returns `true`, allowing requests without explicit origin/referer headers (e.g., non-browser clients, server-to-server calls). Finally, it checks if the determined `source` is present in the `ALLOWED_ORIGINS` array.
+    - We created a new file, `apps/api/src/utils/originCheck.ts`, to house the shared origin validation logic.
+    - This file exports a constant array, `ALLOWED_ORIGINS`, which is populated from the `process.env.ALLOWED_ORIGINS` environment variable. If the environment variable is not set, it defaults to a predefined list of trusted origins, including `http://localhost:3000`, `http://localhost:5173`, `https://sahidawa.vercel.app`, `https://sahidawa-india.vercel.app`, and `https://sahidawa.goswav.in`. The environment variable is expected to be a comma-separated string of origins.
+    - It also exports the `isAllowedOrigin(req: Request)` function. This function inspects the `Origin` header of the incoming request. If the `Origin` header is absent, it falls back to extracting the origin from the `Referer` header. If neither header provides a source, the function returns `true`, allowing requests without explicit origin/referer headers (e.g., non-browser clients, server-to-server calls). Finally, it checks if the determined `source` is present in the `ALLOWED_ORIGINS` array.
 
 2.  **Refactoring `apps/api/src/routes/verify.ts`:**
-    *   The previously inline `ALLOWED_ORIGINS` constant and `isAllowedOrigin` function definitions were removed from this file.
-    *   The `isAllowedOrigin` function is now imported from the new `../utils/originCheck` utility, ensuring that the `/api/verify` endpoint utilizes the centralized logic.
+    - The previously inline `ALLOWED_ORIGINS` constant and `isAllowedOrigin` function definitions were removed from this file.
+    - The `isAllowedOrigin` function is now imported from the new `../utils/originCheck` utility, ensuring that the `/api/verify` endpoint utilizes the centralized logic.
 
 3.  **Applying Validation to `apps/api/src/routes/batch.ts`:**
-    *   The `isAllowedOrigin` function is imported from `../utils/originCheck`.
-    *   Within the `router.post("/report", ...)` handler, an `if (!isAllowedOrigin(req))` check was introduced at the very beginning of the function body.
-    *   If the origin validation fails (i.e., `isAllowedOrigin(req)` returns `false`), the system immediately responds with a `403 Forbidden` status code and a JSON error message: `{ error: "Access denied: unrecognized origin" }`. The `return` statement ensures that no further processing of the unauthorized request occurs.
+    - The `isAllowedOrigin` function is imported from `../utils/originCheck`.
+    - Within the `router.post("/report", ...)` handler, an `if (!isAllowedOrigin(req))` check was introduced at the very beginning of the function body.
+    - If the origin validation fails (i.e., `isAllowedOrigin(req)` returns `false`), the system immediately responds with a `403 Forbidden` status code and a JSON error message: `{ error: "Access denied: unrecognized origin" }`. The `return` statement ensures that no further processing of the unauthorized request occurs.
 
 ## Technical Decisions
 
@@ -46,7 +46,8 @@ The core of this change involved centralizing our origin validation logic.
 To re-implement this feature or apply similar origin validation to a new endpoint, follow these steps:
 
 1.  **Create/Verify `originCheck.ts` Utility:**
-    *   Ensure the file `apps/api/src/utils/originCheck.ts` exists and contains the `ALLOWED_ORIGINS` constant and `isAllowedOrigin` function as defined:
+    - Ensure the file `apps/api/src/utils/originCheck.ts` exists and contains the `ALLOWED_ORIGINS` constant and `isAllowedOrigin` function as defined:
+
         ```typescript
         // apps/api/src/utils/originCheck.ts
         import { Request } from "express";
@@ -71,24 +72,26 @@ To re-implement this feature or apply similar origin validation to a new endpoin
             return ALLOWED_ORIGINS.includes(source);
         }
         ```
-    *   **Dependency:** This utility relies on the `express` `Request` type and the native Node.js `URL` object.
+
+    - **Dependency:** This utility relies on the `express` `Request` type and the native Node.js `URL` object.
 
 2.  **Refactor Existing Endpoints (if applicable):**
-    *   If an endpoint previously had its own `ALLOWED_ORIGINS` or `isAllowedOrigin` definition (like `apps/api/src/routes/verify.ts` did), remove those local definitions.
-    *   Import the shared utility:
+    - If an endpoint previously had its own `ALLOWED_ORIGINS` or `isAllowedOrigin` definition (like `apps/api/src/routes/verify.ts` did), remove those local definitions.
+    - Import the shared utility:
         ```typescript
         // In apps/api/src/routes/verify.ts (or similar)
         import { isAllowedOrigin } from "../utils/originCheck";
         ```
 
 3.  **Apply to Target Endpoint:**
-    *   Navigate to the API route file where you want to enforce origin validation (e.g., `apps/api/src/routes/batch.ts`).
-    *   Import the `isAllowedOrigin` function:
+    - Navigate to the API route file where you want to enforce origin validation (e.g., `apps/api/src/routes/batch.ts`).
+    - Import the `isAllowedOrigin` function:
         ```typescript
         // In apps/api/src/routes/batch.ts (or your target route file)
         import { isAllowedOrigin } from "../utils/originCheck";
         ```
-    *   Inside the specific route handler function (e.g., `router.post("/report", ...)`), add the validation check at the very beginning:
+    - Inside the specific route handler function (e.g., `router.post("/report", ...)`), add the validation check at the very beginning:
+
         ```typescript
         router.post("/report", batchLimiter, async (req: Request, res: Response) => {
             // Origin validation check
@@ -104,7 +107,7 @@ To re-implement this feature or apply similar origin validation to a new endpoin
         ```
 
 4.  **Environment Configuration:**
-    *   Ensure that in your deployment environment, the `ALLOWED_ORIGINS` environment variable is set correctly with a comma-separated list of all trusted frontend origins (e.g., `ALLOWED_ORIGINS=https://your-frontend.com,https://another-frontend.org`). Incorrect configuration will lead to legitimate requests being blocked.
+    - Ensure that in your deployment environment, the `ALLOWED_ORIGINS` environment variable is set correctly with a comma-separated list of all trusted frontend origins (e.g., `ALLOWED_ORIGINS=https://your-frontend.com,https://another-frontend.org`). Incorrect configuration will lead to legitimate requests being blocked.
 
 ## Impact on System Architecture
 
@@ -118,18 +121,20 @@ This change has a significant positive impact on our system architecture:
 ## Testing & Verification
 
 The author performed initial verification steps:
-*   Zero TypeScript errors were reported in the changed files.
-*   `git diff --stat main` confirmed that only the three intended files were modified, ensuring strict adherence to the PR's scope.
+
+- Zero TypeScript errors were reported in the changed files.
+- `git diff --stat main` confirmed that only the three intended files were modified, ensuring strict adherence to the PR's scope.
 
 Beyond these initial checks, the standard verification process for this feature would involve:
 
 1.  **Positive Testing (Allowed Origin):**
-    *   Sending a `POST` request to `/api/verify/batch/report` from an origin explicitly listed in `ALLOWED_ORIGINS` (e.g., `http://localhost:3000` during development, or `https://sahidawa.vercel.app` in a deployed environment). The request should be processed successfully, and the batch report should be submitted as expected.
+    - Sending a `POST` request to `/api/verify/batch/report` from an origin explicitly listed in `ALLOWED_ORIGINS` (e.g., `http://localhost:3000` during development, or `https://sahidawa.vercel.app` in a deployed environment). The request should be processed successfully, and the batch report should be submitted as expected.
 2.  **Negative Testing (Disallowed Origin):**
-    *   Sending a `POST` request to `/api/verify/batch/report` from an origin *not* listed in `ALLOWED_ORIGINS` (e.g., using a tool like Postman with a custom `Origin` header set to `http://malicious-site.com`). The system should respond with a `403 Forbidden` status code and the error message `{"error": "Access denied: unrecognized origin"}`.
+    - Sending a `POST` request to `/api/verify/batch/report` from an origin _not_ listed in `ALLOWED_ORIGINS` (e.g., using a tool like Postman with a custom `Origin` header set to `http://malicious-site.com`). The system should respond with a `403 Forbidden` status code and the error message `{"error": "Access denied: unrecognized origin"}`.
 3.  **Edge Case Testing (Missing Headers):**
-    *   Sending a `POST` request to `/api/verify/batch/report` without any `Origin` or `Referer` headers. As per the `isAllowedOrigin` logic, such requests should be allowed to proceed, and the batch report should be processed successfully. This covers scenarios involving non-browser clients or internal service calls.
+    - Sending a `POST` request to `/api/verify/batch/report` without any `Origin` or `Referer` headers. As per the `isAllowedOrigin` logic, such requests should be allowed to proceed, and the batch report should be processed successfully. This covers scenarios involving non-browser clients or internal service calls.
 
 **Existing Edge Cases (Not documented in this PR):**
-*   The current implementation performs a case-sensitive comparison of origins. While standard practice dictates origins are typically lowercase, inconsistent casing in `ALLOWED_ORIGINS` or incoming headers could lead to unexpected blocks.
-*   The `ALLOWED_ORIGINS.includes(source)` check requires an exact match. This means `https://sub.example.com` would not be allowed if only `https://example.com` is listed, and vice-versa. This is the intended behavior for strict origin matching.
+
+- The current implementation performs a case-sensitive comparison of origins. While standard practice dictates origins are typically lowercase, inconsistent casing in `ALLOWED_ORIGINS` or incoming headers could lead to unexpected blocks.
+- The `ALLOWED_ORIGINS.includes(source)` check requires an exact match. This means `https://sub.example.com` would not be allowed if only `https://example.com` is listed, and vice-versa. This is the intended behavior for strict origin matching.

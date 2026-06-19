@@ -70,8 +70,30 @@ jobs:
             });
             const activeIssues = assigned.data.filter(i => !i.pull_request && i.number !== issueNo);
 
-            if (activeIssues.length >= 3) {
-              const list = activeIssues
+            // Fetch open PRs created by the opener to check for links
+            const prsList = await github.paginate(github.rest.pulls.list, {
+              owner, repo,
+              state: 'open',
+              per_page: 100
+            });
+            const openerPRs = prsList.filter(pr => pr.user && pr.user.login === opener);
+
+            // Filter active issues that do NOT have a linked PR authored by this contributor
+            const activeIssuesWithoutPR = [];
+            for (const issue of activeIssues) {
+              const hasPR = openerPRs.some(pr => {
+                const body = pr.body || '';
+                const title = pr.title || '';
+                const issueRefRegex = new RegExp('(?:#|issues/)' + issue.number + '\\b', 'i');
+                return issueRefRegex.test(body) || issueRefRegex.test(title);
+              });
+              if (!hasPR) {
+                activeIssuesWithoutPR.push(issue);
+              }
+            }
+
+            if (activeIssuesWithoutPR.length >= 3) {
+              const list = activeIssuesWithoutPR
                 .slice(0, 5)
                 .map(i => '- #' + i.number + ': ' + i.title)
                 .join('\n');
@@ -79,12 +101,12 @@ jobs:
               const capMsg = [
                 'Issue Closed.',
                 '',
-                `@${opener}, you currently have ${activeIssues.length} open issues assigned to you without an active PR:`,
+                `@${opener}, you currently have ${activeIssuesWithoutPR.length} open issues assigned to you without an active PR:`,
                 '',
                 list,
                 '',
                 'You cannot raise more than 3 issues at once while your current assignments lack PRs.',
-                'Please complete your existing tasks before raising new issues.'
+                'Please complete your existing tasks or open PRs for them before raising new issues.'
               ].join('\n');
 
               await github.rest.issues.createComment({
@@ -99,7 +121,7 @@ jobs:
                 state_reason: 'not_planned'
               });
 
-              core.info('@' + opener + ' has ' + activeIssues.length + ' active issues. Issue #' + issueNo + ' closed.');
+              core.info('@' + opener + ' has ' + activeIssuesWithoutPR.length + ' active issues without PR. Issue #' + issueNo + ' closed.');
               return;
             }
 

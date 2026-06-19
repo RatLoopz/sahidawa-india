@@ -452,7 +452,15 @@
         "importError": "अमान्या प्रतिलिपिः। कृपया मान्यं JSON प्रतिलिपिं आरोपयतु।",
         "statusExpired": "अवधिक्षीणम्",
         "statusExpiringSoon": "({days} दिनेषु) अवधिक्षीणम्",
-        "statusSafe": "सुरक्षितम्"
+        "statusSafe": "सुरक्षितम्",
+        "exportCSV": "सीएसवी (CSV) निर्यात करें",
+        "exportPDF": "पीडीएफ (PDF) निर्यात करें",
+        "print": "प्रिंट करें",
+        "csvExportSuccess": "सीएसवी (CSV) सफलतापूर्वक निर्यात किया गया",
+        "pdfExportSuccess": "पीडीएफ (PDF) सफलतापूर्वक निर्यात किया गया",
+        "noMedicinesToDisplay": "प्रदर्शित करने के लिए कोई दवा उपलब्ध नहीं है",
+        "generatedOn": "इस तिथि को जनरेट किया गया",
+        "deleteMedicine": "दवा हटाएं"
     },
     "Login": {
         "brandSubtitle": "औषधसुरक्षा-मञ्चः",
@@ -639,37 +647,60 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
-  "medicineSafety": {
-    "guideTitle": "उपयोगः तथा सुरक्षा मार्गदर्शिका",
-    "noDosageInfo": "अस्य वयःसमूहस्य कृते मात्रा-विवरणं न उपलब्धम्।",
-    "closeButton": "सुरक्षा-विवरणं पिधत",
-    "tabs": {
-      "sideEffects": "पार्श्वप्रभावाः",
-      "dosage": "मात्रा",
-      "dietaryIntake": "आहार-सेवनम्"
+    "medicineSafety": {
+        "guideTitle": "उपयोगः तथा सुरक्षा मार्गदर्शिका",
+        "noDosageInfo": "अस्य वयःसमूहस्य कृते मात्रा-विवरणं न उपलब्धम्।",
+        "closeButton": "सुरक्षा-विवरणं पिधत",
+        "tabs": {
+            "sideEffects": "पार्श्वप्रभावाः",
+            "dosage": "मात्रा",
+            "dietaryIntake": "आहार-सेवनम्"
+        },
+        "sideEffects": {
+            "standardSymptoms": "सामान्यलक्षणानि",
+            "severeRedFlags": "गम्भीरचेतावनी — शीघ्रं वैद्यसहाय्यं प्राप्नुत"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "बालकाः",
+                "adults": "प्रौढाः",
+                "elderly": "वृद्धाः"
+            },
+            "doseLabel": "मात्रा:",
+            "frequencyLabel": "आवृत्तिः:",
+            "notesHeading": "टिप्पण्यः",
+            "warningsHeading": "चेतावन्यः"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "आहार-सेवनम्"
+            },
+            "storageHeading": "संग्रहणम्",
+            "pregnancyHeading": "गर्भावस्था"
+        },
+        "disclaimer": "एषा सूचना शैक्षिकप्रयोजनार्थम् अस्ति, न तु व्यावसायिकवैद्यकीयपरामर्शस्य विकल्पः।"
     },
-    "sideEffects": {
-      "standardSymptoms": "सामान्यलक्षणानि",
-      "severeRedFlags": "गम्भीरचेतावनी — शीघ्रं वैद्यसहाय्यं प्राप्नुत"
-    },
-    "dosage": {
-      "tabs": {
-        "kids": "बालकाः",
-        "adults": "प्रौढाः",
-        "elderly": "वृद्धाः"
-      },
-      "doseLabel": "मात्रा:",
-      "frequencyLabel": "आवृत्तिः:",
-      "notesHeading": "टिप्पण्यः",
-      "warningsHeading": "चेतावन्यः"
-    },
-    "dietary": {
-      "tabs": {
-        "dietaryIntake": "आहार-सेवनम्"
-      },
-      "storageHeading": "संग्रहणम्",
-      "pregnancyHeading": "गर्भावस्था"
-    },
-    "disclaimer": "एषा सूचना शैक्षिकप्रयोजनार्थम् अस्ति, न तु व्यावसायिकवैद्यकीयपरामर्शस्य विकल्पः।"
-  }
+    "Health": {
+        "quickActions": "Quick actions",
+        "scanMedicine": "Scan Medicine",
+        "verifyAuthenticity": "Verify authenticity",
+        "checkSymptoms": "Check Symptoms",
+        "symptomGuidance": "AI-assisted guidance",
+        "findPharmacy": "Find Pharmacy",
+        "locateStores": "Locate verified stores",
+        "replyFallback": "I'm here to help! Could you rephrase that?",
+        "tooManyRequests": "Too many requests. Please try again in a few moments.",
+        "failedResponse": "Failed to generate AI response",
+        "genericError": "Something went wrong",
+        "returnHome": "Return to chat home",
+        "chatConversation": "Chat conversation",
+        "startVoice": "Start voice input",
+        "stopVoice": "Stop voice input",
+        "healthQuestion": "Type your health question",
+        "voiceBrowserRequired": "Voice input is not supported in this browser.",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "sendMessage": "Send message",
+        "footer": "For informational use only • Consult a doctor"
+    }
 }

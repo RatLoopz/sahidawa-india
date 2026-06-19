@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useCallback, useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "../components/PageHeader";
 import { supabase } from "@/lib/supabase";
@@ -18,6 +18,8 @@ import {
     ScanLine,
     Bell,
     BellOff,
+    FileText,
+    Printer,
 } from "lucide-react";
 import { BarcodeScanner } from "@/components/scanner/BarcodeScanner";
 import { verifyMedicine } from "@/lib/api";
@@ -33,6 +35,61 @@ interface Medicine {
 
 type FilterStatus = "all" | "expired" | "expiringSoon" | "safe";
 type SortOption = "expirySoonest" | "expiryLatest" | "alpha";
+
+function parseLocalDate(dateStr: string) {
+    const [year, month, day] = dateStr.split("-").map(Number);
+    return new Date(year, month - 1, day);
+}
+
+function isValidDateString(dateStr: string): boolean {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
+    const [year, month, day] = dateStr.split("-").map(Number);
+    if (month < 1 || month > 12) return false;
+    if (day < 1 || day > 31) return false;
+    const date = new Date(year, month - 1, day);
+    return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+}
+
+function formatMonthYearInputValue(year: string, month: string): string | null {
+    const yearNumber = year.length === 2 ? 2000 + Number(year) : Number(year);
+    const monthNumber = Number(month);
+    if (yearNumber < 1000 || yearNumber > 9999) return null;
+    if (monthNumber < 1 || monthNumber > 12) return null;
+
+    const lastDayOfMonth = new Date(yearNumber, monthNumber, 0).getDate();
+    return `${yearNumber}-${String(monthNumber).padStart(2, "0")}-${String(lastDayOfMonth).padStart(2, "0")}`;
+}
+
+function formatDateInputValue(rawDate: string | null): string | null {
+    if (!rawDate) return null;
+
+    const trimmedDate = rawDate.trim();
+    const isoDateMatch = trimmedDate.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (isoDateMatch) {
+        const [, year, month, day] = isoDateMatch;
+        const date = parseLocalDate(`${year}-${month}-${day}`);
+        if (
+            date.getFullYear() === Number(year) &&
+            date.getMonth() === Number(month) - 1 &&
+            date.getDate() === Number(day)
+        ) {
+            return `${year}-${month}-${day}`;
+        }
+        return null;
+    }
+
+    const slashMonthYearMatch = trimmedDate.match(/^(\d{1,2})\/(\d{2}|\d{4})$/);
+    if (slashMonthYearMatch)
+        return formatMonthYearInputValue(slashMonthYearMatch[2], slashMonthYearMatch[1]);
+
+    const hyphenYearMonthMatch = trimmedDate.match(/^(\d{4})-(\d{1,2})$/);
+    if (hyphenYearMonthMatch)
+        return formatMonthYearInputValue(hyphenYearMonthMatch[1], hyphenYearMonthMatch[2]);
+
+    const parsedDate = new Date(trimmedDate);
+    if (Number.isNaN(parsedDate.getTime())) return null;
+    return parsedDate.toISOString().split("T")[0];
+}
 
 export default function ExpiryTrackerPage() {
     const t = useTranslations("ExpiryTracker");
@@ -298,48 +355,77 @@ export default function ExpiryTrackerPage() {
         }
     };
 
-    const handleBarcodeScan = async (scannedText: string) => {
-        setIsVerifying(true);
+    const handleScannerClose = useCallback(() => {
+        setIsScannerOpen(false);
         setApiError(null);
-        try {
-            const result = await verifyMedicine(scannedText);
-            if (result.verified) {
-                setName(result.medicine.brand_name || "");
-                setBatchNumber(result.medicine.batch_number || scannedText);
-                if (result.medicine.expiry_date) {
-                    try {
-                        const d = new Date(result.medicine.expiry_date);
-                        if (!isNaN(d.getTime())) {
-                            const formattedDate = d.toISOString().split("T")[0];
-                            setExpiryDate(formattedDate);
-                            setDateError("");
+    }, []);
 
-                            const selected = new Date(d);
-                            const today = new Date();
-                            today.setHours(0, 0, 0, 0);
-                            selected.setHours(0, 0, 0, 0);
-                            setIsExpired(selected < today);
-                        }
-                    } catch {
-                        // ignore
+    const updateExpiryState = useCallback((dateInputValue: string) => {
+        setExpiryDate(dateInputValue);
+        setDateError("");
+
+        const selected = parseLocalDate(dateInputValue);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        selected.setHours(0, 0, 0, 0);
+        setIsExpired(selected < today);
+    }, []);
+
+    const handleBarcodeScan = useCallback(
+        async (scannedText: string) => {
+            setIsVerifying(true);
+            setApiError(null);
+            try {
+                const result = await verifyMedicine(scannedText);
+                if (result.verified) {
+                    const medicine = result.medicine;
+                    const scannedName = medicine.brand_name || medicine.generic_name;
+                    if (scannedName) {
+                        setName(scannedName);
                     }
+                    setBatchNumber(medicine.batch_number || scannedText);
+
+                    const scannedExpiryDate = formatDateInputValue(medicine.expiry_date);
+                    if (scannedExpiryDate) {
+                        updateExpiryState(scannedExpiryDate);
+                    }
+
+                    const scannedDetails = [
+                        medicine.generic_name ? `Generic: ${medicine.generic_name}` : null,
+                        medicine.manufacturer ? `Manufacturer: ${medicine.manufacturer}` : null,
+                        medicine.cdsco_approval_status
+                            ? `CDSCO status: ${medicine.cdsco_approval_status}`
+                            : null,
+                    ]
+                        .filter(Boolean)
+                        .join("\n");
+
+                    if (scannedDetails) {
+                        setNotes((currentNotes) =>
+                            currentNotes.trim() ? currentNotes : scannedDetails
+                        );
+                    }
+
+                    toast.success("Medicine details auto-filled!");
+                    setIsScannerOpen(false);
+                } else {
+                    setBatchNumber(scannedText);
+                    toast.warning("Medicine not found in database. Batch number filled.");
+                    setIsScannerOpen(false);
                 }
-                toast.success("Medicine details auto-filled!");
-                setIsScannerOpen(false);
-            } else {
+            } catch (error: unknown) {
+                console.error("Scan error:", error);
+                const message =
+                    error instanceof Error ? error.message : "Failed to fetch medicine details.";
                 setBatchNumber(scannedText);
-                toast.warning("Medicine not found in database. Batch number filled.");
-                setIsScannerOpen(false);
+                setApiError(message);
+                toast.error("Failed to fetch medicine details. Batch number filled.");
+            } finally {
+                setIsVerifying(false);
             }
-        } catch (error: any) {
-            console.error("Scan error:", error);
-            setBatchNumber(scannedText);
-            setApiError(error.message || "Failed to fetch medicine details.");
-            toast.error("Failed to fetch medicine details. Batch number filled.");
-        } finally {
-            setIsVerifying(false);
-        }
-    };
+        },
+        [updateExpiryState]
+    );
 
     useEffect(() => {
         const loadData = async () => {
@@ -372,9 +458,13 @@ export default function ExpiryTrackerPage() {
                     const saved = localStorage.getItem("sahidawa_expiry_tracker");
 
                     if (saved) {
-                        const parsed = JSON.parse(saved);
-                        setMedicines(parsed);
-                        checkAndTriggerLocalNotifications(parsed);
+                        try {
+                            const parsed = JSON.parse(saved);
+                            setMedicines(parsed);
+                            checkAndTriggerLocalNotifications(parsed);
+                        } catch (parseError) {
+                            console.error("Failed to parse local expiry tracker data:", parseError);
+                        }
                     }
                 }
             } catch (e) {
@@ -494,7 +584,29 @@ export default function ExpiryTrackerPage() {
 
     const handleDelete = async (id: string) => {
         if (userId) {
+            const itemToDelete = medicines.find((med) => med.id === id);
+
             await supabase.from("expiry_tracker_items").delete().eq("id", id);
+
+            // Clean up corresponding entry in localStorage if it exists
+            const saved = localStorage.getItem("sahidawa_expiry_tracker");
+            if (saved) {
+                try {
+                    const localMeds: Medicine[] = JSON.parse(saved);
+                    const updatedLocal = localMeds.filter((med) => {
+                        const isMatch =
+                            med.id === id ||
+                            (itemToDelete &&
+                                med.name === itemToDelete.name &&
+                                med.expiryDate === itemToDelete.expiryDate &&
+                                med.batchNumber === itemToDelete.batchNumber);
+                        return !isMatch;
+                    });
+                    localStorage.setItem("sahidawa_expiry_tracker", JSON.stringify(updatedLocal));
+                } catch (e) {
+                    console.error("Failed to clean up localStorage on delete:", e);
+                }
+            }
 
             setMedicines(medicines.filter((med) => med.id !== id));
         } else {
@@ -560,22 +672,6 @@ export default function ExpiryTrackerPage() {
         setSelectedIds(new Set());
     };
 
-    const parseLocalDate = (dateStr: string) => {
-        const [year, month, day] = dateStr.split("-").map(Number);
-        return new Date(year, month - 1, day);
-    };
-
-    const isValidDateString = (dateStr: string): boolean => {
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
-        const [year, month, day] = dateStr.split("-").map(Number);
-        if (month < 1 || month > 12) return false;
-        if (day < 1 || day > 31) return false;
-        const date = new Date(year, month - 1, day);
-        return (
-            date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
-        );
-    };
-
     const getDiffDays = (dateStr: string) => {
         const expiry = parseLocalDate(dateStr);
         const today = new Date();
@@ -618,13 +714,76 @@ export default function ExpiryTrackerPage() {
         URL.revokeObjectURL(url);
     };
 
+    const handleExportPDF = async () => {
+        if (processedMedicines.length === 0) return;
+        const { jsPDF } = await import("jspdf");
+        const doc = new jsPDF();
+
+        doc.setFontSize(16);
+        doc.text("SahiDawa — Medicine Expiry Tracker", 14, 18);
+        doc.setFontSize(10);
+        doc.text(`${t("generatedOn")}: ${new Date().toLocaleDateString()}`, 14, 26);
+
+        const headers = ["Medicine Name", "Expiry Date", "Batch No.", "Status"];
+        const rows = processedMedicines.map((med) => [
+            med.name,
+            parseLocalDate(med.expiryDate).toLocaleDateString(),
+            med.batchNumber ?? "—",
+            getExpiryStatus(med.expiryDate).text,
+        ]);
+
+        try {
+            const autoTable = (await import("jspdf-autotable")).default;
+            autoTable(doc, {
+                head: [headers],
+                body: rows,
+                startY: 32,
+                styles: { fontSize: 9, cellPadding: 4 },
+                headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: "bold" },
+                alternateRowStyles: { fillColor: [245, 250, 248] },
+                columnStyles: { 0: { cellWidth: 70 } },
+            });
+        } catch {
+            let y = 36;
+            const colWidths = [70, 40, 35, 40];
+            const colX = [14, 84, 124, 159];
+
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "bold");
+            headers.forEach((h, i) => doc.text(h, colX[i], y));
+            y += 2;
+            doc.line(14, y, 196, y);
+            y += 5;
+
+            doc.setFont("helvetica", "normal");
+            rows.forEach((row) => {
+                if (y > 275) {
+                    doc.addPage();
+                    y = 20;
+                }
+                row.forEach((cell, i) => {
+                    const text = doc.splitTextToSize(String(cell), colWidths[i] - 2);
+                    doc.text(text, colX[i], y);
+                });
+                y += 8;
+            });
+        }
+
+        doc.save("sahidawa_expiry_tracker.pdf");
+        toast.success(t("pdfExportSuccess") || "PDF Exported Successfully!");
+    };
+
+    const handlePrint = () => {
+        window.print();
+    };
+
     // Import
     const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
         setImportError(null);
         const file = e.target.files?.[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = (event) => {
+        reader.onload = async (event) => {
             try {
                 const parsed = JSON.parse(event.target?.result as string);
                 if (!Array.isArray(parsed)) throw new Error("Not an array");
@@ -639,17 +798,54 @@ export default function ExpiryTrackerPage() {
                     setImportError(t("importDateError"));
                     return;
                 }
-                const existingIds = new Set(medicines.map((m) => m.id));
-                const merged = [...medicines, ...valid.filter((m) => !existingIds.has(m.id))];
-                saveToLocalStorage(merged);
 
-                // Schedule notifications for newly imported medicines
-                valid.forEach((m) => {
-                    if (!existingIds.has(m.id)) {
-                        scheduleNotificationsForMedicine(m);
+                const existingIds = new Set(medicines.map((m) => m.id));
+                const newItems = valid.filter((m) => !existingIds.has(m.id));
+                if (newItems.length === 0) return;
+
+                if (userId) {
+                    const rowsToInsert = newItems.map((item) => ({
+                        user_id: userId,
+                        brand_name: item.name,
+                        batch_number: item.batchNumber || null,
+                        expiry_date: item.expiryDate,
+                    }));
+
+                    const { data, error } = await supabase
+                        .from("expiry_tracker_items")
+                        .insert(rowsToInsert)
+                        .select();
+
+                    if (!error && data) {
+                        const mapped = data.map((item) => ({
+                            id: item.id,
+                            name: item.brand_name,
+                            expiryDate: item.expiry_date,
+                            batchNumber: item.batch_number ?? "",
+                            notes: item.notes ?? "",
+                        }));
+                        const updatedList = [...medicines, ...mapped];
+                        setMedicines(updatedList);
+
+                        // Schedule notifications for newly imported medicines
+                        mapped.forEach((m) => {
+                            scheduleNotificationsForMedicine(m);
+                        });
+                        checkAndTriggerLocalNotifications(updatedList);
+                    } else if (error) {
+                        console.error("Failed to import medicines to Supabase:", error.message);
+                        setImportError(t("importError"));
                     }
-                });
-                checkAndTriggerLocalNotifications(merged);
+                } else {
+                    const merged = [...medicines, ...newItems];
+                    saveToLocalStorage(merged);
+
+                    // Schedule notifications for newly imported medicines
+                    newItems.forEach((m) => {
+                        scheduleNotificationsForMedicine(m);
+                    });
+                    checkAndTriggerLocalNotifications(merged);
+                }
             } catch {
                 setImportError(t("importError"));
             }
@@ -815,6 +1011,22 @@ export default function ExpiryTrackerPage() {
 
                         {/* Import / Export */}
                         <div className="mt-6 flex flex-col gap-2">
+                            <button
+                                onClick={handleExportPDF}
+                                disabled={medicines.length === 0}
+                                aria-label={t("exportPDF")}
+                                className="flex items-center justify-center gap-2 rounded-xl border border-(--color-border-muted) py-2.5 text-sm font-semibold transition hover:bg-(--color-surface-page) disabled:opacity-40"
+                            >
+                                <FileText size={15} /> {t("exportPDF")}
+                            </button>
+                            <button
+                                onClick={handlePrint}
+                                disabled={medicines.length === 0}
+                                aria-label={t("print")}
+                                className="flex items-center justify-center gap-2 rounded-xl border border-(--color-border-muted) py-2.5 text-sm font-semibold transition hover:bg-(--color-surface-page) disabled:opacity-40"
+                            >
+                                <Printer size={15} /> {t("print")}
+                            </button>
                             <button
                                 onClick={handleExport}
                                 disabled={medicines.length === 0}
@@ -994,17 +1206,23 @@ export default function ExpiryTrackerPage() {
             </main>
 
             {isScannerOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="expiry-tracker-scanner-title"
+                >
                     <div className="relative flex h-[80vh] w-full max-w-2xl flex-col rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 shadow-2xl dark:bg-slate-900">
                         <div className="mb-4 flex items-center justify-between">
-                            <h3 className="text-xl font-bold text-(--color-text-primary)">
+                            <h3
+                                id="expiry-tracker-scanner-title"
+                                className="text-xl font-bold text-(--color-text-primary)"
+                            >
                                 Scan Medicine Barcode
                             </h3>
                             <button
-                                onClick={() => {
-                                    setIsScannerOpen(false);
-                                    setApiError(null);
-                                }}
+                                type="button"
+                                onClick={handleScannerClose}
                                 className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                             >
                                 <span className="sr-only">Close</span>

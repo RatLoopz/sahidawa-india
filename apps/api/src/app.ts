@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import express, { Express, Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
 import path from "path";
@@ -9,6 +10,8 @@ import cookieParser from "cookie-parser";
 import { doubleCsrf } from "csrf-csrf";
 import mapRouter from "./routes/map";
 import medicineSchedulesRouter from "./routes/medicineSchedules";
+
+import abhaRoutes from "./routes/abha";
 import trackingRouter from "./routes/tracking";
 import { initExpiryCron } from "./cron/expiry-check";
 
@@ -82,13 +85,22 @@ app.use(cookieParser());
 
 // ── CSRF Protection (double-submit cookie pattern) ─────────────────────────
 // csrf-csrf is recognized by CodeQL as a valid CSRF defense unlike custom header checks.
-const {
-    doubleCsrfProtection,
-    generateCsrfToken: generateToken, // FIXED: Extract generateCsrfToken and alias it to generateToken
-} = doubleCsrf({
-    getSecret: () => process.env.CSRF_SECRET || "fallback-secret-change-in-production",
+const ANON_SESSION_COOKIE = "csrf_anon_id";
+
+const { doubleCsrfProtection, generateCsrfToken: generateToken } = doubleCsrf({
+    getSecret: () => {
+        const secret = process.env.CSRF_SECRET;
+        if (!secret) {
+            logger.error("CSRF_SECRET environment variable is not set");
+            throw new Error("CSRF_SECRET environment variable is required");
+        }
+        return secret;
+    },
     getSessionIdentifier: (req: Request) => {
-        return req.cookies?.access_token || "anonymous-session";
+        if (req.cookies?.access_token) {
+            return req.cookies.access_token;
+        }
+        return req.cookies?.[ANON_SESSION_COOKIE] || crypto.randomUUID();
     },
     cookieName:
         process.env.NODE_ENV === "production" ? "__Host-psifi.x-csrf-token" : "psifi.x-csrf-token",
@@ -108,6 +120,20 @@ if (process.env.NODE_ENV !== "test" && process.env.NODE_ENV !== "development") {
 
 // ── CSRF token endpoint — frontend fetches this once on load ───────────────
 app.get("/api/csrf-token", (req: Request, res: Response) => {
+    if (!req.cookies?.[ANON_SESSION_COOKIE] && !req.cookies?.access_token) {
+        const anonId = crypto.randomUUID();
+
+        // FIX: Mutate req.cookies so generateToken binds to this exact ID
+        if (!req.cookies) req.cookies = {};
+        req.cookies[ANON_SESSION_COOKIE] = anonId;
+
+        res.cookie(ANON_SESSION_COOKIE, anonId, {
+            httpOnly: true,
+            sameSite: "strict",
+            secure: process.env.NODE_ENV === "production",
+            path: "/",
+        });
+    }
     res.json({ csrfToken: generateToken(req, res) });
 });
 
@@ -227,6 +253,7 @@ app.use("/api/triage", triageRouter);
 app.use("/api/map", mapRouter);
 app.use("/api/v1/interactions", interactionsRouter);
 app.use("/api/schedules", medicineSchedulesRouter);
+app.use("/api/v1/abha", abhaRoutes);
 app.use("/api/v1/alternatives", alternativesRouter);
 app.use("/api/v1/scheme-eligibility", eligibilityRouter);
 app.use("/api/v1/medicines", trackingRouter);

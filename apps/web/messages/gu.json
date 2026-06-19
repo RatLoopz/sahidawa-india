@@ -469,7 +469,15 @@
         "importDateError": "બેકઅપમાં અમાન્ય તારીખ ફોર્મેટ મળ્યો. બધી તારીખો YYYY-MM-DD ફોર્મેટમાં હોવી જોઈએ.",
         "statusExpired": "સમાપ્ત",
         "statusExpiringSoon": "ટૂંક સમયમાં સમાપ્ત થશે ({days} દિવસ)",
-        "statusSafe": "સુરક્ષિત"
+        "statusSafe": "સુરક્ષિત",
+        "exportCSV": "CSV નિકાસ કરો",
+        "exportPDF": "PDF નિકાસ કરો",
+        "print": "પ્રિન્ટ કરો",
+        "csvExportSuccess": "CSV સફળતાપૂર્વક નિકાસ કરવામાં આવ્યું",
+        "pdfExportSuccess": "PDF સફળતાપૂર્વક નિકાસ કરવામાં આવ્યું",
+        "noMedicinesToDisplay": "દર્શાવવા માટે કોઈ દવાઓ નથી",
+        "generatedOn": " સમયમાં સમાપ્ત થ",
+        "deleteMedicine": "દવા કાઢી નાખો"
     },
     "Login": {
         "brandSubtitle": "દવા સુરક્ષા પ્લેટફોર્મ",
@@ -657,37 +665,60 @@
         "nav_schedule": "દવા સમયપત્રક",
         "nav_profile": "My Profile"
     },
-  "medicineSafety": {
-    "guideTitle": "ઉપયોગ અને સુરક્ષા માર્ગદર્શિકા",
-    "noDosageInfo": "આ વય જૂથ માટે ડોઝની માહિતી ઉપલબ્ધ નથી.",
-    "closeButton": "સુરક્ષા માહિતી બંધ કરો",
-    "tabs": {
-      "sideEffects": "આડઅસરો",
-      "dosage": "ડોઝ",
-      "dietaryIntake": "આહાર"
+    "medicineSafety": {
+        "guideTitle": "ઉપયોગ અને સુરક્ષા માર્ગદર્શિકા",
+        "noDosageInfo": "આ વય જૂથ માટે ડોઝની માહિતી ઉપલબ્ધ નથી.",
+        "closeButton": "સુરક્ષા માહિતી બંધ કરો",
+        "tabs": {
+            "sideEffects": "આડઅસરો",
+            "dosage": "ડોઝ",
+            "dietaryIntake": "આહાર"
+        },
+        "sideEffects": {
+            "standardSymptoms": "સામાન્ય લક્ષણો",
+            "severeRedFlags": "ગંભીર ચેતવણીઓ — તાત્કાલિક તબીબી સહાય લો"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "બાળકો",
+                "adults": "વયસ્કો",
+                "elderly": "વૃદ્ધો"
+            },
+            "doseLabel": "ડોઝ:",
+            "frequencyLabel": "આવર્તન:",
+            "notesHeading": "નોંધો",
+            "warningsHeading": "ચેતવણીઓ"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "આહાર"
+            },
+            "storageHeading": "સંગ્રહ",
+            "pregnancyHeading": "ગર્ભાવસ્થા"
+        },
+        "disclaimer": "આ માહિતી શૈક્ષણિક હેતુ માટે છે અને વ્યાવસાયિક તબીબી સલાહનો વિકલ્પ નથી."
     },
-    "sideEffects": {
-      "standardSymptoms": "સામાન્ય લક્ષણો",
-      "severeRedFlags": "ગંભીર ચેતવણીઓ — તાત્કાલિક તબીબી સહાય લો"
-    },
-    "dosage": {
-      "tabs": {
-        "kids": "બાળકો",
-        "adults": "વયસ્કો",
-        "elderly": "વૃદ્ધો"
-      },
-      "doseLabel": "ડોઝ:",
-      "frequencyLabel": "આવર્તન:",
-      "notesHeading": "નોંધો",
-      "warningsHeading": "ચેતવણીઓ"
-    },
-    "dietary": {
-      "tabs": {
-        "dietaryIntake": "આહાર"
-      },
-      "storageHeading": "સંગ્રહ",
-      "pregnancyHeading": "ગર્ભાવસ્થા"
-    },
-    "disclaimer": "આ માહિતી શૈક્ષણિક હેતુ માટે છે અને વ્યાવસાયિક તબીબી સલાહનો વિકલ્પ નથી."
-  }
+    "Health": {
+        "quickActions": "Quick actions",
+        "scanMedicine": "Scan Medicine",
+        "verifyAuthenticity": "Verify authenticity",
+        "checkSymptoms": "Check Symptoms",
+        "symptomGuidance": "AI-assisted guidance",
+        "findPharmacy": "Find Pharmacy",
+        "locateStores": "Locate verified stores",
+        "replyFallback": "I'm here to help! Could you rephrase that?",
+        "tooManyRequests": "Too many requests. Please try again in a few moments.",
+        "failedResponse": "Failed to generate AI response",
+        "genericError": "Something went wrong",
+        "returnHome": "Return to chat home",
+        "chatConversation": "Chat conversation",
+        "startVoice": "Start voice input",
+        "stopVoice": "Stop voice input",
+        "healthQuestion": "Type your health question",
+        "voiceBrowserRequired": "Voice input is not supported in this browser.",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "sendMessage": "Send message",
+        "footer": "For informational use only • Consult a doctor"
+    }
 }

@@ -458,7 +458,15 @@
         "importError": "অবৈধ বেকআপ ফাইল। অনুগ্ৰহ কৰি এটা বৈধ JSON বেকআপ আপল'ড কৰক।",
         "statusExpired": "মেয়াদ উত্তীৰ্ণ",
         "statusExpiringSoon": "সোনকালে মেয়াদ উত্তীৰ্ণ ({days}দ)",
-        "statusSafe": "সুৰক্ষিত"
+        "statusSafe": "সুৰক্ষিত",
+        "exportCSV": "CSV ৰপ্তানি কৰক",
+        "exportPDF": "PDF ৰপ্তানি কৰক",
+        "print": "প্ৰিণ্ট কৰক",
+        "csvExportSuccess": "CSV সফলতাৰে ৰপ্তানি কৰা হৈছে",
+        "pdfExportSuccess": "PDF সফলতাৰে ৰপ্তানি কৰা হৈছে",
+        "noMedicinesToDisplay": "প্ৰদৰ্শন কৰিবলৈ কোনো ঔষধ নাই",
+        "generatedOn": " কৰি এটা বৈ",
+        "deleteMedicine": "ঔষধ মচি পেলাওক"
     },
     "Login": {
         "brandSubtitle": "ঔষধ সুৰক্ষা প্লেটফৰ্ম",
@@ -645,37 +653,60 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
-  "medicineSafety": {
-    "guideTitle": "ব্যৱহাৰ আৰু সুৰক্ষা নিৰ্দেশিকা",
-    "noDosageInfo": "এই বয়স গোটৰ বাবে ড'জৰ তথ্য উপলব্ধ নহয়।",
-    "closeButton": "সুৰক্ষা তথ্য বন্ধ কৰক",
-    "tabs": {
-      "sideEffects": "পাৰ্শ্ব প্ৰতিক্ৰিয়া",
-      "dosage": "ড'জ",
-      "dietaryIntake": "খাদ্য গ্ৰহণ"
+    "medicineSafety": {
+        "guideTitle": "ব্যৱহাৰ আৰু সুৰক্ষা নিৰ্দেশিকা",
+        "noDosageInfo": "এই বয়স গোটৰ বাবে ড'জৰ তথ্য উপলব্ধ নহয়।",
+        "closeButton": "সুৰক্ষা তথ্য বন্ধ কৰক",
+        "tabs": {
+            "sideEffects": "পাৰ্শ্ব প্ৰতিক্ৰিয়া",
+            "dosage": "ড'জ",
+            "dietaryIntake": "খাদ্য গ্ৰহণ"
+        },
+        "sideEffects": {
+            "standardSymptoms": "সাধাৰণ লক্ষণসমূহ",
+            "severeRedFlags": "গুৰুতৰ সতৰ্কবাণী — তৎক্ষণাত চিকিৎসা সহায় লওক"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "শিশু",
+                "adults": "প্ৰাপ্তবয়স্ক",
+                "elderly": "বয়োজ্যেষ্ঠ"
+            },
+            "doseLabel": "ড'জ:",
+            "frequencyLabel": "আৱৃত্তি:",
+            "notesHeading": "টোকা",
+            "warningsHeading": "সতৰ্কবাণী"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "খাদ্য গ্ৰহণ"
+            },
+            "storageHeading": "সংৰক্ষণ",
+            "pregnancyHeading": "গৰ্ভাৱস্থা"
+        },
+        "disclaimer": "এই তথ্য শিক্ষামূলক আৰু পেছাদাৰী চিকিৎসা পৰামৰ্শৰ বিকল্প নহয়।"
     },
-    "sideEffects": {
-      "standardSymptoms": "সাধাৰণ লক্ষণসমূহ",
-      "severeRedFlags": "গুৰুতৰ সতৰ্কবাণী — তৎক্ষণাত চিকিৎসা সহায় লওক"
-    },
-    "dosage": {
-      "tabs": {
-        "kids": "শিশু",
-        "adults": "প্ৰাপ্তবয়স্ক",
-        "elderly": "বয়োজ্যেষ্ঠ"
-      },
-      "doseLabel": "ড'জ:",
-      "frequencyLabel": "আৱৃত্তি:",
-      "notesHeading": "টোকা",
-      "warningsHeading": "সতৰ্কবাণী"
-    },
-    "dietary": {
-      "tabs": {
-        "dietaryIntake": "খাদ্য গ্ৰহণ"
-      },
-      "storageHeading": "সংৰক্ষণ",
-      "pregnancyHeading": "গৰ্ভাৱস্থা"
-    },
-    "disclaimer": "এই তথ্য শিক্ষামূলক আৰু পেছাদাৰী চিকিৎসা পৰামৰ্শৰ বিকল্প নহয়।"
-  }
+    "Health": {
+        "quickActions": "Quick actions",
+        "scanMedicine": "Scan Medicine",
+        "verifyAuthenticity": "Verify authenticity",
+        "checkSymptoms": "Check Symptoms",
+        "symptomGuidance": "AI-assisted guidance",
+        "findPharmacy": "Find Pharmacy",
+        "locateStores": "Locate verified stores",
+        "replyFallback": "I'm here to help! Could you rephrase that?",
+        "tooManyRequests": "Too many requests. Please try again in a few moments.",
+        "failedResponse": "Failed to generate AI response",
+        "genericError": "Something went wrong",
+        "returnHome": "Return to chat home",
+        "chatConversation": "Chat conversation",
+        "startVoice": "Start voice input",
+        "stopVoice": "Stop voice input",
+        "healthQuestion": "Type your health question",
+        "voiceBrowserRequired": "Voice input is not supported in this browser.",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "sendMessage": "Send message",
+        "footer": "For informational use only • Consult a doctor"
+    }
 }

@@ -22,6 +22,7 @@ Prior to this PR, several pages within our web application implemented their own
 We implemented this change by systematically identifying and replacing the custom back button JSX in each of the target pages with an instance of our existing `PageHeader` component.
 
 For `apps/web/app/[locale]/alerts/page.tsx`, `apps/web/app/[locale]/interaction-checker/page.tsx`, and `apps/web/app/[locale]/profile/page.tsx`, the previous custom `Link` component, which typically navigated to the home page (`/`), was replaced. For example, in `alerts/page.tsx`, the block:
+
 ```tsx
 <div className="mb-6 flex flex-col items-start gap-4">
     <Link
@@ -34,13 +35,16 @@ For `apps/web/app/[locale]/alerts/page.tsx`, `apps/web/app/[locale]/interaction-
     {/* ... other content ... */}
 </div>
 ```
+
 was replaced with:
+
 ```tsx
 <div className="mb-6 flex flex-col gap-4">
     <PageHeader backHref="/" variant="light" />
     {/* ... other content ... */}
 </div>
 ```
+
 Similarly, in `apps/web/app/[locale]/settings/page.tsx`, the custom `Link` navigating to `/profile` was replaced with `<PageHeader backHref="/profile" variant="light" />`.
 
 The `PageHeader` component, located at `apps/web/app/[locale]/components/PageHeader.tsx`, encapsulates the logic and styling for a standardized page header, including a back button. By passing the `backHref` prop, we instruct `PageHeader` where the back button should navigate. The `variant="light"` prop ensures the header adopts the appropriate styling for these auxiliary pages.
@@ -80,8 +84,9 @@ To re-implement this pattern for a new or existing page requiring a standardized
         );
     }
     ```
-    -   Set the `backHref` prop to the desired navigation target (e.g., `/` for home, `/profile` for a profile page).
-    -   The `variant` prop can be adjusted if the `PageHeader` needs to adapt to different background contexts (e.g., `variant="dark"` if available, though `light` is used here).
+
+    - Set the `backHref` prop to the desired navigation target (e.g., `/` for home, `/profile` for a profile page).
+    - The `variant` prop can be adjusted if the `PageHeader` needs to adapt to different background contexts (e.g., `variant="dark"` if available, though `light` is used here).
 5.  **Clean up imports:** Ensure that `ArrowLeft` from `lucide-react` and `Link` from `next-intl/routing` (if previously used for the custom back button) are no longer imported in the file.
 
 This pattern ensures consistency and leverages our component library effectively.
@@ -90,20 +95,20 @@ This pattern ensures consistency and leverages our component library effectively
 
 This change significantly improves the consistency and maintainability of our frontend architecture. By standardizing back button implementations through the `PageHeader` component, we are moving towards a more robust and scalable design system.
 
--   **Reduced Technical Debt:** Eliminating duplicated and inconsistent UI code reduces technical debt, making the codebase easier to understand and evolve.
--   **Enhanced User Experience:** Users will now experience a consistent navigation pattern across various auxiliary pages, leading to a more predictable and intuitive interface.
--   **Improved Developer Velocity:** Future UI changes related to page headers or back navigation can be implemented once in the `PageHeader` component, automatically propagating across all consuming pages. This accelerates development and reduces the chance of introducing regressions.
--   **Clearer Component Responsibilities:** This refactoring reinforces the principle of single responsibility, where `PageHeader` is solely responsible for rendering the page header and its associated navigation, rather than individual pages reimplementing this logic.
--   **Foundation for Future Enhancements:** A standardized `PageHeader` provides a solid foundation for adding more complex header features (e.g., page titles, actions, search bars) in a consistent manner across the application.
+- **Reduced Technical Debt:** Eliminating duplicated and inconsistent UI code reduces technical debt, making the codebase easier to understand and evolve.
+- **Enhanced User Experience:** Users will now experience a consistent navigation pattern across various auxiliary pages, leading to a more predictable and intuitive interface.
+- **Improved Developer Velocity:** Future UI changes related to page headers or back navigation can be implemented once in the `PageHeader` component, automatically propagating across all consuming pages. This accelerates development and reduces the chance of introducing regressions.
+- **Clearer Component Responsibilities:** This refactoring reinforces the principle of single responsibility, where `PageHeader` is solely responsible for rendering the page header and its associated navigation, rather than individual pages reimplementing this logic.
+- **Foundation for Future Enhancements:** A standardized `PageHeader` provides a solid foundation for adding more complex header features (e.g., page titles, actions, search bars) in a consistent manner across the application.
 
 ## Testing & Verification
 
 The change was verified through a combination of code inspection and runtime checks.
 
 1.  **Code Inspection:** We manually reviewed the diffs for `apps/web/app/[locale]/alerts/page.tsx`, `apps/web/app/[locale]/interaction-checker/page.tsx`, `apps/web/app/[locale]/profile/page.tsx`, and `apps/web/app/[locale]/settings/page.tsx` to confirm that:
-    -   The `PageHeader` component was correctly imported.
-    -   The custom `Link` and `ArrowLeft` elements were removed.
-    -   The `PageHeader` was instantiated with the correct `backHref` prop.
+    - The `PageHeader` component was correctly imported.
+    - The custom `Link` and `ArrowLeft` elements were removed.
+    - The `PageHeader` was instantiated with the correct `backHref` prop.
 2.  **Command-line Verification:** The author performed a `grep` command to confirm the removal of `ArrowLeft` from the audited pages:
     ```bash
     grep -R "ArrowLeft" apps/web/app/\[locale\] --include="*.tsx"

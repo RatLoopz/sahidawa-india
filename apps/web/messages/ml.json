@@ -458,7 +458,15 @@
         "importError": "അസാധുവായ ബാക്കപ്പ് ഫയൽ. സാധുവായ JSON ബാക്കപ്പ് അപ്‌ലോഡ് ചെയ്യുക.",
         "statusExpired": "കാലാവധി കഴിഞ്ഞു",
         "statusExpiringSoon": "ഉടൻ കാലാവധി അവസാനിക്കും ({days} ദിവസം)",
-        "statusSafe": "സുരക്ഷിതം"
+        "statusSafe": "സുരക്ഷിതം",
+        "exportCSV": "CSV എക്സ്പോർട്ട് ചെയ്യുക",
+        "exportPDF": "PDF എക്സ്പോർട്ട് ചെയ്യുക",
+        "print": "പ്രിന്റ് ചെയ്യുക",
+        "csvExportSuccess": "CSV വിജയകരമായി എക്സ്പോർട്ട് ചെയ്തു",
+        "pdfExportSuccess": "PDF വിജയകരമായി എക്സ്പോർട്ട് ചെയ്തു",
+        "noMedicinesToDisplay": "കാണിക്കാൻ മരുന്നുകൾ ഒന്നുമില്ല",
+        "generatedOn": "കാലാവധി അവസാനിക്കും",
+        "deleteMedicine": "മരുന്ന് ഒഴിവാക്കുക"
     },
     "Login": {
         "brandSubtitle": "മരുന്ന് സുരക്ഷാ പ്ലാറ്റ്ഫോം",
@@ -645,37 +653,60 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
-  "medicineSafety": {
-    "guideTitle": "ഉപയോഗവും സുരക്ഷാ മാർഗ്ഗനിർദ്ദേശവും",
-    "noDosageInfo": "ഈ പ്രായവിഭാഗത്തിനായുള്ള ഡോസ് വിവരങ്ങൾ ലഭ്യമല്ല.",
-    "closeButton": "സുരക്ഷാ വിവരങ്ങൾ അടയ്ക്കുക",
-    "tabs": {
-      "sideEffects": "പാർശ്വഫലങ്ങൾ",
-      "dosage": "ഡോസ്",
-      "dietaryIntake": "ഭക്ഷണക്രമം"
+    "medicineSafety": {
+        "guideTitle": "ഉപയോഗവും സുരക്ഷാ മാർഗ്ഗനിർദ്ദേശവും",
+        "noDosageInfo": "ഈ പ്രായവിഭാഗത്തിനായുള്ള ഡോസ് വിവരങ്ങൾ ലഭ്യമല്ല.",
+        "closeButton": "സുരക്ഷാ വിവരങ്ങൾ അടയ്ക്കുക",
+        "tabs": {
+            "sideEffects": "പാർശ്വഫലങ്ങൾ",
+            "dosage": "ഡോസ്",
+            "dietaryIntake": "ഭക്ഷണക്രമം"
+        },
+        "sideEffects": {
+            "standardSymptoms": "സാധാരണ ലക്ഷണങ്ങൾ",
+            "severeRedFlags": "ഗുരുതര മുന്നറിയിപ്പുകൾ — ഉടൻ വൈദ്യസഹായം തേടുക"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "കുട്ടികൾ",
+                "adults": "മുതിർന്നവർ",
+                "elderly": "വയോജനങ്ങൾ"
+            },
+            "doseLabel": "ഡോസ്:",
+            "frequencyLabel": "ആവൃത്തി:",
+            "notesHeading": "കുറിപ്പുകൾ",
+            "warningsHeading": "മുന്നറിയിപ്പുകൾ"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "ഭക്ഷണക്രമം"
+            },
+            "storageHeading": "സംഭരണം",
+            "pregnancyHeading": "ഗർഭകാലം"
+        },
+        "disclaimer": "ഈ വിവരങ്ങൾ വിദ്യാഭ്യാസ ആവശ്യങ്ങൾക്കായുള്ളതാണ്; ഇത് വൈദ്യോപദേശത്തിന് പകരമല്ല."
     },
-    "sideEffects": {
-      "standardSymptoms": "സാധാരണ ലക്ഷണങ്ങൾ",
-      "severeRedFlags": "ഗുരുതര മുന്നറിയിപ്പുകൾ — ഉടൻ വൈദ്യസഹായം തേടുക"
-    },
-    "dosage": {
-      "tabs": {
-        "kids": "കുട്ടികൾ",
-        "adults": "മുതിർന്നവർ",
-        "elderly": "വയോജനങ്ങൾ"
-      },
-      "doseLabel": "ഡോസ്:",
-      "frequencyLabel": "ആവൃത്തി:",
-      "notesHeading": "കുറിപ്പുകൾ",
-      "warningsHeading": "മുന്നറിയിപ്പുകൾ"
-    },
-    "dietary": {
-      "tabs": {
-        "dietaryIntake": "ഭക്ഷണക്രമം"
-      },
-      "storageHeading": "സംഭരണം",
-      "pregnancyHeading": "ഗർഭകാലം"
-    },
-    "disclaimer": "ഈ വിവരങ്ങൾ വിദ്യാഭ്യാസ ആവശ്യങ്ങൾക്കായുള്ളതാണ്; ഇത് വൈദ്യോപദേശത്തിന് പകരമല്ല."
-  }
+    "Health": {
+        "quickActions": "Quick actions",
+        "scanMedicine": "Scan Medicine",
+        "verifyAuthenticity": "Verify authenticity",
+        "checkSymptoms": "Check Symptoms",
+        "symptomGuidance": "AI-assisted guidance",
+        "findPharmacy": "Find Pharmacy",
+        "locateStores": "Locate verified stores",
+        "replyFallback": "I'm here to help! Could you rephrase that?",
+        "tooManyRequests": "Too many requests. Please try again in a few moments.",
+        "failedResponse": "Failed to generate AI response",
+        "genericError": "Something went wrong",
+        "returnHome": "Return to chat home",
+        "chatConversation": "Chat conversation",
+        "startVoice": "Start voice input",
+        "stopVoice": "Stop voice input",
+        "healthQuestion": "Type your health question",
+        "voiceBrowserRequired": "Voice input is not supported in this browser.",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "sendMessage": "Send message",
+        "footer": "For informational use only • Consult a doctor"
+    }
 }

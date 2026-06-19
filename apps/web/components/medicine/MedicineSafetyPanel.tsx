@@ -29,19 +29,12 @@ import {
     TriangleAlert,
     Refrigerator,
 } from "lucide-react";
-import {
-    SAFETY_DISCLAIMER,
-    type MedicineSafetyProfile,
-    type AgeGroup,
-    type DietaryRule,
-} from "./MedicineSafetyData";
+import { type MedicineSafetyProfile, type AgeGroup } from "./MedicineSafetyData";
 import { fetchSafetyProfile } from "@/lib/medicineSafetyService";
-import { getSafetyProfile, type MedicineSafetyProfile, type AgeGroup } from "./MedicineSafetyData";
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 type MedicineSafetyPanelProps = {
     searchQuery: string;
-    /** Called when the user clicks the close / back button */
     onClose?: () => void;
 };
 
@@ -79,8 +72,11 @@ function DietIcon({ name, className }: { name: string; className?: string }) {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPanelProps) {
+    const t = useTranslations("medicineSafety");
     const [profile, setProfile] = useState<MedicineSafetyProfile | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState<TabType>("sideEffects");
+    const [ageGroup, setAgeGroup] = useState<AgeGroupKey>("adults");
 
     useEffect(() => {
         if (!searchQuery) return;
@@ -101,13 +97,6 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
         };
     }, [searchQuery]);
 
-    const t = useTranslations("medicineSafety");
-
-    const t = useTranslations("medicineSafety");
-
-    const [activeTab, setActiveTab] = useState<TabType>("sideEffects");
-    const [ageGroup, setAgeGroup] = useState<AgeGroupKey>("adults");
-
     if (isLoading) {
         return (
             <div className="mt-4 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
@@ -127,6 +116,7 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
     }
 
     if (!profile) return null;
+
     const commonEffects = profile.sideEffects.filter((e) => e.severity === "common");
     const severeEffects = profile.sideEffects.filter((e) => e.severity === "severe");
     const dosageInfo = profile.ageBasedDosage.find((d) => d.group === ageGroup);
@@ -145,7 +135,7 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
 
     return (
         <div className="mt-4 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-            {/* ── Header bar ── */}
+            {/* Header bar */}
             <div className="flex items-center justify-between gap-2 border-b border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800">
                 <div className="flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-emerald-500" />
@@ -158,7 +148,7 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                 </span>
             </div>
 
-            {/* ── Tabs ── */}
+            {/* Tabs */}
             <div className="flex border-b border-slate-200 bg-slate-50 text-xs dark:border-slate-700 dark:bg-slate-800">
                 {TABS.map(({ key, label, Icon }) => (
                     <button
@@ -177,12 +167,11 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                 ))}
             </div>
 
-            {/* ── Tab Content ── */}
+            {/* Tab Content */}
             <div className="min-h-[140px] p-4 text-xs">
-                {/* ────────────────── Side Effects ────────────────── */}
+                {/* Side Effects */}
                 {activeTab === "sideEffects" && (
                     <div className="space-y-3">
-                        {/* Common */}
                         <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800/40 dark:bg-amber-900/10">
                             <div className="mb-2 flex items-center gap-1.5">
                                 <Info className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
@@ -210,7 +199,6 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                             </ul>
                         </div>
 
-                        {/* Severe */}
                         {severeEffects.length > 0 && (
                             <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800/40 dark:bg-red-900/10">
                                 <div className="mb-2 flex items-center gap-1.5">
@@ -234,10 +222,9 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                     </div>
                 )}
 
-                {/* ────────────────── Dosage ────────────────── */}
+                {/* Dosage */}
                 {activeTab === "dosage" && (
                     <div className="space-y-3">
-                        {/* Age group picker */}
                         <div className="flex gap-1.5 rounded-lg border border-slate-200 bg-slate-100 p-1 dark:border-slate-700 dark:bg-slate-800">
                             {AGE_GROUPS.map(({ key, label, Icon }) => (
                                 <button
@@ -258,7 +245,6 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
 
                         {dosageInfo ? (
                             <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800">
-                                {/* Age range badge */}
                                 <div className="mb-2.5 flex flex-wrap items-center gap-2">
                                     <span className="font-bold text-slate-900 dark:text-slate-100">
                                         {dosageInfo.label}
@@ -269,7 +255,6 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                                     </span>
                                 </div>
 
-                                {/* Dose row */}
                                 <div className="mb-1.5 flex items-start gap-2">
                                     <Pill className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500 dark:text-emerald-400" />
                                     <p className="text-slate-700 dark:text-slate-200">
@@ -280,7 +265,6 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                                     </p>
                                 </div>
 
-                                {/* Frequency row */}
                                 <div className="mb-2.5 flex items-start gap-2">
                                     <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500 dark:text-emerald-400" />
                                     <p className="text-slate-700 dark:text-slate-200">
@@ -291,7 +275,6 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                                     </p>
                                 </div>
 
-                                {/* Notes */}
                                 {dosageInfo.notes.length > 0 && (
                                     <div className="mb-2 rounded-md border border-blue-100 bg-blue-50 p-2 dark:border-blue-800/40 dark:bg-blue-900/10">
                                         <div className="mb-1 flex items-center gap-1.5">
@@ -314,7 +297,6 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                                     </div>
                                 )}
 
-                                {/* Warnings */}
                                 {dosageInfo.warnings.length > 0 && (
                                     <div className="rounded-md border border-red-100 bg-red-50 p-2 dark:border-red-800/40 dark:bg-red-900/10">
                                         <div className="mb-1 flex items-center gap-1.5">
@@ -345,7 +327,7 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                     </div>
                 )}
 
-                {/* ────────────────── Dietary Intake ────────────────── */}
+                {/* Dietary Intake */}
                 {activeTab === "diet" && (
                     <div className="space-y-2">
                         {profile.dietaryCues.map((rule) => {
@@ -398,7 +380,6 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                             );
                         })}
 
-                        {/* Storage */}
                         <div className="flex items-start gap-2.5 rounded-lg border border-blue-200 bg-blue-50 p-2.5 dark:border-blue-800/40 dark:bg-blue-900/10">
                             <Package className="mt-0.5 h-4 w-4 shrink-0 text-blue-500 dark:text-blue-400" />
                             <div>
@@ -411,7 +392,6 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                             </div>
                         </div>
 
-                        {/* Pregnancy */}
                         {profile.pregnancyCategory && (
                             <div className="flex items-start gap-2.5 rounded-lg border border-purple-200 bg-purple-50 p-2.5 dark:border-purple-800/40 dark:bg-purple-900/10">
                                 <HeartPulse className="mt-0.5 h-4 w-4 shrink-0 text-purple-500 dark:text-purple-400" />
@@ -429,14 +409,13 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                 )}
             </div>
 
-            {/* ── Footer: Disclaimer + Close button ── */}
+            {/* Footer: Disclaimer + Close button */}
             <div className="border-t border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800">
                 <div className="flex items-start gap-1.5 rounded-lg border border-amber-200 bg-amber-50 p-2 text-[11px] text-amber-800 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-300">
                     <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500 dark:text-amber-400" />
                     {t("disclaimer")}
                 </div>
 
-                {/* Close / Back button at bottom */}
                 <div className="mt-3 flex justify-end">
                     <button
                         type="button"

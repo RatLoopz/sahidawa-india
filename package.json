@@ -8,9 +8,9 @@
         "packages/*"
     ],
     "scripts": {
-        "dev": "npm run dev --workspaces --if-present",
-        "build": "npm run build --workspaces --if-present",
-        "test": "npm run test --workspaces --if-present",
+        "dev": "turbo run dev",
+        "build": "turbo run build",
+        "test": "turbo run test",
         "test:a11y:voice": "npm run test:a11y:voice -w web",
         "prepare": "npx --yes husky || true",
         "check:migrations": "node scripts/check-migrations.js"
@@ -24,12 +24,15 @@
     ],
     "author": "",
     "license": "MIT",
+    "packageManager": "npm@10.9.7",
     "dependencies": {
         "@supabase/supabase-js": "^2.108.2",
         "cors": "^2.8.6",
         "dotenv": "^17.4.2",
         "express": "^5.2.1",
         "helmet": "^8.2.0",
+        "jspdf": "^4.2.1",
+        "jspdf-autotable": "^5.0.8",
         "morgan": "^1.10.1",
         "redis": "^6.0.0",
         "winston-daily-rotate-file": "^5.0.0",
@@ -43,7 +46,8 @@
         "husky": "^9.1.7",
         "lint-staged": "^17.0.5",
         "prettier": "^3.8.4",
-        "prettier-plugin-tailwindcss": "^0.8.0"
+        "prettier-plugin-tailwindcss": "^0.8.0",
+        "turbo": "^2.9.18"
     },
     "overrides": {
         "@zxing/library": "0.23.0",
