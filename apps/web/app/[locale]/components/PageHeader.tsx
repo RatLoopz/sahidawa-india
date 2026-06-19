@@ -3,6 +3,7 @@
 import { ArrowLeft, Globe, Zap } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { ThemeToggle } from "./ThemeToggle";
+import LanguageSwitcher from "../LanguageSwitcher"; // Imported cleanly from relative folder path
 
 const pageHeaderFocusRingClass =
     "focus-visible:outline-[3px] focus-visible:outline-emerald-600 focus-visible:outline-offset-2 focus-visible:ring-[3px] focus-visible:ring-emerald-600 focus-visible:ring-offset-2";
@@ -88,7 +89,8 @@ export const PageHeader = ({
                             <span className="sr-only">Quick actions</span>
                         </button>
                     ) : (
-                        <div className="w-10" />
+                        /* Integrated your global dynamic LanguageSwitcher directly in place of the empty spacer */
+                        <LanguageSwitcher />
                     )}
                 </div>
             </div>

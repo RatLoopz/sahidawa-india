@@ -43,6 +43,7 @@ import {
     extractMedicineName,
 } from "@/src/utils/medicineParser";
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
+import { saveVerificationResult } from "@/lib/offlineCache";
 
 function formatExpiryForBadge(isoDate: string | null | undefined): string | undefined {
     if (!isoDate) return undefined;
@@ -536,6 +537,14 @@ export default function ScanPage() {
         if (!result.verified) {
             setVerifyResult(result);
             return;
+        }
+        if (result.medicine) {
+            saveVerificationResult({
+                brand_name: result.medicine.brand_name || fallbackBrandName || "Unknown",
+                active_components: result.medicine.generic_name || "N/A",
+                counterfeit_status: result.medicine.is_counterfeit_alert ? "Counterfeit" : "Verified",
+                timestamp: Date.now(),
+            });
         }
         try {
             const medicineName = result.medicine.brand_name || fallbackBrandName;
