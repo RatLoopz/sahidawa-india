@@ -34,11 +34,83 @@ jobs:
             const repo      = context.repo;
             const eventName = context.eventName;
 
-            // ── 1. Assignment event: no auto-lock (intentional) ─────────────
-            // Locking conversations prevents contributors from asking questions,
-            // which is harmful to open-source collaboration.
+            // ── 1. Assignment event: Enforce 3-issue limit on manual assignment ──
             if (eventName === 'issues' && context.payload.action === 'assigned') {
-              core.info('Issue #' + context.payload.issue.number + ' assigned. No auto-lock applied.');
+              const issueNumber = context.payload.issue.number;
+              const newlyAssignedUser = context.payload.assignee.login;
+              
+              // Skip bots and maintainers
+              if (context.payload.assignee.type === 'Bot') return;
+              try {
+                const { data: perm } = await github.rest.repos.getCollaboratorPermissionLevel({
+                  owner: repo.owner, repo: repo.repo, username: newlyAssignedUser
+                });
+                if (perm.permission === 'admin' || perm.permission === 'write') {
+                  core.info('Maintainer/Owner assigned — skipping auto-unassign.');
+                  return;
+                }
+              } catch (err) {}
+
+              // Check active issues count
+              try {
+                const assignedList = await github.rest.issues.listForRepo({
+                  owner: repo.owner, repo: repo.repo,
+                  assignee: newlyAssignedUser,
+                  state: 'open',
+                  per_page: 100
+                });
+                // Exclude PRs and the current issue itself (since they are already assigned to it)
+                const activeIssues = assignedList.data.filter(i => !i.pull_request && i.number !== issueNumber);
+
+                // Fetch open PRs created by this user
+                const prsList = await github.paginate(github.rest.pulls.list, {
+                  owner: repo.owner, repo: repo.repo, state: 'open', per_page: 100
+                });
+                const userPRs = prsList.filter(pr => pr.user && pr.user.login === newlyAssignedUser);
+
+                const activeIssuesWithoutPR = [];
+                for (const issue of activeIssues) {
+                  const hasPR = userPRs.some(pr => {
+                    const body = pr.body || '';
+                    const title = pr.title || '';
+                    const issueRefRegex = new RegExp('(?:#|issues/)' + issue.number + '\\b', 'i');
+                    return issueRefRegex.test(body) || issueRefRegex.test(title);
+                  });
+                  if (!hasPR) {
+                    activeIssuesWithoutPR.push(issue);
+                  }
+                }
+
+                if (activeIssuesWithoutPR.length >= 3) {
+                  const issueList = activeIssuesWithoutPR
+                    .map(i => '#' + i.number + ' ("' + i.title + '")')
+                    .join('\n- ');
+                  core.info(`Auto-unassigning @${newlyAssignedUser} as they have ${activeIssuesWithoutPR.length} active assignments.`);
+                  
+                  // Unassign
+                  await github.rest.issues.removeAssignees({
+                    owner: repo.owner, repo: repo.repo,
+                    issue_number: issueNumber,
+                    assignees: [newlyAssignedUser]
+                  });
+
+                  // Post comment
+                  await github.rest.issues.createComment({
+                    owner: repo.owner, repo: repo.repo, issue_number: issueNumber,
+                    body: [
+                      '🚨 **Automated Assignment Guard** 🚨',
+                      '',
+                      `@${newlyAssignedUser} has been automatically unassigned from this issue because they already have 3 or more active assignments.`,
+                      `Active tasks without open PRs:`,
+                      `- ${issueList}`,
+                      '',
+                      '> **Note:** To ensure a fair environment, contributors must complete their current tasks (by opening a PR) before taking on new ones.'
+                    ].join('\n')
+                  });
+                }
+              } catch (err) {
+                core.warning('Error in manual assignment enforcement: ' + err.message);
+              }
               return;
             }
 
