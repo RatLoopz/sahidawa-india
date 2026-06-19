@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import rateLimit from "express-rate-limit";
 import {
     generateOTP,
     verifyOTP,
@@ -9,9 +10,23 @@ import {
 
 const router = Router();
 
-router.post("/link", async (req: Request, res: Response): Promise<void> => {
+const abhaLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many requests, please try again later" },
+});
+
+router.post("/link", abhaLimiter, async (req: Request, res: Response): Promise<void> => {
     try {
         const { abhaAddress } = req.body;
+
+        if (!abhaAddress) {
+            res.status(400).json({ error: "abhaAddress is required" });
+            return;
+        }
+
         const result = await generateOTP(abhaAddress);
         res.status(200).json(result);
     } catch (error) {
@@ -21,9 +36,15 @@ router.post("/link", async (req: Request, res: Response): Promise<void> => {
     }
 });
 
-router.post("/verify-otp", async (req: Request, res: Response): Promise<void> => {
+router.post("/verify-otp", abhaLimiter, async (req: Request, res: Response): Promise<void> => {
     try {
         const { txnId, otp } = req.body;
+
+        if (!txnId || !otp) {
+            res.status(400).json({ error: "txnId and otp are required" });
+            return;
+        }
+
         const result = await verifyOTP(txnId, otp);
         res.status(200).json(result);
     } catch (error) {
