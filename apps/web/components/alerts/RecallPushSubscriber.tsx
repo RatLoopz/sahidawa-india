@@ -1,11 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bell, BellOff } from "lucide-react";
 import { API_BASE } from "@/lib/api";
 import { LiveMessage } from "@/components/ui/LiveMessage";
+import { useSession } from "@/src/components/AuthProvider";
 
-type SubscribeState = "idle" | "subscribing" | "subscribed" | "unsupported" | "error";
+type SubscribeState =
+    | "idle"
+    | "subscribing"
+    | "subscribed"
+    | "unsupported"
+    | "error"
+    | "unsubscribing";
 
 function urlBase64ToUint8Array(value: string) {
     const padding = "=".repeat((4 - (value.length % 4)) % 4);
@@ -32,8 +39,57 @@ async function getVapidPublicKey() {
 }
 
 export default function RecallPushSubscriber() {
+    const { token } = useSession();
     const [state, setState] = useState<SubscribeState>("idle");
     const [message, setMessage] = useState<string | null>(null);
+
+    useEffect(() => {
+        async function checkExistingSubscription() {
+            if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+                setState("unsupported");
+                return;
+            }
+            try {
+                const registration = await navigator.serviceWorker.getRegistration("/sw.js");
+                if (!registration) return;
+                const existing = await registration.pushManager.getSubscription();
+                if (existing) {
+                    setState("subscribed");
+                    setMessage("Recall notifications are active for this device.");
+                }
+            } catch {
+                // silently ignore
+            }
+        }
+        void checkExistingSubscription();
+    }, []);
+
+    async function unsubscribe() {
+        setState("unsubscribing");
+        setMessage(null);
+        try {
+            const registration = await navigator.serviceWorker.getRegistration("/sw.js");
+            const existing = await registration?.pushManager.getSubscription();
+            if (existing) {
+                await existing.unsubscribe();
+                if (token) {
+                    await fetch(`${API_BASE}/api/notifications/subscriptions`, {
+                        method: "DELETE",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({ endpoint: existing.endpoint }),
+                    });
+                }
+            }
+            setState("idle");
+            setMessage(null);
+        } catch {
+            setState("subscribed");
+            setMessage("Unable to disable alerts. Please try again.");
+        }
+    }
 
     async function subscribe() {
         if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
@@ -60,7 +116,6 @@ export default function RecallPushSubscriber() {
                 applicationServerKey: urlBase64ToUint8Array(publicKey),
             });
 
-            const token = localStorage.getItem("sb-access-token");
             if (!token) {
                 setState("error");
                 setMessage("Please sign in to enable push alerts.");
@@ -91,28 +146,36 @@ export default function RecallPushSubscriber() {
     const isSubscribed = state === "subscribed";
 
     return (
-        <section className="mb-6 rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm dark:border-emerald-900/30 dark:bg-slate-900/55">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div className="flex items-start gap-3">
-                    <div className="rounded-full bg-emerald-50 p-2 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400">
-                        {isSubscribed ? <Bell size={18} /> : <BellOff size={18} />}
+        <section className="relative mb-8 overflow-hidden rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50/60 via-white to-emerald-50/20 p-6 shadow-md backdrop-blur-md transition-all hover:shadow-lg dark:border-emerald-500/15 dark:bg-gradient-to-br dark:from-slate-900/80 dark:via-slate-900/40 dark:to-slate-950/80">
+            {/* Background glowing shapes for premium aesthetic */}
+            <div className="pointer-events-none absolute -right-8 -bottom-8 h-32 w-32 rounded-full bg-emerald-500/10 blur-2xl"></div>
+            <div className="pointer-events-none absolute -top-8 -left-8 h-28 w-28 rounded-full bg-teal-500/5 blur-2xl"></div>
+
+            <div className="relative z-10 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 shadow-sm dark:bg-emerald-500/20 dark:text-emerald-400">
+                        {isSubscribed ? (
+                            <Bell size={22} className="animate-bounce" />
+                        ) : (
+                            <BellOff size={22} className="opacity-80" />
+                        )}
                     </div>
                     <div>
-                        <h2 className="text-sm font-bold text-slate-900 dark:text-(--color-text-primary)">
+                        <h2 className="text-base font-bold text-slate-900 dark:text-(--color-text-primary)">
                             Recall push alerts
                         </h2>
-                        <p className="mt-1 max-w-2xl text-sm font-medium text-slate-500 dark:text-(--color-text-secondary)">
+                        <p className="mt-1 max-w-2xl text-sm leading-relaxed font-semibold text-slate-500 dark:text-(--color-text-secondary)">
                             Get notified when the mock CDSCO recall feed flags a medicine you should
-                            avoid.
+                            avoid. Stay protected with real-time push alerts.
                         </p>
                         {message && (
                             <LiveMessage
                                 as="p"
                                 tone={isSubscribed ? "polite" : "critical"}
-                                className={`mt-2 text-xs font-semibold ${
+                                className={`mt-2.5 text-xs font-bold ${
                                     isSubscribed
-                                        ? "text-emerald-600 dark:text-emerald-400"
-                                        : "text-slate-500 dark:text-slate-400"
+                                        ? "dark:text-emerald-450 text-emerald-600"
+                                        : "text-red-500 dark:text-red-400"
                                 }`}
                             >
                                 {message}
@@ -122,15 +185,26 @@ export default function RecallPushSubscriber() {
                 </div>
                 <button
                     type="button"
-                    onClick={subscribe}
-                    disabled={state === "subscribing" || isSubscribed}
-                    className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition-all duration-300 hover:scale-105 hover:bg-emerald-700 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+                    onClick={isSubscribed ? unsubscribe : subscribe}
+                    disabled={state === "subscribing" || state === "unsubscribing"}
+                    className={`relative shrink-0 overflow-hidden rounded-2xl px-6 py-3 text-sm font-bold shadow-sm transition-all duration-300 hover:scale-[1.03] hover:shadow-md active:scale-95 disabled:scale-100 disabled:cursor-not-allowed ${
+                        isSubscribed || state === "unsubscribing"
+                            ? "bg-rose-100 text-rose-700 shadow-rose-500/10 hover:bg-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-900/60"
+                            : "bg-emerald-600 text-white shadow-emerald-500/10 hover:bg-emerald-500 disabled:bg-slate-300 dark:disabled:bg-slate-800 dark:disabled:text-slate-600"
+                    }`}
                 >
-                    {state === "subscribing"
-                        ? "Enabling..."
-                        : isSubscribed
-                          ? "Enabled"
-                          : "Enable alerts"}
+                    {state === "subscribing" || state === "unsubscribing" ? (
+                        <span className="flex items-center gap-2">
+                            <span
+                                className={`h-3.5 w-3.5 animate-spin rounded-full border-2 border-t-transparent ${state === "unsubscribing" ? "border-rose-700 dark:border-rose-400" : "border-white"}`}
+                            ></span>
+                            {state === "unsubscribing" ? "Disabling..." : "Enabling..."}
+                        </span>
+                    ) : isSubscribed ? (
+                        "Disable alerts"
+                    ) : (
+                        "Enable alerts"
+                    )}
                 </button>
             </div>
         </section>

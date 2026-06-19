@@ -1,6 +1,6 @@
 # ADR — fix: Resolve Unused Component and Hook Variables in Web App
 
-> **Date:** 2024-06-07 | **PR:** #1476 | **Status:** Accepted
+> **Date:** 2026-06-07 | **PR:** #1476 | **Status:** Accepted
 
 ## Context
 

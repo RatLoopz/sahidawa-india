@@ -16,7 +16,7 @@ jest.mock("../src/db/client", () => ({
 
 jest.mock("../src/db/supabase", () => ({
     __esModule: true,
-    default: {
+    anonSupabase: {
         rpc: jest.fn(),
         from: jest.fn(),
     },
@@ -24,7 +24,7 @@ jest.mock("../src/db/supabase", () => ({
 
 import request from "supertest";
 import app from "../src/app";
-import supabase from "../src/db/supabase";
+import { anonSupabase } from "../src/db/supabase";
 import {
     assessUrgency,
     buildMedicineMonograph,
@@ -34,7 +34,7 @@ import {
     type MedicineRow,
 } from "../src/services/medicineRag.service";
 
-const mockedSupabase = supabase as jest.Mocked<typeof supabase>;
+const mockedSupabase = anonSupabase as jest.Mocked<typeof anonSupabase>;
 
 const sampleRow: MedicineRow = {
     id: "med-1",

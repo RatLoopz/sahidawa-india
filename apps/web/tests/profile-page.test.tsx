@@ -5,6 +5,14 @@ import { render, screen } from "@testing-library/react";
 
 import ProfilePage from "../app/[locale]/profile/page";
 
+jest.mock("@/src/components/AuthProvider", () => ({
+    useSession: () => ({
+        session: null,
+        isLoading: false,
+        token: null,
+    }),
+}));
+
 describe("ProfilePage navigation and guest state", () => {
     beforeEach(() => {
         localStorage.clear();
@@ -13,7 +21,7 @@ describe("ProfilePage navigation and guest state", () => {
     it("renders a back-to-home link pointing at the localized home route", () => {
         render(<ProfilePage />);
 
-        const backLink = screen.getByRole("link", { name: /back to home/i });
+        const backLink = screen.getByRole("link", { name: /go back to previous page/i });
         expect(backLink).toHaveAttribute("href", "/");
     });
 

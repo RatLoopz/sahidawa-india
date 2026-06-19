@@ -4,6 +4,11 @@ import { z } from "zod";
 import { triggerRecallAlert } from "../services/notifications";
 import { validateMedicineStatus, getValidStatusList } from "../validators/medicine.validator";
 import { escapeIlike } from "../utils/db";
+import { requireApiKey, ApiKeyRequest } from "../middleware/apiKeyAuth";
+import logger from "../utils/logger";
+import { redisClient } from "../utils/redis";
+import { KEY_PREFIXES } from "../services/cache.service";
+import { limiter } from "../middleware/rateLimit";
 
 const AlertSchema = z
     .object({
@@ -14,6 +19,7 @@ const AlertSchema = z
         state: z.string().optional(),
         district: z.string().optional(),
         reported_at: z.string().optional(),
+        proof_image_url: z.string().optional().nullable(),
     })
     .passthrough();
 
@@ -83,7 +89,7 @@ alertsRouter.get("/", async (req: Request, res: Response) => {
             totalPageCount,
         });
     } catch (err) {
-        console.error("Unexpected error in GET /api/alerts:", err);
+        logger.error("Unexpected error in GET /api/alerts", { error: err });
         res.status(500).json({ error: "An unexpected error occurred" });
     }
 });
@@ -92,24 +98,7 @@ alertsRouter.get("/", async (req: Request, res: Response) => {
  * POST /api/v1/alerts/ingest
  * Protected endpoint to ingest parsed CDSCO alerts from the ML agent.
  */
-alertsRouter.post("/ingest", async (req: Request, res: Response) => {
-    // 1. Validate Secret Header & Environment Setup
-    // Issue fixed: API_SECRET_KEY is validated here instead of at startup, so a missing key no longer crashes the server.
-    const expectedSecret = process.env.API_SECRET_KEY;
-    if (!expectedSecret) {
-        console.error("Server Configuration Error: API_SECRET_KEY is not configured.");
-        res.status(500).json({
-            error: "Ingestion is disabled because API_SECRET_KEY is not configured on the server.",
-        });
-        return;
-    }
-
-    const authHeader = req.headers["x-api-secret"];
-    if (!authHeader || authHeader !== expectedSecret) {
-        res.status(401).json({ error: "Unauthorized access" });
-        return;
-    }
-
+alertsRouter.post("/ingest", requireApiKey, limiter, async (req: ApiKeyRequest, res: Response) => {
     const { alerts } = req.body;
     const parseResult = AlertsArraySchema.safeParse(alerts);
     if (!parseResult.success) {
@@ -120,14 +109,18 @@ alertsRouter.post("/ingest", async (req: Request, res: Response) => {
     const validatedAlerts = parseResult.data;
 
     try {
-        // 2. Insert alerts into drug_alerts table
+        // 2. Upsert alerts — ON CONFLICT DO NOTHING prevents duplicate rows
+        // when concurrent scraper instances race past the pre-check in deduplicate_alerts().
         const { data: insertedAlerts, error: insertError } = await supabase
             .from("drug_alerts")
-            .insert(validatedAlerts)
+            .upsert(validatedAlerts, {
+                onConflict: "batch_number,manufacturer,reported_brand_name",
+                ignoreDuplicates: true,
+            })
             .select();
 
         if (insertError) {
-            console.error("Error inserting alerts:", insertError);
+            logger.error("Error inserting alerts", { error: insertError });
             res.status(500).json({ error: "Database error inserting alerts" });
             return;
         }
@@ -160,6 +153,22 @@ alertsRouter.post("/ingest", async (req: Request, res: Response) => {
 
         await Promise.all(updatePromises);
 
+        // 3.5 Invalidate the cache for the updated batch numbers
+        const batchNumbersToInvalidate = validatedAlerts
+            .map((alert) => alert.batch_number)
+            .filter(Boolean) as string[];
+
+        if (batchNumbersToInvalidate.length > 0 && redisClient.isOpen) {
+            try {
+                const keys = batchNumbersToInvalidate.map(
+                    (batch) => `${KEY_PREFIXES.DRUG_CACHE}${batch}`
+                );
+                await redisClient.del(keys);
+            } catch (err) {
+                console.error("Failed to invalidate cache for alert batches:", err);
+            }
+        }
+
         // 4. Dispatch Web Push Notifications using shared service
         if (insertedAlerts && insertedAlerts.length > 0) {
             const pushPromises = insertedAlerts.map((alert) => {
@@ -177,13 +186,18 @@ alertsRouter.post("/ingest", async (req: Request, res: Response) => {
             await Promise.all(pushPromises);
         }
 
+        logger.info("Alerts ingested successfully", {
+            caller: req.apiKey?.callerName,
+            count: insertedAlerts?.length,
+        });
+
         res.status(200).json({
             success: true,
             message: "Alerts ingested and notifications dispatched",
             inserted: insertedAlerts?.length,
         });
     } catch (error) {
-        console.error("Unexpected error in /ingest:", error);
+        logger.error("Unexpected error in /ingest", { error, caller: req.apiKey?.callerName });
         res.status(500).json({ error: "Internal server error" });
     }
 });

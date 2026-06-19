@@ -469,6 +469,7 @@
             "description": "Supabase URL یا anon key موجود نَہ۔"
         },
         "googleButton": "Google سۭتۍ جاری تھٲو",
+        "githubButton": "GitHub سۭتۍ جاری تھٲو",
         "emailSeparator": "یا ای میل سۭتۍ جاری تھٲو",
         "emailLabel": "ای میل پتہ",
         "emailPlaceholder": "you@example.com",

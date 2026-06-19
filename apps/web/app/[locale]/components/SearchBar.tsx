@@ -1,11 +1,11 @@
 "use client";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
-import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useTranslations } from "next-intl";
 import { fuzzyMatchBrand } from "@/lib/api";
-import SearchSuggestions from "@/components/SearchSuggestions";
+import SearchSuggestions, { HistoryItem } from "@/components/SearchSuggestions";
+import { escapePostgrest } from "@/lib/supabase/utils";
 
 /** Maximum number of suggestions shown at once */
 const MAX_SUGGESTIONS = 8;
@@ -28,9 +28,6 @@ interface SearchBarProps {
  * - Selecting a suggestion navigates to the scan/verify flow & triggers home safety view
  */
 export default function SearchBar({ dark = false, onSearchChange }: SearchBarProps) {
-    const router = useRouter();
-    const params = useParams();
-    const locale = params.locale as string;
     const tHome = useTranslations("Home");
 
     // ── State ──────────────────────────────────────────────────────────────────
@@ -43,11 +40,120 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
+    // Search History State
+    const [history, setHistory] = useState<HistoryItem[]>([]);
+
+    useEffect(() => {
+        try {
+            const stored = localStorage.getItem("sahidawa_search_history");
+            if (stored) {
+                setHistory(JSON.parse(stored));
+            }
+        } catch (e) {
+            console.error("Failed to access or parse search history:", e);
+        }
+    }, []);
+
+    const persistTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const persistHistory = useCallback((newHistory: HistoryItem[]) => {
+        if (persistTimeoutRef.current) {
+            clearTimeout(persistTimeoutRef.current);
+        }
+        persistTimeoutRef.current = setTimeout(() => {
+            try {
+                localStorage.setItem("sahidawa_search_history", JSON.stringify(newHistory));
+            } catch (e) {
+                console.warn("Failed to persist search history:", e);
+            }
+        }, 300);
+    }, []);
+
+    const addToHistory = useCallback(
+        (searchQuery: string) => {
+            const trimmed = searchQuery.trim();
+            if (!trimmed) return;
+
+            setHistory((prev) => {
+                const filtered = prev.filter(
+                    (item) => item.query.toLowerCase() !== trimmed.toLowerCase()
+                );
+                const existingItem = prev.find(
+                    (item) => item.query.toLowerCase() === trimmed.toLowerCase()
+                );
+                const newItem: HistoryItem = {
+                    query: existingItem ? existingItem.query : trimmed,
+                    pinned: existingItem ? existingItem.pinned : false,
+                    timestamp: Date.now(),
+                };
+                const sorted = [newItem, ...filtered];
+                // Sort: pinned first, then by timestamp descending
+                const sortedFinal = [...sorted]
+                    .sort((a, b) => {
+                        if (a.pinned && !b.pinned) return -1;
+                        if (!a.pinned && b.pinned) return 1;
+                        return b.timestamp - a.timestamp;
+                    })
+                    .slice(0, 20); // Limit to 20 items
+
+                persistHistory(sortedFinal);
+                return sortedFinal;
+            });
+        },
+        [persistHistory]
+    );
+
+    const togglePin = useCallback(
+        (searchQuery: string) => {
+            setHistory((prev) => {
+                const updated = prev.map((item) => {
+                    if (item.query.toLowerCase() === searchQuery.toLowerCase()) {
+                        return { ...item, pinned: !item.pinned };
+                    }
+                    return item;
+                });
+                const sortedFinal = [...updated].sort((a, b) => {
+                    if (a.pinned && !b.pinned) return -1;
+                    if (!a.pinned && b.pinned) return 1;
+                    return b.timestamp - a.timestamp;
+                });
+
+                persistHistory(sortedFinal);
+                return sortedFinal;
+            });
+        },
+        [persistHistory]
+    );
+
+    const clearHistory = useCallback(() => {
+        setHistory([]);
+        localStorage.removeItem("sahidawa_search_history");
+    }, []);
+
     // ── Refs ───────────────────────────────────────────────────────────────────
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
+
+    // ── Global keyboard shortcut (/) ──────────────────────────────────────────
+    useEffect(() => {
+        const handleGlobalKeyDown = (e: KeyboardEvent) => {
+            if (
+                e.key === "/" &&
+                document.activeElement?.tagName !== "INPUT" &&
+                document.activeElement?.tagName !== "TEXTAREA"
+            ) {
+                e.preventDefault();
+                inputRef.current?.focus();
+            }
+        };
+
+        window.addEventListener("keydown", handleGlobalKeyDown);
+        return () => {
+            window.removeEventListener("keydown", handleGlobalKeyDown);
+        };
+    }, []);
 
     // ── Close on click-outside ─────────────────────────────────────────────────
     useEffect(() => {
@@ -96,7 +202,9 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                 const response = await supabase
                     .from("medicines")
                     .select("brand_name, batch_number")
-                    .or(`brand_name.ilike.%${trimmed}%,batch_number.ilike.%${trimmed}%`)
+                    .or(
+                        `brand_name.ilike."%${escapePostgrest(trimmed)}%",batch_number.ilike."%${escapePostgrest(trimmed)}%"`
+                    )
                     .abortSignal(controller.signal)
                     .limit(MAX_SUGGESTIONS);
 
@@ -206,175 +314,44 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
             }
         }
     }, []);
+    useEffect(() => {
+        const trimmed = query.trim();
 
-    // const fetchSuggestions = useCallback(async (trimmed: string) => {
-    //     setError(null);
-    //     setNoResults(false);
-    //     if (!trimmed) {
-    //         setSuggestions([]);
-    //         setIsOpen(false);
-    //         setIsLoading(false);
-    //         // setError(null);
-    //         // setNoResults(false);
-    //         return;
-    //     }
-    //     // Check if offline
-    //     if (typeof window !== "undefined" && !window.navigator.onLine) {
-    //         setSuggestions([]);
-    //         setIsOpen(false);
-    //         setIsLoading(false);
-    //         return;
-    //     }
-    //     // Abort previous suggestions request
-    //     if (abortControllerRef.current) {
-    //         abortControllerRef.current.abort();
-    //     }
-    //     const controller = new AbortController();
-    //     abortControllerRef.current = controller;
-    //     setIsLoading(true);
-    //     try {
-    //         // Query both brand_name and batch_number columns for partial matches.
-    //         const { data, error } = await supabase
-    //             .from("medicines")
-    //             .select("brand_name, batch_number")
-    //             .or(`brand_name.ilike.%${trimmed}%,batch_number.ilike.%${trimmed}%`)
-    //             .abortSignal(controller.signal)
-    //             .limit(MAX_SUGGESTIONS);
-    //         if (controller.signal.aborted) {
-    //             return;
-    //         }
-    //         if (error) {
-    //             console.error("[SearchBar] Supabase suggestion error:", error.message);
-    //             setSuggestions([]);
-    //             setIsOpen(false);
-    //             return;
-    //         }
+        if (debounceTimer.current) {
+            clearTimeout(debounceTimer.current);
+        }
 
-    //         const seen = new Set<string>();
-    //         const results: string[] = [];
-    //         if (data && data.length > 0) {
-    //             // Deduplicate and build a flat list of relevant strings.
-    //             for (const row of data) {
-    //                 const candidates = [
-    //                     row.brand_name as string | null,
-    //                     row.batch_number as string | null,
-    //                 ];
-    //                 for (const c of candidates) {
-    //                     if (c && c.toLowerCase().includes(trimmed.toLowerCase()) && !seen.has(c)) {
-    //                         seen.add(c);
-    //                         results.push(c);
-    //                         if (results.length >= MAX_SUGGESTIONS) break;
-    //                     }
-    //                 }
-    //                 if (results.length >= MAX_SUGGESTIONS) break;
-    //             }
-    //         }
+        if (!trimmed) {
+            setSuggestions([]);
+            setIsLoading(false);
+            setNoResults(false);
+            setError(null);
+            onSearchChange?.("");
+            return;
+        }
 
-    //         // Typo-tolerance: if we got few or no exact results, query fuzzy matching from the backend!
-    //         if (results.length < 3) {
-    //             try {
-    //                 const fuzzyResults = await fuzzyMatchBrand(trimmed, controller.signal);
-    //                 for (const match of fuzzyResults) {
-    //                     if (match.name && !seen.has(match.name) && match.score >= 50) {
-    //                         seen.add(match.name);
-    //                         results.push(match.name);
-    //                         if (results.length >= MAX_SUGGESTIONS) break;
-    //                     }
-    //                 }
-    //             } catch (fuzzyErr) {
-    //                 // Ignore fuzzy errors and stick with what we have
-    //                 console.warn("[SearchBar] Fuzzy matching fallback error:", fuzzyErr);
-    //             }
-    //         }
+        debounceTimer.current = setTimeout(() => {
+            fetchSuggestions(trimmed);
+        }, DEBOUNCE_MS);
 
-    //         setSuggestions(results);
-    //         if (results.length === 0) {
-    //             setNoResults(true);
-    //             setIsOpen(true);
-    //         } else {
-    //             setNoResults(false);
-    //             setIsOpen(true);
-    //         }
-    //         setActiveIndex(-1);
-    //     } catch (err) {
-    //         if (err instanceof Error && err.name === "AbortError") {
-    //             // Silently ignore aborted suggestions queries
-    //             return;
-    //         }
-    //         console.error("[SearchBar] Unexpected error fetching suggestions:", err);
-    //         setSuggestions([]);
-    //         setError("Unable to fetch medicine suggestions.");
-    //         setIsOpen(true);
-    //     } finally {
-    //         if (!controller.signal.aborted) {
-    //             setIsLoading(false);
-    //         }
-    //     }
-    // }, []);
+        return () => {
+            if (debounceTimer.current) {
+                clearTimeout(debounceTimer.current);
+            }
+            abortControllerRef.current?.abort();
+        };
+    }, [query, fetchSuggestions, onSearchChange]);
 
-    // // ── Debounce query changes ─────────────────────────────────────────────────
-    // useEffect(() => {
-    //     const trimmed = query.trim();
-    //     // Cancel any pending debounce
-    //     if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    //     if (!trimmed) {
-    //         setSuggestions([]);
-    //         setIsOpen(false);
-    //         setIsLoading(false);
-    //         if (onSearchChange) onSearchChange(""); // Reset parent view if empty
-    //         return;
-    //     }
-    //     debounceTimer.current = setTimeout(() => {
-    //         fetchSuggestions(trimmed);
-    //     }, DEBOUNCE_MS);
-    //     // Cleanup on unmount or next effect run
-    //     return () => {
-    //         if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    //         if (abortControllerRef.current) abortControllerRef.current.abort();
-    //     };
-    // }, [query, fetchSuggestions, onSearchChange]);
-
-    //  ----------------
     // ── Select a suggestion ────────────────────────────────────────────────────
-    // const selectSuggestion = useCallback(
-    //     (value: string) => {
-    //         setQuery(value);
-    //         setIsOpen(false);
-    //         setActiveIndex(-1);
-    //         if (onSearchChange) onSearchChange(value); // Sync query to safety panel
-
-    //         // Comment out router line below if you want to stay on home page to show the details card
-    //         // instead of redirecting to the scan page directly on click.
-    //         router.push(`/${locale}/scan?q=${encodeURIComponent(value)}`);
-    //     },
-    //     [locale, router, onSearchChange]
-    // );
-
-    // // ── Perform search (Enter without active suggestion, or Search button) ─────
-    // const performSearch = useCallback(
-    //     (value: string) => {
-    //         const trimmed = value.trim();
-    //         if (!trimmed) return;
-    //         setIsOpen(false);
-    //         setActiveIndex(-1);
-    //         if (onSearchChange) onSearchChange(trimmed); // Sync query to safety panel
-
-    //         router.push(`/${locale}/scan?q=${encodeURIComponent(trimmed)}`);
-    //     },
-    //     [locale, router, onSearchChange]
-    // );
-
     const selectSuggestion = useCallback(
         (value: string) => {
             setQuery(value);
             setIsOpen(false);
             setActiveIndex(-1);
+            addToHistory(value);
             if (onSearchChange) onSearchChange(value); // Sync query to safety panel
-
-            // 🔴 COMMENT THIS LINE OUT SO IT DOES NOT REDIRECT:
-            // router.push(`/${locale}/scan?q=${encodeURIComponent(value)}`);
         },
-        [locale, router, onSearchChange]
+        [onSearchChange, addToHistory]
     );
 
     // ── Perform search (Enter without active suggestion, or Search button) ─────
@@ -384,29 +361,35 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
             if (!trimmed) return;
             setIsOpen(false);
             setActiveIndex(-1);
+            addToHistory(trimmed);
             if (onSearchChange) onSearchChange(trimmed); // Sync query to safety panel
-
-            // 🔴 COMMENT THIS LINE OUT SO IT DOES NOT REDIRECT:
-            // router.push(`/${locale}/scan?q=${encodeURIComponent(trimmed)}`);
         },
-        [locale, router, onSearchChange]
+        [onSearchChange, addToHistory]
     );
+
+    const isHistoryMode = query.trim() === "";
+    const listLength = isHistoryMode ? history.length : suggestions.length;
+
     // ── Keyboard navigation ────────────────────────────────────────────────────
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (!isOpen && e.key !== "Enter") return;
         switch (e.key) {
             case "ArrowDown":
                 e.preventDefault();
-                setActiveIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : 0));
+                setActiveIndex((prev) => (prev < listLength - 1 ? prev + 1 : 0));
                 break;
             case "ArrowUp":
                 e.preventDefault();
-                setActiveIndex((prev) => (prev > 0 ? prev - 1 : suggestions.length - 1));
+                setActiveIndex((prev) => (prev > 0 ? prev - 1 : listLength - 1));
                 break;
             case "Enter":
                 e.preventDefault();
-                if (activeIndex >= 0 && activeIndex < suggestions.length) {
-                    selectSuggestion(suggestions[activeIndex]);
+                if (activeIndex >= 0 && activeIndex < listLength) {
+                    if (isHistoryMode) {
+                        selectSuggestion(history[activeIndex].query);
+                    } else {
+                        selectSuggestion(suggestions[activeIndex]);
+                    }
                 } else {
                     performSearch(query);
                 }
@@ -480,6 +463,13 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                         }`}
                         aria-label="Search medicine or batch"
                     />
+                    {!isOpen && !query && (
+                        <div className="hidden items-center pr-2 sm:flex">
+                            <kbd className="pointer-events-none inline-flex h-5 items-center rounded border border-slate-200 bg-slate-50 px-1.5 font-sans text-xs font-medium text-slate-400 select-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500">
+                                /
+                            </kbd>
+                        </div>
+                    )}
                     <button
                         onClick={() => performSearch(query)}
                         className="flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 p-2.5 text-sm font-bold text-white shadow-md shadow-emerald-500/25 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-500/30 active:scale-95 sm:px-5 sm:py-2.5"
@@ -501,6 +491,11 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                 error={error}
                 noResults={noResults}
                 onRetry={() => fetchSuggestions(query.trim())}
+                isHistory={query.trim() === ""}
+                historyItems={history}
+                onPinToggle={togglePin}
+                onClearHistory={clearHistory}
+                query={query.trim()}
             />
         </div>
     );

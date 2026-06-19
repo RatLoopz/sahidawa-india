@@ -463,6 +463,7 @@
             "description": "Supabase URL ಅಥವಾ anon key ಕಾಣೆಯಾಗಿದೆ. ಸೈನ್ ಇನ್ ಮಾಡುವ ಮೊದಲು environment variables ಸೇರಿಸಿ."
         },
         "googleButton": "Google ಮೂಲಕ ಮುಂದುವರಿಯಿರಿ",
+        "githubButton": "GitHub ಮೂಲಕ ಮುಂದುವರಿಯಿರಿ",
         "emailSeparator": "ಅಥವಾ ಇಮೇಲ್ ಮೂಲಕ ಮುಂದುವರಿಯಿರಿ",
         "emailLabel": "ಇಮೇಲ್ ವಿಳಾಸ",
         "emailPlaceholder": "you@example.com",

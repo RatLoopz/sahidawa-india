@@ -37,6 +37,7 @@ app.add_middleware(
 include_router_if_available(app, "routers.verify", required=True)
 include_router_if_available(app, "routers.asr", required=True)
 include_router_if_available(app, "routers.analyze", required=True)
+include_router_if_available(app, "routers.triage", required=True)
 ocr_loaded = include_router_if_available(app, "routers.ocr", required=False)
 if not ocr_loaded:
     logger.warning("OCR routes are disabled in this runtime.")

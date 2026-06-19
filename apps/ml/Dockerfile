@@ -28,6 +28,7 @@ WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV MEDICINES_CSV_PATH=/data/seeds/medicines.csv
 
 # Install only the runtime system libraries (no compilers)
 # curl is needed for HEALTHCHECK
@@ -47,6 +48,10 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN groupadd --system --gid 1001 mlgroup && \
     useradd  --system --uid 1001 --gid mlgroup mluser
 
+# Compose mounts the root seed CSV here for dev/prod verification.
+RUN mkdir -p /data/seeds && \
+    chown -R mluser:mlgroup /data
+
 # Copy application source code
 COPY --chown=mluser:mlgroup . .
 
@@ -54,8 +59,8 @@ USER mluser
 
 EXPOSE 8000
 
-# Health check — verify the FastAPI /docs endpoint responds
+# Health check — verify the FastAPI app responds after required routers load
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:8000/docs || exit 1
+    CMD curl -f http://localhost:8000/health || exit 1
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

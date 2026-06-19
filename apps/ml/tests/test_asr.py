@@ -11,6 +11,7 @@ from types import SimpleNamespace
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from main import app
 from routers import asr as asr_router
+import services.medicine_ner as medicine_ner
 
 client = TestClient(app)
 
@@ -31,6 +32,13 @@ class _MockWhisperModel:
 @pytest.fixture(autouse=True)
 def _mock_asr_model(monkeypatch):
     monkeypatch.setattr(asr_router, "get_model", lambda: _MockWhisperModel())
+    # Mock extract_medicine_entities to prevent loading heavy spaCy models in unit tests
+    from services.medicine_ner import NERResult
+    monkeypatch.setattr(
+        medicine_ner,
+        "extract_medicine_entities",
+        lambda transcript: NERResult(transcript=transcript)
+    )
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

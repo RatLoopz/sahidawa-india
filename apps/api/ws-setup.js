@@ -12,3 +12,18 @@
 if (typeof globalThis.WebSocket === "undefined") {
     globalThis.WebSocket = require("ws");
 }
+
+// Pre-load environment variables before ES6 imports are loaded and hoisted
+const path = require("path");
+const fs = require("fs");
+
+const rootEnv = path.resolve(__dirname, "../../.env");
+if (fs.existsSync(rootEnv)) {
+    require("dotenv").config({ path: rootEnv });
+}
+const localEnv = path.resolve(__dirname, ".env");
+if (fs.existsSync(localEnv)) {
+    require("dotenv").config({ path: localEnv });
+}
+// Fallback to current working directory .env
+require("dotenv").config();

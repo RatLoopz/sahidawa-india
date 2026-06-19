@@ -18,9 +18,12 @@ import {
     Pill,
     FileText,
     Activity,
+    Store,
 } from "lucide-react";
 import { LiveMessage } from "@/components/ui/LiveMessage";
+import { canMutateAdminData, getAdminRoleFromSession, type AdminRole } from "@/lib/adminAuth";
 import { ADMIN_API_BASE } from "@/lib/adminApi";
+import { useSession } from "@/src/components/AuthProvider";
 
 type ReportStatus = "pending" | "verified_fake" | "false_alarm";
 type MedicineStatus = "approved" | "recalled" | "banned";
@@ -63,13 +66,9 @@ function timeAgo(dateStr: string): string {
     return `${d}d ago`;
 }
 
-function getToken(): string {
-    if (globalThis.window === undefined) return "";
-    return localStorage.getItem("sb-access-token") ?? "";
-}
-
 export default function AdminDashboard() {
     const t = useTranslations("AdminDashboard");
+    const { session, token, isLoading: authLoading } = useSession();
     const [tab, setTab] = useState<Tab>("reports");
     const [reports, setReports] = useState<Report[]>([]);
     const [resolved, setResolved] = useState<(Report & { resolvedStatus: ReportStatus })[]>([]);
@@ -80,6 +79,7 @@ export default function AdminDashboard() {
     const [acting, setActing] = useState<string | null>(null);
     const [authError, setAuthError] = useState<string | null>(null);
     const [showForm, setShowForm] = useState(false);
+    const [adminRole, setAdminRole] = useState<AdminRole | null>(null);
     const [newMed, setNewMed] = useState<Omit<Medicine, "id">>({
         brand_name: "",
         generic_name: "",
@@ -88,6 +88,7 @@ export default function AdminDashboard() {
         cdsco_approval_status: "approved",
     });
     const [toast, setToast] = useState<{ msg: React.ReactNode; ok: boolean } | null>(null);
+    const canMutate = canMutateAdminData(adminRole);
 
     const notify = (msg: React.ReactNode, ok = true) => {
         setToast({ msg, ok });
@@ -96,7 +97,7 @@ export default function AdminDashboard() {
 
     const authHeaders = () => ({
         "Content-Type": "application/json",
-        Authorization: `Bearer ${getToken()}`,
+        Authorization: `Bearer ${token ?? ""}`,
     });
 
     const fetchReports = useCallback(async () => {
@@ -149,9 +150,16 @@ export default function AdminDashboard() {
     }, []);
 
     useEffect(() => {
-        fetchReports();
-        fetchMedicines();
-    }, [fetchReports, fetchMedicines]);
+        if (authLoading) return;
+        setAdminRole(getAdminRoleFromSession(session));
+    }, [authLoading, token]);
+
+    useEffect(() => {
+        if (!authLoading) {
+            fetchReports();
+            fetchMedicines();
+        }
+    }, [authLoading, fetchReports, fetchMedicines]);
 
     useEffect(() => {
         if (tab === "logs") {
@@ -160,6 +168,8 @@ export default function AdminDashboard() {
     }, [tab, fetchAuditLogs]);
 
     const handleReportAction = async (reportId: string, status: ReportStatus) => {
+        if (!canMutate) return;
+
         setActing(reportId + status);
         try {
             const res = await fetch(`${ADMIN_API_BASE}/reports/${reportId}/status`, {
@@ -196,7 +206,8 @@ export default function AdminDashboard() {
     };
 
     const handleAddMedicine = async () => {
-        if (!newMed.brand_name || !newMed.generic_name) return;
+        if (!canMutate || !newMed.brand_name || !newMed.generic_name) return;
+
         try {
             const res = await fetch(`${ADMIN_API_BASE}/medicines`, {
                 method: "POST",
@@ -264,6 +275,13 @@ export default function AdminDashboard() {
                         active={tab === "logs"}
                         onClick={() => setTab("logs")}
                     />
+                    <Link
+                        href="/admin/pharmacies/pending"
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-slate-500 transition-all hover:bg-slate-50 hover:text-slate-800"
+                    >
+                        <Store className="h-4 w-4 text-slate-400" />
+                        Pharmacies
+                    </Link>
                     <Link
                         href="/admin/analytics"
                         className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-slate-500 transition-all hover:bg-slate-50 hover:text-slate-800"
@@ -342,6 +360,7 @@ export default function AdminDashboard() {
                                 loading={loading}
                                 authError={authError}
                                 acting={acting}
+                                canMutate={canMutate}
                                 onAction={handleReportAction}
                                 t={t}
                             />
@@ -356,15 +375,17 @@ export default function AdminDashboard() {
                                 <h2 className="font-semibold text-slate-800">
                                     {t("medicine.title")}
                                 </h2>
-                                <button
-                                    onClick={() => setShowForm((v) => !v)}
-                                    className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-700"
-                                >
-                                    <Plus className="h-3.5 w-3.5" /> {t("actions.addMedicine")}
-                                </button>
+                                {canMutate && (
+                                    <button
+                                        onClick={() => setShowForm((v) => !v)}
+                                        className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-700"
+                                    >
+                                        <Plus className="h-3.5 w-3.5" /> {t("actions.addMedicine")}
+                                    </button>
+                                )}
                             </div>
 
-                            {showForm && (
+                            {canMutate && showForm && (
                                 <div className="border-b border-slate-100 bg-slate-50 px-6 py-4">
                                     <div className="mb-3 grid grid-cols-2 gap-3">
                                         {(
@@ -620,6 +641,7 @@ function ReportsTable({
     loading,
     authError,
     acting,
+    canMutate,
     onAction,
     t,
 }: Readonly<{
@@ -627,6 +649,7 @@ function ReportsTable({
     loading: boolean;
     authError: string | null;
     acting: string | null;
+    canMutate: boolean;
     onAction: (id: string, s: ReportStatus) => void;
     t: ReturnType<typeof useTranslations>;
 }>) {
@@ -682,7 +705,9 @@ function ReportsTable({
                             <th className="px-6 py-3">{t("reports.columns.district")}</th>
                             <th className="px-6 py-3">{t("reports.columns.barcode")}</th>
                             <th className="px-6 py-3">{t("reports.columns.reported")}</th>
-                            <th className="px-6 py-3">{t("reports.columns.actions")}</th>
+                            {canMutate && (
+                                <th className="px-6 py-3">{t("reports.columns.actions")}</th>
+                            )}
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -702,26 +727,28 @@ function ReportsTable({
                                 <td className="px-6 py-3 text-sm text-slate-400">
                                     {timeAgo(r.created_at)}
                                 </td>
-                                <td className="px-6 py-3">
-                                    <div className="flex gap-2">
-                                        <ActionBtn
-                                            label={t("actions.markFake")}
-                                            icon={XCircle}
-                                            color="red"
-                                            loading={acting === r.id + "verified_fake"}
-                                            disabled={!!acting?.startsWith(r.id)}
-                                            onClick={() => onAction(r.id, "verified_fake")}
-                                        />
-                                        <ActionBtn
-                                            label={t("actions.falseAlarm")}
-                                            icon={CheckCircle}
-                                            color="green"
-                                            loading={acting === r.id + "false_alarm"}
-                                            disabled={!!acting?.startsWith(r.id)}
-                                            onClick={() => onAction(r.id, "false_alarm")}
-                                        />
-                                    </div>
-                                </td>
+                                {canMutate && (
+                                    <td className="px-6 py-3">
+                                        <div className="flex gap-2">
+                                            <ActionBtn
+                                                label={t("actions.markFake")}
+                                                icon={XCircle}
+                                                color="red"
+                                                loading={acting === r.id + "verified_fake"}
+                                                disabled={!!acting?.startsWith(r.id)}
+                                                onClick={() => onAction(r.id, "verified_fake")}
+                                            />
+                                            <ActionBtn
+                                                label={t("actions.falseAlarm")}
+                                                icon={CheckCircle}
+                                                color="green"
+                                                loading={acting === r.id + "false_alarm"}
+                                                disabled={!!acting?.startsWith(r.id)}
+                                                onClick={() => onAction(r.id, "false_alarm")}
+                                            />
+                                        </div>
+                                    </td>
+                                )}
                             </tr>
                         ))}
                     </tbody>

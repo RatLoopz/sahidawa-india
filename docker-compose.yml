@@ -45,11 +45,14 @@ services:
       - PORT=4000
       - REDIS_URL=redis://redis:6379
       - ML_SERVICE_URL=http://ml:8000
+    env_file:
+      - .env
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
       - redis
       - ml
+
 
   ml:
     build:
@@ -57,9 +60,17 @@ services:
     working_dir: /app
     volumes:
       - ./apps/ml:/app
+      - type: bind
+        source: ./data/seeds/medicines.csv
+        target: /data/seeds/medicines.csv
+        read_only: true
+        bind:
+          create_host_path: false
     command: uvicorn main:app --host 0.0.0.0 --port 8000
     ports:
       - "8000:8000"
+    environment:
+      - MEDICINES_CSV_PATH=/data/seeds/medicines.csv
     extra_hosts:
       - "host.docker.internal:host-gateway"
 

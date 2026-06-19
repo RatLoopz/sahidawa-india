@@ -1,6 +1,15 @@
 "use client";
 
-import { Mail, Lock, ShieldCheck, ArrowRight, Hand, AlertTriangle } from "lucide-react";
+import {
+    Mail,
+    Lock,
+    ShieldCheck,
+    ArrowRight,
+    Hand,
+    AlertTriangle,
+    Eye,
+    EyeOff,
+} from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
@@ -8,6 +17,7 @@ import { Link, useRouter } from "@/i18n/routing";
 import { createBrowserClient } from "@supabase/ssr";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
+import { FaGithub } from "react-icons/fa6";
 export default function LoginPage() {
     const router = useRouter();
     const locale = useLocale();
@@ -20,6 +30,7 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -68,6 +79,33 @@ export default function LoginPage() {
         try {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: "google",
+                options: {
+                    redirectTo: `${window.location.origin}/${locale}/reports/me`,
+                },
+            });
+
+            if (error) {
+                setError(error.message);
+                setLoading(false);
+            }
+        } catch {
+            setError(t("errors.generic"));
+            setLoading(false);
+        }
+    };
+    const handleGithubLogin = async () => {
+        setLoading(true);
+        setError("");
+
+        if (isMissingEnvVars) {
+            setError(t("errors.databaseNotConfigured"));
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: "github",
                 options: {
                     redirectTo: `${window.location.origin}/${locale}/reports/me`,
                 },
@@ -144,6 +182,15 @@ export default function LoginPage() {
                         <FcGoogle size={20} />
                         {t("googleButton")}
                     </button>
+                    <button
+                        type="button"
+                        onClick={handleGithubLogin}
+                        disabled={loading || isMissingEnvVars}
+                        className="mb-6 flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 font-medium text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
+                    >
+                        <FaGithub size={20} />
+                        {t("githubButton")}
+                    </button>
 
                     {/* OR Separator */}
                     <div className="mb-6 flex items-center gap-4">
@@ -186,7 +233,7 @@ export default function LoginPage() {
                                 <Lock className="h-5 w-5 text-(--color-text-muted)" />
 
                                 <input
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     placeholder={t("passwordPlaceholder")}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -194,6 +241,20 @@ export default function LoginPage() {
                                     disabled={isMissingEnvVars}
                                     className="w-full bg-transparent text-(--color-text-primary) outline-none placeholder:text-(--color-text-muted) disabled:cursor-not-allowed disabled:opacity-50"
                                 />
+
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword((v) => !v)}
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                    aria-pressed={showPassword}
+                                    className="shrink-0 rounded text-(--color-text-muted) transition hover:text-(--color-text-primary) focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                                >
+                                    {showPassword ? (
+                                        <EyeOff className="h-5 w-5" />
+                                    ) : (
+                                        <Eye className="h-5 w-5" />
+                                    )}
+                                </button>
                             </div>
                         </div>
 

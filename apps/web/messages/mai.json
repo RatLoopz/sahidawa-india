@@ -472,6 +472,7 @@
             "description": "Supabase URL वा anon key नहि अछि। साइन इन करबासँ पहिने पर्यावरण चर जोड़ू।"
         },
         "googleButton": "Google सँ जारी राखू",
+        "githubButton": "GitHub सँ जारी राखू",
         "emailSeparator": "वा ईमेलसँ जारी राखू",
         "emailLabel": "ईमेल पता",
         "emailPlaceholder": "you@example.com",

@@ -5,6 +5,7 @@ import { compressImage } from "./compressImage";
 
 export type UploadState =
     | { status: "idle" }
+    | { status: "compressing"; progress: number }
     | { status: "uploading"; progress: number }
     | { status: "success"; secureUrl: string }
     | { status: "error"; message: string };
@@ -47,9 +48,17 @@ export function useUpload(onUploadComplete: (url: string) => void): UseUploadRet
             }
 
             cancelledRef.current = false;
-            setState({ status: "uploading", progress: 0 });
+            setState({ status: "compressing", progress: 0 });
 
-            const compressed = await compressImage(file);
+            const compressed = await compressImage(file, (progress) => {
+                if (!cancelledRef.current) {
+                    setState({ status: "compressing", progress });
+                }
+            });
+
+            if (cancelledRef.current) return;
+
+            setState({ status: "uploading", progress: 0 });
 
             const formData = new FormData();
             formData.append("file", compressed);
@@ -100,22 +109,15 @@ export function useUpload(onUploadComplete: (url: string) => void): UseUploadRet
                     xhr.send(formData);
                 });
 
-                if (cancelledRef.current) {
-                    return;
-                }
+                if (cancelledRef.current) return;
 
                 setState({ status: "success", secureUrl: result.secure_url });
                 onUploadComplete(result.secure_url);
             } catch (error) {
-                if (cancelledRef.current) {
-                    return;
-                }
+                if (cancelledRef.current) return;
 
                 const message = error instanceof Error ? error.message : "Upload failed";
-
-                if (message === "Upload cancelled") {
-                    return;
-                }
+                if (message === "Upload cancelled") return;
 
                 setState({ status: "error", message });
             }

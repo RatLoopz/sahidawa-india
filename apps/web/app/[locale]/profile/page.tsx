@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { Link, useRouter } from "@/i18n/routing";
-import { User, ShieldCheck, Bell, ChevronRight, ArrowLeft, LogIn, LogOut } from "lucide-react";
-
-const ACCESS_TOKEN_KEY = "sb-access-token";
+import { PageHeader } from "../components/PageHeader";
+import { User, ShieldCheck, Bell, ChevronRight, LogIn, LogOut } from "lucide-react";
+import { useSession } from "@/src/components/AuthProvider";
 
 type ProfileSession =
     | { status: "checking" }
@@ -74,8 +74,11 @@ function readSessionFromToken(token: string | null): {
     }
 }
 
+const ACCESS_TOKEN_KEY = "sb-access-token";
+
 export default function ProfilePage() {
     const router = useRouter();
+    const { token, isLoading: authLoading } = useSession();
     const [session, setSession] = useState<ProfileSession>({ status: "checking" });
 
     const accountTitle =
@@ -92,14 +95,16 @@ export default function ProfilePage() {
               : "No account connected";
 
     useEffect(() => {
-        const result = readSessionFromToken(localStorage.getItem(ACCESS_TOKEN_KEY));
+        if (authLoading) return;
+
+        const result = readSessionFromToken(token);
 
         if (result.clearToken) {
             localStorage.removeItem(ACCESS_TOKEN_KEY);
         }
 
         setSession(result.session);
-    }, []);
+    }, [authLoading, token]);
 
     const handleSignOut = () => {
         localStorage.removeItem(ACCESS_TOKEN_KEY);
@@ -110,15 +115,7 @@ export default function ProfilePage() {
     return (
         <div className="flex-grow bg-(--color-surface-muted) px-6 py-8 text-(--color-text-primary)">
             <div className="mx-auto max-w-3xl">
-                {/* Back Button */}
-                <Link
-                    href="/"
-                    className="mb-6 inline-flex items-center gap-2 rounded-xl px-3 py-2 font-medium text-(--color-text-secondary) transition-all hover:bg-(--color-surface-page) hover:text-emerald-600 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none dark:hover:text-emerald-400"
-                >
-                    <ArrowLeft size={18} />
-
-                    <span className="font-medium">Back to Home</span>
-                </Link>
+                <PageHeader backHref="/" variant="light" />
 
                 {/* Header */}
                 <div className="mb-8 flex items-center gap-4">
@@ -191,8 +188,8 @@ export default function ProfilePage() {
                             </button>
                         )}
 
-                        <button
-                            type="button"
+                        <Link
+                            href="/settings"
                             className="flex w-full items-center justify-between p-5 transition-colors hover:bg-(--color-surface-muted)"
                         >
                             <div className="flex items-center gap-3">
@@ -204,10 +201,10 @@ export default function ProfilePage() {
                             </div>
 
                             <ChevronRight size={18} className="text-(--color-text-muted)" />
-                        </button>
+                        </Link>
 
-                        <button
-                            type="button"
+                        <Link
+                            href="/privacy"
                             className="flex w-full items-center justify-between p-5 transition-colors hover:bg-(--color-surface-muted)"
                         >
                             <div className="flex items-center gap-3">
@@ -222,7 +219,7 @@ export default function ProfilePage() {
                             </div>
 
                             <ChevronRight size={18} className="text-(--color-text-muted)" />
-                        </button>
+                        </Link>
                     </div>
                 </div>
             </div>

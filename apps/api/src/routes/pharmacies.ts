@@ -23,6 +23,7 @@ interface PharmacyRow {
     is_verified: boolean;
     district: string | null;
     state: string | null;
+    status?: "pending" | "approved" | "rejected";
 }
 
 /** Pharmacy row returned by PostGIS RPC functions */
@@ -90,7 +91,6 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
     }
 
     const data = parsed.data;
-
     try {
         // Check for an existing pharmacy with the same licenseId before inserting.
         // Without this check concurrent or repeated requests can create duplicate
@@ -124,8 +124,9 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
                 district: data.district,
                 state: data.state,
                 phone_number: data.phone_number ?? null,
-                location: data.lng && data.lat ? `POINT(${data.lng} ${data.lat})` : null,
+                location: data.lat !== undefined && data.lng !== undefined ? `POINT(${data.lng} ${data.lat})` : null,
                 is_verified: false,
+                status: "pending",
             })
             .select()
             .single();
@@ -399,7 +400,8 @@ router.get("/nearest", async (req: Request, res: Response, next: NextFunction) =
 
         const { data: allPharmacies, error: fetchError } = await supabase
             .from("pharmacies")
-            .select("name, address, location, phone_number, is_verified, district, state")
+            .select("name, address, location, phone_number, is_verified, district, state, status")
+            .eq("status", "approved")
             .limit(3000);
 
         if (fetchError) {
@@ -408,6 +410,7 @@ router.get("/nearest", async (req: Request, res: Response, next: NextFunction) =
         }
 
         const pharmacies: FormattedPharmacy[] = ((allPharmacies || []) as PharmacyRow[])
+            .filter((p: PharmacyRow) => p.status === "approved")
             .map((p: PharmacyRow): PharmacyWithRawDistance => {
                 const coords = extractCoordinates(p);
                 const distanceKm = calculateDistanceKM(lat, lng, coords.lat, coords.lng);
@@ -568,7 +571,8 @@ router.get("/in-bounds", async (req: Request, res: Response, next: NextFunction)
 
         const { data: allPharmacies, error: fetchError } = await supabase
             .from("pharmacies")
-            .select("name, address, location, phone_number, is_verified, district, state")
+            .select("name, address, location, phone_number, is_verified, district, state, status")
+            .eq("status", "approved")
             .limit(3000);
 
         if (fetchError) {
@@ -577,6 +581,7 @@ router.get("/in-bounds", async (req: Request, res: Response, next: NextFunction)
         }
 
         const pharmacies: FormattedPharmacy[] = ((allPharmacies || []) as PharmacyRow[])
+            .filter((p: PharmacyRow) => p.status === "approved")
             .map((p: PharmacyRow) => {
                 const coords = extractCoordinates(p);
                 const distanceKm = calculateDistanceKM(

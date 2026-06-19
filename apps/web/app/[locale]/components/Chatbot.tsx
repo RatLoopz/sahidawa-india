@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
-import { MessageSquare, X, Send, Bot, Home } from "lucide-react";
+import { MessageSquare, X, Send, Bot, Home, Trash2, Check } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { getChatbotPanelClasses, getChatbotPositionClasses } from "./chatbotPosition";
 import { ChatMarkdown } from "@/app/components/ChatMarkdown";
@@ -12,51 +12,58 @@ import { isAbortError, readChatErrorMessage, readTextResponseStream } from "@/li
 type Message = {
     text: string;
     isBot: boolean;
+    isTranslationKey?: boolean;
     isTyping?: boolean;
 };
 
-const MessageContent = ({ msg }: { msg: Message }) =>
-    msg.isBot ? (
-        <ChatMarkdown content={msg.text} />
+const MessageContent = ({ msg }: { msg: Message }) => {
+    const t = useTranslations("chatbot");
+
+    const content = msg.isTranslationKey ? t(msg.text) : msg.text;
+
+    return msg.isBot ? (
+        <ChatMarkdown content={content} />
     ) : (
-        <span className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</span>
+        <span className="text-sm leading-relaxed whitespace-pre-wrap">{content}</span>
     );
+};
 
 export default function Chatbot() {
     const pathname = usePathname();
     const t = useTranslations("chatbot");
     const [isOpen, setIsOpen] = useState(false);
-    const [messages, setMessages] = useState<Message[]>([{ text: t("welcome"), isBot: true }]);
+    const [messages, setMessages] = useState<Message[]>([
+        {
+            text: "welcome",
+            isBot: true,
+            isTranslationKey: true,
+        },
+    ]);
     const [input, setInput] = useState("");
+    const [isConfirmingClear, setIsConfirmingClear] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const activeRequestRef = useRef<AbortController | null>(null);
-    const previousWelcomeRef = useRef(t("welcome"));
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
+    const handleClear = () => {
+        activeRequestRef.current?.abort();
+        setMessages([
+            {
+                text: "welcome",
+                isBot: true,
+                isTranslationKey: true,
+            },
+        ]);
+        setInput("");
+        setIsConfirmingClear(false);
+    };
+
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
-
-    useEffect(() => {
-        setMessages((prev) => {
-            if (prev.length > 0 && prev[0].isBot && prev[0].text === previousWelcomeRef.current) {
-                const updated = [...prev];
-                updated[0] = {
-                    ...updated[0],
-                    text: t("welcome"),
-                };
-
-                previousWelcomeRef.current = t("welcome");
-                return updated;
-            }
-
-            previousWelcomeRef.current = t("welcome");
-            return prev;
-        });
-    }, [t]);
 
     useEffect(() => {
         return () => {
@@ -151,6 +158,35 @@ export default function Chatbot() {
                             </div>
                         </div>
                         <div className="flex items-center gap-1">
+                            {isConfirmingClear ? (
+                                <div className="flex items-center gap-1 rounded-full bg-white/10 px-1 py-0.5">
+                                    <button
+                                        onClick={handleClear}
+                                        className="rounded-full p-1.5 text-green-300 transition-colors hover:bg-white/20 hover:text-green-200"
+                                        aria-label="Confirm clear conversation"
+                                        title={t("confirmClear")}
+                                    >
+                                        <Check size={16} />
+                                    </button>
+                                    <button
+                                        onClick={() => setIsConfirmingClear(false)}
+                                        className="rounded-full p-1.5 text-red-300 transition-colors hover:bg-white/20 hover:text-red-200"
+                                        aria-label="Cancel clear conversation"
+                                        title={t("cancelClear")}
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => setIsConfirmingClear(true)}
+                                    className="rounded-full p-2 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+                                    aria-label={t("clear")}
+                                    title={t("clear")}
+                                >
+                                    <Trash2 size={18} />
+                                </button>
+                            )}
                             <Link
                                 href="/"
                                 className="rounded-full p-2 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
@@ -216,7 +252,7 @@ export default function Chatbot() {
 
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="relative z-50 flex h-14 w-14 items-center justify-center rounded-full bg-green-600 text-white shadow-[0_8px_20px_rgba(22,163,74,0.3)] transition-all hover:scale-105 hover:shadow-[0_8px_25px_rgba(22,163,74,0.4)] active:scale-95 dark:bg-green-700 dark:hover:bg-green-800"
+                    className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full bg-green-600 text-white shadow-[0_8px_20px_rgba(22,163,74,0.3)] transition-all hover:scale-105 hover:shadow-[0_8px_25px_rgba(22,163,74,0.4)] active:scale-95 dark:bg-green-700 dark:hover:bg-green-800"
                     aria-label={isOpen ? "Close AI chat" : "Open AI chat"}
                 >
                     {isOpen ? <X size={28} /> : <MessageSquare size={28} />}

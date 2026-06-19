@@ -1,6 +1,6 @@
 # ADR — feat: add scan history feature
 
-> **Date:** 2024-07-29 | **PR:** #1469 | **Status:** Accepted
+> **Date:** 2026-07-29 | **PR:** #1469 | **Status:** Accepted
 
 ## Context
 

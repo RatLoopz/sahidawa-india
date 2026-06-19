@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check PR size
-        uses: actions/github-script@v6
+        uses: actions/github-script@v9
         with:
           script: |
             const { owner, repo, number } = context.issue;
@@ -27,7 +27,7 @@ jobs:
             
             if (changedFilesCount > threshold) {
               const warningMessage = `
-              🚨 **WARNING: Large Pull Request Detected!** 🚨
+              **Warning: Large Pull Request Detected**
               
               This PR modifies **${changedFilesCount} files**. 
               
@@ -49,7 +49,7 @@ jobs:
               });
               
               const hasWarningComment = comments.data.some(comment => 
-                comment.body.includes('WARNING: Large Pull Request Detected!')
+                comment.body.includes('Warning: Large Pull Request Detected')
               );
               
               if (!hasWarningComment) {

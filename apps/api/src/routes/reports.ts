@@ -2,6 +2,12 @@ import { Router, Response } from "express";
 import { z } from "zod";
 import { supabase } from "../db/client";
 import { AuthenticatedRequest, optionalAuth, requireAuth, requireRole } from "../middleware/auth";
+import { reportLimiter } from "../middleware/rateLimit";
+import {
+    validateReport,
+    computeReportHash,
+    anonymizeIp,
+} from "../services/reportValidation.service";
 
 const reportsRouter = Router();
 
@@ -46,8 +52,18 @@ const createReportSchema = z.object({
     city: z.string().min(2),
     state: z.string().min(2),
     pincode: z.string().regex(/^\d{6}$/),
-    latitude: z.number().optional(),
-    longitude: z.number().optional(),
+    latitude: z
+        .number()
+        .min(-90, "Latitude must be between -90 and 90")
+        .max(90, "Latitude must be between -90 and 90")
+        .optional(),
+    longitude: z
+        .number()
+        .min(-180, "Longitude must be between -180 and 180")
+        .max(180, "Longitude must be between -180 and 180")
+        .optional(),
+    scannedBarcode: z.string().optional(),
+    medicineId: z.string().uuid().optional(),
 });
 
 const buildReportLocation = (latitude?: number, longitude?: number) => {
@@ -58,52 +74,101 @@ const buildReportLocation = (latitude?: number, longitude?: number) => {
     return `POINT(${longitude} ${latitude})`;
 };
 
-reportsRouter.post("/", optionalAuth, async (req: AuthenticatedRequest, res: Response) => {
-    const parsed = createReportSchema.safeParse(req.body);
+reportsRouter.post(
+    "/",
+    reportLimiter,
+    optionalAuth,
+    async (req: AuthenticatedRequest, res: Response) => {
+        const parsed = createReportSchema.safeParse(req.body);
 
-    if (!parsed.success) {
-        res.status(400).json({
-            error: "Invalid report payload",
-            issues: parsed.error.issues,
-        });
-        return;
-    }
+        if (!parsed.success) {
+            res.status(400).json({
+                error: "Invalid report payload",
+                issues: parsed.error.issues,
+            });
+            return;
+        }
 
-    const data = parsed.data;
+        const data = parsed.data;
 
-    try {
-        const { data: report, error } = await supabase
-            .from("counterfeit_reports")
-            .insert({
-                reported_brand_name: data.medicineName,
+        try {
+            const rawIp =
+                req.headers["x-forwarded-for"]?.toString().split(",")[0]?.trim() ||
+                req.socket.remoteAddress;
+            const ipAddress = anonymizeIp(rawIp);
+            const validationPayload = {
+                medicineName: data.medicineName,
                 manufacturer: data.manufacturer,
                 description: data.description,
-                photo_url: data.images[0],
-                photo_urls: data.images,
-                pharmacy_name: data.pharmacyName,
+                pharmacyName: data.pharmacyName,
                 address: data.address,
                 city: data.city,
                 state: data.state,
                 pincode: data.pincode,
                 district: data.city,
-                report_location: buildReportLocation(data.latitude, data.longitude),
-                reporter_id: req.user?.id ?? null,
-                status: "pending",
-            })
-            .select()
-            .single();
+            };
 
-        if (error) {
-            res.status(500).json({ error: "Failed to submit counterfeit report" });
-            return;
+            const validation = await validateReport(
+                validationPayload,
+                ipAddress,
+                req.user?.id ?? null
+            );
+
+            const { data: report, error } = await supabase
+                .from("counterfeit_reports")
+                .insert({
+                    reported_brand_name: data.medicineName,
+                    manufacturer: data.manufacturer,
+                    description: data.description,
+                    photo_url: data.images[0],
+                    photo_urls: data.images,
+                    pharmacy_name: data.pharmacyName,
+                    address: data.address,
+                    city: data.city,
+                    state: data.state,
+                    pincode: data.pincode,
+                    district: data.city,
+                    report_location: buildReportLocation(data.latitude, data.longitude),
+                    reporter_id: req.user?.id ?? null,
+                    ip_address: ipAddress,
+                    report_hash: computeReportHash(validationPayload),
+                    risk_score: validation.riskScore,
+                    is_escalated: !validation.passed,
+                    duplicate_group_id: validation.duplicateGroupId ?? null,
+                    status: "pending",
+                    scanned_barcode: data.scannedBarcode ?? null,
+                    medicine_id: data.medicineId ?? null,
+                })
+                .select()
+                .single();
+
+            if (error) {
+                res.status(500).json({ error: "Failed to submit counterfeit report" });
+                return;
+            }
+
+            const response: Record<string, unknown> = { report };
+
+            if (!validation.passed) {
+                response.warning =
+                    "Your report has been flagged for review due to suspicious patterns. It will not appear on public heatmaps until verified.";
+                response.validation = {
+                    riskScore: validation.riskScore,
+                    reasons: validation.reasons,
+                };
+            }
+
+            res.status(201).json(response);
+        } catch (err) {
+            console.error("Unexpected error in POST /api/reports:", err);
+            res.status(500).json({
+                error: "An unexpected error occurred",
+                details: err instanceof Error ? err.message : String(err),
+                stack: err instanceof Error ? err.stack : undefined,
+            });
         }
-
-        res.status(201).json({ report });
-    } catch (err) {
-        console.error("Unexpected error in POST /api/reports:", err);
-        res.status(500).json({ error: "An unexpected error occurred" });
     }
-});
+);
 
 // Must be registered BEFORE the admin-only GET '/' so Express matches /mine first.
 reportsRouter.get("/mine", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
@@ -192,6 +257,28 @@ reportsRouter.patch(
             if (error) {
                 res.status(500).json({ error: "Failed to update report status" });
                 return;
+            }
+
+            // --- DISTRICT ALERT LOGIC ---
+            if (status === "verified_fake" && data.district) {
+                const { count } = await supabase
+                    .from("counterfeit_reports")
+                    .select("*", { count: "exact", head: true })
+                    .eq("district", data.district)
+                    .eq("status", "verified_fake")
+                    .eq("is_escalated", false);
+
+                if (count && count >= 5) {
+                    const alertLevel = count >= 15 ? "high" : "medium";
+                    await supabase.from("district_alerts").upsert(
+                        {
+                            district: data.district,
+                            medicine_name: data.reported_brand_name,
+                            alert_level: alertLevel,
+                        },
+                        { onConflict: "district" }
+                    );
+                }
             }
 
             res.json({ report: data });

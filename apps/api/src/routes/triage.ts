@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from "express";
-import supabase from "../db/supabase";
+import { anonSupabase } from "../db/supabase";
 import logger from "../utils/logger";
 import {
     assessUrgency,
@@ -65,7 +65,7 @@ async function findNearestPharmacies(
     lng: number,
     radius: number
 ): Promise<FormattedPharmacy[]> {
-    const { data, error } = await supabase.rpc("get_nearest_pharmacies", {
+    const { data, error } = await anonSupabase.rpc("get_nearest_pharmacies", {
         query_lat: lat,
         query_lng: lng,
         search_radius_km: radius,

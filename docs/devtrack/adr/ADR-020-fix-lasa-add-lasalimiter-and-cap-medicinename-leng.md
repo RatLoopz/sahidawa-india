@@ -1,6 +1,6 @@
 # ADR — fix(lasa): add lasaLimiter and cap medicineName length on /check endpoint
 
-> **Date:** 2024-07-30 | **PR:** #1114 | **Status:** Accepted
+> **Date:** 2026-07-30 | **PR:** #1114 | **Status:** Accepted
 
 ## Context
 

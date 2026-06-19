@@ -1,6 +1,6 @@
 # ADR — Fix #833: Optimize Load Time with Lazy Loading and Image Optimization
 
-> **Date:** 2024-07-30 | **PR:** #833 | **Status:** Accepted
+> **Date:** 2026-07-30 | **PR:** #833 | **Status:** Accepted
 
 ## Context
 

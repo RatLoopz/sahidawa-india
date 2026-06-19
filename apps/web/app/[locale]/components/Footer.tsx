@@ -89,6 +89,12 @@ export default function Footer() {
                                 <li key={link.href}>
                                     <Link
                                         href={link.href}
+                                        onClick={() => {
+                                            window.scrollTo({
+                                                top: 0,
+                                                behavior: "smooth",
+                                            });
+                                        }}
                                         className={`inline-flex items-center gap-1.5 text-sm transition-colors ${
                                             link.highlight
                                                 ? "font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"

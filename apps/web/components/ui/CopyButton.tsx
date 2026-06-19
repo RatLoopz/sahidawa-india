@@ -30,7 +30,7 @@ export const CopyButton = ({
 
             // Revert icon back to Copy after 2 seconds
             setTimeout(() => setIsCopied(false), 2000);
-        } catch (err) {
+        } catch {
             toast.error("Failed to copy");
         }
     };

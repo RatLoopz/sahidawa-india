@@ -1,3 +1,5 @@
+import { AlertTriangle } from "lucide-react";
+
 export interface Medicine {
     id: string;
     brand_name: string | null;
@@ -101,6 +103,38 @@ function formatStatus(status: string, labels: ComparisonGridLabels): string {
     return map[status.toLowerCase()] ?? status;
 }
 
+function isFlaggedStatus(status: string): boolean {
+    const normalized = status.toLowerCase();
+    return normalized === "recalled" || normalized === "banned";
+}
+function CdscoStatusBadge({ status }: { status: string }) {
+    const normalized = status.toLowerCase();
+    const config: Record<string, { label: string; className: string }> = {
+        approved: {
+            label: "Approved",
+            className: "bg-emerald-100 text-emerald-800 border-emerald-200",
+        },
+        recalled: {
+            label: "Recalled",
+            className: "bg-amber-100 text-amber-800 border-amber-200",
+        },
+        banned: {
+            label: "Banned",
+            className: "bg-red-100 text-red-800 border-red-200",
+        },
+    };
+    const c = config[normalized] ?? {
+        label: status,
+        className: "bg-slate-100 text-slate-700 border-slate-200",
+    };
+    return (
+        <span
+            className={`inline-block rounded-full border px-2.5 py-0.5 text-xs font-bold ${c.className}`}
+        >
+            {c.label}
+        </span>
+    );
+}
 function hasValidJanAushadhiPrice(
     m: Medicine | null | undefined
 ): m is Medicine & { jan_aushadhi_price: number } {
@@ -163,6 +197,16 @@ function getDirectComparison(medicine1: Medicine | null, medicine2: Medicine | n
     };
 }
 
+function shareComparison(medicine1: Medicine | null, medicine2: Medicine | null) {
+    if (!medicine1 || !medicine2) return;
+
+    const url =
+        `${window.location.origin}${window.location.pathname}` +
+        `?m1=${medicine1.id}&m2=${medicine2.id}`;
+
+    navigator.clipboard.writeText(url);
+}
+
 export default function ComparisonGrid({
     medicine1,
     medicine2,
@@ -181,6 +225,10 @@ export default function ComparisonGrid({
     }
 
     const directComparison = getDirectComparison(medicine1, medicine2);
+
+    const flaggedMedicines = [medicine1, medicine2].filter(
+        (m): m is Medicine => m != null && isFlaggedStatus(m.cdsco_approval_status)
+    );
 
     const rows: { label: string; getValue: (m: Medicine) => string }[] = [
         { label: labels.rows.brandName, getValue: (m) => m.brand_name?.trim() || "—" },
@@ -210,59 +258,117 @@ export default function ComparisonGrid({
     ];
 
     return (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-            <table className="w-full text-sm">
-                <thead>
-                    <tr className="border-b border-slate-200 bg-slate-50">
-                        <th className="w-1/4 px-5 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase">
-                            {labels.fieldHeader}
-                        </th>
-                        <th className="px-5 py-3 text-center text-sm font-semibold text-slate-800">
-                            {medicine1 ? displayName(medicine1) : labels.medicineA}
-                        </th>
-                        <th className="px-5 py-3 text-center text-sm font-semibold text-slate-800">
-                            {medicine2 ? displayName(medicine2) : labels.medicineB}
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {rows.map(({ label, getValue }) => (
-                        <tr key={label} className="border-b border-slate-100 last:border-0">
-                            <td className="px-5 py-3 font-medium text-slate-600">{label}</td>
-                            <td className="px-5 py-3 text-center text-slate-800">
-                                {medicine1 ? getValue(medicine1) : "—"}
-                            </td>
-                            <td className="px-5 py-3 text-center text-slate-800">
-                                {medicine2 ? getValue(medicine2) : "—"}
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-            {directComparison && (
-                <div className="border-t border-slate-200 bg-slate-50 p-4">
-                    {directComparison.type === "equal" ? (
-                        <p className="text-center text-sm text-slate-700">
-                            Both medicines have the same market price.
-                        </p>
-                    ) : (
-                        <p className="text-center text-sm font-medium text-slate-800">
-                            By choosing{" "}
-                            <span className="font-semibold">
-                                {displayName(directComparison.cheaper)}
-                            </span>{" "}
-                            instead of{" "}
-                            <span className="font-semibold">
-                                {displayName(directComparison.expensive)}
-                            </span>
-                            , you save ₹{directComparison.savings.toFixed(2)}
-                            {" ("}
-                            {directComparison.percentage.toFixed(1)}
-                            %).
-                        </p>
-                    )}
+        <div className="space-y-4">
+            {flaggedMedicines.length > 0 && (
+                <div
+                    role="alert"
+                    className="flex items-start gap-3 rounded-xl border border-red-700 bg-red-600 p-4 text-white shadow-sm"
+                >
+                    <AlertTriangle aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0" />
+                    <div className="space-y-1">
+                        <p className="text-sm font-bold tracking-wide uppercase">Safety alert</p>
+                        {flaggedMedicines.map((m) => (
+                            <p key={m.id} className="text-sm font-medium">
+                                {displayName(m)} has been flagged as{" "}
+                                <span className="font-bold">
+                                    {formatStatus(m.cdsco_approval_status, labels)}
+                                </span>{" "}
+                                by CDSCO.
+                            </p>
+                        ))}
+                    </div>
                 </div>
             )}
+            <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+                <table className="w-full text-sm">
+                    <thead>
+                        <tr className="border-b border-slate-200 bg-slate-50">
+                            <th className="w-1/4 px-5 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                                {labels.fieldHeader}
+                            </th>
+                            <th className="px-5 py-3 text-center text-sm font-semibold text-slate-800">
+                                {medicine1 ? displayName(medicine1) : labels.medicineA}
+                            </th>
+                            <th className="px-5 py-3 text-center text-sm font-semibold text-slate-800">
+                                {medicine2 ? displayName(medicine2) : labels.medicineB}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {rows.map(({ label, getValue }) => {
+                            const isCdsco = label === labels.rows.cdscoStatus;
+                            return (
+                                <tr key={label} className="border-b border-slate-100 last:border-0">
+                                    <td className="px-5 py-3 font-medium text-slate-600">
+                                        {label}
+                                    </td>
+                                    <td className="px-5 py-3 text-center text-slate-800">
+                                        {medicine1 ? (
+                                            isCdsco ? (
+                                                <CdscoStatusBadge
+                                                    status={medicine1.cdsco_approval_status}
+                                                />
+                                            ) : (
+                                                getValue(medicine1)
+                                            )
+                                        ) : (
+                                            "—"
+                                        )}
+                                    </td>
+                                    <td className="px-5 py-3 text-center text-slate-800">
+                                        {medicine2 ? (
+                                            isCdsco ? (
+                                                <CdscoStatusBadge
+                                                    status={medicine2.cdsco_approval_status}
+                                                />
+                                            ) : (
+                                                getValue(medicine2)
+                                            )
+                                        ) : (
+                                            "—"
+                                        )}
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+                {medicine1 && medicine2 && (
+                    <div className="flex justify-end border-t border-slate-200 p-4">
+                        <button
+                            type="button"
+                            onClick={() => shareComparison(medicine1, medicine2)}
+                            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                        >
+                            Share Comparison
+                        </button>
+                    </div>
+                )}
+                {directComparison && (
+                    <div className="border-t border-slate-200 bg-slate-50 p-4">
+                        {directComparison.type === "equal" ? (
+                            <p className="text-center text-sm text-slate-700">
+                                Both medicines have the same market price.
+                            </p>
+                        ) : (
+                            <p className="text-center text-sm font-medium text-slate-800">
+                                By choosing{" "}
+                                <span className="font-semibold">
+                                    {displayName(directComparison.cheaper)}
+                                </span>{" "}
+                                instead of{" "}
+                                <span className="font-semibold">
+                                    {displayName(directComparison.expensive)}
+                                </span>
+                                , you save ₹{directComparison.savings.toFixed(2)}
+                                {" ("}
+                                {directComparison.percentage.toFixed(1)}
+                                %).
+                            </p>
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

@@ -49,6 +49,8 @@ Thumbs.db
 # IDE / Editor folders
 .vscode/
 .idea/
+.vs/
+.history/
 *.swp
 *.swo
 

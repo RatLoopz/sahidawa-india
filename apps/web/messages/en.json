@@ -16,6 +16,8 @@
         "report_fake": "Report Fake",
         "report_subtitle": "Report suspicious medicine",
         "report_fake_subtitle": "Report suspicious medicine",
+        "scheme_eligibility": "Scheme Eligibility",
+        "scheme_eligibility_subtitle": "Check public health insurance eligibility",
         "search_placeholder": "Search medicine or batch...",
         "search_button": "Search",
         "sign_in": "Sign In",
@@ -46,13 +48,18 @@
         "alerts": "Alerts",
         "pharmacy_map": "Pharmacy Map",
         "my_reports": "My Reports",
+        "schedule": "Schedule",
+        "scheme_eligibility": "Scheme Eligibility",
+        "calculator": "Savings Calculator",
         "home": "Home",
         "scans": "Scans",
         "map": "Map",
         "profile": "Profile",
-        "language": "English"
+        "language": "English",
+        "more": "More"
     },
     "Scan": {
+        "calculateSavings": "Calculate Savings",
         "share": {
             "button": "Share Result",
             "title": "SahiDawa Medicine Verification Result",
@@ -70,7 +77,13 @@
             "shared_success": "Result shared successfully",
             "copy_success": "Result copied to clipboard",
             "failure": "Unable to share this result right now"
-        }
+        },
+        "showMoreDetails": "Show More Details",
+        "showLess": "Show Less",
+        "genericName": "Generic Name",
+        "dosageForm": "Dosage Form",
+        "composition": "Composition",
+        "offlineVerify": "Queue Scan"
     },
     "BackToTopButton": {
         "label": "Back to top"
@@ -201,6 +214,15 @@
         "cachedVerifications": "Cached Verifications",
         "savedPharmacies": "Saved Pharmacies",
         "browsedMedicines": "Browsed Medicines"
+    },
+    "ScanQueue": {
+        "title": "Pending Verifications",
+        "subtitle": "Scans waiting to be verified when you're back online",
+        "queued": "Scan saved locally. Verification will resume automatically.",
+        "syncing": "Verifying {count} queued scans...",
+        "synced": "{count} queued scan(s) verified successfully.",
+        "pendingBadge": "Pending",
+        "empty": "No pending scans"
     },
     "contact": {
         "badge": "GSSoC 2026 Open Source Project",
@@ -436,10 +458,53 @@
             "banned": "Banned"
         }
     },
+    "Calculator": {
+        "pageTitle": "Medicine Cost Savings Calculator",
+        "pageSubtitle": "Discover generic equivalents and calculate your savings",
+        "searchLabel": "Select a medicine to calculate savings",
+        "searchPlaceholder": "Search brand or generic name",
+        "loading": "Loading generic alternatives...",
+        "error": "Failed to fetch alternative details.",
+        "brandPriceLabel": "Brand Price (MRP)",
+        "genericPriceLabel": "Jan Aushadhi Price",
+        "brandName": "Brand Name",
+        "genericName": "Generic Alternative",
+        "savingsLabel": "Savings per purchase",
+        "alternativeTitle": "Jan Aushadhi Alternative Details",
+        "noAlternative": "No Jan Aushadhi generic alternative mapped for this medicine yet.",
+        "quantityLabel": "Quantity (Strips/Packs per Month)",
+        "monthlySavings": "Monthly Savings",
+        "yearlySavings": "Annual Savings",
+        "perPurchaseSavings": "Savings Per Purchase",
+        "dosageSectionTitle": "Input Purchase Quantity",
+        "projectionsTitle": "Estimated Cost Savings Projections",
+        "brandCostLabel": "Brand Cost",
+        "genericCostLabel": "Generic Cost",
+        "costPerMonth": "per month",
+        "brandTierTitle": "Brand Prescribed",
+        "brandTierDesc": "Standard commercial brand price",
+        "genericTierTitle": "Generic Alternative",
+        "genericTierDesc": "Commercial branded generic equivalent",
+        "janAushadhiTierTitle": "Jan Aushadhi Generic",
+        "janAushadhiTierDesc": "Government-subsidized price-controlled generic",
+        "bestValue": "Best Value",
+        "mrpLabel": "MRP",
+        "estimatedLabel": "(Estimated)",
+        "costPerMonthGeneric": "Generic Cost",
+        "costPerMonthJanAushadhi": "Jan Aushadhi Cost",
+        "costPerMonthBrand": "Brand Cost",
+        "packUnit": "pack",
+        "packsUnit": "packs"
+    },
     "ExpiryTracker": {
         "title": "Medicine Expiry Tracker",
         "subtitle": "Manage and track your medicine stock locally",
         "addMedicine": "Add Medicine",
+        "editMedicine": "Edit Medicine",
+        "saveChanges": "Save Changes",
+        "cancel": "Cancel",
+        "notesLabel": "Notes (Optional)",
+        "notesPlaceholder": "Storage instructions or dosage notes...",
         "name": "Name",
         "expiryDate": "Expiry Date",
         "batchNumber": "Batch Number (Optional)",
@@ -465,7 +530,32 @@
         "importDateError": "Invalid date format found in backup. All dates must be in YYYY-MM-DD format.",
         "statusExpired": "Expired",
         "statusExpiringSoon": "Expiring soon ({days}d)",
-        "statusSafe": "Safe"
+        "statusSafe": "Safe",
+        "deleteSelected": "Delete Selected",
+        "selectMedicine": "Select {name}"
+    },
+    "ChildVaccinationTracker": {
+        "childTrackerTitle": "Child Vaccination Tracker",
+        "childTrackerSubtitle": "Enter a child profile to generate a personalized National Immunization Schedule timeline with completion tracking.",
+        "childReminderButton": "Download reminders",
+        "childNameLabel": "Child name",
+        "childNamePlaceholder": "Enter child name",
+        "childDobLabel": "Date of birth",
+        "childDefaultName": "Child",
+        "childDobPrompt": "Enter a date of birth to generate the personalized vaccination timeline.",
+        "childDobFutureError": "Date of birth cannot be in the future.",
+        "childDobInvalidError": "Enter a valid date of birth.",
+        "childProfileSummary": "Child profile",
+        "scheduleSourceLabel": "Schedule basis",
+        "childTimelineHeading": "Personalized timeline",
+        "whereApplicableBadge": "Where applicable",
+        "dueDateLabel": "Due date",
+        "officialTimingLabel": "Official timing",
+        "completedStatus": "Completed",
+        "dueStatus": "Due",
+        "overdueStatus": "Overdue",
+        "upcomingStatus": "Upcoming",
+        "markCompleteButton": "Mark completed"
     },
     "Login": {
         "brandSubtitle": "Medicine safety platform",
@@ -476,6 +566,7 @@
             "description": "Supabase URL or anon key is missing. Add the environment variables before signing in."
         },
         "googleButton": "Continue with Google",
+        "githubButton": "Continue with Github",
         "emailSeparator": "or continue with email",
         "emailLabel": "Email address",
         "emailPlaceholder": "you@example.com",
@@ -649,7 +740,77 @@
         "nav_compare": "Compare Medicines",
         "nav_vaccine": "Vaccine Hub",
         "nav_reports": "My Reports",
+        "nav_schedule": "Medicine Schedule",
         "nav_profile": "My Profile"
+    },
+    "howItWorks": {
+        "badge": "Safe Healthcare • AI Powered",
+        "heroTitle": "How <highlight>SahiDawa</highlight> Works",
+        "heroSubtitle": "Learn how SahiDawa helps users verify medicines, discover trusted pharmacies, receive official alerts, and stay protected from counterfeit drugs using AI-powered healthcare tools.",
+        "ctaButtons": {
+            "scan": "Start Scanning",
+            "map": "Explore Pharmacy Map"
+        },
+        "steps": {
+            "scan": {
+                "title": "Scan Medicine",
+                "description": "Point your device camera at the barcode or QR code on any medicine packaging."
+            },
+            "verify": {
+                "title": "Verify Instantly",
+                "description": "AI cross-references scanned details with CDSCO records to check authenticity."
+            },
+            "alerts": {
+                "title": "Check Alerts",
+                "description": "Get real-time safety alerts if the batch is recalled, banned, or substandard."
+            },
+            "pharmacies": {
+                "title": "Find Pharmacies",
+                "description": "Locate Jan Aushadhi stores and verified nearby pharmacies stocking real medicines."
+            },
+            "protect": {
+                "title": "Stay Protected",
+                "description": "Keep records of your scans, report fakes, and safeguard your family's health."
+            }
+        },
+        "features": {
+            "title": "Platform Features",
+            "subtitle": "Everything you need for safer healthcare decisions.",
+            "cards": {
+                "verifyMedicines": {
+                    "title": "Verify Medicines",
+                    "description": "Instantly verify medicine authenticity using barcode, batch number, or medicine details."
+                },
+                "scanOrSearch": {
+                    "title": "Scan or Search",
+                    "description": "Scan packaging or manually search medicines for trusted healthcare information."
+                },
+                "aiAssistant": {
+                    "title": "AI Health Assistant",
+                    "description": "Get AI-powered guidance for symptoms, side effects, precautions, and medicine usage."
+                },
+                "trustedPharmacies": {
+                    "title": "Trusted Pharmacies",
+                    "description": "Find verified pharmacies nearby with reliable medicine availability and ratings."
+                },
+                "cdscoAlerts": {
+                    "title": "CDSCO Alerts",
+                    "description": "Stay updated with official CDSCO medicine recalls, warnings, and health alerts."
+                },
+                "reportMedicines": {
+                    "title": "Report Suspicious Medicines",
+                    "description": "Help the community by reporting counterfeit or suspicious medicines instantly."
+                }
+            }
+        },
+        "ctaBanner": {
+            "title": "Safer Healthcare Starts Here",
+            "subtitle": "Verify medicines, access trusted healthcare information, and stay protected from counterfeit drugs with AI-powered assistance.",
+            "buttons": {
+                "scan": "Scan Medicine",
+                "alerts": "View Alerts"
+            }
+        }
     },
     "medicineSafety": {
         "guideTitle": "Usage & Safety Guide",
@@ -683,5 +844,116 @@
             "pregnancyHeading": "Pregnancy"
         },
         "disclaimer": "This information is educational and does not replace professional medical advice."
+    },
+    "Settings": {
+        "title": "Notification Preferences",
+        "subtitle": "Receive critical alerts via SMS and WhatsApp",
+        "phoneLabel": "Phone Number",
+        "phonePlaceholder": "Enter 10-digit mobile number",
+        "channelsLabel": "Preferred Channels",
+        "smsLabel": "SMS Alerts",
+        "smsDesc": "Get text messages for CDSCO recalls and counterfeit warnings",
+        "whatsappLabel": "WhatsApp Alerts",
+        "whatsappDesc": "Get rich messages and templates directly in WhatsApp",
+        "langLabel": "Alert Language",
+        "langDesc": "Preferred language for received text alerts",
+        "districtLabel": "District",
+        "districtDesc": "Receive alerts specific to this district",
+        "districtPlaceholder": "e.g. South West Delhi",
+        "saveButton": "Save Preferences",
+        "optOutButton": "Opt Out / Unsubscribe",
+        "saving": "Saving...",
+        "successMessage": "Preferences saved successfully!",
+        "optOutSuccess": "Successfully opted out of all notifications.",
+        "errorMessage": "Failed to update settings. Please try again.",
+        "phoneInvalid": "Please enter a valid 10-digit Indian phone number.",
+        "districtRequired": "Please specify a district to get localized warnings."
+    },
+    "Interactions": {
+        "title": "Medicine Interaction Checker",
+        "subtitle": "Check potential harmful interactions between multiple medications",
+        "searchLabel": "Search Medicine",
+        "searchPlaceholder": "Enter brand name or generic name...",
+        "addButton": "Add",
+        "checkButton": "Check Interactions",
+        "myMedicines": "My Medicines List",
+        "noMedicines": "No medicines added to your check list yet.",
+        "clearAll": "Clear All",
+        "resultsHeading": "Interaction Report",
+        "noInteractions": "All clear! No interactions detected between selected medicines.",
+        "severityCritical": "Critical Alert",
+        "severitySerious": "Serious Warning",
+        "severityModerate": "Moderate Caution",
+        "severityMinor": "Minor Precaution",
+        "clinicalRecommendation": "Clinical Recommendation:",
+        "mechanism": "Mechanism:",
+        "source": "Source:",
+        "errorMessage": "Failed to complete interaction check. Please try again."
+    },
+    "ScanHistory": {
+        "export_modal_title": "Export Scan History",
+        "export_range_label": "Select Date Range",
+        "export_status_label": "Filter by Status",
+        "range_7d": "Last 7 Days",
+        "range_30d": "Last 30 Days",
+        "range_all": "All Time",
+        "status_all": "All Statuses",
+        "status_verified": "Verified Only",
+        "status_suspicious": "Suspicious Only",
+        "status_fake": "Fake Only",
+        "export_button": "Generate CSV",
+        "cancel": "Cancel",
+        "title": "Scan History",
+        "export_csv_button": "Export to CSV",
+        "sync_cloud_button": "Sync to Cloud",
+        "clear_all_button": "Clear All History",
+        "clear_all_button_aria_label": "Clear all scan history",
+        "clear_confirm_message": "Are you sure you want to permanently delete all scan history? This action cannot be undone.",
+        "clear_cancel_button": "Cancel",
+        "clear_confirm_button": "Clear All",
+        "sync_success": "History synced with cloud.",
+        "sync_error": "Cloud sync unavailable right now.",
+        "stat_total": "Total",
+        "stat_verified": "Verified",
+        "stat_suspicious": "Suspicious",
+        "stat_fake": "Fake",
+        "empty_title": "No Scan History Yet",
+        "empty_description": "Your verified medicines will appear here.",
+        "item_status_label": "Status: ",
+        "item_delete_button": "Delete",
+        "item_copy_success": "Medicine name copied!"
+    },
+    "MyReports": {
+        "header_title": "My Reports",
+        "header_subtitle": "Status of reports you have filed",
+        "page_title": "My Reports",
+        "page_description": "Track what happened to the counterfeit medicines you reported.",
+        "refresh_button_aria_label": "Refresh reports",
+        "loading_aria_label": "Loading your reports",
+        "status_pending_review": "Pending Review",
+        "status_verified_fake": "Verified Fake",
+        "status_false_alarm": "False Alarm",
+        "auth_error_title": "Sign in required",
+        "auth_error_expired": "Your session has expired. Please sign in again.",
+        "auth_error_description": "Please sign in to view the reports you have filed.",
+        "auth_error_action": "Go to Login",
+        "network_error_title": "Connection Error",
+        "network_error_action": "Try again",
+        "network_error_api_unreachable": "Cannot reach the API. Is the backend server running on port 4000?",
+        "empty_state_title": "You haven't filed any reports yet",
+        "empty_state_description": "Spotted a suspicious or counterfeit medicine? Reporting it helps protect your community.",
+        "empty_state_action": "File your first report",
+        "no_photo_label": "No photo",
+        "report_card_district_label": "District",
+        "report_card_submitted_label": "Submitted",
+        "report_card_batch_label": "Batch"
+    },
+    "Map": {
+        "errors": {
+            "denied": "Location access denied. Please enable it in browser settings.",
+            "unavailable": "Location information unavailable.",
+            "timeout": "Location request timed out.",
+            "generic": "Unable to get your location."
+        }
     }
 }

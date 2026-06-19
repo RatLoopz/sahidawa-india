@@ -7,7 +7,6 @@ import {
     Store,
     BellRing,
     AlertTriangle,
-    ArrowRight,
     QrCode,
     MapPin,
     Shield,
@@ -18,52 +17,47 @@ import {
 // hardcoded locale in how-it-works"). Hrefs below are intentionally relative.
 import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
+import { useTranslations } from "next-intl";
+import { motion } from "framer-motion";
 
 const steps = [
     {
         icon: <ShieldCheck size={34} />,
-        title: "Verify Medicines",
-        description:
-            "Instantly verify medicine authenticity using barcode, batch number, or medicine details.",
+        titleKey: "features.cards.verifyMedicines.title",
+        descriptionKey: "features.cards.verifyMedicines.description",
     },
     {
         icon: <Search size={34} />,
-        title: "Scan or Search",
-        description:
-            "Scan packaging or manually search medicines for trusted healthcare information.",
+        titleKey: "features.cards.scanOrSearch.title",
+        descriptionKey: "features.cards.scanOrSearch.description",
     },
     {
         icon: <Bot size={34} />,
-        title: "AI Health Assistant",
-        description:
-            "Get AI-powered guidance for symptoms, side effects, precautions, and medicine usage.",
+        titleKey: "features.cards.aiAssistant.title",
+        descriptionKey: "features.cards.aiAssistant.description",
     },
     {
         icon: <Store size={34} />,
-        title: "Trusted Pharmacies",
-        description:
-            "Find verified pharmacies nearby with reliable medicine availability and ratings.",
+        titleKey: "features.cards.trustedPharmacies.title",
+        descriptionKey: "features.cards.trustedPharmacies.description",
     },
     {
         icon: <BellRing size={34} />,
-        title: "CDSCO Alerts",
-        description:
-            "Stay updated with official CDSCO medicine recalls, warnings, and health alerts.",
+        titleKey: "features.cards.cdscoAlerts.title",
+        descriptionKey: "features.cards.cdscoAlerts.description",
     },
     {
         icon: <AlertTriangle size={34} />,
-        title: "Report Suspicious Medicines",
-        description:
-            "Help the community by reporting counterfeit or suspicious medicines instantly.",
+        titleKey: "features.cards.reportMedicines.title",
+        descriptionKey: "features.cards.reportMedicines.description",
     },
 ];
 
 const timelineSteps = [
     {
         icon: <QrCode size={24} />,
-        title: "Scan Medicine",
-        description:
-            "Point your device camera at the barcode or QR code on any medicine packaging.",
+        titleKey: "steps.scan.title",
+        descriptionKey: "steps.scan.description",
         bgClass: "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400",
         badgeClass: "bg-emerald-600 dark:bg-emerald-500",
         borderClass:
@@ -71,9 +65,8 @@ const timelineSteps = [
     },
     {
         icon: <ShieldCheck size={24} />,
-        title: "Verify Instantly",
-        description:
-            "AI cross-references scanned details with CDSCO records to check authenticity.",
+        titleKey: "steps.verify.title",
+        descriptionKey: "steps.verify.description",
         bgClass: "bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400",
         badgeClass: "bg-blue-600 dark:bg-blue-500",
         borderClass:
@@ -81,9 +74,8 @@ const timelineSteps = [
     },
     {
         icon: <BellRing size={24} />,
-        title: "Check Alerts",
-        description:
-            "Get real-time safety alerts if the batch is recalled, banned, or substandard.",
+        titleKey: "steps.alerts.title",
+        descriptionKey: "steps.alerts.description",
         bgClass: "bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400",
         badgeClass: "bg-amber-600 dark:bg-amber-500",
         borderClass:
@@ -91,9 +83,8 @@ const timelineSteps = [
     },
     {
         icon: <MapPin size={24} />,
-        title: "Find Pharmacies",
-        description:
-            "Locate Jan Aushadhi stores and verified nearby pharmacies stocking real medicines.",
+        titleKey: "steps.pharmacies.title",
+        descriptionKey: "steps.pharmacies.description",
         bgClass: "bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400",
         badgeClass: "bg-purple-600 dark:bg-purple-500",
         borderClass:
@@ -101,9 +92,8 @@ const timelineSteps = [
     },
     {
         icon: <Shield size={24} />,
-        title: "Stay Protected",
-        description:
-            "Keep records of your scans, report fakes, and safeguard your family's health.",
+        titleKey: "steps.protect.title",
+        descriptionKey: "steps.protect.description",
         bgClass: "bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400",
         badgeClass: "bg-rose-600 dark:bg-rose-500",
         borderClass:
@@ -111,10 +101,34 @@ const timelineSteps = [
     },
 ];
 
+const timelineContainerVariants = {
+    hidden: {},
+    visible: {
+        transition: {
+            staggerChildren: 0.15,
+        },
+    },
+};
+
+const timelineCardVariants = {
+    hidden: {
+        opacity: 0,
+        y: 20,
+    },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: {
+            duration: 0.5,
+        },
+    },
+};
+
 export default function HowItWorksPage() {
+    const t = useTranslations("howItWorks");
     return (
         <main className="min-h-screen overflow-x-hidden bg-gradient-to-b from-(--color-surface-page) via-emerald-500/[0.03] to-(--color-surface-page) text-(--color-text-primary)">
-            <PageHeader backHref="/" variant="light"/>
+            <PageHeader backHref="/" variant="light" hideBackButton />
             {/* Hero Section */}
             <section className="relative px-6 pt-24 pb-20">
                 {/* Glow Effects */}
@@ -122,20 +136,23 @@ export default function HowItWorksPage() {
                 <div className="absolute right-0 bottom-0 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl" />
 
                 <div className="relative mx-auto max-w-6xl text-center">
-                  
                     <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-5 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
                         <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                        Safe Healthcare • AI Powered
+                        {t("badge")}
                     </div>
 
                     <h1 className="text-4xl leading-tight font-black tracking-tight text-(--color-text-primary) sm:text-5xl md:text-7xl">
-                        How <span className="text-emerald-600">SahiDawa</span> Works
+                        {t.rich("heroTitle", {
+                            highlight: (chunks) => (
+                                <span className="text-emerald-600 dark:text-emerald-400">
+                                    {chunks}
+                                </span>
+                            ),
+                        })}
                     </h1>
 
                     <p className="mx-auto mt-6 max-w-3xl text-lg leading-relaxed text-(--color-text-secondary) md:text-xl">
-                        Learn how SahiDawa helps users verify medicines, discover trusted
-                        pharmacies, receive official alerts, and stay protected from counterfeit
-                        drugs using AI-powered healthcare tools.
+                        {t("heroSubtitle")}
                     </p>
 
                     {/* CTA Buttons */}
@@ -144,14 +161,14 @@ export default function HowItWorksPage() {
                             href="/scan"
                             className="rounded-2xl bg-emerald-600 px-7 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:bg-emerald-700"
                         >
-                            Start Scanning
+                            {t("ctaButtons.scan")}
                         </Link>
 
                         <Link
                             href="/map"
                             className="rounded-2xl border border-(--color-border-muted) px-7 py-4 font-semibold text-(--color-text-secondary) transition-all duration-300 hover:border-emerald-500 hover:text-emerald-600"
                         >
-                            Explore Pharmacy Map
+                            {t("ctaButtons.map")}
                         </Link>
                     </div>
                 </div>
@@ -162,16 +179,21 @@ export default function HowItWorksPage() {
                 <h2 className="sr-only">How It Works Steps</h2>
                 <div className="relative mx-auto max-w-6xl">
                     {/* Desktop Connected Path */}
-                    <div className="absolute top-[52px] right-[10%] left-[10%] z-0 hidden h-[2px] bg-gradient-to-r from-emerald-500/30 via-purple-500/30 to-rose-500/30 md:block" />
-
-                    <div className="no-scrollbar relative z-10 flex snap-x snap-mandatory flex-row gap-6 overflow-x-auto pb-6 md:grid md:grid-cols-5 md:gap-6 md:overflow-x-visible md:pb-0">
+                    <motion.div
+                        className="no-scrollbar relative z-10 flex snap-x snap-mandatory flex-row gap-6 overflow-x-auto pb-6 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6 md:overflow-x-visible md:pb-0"
+                        variants={timelineContainerVariants}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true }}
+                    >
                         {timelineSteps.map((step, index) => (
-                            <div
+                            <motion.div
                                 key={index}
-                                className="group relative min-w-[250px] flex-shrink-0 snap-start sm:min-w-[280px] md:min-w-0"
+                                variants={timelineCardVariants}
+                                className="w-[calc(100%-3rem)] max-w-sm flex-shrink-0 snap-center md:w-auto md:max-w-none"
                             >
                                 <div
-                                    className={`flex h-full flex-col items-center rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-8 text-center shadow-xs transition-all duration-500 hover:-translate-y-2 hover:shadow-xl active:scale-[0.99] ${step.borderClass}`}
+                                    className={`flex h-full flex-col items-center rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-8 mt-2 md:mt-0 text-center shadow-xs transition-all duration-500 hover:-translate-y-2 hover:shadow-xl active:scale-[0.99] ${step.borderClass}`}
                                 >
                                     {/* Icon Container with Floating Number Badge */}
                                     <div
@@ -187,17 +209,17 @@ export default function HowItWorksPage() {
 
                                     {/* Title */}
                                     <h3 className="mb-2 text-base font-extrabold text-(--color-text-primary) md:text-lg">
-                                        {step.title}
+                                        {t(step.titleKey)}
                                     </h3>
 
                                     {/* Description */}
                                     <p className="text-xs leading-relaxed text-(--color-text-secondary) md:text-sm">
-                                        {step.description}
+                                        {t(step.descriptionKey)}
                                     </p>
                                 </div>
-                            </div>
+                            </motion.div>
                         ))}
-                    </div>
+                    </motion.div>
                 </div>
             </section>
 
@@ -206,11 +228,11 @@ export default function HowItWorksPage() {
                 <div className="mx-auto max-w-7xl">
                     <div className="mb-16 text-center">
                         <h2 className="text-4xl font-bold text-(--color-text-primary)">
-                            Platform Features
+                            {t("features.title")}
                         </h2>
 
                         <p className="mt-4 text-lg text-(--color-text-secondary)">
-                            Everything you need for safer healthcare decisions.
+                            {t("features.subtitle")}
                         </p>
                     </div>
 
@@ -225,11 +247,11 @@ export default function HowItWorksPage() {
                                 </div>
 
                                 <h3 className="mb-4 text-2xl font-bold text-(--color-text-primary)">
-                                    {step.title}
+                                    {t(step.titleKey)}
                                 </h3>
 
                                 <p className="text-base leading-relaxed text-(--color-text-secondary)">
-                                    {step.description}
+                                    {t(step.descriptionKey)}
                                 </p>
                             </div>
                         ))}
@@ -245,13 +267,10 @@ export default function HowItWorksPage() {
                     <div className="pointer-events-none absolute -top-20 -right-20 h-64 w-64 rounded-full border-2 border-white/20" />
 
                     <div className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full border-2 border-white/20" />
-                    <h2 className="mb-6 text-4xl font-black md:text-5xl">
-                        Safer Healthcare Starts Here
-                    </h2>
+                    <h2 className="mb-6 text-4xl font-black md:text-5xl">{t("ctaBanner.title")}</h2>
 
                     <p className="mx-auto max-w-3xl text-lg leading-relaxed text-white/90 md:text-xl">
-                        Verify medicines, access trusted healthcare information, and stay protected
-                        from counterfeit drugs with AI-powered assistance.
+                        {t("ctaBanner.subtitle")}
                     </p>
 
                     <div className="mt-10 flex flex-wrap justify-center gap-4">
@@ -259,14 +278,14 @@ export default function HowItWorksPage() {
                             href="/scan"
                             className="flex h-12 items-center justify-center rounded-2xl bg-white px-8 font-bold text-emerald-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98]"
                         >
-                            Scan Medicine
+                            {t("ctaBanner.buttons.scan")}
                         </Link>
 
                         <Link
                             href="/alerts"
                             className="flex h-12 items-center justify-center rounded-2xl border border-white/40 px-8 font-bold shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/10 active:scale-[0.98]"
                         >
-                            View Alerts
+                            {t("ctaBanner.buttons.alerts")}
                         </Link>
                     </div>
                 </div>

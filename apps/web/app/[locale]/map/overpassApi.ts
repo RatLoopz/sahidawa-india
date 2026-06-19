@@ -90,6 +90,7 @@ export interface OverpassPharmacy {
     address?: string;
     phone?: string;
     openingHours?: string;
+    website?: string;
     operator?: string;
     brand?: string;
 }
@@ -230,6 +231,7 @@ export async function fetchPharmacies(
                 address: buildAddress(tags),
                 phone: tags.phone || tags["contact:phone"],
                 openingHours: tags.opening_hours,
+                website: tags.website || tags["contact:website"],
                 operator: tags.operator,
                 brand: tags.brand,
                 _distance: distance,
@@ -282,6 +284,7 @@ export async function fetchPharmaciesInBounds(
                 address: buildAddress(tags),
                 phone: tags.phone || tags["contact:phone"],
                 openingHours: tags.opening_hours,
+                website: tags.website || tags["contact:website"],
                 operator: tags.operator,
                 brand: tags.brand,
                 _distance: distance,

@@ -1,6 +1,6 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import logger from "../utils/logger";
-import { CONNECTION_TIMEOUT_MS, MAX_RETRIES, RETRY_DELAY_MS, fetchWithRetry } from "./fetchUtils";
+import { MAX_RETRIES, RETRY_DELAY_MS, fetchWithRetry } from "./fetchUtils";
 
 // Validate required environment variables at startup
 if (!process.env.SUPABASE_URL) {
@@ -25,10 +25,13 @@ function getSupabaseClient(): SupabaseClient {
                 autoRefreshToken: false,
             },
         });
-        logger.info("Supabase client initialized with connection timeout and retry config");
+        logger.info("Anon Supabase client initialized with connection timeout and retry config");
     }
     return supabaseInstance;
 }
 
-const supabase = getSupabaseClient();
-export default supabase;
+// RLS-bound client for public or user-scoped reads that should not bypass policies.
+export const anonSupabase = getSupabaseClient();
+
+// Backward-compatible default export for existing imports.
+export default anonSupabase;

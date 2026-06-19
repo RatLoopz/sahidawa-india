@@ -42,6 +42,12 @@ describe("POST /api/verify", () => {
                 expiry_date: "2025-12-31",
                 cdsco_approval_status: "Approved",
                 is_counterfeit_alert: false,
+                is_cdsco_verified: true,
+                cdsco_match_score: 98.4,
+                matched_cdsco_product: "Test Brand",
+                matched_cdsco_manufacturer: "Test Mfg",
+                product_match_score: 97,
+                manufacturer_match_score: 100,
             },
             error: null,
         });
@@ -51,6 +57,8 @@ describe("POST /api/verify", () => {
         expect(res.status).toBe(200);
         expect(res.body.verified).toBe(true);
         expect(res.body.medicine.batch_number).toBe("AUG625D");
+        expect(res.body.medicine.is_cdsco_verified).toBe(true);
+        expect(res.body.medicine.cdsco_match_score).toBe(98.4);
         expect(res.body.scanMeta).toBeDefined();
         expect(res.body.scanMeta.recentScanCount24h).toBe(1);
         expect(res.body.scanMeta.suspicious).toBe(false);
@@ -72,6 +80,12 @@ describe("POST /api/verify", () => {
                 expiry_date: "2025-12-31",
                 cdsco_approval_status: "Approved",
                 is_counterfeit_alert: false,
+                is_cdsco_verified: false,
+                cdsco_match_score: 42.1,
+                matched_cdsco_product: null,
+                matched_cdsco_manufacturer: null,
+                product_match_score: 44,
+                manufacturer_match_score: 38,
             },
             error: null,
         });
@@ -83,6 +97,7 @@ describe("POST /api/verify", () => {
         expect(res.body.scanMeta.recentScanCount24h).toBe(3);
         expect(res.body.scanMeta.suspicious).toBe(true);
         expect(res.body.scanMeta.suspicionReasons.length).toBeGreaterThan(0);
+        expect(res.body.medicine.is_cdsco_verified).toBe(false);
     });
 
     it("should return 404 for an unknown batch number", async () => {

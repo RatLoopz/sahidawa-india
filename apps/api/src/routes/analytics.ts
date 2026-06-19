@@ -2,10 +2,11 @@ import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { supabase } from "../db/client";
 import logger from "../utils/logger";
+import { limiter } from "../middleware/rateLimit";
 
 const router = Router();
 const QuerySchema = z.object({
-    days: z.coerce.number().int().min(1).max(10000).default(30),
+    days: z.coerce.number().int().min(1).max(365).default(30),
 });
 
 type PushNotificationEventRow = {
@@ -51,7 +52,7 @@ function summarizePushNotificationEvents(rows: PushNotificationEventRow[]) {
     };
 }
 
-router.get("/heatmap", async (req: Request, res: Response) => {
+router.get("/heatmap", limiter, async (req: Request, res: Response) => {
     try {
         const { days } = QuerySchema.parse(req.query);
         const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
@@ -73,6 +74,8 @@ router.get("/heatmap", async (req: Request, res: Response) => {
         for (const scan of scans || []) {
             const lat = Math.round(parseFloat(scan.latitude as string) * 100) / 100;
             const lng = Math.round(parseFloat(scan.longitude as string) * 100) / 100;
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+            if (lat < -90 || lat > 90 || lng < -180 || lng > 180) continue;
             const key = `${lat},${lng}`;
             const entry = grouped.get(key) || { lat, lng, intensity: 0 };
             entry.intensity++;

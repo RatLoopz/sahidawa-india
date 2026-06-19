@@ -143,19 +143,63 @@ jobs:
                     await github.rest.issues.removeAssignees({
                       owner, repo, issue_number: issue.number, assignees: [assignee]
                     });
+                    // NEW: Add 'status: open-for-all' label so others can claim it
+                    try {
+                      await github.rest.issues.addLabels({
+                        owner, repo, issue_number: issue.number, labels: ['status: open-for-all']
+                      });
+                    } catch (labelErr) {
+                      core.warning(`Failed to add open-for-all label: ${labelErr.message}`);
+                    }
+                    
+                    // CLEAR PREVIOUS COMMENTS to make issue look clean and 'new'
+                    const assignmentPhrases = [
+                      "You've been assigned",
+                      "Reminder: @",
+                      "has been auto-unassigned",
+                      "Assignment Request Denied",
+                      "already assigned",
+                      "automatically unassigned"
+                    ];
+                    
+                    const commentsToDelete = comments.filter(c => {
+                      const isBot = c.user && c.user.login === 'github-actions[bot]';
+                      const cBody = c.body || '';
+                      
+                      if (isBot) {
+                        return cBody.includes(`@${assignee}`) || assignmentPhrases.some(p => cBody.includes(p));
+                      } else if (c.user && c.user.login === assignee) {
+                        const cCleaned = cBody.replace(/\r?\n|\r/g, ' ').replace(/\/assign|please assign me|assign me/ig, '').trim();
+                        if (cCleaned.length < 30 && cBody.match(/(\/assign|assign me)/i)) {
+                          return true;
+                        }
+                      }
+                      return false;
+                    });
+                    
+                    for (const comment of commentsToDelete) {
+                      try {
+                        await github.rest.issues.deleteComment({
+                          owner, repo, comment_id: comment.id
+                        });
+                        core.info(`Deleted old comment ${comment.id} to clean up the thread`);
+                      } catch (delErr) {
+                        core.warning(`Failed to delete comment ${comment.id}: ${delErr.message}`);
+                      }
+                    }
+
                     try {
                       await github.rest.issues.createComment({
                         owner, repo, issue_number: issue.number,
-                        body: `⚠️ @${assignee} has been auto-unassigned due to inactivity for over ${rules.maxDays} days.\n\n` +
-                              `Per our contribution guidelines, we ask that you share updates or open a draft PR to keep your assignment active. ` +
-                              `If you'd still like to work on this, feel free to drop a comment and ask to be reassigned! 🚀`
+                        body: `@${assignee} has been auto-unassigned due to inactivity for over ${rules.maxDays} days.\n\n` +
+                              `If you would still like to work on this, please drop a comment to be reassigned.`
                       });
                     } catch (commentErr) {
                       core.warning(`Failed to post unassign comment on #${issue.number}: ${commentErr.message}`);
                     }
                   } else if (lastActivityAt <= warnCutoff) {
                     // WARN
-                    const warningMarker = `⚠️ @${assignee}, friendly reminder!`;
+                    const warningMarker = `Reminder: @${assignee}`;
                     const alreadyWarned = comments.some(c => 
                       c.user && 
                       c.user.login === 'github-actions[bot]' && 
@@ -170,9 +214,9 @@ jobs:
                         await github.rest.issues.createComment({
                           owner, repo, issue_number: issue.number,
                           body: `${warningMarker}\n\n` +
-                                `It looks like there hasn't been any activity on this issue since your last update on ${lastActivityAt.toUTCString()}.\n` +
-                                `To keep this assignment, please share a progress update or open a Draft PR within the next **${hoursLeft} hours**. ` +
-                                `Otherwise, you will be automatically unassigned to let other contributors have a chance. Thank you! 💙`
+                                `There has been no activity on this issue since ${lastActivityAt.toUTCString()}.\n` +
+                                `Please share a progress update or open a Draft PR within the next ${hoursLeft} hours to keep your assignment. ` +
+                                `Otherwise, you will be automatically unassigned.`
                         });
                       } catch (commentErr) {
                         core.warning(`Failed to post warn comment on #${issue.number}: ${commentErr.message}`);

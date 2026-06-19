@@ -12,6 +12,8 @@
         "pharmacy_subtitle": "सत्यापित दुकानें खोजें",
         "report_fake": "नकली दवा की शिकायत करें",
         "report_fake_subtitle": "संदिग्ध दवा की रिपोर्ट करें",
+        "scheme_eligibility": "योजना पात्रता",
+        "scheme_eligibility_subtitle": "सरकारी स्वास्थ्य बीमा पात्रता जांचें",
         "search_placeholder": "दवा या बैच खोजें...",
         "search_button": "खोजें",
         "sign_in": "Sign In",
@@ -38,16 +40,42 @@
         "real_time": "REAL TIME",
         "alerts_description": "Stay updated with the latest medicine safety alerts and recalls."
     },
+    "ChildVaccinationTracker": {
+        "childTrackerTitle": "बाल टीकाकरण ट्रैकर",
+        "childTrackerSubtitle": "व्यक्तिगत राष्ट्रीय टीकाकरण अनुसूची देखने और पूर्ण किए गए टीकों को ट्रैक करने के लिए बच्चे की जानकारी दर्ज करें।",
+        "childReminderButton": "रिमाइंडर डाउनलोड करें",
+        "childNameLabel": "बच्चे का नाम",
+        "childNamePlaceholder": "बच्चे का नाम दर्ज करें",
+        "childDobLabel": "जन्म तिथि",
+        "childDefaultName": "बच्चा",
+        "childDobPrompt": "व्यक्तिगत टीकाकरण टाइमलाइन बनाने के लिए जन्म तिथि दर्ज करें।",
+        "childDobFutureError": "जन्म तिथि भविष्य की नहीं हो सकती।",
+        "childDobInvalidError": "मान्य जन्म तिथि दर्ज करें।",
+        "childProfileSummary": "बच्चे की प्रोफ़ाइल",
+        "scheduleSourceLabel": "अनुसूची स्रोत",
+        "childTimelineHeading": "व्यक्तिगत टाइमलाइन",
+        "whereApplicableBadge": "जहाँ लागू हो",
+        "dueDateLabel": "देय तिथि",
+        "officialTimingLabel": "आधिकारिक समय",
+        "completedStatus": "पूर्ण",
+        "dueStatus": "देय",
+        "overdueStatus": "विलंबित",
+        "upcomingStatus": "आगामी",
+        "markCompleteButton": "पूर्ण चिह्नित करें"
+    },
     "Navigation": {
         "how_it_works": "यह कैसे काम करता है",
         "alerts": "अलर्ट",
         "pharmacy_map": "फार्मेसी मानचित्र",
         "my_reports": "मेरी रिपोर्ट",
+        "schedule": "शेड्यूल",
+        "scheme_eligibility": "योजना पात्रता",
         "home": "होम",
         "scans": "स्कैन",
         "map": "मानचित्र",
         "profile": "प्रोफ़ाइल",
-        "language": "हिन्दी"
+        "language": "हिन्दी",
+        "more": "और देखें (More)"
     },
     "BackToTopButton": {
         "label": "ऊपर जाएँ"
@@ -344,7 +372,12 @@
             "verified_by": "by SahiDawa",
             "verify_yourself": "Verify yourself",
             "warning_prefix": "WARNING"
-        }
+        },
+        "showMoreDetails": "और जानकारी देखें",
+        "showLess": "कम जानकारी देखें",
+        "genericName": "जेनेरिक नाम",
+        "dosageForm": "खुराक का रूप (Dosage Form)",
+        "composition": "सामग्री (Composition)"
     },
     "chat": {
         "actions": {
@@ -394,7 +427,6 @@
         "previous": "पिछला",
         "next": "अगला"
     },
-
     "Compare": {
         "pageTitle": "दवाओं की तुलना करें",
         "pageSubtitle": "ब्रांड और जेनेरिक की साथ-साथ तुलना",
@@ -431,11 +463,15 @@
             "banned": "प्रतिबंधित"
         }
     },
-
     "ExpiryTracker": {
         "title": "दवा समाप्ति ट्रैकर",
         "subtitle": "अपनी दवाओं के स्टॉक को स्थानीय रूप से प्रबंधित और ट्रैक करें",
         "addMedicine": "दवा जोड़ें",
+        "editMedicine": "दवा संपादित करें",
+        "saveChanges": "परिवर्तन सहेजें",
+        "cancel": "रद्द करें",
+        "notesLabel": "नोट्स (वैकल्पिक)",
+        "notesPlaceholder": "भंडारण निर्देश या खुराक के नोट्स...",
         "name": "नाम",
         "expiryDate": "समाप्ति तिथि",
         "batchNumber": "बैच नंबर (वैकल्पिक)",
@@ -462,7 +498,6 @@
         "statusExpiringSoon": "जल्द समाप्त होगी ({days} दिन)",
         "statusSafe": "सुरक्षित"
     },
-
     "Login": {
         "brandSubtitle": "दवा सुरक्षा मंच",
         "heading": "वापसी पर स्वागत है",
@@ -472,6 +507,7 @@
             "description": "Supabase URL या anon key उपलब्ध नहीं है। साइन इन करने से पहले आवश्यक environment variables जोड़ें।"
         },
         "googleButton": "Google के साथ जारी रखें",
+        "githubButton": "GitHub के साथ जारी रखें",
         "emailSeparator": "या ईमेल के साथ जारी रखें",
         "emailLabel": "ईमेल पता",
         "emailPlaceholder": "you@example.com",
@@ -487,7 +523,6 @@
             "generic": "साइन इन नहीं हो सका। कृपया पुनः प्रयास करें।"
         }
     },
-
     "AdminLayout": {
         "accessDeniedTitle": "प्रवेश अस्वीकृत",
         "accessDeniedDescription": "इस पृष्ठ को देखने के लिए आपको प्रशासक या मॉडरेटर अधिकारों की आवश्यकता है।",
@@ -596,7 +631,6 @@
             "thisWeekMedicines": "इस सप्ताह की दवाएं"
         }
     },
-
     "vaccineHub": {
         "pageHeaderTitle": "वैक्सीन हब",
         "pageHeaderSubtitle": "टीकाकरण ट्रैकर",
@@ -642,6 +676,7 @@
         "nav_compare": "Compare Medicines",
         "nav_vaccine": "Vaccine Hub",
         "nav_reports": "My Reports",
+        "nav_schedule": "दवा शेड्यूल",
         "nav_profile": "My Profile"
     },
   "medicineSafety": {

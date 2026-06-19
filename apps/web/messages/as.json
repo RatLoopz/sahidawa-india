@@ -469,6 +469,7 @@
             "description": "Supabase URL বা anon key নাই। চাইন ইন কৰাৰ আগতে পৰিৱেশ চলকসমূহ যোগ কৰক।"
         },
         "googleButton": "Google-ৰে অব্যাহত ৰাখক",
+        "githubButton": "GitHub-ৰে অব্যাহত ৰাখক",
         "emailSeparator": "বা ইমেইলৰে অব্যাহত ৰাখক",
         "emailLabel": "ইমেইল ঠিকনা",
         "emailPlaceholder": "you@example.com",
