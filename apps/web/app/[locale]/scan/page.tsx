@@ -236,6 +236,7 @@ export default function ScanPage() {
             console.error("LASA check error:", error);
             setVerifyResult(result);
         }
+    };
     const shareCopy: VerificationShareCopy = {
         realStatus: tScan("share.real_status"),
         suspiciousStatus: tScan("share.suspicious_status"),
