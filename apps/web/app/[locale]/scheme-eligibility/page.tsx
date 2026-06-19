@@ -13,6 +13,7 @@ import {
 import { PageHeader } from "../components/PageHeader";
 import { checkSchemeEligibility, type EligibleScheme } from "@/lib/api/alternatives";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 const INDIAN_STATES = [
     "Andhra Pradesh",
@@ -69,15 +70,17 @@ export default function SchemeEligibilityPage() {
     const [loading, setLoading] = useState<boolean>(false);
     const [eligibleSchemes, setEligibleSchemes] = useState<EligibleScheme[]>([]);
 
+    const tSchemeEligibility = useTranslations("SchemeEligibility");
+
     const handleNext = () => {
         if (step === 1) {
             const parsedAge = parseInt(age, 10);
             if (isNaN(parsedAge) || parsedAge <= 0 || parsedAge > 120) {
-                toast.error("Please enter a valid age.");
+                toast.error(tSchemeEligibility("validationAgeError"));
                 return;
             }
             if (!state) {
-                toast.error("Please select a state.");
+                toast.error(tSchemeEligibility("validationAgeError"));
                 return;
             }
             setStep(2);

@@ -14,6 +14,15 @@ jest.mock("../src/db/client", () => ({
     },
 }));
 
+jest.mock("../src/middleware/auth", () => ({
+    requireAuth: (req: any, _res: any, next: any) => {
+        req.user = { id: "test-user-uuid", role: "user", email: "user@example.com" };
+        next();
+    },
+    optionalAuth: (_req: any, _res: any, next: any) => next(),
+    requireRole: () => (_req: any, _res: any, next: any) => next(),
+}));
+
 import request from "supertest";
 import app from "../src/app";
 import { supabase } from "../src/db/client";
@@ -435,6 +444,7 @@ describe("POST /api/pharmacies", () => {
             location: "POINT(77.2 28.56)",
             is_verified: false,
             status: "pending",
+            created_by: "test-user-uuid",
         });
     });
 

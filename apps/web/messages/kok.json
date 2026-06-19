@@ -802,6 +802,10 @@
         "export_button": "CSV तयार करात",
         "cancel": "रद्द करात"
     },
+    "SchemeEligibility": {
+        "validationAgeError": "कृपया वैध वय दाखल करा.",
+        "validationStateError": "कृपया एक राज्य निवडा."
+    },
     "Health": {
         "quickActions": "Quick actions",
         "scanMedicine": "Scan Medicine",

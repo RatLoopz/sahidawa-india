@@ -680,6 +680,10 @@
         },
         "disclaimer": "ही माहिती शैक्षणिक उद्देशांसाठी आहे आणि व्यावसायिक वैद्यकीय सल्ल्याचा पर्याय नाही."
     },
+    "SchemeEligibility": {
+        "validationAgeError": "कृपया वैध वय प्रविष्ट करा.",
+        "validationStateError": "कृपया एक राज्य निवडा."
+    },
     "Health": {
         "quickActions": "Quick actions",
         "scanMedicine": "Scan Medicine",

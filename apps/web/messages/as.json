@@ -686,6 +686,10 @@
         },
         "disclaimer": "এই তথ্য শিক্ষামূলক আৰু পেছাদাৰী চিকিৎসা পৰামৰ্শৰ বিকল্প নহয়।"
     },
+    "SchemeEligibility": {
+        "validationAgeError": "অনুগ্ৰহ কৰি এটা বৈধ বয়স লিখক।",
+        "validationStateError": "অনুগ্ৰহ কৰি এখন ৰাজ্য বাছনি কৰক।"
+    },
     "Health": {
         "quickActions": "Quick actions",
         "scanMedicine": "Scan Medicine",

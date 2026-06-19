@@ -698,6 +698,10 @@
         },
         "disclaimer": "આ માહિતી શૈક્ષણિક હેતુ માટે છે અને વ્યાવસાયિક તબીબી સલાહનો વિકલ્પ નથી."
     },
+    "SchemeEligibility": {
+        "validationAgeError": "કૃપા કરીને માન્ય ઉંમર દાખલ કરો.",
+        "validationStateError": "કૃપા કરીને એક રાજ્ય પસંદ કરો."
+    },
     "Health": {
         "quickActions": "Quick actions",
         "scanMedicine": "Scan Medicine",

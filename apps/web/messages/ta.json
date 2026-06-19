@@ -680,6 +680,10 @@
         },
         "disclaimer": "இந்த தகவல் கல்வி நோக்கத்திற்கானது; இது தொழில்முறை மருத்துவ ஆலோசனைக்கு மாற்றாகாது."
     },
+    "SchemeEligibility": {
+        "validationAgeError": "சரியான வயதை உள்ளிடவும்.",
+        "validationStateError": "ஒரு மாநிலத்தைத் தேர்ந்தெடுக்கவும்."
+    },
     "Health": {
         "quickActions": "Quick actions",
         "scanMedicine": "Scan Medicine",

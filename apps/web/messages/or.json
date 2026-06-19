@@ -680,6 +680,10 @@
         },
         "disclaimer": "ଏହି ସୂଚନା ଶିକ୍ଷାମୂଳକ ଏବଂ ବୃତ୍ତିଗତ ଚିକିତ୍ସା ପରାମର୍ଶର ବିକଳ୍ପ ନୁହେଁ।"
     },
+    "SchemeEligibility": {
+        "validationAgeError": "ଦୟାକରି ଏକ ବୈଧ ବୟସ ଲେଖନ୍ତୁ।",
+        "validationStateError": "ଦୟାକରି ଗୋଟିଏ ରାଜ୍ୟ ଚୟନ କରନ୍ତୁ।"
+    },
     "Health": {
         "quickActions": "Quick actions",
         "scanMedicine": "Scan Medicine",

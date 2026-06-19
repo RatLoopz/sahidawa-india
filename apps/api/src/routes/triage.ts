@@ -9,37 +9,12 @@ import {
     MEDICINE_RAG_DISCLAIMER,
     type MedicineMatch,
 } from "../services/medicineRag.service";
+import { PharmacyRpcResult, FormattedPharmacy } from "../types/pharmacy.types";
 
 const router = Router();
 
 /** Maximum number of pharmacies returned alongside a recommendation. */
 const MAX_PHARMACY_RESULTS = 5;
-
-/** Pharmacy row as returned by the get_nearest_pharmacies RPC. */
-interface PharmacyRpcResult {
-    name: string;
-    address: string;
-    district: string | null;
-    state: string | null;
-    phone_number: string | null;
-    is_verified: boolean;
-    lat: number;
-    lng: number;
-    distance: number;
-}
-
-/** Formatted pharmacy object returned in triage responses. */
-interface FormattedPharmacy {
-    name: string;
-    address: string;
-    lat: number;
-    lng: number;
-    distance: string;
-    phone_number: string | null;
-    is_verified: boolean;
-    district: string | null;
-    state: string | null;
-}
 
 function formatPharmacy(p: PharmacyRpcResult): FormattedPharmacy {
     return {

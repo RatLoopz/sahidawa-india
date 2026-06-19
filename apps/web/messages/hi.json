@@ -720,6 +720,10 @@
         },
         "disclaimer": "यह जानकारी शैक्षिक उद्देश्य के लिए है और पेशेवर चिकित्सा सलाह का विकल्प नहीं है।"
     },
+    "SchemeEligibility": {
+        "validationAgeError": "कृपया एक वैध आयु दर्ज करें।",
+        "validationStateError": "कृपया एक राज्य चुनें।"
+    },
     "Health": {
         "quickActions": "Quick actions",
         "scanMedicine": "Scan Medicine",

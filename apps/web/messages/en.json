@@ -1015,5 +1015,9 @@
     "Tracking": {
         "success": "Medicine tracked successfully!",
         "trackButton": "Track Expiry"
+    },
+    "SchemeEligibility": {
+        "validationAgeError": "Please enter a valid age.",
+        "validationStateError": "Please select a state."
     }
 }

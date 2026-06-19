@@ -680,6 +680,10 @@
         },
         "disclaimer": "ਇਹ ਜਾਣਕਾਰੀ ਸਿੱਖਿਆਤਮਕ ਹੈ ਅਤੇ ਪੇਸ਼ੇਵਰ ਡਾਕਟਰੀ ਸਲਾਹ ਦਾ ਬਦਲ ਨਹੀਂ ਹੈ।"
     },
+    "SchemeEligibility": {
+        "validationAgeError": "ਕਿਰਪਾ ਕਰਕੇ ਇੱਕ ਵੈਧ ਉਮਰ ਦਰਜ ਕਰੋ।",
+        "validationStateError": "ਕਿਰਪਾ ਕਰਕੇ ਇੱਕ ਰਾਜ ਚੁਣੋ।"
+    },
     "Health": {
         "quickActions": "Quick actions",
         "scanMedicine": "Scan Medicine",
