@@ -3,14 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const expiryTrackerDir = path.join(
-    process.cwd(),
-    "apps",
-    "web",
-    "app",
-    "[locale]",
-    "expiry-tracker"
-);
+const expiryTrackerDir = path.join(process.cwd(), "app", "[locale]", "expiry-tracker");
 const pagePath = path.join(expiryTrackerDir, "page.tsx");
 const componentsDir = path.join(expiryTrackerDir, "components");
 
