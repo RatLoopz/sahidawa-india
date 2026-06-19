@@ -82,7 +82,8 @@
         "showLess": "Show Less",
         "genericName": "Generic Name",
         "dosageForm": "Dosage Form",
-        "composition": "Composition"
+        "composition": "Composition",
+        "offlineVerify": "Queue Scan"
     },
     "BackToTopButton": {
         "label": "Back to top"
@@ -213,6 +214,15 @@
         "cachedVerifications": "Cached Verifications",
         "savedPharmacies": "Saved Pharmacies",
         "browsedMedicines": "Browsed Medicines"
+    },
+    "ScanQueue": {
+        "title": "Pending Verifications",
+        "subtitle": "Scans waiting to be verified when you're back online",
+        "queued": "Scan saved locally. Verification will resume automatically.",
+        "syncing": "Verifying {count} queued scans...",
+        "synced": "{count} queued scan(s) verified successfully.",
+        "pendingBadge": "Pending",
+        "empty": "No pending scans"
     },
     "contact": {
         "badge": "GSSoC 2026 Open Source Project",
@@ -386,10 +396,7 @@
         "title": "SahiDawa AI",
         "status": "Online",
         "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?",
-        "placeholder": "Ask me about a medicine...",
-        "confirmClear": "Are you sure you want to clear this conversation? This action cannot be undone.",
-        "cancelClear": "Cancel",
-        "clear": "Clear"
+        "placeholder": "Ask me about a medicine..."
     },
     "Alerts": {
         "backHome": "Back to Home Page",
@@ -929,9 +936,5 @@
             "timeout": "Location request timed out.",
             "generic": "Unable to get your location."
         }
-    },
-    "Tracking": {
-        "success": "Medicine tracked successfully!",
-        "trackButton": "Track Expiry"
     }
 }

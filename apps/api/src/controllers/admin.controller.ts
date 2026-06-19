@@ -30,6 +30,16 @@ const paginationSchema = z.object({
     limit: z.coerce.number().int().min(1).max(100).default(50),
 });
 
+interface AdminAuditLog {
+    id: string;
+    admin_id: string | null;
+    action: string;
+    target_type: "REPORT" | "MEDICINE" | "PHARMACY";
+    target_id: string;
+    details: Record<string, unknown> | string | null;
+    created_at: string;
+}
+
 export const getPendingReports = async (
     req: AuthenticatedRequest,
     res: Response
@@ -342,7 +352,7 @@ export const getAuditLogs = async (req: AuthenticatedRequest, res: Response): Pr
             return;
         }
 
-        const formatDetails = (log: any): string => {
+        const formatDetails = (log: Pick<AdminAuditLog, "action" | "details">): string => {
             if (!log.details) return log.action;
             try {
                 const detailsObj =
@@ -359,7 +369,7 @@ export const getAuditLogs = async (req: AuthenticatedRequest, res: Response): Pr
             }
         };
 
-        const formattedLogs = (data || []).map((log: any) => ({
+        const formattedLogs = (data || []).map((log: AdminAuditLog) => ({
             ...log,
             details: formatDetails(log),
         }));

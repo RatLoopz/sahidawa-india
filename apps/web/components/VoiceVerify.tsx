@@ -104,7 +104,7 @@ export default function VoiceVerify() {
             recorder.start();
             mediaRecorderRef.current = recorder;
             setIsRecording(true);
-        } catch (err) {
+        } catch {
             setError("Microphone access denied. Please allow microphone access and try again.");
         }
     }, []);

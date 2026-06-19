@@ -220,7 +220,7 @@ function BottomDrawer({
     return (
         <div
             data-testid="mobile-pharmacy-drawer"
-            className="pointer-events-none absolute right-4 bottom-4 left-20 z-1000 md:hidden"
+            className="pointer-events-none absolute right-4 bottom-4 left-4 z-1000 sm:left-6 md:hidden"
         >
             <div className="pointer-events-auto max-h-[68vh] rounded-[30px] border border-(--color-border-muted) bg-(--color-surface-page)/85 p-2 shadow-2xl backdrop-blur-xl">
                 <div className="flex max-h-[calc(68vh-1rem)] flex-col overflow-hidden">
