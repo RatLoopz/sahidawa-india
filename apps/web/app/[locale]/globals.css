@@ -62,6 +62,8 @@
     --color-text-primary: #f8fafc;
     --color-text-secondary: #cbd5e1;
     --color-text-muted: #94a3b8;
+    --color-text-subtle: #94a3b8;
+    --color-text-neutral: #cbd5e1;
 }
 @layer base {
     /* Scanner sweep animation */
@@ -112,10 +114,26 @@
 
     /* Blob Animation for Glassmorphism */
     @keyframes blob {
-        0% { transform: translate(0px, 0px) scale(1); }
-        33% { transform: translate(30px, -50px) scale(1.1); }
-        66% { transform: translate(-20px, 20px) scale(0.9); }
-        100% { transform: translate(0px, 0px) scale(1); }
+        0% {
+           
+            transform: translate(0px, 0px) scale(1);
+       
+        }
+        33% {
+           
+            transform: translate(30px, -50px) scale(1.1);
+       
+        }
+        66% {
+           
+            transform: translate(-20px, 20px) scale(0.9);
+       
+        }
+        100% {
+           
+            transform: translate(0px, 0px) scale(1);
+       
+        }
     }
     .animate-blob {
         animation: blob 7s infinite;
@@ -126,15 +144,33 @@
     .animation-delay-4000 {
         animation-delay: 4s;
     }
+    @keyframes testimonial-marquee {
+        from {
+            transform: translateX(0);
+        }
+        to {
+            transform: translateX(-50%);
+        }
+    }
 
+    .testimonial-marquee-track {
+        width: max-content;
+        animation: testimonial-marquee 34s linear infinite;
+    }
+
+    .testimonial-marquee:hover .testimonial-marquee-track {
+        animation-play-state: paused;
+    }
 
     /* Leaflet Popup Overrides — match SahiDawa design */
+    /* Popup always renders with white background, so use fixed dark colors for text */
     .sahidawa-popup .leaflet-popup-content-wrapper {
         border-radius: 20px !important;
         box-shadow:
             0 10px 40px rgba(0, 0, 0, 0.12),
             0 2px 8px rgba(0, 0, 0, 0.06) !important;
-        border: 1px solid var(--color-border-muted) !important;
+        border: 1px solid #e2e8f0 !important;
+        background-color: #ffffff !important;
         padding: 0 !important;
         overflow: hidden;
     }
@@ -142,6 +178,7 @@
     .sahidawa-popup .leaflet-popup-content {
         margin: 0 !important;
         line-height: 1.5;
+        color: #1e293b !important;
     }
 
     .sahidawa-popup .leaflet-popup-close-button {
@@ -150,8 +187,8 @@
         width: 24px !important;
         height: 24px !important;
         font-size: 18px !important;
-        color: var(--color-text-muted) !important;
-        background: var(--color-surface-muted) !important;
+        color: #94a3b8 !important;
+        background: #f8fafc !important;
         border-radius: 50% !important;
         display: flex !important;
         align-items: center !important;
@@ -163,13 +200,13 @@
     }
 
     .sahidawa-popup .leaflet-popup-close-button:hover {
-        color: var(--color-text-primary) !important;
-        background: var(--color-border-muted) !important;
+        color: #1e293b !important;
+        background: #e2e8f0 !important;
     }
 
     .sahidawa-popup .leaflet-popup-tip {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-        border: 1px solid var(--color-border-muted) !important;
+        border: 1px solid #e2e8f0 !important;
     }
 
     /* User location pulse animation */
@@ -327,7 +364,6 @@
 
 /* Better mobile touch targets */
 @media (max-width: 640px) {
-
     .language-option {
         min-height: 48px;
     }
@@ -339,11 +375,52 @@
 
 /* Reduced motion accessibility */
 @media (prefers-reduced-motion: reduce) {
-
     .language-dropdown,
     .language-switcher-btn,
     .language-option {
         animation: none !important;
         transition: none !important;
     }
+
+    .testimonial-marquee {
+        overflow-x: auto;
+    }
+
+    .testimonial-marquee-track {
+        animation: none !important;
+    }
+
+    .shimmer-skeleton {
+        animation: none !important;
+        background: var(--color-surface-muted) !important;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Custom Webkit Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.4);
 }

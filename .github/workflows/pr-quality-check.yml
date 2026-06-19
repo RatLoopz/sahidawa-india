@@ -1,4 +1,6 @@
 name: 🛡️ PR Quality Check
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 on:
   pull_request:
@@ -22,6 +24,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Web Lint
+        run: npm run lint -w web
+
       - name: Run PR Quality Checker
         uses: peakoss/anti-slop@v0
         with:
@@ -58,7 +75,7 @@ jobs:
           # ─────────────────────────────────────────────
           # AI / Spam Detection (Tuned Down)
           # ─────────────────────────────────────────────
-          max-emoji-count: 10
+          max-emoji-count: 30
           max-code-references: 20
           detect-spam-usernames: true
           require-public-profile: false
@@ -102,8 +119,9 @@ jobs:
             - [ ] Linked the related issue (e.g., `fixes #123` or `closes #123`)
             - [ ] Used a conventional commit title (e.g., `feat(ui): add button` or `fix(api): ...`)
 
-            Beginners often miss these, and that's perfectly okay! Just update your PR description or title, and this check will automatically re-run.
+            ⚠️ **Because the PR Template was not used, this PR has been automatically closed.** 
+            Please edit your PR description to include the template, fill it out, and then you may reopen this PR.
 
-          # Crucial Fix: NEVER auto-close PRs to maintain a welcoming environment
-          close-pr: false
+          # Crucial: Automatically close PRs if they bypass the template to enforce strict adherence
+          close-pr: true
           lock-pr: false

@@ -1,0 +1,14 @@
+-- Deprecated local Express migration.
+--
+-- The canonical SahiDawa database schema is maintained in supabase/migrations.
+-- In particular:
+--   - supabase/migrations/20260511000000_initial_schema.sql defines
+--     public.pharmacies with UUID primary keys and a PostGIS geography column.
+--   - supabase/migrations/20260530000000_create_pharmacy_rpc_functions.sql
+--     defines get_nearest_pharmacies(...) and get_pharmacies_in_bounds(...).
+--
+-- This file previously created a divergent pharmacies table with SERIAL IDs,
+-- flat lat/lng columns, an ASHA worker table, and get_nearby_* RPC functions
+-- that do not exist in the Supabase project. It is intentionally left as a
+-- no-op tombstone so local scripts or documentation that reference this path do
+-- not recreate the conflicting schema.

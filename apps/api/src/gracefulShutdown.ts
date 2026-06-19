@@ -1,6 +1,7 @@
 import type { Server } from "http";
 import { supabase } from "./db/client";
 import logger from "./utils/logger";
+import { redisClient } from "./utils/redis";
 
 type ShutdownReason = "uncaughtException" | "unhandledRejection";
 
@@ -50,6 +51,20 @@ async function releaseDatabaseResources(): Promise<void> {
 
     await Promise.resolve(client.removeAllChannels?.());
     client.auth?.stopAutoRefresh?.();
+
+    if (redisClient.isOpen) {
+        try {
+            await redisClient.quit();
+            logger.info("Redis client disconnected gracefully");
+        } catch (err) {
+            logger.error("Error disconnecting Redis client gracefully", err);
+            try {
+                await redisClient.disconnect();
+            } catch (disconnectErr) {
+                logger.error("Error forcing Redis client disconnect", disconnectErr);
+            }
+        }
+    }
 }
 
 export function createGracefulShutdown(server: Server, options: ShutdownOptions = {}) {

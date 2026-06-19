@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { SupabaseClient, User } from "@supabase/supabase-js";
-import { supabase } from "../db/client";
+import { supabase, dbConfig } from "../db/client";
+import logger from "../utils/logger";
 
 export type AuthRole = "user" | "admin" | "moderator";
 
@@ -17,52 +18,140 @@ export interface AuthenticatedRequest extends Request {
 
 type SupabaseAuthClient = Pick<SupabaseClient, "auth">;
 
-const getBearerToken = (authorization?: string): string | null => {
-    if (!authorization) {
-        return null;
-    }
-
-    const [scheme, token] = authorization.split(" ");
-
-    if (scheme !== "Bearer" || !token) {
-        return null;
-    }
-
-    return token;
-};
-
 const getUserRole = (user: User): AuthRole => {
+    // Read role from app_metadata (server-controlled, cannot be set by user).
+    // app_metadata takes precedence; user_metadata is accepted as a fallback
+    // only for legacy compatibility during the transition period.
     const metadataRole = user.app_metadata?.role || user.user_metadata?.role;
     if (metadataRole === "admin") return "admin";
     if (metadataRole === "moderator") return "moderator";
     return "user";
 };
 
+/**
+ * Extract token from HTTP-only cookie (preferred) or Authorization header (fallback).
+ * The fallback supports clients that haven't migrated to cookie-based auth yet.
+ */
+const extractToken = (req: Request): string | null => {
+    if (req.cookies?.access_token) {
+        return req.cookies.access_token;
+    }
+    const authHeader = req.headers.authorization;
+    if (authHeader?.startsWith("Bearer ")) {
+        return authHeader.slice(7);
+    }
+    return null;
+};
+
+const getMockUser = (): AuthenticatedUser => {
+    return {
+        id: process.env.MOCK_USER_ID || "mock-user-id",
+        email: process.env.MOCK_USER_EMAIL || "mock@sahidawa.local",
+        role: (process.env.MOCK_USER_ROLE as AuthRole) || "admin",
+        raw: {
+            id: process.env.MOCK_USER_ID || "mock-user-id",
+            email: process.env.MOCK_USER_EMAIL || "mock@sahidawa.local",
+            app_metadata: { role: process.env.MOCK_USER_ROLE || "admin" },
+            user_metadata: {},
+            aud: "authenticated",
+            created_at: new Date().toISOString(),
+        } as User,
+    };
+};
+
 export const createAuthMiddleware =
     (client: SupabaseAuthClient = supabase) =>
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-        const token = getBearerToken(req.headers.authorization);
+        const token = extractToken(req);
 
         if (!token) {
-            res.status(401).json({ error: "Authorization bearer token is required" });
+            res.status(401).json({ error: "Unauthorized: Missing access token" });
             return;
         }
 
-        const { data, error } = await client.auth.getUser(token);
-
-        if (error || !data.user) {
-            res.status(401).json({ error: "Invalid or expired authentication token" });
+        if (dbConfig?.isSupabaseOffline) {
+            if (
+                process.env.NODE_ENV === "development" &&
+                process.env.BYPASS_AUTH_FOR_TESTING === "true"
+            ) {
+                req.user = getMockUser();
+                next();
+            } else {
+                res.status(401).json({ error: "Unauthorized: Authentication service is offline" });
+            }
             return;
         }
 
-        req.user = {
-            id: data.user.id,
-            email: data.user.email,
-            role: getUserRole(data.user),
-            raw: data.user,
-        };
+        try {
+            const { data, error } = await client.auth.getUser(token);
 
-        next();
+            if (error) {
+                const isConnectionError =
+                    error.message?.includes("fetch failed") ||
+                    error.message?.includes("timeout") ||
+                    error.message?.includes("connect") ||
+                    error.message?.includes("refused");
+
+                if (isConnectionError) {
+                    if (dbConfig) dbConfig.isSupabaseOffline = true;
+                    logger.warn({
+                        message: "Supabase auth server returned connection error.",
+                        error: error.message,
+                    });
+                    if (
+                        process.env.NODE_ENV === "development" &&
+                        process.env.BYPASS_AUTH_FOR_TESTING === "true"
+                    ) {
+                        req.user = getMockUser();
+                        next();
+                        return;
+                    }
+                }
+
+                res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
+                return;
+            }
+
+            if (!data.user) {
+                res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
+                return;
+            }
+
+            req.user = {
+                id: data.user.id,
+                email: data.user.email,
+                role: getUserRole(data.user),
+                raw: data.user,
+            };
+
+            next();
+        } catch (err) {
+            const errMsg = err instanceof Error ? err.message : String(err);
+            if (
+                errMsg.includes("fetch failed") ||
+                errMsg.includes("refused") ||
+                errMsg.includes("timeout")
+            ) {
+                if (dbConfig) dbConfig.isSupabaseOffline = true;
+            }
+
+            logger.warn({
+                message: "Supabase auth server request failed.",
+                error: errMsg,
+            });
+
+            if (
+                process.env.NODE_ENV === "development" &&
+                process.env.BYPASS_AUTH_FOR_TESTING === "true"
+            ) {
+                req.user = getMockUser();
+                next();
+            } else {
+                res.status(401).json({
+                    error: "Unauthorized: Authentication service unavailable",
+                });
+            }
+        }
     };
 
 export const requireAuth = createAuthMiddleware();
@@ -70,42 +159,92 @@ export const requireAuth = createAuthMiddleware();
 export const createOptionalAuthMiddleware =
     (client: SupabaseAuthClient = supabase) =>
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-        // No Authorization header → anonymous flow (citizens without accounts).
-        if (!req.headers.authorization) {
+        const token = extractToken(req);
+
+        if (!token) {
             return next();
         }
 
-        const token = getBearerToken(req.headers.authorization);
-
-        // Header present but malformed: fail loud rather than silently dropping
-        // attribution. A signed-in user with a corrupted header should re-auth,
-        // not have the report anonymized and disappear from /reports/me.
-        if (!token) {
-            res.status(401).json({
-                error: 'Malformed Authorization header — expected "Bearer <token>"',
-            });
-            return;
+        if (dbConfig?.isSupabaseOffline) {
+            if (
+                process.env.NODE_ENV === "development" &&
+                process.env.BYPASS_AUTH_FOR_TESTING === "true"
+            ) {
+                req.user = getMockUser();
+            }
+            return next();
         }
 
-        const { data, error } = await client.auth.getUser(token);
+        try {
+            const { data, error } = await client.auth.getUser(token);
 
-        // Token present but Supabase rejected it (expired/invalid/revoked).
-        // Same reasoning: preserve attribution by forcing re-auth.
-        if (error || !data.user) {
-            res.status(401).json({
-                error: "Invalid or expired authentication token",
+            if (error) {
+                const isConnectionError =
+                    error.message?.includes("fetch failed") ||
+                    error.message?.includes("timeout") ||
+                    error.message?.includes("connect") ||
+                    error.message?.includes("refused");
+
+                if (isConnectionError) {
+                    if (dbConfig) dbConfig.isSupabaseOffline = true;
+                    logger.warn({
+                        message: "Supabase auth server returned connection error.",
+                        error: error.message,
+                    });
+                    if (
+                        process.env.NODE_ENV === "development" &&
+                        process.env.BYPASS_AUTH_FOR_TESTING === "true"
+                    ) {
+                        req.user = getMockUser();
+                    }
+                    next();
+                    return;
+                }
+
+                res.status(401).json({
+                    error: "Unauthorized: Invalid or expired token",
+                });
+                return;
+            }
+
+            if (!data.user) {
+                res.status(401).json({
+                    error: "Unauthorized: Invalid or expired token",
+                });
+                return;
+            }
+
+            req.user = {
+                id: data.user.id,
+                email: data.user.email,
+                role: getUserRole(data.user),
+                raw: data.user,
+            };
+
+            next();
+        } catch (err) {
+            const errMsg = err instanceof Error ? err.message : String(err);
+            if (
+                errMsg.includes("fetch failed") ||
+                errMsg.includes("refused") ||
+                errMsg.includes("timeout")
+            ) {
+                if (dbConfig) dbConfig.isSupabaseOffline = true;
+            }
+
+            logger.warn({
+                message: "Supabase optional auth server request failed.",
+                error: errMsg,
             });
-            return;
+
+            if (
+                process.env.NODE_ENV === "development" &&
+                process.env.BYPASS_AUTH_FOR_TESTING === "true"
+            ) {
+                req.user = getMockUser();
+            }
+            next();
         }
-
-        req.user = {
-            id: data.user.id,
-            email: data.user.email,
-            role: getUserRole(data.user),
-            raw: data.user,
-        };
-
-        next();
     };
 
 export const optionalAuth = createOptionalAuthMiddleware();

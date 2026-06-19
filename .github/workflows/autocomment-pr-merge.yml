@@ -39,7 +39,9 @@ jobs:
                         message = `🎉 Congratulations @${prAuthor}! Your Pull Request **"${prTitle}"** has been successfully merged by @${prCloser}. 
                         
                         Thank you for your valuable contribution to **SahiDawa**! 🇮🇳 
-                        If this was for **GSSoC 2026**, your work is officially merged and valid. Keep up the great work and feel free to claim other open issues. 🚀`;
+                        If this was for **GSSoC 2026**, your work is officially merged and valid. Keep up the great work and feel free to claim other open issues. 🚀
+                        
+                        Follow us on LinkedIn: https://www.linkedin.com/company/ratloopz/ to get shoutout`;
                       } else {
                         message = `📪 Hi @${prAuthor}. Your Pull Request **"${prTitle}"** was closed by @${prCloser} without being merged. 
                         

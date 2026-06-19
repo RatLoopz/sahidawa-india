@@ -1,4 +1,16 @@
-name: "Issue Assignment Guard & Auto-Lock"
+name: "Issue Assignment Guard (/assign command handler)"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# WHEN: Fires on issue comments (for /assign commands) and on issue assignment.
+# WHAT:
+#   /assign command handler:
+#     - Checks the 3-issue cap
+#     - Checks if the issue is already taken by someone else
+#     - Actually assigns the commenter (was previously a stub that did nothing)
+#     - Posts a level-aware deadline confirmation comment
+#   Issue assigned event:
+#     - No-op (auto-lock was intentionally removed)
+# ─────────────────────────────────────────────────────────────────────────────
 
 on:
   issue_comment:
@@ -19,54 +31,280 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const repo = context.repo;
+            const repo      = context.repo;
             const eventName = context.eventName;
-            
-            // 1. Handle manual assignment event
-            // NOTE: Auto-locking was intentionally removed. Locking conversations
-            // prevents all contributors from commenting, asking questions, or helping
-            // the assignee — which is harmful to open-source collaboration.
+
+            // ── 1. Assignment event: no auto-lock (intentional) ─────────────
+            // Locking conversations prevents contributors from asking questions,
+            // which is harmful to open-source collaboration.
             if (eventName === 'issues' && context.payload.action === 'assigned') {
-              core.info(`Issue #${context.payload.issue.number} assigned. No auto-lock applied.`);
+              core.info('Issue #' + context.payload.issue.number + ' assigned. No auto-lock applied.');
               return;
             }
 
-            // 2. Handle issue comment event -> Audit assignment requests
-            if (eventName === 'issue_comment' && context.payload.action === 'created') {
-              const commentBody = context.payload.comment.body;
-              const issueNumber = context.issue.number;
-              const commenter = context.payload.comment.user.login;
+            // ── 2. Comment event: /assign command handler ───────────────────
+            if (eventName !== 'issue_comment' || context.payload.action !== 'created') return;
 
-              // Check if comment requests assignment
-              const requestKeywords = ['/assign', 'please assign', 'assign me'];
-              const isRequest = requestKeywords.some(keyword => commentBody.toLowerCase().includes(keyword));
+            // Skip PR comments (GitHub treats PR comments as issue_comment events)
+            if (context.payload.issue && context.payload.issue.pull_request) {
+              core.info('Comment is on a Pull Request. Skipping assignment.');
+              return;
+            }
 
-              if (isRequest) {
-                console.log(`Audit trigger: @${commenter} requested assignment on Issue #${issueNumber}`);
+            const commentBody = context.payload.comment.body;
+            const issueNumber = context.issue.number;
+            const commenter   = context.payload.comment.user.login;
 
-                // Fetch current open issues assigned to the commenter
-                const assignedIssues = await github.rest.issues.listForRepo({
-                  owner: repo.owner,
-                  repo: repo.repo,
-                  assignee: commenter,
-                  state: 'open'
+            // Skip bots
+            if (context.payload.comment.user.type === 'Bot') return;
+
+            // Check if it's an explicit /assign request
+            const requestKeywords = ['/assign', 'please assign', 'assign me', 'can i work', 'i want to work', 'assign this to me', 'would like to work on this'];
+            const isRequest = requestKeywords.some(kw => commentBody.toLowerCase().includes(kw));
+            
+            if (!isRequest) return;
+
+            // Skip maintainers/owners from being auto-assigned via comments
+            try {
+              const { data: perm } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: repo.owner, repo: repo.repo, username: commenter
+              });
+              if (perm.permission === 'admin' || perm.permission === 'write') {
+                core.info('Maintainer/Owner commented — skipping auto-assignment.');
+                return;
+              }
+            } catch (err) {
+              core.warning('Could not check permissions for @' + commenter + ': ' + err.message);
+            }
+
+            // Fetch issue early to check unassigned status
+            const issueData = await github.rest.issues.get({ owner: repo.owner, repo: repo.repo, issue_number: issueNumber });
+            const currentAssignees = (issueData.data.assignees || []).map(a => a.login);
+            const isUnassigned = currentAssignees.length === 0;
+            const issueAuthor = issueData.data.user.login;
+
+            // Already assigned to this same person?
+            if (currentAssignees.includes(commenter)) {
+              await github.rest.issues.createComment({
+                owner: repo.owner, repo: repo.repo, issue_number: issueNumber,
+                body: `@${commenter}, you are already assigned to this issue. Please continue working on it.`
+              });
+              return;
+            }
+
+            // ── Enforce 3-issue cap early ─────────────────────────────────────
+            try {
+              const assignedList = await github.rest.issues.listForRepo({
+                owner: repo.owner, repo: repo.repo,
+                assignee: commenter,
+                state: 'open',
+                per_page: 100
+              });
+              const activeIssues = assignedList.data.filter(i => !i.pull_request && i.number !== issueNumber);
+
+              // Fetch open PRs created by this commenter to check for links
+              const prsList = await github.paginate(github.rest.pulls.list, {
+                owner: repo.owner, repo: repo.repo,
+                state: 'open',
+                per_page: 100
+              });
+              const commenterPRs = prsList.filter(pr => pr.user && pr.user.login === commenter);
+
+              // Filter active issues that do NOT have a linked PR authored by this contributor
+              const activeIssuesWithoutPR = [];
+              for (const issue of activeIssues) {
+                const hasPR = commenterPRs.some(pr => {
+                  const body = pr.body || '';
+                  const title = pr.title || '';
+                  const issueRefRegex = new RegExp('(?:#|issues/)' + issue.number + '\\b', 'i');
+                  return issueRefRegex.test(body) || issueRefRegex.test(title);
                 });
-
-                // Filter out pull requests
-                const activeAssignedIssues = assignedIssues.data.filter(issue => !issue.pull_request);
-
-                if (activeAssignedIssues.length >= 3) {
-                  const assignedIssueList = activeAssignedIssues.map(i => `#${i.number} ("${i.title}")`).join('\n- ');
-                  console.log(`Denying request: @${commenter} already holds ${activeAssignedIssues.length} active assignments.`);
-
-                  await github.rest.issues.createComment({
-                    owner: repo.owner,
-                    repo: repo.repo,
-                    issue_number: issueNumber,
-                    body: `❌ **Request Denied**\n\nHi @${commenter}, to ensure a fair distribution of tasks in GSSoC/Hacktoberfest, contributors are limited to a maximum of **3 active assigned issues** at a time.\n\nYou are currently assigned to the following ${activeAssignedIssues.length} active tasks:\n- ${assignedIssueList}\n\nPlease complete your currently assigned tasks before requesting assignment for new ones! Thank you for your cooperation! 🤝`
-                  });
-                } else {
-                  console.log(`Commenter @${commenter} has ${activeAssignedIssues.length} active assignments. Safe to review (no auto-assignment).`);
+                if (!hasPR) {
+                  activeIssuesWithoutPR.push(issue);
                 }
               }
+
+              if (activeIssuesWithoutPR.length >= 3) {
+                const issueList = activeIssuesWithoutPR
+                  .map(i => '#' + i.number + ' ("' + i.title + '")')
+                  .join('\n- ');
+                core.info('Denying early: @' + commenter + ' already has ' + activeIssuesWithoutPR.length + ' active assignments.');
+                await github.rest.issues.createComment({
+                  owner: repo.owner, repo: repo.repo, issue_number: issueNumber,
+                  body: [
+                    'Request Denied.',
+                    '',
+                    `@${commenter}, contributors are limited to a maximum of 3 active assigned issues without pull requests.`,
+                    `You currently have ${activeIssuesWithoutPR.length} active tasks:`,
+                    `- ${issueList}`,
+                    '',
+                    'Please complete your current tasks or open a PR for them before requesting new assignments.'
+                  ].join('\n')
+                });
+                return;
+              }
+            } catch (err) {
+              core.warning('Error enforcing 3-issue limit early: ' + err.message);
             }
+
+            // NEW: Block empty assignment requests and delete them
+            const cleanedBody = commentBody.replace(/\r?\n|\r/g, ' ').replace(/\/assign|please assign me|assign me/ig, '').trim();
+            if (cleanedBody.length < 30) {
+              core.info('Rejecting assignment request due to lack of implementation approach: ' + commentBody);
+              await github.rest.issues.createComment({
+                owner: repo.owner, repo: repo.repo, issue_number: issueNumber,
+                body: [
+                  'Assignment Request Denied.',
+                  '',
+                  `@${commenter}, to be assigned, you must provide a brief implementation approach.`,
+                  'Please reply with a description of how you plan to solve this issue (e.g., files to modify, logic changes) along with `/assign`.',
+                  'Your current request was too short and has been ignored.'
+                ].join('\n')
+              });
+              
+              // Delete the spammy comment to keep the thread clean
+              try {
+                await github.rest.issues.deleteComment({
+                  owner: repo.owner, repo: repo.repo, comment_id: context.payload.comment.id
+                });
+                core.info('Deleted the empty assignment request comment.');
+              } catch (err) {
+                core.warning('Could not delete the empty comment: ' + err.message);
+              }
+              return;
+            }
+
+            core.info('Audit trigger: @' + commenter + ' attempting assignment on #' + issueNumber);
+
+            // ── Block assignment if the issue was created by a Maintainer/Owner ──
+            try {
+              const { data: authorPerm } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: repo.owner, repo: repo.repo, username: issueAuthor
+              });
+              if (authorPerm.permission === 'admin' || authorPerm.permission === 'write') {
+                core.info('Issue was crafted by Maintainer/Owner — blocking auto-assignment silently.');
+                return;
+              }
+            } catch (err) {
+              core.warning('Could not check permissions for issue author @' + issueAuthor + ': ' + err.message);
+            }
+
+            // ── NEW: Restrict initial assignment to the issue creator ──
+            const hasOpenForAllLabel = (issueData.data.labels || []).some(l => 
+              (typeof l === 'string' ? l : l.name).toLowerCase() === 'status: open-for-all'
+            );
+
+            if (isUnassigned && !hasOpenForAllLabel) {
+              if (commenter !== issueAuthor) {
+                core.info('Rejecting assignment because commenter is not the issue author and it is not open-for-all.');
+                await github.rest.issues.createComment({
+                  owner: repo.owner, repo: repo.repo, issue_number: issueNumber,
+                  body: [
+                    'Assignment Request Denied.',
+                    '',
+                    `@${commenter}, currently only the creator of this issue (@${issueAuthor}) can claim it.`,
+                    'If they become inactive, they will be unassigned and the issue will be opened for anyone to claim.'
+                  ].join('\n')
+                });
+                try {
+                  await github.rest.issues.deleteComment({ owner: repo.owner, repo: repo.repo, comment_id: context.payload.comment.id });
+                } catch(e) {}
+                return;
+              }
+            }
+
+
+
+            // Already assigned to someone else?
+            if (currentAssignees.length > 0 && !currentAssignees.includes(commenter)) {
+              const takenBy = currentAssignees.map(a => '@' + a).join(', ');
+              await github.rest.issues.createComment({
+                owner: repo.owner, repo: repo.repo, issue_number: issueNumber,
+                body: [
+                  'Issue already assigned.',
+                  '',
+                  `@${commenter}, this issue is currently assigned to ${takenBy}.`,
+                  'If they do not show activity within their deadline, they will be unassigned and the issue will become available.'
+                ].join('\n')
+              });
+              return;
+            }
+
+            // ── 2c. Assign the commenter ────────────────────────────────────
+            await github.rest.issues.addAssignees({
+              owner: repo.owner, repo: repo.repo,
+              issue_number: issueNumber,
+              assignees: [commenter]
+            });
+            core.info('\u2705 Assigned @' + commenter + ' to #' + issueNumber);
+
+            // ── NEW: Auto-Cleanup on Re-Assignment ──
+            if (hasOpenForAllLabel) {
+              // Remove the open-for-all label
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: repo.owner, repo: repo.repo, issue_number: issueNumber, name: 'status: open-for-all'
+                });
+              } catch(e) {}
+              
+              // Automated Cleanup of previous spam comments
+              try {
+                core.info('Running automated cleanup on issue #' + issueNumber);
+                const comments = await github.paginate(github.rest.issues.listComments, {
+                  owner: repo.owner, repo: repo.repo, issue_number: issueNumber, per_page: 100
+                });
+                
+                for (const c of comments) {
+                  if (c.id === context.payload.comment.id) continue;
+
+                  const isBot = c.user && c.user.login === 'github-actions[bot]';
+                  const cBody = c.body || '';
+                  
+                  let shouldDelete = false;
+                  if (isBot && cBody.match(/(⚠️|You've been assigned|Assignment Request Denied|already assigned|Auto-unassigned|inactivity)/i)) {
+                    shouldDelete = true;
+                  } 
+                  else if (!isBot) {
+                    const cCleaned = cBody.replace(/\r?\n|\r/g, ' ').replace(/\/assign|please assign me|assign me/ig, '').trim();
+                    if (cCleaned.length < 30 && cBody.match(/(\/assign|assign me)/i)) {
+                      shouldDelete = true;
+                    }
+                  }
+                  
+                  if (shouldDelete) {
+                    await github.rest.issues.deleteComment({ owner: repo.owner, repo: repo.repo, comment_id: c.id });
+                  }
+                }
+              } catch(e) {
+                core.warning('Failed automated cleanup: ' + e.message);
+              }
+            }
+
+            // ── 2d. Determine deadline from labels ──────────────────────────
+            const labels = (issueData.data.labels || []).map(l =>
+              (typeof l === 'string' ? l : l.name).toLowerCase()
+            );
+            let level = 'intermediate', maxDays = 3, warnDays = 2, levelEmoji = '\uD83D\uDFE1';
+            if (labels.includes('level:beginner') || labels.includes('good first issue')) {
+              level = 'beginner'; maxDays = 2; warnDays = 1; levelEmoji = '\uD83D\uDFE2';
+            } else if (labels.includes('level:advanced') || labels.includes('level:expert')) {
+              level = 'advanced'; maxDays = 5; warnDays = 3; levelEmoji = '\uD83D\uDD34';
+            }
+
+            const deadline    = new Date(Date.now() + maxDays * 24 * 60 * 60 * 1000);
+            const deadlineStr = deadline.toUTCString().replace(' GMT', ' UTC');
+
+            await github.rest.issues.createComment({
+              owner: repo.owner, repo: repo.repo, issue_number: issueNumber,
+              body: [
+                `@${commenter}, you have been assigned to this issue.`,
+                '',
+                `- **Difficulty:** \`${level}\``,
+                `- **Deadline:** ${maxDays} days (\`${deadlineStr}\`)`,
+                '',
+                'To keep your assignment active, post a progress update or open a linked Draft PR.',
+                `Inactivity for ${maxDays} days will result in automatic unassignment.`,
+                '',
+                'Note: Please search for similar open/closed issues and PRs before coding to avoid duplicate work.'
+              ].join('\n')
+            });

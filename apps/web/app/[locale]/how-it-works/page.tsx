@@ -1,51 +1,134 @@
 "use client";
 
-import { ShieldCheck, Search, Bot, Store, BellRing, AlertTriangle, ArrowRight } from "lucide-react";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import {
+    ShieldCheck,
+    Search,
+    Bot,
+    Store,
+    BellRing,
+    AlertTriangle,
+    QrCode,
+    MapPin,
+    Shield,
+} from "lucide-react";
+// Locale-aware Link (not next/link) so CTAs preserve the active locale.
+// Hardcoded "/en/" hrefs were removed and this import was fixed in
+// commit 8359882 / PR #918 ("fix(web): use i18n routing link and remove
+// hardcoded locale in how-it-works"). Hrefs below are intentionally relative.
+import { Link } from "@/i18n/routing";
+import { PageHeader } from "../components/PageHeader";
+import { useTranslations } from "next-intl";
+import { motion } from "framer-motion";
 
 const steps = [
     {
         icon: <ShieldCheck size={34} />,
-        title: "Verify Medicines",
-        description:
-            "Instantly verify medicine authenticity using barcode, batch number, or medicine details.",
+        titleKey: "features.cards.verifyMedicines.title",
+        descriptionKey: "features.cards.verifyMedicines.description",
     },
     {
         icon: <Search size={34} />,
-        title: "Scan or Search",
-        description:
-            "Scan packaging or manually search medicines for trusted healthcare information.",
+        titleKey: "features.cards.scanOrSearch.title",
+        descriptionKey: "features.cards.scanOrSearch.description",
     },
     {
         icon: <Bot size={34} />,
-        title: "AI Health Assistant",
-        description:
-            "Get AI-powered guidance for symptoms, side effects, precautions, and medicine usage.",
+        titleKey: "features.cards.aiAssistant.title",
+        descriptionKey: "features.cards.aiAssistant.description",
     },
     {
         icon: <Store size={34} />,
-        title: "Trusted Pharmacies",
-        description:
-            "Find verified pharmacies nearby with reliable medicine availability and ratings.",
+        titleKey: "features.cards.trustedPharmacies.title",
+        descriptionKey: "features.cards.trustedPharmacies.description",
     },
     {
         icon: <BellRing size={34} />,
-        title: "CDSCO Alerts",
-        description:
-            "Stay updated with official CDSCO medicine recalls, warnings, and health alerts.",
+        titleKey: "features.cards.cdscoAlerts.title",
+        descriptionKey: "features.cards.cdscoAlerts.description",
     },
     {
         icon: <AlertTriangle size={34} />,
-        title: "Report Suspicious Medicines",
-        description:
-            "Help the community by reporting counterfeit or suspicious medicines instantly.",
+        titleKey: "features.cards.reportMedicines.title",
+        descriptionKey: "features.cards.reportMedicines.description",
     },
 ];
 
+const timelineSteps = [
+    {
+        icon: <QrCode size={24} />,
+        titleKey: "steps.scan.title",
+        descriptionKey: "steps.scan.description",
+        bgClass: "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400",
+        badgeClass: "bg-emerald-600 dark:bg-emerald-500",
+        borderClass:
+            "hover:border-emerald-300 dark:hover:border-emerald-800 hover:shadow-[0_20px_40px_-15px_rgba(16,185,129,0.15)]",
+    },
+    {
+        icon: <ShieldCheck size={24} />,
+        titleKey: "steps.verify.title",
+        descriptionKey: "steps.verify.description",
+        bgClass: "bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400",
+        badgeClass: "bg-blue-600 dark:bg-blue-500",
+        borderClass:
+            "hover:border-blue-300 dark:hover:border-blue-800 hover:shadow-[0_20px_40px_-15px_rgba(59,130,246,0.15)]",
+    },
+    {
+        icon: <BellRing size={24} />,
+        titleKey: "steps.alerts.title",
+        descriptionKey: "steps.alerts.description",
+        bgClass: "bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400",
+        badgeClass: "bg-amber-600 dark:bg-amber-500",
+        borderClass:
+            "hover:border-amber-300 dark:hover:border-amber-800 hover:shadow-[0_20px_40px_-15px_rgba(245,158,11,0.15)]",
+    },
+    {
+        icon: <MapPin size={24} />,
+        titleKey: "steps.pharmacies.title",
+        descriptionKey: "steps.pharmacies.description",
+        bgClass: "bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400",
+        badgeClass: "bg-purple-600 dark:bg-purple-500",
+        borderClass:
+            "hover:border-purple-300 dark:hover:border-purple-800 hover:shadow-[0_20px_40px_-15px_rgba(168,85,247,0.15)]",
+    },
+    {
+        icon: <Shield size={24} />,
+        titleKey: "steps.protect.title",
+        descriptionKey: "steps.protect.description",
+        bgClass: "bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400",
+        badgeClass: "bg-rose-600 dark:bg-rose-500",
+        borderClass:
+            "hover:border-rose-300 dark:hover:border-rose-800 hover:shadow-[0_20px_40px_-15px_rgba(244,63,94,0.15)]",
+    },
+];
+
+const timelineContainerVariants = {
+    hidden: {},
+    visible: {
+        transition: {
+            staggerChildren: 0.15,
+        },
+    },
+};
+
+const timelineCardVariants = {
+    hidden: {
+        opacity: 0,
+        y: 20,
+    },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: {
+            duration: 0.5,
+        },
+    },
+};
+
 export default function HowItWorksPage() {
+    const t = useTranslations("howItWorks");
     return (
         <main className="min-h-screen overflow-x-hidden bg-gradient-to-b from-(--color-surface-page) via-emerald-500/[0.03] to-(--color-surface-page) text-(--color-text-primary)">
+            <PageHeader backHref="/" variant="light" />
             {/* Hero Section */}
             <section className="relative px-6 pt-24 pb-20">
                 {/* Glow Effects */}
@@ -53,77 +136,90 @@ export default function HowItWorksPage() {
                 <div className="absolute right-0 bottom-0 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl" />
 
                 <div className="relative mx-auto max-w-6xl text-center">
-                    <Link
-                        href="/"
-                        aria-label="Back to Home"
-                        className="absolute top-6 left-6 flex h-12 w-12 items-center justify-center rounded-full border border-(--color-border-muted) bg-(--color-surface-muted) shadow-sm transition-all duration-300 hover:scale-105 hover:bg-(--color-border-muted)"
-                    >
-                        <ArrowLeft size={22} className="text-(--color-text-secondary)" />
-                    </Link>
                     <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-5 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
                         <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                        Safe Healthcare • AI Powered
+                        {t("badge")}
                     </div>
 
                     <h1 className="text-4xl leading-tight font-black tracking-tight text-(--color-text-primary) sm:text-5xl md:text-7xl">
-                        How <span className="text-emerald-600">SahiDawa</span> Works
+                        {t.rich("heroTitle", {
+                            highlight: (chunks) => (
+                                <span className="text-emerald-600 dark:text-emerald-400">
+                                    {chunks}
+                                </span>
+                            ),
+                        })}
                     </h1>
 
                     <p className="mx-auto mt-6 max-w-3xl text-lg leading-relaxed text-(--color-text-secondary) md:text-xl">
-                        Learn how SahiDawa helps users verify medicines, discover trusted
-                        pharmacies, receive official alerts, and stay protected from counterfeit
-                        drugs using AI-powered healthcare tools.
+                        {t("heroSubtitle")}
                     </p>
 
                     {/* CTA Buttons */}
                     <div className="mt-10 flex flex-wrap justify-center gap-4">
                         <Link
-                            href="/en/scan"
+                            href="/scan"
                             className="rounded-2xl bg-emerald-600 px-7 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:bg-emerald-700"
                         >
-                            Start Scanning
+                            {t("ctaButtons.scan")}
                         </Link>
 
                         <Link
-                            href="/en/map"
+                            href="/map"
                             className="rounded-2xl border border-(--color-border-muted) px-7 py-4 font-semibold text-(--color-text-secondary) transition-all duration-300 hover:border-emerald-500 hover:text-emerald-600"
                         >
-                            Explore Pharmacy Map
+                            {t("ctaButtons.map")}
                         </Link>
                     </div>
                 </div>
             </section>
 
             {/* Timeline Section */}
-            <section className="px-6 py-10">
-                <div className="mx-auto max-w-6xl">
-                    <div className="flex flex-col gap-6 md:flex-row md:items-stretch md:gap-10">
-                        {[
-                            "Scan Medicine",
-                            "Verify Instantly",
-                            "Check Alerts",
-                            "Find Pharmacies",
-                            "Stay Protected",
-                        ].map((item, index) => (
-                            <div key={index} className="relative flex-1">
-                                <div className="h-full rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:border-emerald-300 hover:shadow-xl">
-                                    <div className="dark:text-emerald-450 mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-xl font-bold text-emerald-600 dark:bg-emerald-950/30">
-                                        {index + 1}
+            <section className="relative overflow-hidden px-6 py-10">
+                <h2 className="sr-only">How It Works Steps</h2>
+                <div className="relative mx-auto max-w-6xl">
+                    {/* Desktop Connected Path */}
+                    <motion.div
+                        className="no-scrollbar relative z-10 flex snap-x snap-mandatory flex-row gap-6 overflow-x-auto pb-6 md:grid md:grid-cols-2 md:gap-6 md:overflow-x-visible md:pb-0 lg:grid-cols-3"
+                        variants={timelineContainerVariants}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true }}
+                    >
+                        {timelineSteps.map((step, index) => (
+                            <motion.div
+                                key={index}
+                                variants={timelineCardVariants}
+                                className="w-[calc(100%-3rem)] max-w-sm flex-shrink-0 snap-center md:w-auto md:max-w-none"
+                            >
+                                <div
+                                    className={`mt-2 flex h-full flex-col items-center rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-8 text-center shadow-xs transition-all duration-500 hover:-translate-y-2 hover:shadow-xl active:scale-[0.99] md:mt-0 ${step.borderClass}`}
+                                >
+                                    {/* Icon Container with Floating Number Badge */}
+                                    <div
+                                        className={`relative mb-5 flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-inner transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 ${step.bgClass}`}
+                                    >
+                                        {step.icon}
+                                        <span
+                                            className={`absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black text-white shadow-md ${step.badgeClass}`}
+                                        >
+                                            {index + 1}
+                                        </span>
                                     </div>
 
-                                    <h3 className="text-lg font-bold text-(--color-text-primary)">
-                                        {item}
+                                    {/* Title */}
+                                    <h3 className="mb-2 text-base font-extrabold text-(--color-text-primary) md:text-lg">
+                                        {t(step.titleKey)}
                                     </h3>
-                                </div>
 
-                                {index !== 4 && (
-                                    <div className="absolute top-[52%] left-full ml-2 hidden -translate-y-1/2 text-emerald-400 md:block">
-                                        <ArrowRight size={24} />
-                                    </div>
-                                )}
-                            </div>
+                                    {/* Description */}
+                                    <p className="text-xs leading-relaxed text-(--color-text-secondary) md:text-sm">
+                                        {t(step.descriptionKey)}
+                                    </p>
+                                </div>
+                            </motion.div>
                         ))}
-                    </div>
+                    </motion.div>
                 </div>
             </section>
 
@@ -132,11 +228,11 @@ export default function HowItWorksPage() {
                 <div className="mx-auto max-w-7xl">
                     <div className="mb-16 text-center">
                         <h2 className="text-4xl font-bold text-(--color-text-primary)">
-                            Platform Features
+                            {t("features.title")}
                         </h2>
 
                         <p className="mt-4 text-lg text-(--color-text-secondary)">
-                            Everything you need for safer healthcare decisions.
+                            {t("features.subtitle")}
                         </p>
                     </div>
 
@@ -144,18 +240,18 @@ export default function HowItWorksPage() {
                         {steps.map((step, index) => (
                             <div
                                 key={index}
-                                className="group rounded-[32px] border border-(--color-border-muted) bg-(--color-surface-page) p-8 shadow-sm transition-all duration-500 hover:-translate-y-3 hover:border-emerald-300/40 hover:shadow-2xl active:scale-[0.99]"
+                                className="group rounded-[28px] border border-(--color-border-muted) bg-(--color-surface-page) p-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-lg active:scale-[0.99]"
                             >
-                                <div className="dark:text-emerald-450 mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-100 to-blue-100 text-emerald-600 transition-transform duration-300 group-hover:scale-110 dark:from-emerald-950/20 dark:to-blue-950/20">
+                                <div className="dark:text-emerald-450 mb-6 flex h-16 w-16 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100 transition-all duration-300 group-hover:scale-105 dark:bg-emerald-950/40 dark:ring-emerald-900">
                                     {step.icon}
                                 </div>
 
                                 <h3 className="mb-4 text-2xl font-bold text-(--color-text-primary)">
-                                    {step.title}
+                                    {t(step.titleKey)}
                                 </h3>
 
                                 <p className="text-base leading-relaxed text-(--color-text-secondary)">
-                                    {step.description}
+                                    {t(step.descriptionKey)}
                                 </p>
                             </div>
                         ))}
@@ -165,29 +261,31 @@ export default function HowItWorksPage() {
 
             {/* Bottom CTA */}
             <section className="px-6 pb-24">
-                <div className="mx-auto max-w-5xl rounded-[40px] bg-gradient-to-r from-emerald-600 to-teal-500 p-12 text-center text-white shadow-2xl">
-                    <h2 className="mb-6 text-4xl font-black md:text-5xl">
-                        Safer Healthcare Starts Here
-                    </h2>
+                <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[40px] bg-gradient-to-br from-emerald-700 via-emerald-600 to-teal-600 p-12 text-center text-white shadow-2xl">
+                    <div className="pointer-events-none absolute inset-0 rounded-[40px] ring-1 ring-white/10" />
+
+                    <div className="pointer-events-none absolute -top-20 -right-20 h-64 w-64 rounded-full border-2 border-white/20" />
+
+                    <div className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full border-2 border-white/20" />
+                    <h2 className="mb-6 text-4xl font-black md:text-5xl">{t("ctaBanner.title")}</h2>
 
                     <p className="mx-auto max-w-3xl text-lg leading-relaxed text-white/90 md:text-xl">
-                        Verify medicines, access trusted healthcare information, and stay protected
-                        from counterfeit drugs with AI-powered assistance.
+                        {t("ctaBanner.subtitle")}
                     </p>
 
                     <div className="mt-10 flex flex-wrap justify-center gap-4">
                         <Link
-                            href="/en/scan"
-                            className="rounded-2xl bg-white px-8 py-4 font-bold text-emerald-700 transition-transform duration-300 hover:scale-105"
+                            href="/scan"
+                            className="flex h-12 items-center justify-center rounded-2xl bg-white px-8 font-bold text-emerald-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98]"
                         >
-                            Scan Medicine
+                            {t("ctaBanner.buttons.scan")}
                         </Link>
 
                         <Link
-                            href="/en/alerts"
-                            className="rounded-2xl border border-white/40 px-8 py-4 font-bold transition-all duration-300 hover:bg-white/10"
+                            href="/alerts"
+                            className="flex h-12 items-center justify-center rounded-2xl border border-white/40 px-8 font-bold shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/10 active:scale-[0.98]"
                         >
-                            View Alerts
+                            {t("ctaBanner.buttons.alerts")}
                         </Link>
                     </div>
                 </div>

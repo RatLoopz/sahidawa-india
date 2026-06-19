@@ -2,11 +2,13 @@ import { Router, Request, Response } from "express";
 import { supabase } from "../db/client";
 import { z } from "zod";
 import { triggerRecallAlert } from "../services/notifications";
-
-if (!process.env.API_SECRET_KEY) {
-    console.error("CRITICAL ERROR: API_SECRET_KEY is not set. Terminating.");
-    process.exit(1);
-}
+import { validateMedicineStatus, getValidStatusList } from "../validators/medicine.validator";
+import { escapeIlike } from "../utils/db";
+import { requireApiKey, ApiKeyRequest } from "../middleware/apiKeyAuth";
+import logger from "../utils/logger";
+import { redisClient } from "../utils/redis";
+import { KEY_PREFIXES } from "../services/cache.service";
+import { limiter } from "../middleware/rateLimit";
 
 const AlertSchema = z
     .object({
@@ -17,6 +19,7 @@ const AlertSchema = z
         state: z.string().optional(),
         district: z.string().optional(),
         reported_at: z.string().optional(),
+        proof_image_url: z.string().optional().nullable(),
     })
     .passthrough();
 
@@ -56,50 +59,46 @@ alertsRouter.get("/", async (req: Request, res: Response) => {
     let query = supabase.from("drug_alerts").select("*", { count: "exact" });
 
     if (brand) {
-        query = query.ilike("reported_brand_name", `%${brand}%`);
+        query = query.ilike("reported_brand_name", `%${escapeIlike(brand)}%`);
     }
     if (region) {
-        query = query.ilike("state", `%${region}%`);
+        query = query.ilike("state", `%${escapeIlike(region)}%`);
     }
     if (batchNumber) {
         query = query.eq("batch_number", batchNumber);
     }
 
-    const { data, error, count } = await query
-        .order("created_at", { ascending: false })
-        .range(offset, offset + limit - 1);
+    try {
+        const { data, error, count } = await query
+            .order("created_at", { ascending: false })
+            .range(offset, offset + limit - 1);
 
-    if (error) {
-        res.status(500).json({ error: "Failed to fetch alerts" });
-        return;
+        if (error) {
+            res.status(500).json({ error: "Failed to fetch alerts" });
+            return;
+        }
+
+        const totalCount = count ?? 0;
+        const totalPageCount = Math.ceil(totalCount / limit);
+
+        res.json({
+            data: data ?? [],
+            pageIndex: page,
+            pageSize: (data ?? []).length,
+            totalCount,
+            totalPageCount,
+        });
+    } catch (err) {
+        logger.error("Unexpected error in GET /api/alerts", { error: err });
+        res.status(500).json({ error: "An unexpected error occurred" });
     }
-
-    const totalCount = count ?? 0;
-    const totalPageCount = Math.ceil(totalCount / limit);
-
-    res.json({
-        data: data ?? [],
-        pageIndex: page,
-        pageSize: (data ?? []).length,
-        totalCount,
-        totalPageCount,
-    });
 });
 
 /**
  * POST /api/v1/alerts/ingest
  * Protected endpoint to ingest parsed CDSCO alerts from the ML agent.
  */
-alertsRouter.post("/ingest", async (req: Request, res: Response) => {
-    // 1. Validate Secret Header
-    const authHeader = req.headers["x-api-secret"];
-    const expectedSecret = process.env.API_SECRET_KEY;
-
-    if (!authHeader || authHeader !== expectedSecret) {
-        res.status(401).json({ error: "Unauthorized access" });
-        return;
-    }
-
+alertsRouter.post("/ingest", requireApiKey, limiter, async (req: ApiKeyRequest, res: Response) => {
     const { alerts } = req.body;
     const parseResult = AlertsArraySchema.safeParse(alerts);
     if (!parseResult.success) {
@@ -110,24 +109,36 @@ alertsRouter.post("/ingest", async (req: Request, res: Response) => {
     const validatedAlerts = parseResult.data;
 
     try {
-        // 2. Insert alerts into drug_alerts table
+        // 2. Upsert alerts — ON CONFLICT DO NOTHING prevents duplicate rows
+        // when concurrent scraper instances race past the pre-check in deduplicate_alerts().
         const { data: insertedAlerts, error: insertError } = await supabase
             .from("drug_alerts")
-            .insert(validatedAlerts)
+            .upsert(validatedAlerts, {
+                onConflict: "batch_number,manufacturer,reported_brand_name",
+                ignoreDuplicates: true,
+            })
             .select();
 
         if (insertError) {
-            console.error("Error inserting alerts:", insertError);
+            logger.error("Error inserting alerts", { error: insertError });
             res.status(500).json({ error: "Database error inserting alerts" });
             return;
         }
 
         // 3. Update medicines table based on matched batches
+        const medicineStatus = "recalled";
+        if (!validateMedicineStatus(medicineStatus)) {
+            res.status(400).json({
+                error: `Invalid medicine status. Valid values are: ${getValidStatusList()}`,
+            });
+            return;
+        }
+
         const updatePromises = validatedAlerts.map((alert) => {
             if (alert.batch_number) {
                 let q = supabase
                     .from("medicines")
-                    .update({ status: "recalled", is_counterfeit_alert: true })
+                    .update({ status: medicineStatus, is_counterfeit_alert: true })
                     .eq("batch_number", alert.batch_number);
 
                 if (alert.manufacturer) {
@@ -141,6 +152,22 @@ alertsRouter.post("/ingest", async (req: Request, res: Response) => {
         });
 
         await Promise.all(updatePromises);
+
+        // 3.5 Invalidate the cache for the updated batch numbers
+        const batchNumbersToInvalidate = validatedAlerts
+            .map((alert) => alert.batch_number)
+            .filter(Boolean) as string[];
+
+        if (batchNumbersToInvalidate.length > 0 && redisClient.isOpen) {
+            try {
+                const keys = batchNumbersToInvalidate.map(
+                    (batch) => `${KEY_PREFIXES.DRUG_CACHE}${batch}`
+                );
+                await redisClient.del(keys);
+            } catch (err) {
+                console.error("Failed to invalidate cache for alert batches:", err);
+            }
+        }
 
         // 4. Dispatch Web Push Notifications using shared service
         if (insertedAlerts && insertedAlerts.length > 0) {
@@ -159,13 +186,18 @@ alertsRouter.post("/ingest", async (req: Request, res: Response) => {
             await Promise.all(pushPromises);
         }
 
+        logger.info("Alerts ingested successfully", {
+            caller: req.apiKey?.callerName,
+            count: insertedAlerts?.length,
+        });
+
         res.status(200).json({
             success: true,
             message: "Alerts ingested and notifications dispatched",
             inserted: insertedAlerts?.length,
         });
     } catch (error) {
-        console.error("Unexpected error in /ingest:", error);
+        logger.error("Unexpected error in /ingest", { error, caller: req.apiKey?.callerName });
         res.status(500).json({ error: "Internal server error" });
     }
 });

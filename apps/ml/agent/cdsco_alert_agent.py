@@ -9,19 +9,25 @@ from urllib.parse import urljoin
 
 # Adjust path so we can import services
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from services.alert_extractor import extract_alerts_from_text
+from services.alert_extractor import extract_alerts_from_text, extract_alerts_from_pdf_images
 
 logging.basicConfig(level=logging.INFO)
 
 CDSCO_ALERTS_URL = "https://cdsco.gov.in/opencms/opencms/en/Notifications/Alerts/"
-INGEST_API_URL = os.getenv("API_BASE_URL", "http://localhost:3000") + "/api/v1/alerts/ingest"
+
+API_BASE_URL = os.getenv("API_BASE_URL", "").strip().rstrip("/")
+if not API_BASE_URL:
+    logging.error("CRITICAL ERROR: API_BASE_URL is not set in environment.")
+    sys.exit(1)
+
+INGEST_API_URL = API_BASE_URL + "/api/v1/alerts/ingest"
 
 API_SECRET_KEY = os.getenv("API_SECRET_KEY")
 if not API_SECRET_KEY:
     logging.error("CRITICAL ERROR: API_SECRET_KEY is not set in environment.")
     sys.exit(1)
 
-ALERTS_API_URL = os.getenv("API_BASE_URL", "http://localhost:3000") + "/api/v1/alerts"
+ALERTS_API_URL = API_BASE_URL + "/api/v1/alerts"
 
 def scrape_cdsco_alerts():
     logging.info(f"Checking {CDSCO_ALERTS_URL} for new alerts...")
@@ -46,10 +52,11 @@ def scrape_cdsco_alerts():
         logging.info("No PDF links found on the alerts page.")
         return
         
-    recent_pdf = pdf_links[0]
-    
-    logging.info(f"Processing recent alert PDF: {recent_pdf}")
-    process_alert_pdf(recent_pdf)
+    # FIXED — process all PDFs:
+    logging.info(f"Found {len(pdf_links)} PDF(s) on alerts page. Processing all...")
+    for pdf_url in pdf_links:
+        logging.info(f"Processing alert PDF: {pdf_url}")
+        process_alert_pdf(pdf_url)
 
 def process_alert_pdf(pdf_url: str):
     try:
@@ -70,12 +77,12 @@ def process_alert_pdf(pdf_url: str):
         logging.error(f"Error parsing PDF with pdfplumber: {e}")
         return
         
-    if not text_content.strip():
-        logging.warning("No text extracted from PDF. It might be image-based.")
-        return
-        
-    logging.info("Extracted text from PDF, sending to LangChain for structural parsing...")
-    alerts = extract_alerts_from_text(text_content)
+    if not text_content.strip() or len(text_content.strip()) < 100:
+        logging.warning("No text or very short text extracted from PDF. It might be image-based. Triggering Gemini Multimodal OCR fallback...")
+        alerts = extract_alerts_from_pdf_images(pdf_response.content)
+    else:
+        logging.info("Extracted text from PDF, sending to LangChain for structural parsing...")
+        alerts = extract_alerts_from_text(text_content)
     
     if not alerts:
         logging.warning("No alerts extracted from the text by LangChain.")

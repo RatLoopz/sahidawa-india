@@ -21,6 +21,7 @@
         "ai_chat": "AI चॅट",
         "ai_health_assistant_description": "त्वरित आरोग्य सल्ला, लक्षण तपासणी आणि प्रिस्क्रिप्शन मार्गदर्शन मिळवा",
         "chat_now": "आता चॅट करा",
+        "explore_features": "वैशिष्ट्ये एक्सप्लोर करा",
         "live_cdsco_alerts": "लाइव्ह CDSCO सूचना",
         "india_region": "भारत क्षेत्र",
         "alerts_empty_title": "सर्व ठीक आहे!",
@@ -207,5 +208,499 @@
             "faq": "वारंवार विचारले जाणारे प्रश्न"
         },
         "footer": "SahiDawa विनामूल्य, ओपन-सोर्स आहे आणि 1.4 अब्ज भारतीयांसाठी बनवले आहे. जाहिराती नाहीत. प्रीमियम नाही. डेटा कधीही विकला जाणार नाही."
+    },
+    "about": {
+        "badge": "GSSoC 2026 ओपन सोर्स प्रोजेक्ट",
+        "heroTitle": "<highlight>SahiDawa</highlight> बद्दल",
+        "heroSubtitle": "भारताचे पहिले मुक्त-स्रोत औषध-तपासणी साधन आणि ग्रामीण आरोग्य-सेतू. 'भारता'साठी निर्मित—केवळ 'इंडिया'साठी नव्हे.",
+        "features": {
+            "free": "१००% मोफत. कायमचे.",
+            "languages": "22 भारतीय भाषा",
+            "license": "ओपन सोर्स MIT लायसन्स"
+        },
+        "problemSection": {
+            "title": "आम्ही सोडवत असलेली समस्या",
+            "description": "भारतासमोर आरोग्यसेवेचे एक त्रिस्तरीय संकट उभे आहे, जे सध्याच्या कोणत्याही व्यासपीठाद्वारे एकाच वेळी सोडवले जात नाही."
+        },
+        "cards": {
+            "fakeMedicines": {
+                "title": "नकली औषधे",
+                "description": "भारतातील 12-25% औषधे बनावट किंवा निकृष्ट दर्जाची आहेत — ज्यामुळे नागरिकांसाठी कोणतेही पडताळणी साधन उपलब्ध नसताना 1.4 अब्ज लोकांचे जीवन धोक्यात आले आहे."
+            },
+            "ruralHealthcare": {
+                "title": "ग्रामीण आरोग्य सेवेतील दरी",
+                "description": "भारतातील 65% लोकसंख्या ग्रामीण भागात राहते जिथे पात्र डॉक्टर जवळजवळ नाहीतच — म्हणजेच 90 कोटींहून अधिक लोकांना आरोग्य सेवा सहज उपलब्ध नाही."
+            },
+            "languageBarrier": {
+                "title": "भाषेचा अडथळा",
+                "description": "22 अधिकृत भाषा असूनही — आरोग्याची माहिती प्रामुख्याने इंग्रजी किंवा हिंदीतच उपलब्ध असते, ज्यामुळे 50 कोटींहून अधिक बिगर-हिंदी भाषक मागे पडतात."
+            }
+        },
+        "realIncident": {
+            "title": "वास्तविक घटना — July 2025",
+            "text": "दिल्ली पोलिसांनी बनावट औषध रॅकेटचा पर्दाफाश केला होता, जे खडूची पावडर आणि स्टार्चपासून बनवलेली जॉन्सन अँड जॉन्सन आणि जीएसकेची बनावट औषधे थेट सरकारी रुग्णालयांपर्यंत पुरवत होते. रुग्णांकडे ही औषधे घेण्यापूर्वी <highlight>ती तपासण्याचा कोणताही मार्ग नव्हता</highlight>.",
+            "highlight": "SahiDawa हे समस्येचे निवारण करते. मोफत. कायमचे. मुक्त स्रोत."
+        },
+        "mission": {
+            "title": "आमचे उद्दिष्ट",
+            "description": "भाषा, ठिकाण किंवा साक्षरता यांचा विचार न करता — प्रत्येक भारतीय नागरिकाला झटपट औषधांची पडताळणी करण्याची, पात्र आरोग्य मार्गदर्शन मिळवण्याची आणि त्यांच्या परिसरातील बनावट औषधांबद्दल तक्रार करण्याची शक्ती देणे."
+        },
+        "vision": {
+            "title": "आमची दृष्टी",
+            "description": "असा भारत घडवणे जिथे बनावट औषधामुळे कोणत्याही मुलाचा मृत्यू होणार नाही, डॉक्टरांच्या अभावामुळे कोणत्याही शेतकऱ्याच्या कुटुंबाचे चुकीचे निदान होणार नाही आणि आरोग्य सेवेत भाषा हा अडथळा ठरणार नाही. मोफत. मुक्त. कायमचे."
+        },
+        "coreValues": {
+            "title": "आमची मुख्य मूल्ये",
+            "cards": {
+                "openSource": {
+                    "title": "ओपन सोर्स",
+                    "description": "MIT लायसन्स प्राप्त. नेहमीच."
+                },
+                "freeForever": {
+                    "title": "कायमचे मोफत",
+                    "description": "कोणतेही छुपे शुल्क नाही. कधीच नाही."
+                },
+                "inclusive": {
+                    "title": "सर्वसमावेशक",
+                    "description": "22 भाषा. संपूर्ण भारत."
+                },
+                "privacy": {
+                    "title": "गोपनीयतेला प्राधान्य",
+                    "description": "कोणताही डेटा विकला जाणार नाही. कोणतीही जाहिरात नाही."
+                }
+            }
+        },
+        "contactUs": {
+            "title": "संपर्क करा",
+            "subtitle": "काही प्रश्न, कल्पना आहेत किंवा योगदान देऊ इच्छिता? आम्हाला तुमच्याकडून ऐकायला आवडेल."
+        }
+    },
+    "Faq": {
+        "badge": "GSSoC 2026 ओपन सोर्स प्रोजेक्ट",
+        "title": "वारंवार विचारले जाणारे",
+        "title_highlight": "प्रश्न",
+        "subtitle": "SahiDawa बद्दल तुम्हाला जाणून घ्यायच्या सर्व गोष्टी — भारताचे मोफत, ओपन-सोर्स औषध पडताळणी प्लॅटफॉर्म.",
+        "cta": {
+            "title": "अजूनही प्रश्न आहेत?",
+            "subtitle": "तुम्ही शोधत असलेले उत्तर मिळत नाहीये? आमच्या कम्युनिटीशी संपर्क साधा.",
+            "button": "संपर्क करा"
+        },
+        "items": {
+            "0": {
+                "question": "SahiDawa म्हणजे काय?",
+                "answer": "SahiDawa हे भारताचे पहिले ओपन-सोर्स नागरिक औषध पडताळणी प्लॅटफॉर्म आहे. तुमची औषधे खरी आहेत की बनावट हे तपासण्यासाठी, जवळच्या सुरक्षित फार्मसी शोधण्यासाठी आणि तुमच्या भाषेत आरोग्य मार्गदर्शन मिळवण्यासाठी ते मदत करते."
+            },
+            "1": {
+                "question": "SahiDawa वापरणे मोफत आहे का?",
+                "answer": "होय! SahiDawa कायमचे 100% मोफत आहे. जाहिराती नाहीत, प्रीमियम प्लॅन नाही, डेटा विक्री नाही. हे भारतासाठी, कम्युनिटीने तयार केले आहे."
+            },
+            "2": {
+                "question": "औषध पडताळणी कशी काम करते?",
+                "answer": "तुम्ही तुमच्या औषधाच्या पॅकेजिंगवरील बारकोड किंवा QR कोड स्कॅन करू शकता. SahiDawa ते अधिकृत CDSCO डेटाबेसशी तपासते आणि औषध खरे, संशयास्पद की बनावट आहे ते सांगते."
+            },
+            "3": {
+                "question": "SahiDawa कोणत्या भाषा समर्थन करते?",
+                "answer": "SahiDawa भारतातील 22 अधिकृत भाषा समर्थन करते. Whisper आणि Sarvam AI वर चालणाऱ्या आमच्या Voice Health Assistant वापरून तुम्ही तुमची लक्षणे स्वतःच्या भाषेत बोलू शकता."
+            },
+            "4": {
+                "question": "मी बनावट औषधाची तक्रार कशी करू शकतो?",
+                "answer": "तुम्ही होमपेजवरील 'Report Fake' फिचर वापरू शकता. तुमची तक्रार कम्युनिटी हीटमॅपमध्ये जोडली जाते, ज्यामुळे तुमच्या जिल्ह्यातील इतरांना बनावट औषधांबद्दल सतर्क करण्यास मदत होते."
+            },
+            "5": {
+                "question": "SahiDawa मध्ये माझा डेटा सुरक्षित आहे का?",
+                "answer": "नक्कीच. SahiDawa तुमचा डेटा विकत नाही, जाहिराती दाखवत नाही आणि कोणताही प्रीमियम प्लॅन ठेवत नाही. तुमची गोपनीयता आमची सर्वोच्च प्राथमिकता आहे."
+            },
+            "6": {
+                "question": "मी SahiDawa मध्ये कसे योगदान देऊ शकतो?",
+                "answer": "SahiDawa MIT लायसन्स अंतर्गत ओपन सोर्स आहे. तुम्ही GitHub वर योगदान देऊ शकता, बग रिपोर्ट करू शकता, फिचर सुचवू शकता किंवा GSSoC 2026 सहभागी म्हणून जोडू शकता."
+            },
+            "7": {
+                "question": "CDSCO म्हणजे काय?",
+                "answer": "CDSCO म्हणजे Central Drugs Standard Control Organisation. ही सौंदर्यप्रसाधने, औषधे आणि वैद्यकीय उपकरणांसाठी भारताची राष्ट्रीय नियामक संस्था आहे. SahiDawa त्यांच्या अधिकृत डेटाबेसशी औषधे पडताळते."
+            }
+        }
+    },
+    "Scan": {
+        "share": {
+            "avoid_and_report": "Please avoid and report to your nearest health worker.",
+            "batch_label": "Batch",
+            "button": "Share Result",
+            "copy_success": "Result copied to clipboard",
+            "failure": "Unable to share this result right now",
+            "manufacturer_label": "Manufacturer",
+            "real_status": "Verified REAL",
+            "shared_success": "Result shared successfully",
+            "suspicious_status": "Marked SUSPICIOUS",
+            "title": "SahiDawa Medicine Verification Result",
+            "unknown_batch": "Unknown batch",
+            "unknown_manufacturer": "Unknown manufacturer",
+            "unknown_medicine": "Unknown medicine",
+            "verified_by": "by SahiDawa",
+            "verify_yourself": "Verify yourself",
+            "warning_prefix": "WARNING"
+        }
+    },
+    "chat": {
+        "actions": {
+            "pharmacy": {
+                "description": "Locate verified stores",
+                "label": "Find Pharmacy"
+            },
+            "scan": {
+                "description": "Verify authenticity",
+                "label": "Scan Medicine"
+            },
+            "symptoms": {
+                "description": "AI-assisted guidance",
+                "label": "Check Symptoms"
+            }
+        },
+        "footer": "For informational use only • Consult a doctor",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "quick_actions": "Quick actions",
+        "welcome": "Namaste, I'm SahiDawa, your trusted health companion. I can help you verify medicines, understand symptoms, or find nearby care. What would you like help with today?"
+    },
+    "chatbot": {
+        "placeholder": "Ask me about a medicine...",
+        "status": "Online",
+        "title": "SahiDawa AI",
+        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"
+    },
+    "Alerts": {
+        "backHome": "मुख्यपृष्ठावर परत जा",
+        "badge": "थेट सूचना",
+        "title": "थेट CDSCO सूचना",
+        "subtitle": "CDSCO नोंदणीशी थेट जोडलेली संपूर्ण ऐतिहासिक सुरक्षा नोंद.",
+        "regionBadge": "भारत क्षेत्र",
+        "totalCount": "एकूण संख्या: {count}",
+        "brandPlaceholder": "ब्रँड नावाने शोधा...",
+        "regionPlaceholder": "राज्य/जिल्ह्यानुसार फिल्टर करा...",
+        "error": "सक्रिय नोंदी मिळवताना डेटाबेस समक्रमण त्रुटी आढळली.",
+        "loading": "सूचना लोड होत आहेत...",
+        "systemUpdate": "प्रणाली अद्यतन",
+        "alertType": "सूचना: {type}",
+        "noDetails": "कोणतीही माहिती उपलब्ध नाही",
+        "batchLabel": "बॅच:",
+        "manufacturerLabel": "उत्पादक:",
+        "regionLabel": "प्रदेश:",
+        "empty": "तुमच्या निकषांशी जुळणाऱ्या कोणत्याही आरोग्य सूचना आढळल्या नाहीत.",
+        "previous": "मागील",
+        "next": "पुढील"
+    },
+    "Compare": {
+        "pageTitle": "औषधांची तुलना करा",
+        "pageSubtitle": "ब्रँड आणि जनरिक औषधांची बाजूबाजूने तुलना",
+        "firstMedicine": "पहिले औषध",
+        "secondMedicine": "दुसरे औषध",
+        "searchPlaceholder": "ब्रँड किंवा जनरिक नाव शोधा",
+        "findPharmacies": "फार्मसी शोधा",
+        "emptyComparison": "तुलना पाहण्यासाठी वर दोन औषधे निवडा.",
+        "fieldHeader": "क्षेत्र",
+        "medicineA": "औषध A",
+        "medicineB": "औषध B",
+        "priceUnavailable": "किंमत उपलब्ध नाही",
+        "noSavings": "कोणतीही बचत नाही",
+        "saveAmount": "₹{amount} बचत ({percent}%)",
+        "rows": {
+            "brandName": "ब्रँड नाव",
+            "genericName": "जनरिक नाव",
+            "composition": "घटक",
+            "manufacturer": "उत्पादक",
+            "type": "प्रकार",
+            "cdscoStatus": "CDSCO स्थिती",
+            "expiryDate": "कालबाह्यता तारीख",
+            "marketPrice": "बाजार किंमत (MRP)",
+            "janAushadhiPrice": "जन औषधी किंमत",
+            "savings": "MRP च्या तुलनेत बचत"
+        },
+        "medicineTypes": {
+            "brand": "ब्रँड",
+            "generic": "जनरिक"
+        },
+        "status": {
+            "approved": "मंजूर",
+            "recalled": "मागे घेण्यात आलेले",
+            "banned": "प्रतिबंधित"
+        }
+    },
+    "ExpiryTracker": {
+        "title": "औषध कालबाह्यता ट्रॅकर",
+        "subtitle": "तुमच्या औषध साठ्याचे स्थानिक पातळीवर व्यवस्थापन आणि निरीक्षण करा",
+        "addMedicine": "औषध जोडा",
+        "name": "नाव",
+        "expiryDate": "कालबाह्यता तारीख",
+        "batchNumber": "बॅच क्रमांक (पर्यायी)",
+        "batchPlaceholder": "उदा: B12345",
+        "namePlaceholder": "उदा: पॅरासिटामॉल",
+        "addToTracker": "ट्रॅकरमध्ये जोडा",
+        "trackedMedicines": "निरीक्षण केलेली औषधे",
+        "total": "एकूण",
+        "noMedicines": "अद्याप कोणतेही औषध जोडलेले नाही.",
+        "loading": "ट्रॅकर डेटा लोड होत आहे...",
+        "searchPlaceholder": "औषधे शोधा...",
+        "sortBy": "क्रमवारी लावा",
+        "sortExpirySoonest": "कालबाह्यता तारीख (सर्वात लवकर)",
+        "sortExpiryLatest": "कालबाह्यता तारीख (सर्वात उशिरा)",
+        "sortAlpha": "नाव (अ-ह)",
+        "filterAll": "सर्व",
+        "filterExpired": "कालबाह्य",
+        "filterExpiringSoon": "लवकरच कालबाह्य होणारे",
+        "filterSafe": "सुरक्षित",
+        "exportBackup": "बॅकअप निर्यात करा",
+        "importBackup": "बॅकअप आयात करा",
+        "importError": "अवैध बॅकअप फाइल. कृपया वैध JSON बॅकअप अपलोड करा.",
+        "statusExpired": "कालबाह्य",
+        "statusExpiringSoon": "लवकरच कालबाह्य होईल ({days} दिवस)",
+        "statusSafe": "सुरक्षित",
+        "exportCSV": "CSV निर्यात करा",
+        "exportPDF": "PDF निर्यात करा",
+        "print": "प्रिंट करा",
+        "csvExportSuccess": "CSV यशस्वीरित्या निर्यात केले",
+        "pdfExportSuccess": "PDF यशस्वीरित्या निर्यात केले",
+        "noMedicinesToDisplay": "दाखवण्यासाठी कोणतीही औषधे नाहीत",
+        "generatedOn": "फाइल. कृपया वैध JSON बॅकअ",
+        "deleteMedicine": "औषध हटवा"
+    },
+    "Login": {
+        "brandSubtitle": "औषध सुरक्षा व्यासपीठ",
+        "heading": "पुन्हा स्वागत आहे",
+        "description": "औषध सुरक्षा अहवाल आणि पडताळणी निकालांचा मागोवा घेण्यासाठी साइन इन करा.",
+        "missingConfig": {
+            "title": "प्रमाणीकरण संरचित केलेले नाही",
+            "description": "Supabase URL किंवा anon key उपलब्ध नाही. साइन इन करण्यापूर्वी environment variables जोडा."
+        },
+        "googleButton": "Google सह पुढे जा",
+        "githubButton": "GitHub सह पुढे जा",
+        "emailSeparator": "किंवा ईमेलसह पुढे जा",
+        "emailLabel": "ईमेल पत्ता",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "पासवर्ड",
+        "passwordPlaceholder": "तुमचा पासवर्ड प्रविष्ट करा",
+        "signingIn": "साइन इन होत आहे...",
+        "signIn": "साइन इन करा",
+        "footerPrompt": "परत जायचे आहे का?",
+        "returnHome": "मुख्यपृष्ठावर परत जा",
+        "bottomText": "SahiDawa समुदाय साधनांसाठी सुरक्षित प्रवेश.",
+        "errors": {
+            "databaseNotConfigured": "या वातावरणासाठी प्रमाणीकरण संरचित केलेले नाही.",
+            "generic": "साइन इन करण्यात अयशस्वी. कृपया पुन्हा प्रयत्न करा."
+        }
+    },
+    "AdminLayout": {
+        "accessDeniedTitle": "प्रवेश नाकारला",
+        "accessDeniedDescription": "हे पृष्ठ पाहण्यासाठी तुम्हाला प्रशासक किंवा मॉडरेटर परवानग्या आवश्यक आहेत.",
+        "returnHome": "मुख्यपृष्ठावर परत जा"
+    },
+    "AdminDashboard": {
+        "brandSuffix": "प्रशासक",
+        "version": "SahiDawa प्रशासक v1.0",
+        "nav": {
+            "reports": "अहवाल",
+            "medicine": "औषध मास्टर",
+            "logs": "ऑडिट नोंदी"
+        },
+        "header": {
+            "title": "मॉडरेशन डॅशबोर्ड",
+            "subtitle": "समुदायाने नोंदवलेल्या बनावट औषधांचे व्यवस्थापन करा"
+        },
+        "searchPlaceholder": "शोधा...",
+        "actions": {
+            "signIn": "साइन इन करा",
+            "refresh": "रीफ्रेश करा",
+            "addMedicine": "औषध जोडा",
+            "save": "जतन करा",
+            "cancel": "रद्द करा",
+            "goToLogin": "लॉगिनवर जा",
+            "markFake": "बनावट म्हणून चिन्हांकित करा",
+            "falseAlarm": "खोटा इशारा"
+        },
+        "stats": {
+            "pending": "प्रलंबित",
+            "resolved": "निराकरण झालेले",
+            "districtsAffected": "प्रभावित जिल्हे"
+        },
+        "errors": {
+            "notAuthenticated": "प्रमाणित नाही — कृपया प्रशासक म्हणून साइन इन करा.",
+            "accessDenied": "प्रवेश नाकारला — प्रशासक किंवा मॉडरेटर भूमिका आवश्यक आहे.",
+            "apiUnavailable": "API शी संपर्क साधता आला नाही. बॅकएंड सर्व्हर पोर्ट 4000 वर चालू आहे का?"
+        },
+        "toasts": {
+            "markedFake": "सत्यापित बनावट म्हणून चिन्हांकित केले",
+            "falseAlarm": "खोटा इशारा म्हणून चिन्हांकित केले",
+            "reportUpdateFailed": "अहवाल अद्यतनित करण्यात अयशस्वी",
+            "medicineAdded": "औषध जोडले गेले",
+            "medicineAddFailed": "औषध जोडण्यात अयशस्वी"
+        },
+        "medicine": {
+            "title": "औषध मास्टर",
+            "empty": "कोणतीही औषधे आढळली नाहीत",
+            "columns": {
+                "brand": "ब्रँड",
+                "generic": "जनरिक",
+                "manufacturer": "उत्पादक",
+                "barcode": "बारकोड",
+                "status": "स्थिती"
+            }
+        },
+        "status": {
+            "approved": "मंजूर",
+            "recalled": "मागे घेण्यात आलेले",
+            "banned": "प्रतिबंधित"
+        },
+        "logs": {
+            "title": "ऑडिट नोंदी",
+            "subtitle": "अलीकडील मॉडरेशन आणि औषध सूची क्रियाकलाप",
+            "loading": "नोंदी लोड होत आहेत...",
+            "empty": "अद्याप कोणत्याही ऑडिट नोंदी नाहीत"
+        },
+        "reports": {
+            "title": "प्राप्त झालेले अहवाल",
+            "pendingCount": "{count, plural, =0 {कोणतेही प्रलंबित अहवाल नाहीत} =1 {1 प्रलंबित अहवाल} other {# प्रलंबित अहवाल}}",
+            "loading": "अहवाल लोड होत आहेत...",
+            "empty": "कोणतेही प्रलंबित अहवाल नाहीत",
+            "columns": {
+                "medicine": "औषध",
+                "district": "जिल्हा",
+                "barcode": "बारकोड",
+                "reported": "नोंदवलेले",
+                "actions": "क्रिया"
+            },
+            "decisions": {
+                "verifiedFake": "सत्यापित बनावट",
+                "falseAlarm": "खोटा इशारा"
+            }
+        },
+        "resolved": {
+            "title": "अलीकडे निराकरण झालेले",
+            "count": "{count, plural, =0 {कोणतेही निराकरण झालेले अहवाल नाहीत} =1 {1 निराकरण झालेला अहवाल} other {# निराकरण झालेले अहवाल}}",
+            "decision": "निर्णय"
+        }
+    },
+    "AdminAnalytics": {
+        "title": "प्रभाव विश्लेषण डॅशबोर्ड",
+        "subtitle": "समुदाय सहभाग मेट्रिक्स आणि वाढीचे कल",
+        "metrics": {
+            "totalMedicines": "एकूण औषधे",
+            "totalReports": "एकूण अहवाल",
+            "resolved": "निराकरण झालेले",
+            "districtsCovered": "समाविष्ट जिल्हे"
+        },
+        "charts": {
+            "monthlyGrowth": "मासिक वाढीचा कल",
+            "reportStatus": "अहवाल स्थिती वितरण",
+            "topDistricts": "अहवालांच्या आधारे शीर्ष जिल्हे",
+            "recentActivity": "अलीकडील क्रियाकलाप"
+        },
+        "overview": {
+            "title": "प्लॅटफॉर्मचा आढावा",
+            "avgReportsPerDay": "दररोज सरासरी अहवाल",
+            "resolutionRate": "निराकरण दर",
+            "thisWeekReports": "या आठवड्याचे अहवाल",
+            "thisWeekMedicines": "या आठवड्याची औषधे"
+        }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "लस केंद्र (व्हॅक्सिन हब)",
+        "pageHeaderSubtitle": "लसीकरण ट्रॅकर",
+        "title": "लस केंद्र आणि लसीकरण ट्रॅकर",
+        "subtitle": "सार्वजनिक आरोग्य जागरूकतेसाठी लसीचे वेळापत्रक, सुरक्षितता माहिती आणि त्यानंतरच्या काळजीचे मार्गदर्शन एक्सप्लोर करा.",
+        "selectLabel": "आजार / लस निवडा",
+        "placeholder": "लस प्रोफाइल निवडा...",
+        "childBirthDate": "बालकाची जन्मतारीख",
+        "milestoneBaseDate": "पहिल्या डोसची मूळ तारीख",
+        "noVaccineSelected": "कोणतीही लस निवडलेली नाही",
+        "chooseVaccinePrompt": "ट्रॅकिंग टूल्स वापरण्यासाठी वर एक लस निवडा:",
+        "featureSchedule": "डायनॅमिक अंदाजित लसीकरण वेळापत्रक",
+        "featureSideEffects": "दुष्परिणामांचे वर्गीकरण (सौम्य वि. गंभीर)",
+        "featureAftercare": "टप्प्याटप्प्याने क्लिनिकल काळजी घेण्याच्या सूचना",
+        "targetGroups": "लक्ष्य गट (टार्गेट ग्रुप्स)",
+        "totalDoses": "एकूण डोस",
+        "effectiveness": "परिणामकारकता",
+        "classification": "वर्गीकरण",
+        "aboutDisease": "आजाराबद्दल माहिती:",
+        "scheduleLayoutHeading": "लसीकरण वेळापत्रक",
+        "atBirth": "जन्माच्या वेळी द्यावयाची मात्रा",
+        "atWeeks": "वय {weeks} आठवडे असताना",
+        "baseline": "प्रारंभिक मात्रा (बेसलाइन)",
+        "doseStep": "डोस टप्पा {index} (+{weeks} आठवड्यांनंतर)",
+        "targetDate": "लक्ष्य तारीख: {date}",
+        "selectDateWarning": "वेळापत्रक पाहण्यासाठी वर एक तारीख निवडा",
+        "commonEffects": "सामान्य दुष्परिणाम",
+        "severeReactions": "गंभीर प्रतिक्रिया",
+        "aftercareHeading": "तातडीने घ्यावयाची काळजी"
+    },
+    "CommandPalette": {
+        "placeholder": "Search pages or actions...",
+        "noResults": "No results found.",
+        "hint": "Press Esc to close",
+        "pages": "Pages",
+        "actions": "Actions",
+        "open": "Open command palette",
+        "nav_home": "Go to Home",
+        "nav_scan": "Scan a Medicine",
+        "nav_map": "Find Nearby Pharmacy",
+        "nav_alerts": "View Alerts",
+        "nav_expiry": "Medicine Expiry Tracker",
+        "nav_compare": "Compare Medicines",
+        "nav_vaccine": "Vaccine Hub",
+        "nav_reports": "My Reports",
+        "nav_profile": "My Profile"
+    },
+    "medicineSafety": {
+        "guideTitle": "वापर आणि सुरक्षितता मार्गदर्शक",
+        "noDosageInfo": "या वयोगटासाठी डोसची माहिती उपलब्ध नाही.",
+        "closeButton": "सुरक्षितता माहिती बंद करा",
+        "tabs": {
+            "sideEffects": "दुष्परिणाम",
+            "dosage": "डोस",
+            "dietaryIntake": "आहार"
+        },
+        "sideEffects": {
+            "standardSymptoms": "सामान्य लक्षणे",
+            "severeRedFlags": "गंभीर इशारे — त्वरित वैद्यकीय मदत घ्या"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "मुले",
+                "adults": "प्रौढ",
+                "elderly": "ज्येष्ठ"
+            },
+            "doseLabel": "डोस:",
+            "frequencyLabel": "वारंवारता:",
+            "notesHeading": "नोंदी",
+            "warningsHeading": "इशारे"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "आहार"
+            },
+            "storageHeading": "साठवण",
+            "pregnancyHeading": "गर्भधारणा"
+        },
+        "disclaimer": "ही माहिती शैक्षणिक उद्देशांसाठी आहे आणि व्यावसायिक वैद्यकीय सल्ल्याचा पर्याय नाही."
+    },
+    "Health": {
+        "quickActions": "Quick actions",
+        "scanMedicine": "Scan Medicine",
+        "verifyAuthenticity": "Verify authenticity",
+        "checkSymptoms": "Check Symptoms",
+        "symptomGuidance": "AI-assisted guidance",
+        "findPharmacy": "Find Pharmacy",
+        "locateStores": "Locate verified stores",
+        "replyFallback": "I'm here to help! Could you rephrase that?",
+        "tooManyRequests": "Too many requests. Please try again in a few moments.",
+        "failedResponse": "Failed to generate AI response",
+        "genericError": "Something went wrong",
+        "returnHome": "Return to chat home",
+        "chatConversation": "Chat conversation",
+        "startVoice": "Start voice input",
+        "stopVoice": "Stop voice input",
+        "healthQuestion": "Type your health question",
+        "voiceBrowserRequired": "Voice input is not supported in this browser.",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "sendMessage": "Send message",
+        "footer": "For informational use only • Consult a doctor"
     }
 }

@@ -3,17 +3,20 @@ process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "test-anon-key"
 
 (global as any).WebSocket = (global as any).WebSocket || class {};
 
-jest.mock("../src/db/supabase", () => ({
-    __esModule: true,
-    default: {
+jest.mock("../src/db/client", () => ({
+    supabase: {
+        from: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        ilike: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        maybeSingle: jest.fn(),
         rpc: jest.fn(),
-        from: jest.fn(),
     },
 }));
 
 import request from "supertest";
 import app from "../src/app";
-import supabase from "../src/db/supabase";
+import { supabase } from "../src/db/client";
 
 const mockedSupabase = supabase as jest.Mocked<typeof supabase>;
 
@@ -188,16 +191,18 @@ describe("GET /api/pharmacies/nearest", () => {
                     lng: 77.595,
                     phone_number: "1111111111",
                     is_verified: true,
+                    status: "approved",
                     district: "Bengaluru Urban",
                     state: "Karnataka",
                 },
                 {
-                    name: "Far Pharmacy",
-                    address: "Far Away",
-                    lat: 13.5,
-                    lng: 78.2,
+                    name: "Pending Nearby Pharmacy",
+                    address: "Needs Review",
+                    lat: 12.972,
+                    lng: 77.595,
                     phone_number: "2222222222",
                     is_verified: false,
+                    status: "pending",
                     district: "Bengaluru Rural",
                     state: "Karnataka",
                 },
@@ -210,6 +215,7 @@ describe("GET /api/pharmacies/nearest", () => {
                     },
                     phone_number: null,
                     is_verified: true,
+                    status: "approved",
                     district: "Bengaluru Urban",
                     state: "Karnataka",
                 },
@@ -217,9 +223,10 @@ describe("GET /api/pharmacies/nearest", () => {
             error: null,
         });
 
-        const select = jest.fn().mockReturnValue({
+        const eq = jest.fn().mockReturnValue({
             limit,
         });
+        const select = jest.fn().mockReturnValue({ eq });
 
         mockedSupabase.from.mockReturnValueOnce({ select } as never);
 
@@ -238,9 +245,10 @@ describe("GET /api/pharmacies/nearest", () => {
         expect(mockedSupabase.from).toHaveBeenCalledWith("pharmacies");
 
         expect(select).toHaveBeenCalledWith(
-            "name, address, location, phone_number, is_verified, district, state"
+            "name, address, location, phone_number, is_verified, district, state, status"
         );
 
+        expect(eq).toHaveBeenCalledWith("status", "approved");
         expect(limit).toHaveBeenCalled();
 
         expect(response.body.pharmacies).toHaveLength(2);
@@ -273,6 +281,17 @@ describe("GET /api/pharmacies/in-bounds", () => {
         expect(response.status).toBe(400);
         expect(response.body.error).toBe("Invalid bounds");
         expect(response.body.details).toHaveProperty("south");
+    });
+
+    it("returns 400 when south >= north or west >= east", async () => {
+        const response = await request(app).get(
+            "/api/pharmacies/in-bounds?south=30&west=80&north=20&east=70"
+        );
+
+        expect(response.status).toBe(400);
+        expect(response.body.error).toBe("Invalid bounds");
+        expect(response.body.details).toHaveProperty("south");
+        expect(response.body.details).toHaveProperty("west");
     });
 
     it("returns pharmacies from PostGIS bounds RPC when available", async () => {
@@ -327,15 +346,17 @@ describe("GET /api/pharmacies/in-bounds", () => {
                     location: { type: "Point", coordinates: [77.2, 28.6] },
                     phone_number: null,
                     is_verified: true,
+                    status: "approved",
                     district: "Delhi",
                     state: "Delhi",
                 },
                 {
-                    name: "Outside Bounds Pharmacy",
-                    address: "Outside",
-                    location: { type: "Point", coordinates: [80.0, 25.0] },
+                    name: "Pending Inside Bounds Pharmacy",
+                    address: "Inside",
+                    location: { type: "Point", coordinates: [77.2, 28.6] },
                     phone_number: null,
                     is_verified: false,
+                    status: "pending",
                     district: "Other",
                     state: "Other",
                 },
@@ -343,7 +364,8 @@ describe("GET /api/pharmacies/in-bounds", () => {
             error: null,
         });
 
-        const select = jest.fn().mockReturnValue({ limit });
+        const eq = jest.fn().mockReturnValue({ limit });
+        const select = jest.fn().mockReturnValue({ eq });
         mockedSupabase.from.mockReturnValueOnce({ select } as never);
 
         const response = await request(app).get(
@@ -353,5 +375,98 @@ describe("GET /api/pharmacies/in-bounds", () => {
         expect(response.status).toBe(200);
         expect(response.body.pharmacies).toHaveLength(1);
         expect(response.body.pharmacies[0].name).toBe("Inside Bounds Pharmacy");
+        expect(eq).toHaveBeenCalledWith("status", "approved");
+    });
+});
+
+describe("POST /api/pharmacies", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    const mockPayload = {
+        name: "Test Pharmacy",
+        licenseId: "LIC-123456",
+        address: "123 Main St",
+        district: "South Delhi",
+        state: "Delhi",
+        phone_number: "+919876543210",
+        lat: 28.56,
+        lng: 77.2,
+    };
+
+    it("registers a new pharmacy successfully", async () => {
+        const selectMock = jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+                maybeSingle: jest.fn().mockResolvedValueOnce({ data: null, error: null }),
+            }),
+        });
+
+        const insertMock = jest.fn().mockReturnValue({
+            select: jest.fn().mockReturnValue({
+                single: jest.fn().mockResolvedValueOnce({
+                    data: { id: "new-pharmacy-uuid", name: "Test Pharmacy" },
+                    error: null,
+                }),
+            }),
+        });
+
+        (supabase.from as jest.Mock).mockImplementation((table) => {
+            if (table === "pharmacies") {
+                return {
+                    select: selectMock,
+                    insert: insertMock,
+                };
+            }
+            return {};
+        });
+
+        const response = await request(app).post("/api/pharmacies").send(mockPayload);
+
+        expect(response.status).toBe(201);
+        expect(response.body.pharmacy).toHaveProperty("id", "new-pharmacy-uuid");
+        expect(insertMock).toHaveBeenCalledWith({
+            name: mockPayload.name,
+            license_id: mockPayload.licenseId,
+            address: mockPayload.address,
+            district: mockPayload.district,
+            state: mockPayload.state,
+            phone_number: mockPayload.phone_number,
+            location: "POINT(77.2 28.56)",
+            is_verified: false,
+            status: "pending",
+        });
+    });
+
+    it("returns 409 when the license ID already exists", async () => {
+        const selectMock = jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+                maybeSingle: jest.fn().mockResolvedValueOnce({
+                    data: { id: "existing-uuid" },
+                    error: null,
+                }),
+            }),
+        });
+
+        (supabase.from as jest.Mock).mockImplementation((table) => {
+            if (table === "pharmacies") {
+                return {
+                    select: selectMock,
+                };
+            }
+            return {};
+        });
+
+        const response = await request(app).post("/api/pharmacies").send(mockPayload);
+
+        expect(response.status).toBe(409);
+        expect(response.body.error).toContain("already registered");
+    });
+
+    it("returns 400 for invalid payload", async () => {
+        const response = await request(app).post("/api/pharmacies").send({ name: "" });
+
+        expect(response.status).toBe(400);
+        expect(response.body.error).toBe("Invalid pharmacy payload");
     });
 });

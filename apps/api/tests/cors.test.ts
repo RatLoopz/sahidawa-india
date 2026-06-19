@@ -38,6 +38,8 @@ describe("CORS configuration", () => {
             "http://localhost:3000",
             "http://localhost:4000",
             "http://localhost:8000",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:4000",
         ]);
     });
 
@@ -51,6 +53,8 @@ describe("CORS configuration", () => {
             "http://localhost:3000",
             "http://localhost:4000",
             "http://localhost:8000",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:4000",
             "https://sahidawa-india-web.vercel.app",
             "https://preview-sahidawa.vercel.app",
             "https://staging.sahidawa.org",
@@ -67,6 +71,8 @@ describe("CORS configuration", () => {
             "http://localhost:3000",
             "http://localhost:4000",
             "http://localhost:8000",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:4000",
             "https://app.example.com",
             "https://admin.example.com",
         ]);
@@ -82,6 +88,8 @@ describe("CORS configuration", () => {
             "http://localhost:3000",
             "http://localhost:4000",
             "http://localhost:8000",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:4000",
             "https://app.example.com",
             "https://admin.example.com",
         ]);
@@ -118,14 +126,14 @@ describe("CORS configuration", () => {
         expect(result.allowed).toBe(true);
     });
 
-    it("allows requests without an Origin header for server-to-server and health checks", () => {
+    it("rejects requests without an Origin header to prevent unintended network access", () => {
         const result = resolveOrigin(
             { ALLOWED_ORIGINS: "https://sahidawa-india-web.vercel.app" },
             undefined
         );
 
         expect(result.error).toBeNull();
-        expect(result.allowed).toBe(true);
+        expect(result.allowed).toBe(false);
     });
 
     it.each([

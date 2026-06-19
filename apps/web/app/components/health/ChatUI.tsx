@@ -1,12 +1,16 @@
 "use client";
 
+import Link from "next/link";
+import { ThemeToggle } from "../../[locale]/components/ThemeToggle";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { ChatBubble, type Message } from "./components/ChatBubble";
 import { ActionCard } from "./components/ActionCard";
 import { TypingIndicator } from "./components/TypingIndicator";
 import { TrustBar } from "./components/TrustBar";
-import { Camera, Pill, MapPin } from "lucide-react";
+import { Camera, Pill, MapPin, Home } from "lucide-react";
+import { isAbortError, readChatErrorMessage, readTextResponseStream } from "@/lib/chatStream";
+import { useTranslations } from "next-intl";
 
 const genId = () => Math.random().toString(36).slice(2, 10);
 
@@ -31,7 +35,7 @@ const INITIAL_MESSAGES = {
 
     pa: "ਸਤ ਸ੍ਰੀ ਅਕਾਲ, ਮੈਂ SahiDawa ਹਾਂ, ਤੁਹਾਡਾ ਭਰੋਸੇਯੋਗ ਸਿਹਤ ਸਾਥੀ। ਮੈਂ ਦਵਾਈਆਂ ਦੀ ਪੁਸ਼ਟੀ ਕਰਨ, ਲੱਛਣਾਂ ਨੂੰ ਸਮਝਣ ਅਤੇ ਤੁਹਾਡੇ ਨੇੜੇ ਸਿਹਤ ਸੇਵਾਵਾਂ ਲੱਭਣ ਵਿੱਚ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ। ਅੱਜ ਮੈਂ ਤੁਹਾਡੀ ਕਿਵੇਂ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ?",
 
-    od: "ନମସ୍କାର, ମୁଁ SahiDawa, ଆପଣଙ୍କର ଭରସାଯୋଗ୍ୟ ସ୍ୱାସ୍ଥ୍ୟ ସହଚର। ମୁଁ ଔଷଧ ଯାଞ୍ଚ କରିବା, ଲକ୍ଷଣ ବୁଝିବା ଏବଂ ନିକଟସ୍ଥ ସ୍ୱାସ୍ଥ୍ୟ ସେବା ଖୋଜିବାରେ ସହାୟତା କରିପାରିବି। ଆଜି ମୁଁ ଆପଣଙ୍କୁ କିପରି ସହାୟତା କରିପାରିବି?",
+    or: "ନମସ୍କାର, ମୁଁ SahiDawa, ଆପଣଙ୍କର ଭରସାଯୋଗ୍ୟ ସ୍ୱାସ୍ଥ୍ୟ ସହଚର। ମୁଁ ଔଷଧ ଯାଞ୍ଚ କରିବା, ଲକ୍ଷଣ ବୁଝିବା ଏବଂ ନିକଟସ୍ଥ ସ୍ୱାସ୍ଥ୍ୟ ସେବା ଖୋଜିବାରେ ସହାୟତା କରିପାରିବି। ଆଜି ମୁଁ ଆପଣଙ୍କୁ କିପରି ସହାୟତା କରିପାରିବି?",
 };
 
 // Icons
@@ -75,52 +79,99 @@ const IconStop = () => (
     </svg>
 );
 
-// Quick actions configuration
-const ACTIONS = [
-    {
-        id: "scan",
-        label: "Scan Medicine",
-        description: "Verify authenticity",
-        icon: <Camera className="h-5 w-5 text-emerald-500" />,
-        prompt: "I'd like to verify a medicine.",
-        accent: "emerald" as const,
-    },
-    {
-        id: "symptoms",
-        label: "Check Symptoms",
-        description: "AI-assisted guidance",
-        icon: <Pill className="h-5 w-5 text-sky-500" />,
-        prompt: "I want to describe my symptoms.",
-        accent: "sky" as const,
-    },
-    {
-        id: "pharmacy",
-        label: "Find Pharmacy",
-        description: "Locate verified stores",
-        icon: <MapPin className="h-5 w-5 text-amber-500" />,
-        prompt: "Help me find a verified pharmacy nearby.",
-        accent: "amber" as const,
-    },
-];
+function upsertAssistantMessage(
+    messages: Message[],
+    id: string,
+    content: string,
+    options: { isError?: boolean } = {}
+) {
+    const existingMessage = messages.find((message) => message.id === id);
+
+    if (!existingMessage) {
+        return [
+            ...messages,
+            {
+                id,
+                role: "assistant" as const,
+                content,
+                timestamp: new Date(),
+                isError: options.isError || undefined,
+            },
+        ];
+    }
+
+    return messages.map((message) =>
+        message.id === id
+            ? {
+                  ...message,
+                  content,
+                  isError: options.isError || undefined,
+              }
+            : message
+    );
+}
+const createInitialMessage = (locale: string): Message => ({
+    id: "init",
+    role: "assistant",
+    content: INITIAL_MESSAGES[locale as keyof typeof INITIAL_MESSAGES] || INITIAL_MESSAGES.en,
+    timestamp: new Date(),
+});
 
 export default function ChatUI() {
+    const t = useTranslations("Health");
+
+    // Quick actions configuration
+    const ACTIONS = [
+        {
+            id: "scan",
+            label: t("scanMedicine"),
+            description: t("verifyAuthenticity"),
+            icon: <Camera className="h-5 w-5 text-emerald-500" />,
+            prompt: "I'd like to verify a medicine.",
+            accent: "emerald" as const,
+        },
+        {
+            id: "symptoms",
+            label: t("checkSymptoms"),
+            description: t("symptomGuidance"),
+            icon: <Pill className="h-5 w-5 text-sky-500" />,
+            prompt: "I want to describe my symptoms.",
+            accent: "sky" as const,
+        },
+        {
+            id: "pharmacy",
+            label: t("findPharmacy"),
+            description: t("locateStores"),
+            icon: <MapPin className="h-5 w-5 text-amber-500" />,
+            prompt: "Help me find a verified pharmacy nearby.",
+            accent: "amber" as const,
+        },
+    ];
+
     const params = useParams();
     const locale = (params.locale as string) || "en";
-    const initialMessage: Message = {
-        id: "init",
-        role: "assistant",
-        content: INITIAL_MESSAGES[locale as keyof typeof INITIAL_MESSAGES] || INITIAL_MESSAGES.en,
-        timestamp: new Date(),
-    };
-    const [messages, setMessages] = useState<Message[]>([initialMessage]);
+    const [messages, setMessages] = useState<Message[]>(() => [createInitialMessage(locale)]);
     const [input, setInput] = useState("");
     const [isTyping, setIsTyping] = useState(false);
     const [isListening, setIsListening] = useState(false);
     const [showWelcome, setShowWelcome] = useState(true);
+    const [streamingAssistantId, setStreamingAssistantId] = useState<string | null>(null);
     const lastUserText = useRef("");
     const messagesContainerRef = useRef<HTMLElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const recRef = useRef<any>(null);
+    const activeRequestRef = useRef<AbortController | null>(null);
+    const isMountedRef = useRef(true);
+
+    useEffect(() => {
+        isMountedRef.current = true;
+
+        return () => {
+            isMountedRef.current = false;
+            activeRequestRef.current?.abort();
+            recRef.current?.stop?.();
+        };
+    }, []);
 
     useEffect(() => {
         const container = messagesContainerRef.current;
@@ -141,20 +192,30 @@ export default function ChatUI() {
 
     const sendMessage = useCallback(
         async (text: string) => {
-            const t = text.trim();
-            if (!t || isTyping) return;
-            lastUserText.current = t;
+            const trimmed = text.trim();
+            if (!trimmed || isTyping) return;
+            lastUserText.current = trimmed;
             setShowWelcome(false);
-
             const userMsg: Message = {
                 id: genId(),
                 role: "user",
-                content: t,
+                content: trimmed,
                 timestamp: new Date(),
             };
             setMessages((prev) => [...prev, userMsg]);
             setInput("");
             setIsTyping(true);
+
+            activeRequestRef.current?.abort();
+            const requestController = new AbortController();
+            activeRequestRef.current = requestController;
+            const isActiveRequest = () =>
+                isMountedRef.current &&
+                activeRequestRef.current === requestController &&
+                !requestController.signal.aborted;
+
+            let assistantMessageId: string | null = null;
+            let streamedReply = "";
 
             try {
                 const history = [...messages, userMsg]
@@ -164,33 +225,69 @@ export default function ChatUI() {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ messages: history, locale }),
+                    signal: requestController.signal,
                 });
                 if (res.status === 429) {
-                    throw new Error("Too many requests. Please try again in a few moments.");
+                    throw new Error(t("tooManyRequests"));
                 }
-                if (!res.ok) throw new Error();
-                const data = await res.json();
-                const reply = data.text || "I'm here to help! Could you rephrase that?";
-                setMessages((prev) => [
-                    ...prev,
-                    { id: genId(), role: "assistant", content: reply, timestamp: new Date() },
-                ]);
-            } catch (err: any) {
-                setMessages((prev) => [
-                    ...prev,
-                    {
-                        id: genId(),
-                        role: "assistant",
-                        content: err.message || "Something went wrong",
-                        timestamp: new Date(),
-                        isError: true,
+                if (!res.ok) {
+                    throw new Error(await readChatErrorMessage(res, t("failedResponse")));
+                }
+
+                const reply = await readTextResponseStream(
+                    res,
+                    (chunk) => {
+                        if (!isActiveRequest()) return;
+
+                        streamedReply += chunk;
+
+                        if (!assistantMessageId) {
+                            assistantMessageId = genId();
+                            setStreamingAssistantId(assistantMessageId);
+                        }
+
+                        setMessages((prev) =>
+                            upsertAssistantMessage(
+                                prev,
+                                assistantMessageId as string,
+                                streamedReply
+                            )
+                        );
                     },
-                ]);
+                    { signal: requestController.signal }
+                );
+
+                if (!isActiveRequest()) return;
+
+                const finalReply = reply || t("replyFallback");
+                if (!assistantMessageId) {
+                    assistantMessageId = genId();
+                }
+
+                setMessages((prev) =>
+                    upsertAssistantMessage(prev, assistantMessageId as string, finalReply)
+                );
+            } catch (err: any) {
+                if (isAbortError(err)) return;
+                if (!isActiveRequest()) return;
+
+                const errorMessage = err.message || t("genericError");
+                const messageId = assistantMessageId || genId();
+
+                setMessages((prev) =>
+                    upsertAssistantMessage(prev, messageId, errorMessage, { isError: true })
+                );
             } finally {
-                setIsTyping(false);
+                if (activeRequestRef.current === requestController) {
+                    activeRequestRef.current = null;
+                    if (isMountedRef.current) {
+                        setIsTyping(false);
+                        setStreamingAssistantId(null);
+                    }
+                }
             }
         },
-        [messages, isTyping]
+        [messages, isTyping, locale, t]
     );
 
     const handleRetry = useCallback(
@@ -203,7 +300,7 @@ export default function ChatUI() {
 
     const toggleVoice = useCallback(() => {
         if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
-            alert("Voice input requires Chrome or Edge.");
+            alert(t("voiceBrowserRequired"));
             return;
         }
         if (isListening) {
@@ -224,19 +321,24 @@ export default function ChatUI() {
             ur: "ur-IN",
             mr: "mr-IN",
             pa: "pa-IN",
-            od: "or-IN",
+            or: "or-IN",
         };
         r.lang = speechLocales[locale as keyof typeof speechLocales] || "en-IN";
         r.interimResults = false;
         r.onresult = (e: any) => {
+            if (!isMountedRef.current) return;
             setInput(e.results[0][0].transcript);
             setIsListening(false);
         };
-        r.onerror = r.onend = () => setIsListening(false);
+        r.onerror = r.onend = () => {
+            if (isMountedRef.current) {
+                setIsListening(false);
+            }
+        };
         recRef.current = r;
         r.start();
         setIsListening(true);
-    }, [isListening]);
+    }, [isListening, t]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -248,35 +350,69 @@ export default function ChatUI() {
     const handleAction = (prompt: string) => {
         sendMessage(prompt);
     };
-
+    const handleHomeClick = () => {
+        activeRequestRef.current?.abort();
+        lastUserText.current = "";
+        setMessages([createInitialMessage(locale)]);
+        setInput("");
+        setShowWelcome(true);
+        setIsTyping(false);
+        setStreamingAssistantId(null);
+    };
     return (
-        <div className="flex h-screen flex-col bg-slate-50 font-sans">
-            {/* Header */}
-            <header className="flex-shrink-0 border-b border-slate-200 bg-white px-5 py-4">
-                <div className="mx-auto flex max-w-3xl items-center justify-between">
-                    <div className="flex items-baseline gap-2">
-                        <h1 className="text-xl font-semibold text-slate-800">SahiDawa</h1>
-                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-600">
-                            CDSCO
-                        </span>
+        <div className="relative flex h-screen w-full flex-col overflow-hidden bg-transparent font-sans">
+            {/* Floating Header */}
+            <header className="absolute top-4 right-4 left-4 z-20 mx-auto max-w-3xl rounded-3xl border border-white/30 bg-white/60 px-5 py-4 shadow-[0_8px_30px_rgb(0,0,0,0.08)] backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/60 dark:shadow-black/50">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleHomeClick}
+                            className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+                            aria-label={t("returnHome")}
+                        >
+                            <Home size={18} />
+                        </button>
+
+                        <div className="flex items-baseline gap-2">
+                            <Link
+                                href={`/${locale}`}
+                                className="text-xl font-semibold text-slate-800 no-underline transition-colors hover:text-emerald-600 dark:text-white dark:hover:text-emerald-400"
+                            >
+                                SahiDawa
+                            </Link>
+
+                            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-600">
+                                CDSCO
+                            </span>
+                        </div>
                     </div>
-                    <TrustBar />
+
+                    <div className="flex items-center gap-3">
+                        <TrustBar />
+                        <ThemeToggle />
+                    </div>
                 </div>
             </header>
 
             {/* Messages */}
-            <main ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-5">
-                <div className="mx-auto max-w-3xl">
+            <main
+                ref={messagesContainerRef}
+                role="log"
+                aria-live="polite"
+                aria-label={t("chatConversation")}
+                className="absolute inset-0 z-0 overflow-y-auto px-4 pt-28 pb-36"
+            >
+                <div className="mx-auto flex max-w-3xl flex-col gap-6">
                     {messages.map((msg) => (
                         <ChatBubble key={msg.id} msg={msg} onRetry={handleRetry} />
                     ))}
 
-                    {isTyping && <TypingIndicator />}
+                    {isTyping && !streamingAssistantId && <TypingIndicator />}
 
                     {showWelcome && !isTyping && messages.length === 1 && (
-                        <div className="mt-6">
+                        <div>
                             <p className="mb-3 text-xs font-medium tracking-wide text-slate-400 uppercase">
-                                Quick actions
+                                {t("quickActions")}
                             </p>
                             <div className="space-y-3">
                                 {ACTIONS.map((action) => (
@@ -297,55 +433,63 @@ export default function ChatUI() {
                 </div>
             </main>
 
-            {/* Input Bar */}
-            <footer className="flex-shrink-0 border-t border-slate-200 bg-white">
-                <div className="mx-auto max-w-3xl px-4 py-4">
+            {/* Floating Input Pill */}
+            <footer className="absolute right-4 bottom-6 left-4 z-20 mx-auto max-w-3xl rounded-[2rem] border border-white/30 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/60 dark:shadow-black/50">
+                <div className="px-4 py-3">
                     {isListening && (
-                        <div className="mb-3 flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm text-emerald-800">
+                        <div className="mb-3 flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-400">
                             <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-                            <span>Listening... speak clearly</span>
+                            <span>{t("listening")}</span>
                         </div>
                     )}
 
                     <div className="flex items-center gap-3">
                         <button
                             onClick={toggleVoice}
+                            aria-label={isListening ? t("stopVoice") : t("startVoice")}
+                            aria-pressed={isListening}
                             className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
                                 isListening
-                                    ? "bg-red-500 text-white"
-                                    : "border border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                    ? "bg-red-500 text-white shadow-md shadow-red-500/20"
+                                    : "border border-white/40 bg-white/50 text-slate-600 hover:bg-white/80 dark:border-white/10 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-700/50"
                             }`}
                         >
                             {isListening ? <IconStop /> : <IconMic size={20} />}
                         </button>
 
+                        <label htmlFor="chat-input" className="sr-only">
+                            {t("healthQuestion")}
+                        </label>
                         <textarea
+                            id="chat-input"
                             ref={inputRef}
+                            placeholder={t("placeholder")}
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={handleKeyDown}
-                            placeholder="Type your health concern..."
                             rows={1}
-                            className="flex-1 resize-none rounded-xl border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                            className="flex-1 resize-none rounded-xl border border-white/40 bg-white/50 px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:border-white/10 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500"
                             style={{ minHeight: 44, maxHeight: 100 }}
                         />
 
                         <button
                             onClick={() => sendMessage(input)}
                             disabled={!input.trim() || isTyping}
+                            aria-label={t("sendMessage")}
                             className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
                                 input.trim() && !isTyping
-                                    ? "bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95"
-                                    : "cursor-not-allowed bg-slate-100 text-slate-400"
+                                    ? "bg-linear-to-r from-emerald-500 to-teal-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)] hover:from-emerald-600 hover:to-teal-600 active:scale-95"
+                                    : "cursor-not-allowed border border-white/20 bg-white/40 text-slate-400 dark:border-white/5 dark:bg-slate-800/40 dark:text-slate-500"
                             }`}
                         >
                             <IconSend />
                         </button>
                     </div>
 
-                    <p className="mt-3 text-center text-[10px] text-slate-400">
-                        For informational use only • Consult a doctor
-                    </p>
+                    {/* Minimal Footer Text */}
+                    <div className="mt-2 text-center">
+                        <p className="text-[10px] font-medium text-slate-400/80">{t("footer")}</p>
+                    </div>
                 </div>
             </footer>
         </div>

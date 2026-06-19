@@ -1,0 +1,706 @@
+{
+    "Home": {
+        "title": "ଆପଣଙ୍କ ସ୍ୱାସ୍ଥ୍ୟ, ସତ୍ୟାପିତ ଏବଂ ସୁରକ୍ଷିତ ।",
+        "subtitle": "ଔଷଧର ସତ୍ୟତା ତୁରନ୍ତ ଯାଞ୍ଚ କରିବା, ସୁରକ୍ଷିତ ଔଷଧାଳୟ ଖୋଜିବା ଏବଂ ଗୁରୁତ୍ୱପୂର୍ଣ୍ଣ ସ୍ୱାସ୍ଥ୍ୟ ସତର୍କ ସୂଚନା ପ୍ରାପ୍ତ କରିବା ପାଇଁ ଭାରତର ଓପେନ୍-ସୋର୍ସ ନାଗରିକ ପ୍ଲାଟଫର୍ମ ।",
+        "scan_button": "ଔଷଧ ସ୍କାନ କରନ୍ତୁ",
+        "scan_subtitle": "ପ୍ୟାକେଜିଂ କିମ୍ବା ବାରକୋଡ ଆଡକୁ କ୍ୟାମେରା ଧରନ୍ତୁ",
+        "upload_photo": "ଫଟୋ ଅପଲୋଡ କରନ୍ତୁ",
+        "upload_subtitle": "ଫଟୋ ଗ୍ୟାଲେରିରୁ ବାଛନ୍ତୁ",
+        "voice_triage": "ଭୋଇସ୍ ଟ୍ରାଏଜ୍",
+        "voice_subtitle": "ଲକ୍ଷଣ କୁହନ୍ତୁ",
+        "pharmacy_map": "ଔଷଧାଳୟ ମାନଚିତ୍ର",
+        "pharmacy_subtitle": "ସତ୍ୟାପିତ ଔଷଧାଳୟ ଖୋଜନ୍ତୁ",
+        "report_fake": "ନକଲି ଔଷଧ ଜଣାନ୍ତୁ",
+        "report_fake_subtitle": "ସନ୍ଦେହଜନକ ଔଷଧ ବିଷୟରେ ଅଭିଯୋଗ କରନ୍ତୁ",
+        "search_placeholder": "ଔଷଧ କିମ୍ବା ବ୍ୟାଚ ନମ୍ବର ଖୋଜନ୍ତୁ...",
+        "search_button": "ଖୋଜନ୍ତୁ",
+        "sign_in": "Sign In",
+        "get_started": "Get Started",
+        "open_ai_health_assistant": "AI ସ୍ୱାସ୍ଥ୍ୟ ସହାୟକ ଖୋଲନ୍ତୁ",
+        "ai_health_assistant": "AI ସ୍ୱାସ୍ଥ୍ୟ ସହାୟକ",
+        "ai_chat": "AI ଚାଟ୍",
+        "ai_health_assistant_description": "ତୁରନ୍ତ ସ୍ୱାସ୍ଥ୍ୟ ପରାମର୍ଶ, ଲକ୍ଷଣ ଯାଞ୍ଚ ଏବଂ ପ୍ରେସ୍କ୍ରିପ୍ସନ୍ ମାର୍ଗଦର୍ଶନ ପାଆନ୍ତୁ",
+        "chat_now": "ଏବେ ଚାଟ୍ କରନ୍ତୁ",
+        "explore_features": "ବୈଶିଷ୍ଟ୍ୟ ଅନୁସନ୍ଧାନ କରନ୍ତୁ",
+        "live_cdsco_alerts": "ଲାଇଭ୍ CDSCO ସତର୍କ ସୂଚନା",
+        "india_region": "ଭାରତ ଅଞ୍ଚଳ",
+        "alerts_empty_title": "ସବୁ ଠିକ୍ ଅଛି!",
+        "alerts_empty_description": "ଏବେ କୌଣସି ସକ୍ରିୟ ନିୟାମକ ସତର୍କ ସୂଚନା ନାହିଁ । ସୁରକ୍ଷିତ ରୁହନ୍ତୁ ଏବଂ ଆପଣଙ୍କ ଔଷଧ ସତ୍ୟାପିତ କରନ୍ତୁ ।",
+        "view_full_alert_log": "ସମ୍ପୂର୍ଣ୍ଣ ସତର୍କ ସୂଚନା ଲଗ୍ ଦେଖନ୍ତୁ",
+        "heroTitle": {
+            "prefix": "ଆପଣଙ୍କ ସ୍ୱାସ୍ଥ୍ୟ, ",
+            "highlight": "ସତ୍ୟାପିତ ଏବଂ ସୁରକ୍ଷିତ ।"
+        }
+    },
+    "Navigation": {
+        "how_it_works": "ଏହା କିପରି କାର୍ଯ୍ୟ କରେ",
+        "alerts": "ସତର୍କ ସୂଚନା",
+        "pharmacy_map": "ଔଷଧାଳୟ ମାନଚିତ୍ର",
+        "my_reports": "ମୋର ରିପୋର୍ଟ",
+        "home": "ହୋମ୍",
+        "scans": "ସ୍କାନ୍",
+        "map": "ମାନଚିତ୍ର",
+        "profile": "ପ୍ରୋଫାଇଲ୍",
+        "language": "ଓଡ଼ିଆ"
+    },
+    "BackToTopButton": {
+        "label": "ଉପରକୁ ଯାଆନ୍ତୁ"
+    },
+    "VoicePage": {
+        "header_title": "ଭଏସ୍ ଟ୍ରାଏଜ୍",
+        "header_subtitle": "ଆପଣଙ୍କ ଲକ୍ଷଣ କୁହନ୍ତୁ",
+        "title": "AI ଭଏସ୍ ଟ୍ରାଏଜ୍",
+        "subtitle": "ଆପଣଙ୍କ ସ୍ଥାନୀୟ ଭାଷାରେ ଲକ୍ଷଣ କୁହନ୍ତୁ । ପରବର୍ତ୍ତୀ ପଦକ୍ଷେପ ବୁଝିବାରେ SahiDawa AI ଆପଣଙ୍କୁ ସାହାଯ୍ୟ କରିବ ।",
+        "language_selector": "କଥିତ ଭାଷା",
+        "example_label": "ଏହା କହିବାକୁ ଚେଷ୍ଟା କରନ୍ତୁ",
+        "example_text": "\"ମୋତେ ଜ୍ୱର ଏବଂ କାଶ ହେଉଛି\"",
+        "assistant_label": "AI ସହାୟକ",
+        "assistant_value": "୨୪/୭ ଶୁଣୁଛି",
+        "skip_to_main_content": "ମୁଖ୍ୟ ବିଷୟବସ୍ତୁକୁ ଯାଆନ୍ତୁ",
+        "listening_placeholder": "ଆପଣଙ୍କ ଲକ୍ଷଣ ବିଷୟରେ କହିବା ଆରମ୍ଭ କରନ୍ତୁ…",
+        "listening_status": "ଲକ୍ଷଣ ଶୁଣୁଛି",
+        "announcements": {
+            "recording_started": "ରେକର୍ଡିଂ ଆରମ୍ଭ ହେଲା",
+            "processing_started": "ଲକ୍ଷଣ ପ୍ରକ୍ରିୟାକରଣ ହେଉଛି",
+            "results_ready": "ଫଳାଫଳ ପ୍ରସ୍ତୁତ"
+        },
+        "streaming_connecting_hint": "ଲାଇଭ୍ ଟ୍ରାନ୍ସକ୍ରିପ୍ଟ ସହିତ ସଂଯୋଗ ହେଉଛି…",
+        "streaming_live_hint": "ଲାଇଭ୍ ଟ୍ରାନ୍ସକ୍ରିପ୍ଟ ଅପଡେଟ୍ ହେଉଛି",
+        "streaming_fallback_hint": "ସଂଯୋଗ ଅସ୍ଥିର ଅଛି । ଆପଣ କହିବା ବନ୍ଦ କଲା ପରେ SahiDawa ପ୍ରକ୍ରିୟାକରଣ ସମ୍ପୂର୍ଣ୍ଣ କରିବ ।",
+        "animation_toggle_label": "ଭଏସ୍ ଆନିମେସନ୍",
+        "animation_live_label": "ଲାଇଭ୍ ୱେଭଫର୍ମ",
+        "animation_reduced_motion_label": "ସ୍ଥିର ଆନିମେସନ୍",
+        "visualizer_label": "ମାଇକ୍ରୋଫୋନ ୱେଭଫର୍ମ",
+        "volume_label": "ସ୍ୱରସ୍ତର",
+        "volume_live_label": "ଲାଇଭ୍",
+        "volume_still_label": "ସ୍ଥିର",
+        "visualizer_unavailable": "ଲାଇଭ୍ ୱେଭଫର୍ମ ଅନୁପଲବ୍ଧ",
+        "processing_title": "ଲକ୍ଷଣ ବିଶ୍ଳେଷଣ ହେଉଛି",
+        "processing_subtitle": "SahiDawa AI ସହ ଆପଣଙ୍କ ଲକ୍ଷଣ ଯାଞ୍ଚ ହେଉଛି…",
+        "review_title": "ଦୟାକରି ଆପଣଙ୍କ ଟ୍ରାନ୍ସକ୍ରିପ୍ଟ ସମୀକ୍ଷା କରନ୍ତୁ",
+        "review_message": "ମାଇକ୍ରୋଫୋନ ଆପଣଙ୍କ ଲକ୍ଷଣ ଅଳ୍ପ ନିଶ୍ଚିତତାରେ ଗ୍ରହଣ କଲା । ଅଧିକ ସ୍ପଷ୍ଟ ଫଳାଫଳ ପାଇଁ ପୁଣି ଚେଷ୍ଟା କରିପାରିବେ, କିମ୍ବା ଏହି ଟ୍ରାନ୍ସକ୍ରିପ୍ଟକୁ ବିଶ୍ଳେଷଣ କରିପାରିବେ ।",
+        "retry_button": "ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ",
+        "analyse_anyway_button": "ତଥାପି ବିଶ୍ଳେଷଣ କରନ୍ତୁ",
+        "result_heading": "AI ବିଶ୍ଳେଷଣ",
+        "result_subheading": "ମେଡିକାଲ୍ ଟ୍ରାଏଜ୍",
+        "transcript_label": "ଆପଣଙ୍କ ଟ୍ରାନ୍ସକ୍ରିପ୍ଟ",
+        "confidence_label": "ସ୍ପଷ୍ଟତା",
+        "confidence_values": {
+            "high": "ଉଚ୍ଚ",
+            "medium": "ମଧ୍ୟମ",
+            "low": "ନିମ୍ନ",
+            "unavailable": "ଅନୁପଲବ୍ଧ"
+        },
+        "recommendations_label": "ପରାମର୍ଶିତ ପଦକ୍ଷେପ",
+        "emergency_title": "ତୁରନ୍ତ ଡାକ୍ତରୀ ସହାୟତା ନିଅନ୍ତୁ",
+        "emergency_body": "ଏହି ଲକ୍ଷଣଗୁଡ଼ିକ ପାଇଁ ଜରୁରୀ ଚିକିତ୍ସା ଆବଶ୍ୟକ ହୋଇପାରେ । ତୁରନ୍ତ ୧୧୨ କିମ୍ବା ୧୦୮ କୁ ଫୋନ୍ କରନ୍ତୁ, କିମ୍ବା ନିକଟସ୍ଥ ଜରୁରୀ ଚିକିତ୍ସା କେନ୍ଦ୍ରକୁ ଯାଆନ୍ତୁ ।",
+        "disclaimer": "ଏହି ମାର୍ଗଦର୍ଶନ କେବଳ ସୂଚନା ଉଦ୍ଦେଶ୍ୟରେ ଏବଂ ଏହା ରୋଗନିର୍ଣ୍ଣୟ ନୁହେଁ । ବିଶେଷକରି ଗୁରୁତର କିମ୍ବା ବଢ଼ୁଥିବା ଲକ୍ଷଣ ପାଇଁ ଡାକ୍ତର କିମ୍ବା ଔଷଧ ବିଶେଷଜ୍ଞଙ୍କ ସହ ପରାମର୍ଶ କରନ୍ତୁ।",
+        "share_button": "ଡାକ୍ତରଙ୍କ ନିକଟକୁ ପଠାନ୍ତୁ",
+        "speak_button": "ପଢ଼ି ଶୁଣାନ୍ତୁ",
+        "stop_speaking_button": "ଅଡିଓ ବନ୍ଦ କରନ୍ତୁ",
+        "try_again_button": "ନୂଆ ଯାଞ୍ଚ ଆରମ୍ଭ କରନ୍ତୁ",
+        "tap_to_speak": "କହିବାକୁ ଟ୍ୟାପ୍ କରନ୍ତୁ",
+        "stop_listening_label": "ବନ୍ଦ କରିବାକୁ ପୁଣି ଟ୍ୟାପ୍ କରନ୍ତୁ",
+        "start_listening_aria": "ଲକ୍ଷଣ କହିବାକୁ ଟ୍ୟାପ୍ କରନ୍ତୁ",
+        "stop_listening_aria": "ଲକ୍ଷଣ ଶୁଣୁଛି । ବନ୍ଦ କରିବାକୁ ଟ୍ୟାପ୍ କରନ୍ତୁ ।",
+        "start_listening_sr": "ଭଏସ୍ ଇନପୁଟ୍ ଆରମ୍ଭ କରନ୍ତୁ",
+        "stop_listening_sr": "ଭଏସ୍ ଇନପୁଟ୍ ବନ୍ଦ କରନ୍ତୁ",
+        "footer_note": "ଭଏସ୍ ମାର୍ଗଦର୍ଶନ କେବଳ ସୂଚନା ଉଦ୍ଦେଶ୍ୟରେ । ଗୁରୁତର ଲକ୍ଷଣ ପାଇଁ ତୁରନ୍ତ ଏକ ଲାଇସେନ୍ସପ୍ରାପ୍ତ ଡାକ୍ତରଙ୍କ ସହ ପରାମର୍ଶ କରନ୍ତୁ ।",
+        "share_title": "SahiDawa ଭଏସ୍ ଟ୍ରାଏଜ୍ ରିପୋର୍ଟ",
+        "share_success": "ରିପୋର୍ଟ ସଫଳତାର ସହ ପଠାଗଲା",
+        "copy_success": "ରିପୋର୍ଟ କ୍ଲିପବୋର୍ଡକୁ କପି କରାଗଲା",
+        "share_failure": "ବର୍ତ୍ତମାନ ରିପୋର୍ଟ ସେୟାର କରିବାରେ ଅସମର୍ଥ",
+        "tts_not_supported": "ଆପଣଙ୍କ ବ୍ରାଉଜର ଟେକ୍ସଟ୍-ଟୁ-ସ୍ପିଚ୍ ସମର୍ଥନ କରେ ନାହିଁ",
+        "tts_fallback_message": "ଆପଣଙ୍କ ବ୍ରାଉଜର {language} ଟେକ୍ସଟ୍-ଟୁ-ସ୍ପିଚ୍ ସମର୍ଥନ ସୀମିତ ଥିବାରୁ ଏହି ସାରାଂଶ ଭିନ୍ନ ସ୍ୱରରେ ପଢ଼ିପାରେ ।",
+        "fallback_summary": "SahiDawa ଉତ୍ତରକୁ ସ୍ପଷ୍ଟ ଭାବରେ ସଜାଇ ପାରିଲା ନାହିଁ । ଯଦି ଲକ୍ଷଣ ଜାରି ରହେ ତେବେ ଡାକ୍ତରଙ୍କ ସହ ପରାମର୍ଶ କରନ୍ତୁ ।",
+        "share_report": {
+            "title": "SahiDawa ଭଏସ୍ ଟ୍ରାଏଜ୍ ରିପୋର୍ଟ",
+            "timestamp": "ସମୟ",
+            "language": "ଭାଷା",
+            "transcript": "ଟ୍ରାନ୍ସକ୍ରିପ୍ଟ",
+            "confidence": "ସ୍ପଷ୍ଟତା",
+            "emergency": "ଜରୁରୀ ସତର୍କ ସୂଚନା",
+            "yes": "ହଁ",
+            "no": "ନା",
+            "summary": "ସାରାଂଶ",
+            "recommendations": "ପରାମର୍ଶ",
+            "disclaimer": "ଅସ୍ୱୀକରଣ",
+            "default_recommendation": "ଡାକ୍ତର ବା ଔଷଧ ବିଶେଷଜ୍ଞଙ୍କ ପରାମର୍ଶ ଅନୁସରଣ କରନ୍ତୁ ।"
+        },
+        "errors": {
+            "unsupported_title": "ଭଏସ୍ ଇନପୁଟ୍ ଅନୁପଲବ୍ଧ",
+            "unsupported_message": "ଏହି ବ୍ରାଉଜର ଏ ପର୍ଯ୍ୟନ୍ତ ସ୍ପିଚ୍ ରେକଗ୍ନିସନ୍ ସମର୍ଥନ କରେ ନାହିଁ । ଦୟାକରି Chrome ବା Edge ବ୍ୟବହାର କରନ୍ତୁ ।",
+            "language_not_supported_title": "ଏହି ବ୍ରାଉଜର ସେହି କଥିତ ଭାଷା ଗ୍ରହଣ କରି ପାରିବ ନାହିଁ",
+            "language_not_supported_message": "ଏହି ବ୍ରାଉଜରରେ {language} ଭଏସ୍ ଇନପୁଟ୍ ସୀମିତ ଅଟେ । Chrome ବା Edge ଚେଷ୍ଟା କରନ୍ତୁ, କିମ୍ବା ଅନ୍ୟ କଥିତ ଭାଷା ସହ ନୂଆ ଯାଞ୍ଚ ଆରମ୍ଭ କରନ୍ତୁ ।",
+            "permission_title": "ମାଇକ୍ରୋଫୋନ ଅନୁମତି ବ୍ଲକ୍ କରାଯାଇଛି",
+            "permission_message": "ଦୟାକରି ଆପଣଙ୍କ ବ୍ରାଉଜର ସେଟିଂରେ ମାଇକ୍ରୋଫୋନ ଅନୁମତି ଦିଅନ୍ତୁ ଏବଂ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ ।",
+            "microphone_title": "କୌଣସି ମାଇକ୍ରୋଫୋନ ଚିହ୍ନଟ ହେଲା ନାହିଁ",
+            "microphone_message": "ଯାଞ୍ଚ କରନ୍ତୁ ଆପଣଙ୍କ ମାଇକ୍ରୋଫୋନ ସଂଯୁକ୍ତ ଅଛି ଏବଂ ଏହି ବ୍ରାଉଜର ଟ୍ୟାବ ପାଇଁ ଉପଲବ୍ଧ ।",
+            "network_title": "ସଂଯୋଗ ସମସ୍ୟା ଯୋଗୁଁ ରେକର୍ଡିଂ ବନ୍ଦ ହେଲା",
+            "network_message": "ଆପଣଙ୍କ ବ୍ରାଉଜର ଭଏସ୍ କ୍ୟାପଚର୍ ସମ୍ପୂର୍ଣ୍ଣ କରି ପାରିଲା ନାହିଁ । ଦୟାକରି ଆପଣଙ୍କ ଇଣ୍ଟରନେଟ୍ ଯାଞ୍ଚ କରନ୍ତୁ ଏବଂ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ ।",
+            "no_speech_title": "ଆମେ କୌଣସି କଥା ଶୁଣି ପାରିଲୁ ନାହିଁ",
+            "no_speech_message": "ଅଧିକ ଶାନ୍ତ ସ୍ଥାନରେ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ, କିମ୍ବା ମାଇକ୍ରୋଫୋନ ପାଖରେ ଟିକିଏ ଜୋର୍‌ରେ କୁହନ୍ତୁ ।",
+            "generic_title": "କିଛି ଅସୁବିଧା ହେଲା",
+            "generic_message": "ବର୍ତ୍ତମାନ ଆମେ ଆପଣଙ୍କ ଭଏସ୍ ଇନପୁଟ୍ ପ୍ରକ୍ରିୟାକରଣ କରି ପାରିଲୁ ନାହିଁ । ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ ।",
+            "api_title": "SahiDawa AI ଅନୁପଲବ୍ଧ",
+            "api_message": "ଆମେ ବର୍ତ୍ତମାନ ଚିକିତ୍ସା ମାର୍ଗଦର୍ଶନ ଆଣି ପାରୁ ନାହୁଁ । ଦୟାକରି କିଛି ସମୟ ପରେ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ ।",
+            "service_unavailable_title": "Voice service unavailable",
+            "service_unavailable_message": "Our voice servers are currently under heavy load. Please try again or type your symptoms instead.",
+            "timeout_title": "Voice request timed out",
+            "timeout_message": "The voice service is taking longer than expected. Please try again or switch to text input."
+        },
+        "switch_to_text_button": "Type Instead"
+    },
+    "offline": {
+        "bannerOffline": "ଆପଣ ଅଫ‌ଲାଇନ୍ ଅଛନ୍ତି",
+        "descriptionOffline": "ଇଣ୍ଟରନେଟ୍ ଆସିଲେ ଆପଣଙ୍କ ପରିବର୍ତ୍ତନ ସେଭ୍ ହୋଇଯିବ",
+        "bannerOnline": "ଆପଣ ପୁଣି ଅନଲାଇନ୍ ଆସିଛନ୍ତି",
+        "descriptionOnline": "ବିଫଳ ହୋଇଥିବା ଅନୁରୋଧ ପୁଣି ଚେଷ୍ଟା କରାଯାଉଛି...",
+        "dismiss": "ବନ୍ଦ କରନ୍ତୁ",
+        "title": "ଅଫଲାଇନ୍ ମୋଡ୍",
+        "description": "ବର୍ତ୍ତମାନ ଆପଣଙ୍କ ପାଖରେ ଇଣ୍ଟରନେଟ୍ ସଂଯୋଗ ନାହିଁ ।",
+        "subtitle": "ଅଫଲାଇନ୍ ଥିବାବେଳେ କିଛି ଫିଚର୍ କାମ ନକରିପାରେ । ଇଣ୍ଟରନେଟ୍ ସହ ଯୋଡ଼ି ହୁଅନ୍ତୁ, କିମ୍ବା ପୂର୍ବରୁ ଲୋଡ୍ ହୋଇଥିବା ବିଷୟବସ୍ତୁ ଦେଖନ୍ତୁ ।",
+        "tryAgain": "ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ",
+        "goHome": "ହୋମ୍ କୁ ଯାଆନ୍ତୁ",
+        "footer": "ଇଣ୍ଟରନେଟ୍ ଆସିଲେ SahiDawa ଆପେ ଆପେ ସେଭ୍ ହୋଇଯିବ ।",
+        "cachedContent": "ଆପଣ ପୂର୍ବରୁ ଲୋଡ୍ ହୋଇଥିବା ବିଷୟବସ୍ତୁ ଏବେ ବି ଦେଖିପାରିବେ",
+        "noCache": "ଏହି ପୃଷ୍ଠାଟି ସେଭ୍ ହୋଇନଥିବାରୁ ଅଫଲାଇନରେ ଉପଲବ୍ଧ ନାହିଁ",
+        "redirecting": "ଆପଣଙ୍କୁ SahiDawa କୁ ପୁନଃନିର୍ଦ୍ଦେଶ କରାଯାଉଛି…",
+        "attempt": "(ପ୍ରୟାସ {retryCount})",
+        "checkingConnection": "ସଂଯୋଗ ଯାଞ୍ଚ କରାଯାଉଛି…",
+        "cachedAvailable": "ପୂର୍ବରୁ ଦେଖିଥିବା ପୃଷ୍ଠାଗୁଡ଼ିକ ଏବେ ବି ଉପଲବ୍ଧ ହୋଇପାରେ",
+        "cachedVerifications": "ସେଭ୍ ହୋଇଥିବା ଯାଞ୍ଚ",
+        "savedPharmacies": "ସେଭ୍ ହୋଇଥିବା ଔଷଧାଳୟ",
+        "browsedMedicines": "ଖୋଜିଥିବା ଔଷଧ"
+    },
+    "contact": {
+        "badge": "GSSoC 2026 ଓପେନ୍-ସୋର୍ସ ପ୍ରୋଜେକ୍ଟ",
+        "heroTitle": {
+            "prefix": "ଆମ ସହ",
+            "highlight": "ଯୋଗାଯୋଗ କରନ୍ତୁ"
+        },
+        "heroSubtitle": "ଆପଣଙ୍କର କିଛି ପ୍ରଶ୍ନ ବା ନୂଆ ଆଇଡିଆ ଅଛି କି, ଅବା ଯୋଗଦାନ କରିବାକୁ ଚାହୁଁଛନ୍ତି ? ଆମେ ଆପଣଙ୍କ ମତ ଶୁଣିବାକୁ ଉତ୍ସୁକ ।",
+        "cards": {
+            "email": {
+                "title": "ଆମକୁ ଇମେଲ୍ କରନ୍ତୁ",
+                "description": "ଗୋପନୀୟତା ପ୍ରଶ୍ନ, ସହଭାଗିତା ବା ଗୁରୁତ୍ୱପୂର୍ଣ୍ଣ ସମସ୍ୟା ପାଇଁ ।"
+            },
+            "discord": {
+                "title": "Discord କମ୍ୟୁନିଟି",
+                "description": "ଯୋଗଦାନକାରୀଙ୍କ ସହ ଯୋଡ଼ି ହୁଅନ୍ତୁ, ପ୍ରଶ୍ନ ପଚାରନ୍ତୁ ଏବଂ ଘୋଷଣା ପାଆନ୍ତୁ ।",
+                "cta": "Discord ରେ ଯୋଗ ଦିଅନ୍ତୁ"
+            },
+            "bug": {
+                "title": "ବଗ୍ ରିପୋର୍ଟ କରନ୍ତୁ",
+                "description": "କୌଣସି ସମସ୍ୟା ଦେଖିଲେ ? GitHub ରେ ଏକ ଇସ୍ୟୁ ଖୋଲନ୍ତୁ, ଆମେ ଶୀଘ୍ର ସମାଧାନ କରିବୁ ।",
+                "cta": "ଇସ୍ୟୁ ଖୋଲନ୍ତୁ"
+            },
+            "contribute": {
+                "title": "ଯୋଗଦାନ କରନ୍ତୁ",
+                "description": "SahiDawa ଗଢ଼ିବାରେ ସାହାଯ୍ୟ କରିବାକୁ ଚାହୁଁଛନ୍ତି ? ଆମର ଯୋଗଦାନ ମାର୍ଗଦର୍ଶନ ପଢ଼ନ୍ତୁ ।",
+                "cta": "ମାର୍ଗଦର୍ଶନ ପଢ଼ନ୍ତୁ"
+            }
+        },
+        "quickLinks": {
+            "title": "ଦରକାରୀ ଲିଙ୍କ୍",
+            "about": "SahiDawa ବିଷୟରେ",
+            "privacy": "ଗୋପନୀୟତା ନୀତି",
+            "faq": "ସାଧାରଣ ପ୍ରଶ୍ନ"
+        },
+        "footer": "SahiDawa ମାଗଣା, ଓପେନ୍-ସୋର୍ସ ଏବଂ ୧୪୦ କୋଟି ଭାରତୀୟଙ୍କ ପାଇଁ ନିର୍ମିତ । କୌଣସି ବିଜ୍ଞାପନ ନାହିଁ । କୌଣସି ପ୍ରିମିୟମ୍ ଚାର୍ଜ ନାହିଁ । ଡାଟା ବିକ୍ରି ହୁଏ ନାହିଁ । କେବେବି ନୁହେଁ ।"
+    },
+    "about": {
+        "badge": "GSSoC 2026 ଓପନ୍ ସୋର୍ସ ପ୍ରୋଜେକ୍ଟ",
+        "heroTitle": "<highlight>SahiDawa</highlight> ବିଷୟରେ",
+        "heroSubtitle": "ଭାରତର ପ୍ରଥମ ଓପନ୍-ସୋର୍ସ ନାଗରିକ ଔଷଧ ଯାଞ୍ଚକାରୀ ମାଧ୍ୟମ ଏବଂ ଗ୍ରାମୀଣ ସ୍ୱାସ୍ଥ୍ୟ ସେତୁ। ଭାରତ ପାଇଁ ନିର୍ମିତ। କେବଳ ଇଣ୍ଡିଆ ପାଇଁ ନୁହେଁ।",
+        "features": {
+            "free": "100% ମାଗଣା। ସର୍ବଦା।",
+            "languages": "22ଟି ଭାରତୀୟ ଭାଷା",
+            "license": "ଓପନ୍ ସୋର୍ସ MIT ଲାଇସେନ୍ସ (Open Source MIT License)"
+        },
+        "problemSection": {
+            "title": "ଯେଉଁ ସମସ୍ୟାର ସମାଧାନ ଆମେ କରୁଛୁ",
+            "description": "ଭାରତରେ ସ୍ୱାସ୍ଥ୍ୟସେବା କ୍ଷେତ୍ରରେ ଏକ ତ୍ରିସ୍ତରୀୟ ସଙ୍କଟ ରହିଛି, ଯାହାର ସମାଧାନ ବର୍ତ୍ତମାନର କୌଣସି ପ୍ଲାଟଫର୍ମ ଏକାସଙ୍ଗେ କରିପାରୁ ନାହିଁ।"
+        },
+        "cards": {
+            "fakeMedicines": {
+                "title": "ନକଲି ଔଷଧ",
+                "description": "ଭାରତରେ 12-25% ଔଷଧ ନକଲି କିମ୍ବା ନିମ୍ନମାନର — ଯାହା ସାଧାରଣ ଲୋକଙ୍କ ପାଇଁ କୌଣସି ଯାଞ୍ଚ ଟୁଲ୍ ନଥିବାରୁ 140 କୋଟି ଜନସଂଖ୍ୟାକୁ ବିପଦରେ ପକାଉଛି।"
+            },
+            "ruralHealthcare": {
+                "title": "ଗ୍ରାମୀଣ ସ୍ୱାସ୍ଥ୍ୟସେବାର ବ୍ୟବଧାନ",
+                "description": "ଭାରତର 65% ଜନସଂଖ୍ୟା ଗ୍ରାମାଞ୍ଚଳରେ ବାସ କରନ୍ତି ଯେଉଁଠାରେ ଯୋଗ୍ୟ ଡାକ୍ତର ପ୍ରାୟ ନାହାନ୍ତି — ଯାହାଫଳରେ 90 କୋଟିରୁ ଅଧିକ ଲୋକ ସହଜ ସ୍ୱାସ୍ଥ୍ୟସେବାରୁ ବଞ୍ଚିତ ହେଉଛନ୍ତି।"
+            },
+            "languageBarrier": {
+                "title": "ଭାଷାର ପ୍ରତିବନ୍ଧକ",
+                "description": "22ଟି ସରକାରୀ ଭାଷା ଥାଇ ମଧ୍ୟ — ସ୍ୱାସ୍ଥ୍ୟ ସମ୍ବନ୍ଧୀୟ ସୂଚନା ସାଧାରଣତଃ ଇଂରାଜୀ କିମ୍ବା ହିନ୍ଦୀରେ ଥାଏ, ଯାହାଦ୍ୱାରା 50 କୋଟିରୁ ଅଧିକ ଅଣ-ହିନ୍ଦୀ ଭାଷାଭାଷୀ ଲୋକ ପଛରେ ପଡ଼ିଯାଉଛନ୍ତି।"
+            }
+        },
+        "realIncident": {
+            "title": "ପ୍ରକୃତ ଘଟଣା — ଜୁଲାଇ 2025",
+            "text": "ଦିଲ୍ଲୀ ପୋଲିସ ଏକ ନକଲି ଔଷଧ ଚକ୍ରର ପର୍ଦ୍ଦାଫାଶ କରିଥିଲା ଯେଉଁମାନେ ଚକ୍ ପାଉଡର ଏବଂ ଷ୍ଟାର୍ଚରେ ତିଆରି Johnson & Johnson ଏବଂ GSK ର ନକଲି ଔଷଧ ସରକାରୀ ହସ୍ପିଟାଲ ପର୍ଯ୍ୟନ୍ତ ଯୋଗାଉଥିଲେ। ରୋଗୀମାନଙ୍କ ପାଖରେ ଏହି ଔଷଧ ବ୍ୟବହାର କରିବା ପୂର୍ବରୁ <highlight>ଯାଞ୍ଚ କରିବାର କୌଣସି ଉପାୟ ନଥିଲା</highlight>।",
+            "highlight": "SahiDawa ଏହି ସମସ୍ୟାର ସମାଧାନ କରେ। ମାଗଣାରେ। ସର୍ବଦା। ଓପନ୍ ସୋର୍ସ।"
+        },
+        "mission": {
+            "title": "ଆମର ଲକ୍ଷ୍ୟ",
+            "description": "ଭାଷା, ସ୍ଥାନ କିମ୍ବା ଶିକ୍ଷାଗତ ଯୋଗ୍ୟତା ନିର୍ବିଶେଷରେ — ପ୍ରତ୍ୟେକ ଭାରତୀୟ ନାଗରିକଙ୍କୁ ତୁରନ୍ତ ଔଷଧ ଯାଞ୍ଚ କରିବା, ଯୋଗ୍ୟ ସ୍ୱାସ୍ଥ୍ୟ ମାର୍ଗଦର୍ଶନ ପାଇବା ଏବଂ ନିଜ ଅଞ୍ଚଳରେ ନକଲି ଔଷଧ ବିଷୟରେ ରିପୋର୍ଟ କରିବାର କ୍ଷମତା ପ୍ରଦାନ କରିବା।"
+        },
+        "vision": {
+            "title": "ଆମର ଦୃଷ୍ଟିକୋଣ",
+            "description": "ଏକ ଏଭଳି ଭାରତ ଗଠନ କରିବା ଯେଉଁଠାରେ ନକଲି ଔଷଧ ଯୋଗୁଁ କୌଣସି ଶିଶୁର ମୃତ୍ୟୁ ହେବ ନାହିଁ, ଡାକ୍ତରଙ୍କ ଅଭାବରୁ କୌଣସି ଚାଷୀର ପରିବାରର ଭୁଲ୍ ଚିକିତ୍ସା ହେବ ନାହିଁ, ଏବଂ ସ୍ୱାସ୍ଥ୍ୟସେବା କ୍ଷେତ୍ରରେ ଭାଷା କୌଣସି ପ୍ରତିବନ୍ଧକ ସାଜିବ ନାହିଁ। ମାଗଣା। ଉନ୍ମୁକ୍ତ। ସର୍ବଦା।"
+        },
+        "coreValues": {
+            "title": "ଆମର ମୂଳ ମୂଲ୍ୟବୋଧ",
+            "cards": {
+                "openSource": {
+                    "title": "ଓପନ୍ ସୋର୍ସ",
+                    "description": "MIT ଲାଇସେନ୍ସ ପ୍ରାପ୍ତ। ସର୍ବଦା।"
+                },
+                "freeForever": {
+                    "title": "ସର୍ବଦା ମାଗଣା",
+                    "description": "କୌଣସି ଗୁପ୍ତ ଖର୍ଚ୍ଚ ନାହିଁ। କେବେ ବି ନୁହେଁ।"
+                },
+                "inclusive": {
+                    "title": "ସର୍ବସମାବେଶୀ",
+                    "description": "22ଟି ଭାଷା। ସମଗ୍ର ଭାରତ।"
+                },
+                "privacy": {
+                    "title": "ଗୋପନୀୟତା ପ୍ରଥମ",
+                    "description": "କୌଣସି ଡାଟା ବିକ୍ରି ହେବ ନାହିଁ। କୌଣସି ବିଜ୍ଞାପନ ନାହିଁ।"
+                }
+            }
+        },
+        "contactUs": {
+            "title": "ଯୋଗାଯୋଗ କରନ୍ତୁ",
+            "subtitle": "କୌଣସି ପ୍ରଶ୍ନ, ଚିନ୍ତାଧାରା ଅଛି କିମ୍ବା ଯୋଗଦାନ କରିବାକୁ ଚାହୁଁଛନ୍ତି କି? ଆମେ ଆପଣଙ୍କଠାରୁ ଶୁଣିବାକୁ ଚାହୁଁ।"
+        }
+    },
+    "Faq": {
+        "badge": "GSSoC 2026 ଓପନ୍ ସୋର୍ସ ପ୍ରୋଜେକ୍ଟ",
+        "title": "ବାରମ୍ବାର ପଚରାଯାଉଥିବା",
+        "title_highlight": "ପ୍ରଶ୍ନ",
+        "subtitle": "SahiDawa ବିଷୟରେ ଆପଣଙ୍କୁ ଜାଣିବାକୁ ଥିବା ସମସ୍ତ କଥା — ଭାରତର ମାଗଣା, ଓପନ୍-ସୋର୍ସ ଔଷଧ ଯାଞ୍ଚ ପ୍ଲାଟଫର୍ମ।",
+        "cta": {
+            "title": "ଏବେ ମଧ୍ୟ ପ୍ରଶ୍ନ ଅଛି କି?",
+            "subtitle": "ଆପଣ ଖୋଜୁଥିବା ଉତ୍ତର ମିଳୁନାହିଁ କି? ଆମ କମ୍ୟୁନିଟି ସହିତ ଯୋଗାଯୋଗ କରନ୍ତୁ।",
+            "button": "ଯୋଗାଯୋଗ କରନ୍ତୁ"
+        },
+        "items": {
+            "0": {
+                "question": "SahiDawa କଣ?",
+                "answer": "SahiDawa ଭାରତର ପ୍ରଥମ ଓପନ୍-ସୋର୍ସ ନାଗରିକ ଔଷଧ ଯାଞ୍ଚ ପ୍ଲାଟଫର୍ମ। ଏହା ଆପଣଙ୍କ ଔଷଧ ସତ୍ୟ କି ନକଲି ଯାଞ୍ଚ କରିବା, ନିକଟରେ ସୁରକ୍ଷିତ ଫାର୍ମାସୀ ଖୋଜିବା ଏବଂ ନିଜ ଭାଷାରେ ସ୍ୱାସ୍ଥ୍ୟ ମାର୍ଗଦର୍ଶନ ପାଇବାରେ ସହାୟତା କରେ।"
+            },
+            "1": {
+                "question": "SahiDawa ବ୍ୟବହାର କରିବା ମାଗଣା କି?",
+                "answer": "ହଁ! SahiDawa ସର୍ବଦା 100% ମାଗଣା। କୌଣସି ବିଜ୍ଞାପନ ନାହିଁ, ପ୍ରିମିୟମ ପ୍ଲାନ୍ ନାହିଁ, ଡାଟା ବିକ୍ରି ନାହିଁ। ଏହା ଭାରତ ପାଇଁ, କମ୍ୟୁନିଟି ଦ୍ୱାରା ତିଆରି।"
+            },
+            "2": {
+                "question": "ଔଷଧ ଯାଞ୍ଚ କିପରି କାମ କରେ?",
+                "answer": "ଆପଣ ନିଜ ଔଷଧ ପ୍ୟାକେଜିଙ୍ଗରେ ଥିବା ବାରକୋଡ୍ କିମ୍ବା QR କୋଡ୍ ସ୍କାନ୍ କରିପାରିବେ। SahiDawa ଏହାକୁ ଅଧିକୃତ CDSCO ଡାଟାବେସ୍ ସହିତ ଯାଞ୍ଚ କରେ ଏବଂ ଔଷଧଟି ସତ୍ୟ, ସନ୍ଦେହଜନକ କିମ୍ବା ନକଲି କି ନୁହେଁ କହେ।"
+            },
+            "3": {
+                "question": "SahiDawa କେଉଁ ଭାଷାଗୁଡ଼ିକୁ ସମର୍ଥନ କରେ?",
+                "answer": "SahiDawa ଭାରତର 22ଟି ଅଧିକୃତ ଭାଷାକୁ ସମର୍ଥନ କରେ। Whisper ଏବଂ Sarvam AI ଦ୍ୱାରା ଚାଲିଥିବା ଆମ Voice Health Assistant ବ୍ୟବହାର କରି ଆପଣ ନିଜ ଭାଷାରେ ଲକ୍ଷଣ କହିପାରିବେ।"
+            },
+            "4": {
+                "question": "ମୁଁ ନକଲି ଔଷଧ କିପରି ରିପୋର୍ଟ କରିପାରିବି?",
+                "answer": "ଆପଣ ହୋମପେଜରେ ଥିବା 'Report Fake' ବିଶେଷତା ବ୍ୟବହାର କରିପାରିବେ। ଆପଣଙ୍କ ରିପୋର୍ଟ କମ୍ୟୁନିଟି ହିଟମ୍ୟାପରେ ଯୋଡ଼ାଯାଏ, ଯାହା ଆପଣଙ୍କ ଜିଲ୍ଲାର ଅନ୍ୟମାନଙ୍କୁ ନକଲି ଔଷଧ ବିଷୟରେ ସତର୍କ କରିବାରେ ସହାୟତା କରେ।"
+            },
+            "5": {
+                "question": "SahiDawa ସହିତ ମୋର ଡାଟା ସୁରକ୍ଷିତ କି?",
+                "answer": "ନିଶ୍ଚୟ। SahiDawa ଆପଣଙ୍କ ଡାଟା ବିକ୍ରି କରେ ନାହିଁ, ବିଜ୍ଞାପନ ଦେଖାଏ ନାହିଁ ଏବଂ କୌଣସି ପ୍ରିମିୟମ ପ୍ଲାନ୍ ରଖେ ନାହିଁ। ଆପଣଙ୍କ ଗୋପନୀୟତା ଆମର ସର୍ବୋଚ୍ଚ ପ୍ରାଥମିକତା।"
+            },
+            "6": {
+                "question": "ମୁଁ SahiDawa କୁ କିପରି ଯୋଗଦାନ କରିପାରିବି?",
+                "answer": "SahiDawa MIT ଲାଇସେନ୍ସ ଅଧୀନରେ ଓପନ୍ ସୋର୍ସ। ଆପଣ GitHub ରେ ଯୋଗଦାନ କରିପାରିବେ, ବଗ୍ ରିପୋର୍ଟ କରିପାରିବେ, ବିଶେଷତା ପ୍ରସ୍ତାବ କରିପାରିବେ କିମ୍ବା GSSoC 2026 ଅଂଶଗ୍ରାହୀ ଭାବେ ଯୋଗ ଦେଇପାରିବେ।"
+            },
+            "7": {
+                "question": "CDSCO କଣ?",
+                "answer": "CDSCO ର ଅର୍ଥ Central Drugs Standard Control Organisation। ଏହା କସ୍ମେଟିକ୍ସ, ଔଷଧ ଏବଂ ଚିକିତ୍ସା ଉପକରଣ ପାଇଁ ଭାରତର ଜାତୀୟ ନିୟାମକ ସଂସ୍ଥା। SahiDawa ସେମାନଙ୍କର ଅଧିକୃତ ଡାଟାବେସ୍ ସହିତ ଔଷଧଗୁଡ଼ିକୁ ଯାଞ୍ଚ କରେ।"
+            }
+        }
+    },
+    "Scan": {
+        "share": {
+            "avoid_and_report": "Please avoid and report to your nearest health worker.",
+            "batch_label": "Batch",
+            "button": "Share Result",
+            "copy_success": "Result copied to clipboard",
+            "failure": "Unable to share this result right now",
+            "manufacturer_label": "Manufacturer",
+            "real_status": "Verified REAL",
+            "shared_success": "Result shared successfully",
+            "suspicious_status": "Marked SUSPICIOUS",
+            "title": "SahiDawa Medicine Verification Result",
+            "unknown_batch": "Unknown batch",
+            "unknown_manufacturer": "Unknown manufacturer",
+            "unknown_medicine": "Unknown medicine",
+            "verified_by": "by SahiDawa",
+            "verify_yourself": "Verify yourself",
+            "warning_prefix": "WARNING"
+        }
+    },
+    "chat": {
+        "actions": {
+            "pharmacy": {
+                "description": "Locate verified stores",
+                "label": "Find Pharmacy"
+            },
+            "scan": {
+                "description": "Verify authenticity",
+                "label": "Scan Medicine"
+            },
+            "symptoms": {
+                "description": "AI-assisted guidance",
+                "label": "Check Symptoms"
+            }
+        },
+        "footer": "For informational use only • Consult a doctor",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "quick_actions": "Quick actions",
+        "welcome": "Namaste, I'm SahiDawa, your trusted health companion. I can help you verify medicines, understand symptoms, or find nearby care. What would you like help with today?"
+    },
+    "chatbot": {
+        "placeholder": "Ask me about a medicine...",
+        "status": "Online",
+        "title": "SahiDawa AI",
+        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"
+    },
+    "Alerts": {
+        "backHome": "ମୁଖ୍ୟ ପୃଷ୍ଠାକୁ ଫେରନ୍ତୁ",
+        "badge": "ସଜୀବ ସତର୍କବାର୍ତ୍ତା",
+        "title": "ସଜୀବ CDSCO ସତର୍କବାର୍ତ୍ତା",
+        "subtitle": "CDSCO ରେଜିଷ୍ଟ୍ରି ସହ ସିଧାସଳଖ ସଂଯୁକ୍ତ ସମ୍ପୂର୍ଣ୍ଣ ଐତିହାସିକ ସୁରକ୍ଷା ଲଗ୍।",
+        "regionBadge": "ଭାରତ ଅଞ୍ଚଳ",
+        "totalCount": "ମୋଟ ସଂଖ୍ୟା: {count}",
+        "brandPlaceholder": "ବ୍ରାଣ୍ଡ ନାମ ଦ୍ୱାରା ଖୋଜନ୍ତୁ...",
+        "regionPlaceholder": "ରାଜ୍ୟ/ଜିଲ୍ଲା ଅନୁଯାୟୀ ଫିଲ୍ଟର କରନ୍ତୁ...",
+        "error": "ସକ୍ରିୟ ଲଗ୍ ପ୍ରାପ୍ତ କରିବା ସମୟରେ ଡାଟାବେସ୍ ସମନ୍ୱୟ ତ୍ରୁଟି ଘଟିଛି।",
+        "loading": "ସତର୍କବାର୍ତ୍ତା ଲୋଡ୍ ହେଉଛି...",
+        "systemUpdate": "ସିଷ୍ଟମ୍ ଅଦ୍ୟତନ",
+        "alertType": "ସତର୍କବାର୍ତ୍ତା: {type}",
+        "noDetails": "କୌଣସି ବିବରଣୀ ଉପଲବ୍ଧ ନାହିଁ",
+        "batchLabel": "ବ୍ୟାଚ୍:",
+        "manufacturerLabel": "ଉତ୍ପାଦକ:",
+        "regionLabel": "ଅଞ୍ଚଳ:",
+        "empty": "ଆପଣଙ୍କ ମାନଦଣ୍ଡ ସହ ମେଳ ଖାଉଥିବା କୌଣସି ସ୍ୱାସ୍ଥ୍ୟ ସତର୍କବାର୍ତ୍ତା ମିଳିଲା ନାହିଁ।",
+        "previous": "ପୂର୍ବ",
+        "next": "ପରବର୍ତ୍ତୀ"
+    },
+    "Compare": {
+        "pageTitle": "ଔଷଧ ତୁଳନା କରନ୍ତୁ",
+        "pageSubtitle": "ବ୍ରାଣ୍ଡ ଏବଂ ଜେନେରିକ ଔଷଧର ପାର୍ଶ୍ୱ ତୁଳନା",
+        "firstMedicine": "ପ୍ରଥମ ଔଷଧ",
+        "secondMedicine": "ଦ୍ୱିତୀୟ ଔଷଧ",
+        "searchPlaceholder": "ବ୍ରାଣ୍ଡ କିମ୍ବା ଜେନେରିକ ନାମ ଖୋଜନ୍ତୁ",
+        "findPharmacies": "ଫାର୍ମାସି ଖୋଜନ୍ତୁ",
+        "emptyComparison": "ତୁଳନା ଦେଖିବା ପାଇଁ ଉପରୁ ଦୁଇଟି ଔଷଧ ବାଛନ୍ତୁ।",
+        "fieldHeader": "କ୍ଷେତ୍ର",
+        "medicineA": "ଔଷଧ A",
+        "medicineB": "ଔଷଧ B",
+        "priceUnavailable": "ମୂଲ୍ୟ ଉପଲବ୍ଧ ନାହିଁ",
+        "noSavings": "କୌଣସି ସଞ୍ଚୟ ନାହିଁ",
+        "saveAmount": "₹{amount} ସଞ୍ଚୟ ({percent}%)",
+        "rows": {
+            "brandName": "ବ୍ରାଣ୍ଡ ନାମ",
+            "genericName": "ଜେନେରିକ ନାମ",
+            "composition": "ସଂରଚନା",
+            "manufacturer": "ଉତ୍ପାଦକ",
+            "type": "ପ୍ରକାର",
+            "cdscoStatus": "CDSCO ସ୍ଥିତି",
+            "expiryDate": "ମିଆଦ ଶେଷ ତାରିଖ",
+            "marketPrice": "ବଜାର ମୂଲ୍ୟ (MRP)",
+            "janAushadhiPrice": "ଜନ ଔଷଧି ମୂଲ୍ୟ",
+            "savings": "MRP ତୁଳନାରେ ସଞ୍ଚୟ"
+        },
+        "medicineTypes": {
+            "brand": "ବ୍ରାଣ୍ଡ",
+            "generic": "ଜେନେରିକ"
+        },
+        "status": {
+            "approved": "ଅନୁମୋଦିତ",
+            "recalled": "ପ୍ରତ୍ୟାହୃତ",
+            "banned": "ନିଷିଦ୍ଧ"
+        }
+    },
+    "ExpiryTracker": {
+        "title": "ଔଷଧ ମିଆଦ ଟ୍ରାକର",
+        "subtitle": "ଆପଣଙ୍କ ଔଷଧ ଭଣ୍ଡାରକୁ ସ୍ଥାନୀୟ ଭାବରେ ପରିଚାଳନା ଏବଂ ଟ୍ରାକ୍ କରନ୍ତୁ",
+        "addMedicine": "ଔଷଧ ଯୋଡନ୍ତୁ",
+        "name": "ନାମ",
+        "expiryDate": "ମିଆଦ ଶେଷ ତାରିଖ",
+        "batchNumber": "ବ୍ୟାଚ୍ ନମ୍ବର (ଇଚ୍ଛାଧୀନ)",
+        "batchPlaceholder": "ଉଦାହରଣ: B12345",
+        "namePlaceholder": "ଉଦାହରଣ: ପାରାସିଟାମଲ",
+        "addToTracker": "ଟ୍ରାକରରେ ଯୋଡନ୍ତୁ",
+        "trackedMedicines": "ଟ୍ରାକ୍ କରାଯାଇଥିବା ଔଷଧ",
+        "total": "ମୋଟ",
+        "noMedicines": "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ଔଷଧ ଯୋଡାଯାଇନାହିଁ।",
+        "loading": "ଟ୍ରାକର ତଥ୍ୟ ଲୋଡ୍ ହେଉଛି...",
+        "searchPlaceholder": "ଔଷଧ ଖୋଜନ୍ତୁ...",
+        "sortBy": "କ୍ରମବଦ୍ଧ କରନ୍ତୁ",
+        "sortExpirySoonest": "ମିଆଦ ତାରିଖ (ଶୀଘ୍ରତମ)",
+        "sortExpiryLatest": "ମିଆଦ ତାରିଖ (ବିଳମ୍ବିତ)",
+        "sortAlpha": "ନାମ (ଅ-ହ)",
+        "filterAll": "ସମସ୍ତ",
+        "filterExpired": "ମିଆଦ ଶେଷ",
+        "filterExpiringSoon": "ଶୀଘ୍ର ମିଆଦ ଶେଷ ହେବ",
+        "filterSafe": "ସୁରକ୍ଷିତ",
+        "exportBackup": "ବ୍ୟାକଅପ୍ ରପ୍ତାନି କରନ୍ତୁ",
+        "importBackup": "ବ୍ୟାକଅପ୍ ଆମଦାନି କରନ୍ତୁ",
+        "importError": "ଅବୈଧ ବ୍ୟାକଅପ୍ ଫାଇଲ୍। ଦୟାକରି ବୈଧ JSON ବ୍ୟାକଅପ୍ ଅପଲୋଡ୍ କରନ୍ତୁ।",
+        "statusExpired": "ମିଆଦ ଶେଷ",
+        "statusExpiringSoon": "ଶୀଘ୍ର ମିଆଦ ଶେଷ ହେବ ({days} ଦିନ)",
+        "statusSafe": "ସୁରକ୍ଷିତ",
+        "exportCSV": "CSV ରପ୍ତାନି କରନ୍ତୁ",
+        "exportPDF": "PDF ରପ୍ତାନି କରନ୍ତୁ",
+        "print": "ପ୍ରିଣ୍ଟ କରନ୍ତୁ",
+        "csvExportSuccess": "CSV ସଫଳତାର ସହ ରପ୍ତାନି ହେଲା",
+        "pdfExportSuccess": "PDF ସଫଳତାର ସହ ରପ୍ତାନି ହେଲା",
+        "noMedicinesToDisplay": "ଦେଖାଇବା ପାଇଁ କୌଣସି ଔଷଧ ନାହିଁ",
+        "generatedOn": "ମିଆଦ ଶେଷ",
+        "deleteMedicine": "ଔଷଧ ହଟାନ୍ତୁ"
+    },
+    "Login": {
+        "brandSubtitle": "ଔଷଧ ସୁରକ୍ଷା ପ୍ଲାଟଫର୍ମ",
+        "heading": "ପୁନର୍ବାର ସ୍ୱାଗତ",
+        "description": "ଔଷଧ ସୁରକ୍ଷା ରିପୋର୍ଟ ଏବଂ ଯାଞ୍ଚ ଫଳାଫଳ ଟ୍ରାକ୍ କରିବା ପାଇଁ ସାଇନ୍ ଇନ୍ କରନ୍ତୁ।",
+        "missingConfig": {
+            "title": "ପ୍ରମାଣୀକରଣ ବିନ୍ୟାସିତ ହୋଇନାହିଁ",
+            "description": "Supabase URL କିମ୍ବା anon key ଉପଲବ୍ଧ ନାହିଁ। ସାଇନ୍ ଇନ୍ କରିବା ପୂର୍ବରୁ environment variables ଯୋଡନ୍ତୁ।"
+        },
+        "googleButton": "Google ସହ ଜାରି ରଖନ୍ତୁ",
+        "githubButton": "GitHub ସହ ଜାରି ରଖନ୍ତୁ",
+        "emailSeparator": "କିମ୍ବା ଇମେଲ୍ ସହ ଜାରି ରଖନ୍ତୁ",
+        "emailLabel": "ଇମେଲ୍ ଠିକଣା",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "ପାସୱାର୍ଡ",
+        "passwordPlaceholder": "ଆପଣଙ୍କ ପାସୱାର୍ଡ ଲେଖନ୍ତୁ",
+        "signingIn": "ସାଇନ୍ ଇନ୍ ହେଉଛି...",
+        "signIn": "ସାଇନ୍ ଇନ୍ କରନ୍ତୁ",
+        "footerPrompt": "ଫେରିବାକୁ ଚାହୁଁଛନ୍ତି କି?",
+        "returnHome": "ମୁଖ୍ୟ ପୃଷ୍ଠାକୁ ଫେରନ୍ତୁ",
+        "bottomText": "SahiDawa ସମୁଦାୟ ଉପକରଣ ପାଇଁ ସୁରକ୍ଷିତ ପ୍ରବେଶ।",
+        "errors": {
+            "databaseNotConfigured": "ଏହି ପରିବେଶ ପାଇଁ ପ୍ରମାଣୀକରଣ ବିନ୍ୟାସିତ ହୋଇନାହିଁ।",
+            "generic": "ସାଇନ୍ ଇନ୍ କରିବାରେ ବିଫଳ। ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।"
+        }
+    },
+    "AdminLayout": {
+        "accessDeniedTitle": "ପ୍ରବେଶ ଅସ୍ୱୀକୃତ",
+        "accessDeniedDescription": "ଏହି ପୃଷ୍ଠା ଦେଖିବା ପାଇଁ ଆପଣଙ୍କୁ ଆଡମିନ୍ କିମ୍ବା ମଡେରେଟର ଅନୁମତି ଆବଶ୍ୟକ।",
+        "returnHome": "ମୁଖ୍ୟ ପୃଷ୍ଠାକୁ ଫେରନ୍ତୁ"
+    },
+    "AdminDashboard": {
+        "brandSuffix": "ଆଡମିନ୍",
+        "version": "SahiDawa ଆଡମିନ୍ v1.0",
+        "nav": {
+            "reports": "ରିପୋର୍ଟଗୁଡ଼ିକ",
+            "medicine": "ଔଷଧ ମାଷ୍ଟର",
+            "logs": "ଅଡିଟ୍ ଲଗ୍"
+        },
+        "header": {
+            "title": "ମଡରେସନ୍ ଡ୍ୟାସବୋର୍ଡ",
+            "subtitle": "ସମୁଦାୟ ଦ୍ୱାରା ରିପୋର୍ଟ ହୋଇଥିବା ନକଲି ଔଷଧଗୁଡ଼ିକୁ ପରିଚାଳନା କରନ୍ତୁ"
+        },
+        "searchPlaceholder": "ଖୋଜନ୍ତୁ...",
+        "actions": {
+            "signIn": "ସାଇନ୍ ଇନ୍ କରନ୍ତୁ",
+            "refresh": "ରିଫ୍ରେଶ କରନ୍ତୁ",
+            "addMedicine": "ଔଷଧ ଯୋଡନ୍ତୁ",
+            "save": "ସଂରକ୍ଷଣ କରନ୍ତୁ",
+            "cancel": "ବାତିଲ୍ କରନ୍ତୁ",
+            "goToLogin": "ଲଗଇନ୍ କୁ ଯାଆନ୍ତୁ",
+            "markFake": "ନକଲି ଭାବେ ଚିହ୍ନିତ କରନ୍ତୁ",
+            "falseAlarm": "ଭୁଲ ସତର୍କବାର୍ତ୍ତା"
+        },
+        "stats": {
+            "pending": "ବିଚାରାଧୀନ",
+            "resolved": "ସମାଧାନ ହୋଇଛି",
+            "districtsAffected": "ପ୍ରଭାବିତ ଜିଲ୍ଲା"
+        },
+        "errors": {
+            "notAuthenticated": "ପ୍ରମାଣିତ ହୋଇନାହିଁ — ଦୟାକରି ଆଡମିନ୍ ଭାବରେ ସାଇନ୍ ଇନ୍ କରନ୍ତୁ।",
+            "accessDenied": "ପ୍ରବେଶ ଅସ୍ୱୀକୃତ — ଆଡମିନ୍ କିମ୍ବା ମଡେରେଟର ଭୂମିକା ଆବଶ୍ୟକ।",
+            "apiUnavailable": "API ସହ ସଂଯୋଗ ହୋଇପାରିଲା ନାହିଁ। ବ୍ୟାକଏଣ୍ଡ ସର୍ଭର କି 4000 ପୋର୍ଟରେ ଚାଲୁଛି?"
+        },
+        "toasts": {
+            "markedFake": "ଯାଞ୍ଚିତ ନକଲି ଭାବେ ଚିହ୍ନିତ କରାଗଲା",
+            "falseAlarm": "ଭୁଲ ସତର୍କବାର୍ତ୍ତା ଭାବେ ଚିହ୍ନିତ କରାଗଲା",
+            "reportUpdateFailed": "ରିପୋର୍ଟ ଅଦ୍ୟତନ କରିବାରେ ବିଫଳ",
+            "medicineAdded": "ଔଷଧ ଯୋଡାଗଲା",
+            "medicineAddFailed": "ଔଷଧ ଯୋଡିବାରେ ବିଫଳ"
+        },
+        "medicine": {
+            "title": "ଔଷଧ ମାଷ୍ଟର",
+            "empty": "କୌଣସି ଔଷଧ ମିଳିଲା ନାହିଁ",
+            "columns": {
+                "brand": "ବ୍ରାଣ୍ଡ",
+                "generic": "ଜେନେରିକ",
+                "manufacturer": "ଉତ୍ପାଦକ",
+                "barcode": "ବାରକୋଡ୍",
+                "status": "ସ୍ଥିତି"
+            }
+        },
+        "status": {
+            "approved": "ଅନୁମୋଦିତ",
+            "recalled": "ପ୍ରତ୍ୟାହୃତ",
+            "banned": "ନିଷିଦ୍ଧ"
+        },
+        "logs": {
+            "title": "ଅଡିଟ୍ ଲଗ୍",
+            "subtitle": "ସାମ୍ପ୍ରତିକ ମଡରେସନ୍ ଏବଂ ଔଷଧ ତାଲିକା କାର୍ଯ୍ୟକଳାପ",
+            "loading": "ଲଗ୍ ଲୋଡ୍ ହେଉଛି...",
+            "empty": "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ଅଡିଟ୍ ଲଗ୍ ନାହିଁ"
+        },
+        "reports": {
+            "title": "ଆସୁଥିବା ରିପୋର୍ଟଗୁଡ଼ିକ",
+            "pendingCount": "{count, plural, =0 {କୌଣସି ବିଚାରାଧୀନ ରିପୋର୍ଟ ନାହିଁ} =1 {1 ବିଚାରାଧୀନ ରିପୋର୍ଟ} other {# ବିଚାରାଧୀନ ରିପୋର୍ଟଗୁଡ଼ିକ}}",
+            "loading": "ରିପୋର୍ଟଗୁଡ଼ିକ ଲୋଡ୍ ହେଉଛି...",
+            "empty": "କୌଣସି ବିଚାରାଧୀନ ରିପୋର୍ଟ ନାହିଁ",
+            "columns": {
+                "medicine": "ଔଷଧ",
+                "district": "ଜିଲ୍ଲା",
+                "barcode": "ବାରକୋଡ୍",
+                "reported": "ରିପୋର୍ଟ କରାଯାଇଛି",
+                "actions": "କାର୍ଯ୍ୟ"
+            },
+            "decisions": {
+                "verifiedFake": "ଯାଞ୍ଚିତ ନକଲି",
+                "falseAlarm": "ଭୁଲ ସତର୍କବାର୍ତ୍ତା"
+            }
+        },
+        "resolved": {
+            "title": "ସମ୍ପ୍ରତି ସମାଧାନ ହୋଇଥିବା",
+            "count": "{count, plural, =0 {କୌଣସି ସମାଧାନ ହୋଇଥିବା ରିପୋର୍ଟ ନାହିଁ} =1 {1 ସମାଧାନ ହୋଇଥିବା ରିପୋର୍ଟ} other {# ସମାଧାନ ହୋଇଥିବା ରିପୋର୍ଟଗୁଡ଼ିକ}}",
+            "decision": "ନିଷ୍ପତ୍ତି"
+        }
+    },
+    "AdminAnalytics": {
+        "title": "ପ୍ରଭାବ ବିଶ୍ଳେଷଣ ଡ୍ୟାସବୋର୍ଡ",
+        "subtitle": "ସମୁଦାୟ ଅଂଶଗ୍ରହଣ ମାପଦଣ୍ଡ ଏବଂ ବିକାଶ ଧାରା",
+        "metrics": {
+            "totalMedicines": "ମୋଟ ଔଷଧ",
+            "totalReports": "ମୋଟ ରିପୋର୍ଟ",
+            "resolved": "ସମାଧାନ ହୋଇଛି",
+            "districtsCovered": "ଆବୃତ ଜିଲ୍ଲା"
+        },
+        "charts": {
+            "monthlyGrowth": "ମାସିକ ବିକାଶ ଧାରା",
+            "reportStatus": "ରିପୋର୍ଟ ସ୍ଥିତି ବଣ୍ଟନ",
+            "topDistricts": "ରିପୋର୍ଟ ଆଧାରିତ ଶୀର୍ଷ ଜିଲ୍ଲା",
+            "recentActivity": "ସାମ୍ପ୍ରତିକ କାର୍ଯ୍ୟକଳାପ"
+        },
+        "overview": {
+            "title": "ପ୍ଲାଟଫର୍ମ ସମୀକ୍ଷା",
+            "avgReportsPerDay": "ପ୍ରତିଦିନ ହାରାହାରି ରିପୋର୍ଟ",
+            "resolutionRate": "ସମାଧାନ ହାର",
+            "thisWeekReports": "ଏହି ସପ୍ତାହର ରିପୋର୍ଟ",
+            "thisWeekMedicines": "ଏହି ସପ୍ତାହର ଔଷଧ"
+        }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "ଟିକାକରଣ ହବ୍",
+        "pageHeaderSubtitle": "ଟିକାକରଣ ଟ୍ରାକର୍",
+        "title": "ଟିକାକରଣ ହବ୍ ଏବଂ ଟ୍ରାକର୍",
+        "subtitle": "ଉତ୍ତମ ଜନସ୍ୱାସ୍ଥ୍ୟ ସଚେତନତା ପାଇଁ ଟିକା ସୂଚୀ, ସୁରକ୍ଷା ସୂଚନା ଏବଂ ପରବର୍ତ୍ତୀ ଯତ୍ନ ମାର୍ଗଦର୍ଶନ ବିଷୟରେ ଜାଣନ୍ତୁ।",
+        "selectLabel": "ରୋଗ / ଟିକା ଚୟନ କରନ୍ତୁ",
+        "placeholder": "ଏକ ଟିକା ପ୍ରୋଫାଇଲ୍ ବାଛନ୍ତୁ...",
+        "childBirthDate": "ଶିଶୁର ଜନ୍ମ ତାରିଖ",
+        "milestoneBaseDate": "ପ୍ରଥମ ଡୋଜ୍ ଆଧାର ତାରିଖ",
+        "noVaccineSelected": "କୌଣସି ଟିକା ଚୟନ କରାଯାଇ ନାହିଁ",
+        "chooseVaccinePrompt": "ଟ୍ରାକିଂ ଟୁଲ୍ସ ବ୍ୟବହାର କରିବା ପାଇଁ ଉପରେ ଏକ ଟିକା ବାଛନ୍ତୁ:",
+        "featureSchedule": "ଡାଇନାମିକ ଅନୁମାନିତ ଟିକାକରଣ ସୂଚୀ",
+        "featureSideEffects": "ପାର୍ଶ୍ୱ ପ୍ରତିକ୍ରିୟାର ବର୍ଗୀକରଣ (ସାମାନ୍ୟ ବନାମ ଗମ୍ଭୀର)",
+        "featureAftercare": "ପର୍ଯ୍ୟାୟକ୍ରମିକ ଚିକିତ୍ସା ଯତ୍ନ ନିର୍ଦ୍ଦେଶାବଳୀ",
+        "targetGroups": "ଲକ୍ଷ୍ୟ ଗୋଷ୍ଠୀ",
+        "totalDoses": "ମୋଟ ଡୋଜ୍",
+        "effectiveness": "ପ୍ରଭାବଶାଳୀତା",
+        "classification": "ବର୍ଗୀକରଣ",
+        "aboutDisease": "ରୋଗ ବିଷୟରେ:",
+        "scheduleLayoutHeading": "ଟିକାକରଣ ସୂଚୀ",
+        "atBirth": "ଜନ୍ମ ସମୟରେ ପ୍ରଦାନ",
+        "atWeeks": "{weeks} ସପ୍ତାହ ବୟସରେ",
+        "baseline": "ପ୍ରାରମ୍ଭିକ ପ୍ରଦାନ (ଆଧାରରେଖା)",
+        "doseStep": "ଡୋଜ୍ ପର୍ଯ୍ୟାୟ {index} (+{weeks} ସପ୍ତାହ ପରେ)",
+        "targetDate": "ଧାର୍ଯ୍ୟ ତାରିଖ: {date}",
+        "selectDateWarning": "ସମୟସୀମା ଆକଳନ କରିବା ପାଇଁ ଉପରେ ଏକ ତାରିଖ ଚୟନ କରନ୍ତୁ",
+        "commonEffects": "ସାଧାରଣ ପାର୍ଶ୍ୱ ପ୍ରତିକ୍ରିୟା",
+        "severeReactions": "ଗମ୍ଭୀର ପ୍ରତିକ୍ରିୟା",
+        "aftercareHeading": "ତତ୍କାଳ ପରବର୍ତ୍ତୀ ଯତ୍ନ ମାର୍ଗଦର୍ଶନ"
+    },
+    "CommandPalette": {
+        "placeholder": "Search pages or actions...",
+        "noResults": "No results found.",
+        "hint": "Press Esc to close",
+        "pages": "Pages",
+        "actions": "Actions",
+        "open": "Open command palette",
+        "nav_home": "Go to Home",
+        "nav_scan": "Scan a Medicine",
+        "nav_map": "Find Nearby Pharmacy",
+        "nav_alerts": "View Alerts",
+        "nav_expiry": "Medicine Expiry Tracker",
+        "nav_compare": "Compare Medicines",
+        "nav_vaccine": "Vaccine Hub",
+        "nav_reports": "My Reports",
+        "nav_profile": "My Profile"
+    },
+    "medicineSafety": {
+        "guideTitle": "ବ୍ୟବହାର ଓ ସୁରକ୍ଷା ମାର୍ଗଦର୍ଶିକା",
+        "noDosageInfo": "ଏହି ବୟସ ଗୋଷ୍ଠୀ ପାଇଁ ଡୋଜ୍ ସୂଚନା ଉପଲବ୍ଧ ନାହିଁ।",
+        "closeButton": "ସୁରକ୍ଷା ସୂଚନା ବନ୍ଦ କରନ୍ତୁ",
+        "tabs": {
+            "sideEffects": "ପାର୍ଶ୍ୱ ପ୍ରତିକ୍ରିୟା",
+            "dosage": "ଡୋଜ୍",
+            "dietaryIntake": "ଖାଦ୍ୟ ଗ୍ରହଣ"
+        },
+        "sideEffects": {
+            "standardSymptoms": "ସାଧାରଣ ଲକ୍ଷଣ",
+            "severeRedFlags": "ଗୁରୁତର ସତର୍କ ସଙ୍କେତ — ତୁରନ୍ତ ଚିକିତ୍ସା ସହାୟତା ନିଅନ୍ତୁ"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "ଶିଶୁ",
+                "adults": "ବୟସ୍କ",
+                "elderly": "ବୃଦ୍ଧ"
+            },
+            "doseLabel": "ଡୋଜ୍:",
+            "frequencyLabel": "ଆବୃତ୍ତି:",
+            "notesHeading": "ଟିପ୍ପଣୀ",
+            "warningsHeading": "ଚେତାବନୀ"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "ଖାଦ୍ୟ ଗ୍ରହଣ"
+            },
+            "storageHeading": "ସଂରକ୍ଷଣ",
+            "pregnancyHeading": "ଗର୍ଭାବସ୍ଥା"
+        },
+        "disclaimer": "ଏହି ସୂଚନା ଶିକ୍ଷାମୂଳକ ଏବଂ ବୃତ୍ତିଗତ ଚିକିତ୍ସା ପରାମର୍ଶର ବିକଳ୍ପ ନୁହେଁ।"
+    },
+    "Health": {
+        "quickActions": "Quick actions",
+        "scanMedicine": "Scan Medicine",
+        "verifyAuthenticity": "Verify authenticity",
+        "checkSymptoms": "Check Symptoms",
+        "symptomGuidance": "AI-assisted guidance",
+        "findPharmacy": "Find Pharmacy",
+        "locateStores": "Locate verified stores",
+        "replyFallback": "I'm here to help! Could you rephrase that?",
+        "tooManyRequests": "Too many requests. Please try again in a few moments.",
+        "failedResponse": "Failed to generate AI response",
+        "genericError": "Something went wrong",
+        "returnHome": "Return to chat home",
+        "chatConversation": "Chat conversation",
+        "startVoice": "Start voice input",
+        "stopVoice": "Stop voice input",
+        "healthQuestion": "Type your health question",
+        "voiceBrowserRequired": "Voice input is not supported in this browser.",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "sendMessage": "Send message",
+        "footer": "For informational use only • Consult a doctor"
+    }
+}

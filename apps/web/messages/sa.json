@@ -21,6 +21,7 @@
         "ai_chat": "AI संवादः",
         "ai_health_assistant_description": "सद्यः स्वास्थ्य-परामर्शं, लक्षण-परीक्षणं, प्रिस्क्रिप्शन-मार्गदर्शनं च प्राप्नुत",
         "chat_now": "अधुना संवादं कुर्वन्तु",
+        "explore_features": "वैशिष्ट्यानि अन्वेषयतु",
         "live_cdsco_alerts": "प्रत्यक्षाः CDSCO सूचनाः",
         "india_region": "भारत-प्रदेशः",
         "alerts_empty_title": "सर्वं स्पष्टम्!",
@@ -204,5 +205,502 @@
             "faq": "प्रायः पृष्टाः प्रश्नाः (FAQ)"
         },
         "footer": "सहीदवा निःशुल्का, मुक्तस्रोता, १.४ अब्ज-भारतीयानां कृते निर्मिता च अस्ति। विज्ञापनानि न सन्ति। प्रिमियम् नास्ति। दत्तांशः कदापि न क्रीयते।"
+    },
+    "about": {
+        "badge": "GSSoC 2026 मुक्त स्रोत परियोजना",
+        "heroTitle": "<highlight>SahiDawa</highlight> विषये",
+        "heroSubtitle": "भारतस्य प्रथमः मुक्त-स्रोत-नागरिक-चिकित्सा-सत्यापकः & ग्रामीण-स्वास्थ्य-सेतुः। भारतस्य कृते निर्मितम् । न केवलं भारतम्।",
+        "features": {
+            "free": "100% निःशुल्कम्। सर्वदैव।",
+            "languages": "22 भारतीयभाषाः",
+            "license": "मुक्त-स्रोतः MIT अनुज्ञापत्रम्"
+        },
+        "problemSection": {
+            "title": "वयं यस्याः समस्यायाः समाधानं कुर्मः",
+            "description": "भारते त्रिस्तरीयः स्वास्थ्यसेवासंकटः अस्ति यस्य समाधानं कोऽपि विद्यमानः मञ्चः एकत्रैव न करोति।"
+        },
+        "cards": {
+            "fakeMedicines": {
+                "title": "नकली औषधानि",
+                "description": "भारते १२–२५% औषधानि नकली अथवा अमानकानि सन्ति — शून्यनागरिकमुखी सत्यापनसाधनेन १.४ अरबं जनान् जोखिमे स्थापयति ।"
+            },
+            "ruralHealthcare": {
+                "title": "ग्रामीण स्वास्थ्यसेवा अन्तर",
+                "description": "65% of India’s population lives in villages where there are hardly any qualified doctors — meaning more than 900 million people are deprived of accessible healthcare."
+            },
+            "languageBarrier": {
+                "title": "भाषायाः अवरोधः",
+                "description": "२२ आधिकारिकभाषा — परन्तु स्वास्थ्यसूचना अधिकतया आङ्ग्लभाषायां वा हिन्दीभाषायां वा भवति, येन ५००M+ अहिन्दीभाषिणः पृष्ठतः त्यजन्ति ।"
+            }
+        },
+        "realIncident": {
+            "title": "वास्तविकी घटना — जुलै 2025",
+            "text": "दिल्लीपुलिसः नकलीजॉन्सन् एण्ड् जॉन्सन् तथा जीएसके औषधानि — चाकचूर्णेन स्टार्चेन च निर्मिताः — सर्वकारीयचिकित्सालयेषु यावत् आपूर्तिं कुर्वन्तं नकली औषधवलयम् अवरुद्धवान् एतानि औषधानि सेवितुं पूर्वं रोगिणां सत्यापनस्य <highlight>शून्यः उपायः आसीत्</highlight> ।",
+            "highlight": "SahiDawa एतत् सुधारयति। निःशुल्कम्। सर्वदैव। मुक्त-स्रोतः।"
+        },
+        "mission": {
+            "title": "अस्माकं लक्ष्यम्",
+            "description": "प्रत्येकं भारतीयनागरिकं — भाषा, स्थानं, साक्षरता वा यथापि भवतु — तत्क्षणमेव औषधानां सत्यापनस्य, योग्यस्वास्थ्यमार्गदर्शनस्य प्राप्तेः, स्वसमुदाये नकलीऔषधानां सूचनां दातुं च क्षमता सह सशक्तं कर्तुं"
+        },
+        "vision": {
+            "title": "अस्माकं दृष्टिः",
+            "description": "एकं तादृशं भारतं यत्र कृत्रिम-औषधेन कस्यापि बालस्य मृत्युः न भवेत्, चिकित्सकस्य अभावेन कस्यापि कृषकस्य परिवारस्य दोषपूर्णं निदानं न भवेत्, स्वास्थ्यसेवायां च भाषा कोऽपि प्रतिबन्धः न भवेत्। निःशुल्कम्। मुक्तम्। सर्वदैव।"
+        },
+        "coreValues": {
+            "title": "अस्माकं मूलमूल्यानि",
+            "cards": {
+                "openSource": {
+                    "title": "मुक्त-स्रोतः",
+                    "description": "MIT अनुज्ञापत्र प्राप्त। सर्वदा।"
+                },
+                "freeForever": {
+                    "title": "सर्वदैव निःशुल्कम्",
+                    "description": "कोऽपि गुप्तव्ययः नास्ति। कदापि न।"
+                },
+                "inclusive": {
+                    "title": "समावेशी",
+                    "description": "22 भाषाः। समग्रं भारतम्।"
+                },
+                "privacy": {
+                    "title": "गोपनीयता प्रथमा",
+                    "description": "न दत्तांशः विक्रीतः। विज्ञापनं नास्ति।"
+                }
+            }
+        },
+        "contactUs": {
+            "title": "सम्पर्कं कुर्वन्तु",
+            "subtitle": "प्रश्नाः, विचाराः वा योगदानं दातुम् इच्छन्ति वा? भवतः वचनं श्रुत्वा वयं प्रसन्नाः भविष्यामः।"
+        }
+    },
+    "Faq": {
+        "badge": "GSSoC 2026 मुक्त-स्रोत-प्रकल्पः",
+        "title": "प्रायः पृष्टाः",
+        "title_highlight": "प्रश्नाः",
+        "subtitle": "SahiDawa विषये ज्ञातव्यं सर्वम् — भारतस्य निःशुल्कं मुक्त-स्रोतं औषध-सत्यापन-मञ्चः।",
+        "cta": {
+            "title": "अद्यापि प्रश्नाः सन्ति वा?",
+            "subtitle": "यत् उत्तरं भवन्तः अन्विष्यन्ति तत् न लभ्यते वा? अस्माकं समुदायेन सह सम्पर्कं कुर्वन्तु।",
+            "button": "सम्पर्कं कुर्वन्तु"
+        },
+        "items": {
+            "0": {
+                "question": "SahiDawa किम्?",
+                "answer": "SahiDawa भारतस्य प्रथमः मुक्त-स्रोतः नागरिक-औषध-सत्यापन-मञ्चः अस्ति। एषः भवतः औषधं वास्तविकं वा नकली वा इति परीक्षितुं, समीपे सुरक्षिताः औषधालयाः अन्वेष्टुं, स्वभाषायां स्वास्थ्य-मार्गदर्शनं प्राप्तुं च साहाय्यं करोति।"
+            },
+            "1": {
+                "question": "SahiDawa उपयोगः निःशुल्कः अस्ति वा?",
+                "answer": "आम्। SahiDawa सर्वदैव 100% निःशुल्कम् अस्ति। विज्ञापनं नास्ति, प्रीमियम-योजना नास्ति, दत्तांश-विक्रयः नास्ति। एतत् भारताय, समुदायेन निर्मितम्।"
+            },
+            "2": {
+                "question": "औषध-सत्यापनं कथं कार्यं करोति?",
+                "answer": "भवन्तः स्वस्य औषध-पुटे स्थितं बारकोड् वा QR कोड् वा स्कैन कर्तुं शक्नुवन्ति। SahiDawa तद् आधिकारिक-CDSCO-दत्तांशकोशेन सह परीक्षते, औषधं वास्तविकं, संशयास्पदं वा नकली वा इति सूचयति।"
+            },
+            "3": {
+                "question": "SahiDawa काः भाषाः समर्थयति?",
+                "answer": "SahiDawa भारतस्य 22 आधिकारिकभाषाः समर्थयति। Whisper तथा Sarvam AI द्वारा चालितेन अस्माकं Voice Health Assistant इत्यनेन भवन्तः स्वभाषायां स्वलक्षणानि वक्तुं शक्नुवन्ति।"
+            },
+            "4": {
+                "question": "नकली औषधस्य सूचना कथं दातुं शक्नोमि?",
+                "answer": "भवन्तः मुख्यपृष्ठे 'Report Fake' इति विशेषतां उपयोक्तुं शक्नुवन्ति। भवतः सूचना समुदाय-हीटमैप् मध्ये योज्यते, येन भवतः जनपदे अन्ये जनाः नकली-औषधानां विषये सचेतिताः भवन्ति।"
+            },
+            "5": {
+                "question": "SahiDawa मध्ये मम दत्तांशः सुरक्षितः अस्ति वा?",
+                "answer": "नूनम्। SahiDawa भवतः दत्तांशं न विक्रीणाति, विज्ञापनं न दर्शयति, किमपि प्रीमियम-योजनां न धारयति। भवतः गोपनीयता अस्माकं सर्वोच्चा प्राथमिकता अस्ति।"
+            },
+            "6": {
+                "question": "SahiDawa मध्ये अहं कथं योगदानं दातुं शक्नोमि?",
+                "answer": "SahiDawa MIT अनुज्ञापत्रेण मुक्त-स्रोतः अस्ति। भवन्तः GitHub मध्ये योगदानं दातुं, दोषान् सूचयितुं, विशेषताः प्रस्तावयितुं वा GSSoC 2026 सहभागी रूपेण सम्बद्धुं शक्नुवन्ति।"
+            },
+            "7": {
+                "question": "CDSCO किम्?",
+                "answer": "CDSCO इत्यस्य अर्थः Central Drugs Standard Control Organisation इति। एषा सौन्दर्यद्रव्याणां, औषधानां, चिकित्सोपकरणानां च भारतस्य राष्ट्रिय-नियामक-संस्था अस्ति। SahiDawa तेषां आधिकारिक-दत्तांशकोशेन सह औषधानि सत्यापयति।"
+            }
+        }
+    },
+    "Scan": {
+        "share": {
+            "avoid_and_report": "Please avoid and report to your nearest health worker.",
+            "batch_label": "Batch",
+            "button": "Share Result",
+            "copy_success": "Result copied to clipboard",
+            "failure": "Unable to share this result right now",
+            "manufacturer_label": "Manufacturer",
+            "real_status": "Verified REAL",
+            "shared_success": "Result shared successfully",
+            "suspicious_status": "Marked SUSPICIOUS",
+            "title": "SahiDawa Medicine Verification Result",
+            "unknown_batch": "Unknown batch",
+            "unknown_manufacturer": "Unknown manufacturer",
+            "unknown_medicine": "Unknown medicine",
+            "verified_by": "by SahiDawa",
+            "verify_yourself": "Verify yourself",
+            "warning_prefix": "WARNING"
+        }
+    },
+    "chat": {
+        "actions": {
+            "pharmacy": {
+                "description": "Locate verified stores",
+                "label": "Find Pharmacy"
+            },
+            "scan": {
+                "description": "Verify authenticity",
+                "label": "Scan Medicine"
+            },
+            "symptoms": {
+                "description": "AI-assisted guidance",
+                "label": "Check Symptoms"
+            }
+        },
+        "footer": "For informational use only • Consult a doctor",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "quick_actions": "Quick actions",
+        "welcome": "Namaste, I'm SahiDawa, your trusted health companion. I can help you verify medicines, understand symptoms, or find nearby care. What would you like help with today?"
+    },
+    "chatbot": {
+        "placeholder": "Ask me about a medicine...",
+        "status": "Online",
+        "title": "SahiDawa AI",
+        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"
+    },
+    "BackToTopButton": {
+        "label": "Back to top"
+    },
+    "Alerts": {
+        "backHome": "मुख्यपृष्ठं प्रति प्रतिगच्छतु",
+        "badge": "प्रत्यक्षसूचनाः",
+        "title": "प्रत्यक्ष CDSCO सूचनाः",
+        "subtitle": "CDSCO अभिलेखेन सह प्रत्यक्षतया सम्बद्धः सम्पूर्णः सुरक्षा-वृत्तान्तः।",
+        "regionBadge": "भारतक्षेत्रम्",
+        "totalCount": "समग्रसंख्या: {count}",
+        "brandPlaceholder": "ब्राण्डनाम्ना अन्विष्यताम्...",
+        "regionPlaceholder": "राज्येन वा जनपदेन वा छननं कुर्वन्तु...",
+        "error": "सक्रियनिबन्धनानि प्राप्तुं दत्तांशभाण्डार-समन्वयदोषः अभवत्।",
+        "loading": "सूचनाः आरोप्यन्ते...",
+        "systemUpdate": "प्रणाली-अद्यतनम्",
+        "alertType": "सूचना: {type}",
+        "noDetails": "विवरणं न उपलब्धम्",
+        "batchLabel": "समूहः:",
+        "manufacturerLabel": "निर्माता:",
+        "regionLabel": "क्षेत्रम्:",
+        "empty": "भवतः मानदण्डानुसारं काचिद् स्वास्थ्यसूचना न प्राप्ता।",
+        "previous": "पूर्वम्",
+        "next": "अनन्तरम्"
+    },
+    "Compare": {
+        "pageTitle": "औषधानां तुलना",
+        "pageSubtitle": "ब्राण्ड-जनरिक-औषधयोः पार्श्वयोः तुलना",
+        "firstMedicine": "प्रथमम् औषधम्",
+        "secondMedicine": "द्वितीयम् औषधम्",
+        "searchPlaceholder": "ब्राण्ड अथवा जनरिकनाम अन्विष्यताम्",
+        "findPharmacies": "औषधालयान् अन्विष्यताम्",
+        "emptyComparison": "तुलनां द्रष्टुं उपरि द्वे औषधे चिनुताम्।",
+        "fieldHeader": "क्षेत्रम्",
+        "medicineA": "औषधम् A",
+        "medicineB": "औषधम् B",
+        "priceUnavailable": "मूल्यं न उपलब्धम्",
+        "noSavings": "न काचित् बचतिः",
+        "saveAmount": "₹{amount} परिमिता बचतिः ({percent}%)",
+        "rows": {
+            "brandName": "ब्राण्डनाम",
+            "genericName": "जनरिकनाम",
+            "composition": "संघटनम्",
+            "manufacturer": "निर्माता",
+            "type": "प्रकारः",
+            "cdscoStatus": "CDSCO स्थिति",
+            "expiryDate": "अवधितिथिः",
+            "marketPrice": "बाजारमूल्यम् (MRP)",
+            "janAushadhiPrice": "जनौषधिमूल्यम्",
+            "savings": "MRP अपेक्षया बचतिः"
+        },
+        "medicineTypes": {
+            "brand": "ब्राण्ड",
+            "generic": "जनरिक"
+        },
+        "status": {
+            "approved": "स्वीकृतम्",
+            "recalled": "पुनराहूतम्",
+            "banned": "निषिद्धम्"
+        }
+    },
+    "ExpiryTracker": {
+        "title": "औषध-अवधि-अनुवर्तकः",
+        "subtitle": "स्वस्य औषधसञ्चयं स्थानीयतया व्यवस्थापयतु तथा निरीक्षताम्",
+        "addMedicine": "औषधं योजयतु",
+        "name": "नाम",
+        "expiryDate": "अवधितिथिः",
+        "batchNumber": "समूहनम्बरम् (ऐच्छिकम्)",
+        "batchPlaceholder": "उदाहरणम्: B12345",
+        "namePlaceholder": "उदाहरणम्: पेरासिटामोल",
+        "addToTracker": "अनुवर्तके योजयतु",
+        "trackedMedicines": "अनुवर्तितानि औषधानि",
+        "total": "समग्रम्",
+        "noMedicines": "अद्यावधि किमपि औषधं न योजितम्।",
+        "loading": "अनुवर्तकदत्तांशः आरोप्यते...",
+        "searchPlaceholder": "औषधानि अन्विष्यन्ताम्...",
+        "sortBy": "क्रमयतु",
+        "sortExpirySoonest": "अवधितिथिः (शीघ्रतमम्)",
+        "sortExpiryLatest": "अवधितिथिः (विलम्बतमम्)",
+        "sortAlpha": "नाम (अ-ह)",
+        "filterAll": "सर्वे",
+        "filterExpired": "अवधिक्षीणम्",
+        "filterExpiringSoon": "शीघ्रमेव अवधिक्षीणम्",
+        "filterSafe": "सुरक्षितम्",
+        "exportBackup": "प्रतिलिपिं निर्गच्छतु",
+        "importBackup": "प्रतिलिपिं आयच्छतु",
+        "importError": "अमान्या प्रतिलिपिः। कृपया मान्यं JSON प्रतिलिपिं आरोपयतु।",
+        "statusExpired": "अवधिक्षीणम्",
+        "statusExpiringSoon": "({days} दिनेषु) अवधिक्षीणम्",
+        "statusSafe": "सुरक्षितम्",
+        "exportCSV": "सीएसवी (CSV) निर्यात करें",
+        "exportPDF": "पीडीएफ (PDF) निर्यात करें",
+        "print": "प्रिंट करें",
+        "csvExportSuccess": "सीएसवी (CSV) सफलतापूर्वक निर्यात किया गया",
+        "pdfExportSuccess": "पीडीएफ (PDF) सफलतापूर्वक निर्यात किया गया",
+        "noMedicinesToDisplay": "प्रदर्शित करने के लिए कोई दवा उपलब्ध नहीं है",
+        "generatedOn": "इस तिथि को जनरेट किया गया",
+        "deleteMedicine": "दवा हटाएं"
+    },
+    "Login": {
+        "brandSubtitle": "औषधसुरक्षा-मञ्चः",
+        "heading": "पुनः स्वागतम्",
+        "description": "औषधसुरक्षा-वृत्तान्तान् तथा सत्यापनफलानि निरीक्षितुं प्रवेशं कुर्वन्तु।",
+        "missingConfig": {
+            "title": "प्रमाणीकरणं विन्यस्तं नास्ति",
+            "description": "Supabase URL अथवा anon key न उपलब्धम्। प्रवेशात् पूर्वं environment variables योजयन्तु।"
+        },
+        "googleButton": "Google द्वारा प्रविशतु",
+        "githubButton": "GitHub द्वारा प्रविशतु",
+        "emailSeparator": "अथवा ईमेलद्वारा प्रविशतु",
+        "emailLabel": "ईमेल-पत्रम्",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "गुह्यशब्दः",
+        "passwordPlaceholder": "स्वीयं गुह्यशब्दं प्रविशन्तु",
+        "signingIn": "प्रवेशः क्रियते...",
+        "signIn": "प्रविशतु",
+        "footerPrompt": "प्रतिगन्तुम् इच्छथ?",
+        "returnHome": "मुख्यपृष्ठं प्रति प्रतिगच्छतु",
+        "bottomText": "SahiDawa समुदायोपकरणानां कृते सुरक्षितः प्रवेशः।",
+        "errors": {
+            "databaseNotConfigured": "अस्मिन् परिवेशे प्रमाणीकरणं विन्यस्तं नास्ति।",
+            "generic": "प्रवेशः न सफलः। कृपया पुनः प्रयतध्वम्।"
+        }
+    },
+    "AdminLayout": {
+        "accessDeniedTitle": "प्रवेशः निषिद्धः",
+        "accessDeniedDescription": "एतत् पृष्ठं द्रष्टुं प्रशासकस्य अथवा नियामकस्य अनुमतिः अपेक्ष्यते।",
+        "returnHome": "मुख्यपृष्ठं प्रति प्रतिगच्छतु"
+    },
+    "AdminDashboard": {
+        "brandSuffix": "प्रशासकः",
+        "version": "SahiDawa प्रशासकः v1.0",
+        "nav": {
+            "reports": "वृत्तान्ताः",
+            "medicine": "औषध-सूची",
+            "logs": "लेखाजोखा"
+        },
+        "header": {
+            "title": "नियमन-पट्टिका",
+            "subtitle": "समुदायेन सूचितानि कूट-औषधानि व्यवस्थापयतु"
+        },
+        "searchPlaceholder": "अन्विष्यताम्...",
+        "actions": {
+            "signIn": "प्रविशतु",
+            "refresh": "पुनरारोपयतु",
+            "addMedicine": "औषधं योजयतु",
+            "save": "संगृह्णातु",
+            "cancel": "निरस्यतु",
+            "goToLogin": "प्रवेशपृष्ठं गच्छतु",
+            "markFake": "कूटम् इति चिह्नयतु",
+            "falseAlarm": "मिथ्या-सूचना"
+        },
+        "stats": {
+            "pending": "प्रतीक्षायाम्",
+            "resolved": "परिहृतम्",
+            "districtsAffected": "प्रभावित-जनपदाः"
+        },
+        "errors": {
+            "notAuthenticated": "प्रमाणीकृतः नास्ति — कृपया प्रशासकरूपेण प्रविशतु।",
+            "accessDenied": "प्रवेशः निषिद्धः — प्रशासकस्य अथवा नियामकस्य भूमिका अपेक्षिता।",
+            "apiUnavailable": "API प्राप्तुं न शक्यते। किं पृष्ठभाग-सेवकः 4000 पोर्टे सञ्चरति?"
+        },
+        "toasts": {
+            "markedFake": "सत्यापित-कूटम् इति चिह्नितम्",
+            "falseAlarm": "मिथ्या-सूचना इति चिह्नितम्",
+            "reportUpdateFailed": "वृत्तान्तस्य अद्यतनीकरणे विफलम्",
+            "medicineAdded": "औषधं योजितम्",
+            "medicineAddFailed": "औषधस्य योजने विफलम्"
+        },
+        "medicine": {
+            "title": "औषध-सूची",
+            "empty": "किमपि औषधं न प्राप्तम्",
+            "columns": {
+                "brand": "ब्राण्डः",
+                "generic": "जनरिकः",
+                "manufacturer": "निर्माता",
+                "barcode": "सङ्केतरेखा",
+                "status": "स्थिति"
+            }
+        },
+        "status": {
+            "approved": "स्वीकृतम्",
+            "recalled": "पुनराहूतम्",
+            "banned": "निषिद्धम्"
+        },
+        "logs": {
+            "title": "लेखाजोखा",
+            "subtitle": "अद्यतन-नियमन-औषध-सूची-क्रियाकलापाः",
+            "loading": "लेखाजोखाः आरोप्यन्ते...",
+            "empty": "अद्यावधि लेखाजोखाः न सन्ति"
+        },
+        "reports": {
+            "title": "प्राप्त-वृत्तान्ताः",
+            "pendingCount": "{count, plural, =0 {प्रतीक्षायां कश्चन वृत्तान्तः नास्ति} =1 {1 प्रतीक्षायां वृत्तान्तः} other {# प्रतीक्षायां वृत्तान्ताः}}",
+            "loading": "वृत्तान्ताः आरोप्यन्ते...",
+            "empty": "प्रतीक्षायां वृत्तान्ताः न सन्ति",
+            "columns": {
+                "medicine": "औषधम्",
+                "district": "जनपदः",
+                "barcode": "सङ्केतरेखा",
+                "reported": "सूचितम्",
+                "actions": "क्रियाः"
+            },
+            "decisions": {
+                "verifiedFake": "सत्यापित-कूटम्",
+                "falseAlarm": "मिथ्या-सूचना"
+            }
+        },
+        "resolved": {
+            "title": "अद्यतन-परिहृतानि",
+            "count": "{count, plural, =0 {परिहृत-वृत्तान्ताः न सन्ति} =1 {1 परिहृत-वृत्तान्तः} other {# परिहृत-वृत्तान्ताः}}",
+            "decision": "निर्णयः"
+        }
+    },
+    "AdminAnalytics": {
+        "title": "प्रभाव-विश्लेषण-पट्टिका",
+        "subtitle": "समुदाय-सहभागिता-मापनानि तथा वृद्धेः प्रवृत्तयः",
+        "metrics": {
+            "totalMedicines": "समग्र-औषधानि",
+            "totalReports": "समग्र-वृत्तान्ताः",
+            "resolved": "परिहृतानि",
+            "districtsCovered": "आवृत-जनपदाः"
+        },
+        "charts": {
+            "monthlyGrowth": "मासिक-वृद्धेः प्रवृत्तिः",
+            "reportStatus": "वृत्तान्त-स्थितेः वितरणम्",
+            "topDistricts": "वृत्तान्तानां आधारेण प्रमुख-जनपदाः",
+            "recentActivity": "अद्यतन-क्रियाकलापः"
+        },
+        "overview": {
+            "title": "मञ्चस्य अवलोकनम्",
+            "avgReportsPerDay": "प्रतिदिनं सरासरी-वृत्तान्ताः",
+            "resolutionRate": "परिहार-दरः",
+            "thisWeekReports": "अस्य सप्ताहस्य वृत्तान्ताः",
+            "thisWeekMedicines": "अस्य सप्ताहस्य औषधानि"
+        }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "सूचीवेधकेन्द्रम्",
+        "pageHeaderSubtitle": "प्रतिरक्षणअनुवेधकम",
+        "title": "सूचीवेधकेन्द्रम् प्रतिरक्षणअनुवेधकम् च",
+        "subtitle": "उत्तमलोकस्वास्थ्यजागरूकतायै सूचीवेधसमयसारणीं, सुरक्षासूचनां, पश्चाद्परिचर्यामार्गदर्शनं च जानन्तु।",
+        "selectLabel": "रोगं / सूचीवेधं चिनोतु",
+        "placeholder": "सूचीवेधविवरणं चिनोतु...",
+        "childBirthDate": "शिशोः जन्मदिनाङ्कः",
+        "milestoneBaseDate": "प्रथममात्रायाः आधारदिनाङ्कः",
+        "noVaccineSelected": "किमपि सूचीवेधं न चितम्",
+        "chooseVaccinePrompt": "अनुवेधसाधनानां प्रयोगार्थं उपरि सूचीवेधं चिनोतु:",
+        "featureSchedule": "गतिशीला आनुमानिकी प्रतिरक्षणसमयसारणी",
+        "featureSideEffects": "दुष्प्रभावाणां वर्गीकरणम् (मन्दाः विरुद्धाः तीव्राः)",
+        "featureAftercare": "क्रमशः चिकित्सकीयपश्चाद्परिचर्यानिर्देशाः",
+        "targetGroups": "लक्ष्यसमूहाः",
+        "totalDoses": "पूर्णाः मात्राः",
+        "effectiveness": "प्रभावकारिता",
+        "classification": "वर्गीकरणम्",
+        "aboutDisease": "रोगविषये:",
+        "scheduleLayoutHeading": "प्रतिरक्षणसमयसारणी",
+        "atBirth": "जन्मसमये प्रदेयम्",
+        "atWeeks": "{weeks} सप्ताहात्मके वयसि",
+        "baseline": "प्रारम्भिकप्रदानम् (आधाररेखा)",
+        "doseStep": "मात्राचरणम् {index} (+{weeks} सप्ताहपश्चात्)",
+        "targetDate": "लक्ष्यदिनाङ्कः: {date}",
+        "selectDateWarning": "समयरेखादर्शनार्थं उपरि दिनाङ्कम् चितम् करोतु",
+        "commonEffects": "सामान्याः पश्चाद्प्रभावाः",
+        "severeReactions": "तीव्राः प्रतिक्रियाः",
+        "aftercareHeading": "तत्कालिका पश्चाद्परिचर्या"
+    },
+    "CommandPalette": {
+        "placeholder": "Search pages or actions...",
+        "noResults": "No results found.",
+        "hint": "Press Esc to close",
+        "pages": "Pages",
+        "actions": "Actions",
+        "open": "Open command palette",
+        "nav_home": "Go to Home",
+        "nav_scan": "Scan a Medicine",
+        "nav_map": "Find Nearby Pharmacy",
+        "nav_alerts": "View Alerts",
+        "nav_expiry": "Medicine Expiry Tracker",
+        "nav_compare": "Compare Medicines",
+        "nav_vaccine": "Vaccine Hub",
+        "nav_reports": "My Reports",
+        "nav_profile": "My Profile"
+    },
+    "medicineSafety": {
+        "guideTitle": "उपयोगः तथा सुरक्षा मार्गदर्शिका",
+        "noDosageInfo": "अस्य वयःसमूहस्य कृते मात्रा-विवरणं न उपलब्धम्।",
+        "closeButton": "सुरक्षा-विवरणं पिधत",
+        "tabs": {
+            "sideEffects": "पार्श्वप्रभावाः",
+            "dosage": "मात्रा",
+            "dietaryIntake": "आहार-सेवनम्"
+        },
+        "sideEffects": {
+            "standardSymptoms": "सामान्यलक्षणानि",
+            "severeRedFlags": "गम्भीरचेतावनी — शीघ्रं वैद्यसहाय्यं प्राप्नुत"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "बालकाः",
+                "adults": "प्रौढाः",
+                "elderly": "वृद्धाः"
+            },
+            "doseLabel": "मात्रा:",
+            "frequencyLabel": "आवृत्तिः:",
+            "notesHeading": "टिप्पण्यः",
+            "warningsHeading": "चेतावन्यः"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "आहार-सेवनम्"
+            },
+            "storageHeading": "संग्रहणम्",
+            "pregnancyHeading": "गर्भावस्था"
+        },
+        "disclaimer": "एषा सूचना शैक्षिकप्रयोजनार्थम् अस्ति, न तु व्यावसायिकवैद्यकीयपरामर्शस्य विकल्पः।"
+    },
+    "Health": {
+        "quickActions": "Quick actions",
+        "scanMedicine": "Scan Medicine",
+        "verifyAuthenticity": "Verify authenticity",
+        "checkSymptoms": "Check Symptoms",
+        "symptomGuidance": "AI-assisted guidance",
+        "findPharmacy": "Find Pharmacy",
+        "locateStores": "Locate verified stores",
+        "replyFallback": "I'm here to help! Could you rephrase that?",
+        "tooManyRequests": "Too many requests. Please try again in a few moments.",
+        "failedResponse": "Failed to generate AI response",
+        "genericError": "Something went wrong",
+        "returnHome": "Return to chat home",
+        "chatConversation": "Chat conversation",
+        "startVoice": "Start voice input",
+        "stopVoice": "Stop voice input",
+        "healthQuestion": "Type your health question",
+        "voiceBrowserRequired": "Voice input is not supported in this browser.",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "sendMessage": "Send message",
+        "footer": "For informational use only • Consult a doctor"
     }
 }

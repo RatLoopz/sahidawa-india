@@ -1,53 +1,51 @@
 export default function ScanLoading() {
-  return (
-    <div className="min-h-screen bg-black text-white font-sans relative flex flex-col">
+    return (
+        <div className="relative flex min-h-screen flex-col bg-black font-sans text-white">
+            {/* Header Skeleton */}
+            <div className="absolute top-0 right-0 left-0 z-20 flex items-center gap-4 bg-transparent px-4 py-3">
+                <div className="h-12 w-12 shrink-0 animate-pulse rounded-2xl bg-white/10" />
 
-      {/* Header Skeleton */}
-      <div className="flex items-center gap-4 px-4 py-3 bg-transparent absolute top-0 left-0 right-0 z-20">
-        <div className="w-12 h-12 rounded-2xl bg-white/10 animate-pulse shrink-0" />
+                <div className="space-y-2">
+                    <div className="h-4 w-36 animate-pulse rounded-full bg-white/15" />
 
-        <div className="space-y-2">
-          <div className="w-36 h-4 rounded-full bg-white/15 animate-pulse" />
+                    <div className="h-3 w-24 animate-pulse rounded-full bg-white/10" />
+                </div>
+            </div>
 
-          <div className="w-24 h-3 rounded-full bg-white/10 animate-pulse" />
+            {/* Viewfinder Area */}
+            <div className="relative flex flex-1 items-center justify-center overflow-hidden">
+                {/* Background */}
+                <div className="absolute inset-0 bg-slate-900">
+                    <div className="absolute inset-0 animate-pulse bg-emerald-500/5" />
+                </div>
+
+                {/* Scanner Frame */}
+                <div className="relative z-10 h-72 w-72 md:h-96 md:w-96">
+                    <div className="absolute top-0 left-0 h-12 w-12 rounded-tl-2xl border-t-4 border-l-4 border-emerald-500" />
+
+                    <div className="absolute top-0 right-0 h-12 w-12 rounded-tr-2xl border-t-4 border-r-4 border-emerald-500" />
+
+                    <div className="absolute bottom-0 left-0 h-12 w-12 rounded-bl-2xl border-b-4 border-l-4 border-emerald-500" />
+
+                    <div className="absolute right-0 bottom-0 h-12 w-12 rounded-br-2xl border-r-4 border-b-4 border-emerald-500" />
+
+                    {/* Spinner */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="h-16 w-16 animate-spin rounded-full border-4 border-white/10 border-t-emerald-500" />
+                    </div>
+                </div>
+            </div>
+
+            {/* Bottom Guidance */}
+            <div className="flex flex-col items-center gap-6 bg-gradient-to-t from-black to-transparent p-8">
+                <div className="h-3 w-64 animate-pulse rounded-full bg-white/10" />
+
+                <div className="flex gap-4">
+                    <div className="h-12 w-40 animate-pulse rounded-full bg-white/10" />
+
+                    <div className="h-12 w-12 animate-pulse rounded-2xl bg-white/10" />
+                </div>
+            </div>
         </div>
-      </div>
-
-      {/* Viewfinder Area */}
-      <div className="flex-1 relative flex items-center justify-center overflow-hidden">
-        
-        {/* Background */}
-        <div className="absolute inset-0 bg-slate-900">
-          <div className="absolute inset-0 animate-pulse bg-emerald-500/5" />
-        </div>
-
-        {/* Scanner Frame */}
-        <div className="relative w-72 h-72 md:w-96 md:h-96 z-10">
-          <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-emerald-500 rounded-tl-2xl" />
-
-          <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-emerald-500 rounded-tr-2xl" />
-
-          <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-emerald-500 rounded-bl-2xl" />
-
-          <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-emerald-500 rounded-br-2xl" />
-
-          {/* Spinner */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-16 h-16 rounded-full border-4 border-white/10 border-t-emerald-500 animate-spin" />
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Guidance */}
-      <div className="p-8 bg-gradient-to-t from-black to-transparent flex flex-col items-center gap-6">
-        <div className="w-64 h-3 rounded-full bg-white/10 animate-pulse" />
-
-        <div className="flex gap-4">
-          <div className="w-40 h-12 rounded-full bg-white/10 animate-pulse" />
-
-          <div className="w-12 h-12 rounded-2xl bg-white/10 animate-pulse" />
-        </div>
-      </div>
-    </div>
-  )
+    );
 }

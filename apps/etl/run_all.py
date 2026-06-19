@@ -175,7 +175,9 @@ async def run(
     df = pd.concat([df_ja, df_comm], ignore_index=True)
     logger.info(f"Combined dataset: {len(df)} total records")
 
-    # ── STEP 2c: CDSCO VALIDATION (in-memory) ─────────────────────────────────
+    loader = SupabaseLoader(pipeline_name=PIPELINE_NAME)
+
+    # ── STEP 2c: CDSCO VALIDATION (RPC-assisted) ──────────────────────────────
     logger.info("STEP 2c — Running CDSCO validation...")
     validation_skipped = False
     try:
@@ -183,7 +185,7 @@ async def run(
         cdsco_scraper.fetch_and_save(force=refresh_cdsco)
         cdsco_df = cdsco_scraper.load()
 
-        validator = CDSCOValidator()
+        validator = CDSCOValidator(supabase_client=loader.client)
         validator.load_reference(cdsco_df)
 
         # Temporary search name for fuzzy matching (brand name if exists, else generic)
@@ -203,7 +205,6 @@ async def run(
 
     # ── STEP 3: LOAD ───────────────────────────────────────────────────────────
     logger.info("STEP 3/4 — Loading into Supabase...")
-    loader = SupabaseLoader(pipeline_name=PIPELINE_NAME)
     stats = loader.load(df)
     stats["validation_skipped"] = validation_skipped
 
@@ -253,6 +254,7 @@ def _summary(stats: dict) -> None:
         f"  Pipeline Complete!\n"
         f"  Total processed  : {stats['total']}\n"
         f"  Inserted/updated : {stats['inserted']}\n"
+        f"  Skipped unchanged: {stats.get('skipped_unchanged', 0)}\n"
         f"  Failed           : {stats['failed']}\n"
         f"  Success rate     : {stats['success_rate']}%"
         + validation_line

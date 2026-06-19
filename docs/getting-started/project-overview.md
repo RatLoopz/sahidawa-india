@@ -249,7 +249,7 @@ gantt
     WCAG Accessibility & Launch   :         f4, 2026-08, 1M
 ```
 
-### Milestone Milestones
+### Key Milestones
 
 - **Phase 1: Pre-GSSoC Core Infrastructure (Completed)**
     - Scaffold Next.js client, Express REST core, and FastAPI ML microservices.

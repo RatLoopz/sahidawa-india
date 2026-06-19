@@ -1,15 +1,36 @@
 import request from "supertest";
 import app from "../src/app";
 
-// jest.mock is hoisted before variable declarations so we define
-// the mock function inside the factory to avoid initialization errors.
-jest.mock("../src/db/client", () => ({
-    supabase: {
-        from: jest.fn().mockReturnThis(),
+// jest.mock is hoisted — everything must be self-contained inside the factory
+jest.mock("../src/db/client", () => {
+    const chain: any = {
         select: jest.fn().mockReturnThis(),
         order: jest.fn().mockReturnThis(),
         range: jest.fn(),
-    },
+        eq: jest.fn().mockReturnThis(),
+        ilike: jest.fn().mockReturnThis(),
+        maybeSingle: jest.fn(),
+        insert: jest.fn().mockReturnThis(),
+        update: jest.fn().mockReturnThis(),
+    };
+    // Thenable for fire-and-forget updates
+    chain.then = function (this: any, callback: Function) {
+        return Promise.resolve(callback({ data: null, error: null }));
+    };
+
+    return {
+        supabase: {
+            from: jest.fn().mockReturnValue(chain),
+        },
+    };
+});
+
+// Mock doubleCsrf to automatically bypass CSRF validation during testing
+jest.mock("csrf-csrf", () => ({
+    doubleCsrf: () => ({
+        doubleCsrfProtection: (req: any, res: any, next: any) => next(),
+        generateToken: () => "mocked-csrf-token",
+    }),
 }));
 
 import { supabase } from "../src/db/client";
@@ -24,13 +45,37 @@ function buildAlerts(n: number) {
     }));
 }
 
+/** Returns the shared chain object returned by supabase.from() */
+function getChain() {
+    return supabase.from() as any;
+}
+
 function mockSupabase(alerts: object[], totalCount: number, error: object | null = null) {
-    // Cast to any to bypass TypeScript's supabase type — the real client is mocked
-    const mockedSupabase = supabase as any;
-    mockedSupabase.range.mockResolvedValue({
+    getChain().range.mockResolvedValue({
         data: error ? null : alerts,
         error,
         count: error ? null : totalCount,
+    });
+}
+
+function mockApiKeyValid() {
+    getChain().maybeSingle.mockResolvedValue({
+        data: { id: "key-1", caller_name: "ML Agent", scopes: ["alerts:ingest"], is_active: true },
+        error: null,
+    });
+}
+
+function mockApiKeyInvalid() {
+    getChain().maybeSingle.mockResolvedValue({
+        data: null,
+        error: null,
+    });
+}
+
+function mockApiKeyError() {
+    getChain().maybeSingle.mockResolvedValue({
+        data: null,
+        error: { message: "DB error" },
     });
 }
 
@@ -164,5 +209,51 @@ describe("GET /api/v1/alerts — pagination", () => {
 
         expect(res.status).toBe(500);
         expect(res.body).toHaveProperty("error");
+    });
+});
+
+describe("POST /api/v1/alerts/ingest — API key authentication", () => {
+    beforeEach(() => jest.clearAllMocks());
+
+    it("returns 401 when x-api-secret header is missing", async () => {
+        const res = await request(app).post("/api/v1/alerts/ingest").send({ alerts: [] });
+
+        expect(res.status).toBe(401);
+        expect(res.body.error).toMatch(/missing.*api.*key/i);
+    });
+
+    it("returns 401 when API key is invalid", async () => {
+        mockApiKeyInvalid();
+
+        const res = await request(app)
+            .post("/api/v1/alerts/ingest")
+            .set("x-api-secret", "invalid-key")
+            .send({ alerts: [] });
+
+        expect(res.status).toBe(401);
+        expect(res.body.error).toMatch(/invalid|inactive/i);
+    });
+
+    it("returns 500 when the database lookup fails", async () => {
+        mockApiKeyError();
+
+        const res = await request(app)
+            .post("/api/v1/alerts/ingest")
+            .set("x-api-secret", "some-key")
+            .send({ alerts: [] });
+
+        expect(res.status).toBe(500);
+    });
+
+    it("returns 400 when payload is invalid", async () => {
+        mockApiKeyValid();
+
+        const res = await request(app)
+            .post("/api/v1/alerts/ingest")
+            .set("x-api-secret", "valid-key")
+            .send({ alerts: "not-an-array" });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toMatch(/invalid/i);
     });
 });

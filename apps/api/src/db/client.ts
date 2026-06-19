@@ -1,18 +1,37 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import dotenv from "dotenv";
+import path from "path";
 import logger from "../utils/logger";
+import { MAX_RETRIES, RETRY_DELAY_MS, fetchWithRetry } from "./fetchUtils";
+
+export const dbConfig = {
+    isSupabaseOffline: false,
+};
+
+dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
+if (!process.env.SUPABASE_URL) {
+    dotenv.config();
+}
 
 // ── Environment resolution ────────────────────────────────────────────────────
 
-const supabaseUrl =
-    process.env.SUPABASE_URL ||
-    process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    "http://localhost:54321";
+if (!process.env.SUPABASE_URL) {
+    throw new Error(
+        "Missing required environment variable: SUPABASE_URL. " +
+            "Set it in your .env file (e.g. https://<project>.supabase.co)."
+    );
+}
 
-const supabaseKey =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.SUPABASE_ANON_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    "local-development-key";
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error(
+        "Missing required environment variable: SUPABASE_SERVICE_ROLE_KEY. " +
+            "The API backend requires the service_role key to bypass RLS for server-side writes. " +
+            "Do not use SUPABASE_ANON_KEY here — it is subject to RLS and will silently drop writes."
+    );
+}
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // ── Connection pool config ────────────────────────────────────────────────────
 // Supabase JS uses HTTP fetch under the hood (not raw pg sockets).
@@ -21,11 +40,8 @@ const supabaseKey =
 //   - Enforcing a hard per-request timeout (connectionTimeoutMillis equivalent)
 //   - Retrying transient network errors automatically
 
-const MAX_CONNECTIONS = 20;          // max concurrent DB requests
-const IDLE_TIMEOUT_MS = 30_000;      // 30 s — matches pg idleTimeoutMillis
-const CONNECTION_TIMEOUT_MS = 2_000; // 2 s  — matches pg connectionTimeoutMillis
-const MAX_RETRIES = 3;
-const RETRY_DELAY_MS = 500;
+const MAX_CONNECTIONS = 20; // max concurrent DB requests
+const IDLE_TIMEOUT_MS = 30_000; // 30 s — matches pg idleTimeoutMillis
 
 // ── Semaphore (concurrency limiter) ──────────────────────────────────────────
 
@@ -78,71 +94,9 @@ class ConnectionPool {
 
 export const pool = new ConnectionPool(MAX_CONNECTIONS);
 
-// ── Fetch wrapper with timeout + retry ───────────────────────────────────────
-
-async function fetchWithTimeout(
-    input: RequestInfo | URL,
-    init?: RequestInit
-): Promise<Response> {
-    const controller = new AbortController();
-    const timeout = setTimeout(
-        () => controller.abort(),
-        CONNECTION_TIMEOUT_MS
-    );
-
-    try {
-        const response = await fetch(input, {
-            ...init,
-            signal: controller.signal,
-        });
-        return response;
-    } catch (err) {
-        console.error(err)
-        if ((err as Error).name === "AbortError") {
-            throw new Error(
-                `Database request timed out after ${CONNECTION_TIMEOUT_MS}ms`
-            );
-        }
-        throw err;
-    } finally {
-        clearTimeout(timeout);
-    }
-}
-
-async function fetchWithRetry(
-    input: RequestInfo | URL,
-    init?: RequestInit,
-    retries = MAX_RETRIES
-): Promise<Response> {
-    for (let attempt = 1; attempt <= retries; attempt++) {
-        try {
-            return await fetchWithTimeout(input, init);
-        } catch (err) {
-            console.error(err)
-            const isLast = attempt === retries;
-            const msg = err instanceof Error ? err.message : String(err);
-
-            if (isLast) {
-                logger.error(`DB fetch failed after ${retries} attempts: ${msg}`);
-                throw err;
-            }
-
-            logger.warn(
-                `DB fetch attempt ${attempt}/${retries} failed: ${msg}. Retrying in ${RETRY_DELAY_MS}ms...`
-            );
-            await new Promise((r) => setTimeout(r, RETRY_DELAY_MS * attempt));
-        }
-    }
-    // unreachable but satisfies TypeScript
-    throw new Error("Unexpected retry loop exit");
-}
-
 // ── Pool-aware fetch ──────────────────────────────────────────────────────────
 
-async function pooledFetch(
-    input: RequestInfo | URL,
-    init?: RequestInit
-): Promise<Response> {
+async function pooledFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
     await pool.acquire();
     try {
         return await fetchWithRetry(input, init);
@@ -153,20 +107,27 @@ async function pooledFetch(
 
 // ── Supabase client ───────────────────────────────────────────────────────────
 
-export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseKey, {
+// Privileged backend client for server-side writes and admin-only access.
+export const serviceRoleSupabase: SupabaseClient = createClient(supabaseUrl, supabaseKey, {
     global: {
         fetch: pooledFetch as typeof fetch,
     },
     auth: {
-        persistSession: false,   // server-side — no browser storage
+        persistSession: false, // server-side — no browser storage
         autoRefreshToken: false,
     },
 });
 
+// Backward-compatible alias for existing API modules. New code should import
+// serviceRoleSupabase so the permission level is clear at the call site.
+export const supabase = serviceRoleSupabase;
+
 // ── Graceful shutdown ─────────────────────────────────────────────────────────
 
 function gracefulShutdown(signal: string) {
-    logger.warn(`Received ${signal} — waiting for ${pool.stats.active} active DB connection(s) to drain...`);
+    logger.warn(
+        `Received ${signal} — waiting for ${pool.stats.active} active DB connection(s) to drain...`
+    );
 
     const check = setInterval(() => {
         if (pool.stats.active === 0) {
@@ -185,12 +146,36 @@ function gracefulShutdown(signal: string) {
 }
 
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
-process.on("SIGINT",  () => gracefulShutdown("SIGINT"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
 // Log pool exhaustion warnings
-setInterval(() => {
-    const { active, queued, max } = pool.stats;
-    if (queued > 0) {
-        logger.warn(`DB pool pressure: ${active}/${max} active, ${queued} queued`);
-    }
-}, 5_000);
+if (process.env.NODE_ENV !== "test") {
+    setInterval(() => {
+        const { active, queued, max } = pool.stats;
+        if (queued > 0) {
+            logger.warn(`DB pool pressure: ${active}/${max} active, ${queued} queued`);
+        }
+    }, 5_000);
+}
+
+// Quick check on startup to see if Supabase is offline
+if (process.env.NODE_ENV !== "test") {
+    const checkTimeout = AbortSignal.timeout ? AbortSignal.timeout(1500) : undefined;
+    fetch(`${supabaseUrl}/auth/v1/health`, { signal: checkTimeout })
+        .then((res) => {
+            if (!res.ok) {
+                dbConfig.isSupabaseOffline = true;
+                logger.warn(
+                    "Supabase database health check failed. Setting database state to offline fallback mode."
+                );
+            } else {
+                logger.info("Supabase database health check passed. Supabase is online.");
+            }
+        })
+        .catch(() => {
+            dbConfig.isSupabaseOffline = true;
+            logger.warn(
+                "Supabase database is offline. Setting database state to offline fallback mode."
+            );
+        });
+}

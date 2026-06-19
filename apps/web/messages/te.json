@@ -21,6 +21,7 @@
         "ai_chat": "AI చాట్",
         "ai_health_assistant_description": "తక్షణ ఆరోగ్య సలహా, లక్షణాల తనిఖీ మరియు ప్రిస్క్రిప్షన్ మార్గదర్శనం పొందండి",
         "chat_now": "ఇప్పుడే చాట్ చేయండి",
+        "explore_features": "ఫీచర్‌లను అన్వేషించండి",
         "live_cdsco_alerts": "లైవ్ CDSCO హెచ్చరికలు",
         "india_region": "భారత ప్రాంతం",
         "alerts_empty_title": "అన్నీ సురక్షితం!",
@@ -207,5 +208,499 @@
             "faq": "తరచుగా అడిగే ప్రశ్నలు"
         },
         "footer": "SahiDawa ఉచితం, ఓపెన్-సోర్స్, మరియు 1.4 బిలియన్ భారతీయుల కోసం నిర్మించబడింది. ప్రకటనలు లేవు. ప్రీమియం లేదు. డేటా ఎప్పటికీ అమ్మబడదు."
+    },
+    "about": {
+        "badge": "GSSoC 2026 ఓపెన్ సోర్స్ ప్రాజెక్ట్",
+        "heroTitle": "<highlight>SahiDawa</highlight> గురించి",
+        "heroSubtitle": "భారతదేశపు మొట్టమొదటి ఓపెన్-సోర్స్ పౌర ఔషధ ధృవీకరణ సాధనం & గ్రామీణ ఆరోగ్య సేతువు. భారత్ కోసం నిర్మించబడింది. కేవలం ఇండియా కోసం మాత్రమే కాదు.",
+        "features": {
+            "free": "100% ఉచితం. ఎల్లప్పటికీ.",
+            "languages": "22 భారతీయ భాషలు",
+            "license": "ఓపెన్ సోర్స్ MIT లైసెన్స్"
+        },
+        "problemSection": {
+            "title": "మేము పరిష్కరిస్తున్న సమస్య",
+            "description": "భారతదేశం మూడు అంచెల ఆరోగ్య సంక్షోభాన్ని ఎదుర్కొంటోంది, దీనిని ప్రస్తుతం ఉన్న ఏ వేదిక కూడా ఏకకాలంలో పరిష్కరించలేకపోతోంది."
+        },
+        "cards": {
+            "fakeMedicines": {
+                "title": "నకిలీ మందులు",
+                "description": "భారతదేశంలో 12-25% మందులు నకిలీవి లేదా నాణ్యత లేనివి — పౌరుల కోసం ఎలాంటి ధృవీకరణ సాధనం లేకపోవడం వల్ల ఇవి 140 కోట్ల మంది ప్రజల జీవితాలను ప్రమాదంలో పడేస్తున్నాయి."
+            },
+            "ruralHealthcare": {
+                "title": "గ్రామీణ ఆరోగ్య సంరక్షణలో అంతరం",
+                "description": "భారతదేశ జనాభాలో 65% మంది గ్రామీణ ప్రాంతాల్లో నివసిస్తున్నారు, అక్కడ అర్హత కలిగిన వైద్యులు దాదాపు లేరు — అంటే 90 కోట్ల కంటే ఎక్కువ మంది ప్రజలకు సరైన ఆరోగ్య సేవలు అందడం లేదు."
+            },
+            "languageBarrier": {
+                "title": "భాషా అవరోధం",
+                "description": "22 అధికార భాషలు ఉన్నప్పటికీ, ఆరోగ్య సంబంధిత సమాచారం ప్రధానంగా ఇంగ్లీష్ లేదా హిందీలోనే లభిస్తోంది; దీనివల్ల 50 కోట్లకు పైగా హిందీయేతర భాషా మాట్లాడేవారు వెనుకబడిపోతున్నారు."
+            }
+        },
+        "realIncident": {
+            "title": "వాస్తవ సంఘటన — జూలై 2025",
+            "text": "ఢిల్లీ పోలీసులు ఒక నకిలీ మందుల ముఠాను పట్టుకున్నారు, వారు చాక్ పౌడర్ మరియు స్టార్చ్‌తో తయారు చేసిన Johnson & Johnson మరియు GSK నకిలీ మందులను ప్రభుత్వ ఆసుపత్రుల వరకు సరఫరా చేశారు. రోగులు వీటిని వాడే ముందు <highlight>ధృవీకరించుకోవడానికి ఎలాంటి మార్గం లేదు</highlight>.",
+            "highlight": "SahiDawa ఈ సమస్యను సరిచేస్తుంది. ఉచితంగా. ఎల్లప్పటికీ. ఓపెన్ సోర్స్."
+        },
+        "mission": {
+            "title": "మా లక్ష్యం",
+            "description": "భాష, ప్రాంతం లేదా చదువుతో సంబంధం లేకుండా — ప్రతి భారతీయ పౌరుడికి తక్షణమే మందులను ధృవీకరించుకునేలా, అర్హత కలిగిన ఆరోగ్య మార్గదర్శకత్వాన్ని పొందేలా మరియు వారి ప్రాంతంలో నకిలీ మందుల గురించి నివేదించేలా శక్తిని అందించడం."
+        },
+        "vision": {
+            "title": "మా విజన్",
+            "description": "నకిలీ మందుల వల్ల ఏ బిడ్డ మరణించని, వైద్యులు లేకపోవడం వల్ల ఏ రైతు కుటుంబానికీ తప్పుడు నిర్ధారణ జరగని, ఆరోగ్య సంరక్షణకు ఏ భాషా అడ్డంకి కాని ఒక భారతం. ఉచితం. అందరికీ అందుబాటులో. శాశ్వతంగా."
+        },
+        "coreValues": {
+            "title": "మా ముఖ్య విలువల",
+            "cards": {
+                "openSource": {
+                    "title": "ఓపెన్ సోర్స్",
+                    "description": "MIT లైసెన్స్ పొందింది. ఎల్లప్పుడూ."
+                },
+                "freeForever": {
+                    "title": "ఎప్పటికీ ఉచితం",
+                    "description": "ఎలాంటి దాచిన ఖర్చులు లేవు. ఎప్పటికీ"
+                },
+                "inclusive": {
+                    "title": "సమ్మిళిత",
+                    "description": "22 భాషలు. భారతదేశం మొత్తం."
+                },
+                "privacy": {
+                    "title": "గోప్యతకు మొదటి ప్రాధాన్యత",
+                    "description": "డేటా విక్రయించబడదు. ప్రకటనలు లేవు."
+                }
+            }
+        },
+        "contactUs": {
+            "title": "సంప్రదించండి",
+            "subtitle": "మీకు ఏవైనా ప్రశ్నలు, ఆలోచనలు ఉన్నాయా? లేదా మీరు సహకరించాలనుకుంటున్నారా? మీ నుండి వినడానికి మేము ఎంతో ఆసక్తిగా ఎదురుచూస్తున్నాము."
+        }
+    },
+    "Faq": {
+        "badge": "GSSoC 2026 ఓపెన్ సోర్స్ ప్రాజెక్ట్",
+        "title": "తరచుగా అడిగే",
+        "title_highlight": "ప్రశ్నలు",
+        "subtitle": "SahiDawa గురించి మీరు తెలుసుకోవాల్సిన ప్రతిదీ — భారతదేశపు ఉచిత, ఓపెన్-సోర్స్ మందుల ధృవీకరణ వేదిక.",
+        "cta": {
+            "title": "ఇంకా ప్రశ్నలు ఉన్నాయా?",
+            "subtitle": "మీరు వెతుకుతున్న సమాధానం దొరకలేదా? మా కమ్యూనిటీని సంప్రదించండి.",
+            "button": "సంప్రదించండి"
+        },
+        "items": {
+            "0": {
+                "question": "SahiDawa అంటే ఏమిటి?",
+                "answer": "SahiDawa భారతదేశపు మొదటి ఓపెన్-సోర్స్ పౌర మందుల ధృవీకరణ వేదిక. మీ మందు నిజమా నకిలీనా అని తనిఖీ చేయడంలో, దగ్గరలోని సురక్షిత ఫార్మసీలను కనుగొనడంలో, మీ భాషలో ఆరోగ్య మార్గదర్శకత్వం పొందడంలో ఇది సహాయపడుతుంది."
+            },
+            "1": {
+                "question": "SahiDawa ఉపయోగించడానికి ఉచితమా?",
+                "answer": "అవును! SahiDawa ఎల్లప్పుడూ 100% ఉచితం. ప్రకటనలు లేవు, ప్రీమియం ప్లాన్ లేదు, డేటా విక్రయం లేదు. ఇది భారతదేశం కోసం, కమ్యూనిటీ చేత నిర్మించబడింది."
+            },
+            "2": {
+                "question": "మందుల ధృవీకరణ ఎలా పనిచేస్తుంది?",
+                "answer": "మీ మందుల ప్యాకేజింగ్‌పై ఉన్న బార్‌కోడ్ లేదా QR కోడ్‌ను స్కాన్ చేయవచ్చు. SahiDawa దాన్ని అధికారిక CDSCO డేటాబేస్‌తో తనిఖీ చేసి, మందు నిజమైనదా, అనుమానాస్పదమా లేదా నకిలీనా అని చెబుతుంది."
+            },
+            "3": {
+                "question": "SahiDawa ఏ భాషలను మద్దతు ఇస్తుంది?",
+                "answer": "SahiDawa భారతదేశపు 22 అధికార భాషలకు మద్దతు ఇస్తుంది. Whisper మరియు Sarvam AI ఆధారంగా పనిచేసే మా Voice Health Assistant ద్వారా మీరు మీ భాషలో లక్షణాలను చెప్పవచ్చు."
+            },
+            "4": {
+                "question": "నేను నకిలీ మందును ఎలా రిపోర్ట్ చేయగలను?",
+                "answer": "హోమ్‌పేజీలోని 'Report Fake' ఫీచర్‌ను ఉపయోగించవచ్చు. మీ రిపోర్ట్ కమ్యూనిటీ హీట్‌మ్యాప్‌లో చేరుతుంది, ఇది మీ జిల్లాలోని ఇతరులను నకిలీ మందుల గురించి హెచ్చరించడంలో సహాయపడుతుంది."
+            },
+            "5": {
+                "question": "SahiDawa వద్ద నా డేటా సురక్షితమా?",
+                "answer": "ఖచ్చితంగా. SahiDawa మీ డేటాను అమ్మదు, ప్రకటనలు చూపదు, ఎలాంటి ప్రీమియం ప్లాన్ ఉంచదు. మీ గోప్యత మా అత్యంత ముఖ్యమైన ప్రాధాన్యత."
+            },
+            "6": {
+                "question": "నేను SahiDawa కు ఎలా సహకరించగలను?",
+                "answer": "SahiDawa MIT లైసెన్స్ కింద ఓపెన్ సోర్స్. మీరు GitHub లో సహకరించవచ్చు, బగ్‌లను రిపోర్ట్ చేయవచ్చు, ఫీచర్‌లను సూచించవచ్చు లేదా GSSoC 2026 పాల్గొనేవారిగా చేరవచ్చు."
+            },
+            "7": {
+                "question": "CDSCO అంటే ఏమిటి?",
+                "answer": "CDSCO అంటే Central Drugs Standard Control Organisation. ఇది సౌందర్య సాధనాలు, ఔషధాలు మరియు వైద్య పరికరాల కోసం భారతదేశపు జాతీయ నియంత్రణ సంస్థ. SahiDawa వారి అధికారిక డేటాబేస్‌తో మందులను ధృవీకరిస్తుంది."
+            }
+        }
+    },
+    "Scan": {
+        "share": {
+            "avoid_and_report": "Please avoid and report to your nearest health worker.",
+            "batch_label": "Batch",
+            "button": "Share Result",
+            "copy_success": "Result copied to clipboard",
+            "failure": "Unable to share this result right now",
+            "manufacturer_label": "Manufacturer",
+            "real_status": "Verified REAL",
+            "shared_success": "Result shared successfully",
+            "suspicious_status": "Marked SUSPICIOUS",
+            "title": "SahiDawa Medicine Verification Result",
+            "unknown_batch": "Unknown batch",
+            "unknown_manufacturer": "Unknown manufacturer",
+            "unknown_medicine": "Unknown medicine",
+            "verified_by": "by SahiDawa",
+            "verify_yourself": "Verify yourself",
+            "warning_prefix": "WARNING"
+        }
+    },
+    "chat": {
+        "actions": {
+            "pharmacy": {
+                "description": "Locate verified stores",
+                "label": "Find Pharmacy"
+            },
+            "scan": {
+                "description": "Verify authenticity",
+                "label": "Scan Medicine"
+            },
+            "symptoms": {
+                "description": "AI-assisted guidance",
+                "label": "Check Symptoms"
+            }
+        },
+        "footer": "For informational use only • Consult a doctor",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "quick_actions": "Quick actions",
+        "welcome": "Namaste, I'm SahiDawa, your trusted health companion. I can help you verify medicines, understand symptoms, or find nearby care. What would you like help with today?"
+    },
+    "chatbot": {
+        "placeholder": "Ask me about a medicine...",
+        "status": "Online",
+        "title": "SahiDawa AI",
+        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"
+    },
+    "Alerts": {
+        "backHome": "హోమ్ పేజీకి తిరిగి వెళ్లండి",
+        "badge": "ప్రత్యక్ష హెచ్చరికలు",
+        "title": "ప్రత్యక్ష CDSCO హెచ్చరికలు",
+        "subtitle": "CDSCO రిజిస్ట్రీతో నేరుగా అనుసంధానించబడిన పూర్తి చారిత్రక భద్రతా లాగ్.",
+        "regionBadge": "భారత ప్రాంతం",
+        "totalCount": "మొత్తం సంఖ్య: {count}",
+        "brandPlaceholder": "బ్రాండ్ పేరుతో శోధించండి...",
+        "regionPlaceholder": "రాష్ట్రం/జిల్లా ద్వారా ఫిల్టర్ చేయండి...",
+        "error": "సక్రియ లాగ్‌లను పొందేటప్పుడు డేటాబేస్ సమకాలీకరణ లోపం సంభవించింది.",
+        "loading": "హెచ్చరికలు లోడ్ అవుతున్నాయి...",
+        "systemUpdate": "సిస్టమ్ నవీకరణ",
+        "alertType": "హెచ్చరిక: {type}",
+        "noDetails": "వివరాలు అందుబాటులో లేవు",
+        "batchLabel": "బ్యాచ్:",
+        "manufacturerLabel": "తయారీదారు:",
+        "regionLabel": "ప్రాంతం:",
+        "empty": "మీ ప్రమాణాలకు సరిపడే ఆరోగ్య హెచ్చరికలు కనుగొనబడలేదు.",
+        "previous": "మునుపటి",
+        "next": "తదుపరి"
+    },
+    "Compare": {
+        "pageTitle": "ఔషధాలను పోల్చండి",
+        "pageSubtitle": "బ్రాండ్ మరియు జెనరిక్ ఔషధాలను పక్కపక్కన పోల్చండి",
+        "firstMedicine": "మొదటి ఔషధం",
+        "secondMedicine": "రెండవ ఔషధం",
+        "searchPlaceholder": "బ్రాండ్ లేదా జెనరిక్ పేరును శోధించండి",
+        "findPharmacies": "ఫార్మసీలను కనుగొనండి",
+        "emptyComparison": "పోలికను చూడటానికి పై రెండు ఔషధాలను ఎంచుకోండి.",
+        "fieldHeader": "ఫీల్డ్",
+        "medicineA": "ఔషధం A",
+        "medicineB": "ఔషధం B",
+        "priceUnavailable": "ధర అందుబాటులో లేదు",
+        "noSavings": "పొదుపు లేదు",
+        "saveAmount": "₹{amount} పొదుపు ({percent}%)",
+        "rows": {
+            "brandName": "బ్రాండ్ పేరు",
+            "genericName": "జెనరిక్ పేరు",
+            "composition": "కూర్పు",
+            "manufacturer": "తయారీదారు",
+            "type": "రకం",
+            "cdscoStatus": "CDSCO స్థితి",
+            "expiryDate": "గడువు ముగింపు తేదీ",
+            "marketPrice": "మార్కెట్ ధర (MRP)",
+            "janAushadhiPrice": "జన్ ఔషధి ధర",
+            "savings": "MRPతో పోలిస్తే పొదుపు"
+        },
+        "medicineTypes": {
+            "brand": "బ్రాండ్",
+            "generic": "జెనరిక్"
+        },
+        "status": {
+            "approved": "ఆమోదించబడింది",
+            "recalled": "వెనక్కి పిలిపించబడింది",
+            "banned": "నిషేధించబడింది"
+        }
+    },
+    "ExpiryTracker": {
+        "title": "ఔషధ గడువు ట్రాకర్",
+        "subtitle": "మీ ఔషధ నిల్వను స్థానికంగా నిర్వహించి ట్రాక్ చేయండి",
+        "addMedicine": "ఔషధాన్ని జోడించండి",
+        "name": "పేరు",
+        "expiryDate": "గడువు ముగింపు తేదీ",
+        "batchNumber": "బ్యాచ్ నంబర్ (ఐచ్ఛికం)",
+        "batchPlaceholder": "ఉదా: B12345",
+        "namePlaceholder": "ఉదా: పారాసిటమాల్",
+        "addToTracker": "ట్రాకర్‌కు జోడించండి",
+        "trackedMedicines": "ట్రాక్ చేసిన ఔషధాలు",
+        "total": "మొత్తం",
+        "noMedicines": "ఇంకా ఏ ఔషధం జోడించబడలేదు.",
+        "loading": "ట్రాకర్ డేటా లోడ్ అవుతోంది...",
+        "searchPlaceholder": "ఔషధాలను శోధించండి...",
+        "sortBy": "క్రమబద్ధీకరించండి",
+        "sortExpirySoonest": "గడువు తేదీ (త్వరలో ముగిసేది)",
+        "sortExpiryLatest": "గడువు తేదీ (చివరిగా ముగిసేది)",
+        "sortAlpha": "పేరు (అ-హ)",
+        "filterAll": "అన్నీ",
+        "filterExpired": "గడువు ముగిసినవి",
+        "filterExpiringSoon": "త్వరలో గడువు ముగియనున్నవి",
+        "filterSafe": "సురక్షితమైనవి",
+        "exportBackup": "బ్యాకప్ ఎగుమతి చేయండి",
+        "importBackup": "బ్యాకప్ దిగుమతి చేయండి",
+        "importError": "చెల్లని బ్యాకప్ ఫైల్. దయచేసి చెల్లుబాటు అయ్యే JSON బ్యాకప్‌ను అప్‌లోడ్ చేయండి.",
+        "statusExpired": "గడువు ముగిసింది",
+        "statusExpiringSoon": "త్వరలో గడువు ముగియనుంది ({days} రోజులు)",
+        "statusSafe": "సురక్షితం",
+        "exportCSV": "CSVని ఎగుమతి చేయి",
+        "exportPDF": "PDFని ఎగుమతి చేయి",
+        "print": "ప్రింట్ చేయి",
+        "csvExportSuccess": "CSV విజయవంతంగా ఎగుమతి చేయబడింది",
+        "pdfExportSuccess": "PDF విజయవంతంగా ఎగుమతి చేయబడింది",
+        "noMedicinesToDisplay": "ప్రదర్శించడానికి ఎటువంటి మందులు లేవు",
+        "generatedOn": "లో గడువు ముగియనుం",
+        "deleteMedicine": "మందును తొలగించు"
+    },
+    "Login": {
+        "brandSubtitle": "ఔషధ భద్రతా వేదిక",
+        "heading": "మళ్లీ స్వాగతం",
+        "description": "ఔషధ భద్రతా నివేదికలు మరియు ధృవీకరణ ఫలితాలను ట్రాక్ చేయడానికి సైన్ ఇన్ చేయండి.",
+        "missingConfig": {
+            "title": "ప్రామాణీకరణ కాన్ఫిగర్ చేయబడలేదు",
+            "description": "Supabase URL లేదా anon key లేదు. సైన్ ఇన్ చేయడానికి ముందు environment variables జోడించండి."
+        },
+        "googleButton": "Googleతో కొనసాగించండి",
+        "githubButton": "GitHubతో కొనసాగించండి",
+        "emailSeparator": "లేదా ఇమెయిల్‌తో కొనసాగించండి",
+        "emailLabel": "ఇమెయిల్ చిరునామా",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "పాస్‌వర్డ్",
+        "passwordPlaceholder": "మీ పాస్‌వర్డ్‌ను నమోదు చేయండి",
+        "signingIn": "సైన్ ఇన్ అవుతోంది...",
+        "signIn": "సైన్ ఇన్ చేయండి",
+        "footerPrompt": "వెనక్కి వెళ్లాలనుకుంటున్నారా?",
+        "returnHome": "హోమ్‌కు తిరిగి వెళ్లండి",
+        "bottomText": "SahiDawa కమ్యూనిటీ సాధనాల కోసం రక్షిత ప్రాప్యత.",
+        "errors": {
+            "databaseNotConfigured": "ఈ వాతావరణం కోసం ప్రామాణీకరణ కాన్ఫిగర్ చేయబడలేదు.",
+            "generic": "సైన్ ఇన్ చేయలేకపోయాము. దయచేసి మళ్లీ ప్రయత్నించండి."
+        }
+    },
+    "AdminLayout": {
+        "accessDeniedTitle": "ప్రవేశం నిరాకరించబడింది",
+        "accessDeniedDescription": "ఈ పేజీని చూడటానికి మీకు నిర్వాహకుడు లేదా మోడరేటర్ అనుమతులు అవసరం.",
+        "returnHome": "హోమ్‌కు తిరిగి వెళ్లండి"
+    },
+    "AdminDashboard": {
+        "brandSuffix": "అడ్మిన్",
+        "version": "SahiDawa అడ్మిన్ v1.0",
+        "nav": {
+            "reports": "నివేదికలు",
+            "medicine": "ఔషధ మాస్టర్",
+            "logs": "ఆడిట్ లాగ్‌లు"
+        },
+        "header": {
+            "title": "మోడరేషన్ డ్యాష్‌బోర్డ్",
+            "subtitle": "సమాజం నివేదించిన నకిలీ ఔషధాలను నిర్వహించండి"
+        },
+        "searchPlaceholder": "వెతకండి...",
+        "actions": {
+            "signIn": "సైన్ ఇన్",
+            "refresh": "రిఫ్రెష్",
+            "addMedicine": "ఔషధం జోడించండి",
+            "save": "భద్రపరచండి",
+            "cancel": "రద్దు చేయండి",
+            "goToLogin": "లాగిన్‌కు వెళ్లండి",
+            "markFake": "నకిలీగా గుర్తించండి",
+            "falseAlarm": "తప్పుడు హెచ్చరిక"
+        },
+        "stats": {
+            "pending": "పెండింగ్",
+            "resolved": "పరిష్కరించబడినవి",
+            "districtsAffected": "ప్రభావిత జిల్లాలు"
+        },
+        "errors": {
+            "notAuthenticated": "ధృవీకరించబడలేదు — దయచేసి అడ్మిన్‌గా సైన్ ఇన్ చేయండి.",
+            "accessDenied": "ప్రవేశం నిరాకరించబడింది — అడ్మిన్ లేదా మోడరేటర్ పాత్ర అవసరం.",
+            "apiUnavailable": "API ను చేరుకోలేకపోయాము. బ్యాక్‌ఎండ్ సర్వర్ 4000 పోర్ట్‌లో నడుస్తుందా?"
+        },
+        "toasts": {
+            "markedFake": "ధృవీకరించబడిన నకిలీగా గుర్తించబడింది",
+            "falseAlarm": "తప్పుడు హెచ్చరికగా గుర్తించబడింది",
+            "reportUpdateFailed": "నివేదికను నవీకరించడం విఫలమైంది",
+            "medicineAdded": "ఔషధం జోడించబడింది",
+            "medicineAddFailed": "ఔషధాన్ని జోడించడం విఫలమైంది"
+        },
+        "medicine": {
+            "title": "ఔషధ మాస్టర్",
+            "empty": "ఔషధాలు కనుగొనబడలేదు",
+            "columns": {
+                "brand": "బ్రాండ్",
+                "generic": "జెనరిక్",
+                "manufacturer": "తయారీదారు",
+                "barcode": "బార్‌కోడ్",
+                "status": "స్థితి"
+            }
+        },
+        "status": {
+            "approved": "ఆమోదించబడింది",
+            "recalled": "వెనక్కి పిలిపించబడింది",
+            "banned": "నిషేధించబడింది"
+        },
+        "logs": {
+            "title": "ఆడిట్ లాగ్‌లు",
+            "subtitle": "ఇటీవలి మోడరేషన్ మరియు ఔషధ జాబితా కార్యకలాపాలు",
+            "loading": "లాగ్‌లు లోడ్ అవుతున్నాయి...",
+            "empty": "ఇంకా ఆడిట్ లాగ్‌లు లేవు"
+        },
+        "reports": {
+            "title": "వచ్చిన నివేదికలు",
+            "pendingCount": "{count, plural, =0 {పెండింగ్ నివేదికలు లేవు} =1 {1 పెండింగ్ నివేదిక} other {# పెండింగ్ నివేదికలు}}",
+            "loading": "నివేదికలు లోడ్ అవుతున్నాయి...",
+            "empty": "పెండింగ్ నివేదికలు లేవు",
+            "columns": {
+                "medicine": "ఔషధం",
+                "district": "జిల్లా",
+                "barcode": "బార్‌కోడ్",
+                "reported": "నివేదించబడింది",
+                "actions": "చర్యలు"
+            },
+            "decisions": {
+                "verifiedFake": "ధృవీకరించబడిన నకిలీ",
+                "falseAlarm": "తప్పుడు హెచ్చరిక"
+            }
+        },
+        "resolved": {
+            "title": "ఇటీవల పరిష్కరించబడినవి",
+            "count": "{count, plural, =0 {పరిష్కరించబడిన నివేదికలు లేవు} =1 {1 పరిష్కరించబడిన నివేదిక} other {# పరిష్కరించబడిన నివేదికలు}}",
+            "decision": "నిర్ణయం"
+        }
+    },
+    "AdminAnalytics": {
+        "title": "ప్రభావ విశ్లేషణ డ్యాష్‌బోర్డ్",
+        "subtitle": "సమాజ భాగస్వామ్య సూచికలు మరియు వృద్ధి ధోరణులు",
+        "metrics": {
+            "totalMedicines": "మొత్తం ఔషధాలు",
+            "totalReports": "మొత్తం నివేదికలు",
+            "resolved": "పరిష్కరించబడినవి",
+            "districtsCovered": "కవర్ చేయబడిన జిల్లాలు"
+        },
+        "charts": {
+            "monthlyGrowth": "నెలవారీ వృద్ధి ధోరణి",
+            "reportStatus": "నివేదిక స్థితి పంపిణీ",
+            "topDistricts": "నివేదికల ఆధారంగా అగ్ర జిల్లాలు",
+            "recentActivity": "ఇటీవలి కార్యకలాపాలు"
+        },
+        "overview": {
+            "title": "ప్లాట్‌ఫారమ్ అవలోకనం",
+            "avgReportsPerDay": "రోజుకు సగటు నివేదికలు",
+            "resolutionRate": "పరిష్కార రేటు",
+            "thisWeekReports": "ఈ వారపు నివేదికలు",
+            "thisWeekMedicines": "ఈ వారపు ఔషధాలు"
+        }
+    },
+    "vaccineHub": {
+        "pageHeaderTitle": "వ్యాక్సిన్ హబ్",
+        "pageHeaderSubtitle": "రోగనిరోధక శక్తి ట్రాకర్",
+        "title": "వ్యాక్సిన్ హబ్ & రోగనిరోధక శక్తి ట్రాకర్",
+        "subtitle": "మెరుగైన ప్రజారోగ్య అవగాహన కోసం వ్యాక్సిన్ షెడ్యూల్‌లు, భద్రతా సమాచారం మరియు తదుపరి సంరక్షణ మార్గదర్శకాలను అన్వేషించండి.",
+        "selectLabel": "వ్యాధి / వ్యాక్సిన్‌ను ఎంచుకోండి",
+        "placeholder": "ఒక వ్యాక్సిన్ ప్రొఫైల్‌ను ఎంచుకోండి...",
+        "childBirthDate": "పిల్లల పుట్టిన తేదీ",
+        "milestoneBaseDate": "మొదటి డోస్ మైల్‌స్టోన్ బేస్ తేదీ",
+        "noVaccineSelected": "ఏ వ్యాక్సిన్ ఎంచుకోబడలేదు",
+        "chooseVaccinePrompt": "ట్రాకింగ్ సాధనాలను అన్‌లాక్ చేయడానికి పైన ఒక వ్యాక్సిన్‌ను ఎంచుకోండి:",
+        "featureSchedule": "డైనమిక్ అంచనా రోగనిరోధక షెడ్యూల్",
+        "featureSideEffects": "దుష్ప్రభావాల వర్గీకరణ (తేలికపాటి వర్సెస్ తీవ్రమైన)",
+        "featureAftercare": "దశల వారీ క్లినికల్ అనంతర సంరక్షణ సూచనలు",
+        "targetGroups": "లక్ష్య సమూహాలు",
+        "totalDoses": "మొత్తం డోసులు",
+        "effectiveness": "ప్రభావశీలత",
+        "classification": "వర్గీకరణ",
+        "aboutDisease": "వ్యాధి గురించి:",
+        "scheduleLayoutHeading": "రోగనిరోధక షెడ్యూల్",
+        "atBirth": "పుట్టిన సమయంలో ఇచ్చే మోతాదు",
+        "atWeeks": "{weeks} వారాల వయస్సులో",
+        "baseline": "ప్రారంభ మోతాదు (బేస్‌లైన్)",
+        "doseStep": "డోస్ దశ {index} (+{weeks} వారాల తర్వాత)",
+        "targetDate": "లక్ష్య తేదీ: {date}",
+        "selectDateWarning": "షెడ్యూల్ టైమ్‌లైన్‌లను చూడటానికి పైన ఒక తేదీని ఎంచుకోండి",
+        "commonEffects": "సాధారణ దుష్ప్రభావాలు",
+        "severeReactions": "తీవ్రమైన ప్రతిచర్యలు",
+        "aftercareHeading": "తక్షణ అనంతర సంరక్షణ మార్గదర్శకత్వం"
+    },
+    "CommandPalette": {
+        "placeholder": "Search pages or actions...",
+        "noResults": "No results found.",
+        "hint": "Press Esc to close",
+        "pages": "Pages",
+        "actions": "Actions",
+        "open": "Open command palette",
+        "nav_home": "Go to Home",
+        "nav_scan": "Scan a Medicine",
+        "nav_map": "Find Nearby Pharmacy",
+        "nav_alerts": "View Alerts",
+        "nav_expiry": "Medicine Expiry Tracker",
+        "nav_compare": "Compare Medicines",
+        "nav_vaccine": "Vaccine Hub",
+        "nav_reports": "My Reports",
+        "nav_profile": "My Profile"
+    },
+    "medicineSafety": {
+        "guideTitle": "వినియోగం మరియు భద్రతా మార్గదర్శిని",
+        "noDosageInfo": "ఈ వయస్సు వర్గానికి మోతాదు సమాచారం అందుబాటులో లేదు.",
+        "closeButton": "భద్రతా సమాచారాన్ని మూసివేయండి",
+        "tabs": {
+            "sideEffects": "దుష్ప్రభావాలు",
+            "dosage": "మోతాదు",
+            "dietaryIntake": "ఆహార వినియోగం"
+        },
+        "sideEffects": {
+            "standardSymptoms": "సాధారణ లక్షణాలు",
+            "severeRedFlags": "తీవ్రమైన హెచ్చరికలు — వెంటనే వైద్య సహాయం పొందండి"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "పిల్లలు",
+                "adults": "వయోజనులు",
+                "elderly": "వృద్ధులు"
+            },
+            "doseLabel": "మోతాదు:",
+            "frequencyLabel": "తరచుదనం:",
+            "notesHeading": "గమనికలు",
+            "warningsHeading": "హెచ్చరికలు"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "ఆహార వినియోగం"
+            },
+            "storageHeading": "నిల్వ",
+            "pregnancyHeading": "గర్భధారణ"
+        },
+        "disclaimer": "ఈ సమాచారం విద్యాపరమైనది మాత్రమే; ఇది వృత్తిపరమైన వైద్య సలహాకు ప్రత్యామ్నాయం కాదు."
+    },
+    "Health": {
+        "quickActions": "Quick actions",
+        "scanMedicine": "Scan Medicine",
+        "verifyAuthenticity": "Verify authenticity",
+        "checkSymptoms": "Check Symptoms",
+        "symptomGuidance": "AI-assisted guidance",
+        "findPharmacy": "Find Pharmacy",
+        "locateStores": "Locate verified stores",
+        "replyFallback": "I'm here to help! Could you rephrase that?",
+        "tooManyRequests": "Too many requests. Please try again in a few moments.",
+        "failedResponse": "Failed to generate AI response",
+        "genericError": "Something went wrong",
+        "returnHome": "Return to chat home",
+        "chatConversation": "Chat conversation",
+        "startVoice": "Start voice input",
+        "stopVoice": "Stop voice input",
+        "healthQuestion": "Type your health question",
+        "voiceBrowserRequired": "Voice input is not supported in this browser.",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "sendMessage": "Send message",
+        "footer": "For informational use only • Consult a doctor"
     }
 }

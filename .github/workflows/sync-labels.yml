@@ -1,0 +1,155 @@
+name: 🔄 Sync Labels Between PR and Linked Issue
+
+on:
+  pull_request_target:
+    types: [opened, edited, labeled, unlabeled]
+  issues:
+    types: [labeled, unlabeled]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  sync-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🔄 Event-driven Delta Label Sync
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // 🛑 PREVENT BOT LOOPS
+            // If the label was added or removed by a bot (like actions/labeler), ignore it so it doesn't cascade.
+            if (context.payload.sender && context.payload.sender.type === 'Bot') {
+              console.log("Action performed by a Bot (" + context.payload.sender.login + "). Ignoring to prevent infinite loops.");
+              return;
+            }
+
+            async function getLinkedIssues(prNumber, prBody) {
+              const linkedIssues = new Set();
+              
+              try {
+                const query = `
+                  query($owner: String!, $repo: String!, $prNumber: Int!) {
+                    repository(owner: $owner, name: $repo) {
+                      pullRequest(number: $prNumber) {
+                        closingIssuesReferences(first: 10) {
+                          nodes {
+                            number
+                          }
+                        }
+                      }
+                    }
+                  }
+                `;
+                const result = await github.graphql(query, {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  prNumber: prNumber
+                });
+                const nodes = result.repository.pullRequest.closingIssuesReferences.nodes;
+                nodes.forEach(n => linkedIssues.add(n.number));
+              } catch (e) {
+                console.error(`GraphQL error getting linked issues for PR #${prNumber}:`, e);
+              }
+
+              if (prBody) {
+                const issueRegex = /(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved|issue|related to)\s+(?:#|https?:\/\/github\.com\/[^\/]+\/[^\/]+\/issues\/|issues\/)?(\d+)/gi;
+                let match;
+                while ((match = issueRegex.exec(prBody)) !== null) {
+                  linkedIssues.add(parseInt(match[1]));
+                }
+              }
+              
+              return linkedIssues;
+            }
+
+            async function getTargetLabels(targetNumber) {
+              try {
+                const { data: issue } = await github.rest.issues.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: targetNumber
+                });
+                return (issue.labels || []).map(l => l.name);
+              } catch (e) {
+                console.error(`Could not fetch labels for #${targetNumber}:`, e);
+                return [];
+              }
+            }
+
+            const action = context.payload.action;
+            const eventName = context.eventName;
+
+            console.log(`Triggered by Event: ${eventName}, Action: ${action}`);
+
+            if (eventName === 'pull_request' || eventName === 'pull_request_target') {
+              const pr = context.payload.pull_request;
+              const linkedIssues = await getLinkedIssues(pr.number, pr.body);
+              console.log(`PR #${pr.number} parsed. Linked issues: ${Array.from(linkedIssues).join(', ')}`);
+
+              if (action === 'opened' || action === 'edited') {
+                const prLabels = (pr.labels || []).map(l => l.name);
+                let allIssueLabels = [];
+                
+                for (const issueNumber of linkedIssues) {
+                  try {
+                    const issueLabels = await getTargetLabels(issueNumber);
+                    allIssueLabels.push(...issueLabels);
+                  } catch (e) {
+                    console.error(`Failed to fetch labels from Issue #${issueNumber}:`, e);
+                  }
+                }
+                
+                // Filter to unique new labels
+                const newLabels = [...new Set(allIssueLabels)].filter(l => !prLabels.includes(l));
+                
+                // Enforce mutual exclusivity for prefixes to prevent conflicts
+                const exclusivePrefixes = ['level:', 'type:', 'quality:'];
+                const filteredToAdd = [];
+                const seenPrefixes = new Set();
+                
+                // Register prefixes already on the PR so we don't overwrite them
+                for (const l of prLabels) {
+                    for (const p of exclusivePrefixes) {
+                        if (l.startsWith(p)) seenPrefixes.add(p);
+                    }
+                }
+                
+                for (const l of newLabels) {
+                    let isExclusive = false;
+                    let prefixMatch = null;
+                    
+                    for (const p of exclusivePrefixes) {
+                        if (l.startsWith(p)) {
+                            isExclusive = true;
+                            prefixMatch = p;
+                            break;
+                        }
+                    }
+                    
+                    if (isExclusive) {
+                        // Only add if we haven't seen this prefix yet
+                        if (!seenPrefixes.has(prefixMatch)) {
+                            filteredToAdd.push(l);
+                            seenPrefixes.add(prefixMatch);
+                        }
+                    } else {
+                        filteredToAdd.push(l);
+                    }
+                }
+
+                if (filteredToAdd.length > 0) {
+                  console.log(`Adding non-conflicting labels to PR #${pr.number}: ${filteredToAdd.join(', ')}`);
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: pr.number,
+                    labels: filteredToAdd
+                  });
+                } else {
+                  console.log(`No new non-conflicting labels to copy to PR #${pr.number}`);
+                }
+              }
+            }

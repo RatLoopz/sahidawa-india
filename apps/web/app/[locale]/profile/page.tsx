@@ -1,111 +1,268 @@
-import Link from "next/link";
-import {
-  User,
-  ShieldCheck,
-  Bell,
-  ChevronRight,
-  ArrowLeft,
-} from "lucide-react";
+"use client";
+
+import { useEffect, useState } from "react";
+import { Link, useRouter } from "@/i18n/routing";
+import { User, ShieldCheck, Bell, ChevronRight, ArrowLeft, LogIn, LogOut } from "lucide-react";
+import ABHABadge from "@/components/ABHABadge";
+import { useSession } from "@/src/components/AuthProvider";
+
+const ACCESS_TOKEN_KEY = "sb-access-token";
+
+type ProfileSession =
+    | { status: "checking" }
+    | { status: "guest" }
+    | {
+          status: "authenticated";
+          displayName: string;
+      };
+
+type AccessTokenPayload = {
+    email?: unknown;
+    sub?: unknown;
+    exp?: unknown;
+    user_metadata?: Record<string, unknown> | null;
+};
+
+function getString(value: unknown): string | null {
+    return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function decodeBase64Url(value: string): string {
+    const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+    const binary = window.atob(padded);
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+
+    return new TextDecoder().decode(bytes);
+}
+
+function readSessionFromToken(token: string | null): {
+    session: ProfileSession;
+    clearToken: boolean;
+} {
+    if (!token) {
+        return { session: { status: "guest" }, clearToken: false };
+    }
+
+    try {
+        const [, payloadPart] = token.split(".");
+
+        if (!payloadPart) {
+            return { session: { status: "guest" }, clearToken: true };
+        }
+
+        const payload = JSON.parse(decodeBase64Url(payloadPart)) as AccessTokenPayload;
+
+        if (typeof payload.exp === "number" && payload.exp * 1000 <= Date.now()) {
+            return { session: { status: "guest" }, clearToken: true };
+        }
+
+        const displayName =
+            getString(payload.user_metadata?.full_name) ??
+            getString(payload.user_metadata?.name) ??
+            getString(payload.email) ??
+            getString(payload.sub) ??
+            "Signed-in User";
+
+        return {
+            session: {
+                status: "authenticated",
+                displayName,
+            },
+            clearToken: false,
+        };
+    } catch {
+        return { session: { status: "guest" }, clearToken: true };
+    }
+}
 
 export default function ProfilePage() {
-  return (
-    <div className="min-h-screen bg-(--color-surface-muted) text-(--color-text-primary) px-6 py-8">
-      <div className="max-w-3xl mx-auto">
+    const router = useRouter();
+    const { token, isLoading: authLoading } = useSession();
+    const [session, setSession] = useState<ProfileSession>({ status: "checking" });
 
-        {/* Back Button */}
-        <Link
-          href="/"
-          className="mb-6 inline-flex items-center gap-2 rounded-xl px-3 py-2 font-medium text-(--color-text-secondary) transition-all hover:bg-(--color-surface-page) hover:text-emerald-600 dark:hover:text-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-          >
-          <ArrowLeft size={18} />
+    const accountTitle =
+        session.status === "authenticated"
+            ? session.displayName
+            : session.status === "checking"
+              ? "Checking account status"
+              : "Guest User";
 
-          <span className="font-medium">
-            Back to Home
-          </span>
-        </Link>
+    const accountSubtitle =
+        session.status === "authenticated"
+            ? "Authenticated account"
+            : session.status === "checking"
+              ? "Reading your local session"
+              : "No account connected";
 
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <div className="w-16 h-16 rounded-3xl bg-emerald-100 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-sm">
-            <User size={30} />
-          </div>
+    useEffect(() => {
+        if (authLoading) return;
 
-          <div>
-            <h1 className="text-2xl font-black text-(--color-text-primary) sm:text-3xl">
-              Your Profile
-            </h1>
+        const result = readSessionFromToken(token);
 
-            <p className="text-(--color-text-secondary) mt-1">
-              Manage your account and medicine activity.
-            </p>
-          </div>
-        </div>
+        if (result.clearToken) {
+            localStorage.removeItem(ACCESS_TOKEN_KEY);
+        }
 
-        {/* Profile Card */}
-        <div className="bg-(--color-surface-page) rounded-3xl border border-(--color-border-muted) shadow-sm overflow-hidden">
+        setSession(result.session);
+    }, [authLoading, token]);
 
-          {/* User Info */}
-          <div className="p-6 flex items-center justify-between border-b border-(--color-border-muted)">
-            <div>
-              <h2 className="font-bold text-(--color-text-primary)">
-                Guest User
-              </h2>
+    const handleSignOut = () => {
+        localStorage.removeItem(ACCESS_TOKEN_KEY);
+        setSession({ status: "guest" });
+        router.push("/");
+    };
 
-              <p className="text-sm text-(--color-text-secondary) mt-1">
-                No account connected
-              </p>
+    return (
+        <div className="flex-grow bg-(--color-surface-muted) px-6 py-8 text-(--color-text-primary)">
+            <div className="mx-auto max-w-3xl">
+                {/* Back Button */}
+                <Link
+                    href="/"
+                    className="mb-6 inline-flex items-center gap-2 rounded-xl px-3 py-2 font-medium text-(--color-text-secondary) transition-all hover:bg-(--color-surface-page) hover:text-emerald-600 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none dark:hover:text-emerald-400"
+                >
+                    <ArrowLeft size={18} />
+                    <span className="font-medium">Back to Home</span>
+                </Link>
+
+                {/* Header */}
+                <div className="mb-8 flex items-center gap-4">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-100 text-emerald-600 shadow-sm dark:bg-emerald-950/30 dark:text-emerald-400">
+                        <User size={30} />
+                    </div>
+
+                    <div>
+                        <h1 className="text-2xl font-black text-(--color-text-primary) sm:text-3xl">
+                            Your Profile
+                        </h1>
+
+                        <p className="mt-1 text-(--color-text-secondary)">
+                            Manage your account and medicine activity.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Profile Card */}
+                <div className="overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) shadow-sm">
+                    {/* User Info */}
+                    <div className="flex flex-col gap-4 border-b border-(--color-border-muted) p-6 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-(--color-surface-muted)">
+                                <ShieldCheck
+                                    className="text-emerald-600 dark:text-emerald-400"
+                                    size={24}
+                                />
+                            </div>
+
+                            <div>
+                                <h2 className="font-bold break-all text-(--color-text-primary)">
+                                    {accountTitle}
+                                </h2>
+
+                                <p className="mt-1 text-sm text-(--color-text-secondary)">
+                                    {accountSubtitle}
+                                </p>
+
+                                {session.status === "authenticated" && (
+                                    <div className="mt-2">
+                                        <ABHABadge linked={true} />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {session.status === "guest" && (
+                            <Link
+                                href="/login"
+                                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                            >
+                                <LogIn size={18} />
+                                Sign In / Register
+                            </Link>
+                        )}
+                    </div>
+
+                    {/* Menu Items */}
+                    <div className="divide-y divide-(--color-border-muted)">
+                        {session.status === "authenticated" && (
+                            <button
+                                type="button"
+                                onClick={handleSignOut}
+                                className="flex w-full items-center justify-between p-5 text-left transition-colors hover:bg-(--color-surface-muted)"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <LogOut size={20} className="text-red-500" />
+                                    <span className="font-semibold text-(--color-text-primary)">
+                                        Sign Out
+                                    </span>
+                                </div>
+                                <ChevronRight size={18} className="text-(--color-text-muted)" />
+                            </button>
+                        )}
+
+                        <Link
+                            href="/abha-setup"
+                            className="flex items-center justify-between p-5 transition-colors hover:bg-(--color-surface-muted)"
+                        >
+                            <div className="flex items-center gap-3">
+                                <ShieldCheck
+                                    size={20}
+                                    className="text-emerald-600 dark:text-emerald-400"
+                                />
+                                <span className="font-semibold text-(--color-text-primary)">
+                                    ABHA Setup
+                                </span>
+                            </div>
+                            <ChevronRight size={18} className="text-(--color-text-muted)" />
+                        </Link>
+
+                        <Link
+                            href="/abha-records"
+                            className="flex items-center justify-between p-5 transition-colors hover:bg-(--color-surface-muted)"
+                        >
+                            <div className="flex items-center gap-3">
+                                <ShieldCheck
+                                    size={20}
+                                    className="text-emerald-600 dark:text-emerald-400"
+                                />
+                                <span className="font-semibold text-(--color-text-primary)">
+                                    ABHA Records
+                                </span>
+                            </div>
+                            <ChevronRight size={18} className="text-(--color-text-muted)" />
+                        </Link>
+
+                        <Link
+                            href="/settings"
+                            className="flex items-center justify-between p-5 transition-colors hover:bg-(--color-surface-muted)"
+                        >
+                            <div className="flex items-center gap-3">
+                                <Bell size={20} className="text-red-500" />
+                                <span className="font-semibold text-(--color-text-primary)">
+                                    Notification Settings
+                                </span>
+                            </div>
+                            <ChevronRight size={18} className="text-(--color-text-muted)" />
+                        </Link>
+
+                        <Link
+                            href="/privacy"
+                            className="flex items-center justify-between p-5 transition-colors hover:bg-(--color-surface-muted)"
+                        >
+                            <div className="flex items-center gap-3">
+                                <ShieldCheck
+                                    size={20}
+                                    className="text-emerald-600 dark:text-emerald-400"
+                                />
+                                <span className="font-semibold text-(--color-text-primary)">
+                                    Privacy & Security
+                                </span>
+                            </div>
+                            <ChevronRight size={18} className="text-(--color-text-muted)" />
+                        </Link>
+                    </div>
+                </div>
             </div>
-
-            <div className="w-12 h-12 rounded-2xl bg-(--color-surface-muted) flex items-center justify-center">
-              <ShieldCheck
-                className="text-emerald-600 dark:text-emerald-400"
-                size={24}
-              />
-            </div>
-          </div>
-
-          {/* Menu Items */}
-          <div className="divide-y divide-(--color-border-muted)">
-
-            <button className="w-full flex items-center justify-between p-5 hover:bg-(--color-surface-muted) transition-colors">
-              <div className="flex items-center gap-3">
-                <Bell
-                  size={20}
-                  className="text-red-500"
-                />
-
-                <span className="font-semibold text-(--color-text-primary)">
-                  Notification Settings
-                </span>
-              </div>
-
-              <ChevronRight
-                size={18}
-                className="text-(--color-text-muted)"
-              />
-            </button>
-
-            <button className="w-full flex items-center justify-between p-5 hover:bg-(--color-surface-muted) transition-colors">
-              <div className="flex items-center gap-3">
-                <ShieldCheck
-                  size={20}
-                  className="text-emerald-600 dark:text-emerald-400"
-                />
-
-                <span className="font-semibold text-(--color-text-primary)">
-                  Privacy & Security
-                </span>
-              </div>
-
-              <ChevronRight
-                size={18}
-                className="text-(--color-text-muted)"
-              />
-            </button>
-
-          </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }

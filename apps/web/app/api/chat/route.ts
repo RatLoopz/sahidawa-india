@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { NextResponse } from "next/server";
 import { detectEmergencyKeywords } from "@/lib/voice/emergency";
 import { rateLimit } from "@/lib/rateLimit";
@@ -20,6 +20,14 @@ type VoiceTriageResponse = {
     recommendations: string[];
     disclaimer: string;
     emergency: boolean;
+};
+
+type TextStreamChunk = {
+    text?: string;
+    usageMetadata?: {
+        promptTokenCount?: number;
+        candidatesTokenCount?: number;
+    };
 };
 
 function getLatestMessageText(messages: ChatMessage[] | undefined) {
@@ -88,14 +96,43 @@ function parseVoiceTriageResponse(rawText: string): VoiceTriageResponse {
     }
 }
 
+// Structured-output schema so Gemini always returns valid, parseable JSON
+// (no markdown fences, no trailing/mixed-language corruption).
+const VOICE_TRIAGE_SCHEMA = {
+    type: Type.OBJECT,
+    properties: {
+        summary: {
+            type: Type.STRING,
+            description:
+                "One short sentence (max two) describing the likely situation and next step.",
+        },
+        recommendations: {
+            type: Type.ARRAY,
+            description: "The 3 most important actions, each a single short sentence.",
+            items: { type: Type.STRING },
+            minItems: "1",
+            maxItems: "3",
+        },
+        disclaimer: {
+            type: Type.STRING,
+            description:
+                "A brief reminder to seek professional care for serious, persistent, or worsening symptoms.",
+        },
+        emergency: {
+            type: Type.BOOLEAN,
+            description: "True only if the symptoms could indicate urgent medical attention.",
+        },
+    },
+    required: ["summary", "recommendations", "disclaimer", "emergency"],
+    propertyOrdering: ["summary", "recommendations", "disclaimer", "emergency"],
+};
+
 function buildVoiceTriagePrompt(transcript: string, responseLanguage: string) {
     return [
         `Citizen transcript: ${JSON.stringify(transcript)}`,
-        `Respond in ${responseLanguage}.`,
-        "Return strict JSON only.",
-        'Use this shape: {"summary":"string","recommendations":["string"],"disclaimer":"string","emergency":boolean,"text":"string"}.',
-        "Keep the summary to at most 2 short sentences.",
-        "Return no more than 3 concise recommendation items.",
+        `Write every field entirely in ${responseLanguage}. Do not mix languages or scripts within any field.`,
+        "Be brief: the summary is at most 2 short sentences.",
+        "Give only the 3 most important recommendations, each a single short sentence.",
         "Set emergency to true only if the symptoms could indicate urgent medical attention.",
         "The disclaimer must remind the user to seek professional care for serious, persistent, or worsening symptoms.",
     ].join("\n");
@@ -136,42 +173,99 @@ export async function POST(req: Request) {
 
         if (mode === "voice-triage") {
             const deterministicEmergency = detectEmergencyKeywords(latestMessageText);
-            const response = await ai.models.generateContent({
-                model: "gemini-2.5-flash",
-                contents: buildVoiceTriagePrompt(
-                    latestMessageText,
-                    typeof responseLanguage === "string" && responseLanguage.trim().length > 0
-                        ? responseLanguage.trim()
-                        : "English"
-                ),
-                config: {
-                    systemInstruction:
-                        "You are the SahiDawa voice triage assistant for India. Help users understand possible next steps based on symptoms, but never claim certainty or replace medical professionals. Be calm, concise, practical, and safety-first.",
-                },
-            });
 
-            const latency_ms = Date.now() - startTime;
-            structuredLog({
-                log_level: "info",
-                route: ROUTE,
-                latency_ms,
-                metrics: {
-                    input_tokens: response.usageMetadata?.promptTokenCount,
-                    output_tokens: response.usageMetadata?.candidatesTokenCount,
-                },
-                meta: { mode: "voice-triage", responseLanguage },
-            });
+            let parsedResponse;
+            let emergencyFromML = false;
 
-            const parsedResponse = parseVoiceTriageResponse(response.text ?? "");
+            try {
+                const mlServiceUrl =
+                    process.env.ML_SERVICE_URL?.trim() ||
+                    process.env.NEXT_PUBLIC_ML_SERVICE_URL?.trim() ||
+                    "http://localhost:8000";
+                const formattedMessages = (messages || []).map((m: any) => ({
+                    role: m.role === "assistant" || m.role === "model" ? "assistant" : "user",
+                    content: m.text || m.content || "",
+                }));
+
+                // If there's no history, initialize with the current message
+                if (formattedMessages.length === 0) {
+                    formattedMessages.push({ role: "user", content: latestMessageText });
+                }
+
+                const mlResponse = await fetch(`${mlServiceUrl}/triage/chat`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        messages: formattedMessages,
+                        locale: locale || "en",
+                    }),
+                });
+
+                if (!mlResponse.ok) {
+                    throw new Error(`ML service returned status ${mlResponse.status}`);
+                }
+
+                const mlData = await mlResponse.json();
+                parsedResponse = {
+                    text: mlData.response,
+                    summary: mlData.summary || mlData.response,
+                    recommendations: mlData.recommendations || [],
+                    disclaimer: mlData.disclaimer || DEFAULT_DISCLAIMER,
+                    emergency: Boolean(mlData.emergency),
+                };
+                emergencyFromML = Boolean(mlData.emergency);
+
+                structuredLog({
+                    log_level: "info",
+                    route: ROUTE,
+                    latency_ms: Date.now() - startTime,
+                    meta: {
+                        mode: "voice-triage",
+                        source: "langgraph-ml-service",
+                        responseLanguage,
+                    },
+                });
+            } catch (mlError: any) {
+                structuredLog({
+                    log_level: "warn",
+                    route: ROUTE,
+                    meta: {
+                        reason: "ml_service_triage_failed",
+                        error: mlError.message,
+                        fallback: "direct_gemini",
+                    },
+                });
+
+                // Fallback direct Gemini call
+                const response = await ai.models.generateContent({
+                    model: "gemini-2.5-flash",
+                    contents: buildVoiceTriagePrompt(
+                        latestMessageText,
+                        typeof responseLanguage === "string" && responseLanguage.trim().length > 0
+                            ? responseLanguage.trim()
+                            : "English"
+                    ),
+                    config: {
+                        systemInstruction:
+                            "You are the SahiDawa voice triage assistant for India. Help users understand possible next steps based on symptoms, but never claim certainty or replace medical professionals. Be calm, concise, practical, and safety-first.",
+                        responseMimeType: "application/json",
+                        responseSchema: VOICE_TRIAGE_SCHEMA,
+                    },
+                });
+
+                parsedResponse = parseVoiceTriageResponse(response.text ?? "");
+                emergencyFromML = parsedResponse.emergency;
+            }
+
             return NextResponse.json({
                 ...parsedResponse,
-                emergency: parsedResponse.emergency || deterministicEmergency.isEmergency,
+                emergency: emergencyFromML || deterministicEmergency.isEmergency,
             });
         }
 
         const formattedContents = mapMessagesToGeminiContents(messages || []);
 
-        const supportedLocales = ["en", "gu", "bn", "te", "ta", "mr", "ur", "kn", "pa", "od", "hi"];
+        const supportedLocales = ["en", "gu", "bn", "te", "ta", "mr", "ur", "kn", "pa", "or", "hi"];
         const finalLocale = supportedLocales.includes(locale) ? locale : "en";
         const localeMap = {
             en: "English",
@@ -184,32 +278,86 @@ export async function POST(req: Request) {
             ta: "Tamil",
             te: "Telugu",
             ur: "Urdu",
-            od: "Odia",
+            or: "Odia",
         };
         const language = localeMap[finalLocale as keyof typeof localeMap] || "English";
         const systemPrompt = BASE_PROMPT.replace("{language}", language);
 
-        const response = await ai.models.generateContent({
+        const responseStream = (await ai.models.generateContentStream({
             model: "gemini-2.5-flash",
             contents: formattedContents,
             config: {
                 systemInstruction: systemPrompt,
             },
-        });
+        })) as AsyncIterable<TextStreamChunk>;
+        const responseIterator = responseStream[Symbol.asyncIterator]();
+        const firstStreamResult = await responseIterator.next();
 
-        const latency_ms = Date.now() - startTime;
-        structuredLog({
-            log_level: "info",
-            route: ROUTE,
-            latency_ms,
-            metrics: {
-                input_tokens: response.usageMetadata?.promptTokenCount,
-                output_tokens: response.usageMetadata?.candidatesTokenCount,
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream<Uint8Array>({
+            async start(controller) {
+                let usageMetadata: TextStreamChunk["usageMetadata"];
+
+                try {
+                    const enqueueChunk = (chunk: TextStreamChunk) => {
+                        usageMetadata = chunk.usageMetadata ?? usageMetadata;
+
+                        if (chunk.text) {
+                            controller.enqueue(encoder.encode(chunk.text));
+                        }
+                    };
+
+                    if (!firstStreamResult.done) {
+                        enqueueChunk(firstStreamResult.value);
+                    }
+
+                    while (true) {
+                        const chunkResult = await responseIterator.next();
+                        if (chunkResult.done) {
+                            break;
+                        }
+                        enqueueChunk(chunkResult.value);
+                    }
+
+                    const latency_ms = Date.now() - startTime;
+                    structuredLog({
+                        log_level: "info",
+                        route: ROUTE,
+                        latency_ms,
+                        metrics: {
+                            input_tokens: usageMetadata?.promptTokenCount,
+                            output_tokens: usageMetadata?.candidatesTokenCount,
+                        },
+                        meta: { mode: "chat", messageCount: (messages || []).length },
+                    });
+                    controller.close();
+                } catch (streamError) {
+                    const latency_ms = Date.now() - startTime;
+                    structuredLog({
+                        log_level: "error",
+                        route: ROUTE,
+                        latency_ms,
+                        error: {
+                            message: "AI chat stream failed",
+                            code: 500,
+                            stack: streamError instanceof Error ? streamError.stack : undefined,
+                        },
+                        meta: { mode: "chat", messageCount: (messages || []).length },
+                    });
+                    controller.error(streamError);
+                }
             },
-            meta: { mode: "chat", messageCount: (messages || []).length },
+            async cancel() {
+                await responseIterator.return?.();
+            },
         });
 
-        return NextResponse.json({ text: response.text });
+        return new Response(stream, {
+            headers: {
+                "Content-Type": "text/plain; charset=utf-8",
+                "Cache-Control": "no-cache, no-transform",
+            },
+        });
     } catch (error: any) {
         const latency_ms = Date.now() - startTime;
         const statusCode: number = error?.status || 500;

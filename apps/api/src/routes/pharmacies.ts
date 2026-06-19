@@ -1,7 +1,8 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { z } from "zod";
-import supabase from "../db/supabase";
+import { supabase } from "../db/client";
 import logger from "../utils/logger";
+import { requireAuth, AuthenticatedRequest } from "../middleware/auth";
 
 const router = Router();
 
@@ -23,6 +24,7 @@ interface PharmacyRow {
     is_verified: boolean;
     district: string | null;
     state: string | null;
+    status?: "pending" | "approved" | "rejected";
 }
 
 /** Pharmacy row returned by PostGIS RPC functions */
@@ -59,18 +61,118 @@ interface PharmacyWithRawDistance extends FormattedPharmacy {
 
 // ── Zod validation schemas ───────────────────────────────────────────────────
 
+// Schema for pharmacy registration. licenseId is required and must be unique
+// across all registered pharmacies to prevent duplicate records.
+const registerPharmacySchema = z.object({
+    name: z.string().min(2),
+    licenseId: z.string().min(3),
+    address: z.string().min(5),
+    district: z.string().min(2),
+    state: z.string().min(2),
+    phone_number: z
+        .string()
+        .regex(/^\+?[\d\s\-()]{7,15}$/)
+        .optional(),
+    lat: z.number().min(-90).max(90).optional(),
+    lng: z.number().min(-180).max(180).optional(),
+});
+
+// ── Pharmacy registration ────────────────────────────────────────────────────
+
+/**
+ * POST /api/pharmacies
+ * Register a new pharmacy. Returns 409 if a pharmacy with the same licenseId
+ * already exists to prevent duplicate entries.
+ */
+router.post("/", requireAuth, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    const parsed = registerPharmacySchema.safeParse(req.body);
+    if (!parsed.success) {
+        res.status(400).json({ error: "Invalid pharmacy payload", issues: parsed.error.issues });
+        return;
+    }
+
+    if (!req.user) {
+        res.status(401).json({ error: "Unauthorized access" });
+        return;
+    }
+
+    const data = {
+        ...parsed.data,
+        created_by: req.user.id
+    };
+    try {
+        // Check for an existing pharmacy with the same licenseId before inserting.
+        // Without this check concurrent or repeated requests can create duplicate
+        // records for the same physical location, corrupting search results and
+        // user-facing data.
+        const { data: existing, error: lookupError } = await supabase
+            .from("pharmacies")
+            .select("id")
+            .eq("license_id", data.licenseId)
+            .maybeSingle();
+
+        if (lookupError) {
+            logger.error("Pharmacy duplicate check failed", { error: lookupError });
+            next(lookupError);
+            return;
+        }
+
+        if (existing) {
+            res.status(409).json({
+                error: "A pharmacy with this license ID is already registered",
+            });
+            return;
+        }
+
+        const { data: pharmacy, error: insertError } = await supabase
+            .from("pharmacies")
+            .insert({
+                name: data.name,
+                license_id: data.licenseId,
+                address: data.address,
+                district: data.district,
+                state: data.state,
+                phone_number: data.phone_number ?? null,
+                location: data.lat !== undefined && data.lng !== undefined ? `POINT(${data.lng} ${data.lat})` : null,
+                is_verified: false,
+                status: "pending",
+                created_by: data.created_by,
+            })
+            .select()
+            .single();
+
+        if (insertError) {
+            next(insertError);
+            return;
+        }
+
+        res.status(201).json({ pharmacy });
+    } catch (err) {
+        next(err);
+    }
+});
+
 const nearestQuerySchema = z.object({
     lat: z.coerce.number().min(-90).max(90),
     lng: z.coerce.number().min(-180).max(180),
     radius: z.coerce.number().min(1).max(200).default(50),
 });
 
-const boundsQuerySchema = z.object({
-    south: z.coerce.number().min(-90).max(90),
-    west: z.coerce.number().min(-180).max(180),
-    north: z.coerce.number().min(-90).max(90),
-    east: z.coerce.number().min(-180).max(180),
-});
+const boundsQuerySchema = z
+    .object({
+        south: z.coerce.number().min(-90).max(90),
+        west: z.coerce.number().min(-180).max(180),
+        north: z.coerce.number().min(-90).max(90),
+        east: z.coerce.number().min(-180).max(180),
+    })
+    .refine((data) => data.south < data.north, {
+        message: "South boundary must be less than North boundary",
+        path: ["south"],
+    })
+    .refine((data) => data.west < data.east, {
+        message: "West boundary must be less than East boundary",
+        path: ["west"],
+    });
 
 // ── Helper functions ─────────────────────────────────────────────────────────
 
@@ -131,28 +233,6 @@ function formatPharmacy(p: PharmacyRow, distanceKm: number): FormattedPharmacy {
         district: p.district || null,
         state: p.state || null,
     };
-}
-
-/**
- * Validates that the required Supabase environment variables are set.
- * Returns false and sends a 500 response if credentials are missing.
- */
-function validateSupabaseConfig(res: Response): boolean {
-    const hasUrl = !!process.env.SUPABASE_URL;
-    const hasKey = !!(process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY);
-
-    if (!hasUrl || !hasKey) {
-        logger.error("Missing Supabase credentials in pharmacies route", {
-            missingVars: { SUPABASE_URL: !hasUrl, SUPABASE_KEY: !hasKey },
-        });
-        res.status(500).json({
-            error: "Server Configuration Error",
-            message: "The backend is missing database credentials.",
-            hint: "Please ensure SUPABASE_URL and SUPABASE_ANON_KEY are set in your root .env file.",
-        });
-        return false;
-    }
-    return true;
 }
 
 /**
@@ -297,8 +377,6 @@ router.get("/nearest", async (req: Request, res: Response, next: NextFunction) =
 
         const { lat, lng, radius } = result.data;
 
-        if (!validateSupabaseConfig(res)) return;
-
         // Primary path: PostGIS RPC with server-side radius filtering
         const { data: rpcData, error: rpcError } = await supabase.rpc("get_nearest_pharmacies", {
             query_lat: lat,
@@ -332,7 +410,8 @@ router.get("/nearest", async (req: Request, res: Response, next: NextFunction) =
 
         const { data: allPharmacies, error: fetchError } = await supabase
             .from("pharmacies")
-            .select("name, address, location, phone_number, is_verified, district, state")
+            .select("name, address, location, phone_number, is_verified, district, state, status")
+            .eq("status", "approved")
             .limit(3000);
 
         if (fetchError) {
@@ -341,6 +420,7 @@ router.get("/nearest", async (req: Request, res: Response, next: NextFunction) =
         }
 
         const pharmacies: FormattedPharmacy[] = ((allPharmacies || []) as PharmacyRow[])
+            .filter((p: PharmacyRow) => p.status === "approved")
             .map((p: PharmacyRow): PharmacyWithRawDistance => {
                 const coords = extractCoordinates(p);
                 const distanceKm = calculateDistanceKM(lat, lng, coords.lat, coords.lng);
@@ -468,8 +548,6 @@ router.get("/in-bounds", async (req: Request, res: Response, next: NextFunction)
 
         const { south, west, north, east } = result.data;
 
-        if (!validateSupabaseConfig(res)) return;
-
         const centerLat = (south + north) / 2;
         const centerLng = (west + east) / 2;
 
@@ -503,7 +581,8 @@ router.get("/in-bounds", async (req: Request, res: Response, next: NextFunction)
 
         const { data: allPharmacies, error: fetchError } = await supabase
             .from("pharmacies")
-            .select("name, address, location, phone_number, is_verified, district, state")
+            .select("name, address, location, phone_number, is_verified, district, state, status")
+            .eq("status", "approved")
             .limit(3000);
 
         if (fetchError) {
@@ -512,6 +591,7 @@ router.get("/in-bounds", async (req: Request, res: Response, next: NextFunction)
         }
 
         const pharmacies: FormattedPharmacy[] = ((allPharmacies || []) as PharmacyRow[])
+            .filter((p: PharmacyRow) => p.status === "approved")
             .map((p: PharmacyRow) => {
                 const coords = extractCoordinates(p);
                 const distanceKm = calculateDistanceKM(

@@ -4,6 +4,8 @@ const DEFAULT_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:4000",
     "http://localhost:8000",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:4000",
 ];
 
 function parseAllowedOrigins(value: string | undefined): string[] {
@@ -35,7 +37,7 @@ export function createCorsOptions(env: NodeJS.ProcessEnv = process.env): CorsOpt
 
     return {
         origin(origin, callback) {
-            if (!origin || allowedOrigins.includes(origin)) {
+            if (origin && allowedOrigins.includes(origin)) {
                 callback(null, true);
                 return;
             }

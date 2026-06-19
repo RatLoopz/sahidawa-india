@@ -1,9 +1,9 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import {
     AlertCircle,
     Heart,
-    Loader2,
     MapPin,
     Phone,
     Shield,
@@ -12,9 +12,13 @@ import {
     ShieldCheck,
     Hospital,
     Pill,
+    Navigation,
+    Share2,
+    Check,
 } from "lucide-react";
 
 import type { HeatmapMode, Pharmacy } from "./PharmacyMap";
+import { PharmacyStatusBadge } from "@/components/PharmacyCard";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 
@@ -36,6 +40,93 @@ export interface PharmacyPanelsProps {
     className?: string;
 }
 
+export interface TrustBreakdown {
+    score: number;
+    labelText: string;
+    description: string;
+    isVerified: boolean;
+    isGovt: boolean;
+    isCommunity: boolean;
+    riskLevel: "low" | "medium" | "high" | "unverified";
+    riskLabel: string;
+    riskIndicator: string;
+    riskTextColor: string;
+}
+
+function getRiskInfo(score: number): {
+    riskLevel: "low" | "medium" | "high";
+    riskLabel: string;
+    riskIndicator: string;
+    riskTextColor: string;
+} {
+    if (score >= 80) {
+        return {
+            riskLevel: "low",
+            riskLabel: "Low Risk",
+            riskIndicator: "🟢",
+            riskTextColor: "text-emerald-600 dark:text-emerald-400",
+        };
+    }
+    if (score >= 50) {
+        return {
+            riskLevel: "medium",
+            riskLabel: "Medium Risk",
+            riskIndicator: "🟡",
+            riskTextColor: "text-amber-600 dark:text-amber-400",
+        };
+    }
+    return {
+        riskLevel: "high",
+        riskLabel: "High Risk",
+        riskIndicator: "🔴",
+        riskTextColor: "text-rose-600 dark:text-rose-450",
+    };
+}
+
+export function calculateTrustBreakdown(pharmacy: Pharmacy): TrustBreakdown {
+    if (pharmacy.isVerified) {
+        return {
+            score: 96,
+            labelText: "Verified Partner",
+            description: "This pharmacy has completed SahiDawa's verification process.",
+            isVerified: true,
+            isGovt: false,
+            isCommunity: false,
+            ...getRiskInfo(96),
+        };
+    }
+
+    if (pharmacy.type === "govt") {
+        return {
+            score: 90,
+            labelText: "Government Verified",
+            description:
+                "Government and Jan Aushadhi stores receive higher trust scores because their identity is verified through government-backed sources.",
+            isVerified: false,
+            isGovt: true,
+            isCommunity: false,
+            ...getRiskInfo(90),
+        };
+    }
+
+    let communityScore = 60;
+    if (pharmacy.phone) communityScore += 10;
+    if (pharmacy.address) communityScore += 5;
+    if (pharmacy.operatingHours) communityScore += 5;
+    if (pharmacy.website) communityScore += 5;
+
+    return {
+        score: communityScore,
+        labelText: "Community Sourced",
+        description:
+            "This pharmacy originates from community-sourced OpenStreetMap data and has not yet been verified through SahiDawa's trusted pharmacy network. Users are encouraged to verify medicine authenticity before purchase.",
+        isVerified: false,
+        isGovt: false,
+        isCommunity: true,
+        ...getRiskInfo(communityScore),
+    };
+}
+
 function PharmacyPanelRow({
     pharmacy,
     isSelected,
@@ -45,19 +136,87 @@ function PharmacyPanelRow({
     isSelected: boolean;
     onSelect: () => void;
 }) {
+    const cardRef = useRef<HTMLDivElement>(null);
+    const [showBreakdown, setShowBreakdown] = useState(false);
+
+    // Auto-scroll the card into view smoothly when selected from a map marker click
+    useEffect(() => {
+        if (isSelected && cardRef.current) {
+            cardRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest",
+            });
+        }
+    }, [isSelected]);
+
+    // ✅ FIXED: Proper template string token usage ($) and nested interface paths applied
+    const directionsUrl = `https://www.google.com/maps/search/?api=1&query=${pharmacy.coordinates.lat},${pharmacy.coordinates.lng}`;
+    const breakdown = calculateTrustBreakdown(pharmacy);
+
+    const [shareFeedback, setShareFeedback] = useState<"none" | "shared" | "copied">("none");
+
+    const handleShare = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+
+        const shareData = {
+            title: pharmacy.name,
+            text: `${pharmacy.name}${pharmacy.address ? ` - ${pharmacy.address}` : ""}`,
+            url: `https://www.google.com/maps/search/?api=1&query=${pharmacy.coordinates.lat},${pharmacy.coordinates.lng}`,
+        };
+
+        const fallbackCopy = async () => {
+            const textToCopy = `${pharmacy.name}${
+                pharmacy.address ? `\nAddress: ${pharmacy.address}` : ""
+            }\nLocation: https://www.google.com/maps/search/?api=1&query=${
+                pharmacy.coordinates.lat
+            },${pharmacy.coordinates.lng}`;
+
+            try {
+                await navigator.clipboard.writeText(textToCopy);
+                setShareFeedback("copied");
+                setTimeout(() => setShareFeedback("none"), 2000);
+            } catch (err) {
+                console.error("Failed to copy text: ", err);
+            }
+        };
+
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+                setShareFeedback("shared");
+                setTimeout(() => setShareFeedback("none"), 2000);
+            } catch (err) {
+                if ((err as Error).name !== "AbortError") {
+                    await fallbackCopy();
+                }
+            }
+        } else {
+            await fallbackCopy();
+        }
+    };
+
     return (
         <article
+            ref={cardRef}
+            id={`pharmacy-card-${pharmacy.id}`}
             className={`rounded-xl border p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/30 hover:shadow-md active:scale-[0.99] ${
                 isSelected
                     ? "border-emerald-300 bg-emerald-50/60 shadow-md shadow-emerald-100/30 dark:border-emerald-900 dark:bg-emerald-950/20 dark:shadow-emerald-950/10"
                     : "border-(--color-border-muted) bg-(--color-surface-page) hover:border-(--color-text-muted) hover:shadow-sm"
             }`}
         >
-            <button
-                type="button"
+            <div
                 onClick={onSelect}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        onSelect();
+                    }
+                }}
+                role="button"
+                tabIndex={0}
                 aria-pressed={isSelected}
-                className="w-full text-left"
+                className="w-full cursor-pointer rounded-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
             >
                 <div className="flex items-start gap-2.5">
                     <div
@@ -84,34 +243,86 @@ function PharmacyPanelRow({
                             <h3 className="truncate text-sm font-semibold text-(--color-text-primary)">
                                 {pharmacy.name}
                             </h3>
-                            {pharmacy.isVerified && (
-                                <span className="dark:text-emerald-450 inline-flex shrink-0 items-center gap-0.5 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700 dark:bg-emerald-950/30">
-                                    <Shield size={7} />
-                                    Verified
+                            <div className="flex shrink-0 flex-col items-end gap-0.5">
+                                <div className="flex items-center gap-1">
+                                    {(() => {
+                                        const score = breakdown.score;
+                                        let badgeColor =
+                                            "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400";
+                                        if (score < 50) {
+                                            badgeColor =
+                                                "bg-rose-100 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400";
+                                        } else if (score < 80) {
+                                            badgeColor =
+                                                "bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400";
+                                        }
+
+                                        return (
+                                            <button
+                                                type="button"
+                                                title="Click to view trust score breakdown"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setShowBreakdown(!showBreakdown);
+                                                }}
+                                                className={`inline-flex cursor-pointer items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold transition-transform hover:scale-105 hover:shadow-sm focus:ring-1 focus:ring-emerald-500/30 focus:outline-none active:scale-95 ${badgeColor}`}
+                                            >
+                                                <Shield size={7} />
+                                                {score}%
+                                            </button>
+                                        );
+                                    })()}
+                                    {pharmacy.isVerified && (
+                                        <span className="dark:text-emerald-450 inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700 dark:bg-emerald-950/30">
+                                            <Shield size={7} />
+                                            Verified
+                                        </span>
+                                    )}
+                                    {pharmacy.rating > 0 && (
+                                        <span className="flex items-center gap-0.5">
+                                            <Star
+                                                size={10}
+                                                className="fill-amber-400 text-amber-400"
+                                            />
+                                            <span className="text-[11px] font-bold text-(--color-text-primary)">
+                                                {pharmacy.rating}
+                                            </span>
+                                        </span>
+                                    )}
+                                </div>
+                                <span className="text-[8px] leading-none font-bold tracking-wide text-(--color-text-secondary)/80 uppercase">
+                                    {breakdown.labelText}
                                 </span>
-                            )}
-                            {pharmacy.rating > 0 && (
-                                <span className="flex shrink-0 items-center gap-0.5">
-                                    <Star size={10} className="fill-amber-400 text-amber-400" />
-                                    <span className="text-[11px] font-bold text-(--color-text-primary)">
-                                        {pharmacy.rating}
-                                    </span>
-                                </span>
-                            )}
+                                {(() => {
+                                    let badgeBg = "bg-emerald-50 dark:bg-emerald-950/20";
+                                    if (breakdown.riskLevel === "high") {
+                                        badgeBg = "bg-rose-50 dark:bg-rose-950/20";
+                                    } else if (breakdown.riskLevel === "medium") {
+                                        badgeBg = "bg-amber-50 dark:bg-amber-950/20";
+                                    }
+
+                                    return (
+                                        <span
+                                            className={`mt-1 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[8px] leading-none font-bold ${badgeBg} ${breakdown.riskTextColor}`}
+                                        >
+                                            <span>{breakdown.riskIndicator}</span>
+                                            <span>{breakdown.riskLabel}</span>
+                                        </span>
+                                    );
+                                })()}
+                            </div>
                         </div>
 
-                        {pharmacy.address && (
-                            <div className="mt-0.5 flex items-center gap-1">
-                                <MapPin size={8} className="shrink-0 text-(--color-text-muted)" />
-                                <p className="truncate text-[10px] text-(--color-text-secondary)">
-                                    {pharmacy.address}
-                                </p>
-                            </div>
-                        )}
+                        <div className="mt-0.5 flex items-center gap-1">
+                            <MapPin size={8} className="shrink-0 text-(--color-text-muted)" />
+                            <p className="truncate text-[10px] text-(--color-text-secondary)">
+                                {pharmacy.address || "No precise address listed in OSM"}
+                            </p>
+                        </div>
                     </div>
                 </div>
 
-                <div className="mt-2 ml-11 flex flex-wrap items-center gap-2">
+                <div className="mt-2 ml-11 flex flex-wrap items-center gap-1.5">
                     <span
                         className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
                             pharmacy.distance !== "—"
@@ -121,12 +332,17 @@ function PharmacyPanelRow({
                     >
                         {pharmacy.distance !== "—" ? `${pharmacy.distance} away` : "Distance —"}
                     </span>
+
+                    {/* Live reliability metadata badge */}
+                    <span className="inline-flex items-center rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-medium text-slate-600 dark:bg-slate-900 dark:text-slate-400">
+                        Live from OSM
+                    </span>
                 </div>
 
                 <div className="mt-1.5 ml-11 flex flex-wrap gap-1">
                     <span className="inline-flex items-center gap-0.5 rounded-full bg-(--color-surface-muted) px-1.5 py-0.5 text-[9px] font-medium text-(--color-text-secondary)">
                         <Shield size={6} />
-                        {pharmacy.status}
+                        {pharmacy.status || "Status unknown"}
                     </span>
                     <span
                         className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-medium ${
@@ -138,11 +354,204 @@ function PharmacyPanelRow({
                         <Heart size={6} />
                         {pharmacy.type === "govt" ? "Jan Aushadhi" : "Private"}
                     </span>
+                    <PharmacyStatusBadge operatingHours={pharmacy.operatingHours} />
                 </div>
-            </button>
 
-            {pharmacy.phone && (
-                <div className="mt-2 ml-11">
+                {/* TRUST BREAKDOWN PANEL */}
+                {showBreakdown && (
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="animate-in fade-in slide-in-from-top-1 mt-3 ml-11 space-y-2.5 rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted)/50 p-3.5 text-[11px] text-(--color-text-primary) duration-200"
+                    >
+                        {breakdown.isCommunity ? (
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between font-bold text-(--color-text-primary)">
+                                    <span>Trust Score</span>
+                                    <span className={`font-bold ${breakdown.riskTextColor}`}>
+                                        {breakdown.score}%
+                                    </span>
+                                </div>
+
+                                <div className="mt-1 flex items-center justify-between text-[10px] font-semibold text-(--color-text-secondary)">
+                                    <span>Risk Level</span>
+                                    <span
+                                        className={`flex items-center gap-1 ${breakdown.riskTextColor}`}
+                                    >
+                                        <span>{breakdown.riskIndicator}</span>
+                                        <span>{breakdown.riskLabel}</span>
+                                    </span>
+                                </div>
+
+                                <div className="space-y-1.5 border-t border-(--color-border-muted) pt-2">
+                                    <div className="flex items-center justify-between text-[10px] text-(--color-text-secondary)">
+                                        <span className="flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+                                            <span>✓</span>
+                                            <span>Community Listing</span>
+                                        </span>
+                                        <span className="mx-2 h-2.5 flex-1 shrink border-b border-dotted border-(--color-border-muted)" />
+                                        <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                                            +60
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between text-[10px] text-(--color-text-secondary)">
+                                        <span
+                                            className={`flex items-center gap-1 font-semibold ${pharmacy.phone ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400"}`}
+                                        >
+                                            <span>{pharmacy.phone ? "✓" : "✗"}</span>
+                                            <span>Phone Number</span>
+                                        </span>
+                                        <span className="mx-2 h-2.5 flex-1 shrink border-b border-dotted border-(--color-border-muted)" />
+                                        <span
+                                            className={`font-mono font-bold ${pharmacy.phone ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400"}`}
+                                        >
+                                            {pharmacy.phone ? "+10" : "+0"}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between text-[10px] text-(--color-text-secondary)">
+                                        <span
+                                            className={`flex items-center gap-1 font-semibold ${pharmacy.address ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400"}`}
+                                        >
+                                            <span>{pharmacy.address ? "✓" : "✗"}</span>
+                                            <span>Address Available</span>
+                                        </span>
+                                        <span className="mx-2 h-2.5 flex-1 shrink border-b border-dotted border-(--color-border-muted)" />
+                                        <span
+                                            className={`font-mono font-bold ${pharmacy.address ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400"}`}
+                                        >
+                                            {pharmacy.address ? "+5" : "+0"}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between text-[10px] text-(--color-text-secondary)">
+                                        <span
+                                            className={`flex items-center gap-1 font-semibold ${pharmacy.operatingHours ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400"}`}
+                                        >
+                                            <span>{pharmacy.operatingHours ? "✓" : "✗"}</span>
+                                            <span>Operating Hours</span>
+                                        </span>
+                                        <span className="mx-2 h-2.5 flex-1 shrink border-b border-dotted border-(--color-border-muted)" />
+                                        <span
+                                            className={`font-mono font-bold ${pharmacy.operatingHours ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400"}`}
+                                        >
+                                            {pharmacy.operatingHours ? "+5" : "+0"}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between text-[10px] text-(--color-text-secondary)">
+                                        <span
+                                            className={`flex items-center gap-1 font-semibold ${pharmacy.website ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400"}`}
+                                        >
+                                            <span>{pharmacy.website ? "✓" : "✗"}</span>
+                                            <span>Website Available</span>
+                                        </span>
+                                        <span className="mx-2 h-2.5 flex-1 shrink border-b border-dotted border-(--color-border-muted)" />
+                                        <span
+                                            className={`font-mono font-bold ${pharmacy.website ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400"}`}
+                                        >
+                                            {pharmacy.website ? "+5" : "+0"}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between gap-1 border-t border-(--color-border-muted) pt-2 font-bold text-(--color-text-primary)">
+                                    <span>Total Score</span>
+                                    <div className="h-3 flex-1 shrink border-b border-dotted border-(--color-border-muted)" />
+                                    <span className="font-mono">{breakdown.score}%</span>
+                                </div>
+
+                                <div className="border-t border-(--color-border-muted) pt-2 text-[9px] leading-relaxed font-medium text-amber-600 dark:text-amber-400">
+                                    <div className="flex items-start gap-1">
+                                        <span className="mt-0.5">⚠️</span>
+                                        <div>
+                                            <p className="font-bold">Community-sourced score.</p>
+                                            <p className="text-[8.5px] font-normal text-(--color-text-secondary)">
+                                                Not verified through SahiDawa's trusted pharmacy
+                                                network.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="flex items-center justify-between font-bold text-(--color-text-primary)">
+                                    <span>Trust Score</span>
+                                    <span
+                                        className={
+                                            (breakdown.score || 0) >= 80
+                                                ? "dark:text-emerald-450 text-emerald-600"
+                                                : "dark:text-amber-450 text-amber-600"
+                                        }
+                                    >
+                                        {breakdown.score}%
+                                    </span>
+                                </div>
+
+                                <div className="mt-1 flex items-center justify-between text-[10px] font-semibold text-(--color-text-secondary)">
+                                    <span>Risk Level</span>
+                                    <span
+                                        className={`flex items-center gap-1 ${breakdown.riskTextColor}`}
+                                    >
+                                        <span>{breakdown.riskIndicator}</span>
+                                        <span>{breakdown.riskLabel}</span>
+                                    </span>
+                                </div>
+
+                                <div className="space-y-2 border-t border-(--color-border-muted) pt-2">
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
+                                            <Check size={10} className="shrink-0" />
+                                            <span>
+                                                {breakdown.isVerified
+                                                    ? "Verified Partner"
+                                                    : "Government Verified Pharmacy"}
+                                            </span>
+                                        </div>
+                                        {breakdown.isVerified && (
+                                            <div className="flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
+                                                <Check size={10} className="shrink-0" />
+                                                <span>
+                                                    Registered in SahiDawa Verification Network
+                                                </span>
+                                            </div>
+                                        )}
+                                        <p className="text-[10px] leading-relaxed text-(--color-text-muted)">
+                                            {breakdown.description}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between gap-1 border-t border-(--color-border-muted) pt-2 font-bold text-(--color-text-primary)">
+                                    <span>Total Score</span>
+                                    <div className="h-3 flex-1 shrink border-b border-dotted border-(--color-border-muted)" />
+                                    <span className="font-mono">{breakdown.score}%</span>
+                                </div>
+
+                                <div className="border-t border-(--color-border-muted) pt-2 text-[8.5px] leading-relaxed text-(--color-text-muted) italic">
+                                    Trust Score is calculated using available verification and
+                                    pharmacy metadata. This score is informational and should not
+                                    replace professional healthcare guidance.
+                                </div>
+                            </>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Action Group Footer Buttons */}
+            <div className="mt-3 ml-0 flex flex-wrap gap-2 sm:ml-11">
+                <a
+                    href={directionsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white transition-colors hover:bg-emerald-700 active:bg-emerald-800"
+                >
+                    <Navigation size={9} className="fill-white" />
+                    Directions
+                </a>
+                {pharmacy.phone && (
                     <a
                         href={`tel:${pharmacy.phone}`}
                         className="inline-flex items-center gap-1.5 rounded-lg bg-(--color-surface-muted) px-2.5 py-1 text-[11px] font-medium text-(--color-text-secondary) transition-colors hover:bg-(--color-border-muted) active:bg-(--color-border-muted)"
@@ -150,8 +559,30 @@ function PharmacyPanelRow({
                         <Phone size={9} className="text-emerald-600" />
                         Call
                     </a>
-                </div>
-            )}
+                )}
+                <button
+                    type="button"
+                    onClick={handleShare}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-(--color-surface-muted) px-2.5 py-1 text-[11px] font-medium text-(--color-text-secondary) transition-colors hover:bg-(--color-border-muted) active:bg-(--color-border-muted)"
+                >
+                    {shareFeedback === "copied" ? (
+                        <>
+                            <Check size={9} className="text-emerald-600" />
+                            Copied!
+                        </>
+                    ) : shareFeedback === "shared" ? (
+                        <>
+                            <Check size={9} className="text-emerald-600" />
+                            Shared!
+                        </>
+                    ) : (
+                        <>
+                            <Share2 size={9} className="text-emerald-600" />
+                            Share
+                        </>
+                    )}
+                </button>
+            </div>
         </article>
     );
 }
@@ -183,7 +614,7 @@ export default function PharmacyPanels({
                 className || ""
             }`}
         >
-            <div className="shrink-0 border-b border-(--color-border-muted) px-5 py-4">
+            <div className="shrink-0 border-b border-(--color-border-muted) px-3 py-3 sm:px-5 sm:py-4">
                 <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-950/30">
                         <Store size={18} className="text-emerald-600" />
@@ -197,8 +628,8 @@ export default function PharmacyPanels({
                 </div>
             </div>
 
-            <div className="shrink-0 border-b border-(--color-border-muted) px-5 py-4">
-                <div className="grid grid-cols-3 gap-2">
+            <div className="shrink-0 border-b border-(--color-border-muted) px-3 py-3 sm:px-5 sm:py-4">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                     {[
                         { label: "Verified stores", value: verifiedCount },
                         { label: "Jan Aushadhi", value: govtCount },
@@ -206,12 +637,12 @@ export default function PharmacyPanels({
                     ].map((item) => (
                         <article
                             key={item.label}
-                            className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) p-3"
+                            className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) p-2.5 sm:p-3"
                         >
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-(--color-text-muted)">
+                            <p className="text-[9px] font-semibold tracking-[0.14em] text-(--color-text-muted) uppercase sm:text-[10px] sm:tracking-[0.18em]">
                                 {item.label}
                             </p>
-                            <p className="mt-1 text-xl font-black text-(--color-text-primary)">
+                            <p className="mt-1 text-base font-black text-(--color-text-primary) sm:text-xl">
                                 {item.value}
                             </p>
                         </article>
@@ -219,7 +650,7 @@ export default function PharmacyPanels({
                 </div>
             </div>
 
-            <div className="shrink-0 border-b border-(--color-border-muted) px-5 py-4">
+            <div className="shrink-0 border-b border-(--color-border-muted) px-3 py-3 sm:px-5 sm:py-4">
                 <div className="mb-2 flex items-center gap-1.5 text-[11px] font-bold text-(--color-text-secondary)">
                     <AlertCircle size={12} className="text-red-500" />
                     Risk layers
@@ -249,7 +680,7 @@ export default function PharmacyPanels({
                 ) : null}
             </div>
 
-            <div className="flex-1 space-y-2 overflow-y-auto px-4 py-4">
+            <div className="flex-1 space-y-2 overflow-y-auto px-3 py-3 sm:px-4 sm:py-4">
                 {isLoading ? (
                     <div className="flex flex-col gap-2">
                         <div className="py-2 text-center">
@@ -275,7 +706,7 @@ export default function PharmacyPanels({
                                         <Skeleton className="h-3 w-3/4" />
                                     </div>
                                 </div>
-                                <div className="mt-2 ml-11 flex flex-wrap items-center gap-2">
+                                <div className="mt-2 ml-0 flex flex-wrap items-center gap-2 sm:ml-11">
                                     <Skeleton className="h-4 w-16 rounded-full" />
                                 </div>
                             </div>

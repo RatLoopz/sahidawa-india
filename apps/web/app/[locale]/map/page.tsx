@@ -1,5 +1,5 @@
 "use client";
-
+import { useTranslations } from "next-intl";
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import {
     Search,
@@ -14,6 +14,7 @@ import {
     ChevronDown,
     RefreshCw,
     Loader2,
+    WifiOff,
 } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import PharmacyMap, {
@@ -22,13 +23,19 @@ import PharmacyMap, {
     type MapBounds,
     type RiskHotspot,
 } from "./PharmacyMap";
-import PharmacyPanels from "./PharmacyPanels";
+import PharmacyPanels, { calculateTrustBreakdown } from "./PharmacyPanels";
 import { fetchPharmacies, fetchPharmaciesInBounds, type OverpassPharmacy } from "./overpassApi";
 import {
     fetchVerifiedPharmacies,
     fetchVerifiedPharmaciesInBounds,
+    fetchNearbyAshaWorkers,
     type VerifiedPharmacy,
+    type ApiAshaWorker,
 } from "../../../lib/api";
+import { type AshaWorker } from "./PharmacyMap";
+import MapHeaderLoadingIndicator from "./MapHeaderLoadingIndicator";
+import { useOfflineStatus } from "@/hooks/useOfflineStatus";
+import { buildCacheKey, saveToCache, loadFromCache } from "./usePharmacyCache";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const DEFAULT_CENTER = { lat: 28.6139, lng: 77.209 }; // New Delhi
@@ -116,6 +123,8 @@ function toPharmacy(op: OverpassPharmacy & { _distanceFormatted?: string }): Pha
         coordinates: { lat: op.lat, lng: op.lng },
         address: op.address,
         phone: op.phone,
+        operatingHours: op.openingHours,
+        website: op.website,
     };
 }
 
@@ -134,6 +143,17 @@ function toVerifiedPharmacy(vp: VerifiedPharmacy, id: number): Pharmacy {
         address: vp.address,
         phone: vp.phone_number || undefined,
         isVerified: verified,
+    };
+}
+
+function toAshaWorker(aw: ApiAshaWorker): AshaWorker {
+    return {
+        id: aw.id,
+        name: aw.name,
+        district: aw.district,
+        coordinates: { lat: aw.lat, lng: aw.lng },
+        contact: aw.contact,
+        distanceKm: aw.distance_km,
     };
 }
 
@@ -188,7 +208,7 @@ function BottomDrawer({
             <button
                 onClick={expandDrawer}
                 data-testid="mobile-pharmacy-pill"
-                className="pointer-events-auto absolute right-4 bottom-5 z-1000 flex items-center gap-2 rounded-full bg-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 px-4 py-2.5 text-xs font-bold text-white shadow-xl transition-all hover:bg-slate-800 active:scale-95 md:hidden"
+                className="pointer-events-auto absolute right-4 bottom-5 z-1000 flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-xs font-bold text-white shadow-xl transition-all hover:bg-slate-800 active:scale-95 md:hidden dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
                 aria-label={`Show nearby pharmacies list with ${count} results`}
             >
                 <ChevronUp size={14} />
@@ -200,7 +220,7 @@ function BottomDrawer({
     return (
         <div
             data-testid="mobile-pharmacy-drawer"
-            className="pointer-events-none absolute right-4 bottom-4 left-20 z-1000 md:hidden"
+            className="pointer-events-none absolute right-4 bottom-4 left-4 z-1000 sm:left-6 md:hidden"
         >
             <div className="pointer-events-auto max-h-[68vh] rounded-[30px] border border-(--color-border-muted) bg-(--color-surface-page)/85 p-2 shadow-2xl backdrop-blur-xl">
                 <div className="flex max-h-[calc(68vh-1rem)] flex-col overflow-hidden">
@@ -238,14 +258,21 @@ type AdvancedFilters = {
     hasAddress: boolean;
     hasPhone: boolean;
     withinFiveKm: boolean;
+    lowRisk: boolean;
+    mediumRisk: boolean;
+    highRisk: boolean;
 };
 
 export default function PharmacyMapPage() {
+    const t = useTranslations("Map");
     const [activeFilter, setActiveFilter] = useState<"all" | "verified" | "govt" | "named">("all");
     const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({
         hasAddress: false,
         hasPhone: false,
         withinFiveKm: false,
+        lowRisk: false,
+        mediumRisk: false,
+        highRisk: false,
     });
     const [showFilterPanel, setShowFilterPanel] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
@@ -257,126 +284,247 @@ export default function PharmacyMapPage() {
 
     // Live data state (PR #147 engine)
     const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
+    const [ashaWorkers, setAshaWorkers] = useState<AshaWorker[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [fetchError, setFetchError] = useState<string | null>(null);
     const [showSearchArea, setShowSearchArea] = useState(false);
     const [pharmacyCount, setPharmacyCount] = useState(0);
+    const [radiusKm, setRadiusKm] = useState<number>(10);
     const [heatmapMode, setHeatmapMode] = useState<HeatmapMode>("none");
+
+    // ── Offline cache state ───────────────────────────────────────────────────
+    const { isOffline } = useOfflineStatus();
+    const [isShowingCached, setIsShowingCached] = useState(false);
 
     const pendingBoundsRef = useRef<MapBounds | null>(null);
     const initialFetchDone = useRef(false);
 
-    const fetchNearby = useCallback(async (lat: number, lng: number, radius = 10000) => {
-        setIsLoading(true);
-        setFetchError(null);
-        setShowSearchArea(false);
-        try {
-            const radiusKm = Math.round(radius / 1000);
-            const [verifiedResult, osmResult] = await Promise.allSettled([
-                fetchVerifiedPharmacies(lat, lng, radiusKm),
-                fetchPharmacies(lat, lng, radius),
-            ]);
-
-            const verified =
-                verifiedResult.status === "fulfilled"
-                    ? verifiedResult.value.map((vp, i) => toVerifiedPharmacy(vp, -(i + 1)))
-                    : [];
-            const osm = osmResult.status === "fulfilled" ? osmResult.value.map(toPharmacy) : [];
-
-            const dedupedOsm = deduplicateOsm(verified, osm);
-            const merged = [...verified, ...dedupedOsm].sort((a, b) => {
-                if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
-                return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
-            });
-
-            if (osmResult.status === "rejected") {
-                setFetchError("Live search temporarily offline. Showing verified partners only.");
-                setTimeout(() => setFetchError(null), 6000);
-            } else if (merged.length === 0) {
-                setFetchError("No pharmacies found in this area. Try searching a wider region.");
-                setTimeout(() => setFetchError(null), 5000);
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            const filterParam = params.get("filter");
+            if (filterParam === "govt" || filterParam === "verified" || filterParam === "named") {
+                setActiveFilter(filterParam as any);
             }
-
-            setPharmacies(merged);
-            setPharmacyCount(merged.length);
-            initialFetchDone.current = true;
-        } catch (err) {
-            console.error("Critical error in pharmacy rendering:", err);
-            setFetchError("Could not load pharmacies. Try again.");
-            setTimeout(() => setFetchError(null), 5000);
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
-    
-   useEffect(() => {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                setUserLocation(loc);
-                fetchNearby(loc.lat, loc.lng);
-            },
-            () => {
-                fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-        );
-    } else {
-        fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
-    }
-}, [fetchNearby]); 
-
-    const fetchInBounds = useCallback(async (bounds: MapBounds) => {
-        setIsLoading(true);
-        setFetchError(null);
-        setShowSearchArea(false);
-        try {
-            const [verifiedResult, osmResult] = await Promise.allSettled([
-                fetchVerifiedPharmaciesInBounds(
-                    bounds.south,
-                    bounds.west,
-                    bounds.north,
-                    bounds.east
-                ),
-                fetchPharmaciesInBounds(bounds.south, bounds.west, bounds.north, bounds.east),
-            ]);
-
-            const verified =
-                verifiedResult.status === "fulfilled"
-                    ? verifiedResult.value.map((vp, i) => toVerifiedPharmacy(vp, -(i + 1)))
-                    : [];
-            const osm = osmResult.status === "fulfilled" ? osmResult.value.map(toPharmacy) : [];
-
-            const dedupedOsm = deduplicateOsm(verified, osm);
-            const merged = [...verified, ...dedupedOsm].sort((a, b) => {
-                if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
-                return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
-            });
-
-            if (osmResult.status === "rejected") {
-                setFetchError("Live search temporarily offline. Showing verified partners only.");
-                setTimeout(() => setFetchError(null), 6000);
-            } else if (merged.length === 0) {
-                setFetchError("No pharmacies found in this area. Try searching a wider region.");
-                setTimeout(() => setFetchError(null), 5000);
+            const queryParam = params.get("query");
+            if (queryParam) {
+                setSearchQuery(queryParam);
             }
-
-            setPharmacies(merged);
-            setPharmacyCount(merged.length);
-        } catch (err) {
-            console.error("Critical error in bound pharmacy rendering:", err);
-            setFetchError("Could not load pharmacies. Try again.");
-            setTimeout(() => setFetchError(null), 5000);
-        } finally {
-            setIsLoading(false);
         }
     }, []);
 
-     // Geolocation
+    const restoreFromCache = useCallback(async (cacheKey: string): Promise<boolean> => {
+        const cached = await loadFromCache(cacheKey);
+        if (!cached) return false;
+
+        setPharmacies(cached.pharmacies);
+        setAshaWorkers(cached.ashaWorkers);
+        setPharmacyCount(cached.pharmacies.length);
+        setIsShowingCached(true);
+        initialFetchDone.current = true;
+        return true;
+    }, []);
+
+    const fetchNearby = useCallback(
+        async (lat: number, lng: number, radius = 10000) => {
+            setIsLoading(true);
+            setFetchError(null);
+            setShowSearchArea(false);
+            try {
+                const radiusKm = Math.round(radius / 1000);
+                const cacheKey = buildCacheKey(lat, lng);
+                const [verifiedResult, osmResult, ashaResult] = await Promise.allSettled([
+                    fetchVerifiedPharmacies(lat, lng, radiusKm),
+                    fetchPharmacies(lat, lng, radius),
+                    fetchNearbyAshaWorkers(lat, lng, radiusKm),
+                ]);
+
+                const verified =
+                    verifiedResult.status === "fulfilled"
+                        ? verifiedResult.value.map((vp, i) => toVerifiedPharmacy(vp, -(i + 1)))
+                        : [];
+                const osm = osmResult.status === "fulfilled" ? osmResult.value.map(toPharmacy) : [];
+                const asha =
+                    ashaResult.status === "fulfilled" ? ashaResult.value.map(toAshaWorker) : [];
+
+                const dedupedOsm = deduplicateOsm(verified, osm);
+                const merged = [...verified, ...dedupedOsm].sort((a, b) => {
+                    if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
+                    return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
+                });
+                const livePharmacyLoadFailed = osmResult.status === "rejected";
+                const shouldTryCache = merged.length === 0 && livePharmacyLoadFailed;
+
+                if (shouldTryCache && (await restoreFromCache(cacheKey))) {
+                    return;
+                }
+
+                if (livePharmacyLoadFailed) {
+                    setFetchError(
+                        "Live search temporarily offline. Showing verified partners only."
+                    );
+                    setTimeout(() => setFetchError(null), 6000);
+                } else if (merged.length === 0) {
+                    setFetchError(
+                        "No pharmacies found in this area. Try searching a wider region."
+                    );
+                    setTimeout(() => setFetchError(null), 5000);
+                }
+
+                setPharmacies(merged);
+                setAshaWorkers(asha);
+                setPharmacyCount(merged.length);
+                initialFetchDone.current = true;
+
+                // ── Save to IndexedDB cache on successful fetch ───────────────
+                if (!shouldTryCache) {
+                    await saveToCache(cacheKey, merged, asha);
+                }
+                setIsShowingCached(false);
+            } catch (err) {
+                console.error("Critical error in pharmacy rendering:", err);
+
+                // ── Offline fallback: try loading from IndexedDB ──────────────
+                const cacheKey = buildCacheKey(lat, lng);
+                if (await restoreFromCache(cacheKey)) {
+                    return;
+                }
+
+                setFetchError("Could not load pharmacies. Try again.");
+                setTimeout(() => setFetchError(null), 5000);
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [restoreFromCache]
+    );
+
+    // ── Clear cached banner when back online ─────────────────────────────────
+    useEffect(() => {
+        if (!isOffline && isShowingCached) {
+            setIsShowingCached(false);
+        }
+    }, [isOffline, isShowingCached]);
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            const latParam = params.get("lat");
+            const lngParam = params.get("lng");
+            if (latParam && lngParam) {
+                const lat = parseFloat(latParam);
+                const lng = parseFloat(lngParam);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    const loc = { lat, lng };
+                    setUserLocation(loc);
+                    fetchNearby(lat, lng);
+                    return;
+                }
+            }
+        }
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    setUserLocation(loc);
+                    fetchNearby(loc.lat, loc.lng, radiusKm * 1000);
+                },
+                () => {
+                    fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radiusKm * 1000);
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+            );
+        } else {
+            fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radiusKm * 1000);
+        }
+    }, [fetchNearby]);
+
+    const fetchInBounds = useCallback(
+        async (bounds: MapBounds) => {
+            setIsLoading(true);
+            setFetchError(null);
+            setShowSearchArea(false);
+            try {
+                const centerLat = bounds.center.lat;
+                const centerLng = bounds.center.lng;
+                const radiusKm = 15;
+                const cacheKey = buildCacheKey(centerLat, centerLng);
+                const [verifiedResult, osmResult, ashaResult] = await Promise.allSettled([
+                    fetchVerifiedPharmaciesInBounds(
+                        bounds.south,
+                        bounds.west,
+                        bounds.north,
+                        bounds.east
+                    ),
+                    fetchPharmaciesInBounds(bounds.south, bounds.west, bounds.north, bounds.east),
+                    fetchNearbyAshaWorkers(centerLat, centerLng, radiusKm),
+                ]);
+
+                const verified =
+                    verifiedResult.status === "fulfilled"
+                        ? verifiedResult.value.map((vp, i) => toVerifiedPharmacy(vp, -(i + 1)))
+                        : [];
+                const osm = osmResult.status === "fulfilled" ? osmResult.value.map(toPharmacy) : [];
+                const asha =
+                    ashaResult.status === "fulfilled" ? ashaResult.value.map(toAshaWorker) : [];
+
+                const dedupedOsm = deduplicateOsm(verified, osm);
+                const merged = [...verified, ...dedupedOsm].sort((a, b) => {
+                    if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
+                    return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
+                });
+                const livePharmacyLoadFailed = osmResult.status === "rejected";
+                const shouldTryCache = merged.length === 0 && livePharmacyLoadFailed;
+
+                if (shouldTryCache && (await restoreFromCache(cacheKey))) {
+                    return;
+                }
+
+                if (livePharmacyLoadFailed) {
+                    setFetchError(
+                        "Live search temporarily offline. Showing verified partners only."
+                    );
+                    setTimeout(() => setFetchError(null), 6000);
+                } else if (merged.length === 0) {
+                    setFetchError(
+                        "No pharmacies found in this area. Try searching a wider region."
+                    );
+                    setTimeout(() => setFetchError(null), 5000);
+                }
+
+                setPharmacies(merged);
+                setAshaWorkers(asha);
+                setPharmacyCount(merged.length);
+
+                // ── Save bounds result to cache too ───────────────────────────
+                if (!shouldTryCache) {
+                    await saveToCache(cacheKey, merged, asha);
+                }
+                setIsShowingCached(false);
+            } catch (err) {
+                console.error("Critical error in bound pharmacy rendering:", err);
+
+                // ── Offline fallback for bounds fetch ─────────────────────────
+                const centerLat = bounds.center.lat;
+                const centerLng = bounds.center.lng;
+                const cacheKey = buildCacheKey(centerLat, centerLng);
+                if (await restoreFromCache(cacheKey)) {
+                    return;
+                }
+
+                setFetchError("Could not load pharmacies. Try again.");
+                setTimeout(() => setFetchError(null), 5000);
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [restoreFromCache]
+    );
+
+    // Geolocation
     const handleLocateUser = useCallback(() => {
         if (!navigator.geolocation) {
-            setLocationError("Geolocation is not supported by your browser");
+            setLocationError(t("errors.generic"));
             setTimeout(() => setLocationError(null), 3000);
             return;
         }
@@ -387,27 +535,27 @@ export default function PharmacyMapPage() {
                 const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                 setUserLocation(loc);
                 setIsLocating(false);
-                fetchNearby(loc.lat, loc.lng);
+                fetchNearby(loc.lat, loc.lng, radiusKm * 1000);
             },
             (err) => {
                 setIsLocating(false);
                 const messages: Record<number, string> = {
-                    1: "Location access denied. Please enable it in browser settings.",
-                    2: "Location information unavailable.",
-                    3: "Location request timed out.",
+                    1: t("errors.denied"),
+                    2: t("errors.unavailable"),
+                    3: t("errors.timeout"),
                 };
-                setLocationError(messages[err.code] || "Unable to get your location.");
+                setLocationError(messages[err.code] || t("errors.generic"));
                 setTimeout(() => setLocationError(null), 4000);
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
         );
-    }, [fetchNearby]);
+    }, [fetchNearby, radiusKm]);
 
-const handleMapReady = useCallback(() => {
-    if (!initialFetchDone.current) {
-        fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
-    }
-}, [fetchNearby]);
+    const handleMapReady = useCallback(() => {
+        if (!initialFetchDone.current) {
+            fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radiusKm * 1000);
+        }
+    }, [fetchNearby, radiusKm]);
 
     const handleMapMoveEnd = useCallback((bounds: MapBounds) => {
         if (initialFetchDone.current) {
@@ -432,6 +580,21 @@ const handleMapReady = useCallback(() => {
         if (advancedFilters.withinFiveKm) {
             list = list.filter((p) => typeof p.distanceKm === "number" && p.distanceKm <= 5);
         }
+
+        // Trust / Risk score filtering (Option A)
+        const hasRiskFilter =
+            advancedFilters.lowRisk || advancedFilters.mediumRisk || advancedFilters.highRisk;
+        if (hasRiskFilter) {
+            list = list.filter((p) => {
+                const breakdown = calculateTrustBreakdown(p);
+                const score = breakdown.score;
+                if (advancedFilters.lowRisk && score >= 80) return true;
+                if (advancedFilters.mediumRisk && score >= 50 && score < 80) return true;
+                if (advancedFilters.highRisk && score < 50) return true;
+                return false;
+            });
+        }
+
         if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase();
             list = list.filter(
@@ -457,30 +620,39 @@ const handleMapReady = useCallback(() => {
     };
 
     const filters = [
-        { id: "all", label: "All Stores", activeClass: "bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white shadow-md" },
+        {
+            id: "all",
+            label: "All Stores",
+            activeClass:
+                "bg-emerald-600 text-white shadow-lg shadow-emerald-200/70 ring-1 ring-emerald-500/20 dark:bg-emerald-500 dark:text-slate-950 dark:shadow-emerald-950/20",
+        },
         {
             id: "verified",
             label: "Verified Partners",
             icon: <Shield size={11} className="text-current" />,
-            activeClass: "bg-emerald-600 text-white shadow-md shadow-emerald-200 dark:shadow-emerald-950/20",
+            activeClass:
+                "bg-emerald-600 text-white shadow-lg shadow-emerald-200/70 ring-1 ring-emerald-500/20 dark:bg-emerald-500 dark:text-slate-950 dark:shadow-emerald-950/20",
         },
         {
             id: "govt",
             label: "Jan Aushadhi",
             icon: <Globe size={11} />,
-            activeClass: "bg-emerald-600 text-white shadow-md shadow-emerald-200 dark:shadow-emerald-950/20",
+            activeClass:
+                "bg-teal-600 text-white shadow-lg shadow-teal-200/70 ring-1 ring-teal-500/20 dark:bg-teal-400 dark:text-slate-950 dark:shadow-teal-950/20",
         },
         {
             id: "named",
             label: "Named Only",
             icon: <Star size={11} className="fill-current" />,
-            activeClass: "bg-amber-500 text-white shadow-md shadow-amber-200 dark:shadow-amber-950/20",
+            activeClass:
+                "bg-amber-500 text-white shadow-lg shadow-amber-200/70 ring-1 ring-amber-500/20 dark:bg-amber-400 dark:text-slate-950 dark:shadow-amber-950/20",
         },
         {
             id: "more",
             label: "Filters",
             icon: <Filter size={11} />,
-            activeClass: "bg-(--color-surface-muted) text-(--color-text-secondary)",
+            activeClass:
+                "bg-slate-900 text-white shadow-lg shadow-slate-300/60 ring-1 ring-slate-900/10 dark:bg-slate-100 dark:text-slate-950 dark:shadow-slate-950/30",
         },
     ] as const;
 
@@ -520,128 +692,177 @@ const handleMapReady = useCallback(() => {
     };
 
     return (
-        <div className="flex h-screen flex-col overflow-hidden bg-(--color-surface-muted) font-sans">
+        <div className="flex h-screen flex-col overflow-hidden bg-(--color-surface-muted) font-sans dark:bg-[#0d1117]">
             <h1 className="sr-only">Pharmacy Map — Find Verified Pharmacies Near You</h1>
 
             {/* ── Header with search ── */}
-            <PageHeader backHref="/" variant="light">
+            <PageHeader
+                backHref="/"
+                variant="light"
+                contentClassName="mx-auto w-full max-w-4xl justify-start rounded-[1.65rem] border border-(--color-border-muted) bg-(--color-surface-page)/95 p-1.5 shadow-[0_18px_52px_-34px_rgba(15,23,42,0.75)] ring-1 ring-white/80 backdrop-blur-xl dark:bg-slate-950/90 dark:ring-white/5"
+                backButtonClassName="border border-transparent bg-emerald-50 text-emerald-700 shadow-sm hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/70"
+                rightActionsClassName="hidden"
+            >
                 <div
-                    className="flex flex-1 items-center rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-2 transition-all focus-within:border-emerald-500 focus-within:bg-(--color-surface-page)"
-                    role="search"
+                    data-testid="pharmacy-map-command-bar"
+                    className="flex min-w-0 flex-1 items-center"
                 >
-                    <Search size={17} className="shrink-0 text-(--color-text-muted)" aria-hidden />
-                    <input
-                        type="text"
-                        placeholder="Search verified pharmacies..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full border-none bg-transparent px-3 py-1.5 text-sm font-medium text-(--color-text-primary) outline-none placeholder:text-(--color-text-muted)"
-                        aria-label="Search verified pharmacies"
-                    />
-                    {searchQuery && (
-                        <button
-                            onClick={() => setSearchQuery("")}
-                            className="shrink-0 text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
-                        >
-                            <X size={15} />
-                        </button>
-                    )}
+                    <div
+                        data-testid="pharmacy-map-search"
+                        className="flex min-w-0 flex-1 items-center rounded-[1.35rem] border border-transparent bg-(--color-surface-muted) px-3 py-2 transition-all duration-200 focus-within:border-emerald-400 focus-within:bg-(--color-surface-page) focus-within:ring-4 focus-within:ring-emerald-500/10 sm:px-4 md:max-w-[42rem]"
+                        role="search"
+                    >
+                        <Search
+                            size={17}
+                            className="shrink-0 text-(--color-text-muted)"
+                            aria-hidden
+                        />
+                        <input
+                            type="text"
+                            placeholder="Search verified pharmacies..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="min-w-0 flex-1 border-none bg-transparent px-3 py-1.5 text-sm font-semibold text-(--color-text-primary) outline-none placeholder:text-(--color-text-muted)"
+                            aria-label="Search verified pharmacies"
+                        />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery("")}
+                                className="shrink-0 rounded-full p-1 text-(--color-text-muted) transition-colors hover:bg-(--color-surface-muted) hover:text-(--color-text-primary)"
+                                aria-label="Clear pharmacy search"
+                            >
+                                <X size={15} />
+                            </button>
+                        )}
+                    </div>
                 </div>
             </PageHeader>
 
             {/* ── Filter chips ── */}
-            <div className="relative z-20 border-b border-(--color-border-muted) bg-(--color-surface-page) p-4 pt-0 pb-4 shadow-sm">
-                <div
-                    className="no-scrollbar flex gap-2 overflow-x-auto pb-1"
-                    role="group"
-                    aria-label="Filter pharmacies"
-                >
-                    {filters.map((f) => (
-                        <button
-                            key={f.id}
-                            onClick={() => {
-                                if (f.id === "more") setShowFilterPanel((open) => !open);
-                                else setActiveFilter(f.id as any);
-                            }}
-                            aria-pressed={
-                                f.id === "more"
-                                    ? showFilterPanel || activeAdvancedFilterCount > 0
-                                    : activeFilter === f.id
-                            }
-                            aria-expanded={f.id === "more" ? showFilterPanel : undefined}
-                            className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold whitespace-nowrap transition-all ${
-                                (
-                                    f.id === "more"
-                                        ? activeAdvancedFilterCount > 0
-                                        : activeFilter === f.id
-                                )
-                                    ? f.activeClass
-                                    : "bg-(--color-surface-muted) text-(--color-text-secondary) hover:bg-(--color-border-muted)"
-                            }`}
-                        >
-                            {"icon" in f && f.icon}
-                            {f.label}
-                            {f.id === "more" && activeAdvancedFilterCount > 0 && (
-                                <span className="ml-0.5 rounded-full bg-(--color-text-primary) px-1.5 py-0.5 text-[9px] text-(--color-surface-page)">
-                                    {activeAdvancedFilterCount}
-                                </span>
-                            )}
-                        </button>
-                    ))}
-                </div>
-
-                {showFilterPanel && (
-                    <div className="absolute top-[calc(100%-0.5rem)] right-4 left-4 z-30 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-3 shadow-xl md:right-auto md:w-80">
-                        <div className="mb-2 flex items-center justify-between">
-                            <p className="text-xs font-bold text-(--color-text-primary)">Filters</p>
+            <div
+                data-testid="pharmacy-filter-shell"
+                className="relative z-20 border-b border-(--color-border-muted) bg-(--color-surface-page) px-4 pt-0 pb-4 shadow-[0_12px_34px_-30px_rgba(15,23,42,0.65)]"
+            >
+                <div className="mx-auto w-full max-w-4xl rounded-[1.35rem] border border-(--color-border-muted) bg-(--color-surface-page)/90 p-2 shadow-sm ring-1 ring-white/70 backdrop-blur dark:ring-white/5">
+                    <div
+                        className="no-scrollbar flex gap-2 overflow-x-auto p-0.5"
+                        role="group"
+                        aria-label="Filter pharmacies"
+                    >
+                        {filters.map((f) => (
                             <button
-                                onClick={() =>
-                                    setAdvancedFilters({
-                                        hasAddress: false,
-                                        hasPhone: false,
-                                        withinFiveKm: false,
-                                    })
+                                key={f.id}
+                                onClick={() => {
+                                    if (f.id === "more") setShowFilterPanel((open) => !open);
+                                    else setActiveFilter(f.id as any);
+                                }}
+                                aria-pressed={
+                                    f.id === "more"
+                                        ? showFilterPanel || activeAdvancedFilterCount > 0
+                                        : activeFilter === f.id
                                 }
-                                className="text-[11px] font-semibold text-(--color-text-secondary) transition-colors hover:text-(--color-text-primary)"
+                                aria-expanded={f.id === "more" ? showFilterPanel : undefined}
+                                className={`flex shrink-0 items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-bold whitespace-nowrap transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 ${
+                                    (
+                                        f.id === "more"
+                                            ? activeAdvancedFilterCount > 0
+                                            : activeFilter === f.id
+                                    )
+                                        ? `border-transparent ${f.activeClass}`
+                                        : "border-(--color-border-muted) bg-(--color-surface-muted)/80 text-(--color-text-secondary) hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 hover:shadow-sm dark:hover:border-emerald-900 dark:hover:bg-emerald-950/30 dark:hover:text-emerald-300"
+                                }`}
                             >
-                                Clear
+                                {"icon" in f && f.icon}
+                                {f.label}
+                                {f.id === "more" && activeAdvancedFilterCount > 0 && (
+                                    <span className="ml-0.5 rounded-full bg-white/20 px-1.5 py-0.5 text-[9px] text-current ring-1 ring-white/30">
+                                        {activeAdvancedFilterCount}
+                                    </span>
+                                )}
                             </button>
-                        </div>
-                        <div className="space-y-2">
-                            {[
-                                ["hasAddress", "Has address details"],
-                                ["hasPhone", "Has phone number"],
-                                ["withinFiveKm", "Within 5 km"],
-                            ].map(([key, label]) => (
-                                <label
-                                    key={key}
-                                    className="flex cursor-pointer items-center justify-between rounded-xl bg-(--color-surface-muted) px-3 py-2 text-xs font-semibold text-(--color-text-secondary) hover:bg-(--color-border-muted)"
-                                >
-                                    <span>{label}</span>
-                                    <input
-                                        type="checkbox"
-                                        checked={advancedFilters[key as keyof AdvancedFilters]}
-                                        onChange={() =>
-                                            updateAdvancedFilter(key as keyof AdvancedFilters)
-                                        }
-                                        className="h-4 w-4 accent-emerald-600"
-                                    />
-                                </label>
-                            ))}
-                        </div>
+                        ))}
                     </div>
-                )}
 
-                {/* Results count bar */}
-                <div className="mt-2 flex items-center gap-2 px-1">
-                    <p className="text-[11px] font-medium text-(--color-text-muted)">
+                    {showFilterPanel && (
+                        <div className="absolute top-[calc(100%-0.5rem)] right-4 left-4 z-30 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-3 shadow-xl md:right-auto md:w-80">
+                            <div className="mb-2 flex items-center justify-between">
+                                <p className="text-xs font-bold text-(--color-text-primary)">
+                                    Filters
+                                </p>
+                                <button
+                                    onClick={() =>
+                                        setAdvancedFilters({
+                                            hasAddress: false,
+                                            hasPhone: false,
+                                            withinFiveKm: false,
+                                            lowRisk: false,
+                                            mediumRisk: false,
+                                            highRisk: false,
+                                        })
+                                    }
+                                    className="text-[11px] font-semibold text-(--color-text-secondary) transition-colors hover:text-(--color-text-primary)"
+                                >
+                                    Clear
+                                </button>
+                            </div>
+                            <div className="space-y-2">
+                                <p className="mt-1 text-[10px] font-bold tracking-wider text-(--color-text-secondary)/80 uppercase">
+                                    Location & Details
+                                </p>
+                                {[
+                                    ["hasAddress", "Has address details"],
+                                    ["hasPhone", "Has phone number"],
+                                    ["withinFiveKm", "Within 5 km"],
+                                ].map(([key, label]) => (
+                                    <label
+                                        key={key}
+                                        className="flex cursor-pointer items-center justify-between rounded-xl bg-(--color-surface-muted) px-3 py-2 text-xs font-semibold text-(--color-text-secondary) hover:bg-(--color-border-muted)"
+                                    >
+                                        <span>{label}</span>
+                                        <input
+                                            type="checkbox"
+                                            checked={advancedFilters[key as keyof AdvancedFilters]}
+                                            onChange={() =>
+                                                updateAdvancedFilter(key as keyof AdvancedFilters)
+                                            }
+                                            className="h-4 w-4 accent-emerald-600"
+                                        />
+                                    </label>
+                                ))}
+
+                                <p className="mt-2 text-[10px] font-bold tracking-wider text-(--color-text-secondary)/80 uppercase">
+                                    Trust / Risk Level
+                                </p>
+                                {[
+                                    ["lowRisk", "🟢 Low Risk (Score ≥ 80%)"],
+                                    ["mediumRisk", "🟡 Medium Risk (Score 50-79%)"],
+                                    ["highRisk", "🔴 High Risk (Score < 50%)"],
+                                ].map(([key, label]) => (
+                                    <label
+                                        key={key}
+                                        className="flex cursor-pointer items-center justify-between rounded-xl bg-(--color-surface-muted) px-3 py-2 text-xs font-semibold text-(--color-text-secondary) hover:bg-(--color-border-muted)"
+                                    >
+                                        <span>{label}</span>
+                                        <input
+                                            type="checkbox"
+                                            checked={advancedFilters[key as keyof AdvancedFilters]}
+                                            onChange={() =>
+                                                updateAdvancedFilter(key as keyof AdvancedFilters)
+                                            }
+                                            className="h-4 w-4 accent-emerald-600"
+                                        />
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Results count bar */}
+                    <div className="mt-2 flex min-h-10 items-center gap-2 px-1">
                         {isLoading ? (
-                            <span className="flex items-center gap-1.5">
-                                <Loader2 size={10} className="animate-spin" />
-                                Fetching pharmacies…
-                            </span>
+                            <MapHeaderLoadingIndicator />
                         ) : (
-                            <>
+                            <p className="text-[11px] font-semibold text-(--color-text-muted)">
                                 {filteredPharmacies.length} pharmacies found
                                 {searchQuery && <> for &ldquo;{searchQuery}&rdquo;</>}
                                 {pharmacyCount > 0 && (
@@ -651,9 +872,12 @@ const handleMapReady = useCallback(() => {
                                             : " • Live from OSM"}
                                     </span>
                                 )}
-                            </>
+                                {isShowingCached && (
+                                    <span className="ml-1 text-amber-600">• Cached</span>
+                                )}
+                            </p>
                         )}
-                    </p>
+                    </div>
                 </div>
             </div>
 
@@ -678,6 +902,7 @@ const handleMapReady = useCallback(() => {
                     >
                         <PharmacyMap
                             pharmacies={filteredPharmacies}
+                            ashaWorkers={ashaWorkers}
                             selectedPharmacyId={selectedPharmacyId}
                             userLocation={userLocation}
                             onMapMoveEnd={handleMapMoveEnd}
@@ -709,7 +934,34 @@ const handleMapReady = useCallback(() => {
                                 </div>
                             </div>
                         )}
-
+                        {/* ── Radius slider + reset ── */}
+                        <div className="absolute bottom-6 left-1/2 z-1000 flex -translate-x-1/2 items-center gap-3 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page)/90 px-4 py-2.5 shadow-xl backdrop-blur-md">
+                            <span className="text-[11px] font-bold whitespace-nowrap text-(--color-text-secondary)">
+                                Radius
+                            </span>
+                            <input
+                                type="range"
+                                min={1}
+                                max={25}
+                                step={1}
+                                value={radiusKm}
+                                onChange={(e) => setRadiusKm(Number(e.target.value))}
+                                className="w-28 accent-emerald-600"
+                                aria-label="Search radius in kilometres"
+                            />
+                            <span className="w-10 text-xs font-bold text-emerald-600">
+                                {radiusKm} km
+                            </span>
+                            <button
+                                onClick={handleLocateUser}
+                                disabled={isLocating}
+                                className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-1.5 text-[11px] font-bold text-white transition-all hover:bg-emerald-700 active:scale-95 disabled:opacity-60"
+                                aria-label="Reset to my location"
+                            >
+                                <Navigation size={12} />
+                                My Location
+                            </button>
+                        </div>
                         <div className="absolute top-4 right-4 z-1000 flex flex-col gap-2">
                             <button
                                 data-testid="mobile-pharmacy-list-toggle"
@@ -728,17 +980,30 @@ const handleMapReady = useCallback(() => {
                                         ? "animate-pulse bg-emerald-500/10 text-emerald-600"
                                         : userLocation
                                           ? "bg-emerald-600 text-white hover:bg-emerald-700"
-                                          : "bg-(--color-surface-page) text-emerald-600 hover:text-emerald-500 dark:hover:text-emerald-400 hover:shadow-xl"
+                                          : "bg-(--color-surface-page) text-emerald-600 hover:text-emerald-500 hover:shadow-xl dark:hover:text-emerald-400"
                                 }`}
                                 aria-label="Find my location"
                                 title="Find my location"
-                             >
+                            >
                                 <Navigation size={20} />
                             </button>
                         </div>
 
-                        {(locationError || fetchError) && (
-                            <div className="animate-in slide-in-from-top-2 absolute top-4 right-16 left-4 z-1000 rounded-2xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20 px-4 py-3 text-xs font-semibold text-red-700 dark:text-red-400 shadow-lg duration-300">
+                        {/* ── Offline cached data banner ── */}
+                        {isShowingCached && (
+                            <div
+                                className="animate-in slide-in-from-top-2 absolute top-4 right-16 left-4 z-1000 flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-700 shadow-lg duration-300 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-400"
+                                role="alert"
+                                aria-live="polite"
+                            >
+                                <WifiOff size={13} className="shrink-0" />
+                                You are offline. Showing previously saved pharmacies near you.
+                            </div>
+                        )}
+
+                        {/* ── Error banner (location / fetch errors) ── */}
+                        {!isShowingCached && (locationError || fetchError) && (
+                            <div className="animate-in slide-in-from-top-2 absolute top-4 right-16 left-4 z-1000 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700 shadow-lg duration-300 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-400">
                                 {locationError || fetchError}
                             </div>
                         )}

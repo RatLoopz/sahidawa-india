@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Mic } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -51,6 +51,7 @@ import {
     subscribeToMediaQueryChange,
     type StoredVoiceAnimationPreference,
 } from "./lib/audio";
+import { useCloudTTS, type TTSError } from "./lib/useCloudTTS";
 import type { VoiceErrorState, VoiceStep, VoiceStreamingStatus, VoiceTriageResult } from "./types";
 
 const DEFAULT_FLOW_CONFIDENCE = getConfidenceMeta(undefined);
@@ -133,14 +134,15 @@ function getConfidenceValueLabel(
     confidence: ConfidenceMeta,
     t: ReturnType<typeof useTranslations>
 ) {
-    const keyMap: Record<ConfidenceMeta["id"], string> = {
+    const keyMap = {
         high: "confidence_values.high",
         medium: "confidence_values.medium",
         low: "confidence_values.low",
         unavailable: "confidence_values.unavailable",
-    };
+    } as const;
 
-    return t(keyMap[confidence.id] as any);
+    const key = keyMap[confidence.id as keyof typeof keyMap];
+    return t(key ?? "confidence_values.unavailable");
 }
 
 export default function VoiceTriagePage() {
@@ -361,11 +363,11 @@ export default function VoiceTriagePage() {
         return () => window.clearTimeout(focusTimer);
     }, [error, result, step, t]);
 
-    const handleEscapeShortcut = useEffectEvent((event: KeyboardEvent) => {
+    const handleEscapeShortcut = useCallback((event: KeyboardEvent) => {
         if (event.key !== "Escape") {
             return;
         }
-
+        
         const activeElement =
             typeof document !== "undefined" ? (document.activeElement as HTMLElement | null) : null;
         const activeWithinVoiceRegion = Boolean(
@@ -399,7 +401,7 @@ export default function VoiceTriagePage() {
             event.preventDefault();
             resetFlow();
         }
-    });
+    }, [isSpeaking, step, handleStopSpeaking, stopListening, resetFlow]);
 
     useEffect(() => {
         if (typeof window === "undefined") {
@@ -648,49 +650,81 @@ export default function VoiceTriagePage() {
         }
     }
 
+    const { playTTS, stopTTS } = useCloudTTS();
+
     function handleReplaySummary() {
         if (typeof window === "undefined" || !result?.summary) {
             return;
         }
 
-        if (!supportsSpeechSynthesis(window)) {
-            toast.error(t("tts_not_supported"));
-            return;
-        }
+        setIsSpeaking(true);
 
-        stopSpeaking(window);
-
-        const utterance = new SpeechSynthesisUtterance(result.summary);
-        utterance.lang = resultLanguageOption.speechSynthesisLang;
-        const voiceMatch = resolveSpeechSynthesisVoice(
-            window,
-            resultLanguageOption.speechSynthesisLang
-        );
-
-        if (voiceMatch.voice) {
-            utterance.voice = voiceMatch.voice;
-        }
-
-        if (voiceMatch.supportLevel === "fallback") {
-            const fallbackNoticeKey = `${resultLanguageOption.value}:${result.summary}`;
-            if (ttsFallbackNoticeKeyRef.current !== fallbackNoticeKey) {
-                ttsFallbackNoticeKeyRef.current = fallbackNoticeKey;
-                toast.warning(
-                    t("tts_fallback_message", {
-                        language: resultLanguageOption.label,
-                    })
-                );
+        const playWithCloudTTSAndFallback = async () => {
+            try {
+                // Try cloud TTS first
+                await playTTS(result!.summary, resultLanguageOption.speechSynthesisLang, {
+                    onStart: () => setIsSpeaking(true),
+                    onEnd: () => setIsSpeaking(false),
+                    onError: (error: Error) => {
+                        console.error("Cloud TTS error:", error);
+                        // Fallback to native SpeechSynthesis
+                        fallbackToNativeSpeech();
+                    },
+                });
+            } catch (error) {
+                const ttsError = error as TTSError;
+                console.warn("Cloud TTS failed, falling back to native SpeechSynthesis:", ttsError);
+                // Fallback to native SpeechSynthesis
+                fallbackToNativeSpeech();
             }
-        }
+        };
 
-        utterance.onstart = () => setIsSpeaking(true);
-        utterance.onend = () => setIsSpeaking(false);
-        utterance.onerror = () => setIsSpeaking(false);
+        const fallbackToNativeSpeech = () => {
+            if (!supportsSpeechSynthesis(window)) {
+                toast.error(t("tts_not_supported"));
+                setIsSpeaking(false);
+                return;
+            }
 
-        window.speechSynthesis.speak(utterance);
+            stopSpeaking(window);
+
+            const utterance = new SpeechSynthesisUtterance(result!.summary);
+            utterance.lang = resultLanguageOption.speechSynthesisLang;
+            const voiceMatch = resolveSpeechSynthesisVoice(
+                window,
+                resultLanguageOption.speechSynthesisLang
+            );
+
+            if (voiceMatch.voice) {
+                utterance.voice = voiceMatch.voice;
+            }
+
+            if (voiceMatch.supportLevel === "fallback") {
+                const fallbackNoticeKey = `${resultLanguageOption.value}:${result!.summary}`;
+                if (ttsFallbackNoticeKeyRef.current !== fallbackNoticeKey) {
+                    ttsFallbackNoticeKeyRef.current = fallbackNoticeKey;
+                    toast.warning(
+                        t("tts_fallback_message", {
+                            language: resultLanguageOption.label,
+                        })
+                    );
+                }
+            }
+
+            utterance.onstart = () => setIsSpeaking(true);
+            utterance.onend = () => setIsSpeaking(false);
+            utterance.onerror = () => setIsSpeaking(false);
+
+            window.speechSynthesis.speak(utterance);
+        };
+
+        playWithCloudTTSAndFallback();
     }
 
     function handleStopSpeaking() {
+        // Stop cloud TTS
+        stopTTS();
+        // Stop native SpeechSynthesis as fallback
         if (typeof window !== "undefined") {
             stopSpeaking(window);
         }
@@ -1123,17 +1157,17 @@ export default function VoiceTriagePage() {
                   : undefined;
 
     return (
-        <div className="relative flex min-h-screen flex-col overflow-hidden bg-(--color-surface-muted) text-(--color-text-primary) font-sans">
+        <div className="relative flex min-h-screen flex-col overflow-hidden bg-(--color-surface-muted) font-sans text-(--color-text-primary)">
             <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
                 {srAnnouncement}
             </div>
 
             <div
-                className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-emerald-100/40 dark:bg-emerald-950/15 blur-3xl"
+                className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-emerald-100/40 blur-3xl dark:bg-emerald-950/15"
                 aria-hidden="true"
             ></div>
             <div
-                className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-blue-100/40 dark:bg-blue-950/15 blur-3xl"
+                className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-blue-100/40 blur-3xl dark:bg-blue-950/15"
                 aria-hidden="true"
             ></div>
 

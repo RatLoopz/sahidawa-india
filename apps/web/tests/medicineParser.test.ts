@@ -34,6 +34,15 @@ describe("extractExpiryDate", () => {
         expect(extractExpiryDate("EXPIRY 13/2029")).toBeNull(); // Invalid month
         expect(extractExpiryDate("12/2019")).toBeNull(); // Past year out of regex bounds
     });
+
+    it("returns null for impossible DD/MM/YYYY calendar dates", () => {
+        expect(extractExpiryDate("EXP 31/02/2027")).toBeNull(); // Feb 31 does not exist
+        expect(extractExpiryDate("30/02/2028")).toBeNull(); // Feb 30 does not exist
+        expect(extractExpiryDate("31/04/2027")).toBeNull(); // Apr 31 does not exist
+        expect(extractExpiryDate("31/06/2027")).toBeNull(); // Jun 31 does not exist
+        expect(extractExpiryDate("31/09/2027")).toBeNull(); // Sep 31 does not exist
+        expect(extractExpiryDate("31/11/2027")).toBeNull(); // Nov 31 does not exist
+    });
 });
 
 describe("extractBatchNumber", () => {
@@ -71,5 +80,20 @@ describe("extractMedicineName", () => {
         expect(extractMedicineName("Some Random Line\nparacetamol tablets\nBatch 289")).toBe(
             "Some Random Line"
         );
+    });
+
+    it("skips common pharmaceutical terms and extracts the medicine name", () => {
+        expect(extractMedicineName("TABLETS IP\nPARACETAMOL 500MG")).toBe("PARACETAMOL");
+        expect(extractMedicineName("CAPSULES\nAMOXICILLIN 250MG")).toBe("AMOXICILLIN");
+        expect(extractMedicineName("STRIP\nPARACETAMOL 500MG")).toBe("PARACETAMOL");
+        expect(extractMedicineName("DROPS\nCIPROFLOXACIN")).toBe("CIPROFLOXACIN");
+        expect(extractMedicineName("SYRUP\nAMBROXOL")).toBe("AMBROXOL");
+        expect(extractMedicineName("INJECTION\nDEXAMETHASONE")).toBe("DEXAMETHASONE");
+        expect(extractMedicineName("SUSPENSION\nCETIRIZINE")).toBe("CETIRIZINE");
+        expect(extractMedicineName("OINTMENT\nBETAMETHASONE")).toBe("BETAMETHASONE");
+        expect(extractMedicineName("CREAM\nCLOTRIMAZOL")).toBe("CLOTRIMAZOL");
+        expect(extractMedicineName("GEL\nDICLOFENAC")).toBe("DICLOFENAC");
+        expect(extractMedicineName("POWDER\nORS SACHET")).toBe("ORS SACHET");
+        expect(extractMedicineName("SPRAY\nFLUTICASONE")).toBe("FLUTICASONE");
     });
 });
