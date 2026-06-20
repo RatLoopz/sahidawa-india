@@ -833,3 +833,4 @@
 | [#2002](https://github.com/RatLoopz/sahidawa-india/pull/2002) | 2026-06-19 | Frontend | 8 | @hrx01-dev | [View Doc](devtrack/2026-06/PR-2002-feat-add-clear-all-history-button-with-confirmatio.md) |
 | [#2061](https://github.com/RatLoopz/sahidawa-india/pull/2061) | 2026-06-19 | Backend | 19 | @panditshubham766-dotcom | [View Doc](devtrack/2026-06/PR-2061-security-api-enforce-authentication-on-pharmacy-re.md) / [ADR](devtrack/adr/ADR-035-security-api-enforce-authentication-on-pharmacy-re.md) |
 | [#2128](https://github.com/RatLoopz/sahidawa-india/pull/2128) | 2026-06-19 | Frontend | 5 | @arushiranjan | [View Doc](devtrack/2026-06/PR-2128-a11y-faq-details-summary.md) |
+| [#2141](https://github.com/RatLoopz/sahidawa-india/pull/2141) | 2026-06-20 | Backend | 6 | @PremSahith | [View Doc](devtrack/2026-06/PR-2141-perf-api-fix-oom-risk-and-n-1-query-in-alert-broad.md) |
