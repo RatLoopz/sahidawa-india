@@ -16,21 +16,21 @@ const MAX_RESULTS = 200;
 
 /** Raw pharmacy row returned by Supabase table queries (fallback path) */
 interface PharmacyRow {
-    name: string;
-    address: string;
-    lat?: number;
-    lng?: number;
-    location?: { type: string; coordinates: number[] } | null;
-    phone_number: string | null;
-    is_verified: boolean;
-    district: string | null;
-    state: string | null;
-    status?: "pending" | "approved" | "rejected";
+  name: string;
+  address: string;
+  lat?: number;
+  lng?: number;
+  location?: { type: string; coordinates: number[] } | null;
+  phone_number: string | null;
+  is_verified: boolean;
+  district: string | null;
+  state: string | null;
+  status?: "pending" | "approved" | "rejected";
 }
 
 /** Internal type used during sorting (includes raw numeric distance) */
 interface PharmacyWithRawDistance extends FormattedPharmacy {
-    rawDistance: number;
+  rawDistance: number;
 }
 
 // ── Zod validation schemas ───────────────────────────────────────────────────
@@ -38,17 +38,34 @@ interface PharmacyWithRawDistance extends FormattedPharmacy {
 // Schema for pharmacy registration. licenseId is required and must be unique
 // across all registered pharmacies to prevent duplicate records.
 const registerPharmacySchema = z.object({
-    name: z.string().min(2),
-    licenseId: z.string().min(3),
-    address: z.string().min(5),
-    district: z.string().min(2),
-    state: z.string().min(2),
-    phone_number: z
-        .string()
-        .regex(/^\+?[\d\s\-()]{7,15}$/)
-        .optional(),
-    lat: z.number().min(-90).max(90).optional(),
-    lng: z.number().min(-180).max(180).optional(),
+  name: z.string().min(2),
+  licenseId: z.string().min(3),
+  address: z.string().min(5),
+  district: z.string().min(2),
+  state: z.string().min(2),
+  phone_number: z
+    .string()
+    .regex(/^\+?[\d\s\-()]{7,15}$/)
+    .optional(),
+  lat: z.number().min(-90).max(90).optional(),
+  lng: z.number().min(-180).max(180).optional(),
+});
+
+// Zod schema for validating each individual item inside an uploaded row
+const inventoryRowSchema = z.object({
+  medicine_name: z.string().min(1, "Medicine name is required"),
+  batch_number: z.string().min(1, "Batch number is required"),
+  expiry_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Expiry date must be in YYYY-MM-DD format"),
+  quantity: z.preprocess(
+    (val) => Number(val),
+    z.number().int().nonnegative("Quantity must be a positive number"),
+  ),
+  mrp: z.preprocess(
+    (val) => Number(val),
+    z.number().positive("MRP must be a valid price"),
+  ),
 });
 
 // ── Pharmacy registration ────────────────────────────────────────────────────
@@ -59,104 +76,104 @@ const registerPharmacySchema = z.object({
  * already exists to prevent duplicate entries.
  */
 router.post(
-    "/",
-    requireAuth,
-    async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-        const parsed = registerPharmacySchema.safeParse(req.body);
-        if (!parsed.success) {
-            res.status(400).json({
-                error: "Invalid pharmacy payload",
-                issues: parsed.error.issues,
-            });
-            return;
-        }
-
-        if (!req.user) {
-            res.status(401).json({ error: "Unauthorized access" });
-            return;
-        }
-
-        const data = {
-            ...parsed.data,
-            created_by: req.user.id,
-        };
-        try {
-            // Check for an existing pharmacy with the same licenseId before inserting.
-            // Without this check concurrent or repeated requests can create duplicate
-            // records for the same physical location, corrupting search results and
-            // user-facing data.
-            const { data: existing, error: lookupError } = await supabase
-                .from("pharmacies")
-                .select("id")
-                .eq("license_id", data.licenseId)
-                .maybeSingle();
-
-            if (lookupError) {
-                logger.error("Pharmacy duplicate check failed", { error: lookupError });
-                next(lookupError);
-                return;
-            }
-
-            if (existing) {
-                res.status(409).json({
-                    error: "A pharmacy with this license ID is already registered",
-                });
-                return;
-            }
-
-            const { data: pharmacy, error: insertError } = await supabase
-                .from("pharmacies")
-                .insert({
-                    name: data.name,
-                    license_id: data.licenseId,
-                    address: data.address,
-                    district: data.district,
-                    state: data.state,
-                    phone_number: data.phone_number ?? null,
-                    location:
-                        data.lat !== undefined && data.lng !== undefined
-                            ? `POINT(${data.lng} ${data.lat})`
-                            : null,
-                    is_verified: false,
-                    status: "pending",
-                    created_by: data.created_by,
-                })
-                .select()
-                .single();
-
-            if (insertError) {
-                next(insertError);
-                return;
-            }
-
-            res.status(201).json({ pharmacy });
-        } catch (err) {
-            next(err);
-        }
+  "/",
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    const parsed = registerPharmacySchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({
+        error: "Invalid pharmacy payload",
+        issues: parsed.error.issues,
+      });
+      return;
     }
+
+    if (!req.user) {
+      res.status(401).json({ error: "Unauthorized access" });
+      return;
+    }
+
+    const data = {
+      ...parsed.data,
+      created_by: req.user.id,
+    };
+    try {
+      // Check for an existing pharmacy with the same licenseId before inserting.
+      // Without this check concurrent or repeated requests can create duplicate
+      // records for the same physical location, corrupting search results and
+      // user-facing data.
+      const { data: existing, error: lookupError } = await supabase
+        .from("pharmacies")
+        .select("id")
+        .eq("license_id", data.licenseId)
+        .maybeSingle();
+
+      if (lookupError) {
+        logger.error("Pharmacy duplicate check failed", { error: lookupError });
+        next(lookupError);
+        return;
+      }
+
+      if (existing) {
+        res.status(409).json({
+          error: "A pharmacy with this license ID is already registered",
+        });
+        return;
+      }
+
+      const { data: pharmacy, error: insertError } = await supabase
+        .from("pharmacies")
+        .insert({
+          name: data.name,
+          license_id: data.licenseId,
+          address: data.address,
+          district: data.district,
+          state: data.state,
+          phone_number: data.phone_number ?? null,
+          location:
+            data.lat !== undefined && data.lng !== undefined
+              ? `POINT(${data.lng} ${data.lat})`
+              : null,
+          is_verified: false,
+          status: "pending",
+          created_by: data.created_by,
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        next(insertError);
+        return;
+      }
+
+      res.status(201).json({ pharmacy });
+    } catch (err) {
+      next(err);
+    }
+  },
 );
 
 const nearestQuerySchema = z.object({
-    lat: z.coerce.number().min(-90).max(90),
-    lng: z.coerce.number().min(-180).max(180),
-    radius: z.coerce.number().min(1).max(200).default(50),
+  lat: z.coerce.number().min(-90).max(90),
+  lng: z.coerce.number().min(-180).max(180),
+  radius: z.coerce.number().min(1).max(200).default(50),
 });
 
 const boundsQuerySchema = z
-    .object({
-        south: z.coerce.number().min(-90).max(90),
-        west: z.coerce.number().min(-180).max(180),
-        north: z.coerce.number().min(-90).max(90),
-        east: z.coerce.number().min(-180).max(180),
-    })
-    .refine((data) => data.south < data.north, {
-        message: "South boundary must be less than North boundary",
-        path: ["south"],
-    })
-    .refine((data) => data.west < data.east, {
-        message: "West boundary must be less than East boundary",
-        path: ["west"],
-    });
+  .object({
+    south: z.coerce.number().min(-90).max(90),
+    west: z.coerce.number().min(-180).max(180),
+    north: z.coerce.number().min(-90).max(90),
+    east: z.coerce.number().min(-180).max(180),
+  })
+  .refine((data) => data.south < data.north, {
+    message: "South boundary must be less than North boundary",
+    path: ["south"],
+  })
+  .refine((data) => data.west < data.east, {
+    message: "West boundary must be less than East boundary",
+    path: ["west"],
+  });
 
 // ── Helper functions ─────────────────────────────────────────────────────────
 
@@ -170,18 +187,23 @@ const boundsQuerySchema = z
  * @param lon2 - Longitude of the second point
  * @returns Distance in kilometres
  */
-function calculateDistanceKM(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * (Math.PI / 180);
-    const dLon = (lon2 - lon1) * (Math.PI / 180);
-    const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * (Math.PI / 180)) *
-            Math.cos(lat2 * (Math.PI / 180)) *
-            Math.sin(dLon / 2) *
-            Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
+function calculateDistanceKM(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
 }
 
 /**
@@ -189,69 +211,75 @@ function calculateDistanceKM(lat1: number, lon1: number, lat2: number, lon2: num
  * Handles both flat (lat/lng) and GeoJSON (location.coordinates) formats.
  */
 function extractCoordinates(p: PharmacyRow): { lat: number; lng: number } {
-    if (p.lat !== undefined && p.lng !== undefined) {
-        return { lat: Number(p.lat), lng: Number(p.lng) };
-    }
-    if (p.location && typeof p.location === "object" && p.location.coordinates) {
-        return {
-            lat: Number(p.location.coordinates[1]),
-            lng: Number(p.location.coordinates[0]),
-        };
-    }
-    return { lat: 0, lng: 0 };
+  if (p.lat !== undefined && p.lng !== undefined) {
+    return { lat: Number(p.lat), lng: Number(p.lng) };
+  }
+  if (p.location && typeof p.location === "object" && p.location.coordinates) {
+    return {
+      lat: Number(p.location.coordinates[1]),
+      lng: Number(p.location.coordinates[0]),
+    };
+  }
+  return { lat: 0, lng: 0 };
 }
 
 /**
  * Formats a pharmacy row into the standard API response shape.
  */
 function formatPharmacy(p: PharmacyRow, distanceKm: number): FormattedPharmacy {
-    const coords = extractCoordinates(p);
-    return {
-        name: p.name || "Unknown Pharmacy",
-        address: p.address || "Unknown Address",
-        lat: coords.lat,
-        lng: coords.lng,
-        distance: `${distanceKm.toFixed(1)} km`,
-        phone_number: p.phone_number || null,
-        is_verified: p.is_verified ?? false,
-        district: p.district || null,
-        state: p.state || null,
-    };
+  const coords = extractCoordinates(p);
+  return {
+    name: p.name || "Unknown Pharmacy",
+    address: p.address || "Unknown Address",
+    lat: coords.lat,
+    lng: coords.lng,
+    distance: `${distanceKm.toFixed(1)} km`,
+    phone_number: p.phone_number || null,
+    is_verified: p.is_verified ?? false,
+    district: p.district || null,
+    state: p.state || null,
+  };
 }
 
 /**
  * Handles database fetch errors with descriptive error messages and hints.
  */
 function handleFetchError(
-    fetchError: { message?: string; code?: string; details?: string; hint?: string },
-    res: Response
+  fetchError: {
+    message?: string;
+    code?: string;
+    details?: string;
+    hint?: string;
+  },
+  res: Response,
 ): void {
-    logger.error("Database query failed", {
-        message: fetchError.message,
-        code: fetchError.code,
-        details: fetchError.details,
-        hint: fetchError.hint,
-    });
+  logger.error("Database query failed", {
+    message: fetchError.message,
+    code: fetchError.code,
+    details: fetchError.details,
+    hint: fetchError.hint,
+  });
 
-    const errMsg = fetchError.message?.toLowerCase() || "";
-    let hint = "Check your SUPABASE_URL and ensure your database is running.";
+  const errMsg = fetchError.message?.toLowerCase() || "";
+  let hint = "Check your SUPABASE_URL and ensure your database is running.";
 
-    if (errMsg.includes("api key") || errMsg.includes("jwt")) {
-        hint = "Your Supabase API key is invalid or expired. Check your .env setup.";
-    } else if (
-        errMsg.includes('relation "public.pharmacies" does not exist') ||
-        fetchError.code === "42P01"
-    ) {
-        hint =
-            'The "pharmacies" table is missing. Did you forget to run the Supabase migrations/seeds?';
-    }
+  if (errMsg.includes("api key") || errMsg.includes("jwt")) {
+    hint =
+      "Your Supabase API key is invalid or expired. Check your .env setup.";
+  } else if (
+    errMsg.includes('relation "public.pharmacies" does not exist') ||
+    fetchError.code === "42P01"
+  ) {
+    hint =
+      'The "pharmacies" table is missing. Did you forget to run the Supabase migrations/seeds?';
+  }
 
-    res.status(500).json({
-        error: "Database Query Failed",
-        details: fetchError.message,
-        code: fetchError.code || "UNKNOWN",
-        hint,
-    });
+  res.status(500).json({
+    error: "Database Query Failed",
+    details: fetchError.message,
+    code: fetchError.code || "UNKNOWN",
+    hint,
+  });
 }
 
 // ── Routes ───────────────────────────────────────────────────────────────────
@@ -347,85 +375,108 @@ function handleFetchError(
  *       500:
  *         description: Server or database error
  */
-router.get("/nearest", async (req: Request, res: Response, next: NextFunction) => {
+router.get(
+  "/nearest",
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const result = nearestQuerySchema.safeParse(req.query);
+      const result = nearestQuerySchema.safeParse(req.query);
 
-        if (!result.success) {
-            res.status(400).json({
-                error: "Invalid coordinates",
-                details: result.error.flatten().fieldErrors,
-            });
-            return;
-        }
-
-        const { lat, lng, radius } = result.data;
-
-        // Primary path: PostGIS RPC with server-side radius filtering
-        const { data: rpcData, error: rpcError } = await supabase.rpc("get_nearest_pharmacies", {
-            query_lat: lat,
-            query_lng: lng,
-            search_radius_km: radius,
+      if (!result.success) {
+        res.status(400).json({
+          error: "Invalid coordinates",
+          details: result.error.flatten().fieldErrors,
         });
+        return;
+      }
 
-        if (!rpcError && rpcData) {
-            const pharmacies: FormattedPharmacy[] = (rpcData as PharmacyRpcResult[])
-                .map((p: PharmacyRpcResult) => ({
-                    name: p.name || "Unknown Pharmacy",
-                    address: p.address || "Unknown Address",
-                    lat: p.lat,
-                    lng: p.lng,
-                    distance: `${Number(p.distance).toFixed(1)} km`,
-                    phone_number: p.phone_number || null,
-                    is_verified: p.is_verified ?? false,
-                    district: p.district || null,
-                    state: p.state || null,
-                }))
-                .slice(0, MAX_RESULTS);
+      const { lat, lng, radius } = result.data;
 
-            return res.json({ pharmacies });
-        }
+      // Primary path: PostGIS RPC with server-side radius filtering
+      const { data: rpcData, error: rpcError } = await supabase.rpc(
+        "get_nearest_pharmacies",
+        {
+          query_lat: lat,
+          query_lng: lng,
+          search_radius_km: radius,
+        },
+      );
 
-        // Fallback path: Haversine calculation in JavaScript
-        logger.warn("PostGIS RPC failed or unavailable, falling back to Haversine calculation", {
-            error: rpcError?.message,
-            code: rpcError?.code,
-        });
+      if (!rpcError && rpcData) {
+        const pharmacies: FormattedPharmacy[] = (rpcData as PharmacyRpcResult[])
+          .map((p: PharmacyRpcResult) => ({
+            name: p.name || "Unknown Pharmacy",
+            address: p.address || "Unknown Address",
+            lat: p.lat,
+            lng: p.lng,
+            distance: `${Number(p.distance).toFixed(1)} km`,
+            phone_number: p.phone_number || null,
+            is_verified: p.is_verified ?? false,
+            district: p.district || null,
+            state: p.state || null,
+          }))
+          .slice(0, MAX_RESULTS);
 
-        const { data: allPharmacies, error: fetchError } = await supabase
-            .from("pharmacies")
-            .select("name, address, location, phone_number, is_verified, district, state, status")
-            .eq("status", "approved")
-            .limit(3000);
+        return res.json({ pharmacies });
+      }
 
-        if (fetchError) {
-            handleFetchError(fetchError, res);
-            return;
-        }
+      // Fallback path: Haversine calculation in JavaScript
+      logger.warn(
+        "PostGIS RPC failed or unavailable, falling back to Haversine calculation",
+        {
+          error: rpcError?.message,
+          code: rpcError?.code,
+        },
+      );
 
-        const pharmacies: FormattedPharmacy[] = ((allPharmacies || []) as PharmacyRow[])
-            .filter((p: PharmacyRow) => p.status === "approved")
-            .map((p: PharmacyRow): PharmacyWithRawDistance => {
-                const coords = extractCoordinates(p);
-                const distanceKm = calculateDistanceKM(lat, lng, coords.lat, coords.lng);
-                return { ...formatPharmacy(p, distanceKm), rawDistance: distanceKm };
-            })
-            .filter(
-                (p: PharmacyWithRawDistance) =>
-                    p.lat !== 0 && p.lng !== 0 && p.rawDistance <= radius
-            )
-            .sort(
-                (a: PharmacyWithRawDistance, b: PharmacyWithRawDistance) =>
-                    a.rawDistance - b.rawDistance
-            )
-            .slice(0, MAX_RESULTS)
-            .map(({ rawDistance, ...rest }: PharmacyWithRawDistance): FormattedPharmacy => rest);
+      const { data: allPharmacies, error: fetchError } = await supabase
+        .from("pharmacies")
+        .select(
+          "name, address, location, phone_number, is_verified, district, state, status",
+        )
+        .eq("status", "approved")
+        .limit(3000);
 
-        res.json({ pharmacies });
+      if (fetchError) {
+        handleFetchError(fetchError, res);
+        return;
+      }
+
+      const pharmacies: FormattedPharmacy[] = (
+        (allPharmacies || []) as PharmacyRow[]
+      )
+        .filter((p: PharmacyRow) => p.status === "approved")
+        .map((p: PharmacyRow): PharmacyWithRawDistance => {
+          const coords = extractCoordinates(p);
+          const distanceKm = calculateDistanceKM(
+            lat,
+            lng,
+            coords.lat,
+            coords.lng,
+          );
+          return { ...formatPharmacy(p, distanceKm), rawDistance: distanceKm };
+        })
+        .filter(
+          (p: PharmacyWithRawDistance) =>
+            p.lat !== 0 && p.lng !== 0 && p.rawDistance <= radius,
+        )
+        .sort(
+          (a: PharmacyWithRawDistance, b: PharmacyWithRawDistance) =>
+            a.rawDistance - b.rawDistance,
+        )
+        .slice(0, MAX_RESULTS)
+        .map(
+          ({
+            rawDistance,
+            ...rest
+          }: PharmacyWithRawDistance): FormattedPharmacy => rest,
+        );
+
+      res.json({ pharmacies });
     } catch (err) {
-        next(err);
+      next(err);
     }
-});
+  },
+);
 
 /**
  * @openapi
@@ -518,90 +569,222 @@ router.get("/nearest", async (req: Request, res: Response, next: NextFunction) =
  *       500:
  *         description: Server or database error
  */
-router.get("/in-bounds", async (req: Request, res: Response, next: NextFunction) => {
+router.get(
+  "/in-bounds",
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const result = boundsQuerySchema.safeParse(req.query);
+      const result = boundsQuerySchema.safeParse(req.query);
 
-        if (!result.success) {
-            res.status(400).json({
-                error: "Invalid bounds",
-                details: result.error.flatten().fieldErrors,
-            });
-            return;
-        }
+      if (!result.success) {
+        res.status(400).json({
+          error: "Invalid bounds",
+          details: result.error.flatten().fieldErrors,
+        });
+        return;
+      }
 
-        const { south, west, north, east } = result.data;
+      const { south, west, north, east } = result.data;
 
-        const centerLat = (south + north) / 2;
-        const centerLng = (west + east) / 2;
+      const centerLat = (south + north) / 2;
+      const centerLng = (west + east) / 2;
 
-        // Primary path: PostGIS spatial query via RPC
-        const { data: rpcData, error: rpcError } = await supabase.rpc(
-            "get_pharmacies_in_bounds" as string,
-            { bound_south: south, bound_west: west, bound_north: north, bound_east: east }
-        );
+      // Primary path: PostGIS spatial query via RPC
+      const { data: rpcData, error: rpcError } = await supabase.rpc(
+        "get_pharmacies_in_bounds" as string,
+        {
+          bound_south: south,
+          bound_west: west,
+          bound_north: north,
+          bound_east: east,
+        },
+      );
 
-        if (!rpcError && rpcData) {
-            const pharmacies: FormattedPharmacy[] = (rpcData as PharmacyRpcResult[])
-                .map((p: PharmacyRpcResult) => ({
-                    name: p.name || "Unknown Pharmacy",
-                    address: p.address || "Unknown Address",
-                    lat: p.lat,
-                    lng: p.lng,
-                    distance: `${Number(p.distance).toFixed(1)} km`,
-                    phone_number: p.phone_number || null,
-                    is_verified: p.is_verified ?? false,
-                    district: p.district || null,
-                    state: p.state || null,
-                }))
-                .slice(0, MAX_RESULTS);
-            return res.json({ pharmacies });
-        }
+      if (!rpcError && rpcData) {
+        const pharmacies: FormattedPharmacy[] = (rpcData as PharmacyRpcResult[])
+          .map((p: PharmacyRpcResult) => ({
+            name: p.name || "Unknown Pharmacy",
+            address: p.address || "Unknown Address",
+            lat: p.lat,
+            lng: p.lng,
+            distance: `${Number(p.distance).toFixed(1)} km`,
+            phone_number: p.phone_number || null,
+            is_verified: p.is_verified ?? false,
+            district: p.district || null,
+            state: p.state || null,
+          }))
+          .slice(0, MAX_RESULTS);
+        return res.json({ pharmacies });
+      }
 
-        // Fallback path: in-memory bounding box filter
-        logger.warn("PostGIS bounds RPC unavailable, falling back to in-memory filter", {
-            error: rpcError?.message,
+      // Fallback path: in-memory bounding box filter
+      logger.warn(
+        "PostGIS bounds RPC unavailable, falling back to in-memory filter",
+        {
+          error: rpcError?.message,
+        },
+      );
+
+      const { data: allPharmacies, error: fetchError } = await supabase
+        .from("pharmacies")
+        .select(
+          "name, address, location, phone_number, is_verified, district, state, status",
+        )
+        .eq("status", "approved")
+        .limit(3000);
+
+      if (fetchError) {
+        handleFetchError(fetchError, res);
+        return;
+      }
+
+      const pharmacies: FormattedPharmacy[] = (
+        (allPharmacies || []) as PharmacyRow[]
+      )
+        .filter((p: PharmacyRow) => p.status === "approved")
+        .map((p: PharmacyRow) => {
+          const coords = extractCoordinates(p);
+          const distanceKm = calculateDistanceKM(
+            centerLat,
+            centerLng,
+            coords.lat,
+            coords.lng,
+          );
+          return { ...formatPharmacy(p, distanceKm), coords };
+        })
+        .filter(
+          (p) =>
+            p.coords.lat !== 0 &&
+            p.coords.lng !== 0 &&
+            p.coords.lat >= south &&
+            p.coords.lat <= north &&
+            p.coords.lng >= west &&
+            p.coords.lng <= east,
+        )
+        .slice(0, MAX_RESULTS)
+        .map(({ coords, ...rest }) => rest);
+
+      res.json({ pharmacies });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+router.post(
+  "/bulk-upload",
+  requireAuth,
+  async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({ error: "Unauthorized access" });
+        return;
+      }
+
+      const { fileContent } = req.body;
+      if (!fileContent || typeof fileContent !== "string") {
+        res.status(400).json({ error: "No valid file data content provided." });
+        return;
+      }
+
+      const { data: pharmacy, error: pharmError } = await supabase
+        .from("pharmacies")
+        .select("id")
+        .eq("created_by", req.user.id)
+        .maybeSingle();
+
+      if (pharmError || !pharmacy) {
+        res
+          .status(404)
+          .json({
+            error: "No registered pharmacy found for this authorized user.",
+          });
+        return;
+      }
+
+      const lines = fileContent
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+      if (lines.length <= 1) {
+        res
+          .status(400)
+          .json({ error: "The file appears empty or is missing rows." });
+        return;
+      }
+
+      if (lines.length > 501) {
+        res
+          .status(400)
+          .json({
+            error:
+              "Bulk upload exceeds the maximum limit of 500 items per request.",
+          });
+        return;
+      }
+
+      const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+      const rowsToInsert: any[] = [];
+      const failedRows: Array<{ row: number; reason: string }> = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i]
+          .split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)
+          .map((v) => v.replace(/^"|"$/g, "").trim());
+
+        const rowData: Record<string, any> = {};
+        headers.forEach((header, index) => {
+          // Safe guard indexing length bounds gracefully
+          const val = values[index];
+          rowData[header] = val === "" || val === undefined ? undefined : val;
         });
 
-        const { data: allPharmacies, error: fetchError } = await supabase
-            .from("pharmacies")
-            .select("name, address, location, phone_number, is_verified, district, state, status")
-            .eq("status", "approved")
-            .limit(3000);
-
-        if (fetchError) {
-            handleFetchError(fetchError, res);
-            return;
+        const validationResult = inventoryRowSchema.safeParse(rowData);
+        if (!validationResult.success) {
+          const errorMessage = validationResult.error.errors
+            .map((e) => e.message)
+            .join(", ");
+          failedRows.push({ row: i + 1, reason: errorMessage });
+          continue;
         }
 
-        const pharmacies: FormattedPharmacy[] = ((allPharmacies || []) as PharmacyRow[])
-            .filter((p: PharmacyRow) => p.status === "approved")
-            .map((p: PharmacyRow) => {
-                const coords = extractCoordinates(p);
-                const distanceKm = calculateDistanceKM(
-                    centerLat,
-                    centerLng,
-                    coords.lat,
-                    coords.lng
-                );
-                return { ...formatPharmacy(p, distanceKm), coords };
-            })
-            .filter(
-                (p) =>
-                    p.coords.lat !== 0 &&
-                    p.coords.lng !== 0 &&
-                    p.coords.lat >= south &&
-                    p.coords.lat <= north &&
-                    p.coords.lng >= west &&
-                    p.coords.lng <= east
-            )
-            .slice(0, MAX_RESULTS)
-            .map(({ coords, ...rest }) => rest);
+        rowsToInsert.push({
+          pharmacy_id: pharmacy.id,
+          medicine_name: validationResult.data.medicine_name,
+          batch_number: validationResult.data.batch_number,
+          expiry_date: validationResult.data.expiry_date,
+          quantity: validationResult.data.quantity,
+          mrp: validationResult.data.mrp,
+        });
+      }
 
-        res.json({ pharmacies });
-    } catch (err) {
-        next(err);
+      let successfulInserts = 0;
+      if (rowsToInsert.length > 0) {
+        const { error } = await supabase
+          .from("pharmacy_inventory")
+          .insert(rowsToInsert);
+        if (error) {
+          logger.error(`Database bulk insertion failed: ${error.message}`);
+          res
+            .status(500)
+            .json({ error: "Database operation failed during insertion." });
+          return;
+        }
+        successfulInserts = rowsToInsert.length;
+      }
+
+      res.status(200).json({
+        totalRows: lines.length - 1,
+        successCount: successfulInserts,
+        failedCount: failedRows.length,
+        errors: failedRows,
+      });
+    } catch (error: any) {
+      logger.error(`Exception in bulk operations handler: ${error.message}`);
+      next(error);
     }
-});
-
+  },
+);
 export default router;
