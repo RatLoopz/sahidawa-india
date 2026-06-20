@@ -2,13 +2,14 @@ import { supabase, dbConfig } from "../db/client";
 import { smsService } from "../services/sms-service";
 import { whatsappService } from "../services/whatsapp-service";
 import logger from "../utils/logger";
+import { NotificationSubscriber, NotificationAlertData } from "../types/notification.types";
 
 let intervalId: NodeJS.Timeout | null = null;
 const CHECK_INTERVAL_MS = process.env.NODE_ENV === "test" ? 1000 : 30000; // 30 seconds
 
 export function getLocalizedMessage(
     type: "counterfeit" | "recall" | "expiry",
-    data: { medicineName: string; batchNumber?: string; district?: string; expiryDate?: string },
+    data: NotificationAlertData,
     language: string
 ): { title: string; body: string } {
     const lang = language.toLowerCase();
@@ -74,9 +75,9 @@ export function getLocalizedMessage(
 }
 
 async function sendNotificationToSubscriber(
-    sub: any,
+    sub: NotificationSubscriber,
     type: "counterfeit" | "recall" | "expiry",
-    data: any
+    data: NotificationAlertData
 ): Promise<void> {
     const { title, body } = getLocalizedMessage(type, data, sub.language);
     const fullMessage = `${title}\n\n${body}`;
