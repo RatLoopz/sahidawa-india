@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 async function searchMedicines(query: string): Promise<Medicine[]> {
-    const q = query.trim();
+    const q = query.replace(/"/g, "").trim();
     if (q.length < 2) return [];
 
     const pattern = `%${q.replace(/[%_\\]/g, "\\$&")}%`;
