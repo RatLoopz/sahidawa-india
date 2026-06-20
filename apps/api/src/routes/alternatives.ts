@@ -144,7 +144,7 @@ router.get("/:medicine_id", async (req: Request, res: Response): Promise<void> =
                 .from("generic_alternatives")
                 .select("*")
                 .or(
-                    `brand_medicine_id.eq.${medicine.id},brand_name.ilike."%${escapePostgrest(medicine.brand_name)}%"`
+                    `brand_medicine_id.eq.${medicine.id},brand_name.ilike."%${escapePostgrest(String(medicine.brand_name))}%"`
                 )
                 .limit(1)
                 .maybeSingle();
@@ -155,7 +155,7 @@ router.get("/:medicine_id", async (req: Request, res: Response): Promise<void> =
                 .from("generic_alternatives")
                 .select("*")
                 .or(
-                    `brand_name.ilike."%${escapePostgrest(medicine_id)}%",generic_name.ilike."%${escapePostgrest(medicine_id)}%"`
+                    `brand_name.ilike."%${escapePostgrest(String(medicine_id))}%",generic_name.ilike."%${escapePostgrest(medicine_id)}%"`
                 )
                 .limit(1)
                 .maybeSingle();
