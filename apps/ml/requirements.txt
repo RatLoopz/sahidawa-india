@@ -54,3 +54,10 @@ https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr
 # Phonetic Fuzzy Matching
 rapidfuzz>=3.0.0
 metaphone>=0.6
+
+# OpenTelemetry
+opentelemetry-api>=1.20.0
+opentelemetry-sdk>=1.20.0
+opentelemetry-instrumentation-fastapi>=0.41b0
+opentelemetry-instrumentation-requests>=0.41b0
+opentelemetry-exporter-otlp>=1.20.0

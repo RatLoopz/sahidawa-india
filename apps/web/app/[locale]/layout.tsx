@@ -17,6 +17,7 @@ import { Toaster } from "sonner";
 import Footer from "./components/Footer";
 import { AuthProvider } from "@/src/components/AuthProvider";
 import CommandPalette from "./components/CommandPalette";
+import { TracingInitializer } from "@/components/TracingInitializer";
 
 export async function generateMetadata({
     params,
@@ -118,6 +119,7 @@ export default async function LocaleLayout({
                         <div className="no-print">
                             <Toaster richColors position="top-center" />
                         </div>
+                        <TracingInitializer />
                     </ThemeProvider>
                 </ServiceWorkerProvider>
             </body>
