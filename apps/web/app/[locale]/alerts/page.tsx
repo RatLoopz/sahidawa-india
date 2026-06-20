@@ -47,9 +47,26 @@ function formatRelativeTime(dateString: string | null): string {
     }
 }
 
+export interface Alert {
+    id: string;
+    cdsco_approval_status?: string;
+    is_counterfeit_alert?: boolean;
+    alert_type?: string;
+    state?: string;
+    district?: string;
+    reported_brand_name?: string;
+    brand_name?: string;
+    brand?: string;
+    batch_number?: string;
+    manufacturer?: string;
+    reported_at?: string | null;
+    created_at?: string | null;
+    composition?: string;
+}
+
 export default function FullAlertsLogPage() {
     const t = useTranslations("Alerts");
-    const [allAlerts, setAllAlerts] = useState<any[]>([]);
+    const [allAlerts, setAllAlerts] = useState<Alert[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
 
@@ -109,7 +126,7 @@ export default function FullAlertsLogPage() {
         setExpandedAlertId((prev) => (prev === id ? null : id));
     };
 
-    const handleShareAlert = (e: React.MouseEvent, alert: any) => {
+    const handleShareAlert = (e: React.MouseEvent, alert: Alert) => {
         e.stopPropagation();
         const brand =
             alert.reported_brand_name || alert.brand_name || alert.brand || "SYSTEM_UPDATE";
@@ -410,7 +427,8 @@ export default function FullAlertsLogPage() {
                                                         <span className="shrink-0 text-[11px] font-bold text-(--color-text-muted)">
                                                             {formatRelativeTime(
                                                                 alert.reported_at ||
-                                                                    alert.created_at
+                                                                    alert.created_at ||
+                                                                    null
                                                             )}
                                                         </span>
                                                     </div>
@@ -437,7 +455,7 @@ export default function FullAlertsLogPage() {
                                                                     </span>
                                                                 </span>
                                                                 <CopyButton
-                                                                    text={alert.batch_number}
+                                                                    text={alert.batch_number || ""}
                                                                 />
                                                             </div>
                                                             {alert.manufacturer && (
