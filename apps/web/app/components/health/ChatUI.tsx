@@ -267,11 +267,12 @@ export default function ChatUI() {
                 setMessages((prev) =>
                     upsertAssistantMessage(prev, assistantMessageId as string, finalReply)
                 );
-            } catch (err: any) {
+            } catch (err: unknown) {
                 if (isAbortError(err)) return;
                 if (!isActiveRequest()) return;
 
-                const errorMessage = err.message || t("genericError");
+                const errorMessage =
+                    err instanceof Error ? err.message || t("genericError") : t("genericError");
                 const messageId = assistantMessageId || genId();
 
                 setMessages((prev) =>
