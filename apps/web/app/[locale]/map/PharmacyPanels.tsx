@@ -361,7 +361,7 @@ function PharmacyPanelRow({
                 {showBreakdown && (
                     <div
                         onClick={(e) => e.stopPropagation()}
-                        className="animate-in fade-in slide-in-from-top-1 mt-3 ml-11 space-y-2.5 rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted)/50 p-3.5 text-[11px] text-(--color-text-primary) duration-200"
+                    className="animate-in fade-in slide-in-from-top-1 relative z-20 mt-3 ml-11 space-y-2.5 rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted)/50 p-3.5 text-[11px] text-(--color-text-primary) duration-200"
                     >
                         {breakdown.isCommunity ? (
                             <div className="space-y-2">
@@ -610,7 +610,7 @@ export default function PharmacyPanels({
 
     return (
         <section
-            className={`flex h-full flex-col overflow-hidden rounded-[28px] border border-(--color-border-muted) bg-(--color-surface-page)/96 shadow-xl backdrop-blur-xl ${
+            className={`relative z-10 flex h-full flex-col overflow-hidden rounded-[28px] border border-(--color-border-muted) bg-(--color-surface-page)/96 shadow-xl backdrop-blur-xl ${
                 className || ""
             }`}
         >
