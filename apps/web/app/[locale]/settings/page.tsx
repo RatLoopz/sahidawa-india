@@ -138,8 +138,12 @@ export default function SettingsPage() {
                 localStorage.setItem(GUEST_PHONE_KEY, response.subscriber.phone);
                 setMessage({ type: "success", text: t("successMessage") });
             }
-        } catch (err: any) {
-            setMessage({ type: "error", text: err.message || t("errorMessage") });
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setMessage({ type: "error", text: err.message || t("errorMessage") });
+            } else {
+                setMessage({ type: "error", text: t("errorMessage") });
+            }
         } finally {
             setIsSaving(false);
         }
@@ -176,8 +180,12 @@ export default function SettingsPage() {
                 });
                 setMessage({ type: "success", text: t("optOutSuccess") });
             }
-        } catch (err: any) {
-            setMessage({ type: "error", text: err.message || t("errorMessage") });
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setMessage({ type: "error", text: err.message || t("errorMessage") });
+            } else {
+                setMessage({ type: "error", text: t("errorMessage") });
+            }
         } finally {
             setIsSaving(false);
         }

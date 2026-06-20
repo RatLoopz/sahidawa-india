@@ -15,6 +15,7 @@ import {
     ChevronDown,
     CheckCircle2,
     ShieldAlert,
+    Download,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import RecallPushSubscriber from "@/components/alerts/RecallPushSubscriber";
@@ -24,6 +25,24 @@ import { API_BASE } from "@/lib/api";
 import BackToTopButton from "@/app/[locale]/components/BackToTopButton";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { useInView } from "react-intersection-observer";
+
+// Debounce hook for search inputs - prevents API calls on every keystroke
+function useDebounce(value: string, delay: number = 300) {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedValue(value);
+        }, delay);
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [value, delay]);
+
+    return debouncedValue;
+}
 
 function formatRelativeTime(dateString: string | null): string {
     if (!dateString) return "Recent";
@@ -47,10 +66,28 @@ function formatRelativeTime(dateString: string | null): string {
     }
 }
 
+export interface Alert {
+    id: string;
+    cdsco_approval_status?: string;
+    is_counterfeit_alert?: boolean;
+    alert_type?: string;
+    state?: string;
+    district?: string;
+    reported_brand_name?: string;
+    brand_name?: string;
+    brand?: string;
+    batch_number?: string;
+    manufacturer?: string;
+    reported_at?: string | null;
+    created_at?: string | null;
+    composition?: string;
+}
+
 export default function FullAlertsLogPage() {
     const t = useTranslations("Alerts");
-    const [allAlerts, setAllAlerts] = useState<any[]>([]);
+    const [allAlerts, setAllAlerts] = useState<Alert[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState(false);
 
     // Filters
@@ -58,41 +95,80 @@ export default function FullAlertsLogPage() {
     const [regionSearch, setRegionSearch] = useState("");
     const [page, setPage] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+
+    // Debounced search values - prevents API calls on every keystroke
+    const debouncedBrandSearch = useDebounce(brandSearch, 300);
+    const debouncedRegionSearch = useDebounce(regionSearch, 300);
 
     // Accordion active expanded state
     const [expandedAlertId, setExpandedAlertId] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchAlerts = async () => {
-            setLoading(true);
-            setError(false);
-            try {
-                let url = `${API_BASE}/api/v1/alerts?page=${page}&limit=50`;
-                if (brandSearch) url += `&brand=${encodeURIComponent(brandSearch)}`;
-                if (regionSearch) url += `&region=${encodeURIComponent(regionSearch)}`;
+    // Intersection Observer for infinite scroll
+    const [inViewRef, inView] = useInView({
+        triggerOnce: false,
+        threshold: 0.1,
+        rootMargin: "0px 0px 100px 0px",
+    });
 
-                const res = await fetch(url);
-                if (!res.ok) {
-                    setError(true);
-                    setLoading(false);
-                    return;
-                }
-                const data = await res.json();
-                setAllAlerts(data.data || []);
-                setTotalCount(data.totalCount || 0);
-            } catch {
+    useEffect(() => {
+        if (inView && !loadingMore && hasMore && !loading) {
+            setPage((prev) => prev + 1);
+        }
+    }, [inView, loadingMore, hasMore, loading]);
+
+    const fetchAlerts = async (pageNum: number, append = false) => {
+        try {
+            let url = `${API_BASE}/api/v1/alerts?page=${pageNum}&limit=50`;
+            if (debouncedBrandSearch) url += `&brand=${encodeURIComponent(debouncedBrandSearch)}`;
+            if (debouncedRegionSearch)
+                url += `&region=${encodeURIComponent(debouncedRegionSearch)}`;
+
+            const res = await fetch(url);
+            if (!res.ok) {
                 setError(true);
-            } finally {
-                setLoading(false);
+                return;
             }
+            const data = await res.json();
+
+            if (append) {
+                setAllAlerts((prev) => [...prev, ...(data.data || [])]);
+            } else {
+                setAllAlerts(data.data || []);
+            }
+
+            setTotalCount(data.totalCount || 0);
+            setHasMore(pageNum * 50 < (data.totalCount || 0));
+        } catch {
+            setError(true);
+        }
+    };
+
+    // Initial load and when debounced filters change
+    useEffect(() => {
+        const loadData = async () => {
+            setLoading(true);
+            setPage(1);
+            setHasMore(true);
+            await fetchAlerts(1, false);
+            setLoading(false);
         };
 
-        const timer = setTimeout(() => {
-            fetchAlerts();
-        }, 400);
-
+        const timer = setTimeout(loadData, 400);
         return () => clearTimeout(timer);
-    }, [page, brandSearch, regionSearch]);
+    }, [debouncedBrandSearch, debouncedRegionSearch]);
+
+    // Load more when page changes (triggered by intersection observer)
+    useEffect(() => {
+        if (page > 1 && !loading) {
+            const loadMore = async () => {
+                setLoadingMore(true);
+                await fetchAlerts(page, true);
+                setLoadingMore(false);
+            };
+            loadMore();
+        }
+    }, [page]);
 
     const criticalCount = allAlerts.filter(
         (alert) =>
@@ -109,7 +185,7 @@ export default function FullAlertsLogPage() {
         setExpandedAlertId((prev) => (prev === id ? null : id));
     };
 
-    const handleShareAlert = (e: React.MouseEvent, alert: any) => {
+    const handleShareAlert = (e: React.MouseEvent, alert: Alert) => {
         e.stopPropagation();
         const brand =
             alert.reported_brand_name || alert.brand_name || alert.brand || "SYSTEM_UPDATE";
@@ -136,6 +212,52 @@ export default function FullAlertsLogPage() {
             navigator.clipboard.writeText(shareText);
             toast.success("Alert details copied to clipboard!");
         }
+    };
+
+    const handleExportCSV = () => {
+        if (!allAlerts || allAlerts.length === 0) {
+            toast.error("No alerts available to export.");
+            return;
+        }
+
+        const headers = [
+            "Brand Name",
+            "Batch Number",
+            "Manufacturer",
+            "Status",
+            "Type",
+            "State",
+            "Reported At",
+        ];
+
+        const csvRows = allAlerts.map((alert) => {
+            const brand =
+                alert.reported_brand_name || alert.brand_name || alert.brand || "SYSTEM_UPDATE";
+            return [
+                `"${brand.replace(/"/g, '""')}"`,
+                `"${(alert.batch_number || "N/A").replace(/"/g, '""')}"`,
+                `"${(alert.manufacturer || "N/A").replace(/"/g, '""')}"`,
+                `"${(alert.cdsco_approval_status || alert.alert_type || "Flagged").replace(/"/g, '""')}"`,
+                `"${(alert.alert_type || "NSQ").replace(/"/g, '""')}"`,
+                `"${(alert.state || "N/A").replace(/"/g, '""')}"`,
+                `"${(alert.reported_at || alert.created_at || "N/A").replace(/"/g, '""')}"`,
+            ].join(",");
+        });
+
+        const csvString = [headers.join(","), ...csvRows].join("\n");
+        const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute(
+            "download",
+            `alerts_export_${new Date().toISOString().split("T")[0]}.csv`
+        );
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success("Alerts exported successfully!");
     };
 
     return (
@@ -172,6 +294,13 @@ export default function FullAlertsLogPage() {
                         <span className="hidden rounded-full border border-red-100 bg-red-50 px-3 py-1 text-xs font-bold tracking-wider text-red-600 uppercase sm:block dark:border-red-900/30 dark:bg-red-950/20 dark:text-red-400">
                             {t("regionBadge")}
                         </span>
+                        <button
+                            onClick={handleExportCSV}
+                            className="inline-flex items-center gap-1.5 rounded-2xl border border-(--color-border-muted) bg-white px-4 py-2 text-xs font-bold text-(--color-text-primary) shadow-sm transition-all hover:bg-slate-50 active:scale-95 dark:bg-slate-900 dark:hover:bg-slate-800"
+                        >
+                            <Download size={14} />
+                            Export CSV
+                        </button>
                     </div>
                 </div>
 
@@ -269,6 +398,7 @@ export default function FullAlertsLogPage() {
                                 onChange={(e) => {
                                     setBrandSearch(e.target.value);
                                     setPage(1);
+                                    setHasMore(true);
                                 }}
                                 className="block w-full rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted)/40 p-3 pl-11 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) shadow-inner transition-all focus:border-emerald-500/80 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 focus:outline-hidden dark:focus:bg-slate-900/50"
                             />
@@ -284,6 +414,7 @@ export default function FullAlertsLogPage() {
                                 onChange={(e) => {
                                     setRegionSearch(e.target.value);
                                     setPage(1);
+                                    setHasMore(true);
                                 }}
                                 className="block w-full rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted)/40 p-3 pl-11 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) shadow-inner transition-all focus:border-emerald-500/80 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 focus:outline-hidden dark:focus:bg-slate-900/50"
                             />
@@ -302,7 +433,7 @@ export default function FullAlertsLogPage() {
 
                 {/* Alerts Feed */}
                 <div role="feed" aria-busy={loading} className="space-y-4">
-                    {loading ? (
+                    {loading && allAlerts.length === 0 ? (
                         <div className="rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) py-20 text-center font-bold text-(--color-text-muted) shadow-inner">
                             <span className="mr-2 inline-block h-6 w-6 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent align-middle"></span>
                             {t("loading")}
@@ -410,7 +541,8 @@ export default function FullAlertsLogPage() {
                                                         <span className="shrink-0 text-[11px] font-bold text-(--color-text-muted)">
                                                             {formatRelativeTime(
                                                                 alert.reported_at ||
-                                                                    alert.created_at
+                                                                    alert.created_at ||
+                                                                    null
                                                             )}
                                                         </span>
                                                     </div>
@@ -437,7 +569,7 @@ export default function FullAlertsLogPage() {
                                                                     </span>
                                                                 </span>
                                                                 <CopyButton
-                                                                    text={alert.batch_number}
+                                                                    text={alert.batch_number || ""}
                                                                 />
                                                             </div>
                                                             {alert.manufacturer && (
@@ -630,37 +762,35 @@ export default function FullAlertsLogPage() {
                     )}
                 </div>
 
-                {/* Pagination Controls */}
-                <div className="mt-8 flex items-center justify-center gap-4">
-                    <button
-                        disabled={page === 1}
-                        onClick={() => {
-                            setPage((p) => p - 1);
-                            window.scrollTo({ top: 0, behavior: "smooth" });
-                        }}
-                        className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) px-5 py-2.5 text-sm font-extrabold text-(--color-text-primary) shadow-sm transition-all hover:bg-(--color-surface-muted) active:scale-95 disabled:scale-100 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                        {t("previous")}
-                    </button>
-                    <span className="text-xs font-bold text-(--color-text-muted)">
-                        Page{" "}
-                        <span className="font-extrabold text-(--color-text-primary)">{page}</span>{" "}
-                        of{" "}
-                        <span className="font-extrabold text-(--color-text-primary)">
-                            {Math.max(1, Math.ceil(totalCount / 50))}
-                        </span>
-                    </span>
-                    <button
-                        disabled={page * 50 >= totalCount}
-                        onClick={() => {
-                            setPage((p) => p + 1);
-                            window.scrollTo({ top: 0, behavior: "smooth" });
-                        }}
-                        className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) px-5 py-2.5 text-sm font-extrabold text-(--color-text-primary) shadow-sm transition-all hover:bg-(--color-surface-muted) active:scale-95 disabled:scale-100 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                        {t("next")}
-                    </button>
-                </div>
+                {/* Infinite Scroll Load More Trigger */}
+                {!loading && allAlerts.length > 0 && (
+                    <div className="mt-8">
+                        {loadingMore && (
+                            <div className="flex justify-center py-4">
+                                <div className="flex items-center gap-3 text-sm font-semibold text-(--color-text-muted)">
+                                    <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent"></span>
+                                    Loading more alerts...
+                                </div>
+                            </div>
+                        )}
+                        {hasMore && !loadingMore && (
+                            <div
+                                ref={inViewRef}
+                                className="w-full rounded-2xl border border-dashed border-(--color-border-muted) bg-(--color-surface-muted)/30 py-4 text-center text-sm font-semibold text-(--color-text-muted) transition-all hover:bg-(--color-surface-muted)"
+                            >
+                                <span className="inline-flex items-center gap-2">
+                                    <span className="inline-block h-2 w-2 rounded-full bg-emerald-400"></span>
+                                    Scroll for more alerts
+                                </span>
+                            </div>
+                        )}
+                        {!hasMore && totalCount > 0 && (
+                            <div className="text-center text-sm font-semibold text-(--color-text-muted)">
+                                ✅ You've seen all {totalCount} safety alerts
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
             <BackToTopButton />
         </>

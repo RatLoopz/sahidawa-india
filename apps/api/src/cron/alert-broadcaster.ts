@@ -2,13 +2,16 @@ import { supabase, dbConfig } from "../db/client";
 import { smsService } from "../services/sms-service";
 import { whatsappService } from "../services/whatsapp-service";
 import logger from "../utils/logger";
+import { NotificationSubscriber, NotificationAlertData } from "../types/notification.types";
 
 let intervalId: NodeJS.Timeout | null = null;
 const CHECK_INTERVAL_MS = process.env.NODE_ENV === "test" ? 1000 : 30000; // 30 seconds
+const PAGE_SIZE = 1000;
+const NOTIFICATION_CHUNK_SIZE = 50;
 
 export function getLocalizedMessage(
     type: "counterfeit" | "recall" | "expiry",
-    data: { medicineName: string; batchNumber?: string; district?: string; expiryDate?: string },
+    data: NotificationAlertData,
     language: string
 ): { title: string; body: string } {
     const lang = language.toLowerCase();
@@ -40,12 +43,12 @@ export function getLocalizedMessage(
             ml: "🚨 മരുന്ന് തിരിച്ചുവിളിക്കൽ മുന്നറിയിപ്പ്: {medicineName} (ബാച്ച്: {batchNumber}) ഗുണനിലവാരമില്ലാത്തതാണെന്ന് CDSCO കണ്ടെത്തി അല്ലെങ്കിൽ തിരിച്ചുവിളിച്ചു. ഉപയോഗം ഉടൻ നിർത്തുക.",
             pa: "🚨 ਦਵਾਈ ਵਾਪਸ ਲੈਣ ਦੀ ਚੇਤਾਵਨੀ: {medicineName} (ਬੈਚ: {batchNumber}) ਨੂੰ CDSCO ਦੁਆਰਾ ਘਟੀਆ ਜਾਂ ਵਾਪਸ ਲੈਣ ਯੋਗ ਘੋਸ਼ਿਤ ਕੀਤਾ ਗਿਆ ਹੈ। ਤੁਰੰਤ ਸੇਵਨ ਬੰਦ ਕਰੋ।",
             ur: "🚨 دوا کی واپسی کا الرٹ: {medicineName} (بیچ: {batchNumber}) کو CDSCO کی طرف سے غیر معیاری یا واپس منگوا لیا گیا ہے۔ فوری طور پر استعمال بند کر دیں۔",
-            as: "🚨 ঔষধ প্ৰত্যাহাৰৰ সতৰ্কবাণী: {medicineName} (বেটচ: {batchNumber}) ক CDSCO ৰ দ্বাৰা নিম্নমানৰ বা প্ৰত্যাহাৰ কৰা বুলি চিহ্নিত কৰা হৈছে। লগে লগে সেৱন বন্ধ কৰক।",
+            as: "🚨 ঔষধ প্ৰত্যাহাৰৰ সতৰ্কবাণী: {medicineName} (বেটচ: {batchNumber}) ক CDSCO ৰ দ্বাৰা নিম্নমানৰ বা প্ৰত্যাহাৰ কৰা বুলি চিহ্নিত কৰা হৈছে। লগে লগে সেৱন কাম বন্ধ কৰক।",
         },
         expiry: {
             en: "⚠️ Medicine Expiry Warning: Batch {batchNumber} of {medicineName} is expiring soon (Expiry: {expiryDate}). Check your stock.",
             hi: "⚠️ दवा समाप्ति चेतावनी: {medicineName} का बैच {batchNumber} जल्द ही समाप्त हो रहा है (समाप्ति तिथि: {expiryDate})। अपने स्टॉक की जांच करें।",
-            ta: "⚠️ மருந்து காலാവதி எச்சரிக்கை: {medicineName} இன் தொகுதி {batchNumber} விரைவில் കാലാവതിയായി കൊണ്ടിരിക്കുന്നു (காலாவதி: {expiryDate}). உங்கள் இருப்பை சரிபார்க்கவும்.",
+            ta: "⚠️ மருந்து காலാവதி எச்சரிக்கை: {medicineName} இன் தொகுதி {batchNumber} விரைவில் കാലാവതിയായി கொണ്ടിരിക്കുന്നു (காலாவதி: {expiryDate}). உங்கள் இருப்பை சரிபார்க்கவும்.",
             te: "⚠️ మందుల గడువు హెచ్చరిక: {medicineName} యొక్క బ్యాంచ్ {batchNumber} త్వరలో ముగియనుంది (గడువు: {expiryDate}). మీ నిల్వను తనిఖీ చేయండి.",
             bn: "⚠️ ওষুধ মেয়াদের সতর্কতা: {medicineName}-এর ব্যাচ {batchNumber} শীঘ্রই মেয়াদ শেষ হচ্ছে (মেয়াদ: {expiryDate})। আপনার স্টক পরীক্ষা করুন।",
             mr: "⚠️ औषध कालबाह्य इशारा: {medicineName} ची बॅच {batchNumber} लवकरच कालबाह्य होत आहे (कालबाह्यता: {expiryDate})। तुमचा साठा तपासा.",
@@ -74,9 +77,9 @@ export function getLocalizedMessage(
 }
 
 async function sendNotificationToSubscriber(
-    sub: any,
+    sub: NotificationSubscriber,
     type: "counterfeit" | "recall" | "expiry",
-    data: any
+    data: NotificationAlertData
 ): Promise<void> {
     const { title, body } = getLocalizedMessage(type, data, sub.language);
     const fullMessage = `${title}\n\n${body}`;
@@ -113,26 +116,46 @@ export async function broadcastDistrictAlerts(): Promise<void> {
         for (const alert of alerts) {
             logger.info(`Broadcasting counterfeit alert for district: ${alert.district}`);
 
-            const { data: subscribers, error: subsError } = await supabase
-                .from("notification_subscribers")
-                .select("*")
-                .eq("is_active", true)
-                .ilike("district", alert.district);
+            let from = 0;
+            let to = PAGE_SIZE - 1;
+            let hasMore = true;
 
-            if (subsError) {
-                logger.error({
-                    message: "Failed to fetch subscribers for district alert",
-                    error: subsError,
-                });
-                continue;
-            }
+            while (hasMore) {
+                const { data: subscribers, error: subsError } = await supabase
+                    .from("notification_subscribers")
+                    .select("*")
+                    .eq("is_active", true)
+                    .ilike("district", alert.district)
+                    .range(from, to);
 
-            if (subscribers && subscribers.length > 0) {
-                for (const sub of subscribers) {
-                    await sendNotificationToSubscriber(sub, "counterfeit", {
-                        medicineName: alert.medicine_name,
-                        district: alert.district,
+                if (subsError) {
+                    logger.error({
+                        message: "Failed to fetch subscribers for district alert",
+                        error: subsError,
                     });
+                    break;
+                }
+
+                if (!subscribers || subscribers.length === 0) {
+                    break;
+                }
+
+                for (let i = 0; i < subscribers.length; i += NOTIFICATION_CHUNK_SIZE) {
+                    const chunk = subscribers.slice(i, i + NOTIFICATION_CHUNK_SIZE);
+                    const promises = chunk.map((sub) =>
+                        sendNotificationToSubscriber(sub, "counterfeit", {
+                            medicineName: alert.medicine_name,
+                            district: alert.district,
+                        })
+                    );
+                    await Promise.allSettled(promises);
+                }
+
+                if (subscribers.length < PAGE_SIZE) {
+                    hasMore = false;
+                } else {
+                    from += PAGE_SIZE;
+                    to += PAGE_SIZE;
                 }
             }
 
@@ -163,28 +186,50 @@ export async function broadcastDrugAlerts(): Promise<void> {
         for (const alert of alerts) {
             logger.info(`Broadcasting CDSCO drug recall: ${alert.reported_brand_name}`);
 
-            let query = supabase.from("notification_subscribers").select("*").eq("is_active", true);
+            let from = 0;
+            let to = PAGE_SIZE - 1;
+            let hasMore = true;
 
-            if (alert.district) {
-                query = query.ilike("district", alert.district);
-            }
+            while (hasMore) {
+                let query = supabase
+                    .from("notification_subscribers")
+                    .select("*")
+                    .eq("is_active", true);
 
-            const { data: subscribers, error: subsError } = await query;
+                if (alert.district) {
+                    query = query.ilike("district", alert.district);
+                }
 
-            if (subsError) {
-                logger.error({
-                    message: "Failed to fetch subscribers for drug alert",
-                    error: subsError,
-                });
-                continue;
-            }
+                const { data: subscribers, error: subsError } = await query.range(from, to);
 
-            if (subscribers && subscribers.length > 0) {
-                for (const sub of subscribers) {
-                    await sendNotificationToSubscriber(sub, "recall", {
-                        medicineName: alert.reported_brand_name,
-                        batchNumber: alert.batch_number,
+                if (subsError) {
+                    logger.error({
+                        message: "Failed to fetch subscribers for drug alert",
+                        error: subsError,
                     });
+                    break;
+                }
+
+                if (!subscribers || subscribers.length === 0) {
+                    break;
+                }
+
+                for (let i = 0; i < subscribers.length; i += NOTIFICATION_CHUNK_SIZE) {
+                    const chunk = subscribers.slice(i, i + NOTIFICATION_CHUNK_SIZE);
+                    const promises = chunk.map((sub) =>
+                        sendNotificationToSubscriber(sub, "recall", {
+                            medicineName: alert.reported_brand_name,
+                            batchNumber: alert.batch_number,
+                        })
+                    );
+                    await Promise.allSettled(promises);
+                }
+
+                if (subscribers.length < PAGE_SIZE) {
+                    hasMore = false;
+                } else {
+                    from += PAGE_SIZE;
+                    to += PAGE_SIZE;
                 }
             }
 
@@ -214,34 +259,60 @@ export async function broadcastExpiryAlerts(): Promise<void> {
 
         if (!expiringBatches || expiringBatches.length === 0) return;
 
-        for (const batch of expiringBatches) {
-            logger.info(`Broadcasting medicine expiry warning for batch: ${batch.batch_number}`);
+        logger.info(`Broadcasting medicine expiry warnings for ${expiringBatches.length} batches`);
 
-            // Broadcast to all active subscribers
+        let from = 0;
+        let to = PAGE_SIZE - 1;
+        let hasMore = true;
+
+        while (hasMore) {
             const { data: subscribers, error: subsError } = await supabase
                 .from("notification_subscribers")
                 .select("*")
-                .eq("is_active", true);
+                .eq("is_active", true)
+                .range(from, to);
 
             if (subsError) {
                 logger.error({
-                    message: "Failed to fetch subscribers for expiry alert",
+                    message: "Failed to fetch subscribers for expiry alerts",
                     error: subsError,
                 });
-                continue;
+                break;
             }
 
-            if (subscribers && subscribers.length > 0) {
-                const medicineName = batch.medicine?.brand_name || "Unknown Medicine";
-                for (const sub of subscribers) {
-                    await sendNotificationToSubscriber(sub, "expiry", {
-                        medicineName,
-                        batchNumber: batch.batch_number,
-                        expiryDate: batch.expiry_date,
-                    });
+            if (!subscribers || subscribers.length === 0) {
+                break;
+            }
+
+            for (let i = 0; i < subscribers.length; i += NOTIFICATION_CHUNK_SIZE) {
+                const chunk = subscribers.slice(i, i + NOTIFICATION_CHUNK_SIZE);
+                const notificationPromises: Promise<any>[] = [];
+
+                for (const sub of chunk) {
+                    for (const batch of expiringBatches) {
+                        const medicineName = batch.medicine?.brand_name || "Unknown Medicine";
+                        notificationPromises.push(
+                            sendNotificationToSubscriber(sub, "expiry", {
+                                medicineName,
+                                batchNumber: batch.batch_number,
+                                expiryDate: batch.expiry_date,
+                            })
+                        );
+                    }
                 }
+
+                await Promise.allSettled(notificationPromises);
             }
 
+            if (subscribers.length < PAGE_SIZE) {
+                hasMore = false;
+            } else {
+                from += PAGE_SIZE;
+                to += PAGE_SIZE;
+            }
+        }
+
+        for (const batch of expiringBatches) {
             await supabase.from("batches").update({ expiry_broadcasted: true }).eq("id", batch.id);
         }
     } catch (err) {

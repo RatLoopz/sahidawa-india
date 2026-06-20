@@ -17,15 +17,26 @@ export default function LasaConfirmation({
     const topMatch = matches[0]; // Primary conflict
 
     return (
-        <div className="w-full max-w-sm rounded-3xl border border-orange-500/30 bg-slate-900 p-6 shadow-2xl">
+        <div
+            className="w-full max-w-sm rounded-3xl border border-orange-500/30 bg-slate-900 p-6 shadow-2xl"
+            role="alertdialog"
+            aria-labelledby="lasa-title"
+            aria-describedby="lasa-description"
+            aria-live="assertive"
+        >
             <div className="mb-4 flex items-center justify-center">
                 <div className="rounded-full bg-orange-500/20 p-4">
                     <AlertTriangle size={32} className="text-orange-500" />
                 </div>
             </div>
 
-            <h2 className="mb-2 text-center text-xl font-bold text-white">LASA Alert</h2>
-            <p className="mb-6 text-center text-sm font-medium text-slate-300">
+            <h2 id="lasa-title" className="mb-2 text-center text-xl font-bold text-white">
+                LASA Alert
+            </h2>
+            <p
+                id="lasa-description"
+                className="mb-6 text-center text-sm font-medium text-slate-300"
+            >
                 The medicine you scanned sounds or looks very similar to another medicine. Please
                 confirm which one you have.
             </p>
@@ -59,21 +70,24 @@ export default function LasaConfirmation({
                 <button
                     onClick={onConfirmScanned}
                     className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3.5 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-400"
+                    aria-label={`Confirm that I have ${scannedName}`}
                 >
-                    <Check size={18} />
+                    <Check size={18} aria-hidden="true" />
                     Yes, I have {scannedName}
                 </button>
                 <button
                     onClick={() => onSelectConflict(topMatch.name)}
                     className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-600 bg-slate-800 px-4 py-3.5 text-sm font-bold text-white shadow-lg transition-colors hover:bg-slate-700"
+                    aria-label={`I actually meant to scan ${topMatch.name}`}
                 >
                     <RefreshCw size={18} />I meant {topMatch.name}
                 </button>
             </div>
 
             {matches.length > 1 && (
-                <p className="mt-4 text-center text-xs text-slate-500">
-                    + {matches.length - 1} other similar names detected
+                <p className="mt-4 text-center text-xs text-slate-500" role="status">
+                    + {matches.length - 1} other similar name{matches.length - 1 !== 1 ? "s" : ""}{" "}
+                    detected
                 </p>
             )}
         </div>

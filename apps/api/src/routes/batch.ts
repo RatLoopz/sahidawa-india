@@ -401,6 +401,7 @@ router.post("/report", batchLimiter, async (req: Request, res: Response) => {
         const { error } = await supabase.from("counterfeit_reports").insert({
             medicine_id,
             scanned_barcode: batchNumber,
+            reported_brand_name: batchNumber,
             description,
             city: city ?? null,
             state: state ?? null,

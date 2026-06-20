@@ -116,6 +116,14 @@
         "genericName": "Generic Name",
         "dosageForm": "Dosage Form",
         "composition": "Composition",
+
+        "ScanBarcode": "Scan Barcode",
+        "stopScanner": "Stop Scanner",
+        "uploadPhoto": "Upload Photo",
+        "enterBatchNumber": "Enter Batch Number",
+        "batchNumberHelp": "Enter the batch number printed on the medicine package",
+        "verify": "Verify",
+        "viewHistory": "View History",
         "offlineVerify": "Queue Scan"
     },
     "BackToTopButton": {

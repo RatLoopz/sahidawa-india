@@ -100,6 +100,7 @@ export default function MedicineSearchSelect({
         const q = query.trim();
         if (q.length < 2) {
             setResults([]);
+            setActiveIndex(-1);
             return;
         }
         latestQueryRef.current = q;
@@ -159,7 +160,11 @@ export default function MedicineSearchSelect({
                     </div>
                     <button
                         type="button"
-                        onClick={() => onChange(null)}
+                        onClick={() => {
+                            onChange(null);
+                            setOpen(true);
+                            inputRef.current?.focus();
+                        }}
                         className="rounded p-1 text-slate-400 hover:bg-white hover:text-slate-700"
                         aria-label={`Clear ${label}`}
                     >
@@ -279,8 +284,11 @@ export default function MedicineSearchSelect({
                     className="absolute z-50 mt-1 max-h-52 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
                 >
                     {loading && (
-                        <li className="flex items-center gap-2 px-3 py-2 text-sm text-slate-500">
-                            <Loader2 size={14} className="animate-spin" />
+                        <li
+                            aria-live="polite"
+                            className="flex items-center gap-2 px-3 py-2 text-sm text-slate-500"
+                        >
+                            <Loader2 size={14} className="animate-spin" aria-hidden="true" />
                             Searching
                         </li>
                     )}
@@ -312,6 +320,7 @@ export default function MedicineSearchSelect({
                                         onChange(m);
                                         setQuery("");
                                         setOpen(false);
+                                        setActiveIndex(-1);
                                     }}
                                 >
                                     <span className="font-medium text-slate-900">

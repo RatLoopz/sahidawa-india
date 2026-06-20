@@ -4,6 +4,7 @@ import { verifyMedicine, checkLasaConflicts, type VerifyResult, type LasaMatch }
 import { recordScanHistory } from "@/lib/scanHistoryUtils";
 import { saveScanHistory } from "@/lib/db/scanHistory";
 import { isNetworkFailure } from "@/lib/scanQueueSync";
+import { saveVerificationResult } from "@/lib/offlineCache";
 
 export function useMedicineVerification(
     abortControllerRef: RefObject<AbortController | null>,
@@ -33,6 +34,16 @@ export function useMedicineVerification(
                 setShowResult(true);
 
                 return;
+            }
+            if (result.medicine) {
+                saveVerificationResult({
+                    brand_name: result.medicine.brand_name || fallbackBrandName || "Unknown",
+                    active_components: result.medicine.generic_name || "N/A",
+                    counterfeit_status: result.medicine.is_counterfeit_alert
+                        ? "Counterfeit"
+                        : "Verified",
+                    timestamp: Date.now(),
+                });
             }
             try {
                 const medicineName = result.medicine.brand_name || fallbackBrandName;
