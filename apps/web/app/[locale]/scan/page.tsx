@@ -200,43 +200,6 @@ export default function ScanPage() {
         };
     }, [showResult, verifyError, batchInput, registerRetryCallback, unregisterRetryCallback]);
 
-    // LASA Check State
-    const [lasaMatches, setLasaMatches] = useState<LasaMatch[]>([]);
-    const [showLasaConfirmation, setShowLasaConfirmation] = useState(false);
-    const [pendingVerifyResult, setPendingVerifyResult] = useState<VerifyResult | null>(null);
-
-    const processVerificationResult = async (result: VerifyResult, fallbackBrandName?: string) => {
-        if (!result.verified) {
-            setVerifyResult(result);
-            return;
-        }
-        if (result.medicine) {
-            saveVerificationResult({
-                brand_name: result.medicine.brand_name || fallbackBrandName || "Unknown",
-                active_components: result.medicine.generic_name || "N/A",
-                counterfeit_status: result.medicine.is_counterfeit_alert ? "Counterfeit" : "Verified",
-                timestamp: Date.now(),
-            });
-        }
-        try {
-            const medicineName = result.medicine.brand_name || fallbackBrandName;
-            if (!medicineName) {
-                setVerifyResult(result);
-                return;
-            }
-            const lasaRes = await checkLasaConflicts(medicineName);
-            if (lasaRes.hasConflicts && lasaRes.matches.length > 0) {
-                setLasaMatches(lasaRes.matches);
-                setPendingVerifyResult(result);
-                setShowLasaConfirmation(true);
-            } else {
-                setVerifyResult(result);
-            }
-        } catch (error) {
-            console.error("LASA check error:", error);
-            setVerifyResult(result);
-        }
-    };
     const shareCopy: VerificationShareCopy = {
         realStatus: tScan("share.real_status"),
         suspiciousStatus: tScan("share.suspicious_status"),
