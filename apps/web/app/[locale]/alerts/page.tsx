@@ -15,6 +15,7 @@ import {
     ChevronDown,
     CheckCircle2,
     ShieldAlert,
+    Download,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import RecallPushSubscriber from "@/components/alerts/RecallPushSubscriber";
@@ -138,6 +139,52 @@ export default function FullAlertsLogPage() {
         }
     };
 
+    const handleExportCSV = () => {
+        if (!allAlerts || allAlerts.length === 0) {
+            toast.error("No alerts available to export.");
+            return;
+        }
+
+        const headers = [
+            "Brand Name",
+            "Batch Number",
+            "Manufacturer",
+            "Status",
+            "Type",
+            "State",
+            "Reported At",
+        ];
+
+        const csvRows = allAlerts.map((alert) => {
+            const brand =
+                alert.reported_brand_name || alert.brand_name || alert.brand || "SYSTEM_UPDATE";
+            return [
+                `"${brand.replace(/"/g, '""')}"`,
+                `"${(alert.batch_number || "N/A").replace(/"/g, '""')}"`,
+                `"${(alert.manufacturer || "N/A").replace(/"/g, '""')}"`,
+                `"${(alert.cdsco_approval_status || alert.alert_type || "Flagged").replace(/"/g, '""')}"`,
+                `"${(alert.alert_type || "NSQ").replace(/"/g, '""')}"`,
+                `"${(alert.state || "N/A").replace(/"/g, '""')}"`,
+                `"${(alert.reported_at || alert.created_at || "N/A").replace(/"/g, '""')}"`,
+            ].join(",");
+        });
+
+        const csvString = [headers.join(","), ...csvRows].join("\n");
+        const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute(
+            "download",
+            `alerts_export_${new Date().toISOString().split("T")[0]}.csv`
+        );
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success("Alerts exported successfully!");
+    };
+
     return (
         <>
             <div
@@ -172,6 +219,13 @@ export default function FullAlertsLogPage() {
                         <span className="hidden rounded-full border border-red-100 bg-red-50 px-3 py-1 text-xs font-bold tracking-wider text-red-600 uppercase sm:block dark:border-red-900/30 dark:bg-red-950/20 dark:text-red-400">
                             {t("regionBadge")}
                         </span>
+                        <button
+                            onClick={handleExportCSV}
+                            className="inline-flex items-center gap-1.5 rounded-2xl border border-(--color-border-muted) bg-white px-4 py-2 text-xs font-bold text-(--color-text-primary) shadow-sm transition-all hover:bg-slate-50 active:scale-95 dark:bg-slate-900 dark:hover:bg-slate-800"
+                        >
+                            <Download size={14} />
+                            Export CSV
+                        </button>
                     </div>
                 </div>
 
