@@ -160,13 +160,13 @@ export async function validateReport(
 
     // 6. Geographic diversity: same IP reporting for many different districts
     if (ipAddress) {
-        const { count: distinctCount, error: geoError } = await supabase
+        const { data: geoRows, error: geoError } = await supabase
             .from("counterfeit_reports")
-            .select("district", { count: "exact", head: true })
+            .select("district")
             .eq("ip_address", ipAddress)
             .gte("created_at", burstDeadline);
-
-        if (!geoError && distinctCount && distinctCount >= 3) {
+        const distinctCount = geoRows ? new Set(geoRows.map((r) => r.district)).size : 0;
+        if (!geoError && distinctCount >= 3) {
             reasons.push(
                 `Suspicious geographic spread: IP reported in ${distinctCount} different districts`
             );
@@ -177,26 +177,29 @@ export async function validateReport(
     // 7. Sybil detection: many distinct IPs reporting for same district or medicine
     // Catches slow coordinated attacks across multiple accounts/IPs
     if (ipAddress) {
-        const { count: distinctIpsForDistrict, error: sybilDistError } = await supabase
+        const { data: districtRows, error: sybilDistError } = await supabase
             .from("counterfeit_reports")
-            .select("ip_address", { count: "exact", head: true })
+            .select("ip_address")
             .eq("district", payload.district)
             .gte("created_at", burstDeadline);
-
-        if (!sybilDistError && distinctIpsForDistrict && distinctIpsForDistrict >= 8) {
+        const distinctIpsForDistrict = districtRows
+            ? new Set(districtRows.map((r) => r.ip_address)).size
+            : 0;
+        if (!sybilDistError && distinctIpsForDistrict >= 8) {
             reasons.push(
                 `Sybil pattern: ${distinctIpsForDistrict} different reporters for district "${payload.district}" in last hour`
             );
             riskScore += 0.2;
         }
-
-        const { count: distinctIpsForMedicine, error: sybilMedError } = await supabase
+        const { data: medicineRows, error: sybilMedError } = await supabase
             .from("counterfeit_reports")
-            .select("ip_address", { count: "exact", head: true })
+            .select("ip_address")
             .eq("reported_brand_name", payload.medicineName)
             .gte("created_at", burstDeadline);
-
-        if (!sybilMedError && distinctIpsForMedicine && distinctIpsForMedicine >= 5) {
+        const distinctIpsForMedicine = medicineRows
+            ? new Set(medicineRows.map((r) => r.ip_address)).size
+            : 0;
+        if (!sybilMedError && distinctIpsForMedicine >= 5) {
             reasons.push(
                 `Sybil pattern: ${distinctIpsForMedicine} different reporters for "${payload.medicineName}" in last hour`
             );
