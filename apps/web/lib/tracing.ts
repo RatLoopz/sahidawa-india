@@ -4,8 +4,7 @@ import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
 import { registerInstrumentations } from "@opentelemetry/instrumentation";
 import { ZoneContextManager } from "@opentelemetry/context-zone";
-import { Resource } from "@opentelemetry/resources";
-import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
+import { resourceFromAttributes } from "@opentelemetry/resources";
 
 let initialized = false;
 
@@ -20,12 +19,11 @@ export const initTracing = () => {
     });
 
     const provider = new WebTracerProvider({
-        resource: new Resource({
-            [SemanticResourceAttributes.SERVICE_NAME]: "sahidawa-web",
+        resource: resourceFromAttributes({
+            "service.name": "sahidawa-web",
         }),
+        spanProcessors: [new BatchSpanProcessor(exporter)],
     });
-
-    provider.addSpanProcessor(new BatchSpanProcessor(exporter));
 
     provider.register({
         contextManager: new ZoneContextManager(),
@@ -34,7 +32,6 @@ export const initTracing = () => {
     registerInstrumentations({
         instrumentations: [
             getWebAutoInstrumentations({
-                // load custom configuration if needed
                 "@opentelemetry/instrumentation-fetch": {
                     propagateTraceHeaderCorsUrls: [/localhost:4000/, /localhost:8000/],
                 },
