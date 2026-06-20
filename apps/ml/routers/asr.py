@@ -939,6 +939,12 @@ async def stream_transcription(websocket: WebSocket):
                     await websocket.close()
                     return
 
+                await websocket.send_json(
+                    {"type": "error", "error": "Unknown control message type."}
+                )
+                await websocket.close(code=1003)
+                return
+
     except HTTPException as exc:
         await websocket.send_json({"type": "error", "error": exc.detail})
         await websocket.close(code=1011)
