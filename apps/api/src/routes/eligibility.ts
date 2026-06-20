@@ -3,14 +3,18 @@ import logger from "../utils/logger";
 
 const router = Router();
 
-interface EligibilityBody {
-    age?: number;
-    annual_income?: number;
-    family_size?: number;
-    state?: string;
-    has_bpl_card?: boolean;
-    has_abha_id?: boolean;
-}
+import { z } from "zod";
+
+const eligibilitySchema = z.object({
+    age: z.number().int().min(0, "Age cannot be negative").optional().default(30),
+    annual_income: z.number().min(0, "Income cannot be negative").optional().default(150000),
+    family_size: z.number().int().min(1, "Family size must be at least 1").optional().default(4),
+    state: z.string().trim().optional().default(""),
+    has_bpl_card: z.boolean().optional().default(false),
+    has_abha_id: z.boolean().optional().default(false),
+});
+
+type EligibilityBody = z.infer<typeof eligibilitySchema>;
 
 /**
  * @openapi
@@ -53,14 +57,17 @@ interface EligibilityBody {
  */
 router.post("/", async (req: Request, res: Response): Promise<void> => {
     try {
-        const {
-            age = 30,
-            annual_income = 150000,
-            family_size = 4,
-            state = "",
-            has_bpl_card = false,
-            has_abha_id = false,
-        } = req.body as EligibilityBody;
+        const parseResult = eligibilitySchema.safeParse(req.body);
+        if (!parseResult.success) {
+            res.status(400).json({
+                error: "Invalid request data",
+                details: parseResult.error.issues,
+            });
+            return;
+        }
+
+        const { age, annual_income, family_size, state, has_bpl_card, has_abha_id } =
+            parseResult.data;
 
         const income = Number(annual_income);
         const userState = (state || "").trim();
