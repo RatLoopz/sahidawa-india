@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { supabase } from "../db/client";
 import logger from "../utils/logger";
+import { escapePostgrest } from "../utils/db";
 
 const router = Router();
 
@@ -142,7 +143,9 @@ router.get("/:medicine_id", async (req: Request, res: Response): Promise<void> =
             const { data } = await supabase
                 .from("generic_alternatives")
                 .select("*")
-                .or(`brand_medicine_id.eq.${medicine.id},brand_name.ilike.%${medicine.brand_name}%`)
+                .or(
+                    `brand_medicine_id.eq.${medicine.id},brand_name.ilike."%${escapePostgrest(String(medicine.brand_name))}%"`
+                )
                 .limit(1)
                 .maybeSingle();
             alternative = data;
@@ -151,7 +154,9 @@ router.get("/:medicine_id", async (req: Request, res: Response): Promise<void> =
             const { data } = await supabase
                 .from("generic_alternatives")
                 .select("*")
-                .or(`brand_name.ilike.%${medicine_id}%,generic_name.ilike.%${medicine_id}%`)
+                .or(
+                    `brand_name.ilike."%${escapePostgrest(String(medicine_id))}%",generic_name.ilike."%${escapePostgrest(medicine_id)}%"`
+                )
                 .limit(1)
                 .maybeSingle();
             alternative = data;
