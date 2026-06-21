@@ -835,3 +835,4 @@
 | [#2128](https://github.com/RatLoopz/sahidawa-india/pull/2128) | 2026-06-19 | Frontend | 5 | @arushiranjan | [View Doc](devtrack/2026-06/PR-2128-a11y-faq-details-summary.md) |
 | [#2141](https://github.com/RatLoopz/sahidawa-india/pull/2141) | 2026-06-20 | Backend | 6 | @PremSahith | [View Doc](devtrack/2026-06/PR-2141-perf-api-fix-oom-risk-and-n-1-query-in-alert-broad.md) |
 | [#2151](https://github.com/RatLoopz/sahidawa-india/pull/2151) | 2026-06-20 | Backend | 29 | @surajbharsakle07 | [View Doc](devtrack/2026-06/PR-2151-feat-pharmacy-implement-localized-bulk-medicine-in.md) / [ADR](devtrack/adr/ADR-036-feat-pharmacy-implement-localized-bulk-medicine-in.md) |
+| [#2219](https://github.com/RatLoopz/sahidawa-india/pull/2219) | 2026-06-21 | i18n | 39 | @Vartika2903 | [View Doc](devtrack/2026-06/PR-2219-fix-add-missing-translation-keys-for-vaccine-secti.md) / [ADR](devtrack/adr/ADR-037-fix-add-missing-translation-keys-for-vaccine-secti.md) |

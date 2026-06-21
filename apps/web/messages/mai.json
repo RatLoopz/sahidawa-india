@@ -16,6 +16,8 @@
         "report_fake": "नकली रिपोर्ट करू",
         "report_subtitle": "संदिग्ध दवाइ रिपोर्ट करू",
         "report_fake_subtitle": "संदिग्ध दवाइ रिपोर्ट करू",
+        "scheme_eligibility": "योजना पात्रता",
+        "scheme_eligibility_subtitle": "सार्वजनिक स्वास्थ्य बीमा पात्रता जाँचू",
         "search_placeholder": "दवाइ वा बैच खोजू...",
         "search_button": "खोजू",
         "sign_in": "साइन इन करू",
@@ -33,6 +35,9 @@
         "alerts_empty_title": "सब ठीक अछि!",
         "alerts_empty_description": "अखन कोनो सक्रिय नियामक सचेतना नहि अछि। सुरक्षित रहू आ अपन दवाइ सत्यापित करू।",
         "view_full_alert_log": "पूर्ण सचेतना लॉग देखू",
+        "vaccine_title": "टीका हब एवं टीकाकरण ट्रैकर",
+        "vaccine_subtitle": "बेहतर जनस्वास्थ्य जागरूकता कें लेल टीकाक कें समय-सारणी, सुरक्षा जानकारी, आ आफ्टरकेयर मार्गदर्शन कें खोज करूं.",
+        "vaccine_open": "वैक्सीन हब खोलू",
         "heroTitle": {
             "prefix": "अहाँक स्वास्थ्य, ",
             "highlight": "सत्यापित आ सुरक्षित।"
@@ -43,13 +48,50 @@
         "alerts": "सचेतना",
         "pharmacy_map": "फार्मेसी मैप",
         "my_reports": "हमर रिपोर्ट",
+        "schedule": "समय-सारणी",
+        "scheme_eligibility": "योजना पात्रता",
+        "calculator": "बचत कैलकुलेटर",
         "home": "होम",
         "scans": "स्कैन",
         "map": "मैप",
         "profile": "प्रोफाइल",
-        "language": "मैथिली"
+        "language": "मैथिली",
+        "more": "अधिक"
+    },
+    "Health": {
+        "quickActions": "त्वरित कार्य",
+        "scanMedicine": "दवाइ स्कैन करू",
+        "verifyAuthenticity": "प्रामाणिकता सत्यापित करू",
+        "checkSymptoms": "लक्षण जाँचू",
+        "symptomGuidance": "AI-सहायता प्राप्त मार्गदर्शन",
+        "findPharmacy": "फार्मेसी खोजू",
+        "locateStores": "सत्यापित दोकान खोजू",
+        "replyFallback": "हम सहायताक लेल एतय छी! की अहाँ एकरा फेर सँ कहि सकैत छी?",
+        "tooManyRequests": "बहुत बेसी अनुरोध। कृपया किछु क्षण बाद फेर प्रयास करू।",
+        "failedResponse": "AI प्रतिक्रिया उत्पन्न करबामे विफल",
+        "genericError": "किछु गड़बड़ भेल",
+        "returnHome": "चैट होम पर वापस जाऊ",
+        "chatConversation": "चैट वार्तालाप",
+        "startVoice": "वॉयस इनपुट शुरू करू",
+        "stopVoice": "वॉयस इनपुट बंद करू",
+        "healthQuestion": "अपन स्वास्थ्य प्रश्न टाइप करू",
+        "voiceBrowserRequired": "ई ब्राउजरमे वॉयस इनपुट सपोर्ट नहि अछि।",
+        "listening": "सुनि रहल छी... स्पष्ट बाजू",
+        "placeholder": "अपन स्वास्थ्य चिंता लिखू...",
+        "sendMessage": "संदेश भेजू",
+        "footer": "केवल सूचनात्मक उद्देश्यक लेल • डॉक्टरसँ परामर्श करू"
     },
     "Scan": {
+        "calculateSavings": "बचत गणना करू",
+        "scanMedicine": "दवाइ स्कैन करू",
+        "positionBarcode": "बारकोड स्थिति बनाऊ",
+        "enterBatchNumber": "बैच नंबर दर्ज करू",
+        "verify": "सत्यापित करू",
+        "batchNumberHelp": "दवाइक स्ट्रिपसँ बैच नंबर दर्ज करू, वा गैलरीसँ फोटो अपलोड करू।",
+        "viewHistory": "इतिहास देखू",
+        "stopScanner": "स्कैनर बंद करू",
+        "scanBarcode": "बारकोड स्कैन करू",
+        "uploadPhoto": "फोटो अपलोड करू",
         "share": {
             "button": "परिणाम शेयर करू",
             "title": "SahiDawa दवाइ सत्यापन परिणाम",
@@ -67,7 +109,13 @@
             "shared_success": "परिणाम सफलतापूर्वक शेयर भेल",
             "copy_success": "परिणाम क्लिपबोर्ड पर कॉपी भेल",
             "failure": "अखन ई परिणाम शेयर नहि कयल जा सकल"
-        }
+        },
+        "showMoreDetails": "बेसी विवरण देखाऊ",
+        "showLess": "कम देखाऊ",
+        "genericName": "जेनेरिक नाम",
+        "dosageForm": "खुराक प्रकार",
+        "composition": "संरचना",
+        "offlineVerify": "स्कैन कतारमे राखू"
     },
     "BackToTopButton": {
         "label": "ऊपर जाऊ"
@@ -198,6 +246,15 @@
         "cachedVerifications": "कैश्ड सत्यापन",
         "savedPharmacies": "सहेजल फार्मेसी",
         "browsedMedicines": "देखल दवाइ"
+    },
+    "ScanQueue": {
+        "title": "लंबित सत्यापन",
+        "subtitle": "अहाँ फेर ऑनलाइन भेलापर सत्यापित हेबाक लेल प्रतीक्षारत स्कैन",
+        "queued": "स्कैन स्थानीय रूपसँ सहेजल गेल। सत्यापन स्वचालित रूपसँ फेर शुरू हएत।",
+        "syncing": "{count} कतारबद्ध स्कैन सत्यापित भऽ रहल अछि...",
+        "synced": "{count} कतारबद्ध स्कैन सफलतापूर्वक सत्यापित भेल।",
+        "pendingBadge": "लंबित",
+        "empty": "कोनो लंबित स्कैन नहि अछि"
     },
     "contact": {
         "badge": "GSSoC 2026 मुक्त-स्रोत परियोजना",
@@ -433,10 +490,53 @@
             "banned": "प्रतिबंधित"
         }
     },
+    "Calculator": {
+        "pageTitle": "दवाइ लागत बचत कैलकुलेटर",
+        "pageSubtitle": "जेनेरिक विकल्प खोजू आ अपन बचतक गणना करू",
+        "searchLabel": "बचत गणना करबाक लेल एकटा दवाइ चुनू",
+        "searchPlaceholder": "ब्रांड वा जेनेरिक नाम खोजू",
+        "loading": "जेनेरिक विकल्प लोड भऽ रहल अछि...",
+        "error": "वैकल्पिक विवरण आनबामे विफल।",
+        "brandPriceLabel": "ब्रांड मूल्य (MRP)",
+        "genericPriceLabel": "जन औषधि मूल्य",
+        "brandName": "ब्रांड नाम",
+        "genericName": "जेनेरिक विकल्प",
+        "savingsLabel": "प्रति खरीद बचत",
+        "alternativeTitle": "जन औषधि विकल्प विवरण",
+        "noAlternative": "एहि दवाइक लेल अखन तक कोनो जन औषधि जेनेरिक विकल्प मैप नहि कयल गेल अछि।",
+        "quantityLabel": "मात्रा (प्रति माह स्ट्रिप/पैक)",
+        "monthlySavings": "मासिक बचत",
+        "yearlySavings": "वार्षिक बचत",
+        "perPurchaseSavings": "प्रति खरीद बचत",
+        "dosageSectionTitle": "खरीद मात्रा दर्ज करू",
+        "projectionsTitle": "अनुमानित लागत बचत प्रक्षेपण",
+        "brandCostLabel": "ब्रांड लागत",
+        "genericCostLabel": "जेनेरिक लागत",
+        "costPerMonth": "प्रति माह",
+        "brandTierTitle": "ब्रांड निर्धारित",
+        "brandTierDesc": "मानक व्यावसायिक ब्रांड मूल्य",
+        "genericTierTitle": "जेनेरिक विकल्प",
+        "genericTierDesc": "व्यावसायिक ब्रांडेड जेनेरिक समतुल्य",
+        "janAushadhiTierTitle": "जन औषधि जेनेरिक",
+        "janAushadhiTierDesc": "सरकार-सब्सिडी प्राप्त मूल्य-नियंत्रित जेनेरिक",
+        "bestValue": "सर्वश्रेष्ठ मूल्य",
+        "mrpLabel": "MRP",
+        "estimatedLabel": "(अनुमानित)",
+        "costPerMonthGeneric": "जेनेरिक लागत",
+        "costPerMonthJanAushadhi": "जन औषधि लागत",
+        "costPerMonthBrand": "ब्रांड लागत",
+        "packUnit": "पैक",
+        "packsUnit": "पैक"
+    },
     "ExpiryTracker": {
         "title": "दवाइ समाप्ति ट्रैकर",
         "subtitle": "स्थानीय रूपसँ अपन दवाइक स्टॉक प्रबंधित आ ट्रैक करू",
         "addMedicine": "दवाइ जोड़ू",
+        "editMedicine": "दवाइ संपादित करू",
+        "saveChanges": "परिवर्तन सहेजू",
+        "cancel": "रद्द करू",
+        "notesLabel": "टिप्पणी (वैकल्पिक)",
+        "notesPlaceholder": "भंडारण निर्देश वा खुराक टिप्पणी...",
         "name": "नाम",
         "expiryDate": "समाप्ति तिथि",
         "batchNumber": "बैच नंबर (वैकल्पिक)",
@@ -459,17 +559,43 @@
         "exportBackup": "बैकअप निर्यात करू",
         "importBackup": "बैकअप आयात करू",
         "importError": "अमान्य बैकअप फाइल। कृपया एकटा वैध JSON बैकअप अपलोड करू।",
+        "importDateError": "बैकअपमे अमान्य तिथि प्रारूप भेटल। सब तिथि YYYY-MM-DD प्रारूपमे होबाक चाही।",
         "statusExpired": "समाप्त",
         "statusExpiringSoon": "जल्दी समाप्त ({days}दिन)",
         "statusSafe": "सुरक्षित",
-        "exportCSV": "CSV निर्यात करें",
-        "exportPDF": "PDF निर्यात करें",
-        "print": "प्रिंट करें",
-        "csvExportSuccess": "CSV सफलतापूर्वक निर्यात किया गया",
-        "pdfExportSuccess": "PDF सफलतापूर्वक निर्यात किया गया",
-        "noMedicinesToDisplay": "प्रदर्शित करने के लिए कोई दवा नहीं है",
-        "generatedOn": "जल्दी समा",
-        "deleteMedicine": "दवा हटाएं"
+        "deleteSelected": "चुनल मेटाऊ",
+        "selectMedicine": "{name} चुनू"
+    },
+    "ChildVaccinationTracker": {
+        "childTrackerTitle": "बाल टीकाकरण ट्रैकर",
+        "childTrackerSubtitle": "पूर्णता ट्रैकिंगक संग व्यक्तिगत राष्ट्रीय टीकाकरण समय-सारणी समयरेखा बनाबबाक लेल बच्चाक प्रोफाइल दर्ज करू।",
+        "childReminderButton": "स्मरण डाउनलोड करू",
+        "childNameLabel": "बच्चाक नाम",
+        "childNamePlaceholder": "बच्चाक नाम दर्ज करू",
+        "childDobLabel": "जन्म तिथि",
+        "childDefaultName": "बच्चा",
+        "childDobPrompt": "व्यक्तिगत टीकाकरण समयरेखा बनाबबाक लेल जन्म तिथि दर्ज करू।",
+        "childDobFutureError": "जन्म तिथि भविष्यमे नहि भऽ सकैत अछि।",
+        "childDobInvalidError": "एकटा वैध जन्म तिथि दर्ज करू।",
+        "childProfileSummary": "बच्चाक प्रोफाइल",
+        "scheduleSourceLabel": "समय-सारणी आधार",
+        "childTimelineHeading": "व्यक्तिगत समयरेखा",
+        "whereApplicableBadge": "जतय लागू होय",
+        "dueDateLabel": "देय तिथि",
+        "officialTimingLabel": "आधिकारिक समय",
+        "completedStatus": "पूर्ण",
+        "dueStatus": "देय",
+        "overdueStatus": "विलंबित",
+        "upcomingStatus": "आगामी",
+        "markCompleteButton": "पूर्ण चिह्नित करू",
+        "exportCSV": "CSV निर्यात करू",
+        "exportPDF": "PDF निर्यात करू",
+        "print": "प्रिंट करू",
+        "csvExportSuccess": "CSV सफलतापूर्वक निर्यात भेल",
+        "pdfExportSuccess": "PDF सफलतापूर्वक निर्यात भेल",
+        "noMedicinesToDisplay": "देखाबऽ लेल कोनो दवाइ नहि अछि",
+        "generatedOn": "बनलाक तिथि",
+        "deleteMedicine": "दवाइ मेटाऊ"
     },
     "Login": {
         "brandSubtitle": "दवाइ सुरक्षा प्लेटफॉर्म",
@@ -639,6 +765,93 @@
         "severeReactions": "गंभीर प्रतिक्रिया",
         "aftercareHeading": "तत्काल देखभाल मार्गदर्शन"
     },
+    "CommandPalette": {
+        "placeholder": "पृष्ठ वा कार्य खोजू...",
+        "noResults": "कोनो परिणाम नहि भेटल।",
+        "hint": "बंद करबाक लेल Esc दबाऊ",
+        "pages": "पृष्ठ",
+        "actions": "कार्य",
+        "open": "कमांड पैलेट खोलू",
+        "nav_home": "होम पर जाऊ",
+        "nav_scan": "दवाइ स्कैन करू",
+        "nav_map": "नजदीकी फार्मेसी खोजू",
+        "nav_alerts": "सचेतना देखू",
+        "nav_expiry": "दवाइ समाप्ति ट्रैकर",
+        "nav_compare": "दवाइ तुलना करू",
+        "nav_vaccine": "वैक्सीन हब",
+        "nav_reports": "हमर रिपोर्ट",
+        "nav_schedule": "दवाइ समय-सारणी",
+        "nav_profile": "हमर प्रोफाइल"
+    },
+    "howItWorks": {
+        "badge": "सुरक्षित स्वास्थ्य सेवा • AI संचालित",
+        "heroTitle": "<highlight>SahiDawa</highlight> कोना काज करैत अछि",
+        "heroSubtitle": "जानू जे SahiDawa कोना उपयोगकर्ताकेँ दवाइ सत्यापित करबामे, विश्वसनीय फार्मेसी खोजबामे, आधिकारिक सचेतना प्राप्त करबामे, आ AI-संचालित स्वास्थ्य उपकरणक माध्यमसँ नकली दवाइसँ सुरक्षित रहबामे सहायता करैत अछि।",
+        "ctaButtons": {
+            "scan": "स्कैन शुरू करू",
+            "map": "फार्मेसी मैप देखू"
+        },
+        "steps": {
+            "scan": {
+                "title": "दवाइ स्कैन करू",
+                "description": "कोनो दवाइ पैकेजिंग पर बारकोड वा QR कोड पर अपन डिवाइसक कैमरा राखू।"
+            },
+            "verify": {
+                "title": "तुरन्त सत्यापित करू",
+                "description": "AI प्रामाणिकता जाँचबाक लेल स्कैन कयल विवरणकेँ CDSCO रेकॉर्डसँ क्रॉस-रेफरेंस करैत अछि।"
+            },
+            "alerts": {
+                "title": "सचेतना जाँचू",
+                "description": "जँ बैच वापस लेल गेल, प्रतिबंधित, वा घटिया अछि तँ वास्तविक समय सुरक्षा सचेतना प्राप्त करू।"
+            },
+            "pharmacies": {
+                "title": "फार्मेसी खोजू",
+                "description": "असली दवाइ रखनिहार जन औषधि दोकान आ सत्यापित नजदीकी फार्मेसी खोजू।"
+            },
+            "protect": {
+                "title": "सुरक्षित रहू",
+                "description": "अपन स्कैनक रेकॉर्ड राखू, नकली रिपोर्ट करू, आ अपन परिवारक स्वास्थ्यक रक्षा करू।"
+            }
+        },
+        "features": {
+            "title": "प्लेटफॉर्म सुविधा",
+            "subtitle": "सुरक्षित स्वास्थ्य सेवा निर्णयक लेल जे किछु अहाँकेँ चाही।",
+            "cards": {
+                "verifyMedicines": {
+                    "title": "दवाइ सत्यापित करू",
+                    "description": "बारकोड, बैच नंबर, वा दवाइ विवरणक उपयोग कऽ दवाइ प्रामाणिकता तुरन्त सत्यापित करू।"
+                },
+                "scanOrSearch": {
+                    "title": "स्कैन वा खोजू",
+                    "description": "विश्वसनीय स्वास्थ्य सेवा जानकारीक लेल पैकेजिंग स्कैन करू वा दवाइ मैनुअल रूपसँ खोजू।"
+                },
+                "aiAssistant": {
+                    "title": "AI स्वास्थ्य सहायक",
+                    "description": "लक्षण, दुष्प्रभाव, सावधानी, आ दवाइ उपयोगक लेल AI-संचालित मार्गदर्शन प्राप्त करू।"
+                },
+                "trustedPharmacies": {
+                    "title": "विश्वसनीय फार्मेसी",
+                    "description": "विश्वसनीय दवाइ उपलब्धता आ रेटिंगक संग नजदीकी सत्यापित फार्मेसी खोजू।"
+                },
+                "cdscoAlerts": {
+                    "title": "CDSCO सचेतना",
+                    "description": "आधिकारिक CDSCO दवाइ वापसी, चेतावनी, आ स्वास्थ्य सचेतनासँ अपडेट रहू।"
+                },
+                "reportMedicines": {
+                    "title": "संदिग्ध दवाइ रिपोर्ट करू",
+                    "description": "नकली वा संदिग्ध दवाइकेँ तुरन्त रिपोर्ट कऽ समुदायक सहायता करू।"
+                }
+            }
+        },
+        "ctaBanner": {
+            "title": "सुरक्षित स्वास्थ्य सेवा एतयसँ शुरू होइत अछि",
+            "subtitle": "दवाइ सत्यापित करू, विश्वसनीय स्वास्थ्य सेवा जानकारी प्राप्त करू, आ AI-संचालित सहायतासँ नकली दवाइसँ सुरक्षित रहू।",
+            "buttons": {
+                "scan": "दवाइ स्कैन करू",
+                "alerts": "सचेतना देखू"
+            }
+        }
+    },
     "medicineSafety": {
         "guideTitle": "उपयोग आ सुरक्षा मार्गदर्शिका",
         "noDosageInfo": "एहि आयु वर्ग लेल खुराकक जानकारी उपलब्ध नहि अछि।",
@@ -672,27 +885,138 @@
         },
         "disclaimer": "ई जानकारी शैक्षिक उद्देश्य लेल अछि आ पेशेवर चिकित्सकीय सलाहक विकल्प नहि अछि।"
     },
-    "Health": {
-        "quickActions": "Quick actions",
-        "scanMedicine": "Scan Medicine",
-        "verifyAuthenticity": "Verify authenticity",
-        "checkSymptoms": "Check Symptoms",
-        "symptomGuidance": "AI-assisted guidance",
-        "findPharmacy": "Find Pharmacy",
-        "locateStores": "Locate verified stores",
-        "replyFallback": "I'm here to help! Could you rephrase that?",
-        "tooManyRequests": "Too many requests. Please try again in a few moments.",
-        "failedResponse": "Failed to generate AI response",
-        "genericError": "Something went wrong",
-        "returnHome": "Return to chat home",
-        "chatConversation": "Chat conversation",
-        "startVoice": "Start voice input",
-        "stopVoice": "Stop voice input",
-        "healthQuestion": "Type your health question",
-        "voiceBrowserRequired": "Voice input is not supported in this browser.",
-        "listening": "Listening... speak clearly",
-        "placeholder": "Type your health concern...",
-        "sendMessage": "Send message",
-        "footer": "For informational use only • Consult a doctor"
+    "Settings": {
+        "title": "सूचना प्राथमिकता",
+        "subtitle": "SMS आ WhatsApp द्वारा महत्त्वपूर्ण सचेतना प्राप्त करू",
+        "phoneLabel": "फोन नंबर",
+        "phonePlaceholder": "१०-अंकीय मोबाइल नंबर दर्ज करू",
+        "channelsLabel": "पसंदीदा माध्यम",
+        "smsLabel": "SMS सचेतना",
+        "smsDesc": "CDSCO वापसी आ नकली दवाइ चेतावनीक लेल टेक्स्ट संदेश प्राप्त करू",
+        "whatsappLabel": "WhatsApp सचेतना",
+        "whatsappDesc": "WhatsApp पर सीधे रिच संदेश आ टेम्पलेट प्राप्त करू",
+        "langLabel": "सचेतना भाषा",
+        "langDesc": "प्राप्त टेक्स्ट सचेतनाक लेल पसंदीदा भाषा",
+        "districtLabel": "जिला",
+        "districtDesc": "एहि जिला विशेष सचेतना प्राप्त करू",
+        "districtPlaceholder": "जेना दक्षिण पश्चिम दिल्ली",
+        "saveButton": "प्राथमिकता सहेजू",
+        "optOutButton": "बाहर जाऊ / सदस्यता समाप्त करू",
+        "saving": "सहेजल जा रहल अछि...",
+        "successMessage": "प्राथमिकता सफलतापूर्वक सहेजल गेल!",
+        "optOutSuccess": "सब सूचनासँ सफलतापूर्वक बाहर भेलहुँ।",
+        "errorMessage": "सेटिंग अपडेट करबामे विफल। कृपया फेर प्रयास करू।",
+        "phoneInvalid": "कृपया एकटा वैध १०-अंकीय भारतीय फोन नंबर दर्ज करू।",
+        "districtRequired": "स्थानीयकृत चेतावनी प्राप्त करबाक लेल कृपया एकटा जिला निर्दिष्ट करू।"
+    },
+    "Interactions": {
+        "title": "दवाइ अंतःक्रिया जाँचकर्ता",
+        "subtitle": "कैइ दवाइक बीच संभावित हानिकारक अंतःक्रिया जाँचू",
+        "searchLabel": "दवाइ खोजू",
+        "searchPlaceholder": "ब्रांड नाम वा जेनेरिक नाम दर्ज करू...",
+        "addButton": "जोड़ू",
+        "checkButton": "अंतःक्रिया जाँचू",
+        "myMedicines": "हमर दवाइ सूची",
+        "noMedicines": "अहाँक जाँच सूचीमे अखन तक कोनो दवाइ जोड़ल नहि गेल अछि।",
+        "clearAll": "सब साफ करू",
+        "resultsHeading": "अंतःक्रिया रिपोर्ट",
+        "noInteractions": "सब ठीक अछि! चुनल दवाइक बीच कोनो अंतःक्रिया नहि भेटल।",
+        "severityCritical": "गंभीर सचेतना",
+        "severitySerious": "गंभीर चेतावनी",
+        "severityModerate": "मध्यम सावधानी",
+        "severityMinor": "मामूली सावधानी",
+        "clinicalRecommendation": "क्लिनिकल अनुशंसा:",
+        "mechanism": "क्रियाविधि:",
+        "source": "स्रोत:",
+        "errorMessage": "अंतःक्रिया जाँच पूरा करबामे विफल। कृपया फेर प्रयास करू।"
+    },
+    "ScanHistory": {
+        "export_modal_title": "स्कैन इतिहास निर्यात करू",
+        "export_range_label": "तिथि सीमा चुनू",
+        "export_status_label": "स्थिति अनुसार फिल्टर करू",
+        "range_7d": "अंतिम ७ दिन",
+        "range_30d": "अंतिम ३० दिन",
+        "range_all": "सम्पूर्ण समय",
+        "status_all": "सब स्थिति",
+        "status_verified": "केवल सत्यापित",
+        "status_suspicious": "केवल संदिग्ध",
+        "status_fake": "केवल नकली",
+        "export_button": "CSV बनाऊ",
+        "cancel": "रद्द करू",
+        "title": "स्कैन इतिहास",
+        "export_csv_button": "CSV मे निर्यात करू",
+        "sync_cloud_button": "क्लाउडसँ सिंक करू",
+        "clear_all_button": "सब इतिहास साफ करू",
+        "clear_all_button_aria_label": "सब स्कैन इतिहास साफ करू",
+        "clear_confirm_message": "की अहाँ निश्चित रूपसँ सब स्कैन इतिहास स्थायी रूपसँ मेटाबऽ चाहैत छी? ई कार्य वापस नहि कयल जा सकैत अछि।",
+        "clear_cancel_button": "रद्द करू",
+        "clear_confirm_button": "सब साफ करू",
+        "sync_success": "इतिहास क्लाउडसँ सिंक भेल।",
+        "sync_error": "क्लाउड सिंक अखन अनुपलब्ध अछि।",
+        "stat_total": "कुल",
+        "stat_verified": "सत्यापित",
+        "stat_suspicious": "संदिग्ध",
+        "stat_fake": "नकली",
+        "empty_title": "अखन तक कोनो स्कैन इतिहास नहि",
+        "empty_description": "अहाँक सत्यापित दवाइ एतय देखाएत।",
+        "item_status_label": "स्थिति: ",
+        "item_delete_button": "मेटाऊ",
+        "item_copy_success": "दवाइक नाम कॉपी भेल!"
+    },
+    "MyReports": {
+        "header_title": "हमर रिपोर्ट",
+        "header_subtitle": "अहाँ द्वारा दाखिल रिपोर्टक स्थिति",
+        "page_title": "हमर रिपोर्ट",
+        "page_description": "अहाँ रिपोर्ट कयल नकली दवाइक संग की भेल, ट्रैक करू।",
+        "refresh_button_aria_label": "रिपोर्ट रिफ्रेश करू",
+        "loading_aria_label": "अहाँक रिपोर्ट लोड भऽ रहल अछि",
+        "status_pending_review": "समीक्षा लंबित",
+        "status_verified_fake": "सत्यापित नकली",
+        "status_false_alarm": "झूठा अलार्म",
+        "auth_error_title": "साइन इन आवश्यक",
+        "auth_error_expired": "अहाँक सत्र समाप्त भऽ गेल। कृपया फेर साइन इन करू।",
+        "auth_error_description": "अहाँ दाखिल कयल रिपोर्ट देखबाक लेल कृपया साइन इन करू।",
+        "auth_error_action": "लॉगिन पर जाऊ",
+        "network_error_title": "कनेक्शन त्रुटि",
+        "network_error_action": "फेर प्रयास करू",
+        "network_error_api_unreachable": "API तक नहि पहुँचि सकल। की बैकएंड सर्वर पोर्ट 4000 पर चलि रहल अछि?",
+        "empty_state_title": "अहाँ अखन तक कोनो रिपोर्ट दाखिल नहि कयल अछि",
+        "empty_state_description": "कोनो संदिग्ध वा नकली दवाइ देखलहुँ? ओकरा रिपोर्ट करब अहाँक समुदायक रक्षा करबामे सहायता करैत अछि।",
+        "empty_state_action": "अपन पहिल रिपोर्ट दाखिल करू",
+        "no_photo_label": "कोनो फोटो नहि",
+        "report_card_district_label": "जिला",
+        "report_card_submitted_label": "दाखिल कयल गेल",
+        "report_card_batch_label": "बैच"
+    },
+    "Map": {
+        "errors": {
+            "denied": "स्थान पहुँच अस्वीकृत। कृपया ब्राउजर सेटिंगमे ई सक्षम करू।",
+            "unavailable": "स्थान जानकारी अनुपलब्ध अछि।",
+            "timeout": "स्थान अनुरोधक समय समाप्त भेल।",
+            "generic": "अहाँक स्थान प्राप्त करबामे असमर्थ।"
+        }
+    },
+    "ABHA": {
+        "title": "ABHA स्वास्थ्य रेकॉर्ड",
+        "setupTitle": "ABHA सेटअप",
+        "recordsTitle": "ABHA रेकॉर्ड",
+        "link": "ABHA जोड़ू",
+        "linked": "ABHA जोड़ल गेल",
+        "notLinked": "ABHA जोड़ल नहि गेल",
+        "generateOtp": "OTP बनाऊ",
+        "verifyOtp": "OTP सत्यापित करू",
+        "enterAbha": "ABHA पता दर्ज करू",
+        "enterOtp": "OTP दर्ज करू",
+        "success": "ABHA सफलतापूर्वक जोड़ल गेल।",
+        "saveRecord": "ABHA रेकॉर्डमे सहेजू",
+        "noRecords": "कोनो प्रिस्क्रिप्शन नहि भेटल।"
+    },
+    "Tracking": {
+        "success": "दवाइ सफलतापूर्वक ट्रैक भेल!",
+        "trackButton": "समाप्ति ट्रैक करू"
+    },
+    "SchemeEligibility": {
+        "validationAgeError": "कृपया एकटा वैध उमेर दर्ज करू।",
+        "validationStateError": "कृपया एकटा राज्य चुनू।"
     }
 }

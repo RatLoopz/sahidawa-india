@@ -19,7 +19,6 @@ import LasaConfirmation from "@/components/scanner/LasaConfirmation";
 import { BarcodeScanner } from "@/components/scanner/BarcodeScanner";
 import LazyImage from "@/components/LazyImage";
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
-import { saveVerificationResult } from "@/lib/offlineCache";
 import { useOfflineScanner } from "@/hooks/useOfflineScanner";
 import { usePendingScanQueue } from "@/hooks/usePendingScanQueue";
 import { PendingScanQueue } from "@/components/scanner/PendingScanQueue";

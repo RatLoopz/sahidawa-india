@@ -565,21 +565,13 @@ router.get("/in-bounds", async (req: Request, res: Response, next: NextFunction)
             }
         );
 
-        if (!rpcError && rpcData) {
-            const pharmacies: FormattedPharmacy[] = (rpcData as PharmacyRpcResult[])
-                .map((p: PharmacyRpcResult) => ({
-                    name: p.name || "Unknown Pharmacy",
-                    address: p.address || "Unknown Address",
-                    lat: p.lat,
-                    lng: p.lng,
-                    distance: `${Number(p.distance).toFixed(1)} km`,
-                    phone_number: p.phone_number || null,
-                    is_verified: p.is_verified ?? false,
-                    district: p.district || null,
-                    state: p.state || null,
-                }))
-                .slice(0, MAX_RESULTS);
-            return res.json({ pharmacies });
+        const validationResult = inventoryRowSchema.safeParse(rowData);
+        if (!validationResult.success) {
+          const errorMessage = validationResult.error.issues
+          .map((e: any) => e.message)
+          .join(", ");
+          failedRows.push({ row: i + 1, reason: errorMessage });
+          continue;
         }
 
         // Fallback path: in-memory bounding box filter

@@ -2,7 +2,6 @@
 
 import { ArrowLeft, Globe } from "lucide-react";
 import { Link } from "@/i18n/routing";
-import { ThemeToggle } from "./ThemeToggle";
 import LanguageSwitcher from "../LanguageSwitcher"; // Imported cleanly from relative folder path
 
 const pageHeaderFocusRingClass =
