@@ -142,3 +142,48 @@ def test_post_transcode_duration_guard_rejects_over_limit_non_wav(monkeypatch):
     assert exc.value.status_code == 400
     assert exc.value.detail == "Uploaded audio must be 60 seconds or shorter."
     assert model_loaded is False
+
+from fastapi.testclient import TestClient
+from starlette.websockets import WebSocketDisconnect
+
+def test_stream_duration_guard_rejects_over_limit_audio(monkeypatch):
+    from main import app
+    client = TestClient(app)
+
+    class FakeStreamingSession:
+        def __init__(self):
+            self.total_audio_seconds = 0.0
+
+        def append_and_maybe_transcribe(self, chunk, *, mime_type, language):
+            self.total_audio_seconds += 61.0
+            return None
+
+        def finalize(self, *, mime_type, language):
+            return {
+                "transcript": "Partial text",
+                "corrected_name": "",
+                "suggestion_applied": False,
+                "message": None,
+                "language": "en",
+                "languageConfidence": 0.99,
+            }
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(asr_router, "StreamingAsrSession", FakeStreamingSession)
+
+    with pytest.raises(WebSocketDisconnect) as exc:
+        with client.websocket_connect("/asr/stream") as websocket:
+            websocket.send_text('{"type": "start", "mimeType": "audio/webm"}')
+            assert websocket.receive_json() == {"type": "ready"}
+
+            websocket.send_bytes(b"dummy audio data")
+
+            response = websocket.receive_json()
+            assert response["type"] == "error"
+            assert "exceeded maximum duration" in response["error"]
+            
+            websocket.receive_json()
+    
+    assert exc.value.code == 1009
