@@ -11,6 +11,7 @@ import { fetchNearbyAshaWorkers, fetchVerifiedPharmacies } from "../lib/api";
 import { fetchPharmacies } from "../app/[locale]/map/overpassApi";
 
 jest.mock("next-intl", () => ({
+    useLocale: () => "en",
     useTranslations: () => (key: string) => key,
 }));
 

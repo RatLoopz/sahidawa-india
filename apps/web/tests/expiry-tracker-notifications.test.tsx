@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import ExpiryTrackerPage from "../app/[locale]/expiry-tracker/page";
 
 jest.mock("next-intl", () => ({
+    useLocale: () => "en",
     useTranslations: () => (key: string) => key,
 }));
 

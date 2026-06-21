@@ -20,7 +20,8 @@ type InteractionRecord = LocalInteraction & { id?: string };
 const checkSchema = z.object({
     medicines: z
         .array(z.string())
-        .min(2, "At least two medicines are required to check interactions"),
+        .min(2, "At least two medicines are required to check interactions")
+        .max(20, "A maximum of 20 medicines can be checked at once"),
 });
 
 // Brand name to generic name static mapping for local offline fallback
@@ -243,6 +244,11 @@ router.get("/", async (req: Request, res: Response) => {
 
     if (ids.length < 2) {
         res.status(400).json({ error: "At least two medicine ids are required" });
+        return;
+    }
+
+    if (ids.length > 20) {
+        res.status(400).json({ error: "At most 20 medicine ids are allowed" });
         return;
     }
 

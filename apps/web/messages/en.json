@@ -1027,5 +1027,29 @@
     "SchemeEligibility": {
         "validationAgeError": "Please enter a valid age.",
         "validationStateError": "Please select a state."
+    },
+    "schedule": {
+        "pageTitle": "Medicine Schedule",
+        "pageSubtitle": "Track your daily medications",
+        "heading": "My Medicines",
+        "headingDescription": "Track your daily dose schedule and adherence.",
+        "refreshAriaLabel": "Refresh",
+        "addMedicine": "Add Medicine",
+        "authErrorTitle": "Sign in required",
+        "authErrorDescription": "Please sign in to set up medicine reminders.",
+        "authErrorAction": "Go to Login",
+        "networkErrorTitle": "Connection Error",
+        "networkErrorAction": "Try again",
+        "emptyTitle": "No medicines tracked yet",
+        "emptyDescription": "Add your first medicine to start tracking doses and getting reminders.",
+        "emptyAction": "Add Medicine",
+        "statusTaken": "Taken",
+        "statusSkipped": "Skipped",
+        "statusPending": "Pending",
+        "statusUpcoming": "Upcoming",
+        "actionTaken": "Taken",
+        "actionTake": "Take",
+        "actionSkip": "Skip",
+        "doseErrorMessage": "Could not save. Please try again."
     }
 }

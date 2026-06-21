@@ -1,6 +1,6 @@
 "use client";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useTranslations } from "next-intl";
 import { fuzzyMatchBrand } from "@/lib/api";
@@ -130,6 +130,20 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
         localStorage.removeItem("sahidawa_search_history");
     }, []);
 
+    // ── Delete a single history entry ──────────────────────────────────────────
+    const deleteFromHistory = useCallback(
+        (searchQuery: string) => {
+            setHistory((prev) => {
+                const updated = prev.filter(
+                    (item) => item.query.toLowerCase() !== searchQuery.toLowerCase()
+                );
+                persistHistory(updated);
+                return updated;
+            });
+        },
+        [persistHistory]
+    );
+
     // ── Refs ───────────────────────────────────────────────────────────────────
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -168,7 +182,6 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
     }, []);
 
     // ── Fetch suggestions from Supabase (debounced) ────────────────────────────
-
     const fetchSuggestions = useCallback(async (trimmed: string) => {
         setError(null);
         setNoResults(false);
@@ -209,7 +222,6 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                     .limit(MAX_SUGGESTIONS);
 
                 if (response.error) {
-                    // If the table doesn't exist, Supabase returns a 42P01 error code or a specific message string
                     if (
                         response.error.message?.includes("Could not find the table") ||
                         response.error.code === "42P01"
@@ -218,6 +230,12 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                             "[SearchBar] Table missing. Dropping into local data fallback matrix."
                         );
                         useFallback = true;
+                    } else if (
+                        response.error.message?.includes("AbortError") ||
+                        response.error.message?.includes("aborted")
+                    ) {
+                        // Request was cancelled by a newer keystroke — safe to ignore
+                        return;
                     } else {
                         console.error("[SearchBar] Supabase error:", response.error.message);
                         setSuggestions([]);
@@ -228,7 +246,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                     data = response.data;
                 }
             } catch (dbErr: any) {
-                // Catch hard network failures or uncaught errors
+                if (dbErr?.name === "AbortError" || dbErr?.message?.includes("aborted")) return;
                 if (dbErr?.message?.includes("Could not find the table")) {
                     useFallback = true;
                 } else {
@@ -259,7 +277,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
             else if (useFallback) {
                 const mockMedicinesPool = [
                     { brand_name: "Paracetamol", batch_number: "BATCH-PR750" },
-                    { brand_name: "Peracetamol (Fuzzy Match)", batch_number: "BATCH-PR750" }, // Added typo insurance
+                    { brand_name: "Peracetamol (Fuzzy Match)", batch_number: "BATCH-PR750" },
                     { brand_name: "Crocin Advance", batch_number: "BATCH-CR100" },
                     { brand_name: "Amoxicillin", batch_number: "BATCH-AM250" },
                     { brand_name: "Calpol 650", batch_number: "BATCH-CP650" },
@@ -314,6 +332,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
             }
         }
     }, []);
+
     useEffect(() => {
         const trimmed = query.trim();
 
@@ -349,7 +368,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
             setIsOpen(false);
             setActiveIndex(-1);
             addToHistory(value);
-            if (onSearchChange) onSearchChange(value); // Sync query to safety panel
+            if (onSearchChange) onSearchChange(value);
         },
         [onSearchChange, addToHistory]
     );
@@ -362,7 +381,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
             setIsOpen(false);
             setActiveIndex(-1);
             addToHistory(trimmed);
-            if (onSearchChange) onSearchChange(trimmed); // Sync query to safety panel
+            if (onSearchChange) onSearchChange(trimmed);
         },
         [onSearchChange, addToHistory]
     );
@@ -452,9 +471,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                         value={query}
                         onChange={handleInputChange}
                         onKeyDown={handleKeyDown}
-                        onFocus={() => {
-                            setIsOpen(true);
-                        }}
+                        onFocus={() => setIsOpen(true)}
                         placeholder={tHome("search_placeholder")}
                         className={`w-full border-none bg-transparent py-1 text-sm font-medium outline-none sm:text-base ${
                             dark
@@ -463,6 +480,31 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                         }`}
                         aria-label="Search medicine or batch"
                     />
+
+                    {/* ── Clear (X) button — only when input has text ── */}
+                    {query.length > 0 && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setQuery("");
+                                setActiveIndex(-1);
+                                setSuggestions([]);
+                                setIsOpen(false);
+                                onSearchChange?.("");
+                                inputRef.current?.focus();
+                            }}
+                            aria-label="Clear search"
+                            className={`shrink-0 rounded-full p-1 transition-colors duration-150 ${
+                                dark
+                                    ? "text-slate-500 hover:bg-slate-700 hover:text-slate-300"
+                                    : "text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+                            }`}
+                        >
+                            <X size={16} aria-hidden="true" />
+                        </button>
+                    )}
+
+                    {/* / shortcut hint — only when input is empty and dropdown closed */}
                     {!isOpen && !query && (
                         <div className="hidden items-center pr-2 sm:flex">
                             <kbd className="pointer-events-none inline-flex h-5 items-center rounded border border-slate-200 bg-slate-50 px-1.5 font-sans text-xs font-medium text-slate-400 select-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500">
@@ -470,6 +512,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                             </kbd>
                         </div>
                     )}
+
                     <button
                         onClick={() => performSearch(query)}
                         className="flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 p-2.5 text-sm font-bold text-white shadow-md shadow-emerald-500/25 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-500/30 active:scale-95 sm:px-5 sm:py-2.5"
@@ -495,6 +538,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                 historyItems={history}
                 onPinToggle={togglePin}
                 onClearHistory={clearHistory}
+                onDeleteItem={deleteFromHistory}
                 query={query.trim()}
             />
         </div>

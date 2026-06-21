@@ -4,6 +4,7 @@ import VoiceLayout from "../app/[locale]/voice/layout";
 import VoiceTriagePage from "../app/[locale]/voice/page";
 
 jest.mock("next-intl", () => ({
+    useLocale: () => "en",
     useTranslations: () => (key: string) => key,
 }));
 

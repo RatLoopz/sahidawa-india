@@ -10,7 +10,9 @@
     "scripts": {
         "dev": "turbo run dev",
         "build": "turbo run build",
-        "test": "turbo run test",
+        "test": "npm run test --workspaces --if-present",
+        "lint": "npm run lint --workspaces --if-present",
+        "format": "npm run format --workspaces --if-present",
         "test:a11y:voice": "npm run test:a11y:voice -w web",
         "prepare": "npx --yes husky || true",
         "check:migrations": "node scripts/check-migrations.js"

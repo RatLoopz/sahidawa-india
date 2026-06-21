@@ -20,7 +20,11 @@ export interface ABHAVerificationData {
 export const generateOTP = async (abhaAddress: string): Promise<ABHALinkResponse> => {
     logger.info("ABHA OTP generation requested", { abhaAddress });
 
-    // TODO: Replace with real ABDM sandbox API call
+    /**
+     * Future Integration Point:
+     * This method is a stub. It should be replaced with the actual
+     * ABDM Sandbox API call for generating ABHA OTPs.
+     */
     return {
         txnId: crypto.randomUUID(),
     };
@@ -32,7 +36,11 @@ export const verifyOTP = async (txnId: string, otp: string): Promise<{ token: st
         otpProvided: Boolean(otp),
     });
 
-    // TODO: Replace with real ABDM sandbox API call
+    /**
+     * Future Integration Point:
+     * This method is a stub. It should be replaced with the actual
+     * ABDM Sandbox API call for verifying ABHA OTPs.
+     */
     return {
         token: "mock-abha-token",
     };

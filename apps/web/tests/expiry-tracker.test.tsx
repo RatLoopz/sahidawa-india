@@ -29,6 +29,7 @@ import ExpiryTrackerPage from "../app/[locale]/expiry-tracker/page";
 import { verifyMedicine } from "@/lib/api";
 
 jest.mock("next-intl", () => ({
+    useLocale: () => "en",
     useTranslations: () => (key: string) => key,
 }));
 

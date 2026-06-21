@@ -143,6 +143,14 @@ export default function MedicineSearchSelect({
         setHistory([]);
     }
 
+    // Clear the search input and refocus
+    function handleClearQuery() {
+        setQuery("");
+        setResults([]);
+        setActiveIndex(-1);
+        inputRef.current?.focus();
+    }
+
     const showHistory = !value && history.length > 0;
 
     return (
@@ -233,9 +241,21 @@ export default function MedicineSearchSelect({
                                 }
                             }}
                             placeholder={placeholder}
-                            className="w-full rounded-lg border border-slate-300 bg-white py-2 pr-3 pl-9 text-sm focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600 focus:outline-none"
+                            className="w-full rounded-lg border border-slate-300 bg-white py-2 pr-8 pl-9 text-sm focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600 focus:outline-none"
                             autoComplete="off"
                         />
+
+                        {/* ── Clear (X) button — only when there is input text ── */}
+                        {query.length > 0 && (
+                            <button
+                                type="button"
+                                onClick={handleClearQuery}
+                                aria-label="Clear search"
+                                className="absolute top-1/2 right-2.5 -translate-y-1/2 rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                            >
+                                <X size={14} />
+                            </button>
+                        )}
                     </div>
 
                     {/* ── recent searches chips ── */}

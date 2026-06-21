@@ -12,7 +12,8 @@ const nextConfig = {
         minimumCacheTTL: 3600,
         dangerouslyAllowSVG: false,
     },
-    compress: true,
+    compress: false, // Offloaded to Vercel/proxy
+    reactStrictMode: true,
     poweredByHeader: false,
     async headers() {
         return [

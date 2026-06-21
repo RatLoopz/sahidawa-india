@@ -5,6 +5,7 @@ import { DoseSchedule } from "@/components/vaccine/DoseSchedule";
 import { VaccineProfile } from "@/lib/vaccineData";
 
 jest.mock("next-intl", () => ({
+    useLocale: () => "en",
     useTranslations: () => (key: string) => key,
     useFormatter: () => ({
         dateTime: (date: Date) => {

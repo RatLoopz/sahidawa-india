@@ -19,6 +19,62 @@ import { PageHeader } from "../components/PageHeader";
 
 const STORAGE_KEY = "sahidawa-my-medicines";
 
+function InteractionResultsSkeleton() {
+    return (
+        <div
+            data-testid="interaction-results-skeleton"
+            role="status"
+            aria-label="Loading interaction results"
+            className="space-y-6"
+        >
+            <div className="h-8 w-48 animate-pulse rounded-lg bg-(--color-surface-page)" />
+
+            <div className="flex flex-col gap-4">
+                {[0, 1].map((item) => (
+                    <div
+                        key={item}
+                        data-testid="interaction-result-card-skeleton"
+                        className="overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) shadow-sm"
+                    >
+                        <div className="flex items-start justify-between gap-4 border-b border-(--color-border-muted) bg-slate-50/30 px-6 py-4 dark:bg-slate-900/10">
+                            <div className="h-5 w-44 animate-pulse rounded-md bg-(--color-surface-muted)" />
+                            <div className="h-7 w-24 animate-pulse rounded-full bg-(--color-surface-muted)" />
+                        </div>
+
+                        <div className="flex flex-col gap-4 p-6">
+                            <div className="space-y-2">
+                                <div className="h-4 w-11/12 animate-pulse rounded bg-(--color-surface-muted)" />
+                                <div className="h-4 w-8/12 animate-pulse rounded bg-(--color-surface-muted)" />
+                            </div>
+
+                            <div className="rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) p-4">
+                                <div className="mb-3 h-3 w-20 animate-pulse rounded bg-(--color-surface-page)" />
+                                <div className="space-y-2">
+                                    <div className="h-3 w-full animate-pulse rounded bg-(--color-surface-page)" />
+                                    <div className="h-3 w-9/12 animate-pulse rounded bg-(--color-surface-page)" />
+                                </div>
+                            </div>
+
+                            <div className="rounded-xl border border-emerald-100 bg-emerald-50/20 p-4 dark:border-emerald-950/20">
+                                <div className="mb-3 h-3 w-36 animate-pulse rounded bg-emerald-200/60 dark:bg-emerald-950/40" />
+                                <div className="space-y-2">
+                                    <div className="h-3 w-10/12 animate-pulse rounded bg-emerald-200/60 dark:bg-emerald-950/40" />
+                                    <div className="h-3 w-7/12 animate-pulse rounded bg-emerald-200/60 dark:bg-emerald-950/40" />
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end border-t border-(--color-border-muted) pt-2">
+                                <div className="h-3 w-28 animate-pulse rounded bg-(--color-surface-muted)" />
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+            <span className="sr-only">Checking drug interactions...</span>
+        </div>
+    );
+}
+
 export default function InteractionCheckerPage() {
     const t = useTranslations("Interactions");
 
@@ -310,15 +366,7 @@ export default function InteractionCheckerPage() {
                 </div>
 
                 {/* Interaction Check Results */}
-                {isLoading && (
-                    <div className="flex flex-col items-center gap-3 py-12 text-(--color-text-secondary)">
-                        <RefreshCw
-                            className="animate-spin text-emerald-600 dark:text-emerald-400"
-                            size={32}
-                        />
-                        <p className="font-semibold">Checking drug interactions...</p>
-                    </div>
-                )}
+                {isLoading && <InteractionResultsSkeleton />}
 
                 {hasChecked && !isLoading && (
                     <div className="space-y-6">
