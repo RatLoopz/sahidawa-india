@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useTranslations } from "next-intl";
 
 type VerificationResult = {
@@ -62,6 +62,51 @@ export default function VoiceVerify() {
     const chunksRef = useRef<Blob[]>([]);
     const animFrameRef = useRef<number | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const streamRef = useRef<MediaStream | null>(null);
+    const isMountedRef = useRef(true);
+
+    const cleanupRecording = useCallback(() => {
+        // Stop animation frame
+        if (animFrameRef.current !== null) {
+            cancelAnimationFrame(animFrameRef.current);
+            animFrameRef.current = null;
+        }
+
+        // Close AudioContext
+        if (audioContextRef.current) {
+            if (audioContextRef.current.state !== "closed") {
+                audioContextRef.current.close().catch((err) => {
+                    console.error("Failed to close AudioContext:", err);
+                });
+            }
+            audioContextRef.current = null;
+        }
+
+        // Stop stream tracks
+        if (streamRef.current) {
+            streamRef.current.getTracks().forEach((track) => {
+                if (track.readyState === "live") {
+                    track.stop();
+                }
+            });
+            streamRef.current = null;
+        }
+
+        // Reset level
+        setAudioLevel(0);
+    }, []);
+
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+            cleanupRecording();
+            if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+                mediaRecorderRef.current.stop();
+            }
+        };
+    }, [cleanupRecording]);
 
     const startRecording = useCallback(async () => {
         setError(null);
@@ -69,9 +114,11 @@ export default function VoiceVerify() {
 
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            streamRef.current = stream;
 
             // Visualize audio level
-            const audioCtx = new AudioContext();
+            const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+            audioContextRef.current = audioCtx;
             const source = audioCtx.createMediaStreamSource(stream);
             const analyser = audioCtx.createAnalyser();
             analyser.fftSize = 256;
@@ -79,6 +126,12 @@ export default function VoiceVerify() {
             analyserRef.current = analyser;
 
             const draw = () => {
+                if (
+                    !isMountedRef.current ||
+                    !audioContextRef.current ||
+                    audioContextRef.current.state === "closed"
+                )
+                    return;
                 const data = new Uint8Array(analyser.frequencyBinCount);
                 analyser.getByteFrequencyData(data);
                 const avg = data.reduce((a, b) => a + b, 0) / data.length;
@@ -96,10 +149,7 @@ export default function VoiceVerify() {
             };
 
             recorder.onstop = async () => {
-                stream.getTracks().forEach((t) => t.stop());
-                if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-                setAudioLevel(0);
-
+                cleanupRecording();
                 const blob = new Blob(chunksRef.current, { type: "audio/webm" });
                 await sendAudioToApi(blob);
             };
@@ -110,7 +160,7 @@ export default function VoiceVerify() {
         } catch {
             setError(t("errorMicDenied"));
         }
-    }, [t]);
+    }, [cleanupRecording, t]);
 
     const stopRecording = useCallback(() => {
         if (mediaRecorderRef.current && isRecording) {
@@ -120,6 +170,7 @@ export default function VoiceVerify() {
     }, [isRecording]);
 
     const sendAudioToApi = async (blob: Blob) => {
+        if (!isMountedRef.current) return;
         setIsLoading(true);
         try {
             const form = new FormData();
@@ -132,15 +183,20 @@ export default function VoiceVerify() {
 
             const data: ApiResponse = await res.json();
 
+            if (!isMountedRef.current) return;
+
             if (!res.ok || !data.success) {
                 setError(data.error || t("errorNetwork"));
             } else {
                 setResult(data);
             }
         } catch {
+            if (!isMountedRef.current) return;
             setError(t("errorNetwork"));
         } finally {
-            setIsLoading(false);
+            if (isMountedRef.current) {
+                setIsLoading(false);
+            }
         }
     };
 

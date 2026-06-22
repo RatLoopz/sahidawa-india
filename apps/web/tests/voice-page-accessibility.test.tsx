@@ -1,15 +1,20 @@
+/**
+ * @jest-environment jsdom
+ */
 import { renderToStaticMarkup } from "react-dom/server";
-
+import LocaleLayout from "../app/[locale]/layout";
 import VoiceLayout from "../app/[locale]/voice/layout";
 import VoiceTriagePage from "../app/[locale]/voice/page";
 
 jest.mock("next-intl", () => ({
     useLocale: () => "en",
     useTranslations: () => (key: string) => key,
+    NextIntlClientProvider: ({ children }: any) => children,
 }));
 
 jest.mock("next-intl/server", () => ({
     getTranslations: async () => (key: string) => key,
+    getMessages: async () => ({}),
 }));
 
 jest.mock("next/navigation", () => ({
@@ -19,6 +24,7 @@ jest.mock("next/navigation", () => ({
     useParams: () => ({
         locale: "en",
     }),
+    notFound: () => {},
 }));
 
 jest.mock("sonner", () => ({
@@ -26,6 +32,7 @@ jest.mock("sonner", () => ({
         error: jest.fn(),
         success: jest.fn(),
     },
+    Toaster: () => null,
 }));
 
 jest.mock("../app/[locale]/components/PageHeader", () => ({
@@ -38,11 +45,41 @@ jest.mock("../app/[locale]/components/PageHeader", () => ({
     ),
 }));
 
+// Mock layout sub-components to prevent rendering complex/nested structures
+jest.mock("../app/[locale]/components/ThemeProvider", () => ({
+    ThemeProvider: ({ children }: any) => children,
+}));
+jest.mock("@/components/OfflineBanner", () => ({
+    OfflineBanner: () => null,
+}));
+jest.mock("@/components/OfflineErrorBoundary", () => ({
+    OfflineErrorBoundary: ({ children }: any) => children,
+}));
+jest.mock("@/components/ServiceWorkerProvider", () => ({
+    ServiceWorkerProvider: ({ children }: any) => children,
+}));
+jest.mock("../app/[locale]/components/BackToTopButton", () => () => null);
+jest.mock("../app/[locale]/components/Chatbot", () => () => null);
+jest.mock("../app/[locale]/components/Navbar", () => () => null);
+jest.mock("../app/[locale]/components/Footer", () => () => null);
+jest.mock("@/src/components/AuthProvider", () => ({
+    AuthProvider: ({ children }: any) => children,
+}));
+jest.mock("../app/[locale]/components/CommandPalette", () => () => null);
+jest.mock("@/components/TracingInitializer", () => ({
+    TracingInitializer: () => null,
+}));
+
 describe("VoiceTriagePage accessibility shell", () => {
-    it("renders a skip link before a focusable main landmark target", async () => {
+    it("renders a skip link before a focusable main landmark target in the page shell", async () => {
         const layoutMarkup = renderToStaticMarkup(
-            await VoiceLayout({
-                children: <VoiceTriagePage />,
+            await LocaleLayout({
+                children: (
+                    <VoiceLayout>
+                        <VoiceTriagePage />
+                    </VoiceLayout>
+                ),
+                params: Promise.resolve({ locale: "en" }),
             })
         );
         const skipLinkIndex = layoutMarkup.indexOf('href="#main-content"');

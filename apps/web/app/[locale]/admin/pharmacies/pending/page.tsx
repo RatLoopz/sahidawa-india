@@ -301,7 +301,7 @@ function MetricCard({
 }: Readonly<{
     label: string;
     value: number | string;
-    icon: any;
+    icon: React.ElementType;
     color: string;
     bg: string;
 }>) {
@@ -325,7 +325,7 @@ function ActionButton({
     onClick,
 }: Readonly<{
     label: string;
-    icon: any;
+    icon: React.ElementType;
     color: "green" | "red";
     loading: boolean;
     disabled: boolean;

@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
+import { getMessages, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "../../i18n/routing";
 
@@ -79,6 +79,7 @@ export default async function LocaleLayout({
     }
 
     const messages = await getMessages();
+    const t = await getTranslations("VoicePage");
     const isRtl = ["ur", "ks"].includes(locale);
 
     return (
@@ -103,9 +104,15 @@ export default async function LocaleLayout({
                     <ThemeProvider>
                         <NextIntlClientProvider messages={messages}>
                             <AuthProvider>
+                                <a
+                                    href="#main-content"
+                                    className="sr-only absolute top-4 left-4 z-[60] rounded-full bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-lg focus:not-sr-only focus-visible:ring-[3px] focus-visible:ring-emerald-600 focus-visible:ring-offset-2 focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                                >
+                                    {t("skip_to_main_content")}
+                                </a>
                                 <OfflineBanner />
                                 <Navbar />
-                                <main className="flex flex-grow flex-col">
+                                <main id="main-content" className="flex flex-grow flex-col">
                                     <OfflineErrorBoundary>{children}</OfflineErrorBoundary>
                                 </main>
                                 <Footer />
