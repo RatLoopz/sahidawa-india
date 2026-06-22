@@ -13,6 +13,31 @@ const MAX_RESULTS = 200;
 
 // ── TypeScript interfaces ────────────────────────────────────────────────────
 
+export interface FormattedPharmacy {
+    name: string;
+    address: string;
+    lat: number;
+    lng: number;
+    distance: string;
+    phone_number: string | null;
+    is_verified: boolean;
+    district: string | null;
+    state: string | null;
+}
+
+export interface PharmacyRpcResult {
+    id: string;
+    name: string;
+    address: string;
+    lat: number;
+    lng: number;
+    phone_number: string | null;
+    is_verified: boolean;
+    district: string | null;
+    state: string | null;
+    distance: number;
+}
+
 /** Raw pharmacy row returned by Supabase table queries (fallback path) */
 interface PharmacyRow {
     name: string;
@@ -719,8 +744,8 @@ router.post(
 
                 const validationResult = inventoryRowSchema.safeParse(rowData);
                 if (!validationResult.success) {
-                    const errorMessage = validationResult.error.errors
-                        .map((e) => e.message)
+                    const errorMessage = validationResult.error.issues
+                        .map((e: z.ZodIssue) => e.message)
                         .join(", ");
                     failedRows.push({ row: i + 1, reason: errorMessage });
                     continue;

@@ -15,6 +15,8 @@ import { ClipboardList, Download, RefreshCw, Trash2 } from "lucide-react";
 import { syncScanHistoryWithCloud } from "@/lib/scanHistoryCloudSync";
 import { EmptyState } from "@/components/ui/EmptyState";
 
+const ExportModal = dynamic(() => import("./ExportModal"), { ssr: false });
+
 export default function HistoryPage() {
     const [history, setHistory] = useState<ScanHistoryEntry[]>([]);
     const [isSyncing, setIsSyncing] = useState(false);
