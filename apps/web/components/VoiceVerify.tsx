@@ -2,28 +2,6 @@
 
 import { useVoiceVerification } from "../src/hooks/useVoiceVerification";
 
-type VerificationResult = {
-    medicine_name_original: string;
-    medicine_name_english: string;
-    medicine_name_regional: string;
-    status: "verified" | "suspicious" | "not_found";
-    manufacturer: string;
-    category: string;
-    cdsco_registered: boolean;
-    warnings: string[];
-    detected_language: string;
-    script: string;
-};
-
-type ApiResponse = {
-    success: boolean;
-    transcribed: string;
-    detected_language: string;
-    script: string;
-    verification: VerificationResult;
-    error?: string;
-};
-
 const STATUS_CONFIG = {
     verified: {
         label: "✅ Verified",
