@@ -23,11 +23,20 @@ jobs:
                   node-version: 24
                   cache: "npm"
 
+            - name: ⚡ Setup Turborepo Caching
+              uses: dtinth/setup-github-actions-caching-for-turbo@v1
+
             - name: 📦 Install Dependencies (Monorepo)
               run: npm ci
 
             - name: 🏗️ Build Workspace Apps
               run: npm run build
+
+            - name: 🔍 Run Linter
+              run: npm run lint
+
+            - name: 💅 Check Formatting
+              run: npm run format
 
             - name: 🧪 Run Tests
               run: npm run test
