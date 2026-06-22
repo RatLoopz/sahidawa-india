@@ -6,6 +6,7 @@ import { PageHeader } from "../components/PageHeader";
 import MedicineSearchSelect from "@/src/components/MedicineSearchSelect";
 import { fetchGenericAlternatives, type GenericAlternative } from "@/lib/api/alternatives";
 import { supabase } from "@/lib/supabase";
+import { escapePostgrest } from "@/lib/supabase/utils";
 import type { Medicine } from "@/src/components/ComparisonGrid";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import {
@@ -23,13 +24,13 @@ async function searchMedicines(query: string): Promise<Medicine[]> {
     const q = query.trim();
     if (q.length < 2) return [];
 
-    const pattern = `%${q.replace(/[%_\\]/g, "\\$&")}%`;
+    const escaped = escapePostgrest(q);
     const { data, error } = await supabase
         .from("medicines")
         .select(
             "id, brand_name, generic_name, manufacturer, mrp, jan_aushadhi_price, composition, cdsco_approval_status"
         )
-        .or(`brand_name.ilike."${pattern}",generic_name.ilike."${pattern}"`)
+        .or(`brand_name.ilike."%${escaped}%",generic_name.ilike."%${escaped}%"`)
         .limit(20);
 
     if (error) {

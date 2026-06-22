@@ -68,10 +68,10 @@ describe("drugLookup Service - lookupDrugByBatch", () => {
     it("should return cached drug immediately on cache hit", async () => {
         (getCachedDrug as jest.Mock).mockResolvedValue(mockDrug);
 
-        const result = await lookupDrugByBatch(batchNumber);
+        const result = await lookupDrugByBatch(batchNumber, { brand_name: "Dolo 650" });
 
         expect(result).toEqual(mockDrug);
-        expect(getCachedDrug).toHaveBeenCalledWith(batchNumber);
+        expect(getCachedDrug).toHaveBeenCalledWith("B12345||Dolo 650");
         // Verify database was NOT queried
         expect(supabase.from).not.toHaveBeenCalled();
         expect(incrementMissCount).not.toHaveBeenCalled();
@@ -81,29 +81,30 @@ describe("drugLookup Service - lookupDrugByBatch", () => {
         (getCachedDrug as jest.Mock).mockResolvedValue(null);
         mockMaybeSingle.mockResolvedValue({ data: mockDrug, error: null });
 
-        const result = await lookupDrugByBatch(batchNumber);
+        const result = await lookupDrugByBatch(batchNumber, { brand_name: "Dolo 650" });
 
         expect(result).toEqual(mockDrug);
-        expect(getCachedDrug).toHaveBeenCalledWith(batchNumber);
+        expect(getCachedDrug).toHaveBeenCalledWith("B12345||Dolo 650");
         expect(incrementMissCount).toHaveBeenCalled();
         expect(supabase.from).toHaveBeenCalledWith("medicines");
-        expect(supabase.select).toHaveBeenCalled();
-        expect(supabase.eq).toHaveBeenCalledWith("batch_number", batchNumber);
-        expect(supabase.limit).toHaveBeenCalledWith(1);
+        expect((supabase as any).select).toHaveBeenCalled();
+        expect((supabase as any).eq).toHaveBeenCalledWith("batch_number", batchNumber);
+        expect((supabase as any).eq).toHaveBeenCalledWith("brand_name", "Dolo 650");
+        expect((supabase as any).limit).toHaveBeenCalledWith(1);
 
         // Cache updates should be triggered
         expect(incrementHitCount).toHaveBeenCalledWith(mockDrug.id, mockDrug.brand_name);
-        expect(setCachedDrug).toHaveBeenCalledWith(batchNumber, mockDrug);
+        expect(setCachedDrug).toHaveBeenCalledWith("B12345||Dolo 650", mockDrug);
     });
 
     it("should return null and not update cache if drug is not found in database", async () => {
         (getCachedDrug as jest.Mock).mockResolvedValue(null);
         mockMaybeSingle.mockResolvedValue({ data: null, error: null });
 
-        const result = await lookupDrugByBatch(batchNumber);
+        const result = await lookupDrugByBatch(batchNumber, { barcode_id: "8901148220042" });
 
         expect(result).toBeNull();
-        expect(getCachedDrug).toHaveBeenCalledWith(batchNumber);
+        expect(getCachedDrug).toHaveBeenCalledWith("B12345|8901148220042|");
         expect(incrementMissCount).toHaveBeenCalled();
         expect(supabase.from).toHaveBeenCalledWith("medicines");
 
@@ -117,9 +118,11 @@ describe("drugLookup Service - lookupDrugByBatch", () => {
         (getCachedDrug as jest.Mock).mockResolvedValue(null);
         mockMaybeSingle.mockResolvedValue({ data: null, error: dbError });
 
-        await expect(lookupDrugByBatch(batchNumber)).rejects.toThrow(dbError);
+        await expect(lookupDrugByBatch(batchNumber, { brand_name: "Dolo 650" })).rejects.toThrow(
+            dbError
+        );
 
-        expect(getCachedDrug).toHaveBeenCalledWith(batchNumber);
+        expect(getCachedDrug).toHaveBeenCalledWith("B12345||Dolo 650");
         expect(incrementMissCount).toHaveBeenCalled();
         expect(supabase.from).toHaveBeenCalledWith("medicines");
 
@@ -133,14 +136,14 @@ describe("drugLookup Service - lookupDrugByBatch", () => {
         (getCachedDrug as jest.Mock).mockRejectedValue(cacheError);
         mockMaybeSingle.mockResolvedValue({ data: mockDrug, error: null });
 
-        const result = await lookupDrugByBatch(batchNumber);
+        const result = await lookupDrugByBatch(batchNumber, { brand_name: "Dolo 650" });
 
         expect(result).toEqual(mockDrug);
-        expect(getCachedDrug).toHaveBeenCalledWith(batchNumber);
+        expect(getCachedDrug).toHaveBeenCalledWith("B12345||Dolo 650");
         // Verify it still queried the database
         expect(supabase.from).toHaveBeenCalledWith("medicines");
         expect(incrementMissCount).toHaveBeenCalled();
         expect(incrementHitCount).toHaveBeenCalledWith(mockDrug.id, mockDrug.brand_name);
-        expect(setCachedDrug).toHaveBeenCalledWith(batchNumber, mockDrug);
+        expect(setCachedDrug).toHaveBeenCalledWith("B12345||Dolo 650", mockDrug);
     });
 });
