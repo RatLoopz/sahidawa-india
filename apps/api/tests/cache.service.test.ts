@@ -207,7 +207,7 @@ describe("Redis Caching and Drug Lookup Services", () => {
             };
             mockRedis.get.mockResolvedValueOnce(JSON.stringify(mockMed));
 
-            const result = await lookupDrugByBatch("BATCH-1");
+            const result = await lookupDrugByBatch("BATCH-1", { brand_name: "Crocin" });
 
             expect(result).toEqual(mockMed);
             expect(mockSupabase.from).not.toHaveBeenCalled();
@@ -225,7 +225,7 @@ describe("Redis Caching and Drug Lookup Services", () => {
             mockRedis.incr.mockResolvedValue(1);
             mockRedis.zIncrBy.mockResolvedValue(1);
 
-            const result = await lookupDrugByBatch("BATCH-1");
+            const result = await lookupDrugByBatch("BATCH-1", { brand_name: "Crocin" });
 
             expect(result).toEqual(mockMed);
             expect(mockSupabase.from).toHaveBeenCalledWith("medicines");
@@ -233,7 +233,7 @@ describe("Redis Caching and Drug Lookup Services", () => {
             expect(mockRedis.incr).toHaveBeenCalledWith("hits:drug:med-1");
             expect(mockRedis.zIncrBy).toHaveBeenCalledWith("stats:top_drugs", 1, "Crocin");
             expect(mockRedis.set).toHaveBeenCalledWith(
-                "drug:batch:BATCH-1",
+                "drug:batch:BATCH-1||Crocin",
                 JSON.stringify(mockMed),
                 { EX: TTL_TIERS.COLD }
             );
