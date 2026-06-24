@@ -81,6 +81,13 @@ describe("ExpiryTracker notification permission", () => {
     beforeEach(() => {
         localStorage.clear();
         jest.clearAllMocks();
+        Object.defineProperty(navigator, "serviceWorker", {
+            value: {
+                getRegistration: jest.fn().mockResolvedValue(null),
+                register: jest.fn(),
+            },
+            writable: true,
+        });
     });
 
     afterEach(() => {
@@ -134,8 +141,10 @@ describe("ExpiryTracker notification permission", () => {
     });
 
     it("handles unavailable Notification API without rendering permission controls", async () => {
-        delete (window as Partial<Window>).Notification;
-        delete (global as { Notification?: typeof Notification }).Notification;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        delete (globalThis as any).Notification;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        delete (global as any).Notification;
 
         render(<ExpiryTrackerPage />);
         await waitForInitialLoad();

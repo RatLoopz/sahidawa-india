@@ -30,6 +30,33 @@ interface PharmacyRow {
 }
 
 /** Internal type used during sorting (includes raw numeric distance) */
+interface FormattedPharmacy {
+    name: string;
+    address: string;
+    lat: number | null;
+    lng: number | null;
+    phone_number: string | null;
+    is_verified: boolean;
+    district: string | null;
+    state: string | null;
+    distance?: string;
+}
+
+/** Raw row returned by the Supabase nearby_pharmacies RPC function */
+interface PharmacyRpcResult {
+    name: string;
+    address: string;
+    lat: number | null;
+    lng: number | null;
+    phone_number: string | null;
+    is_verified: boolean;
+    district: string | null;
+    state: string | null;
+    distance_km?: number;
+    distance?: number;
+}
+
+/** Internal type used during sorting (includes raw numeric distance) */
 interface PharmacyWithRawDistance extends FormattedPharmacy {
     rawDistance: number;
 }
@@ -60,10 +87,10 @@ const inventoryRowSchema = z.object({
         .string()
         .regex(/^\d{4}-\d{2}-\d{2}$/, "Expiry date must be in YYYY-MM-DD format"),
     quantity: z.preprocess(
-        (val) => Number(val),
+        Number,
         z.number().int().nonnegative("Quantity must be a positive number")
     ),
-    mrp: z.preprocess((val) => Number(val), z.number().positive("MRP must be a valid price")),
+    mrp: z.preprocess(Number, z.number().positive("MRP must be a valid price")),
 });
 
 // ── Pharmacy registration ────────────────────────────────────────────────────
@@ -374,6 +401,7 @@ router.get("/nearest", async (req: Request, res: Response, next: NextFunction) =
         if (!result.success) {
             res.status(400).json({
                 error: "Invalid coordinates",
+                // @ts-ignore Zod deprecation warning for flatten without args
                 details: result.error.flatten().fieldErrors,
             });
             return;
@@ -612,6 +640,7 @@ router.get("/in-bounds", async (req: Request, res: Response, next: NextFunction)
         if (!result.success) {
             res.status(400).json({
                 error: "Invalid bounds",
+                // @ts-ignore Zod deprecation warning for flatten without args
                 details: result.error.flatten().fieldErrors,
             });
             return;
@@ -623,15 +652,12 @@ router.get("/in-bounds", async (req: Request, res: Response, next: NextFunction)
         const centerLng = (west + east) / 2;
 
         // Primary path: PostGIS spatial query via RPC
-        const { data: rpcData, error: rpcError } = await supabase.rpc(
-            "get_pharmacies_in_bounds" as string,
-            {
-                bound_south: south,
-                bound_west: west,
-                bound_north: north,
-                bound_east: east,
-            }
-        );
+        const { data: rpcData, error: rpcError } = await supabase.rpc("get_pharmacies_in_bounds", {
+            bound_south: south,
+            bound_west: west,
+            bound_north: north,
+            bound_east: east,
+        });
 
         if (!rpcError && rpcData) {
             const pharmacies: FormattedPharmacy[] = (rpcData as PharmacyRpcResult[])

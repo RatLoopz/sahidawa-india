@@ -67,21 +67,15 @@ export default function VoiceVerify() {
                                 : undefined
                         }
                     >
-                        {isLoading ? (
-                            <span className="animate-spin text-2xl">⏳</span>
-                        ) : isRecording ? (
-                            "⏹"
-                        ) : (
-                            "🎙"
-                        )}
+                        {isLoading && <span className="animate-spin text-2xl">⏳</span>}
+                        {!isLoading && isRecording && "⏹"}
+                        {!isLoading && !isRecording && "🎙"}
                     </button>
 
                     <p className="text-center text-sm text-gray-500">
-                        {isLoading
-                            ? "Verifying medicine..."
-                            : isRecording
-                              ? "Recording... tap to stop"
-                              : "Tap to speak the medicine name"}
+                        {isLoading && "Verifying medicine..."}
+                        {!isLoading && isRecording && "Recording... tap to stop"}
+                        {!isLoading && !isRecording && "Tap to speak the medicine name"}
                     </p>
 
                     <p className="text-center text-xs text-gray-400">
@@ -166,7 +160,10 @@ export default function VoiceVerify() {
                                 Warnings
                             </p>
                             {result.verification.warnings.map((w, i) => (
-                                <p key={i} className="text-sm text-orange-700">
+                                <p
+                                    key={`warning-${i}-${w.slice(0, 10)}`}
+                                    className="text-sm text-orange-700"
+                                >
                                     ⚠ {w}
                                 </p>
                             ))}

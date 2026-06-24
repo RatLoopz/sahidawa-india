@@ -1,3 +1,4 @@
+// Jest provides describe, it, expect as globals
 import { mapMedicineRow } from "../src/lib/mapMedicineRow";
 
 describe("mapMedicineRow", () => {

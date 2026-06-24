@@ -13,6 +13,9 @@ import { CopyButton } from "@/components/ui/CopyButton";
 import { ClipboardList, Download, RefreshCw, Trash2 } from "lucide-react";
 import { syncScanHistoryWithCloud } from "@/lib/scanHistoryCloudSync";
 import { EmptyState } from "@/components/ui/EmptyState";
+import dynamic from "next/dynamic";
+
+const ExportModal = dynamic(() => import("./ExportModal"), { ssr: false });
 
 export default function HistoryPage() {
     const [history, setHistory] = useState<ScanHistoryEntry[]>([]);
@@ -33,7 +36,7 @@ export default function HistoryPage() {
         try {
             const data = await getScanHistory();
 
-            const sorted = data.sort((a, b) => b.timestamp - a.timestamp);
+            const sorted = [...data].sort((a, b) => b.timestamp - a.timestamp);
 
             setHistory(sorted);
         } catch (error) {
@@ -103,17 +106,17 @@ export default function HistoryPage() {
                         <div className="h-10 w-36 animate-pulse rounded-xl bg-white/5" />
                     </div>
                     <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
-                        {[...Array(4)].map((_, i) => (
+                        {["stat-1", "stat-2", "stat-3", "stat-4"].map((k) => (
                             <div
-                                key={i}
+                                key={k}
                                 className="h-24 animate-pulse rounded-2xl border border-white/10 bg-white/5"
                             />
                         ))}
                     </div>
                     <div className="space-y-4">
-                        {[...Array(3)].map((_, i) => (
+                        {["item-1", "item-2", "item-3"].map((k) => (
                             <div
-                                key={i}
+                                key={k}
                                 className="h-[128px] animate-pulse rounded-2xl border border-white/10 bg-white/5"
                             />
                         ))}
@@ -235,13 +238,12 @@ export default function HistoryPage() {
                                         <p className="mt-2">
                                             {t("item_status_label")}
                                             <span
-                                                className={`ml-2 font-semibold ${
-                                                    item.status?.toLowerCase() === "verified"
-                                                        ? "text-emerald-400"
-                                                        : item.status?.toLowerCase() === "fake"
-                                                          ? "text-red-400"
-                                                          : "text-amber-400"
-                                                }`}
+                                                className={`ml-2 font-semibold ${(() => {
+                                                    const s = item.status?.toLowerCase();
+                                                    if (s === "verified") return "text-emerald-400";
+                                                    if (s === "fake") return "text-red-400";
+                                                    return "text-amber-400";
+                                                })()}`}
                                             >
                                                 {item.status}
                                             </span>

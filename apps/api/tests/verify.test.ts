@@ -52,7 +52,9 @@ describe("POST /api/verify", () => {
             error: null,
         });
 
-        const res = await request(app).post("/api/verify").send({ batchNumber: "AUG625D" });
+        const res = await request(app)
+            .post("/api/verify")
+            .send({ batchNumber: "AUG625D", brandName: "Test Brand" });
 
         expect(res.status).toBe(200);
         expect(res.body.verified).toBe(true);
@@ -90,7 +92,9 @@ describe("POST /api/verify", () => {
             error: null,
         });
 
-        const res = await request(app).post("/api/verify").send({ batchNumber: "AUG625D" });
+        const res = await request(app)
+            .post("/api/verify")
+            .send({ batchNumber: "AUG625D", brandName: "Test Brand" });
 
         expect(res.status).toBe(200);
         expect(res.body.scanMeta).toBeDefined();
@@ -107,7 +111,9 @@ describe("POST /api/verify", () => {
             error: null,
         });
 
-        const res = await request(app).post("/api/verify").send({ batchNumber: "UNKNOWN123" });
+        const res = await request(app)
+            .post("/api/verify")
+            .send({ batchNumber: "UNKNOWN123", brandName: "Unknown Brand" });
 
         expect(res.status).toBe(404);
         expect(res.body.verified).toBe(false);
@@ -115,14 +121,16 @@ describe("POST /api/verify", () => {
     });
 
     it("should return 400 when batchNumber field is missing", async () => {
-        const res = await request(app).post("/api/verify").send({});
+        const res = await request(app).post("/api/verify").send({ brandName: "Test Brand" });
 
         expect(res.status).toBe(400);
         expect(res.body.error).toBe("Invalid request body");
     });
 
     it("should return 400 when batchNumber is not a string", async () => {
-        const res = await request(app).post("/api/verify").send({ batchNumber: 12345 });
+        const res = await request(app)
+            .post("/api/verify")
+            .send({ batchNumber: 12345, brandName: "Test Brand" });
 
         expect(res.status).toBe(400);
         expect(res.body.error).toBe("Invalid request body");

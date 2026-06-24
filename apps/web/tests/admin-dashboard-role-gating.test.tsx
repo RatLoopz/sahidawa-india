@@ -3,6 +3,19 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
+jest.mock("@tanstack/react-virtual", () => ({
+    useVirtualizer: (opts: { count: number; estimateSize: () => number }) => ({
+        getVirtualItems: () =>
+            Array.from({ length: opts.count }, (_, i) => ({
+                index: i,
+                start: i * opts.estimateSize(),
+                size: opts.estimateSize(),
+                key: i,
+            })),
+        getTotalSize: () => opts.count * opts.estimateSize(),
+    }),
+}));
+
 import AdminDashboard from "../app/[locale]/admin/dashboard/page";
 
 type MockRole = "admin" | "moderator" | null;

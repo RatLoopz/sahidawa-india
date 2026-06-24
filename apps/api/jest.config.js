@@ -7,7 +7,7 @@ module.exports = {
         "**/src/services/drugLookup.test.ts",
     ],
     clearMocks: true,
-    setupFiles: ["<rootDir>/tests/setup.ts"],
+    setupFiles: ["<rootDir>/jest-setup.js"],
     transform: {
         "^.+\\.tsx?$": [
             "ts-jest",

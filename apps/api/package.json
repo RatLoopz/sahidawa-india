@@ -27,6 +27,7 @@
         "multer": "^2.2.0",
         "natural": "^8.1.1",
         "node-cron": "^3.0.3",
+        "rate-limit-redis": "^5.0.0",
         "redis": "^6.0.0",
         "swagger-jsdoc": "^6.3.0",
         "swagger-ui-express": "^5.0.1",

@@ -42,6 +42,7 @@ export default function ExpiryTrackerPage() {
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const [isVerifying, setIsVerifying] = useState(false);
     const [apiError, setApiError] = useState<string | null>(null);
+    const [_isSubmitting, setIsSubmitting] = useState(false);
     const [notificationPermission, setNotificationPermission] = useState<string>("default");
     useEffect(() => {
         if (typeof window !== "undefined" && "Notification" in window) {
