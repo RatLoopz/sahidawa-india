@@ -42,30 +42,52 @@ const safeImageUrl = z.string().url().refine(isPublicImageUrl, {
         "Image URL must use http(s) and must not point to a private, loopback, or link-local address",
 });
 
-const createReportSchema = z.object({
-    medicineName: z.string().min(2),
-    manufacturer: z.string().min(2),
-    description: z.string().min(20),
-    images: z.array(safeImageUrl).min(1),
-    pharmacyName: z.string().min(2),
-    address: z.string().min(5),
-    city: z.string().min(2),
-    district: z.string().min(2).optional(),
-    state: z.string().min(2),
-    pincode: z.string().regex(/^\d{6}$/),
-    latitude: z
-        .number()
-        .min(-90, "Latitude must be between -90 and 90")
-        .max(90, "Latitude must be between -90 and 90")
-        .optional(),
-    longitude: z
-        .number()
-        .min(-180, "Longitude must be between -180 and 180")
-        .max(180, "Longitude must be between -180 and 180")
-        .optional(),
-    scannedBarcode: z.string().optional(),
-    medicineId: z.string().uuid().optional(),
-});
+import { INDIAN_STATES_AND_DISTRICTS } from "../constants/administrativeMap";
+
+const createReportSchema = z
+    .object({
+        medicineName: z.string().min(2),
+        manufacturer: z.string().min(2),
+        description: z.string().min(20),
+        images: z.array(safeImageUrl).min(1),
+        pharmacyName: z.string().min(2),
+        address: z.string().min(5),
+        city: z.string().min(2),
+        district: z.string().min(2).optional(),
+        state: z.string().min(2),
+        pincode: z.string().regex(/^\d{6}$/),
+        latitude: z
+            .number()
+            .min(-90, "Latitude must be between -90 and 90")
+            .max(90, "Latitude must be between -90 and 90")
+            .optional(),
+        longitude: z
+            .number()
+            .min(-180, "Longitude must be between -180 and 180")
+            .max(180, "Longitude must be between -180 and 180")
+            .optional(),
+        scannedBarcode: z.string().optional(),
+        medicineId: z.string().uuid().optional(),
+    })
+    .superRefine((data, ctx) => {
+        const validDistricts = INDIAN_STATES_AND_DISTRICTS[data.state];
+        if (!validDistricts) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `Invalid state: ${data.state}`,
+                path: ["state"],
+            });
+            return;
+        }
+        const districtToCheck = data.district ?? data.city;
+        if (!validDistricts.includes(districtToCheck)) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `Invalid district '${districtToCheck}' for state '${data.state}'`,
+                path: data.district ? ["district"] : ["city"],
+            });
+        }
+    });
 
 const buildReportLocation = (latitude?: number, longitude?: number) => {
     if (typeof latitude !== "number" || typeof longitude !== "number") {

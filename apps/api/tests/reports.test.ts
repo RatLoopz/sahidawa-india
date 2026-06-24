@@ -75,7 +75,7 @@ import request from "supertest";
 import app from "../src/app";
 import { supabase } from "../src/db/client";
 
-const mockedSupabase = supabase as jest.Mocked<typeof supabase>;
+const mockedSupabase = supabase as any;
 
 describe("Reports API Routes", () => {
     beforeEach(() => {
@@ -512,6 +512,49 @@ describe("Reports API Routes", () => {
             expect(response.body.error).toHaveProperty("message");
             expect(response.body).not.toHaveProperty("details");
         });
+
+        it("returns 400 when an invalid state is provided", async () => {
+            const payload = {
+                medicineName: "Aspirin 500mg",
+                manufacturer: "TestCo",
+                description: "This is a detailed description of the issue",
+                images: ["https://example.com/image1.jpg"],
+                pharmacyName: "Test Pharmacy",
+                address: "123 Main St",
+                city: "Pune",
+                state: "Maharastra", // Typo in state
+                pincode: "411001",
+            };
+
+            const response = await request(app).post("/api/reports").send(payload);
+
+            expect(response.status).toBe(400);
+            expect(response.body.error).toBe("Invalid report payload");
+            expect(response.body.issues[0].message).toBe("Invalid state: Maharastra");
+        });
+
+        it("returns 400 when an invalid district is provided for a valid state", async () => {
+            const payload = {
+                medicineName: "Aspirin 500mg",
+                manufacturer: "TestCo",
+                description: "This is a detailed description of the issue",
+                images: ["https://example.com/image1.jpg"],
+                pharmacyName: "Test Pharmacy",
+                address: "123 Main St",
+                city: "Pune",
+                district: "pune dist", // Typo in district
+                state: "Maharashtra",
+                pincode: "411001",
+            };
+
+            const response = await request(app).post("/api/reports").send(payload);
+
+            expect(response.status).toBe(400);
+            expect(response.body.error).toBe("Invalid report payload");
+            expect(response.body.issues[0].message).toBe(
+                "Invalid district 'pune dist' for state 'Maharashtra'"
+            );
+        });
     });
 
     describe("GET /api/reports/mine", () => {
@@ -716,12 +759,10 @@ describe("Reports API Routes", () => {
                             // Existence-check chain: .eq().single()
                             return {
                                 eq: jest.fn().mockReturnValue({
-                                    single: jest
-                                        .fn()
-                                        .mockResolvedValue({
-                                            data: { id: "report-id-123" },
-                                            error: null,
-                                        }),
+                                    single: jest.fn().mockResolvedValue({
+                                        data: { id: "report-id-123" },
+                                        error: null,
+                                    }),
                                 }),
                             };
                         }),
