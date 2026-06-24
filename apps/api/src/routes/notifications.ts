@@ -383,13 +383,14 @@ router.patch("/phone", optionalAuth, async (req: AuthenticatedRequest, res) => {
 
         if (!dbFailed) {
             try {
-                let query = supabase.from("notification_subscribers").update({
-                    phone: formattedNewPhone,
-                    channels,
-                    language,
-                    district,
-                    is_active,
-                });
+                const updateData: Record<string, unknown> = {};
+                if (formattedNewPhone !== undefined) updateData.phone = formattedNewPhone;
+                if (channels !== undefined) updateData.channels = channels;
+                if (language !== undefined) updateData.language = language;
+                if (district !== undefined) updateData.district = district;
+                if (is_active !== undefined) updateData.is_active = is_active;
+
+                let query = supabase.from("notification_subscribers").update(updateData);
 
                 if (req.user) {
                     query = query.eq("user_id", req.user.id);
