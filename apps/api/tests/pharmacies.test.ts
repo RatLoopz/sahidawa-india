@@ -36,6 +36,15 @@ describe("GET /api/pharmacies/nearest", () => {
     });
 
     // ── Validation tests ─────────────────────────────────────────────────
+    it("should return Cache-Control header", async () => {
+        const response = await request(app).get("/api/pharmacies/nearest").query({
+            lat: 28.6,
+            lng: 77.2,
+            radius: 5,
+        });
+
+        expect(response.headers["cache-control"]).toContain("public");
+    });
 
     it("returns 400 when latitude or longitude is missing", async () => {
         const missingLatitude = await request(app).get("/api/pharmacies/nearest?lng=77.5946");
@@ -278,6 +287,17 @@ describe("GET /api/pharmacies/nearest", () => {
 describe("GET /api/pharmacies/in-bounds", () => {
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    it("should return Cache-Control header", async () => {
+        const response = await request(app).get("/api/pharmacies/in-bounds").query({
+            south: 28.5,
+            west: 77.1,
+            north: 28.7,
+            east: 77.3,
+        });
+
+        expect(response.headers["cache-control"]).toContain("public");
     });
 
     it("returns 400 when bounds are missing", async () => {

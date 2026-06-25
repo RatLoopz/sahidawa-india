@@ -143,6 +143,19 @@ export const interactionCheckLimiter = rateLimit({
     },
 });
 
+/** Scheme eligibility check limiter — prevent DB spam on state query. */
+export const eligibilityLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    store: buildStore("eligibility"),
+    handler: (_req, res) => {
+        res.status(429).json({
+            error: "Too many eligibility checks. Please try again later.",
+        });
+    },
+});
 // ── Triage limiter ──────────────────────────────────────────────────────────
 // POST /triage/medicine-query and /triage/recommend perform expensive pgvector
 // semantic search + optional Gemini embedding calls + PostGIS RPC.

@@ -21,7 +21,6 @@ export default function Navbar() {
     const pathname = usePathname();
     const router = useRouter();
     const tHome = useTranslations("Home");
-    const tA11y = useTranslations("Accessibility");
     const tNavbar = useTranslations("Navbar");
     const { session, isLoading: authLoading } = useSession();
 

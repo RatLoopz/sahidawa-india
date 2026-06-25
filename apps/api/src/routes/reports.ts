@@ -161,7 +161,9 @@ reportsRouter.post(
                     scanned_barcode: data.scannedBarcode ?? null,
                     medicine_id: data.medicineId ?? null,
                 })
-                .select()
+                .select(
+                    "id, reported_brand_name, status, district, created_at, scanned_barcode, medicine_id"
+                )
                 .single();
 
             if (error) {
