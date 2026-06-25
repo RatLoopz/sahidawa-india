@@ -1,5 +1,5 @@
-import React from "react";
-import { TrendingDown, MapPin, Sparkles, ArrowRight, Pill } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { TrendingDown, MapPin, Sparkles, ArrowRight, Pill, Bookmark } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 
 export interface NearestStore {
@@ -28,13 +28,34 @@ export default function GenericAlternativeCard({ alternative }: GenericAlternati
     const params = useParams();
     const locale = Array.isArray(params.locale) ? params.locale[0] : params.locale || "en";
 
+    const [isBookmarked, setIsBookmarked] = useState(false);
+
+    // Sync bookmark state with localStorage on mount
+    useEffect(() => {
+        const saved = JSON.parse(localStorage.getItem('medicine-bookmarks') || '[]');
+        const exists = saved.some((item: GenericAlternative) => item.alternative_name === alternative.alternative_name);
+        setIsBookmarked(exists);
+    }, [alternative.alternative_name]);
+
+    const handleBookmark = () => {
+        const saved = JSON.parse(localStorage.getItem('medicine-bookmarks') || '[]');
+        if (isBookmarked) {
+            const filtered = saved.filter((item: GenericAlternative) => item.alternative_name !== alternative.alternative_name);
+            localStorage.setItem('medicine-bookmarks', JSON.stringify(filtered));
+            setIsBookmarked(false);
+        } else {
+            saved.push(alternative);
+            localStorage.setItem('medicine-bookmarks', JSON.stringify(saved));
+            setIsBookmarked(true);
+        }
+    };
+
     const brandPrice = alternative.brand_price;
     const genericPrice = alternative.jan_aushadhi_price;
     const savingsAmount = brandPrice - genericPrice;
     const savingsPct = alternative.savings_percentage;
 
     const handleNavigateToMap = () => {
-        // Navigate to the map page with pre-filtered settings
         router.push(`/${locale}/map?filter=govt`);
     };
 
@@ -46,13 +67,23 @@ export default function GenericAlternativeCard({ alternative }: GenericAlternati
             <div className="flex flex-col space-y-5">
                 {/* Header Badge */}
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 rounded-full bg-emerald-100 px-3.5 py-1 text-xs font-black text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-400">
-                        <Sparkles size={12} className="animate-pulse" />
-                        <span>
-                            {savingsAmount > 0
-                                ? "Cheaper Alternative Available"
-                                : "Alternative Available"}
-                        </span>
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 rounded-full bg-emerald-100 px-3.5 py-1 text-xs font-black text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-400">
+                            <Sparkles size={12} className="animate-pulse" />
+                            <span>
+                                {savingsAmount > 0
+                                    ? "Cheaper Alternative Available"
+                                    : "Alternative Available"}
+                            </span>
+                        </div>
+                        {/* Bookmark Button */}
+                        <button 
+                            onClick={handleBookmark}
+                            className={`rounded-full p-2 transition-all ${isBookmarked ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200 dark:bg-slate-800'}`}
+                            aria-label="Bookmark medicine"
+                        >
+                            <Bookmark size={14} fill={isBookmarked ? "currentColor" : "none"} />
+                        </button>
                     </div>
                     {savingsAmount > 0 && (
                         <div className="flex items-center gap-1 text-sm font-black text-emerald-600 dark:text-emerald-400">
