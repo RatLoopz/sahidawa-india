@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { SupabaseClient, User } from "@supabase/supabase-js";
 import { supabase, dbConfig } from "../db/client";
 import logger from "../utils/logger";
+import { redisClient } from "../utils/redis";
 
 export type AuthRole = "user" | "admin" | "moderator";
 
@@ -79,6 +80,23 @@ export const createAuthMiddleware =
             return;
         }
 
+        const cacheKey = `auth:user:${token.slice(-16)}`;
+        try {
+            if (redisClient.isOpen) {
+                const cached = await redisClient.get(cacheKey);
+                if (cached) {
+                    req.user = JSON.parse(cached);
+                    next();
+                    return;
+                }
+            }
+        } catch (err) {
+            logger.warn({
+                message: "Redis cache get error in auth middleware",
+                error: String(err),
+            });
+        }
+
         try {
             const { data, error } = await client.auth.getUser(token);
 
@@ -120,6 +138,17 @@ export const createAuthMiddleware =
                 role: getUserRole(data.user),
                 raw: data.user,
             };
+
+            try {
+                if (redisClient.isOpen) {
+                    await redisClient.setEx(cacheKey, 300, JSON.stringify(req.user));
+                }
+            } catch (err) {
+                logger.warn({
+                    message: "Redis cache set error in auth middleware",
+                    error: String(err),
+                });
+            }
 
             next();
         } catch (err) {
@@ -172,6 +201,23 @@ export const createOptionalAuthMiddleware =
             return next();
         }
 
+        const cacheKey = `auth:user:${token.slice(-16)}`;
+        try {
+            if (redisClient.isOpen) {
+                const cached = await redisClient.get(cacheKey);
+                if (cached) {
+                    req.user = JSON.parse(cached);
+                    next();
+                    return;
+                }
+            }
+        } catch (err) {
+            logger.warn({
+                message: "Redis cache get error in optional auth middleware",
+                error: String(err),
+            });
+        }
+
         try {
             const { data, error } = await client.auth.getUser(token);
 
@@ -217,6 +263,17 @@ export const createOptionalAuthMiddleware =
                 role: getUserRole(data.user),
                 raw: data.user,
             };
+
+            try {
+                if (redisClient.isOpen) {
+                    await redisClient.setEx(cacheKey, 300, JSON.stringify(req.user));
+                }
+            } catch (err) {
+                logger.warn({
+                    message: "Redis cache set error in optional auth middleware",
+                    error: String(err),
+                });
+            }
 
             next();
         } catch (err) {

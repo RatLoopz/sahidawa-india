@@ -80,6 +80,18 @@
         "language": "हिन्दी",
         "more": "और देखें (More)"
     },
+    "Accessibility": {
+        "logo": "सहीदवा लोगो",
+        "health_companion": "हेल्थ कंपैनियन",
+        "select_language": "भाषा चुनें",
+        "language_options": "भाषा विकल्प",
+        "go_back": "पिछले पृष्ठ पर जाएँ",
+        "go_back_short": "वापस जाएँ",
+        "current_language": "वर्तमान भाषा: {language}",
+        "toggle_theme": "थीम बदलें",
+        "switch_light": "लाइट मोड पर जाएँ",
+        "switch_dark": "डार्क मोड पर जाएँ"
+    },
     "BackToTopButton": {
         "label": "ऊपर जाएँ"
     },

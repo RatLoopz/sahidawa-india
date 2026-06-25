@@ -73,7 +73,6 @@ export class TwilioSMSService implements SMSProvider {
                     retryDelay *= 2;
 
                     continue;
-                
                 }
 
                 // Existing behavior for all non-429 errors
@@ -83,7 +82,7 @@ export class TwilioSMSService implements SMSProvider {
             }
 
             return false;
-       } catch (error) {
+        } catch (error) {
             logger.error(`Failed to send SMS to ${phone} via Twilio`, { error });
             return false;
         }

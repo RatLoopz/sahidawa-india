@@ -414,7 +414,13 @@ describe("broadcastExpiryAlerts", () => {
                     select: jest.fn().mockReturnValue({
                         eq: jest.fn().mockReturnValue({
                             in: jest.fn().mockReturnValue({
-                                range: jest.fn().mockImplementation(() => {
+                                range: jest.fn().mockImplementation((from: number, to: number) => {
+                                    if (from === 0 && to === 0) {
+                                        return Promise.resolve({
+                                            data: [{ id: "mock" }],
+                                            error: null,
+                                        });
+                                    }
                                     callOrder.push("fetch_subscribers");
                                     return Promise.resolve({ data: [], error: null });
                                 }),

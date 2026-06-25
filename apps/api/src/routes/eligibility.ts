@@ -5,6 +5,8 @@ import { anonSupabase } from "../db/supabase";
 const router = Router();
 
 import { z } from "zod";
+import { redisClient } from "../utils/redis";
+import { eligibilityLimiter } from "../middleware/rateLimit";
 
 const eligibilitySchema = z.object({
     age: z.number().int().min(0, "Age cannot be negative").optional().default(30),
@@ -56,7 +58,7 @@ type EligibilityBody = z.infer<typeof eligibilitySchema>;
  *       500:
  *         description: Server error
  */
-router.post("/", async (req: Request, res: Response): Promise<void> => {
+router.post("/", eligibilityLimiter, async (req: Request, res: Response): Promise<void> => {
     try {
         const parseResult = eligibilitySchema.safeParse(req.body);
         if (!parseResult.success) {
@@ -94,13 +96,42 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
         let foundStateScheme = false;
 
         if (userState) {
-            const { data, error } = await anonSupabase
-                .from("health_schemes")
-                .select("*")
-                .ilike("state_name", `%${userState}%`);
+            const cacheKey = `schemes:state:${userState.toLowerCase()}`;
+            let data: any[] | null = null;
 
-            if (error) {
-                logger.error("Failed to query health_schemes", { error });
+            if (redisClient.isOpen) {
+                try {
+                    const cached = await redisClient.get(cacheKey);
+                    if (cached) {
+                        data = JSON.parse(cached);
+                    }
+                } catch (err) {
+                    logger.warn({ message: "Redis get error in eligibility", error: String(err) });
+                }
+            }
+
+            if (!data) {
+                const { data: dbData, error } = await anonSupabase
+                    .from("health_schemes")
+                    .select("*")
+                    .ilike("state_name", `%${userState}%`);
+
+                if (error) {
+                    logger.error("Failed to query health_schemes", { error });
+                }
+
+                data = dbData as any[] | null;
+
+                if (data && redisClient.isOpen) {
+                    try {
+                        await redisClient.setEx(cacheKey, 604800, JSON.stringify(data));
+                    } catch (err) {
+                        logger.warn({
+                            message: "Redis set error in eligibility",
+                            error: String(err),
+                        });
+                    }
+                }
             }
 
             if (data && data.length > 0) {
