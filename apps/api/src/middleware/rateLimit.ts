@@ -153,6 +153,22 @@ export const eligibilityLimiter = rateLimit({
     handler: (_req, res) => {
         res.status(429).json({
             error: "Too many eligibility checks. Please try again later.",
+// ── Triage limiter ──────────────────────────────────────────────────────────
+// POST /triage/medicine-query and /triage/recommend perform expensive pgvector
+// semantic search + optional Gemini embedding calls + PostGIS RPC.
+// Throttle to prevent DoS via repeated semantic search queries.
+export const triageLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 15,
+    standardHeaders: true,
+    legacyHeaders: false,
+    store: buildStore("triage"),
+    keyGenerator: (req) => {
+        return req.ip || req.socket.remoteAddress || "unknown";
+    },
+    handler: (_req, res) => {
+        res.status(429).json({
+            error: "Too many triage requests. Please try again later.",
         });
     },
 });

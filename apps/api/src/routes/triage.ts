@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { anonSupabase } from "../db/supabase";
 import logger from "../utils/logger";
+import { triageLimiter } from "../middleware/rateLimit";
 import {
     assessUrgency,
     medicineQuerySchema,
@@ -91,7 +92,7 @@ async function findNearestPharmacies(
  *       500:
  *         description: Server or database error
  */
-router.post("/medicine-query", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/medicine-query", triageLimiter, async (req: Request, res: Response, next: NextFunction) => {
     const parsed = medicineQuerySchema.safeParse(req.body);
     if (!parsed.success) {
         res.status(400).json({
@@ -159,7 +160,7 @@ router.post("/medicine-query", async (req: Request, res: Response, next: NextFun
  *       500:
  *         description: Server or database error
  */
-router.post("/recommend", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/recommend", triageLimiter, async (req: Request, res: Response, next: NextFunction) => {
     const parsed = recommendSchema.safeParse(req.body);
     if (!parsed.success) {
         res.status(400).json({
