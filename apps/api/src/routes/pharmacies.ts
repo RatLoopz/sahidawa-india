@@ -6,6 +6,7 @@ import { redisClient } from "../utils/redis";
 import { limiter } from "../middleware/rateLimit";
 import { requireAuth, AuthenticatedRequest } from "../middleware/auth";
 import { FormattedPharmacy, PharmacyRpcResult } from "../types/pharmacy.types";
+import { redisCache } from "../middleware/redisCache";
 
 const router = Router();
 
@@ -378,124 +379,112 @@ function handleFetchError(
  *       500:
  *         description: Server or database error
  */
-router.get("/nearest", limiter, async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const result = nearestQuerySchema.safeParse(req.query);
+router.get(
+    "/nearest",
+    limiter,
+    redisCache(3600, (req: Request) => {
+        const lat = Number(req.query.lat);
+        const lng = Number(req.query.lng);
+        const radius = Number(req.query.radius ?? 50);
 
-        if (!result.success) {
-            res.status(400).json({
-                error: "Invalid coordinates",
-                details: result.error.flatten().fieldErrors,
-            });
-            return;
-        }
-
-        const { lat, lng, radius } = result.data;
-
-        const roundedLat = lat.toFixed(3);
-        const roundedLng = lng.toFixed(3);
-
-        const cacheKey = `pharmacies:nearest:${roundedLat}:${roundedLng}:${radius}`;
-
+        return `pharmacies:nearest:${lat.toFixed(3)}:${lng.toFixed(3)}:${radius}`;
+    }),
+     async (req: Request, res: Response, next: NextFunction) => {
         try {
-            if (redisClient.isOpen) {
-                const cached = await redisClient.get(cacheKey);
+            const result = nearestQuerySchema.safeParse(req.query);
 
-                if (cached) {
-                    return res.json(JSON.parse(cached));
-                }
+            if (!result.success) {
+                res.status(400).json({
+                    error: "Invalid coordinates",
+                    details: result.error.flatten().fieldErrors,
+                });
+                return;
             }
-        } catch (error) {
-            logger.warn("Redis cache read failed", { error });
-        }
 
-        // Primary path: PostGIS RPC with server-side radius filtering
-        const { data: rpcData, error: rpcError } = await supabase.rpc("get_nearest_pharmacies", {
-            query_lat: lat,
-            query_lng: lng,
-            search_radius_km: radius,
-        });
+            const { lat, lng, radius } = result.data;
 
-        if (!rpcError && rpcData) {
-            const pharmacies: FormattedPharmacy[] = (rpcData as PharmacyRpcResult[])
-                .map((p: PharmacyRpcResult) => ({
-                    name: p.name || "Unknown Pharmacy",
-                    address: p.address || "Unknown Address",
-                    lat: p.lat,
-                    lng: p.lng,
-                    distance: `${Number(p.distance).toFixed(1)} km`,
-                    phone_number: p.phone_number || null,
-                    is_verified: p.is_verified ?? false,
-                    district: p.district || null,
-                    state: p.state || null,
-                }))
-                .slice(0, MAX_RESULTS);
+            // Primary path: PostGIS RPC with server-side radius filtering
+            const { data: rpcData, error: rpcError } = await supabase.rpc(
+                "get_nearest_pharmacies",
+                {
+                    query_lat: lat,
+                    query_lng: lng,
+                    search_radius_km: radius,
+                }
+            );
+
+            if (!rpcError && rpcData) {
+                const pharmacies: FormattedPharmacy[] = (rpcData as PharmacyRpcResult[])
+                    .map((p: PharmacyRpcResult) => ({
+                        name: p.name || "Unknown Pharmacy",
+                        address: p.address || "Unknown Address",
+                        lat: p.lat,
+                        lng: p.lng,
+                        distance: `${Number(p.distance).toFixed(1)} km`,
+                        phone_number: p.phone_number || null,
+                        is_verified: p.is_verified ?? false,
+                        district: p.district || null,
+                        state: p.state || null,
+                    }))
+                    .slice(0, MAX_RESULTS);
+
+                const responseData = { pharmacies };
+
+                setGeospatialCacheHeaders(res);
+                return res.json(responseData);
+            }
+
+            // Fallback path: Haversine calculation in JavaScript
+            logger.warn(
+                "PostGIS RPC failed or unavailable, falling back to Haversine calculation",
+                {
+                    error: rpcError?.message,
+                    code: rpcError?.code,
+                }
+            );
+
+            const { data: allPharmacies, error: fetchError } = await supabase
+                .from("pharmacies")
+                .select(
+                    "name, address, location, phone_number, is_verified, district, state, status"
+                )
+                .eq("status", "approved")
+                .limit(3000);
+
+            if (fetchError) {
+                handleFetchError(fetchError, res);
+                return;
+            }
+
+            const pharmacies: FormattedPharmacy[] = ((allPharmacies || []) as PharmacyRow[])
+                .filter((p: PharmacyRow) => p.status === "approved")
+                .map((p: PharmacyRow): PharmacyWithRawDistance => {
+                    const coords = extractCoordinates(p);
+                    const distanceKm = calculateDistanceKM(lat, lng, coords.lat, coords.lng);
+                    return { ...formatPharmacy(p, distanceKm), rawDistance: distanceKm };
+                })
+                .filter(
+                    (p: PharmacyWithRawDistance) =>
+                        p.lat !== 0 && p.lng !== 0 && p.rawDistance <= radius
+                )
+                .sort(
+                    (a: PharmacyWithRawDistance, b: PharmacyWithRawDistance) =>
+                        a.rawDistance - b.rawDistance
+                )
+                .slice(0, MAX_RESULTS)
+                .map(
+                    ({ rawDistance, ...rest }: PharmacyWithRawDistance): FormattedPharmacy => rest
+                );
 
             const responseData = { pharmacies };
 
-            try {
-                if (redisClient.isOpen) {
-                    await redisClient.set(cacheKey, JSON.stringify(responseData), { EX: 3600 });
-                }
-            } catch (error) {
-                logger.warn("Redis cache write failed", { error });
-            }
-
             setGeospatialCacheHeaders(res);
-            return res.json(responseData);
+            res.json(responseData);
+        } catch (err) {
+            next(err);
         }
-
-        // Fallback path: Haversine calculation in JavaScript
-        logger.warn("PostGIS RPC failed or unavailable, falling back to Haversine calculation", {
-            error: rpcError?.message,
-            code: rpcError?.code,
-        });
-
-        const { data: allPharmacies, error: fetchError } = await supabase
-            .from("pharmacies")
-            .select("name, address, location, phone_number, is_verified, district, state, status")
-            .eq("status", "approved")
-            .limit(3000);
-
-        if (fetchError) {
-            handleFetchError(fetchError, res);
-            return;
-        }
-
-        const pharmacies: FormattedPharmacy[] = ((allPharmacies || []) as PharmacyRow[])
-            .filter((p: PharmacyRow) => p.status === "approved")
-            .map((p: PharmacyRow): PharmacyWithRawDistance => {
-                const coords = extractCoordinates(p);
-                const distanceKm = calculateDistanceKM(lat, lng, coords.lat, coords.lng);
-                return { ...formatPharmacy(p, distanceKm), rawDistance: distanceKm };
-            })
-            .filter(
-                (p: PharmacyWithRawDistance) =>
-                    p.lat !== 0 && p.lng !== 0 && p.rawDistance <= radius
-            )
-            .sort(
-                (a: PharmacyWithRawDistance, b: PharmacyWithRawDistance) =>
-                    a.rawDistance - b.rawDistance
-            )
-            .slice(0, MAX_RESULTS)
-            .map(({ rawDistance, ...rest }: PharmacyWithRawDistance): FormattedPharmacy => rest);
-
-        const responseData = { pharmacies };
-
-        try {
-            if (redisClient.isOpen) {
-                await redisClient.set(cacheKey, JSON.stringify(responseData), { EX: 3600 });
-            }
-        } catch (error) {
-            logger.warn("Redis cache write failed", { error });
-        }
-
-        setGeospatialCacheHeaders(res);
-        res.json(responseData);
-    } catch (err) {
-        next(err);
     }
-});
+);
 
 /**
  * @openapi
