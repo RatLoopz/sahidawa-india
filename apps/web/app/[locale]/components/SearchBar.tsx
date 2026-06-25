@@ -490,7 +490,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                                 ? "text-slate-100 placeholder:text-slate-500"
                                 : "text-slate-800 placeholder:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-500"
                         }`}
-                        aria-label="Search medicine or batch"
+                        aria-label={tHome("search_input_aria")}
                     />
 
                     {/* ── Clear (X) button — only when input has text ── */}
@@ -505,7 +505,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                                 onSearchChange?.("");
                                 inputRef.current?.focus();
                             }}
-                            aria-label="Clear search"
+                            aria-label={tHome("clear_search")}
                             className={`shrink-0 rounded-full p-1 transition-colors duration-150 ${
                                 dark
                                     ? "text-slate-500 hover:bg-slate-700 hover:text-slate-300"
@@ -528,7 +528,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                     <button
                         onClick={() => performSearch(query)}
                         className="flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 p-2.5 text-sm font-bold text-white shadow-md shadow-emerald-500/25 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-500/30 active:scale-95 sm:px-5 sm:py-2.5"
-                        aria-label="Submit search"
+                        aria-label={tHome("submit_search")}
                     >
                         <Search size={16} aria-hidden="true" />
                         <span className="hidden sm:inline">{tHome("search_button")}</span>

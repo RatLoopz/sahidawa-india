@@ -40,7 +40,7 @@ describe("POST /api/overpass", () => {
         limitBuckets.clear();
         mockLimit.mockClear();
 
-        fetchMock = jest.fn().mockImplementation((_url: string) => {
+        fetchMock = jest.fn().mockImplementation(() => {
             return Promise.resolve({
                 ok: true,
                 status: 200,

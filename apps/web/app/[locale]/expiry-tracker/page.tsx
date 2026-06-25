@@ -629,7 +629,6 @@ export default function ExpiryTrackerPage() {
                         medicinesCount={medicines.length}
                         fileInputRef={fileInputRef}
                         notificationPermission={notificationPermission}
-                        isSubmitting={isSubmitting}
                         onNameChange={setName}
                         onExpiryDateChange={setExpiryDate}
                         onBatchNumberChange={setBatchNumber}

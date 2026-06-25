@@ -175,3 +175,20 @@ export const triageLimiter = rateLimit({
         });
     },
 });
+
+// ── Analytics limiter ──────────────────────────────────────────────────────────
+export const analyticsLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    store: buildStore("analytics"),
+    keyGenerator: (req) => {
+        return req.ip || req.socket.remoteAddress || "unknown";
+    },
+    handler: (_req, res) => {
+        res.status(429).json({
+            error: "Too many analytics requests. Please try again later.",
+        });
+    },
+});

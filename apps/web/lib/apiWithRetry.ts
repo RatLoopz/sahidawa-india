@@ -163,6 +163,8 @@ function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+const OFFLINE_QUEUE_STORAGE_KEY = "offline-request-queue";
+
 class OfflineRequestQueue {
     private queue: Array<{
         id: string;
@@ -174,6 +176,20 @@ class OfflineRequestQueue {
 
     private listeners: Set<() => void> = new Set();
 
+    constructor() {
+        if (typeof window === "undefined") return;
+
+        try {
+            const stored = localStorage.getItem(OFFLINE_QUEUE_STORAGE_KEY);
+            if (stored) {
+                this.queue = JSON.parse(stored);
+            }
+        } catch {
+            this.queue = [];
+            this.persist();
+        }
+    }
+
     add(url: string, options: FetchOptions): string {
         const id = `${Date.now()}-${Math.random()}`;
         this.queue.push({
@@ -183,12 +199,14 @@ class OfflineRequestQueue {
             timestamp: Date.now(),
             retryCount: 0,
         });
+        this.persist();
         this.notify();
         return id;
     }
 
     remove(id: string): void {
         this.queue = this.queue.filter((req) => req.id !== id);
+        this.persist();
         this.notify();
     }
 
@@ -198,12 +216,23 @@ class OfflineRequestQueue {
 
     clear(): void {
         this.queue = [];
+        this.persist();
         this.notify();
     }
 
     onChange(listener: () => void): () => void {
         this.listeners.add(listener);
         return () => this.listeners.delete(listener);
+    }
+
+    private persist(): void {
+        if (typeof window === "undefined") return;
+
+        try {
+            localStorage.setItem(OFFLINE_QUEUE_STORAGE_KEY, JSON.stringify(this.queue));
+        } catch {
+            // Ignore storage failures
+        }
     }
 
     private notify(): void {

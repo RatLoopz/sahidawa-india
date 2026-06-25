@@ -19,7 +19,8 @@ jest.mock("@google/genai", () => ({
     },
 }));
 
-import { POST, trimHistoryByTokens } from "../app/api/chat/route";
+import { POST } from "../app/api/chat/route";
+import { trimHistoryByTokens } from "@/lib/chatUtils";
 
 function createTextStream(chunks: string[]) {
     return (async function* () {

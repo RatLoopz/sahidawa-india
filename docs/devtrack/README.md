@@ -844,3 +844,4 @@
 | [#2432](https://github.com/RatLoopz/sahidawa-india/pull/2432) | 2026-06-24 | Frontend | 18    | @hrx01-dev               | [View Doc](devtrack/2026-06/PR-2432-ref-memoized-supabase-browser-client-instantiation.md) / [ADR](devtrack/adr/ADR-040-ref-memoized-supabase-browser-client-instantiation.md) |
 | [#2486](https://github.com/RatLoopz/sahidawa-india/pull/2486) | 2026-06-24 | DevOps | 11 | @PremSahith | [View Doc](devtrack/2026-06/PR-2486-fix-security-replace-in-memory-rate-limiter-store-.md) |
 | [#2525](https://github.com/RatLoopz/sahidawa-india/pull/2525) | 2026-06-24 | Frontend | 13 | @panditshubham766-dotcom | [View Doc](devtrack/2026-06/PR-2525-feat-implement-upstash-redis-caching-for-medicine-.md) |
+| [#2568](https://github.com/RatLoopz/sahidawa-india/pull/2568) | 2026-06-25 | Frontend | 8 | @Shreya-nipunge | [View Doc](devtrack/2026-06/PR-2568-fix-2557-rate-limit-and-validate-overpass-proxy-re.md) |
