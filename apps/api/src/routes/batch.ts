@@ -360,7 +360,7 @@ router.get("/:batchNumber", batchLimiter, async (req: Request, res: Response) =>
  *         description: Failed to submit report
  */
 router.post("/report", batchLimiter, async (req: Request, res: Response) => {
-    if (!isAllowedOrigin(req)) {
+    if (!isAllowedOrigin(req, true)) {
         res.status(403).json({ error: "Access denied: unrecognized origin" });
         return;
     }

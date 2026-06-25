@@ -1,6 +1,5 @@
 name: SahiDawa CI / Test Suite
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 on:
     push:
@@ -15,12 +14,12 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: ⬇️ Checkout Code
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: ⚙️ Setup Node.js 24
-              uses: actions/setup-node@v6
+              uses: actions/setup-node@v4
               with:
-                  node-version: 24
+                  node-version: 20
                   cache: "npm"
 
             - name: 📦 Install Dependencies (Monorepo)
@@ -37,7 +36,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: ⬇️ Checkout Code
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: ⚙️ Setup Python 3.12
               uses: actions/setup-python@v6

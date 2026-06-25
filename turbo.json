@@ -3,7 +3,17 @@
     "tasks": {
         "build": {
             "dependsOn": ["^build"],
-            "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"]
+            "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"],
+            "env": [
+                "SUPABASE_URL",
+                "SUPABASE_ANON_KEY",
+                "SUPABASE_SERVICE_ROLE_KEY",
+                "GEMINI_API_KEY",
+                "CLOUDINARY_CLOUD_NAME",
+                "CLOUDINARY_API_KEY",
+                "CLOUDINARY_API_SECRET",
+                "NEXT_PUBLIC_*"
+            ]
         },
         "test": {
             "dependsOn": ["build"],

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import dynamic from "next/dynamic";
 
 import {
     getScanHistory,
@@ -13,6 +14,8 @@ import { CopyButton } from "@/components/ui/CopyButton";
 import { ClipboardList, Download, RefreshCw, Trash2 } from "lucide-react";
 import { syncScanHistoryWithCloud } from "@/lib/scanHistoryCloudSync";
 import { EmptyState } from "@/components/ui/EmptyState";
+
+const ExportModal = dynamic(() => import("./ExportModal"));
 
 export default function HistoryPage() {
     const [history, setHistory] = useState<ScanHistoryEntry[]>([]);

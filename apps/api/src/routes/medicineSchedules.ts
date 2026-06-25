@@ -3,6 +3,8 @@ import { z } from "zod";
 import { supabase } from "../db/client";
 import { requireAuth } from "../middleware/auth";
 import type { AuthenticatedRequest } from "../middleware/auth";
+import logger from "../utils/logger";
+import { redisClient } from "../utils/redis";
 
 const router = Router();
 
@@ -89,6 +91,7 @@ router.get("/", requireAuth, async (req: AuthenticatedRequest, res: Response) =>
 
         res.json({ schedules: data ?? [] });
     } catch (err) {
+        logger.error("Error listing schedules", { error: err });
         res.status(500).json({ error: "An unexpected error occurred" });
     }
 });
@@ -115,6 +118,7 @@ router.get("/:id", requireAuth, async (req: AuthenticatedRequest, res: Response)
 
         res.json({ schedule: data });
     } catch (err) {
+        logger.error("Error fetching schedule", { error: err, scheduleId: req.params.id });
         res.status(500).json({ error: "An unexpected error occurred" });
     }
 });
@@ -147,6 +151,7 @@ router.post("/", requireAuth, async (req: AuthenticatedRequest, res: Response) =
 
         res.status(201).json({ schedule: data });
     } catch (err) {
+        logger.error("Error creating schedule", { error: err });
         res.status(500).json({ error: "An unexpected error occurred" });
     }
 });
@@ -183,6 +188,7 @@ router.put("/:id", requireAuth, async (req: AuthenticatedRequest, res: Response)
 
         res.json({ schedule: data });
     } catch (err) {
+        logger.error("Error updating schedule", { error: err, scheduleId: req.params.id });
         res.status(500).json({ error: "An unexpected error occurred" });
     }
 });
@@ -203,6 +209,7 @@ router.delete("/:id", requireAuth, async (req: AuthenticatedRequest, res: Respon
 
         res.json({ success: true });
     } catch (err) {
+        logger.error("Error deleting schedule", { error: err, scheduleId: req.params.id });
         res.status(500).json({ error: "An unexpected error occurred" });
     }
 });
@@ -255,8 +262,18 @@ router.post("/:id/doses", requireAuth, async (req: AuthenticatedRequest, res: Re
             return;
         }
 
+        if (redisClient.isOpen) {
+            const cacheKey = `schedules:summary:${req.user!.id}:${parsed.data.log_date}`;
+            try {
+                await redisClient.del(cacheKey);
+            } catch (redisErr) {
+                logger.error("Failed to invalidate cache", { error: redisErr, cacheKey });
+            }
+        }
+
         res.json({ dose: data });
     } catch (err) {
+        logger.error("Error logging dose", { error: err, scheduleId: req.params.id });
         res.status(500).json({ error: "An unexpected error occurred" });
     }
 });
@@ -279,6 +296,7 @@ router.get("/:id/doses", requireAuth, async (req: AuthenticatedRequest, res: Res
 
         res.json({ doses: data ?? [] });
     } catch (err) {
+        logger.error("Error fetching dose logs", { error: err, scheduleId: req.params.id });
         res.status(500).json({ error: "An unexpected error occurred" });
     }
 });
@@ -344,6 +362,7 @@ router.get("/:id/stats", requireAuth, async (req: AuthenticatedRequest, res: Res
             doses: doseLogs ?? [],
         });
     } catch (err) {
+        logger.error("Error fetching adherence stats", { error: err, scheduleId: req.params.id });
         res.status(500).json({ error: "An unexpected error occurred" });
     }
 });
@@ -365,6 +384,19 @@ router.get("/today/summary", requireAuth, async (req: AuthenticatedRequest, res:
         const today = queryResult.data.date || istToday;
         const nowTime = queryResult.data.time || istNowTime;
 
+        const cacheKey = `schedules:summary:${req.user!.id}:${today}`;
+        if (redisClient.isOpen) {
+            try {
+                const cached = await redisClient.get(cacheKey);
+                if (cached) {
+                    res.json(JSON.parse(cached));
+                    return;
+                }
+            } catch (redisErr) {
+                logger.error("Redis get error for today/summary", { error: redisErr, cacheKey });
+            }
+        }
+
         const { data: schedules, error: schedError } = await supabase
             .from("medicine_schedules")
             .select("*")
@@ -378,47 +410,73 @@ router.get("/today/summary", requireAuth, async (req: AuthenticatedRequest, res:
             return;
         }
 
-        const todaySchedules = await Promise.all(
-            (schedules ?? []).map(async (schedule) => {
-                const times = (schedule.times as string[]) ?? [];
-                const { data: loggedDoses } = await supabase
-                    .from("dose_logs")
-                    .select("*")
-                    .eq("schedule_id", schedule.id)
-                    .eq("user_id", req.user!.id)
-                    .eq("log_date", today);
+        const scheduleIds = (schedules ?? []).map((s) => s.id);
+        let allDoseLogs: any[] = [];
 
-                const loggedMap = new Map(
-                    (loggedDoses ?? []).map((d) => [d.log_time.slice(0, 5), d.status])
-                );
+        if (scheduleIds.length > 0) {
+            const { data: doseLogsData, error: doseLogsError } = await supabase
+                .from("dose_logs")
+                .select("*")
+                .in("schedule_id", scheduleIds)
+                .eq("user_id", req.user!.id)
+                .eq("log_date", today);
 
-                const doses = times.map((time: string) => {
-                    const status = loggedMap.get(time);
-                    const isPast = time < nowTime;
-                    return {
-                        time,
-                        status: status ?? (isPast ? "pending" : "upcoming"),
-                    };
-                });
+            if (!doseLogsError && doseLogsData) {
+                allDoseLogs = doseLogsData;
+            }
+        }
 
-                const allTaken = doses.every((d: { status: string }) => d.status === "taken");
+        const doseLogsBySchedule = new Map<string, any[]>();
+        for (const log of allDoseLogs) {
+            if (!doseLogsBySchedule.has(log.schedule_id)) {
+                doseLogsBySchedule.set(log.schedule_id, []);
+            }
+            doseLogsBySchedule.get(log.schedule_id)!.push(log);
+        }
 
+        const todaySchedules = (schedules ?? []).map((schedule) => {
+            const times = (schedule.times as string[]) ?? [];
+            const loggedDoses = doseLogsBySchedule.get(schedule.id) ?? [];
+
+            const loggedMap = new Map(loggedDoses.map((d) => [d.log_time.slice(0, 5), d.status]));
+
+            const doses = times.map((time: string) => {
+                const status = loggedMap.get(time);
+                const isPast = time < nowTime;
                 return {
-                    id: schedule.id,
-                    medicine_name: schedule.medicine_name,
-                    dosage: schedule.dosage,
-                    times: schedule.times,
-                    doses,
-                    completed: allTaken,
+                    time,
+                    status: status ?? (isPast ? "pending" : "upcoming"),
                 };
-            })
-        );
+            });
 
-        res.json({
+            const allTaken = doses.every((d: { status: string }) => d.status === "taken");
+
+            return {
+                id: schedule.id,
+                medicine_name: schedule.medicine_name,
+                dosage: schedule.dosage,
+                times: schedule.times,
+                doses,
+                completed: allTaken,
+            };
+        });
+
+        const responseData = {
             date: today,
             schedules: todaySchedules,
-        });
+        };
+
+        if (redisClient.isOpen) {
+            try {
+                await redisClient.set(cacheKey, JSON.stringify(responseData), { EX: 86400 });
+            } catch (redisErr) {
+                logger.error("Redis set error for today/summary", { error: redisErr, cacheKey });
+            }
+        }
+
+        res.json(responseData);
     } catch (err) {
+        logger.error("Error fetching today's summary", { error: err });
         res.status(500).json({ error: "An unexpected error occurred" });
     }
 });

@@ -28,23 +28,60 @@ export class TwilioSMSService implements SMSProvider {
             params.append("From", this.fromNumber);
             params.append("Body", message);
 
-            const response = await fetch(endpoint, {
-                method: "POST",
-                headers: {
-                    Authorization: `Basic ${credentials}`,
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: params.toString(),
-            });
+            const maxRetries = 4;
+            let retryDelay = 1000; // Start with 1 second
 
-            if (!response.ok) {
+            for (let attempt = 0; attempt <= maxRetries; attempt++) {
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Basic ${credentials}`,
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: params.toString(),
+                });
+
+                // Success case
+                if (response.ok) {
+                    logger.info(`Twilio SMS sent successfully to ${phone}`);
+                    return true;
+                }
+
+                // Retry only for rate-limit errors (HTTP 429)
+                if (response.status === 429) {
+                    // If we've exhausted all retries, log and fail gracefully
+                    if (attempt === maxRetries) {
+                        const errText = await response.text();
+
+                        logger.error(
+                            `Twilio SMS failed after ${maxRetries} retries due to rate limiting: ${errText}`
+                        );
+
+                        return false;
+                    }
+
+                    logger.warn(
+                        `Twilio rate limit hit for ${phone}. Retrying in ${retryDelay}ms (attempt ${
+                            attempt + 1
+                        }/${maxRetries})`
+                    );
+
+                    // Non-blocking async delay
+                    await new Promise((resolve) => setTimeout(resolve, retryDelay));
+
+                    // Exponential backoff: 1s -> 2s -> 4s -> 8s
+                    retryDelay *= 2;
+
+                    continue;
+                }
+
+                // Existing behavior for all non-429 errors
                 const errText = await response.text();
                 logger.error(`Twilio SMS API error: ${response.status} ${errText}`);
                 return false;
             }
 
-            logger.info(`Twilio SMS sent successfully to ${phone}`);
-            return true;
+            return false;
         } catch (error) {
             logger.error(`Failed to send SMS to ${phone} via Twilio`, { error });
             return false;

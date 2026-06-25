@@ -21,30 +21,30 @@ The core of this change resides within the `router.get("/nearest", ...)` handler
 1.  **Dependencies:** We introduced imports for `redisClient` from `../utils/redis` and the types `FormattedPharmacy`, `PharmacyRpcResult` from `../types/pharmacy.types` to support Redis integration and maintain type safety.
 
 2.  **Parameter Extraction and Rounding:**
-    *   The `lat`, `lng`, and `radius` query parameters are extracted after validation by `pharmacyNearestSchema`.
-    *   Crucially, `lat` and `lng` are then rounded to 3 decimal places using `toFixed(3)` to create `roundedLat` and `roundedLng`. This decision is made to normalize coordinates for cache key generation, improving the cache hit ratio for slightly varying user locations.
+    - The `lat`, `lng`, and `radius` query parameters are extracted after validation by `pharmacyNearestSchema`.
+    - Crucially, `lat` and `lng` are then rounded to 3 decimal places using `toFixed(3)` to create `roundedLat` and `roundedLng`. This decision is made to normalize coordinates for cache key generation, improving the cache hit ratio for slightly varying user locations.
 
 3.  **Cache Key Generation:**
-    *   A unique `cacheKey` is constructed using the format `pharmacies:nearest:${roundedLat}:${roundedLng}:${radius}`. This ensures that requests for the same rounded coordinates and radius hit the same cache entry.
+    - A unique `cacheKey` is constructed using the format `pharmacies:nearest:${roundedLat}:${roundedLng}:${radius}`. This ensures that requests for the same rounded coordinates and radius hit the same cache entry.
 
 4.  **Cache Read (Read-Through Logic):**
-    *   Before any database operations, our system attempts to read from Redis.
-    *   A `try...catch` block encapsulates the Redis read operation to ensure graceful degradation.
-    *   Inside the `try` block, we first check `if (redisClient.isOpen)` to confirm the Redis client is connected.
-    *   `const cached = await redisClient.get(cacheKey);` attempts to retrieve the data.
-    *   If `cached` data is found, it is `JSON.parse`d and immediately returned to the client via `return res.json(JSON.parse(cached));`, bypassing all subsequent database logic.
-    *   If an error occurs during the Redis read (e.g., connection issues), `logger.warn("Redis cache read failed", { error });` logs the incident, and the execution flow continues to the database query path, ensuring the endpoint remains functional.
+    - Before any database operations, our system attempts to read from Redis.
+    - A `try...catch` block encapsulates the Redis read operation to ensure graceful degradation.
+    - Inside the `try` block, we first check `if (redisClient.isOpen)` to confirm the Redis client is connected.
+    - `const cached = await redisClient.get(cacheKey);` attempts to retrieve the data.
+    - If `cached` data is found, it is `JSON.parse`d and immediately returned to the client via `return res.json(JSON.parse(cached));`, bypassing all subsequent database logic.
+    - If an error occurs during the Redis read (e.g., connection issues), `logger.warn("Redis cache read failed", { error });` logs the incident, and the execution flow continues to the database query path, ensuring the endpoint remains functional.
 
 5.  **Database Query and Formatting:**
-    *   If no cached data is found, the system proceeds with the existing logic to fetch pharmacies. This involves either calling the `supabase.rpc("get_nearest_pharmacies", ...)` function (primary path) or performing a JavaScript-based Haversine calculation (fallback path).
-    *   The results from either path are then mapped and sliced to produce the `pharmacies` array, formatted as `FormattedPharmacy` objects.
+    - If no cached data is found, the system proceeds with the existing logic to fetch pharmacies. This involves either calling the `supabase.rpc("get_nearest_pharmacies", ...)` function (primary path) or performing a JavaScript-based Haversine calculation (fallback path).
+    - The results from either path are then mapped and sliced to produce the `pharmacies` array, formatted as `FormattedPharmacy` objects.
 
 6.  **Cache Write (Write-Through Logic):**
-    *   After successfully obtaining and formatting the `pharmacies` data, a `responseData` object `{ pharmacies }` is created.
-    *   Another `try...catch` block handles the Redis write operation.
-    *   Again, `if (redisClient.isOpen)` is checked.
-    *   `await redisClient.set(cacheKey, JSON.stringify(responseData), { EX: 3600 });` stores the `responseData` in Redis. The `EX: 3600` option sets the expiration time to 3600 seconds (1 hour).
-    *   Similar to the read operation, any errors during the Redis write are caught, logged via `logger.warn("Redis cache write failed", { error });`, and the response is still sent to the client, preventing a failure due to caching issues.
+    - After successfully obtaining and formatting the `pharmacies` data, a `responseData` object `{ pharmacies }` is created.
+    - Another `try...catch` block handles the Redis write operation.
+    - Again, `if (redisClient.isOpen)` is checked.
+    - `await redisClient.set(cacheKey, JSON.stringify(responseData), { EX: 3600 });` stores the `responseData` in Redis. The `EX: 3600` option sets the expiration time to 3600 seconds (1 hour).
+    - Similar to the read operation, any errors during the Redis write are caught, logged via `logger.warn("Redis cache write failed", { error });`, and the response is still sent to the client, preventing a failure due to caching issues.
 
 7.  **Response:** Finally, `return res.json(responseData);` sends the formatted pharmacy data to the client.
 
@@ -91,8 +91,11 @@ To re-implement or apply a similar caching strategy to another endpoint, a contr
     ```
 6.  **Implement Data Fetching and Formatting:** Proceed with the existing or new logic to fetch data from the primary source (e.g., Supabase, another API) and format it into the desired response structure.
 7.  **Implement Cache Write Logic:** After successfully fetching and formatting the `responseData`, add another `try...catch` block before sending the response:
+
     ```typescript
-    const responseData = { /* your formatted data */ };
+    const responseData = {
+        /* your formatted data */
+    };
 
     try {
         if (redisClient.isOpen) {
@@ -106,6 +109,7 @@ To re-implement or apply a similar caching strategy to another endpoint, a contr
 
     return res.json(responseData);
     ```
+
 8.  **Error Handling and Logging:** Ensure `logger.warn` is used for Redis-related errors to provide visibility into caching issues without disrupting user experience.
 9.  **Dependencies:** Verify that the `redis` library is installed and configured correctly in the `apps/api` project, and that `redisClient` is properly initialized and exported from `../utils/redis`.
 
@@ -127,11 +131,11 @@ Verification of this change involved several key steps:
 1.  **Type Checking:** We confirmed that the codebase remained type-safe by running `npm run type-check` (or `npx tsc --noEmit`), ensuring no new type errors were introduced by the Redis integration or type imports.
 2.  **Functional Endpoint Testing:** The `/api/pharmacies/nearest` endpoint was tested to ensure it continued to return correct pharmacy data under normal operating conditions, both with and without Redis actively caching.
 3.  **Redis Cache Hit Verification:**
-    *   Initial requests for a specific `lat`, `lng`, and `radius` were observed to trigger a database query and subsequently write data to Redis.
-    *   Subsequent requests with the exact same parameters were then verified to retrieve data directly from the Redis cache, bypassing the database. This was typically confirmed by monitoring network requests, response times, and potentially inspecting Redis keys directly.
+    - Initial requests for a specific `lat`, `lng`, and `radius` were observed to trigger a database query and subsequently write data to Redis.
+    - Subsequent requests with the exact same parameters were then verified to retrieve data directly from the Redis cache, bypassing the database. This was typically confirmed by monitoring network requests, response times, and potentially inspecting Redis keys directly.
 4.  **Cache Expiration Testing:** While not explicitly detailed in the PR, implicit testing would involve verifying that requests made after the 3600-second TTL would result in a cache miss, a database query, and a subsequent cache write, ensuring data freshness.
 5.  **Graceful Degradation Testing (Implied):** The presence of `try...catch` blocks around Redis operations suggests that testing for scenarios where Redis is unavailable or encounters errors would have been performed to ensure the API correctly falls back to database queries without crashing.
 6.  **Edge Cases:**
-    *   Requests with valid but unique `lat/lng/radius` combinations (expected cache miss, then write).
-    *   Requests where no pharmacies are found (expected to cache an empty array).
-    *   Requests with invalid input parameters (handled by existing Zod validation, not directly impacted by caching logic).
+    - Requests with valid but unique `lat/lng/radius` combinations (expected cache miss, then write).
+    - Requests where no pharmacies are found (expected to cache an empty array).
+    - Requests with invalid input parameters (handled by existing Zod validation, not directly impacted by caching logic).

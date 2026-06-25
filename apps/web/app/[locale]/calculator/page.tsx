@@ -6,18 +6,9 @@ import { PageHeader } from "../components/PageHeader";
 import MedicineSearchSelect from "@/src/components/MedicineSearchSelect";
 import { fetchGenericAlternatives, type GenericAlternative } from "@/lib/api/alternatives";
 import { supabase } from "@/lib/supabase";
-import { escapePostgrest } from "@/lib/supabase/utils";
 import type { Medicine } from "@/src/components/ComparisonGrid";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
-import {
-    Pill,
-    AlertCircle,
-    DollarSign,
-    Calendar,
-    Sparkles,
-    MapPin,
-    ArrowRight,
-} from "lucide-react";
+import { Pill, AlertCircle, DollarSign, Calendar, MapPin, ArrowRight } from "lucide-react";
 // NEW: Import the card and skeleton
 import GenericAlternativeCard from "@/components/GenericAlternativeCard";
 import GenericAlternativeCardSkeleton from "@/components/GenericAlternativeCardSkeleton";
@@ -26,29 +17,28 @@ async function searchMedicines(query: string): Promise<Medicine[]> {
     const q = query.trim();
     if (q.length < 2) return [];
 
-    const escaped = escapePostgrest(q);
-    const { data, error } = await supabase
-        .from("medicines")
-        .select(
-            "id, brand_name, generic_name, manufacturer, mrp, jan_aushadhi_price, composition, cdsco_approval_status"
-        )
-        .or(`brand_name.ilike."%${escaped}%",generic_name.ilike."%${escaped}%"`)
-        .limit(20);
+    try {
+        const res = await fetch(`/api/medicines/search?q=${encodeURIComponent(q)}`);
+        if (!res.ok) {
+            throw new Error("Failed to fetch medicines from API");
+        }
 
-    if (error) {
-        console.error(error.message);
+        const data = await res.json();
+
+        return (data ?? []).map((row: any) => ({
+            id: row.id,
+            brand_name: row.brand_name,
+            generic_name: row.generic_name,
+            manufacturer: row.manufacturer,
+            mrp: row.mrp,
+            jan_aushadhi_price: row.jan_aushadhi_price,
+            composition: row.composition,
+            cdsco_approval_status: row.cdsco_approval_status || "approved",
+        }));
+    } catch (error: any) {
+        console.error(error.message || error);
         return [];
     }
-    return (data ?? []).map((row) => ({
-        id: row.id,
-        brand_name: row.brand_name,
-        generic_name: row.generic_name,
-        manufacturer: row.manufacturer,
-        mrp: row.mrp,
-        jan_aushadhi_price: row.jan_aushadhi_price,
-        composition: row.composition,
-        cdsco_approval_status: row.cdsco_approval_status || "approved",
-    }));
 }
 
 function CalculatorPageContent() {

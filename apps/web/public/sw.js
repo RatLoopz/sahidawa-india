@@ -345,7 +345,26 @@ async function navigateWithOfflineFallback(request) {
         // Try locale-aware offline pages
         const url = new URL(request.url);
         const pathParts = url.pathname.split("/").filter(Boolean);
-        const locale = ["en", "hi"].includes(pathParts[0]) ? pathParts[0] : "en";
+        const SUPPORTED_LOCALES = [
+            "en",
+            "ta",
+            "bn",
+            "te",
+            "mr",
+            "gu",
+            "ur",
+            "or",
+            "hi",
+            "kn",
+            "pa",
+            "as",
+            "ks",
+            "kok",
+            "mai",
+            "ml",
+            "sa",
+        ];
+        const locale = SUPPORTED_LOCALES.includes(pathParts[0]) ? pathParts[0] : "en";
 
         const offlinePage =
             (await cache.match(`/${locale}/offline`)) ||

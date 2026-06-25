@@ -55,17 +55,116 @@ export async function validateReport(
     let duplicateGroupId: string | undefined;
 
     const reportHash = computeReportHash(payload);
-
-    // 1. Deduplication check: same hash in last 24 hours
     const dedupDeadline = new Date(Date.now() - DEDUP_WINDOW_MS).toISOString();
-    const { data: duplicates, error: dedupError } = await supabase
-        .from("counterfeit_reports")
-        .select("id, created_at, status")
-        .eq("report_hash", reportHash)
-        .gte("created_at", dedupDeadline)
-        .order("created_at", { ascending: false })
-        .limit(5);
+    const burstDeadline = new Date(Date.now() - BURST_WINDOW_MS).toISOString();
 
+    const queries = [
+        // 0. Deduplication check: same hash in last 24 hours
+        supabase
+            .from("counterfeit_reports")
+            .select("id, created_at, status")
+            .eq("report_hash", reportHash)
+            .gte("created_at", dedupDeadline)
+            .order("created_at", { ascending: false })
+            .limit(5),
+
+        // 1. Fuzzy duplicate: same medicine + city + similar pharmacy name
+        payload.pharmacyName.trim().length >= 4
+            ? supabase
+                  .from("counterfeit_reports")
+                  .select("id")
+                  .eq("reported_brand_name", payload.medicineName)
+                  .eq("city", payload.city)
+                  .ilike("pharmacy_name", `${payload.pharmacyName.trim().substring(0, 4)}%`)
+                  .gte("created_at", dedupDeadline)
+                  .limit(3)
+            : Promise.resolve({ data: null, error: null }),
+
+        // 2. Burst detection: IP
+        ipAddress
+            ? supabase
+                  .from("counterfeit_reports")
+                  .select("*", { count: "exact", head: true })
+                  .eq("ip_address", ipAddress)
+                  .gte("created_at", burstDeadline)
+            : Promise.resolve({ count: null, error: null }),
+
+        // 3. Burst detection: district
+        supabase
+            .from("counterfeit_reports")
+            .select("*", { count: "exact", head: true })
+            .eq("district", payload.district)
+            .gte("created_at", burstDeadline),
+
+        // 4. Burst detection: medicine
+        supabase
+            .from("counterfeit_reports")
+            .select("*", { count: "exact", head: true })
+            .eq("reported_brand_name", payload.medicineName)
+            .gte("created_at", burstDeadline),
+
+        // 5. Reporter reputation
+        userId
+            ? supabase
+                  .from("counterfeit_reports")
+                  .select("*", { count: "exact", head: true })
+                  .eq("reporter_id", userId)
+                  .eq("status", "false_alarm")
+            : Promise.resolve({ count: null, error: null }),
+
+        // 6. Geographic diversity
+        ipAddress
+            ? supabase
+                  .from("counterfeit_reports")
+                  .select("district")
+                  .eq("ip_address", ipAddress)
+                  .gte("created_at", burstDeadline)
+            : Promise.resolve({ data: null, error: null }),
+
+        // 7. Sybil detection: district
+        ipAddress
+            ? supabase
+                  .from("counterfeit_reports")
+                  .select("ip_address")
+                  .eq("district", payload.district)
+                  .gte("created_at", burstDeadline)
+            : Promise.resolve({ data: null, error: null }),
+
+        // 8. Sybil detection: medicine
+        ipAddress
+            ? supabase
+                  .from("counterfeit_reports")
+                  .select("ip_address")
+                  .eq("reported_brand_name", payload.medicineName)
+                  .gte("created_at", burstDeadline)
+            : Promise.resolve({ data: null, error: null }),
+
+        // 9. Pharmacy verification
+        payload.pharmacyName
+            ? supabase
+                  .from("pharmacies")
+                  .select("id")
+                  .ilike("name", `%${payload.pharmacyName}%`)
+                  .limit(1)
+                  .maybeSingle()
+            : Promise.resolve({ data: null, error: null }),
+    ];
+
+    const [
+        dedupRes,
+        fuzzyRes,
+        ipBurstRes,
+        districtBurstRes,
+        medicineBurstRes,
+        repRes,
+        geoRes,
+        sybilDistRes,
+        sybilMedRes,
+        pharmRes,
+    ] = await Promise.all(queries);
+
+    // 1. Deduplication check
+    const { data: duplicates, error: dedupError } = dedupRes as any;
     if (dedupError) {
         logger.error("Dedup lookup failed", { error: dedupError.message });
     } else if (duplicates && duplicates.length > 0) {
@@ -75,19 +174,9 @@ export async function validateReport(
         riskScore += 0.3 * Math.min(duplicates.length, 5);
     }
 
-    // 1b. Fuzzy duplicate: same medicine + city + similar pharmacy name
-    // Catches variations like "Apollo Pharmacy" vs "Apollo Medical"
+    // 1b. Fuzzy duplicate
     if (payload.pharmacyName.trim().length >= 4) {
-        const prefix = payload.pharmacyName.trim().substring(0, 4);
-        const { data: fuzzyDups, error: fuzzyError } = await supabase
-            .from("counterfeit_reports")
-            .select("id")
-            .eq("reported_brand_name", payload.medicineName)
-            .eq("city", payload.city)
-            .ilike("pharmacy_name", `${prefix}%`)
-            .gte("created_at", dedupDeadline)
-            .limit(3);
-
+        const { data: fuzzyDups, error: fuzzyError } = fuzzyRes as any;
         if (!fuzzyError && fuzzyDups && fuzzyDups.length > 0) {
             if (!isDuplicate) {
                 isDuplicate = true;
@@ -100,29 +189,17 @@ export async function validateReport(
         }
     }
 
-    // 2. Burst detection: too many reports from same IP in last hour
+    // 2. Burst detection: IP
     if (ipAddress) {
-        const burstDeadline = new Date(Date.now() - BURST_WINDOW_MS).toISOString();
-        const { count: ipCount, error: ipError } = await supabase
-            .from("counterfeit_reports")
-            .select("*", { count: "exact", head: true })
-            .eq("ip_address", ipAddress)
-            .gte("created_at", burstDeadline);
-
+        const { count: ipCount, error: ipError } = ipBurstRes as any;
         if (!ipError && ipCount && ipCount >= BURST_THRESHOLD_SAME_IP) {
             reasons.push(`Burst detected: ${ipCount} reports from same IP in last hour`);
             riskScore += 0.2 * Math.min(ipCount / BURST_THRESHOLD_SAME_IP, 3);
         }
     }
 
-    // 3. Burst detection: too many reports for same district in last hour
-    const burstDeadline = new Date(Date.now() - BURST_WINDOW_MS).toISOString();
-    const { count: districtCount, error: districtError } = await supabase
-        .from("counterfeit_reports")
-        .select("*", { count: "exact", head: true })
-        .eq("district", payload.district)
-        .gte("created_at", burstDeadline);
-
+    // 3. Burst detection: district
+    const { count: districtCount, error: districtError } = districtBurstRes as any;
     if (!districtError && districtCount && districtCount >= BURST_THRESHOLD_SAME_DISTRICT) {
         reasons.push(
             `Burst detected: ${districtCount} reports for district "${payload.district}" in last hour`
@@ -130,13 +207,8 @@ export async function validateReport(
         riskScore += 0.25 * Math.min(districtCount / BURST_THRESHOLD_SAME_DISTRICT, 3);
     }
 
-    // 4. Burst detection: too many reports for same medicine in last hour
-    const { count: medicineCount, error: medicineError } = await supabase
-        .from("counterfeit_reports")
-        .select("*", { count: "exact", head: true })
-        .eq("reported_brand_name", payload.medicineName)
-        .gte("created_at", burstDeadline);
-
+    // 4. Burst detection: medicine
+    const { count: medicineCount, error: medicineError } = medicineBurstRes as any;
     if (!medicineError && medicineCount && medicineCount >= BURST_THRESHOLD_SAME_MEDICINE) {
         reasons.push(
             `Burst detected: ${medicineCount} reports for "${payload.medicineName}" in last hour`
@@ -144,28 +216,19 @@ export async function validateReport(
         riskScore += 0.2 * Math.min(medicineCount / BURST_THRESHOLD_SAME_MEDICINE, 3);
     }
 
-    // 5. Reporter reputation: check if user has submitted false_alarm reports
+    // 5. Reporter reputation
     if (userId) {
-        const { count: falseAlarmCount, error: repError } = await supabase
-            .from("counterfeit_reports")
-            .select("*", { count: "exact", head: true })
-            .eq("reporter_id", userId)
-            .eq("status", "false_alarm");
-
+        const { count: falseAlarmCount, error: repError } = repRes as any;
         if (!repError && falseAlarmCount && falseAlarmCount >= 2) {
             reasons.push(`Low reputation: reporter has ${falseAlarmCount} false alarm(s)`);
             riskScore += 0.15 * Math.min(falseAlarmCount, 5);
         }
     }
 
-    // 6. Geographic diversity: same IP reporting for many different districts
+    // 6. Geographic diversity
     if (ipAddress) {
-        const { data: geoRows, error: geoError } = await supabase
-            .from("counterfeit_reports")
-            .select("district")
-            .eq("ip_address", ipAddress)
-            .gte("created_at", burstDeadline);
-        const distinctCount = geoRows ? new Set(geoRows.map((r) => r.district)).size : 0;
+        const { data: geoRows, error: geoError } = geoRes as any;
+        const distinctCount = geoRows ? new Set(geoRows.map((r: any) => r.district)).size : 0;
         if (!geoError && distinctCount >= 3) {
             reasons.push(
                 `Suspicious geographic spread: IP reported in ${distinctCount} different districts`
@@ -174,16 +237,11 @@ export async function validateReport(
         }
     }
 
-    // 7. Sybil detection: many distinct IPs reporting for same district or medicine
-    // Catches slow coordinated attacks across multiple accounts/IPs
+    // 7. Sybil detection: district and medicine
     if (ipAddress) {
-        const { data: districtRows, error: sybilDistError } = await supabase
-            .from("counterfeit_reports")
-            .select("ip_address")
-            .eq("district", payload.district)
-            .gte("created_at", burstDeadline);
+        const { data: districtRows, error: sybilDistError } = sybilDistRes as any;
         const distinctIpsForDistrict = districtRows
-            ? new Set(districtRows.map((r) => r.ip_address)).size
+            ? new Set(districtRows.map((r: any) => r.ip_address)).size
             : 0;
         if (!sybilDistError && distinctIpsForDistrict >= 8) {
             reasons.push(
@@ -191,13 +249,10 @@ export async function validateReport(
             );
             riskScore += 0.2;
         }
-        const { data: medicineRows, error: sybilMedError } = await supabase
-            .from("counterfeit_reports")
-            .select("ip_address")
-            .eq("reported_brand_name", payload.medicineName)
-            .gte("created_at", burstDeadline);
+
+        const { data: medicineRows, error: sybilMedError } = sybilMedRes as any;
         const distinctIpsForMedicine = medicineRows
-            ? new Set(medicineRows.map((r) => r.ip_address)).size
+            ? new Set(medicineRows.map((r: any) => r.ip_address)).size
             : 0;
         if (!sybilMedError && distinctIpsForMedicine >= 5) {
             reasons.push(
@@ -207,15 +262,9 @@ export async function validateReport(
         }
     }
 
-    // 8. Pharmacy verification: reported pharmacy not in the verified registry
+    // 8. Pharmacy verification
     if (payload.pharmacyName) {
-        const { data: pharmacy, error: pharmError } = await supabase
-            .from("pharmacies")
-            .select("id")
-            .ilike("name", `%${payload.pharmacyName}%`)
-            .limit(1)
-            .maybeSingle();
-
+        const { data: pharmacy, error: pharmError } = pharmRes as any;
         if (!pharmError && !pharmacy) {
             reasons.push("Reported pharmacy is not in the verified pharmacy registry");
             riskScore += 0.1;

@@ -1,4 +1,4 @@
-import { constants, publicEncrypt } from "node:crypto";
+import { constants, publicEncrypt, randomUUID } from "node:crypto";
 import { supabase } from "../db/client";
 import logger from "../utils/logger";
 
@@ -157,7 +157,7 @@ const requestAbdm = async <T>(
             method: options.method,
             headers: {
                 "Content-Type": "application/json",
-                "REQUEST-ID": crypto.randomUUID(),
+                "REQUEST-ID": randomUUID(),
                 TIMESTAMP: new Date().toISOString(),
                 ...(options.accessToken ? { Authorization: `Bearer ${options.accessToken}` } : {}),
             },

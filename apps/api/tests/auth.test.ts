@@ -1,5 +1,11 @@
 import { NextFunction, Response } from "express";
-import { AuthenticatedRequest, createAuthMiddleware, requireRole } from "../src/middleware/auth";
+import { User } from "@supabase/supabase-js";
+import {
+    AuthenticatedRequest,
+    createAuthMiddleware,
+    requireRole,
+    getUserRole,
+} from "../src/middleware/auth";
 
 const createResponse = () => {
     const res = {
@@ -110,8 +116,14 @@ describe("auth middleware", () => {
 
 describe("getUserRole", () => {
     const buildUser = (app_metadata, user_metadata): User =>
-        ({ id: "user-1", email: "user@example.com", app_metadata, user_metadata,
-           aud: "authenticated", created_at: new Date().toISOString() }) as User;
+        ({
+            id: "user-1",
+            email: "user@example.com",
+            app_metadata,
+            user_metadata,
+            aud: "authenticated",
+            created_at: new Date().toISOString(),
+        }) as User;
 
     it("returns 'user' when only user_metadata.role is set to admin (self-escalation attempt)", () => {
         expect(getUserRole(buildUser({}, { role: "admin" }))).toBe("user");
@@ -132,8 +144,13 @@ describe("getUserRole", () => {
         expect(getUserRole(buildUser({}, {}))).toBe("user");
     });
     it("returns 'user' when app_metadata is missing entirely and user_metadata claims admin", () => {
-        const user = { id: "user-1", email: "user@example.com", user_metadata: { role: "admin" },
-            aud: "authenticated", created_at: new Date().toISOString() } as User;
+        const user = {
+            id: "user-1",
+            email: "user@example.com",
+            user_metadata: { role: "admin" },
+            aud: "authenticated",
+            created_at: new Date().toISOString(),
+        } as User;
         expect(getUserRole(user)).toBe("user");
     });
 });

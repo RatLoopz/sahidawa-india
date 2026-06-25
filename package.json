@@ -37,20 +37,20 @@
         "jspdf-autotable": "^5.0.8",
         "morgan": "^1.10.1",
         "react-intersection-observer": "^10.0.3",
-        "redis": "^6.0.0",
+        "redis": "^6.0.1",
         "winston-daily-rotate-file": "^5.0.0",
         "zod": "^4.4.3"
     },
     "devDependencies": {
         "@parcel/watcher": "^2.5.6",
-        "@types/node": "^25.9.3",
+        "@types/node": "^26.0.0",
         "@types/winston": "^2.4.4",
         "eslint": "^10.5.0",
         "husky": "^9.1.7",
-        "lint-staged": "^17.0.5",
+        "lint-staged": "^17.0.8",
         "prettier": "^3.8.4",
         "prettier-plugin-tailwindcss": "^0.8.0",
-        "turbo": "^2.9.18"
+        "turbo": "^2.10.0"
     },
     "overrides": {
         "@zxing/library": "0.23.0",

@@ -204,6 +204,20 @@ export default function MedicineSearchSelect({
                             }}
                             onFocus={() => setOpen(true)}
                             onKeyDown={(e) => {
+                                if (e.key === "Escape") {
+                                    // Stop the key from bubbling up and
+                                    // accidentally closing a parent modal.
+                                    e.preventDefault();
+                                    e.stopPropagation();
+
+                                    setQuery("");
+                                    setResults([]);
+                                    setActiveIndex(-1);
+                                    setOpen(false);
+                                    e.currentTarget.blur();
+                                    return;
+                                }
+
                                 if (!results.length) return;
 
                                 switch (e.key) {
@@ -232,11 +246,6 @@ export default function MedicineSearchSelect({
                                             setOpen(false);
                                             setActiveIndex(-1);
                                         }
-                                        break;
-
-                                    case "Escape":
-                                        setOpen(false);
-                                        setActiveIndex(-1);
                                         break;
                                 }
                             }}

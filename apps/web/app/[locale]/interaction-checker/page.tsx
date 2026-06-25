@@ -15,7 +15,7 @@ import {
     WifiOff,
 } from "lucide-react";
 import { fuzzyMatchBrand } from "@/lib/api";
-import { checkInteractions, type InteractionResult, type InteractionResponse } from "@/lib/api/interactions";
+import { checkInteractions, type InteractionResult } from "@/lib/api/interactions";
 import { PageHeader } from "../components/PageHeader";
 
 const STORAGE_KEY = "sahidawa-my-medicines";

@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { requireAuth, AuthenticatedRequest } from "../middleware/auth";
+import { limiter } from "../middleware/rateLimit";
 import {
     generateOTP,
     verifyOTP,
@@ -12,7 +13,7 @@ const router = Router();
 
 // POST /api/v1/abha/link
 // Initiates ABHA linking by generating an OTP for the given ABHA address
-router.post("/link", async (req: Request, res: Response): Promise<void> => {
+router.post("/link", limiter, async (req: Request, res: Response): Promise<void> => {
     try {
         const { abhaAddress } = req.body;
 
@@ -32,7 +33,7 @@ router.post("/link", async (req: Request, res: Response): Promise<void> => {
 
 // POST /api/v1/abha/verify-otp
 // Verifies the OTP and returns an ABHA token
-router.post("/verify-otp", async (req: Request, res: Response): Promise<void> => {
+router.post("/verify-otp", limiter, async (req: Request, res: Response): Promise<void> => {
     try {
         const { txnId, otp } = req.body;
 

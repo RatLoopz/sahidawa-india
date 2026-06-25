@@ -12,20 +12,22 @@ The Supabase browser client instantiation was refactored to utilize React's `use
 
 ## Alternatives Considered
 
-| Alternative | Why Rejected |
-|---|---|
-| Centralized Supabase Context/Provider | While effective for global state, this approach would have required a more significant architectural change to wrap the entire application or relevant subtrees in a new provider component. The `useMemo` approach was a more targeted and less intrusive fix for existing component-level instantiations. |
-| Custom Hook with `useRef` | A custom hook encapsulating `useRef` to store the client instance would achieve similar memoization. However, `useMemo` is a standard React hook for memoizing values, making its intent clear and directly applicable to this use case without introducing an additional abstraction layer for a relatively simple value memoization. |
+| Alternative                           | Why Rejected                                                                                                                                                                                                                                                                                                                           |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Centralized Supabase Context/Provider | While effective for global state, this approach would have required a more significant architectural change to wrap the entire application or relevant subtrees in a new provider component. The `useMemo` approach was a more targeted and less intrusive fix for existing component-level instantiations.                            |
+| Custom Hook with `useRef`             | A custom hook encapsulating `useRef` to store the client instance would achieve similar memoization. However, `useMemo` is a standard React hook for memoizing values, making its intent clear and directly applicable to this use case without introducing an additional abstraction layer for a relatively simple value memoization. |
 
 ## Consequences
 
 **Positive:**
+
 - Prevented potential memory leaks by ensuring Supabase client instances are reused instead of repeatedly created.
 - Improved application performance by reducing unnecessary object instantiation on component re-renders.
 - Ensured consistency of the Supabase client state across re-renders within affected components.
 - Maintained the integrity of the `@supabase/ssr` persistence logic, as the client instance itself remained unchanged.
 
 **Trade-offs:**
+
 - Introduced `useMemo` boilerplate to each component where the Supabase client is used, requiring explicit memoization.
 
 ## Related Issues & PRs

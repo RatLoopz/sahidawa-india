@@ -112,13 +112,13 @@ export function isPushSupported(): boolean {
  * Request notification permissions from the user.
  */
 export async function requestNotificationPermission(): Promise<string> {
-    if (!isPushSupported()) {
+    if (typeof window === "undefined" || !("Notification" in window)) {
         return "unsupported";
     }
 
     try {
         const permission = await Notification.requestPermission();
-        if (permission === "granted") {
+        if (permission === "granted" && "serviceWorker" in navigator) {
             await registerPeriodicExpiryCheck();
         }
         return permission;

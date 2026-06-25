@@ -156,17 +156,20 @@ describe("POST /api/v1/interactions/check", () => {
             });
 
         // Mock drug interaction query
-        mockMaybeSingle.mockResolvedValueOnce({
-            data: {
-                drug_a_id: "paracetamol",
-                drug_b_id: "warfarin",
-                severity: "serious",
-                mechanism:
-                    "Prolonged regular use of paracetamol may enhance the anticoagulant effect of warfarin, increasing the risk of bleeding.",
-                description: "Paracetamol may increase the blood-thinning effect of Warfarin.",
-                clinical_recommendation: "Monitor INR closely if paracetamol is used regularly.",
-                source: "DrugBank",
-            },
+        (supabase.in as jest.Mock).mockReturnValueOnce(supabase).mockResolvedValueOnce({
+            data: [
+                {
+                    drug_a_id: "paracetamol",
+                    drug_b_id: "warfarin",
+                    severity: "serious",
+                    mechanism:
+                        "Prolonged regular use of paracetamol may enhance the anticoagulant effect of warfarin, increasing the risk of bleeding.",
+                    description: "Paracetamol may increase the blood-thinning effect of Warfarin.",
+                    clinical_recommendation:
+                        "Monitor INR closely if paracetamol is used regularly.",
+                    source: "DrugBank",
+                },
+            ],
             error: null,
         });
 
