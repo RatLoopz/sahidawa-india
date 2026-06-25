@@ -195,21 +195,38 @@ reportsRouter.get("/mine", requireAuth, async (req: AuthenticatedRequest, res: R
         return;
     }
 
+    const rawPage = parseInt(req.query.page as string, 10);
+    const rawLimit = parseInt(req.query.limit as string, 10);
+    const page = isNaN(rawPage) || rawPage < 1 ? 1 : rawPage;
+    const limit = isNaN(rawLimit) || rawLimit < 1 ? 20 : Math.min(rawLimit, 100);
+    const offset = (page - 1) * limit;
+
     try {
-        const { data, error } = await supabase
+        const { data, error, count } = await supabase
             .from("counterfeit_reports")
             .select(
-                "id, reported_brand_name, scanned_barcode, photo_url, district, status, created_at"
+                "id, reported_brand_name, scanned_barcode, photo_url, district, status, created_at",
+                { count: "exact" }
             )
             .eq("reporter_id", userId)
-            .order("created_at", { ascending: false });
+            .order("created_at", { ascending: false })
+            .range(offset, offset + limit - 1);
 
         if (error) {
             res.status(500).json({ error: "Failed to fetch your reports" });
             return;
         }
 
-        res.json({ reports: data ?? [] });
+        const totalCount = count ?? 0;
+        const totalPageCount = Math.ceil(totalCount / limit);
+
+        res.json({
+            reports: data ?? [],
+            pageIndex: page,
+            pageSize: (data ?? []).length,
+            totalCount,
+            totalPageCount,
+        });
     } catch (err) {
         console.error("Unexpected error in GET /api/reports/mine:", err);
         res.status(500).json({ error: "An unexpected error occurred" });
