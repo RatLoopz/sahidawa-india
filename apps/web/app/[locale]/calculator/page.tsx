@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, Suspense, type KeyboardEvent } from "
 import { useTranslations } from "next-intl";
 import { PageHeader } from "../components/PageHeader";
 import MedicineSearchSelect from "@/src/components/MedicineSearchSelect";
+import SaveWatchlistButton from "@/components/watchlist/SaveWatchlistButton";
 import { fetchGenericAlternatives, type GenericAlternative } from "@/lib/api/alternatives";
 import { supabase } from "@/lib/supabase";
 import type { Medicine } from "@/src/components/ComparisonGrid";
@@ -322,7 +323,10 @@ function CalculatorPageContent() {
                                       ))
                                     : // Show the actual card
                                       alternativeData && (
-                                          <GenericAlternativeCard alternative={alternativeData} />
+                                          <GenericAlternativeCard
+                                              alternative={alternativeData}
+                                              medicineId={selectedMedicine.id}
+                                          />
                                       )}
                             </div>
                         </section>

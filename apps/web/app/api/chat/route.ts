@@ -4,21 +4,14 @@ import { detectEmergencyKeywords } from "@/lib/voice/emergency";
 import { rateLimit } from "@/lib/rateLimit";
 import { BASE_PROMPT } from "@/lib/chatPrompts";
 import { structuredLog } from "@/lib/structuredLogger";
-import { ChatRoles, ChatRole } from "@/lib/constants";
+import { ChatRoles, ChatRole, ChatMessage } from "@/lib/constants";
 import crypto from "crypto";
-
 import { trimHistoryByTokens } from "@/lib/chatUtils";
 
 const summaryCache = new Map<string, string>();
 
 const DEFAULT_DISCLAIMER =
     "This guidance is for informational use only and is not a diagnosis. Consult a doctor or pharmacist, especially for severe or persistent symptoms.";
-
-type ChatMessage = {
-    text?: string;
-    content?: string;
-    role?: ChatRole | string;
-};
 
 type VoiceTriageResponse = {
     text: string;

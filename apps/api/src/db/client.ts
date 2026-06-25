@@ -158,7 +158,7 @@ if (process.env.NODE_ENV !== "test") {
     }, 5_000);
 }
 
-// Periodic Supabase health probe.
+// Periodic Supabase health probe with delayed initial check to prevent race conditions during system startup.
 // The offline flag can be set by transient network failures during runtime.
 // Re-check connectivity periodically so the application can automatically
 // recover from fallback mode without requiring a server restart.
@@ -191,9 +191,11 @@ async function probeSupabase(): Promise<void> {
 }
 
 if (process.env.NODE_ENV !== "test") {
-    void probeSupabase();
-
-    setInterval(() => {
+    // Run the health check after a 5-second delay to give Supabase time to start, then run periodically every 30 seconds
+    setTimeout(() => {
         void probeSupabase();
-    }, 30_000);
+        setInterval(() => {
+            void probeSupabase();
+        }, 30_000);
+    }, 5000);
 }

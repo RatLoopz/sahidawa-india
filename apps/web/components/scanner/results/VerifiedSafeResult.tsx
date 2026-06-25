@@ -8,6 +8,7 @@ import { formatExpiryForBadge } from "@/lib/medicineDateUtils";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { ExpandableDetails } from "../../ExpandableDetails";
+import SaveWatchlistButton from "@/components/watchlist/SaveWatchlistButton";
 
 export function VerifiedSafeResult({
     medicine,
@@ -140,14 +141,17 @@ export function VerifiedSafeResult({
                 <ExpandableDetails medicine={medicine} />
 
                 {medicine.id && (
-                    <Link
-                        href={`/calculator?medicineId=${medicine.id}`}
-                        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-4 text-sm font-black text-white shadow-lg shadow-emerald-600/15 transition-all duration-200 hover:bg-emerald-500 hover:shadow-emerald-500/25 active:scale-98"
-                        aria-label={`Calculate savings for ${medicine.brand_name}`}
-                    >
-                        <span>{tScan("calculateSavings")}</span>
-                        <ArrowRight size={16} />
-                    </Link>
+                    <>
+                        <Link
+                            href={`/calculator?medicineId=${medicine.id}`}
+                            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-4 text-sm font-black text-white shadow-lg shadow-emerald-600/15 transition-all duration-200 hover:bg-emerald-500 hover:shadow-emerald-500/25 active:scale-98"
+                            aria-label={`Calculate savings for ${medicine.brand_name}`}
+                        >
+                            <span>{tScan("calculateSavings")}</span>
+                            <ArrowRight size={16} />
+                        </Link>
+                        <SaveWatchlistButton medicineId={medicine.id} variant="full" />
+                    </>
                 )}
 
                 <ResultActions

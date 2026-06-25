@@ -1,6 +1,7 @@
 import React from "react";
 import { TrendingDown, MapPin, Sparkles, ArrowRight, Pill } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
+import SaveWatchlistButton from "@/components/watchlist/SaveWatchlistButton";
 
 export interface NearestStore {
     name: string;
@@ -21,9 +22,13 @@ export interface GenericAlternative {
 
 interface GenericAlternativeCardProps {
     alternative: GenericAlternative;
+    medicineId?: string;
 }
 
-export default function GenericAlternativeCard({ alternative }: GenericAlternativeCardProps) {
+export default function GenericAlternativeCard({
+    alternative,
+    medicineId,
+}: GenericAlternativeCardProps) {
     const router = useRouter();
     const params = useParams();
     const locale = Array.isArray(params.locale) ? params.locale[0] : params.locale || "en";
@@ -65,26 +70,35 @@ export default function GenericAlternativeCard({ alternative }: GenericAlternati
                 {/* Brand vs Generic Comparison */}
                 <div className="space-y-4">
                     {/* Brand Prescribed */}
-                    <div className="flex items-start justify-between gap-4 rounded-2xl border border-dashed border-(--color-border-muted) bg-slate-50/50 p-4 dark:bg-slate-800/10">
-                        <div className="space-y-1">
-                            <span className="text-[10px] font-bold tracking-wider text-(--color-text-muted) uppercase">
-                                Prescribed Brand
-                            </span>
-                            <h4 className="text-base font-extrabold tracking-tight text-(--color-text-primary)">
-                                {alternative.brand_name}
-                            </h4>
-                            <p className="text-xs text-(--color-text-secondary)">
-                                {alternative.generic_name}
-                            </p>
+                    <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-(--color-border-muted) bg-slate-50/50 p-4 dark:bg-slate-800/10">
+                        <div className="flex items-start justify-between gap-4">
+                            <div className="space-y-1">
+                                <span className="text-[10px] font-bold tracking-wider text-(--color-text-muted) uppercase">
+                                    Prescribed Brand
+                                </span>
+                                <h4 className="text-base font-extrabold tracking-tight text-(--color-text-primary)">
+                                    {alternative.brand_name}
+                                </h4>
+                                <p className="text-xs text-(--color-text-secondary)">
+                                    {alternative.generic_name}
+                                </p>
+                            </div>
+                            <div className="text-right">
+                                <span className="text-xs font-medium text-(--color-text-muted)">
+                                    MRP
+                                </span>
+                                <p className="text-lg font-black text-(--color-text-secondary) line-through">
+                                    ₹{brandPrice.toFixed(2)}
+                                </p>
+                            </div>
                         </div>
-                        <div className="text-right">
-                            <span className="text-xs font-medium text-(--color-text-muted)">
-                                MRP
-                            </span>
-                            <p className="text-lg font-black text-(--color-text-secondary) line-through">
-                                ₹{brandPrice.toFixed(2)}
-                            </p>
-                        </div>
+                        {medicineId && (
+                            <SaveWatchlistButton
+                                medicineId={medicineId}
+                                variant="compact"
+                                className="w-full"
+                            />
+                        )}
                     </div>
 
                     {/* Generic Alternative */}

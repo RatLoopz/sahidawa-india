@@ -442,6 +442,37 @@
         "previous": "पिछला",
         "next": "अगला"
     },
+    "Watchlist": {
+        "title": "दवा वॉचलिस्ट",
+        "subtitle": "अपनी सहेजी गई दवाओं और स्मार्ट सूचना प्राथमिकताओं को ट्रैक करें",
+        "emptyState": "अभी तक कोई दवा नहीं सहेजी गई है।",
+        "searchHint": "अपडेट प्राप्त करने के लिए खोज, सत्यापन परिणाम, तुलना पृष्ठ या कैलकुलेटर से दवाओं को सहेजें।",
+        "addSuccess": "वॉचलिस्ट में जोड़ा गया",
+        "removeSuccess": "वॉचलिस्ट से हटाया गया",
+        "updateSuccess": "प्राथमिकताएं अपडेट की गईं",
+        "removeConfirm": "क्या आप इस दवा को अपनी वॉचलिस्ट से हटाना चाहते हैं?",
+        "fields": {
+            "medicineName": "दवा का नाम",
+            "genericName": "जेनेरिक नाम",
+            "savedDate": "सहेजने की तिथि",
+            "notifications": "सूचनाएं",
+            "actions": "कार्रवाई"
+        },
+        "preferences": {
+            "priceChange": "मूल्य परिवर्तन",
+            "recall": "CDSCO रिकॉल",
+            "newAlternative": "नए जेनेरिक विकल्प",
+            "stockAvailability": "निकटतम उपलब्धता"
+        },
+        "buttons": {
+            "saveMedicine": "दवा सहेजें",
+            "saved": "सहेजा गया",
+            "remove": "हटाएं",
+            "viewDetails": "विवरण",
+            "viewAlternatives": "विकल्प",
+            "saving": "सहेजा जा रहा है..."
+        }
+    },
     "Compare": {
         "pageTitle": "दवाओं की तुलना करें",
         "pageSubtitle": "ब्रांड और जेनेरिक की साथ-साथ तुलना",

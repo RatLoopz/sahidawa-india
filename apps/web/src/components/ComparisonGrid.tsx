@@ -1,4 +1,5 @@
 import { AlertTriangle } from "lucide-react";
+import SaveWatchlistButton from "@/components/watchlist/SaveWatchlistButton";
 
 export interface Medicine {
     id: string;
@@ -287,10 +288,30 @@ export default function ComparisonGrid({
                                 {labels.fieldHeader}
                             </th>
                             <th className="px-5 py-3 text-center text-sm font-semibold text-slate-800">
-                                {medicine1 ? displayName(medicine1) : labels.medicineA}
+                                <div className="flex flex-col items-center gap-1.5">
+                                    <span>
+                                        {medicine1 ? displayName(medicine1) : labels.medicineA}
+                                    </span>
+                                    {medicine1?.id && (
+                                        <SaveWatchlistButton
+                                            medicineId={medicine1.id}
+                                            variant="compact"
+                                        />
+                                    )}
+                                </div>
                             </th>
                             <th className="px-5 py-3 text-center text-sm font-semibold text-slate-800">
-                                {medicine2 ? displayName(medicine2) : labels.medicineB}
+                                <div className="flex flex-col items-center gap-1.5">
+                                    <span>
+                                        {medicine2 ? displayName(medicine2) : labels.medicineB}
+                                    </span>
+                                    {medicine2?.id && (
+                                        <SaveWatchlistButton
+                                            medicineId={medicine2.id}
+                                            variant="compact"
+                                        />
+                                    )}
+                                </div>
                             </th>
                         </tr>
                     </thead>

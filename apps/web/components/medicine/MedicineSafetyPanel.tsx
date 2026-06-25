@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { supabase } from "@/lib/supabase";
+import { escapePostgrest } from "@/lib/supabase/utils";
+import SaveWatchlistButton from "@/components/watchlist/SaveWatchlistButton";
 import {
     ShieldCheck,
     Pill,
@@ -77,6 +80,68 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
     const [isLoading, setIsLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<TabType>("sideEffects");
     const [ageGroup, setAgeGroup] = useState<AgeGroupKey>("adults");
+    const [medicineId, setMedicineId] = useState<string | null>(null);
+    const [isIdLoading, setIsIdLoading] = useState<boolean>(true);
+
+    useEffect(() => {
+        if (!searchQuery) {
+            setIsIdLoading(false);
+            return;
+        }
+        let active = true;
+        setIsIdLoading(true);
+
+        const fetchId = async () => {
+            try {
+                const escaped = escapePostgrest(searchQuery.trim());
+                // First try direct match/ilike by brand_name or generic_name
+                let { data, error: dbError } = await supabase
+                    .from("medicines")
+                    .select("id")
+                    .or(`brand_name.ilike."%${escaped}%",generic_name.ilike."%${escaped}%"`)
+                    .limit(1);
+
+                if (dbError) {
+                    console.error("Database query failed in MedicineSafetyPanel:", dbError);
+                }
+
+                // If no result found and profile has a genericName, try mapping it
+                if ((!data || data.length === 0) && profile?.genericName) {
+                    const cleanedGeneric = profile.genericName.replace(/\(.*\)/, "").trim();
+                    const escapedGeneric = escapePostgrest(cleanedGeneric);
+                    const { data: resData, error: genericError } = await supabase
+                        .from("medicines")
+                        .select("id")
+                        .ilike("generic_name", `%${escapedGeneric}%`)
+                        .limit(1);
+                    if (genericError) {
+                        console.error("Generic query failed in MedicineSafetyPanel:", genericError);
+                    } else if (resData && resData.length > 0) {
+                        data = resData;
+                    }
+                }
+
+                if (active) {
+                    if (data && data.length > 0) {
+                        setMedicineId(data[0].id);
+                    } else {
+                        setMedicineId(null);
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to map searchQuery to medicineId:", err);
+            } finally {
+                if (active) {
+                    setIsIdLoading(false);
+                }
+            }
+        };
+
+        fetchId();
+        return () => {
+            active = false;
+        };
+    }, [searchQuery, profile]);
 
     useEffect(() => {
         if (!searchQuery) return;
@@ -143,9 +208,14 @@ export function MedicineSafetyPanel({ searchQuery, onClose }: MedicineSafetyPane
                         {t("guideTitle")}
                     </h3>
                 </div>
-                <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-                    {profile.genericName}
-                </span>
+                <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                        {profile.genericName}
+                    </span>
+                    {!isIdLoading && medicineId && (
+                        <SaveWatchlistButton medicineId={medicineId} variant="icon-only" />
+                    )}
+                </div>
             </div>
 
             {/* Tabs */}

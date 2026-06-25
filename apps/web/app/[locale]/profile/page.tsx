@@ -2,7 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { Link, useRouter } from "@/i18n/routing";
-import { User, ShieldCheck, Bell, ChevronRight, ArrowLeft, LogIn, LogOut } from "lucide-react";
+import {
+    User,
+    ShieldCheck,
+    Bell,
+    ChevronRight,
+    ArrowLeft,
+    LogIn,
+    LogOut,
+    HeartPulse,
+} from "lucide-react";
 import ABHABadge from "@/components/ABHABadge";
 import { useSession } from "@/src/components/AuthProvider";
 
@@ -246,6 +255,26 @@ export default function ProfilePage() {
                                 </div>
                                 <ChevronRight size={18} className="text-(--color-text-muted)" />
                             </button>
+                        )}
+
+                        {session.status === "authenticated" && (
+                            <Link
+                                href="/profile/watchlist"
+                                className="flex w-full items-center justify-between p-5 transition-colors hover:bg-(--color-surface-muted)"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <HeartPulse
+                                        size={20}
+                                        className="text-emerald-600 dark:text-emerald-400"
+                                    />
+
+                                    <span className="font-semibold text-(--color-text-primary)">
+                                        Medicine Watchlist
+                                    </span>
+                                </div>
+
+                                <ChevronRight size={18} className="text-(--color-text-muted)" />
+                            </Link>
                         )}
 
                         <Link

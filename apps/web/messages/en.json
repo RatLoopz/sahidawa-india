@@ -549,6 +549,37 @@
         "packUnit": "pack",
         "packsUnit": "packs"
     },
+    "Watchlist": {
+        "title": "Medicine Watchlist",
+        "subtitle": "Track your saved medicines and smart notifications preferences",
+        "emptyState": "No medicines saved yet.",
+        "searchHint": "Save medicines from search, verification results, comparison pages or the calculator to receive updates.",
+        "addSuccess": "Added to watchlist",
+        "removeSuccess": "Removed from watchlist",
+        "updateSuccess": "Preferences updated",
+        "removeConfirm": "Remove this medicine from your watchlist?",
+        "fields": {
+            "medicineName": "Medicine",
+            "genericName": "Generic Name",
+            "savedDate": "Saved Date",
+            "notifications": "Notifications",
+            "actions": "Actions"
+        },
+        "preferences": {
+            "priceChange": "Price Changes",
+            "recall": "CDSCO Recalls",
+            "newAlternative": "New Generic Alternatives",
+            "stockAvailability": "Nearby Stock"
+        },
+        "buttons": {
+            "saveMedicine": "Save Medicine",
+            "saved": "Saved",
+            "remove": "Remove",
+            "viewDetails": "Details",
+            "viewAlternatives": "Alternatives",
+            "saving": "Saving..."
+        }
+    },
     "ExpiryTracker": {
         "title": "Medicine Expiry Tracker",
         "subtitle": "Manage and track your medicine stock locally",
