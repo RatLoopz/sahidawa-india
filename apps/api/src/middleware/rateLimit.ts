@@ -187,3 +187,18 @@ export const analyticsLimiter = rateLimit({
         });
     },
 });
+
+// ── Notification registration limiter ──────────────────────────────────────────
+export const notificationRegisterLimiter = rateLimit({
+    skip: () => process.env.NODE_ENV === "test",
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    store: buildStore("notification_register"),
+    handler: (_req, res) => {
+        res.status(429).json({
+            error: "Too many registration attempts",
+        });
+    },
+});
