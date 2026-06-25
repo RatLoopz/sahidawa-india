@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import Image from "next/image";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Bookmark } from "lucide-react"; // 1. Added Bookmark icon
 import { Link, usePathname, useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import LanguageSwitcher from "../LanguageSwitcher";
@@ -63,14 +63,12 @@ export default function Navbar() {
         } catch (error) {
             console.error("Logout error:", error);
         } finally {
-            // Forcefully clear all Supabase-related keys
             Object.keys(localStorage).forEach((key) => {
                 if (key.startsWith("sb-")) localStorage.removeItem(key);
             });
             Object.keys(sessionStorage).forEach((key) => {
                 if (key.startsWith("sb-")) sessionStorage.removeItem(key);
             });
-            // Clear all cookies as well
             document.cookie.split(";").forEach((c) => {
                 document.cookie = c
                     .replace(/^ +/, "")
@@ -91,10 +89,8 @@ export default function Navbar() {
 
     return (
         <>
-            {/* ── Top Navigation ── */}
             <header className="sticky top-0 z-[100] w-full border-b border-white/30 bg-white/60 shadow-sm shadow-black/5 backdrop-blur-md dark:border-white/10 dark:bg-slate-900/60">
                 <div className="container mx-auto flex h-16 items-center justify-between gap-2 px-2 sm:gap-3 sm:px-4 md:px-6">
-                    {/* Left — Logo & Brand Title */}
                     <div className="flex min-w-0 shrink-0 items-center">
                         <Link href="/" className="flex min-w-0 items-center gap-1.5 sm:gap-2">
                             <Image
@@ -112,12 +108,22 @@ export default function Navbar() {
                         </Link>
                     </div>
 
-                    {/* Center — Desktop Nav Links */}
                     <DesktopNavLinks />
 
-                    {/* Right — Action Controls Container */}
                     <div className="flex min-w-0 shrink-0 items-center justify-end gap-1 sm:gap-2">
-                        {/* Health Companion Trigger */}
+                        
+                        {/* 2. Added Saved Medicines Link here */}
+                        {session &&(
+                            <Link
+                                href="/my-medicines"
+                                className="hidden sm:flex items-center gap-2 text-sm font-semibold text-emerald-700 hover:text-emerald-900 dark:text-emerald-400"
+                                aria-label="Saved Medicines"
+                            >
+                                <Bookmark size={18} />
+                                <span className="hidden md:inline">Saved</span>
+                            </Link>
+                        )}
+
                         <div className="group relative flex items-center">
                             <Link
                                 href="/health"
@@ -131,20 +137,17 @@ export default function Navbar() {
                             </div>
                         </div>
 
-                        {/* Desktop Only Utilities Layout */}
                         <div className="hidden items-center gap-2 sm:flex">
                             <LanguageSwitcher />
                             <ThemeToggle />
                         </div>
 
-                        {/* Desktop Only Account Sign In / Profile */}
                         <UserDropdown
                             session={session}
                             authLoading={authLoading}
                             handleSignOut={handleSignOut}
                         />
 
-                        {/* Mobile Only: Hamburger Toggle Menu Button */}
                         <MobileMenu
                             session={session}
                             isMenuOpen={isMenuOpen}
@@ -155,7 +158,6 @@ export default function Navbar() {
                 </div>
             </header>
 
-            {/* Backdrop overlay for mobile menu */}
             {isMenuOpen && (
                 <div
                     className="fixed inset-0 z-[99] bg-black/20 backdrop-blur-[1px] sm:hidden"
@@ -164,7 +166,6 @@ export default function Navbar() {
                 />
             )}
 
-            {/* ── Mobile Bottom Navigation ── */}
             <MobileBottomNav isNavVisible={isNavVisible} />
         </>
     );
