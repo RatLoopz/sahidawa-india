@@ -2,6 +2,19 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import ComparisonGrid from "../src/components/ComparisonGrid";
 
+jest.mock("next-intl", () => ({
+    useLocale: () => "en",
+    useTranslations: () => (key: string) => key,
+}));
+
+jest.mock("next/navigation", () => ({
+    useRouter: () => ({
+        push: jest.fn(),
+        replace: jest.fn(),
+        refresh: jest.fn(),
+    }),
+}));
+
 describe("ComparisonGrid", () => {
     const medicineA = {
         id: "1",

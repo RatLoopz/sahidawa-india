@@ -16,7 +16,13 @@ const activeLocale = "en";
 
 jest.mock("next-intl", () => ({
     useLocale: () => activeLocale,
-    useTranslations: () => (key: string) => key,
+    useTranslations: () => (key: string) => {
+        const dict: Record<string, string> = {
+            select_language: "Select language",
+            language_options: "Language options",
+        };
+        return dict[key] || key;
+    },
 }));
 
 jest.mock("../i18n/routing", () => ({
