@@ -190,8 +190,8 @@ class CDSCOValidator:
                 "norm_m": norm_m
             })
 
-            # First letter map for partitioning search space
-            if not skip_global_cache and norm_p:
+            # First letter map for partitioning search space and RPC fallback.
+            if norm_p:
                 first_char = norm_p[0]
                 if first_char not in self._first_letter_map:
                     self._first_letter_map[first_char] = []

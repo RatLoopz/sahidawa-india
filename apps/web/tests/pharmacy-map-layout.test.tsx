@@ -4,6 +4,7 @@ import MapHeaderLoadingIndicator from "../app/[locale]/map/MapHeaderLoadingIndic
 import PharmacyMapPage from "../app/[locale]/map/page";
 
 jest.mock("next-intl", () => ({
+    useLocale: () => "en",
     useTranslations: () => (key: string) => key,
 }));
 

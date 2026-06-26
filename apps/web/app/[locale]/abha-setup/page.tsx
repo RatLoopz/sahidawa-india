@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "@/i18n/routing";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { linkABHA, verifyABHAOtp } from "@/lib/api/abha";
@@ -12,6 +12,13 @@ export default function ABHASetupPage() {
     const [linked, setLinked] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [cooldown, setCooldown] = useState(0);
+
+    useEffect(() => {
+        if (cooldown <= 0) return;
+        const timer = setInterval(() => setCooldown((prev) => prev - 1), 1000);
+        return () => clearInterval(timer);
+    }, [cooldown]);
 
     const handleGenerateOtp = async () => {
         setError("");
@@ -29,6 +36,7 @@ export default function ABHASetupPage() {
             });
 
             setTxnId(result.txnId);
+            setCooldown(30);
         } catch (error) {
             setError(error instanceof Error ? error.message : "Something went wrong");
         } finally {
@@ -90,10 +98,10 @@ export default function ABHASetupPage() {
 
                             <button
                                 onClick={handleGenerateOtp}
-                                disabled={loading}
-                                className="rounded-xl bg-emerald-600 px-4 py-2 text-white"
+                                disabled={loading || cooldown > 0}
+                                className="rounded-xl bg-emerald-600 px-4 py-2 text-white disabled:opacity-50"
                             >
-                                Generate OTP
+                                {cooldown > 0 ? `Resend in ${cooldown}s` : "Generate OTP"}
                             </button>
 
                             {txnId && (

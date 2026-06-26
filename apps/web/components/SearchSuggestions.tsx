@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Search, Clock, Pin } from "lucide-react";
+import { Search, Clock, Pin, X } from "lucide-react";
 
 export interface HistoryItem {
     query: string;
@@ -22,6 +22,7 @@ export interface SearchSuggestionsProps {
     historyItems?: HistoryItem[];
     onPinToggle?: (query: string) => void;
     onClearHistory?: () => void;
+    onDeleteItem?: (query: string) => void;
     query?: string;
 }
 
@@ -38,6 +39,7 @@ export default function SearchSuggestions({
     historyItems = [],
     onPinToggle,
     onClearHistory,
+    onDeleteItem,
     query = "",
 }: SearchSuggestionsProps) {
     function highlightMatch(text: string, query: string) {
@@ -62,12 +64,9 @@ export default function SearchSuggestions({
         );
     }
 
-    if (!visible && !isLoading && !error && !noResults) {
-        return null;
-    }
-    if (isHistory && (!historyItems || historyItems.length === 0)) {
-        return null;
-    }
+    if (!visible && !isLoading && !error && !noResults) return null;
+    if (isHistory && (!historyItems || historyItems.length === 0)) return null;
+
     if (isLoading) {
         return (
             <div className="absolute top-full right-0 left-0 z-50 mt-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl">
@@ -78,6 +77,7 @@ export default function SearchSuggestions({
             </div>
         );
     }
+
     if (error) {
         return (
             <div className="absolute top-full right-0 left-0 z-50 mt-2 rounded-2xl border border-red-200 bg-white p-4 shadow-xl">
@@ -94,6 +94,7 @@ export default function SearchSuggestions({
             </div>
         );
     }
+
     if (noResults) {
         return (
             <div className="absolute top-full right-0 left-0 z-50 mt-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl">
@@ -127,6 +128,7 @@ export default function SearchSuggestions({
                             Clear All
                         </button>
                     </div>
+
                     {historyItems.map((item, index) => {
                         const isActive = index === activeIndex;
                         return (
@@ -145,7 +147,8 @@ export default function SearchSuggestions({
                                         : "text-slate-700 hover:bg-slate-50"
                                 } last:rounded-b-2xl`}
                             >
-                                <div className="flex items-center gap-3 truncate">
+                                {/* Left: clock + label */}
+                                <div className="flex min-w-0 items-center gap-3">
                                     <Clock
                                         size={14}
                                         className={`shrink-0 ${isActive ? "text-emerald-500" : "text-slate-400"}`}
@@ -153,27 +156,46 @@ export default function SearchSuggestions({
                                     />
                                     <span className="truncate">{item.query}</span>
                                 </div>
-                                <button
-                                    type="button"
-                                    onMouseDown={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        onPinToggle?.(item.query);
-                                    }}
-                                    className={`ml-2 shrink-0 rounded p-1 transition-colors hover:bg-slate-200/50 ${
-                                        item.pinned
-                                            ? "text-emerald-500"
-                                            : "text-slate-300 opacity-0 group-hover:opacity-100"
-                                    }`}
-                                    aria-label={
-                                        item.pinned ? "Unpin search query" : "Pin search query"
-                                    }
-                                >
-                                    <Pin
-                                        size={14}
-                                        className={item.pinned ? "fill-emerald-500" : ""}
-                                    />
-                                </button>
+
+                                {/* Right: pin + delete — kept in a tight flex row with no gap */}
+                                <div className="flex shrink-0 items-center">
+                                    {/* Pin button */}
+                                    <button
+                                        type="button"
+                                        onMouseDown={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            onPinToggle?.(item.query);
+                                        }}
+                                        className={`rounded p-1 transition-colors hover:bg-slate-200/50 ${
+                                            item.pinned
+                                                ? "text-emerald-500"
+                                                : "text-slate-300 opacity-0 group-hover:opacity-100"
+                                        }`}
+                                        aria-label={
+                                            item.pinned ? "Unpin search query" : "Pin search query"
+                                        }
+                                    >
+                                        <Pin
+                                            size={14}
+                                            className={item.pinned ? "fill-emerald-500" : ""}
+                                        />
+                                    </button>
+
+                                    {/* Delete button */}
+                                    <button
+                                        type="button"
+                                        onMouseDown={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            onDeleteItem?.(item.query);
+                                        }}
+                                        className="rounded p-1 text-slate-300 opacity-0 transition-colors group-hover:opacity-100 hover:bg-red-50 hover:text-red-400"
+                                        aria-label="Remove from history"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                </div>
                             </li>
                         );
                     })}

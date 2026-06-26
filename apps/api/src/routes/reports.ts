@@ -1,4 +1,4 @@
-import { Router, Response } from "express";
+import { Router, Response, NextFunction } from "express";
 import { z } from "zod";
 import { supabase } from "../db/client";
 import { AuthenticatedRequest, optionalAuth, requireAuth, requireRole } from "../middleware/auth";
@@ -44,29 +44,53 @@ const safeImageUrl = z.string().url().refine(isPublicImageUrl, {
         "Image URL must use http(s) and must not point to a private, loopback, or link-local address",
 });
 
-const createReportSchema = z.object({
-    medicineName: z.string().min(2),
-    manufacturer: z.string().min(2),
-    description: z.string().min(20),
-    images: z.array(safeImageUrl).min(1),
-    pharmacyName: z.string().min(2),
-    address: z.string().min(5),
-    city: z.string().min(2),
-    state: z.string().min(2),
-    pincode: z.string().regex(/^\d{6}$/),
-    latitude: z
-        .number()
-        .min(-90, "Latitude must be between -90 and 90")
-        .max(90, "Latitude must be between -90 and 90")
-        .optional(),
-    longitude: z
-        .number()
-        .min(-180, "Longitude must be between -180 and 180")
-        .max(180, "Longitude must be between -180 and 180")
-        .optional(),
-    scannedBarcode: z.string().optional(),
-    medicineId: z.string().uuid().optional(),
-});
+import { INDIAN_STATES_AND_DISTRICTS } from "../constants/administrativeMap";
+
+const createReportSchema = z
+    .object({
+        medicineName: z.string().min(2),
+        manufacturer: z.string().min(2),
+        description: z.string().min(20),
+        images: z.array(safeImageUrl).min(1),
+        pharmacyName: z.string().min(2),
+        address: z.string().min(5),
+        city: z.string().min(2),
+        district: z.string().min(2).optional(),
+        state: z.string().min(2),
+        pincode: z.string().regex(/^\d{6}$/),
+        latitude: z
+            .number()
+            .min(-90, "Latitude must be between -90 and 90")
+            .max(90, "Latitude must be between -90 and 90")
+            .optional(),
+        longitude: z
+            .number()
+            .min(-180, "Longitude must be between -180 and 180")
+            .max(180, "Longitude must be between -180 and 180")
+            .optional(),
+        scannedBarcode: z.string().optional(),
+        medicineId: z.string().uuid().optional(),
+    })
+    .superRefine((data, ctx) => {
+        const validDistricts =
+            INDIAN_STATES_AND_DISTRICTS[data.state as keyof typeof INDIAN_STATES_AND_DISTRICTS];
+        if (!validDistricts) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `Invalid state: ${data.state}`,
+                path: ["state"],
+            });
+            return;
+        }
+        const districtToCheck = data.district ?? data.city;
+        if (!validDistricts.includes(districtToCheck)) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `Invalid district '${districtToCheck}' for state '${data.state}'`,
+                path: data.district ? ["district"] : ["city"],
+            });
+        }
+    });
 
 const buildReportLocation = (latitude?: number, longitude?: number) => {
     if (typeof latitude !== "number" || typeof longitude !== "number") {
@@ -80,7 +104,7 @@ reportsRouter.post(
     "/",
     reportLimiter,
     optionalAuth,
-    async (req: AuthenticatedRequest, res: Response) => {
+    async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
         const parsed = createReportSchema.safeParse(req.body);
 
         if (!parsed.success) {
@@ -92,12 +116,10 @@ reportsRouter.post(
         }
 
         const data = parsed.data;
+        const district = data.district ?? data.city;
 
         try {
-            const rawIp =
-                req.headers["x-forwarded-for"]?.toString().split(",")[0]?.trim() ||
-                req.socket.remoteAddress;
-            const ipAddress = anonymizeIp(rawIp);
+            const ipAddress = anonymizeIp(req.ip);
             const validationPayload = {
                 medicineName: data.medicineName,
                 manufacturer: data.manufacturer,
@@ -107,7 +129,7 @@ reportsRouter.post(
                 city: data.city,
                 state: data.state,
                 pincode: data.pincode,
-                district: data.city,
+                district,
             };
 
             const validation = await validateReport(
@@ -129,7 +151,7 @@ reportsRouter.post(
                     city: data.city,
                     state: data.state,
                     pincode: data.pincode,
-                    district: data.city,
+                    district,
                     report_location: buildReportLocation(data.latitude, data.longitude),
                     reporter_id: req.user?.id ?? null,
                     ip_address: ipAddress,
@@ -141,7 +163,9 @@ reportsRouter.post(
                     scanned_barcode: data.scannedBarcode ?? null,
                     medicine_id: data.medicineId ?? null,
                 })
-                .select()
+                .select(
+                    "id, reported_brand_name, status, district, created_at, scanned_barcode, medicine_id"
+                )
                 .single();
 
             if (error) {
@@ -162,12 +186,7 @@ reportsRouter.post(
 
             res.status(201).json(response);
         } catch (err) {
-            console.error("Unexpected error in POST /api/reports:", err);
-            res.status(500).json({
-                error: "An unexpected error occurred",
-                details: err instanceof Error ? err.message : String(err),
-                stack: err instanceof Error ? err.stack : undefined,
-            });
+            next(err);
         }
     }
 );
@@ -180,21 +199,38 @@ reportsRouter.get("/mine", requireAuth, async (req: AuthenticatedRequest, res: R
         return;
     }
 
+    const rawPage = parseInt(req.query.page as string, 10);
+    const rawLimit = parseInt(req.query.limit as string, 10);
+    const page = isNaN(rawPage) || rawPage < 1 ? 1 : rawPage;
+    const limit = isNaN(rawLimit) || rawLimit < 1 ? 20 : Math.min(rawLimit, 100);
+    const offset = (page - 1) * limit;
+
     try {
-        const { data, error } = await supabase
+        const { data, error, count } = await supabase
             .from("counterfeit_reports")
             .select(
-                "id, reported_brand_name, scanned_barcode, photo_url, district, status, created_at"
+                "id, reported_brand_name, scanned_barcode, photo_url, district, status, created_at",
+                { count: "exact" }
             )
             .eq("reporter_id", userId)
-            .order("created_at", { ascending: false });
+            .order("created_at", { ascending: false })
+            .range(offset, offset + limit - 1);
 
         if (error) {
             res.status(500).json({ error: "Failed to fetch your reports" });
             return;
         }
 
-        res.json({ reports: data ?? [] });
+        const totalCount = count ?? 0;
+        const totalPageCount = Math.ceil(totalCount / limit);
+
+        res.json({
+            reports: data ?? [],
+            pageIndex: page,
+            pageSize: (data ?? []).length,
+            totalCount,
+            totalPageCount,
+        });
     } catch (err) {
         console.error("Unexpected error in GET /api/reports/mine:", err);
         res.status(500).json({ error: "An unexpected error occurred" });

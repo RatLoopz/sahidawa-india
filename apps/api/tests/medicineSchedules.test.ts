@@ -24,6 +24,7 @@ const mockSupabaseChain = {
     single: jest.fn(),
     maybeSingle: jest.fn(),
     or: jest.fn().mockReturnThis(),
+    in: jest.fn().mockReturnThis(),
     error: null,
     data: null,
 };
@@ -317,7 +318,7 @@ describe("GET /api/schedules/today/summary", () => {
 
         // Second call: fetch dose logs for schedule
         (mockedSupabase.select as jest.Mock).mockReturnValueOnce(mockedSupabase);
-        (mockedSupabase.eq as jest.Mock).mockReturnValueOnce(mockedSupabase);
+        (mockedSupabase.in as jest.Mock).mockReturnValueOnce(mockedSupabase);
         (mockedSupabase.eq as jest.Mock).mockReturnValueOnce(mockedSupabase);
         (mockedSupabase.eq as jest.Mock).mockResolvedValueOnce({
             data: [

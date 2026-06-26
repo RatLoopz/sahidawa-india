@@ -1,7 +1,9 @@
 "use client";
 
 import { ArrowLeft, Globe } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
+import LanguageSwitcher from "../LanguageSwitcher"; // Imported cleanly from relative folder path
 
 const pageHeaderFocusRingClass =
     "focus-visible:outline-[3px] focus-visible:outline-emerald-600 focus-visible:outline-offset-2 focus-visible:ring-[3px] focus-visible:ring-emerald-600 focus-visible:ring-offset-2";
@@ -35,6 +37,7 @@ export const PageHeader = ({
     rightActionsClassName = "",
     children,
 }: PageHeaderProps) => {
+    const tA11y = useTranslations("Accessibility");
     const isDark = variant === "dark";
 
     return (
@@ -46,7 +49,7 @@ export const PageHeader = ({
                 {!hideBackButton ? (
                     <Link
                         href={backHref}
-                        aria-label="Go back to previous page"
+                        aria-label={tA11y("go_back")}
                         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${pageHeaderFocusRingClass} ${
                             isDark
                                 ? "bg-white/10 backdrop-blur-md hover:bg-white/20"
@@ -58,7 +61,7 @@ export const PageHeader = ({
                             aria-hidden="true"
                             className={isDark ? "text-white" : "text-(--color-text-secondary)"}
                         />
-                        <span className="sr-only">Go back</span>
+                        <span className="sr-only">{tA11y("go_back")}</span>
                     </Link>
                 ) : (
                     <div className={`w-10 shrink-0 ${backButtonClassName}`} />
@@ -90,7 +93,9 @@ export const PageHeader = ({
                         <div
                             className="flex items-center gap-1.5 rounded-full border border-(--color-border-muted) bg-(--color-surface-page) px-3 py-1.5 shadow-sm"
                             role="status"
-                            aria-label={`Current language: ${languageName || "English"}`}
+                            aria-label={tA11y("current_language", {
+                                language: languageName || "English",
+                            })}
                         >
                             <Globe size={14} aria-hidden="true" className="text-emerald-600" />
                             <span className="text-xs font-bold text-(--color-text-primary)">
@@ -98,7 +103,8 @@ export const PageHeader = ({
                             </span>
                         </div>
                     ) : (
-                        <div className="w-2" />
+                        /* Integrated your global dynamic LanguageSwitcher directly in place of the empty spacer */
+                        <LanguageSwitcher />
                     )}
                 </div>
             </div>

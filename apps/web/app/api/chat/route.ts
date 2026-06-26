@@ -4,15 +4,15 @@ import { detectEmergencyKeywords } from "@/lib/voice/emergency";
 import { rateLimit } from "@/lib/rateLimit";
 import { BASE_PROMPT } from "@/lib/chatPrompts";
 import { structuredLog } from "@/lib/structuredLogger";
+import { ChatRoles, ChatRole, ChatMessage } from "@/lib/constants";
+import crypto from "crypto";
+
+import { trimHistoryByTokens } from "@/lib/chatUtils";
+
+const summaryCache = new Map<string, string>();
 
 const DEFAULT_DISCLAIMER =
     "This guidance is for informational use only and is not a diagnosis. Consult a doctor or pharmacist, especially for severe or persistent symptoms.";
-
-type ChatMessage = {
-    text?: string;
-    content?: string;
-    role?: string;
-};
 
 type VoiceTriageResponse = {
     text: string;
@@ -41,7 +41,7 @@ function getLatestMessageText(messages: ChatMessage[] | undefined) {
 function mapMessagesToGeminiContents(messages: ChatMessage[]) {
     return messages.map((msg) => {
         const text = msg.text || msg.content || "";
-        const role = msg.role === "assistant" ? "model" : "user";
+        const role = msg.role === ChatRoles.ASSISTANT ? ChatRoles.MODEL : ChatRoles.USER;
         return { role, parts: [{ text }] };
     });
 }
@@ -158,9 +158,51 @@ export async function POST(req: Request) {
             );
         }
 
+        const geminiKey = process.env.GEMINI_API_KEY?.trim();
+
+        if (!geminiKey || geminiKey === "your_gemini_api_key") {
+            structuredLog({
+                log_level: "warn",
+                route: ROUTE,
+                meta: {
+                    reason: "missing_gemini_api_key",
+                },
+            });
+
+            return NextResponse.json(
+                { error: "AI services are currently unconfigured" },
+                { status: 500 }
+            );
+        }
         const ai = getAiClient();
         const { messages, mode, responseLanguage, locale } = await req.json();
-        const latestMessageText = getLatestMessageText(messages);
+
+        if (!Array.isArray(messages) || messages.length === 0) {
+            return NextResponse.json({ error: "Messages are required" }, { status: 400 });
+        }
+
+        const MAX_MESSAGES = 50;
+        const MAX_MESSAGE_CHARS = 2000;
+        const MAX_TOKENS = 3000; // Safe limit for standard context + response
+        const recentMessages = messages.slice(-MAX_MESSAGES);
+        const history = trimHistoryByTokens(recentMessages, MAX_TOKENS);
+        let trimmedMessages = history.trimmedMessages;
+        const droppedMessages = history.droppedMessages;
+
+        for (const msg of trimmedMessages) {
+            const text = msg.text || msg.content || "";
+            if (typeof text !== "string" || text.length > MAX_MESSAGE_CHARS) {
+                const isVoiceTriage =
+                    mode === "voice-triage" && msg === trimmedMessages[trimmedMessages.length - 1];
+                const errorMsg = isVoiceTriage
+                    ? `Transcript exceeds maximum allowed length of ${MAX_MESSAGE_CHARS} characters.`
+                    : `Each message must be under ${MAX_MESSAGE_CHARS} characters.`;
+
+                return NextResponse.json({ error: errorMsg }, { status: 400 });
+            }
+        }
+
+        const latestMessageText = getLatestMessageText(trimmedMessages);
 
         if (!latestMessageText) {
             structuredLog({
@@ -182,14 +224,17 @@ export async function POST(req: Request) {
                     process.env.ML_SERVICE_URL?.trim() ||
                     process.env.NEXT_PUBLIC_ML_SERVICE_URL?.trim() ||
                     "http://localhost:8000";
-                const formattedMessages = (messages || []).map((m: any) => ({
-                    role: m.role === "assistant" || m.role === "model" ? "assistant" : "user",
+                const formattedMessages = trimmedMessages.map((m: any) => ({
+                    role:
+                        m.role === ChatRoles.ASSISTANT || m.role === ChatRoles.MODEL
+                            ? ChatRoles.ASSISTANT
+                            : ChatRoles.USER,
                     content: m.text || m.content || "",
                 }));
 
                 // If there's no history, initialize with the current message
                 if (formattedMessages.length === 0) {
-                    formattedMessages.push({ role: "user", content: latestMessageText });
+                    formattedMessages.push({ role: ChatRoles.USER, content: latestMessageText });
                 }
 
                 const mlResponse = await fetch(`${mlServiceUrl}/triage/chat`, {
@@ -263,7 +308,51 @@ export async function POST(req: Request) {
             });
         }
 
-        const formattedContents = mapMessagesToGeminiContents(messages || []);
+        if (droppedMessages.length > 0) {
+            try {
+                const droppedText = droppedMessages
+                    .map((m) => `${m.role}: ${m.text || m.content}`)
+                    .join("\n");
+                const cacheKey = crypto.createHash("sha256").update(droppedText).digest("hex");
+
+                let summary = summaryCache.get(cacheKey);
+
+                if (!summary) {
+                    const summaryPrompt = `Summarize the following conversation history briefly to retain key context for the ongoing chat. Keep it concise.\n\n${droppedText}`;
+                    const summaryResponse = await ai.models.generateContent({
+                        model: "gemini-2.5-flash",
+                        contents: summaryPrompt,
+                    });
+
+                    summary = summaryResponse.text || "";
+                    if (summary) {
+                        summaryCache.set(cacheKey, summary);
+                        if (summaryCache.size > 1000) {
+                            const firstKey = summaryCache.keys().next().value;
+                            if (firstKey) summaryCache.delete(firstKey);
+                        }
+                    }
+                }
+
+                if (summary) {
+                    trimmedMessages = [
+                        {
+                            role: ChatRoles.ASSISTANT,
+                            content: `[Previous Context Summary]: ${summary}`,
+                        },
+                        ...trimmedMessages,
+                    ];
+                }
+            } catch (error) {
+                structuredLog({
+                    log_level: "warn",
+                    route: ROUTE,
+                    meta: { reason: "summarization_failed", error: String(error) },
+                });
+            }
+        }
+
+        const formattedContents = mapMessagesToGeminiContents(trimmedMessages);
 
         const supportedLocales = ["en", "gu", "bn", "te", "ta", "mr", "ur", "kn", "pa", "or", "hi"];
         const finalLocale = supportedLocales.includes(locale) ? locale : "en";
@@ -328,7 +417,7 @@ export async function POST(req: Request) {
                             input_tokens: usageMetadata?.promptTokenCount,
                             output_tokens: usageMetadata?.candidatesTokenCount,
                         },
-                        meta: { mode: "chat", messageCount: (messages || []).length },
+                        meta: { mode: "chat", messageCount: trimmedMessages.length },
                     });
                     controller.close();
                 } catch (streamError) {
@@ -342,7 +431,7 @@ export async function POST(req: Request) {
                             code: 500,
                             stack: streamError instanceof Error ? streamError.stack : undefined,
                         },
-                        meta: { mode: "chat", messageCount: (messages || []).length },
+                        meta: { mode: "chat", messageCount: trimmedMessages.length },
                     });
                     controller.error(streamError);
                 }

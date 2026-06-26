@@ -16,6 +16,7 @@ jest.mock("@/lib/supabase", () => ({
 }));
 
 jest.mock("next-intl", () => ({
+    useLocale: () => "en",
     useFormatter: () => ({
         dateTime: (date: Date) => {
             const d = new Date(date);

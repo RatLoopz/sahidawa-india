@@ -81,11 +81,16 @@ jobs:
                   }
                 }
 
-                if (activeIssuesWithoutPR.length >= 3) {
+                const prLimitReached = userPRs.length >= 5;
+                if (activeIssuesWithoutPR.length >= 3 || prLimitReached) {
                   const issueList = activeIssuesWithoutPR
                     .map(i => '#' + i.number + ' ("' + i.title + '")')
                     .join('\n- ');
-                  core.info(`Auto-unassigning @${newlyAssignedUser} as they have ${activeIssuesWithoutPR.length} active assignments.`);
+                  const reasonText = prLimitReached 
+                    ? `You already have ${userPRs.length} open Pull Requests pending review.` 
+                    : `You have reached the maximum limit of 3 active assignments without PRs.`;
+
+                  core.info(`Auto-unassigning @${newlyAssignedUser}: ${reasonText}`);
                   
                   // Unassign
                   await github.rest.issues.removeAssignees({
@@ -100,11 +105,10 @@ jobs:
                     body: [
                       '🚨 **Assignment Denied** 🚨',
                       '',
-                      `@${newlyAssignedUser}, you have been automatically unassigned. You have reached the maximum limit of 3 active assignments.`,
-                      `Your current open tasks:`,
-                      `- ${issueList}`,
+                      `@${newlyAssignedUser}, you have been automatically unassigned. ${reasonText}`,
+                      prLimitReached ? `Please wait for maintainers to review your existing PRs before claiming new tasks.` : `Your current open tasks:\n- ${issueList}\n\nComplete these tasks and open PRs before claiming new ones.`,
                       '',
-                      'Complete these tasks and open PRs before claiming new ones. This rule is strictly enforced to ensure fair opportunity for all contributors.'
+                      'This rule is strictly enforced to ensure fair opportunity for all contributors.'
                     ].join('\n')
                   });
                 }
@@ -196,21 +200,23 @@ jobs:
                 }
               }
 
-              if (activeIssuesWithoutPR.length >= 3) {
+              const prLimitReached = commenterPRs.length >= 5;
+              if (activeIssuesWithoutPR.length >= 3 || prLimitReached) {
                 const issueList = activeIssuesWithoutPR
                   .map(i => '#' + i.number + ' ("' + i.title + '")')
                   .join('\n- ');
-                core.info('Denying early: @' + commenter + ' already has ' + activeIssuesWithoutPR.length + ' active assignments.');
+                const reasonText = prLimitReached 
+                  ? `contributors are limited to a maximum of 5 open Pull Requests.` 
+                  : `contributors are limited to a maximum of 3 active assigned issues without pull requests.`;
+
+                core.info('Denying early: @' + commenter + ' - ' + reasonText);
                 await github.rest.issues.createComment({
                   owner: repo.owner, repo: repo.repo, issue_number: issueNumber,
                   body: [
-                    'Request Denied.',
+                    'Assignment Request Denied.',
                     '',
-                    `@${commenter}, contributors are limited to a maximum of 3 active assigned issues without pull requests.`,
-                    `You currently have ${activeIssuesWithoutPR.length} active tasks:`,
-                    `- ${issueList}`,
-                    '',
-                    'Please complete your current tasks or open a PR for them before requesting new assignments.'
+                    `@${commenter}, ${reasonText}`,
+                    prLimitReached ? `You currently have ${commenterPRs.length} open PRs pending review. Please wait for maintainers to review them before requesting new assignments.` : `You currently have ${activeIssuesWithoutPR.length} active tasks:\n- ${issueList}\n\nPlease complete your current tasks or open a PR for them before requesting new assignments.`
                   ].join('\n')
                 });
                 return;

@@ -3,6 +3,7 @@ import multer from "multer";
 import { supabase } from "../db/client";
 import { redisClient } from "../utils/redis";
 import { scanQueryLimiter } from "../middleware/rateLimit";
+import { escapePostgrest } from "../utils/db";
 
 const router = Router();
 
@@ -17,6 +18,12 @@ const upload = multer({
 });
 
 const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://localhost:8000";
+
+export function buildMedicineVoiceSearchFilter(transcribedText: string): string {
+    const safeTranscribedText = escapePostgrest(transcribedText);
+    return `brand_name.ilike."%${safeTranscribedText}%",generic_name.ilike."%${safeTranscribedText}%"`;
+}
+
 /**
  * POST /api/medicine/verify-voice
  * Accepts audio blob from frontend, forwards to Python ML service,
@@ -61,13 +68,25 @@ router.post(
                 warnings: ["Medicine not found in CDSCO database. Consult a pharmacist."],
             };
 
+            if (transcribedText === "") {
+                verificationResult = {
+                    status: "transcription_failed",
+                    cdsco_registered: false,
+                    medicine_name_english: transcribedText,
+                    medicine_name_regional: transcribedText,
+                    manufacturer: "Unknown",
+                    category: "Unknown",
+                    warnings: ["Audio could not be transcribed. Please try again."],
+                };
+                result.verification = verificationResult;
+                return res.json(result);
+            }
+
             if (transcribedText) {
                 const { data: medicines } = await supabase
                     .from("medicines")
                     .select("brand_name, generic_name, manufacturer, is_cdsco_verified")
-                    .or(
-                        `brand_name.ilike.%${transcribedText}%,generic_name.ilike.%${transcribedText}%`
-                    )
+                    .or(buildMedicineVoiceSearchFilter(transcribedText))
                     .limit(1);
 
                 if (medicines && medicines.length > 0) {

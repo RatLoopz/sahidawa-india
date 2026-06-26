@@ -12,19 +12,18 @@ import { Medicine } from "@/src/components/ComparisonGrid";
 import { COMPARE_SELECT_FIELDS } from "@/src/lib/compareSelectFields";
 import { supabase } from "@/lib/supabase";
 import { mapMedicineRow } from "@/src/lib/mapMedicineRow";
+import { buildMedicineNameSearchFilter } from "@/lib/supabase/medicineSearch";
 
 const DEFAULT_TIMES = ["08:00", "20:00"];
 
 async function searchMedicines(query: string): Promise<Medicine[]> {
-    // Strip double quotes to prevent breaking the PostgREST filter structure in the .or() builder
-    const q = query.replace(/"/g, "").trim();
-    if (q.length < 2) return [];
+    const filter = buildMedicineNameSearchFilter(query);
+    if (!filter) return [];
 
-    const pattern = `%${q.replace(/[%_\\]/g, "\\$&")}%`;
     const { data, error } = await supabase
         .from("medicines")
         .select(COMPARE_SELECT_FIELDS)
-        .or(`brand_name.ilike."${pattern}",generic_name.ilike."${pattern}"`)
+        .or(filter)
         .limit(25);
 
     if (error) {
@@ -40,7 +39,10 @@ export default function NewSchedulePage() {
     const [dosage, setDosage] = useState("1 tablet");
     const [frequency, setFrequency] = useState(2);
     const [times, setTimes] = useState<string[]>(DEFAULT_TIMES);
-    const [startDate, setStartDate] = useState(new Date().toISOString().split("T")[0]);
+    const today = new Date();
+    today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+
+    const [startDate, setStartDate] = useState(today.toISOString().split("T")[0]);
     const [endDate, setEndDate] = useState("");
     const [notes, setNotes] = useState("");
     const [saving, setSaving] = useState(false);
@@ -105,7 +107,7 @@ export default function NewSchedulePage() {
             />
 
             <main className="container mx-auto w-full max-w-2xl flex-1 px-4 py-6 md:px-6 md:py-10">
-                <Card className="border-(--color-border-muted) bg-(--color-surface-page) dark:bg-slate-900 dark:border-slate-700">
+                <Card className="border-(--color-border-muted) bg-(--color-surface-page) dark:border-slate-700 dark:bg-slate-900">
                     <form onSubmit={handleSubmit} className="flex flex-col gap-5 p-6">
                         {error && (
                             <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-400">

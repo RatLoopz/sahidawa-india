@@ -1,3 +1,4 @@
+import "./tracing";
 import app from "./app";
 import { createGracefulShutdown } from "./gracefulShutdown";
 import logger from "./utils/logger";

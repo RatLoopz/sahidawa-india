@@ -1,5 +1,7 @@
 import { BarcodeScanner } from "@/components/scanner/BarcodeScanner";
 import { X } from "lucide-react";
+import { useRef } from "react";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 interface ExpiryModalProps {
     isOpen: boolean;
@@ -18,10 +20,14 @@ export function ExpiryModal({
     onScan,
     onRetry,
 }: ExpiryModalProps) {
+    const containerRef = useRef<HTMLDivElement>(null);
+    useFocusTrap(containerRef, isOpen);
+
     if (!isOpen) return null;
 
     return (
         <div
+            ref={containerRef}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
             role="dialog"
             aria-modal="true"

@@ -103,9 +103,6 @@ export const detectLasaConflicts = async (medicineName: string): Promise<LasaMat
         }
     })();
 
-    if (inFlight.size >= MAX_INFLIGHT) {
-        inFlight.clear();
-    }
     inFlight.set(cacheKey, promise);
     return promise;
 };

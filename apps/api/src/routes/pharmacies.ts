@@ -2,8 +2,11 @@ import { Router, Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { supabase } from "../db/client";
 import logger from "../utils/logger";
+import { redisClient } from "../utils/redis";
+import { limiter } from "../middleware/rateLimit";
 import { requireAuth, AuthenticatedRequest } from "../middleware/auth";
-import { PharmacyRpcResult, FormattedPharmacy } from "../types/pharmacy.types";
+import { FormattedPharmacy, PharmacyRpcResult } from "../types/pharmacy.types";
+import { redisCache } from "../middleware/redisCache";
 
 const router = Router();
 
@@ -11,6 +14,8 @@ const router = Router();
 
 /** Maximum number of pharmacies returned per request */
 const MAX_RESULTS = 200;
+
+import { cacheMiddleware } from "../middleware/cache";
 
 // ── TypeScript interfaces ────────────────────────────────────────────────────
 
@@ -49,6 +54,20 @@ const registerPharmacySchema = z.object({
         .optional(),
     lat: z.number().min(-90).max(90).optional(),
     lng: z.number().min(-180).max(180).optional(),
+});
+
+// Zod schema for validating each individual item inside an uploaded row
+const inventoryRowSchema = z.object({
+    medicine_name: z.string().min(1, "Medicine name is required"),
+    batch_number: z.string().min(1, "Batch number is required"),
+    expiry_date: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/, "Expiry date must be in YYYY-MM-DD format"),
+    quantity: z.preprocess(
+        (val) => Number(val),
+        z.number().int().nonnegative("Quantity must be a positive number")
+    ),
+    mrp: z.preprocess((val) => Number(val), z.number().positive("MRP must be a valid price")),
 });
 
 // ── Pharmacy registration ────────────────────────────────────────────────────
@@ -148,6 +167,10 @@ const boundsQuerySchema = z
         west: z.coerce.number().min(-180).max(180),
         north: z.coerce.number().min(-90).max(90),
         east: z.coerce.number().min(-180).max(180),
+
+        limit: z.coerce.number().int().min(1).max(1000).default(200),
+
+        offset: z.coerce.number().int().min(0).default(0),
     })
     .refine((data) => data.south < data.north, {
         message: "South boundary must be less than North boundary",
@@ -223,7 +246,12 @@ function formatPharmacy(p: PharmacyRow, distanceKm: number): FormattedPharmacy {
  * Handles database fetch errors with descriptive error messages and hints.
  */
 function handleFetchError(
-    fetchError: { message?: string; code?: string; details?: string; hint?: string },
+    fetchError: {
+        message?: string;
+        code?: string;
+        details?: string;
+        hint?: string;
+    },
     res: Response
 ): void {
     logger.error("Database query failed", {
@@ -347,85 +375,111 @@ function handleFetchError(
  *       500:
  *         description: Server or database error
  */
-router.get("/nearest", async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const result = nearestQuerySchema.safeParse(req.query);
+router.get(
+    "/nearest",
+    limiter,
+    cacheMiddleware(300, 600),
+    redisCache(3600, (req: Request) => {
+        const lat = Number(req.query.lat);
+        const lng = Number(req.query.lng);
+        const radius = Number(req.query.radius ?? 50);
 
-        if (!result.success) {
-            res.status(400).json({
-                error: "Invalid coordinates",
-                details: result.error.flatten().fieldErrors,
-            });
-            return;
+        return `pharmacies:nearest:${lat.toFixed(3)}:${lng.toFixed(3)}:${radius}`;
+    }),
+    async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const result = nearestQuerySchema.safeParse(req.query);
+
+            if (!result.success) {
+                res.status(400).json({
+                    error: "Invalid coordinates",
+                    details: result.error.flatten().fieldErrors,
+                });
+                return;
+            }
+
+            const { lat, lng, radius } = result.data;
+
+            // Primary path: PostGIS RPC with server-side radius filtering
+            const { data: rpcData, error: rpcError } = await supabase.rpc(
+                "get_nearest_pharmacies",
+                {
+                    query_lat: lat,
+                    query_lng: lng,
+                    search_radius_km: radius,
+                }
+            );
+
+            if (!rpcError && rpcData) {
+                const pharmacies: FormattedPharmacy[] = (rpcData as PharmacyRpcResult[])
+                    .map((p: PharmacyRpcResult) => ({
+                        name: p.name || "Unknown Pharmacy",
+                        address: p.address || "Unknown Address",
+                        lat: p.lat,
+                        lng: p.lng,
+                        distance: `${Number(p.distance).toFixed(1)} km`,
+                        phone_number: p.phone_number || null,
+                        is_verified: p.is_verified ?? false,
+                        district: p.district || null,
+                        state: p.state || null,
+                    }))
+                    .slice(0, MAX_RESULTS);
+
+                const responseData = { pharmacies };
+
+                return res.json(responseData);
+            }
+
+            // Fallback path: Haversine calculation in JavaScript
+            logger.warn(
+                "PostGIS RPC failed or unavailable, falling back to Haversine calculation",
+                {
+                    error: rpcError?.message,
+                    code: rpcError?.code,
+                }
+            );
+
+            const { data: allPharmacies, error: fetchError } = await supabase
+                .from("pharmacies")
+                .select(
+                    "name, address, location, phone_number, is_verified, district, state, status"
+                )
+                .eq("status", "approved")
+                .limit(3000);
+
+            if (fetchError) {
+                handleFetchError(fetchError, res);
+                return;
+            }
+
+            const pharmacies: FormattedPharmacy[] = ((allPharmacies || []) as PharmacyRow[])
+                .filter((p: PharmacyRow) => p.status === "approved")
+                .map((p: PharmacyRow): PharmacyWithRawDistance => {
+                    const coords = extractCoordinates(p);
+                    const distanceKm = calculateDistanceKM(lat, lng, coords.lat, coords.lng);
+                    return { ...formatPharmacy(p, distanceKm), rawDistance: distanceKm };
+                })
+                .filter(
+                    (p: PharmacyWithRawDistance) =>
+                        p.lat !== 0 && p.lng !== 0 && p.rawDistance <= radius
+                )
+                .sort(
+                    (a: PharmacyWithRawDistance, b: PharmacyWithRawDistance) =>
+                        a.rawDistance - b.rawDistance
+                )
+                .slice(0, MAX_RESULTS)
+                .map(
+                    ({ rawDistance, ...rest }: PharmacyWithRawDistance): FormattedPharmacy => rest
+                );
+
+            const responseData = { pharmacies };
+
+            res.json(responseData);
+        } catch (err) {
+            next(err);
         }
-
-        const { lat, lng, radius } = result.data;
-
-        // Primary path: PostGIS RPC with server-side radius filtering
-        const { data: rpcData, error: rpcError } = await supabase.rpc("get_nearest_pharmacies", {
-            query_lat: lat,
-            query_lng: lng,
-            search_radius_km: radius,
-        });
-
-        if (!rpcError && rpcData) {
-            const pharmacies: FormattedPharmacy[] = (rpcData as PharmacyRpcResult[])
-                .map((p: PharmacyRpcResult) => ({
-                    name: p.name || "Unknown Pharmacy",
-                    address: p.address || "Unknown Address",
-                    lat: p.lat,
-                    lng: p.lng,
-                    distance: `${Number(p.distance).toFixed(1)} km`,
-                    phone_number: p.phone_number || null,
-                    is_verified: p.is_verified ?? false,
-                    district: p.district || null,
-                    state: p.state || null,
-                }))
-                .slice(0, MAX_RESULTS);
-
-            return res.json({ pharmacies });
-        }
-
-        // Fallback path: Haversine calculation in JavaScript
-        logger.warn("PostGIS RPC failed or unavailable, falling back to Haversine calculation", {
-            error: rpcError?.message,
-            code: rpcError?.code,
-        });
-
-        const { data: allPharmacies, error: fetchError } = await supabase
-            .from("pharmacies")
-            .select("name, address, location, phone_number, is_verified, district, state, status")
-            .eq("status", "approved")
-            .limit(3000);
-
-        if (fetchError) {
-            handleFetchError(fetchError, res);
-            return;
-        }
-
-        const pharmacies: FormattedPharmacy[] = ((allPharmacies || []) as PharmacyRow[])
-            .filter((p: PharmacyRow) => p.status === "approved")
-            .map((p: PharmacyRow): PharmacyWithRawDistance => {
-                const coords = extractCoordinates(p);
-                const distanceKm = calculateDistanceKM(lat, lng, coords.lat, coords.lng);
-                return { ...formatPharmacy(p, distanceKm), rawDistance: distanceKm };
-            })
-            .filter(
-                (p: PharmacyWithRawDistance) =>
-                    p.lat !== 0 && p.lng !== 0 && p.rawDistance <= radius
-            )
-            .sort(
-                (a: PharmacyWithRawDistance, b: PharmacyWithRawDistance) =>
-                    a.rawDistance - b.rawDistance
-            )
-            .slice(0, MAX_RESULTS)
-            .map(({ rawDistance, ...rest }: PharmacyWithRawDistance): FormattedPharmacy => rest);
-
-        res.json({ pharmacies });
-    } catch (err) {
-        next(err);
     }
-});
+);
 
 /**
  * @openapi
@@ -436,6 +490,14 @@ router.get("/nearest", async (req: Request, res: Response, next: NextFunction) =
  *       Returns pharmacies whose location falls inside the given bounding box.
  *       Uses PostGIS ST_Intersects with ST_MakeEnvelope for efficient spatial
  *       queries with automatic fallback to in-memory filtering.
+ *
+ *       When `since` is provided, only pharmacies created or updated after
+ *       that timestamp are returned (delta sync, #2260). This is intended
+ *       for repeat requests over a bounding box the client has already
+ *       synced — e.g. re-fetching after panning back to a previously seen
+ *       area — to avoid re-downloading unchanged records. Deletions are not
+ *       reported by this endpoint; pharmacies are hard-deleted today and
+ *       there is no tombstone mechanism yet.
  *     tags:
  *       - Pharmacies
  *     parameters:
@@ -475,6 +537,15 @@ router.get("/nearest", async (req: Request, res: Response, next: NextFunction) =
  *           maximum: 180
  *         description: Eastern longitude boundary
  *         example: 77.4
+ *       - in: query
+ *         name: since
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: >
+ *           ISO timestamp from a previous response's `syncedAt` field. When
+ *           provided, only pharmacies changed after this time are returned.
  *     responses:
  *       200:
  *         description: List of pharmacies within the bounding box
@@ -488,6 +559,8 @@ router.get("/nearest", async (req: Request, res: Response, next: NextFunction) =
  *                   items:
  *                     type: object
  *                     properties:
+ *                       id:
+ *                         type: string
  *                       name:
  *                         type: string
  *                       address:
@@ -509,6 +582,17 @@ router.get("/nearest", async (req: Request, res: Response, next: NextFunction) =
  *                       state:
  *                         type: string
  *                         nullable: true
+ *                       updated_at:
+ *                         type: string
+ *                         nullable: true
+ *                 syncedAt:
+ *                   type: string
+ *                   description: >
+ *                     Server timestamp to pass back as `since` on the next
+ *                     request to this bounding box.
+ *                 delta:
+ *                   type: boolean
+ *                   description: True if this response only contains changes since `since`.
  *       400:
  *         description: Invalid bounds
  *         content:
@@ -518,90 +602,206 @@ router.get("/nearest", async (req: Request, res: Response, next: NextFunction) =
  *       500:
  *         description: Server or database error
  */
-router.get("/in-bounds", async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const result = boundsQuerySchema.safeParse(req.query);
+router.get(
+    "/in-bounds",
+    limiter,
+    cacheMiddleware(300, 600),
+    async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const result = boundsQuerySchema.safeParse(req.query);
 
-        if (!result.success) {
-            res.status(400).json({
-                error: "Invalid bounds",
-                details: result.error.flatten().fieldErrors,
+            if (!result.success) {
+                res.status(400).json({
+                    error: "Invalid bounds",
+                    details: result.error.flatten().fieldErrors,
+                });
+                return;
+            }
+
+            const { south, west, north, east, limit, offset } = result.data;
+
+            const centerLat = (south + north) / 2;
+            const centerLng = (west + east) / 2;
+
+            // Primary path: PostGIS spatial query via RPC
+            const { data: rpcData, error: rpcError } = await supabase.rpc(
+                "get_pharmacies_in_bounds" as string,
+                {
+                    bound_south: south,
+                    bound_west: west,
+                    bound_north: north,
+                    bound_east: east,
+                    query_limit: limit,
+                    query_offset: offset,
+                }
+            );
+
+            if (!rpcError && rpcData) {
+                const pharmacies: FormattedPharmacy[] = (rpcData as PharmacyRpcResult[])
+                    .map((p: PharmacyRpcResult) => ({
+                        name: p.name || "Unknown Pharmacy",
+                        address: p.address || "Unknown Address",
+                        lat: p.lat,
+                        lng: p.lng,
+                        distance: `${Number(p.distance).toFixed(1)} km`,
+                        phone_number: p.phone_number || null,
+                        is_verified: p.is_verified ?? false,
+                        district: p.district || null,
+                        state: p.state || null,
+                    }))
+                    .slice(0, MAX_RESULTS);
+                return res.json({ pharmacies });
+            }
+
+            // Fallback path: in-memory bounding box filter
+            logger.warn("PostGIS bounds RPC unavailable, falling back to in-memory filter", {
+                error: rpcError?.message,
             });
-            return;
+
+            const { data: allPharmacies, error: fetchError } = await supabase
+                .from("pharmacies")
+                .select(
+                    "name, address, location, phone_number, is_verified, district, state, status"
+                )
+                .eq("status", "approved")
+                .limit(3000);
+
+            if (fetchError) {
+                handleFetchError(fetchError, res);
+                return;
+            }
+
+            const pharmacies: FormattedPharmacy[] = ((allPharmacies || []) as PharmacyRow[])
+                .filter((p: PharmacyRow) => p.status === "approved")
+                .map((p: PharmacyRow) => {
+                    const coords = extractCoordinates(p);
+                    const distanceKm = calculateDistanceKM(
+                        centerLat,
+                        centerLng,
+                        coords.lat,
+                        coords.lng
+                    );
+                    return { ...formatPharmacy(p, distanceKm), coords };
+                })
+                .filter(
+                    (p) =>
+                        p.coords.lat !== 0 &&
+                        p.coords.lng !== 0 &&
+                        p.coords.lat >= south &&
+                        p.coords.lat <= north &&
+                        p.coords.lng >= west &&
+                        p.coords.lng <= east
+                )
+                .slice(0, MAX_RESULTS)
+                .map(({ coords, ...rest }) => rest);
+
+            res.json({ pharmacies });
+        } catch (err) {
+            next(err);
         }
-
-        const { south, west, north, east } = result.data;
-
-        const centerLat = (south + north) / 2;
-        const centerLng = (west + east) / 2;
-
-        // Primary path: PostGIS spatial query via RPC
-        const { data: rpcData, error: rpcError } = await supabase.rpc(
-            "get_pharmacies_in_bounds" as string,
-            { bound_south: south, bound_west: west, bound_north: north, bound_east: east }
-        );
-
-        if (!rpcError && rpcData) {
-            const pharmacies: FormattedPharmacy[] = (rpcData as PharmacyRpcResult[])
-                .map((p: PharmacyRpcResult) => ({
-                    name: p.name || "Unknown Pharmacy",
-                    address: p.address || "Unknown Address",
-                    lat: p.lat,
-                    lng: p.lng,
-                    distance: `${Number(p.distance).toFixed(1)} km`,
-                    phone_number: p.phone_number || null,
-                    is_verified: p.is_verified ?? false,
-                    district: p.district || null,
-                    state: p.state || null,
-                }))
-                .slice(0, MAX_RESULTS);
-            return res.json({ pharmacies });
-        }
-
-        // Fallback path: in-memory bounding box filter
-        logger.warn("PostGIS bounds RPC unavailable, falling back to in-memory filter", {
-            error: rpcError?.message,
-        });
-
-        const { data: allPharmacies, error: fetchError } = await supabase
-            .from("pharmacies")
-            .select("name, address, location, phone_number, is_verified, district, state, status")
-            .eq("status", "approved")
-            .limit(3000);
-
-        if (fetchError) {
-            handleFetchError(fetchError, res);
-            return;
-        }
-
-        const pharmacies: FormattedPharmacy[] = ((allPharmacies || []) as PharmacyRow[])
-            .filter((p: PharmacyRow) => p.status === "approved")
-            .map((p: PharmacyRow) => {
-                const coords = extractCoordinates(p);
-                const distanceKm = calculateDistanceKM(
-                    centerLat,
-                    centerLng,
-                    coords.lat,
-                    coords.lng
-                );
-                return { ...formatPharmacy(p, distanceKm), coords };
-            })
-            .filter(
-                (p) =>
-                    p.coords.lat !== 0 &&
-                    p.coords.lng !== 0 &&
-                    p.coords.lat >= south &&
-                    p.coords.lat <= north &&
-                    p.coords.lng >= west &&
-                    p.coords.lng <= east
-            )
-            .slice(0, MAX_RESULTS)
-            .map(({ coords, ...rest }) => rest);
-
-        res.json({ pharmacies });
-    } catch (err) {
-        next(err);
     }
-});
+);
+router.post(
+    "/bulk-upload",
+    requireAuth,
+    async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            if (!req.user) {
+                res.status(401).json({ error: "Unauthorized access" });
+                return;
+            }
 
+            const { fileContent } = req.body;
+            if (!fileContent || typeof fileContent !== "string") {
+                res.status(400).json({ error: "No valid file data content provided." });
+                return;
+            }
+
+            const { data: pharmacy, error: pharmError } = await supabase
+                .from("pharmacies")
+                .select("id")
+                .eq("created_by", req.user.id)
+                .maybeSingle();
+
+            if (pharmError || !pharmacy) {
+                res.status(404).json({
+                    error: "No registered pharmacy found for this authorized user.",
+                });
+                return;
+            }
+
+            const lines = fileContent
+                .split(/\r?\n/)
+                .map((line) => line.trim())
+                .filter(Boolean);
+            if (lines.length <= 1) {
+                res.status(400).json({ error: "The file appears empty or is missing rows." });
+                return;
+            }
+
+            if (lines.length > 501) {
+                res.status(400).json({
+                    error: "Bulk upload exceeds the maximum limit of 500 items per request.",
+                });
+                return;
+            }
+
+            const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+            const rowsToInsert: any[] = [];
+            const failedRows: Array<{ row: number; reason: string }> = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i]
+                    .split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)
+                    .map((v) => v.replace(/^"|"$/g, "").trim());
+
+                const rowData: Record<string, any> = {};
+                headers.forEach((header, index) => {
+                    // Safe guard indexing length bounds gracefully
+                    const val = values[index];
+                    rowData[header] = val === "" || val === undefined ? undefined : val;
+                });
+
+                const validationResult = inventoryRowSchema.safeParse(rowData);
+                if (!validationResult.success) {
+                    const errorMessage = validationResult.error.issues
+                        .map((e: { message: string }) => e.message)
+                        .join(", ");
+                    failedRows.push({ row: i + 1, reason: errorMessage });
+                    continue;
+                }
+
+                rowsToInsert.push({
+                    pharmacy_id: pharmacy.id,
+                    medicine_name: validationResult.data.medicine_name,
+                    batch_number: validationResult.data.batch_number,
+                    expiry_date: validationResult.data.expiry_date,
+                    quantity: validationResult.data.quantity,
+                    mrp: validationResult.data.mrp,
+                });
+            }
+
+            let successfulInserts = 0;
+            if (rowsToInsert.length > 0) {
+                const { error } = await supabase.from("pharmacy_inventory").insert(rowsToInsert);
+                if (error) {
+                    logger.error(`Database bulk insertion failed: ${error.message}`);
+                    res.status(500).json({ error: "Database operation failed during insertion." });
+                    return;
+                }
+                successfulInserts = rowsToInsert.length;
+            }
+
+            res.status(200).json({
+                totalRows: lines.length - 1,
+                successCount: successfulInserts,
+                failedCount: failedRows.length,
+                errors: failedRows,
+            });
+        } catch (error: any) {
+            logger.error(`Exception in bulk operations handler: ${error.message}`);
+            next(error);
+        }
+    }
+);
 export default router;

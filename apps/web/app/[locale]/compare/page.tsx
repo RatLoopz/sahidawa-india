@@ -14,6 +14,7 @@ import { COMPARE_SELECT_FIELDS } from "@/src/lib/compareSelectFields";
 import { supabase } from "@/lib/supabase";
 import { mapMedicineRow } from "@/src/lib/mapMedicineRow";
 import { API_BASE } from "@/lib/api";
+import { buildMedicineNameSearchFilter } from "@/lib/supabase/medicineSearch";
 
 type InteractionSeverity = "High Risk" | "Moderate" | "Safe";
 
@@ -30,15 +31,13 @@ type InteractionWarning = {
 };
 
 async function searchMedicines(query: string): Promise<Medicine[]> {
-    // Strip double quotes to prevent breaking the PostgREST filter structure in the .or() builder
-    const q = query.replace(/"/g, "").trim();
-    if (q.length < 2) return [];
+    const filter = buildMedicineNameSearchFilter(query);
+    if (!filter) return [];
 
-    const pattern = `%${q.replace(/[%_\\]/g, "\\$&")}%`;
     const { data, error } = await supabase
         .from("medicines")
         .select(COMPARE_SELECT_FIELDS)
-        .or(`brand_name.ilike."${pattern}",generic_name.ilike."${pattern}"`)
+        .or(filter)
         .limit(25);
 
     if (error) {

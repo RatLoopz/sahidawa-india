@@ -120,17 +120,24 @@ export async function submitReport(
     });
 }
 
+type GeocodeResult = {
+    latitude: number;
+    longitude: number;
+    city?: string;
+    state?: string;
+};
+
 export async function geocodePincode(
     pincode: string,
     signal?: AbortSignal
-): Promise<{ latitude: number; longitude: number } | null> {
+): Promise<GeocodeResult | null> {
     if (typeof window !== "undefined" && !window.navigator.onLine) {
         return null;
     }
     try {
         const url =
             `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(pincode)}` +
-            `&country=IN&format=json&limit=1`;
+            `&country=IN&format=json&addressdetails=1&limit=1`;
 
         let abortSignal = signal;
         if (!abortSignal) {
@@ -142,15 +149,32 @@ export async function geocodePincode(
             signal: abortSignal,
         });
         if (!r.ok) return null;
-        const arr = (await r.json()) as Array<{
+        type NominatimResult = {
             lat: string;
             lon: string;
-        }>;
+            address: {
+                city?: string;
+                town?: string;
+                village?: string;
+                municipality?: string;
+                county?: string;
+                state?: string;
+            };
+        };
+        const arr = (await r.json()) as NominatimResult[];
         if (!arr.length) return null;
-        const lat = parseFloat(arr[0].lat);
-        const lng = parseFloat(arr[0].lon);
+        const entry = arr[0];
+        const lat = parseFloat(entry.lat);
+        const lng = parseFloat(entry.lon);
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-        return { latitude: lat, longitude: lng };
+        const city =
+            entry.address?.city ??
+            entry.address?.town ??
+            entry.address?.village ??
+            entry.address?.municipality ??
+            entry.address?.county;
+        const state = entry.address?.state;
+        return { latitude: lat, longitude: lng, city, state };
     } catch (error) {
         if (typeof window !== "undefined") {
             console.warn(
@@ -202,6 +226,7 @@ export type VerifyResult =
       };
 
 export type VerifiedPharmacy = {
+    id?: string;
     name: string;
     address: string;
     lat: number;
@@ -211,6 +236,9 @@ export type VerifiedPharmacy = {
     is_verified: boolean;
     district: string | null;
     state: string | null;
+    updated_at?: string;
+    is_active?: boolean;
+    deleted_at?: string | null;
 };
 
 export async function fetchVerifiedPharmacies(
@@ -232,23 +260,66 @@ export async function fetchVerifiedPharmacies(
     }
 }
 
+/**
+ * Response shape for fetchVerifiedPharmaciesInBounds.
+ *
+ * `syncedAt` is the server's timestamp for this response — store it (per
+ * bounding-box / region key) and pass it back as `since` on the next call
+ * to the same area to fetch only what changed (delta sync, #2260).
+ *
+ * `delta` is true when the response only contains changes since `since`
+ * (i.e. the caller passed one and the server honoured it). When false, the
+ * `pharmacies` array is the full result set for the bounds — callers should
+ * replace their local cache for that area rather than merge.
+ *
+ * Note: deletions are not reported. Pharmacies are hard-deleted today with
+ * no tombstone mechanism, so a delta response cannot tell you a previously
+ * seen pharmacy was removed. This is a known gap, not an oversight — see
+ * the PR description for #2260.
+ */
+export type PharmaciesInBoundsResult = {
+    pharmacies: VerifiedPharmacy[];
+    syncedAt: string;
+    delta: boolean;
+    fromNetwork: boolean;
+};
+
 export async function fetchVerifiedPharmaciesInBounds(
     south: number,
     west: number,
     north: number,
     east: number,
+    since?: string | number | Date,
     signal?: AbortSignal
-): Promise<VerifiedPharmacy[]> {
+): Promise<PharmaciesInBoundsResult> {
+    const fallback: PharmaciesInBoundsResult = {
+        pharmacies: [],
+        syncedAt: new Date().toISOString(),
+        delta: false,
+        fromNetwork: false,
+    };
     try {
-        const res = await fetchWithRetry(
-            `${API_BASE}/api/pharmacies/in-bounds?south=${south}&west=${west}&north=${north}&east=${east}`,
-            { timeout: 8000, signal }
-        );
-        if (!res.ok) return [];
+        let url = `${API_BASE}/api/pharmacies/in-bounds?south=${south}&west=${west}&north=${north}&east=${east}`;
+        if (since) {
+            const sinceParam =
+                since instanceof Date
+                    ? since.toISOString()
+                    : typeof since === "number"
+                      ? new Date(since).toISOString()
+                      : since;
+            url += `&since=${encodeURIComponent(sinceParam)}`;
+        }
+        const res = await fetchWithRetry(url, { timeout: 8000, signal });
+        if (!res.ok) return fallback;
         const body = await res.json();
-        return body.pharmacies ?? [];
+        return {
+            pharmacies: body.pharmacies ?? [],
+            syncedAt: body.syncedAt ?? fallback.syncedAt,
+            delta: Boolean(body.delta),
+            fromNetwork: true,
+        };
     } catch {
-        return [];
+        return fallback;
     }
 }
 
@@ -387,14 +458,61 @@ export interface LasaCheckResult {
     matches: LasaMatch[];
 }
 
+const lasaCache = new Map<string, LasaCheckResult>();
+const inFlightRequests = new Map<string, Promise<LasaCheckResult>>();
+const MAX_CACHE_SIZE = 100;
+
+function setCachedLasa(key: string, value: LasaCheckResult): void {
+    if (lasaCache.size >= MAX_CACHE_SIZE) {
+        const oldestKey = lasaCache.keys().next().value;
+        if (oldestKey !== undefined) {
+            lasaCache.delete(oldestKey);
+        }
+    }
+    lasaCache.set(key, value);
+}
+
 export async function checkLasaConflicts(
     medicineName: string,
     signal?: AbortSignal
 ): Promise<LasaCheckResult> {
-    return fetchWithCsrf<LasaCheckResult>(`${API_BASE}/api/v1/lasa/check`, {
-        method: "POST",
-        body: JSON.stringify({ medicineName }),
-        timeout: 8000,
-        signal,
-    });
+    const query = medicineName.trim();
+    if (query.length < 2) {
+        return { hasConflicts: false, matches: [] };
+    }
+
+    const cacheKey = query.toLowerCase();
+
+    // Check if we have a cached entry
+    const cached = lasaCache.get(cacheKey);
+
+    // If there is an in-flight request, we can reuse its promise
+    let promise = inFlightRequests.get(cacheKey);
+    if (!promise) {
+        promise = fetchWithCsrf<LasaCheckResult>(`${API_BASE}/api/v1/lasa/check`, {
+            method: "POST",
+            body: JSON.stringify({ medicineName: query }),
+            timeout: 8000,
+            signal,
+        })
+            .then((data) => {
+                setCachedLasa(cacheKey, data);
+                return data;
+            })
+            .finally(() => {
+                inFlightRequests.delete(cacheKey);
+            });
+        inFlightRequests.set(cacheKey, promise);
+    }
+
+    if (cached) {
+        // Stale-While-Revalidate: return cached data instantly
+        // and let the in-flight revalidation promise run in the background.
+        // Catch errors silently to prevent unhandled promise rejections.
+        promise.catch(() => {});
+        return cached;
+    }
+
+    // Otherwise, wait for the network request to complete
+    return promise;
 }
