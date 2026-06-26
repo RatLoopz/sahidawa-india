@@ -675,7 +675,10 @@ router.get("/in-bounds", async (req: Request, res: Response, next: NextFunction)
             .from("pharmacies")
             .select("name, address, location, phone_number, is_verified, district, state, status")
             .eq("status", "approved")
-            .limit(3000);
+            .gte("latitude", south)
+            .lte("latitude", north)
+            .gte("longitude", west)
+            .lte("longitude", east);
 
         if (fetchError) {
             handleFetchError(fetchError, res);
@@ -694,15 +697,7 @@ router.get("/in-bounds", async (req: Request, res: Response, next: NextFunction)
                 );
                 return { ...formatPharmacy(p, distanceKm), coords };
             })
-            .filter(
-                (p) =>
-                    p.coords.lat !== 0 &&
-                    p.coords.lng !== 0 &&
-                    p.coords.lat >= south &&
-                    p.coords.lat <= north &&
-                    p.coords.lng >= west &&
-                    p.coords.lng <= east
-            )
+            .filter((p) => p.coords.lat !== 0 && p.coords.lng !== 0)
             .slice(0, MAX_RESULTS)
             .map(({ coords, ...rest }) => rest);
 
