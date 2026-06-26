@@ -8,6 +8,10 @@ import { warmCache } from "./services/cache.service";
 
 const port = process.env.PORT || 4000;
 
+if (process.env.NODE_ENV === "production" && process.env.VERIFY_ENABLE_MOCKS === "true") {
+    throw new Error("FATAL: VERIFY_ENABLE_MOCKS must not be enabled in production.");
+}
+
 if (process.env.NODE_ENV !== "test") {
     const server = app.listen(port, async () => {
         logger.info(`SahiDawa API is running at http://localhost:${port}`);
