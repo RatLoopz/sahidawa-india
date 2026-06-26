@@ -8,6 +8,8 @@ import {
     computeReportHash,
     anonymizeIp,
 } from "../services/reportValidation.service";
+import { triggerRecallAlert } from "../services/notifications";
+import logger from "../utils/logger";
 
 const reportsRouter = Router();
 
@@ -260,7 +262,11 @@ reportsRouter.patch(
             }
 
             // --- DISTRICT ALERT LOGIC ---
-            if (status === "verified_fake" && data.district) {
+            // Alerts are keyed by (district, medicine_name), not district alone —
+            // a district with fake reports on multiple medicines gets one alert
+            // row per medicine, instead of the most recent upsert silently
+            // overwriting any prior alert for a different medicine in that district.
+            if (status === "verified_fake" && data.district && data.reported_brand_name) {
                 const { count } = await supabase
                     .from("counterfeit_reports")
                     .select("*", { count: "exact", head: true })
@@ -270,14 +276,67 @@ reportsRouter.patch(
 
                 if (count && count >= 5) {
                     const alertLevel = count >= 15 ? "high" : "medium";
-                    await supabase.from("district_alerts").upsert(
-                        {
+
+                    // Fetch the existing alert (if any) for this district+medicine
+                    // pair first, so we only fire a push notification on genuine
+                    // creation or escalation — not on every redundant upsert when
+                    // the level hasn't actually changed.
+                    const { data: existingAlert } = await supabase
+                        .from("district_alerts")
+                        .select("alert_level")
+                        .eq("district", data.district)
+                        .eq("medicine_name", data.reported_brand_name)
+                        .maybeSingle();
+
+                    const previousAlertLevel = existingAlert?.alert_level ?? null;
+                    const isNewOrEscalated = !existingAlert || previousAlertLevel !== alertLevel;
+
+                    const { data: upsertedAlert, error: alertError } = await supabase
+                        .from("district_alerts")
+                        .upsert(
+                            {
+                                district: data.district,
+                                medicine_name: data.reported_brand_name,
+                                alert_level: alertLevel,
+                                previous_alert_level: previousAlertLevel,
+                                broadcasted: false,
+                                updated_at: new Date().toISOString(),
+                            },
+                            { onConflict: "district,medicine_name" }
+                        )
+                        .select()
+                        .single();
+
+                    if (alertError) {
+                        logger.error({
+                            message: "Failed to upsert district alert",
+                            error: alertError,
                             district: data.district,
-                            medicine_name: data.reported_brand_name,
-                            alert_level: alertLevel,
-                        },
-                        { onConflict: "district" }
-                    );
+                            medicineName: data.reported_brand_name,
+                        });
+                    } else if (isNewOrEscalated && upsertedAlert) {
+                        // Fire-and-log: a push delivery failure should not fail
+                        // the admin's status-update request.
+                        try {
+                            await triggerRecallAlert({
+                                id: String(upsertedAlert.id),
+                                medicineName: data.reported_brand_name,
+                                reason:
+                                    `${count} verified counterfeit reports of ` +
+                                    `${data.reported_brand_name} confirmed in ${data.district}.`,
+                                severity: alertLevel === "high" ? "critical" : "medium",
+                                source: "SahiDawa Citizen Reports",
+                                recalledAt: new Date().toISOString(),
+                            });
+                        } catch (pushErr) {
+                            logger.error({
+                                message: "Failed to trigger push notification for district alert",
+                                error: pushErr,
+                                district: data.district,
+                                medicineName: data.reported_brand_name,
+                            });
+                        }
+                    }
                 }
             }
 
