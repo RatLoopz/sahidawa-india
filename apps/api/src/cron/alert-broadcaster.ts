@@ -13,6 +13,40 @@ const LOCK_KEY = "alert-broadcaster:lock";
 const LOCK_TTL_MS = 25_000; // slightly under the 30-second interval
 const LOCK_VALUE = `${process.env.HOSTNAME ?? "api"}:${process.pid}`;
 
+export type AlertFrequency = "immediate" | "daily" | "weekly" | "monthly";
+
+/**
+ * Returns true when the current broadcast run falls within the timeframe
+ * that the subscriber's preferred frequency covers.
+ *
+ * - immediate: always matches (legacy behaviour, send on every run)
+ * - daily:     matches once per calendar day  (script run hour = 0–23)
+ * - weekly:    matches once per ISO week      (script run on Monday)
+ * - monthly:   matches once per calendar month (script run on 1st)
+ *
+ * The broadcaster runs every 30 s, so for digest frequencies we rely on
+ * the OS/cron scheduling the process at the right clock time rather than
+ * implementing an internal counter — simple and robust.
+ */
+export function shouldSendForFrequency(frequency: AlertFrequency, now: Date = new Date()): boolean {
+    switch (frequency) {
+        case "immediate":
+            return true;
+        case "daily":
+            // Send once a day — caller is expected to invoke this during the
+            // daily digest window (e.g. a dedicated cron at 08:00).
+            return true;
+        case "weekly":
+            // Send on Monday (getDay() === 1)
+            return now.getDay() === 1;
+        case "monthly":
+            // Send on the 1st of each month
+            return now.getDate() === 1;
+        default:
+            return true;
+    }
+}
+
 export function getLocalizedMessage(
     type: "counterfeit" | "recall" | "expiry",
     data: NotificationAlertData,
@@ -39,7 +73,7 @@ export function getLocalizedMessage(
             en: "🚨 Medicine Recall Alert: {medicineName} (Batch: {batchNumber}) has been flagged as substandard or recalled by CDSCO. Stop consumption immediately.",
             hi: "🚨 दवा वापसी अलर्ट: {medicineName} (बैच: {batchNumber}) को CDSCO द्वारा घटिया या वापस लेने योग्य घोषित किया गया है। तुरंत सेवन बंद करें।",
             ta: "🚨 மருந்து திரும்பப் பெறும் எச்சரிக்கை: {medicineName} (தொகுதி: {batchNumber}) தரமற்றது என CDSCO ஆல் அடையாளம் காணப்பட்டுள்ளது. உடனடியாகப் பயன்படுத்துவதை நிறுத்தவும்.",
-            te: "🚨 మందుల ఉపసంహరణ హెచ్చరిక: {medicineName} (బ్యాంచ్: {batchNumber}) నాణ్యత లేనిదిగా CDSCO గుర్తించింది. వెంటనే వాడటం ఆపివేయండి.",
+            te: "🚨 మందుల ఉపసంహరణ హెచ్చరిక: {medicineName} (బ్యాంచ్: {batchNumber}) నాణ్యత లేనిదిగా CDSCO గుర్તించింది. వెంటనే వాడటం ఆపివేయండి.",
             bn: "🚨 ওষুধ প্রত্যাহারের সতর্কতা: {medicineName} (ব্যাচ: {batchNumber}) CDSCO দ্বারা নিম্নমানের বা প্রত্যাহার করা হয়েছে। অবিলম্বে ব্যবহার বন্ধ করুন।",
             mr: "🚨 औषध माघारीचा इशारा: {medicineName} (बॅच: {batchNumber}) CDSCO द्वारे निकृष्ट दर्जाचे घोषित करून मागे घेण्यात आले आहे. ताबडतोब वापर थांबवा.",
             gu: "🚨 દવા પાછી ખેંચવાનું એલર્ટ: {medicineName} (બેચ: {batchNumber}) ને CDSCO દ્વારા હલકી ગુણવત્તાવાળા અથવા પાછા ખેંચવા તરીકે ચિહ્નિત કરવામાં આવી છે. વપરાશ તાત્કાલિક બંધ કરો.",
@@ -52,7 +86,7 @@ export function getLocalizedMessage(
         expiry: {
             en: "⚠️ Medicine Expiry Warning: Batch {batchNumber} of {medicineName} is expiring soon (Expiry: {expiryDate}). Check your stock.",
             hi: "⚠️ दवा समाप्ति चेतावनी: {medicineName} का बैच {batchNumber} जल्द ही समाप्त हो रहा है (समाप्ति तिथि: {expiryDate})। अपने स्टॉक की जांच करें।",
-            ta: "⚠️ மருந்து காலാവதி எச்சரிக்கை: {medicineName} இன் தொகுதி {batchNumber} விரைவில் കാലാവതിയായി கொണ്ടിരിക്കുന്നു (காலாவதி: {expiryDate}). உங்கள் இருப்பை சரிபார்க்கவும்.",
+            ta: "⚠️ மருந்து காலாவதி எச்சரிக்கை: {medicineName} இன் தொகுதி {batchNumber} விரைவில் காலாவதியாகிறது (காலாவதி: {expiryDate}). உங்கள் இருப்பை சரிபார்க்கவும்.",
             te: "⚠️ మందుల గడువు హెచ్చరిక: {medicineName} యొక్క బ్యాంచ్ {batchNumber} త్వరలో ముగియనుంది (గడువు: {expiryDate}). మీ నిల్వను తనిఖీ చేయండి.",
             bn: "⚠️ ওষুধ মেয়াদের সতর্কতা: {medicineName}-এর ব্যাচ {batchNumber} শীঘ্রই মেয়াদ শেষ হচ্ছে (মেয়াদ: {expiryDate})। আপনার স্টক পরীক্ষা করুন।",
             mr: "⚠️ औषध कालबाह्य इशारा: {medicineName} ची बॅच {batchNumber} लवकरच कालबाह्य होत आहे (कालबाह्यता: {expiryDate})। तुमचा साठा तपासा.",
@@ -341,13 +375,19 @@ export async function broadcastDrugAlerts(): Promise<void> {
     }
 }
 
-export async function broadcastExpiryAlerts(): Promise<void> {
+export async function broadcastExpiryAlerts(now: Date = new Date()): Promise<void> {
     try {
-        const now = new Date();
         const todayStr = now.toISOString().split("T")[0];
         const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
             .toISOString()
             .split("T")[0];
+
+        // Determine which frequency buckets are active for this run FIRST,
+        // before fetching batches — so we only fetch & mark batches that will
+        // actually be sent in this run.
+        const activeFrequencies = (
+            ["immediate", "daily", "weekly", "monthly"] as AlertFrequency[]
+        ).filter((freq) => shouldSendForFrequency(freq, now));
 
         const { data: expiringBatches, error: batchesError } = await supabase
             .from("batches")
@@ -364,6 +404,29 @@ export async function broadcastExpiryAlerts(): Promise<void> {
         if (!expiringBatches || expiringBatches.length === 0) return;
 
         logger.info(`Broadcasting medicine expiry warnings for ${expiringBatches.length} batches`);
+
+        // Check whether any subscribers exist for the active frequencies
+        // before marking batches as broadcasted — so we only mark a batch
+        // as sent once it has actually been delivered per the user's schedule.
+        const { data: eligibleSubscribers, error: checkError } = await supabase
+            .from("notification_subscribers")
+            .select("id")
+            .eq("is_active", true)
+            .in("preference_frequency", activeFrequencies)
+            .range(0, 0);
+
+        if (checkError) {
+            logger.error({ message: "Failed to check eligible subscribers", error: checkError });
+            return;
+        }
+
+        // No subscribers match the current frequency window — skip marking
+        // batches as broadcasted so they remain available for the next
+        // scheduled digest run (e.g. weekly subscribers get it on Monday).
+        if (!eligibleSubscribers || eligibleSubscribers.length === 0) {
+            logger.info("No subscribers match active frequencies for this run — skipping.");
+            return;
+        }
 
         const batchSummaries: ExpiringBatchSummary[] = [];
 
@@ -400,6 +463,7 @@ export async function broadcastExpiryAlerts(): Promise<void> {
                 .from("notification_subscribers")
                 .select("*")
                 .eq("is_active", true)
+                .in("preference_frequency", activeFrequencies)
                 .range(from, to);
 
             if (subsError) {

@@ -4,52 +4,15 @@ import { detectEmergencyKeywords } from "@/lib/voice/emergency";
 import { rateLimit } from "@/lib/rateLimit";
 import { BASE_PROMPT } from "@/lib/chatPrompts";
 import { structuredLog } from "@/lib/structuredLogger";
-import { ChatRoles, ChatRole } from "@/lib/constants";
-import { get_encoding } from "tiktoken";
+import { ChatRoles, ChatRole, ChatMessage } from "@/lib/constants";
 import crypto from "crypto";
 
-export function trimHistoryByTokens(
-    messages: ChatMessage[],
-    maxTokens: number
-): { trimmedMessages: ChatMessage[]; droppedMessages: ChatMessage[] } {
-    try {
-        const enc = get_encoding("cl100k_base");
-        const trimmed: ChatMessage[] = [];
-        const dropped: ChatMessage[] = [];
-        let currentTokens = 0;
-
-        for (let i = messages.length - 1; i >= 0; i--) {
-            const msg = messages[i];
-            const text = msg.text || msg.content || "";
-            const tokens = enc.encode(text).length;
-            const msgTokens = tokens + 4; // overhead buffer
-
-            if (currentTokens + msgTokens > maxTokens && trimmed.length > 0) {
-                dropped.unshift(msg);
-                continue;
-            }
-
-            currentTokens += msgTokens;
-            trimmed.unshift(msg);
-        }
-
-        enc.free();
-        return { trimmedMessages: trimmed, droppedMessages: dropped };
-    } catch (e) {
-        return { trimmedMessages: messages.slice(-50), droppedMessages: [] };
-    }
-}
+import { trimHistoryByTokens } from "@/lib/chatUtils";
 
 const summaryCache = new Map<string, string>();
 
 const DEFAULT_DISCLAIMER =
     "This guidance is for informational use only and is not a diagnosis. Consult a doctor or pharmacist, especially for severe or persistent symptoms.";
-
-type ChatMessage = {
-    text?: string;
-    content?: string;
-    role?: ChatRole | string;
-};
 
 type VoiceTriageResponse = {
     text: string;
@@ -222,7 +185,9 @@ export async function POST(req: Request) {
         const MAX_MESSAGE_CHARS = 2000;
         const MAX_TOKENS = 3000; // Safe limit for standard context + response
         const recentMessages = messages.slice(-MAX_MESSAGES);
-        let { trimmedMessages, droppedMessages } = trimHistoryByTokens(recentMessages, MAX_TOKENS);
+        const history = trimHistoryByTokens(recentMessages, MAX_TOKENS);
+        let trimmedMessages = history.trimmedMessages;
+        const droppedMessages = history.droppedMessages;
 
         for (const msg of trimmedMessages) {
             const text = msg.text || msg.content || "";

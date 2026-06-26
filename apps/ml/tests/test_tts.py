@@ -22,10 +22,10 @@ def test_prune_cache_by_file_count(monkeypatch):
         monkeypatch.setattr("routers.tts.MAX_CACHE_FILES", 3)
         monkeypatch.setattr("routers.tts.MAX_CACHE_SIZE_MB", 100)
         
-        file1 = mock_cache_dir / "test_1.mp3"
-        file2 = mock_cache_dir / "test_2.mp3"
-        file3 = mock_cache_dir / "test_3.mp3"
-        file4 = mock_cache_dir / "test_4.mp3"
+        file1 = mock_cache_dir / "test_1.mp3.gz"
+        file2 = mock_cache_dir / "test_2.mp3.gz"
+        file3 = mock_cache_dir / "test_3.mp3.gz"
+        file4 = mock_cache_dir / "test_4.mp3.gz"
         
         file1.write_bytes(b"a" * 10)
         time.sleep(0.01)
@@ -51,9 +51,9 @@ def test_prune_cache_by_size(monkeypatch):
         monkeypatch.setattr("routers.tts.MAX_CACHE_FILES", 100)
         monkeypatch.setattr("routers.tts.MAX_CACHE_SIZE_MB", 0.00003)
         
-        file1 = mock_cache_dir / "test_size_1.mp3"
-        file2 = mock_cache_dir / "test_size_2.mp3"
-        file3 = mock_cache_dir / "test_size_3.mp3"
+        file1 = mock_cache_dir / "test_size_1.mp3.gz"
+        file2 = mock_cache_dir / "test_size_2.mp3.gz"
+        file3 = mock_cache_dir / "test_size_3.mp3.gz"
         
         file1.write_bytes(b"a" * 15)
         time.sleep(0.01)

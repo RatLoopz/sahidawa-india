@@ -6,7 +6,6 @@ import { PageHeader } from "../components/PageHeader";
 import MedicineSearchSelect from "@/src/components/MedicineSearchSelect";
 import { fetchGenericAlternatives, type GenericAlternative } from "@/lib/api/alternatives";
 import { supabase } from "@/lib/supabase";
-import { escapePostgrest } from "@/lib/supabase/utils";
 import type { Medicine } from "@/src/components/ComparisonGrid";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { Pill, AlertCircle, DollarSign, Calendar, MapPin, ArrowRight } from "lucide-react";

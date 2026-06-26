@@ -21,6 +21,7 @@ export default function Navbar() {
     const pathname = usePathname();
     const router = useRouter();
     const tHome = useTranslations("Home");
+    const tNavbar = useTranslations("Navbar");
     const { session, isLoading: authLoading } = useSession();
 
     const supabase = useMemo(() => createBrowserClient(getSupabaseUrl(), getSupabaseAnonKey()), []);
@@ -98,8 +99,8 @@ export default function Navbar() {
                         <Link href="/" className="flex min-w-0 items-center gap-1.5 sm:gap-2">
                             <Image
                                 src="/icons/sahidawa-logo.png"
-                                alt="SahiDawa Logo"
-                                aria-label="SahiDawa Logo"
+                                alt={tNavbar("logo_alt")}
+                                aria-label={tNavbar("logo_alt")}
                                 className="h-8 w-8 shrink-0 object-contain sm:h-10 sm:w-10"
                                 width={40}
                                 height={40}

@@ -11,7 +11,7 @@ import { uploadRateLimiter } from "../middleware/uploadRateLimit";
 import { scanQueryLimiter } from "../middleware/rateLimit";
 import { redisClient } from "../utils/redis";
 
-import { escapeIlike, escapePostgrest } from "../utils/db";
+import { escapeIlike, escapePostgrest, buildOrConditions } from "../utils/db";
 
 const router = Router();
 
@@ -371,12 +371,7 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
 
                 if (searchWords.length > 0) {
                     // Build OR filter: brand_name ILIKE any word OR generic_name ILIKE any word
-                    const orFilter = searchWords
-                        .map((w) => {
-                            const safe = escapeIlike(w);
-                            return `brand_name.ilike."%${safe}%",generic_name.ilike."%${safe}%"`;
-                        })
-                        .join(",");
+                    const orFilter = buildOrConditions(["brand_name", "generic_name"], searchWords);
 
                     const { data: dbMedicines, error: dbError } = await supabase
                         .from("medicines")
@@ -673,12 +668,7 @@ router.post("/match", scanQueryLimiter, async (req: Request, res: Response) => {
                 .split(/\s+/)
                 .filter((w: string) => w.length > 2);
             if (words.length > 1) {
-                const orConditions = words
-                    .map(
-                        (w: string) =>
-                            `brand_name.ilike."%${escapePostgrest(w)}%",generic_name.ilike."%${escapePostgrest(w)}%"`
-                    )
-                    .join(",");
+                const orConditions = buildOrConditions(["brand_name", "generic_name"], words);
 
                 const { data: fallback } = await supabase
                     .from("medicines")

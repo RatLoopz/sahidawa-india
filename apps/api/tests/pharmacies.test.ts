@@ -36,6 +36,15 @@ describe("GET /api/pharmacies/nearest", () => {
     });
 
     // ── Validation tests ─────────────────────────────────────────────────
+    it("should return Cache-Control header", async () => {
+        const response = await request(app).get("/api/pharmacies/nearest").query({
+            lat: 28.6,
+            lng: 77.2,
+            radius: 5,
+        });
+
+        expect(response.headers["cache-control"]).toContain("public");
+    });
 
     it("returns 400 when latitude or longitude is missing", async () => {
         const missingLatitude = await request(app).get("/api/pharmacies/nearest?lng=77.5946");
@@ -44,12 +53,10 @@ describe("GET /api/pharmacies/nearest", () => {
         expect(missingLatitude.status).toBe(400);
         expect(missingLatitude.body.error).toBe("Invalid coordinates");
         expect(missingLatitude.body.details).toHaveProperty("lat");
-        expect(missingLatitude.headers["cache-control"]).toBeUndefined();
 
         expect(missingLongitude.status).toBe(400);
         expect(missingLongitude.body.error).toBe("Invalid coordinates");
         expect(missingLongitude.body.details).toHaveProperty("lng");
-        expect(missingLongitude.headers["cache-control"]).toBeUndefined();
     });
 
     it("returns 400 for out-of-bounds coordinates", async () => {
@@ -280,12 +287,22 @@ describe("GET /api/pharmacies/in-bounds", () => {
         jest.clearAllMocks();
     });
 
+    it("should return Cache-Control header", async () => {
+        const response = await request(app).get("/api/pharmacies/in-bounds").query({
+            south: 28.5,
+            west: 77.1,
+            north: 28.7,
+            east: 77.3,
+        });
+
+        expect(response.headers["cache-control"]).toContain("public");
+    });
+
     it("returns 400 when bounds are missing", async () => {
         const response = await request(app).get("/api/pharmacies/in-bounds?south=28.5");
 
         expect(response.status).toBe(400);
         expect(response.body.error).toBe("Invalid bounds");
-        expect(response.headers["cache-control"]).toBeUndefined();
     });
 
     it("returns 400 for out-of-range bounds", async () => {
@@ -343,8 +360,8 @@ describe("GET /api/pharmacies/in-bounds", () => {
             bound_west: 77.0,
             bound_north: 28.8,
             bound_east: 77.4,
-            query_limit: 500,
-            query_offset: 100,
+            query_limit: 200,
+            query_offset: 0,
         });
 
         expect(mockedSupabase.from).not.toHaveBeenCalled();

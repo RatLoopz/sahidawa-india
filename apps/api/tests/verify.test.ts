@@ -52,7 +52,9 @@ describe("POST /api/verify", () => {
             error: null,
         });
 
-        const res = await request(app).post("/api/verify").send({ batchNumber: "AUG625D" });
+        const res = await request(app)
+            .post("/api/verify")
+            .send({ batchNumber: "AUG625D", brandName: "Augmentin" });
 
         expect(res.status).toBe(200);
         expect(res.body.verified).toBe(true);
@@ -90,7 +92,9 @@ describe("POST /api/verify", () => {
             error: null,
         });
 
-        const res = await request(app).post("/api/verify").send({ batchNumber: "AUG625D" });
+        const res = await request(app)
+            .post("/api/verify")
+            .send({ batchNumber: "AUG625D", brandName: "Augmentin" });
 
         expect(res.status).toBe(200);
         expect(res.body.scanMeta).toBeDefined();
@@ -107,7 +111,9 @@ describe("POST /api/verify", () => {
             error: null,
         });
 
-        const res = await request(app).post("/api/verify").send({ batchNumber: "UNKNOWN123" });
+        const res = await request(app)
+            .post("/api/verify")
+            .send({ batchNumber: "UNKNOWN123", brandName: "UnknownBrand" });
 
         expect(res.status).toBe(404);
         expect(res.body.verified).toBe(false);

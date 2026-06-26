@@ -449,7 +449,12 @@ export default function ExpiryTrackerPage() {
 
     const handleExportPDF = async () => {
         if (processedMedicines.length === 0) return;
-        const { jsPDF } = await import("jspdf");
+
+        const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+            import("jspdf"),
+            import("jspdf-autotable"),
+        ]);
+
         const doc = new jsPDF();
 
         doc.setFontSize(16);
@@ -466,7 +471,6 @@ export default function ExpiryTrackerPage() {
         ]);
 
         try {
-            const autoTable = (await import("jspdf-autotable")).default;
             autoTable(doc, {
                 head: [headers],
                 body: rows,
@@ -629,7 +633,6 @@ export default function ExpiryTrackerPage() {
                         medicinesCount={medicines.length}
                         fileInputRef={fileInputRef}
                         notificationPermission={notificationPermission}
-                        isSubmitting={isSubmitting}
                         onNameChange={setName}
                         onExpiryDateChange={setExpiryDate}
                         onBatchNumberChange={setBatchNumber}

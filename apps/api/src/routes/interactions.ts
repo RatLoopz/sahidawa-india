@@ -251,7 +251,7 @@ async function loadInteractionsForGenerics(genericNames: string[]): Promise<Inte
  *           type: string
  *         example: med-a,med-b,med-c
  */
-router.get("/", async (req: Request, res: Response) => {
+router.get("/", interactionCheckLimiter, async (req: Request, res: Response) => {
     const ids = parseIdsParam(req.query.ids);
 
     if (ids.length < 2) {

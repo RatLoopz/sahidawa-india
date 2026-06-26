@@ -29,6 +29,7 @@ function buildStore(prefix: string): Store | undefined {
 
 /** Medicine verification endpoint — unauthenticated, moderately expensive. */
 export const verifyLimiter = rateLimit({
+    skip: () => process.env.NODE_ENV === "test",
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: process.env.NODE_ENV === "development" ? 500 : 20,
     standardHeaders: true,
@@ -43,14 +44,12 @@ export const verifyLimiter = rateLimit({
 
 /** Batch traceability lookup — throttle to prevent database scraping. */
 export const batchLimiter = rateLimit({
+    skip: () => process.env.NODE_ENV === "test",
     windowMs: 60 * 60 * 1000, // 1 hour
     max: 100,
     standardHeaders: true,
     legacyHeaders: false,
     store: buildStore("batch"),
-    keyGenerator: (req) => {
-        return req.ip || req.socket.remoteAddress || "unknown";
-    },
     handler: (_req, res) => {
         res.status(429).json({
             error: "Rate limit exceeded. Maximum 100 batch lookups per hour.",
@@ -60,6 +59,7 @@ export const batchLimiter = rateLimit({
 
 /** General-purpose API limiter. */
 export const limiter = rateLimit({
+    skip: () => process.env.NODE_ENV === "test",
     windowMs: 15 * 60 * 1000,
     max: 100,
     standardHeaders: true,
@@ -77,14 +77,12 @@ export const limiter = rateLimit({
 // This is intentionally stricter than the general API limiter because
 // report abuse directly undermines heatmap integrity and district alerts.
 export const reportLimiter = rateLimit({
+    skip: () => process.env.NODE_ENV === "test",
     windowMs: 10 * 60 * 1000, // 10 minutes
     max: 3,
     standardHeaders: true,
     legacyHeaders: false,
     store: buildStore("report"),
-    keyGenerator: (req) => {
-        return req.ip || req.socket.remoteAddress || "unknown";
-    },
     handler: (_req, res) => {
         res.status(429).json({
             error: "Too many reports submitted. Please try again later.",
@@ -94,6 +92,7 @@ export const reportLimiter = rateLimit({
 
 /** LASA (Look-Alike Sound-Alike) drug check limiter. */
 export const lasaLimiter = rateLimit({
+    skip: () => process.env.NODE_ENV === "test",
     windowMs: 15 * 60 * 1000,
     max: 30,
     standardHeaders: true,
@@ -112,6 +111,7 @@ export const lasaLimiter = rateLimit({
 // Both are unauthenticated and moderately expensive — throttle to prevent
 // medicine-database scraping and Supabase connection pool exhaustion.
 export const scanQueryLimiter = rateLimit({
+    skip: () => process.env.NODE_ENV === "test",
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 30,
     standardHeaders: true,
@@ -128,17 +128,62 @@ export const scanQueryLimiter = rateLimit({
 // POST /interactions/check accepts up to 20 medicines, generating up to 190
 // DB queries per request. Throttle to prevent DoS via batch interaction checks.
 export const interactionCheckLimiter = rateLimit({
+    skip: () => process.env.NODE_ENV === "test",
     windowMs: 60 * 1000, // 1 minute
     max: 10,
     standardHeaders: true,
     legacyHeaders: false,
     store: buildStore("interactions"),
-    keyGenerator: (req) => {
-        return req.ip || req.socket.remoteAddress || "unknown";
-    },
     handler: (_req, res) => {
         res.status(429).json({
             error: "Too many interaction check requests. Please try again later.",
+        });
+    },
+});
+
+/** Scheme eligibility check limiter — prevent DB spam on state query. */
+export const eligibilityLimiter = rateLimit({
+    skip: () => process.env.NODE_ENV === "test",
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    store: buildStore("eligibility"),
+    handler: (_req, res) => {
+        res.status(429).json({
+            error: "Too many eligibility checks. Please try again later.",
+        });
+    },
+});
+// ── Triage limiter ──────────────────────────────────────────────────────────
+// POST /triage/medicine-query and /triage/recommend perform expensive pgvector
+// semantic search + optional Gemini embedding calls + PostGIS RPC.
+// Throttle to prevent DoS via repeated semantic search queries.
+export const triageLimiter = rateLimit({
+    skip: () => process.env.NODE_ENV === "test",
+    windowMs: 60 * 1000, // 1 minute
+    max: 15,
+    standardHeaders: true,
+    legacyHeaders: false,
+    store: buildStore("triage"),
+    handler: (_req, res) => {
+        res.status(429).json({
+            error: "Too many triage requests. Please try again later.",
+        });
+    },
+});
+
+// ── Analytics limiter ──────────────────────────────────────────────────────────
+export const analyticsLimiter = rateLimit({
+    skip: () => process.env.NODE_ENV === "test",
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    store: buildStore("analytics"),
+    handler: (_req, res) => {
+        res.status(429).json({
+            error: "Too many analytics requests. Please try again later.",
         });
     },
 });
