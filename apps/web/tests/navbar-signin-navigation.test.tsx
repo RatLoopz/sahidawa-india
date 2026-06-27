@@ -19,6 +19,7 @@ jest.mock("next/image", () => ({
 }));
 
 jest.mock("next-intl", () => ({
+    useLocale: () => "en",
     useTranslations: (namespace: string) => (key: string) => `${namespace}.${key}`,
 }));
 

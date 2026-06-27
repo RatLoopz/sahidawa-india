@@ -48,9 +48,13 @@ export default function GenericAlternativeCard({ alternative }: GenericAlternati
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 rounded-full bg-emerald-100 px-3.5 py-1 text-xs font-black text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-400">
                         <Sparkles size={12} className="animate-pulse" />
-                        <span>Cheaper Alternative Available</span>
+                        <span>
+                            {savingsAmount > 0
+                                ? "Cheaper Alternative Available"
+                                : "Alternative Available"}
+                        </span>
                     </div>
-                    {savingsPct > 0 && (
+                    {savingsAmount > 0 && (
                         <div className="flex items-center gap-1 text-sm font-black text-emerald-600 dark:text-emerald-400">
                             <TrendingDown size={16} />
                             <span>Save {savingsPct}%</span>

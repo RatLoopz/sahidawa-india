@@ -1,4 +1,5 @@
-import cron from "node-cron";
+// Use require for node-cron to avoid CommonJS/ESM issues
+const cron = require('node-cron');
 import { supabase } from "../db/client";
 import logger from "../utils/logger";
 
@@ -7,31 +8,40 @@ export const initExpiryCron = () => {
     cron.schedule("0 0 * * *", async () => {
         logger.info("Running medicine expiry check...");
 
-        const thirtyDaysFromNow = new Date();
-        thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+        const alertWindows = [30, 14, 7];
 
-        // Fetch medicines expiring within 30 days
-        const { data, error } = await supabase
-            .from("tracked_medicines")
-            .select("*")
-            .lte("expiry_date", thirtyDaysFromNow.toISOString())
-            .eq("notified_30d", false); // Only pick those not yet notified
+        for (const days of alertWindows) {
+            const thresholdDate = new Date();
+            thresholdDate.setDate(thresholdDate.getDate() + days);
 
-        if (error) {
-            logger.error("Error fetching expiring medicines", { error });
-            return;
-        }
+            const flagColumn = `notified_${days}d`;
 
-        for (const medicine of data || []) {
-            // Here is where you would trigger the notification
-            // e.g., sendNotification(medicine.user_id, "Your medicine is expiring!");
-
-            // For now, mark as notified to prevent duplicate alerts
-            await supabase
+            const { data, error } = await supabase
                 .from("tracked_medicines")
-                .update({ notified_30d: true })
-                .eq("id", medicine.id);
+                .select("id")
+                .lte("expiry_date", thresholdDate.toISOString())
+                .eq(flagColumn, false);
+
+            if (error) {
+                logger.error(`Error fetching ${days}d expiring medicines`, { error });
+                continue;
+            }
+
+            const medicineIds = (data || []).map((m) => m.id);
+            if (medicineIds.length > 0) {
+                const { error: updateError } = await supabase
+                    .from("tracked_medicines")
+                    .update({ [flagColumn]: true })
+                    .in("id", medicineIds);
+
+                if (updateError) {
+                    logger.error(
+                        `Error updating notification flags for ${days}d expiring medicines`,
+                        { error: updateError }
+                    );
+                }
+            }
+            logger.info(`${days}d check done. ${medicineIds.length} medicines processed.`);
         }
-        logger.info(`Expiry check completed. ${data?.length || 0} medicines processed.`);
     });
 };

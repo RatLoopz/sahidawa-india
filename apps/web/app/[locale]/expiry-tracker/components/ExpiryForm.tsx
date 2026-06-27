@@ -1,4 +1,5 @@
 import type React from "react";
+import { useEffect, useState } from "react";
 import { Bell, BellOff, Download, FileText, Printer, ScanLine, Upload, X } from "lucide-react";
 
 import { parseLocalDate } from "./dateUtils";
@@ -12,6 +13,7 @@ interface ExpiryFormProps {
     notes: string;
     dateError: string;
     isExpired: boolean;
+    isSubmitting: boolean;
     importError: string | null;
     medicinesCount: number;
     fileInputRef: React.RefObject<HTMLInputElement | null>;
@@ -41,6 +43,7 @@ export function ExpiryForm({
     notes,
     dateError,
     isExpired,
+    isSubmitting,
     importError,
     medicinesCount,
     fileInputRef,
@@ -60,7 +63,11 @@ export function ExpiryForm({
     onImport,
     onRequestNotificationPermission,
 }: ExpiryFormProps) {
-    const hasNotifications = typeof window !== "undefined" && "Notification" in window;
+    const [hasNotifications, setHasNotifications] = useState(false);
+
+    useEffect(() => {
+        setHasNotifications("Notification" in window);
+    }, []);
 
     return (
         <div className="h-fit rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) p-6 shadow-sm md:sticky md:top-32 md:col-span-1">
@@ -171,9 +178,38 @@ export function ExpiryForm({
                 </button>
                 <button
                     type="submit"
-                    className="w-full rounded-xl bg-emerald-600 py-3 font-bold text-white shadow-lg shadow-emerald-900/20 transition-all hover:bg-emerald-700 active:scale-95"
+                    disabled={isSubmitting}
+                    className="w-full rounded-xl bg-emerald-600 py-3 font-bold text-white shadow-lg shadow-emerald-900/20 transition-all hover:bg-emerald-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-emerald-600"
                 >
-                    {editingId ? t("saveChanges") : t("addToTracker")}
+                    {isSubmitting ? (
+                        <span className="flex items-center justify-center gap-2">
+                            <svg
+                                className="h-4 w-4 animate-spin"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
+                                <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                />
+                                <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                                />
+                            </svg>
+                            {t("saving") || "Saving..."}
+                        </span>
+                    ) : editingId ? (
+                        t("saveChanges")
+                    ) : (
+                        t("addToTracker")
+                    )}
                 </button>
                 {editingId && (
                     <button

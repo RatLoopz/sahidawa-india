@@ -580,7 +580,9 @@
         "errors": {
             "databaseNotConfigured": "ꯑꯣꯊꯦꯟꯇꯤꯀꯦꯁꯟ ꯑꯁꯤ ꯃꯐꯝ ꯑꯁꯤꯒꯤꯗꯃꛛ ꯁꯦꯠ ꯇꯧꯗ꯭ꯔꯤ꯫",
             "generic": "ꯁꯥꯏꯟ ꯏꯟ ꯇꯧꯕꯥ ꯌꯥꯗ꯭ꯔꯦ꯫ ꯑꯃꯨꯛ ꯍꯟꯅꯥ ꯍꯣꯠꯅꯕꯤꯌꯨ꯫"
-        }
+        },
+        "signUpPrompt": "Don't have an account?",
+        "signUpLink": "Sign up"
     },
     "AdminLayout": {
         "accessDeniedTitle": "ꯆꯪꯕꯥ ꯌꯥꯗ꯭ꯔꯦ (Access denied)",
@@ -978,5 +980,47 @@
         "placeholder": "Type your health concern...",
         "sendMessage": "Send message",
         "footer": "For informational use only • Consult a doctor"
+    },
+    "SignUp": {
+        "brandSubtitle": "Medicine safety platform",
+        "heading": "Create your account",
+        "description": "Join SahiDawa to track medicine safety reports and verification results.",
+        "missingConfig": {
+            "title": "Authentication is not configured",
+            "description": "Supabase URL or anon key is missing. Add the environment variables before signing up."
+        },
+        "googleButton": "Continue with Google",
+        "githubButton": "Continue with Github",
+        "emailSeparator": "or continue with email",
+        "fullNameLabel": "Full name",
+        "fullNamePlaceholder": "Your full name",
+        "emailLabel": "Email address",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Create a password",
+        "confirmPasswordLabel": "Confirm password",
+        "confirmPasswordPlaceholder": "Re-enter your password",
+        "showPassword": "Show password",
+        "hidePassword": "Hide password",
+        "showConfirmPassword": "Show confirm password",
+        "hideConfirmPassword": "Hide confirm password",
+        "signingUp": "Creating account...",
+        "signUp": "Sign Up",
+        "footerPrompt": "Already have an account?",
+        "signInLink": "Sign in",
+        "bottomText": "Protected access for SahiDawa community tools.",
+        "success": "Account created successfully! Redirecting...",
+        "successConfirmEmail": "Account created! Check your email to confirm your account before signing in.",
+        "errors": {
+            "databaseNotConfigured": "Authentication is not configured for this environment.",
+            "generic": "Unable to create account. Please try again.",
+            "fullNameRequired": "Full name is required.",
+            "emailRequired": "Email address is required.",
+            "emailInvalid": "Please enter a valid email address.",
+            "passwordRequired": "Password is required.",
+            "passwordWeak": "Password must be at least 8 characters and include uppercase, lowercase, and a number.",
+            "confirmPasswordRequired": "Please confirm your password.",
+            "passwordMismatch": "Passwords do not match."
+        }
     }
 }

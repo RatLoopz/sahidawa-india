@@ -36,6 +36,14 @@ import { type AshaWorker } from "./PharmacyMap";
 import MapHeaderLoadingIndicator from "./MapHeaderLoadingIndicator";
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
 import { buildCacheKey, saveToCache, loadFromCache } from "./usePharmacyCache";
+import {
+    getCachedPharmacies,
+    getLastSyncTimestamp,
+    mergePharmacyDelta,
+    setCachedPharmacies,
+    setLastSyncTimestamp,
+    type PharmacySyncRecord,
+} from "@/lib/offline/pharmacy-sync";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const DEFAULT_CENTER = { lat: 28.6139, lng: 77.209 }; // New Delhi
@@ -168,6 +176,13 @@ function deduplicateOsm(verified: Pharmacy[], osm: Pharmacy[]): Pharmacy[] {
             const dist = Math.sqrt((dlat * latScale) ** 2 + (dlng * lngScale) ** 2);
             return dist < 100;
         });
+    });
+}
+
+function sortPharmacies(pharmacies: Pharmacy[]): Pharmacy[] {
+    return [...pharmacies].sort((a, b) => {
+        if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
+        return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
     });
 }
 
@@ -325,6 +340,18 @@ export default function PharmacyMapPage() {
         return true;
     }, []);
 
+    const hydrateSyncedPharmacies = useCallback(async (cacheKey: string): Promise<boolean> => {
+        const cached = await getCachedPharmacies(cacheKey);
+        if (cached.length === 0) return false;
+
+        const verified = cached.map((vp, i) => toVerifiedPharmacy(vp, -(i + 1)));
+        setPharmacies(sortPharmacies(verified));
+        setPharmacyCount(verified.length);
+        setIsShowingCached(true);
+        initialFetchDone.current = true;
+        return true;
+    }, []);
+
     const fetchNearby = useCallback(
         async (lat: number, lng: number, radius = 10000) => {
             setIsLoading(true);
@@ -348,10 +375,7 @@ export default function PharmacyMapPage() {
                     ashaResult.status === "fulfilled" ? ashaResult.value.map(toAshaWorker) : [];
 
                 const dedupedOsm = deduplicateOsm(verified, osm);
-                const merged = [...verified, ...dedupedOsm].sort((a, b) => {
-                    if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
-                    return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
-                });
+                const merged = sortPharmacies([...verified, ...dedupedOsm]);
                 const livePharmacyLoadFailed = osmResult.status === "rejected";
                 const shouldTryCache = merged.length === 0 && livePharmacyLoadFailed;
 
@@ -449,30 +473,52 @@ export default function PharmacyMapPage() {
                 const centerLng = bounds.center.lng;
                 const radiusKm = 15;
                 const cacheKey = buildCacheKey(centerLat, centerLng);
+                const cachedVerified = await getCachedPharmacies(cacheKey);
+                if (cachedVerified.length > 0) {
+                    await hydrateSyncedPharmacies(cacheKey);
+                } else {
+                    await restoreFromCache(cacheKey);
+                }
+                const since =
+                    cachedVerified.length > 0 ? await getLastSyncTimestamp(cacheKey) : null;
                 const [verifiedResult, osmResult, ashaResult] = await Promise.allSettled([
                     fetchVerifiedPharmaciesInBounds(
                         bounds.south,
                         bounds.west,
                         bounds.north,
-                        bounds.east
+                        bounds.east,
+                        since ?? undefined
                     ),
                     fetchPharmaciesInBounds(bounds.south, bounds.west, bounds.north, bounds.east),
                     fetchNearbyAshaWorkers(centerLat, centerLng, radiusKm),
                 ]);
 
-                const verified =
-                    verifiedResult.status === "fulfilled"
-                        ? verifiedResult.value.map((vp, i) => toVerifiedPharmacy(vp, -(i + 1)))
-                        : [];
+                let verifiedRecords: PharmacySyncRecord[] = cachedVerified;
+                if (verifiedResult.status === "fulfilled") {
+                    const result = verifiedResult.value;
+                    const shouldReplaceCache =
+                        result.fromNetwork &&
+                        (result.delta || !since || result.pharmacies.length > 0);
+                    verifiedRecords = result.delta
+                        ? mergePharmacyDelta(cachedVerified, result.pharmacies)
+                        : shouldReplaceCache
+                          ? result.pharmacies.filter(
+                                (pharmacy) =>
+                                    pharmacy.is_active !== false && !Boolean(pharmacy.deleted_at)
+                            )
+                          : cachedVerified;
+                    if (shouldReplaceCache) {
+                        await setCachedPharmacies(verifiedRecords, cacheKey);
+                        await setLastSyncTimestamp(result.syncedAt, cacheKey);
+                    }
+                }
+                const verified = verifiedRecords.map((vp, i) => toVerifiedPharmacy(vp, -(i + 1)));
                 const osm = osmResult.status === "fulfilled" ? osmResult.value.map(toPharmacy) : [];
                 const asha =
                     ashaResult.status === "fulfilled" ? ashaResult.value.map(toAshaWorker) : [];
 
                 const dedupedOsm = deduplicateOsm(verified, osm);
-                const merged = [...verified, ...dedupedOsm].sort((a, b) => {
-                    if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
-                    return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
-                });
+                const merged = sortPharmacies([...verified, ...dedupedOsm]);
                 const livePharmacyLoadFailed = osmResult.status === "rejected";
                 const shouldTryCache = merged.length === 0 && livePharmacyLoadFailed;
 
@@ -518,7 +564,7 @@ export default function PharmacyMapPage() {
                 setIsLoading(false);
             }
         },
-        [restoreFromCache]
+        [hydrateSyncedPharmacies, restoreFromCache]
     );
 
     // Geolocation

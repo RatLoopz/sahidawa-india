@@ -39,21 +39,28 @@ function maskClientIp(ip: string | undefined): string | null {
 
 const router = Router();
 
-const verifySchema = z.object({
-    batchNumber: z
-        .string({ message: "batchNumber is required and must be a string" })
-        .min(3, "batchNumber must be at least 3 characters long"),
-    latitude: z
-        .number()
-        .min(-90, "Latitude must be between -90 and 90")
-        .max(90, "Latitude must be between -90 and 90")
-        .optional(),
-    longitude: z
-        .number()
-        .min(-180, "Longitude must be between -180 and 180")
-        .max(180, "Longitude must be between -180 and 180")
-        .optional(),
-});
+const verifySchema = z
+    .object({
+        batchNumber: z
+            .string({ message: "batchNumber is required and must be a string" })
+            .min(3, "batchNumber must be at least 3 characters long"),
+        brandName: z.string().optional(),
+        barcodeId: z.string().optional(),
+        latitude: z
+            .number()
+            .min(-90, "Latitude must be between -90 and 90")
+            .max(90, "Latitude must be between -90 and 90")
+            .optional(),
+        longitude: z
+            .number()
+            .min(-180, "Longitude must be between -180 and 180")
+            .max(180, "Longitude must be between -180 and 180")
+            .optional(),
+    })
+    .refine((data) => data.brandName || data.barcodeId, {
+        message: "Either brandName or barcodeId must be provided",
+        path: ["brandName", "barcodeId"],
+    });
 
 /**
  * @openapi
@@ -175,7 +182,7 @@ router.post(
             return;
         }
 
-        const { batchNumber, latitude, longitude } = parsed.data;
+        const { batchNumber, brandName, barcodeId, latitude, longitude } = parsed.data;
 
         const upperBatch = batchNumber.toUpperCase();
         const ALLOWED_MOCK_BATCHES = new Set([
@@ -186,7 +193,11 @@ router.post(
             "AUG625D",
         ]);
 
-        if (process.env.VERIFY_ENABLE_MOCKS === "true" && ALLOWED_MOCK_BATCHES.has(upperBatch)) {
+        if (
+            process.env.NODE_ENV !== "production" &&
+            process.env.VERIFY_ENABLE_MOCKS === "true" &&
+            ALLOWED_MOCK_BATCHES.has(upperBatch)
+        ) {
             const brandName = upperBatch.includes("DOLO")
                 ? "Dolo 650"
                 : upperBatch === "AUG625D"
@@ -228,7 +239,10 @@ router.post(
             return;
         }
         try {
-            const data = await lookupDrugByBatch(batchNumber);
+            const data = await lookupDrugByBatch(batchNumber, {
+                brand_name: brandName,
+                barcode_id: barcodeId,
+            });
 
             if (!data) {
                 res.status(404).json({

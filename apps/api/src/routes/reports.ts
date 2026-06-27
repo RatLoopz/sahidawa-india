@@ -1,4 +1,4 @@
-import { Router, Response } from "express";
+import { Router, Response, NextFunction } from "express";
 import { z } from "zod";
 import { supabase } from "../db/client";
 import { AuthenticatedRequest, optionalAuth, requireAuth, requireRole } from "../middleware/auth";
@@ -8,6 +8,8 @@ import {
     computeReportHash,
     anonymizeIp,
 } from "../services/reportValidation.service";
+import { triggerRecallAlert } from "../services/notifications";
+import logger from "../utils/logger";
 
 const reportsRouter = Router();
 
@@ -42,29 +44,53 @@ const safeImageUrl = z.string().url().refine(isPublicImageUrl, {
         "Image URL must use http(s) and must not point to a private, loopback, or link-local address",
 });
 
-const createReportSchema = z.object({
-    medicineName: z.string().min(2),
-    manufacturer: z.string().min(2),
-    description: z.string().min(20),
-    images: z.array(safeImageUrl).min(1),
-    pharmacyName: z.string().min(2),
-    address: z.string().min(5),
-    city: z.string().min(2),
-    state: z.string().min(2),
-    pincode: z.string().regex(/^\d{6}$/),
-    latitude: z
-        .number()
-        .min(-90, "Latitude must be between -90 and 90")
-        .max(90, "Latitude must be between -90 and 90")
-        .optional(),
-    longitude: z
-        .number()
-        .min(-180, "Longitude must be between -180 and 180")
-        .max(180, "Longitude must be between -180 and 180")
-        .optional(),
-    scannedBarcode: z.string().optional(),
-    medicineId: z.string().uuid().optional(),
-});
+import { INDIAN_STATES_AND_DISTRICTS } from "../constants/administrativeMap";
+
+const createReportSchema = z
+    .object({
+        medicineName: z.string().min(2),
+        manufacturer: z.string().min(2),
+        description: z.string().min(20),
+        images: z.array(safeImageUrl).min(1),
+        pharmacyName: z.string().min(2),
+        address: z.string().min(5),
+        city: z.string().min(2),
+        district: z.string().min(2).optional(),
+        state: z.string().min(2),
+        pincode: z.string().regex(/^\d{6}$/),
+        latitude: z
+            .number()
+            .min(-90, "Latitude must be between -90 and 90")
+            .max(90, "Latitude must be between -90 and 90")
+            .optional(),
+        longitude: z
+            .number()
+            .min(-180, "Longitude must be between -180 and 180")
+            .max(180, "Longitude must be between -180 and 180")
+            .optional(),
+        scannedBarcode: z.string().optional(),
+        medicineId: z.string().uuid().optional(),
+    })
+    .superRefine((data, ctx) => {
+        const validDistricts =
+            INDIAN_STATES_AND_DISTRICTS[data.state as keyof typeof INDIAN_STATES_AND_DISTRICTS];
+        if (!validDistricts) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `Invalid state: ${data.state}`,
+                path: ["state"],
+            });
+            return;
+        }
+        const districtToCheck = data.district ?? data.city;
+        if (!validDistricts.includes(districtToCheck)) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `Invalid district '${districtToCheck}' for state '${data.state}'`,
+                path: data.district ? ["district"] : ["city"],
+            });
+        }
+    });
 
 const buildReportLocation = (latitude?: number, longitude?: number) => {
     if (typeof latitude !== "number" || typeof longitude !== "number") {
@@ -78,7 +104,7 @@ reportsRouter.post(
     "/",
     reportLimiter,
     optionalAuth,
-    async (req: AuthenticatedRequest, res: Response) => {
+    async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
         const parsed = createReportSchema.safeParse(req.body);
 
         if (!parsed.success) {
@@ -90,12 +116,10 @@ reportsRouter.post(
         }
 
         const data = parsed.data;
+        const district = data.district ?? data.city;
 
         try {
-            const rawIp =
-                req.headers["x-forwarded-for"]?.toString().split(",")[0]?.trim() ||
-                req.socket.remoteAddress;
-            const ipAddress = anonymizeIp(rawIp);
+            const ipAddress = anonymizeIp(req.ip);
             const validationPayload = {
                 medicineName: data.medicineName,
                 manufacturer: data.manufacturer,
@@ -105,7 +129,7 @@ reportsRouter.post(
                 city: data.city,
                 state: data.state,
                 pincode: data.pincode,
-                district: data.city,
+                district,
             };
 
             const validation = await validateReport(
@@ -116,30 +140,35 @@ reportsRouter.post(
 
             const { data: report, error } = await supabase
                 .from("counterfeit_reports")
-                .insert({
-                    reported_brand_name: data.medicineName,
-                    manufacturer: data.manufacturer,
-                    description: data.description,
-                    photo_url: data.images[0],
-                    photo_urls: data.images,
-                    pharmacy_name: data.pharmacyName,
-                    address: data.address,
-                    city: data.city,
-                    state: data.state,
-                    pincode: data.pincode,
-                    district: data.city,
-                    report_location: buildReportLocation(data.latitude, data.longitude),
-                    reporter_id: req.user?.id ?? null,
-                    ip_address: ipAddress,
-                    report_hash: computeReportHash(validationPayload),
-                    risk_score: validation.riskScore,
-                    is_escalated: !validation.passed,
-                    duplicate_group_id: validation.duplicateGroupId ?? null,
-                    status: "pending",
-                    scanned_barcode: data.scannedBarcode ?? null,
-                    medicine_id: data.medicineId ?? null,
-                })
-                .select()
+                .upsert(
+                    {
+                        reported_brand_name: data.medicineName,
+                        manufacturer: data.manufacturer,
+                        description: data.description,
+                        photo_url: data.images[0],
+                        photo_urls: data.images,
+                        pharmacy_name: data.pharmacyName,
+                        address: data.address,
+                        city: data.city,
+                        state: data.state,
+                        pincode: data.pincode,
+                        district,
+                        report_location: buildReportLocation(data.latitude, data.longitude),
+                        reporter_id: req.user?.id ?? null,
+                        ip_address: ipAddress,
+                        report_hash: computeReportHash(validationPayload),
+                        risk_score: validation.riskScore,
+                        is_escalated: !validation.passed,
+                        duplicate_group_id: validation.duplicateGroupId ?? null,
+                        status: "pending",
+                        scanned_barcode: data.scannedBarcode ?? null,
+                        medicine_id: data.medicineId ?? null,
+                    },
+                    { onConflict: "report_hash", ignoreDuplicates: true }
+                )
+                .select(
+                    "id, reported_brand_name, status, district, created_at, scanned_barcode, medicine_id"
+                )
                 .single();
 
             if (error) {
@@ -160,12 +189,7 @@ reportsRouter.post(
 
             res.status(201).json(response);
         } catch (err) {
-            console.error("Unexpected error in POST /api/reports:", err);
-            res.status(500).json({
-                error: "An unexpected error occurred",
-                details: err instanceof Error ? err.message : String(err),
-                stack: err instanceof Error ? err.stack : undefined,
-            });
+            next(err);
         }
     }
 );
@@ -178,21 +202,40 @@ reportsRouter.get("/mine", requireAuth, async (req: AuthenticatedRequest, res: R
         return;
     }
 
+    const cursor = req.query.cursor as string | undefined;
+
+    const rawLimit = parseInt(req.query.limit as string, 10);
+    const limit = isNaN(rawLimit) || rawLimit < 1 ? 20 : Math.min(rawLimit, 100);
+
     try {
-        const { data, error } = await supabase
+        let query = supabase
             .from("counterfeit_reports")
             .select(
                 "id, reported_brand_name, scanned_barcode, photo_url, district, status, created_at"
             )
             .eq("reporter_id", userId)
-            .order("created_at", { ascending: false });
+            .order("created_at", { ascending: false })
+            .limit(limit);
+
+        if (cursor) {
+            query = query.lt("created_at", cursor);
+        }
+
+        const { data, error } = await query;
 
         if (error) {
             res.status(500).json({ error: "Failed to fetch your reports" });
             return;
         }
 
-        res.json({ reports: data ?? [] });
+        const reports = data ?? [];
+
+        const nextCursor = reports.length === limit ? reports[reports.length - 1].created_at : null;
+
+        res.json({
+            reports,
+            nextCursor,
+        });
     } catch (err) {
         console.error("Unexpected error in GET /api/reports/mine:", err);
         res.status(500).json({ error: "An unexpected error occurred" });
@@ -260,7 +303,11 @@ reportsRouter.patch(
             }
 
             // --- DISTRICT ALERT LOGIC ---
-            if (status === "verified_fake" && data.district) {
+            // Alerts are keyed by (district, medicine_name), not district alone —
+            // a district with fake reports on multiple medicines gets one alert
+            // row per medicine, instead of the most recent upsert silently
+            // overwriting any prior alert for a different medicine in that district.
+            if (status === "verified_fake" && data.district && data.reported_brand_name) {
                 const { count } = await supabase
                     .from("counterfeit_reports")
                     .select("*", { count: "exact", head: true })
@@ -270,14 +317,67 @@ reportsRouter.patch(
 
                 if (count && count >= 5) {
                     const alertLevel = count >= 15 ? "high" : "medium";
-                    await supabase.from("district_alerts").upsert(
-                        {
+
+                    // Fetch the existing alert (if any) for this district+medicine
+                    // pair first, so we only fire a push notification on genuine
+                    // creation or escalation — not on every redundant upsert when
+                    // the level hasn't actually changed.
+                    const { data: existingAlert } = await supabase
+                        .from("district_alerts")
+                        .select("alert_level")
+                        .eq("district", data.district)
+                        .eq("medicine_name", data.reported_brand_name)
+                        .maybeSingle();
+
+                    const previousAlertLevel = existingAlert?.alert_level ?? null;
+                    const isNewOrEscalated = !existingAlert || previousAlertLevel !== alertLevel;
+
+                    const { data: upsertedAlert, error: alertError } = await supabase
+                        .from("district_alerts")
+                        .upsert(
+                            {
+                                district: data.district,
+                                medicine_name: data.reported_brand_name,
+                                alert_level: alertLevel,
+                                previous_alert_level: previousAlertLevel,
+                                broadcasted: false,
+                                updated_at: new Date().toISOString(),
+                            },
+                            { onConflict: "district,medicine_name" }
+                        )
+                        .select()
+                        .single();
+
+                    if (alertError) {
+                        logger.error({
+                            message: "Failed to upsert district alert",
+                            error: alertError,
                             district: data.district,
-                            medicine_name: data.reported_brand_name,
-                            alert_level: alertLevel,
-                        },
-                        { onConflict: "district" }
-                    );
+                            medicineName: data.reported_brand_name,
+                        });
+                    } else if (isNewOrEscalated && upsertedAlert) {
+                        // Fire-and-log: a push delivery failure should not fail
+                        // the admin's status-update request.
+                        try {
+                            await triggerRecallAlert({
+                                id: String(upsertedAlert.id),
+                                medicineName: data.reported_brand_name,
+                                reason:
+                                    `${count} verified counterfeit reports of ` +
+                                    `${data.reported_brand_name} confirmed in ${data.district}.`,
+                                severity: alertLevel === "high" ? "critical" : "medium",
+                                source: "SahiDawa Citizen Reports",
+                                recalledAt: new Date().toISOString(),
+                            });
+                        } catch (pushErr) {
+                            logger.error({
+                                message: "Failed to trigger push notification for district alert",
+                                error: pushErr,
+                                district: data.district,
+                                medicineName: data.reported_brand_name,
+                            });
+                        }
+                    }
                 }
             }
 

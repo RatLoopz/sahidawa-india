@@ -72,7 +72,6 @@ import eligibilityRouter from "./routes/eligibility";
 import { supabase } from "./db/client";
 import { createCorsOptions } from "./config/cors";
 import { errorHandler } from "./middleware/errorHandler";
-
 // ── Application Initialization ─────────────────────────────────────────────
 const app: Express = express();
 app.set("trust proxy", 1); // Trust first proxy (Nginx) — fixes req.ip for rate limiters
@@ -254,7 +253,6 @@ app.use("/api/map", mapRouter);
 app.use("/api/v1/interactions", interactionsRouter);
 app.use("/api/schedules", medicineSchedulesRouter);
 app.use("/api/v1/abha", abhaRoutes);
-app.use("/api/v1/alternatives", alternativesRouter);
 app.use("/api/v1/scheme-eligibility", eligibilityRouter);
 app.use("/api/v1/medicines", trackingRouter);
 

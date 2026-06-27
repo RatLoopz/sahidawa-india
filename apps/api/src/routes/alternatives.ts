@@ -1,10 +1,19 @@
 import { Router, Request, Response } from "express";
 import { supabase } from "../db/client";
 import logger from "../utils/logger";
+import { escapePostgrest } from "../utils/db";
 
 const router = Router();
 
-function extractCoordinates(p: any): { lat: number; lng: number } {
+interface StoreLocation {
+    lat?: string | number;
+    lng?: string | number;
+    location?: {
+        coordinates?: [number, number];
+    };
+}
+
+function extractCoordinates(p: StoreLocation): { lat: number; lng: number } {
     if (p.lat !== undefined && p.lng !== undefined) {
         return { lat: Number(p.lat), lng: Number(p.lng) };
     }
@@ -60,7 +69,9 @@ router.get("/:medicine_id", async (req: Request, res: Response): Promise<void> =
 
         if (lat !== undefined && lng !== undefined) {
             if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-                res.status(400).json({ error: "Invalid coordinates: lat must be [-90, 90] and lng must be [-180, 180]" });
+                res.status(400).json({
+                    error: "Invalid coordinates: lat must be [-90, 90] and lng must be [-180, 180]",
+                });
                 return;
             }
         }
@@ -70,8 +81,17 @@ router.get("/:medicine_id", async (req: Request, res: Response): Promise<void> =
             return;
         }
 
+        interface MedicineRecord {
+            id?: string;
+            brand_name?: string;
+            generic_name?: string;
+            mrp?: number;
+            brand_price?: number;
+            jan_aushadhi_price?: number;
+        }
+
         // 1. Look up medicine in medicines table by ID, barcode, or brand name
-        let medicine: any = null;
+        let medicine: MedicineRecord | null = null;
 
         // Try UUID match
         const uuidRegex =
@@ -106,14 +126,26 @@ router.get("/:medicine_id", async (req: Request, res: Response): Promise<void> =
             medicine = data;
         }
 
+        interface GenericAlternative {
+            brand_name?: string;
+            generic_name?: string;
+            brand_price?: number;
+            brand_mrp?: number;
+            jan_aushadhi_price?: number;
+            savings_percentage?: number;
+            generic_name_display?: string;
+        }
+
         // 2. Fetch alternative from generic_alternatives
-        let alternative: any = null;
+        let alternative: GenericAlternative | null = null;
 
         if (medicine) {
             const { data } = await supabase
                 .from("generic_alternatives")
                 .select("*")
-                .or(`brand_medicine_id.eq.${medicine.id},brand_name.ilike.%${medicine.brand_name}%`)
+                .or(
+                    `brand_medicine_id.eq.${medicine.id},brand_name.ilike."%${escapePostgrest(String(medicine.brand_name))}%"`
+                )
                 .limit(1)
                 .maybeSingle();
             alternative = data;
@@ -122,7 +154,9 @@ router.get("/:medicine_id", async (req: Request, res: Response): Promise<void> =
             const { data } = await supabase
                 .from("generic_alternatives")
                 .select("*")
-                .or(`brand_name.ilike.%${medicine_id}%,generic_name.ilike.%${medicine_id}%`)
+                .or(
+                    `brand_name.ilike."%${escapePostgrest(String(medicine_id))}%",generic_name.ilike."%${escapePostgrest(medicine_id)}%"`
+                )
                 .limit(1)
                 .maybeSingle();
             alternative = data;

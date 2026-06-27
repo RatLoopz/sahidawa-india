@@ -2,12 +2,13 @@ import json
 import logging
 import os
 from typing import List, Dict, Any, Optional
-from pydantic import BaseModel, Field
+import re
+from datetime import datetime, date
+from pydantic import BaseModel, Field, ValidationError, field_validator
 
 try:
     from langchain_google_genai import ChatGoogleGenerativeAI
     from langchain_core.prompts import ChatPromptTemplate
-    from langchain_core.output_parsers import PydanticOutputParser
     LANGCHAIN_AVAILABLE = True
 except ImportError:
     LANGCHAIN_AVAILABLE = False
@@ -26,6 +27,123 @@ class AlertInfo(BaseModel):
 class AlertList(BaseModel):
     alerts: List[AlertInfo] = Field(description="List of alerts extracted from the text")
 
+
+# Validation and normalization layer
+
+NULL_LIKE_VALUES = {
+    "",
+    "-",
+    "N/A",
+    "NA",
+    "NULL",
+    "UNKNOWN",
+}
+
+def normalize_text(value: str) -> str:
+    if not value:
+        return ""
+
+    value = str(value).strip()
+    value = re.sub(r"\s+", " ", value)
+    return value
+
+def is_ocr_noise(value: str) -> bool:
+    if not value:
+        return True
+
+    value = value.strip()
+
+    # Mostly symbols
+    if re.fullmatch(r"[\W_]+", value):
+        return True
+
+    # Very short garbage
+    if len(value) <= 2 and not value.isalnum():
+        return True
+
+    return False
+
+
+class ValidatedAlert(BaseModel):
+    reported_brand_name: str
+    batch_number: str
+    manufacturer: str
+    alert_type: Optional[str] = None
+    state: Optional[str] = None
+    district: Optional[str] = None
+    reported_at: Optional[str] = None
+    proof_image_url: Optional[str] = None
+
+    @field_validator("reported_brand_name", "batch_number", "manufacturer", "alert_type", "state", "district", mode="before")
+    @classmethod
+    def normalize_fields(cls, value):
+        if value is None:
+            return value
+
+        return normalize_text(value)
+
+
+    @field_validator("reported_brand_name", "batch_number", "manufacturer")
+    @classmethod
+    def validate_required_fields(cls, value):
+
+        if value is None:
+            raise ValueError("Missing required field")
+
+        value = str(value)
+
+        if value.upper() in NULL_LIKE_VALUES:
+            raise ValueError("Null-like value detected")
+
+        if is_ocr_noise(value):
+            raise ValueError("OCR noise detected")
+
+        return value
+
+    @field_validator("reported_at")
+    @classmethod
+    def validate_date(cls, value):
+        if not value:
+            return value
+
+        # Support multiple date formats and normalize all valid dates to YYYY-MM-DD.
+        formats = [
+            "%Y-%m-%d",
+            "%d-%m-%Y",
+            "%d/%m/%Y",
+            "%B %d, %Y",
+            "%b %d, %Y",
+            "%d %b %Y",     
+            "%d %B %Y",      
+        ]
+
+        parsed_date = None
+
+        for fmt in formats:
+            try:
+                parsed_date = datetime.strptime(value.strip(), fmt).date()
+                break
+            except ValueError:
+                continue
+
+        if parsed_date is None:
+            raise ValueError("Invalid date format")
+
+        if parsed_date > date.today():
+            raise ValueError("Future date detected")
+
+        return parsed_date.strftime("%Y-%m-%d")
+
+def validate_alert(alert_dict):
+    try:
+        validated = ValidatedAlert(**alert_dict)
+        return validated.model_dump()
+
+    except ValidationError as e:
+        logging.warning(f"Rejected alert during validation: {e}")
+        return None
+
+
 def extract_alerts_from_text(text: str) -> List[Dict[str, Any]]:
     """
     Extracts structured alert information from unstructured PDF text using LangChain and Gemini.
@@ -42,7 +160,6 @@ def extract_alerts_from_text(text: str) -> List[Dict[str, Any]]:
             return []
 
         llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", temperature=0, google_api_key=api_key)
-        # parser = PydanticOutputParser(pydantic_object=AlertList)
         structured_llm = llm.with_structured_output(AlertList)
         
         prompt = ChatPromptTemplate.from_messages([
@@ -94,25 +211,26 @@ def extract_alerts_from_text(text: str) -> List[Dict[str, Any]]:
                         
                     for alert in alerts_to_add:
                         if isinstance(alert, dict):
-                            brand = alert.get("reported_brand_name", "")
-                            batch = alert.get("batch_number", "")
-                            mfg = alert.get("manufacturer", "")
                             alert_dict = alert
                         else:
-                            brand = getattr(alert, "reported_brand_name", "")
-                            batch = getattr(alert, "batch_number", "")
-                            mfg = getattr(alert, "manufacturer", "")
-                            alert_dict = alert.dict() if hasattr(alert, "dict") else dict(alert)
+                            alert_dict = (alert.model_dump() if hasattr(alert, "model_dump") else dict(alert))
                             
-                        # Unique key for in-memory deduplication across chunks
+                        validated_alert = validate_alert(alert_dict)
+
+                        # Skip alerts that fail validation
+                        if not validated_alert:
+                            continue
+
                         key = (
-                            str(brand).strip().lower(),
-                            str(batch).strip().lower(),
-                            str(mfg).strip().lower()
+                            validated_alert["reported_brand_name"].strip().lower(),
+                            validated_alert["batch_number"].strip().lower(),
+                            validated_alert["manufacturer"].strip().lower()
                         )
+
                         if key not in seen_keys:
                             seen_keys.add(key)
-                            all_alerts.append(alert_dict)
+                            all_alerts.append(validated_alert)
+
             except Exception as chunk_exc:
                 logging.error(f"Error extracting alerts from chunk {i + 1}: {chunk_exc}")
                 
@@ -235,26 +353,28 @@ def extract_alerts_from_pdf_images(pdf_bytes: bytes) -> List[Dict[str, Any]]:
 
                     for alert in alerts_to_add:
                         if isinstance(alert, dict):
-                            brand = alert.get("reported_brand_name", "")
-                            batch = alert.get("batch_number", "")
-                            mfg = alert.get("manufacturer", "")
                             alert_dict = alert
                         else:
-                            brand = getattr(alert, "reported_brand_name", "")
-                            batch = getattr(alert, "batch_number", "")
-                            mfg = getattr(alert, "manufacturer", "")
-                            alert_dict = alert.dict() if hasattr(alert, "dict") else dict(alert)
+                            alert_dict = (alert.model_dump() if hasattr(alert, "model_dump") else dict(alert))
+
+                        alert_dict["proof_image_url"] = proof_image_url
+
+                        validated_alert = validate_alert(alert_dict)
+
+                        # Skip alerts that fail validation
+                        if not validated_alert:
+                            continue
 
                         key = (
-                            str(brand).strip().lower(),
-                            str(batch).strip().lower(),
-                            str(mfg).strip().lower()
+                            validated_alert["reported_brand_name"].strip().lower(),
+                            validated_alert["batch_number"].strip().lower(),
+                            validated_alert["manufacturer"].strip().lower()
                         )
+
                         if key not in seen_keys:
                             seen_keys.add(key)
-                            # Ingest the Cloudinary proof URL
-                            alert_dict["proof_image_url"] = proof_image_url
-                            all_alerts.append(alert_dict)
+                            all_alerts.append(validated_alert)
+                        
             except Exception as page_exc:
                 logging.error(f"Error extracting alerts from page {page_num + 1} with Gemini: {page_exc}")
 

@@ -10,6 +10,7 @@ module.exports = {
     setupFiles: ["<rootDir>/jest.env.cjs"],
     roots: ["<rootDir>/tests"],
     moduleNameMapper: {
+        "\\.css$": "<rootDir>/tests/mocks/styleMock.ts",
         "^leaflet$": "<rootDir>/tests/mocks/leaflet.ts",
         "^react-leaflet$": "<rootDir>/tests/mocks/react-leaflet.ts",
         "^leaflet/dist/leaflet.css$": "<rootDir>/tests/mocks/leaflet.ts",

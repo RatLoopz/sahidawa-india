@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Mic } from "lucide-react";
-import { useRouter, useParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { PageHeader } from "../components/PageHeader";
 import {
@@ -22,8 +21,8 @@ import {
     VOICE_FOCUS_RING_CLASS,
 } from "./lib/accessibility";
 import {
-    DEFAULT_VOICE_LANGUAGE,
     getVoiceLanguageOption,
+    getVoiceLanguageForLocale,
     resolveVoiceWorkflowLanguage,
     VOICE_LANGUAGE_OPTIONS,
 } from "./lib/languages";
@@ -53,6 +52,7 @@ import {
 } from "./lib/audio";
 import { useCloudTTS, type TTSError } from "./lib/useCloudTTS";
 import type { VoiceErrorState, VoiceStep, VoiceStreamingStatus, VoiceTriageResult } from "./types";
+import { useLocale, useTranslations } from "next-intl";
 
 const DEFAULT_FLOW_CONFIDENCE = getConfidenceMeta(undefined);
 const VOICE_ANIMATION_STORAGE_KEY = "sahidawa.voice.animations";
@@ -147,11 +147,10 @@ function getConfidenceValueLabel(
 
 export default function VoiceTriagePage() {
     const router = useRouter();
-    const params = useParams();
-    const locale = Array.isArray(params.locale) ? params.locale[0] : params.locale;
+    const locale = useLocale();
     const t = useTranslations("VoicePage");
     const [step, setStep] = useState<VoiceStep>("initial");
-    const [selectedLanguage, setSelectedLanguage] = useState(DEFAULT_VOICE_LANGUAGE);
+    const [selectedLanguage, setSelectedLanguage] = useState(getVoiceLanguageForLocale(locale));
     const [activeLanguageCode, setActiveLanguageCode] = useState<string | null>(null);
     const [isListening, setIsListening] = useState(false);
     const [isSpeaking, setIsSpeaking] = useState(false);
@@ -363,45 +362,54 @@ export default function VoiceTriagePage() {
         return () => window.clearTimeout(focusTimer);
     }, [error, result, step, t]);
 
-    const handleEscapeShortcut = useCallback((event: KeyboardEvent) => {
-        if (event.key !== "Escape") {
-            return;
-        }
-        
-        const activeElement =
-            typeof document !== "undefined" ? (document.activeElement as HTMLElement | null) : null;
-        const activeWithinVoiceRegion = Boolean(
-            activeElement && mainRef.current?.contains(activeElement)
-        );
+    useEffect(() => {
+        setSelectedLanguage(getVoiceLanguageForLocale(locale));
+    }, [locale]);
 
-        if (
-            !shouldHandleVoiceEscape({
-                activeElementTagName: activeElement?.tagName,
-                activeWithinVoiceRegion,
-                isSpeaking,
-                step,
-            })
-        ) {
-            return;
-        }
+    const handleEscapeShortcut = useCallback(
+        (event: KeyboardEvent) => {
+            if (event.key !== "Escape") {
+                return;
+            }
 
-        if (isSpeaking) {
-            event.preventDefault();
-            handleStopSpeaking();
-            return;
-        }
+            const activeElement =
+                typeof document !== "undefined"
+                    ? (document.activeElement as HTMLElement | null)
+                    : null;
+            const activeWithinVoiceRegion = Boolean(
+                activeElement && mainRef.current?.contains(activeElement)
+            );
 
-        if (step === "listening") {
-            event.preventDefault();
-            stopListening();
-            return;
-        }
+            if (
+                !shouldHandleVoiceEscape({
+                    activeElementTagName: activeElement?.tagName,
+                    activeWithinVoiceRegion,
+                    isSpeaking,
+                    step,
+                })
+            ) {
+                return;
+            }
 
-        if (step === "review" || step === "error" || step === "result") {
-            event.preventDefault();
-            resetFlow();
-        }
-    }, [isSpeaking, step, handleStopSpeaking, stopListening, resetFlow]);
+            if (isSpeaking) {
+                event.preventDefault();
+                handleStopSpeaking();
+                return;
+            }
+
+            if (step === "listening") {
+                event.preventDefault();
+                stopListening();
+                return;
+            }
+
+            if (step === "review" || step === "error" || step === "result") {
+                event.preventDefault();
+                resetFlow();
+            }
+        },
+        [isSpeaking, step, handleStopSpeaking, stopListening, resetFlow]
+    );
 
     useEffect(() => {
         if (typeof window === "undefined") {

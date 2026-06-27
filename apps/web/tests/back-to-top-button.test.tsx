@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import BackToTopButton from "../app/[locale]/components/BackToTopButton";
 
 jest.mock("next-intl", () => ({
+    useLocale: () => "en",
     useTranslations: () => (key: string) => key,
 }));
 
