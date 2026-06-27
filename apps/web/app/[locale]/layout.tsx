@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations } from "next-intl/server";
@@ -73,6 +74,8 @@ export default async function LocaleLayout({
     params: Promise<{ locale: string }>;
 }) {
     const { locale } = await params;
+    const headersList = await headers();
+    const nonce = headersList.get("x-nonce") ?? "";
 
     if (!routing.locales.includes(locale as any)) {
         notFound();

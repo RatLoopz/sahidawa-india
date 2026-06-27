@@ -1,4 +1,5 @@
-import cron from "node-cron";
+// Use require for node-cron to avoid CommonJS/ESM issues
+const cron = require('node-cron');
 import { supabase } from "../db/client";
 import logger from "../utils/logger";
 
@@ -17,7 +18,7 @@ export const initExpiryCron = () => {
 
             const { data, error } = await supabase
                 .from("tracked_medicines")
-                .select("*")
+                .select("id")
                 .lte("expiry_date", thresholdDate.toISOString())
                 .eq(flagColumn, false);
 
@@ -26,13 +27,21 @@ export const initExpiryCron = () => {
                 continue;
             }
 
-            for (const medicine of data || []) {
-                await supabase
+            const medicineIds = (data || []).map((m) => m.id);
+            if (medicineIds.length > 0) {
+                const { error: updateError } = await supabase
                     .from("tracked_medicines")
                     .update({ [flagColumn]: true })
-                    .eq("id", medicine.id);
+                    .in("id", medicineIds);
+
+                if (updateError) {
+                    logger.error(
+                        `Error updating notification flags for ${days}d expiring medicines`,
+                        { error: updateError }
+                    );
+                }
             }
-            logger.info(`${days}d check done. ${data?.length || 0} medicines processed.`);
+            logger.info(`${days}d check done. ${medicineIds.length} medicines processed.`);
         }
     });
 };

@@ -23,6 +23,7 @@
         "express": "^5.0.0",
         "express-rate-limit": "^8.5.2",
         "helmet": "^8.2.0",
+        "libphonenumber-js": "^1.13.7",
         "morgan": "^1.10.0",
         "multer": "^2.2.0",
         "natural": "^8.1.1",

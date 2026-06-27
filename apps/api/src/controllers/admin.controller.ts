@@ -3,6 +3,8 @@ import { z } from "zod";
 import { supabase } from "../db/client";
 import { logAdminAction } from "../services/audit.service";
 import { AuthenticatedRequest } from "../middleware/auth";
+import { triggerRecallAlert } from "../services/notifications";
+import logger from "../utils/logger";
 
 const reportStatusSchema = z.object({
     status: z.enum(["pending", "verified_fake", "false_alarm"]),
@@ -142,7 +144,13 @@ export const updateReportStatus = async (
         // Only reports that passed validation (low risk score) contribute to
         // district alerts. Artificially amplified or duplicate reports should
         // not directly escalate public risk indicators.
-        if (status === "verified_fake" && data.district) {
+        //
+        // Alerts are keyed by (district, medicine_name), not district alone —
+        // see the migration adding district_alerts_district_medicine_key.
+        // A district with fake reports on multiple medicines now gets one
+        // alert row per medicine, instead of the most recent upsert silently
+        // overwriting any prior alert for a different medicine in that district.
+        if (status === "verified_fake" && data.district && data.reported_brand_name) {
             const { count } = await supabase
                 .from("counterfeit_reports")
                 .select("*", { count: "exact", head: true })
@@ -157,21 +165,72 @@ export const updateReportStatus = async (
             if (count && count >= 5) {
                 const alertLevel = count >= 15 ? "high" : "medium";
 
+                // Fetch the existing alert (if any) for this district+medicine
+                // pair first, so a push notification only fires on genuine
+                // creation or escalation — not on every redundant upsert when
+                // the level hasn't actually changed.
+                const { data: existingAlert } = await supabase
+                    .from("district_alerts")
+                    .select("alert_level")
+                    .eq("district", data.district)
+                    .eq("medicine_name", data.reported_brand_name)
+                    .maybeSingle();
+
+                const previousAlertLevel = existingAlert?.alert_level ?? null;
+                const isNewOrEscalated = !existingAlert || previousAlertLevel !== alertLevel;
+
                 // Replace the previous check-then-insert pattern with a single upsert.
                 // The old pattern had a TOCTOU race window: two concurrent admin actions
                 // on the same district could both pass the existingAlert check and
                 // produce duplicate rows. The upsert with onConflict is atomic and
-                // eliminates the window. The conflict target must match a unique
-                // constraint on (district) in the district_alerts table.
-                await supabase.from("district_alerts").upsert(
-                    {
+                // eliminates the window. The conflict target matches the composite
+                // unique constraint on (district, medicine_name) in district_alerts.
+                const { data: upsertedAlert, error: alertError } = await supabase
+                    .from("district_alerts")
+                    .upsert(
+                        {
+                            district: data.district,
+                            medicine_name: data.reported_brand_name,
+                            alert_level: alertLevel,
+                            previous_alert_level: previousAlertLevel,
+                            broadcasted: false,
+                            updated_at: new Date().toISOString(),
+                        },
+                        { onConflict: "district,medicine_name" }
+                    )
+                    .select()
+                    .single();
+
+                if (alertError) {
+                    logger.error({
+                        message: "Failed to upsert district alert",
+                        error: alertError,
                         district: data.district,
-                        medicine_name: data.reported_brand_name,
-                        alert_level: alertLevel,
-                        broadcasted: false,
-                    },
-                    { onConflict: "district" }
-                );
+                        medicineName: data.reported_brand_name,
+                    });
+                } else if (isNewOrEscalated && upsertedAlert) {
+                    // Fire-and-log: a push delivery failure should not fail
+                    // the admin's status-update request.
+                    try {
+                        await triggerRecallAlert({
+                            id: String(upsertedAlert.id),
+                            medicineName: data.reported_brand_name,
+                            reason:
+                                `${count} verified counterfeit reports of ` +
+                                `${data.reported_brand_name} confirmed in ${data.district}.`,
+                            severity: alertLevel === "high" ? "critical" : "medium",
+                            source: "SahiDawa Citizen Reports",
+                            recalledAt: new Date().toISOString(),
+                        });
+                    } catch (pushErr) {
+                        logger.error({
+                            message: "Failed to trigger push notification for district alert",
+                            error: pushErr,
+                            district: data.district,
+                            medicineName: data.reported_brand_name,
+                        });
+                    }
+                }
             }
         }
 
