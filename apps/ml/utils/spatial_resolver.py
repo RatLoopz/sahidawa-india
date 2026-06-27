@@ -11,6 +11,51 @@ class SpatialLayoutResolver:
         self.row_overlap_epsilon = row_overlap_epsilon
         self.min_column_samples = min_column_samples
 
+    def _correct_skew(self, bboxes, min_skew_deg=0.5):
+        if len(bboxes) < 2:
+            return bboxes
+
+        # Compute centroids
+        cx = (bboxes[:, 0] + bboxes[:, 2]) / 2
+        cy = (bboxes[:, 1] + bboxes[:, 3]) / 2
+
+        # Estimate skew angle
+        slope, _ = np.polyfit(cx, cy, 1)
+        angle = np.arctan(slope)
+
+        # Skip tiny rotations
+        if np.abs(np.degrees(angle)) < min_skew_deg:
+            return bboxes
+
+        cos_theta = np.cos(-angle)
+        sin_theta = np.sin(-angle)
+
+        rotation = np.array([
+            [cos_theta, -sin_theta],
+            [sin_theta,  cos_theta]
+        ], dtype=np.float32)
+
+        # Image center
+        center = np.array([np.mean(cx), np.mean(cy)], dtype=np.float32)
+
+        # Four corners of every box
+        corners = np.stack([
+            bboxes[:, [0, 1]],
+            np.stack([bboxes[:, 2], bboxes[:, 1]], axis=1),
+            bboxes[:, [2, 3]],
+            np.stack([bboxes[:, 0], bboxes[:, 3]], axis=1)
+        ], axis=1)
+
+        # Rotate all corners (vectorized)
+        rotated = (corners - center) @ rotation.T + center
+
+        xmin = rotated[:, :, 0].min(axis=1)
+        ymin = rotated[:, :, 1].min(axis=1)
+        xmax = rotated[:, :, 0].max(axis=1)
+        ymax = rotated[:, :, 1].max(axis=1)
+
+        return np.stack([xmin, ymin, xmax, ymax], axis=1)
+
     def resolve_layout(self, ocr_tokens):
         """
         Args:
@@ -25,6 +70,9 @@ class SpatialLayoutResolver:
         # 1. Extrapolate coordinates into a structured NumPy Matrix
         bboxes = np.array([t["bbox"] for t in ocr_tokens], dtype=np.float32)
         texts = np.array([t["text"] for t in ocr_tokens])
+
+        # Preprocess: Correct document skew before layout analysis
+        bboxes = self._correct_skew(bboxes)
 
         # 2. Step 1: Horizontal Projection Profiling / Row Segmentation
         y_sort_indices = np.argsort(bboxes[:, 1])
@@ -95,11 +143,11 @@ if __name__ == "__main__":
     print("🚀 Initializing Test Execution Pipeline...")
     
     mock_ocr_payload = [
-        {"text": "Amlodipine 5mg", "bbox": [10, 100, 150, 130]},      
-        {"text": "Take 1 tab at night", "bbox": [400, 105, 600, 135]},  
-        
-        {"text": "Paracetamol 650mg", "bbox": [12, 200, 160, 230]},    
-        {"text": "S.O.S if fever high", "bbox": [405, 195, 590, 225]}, 
+        {"text": "Amlodipine 5mg", "bbox": [10, 100, 150, 130]},
+        {"text": "Take 1 tab at night", "bbox": [400, 175, 600, 205]},
+
+        {"text": "Paracetamol 650mg", "bbox": [25, 200, 165, 230]},
+        {"text": "S.O.S if fever high", "bbox": [415, 275, 615, 305]},
     ]
     
     resolver = SpatialLayoutResolver()

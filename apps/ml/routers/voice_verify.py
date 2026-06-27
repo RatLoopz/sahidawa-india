@@ -6,8 +6,16 @@ import os
 
 router = APIRouter(prefix="/voice", tags=["Voice Verification"])
 
-# Load Whisper model once at startup (use "base" for low-resource, "medium" for better accuracy)
-whisper_model = whisper.load_model("base")
+# Whisper model is loaded lazily on first use — see get_whisper_model() —
+# to avoid blocking ML service startup if model loading fails or is slow.
+whisper_model = None
+
+
+def get_whisper_model():
+    global whisper_model
+    if whisper_model is None:
+        whisper_model = whisper.load_model("base")
+    return whisper_model
 
 # Supported Indian scripts for rendering
 LANGUAGE_SCRIPT_MAP = {
@@ -43,7 +51,7 @@ async def verify_medicine_voice(audio: UploadFile = File(...)):
 
     try:
         # Transcribe with Whisper (auto-detects language)
-        result = whisper_model.transcribe(tmp_path, task="transcribe")
+        result = get_whisper_model().transcribe(tmp_path, task="transcribe")
         transcribed_text = result.get("text", "").strip()
         detected_lang = result.get("language", "en")
 

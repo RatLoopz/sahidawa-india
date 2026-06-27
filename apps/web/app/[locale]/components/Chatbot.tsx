@@ -30,7 +30,7 @@ const MessageContent = ({ msg }: { msg: Message }) => {
 
 const ChatSkeleton = () => {
     return (
-        <div className="max-w-[85%] self-start rounded-2xl rounded-tl-sm border border-(--color-border-muted) bg-(--color-surface-page) p-3 shadow-sm animate-pulse">
+        <div className="max-w-[85%] animate-pulse self-start rounded-2xl rounded-tl-sm border border-(--color-border-muted) bg-(--color-surface-page) p-3 shadow-sm">
             <div className="mb-2 h-3 w-32 rounded bg-gray-300"></div>
             <div className="mb-2 h-3 w-48 rounded bg-gray-300"></div>
             <div className="h-3 w-24 rounded bg-gray-300"></div>
@@ -41,6 +41,7 @@ const ChatSkeleton = () => {
 export default function Chatbot() {
     const pathname = usePathname();
     const t = useTranslations("chatbot");
+    const tHome = useTranslations("Home");
     const [isOpen, setIsOpen] = useState(false);
     const [isLoadingWelcome, setIsLoadingWelcome] = useState(true);
     const [messages, setMessages] = useState<Message[]>([
@@ -269,7 +270,7 @@ export default function Chatbot() {
             <div className="group relative flex items-center">
                 {!isOpen && (
                     <div className="absolute right-16 rounded-lg bg-slate-900 px-3 py-2 text-sm whitespace-nowrap text-white opacity-0 transition-all duration-300 group-hover:opacity-100">
-                        AI Health Assistant
+                        {tHome("ai_health_assistant")}
                     </div>
                 )}
 

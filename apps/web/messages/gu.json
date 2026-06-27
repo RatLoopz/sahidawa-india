@@ -41,7 +41,14 @@
         "heroTitle": {
             "prefix": "તમારું સ્વાસ્થ્ય, ",
             "highlight": "ચકાસાયેલ અને સુરક્ષિત."
-        }
+        },
+        "scan_section_title": "દવા સ્કેન અને ચકાસો",
+        "scan_section_subtitle": "બારકોડ અથવા પેકેજ સ્કેનિંગનો ઉપયોગ કરીને દવાની પ્રમાણિકતા ચકાસો.",
+        "powerful_capabilities": "શક્તિશાળી ક્ષમતાઓ",
+        "features_description": "SahiDawa તમને તમારી દવાઓ ચકાસવામાં અને સુરક્ષિત રહેવામાં કઈ રીતે મદદ કરી શકે છે તે બધી રીતો શોધો.",
+        "trusted_by_citizens": "નાગરિકો દ્વારા વિશ્વસનીય",
+        "voices_title": "SahiDawa સમુદાયના અવાજો",
+        "voices_description": "દવા સુરક્ષાને સરળ બનાવવા માટે SahiDawa નો ઉપયોગ કરતા પરિવારો, ફાર્માસિસ્ટો, ડોકટરો અને યોગદાનકર્તાઓ."
     },
     "Navigation": {
         "how_it_works": "તે કેવી રીતે કામ કરે છે",

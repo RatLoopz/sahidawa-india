@@ -2,6 +2,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { NextResponse } from "next/server";
 import { detectEmergencyKeywords } from "@/lib/voice/emergency";
 import { rateLimit } from "@/lib/rateLimit";
+import { getClientIp } from "@/lib/getClientIp";
 import { BASE_PROMPT } from "@/lib/chatPrompts";
 import { structuredLog } from "@/lib/structuredLogger";
 import { ChatRoles, ChatRole, ChatMessage } from "@/lib/constants";
@@ -10,6 +11,8 @@ import crypto from "crypto";
 import { trimHistoryByTokens } from "@/lib/chatUtils";
 
 const summaryCache = new Map<string, string>();
+
+const ML_TRIAGE_TIMEOUT_MS = 30_000;
 
 const DEFAULT_DISCLAIMER =
     "This guidance is for informational use only and is not a diagnosis. Consult a doctor or pharmacist, especially for severe or persistent symptoms.";
@@ -147,9 +150,7 @@ export async function POST(req: Request) {
     const startTime = Date.now();
 
     try {
-        const forwardedFor = req.headers.get("x-forwarded-for");
-        const realIp = req.headers.get("x-real-ip");
-        const ip = forwardedFor?.split(",")[0]?.trim() || realIp || "127.0.0.1";
+        const ip = getClientIp(req);
         const { success } = await rateLimit.limit(ip);
         if (!success) {
             return NextResponse.json(
@@ -220,10 +221,28 @@ export async function POST(req: Request) {
             let emergencyFromML = false;
 
             try {
-                const mlServiceUrl =
-                    process.env.ML_SERVICE_URL?.trim() ||
-                    process.env.NEXT_PUBLIC_ML_SERVICE_URL?.trim() ||
-                    "http://localhost:8000";
+                const mlServiceUrl = process.env.ML_SERVICE_URL?.trim()?.replace(/\/+$/, "");
+
+                if (!mlServiceUrl) {
+                    structuredLog({
+                        log_level: "error",
+                        route: ROUTE,
+                        error: {
+                            message: "ML_SERVICE_URL is not configured",
+                            code: 500,
+                            stack: undefined,
+                        },
+                        meta: { missingVars: ["ML_SERVICE_URL"] },
+                    });
+                    return NextResponse.json(
+                        {
+                            error: "Server configuration error: ML service URL is missing.",
+                            code: "ML_SERVICE_URL_MISSING",
+                        },
+                        { status: 500 }
+                    );
+                }
+
                 const formattedMessages = trimmedMessages.map((m: any) => ({
                     role:
                         m.role === ChatRoles.ASSISTANT || m.role === ChatRoles.MODEL
@@ -237,6 +256,12 @@ export async function POST(req: Request) {
                     formattedMessages.push({ role: ChatRoles.USER, content: latestMessageText });
                 }
 
+                const mlAbortController = new AbortController();
+                const mlTimeoutId = setTimeout(
+                    () => mlAbortController.abort(),
+                    ML_TRIAGE_TIMEOUT_MS
+                );
+
                 const mlResponse = await fetch(`${mlServiceUrl}/triage/chat`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -244,7 +269,10 @@ export async function POST(req: Request) {
                         messages: formattedMessages,
                         locale: locale || "en",
                     }),
+                    signal: mlAbortController.signal,
                 });
+
+                clearTimeout(mlTimeoutId);
 
                 if (!mlResponse.ok) {
                     throw new Error(`ML service returned status ${mlResponse.status}`);
@@ -271,13 +299,25 @@ export async function POST(req: Request) {
                     },
                 });
             } catch (mlError: any) {
+                const isTimeout = mlError instanceof Error && mlError.name === "AbortError";
                 structuredLog({
-                    log_level: "warn",
+                    log_level: isTimeout ? "error" : "warn",
                     route: ROUTE,
+                    latency_ms: Date.now() - startTime,
+                    error: isTimeout
+                        ? {
+                              message: "ML triage service timed out",
+                              code: 504,
+                              stack: mlError.stack,
+                          }
+                        : undefined,
                     meta: {
-                        reason: "ml_service_triage_failed",
+                        reason: isTimeout
+                            ? "ml_service_triage_timeout"
+                            : "ml_service_triage_failed",
                         error: mlError.message,
                         fallback: "direct_gemini",
+                        ...(isTimeout ? { timeoutMs: ML_TRIAGE_TIMEOUT_MS } : {}),
                     },
                 });
 
@@ -354,7 +394,25 @@ export async function POST(req: Request) {
 
         const formattedContents = mapMessagesToGeminiContents(trimmedMessages);
 
-        const supportedLocales = ["en", "gu", "bn", "te", "ta", "mr", "ur", "kn", "pa", "or", "hi"];
+        const supportedLocales = [
+            "en",
+            "gu",
+            "bn",
+            "te",
+            "ta",
+            "mr",
+            "ur",
+            "kn",
+            "pa",
+            "or",
+            "hi",
+            "as",
+            "ks",
+            "kok",
+            "mai",
+            "ml",
+            "sa",
+        ];
         const finalLocale = supportedLocales.includes(locale) ? locale : "en";
         const localeMap = {
             en: "English",
@@ -368,6 +426,12 @@ export async function POST(req: Request) {
             te: "Telugu",
             ur: "Urdu",
             or: "Odia",
+            as: "Assamese",
+            ks: "Kashmiri",
+            kok: "Konkani",
+            mai: "Maithili",
+            ml: "Malayalam",
+            sa: "Sanskrit",
         };
         const language = localeMap[finalLocale as keyof typeof localeMap] || "English";
         const systemPrompt = BASE_PROMPT.replace("{language}", language);

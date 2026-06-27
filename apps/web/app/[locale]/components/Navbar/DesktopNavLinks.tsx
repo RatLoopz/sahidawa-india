@@ -69,9 +69,14 @@ export default function DesktopNavLinks() {
             </Link>
 
             {/* More Dropdown */}
-            <div className="relative flex items-center" ref={featuresRef}>
+            <div
+                className="relative flex items-center"
+                ref={featuresRef}
+                onMouseEnter={() => setIsFeaturesOpen(true)}
+                onMouseLeave={() => setIsFeaturesOpen(false)}
+            >
                 <button
-                    onClick={() => setIsFeaturesOpen(!isFeaturesOpen)}
+                    onClick={() => setIsFeaturesOpen((prev) => !prev)}
                     className={`${desktopNavLinkClassName} flex items-center gap-1 ${isFeaturesOpen ? "text-emerald-600 dark:text-emerald-400" : ""}`}
                     aria-expanded={isFeaturesOpen}
                 >
@@ -84,7 +89,9 @@ export default function DesktopNavLinks() {
 
                 {/* Dropdown Panel */}
                 {isFeaturesOpen && (
-                    <div className="animate-in fade-in slide-in-from-top-2 absolute top-full left-1/2 z-[100] mt-4 w-52 -translate-x-1/2 rounded-xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-800 dark:bg-slate-950">
+                    <div className="animate-in fade-in slide-in-from-top-2 absolute top-full left-1/2 z-[100] mt-1 w-52 -translate-x-1/2 rounded-xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-800 dark:bg-slate-950">
+                        <div className="absolute -top-2 left-0 h-2 w-full" />
+
                         <div className="flex flex-col gap-1">
                             <Link
                                 href="/map"

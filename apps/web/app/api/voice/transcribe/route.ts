@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { structuredLog } from "@/lib/structuredLogger";
+import { rateLimit } from "@/lib/rateLimit";
+import { getClientIp } from "@/lib/getClientIp";
 
 const ROUTE = "/api/voice/transcribe";
 const ML_TRANSCRIBE_TIMEOUT_MS = 45_000;
@@ -19,6 +21,16 @@ async function readJsonSafely(response: Response) {
 
 export async function POST(req: Request) {
     const startTime = Date.now();
+
+    const ip = getClientIp(req);
+    const { success } = await rateLimit.limit(ip);
+    if (!success) {
+        return NextResponse.json(
+            { error: "Too many requests. Please try again in a few moments." },
+            { status: 429 }
+        );
+    }
+
     const formData = await req.formData();
     const file = formData.get("file");
     const language = formData.get("language");
@@ -31,6 +43,22 @@ export async function POST(req: Request) {
         });
         return NextResponse.json({ error: "Audio file is required." }, { status: 400 });
     }
+    
+    const MAX_AUDIO_SIZE_MB = 10;
+    if (file.size > MAX_AUDIO_SIZE_MB * 1024 * 1024) {
+        return NextResponse.json(
+            { error: `Audio file too large. Maximum size is ${MAX_AUDIO_SIZE_MB}MB.` },
+            { status: 413 }
+        );
+    }
+
+    const ALLOWED_MIME_TYPES = ["audio/webm", "audio/ogg", "audio/wav", "audio/mp4"];
+    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+        return NextResponse.json(
+            { error: "Invalid audio format. Accepted formats: webm, ogg, wav, mp4." },
+            { status: 415 }
+        );
+    }
 
     const mlServiceUrl = getMlServiceUrl();
     if (!mlServiceUrl) {
@@ -39,17 +67,17 @@ export async function POST(req: Request) {
             route: ROUTE,
             error: {
                 message: "ML_SERVICE_URL is not configured",
-                code: 500,
+                code: 503,
                 stack: undefined,
             },
             meta: { missingVars: ["ML_SERVICE_URL"] },
         });
         return NextResponse.json(
             {
-                error: "Server configuration error: transcription service URL is missing.",
+                error: "Voice transcription service is currently unavailable.",
                 code: "ML_SERVICE_URL_MISSING",
             },
-            { status: 500 }
+            { status: 503 }
         );
     }
 
