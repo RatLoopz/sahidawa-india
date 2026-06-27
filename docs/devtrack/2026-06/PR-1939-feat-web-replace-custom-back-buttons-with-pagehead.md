@@ -74,6 +74,7 @@ To re-implement this pattern for a new or existing page requiring a standardized
     Adjust the relative path `../components/PageHeader` if your page is nested differently.
 3.  **Remove custom back button logic:** If there's an existing custom back button (e.g., using `Link` from `next-intl/routing` and `ArrowLeft` from `lucide-react`), remove its JSX and corresponding imports.
 4.  **Integrate `PageHeader`:** Place the `PageHeader` component where you want the back button to appear, typically at the top of the page's main content area.
+
     ```tsx
     export default function YourNewPage() {
         return (
@@ -87,6 +88,7 @@ To re-implement this pattern for a new or existing page requiring a standardized
 
     - Set the `backHref` prop to the desired navigation target (e.g., `/` for home, `/profile` for a profile page).
     - The `variant` prop can be adjusted if the `PageHeader` needs to adapt to different background contexts (e.g., `variant="dark"` if available, though `light` is used here).
+
 5.  **Clean up imports:** Ensure that `ArrowLeft` from `lucide-react` and `Link` from `next-intl/routing` (if previously used for the custom back button) are no longer imported in the file.
 
 This pattern ensures consistency and leverages our component library effectively.

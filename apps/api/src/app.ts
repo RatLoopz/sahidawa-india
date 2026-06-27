@@ -254,7 +254,6 @@ app.use("/api/map", mapRouter);
 app.use("/api/v1/interactions", interactionsRouter);
 app.use("/api/schedules", medicineSchedulesRouter);
 app.use("/api/v1/abha", abhaRoutes);
-app.use("/api/v1/alternatives", alternativesRouter);
 app.use("/api/v1/scheme-eligibility", eligibilityRouter);
 app.use("/api/v1/medicines", trackingRouter);
 

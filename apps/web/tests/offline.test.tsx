@@ -18,6 +18,7 @@ import { OfflineErrorBoundary } from "@/components/OfflineErrorBoundary";
 
 // Mock next-intl for OfflineBanner translations
 jest.mock("next-intl", () => ({
+    useLocale: () => "en",
     useTranslations: () => (key: string) => key,
 }));
 

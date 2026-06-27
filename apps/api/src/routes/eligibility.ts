@@ -1,16 +1,23 @@
 import { Router, Request, Response } from "express";
 import logger from "../utils/logger";
+import { anonSupabase } from "../db/supabase";
 
 const router = Router();
 
-interface EligibilityBody {
-    age?: number;
-    annual_income?: number;
-    family_size?: number;
-    state?: string;
-    has_bpl_card?: boolean;
-    has_abha_id?: boolean;
-}
+import { z } from "zod";
+import { redisClient } from "../utils/redis";
+import { eligibilityLimiter } from "../middleware/rateLimit";
+
+const eligibilitySchema = z.object({
+    age: z.number().int().min(0, "Age cannot be negative").optional().default(30),
+    annual_income: z.number().min(0, "Income cannot be negative").optional().default(150000),
+    family_size: z.number().int().min(1, "Family size must be at least 1").optional().default(4),
+    state: z.string().trim().optional().default(""),
+    has_bpl_card: z.boolean().optional().default(false),
+    has_abha_id: z.boolean().optional().default(false),
+});
+
+type EligibilityBody = z.infer<typeof eligibilitySchema>;
 
 /**
  * @openapi
@@ -51,16 +58,19 @@ interface EligibilityBody {
  *       500:
  *         description: Server error
  */
-router.post("/", async (req: Request, res: Response): Promise<void> => {
+router.post("/", eligibilityLimiter, async (req: Request, res: Response): Promise<void> => {
     try {
-        const {
-            age = 30,
-            annual_income = 150000,
-            family_size = 4,
-            state = "",
-            has_bpl_card = false,
-            has_abha_id = false,
-        } = req.body as EligibilityBody;
+        const parseResult = eligibilitySchema.safeParse(req.body);
+        if (!parseResult.success) {
+            res.status(400).json({
+                error: "Invalid request data",
+                details: parseResult.error.issues,
+            });
+            return;
+        }
+
+        const { age, annual_income, family_size, state, has_bpl_card, has_abha_id } =
+            parseResult.data;
 
         const income = Number(annual_income);
         const userState = (state || "").trim();
@@ -83,88 +93,62 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
         }
 
         // 2. State Specific Schemes
-        const normalizedState = userState.toLowerCase();
+        let foundStateScheme = false;
 
-        if (normalizedState.includes("maharashtra")) {
-            if (has_bpl_card || income <= 150000) {
-                eligibleSchemes.push({
-                    name: "Mahatma Jyotirao Phule Jan Arogya Yojana (MJPJAY)",
-                    description:
-                        "Cashless health insurance scheme by the Government of Maharashtra for low-income families and identified vulnerable categories.",
-                    coverage:
-                        "Cashless healthcare services for identified specialty services up to ₹1.5 Lakh to ₹5 Lakh per family per year.",
-                    how_to_apply:
-                        "Visit a network hospital or District General Hospital. Speak to the 'Arogyamitra' helper desk with your yellow/orange ration card, Aadhaar card, and income certificate.",
-                    link: "https://www.jeevandayee.gov.in/",
-                });
+        if (userState) {
+            const cacheKey = `schemes:state:${userState.toLowerCase()}`;
+            let data: any[] | null = null;
+
+            if (redisClient.isOpen) {
+                try {
+                    const cached = await redisClient.get(cacheKey);
+                    if (cached) {
+                        data = JSON.parse(cached);
+                    }
+                } catch (err) {
+                    logger.warn({ message: "Redis get error in eligibility", error: String(err) });
+                }
             }
-        } else if (normalizedState.includes("gujarat")) {
-            if (income <= 400000) {
-                eligibleSchemes.push({
-                    name: "Mukhyamantri Amrutam (MA) Yojana",
-                    description:
-                        "Cashless tertiary care treatment program for Below Poverty Line (BPL) and middle-income families in Gujarat.",
-                    coverage:
-                        "Cashless treatment up to ₹5 Lakh per family per year for major illnesses including cardiac surgery, oncology, and renal diseases.",
-                    how_to_apply:
-                        "Visit the civic center or taluka office. Submit your income certificate, Aadhaar card, and family details to get your MA Card.",
-                    link: "http://www.magujarat.com/",
-                });
+
+            if (!data) {
+                const { data: dbData, error } = await anonSupabase
+                    .from("health_schemes")
+                    .select("*")
+                    .ilike("state_name", `%${userState}%`);
+
+                if (error) {
+                    logger.error("Failed to query health_schemes", { error });
+                }
+
+                data = dbData as any[] | null;
+
+                if (data && redisClient.isOpen) {
+                    try {
+                        await redisClient.setEx(cacheKey, 604800, JSON.stringify(data));
+                    } catch (err) {
+                        logger.warn({
+                            message: "Redis set error in eligibility",
+                            error: String(err),
+                        });
+                    }
+                }
             }
-        } else if (normalizedState.includes("tamil nadu")) {
-            if (income <= 120000 || has_bpl_card) {
-                eligibleSchemes.push({
-                    name: "Chief Minister's Comprehensive Health Insurance Scheme (CMCHIS)",
-                    description:
-                        "State-funded cashless hospital services program in Tamil Nadu for eligible low-income families.",
-                    coverage:
-                        "Quality medical care up to ₹5 Lakh per family per year through empaneled government and private hospitals.",
-                    how_to_apply:
-                        "Apply at the District Collectorate Office. Bring your Smart Family Card, Income Certificate, and Identity Proof to receive your biometric CMCHIS card.",
-                    link: "https://www.cmchistn.com/",
-                });
+
+            if (data && data.length > 0) {
+                foundStateScheme = true;
+                for (const scheme of data) {
+                    eligibleSchemes.push({
+                        name: scheme.scheme_name,
+                        description: scheme.description,
+                        coverage: scheme.coverage,
+                        how_to_apply: scheme.how_to_apply,
+                        link: scheme.link,
+                    });
+                }
             }
-        } else if (normalizedState.includes("karnataka")) {
-            eligibleSchemes.push({
-                name: "Ayushman Bharat - Arogya Karnataka (AB-Ark)",
-                description:
-                    "Integrated health insurance scheme combining PM-JAY and state benefits for residents of Karnataka.",
-                coverage:
-                    "Cashless treatment up to ₹5 Lakh per year for BPL (eligible) families, and co-payment benefits for APL (general) families.",
-                how_to_apply:
-                    "Visit any government primary health center or hospital. Present your Ration Card (BPL/APL) and Aadhaar card to generate your AB-Ark Health ID.",
-                link: "https://arogya.karnataka.gov.in/",
-            });
-        } else if (normalizedState.includes("kerala")) {
-            if (has_bpl_card || income <= 300000) {
-                eligibleSchemes.push({
-                    name: "Karunya Arogya Suraksha Padhathi (KASP)",
-                    description:
-                        "Universal healthcare scheme of Kerala offering cashless treatments for families in need.",
-                    coverage:
-                        "Comprehensive coverage of up to ₹5 Lakh per family per year for secondary and tertiary care treatments.",
-                    how_to_apply:
-                        "Register at any government hospital or empaneled private hospital. Bring your Aadhaar Card, Ration Card, and RSBY legacy card.",
-                    link: "https://sha.kerala.gov.in/",
-                });
-            }
-        } else if (
-            normalizedState.includes("andhra pradesh") ||
-            normalizedState.includes("telangana")
-        ) {
-            if (income <= 500000 || has_bpl_card) {
-                eligibleSchemes.push({
-                    name: "Dr. YSR Aarogyasri Health Scheme",
-                    description:
-                        "Flagship cashless healthcare scheme targeting poor and middle-income families in Andhra Pradesh/Telangana.",
-                    coverage:
-                        "Cashless treatment for listed therapies and procedures up to ₹5 Lakh per year per family.",
-                    how_to_apply:
-                        "Visit any YSR Aarogyasri kiosk at network hospitals. Present your rice card (Ration card) or health card along with your Aadhaar card.",
-                    link: "https://www.aarogyasri.ap.gov.in/",
-                });
-            }
-        } else {
+        }
+
+        if (!foundStateScheme) {
             // General state insurance schemes fallback for other states
             if (income <= 300000 || has_bpl_card) {
                 eligibleSchemes.push({

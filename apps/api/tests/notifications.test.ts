@@ -183,4 +183,51 @@ describe("notifications routes", () => {
         expect(response.body.success).toBe(true);
         expect(response.body.sentCount).toBeDefined();
     });
+    it("fails registration when formatPhoneNumber returns null for garbage input", async () => {
+        const payload = {
+            phone: "abcdefghij", // 10 chars, bypasses zod min(10) but is garbage
+            channels: ["sms"],
+            district: "West Delhi",
+            language: "en",
+        };
+        const response = await request(app).post("/api/notifications/register").send(payload);
+        expect(response.status).toBe(400);
+        expect(response.body.error).toBe("Invalid phone number format");
+    });
+
+    it("returns 400 for /status with invalid phone number format", async () => {
+        const response = await request(app)
+            .get("/api/notifications/status")
+            .query({ phone: "invalid-phone" });
+        expect(response.status).toBe(400);
+        expect(response.body.error).toBe("Invalid phone number format");
+    });
+
+    it("returns 400 for /phone PATCH with invalid phone format", async () => {
+        const payload = {
+            phone: "123", // too short
+            district: "South Delhi",
+            channels: ["whatsapp"],
+        };
+
+        // Zod will catch 123 since it's < 10, let's use 10 chars of garbage
+        const payload2 = {
+            phone: "garbagephn",
+            district: "South Delhi",
+            channels: ["whatsapp"],
+        };
+
+        const response = await request(app).patch("/api/notifications/phone").send(payload2);
+        expect(response.status).toBe(400);
+        expect(response.body.error).toBe("Invalid phone number format");
+    });
+
+    it("returns 400 for /phone DELETE with invalid phone format", async () => {
+        const payload = {
+            phone: "garbagephn",
+        };
+        const response = await request(app).delete("/api/notifications/phone").send(payload);
+        expect(response.status).toBe(400);
+        expect(response.body.error).toBe("Invalid phone number format");
+    });
 });

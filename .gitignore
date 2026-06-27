@@ -62,6 +62,8 @@ coverage/
 .tmp/
 .cache/
 .turbo/
+*.egg-info/
+unassigned_issues.json
 
 # Dev / scratch test scripts (not part of the test suite)
 test_tts_live.py

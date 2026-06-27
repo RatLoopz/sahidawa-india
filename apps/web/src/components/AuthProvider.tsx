@@ -2,7 +2,7 @@
 
 import { createBrowserClient } from "@supabase/ssr";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useMemo, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
 
 interface AuthContextValue {
@@ -25,9 +25,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [session, setSession] = useState<Session | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        const supabase = createBrowserClient(getSupabaseUrl(), getSupabaseAnonKey());
+    const supabase = useMemo(() => createBrowserClient(getSupabaseUrl(), getSupabaseAnonKey()), []);
 
+    useEffect(() => {
         supabase.auth.getSession().then(({ data }) => {
             const s = data.session ?? null;
             setSession(s);

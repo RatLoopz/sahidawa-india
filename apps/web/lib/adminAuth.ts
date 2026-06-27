@@ -13,7 +13,7 @@ function toAdminRole(value: unknown): AdminRole | null {
 export function getAdminRoleFromUser(
     user: Pick<User, "app_metadata" | "user_metadata"> | null | undefined
 ): AdminRole | null {
-    return toAdminRole(user?.app_metadata?.role) ?? toAdminRole(user?.user_metadata?.role);
+    return toAdminRole(user?.app_metadata?.role);
 }
 
 export function getAdminRoleFromSession(

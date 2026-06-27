@@ -11,7 +11,7 @@ import {
     EyeOff,
 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/routing";
 import { createBrowserClient } from "@supabase/ssr";
@@ -22,10 +22,32 @@ export default function LoginPage() {
     const router = useRouter();
     const locale = useLocale();
     const t = useTranslations("Login");
-    const supabaseUrl = getSupabaseUrl();
-    const supabaseKey = getSupabaseAnonKey();
-    const isMissingEnvVars = !supabaseUrl || !supabaseKey;
-    const supabase = createBrowserClient(supabaseUrl, supabaseKey);
+
+    // Safely retrieve Supabase configurations without crashing during SSR or when missing
+    const { supabaseUrl, supabaseKey, isMissingEnvVars } = useMemo(() => {
+        try {
+            const url = getSupabaseUrl();
+            const key = getSupabaseAnonKey();
+            return {
+                supabaseUrl: url,
+                supabaseKey: key,
+                isMissingEnvVars: !url || !key,
+            };
+        } catch {
+            return {
+                supabaseUrl: "",
+                supabaseKey: "",
+                isMissingEnvVars: true,
+            };
+        }
+    }, []);
+
+    // Memoize the browser client so it is created once and persists across renders
+    const supabase = useMemo(() => {
+        if (isMissingEnvVars) return null;
+        return createBrowserClient(supabaseUrl, supabaseKey);
+    }, [isMissingEnvVars, supabaseUrl, supabaseKey]);
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
@@ -38,7 +60,7 @@ export default function LoginPage() {
         setLoading(true);
         setError("");
 
-        if (isMissingEnvVars) {
+        if (isMissingEnvVars || !supabase) {
             setError(t("errors.databaseNotConfigured"));
             setLoading(false);
             return;
@@ -70,7 +92,7 @@ export default function LoginPage() {
         setLoading(true);
         setError("");
 
-        if (isMissingEnvVars) {
+        if (isMissingEnvVars || !supabase) {
             setError(t("errors.databaseNotConfigured"));
             setLoading(false);
             return;
@@ -97,7 +119,7 @@ export default function LoginPage() {
         setLoading(true);
         setError("");
 
-        if (isMissingEnvVars) {
+        if (isMissingEnvVars || !supabase) {
             setError(t("errors.databaseNotConfigured"));
             setLoading(false);
             return;
@@ -271,11 +293,22 @@ export default function LoginPage() {
                     </form>
 
                     {/* Footer */}
-                    <div className="mt-7 text-center text-sm text-(--color-text-secondary)">
-                        {t("footerPrompt")}{" "}
-                        <Link href="/" className="font-medium text-emerald-600 hover:underline">
-                            {t("returnHome")}
-                        </Link>
+                    <div className="mt-7 space-y-2 text-center text-sm text-(--color-text-secondary)">
+                        <p>
+                            {t("signUpPrompt")}{" "}
+                            <Link
+                                href="/signup"
+                                className="font-medium text-emerald-600 hover:underline"
+                            >
+                                {t("signUpLink")}
+                            </Link>
+                        </p>
+                        <p>
+                            {t("footerPrompt")}{" "}
+                            <Link href="/" className="font-medium text-emerald-600 hover:underline">
+                                {t("returnHome")}
+                            </Link>
+                        </p>
                     </div>
                 </div>
 

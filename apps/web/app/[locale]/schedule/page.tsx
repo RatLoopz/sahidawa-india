@@ -18,6 +18,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { fetchTodaySummary, logDose, type TodaySchedule } from "@/lib/scheduleApi";
 import { useSession } from "@/src/components/AuthProvider";
+import { useTranslations } from "next-intl";
 
 function formatTime(time: string): string {
     const [h, m] = time.split(":");
@@ -27,12 +28,12 @@ function formatTime(time: string): string {
     return `${hour12}:${m} ${ampm}`;
 }
 
-function DoseStatus({ status }: { status: string }) {
+function DoseStatus({ status, t }: { status: string; t: (key: string) => string }) {
     if (status === "taken") {
         return (
             <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                 <CheckCircle2 size={14} />
-                Taken
+                {t("statusTaken")}
             </span>
         );
     }
@@ -40,7 +41,7 @@ function DoseStatus({ status }: { status: string }) {
         return (
             <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 dark:text-rose-400">
                 <XCircle size={14} />
-                Skipped
+                {t("statusSkipped")}
             </span>
         );
     }
@@ -48,13 +49,13 @@ function DoseStatus({ status }: { status: string }) {
         return (
             <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 dark:text-amber-400">
                 <Clock size={14} />
-                Pending
+                {t("statusPending")}
             </span>
         );
     }
     return (
         <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-400">
-            Upcoming
+            {t("statusUpcoming")}
         </span>
     );
 }
@@ -65,17 +66,21 @@ function DoseButton({
     time,
     currentStatus,
     onStatusChange,
+    t,
 }: {
     scheduleId: string;
     logDate: string;
     time: string;
     currentStatus: string | undefined;
     onStatusChange: (time: string, status: "taken" | "skipped") => void;
+    t: (key: string) => string;
 }) {
     const [loading, setLoading] = useState(false);
+    const [actionError, setActionError] = useState<string | null>(null);
 
     const handleAction = async (status: "taken" | "skipped") => {
         setLoading(true);
+        setActionError(null);
         try {
             await logDose(scheduleId, {
                 log_date: logDate,
@@ -84,46 +89,51 @@ function DoseButton({
             });
             onStatusChange(time, status);
         } catch {
-            // silently fail
+            setActionError(t("doseErrorMessage"));
         } finally {
             setLoading(false);
         }
     };
 
-    if (currentStatus === "taken") {
-        return (
-            <button
-                type="button"
-                onClick={() => handleAction("skipped")}
-                disabled={loading}
-                className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-rose-100 hover:text-rose-700 disabled:opacity-50 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-rose-900/30 dark:hover:text-rose-400"
-            >
-                <CheckCircle2 size={12} />
-                Taken
-            </button>
-        );
-    }
-
     return (
-        <div className="flex gap-1">
-            <button
-                type="button"
-                onClick={() => handleAction("taken")}
-                disabled={loading}
-                className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-200 disabled:opacity-50 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50"
-            >
-                <CheckCircle2 size={12} />
-                Take
-            </button>
-            <button
-                type="button"
-                onClick={() => handleAction("skipped")}
-                disabled={loading}
-                className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-1 text-xs font-semibold text-rose-600 transition hover:bg-rose-200 disabled:opacity-50 dark:bg-rose-900/30 dark:text-rose-400 dark:hover:bg-rose-900/50"
-            >
-                <XCircle size={12} />
-                Skip
-            </button>
+        <div className="flex flex-col gap-1">
+            {actionError && (
+                <p className="text-xs font-semibold text-rose-600 dark:text-rose-400">
+                    {actionError}
+                </p>
+            )}
+            {currentStatus === "taken" ? (
+                <button
+                    type="button"
+                    onClick={() => handleAction("skipped")}
+                    disabled={loading}
+                    className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-rose-100 hover:text-rose-700 disabled:opacity-50 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-rose-900/30 dark:hover:text-rose-400"
+                >
+                    <CheckCircle2 size={12} />
+                    {t("actionTaken")}
+                </button>
+            ) : (
+                <div className="flex gap-1">
+                    <button
+                        type="button"
+                        onClick={() => handleAction("taken")}
+                        disabled={loading}
+                        className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-200 disabled:opacity-50 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50"
+                    >
+                        <CheckCircle2 size={12} />
+                        {t("actionTake")}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => handleAction("skipped")}
+                        disabled={loading}
+                        className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-1 text-xs font-semibold text-rose-600 transition hover:bg-rose-200 disabled:opacity-50 dark:bg-rose-900/30 dark:text-rose-400 dark:hover:bg-rose-900/50"
+                    >
+                        <XCircle size={12} />
+                        {t("actionSkip")}
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
@@ -135,6 +145,7 @@ type LoadState =
     | { kind: "ready"; data: TodaySchedule[]; date: string };
 
 export default function SchedulePage() {
+    const t = useTranslations("schedule");
     const { token, isLoading: authLoading } = useSession();
     const [state, setState] = useState<LoadState>({ kind: "loading" });
     const [doseStatus, setDoseStatus] = useState<Record<string, string>>({});
@@ -180,8 +191,8 @@ export default function SchedulePage() {
     return (
         <div className="flex min-h-screen flex-col bg-(--color-surface-muted) font-sans text-(--color-text-primary)">
             <PageHeader
-                title="Medicine Schedule"
-                subtitle="Track your daily medications"
+                title={t("pageTitle")}
+                subtitle={t("pageSubtitle")}
                 backHref="/"
                 variant="light"
             />
@@ -190,10 +201,10 @@ export default function SchedulePage() {
                 <div className="mb-6 flex items-center justify-between gap-3">
                     <div>
                         <h1 className="text-2xl font-black tracking-tight text-(--color-text-primary)">
-                            My Medicines
+                            {t("heading")}
                         </h1>
                         <p className="mt-0.5 text-sm text-(--color-text-secondary)">
-                            Track your daily dose schedule and adherence.
+                            {t("headingDescription")}
                         </p>
                     </div>
                     <div className="flex gap-2">
@@ -201,7 +212,7 @@ export default function SchedulePage() {
                             type="button"
                             onClick={fetchData}
                             disabled={state.kind === "loading"}
-                            aria-label="Refresh"
+                            aria-label={t("refreshAriaLabel")}
                             className="rounded-full border border-(--color-border-muted) bg-(--color-surface-page) p-2.5 text-(--color-text-secondary) shadow-sm transition hover:bg-(--color-surface-muted) hover:text-(--color-text-primary) disabled:opacity-50"
                         >
                             <RefreshCw
@@ -214,7 +225,7 @@ export default function SchedulePage() {
                             className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700"
                         >
                             <Plus size={16} />
-                            Add Medicine
+                            {t("addMedicine")}
                         </Link>
                     </div>
                 </div>
@@ -238,9 +249,9 @@ export default function SchedulePage() {
                 {state.kind === "authError" && (
                     <EmptyState
                         icon={<LogIn size={26} className="text-amber-600" />}
-                        title="Sign in required"
-                        description="Please sign in to set up medicine reminders."
-                        actionLabel="Go to Login"
+                        title={t("authErrorTitle")}
+                        description={t("authErrorDescription")}
+                        actionLabel={t("authErrorAction")}
                         actionHref="/login"
                         className="border-(--color-border-muted) bg-(--color-surface-page)!"
                     />
@@ -249,9 +260,9 @@ export default function SchedulePage() {
                 {state.kind === "networkError" && (
                     <EmptyState
                         icon={<AlertTriangle size={26} className="text-rose-600" />}
-                        title="Connection Error"
+                        title={t("networkErrorTitle")}
                         description={state.message}
-                        actionLabel="Try again"
+                        actionLabel={t("networkErrorAction")}
                         onAction={fetchData}
                         className="border-rose-200 bg-(--color-surface-page)! dark:border-rose-950/40"
                     />
@@ -260,9 +271,9 @@ export default function SchedulePage() {
                 {state.kind === "ready" && state.data.length === 0 && (
                     <EmptyState
                         icon={<Pill size={26} className="text-emerald-600" />}
-                        title="No medicines tracked yet"
-                        description="Add your first medicine to start tracking doses and getting reminders."
-                        actionLabel="Add Medicine"
+                        title={t("emptyTitle")}
+                        description={t("emptyDescription")}
+                        actionLabel={t("emptyAction")}
                         actionHref="/schedule/new"
                         className="border-(--color-border-muted) bg-(--color-surface-page)!"
                     />
@@ -332,6 +343,7 @@ export default function SchedulePage() {
                                                                     </span>
                                                                     <DoseStatus
                                                                         status={effectiveStatus}
+                                                                        t={t}
                                                                     />
                                                                 </div>
                                                                 <DoseButton
@@ -349,6 +361,7 @@ export default function SchedulePage() {
                                                                             status
                                                                         )
                                                                     }
+                                                                    t={t}
                                                                 />
                                                             </div>
                                                         );

@@ -4,6 +4,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import VaccineHubPage from "@/app/[locale]/vaccine-hub/page";
 
 jest.mock("next-intl", () => ({
+    useLocale: () => "en",
     useTranslations: () => {
         const labels: Record<string, string> = {
             childNameLabel: "Child name",
