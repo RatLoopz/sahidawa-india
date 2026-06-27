@@ -258,7 +258,10 @@ export async function POST(req: Request) {
                 }
 
                 const mlAbortController = new AbortController();
-                const mlTimeoutId = setTimeout(() => mlAbortController.abort(), ML_TRIAGE_TIMEOUT_MS);
+                const mlTimeoutId = setTimeout(
+                    () => mlAbortController.abort(),
+                    ML_TRIAGE_TIMEOUT_MS
+                );
 
                 const mlResponse = await fetch(`${mlServiceUrl}/triage/chat`, {
                     method: "POST",
@@ -310,7 +313,9 @@ export async function POST(req: Request) {
                           }
                         : undefined,
                     meta: {
-                        reason: isTimeout ? "ml_service_triage_timeout" : "ml_service_triage_failed",
+                        reason: isTimeout
+                            ? "ml_service_triage_timeout"
+                            : "ml_service_triage_failed",
                         error: mlError.message,
                         fallback: "direct_gemini",
                         ...(isTimeout ? { timeoutMs: ML_TRIAGE_TIMEOUT_MS } : {}),
@@ -390,7 +395,25 @@ export async function POST(req: Request) {
 
         const formattedContents = mapMessagesToGeminiContents(trimmedMessages);
 
-        const supportedLocales = ["en", "gu", "bn", "te", "ta", "mr", "ur", "kn", "pa", "or", "hi"];
+        const supportedLocales = [
+            "en",
+            "gu",
+            "bn",
+            "te",
+            "ta",
+            "mr",
+            "ur",
+            "kn",
+            "pa",
+            "or",
+            "hi",
+            "as",
+            "ks",
+            "kok",
+            "mai",
+            "ml",
+            "sa",
+        ];
         const finalLocale = supportedLocales.includes(locale) ? locale : "en";
         const localeMap = {
             en: "English",
@@ -404,6 +427,12 @@ export async function POST(req: Request) {
             te: "Telugu",
             ur: "Urdu",
             or: "Odia",
+            as: "Assamese",
+            ks: "Kashmiri",
+            kok: "Konkani",
+            mai: "Maithili",
+            ml: "Malayalam",
+            sa: "Sanskrit",
         };
         const language = localeMap[finalLocale as keyof typeof localeMap] || "English";
         const systemPrompt = BASE_PROMPT.replace("{language}", language);
