@@ -199,6 +199,10 @@ export const notificationRegisterLimiter = rateLimit({
     handler: (_req, res) => {
         res.status(429).json({
             error: "Too many registration attempts",
+        });
+    },
+});
+
 /** Medicine tracking endpoints — throttle to prevent runaway clients from spamming database lookups/inserts. */
 export const trackingLimiter = rateLimit({
     skip: () => process.env.NODE_ENV === "test",
