@@ -12,9 +12,8 @@
         "build": "turbo run build",
         "test": "npm run test --workspaces --if-present",
         "lint": "npm run lint --workspaces --if-present",
-        "format": "npm run format --workspaces --if-present",
         "test:a11y:voice": "npm run test:a11y:voice -w web",
-        "prepare": "npx --yes husky || true",
+        "prepare": "node -e \"if(!process.env.CI) { require('child_process').execSync('npx --yes husky', {stdio: 'inherit'}) }\" || true",
         "check:migrations": "node scripts/check-migrations.js"
     },
     "keywords": [
@@ -26,7 +25,7 @@
     ],
     "author": "",
     "license": "MIT",
-    "packageManager": "npm@10.9.7",
+    "packageManager": "npm@11.12.1",
     "dependencies": {
         "@supabase/supabase-js": "^2.108.2",
         "cors": "^2.8.6",
@@ -48,8 +47,11 @@
         "eslint": "^10.5.0",
         "husky": "^9.1.7",
         "lint-staged": "^17.0.8",
+        "next": "^16.2.9",
         "prettier": "^3.8.4",
         "prettier-plugin-tailwindcss": "^0.8.0",
+        "react-hook-form": "^7.80.0",
+        "react-is": "^19.2.7",
         "turbo": "^2.10.0"
     },
     "overrides": {

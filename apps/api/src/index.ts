@@ -3,10 +3,15 @@ import app from "./app";
 import { createGracefulShutdown } from "./gracefulShutdown";
 import logger from "./utils/logger";
 import { startAlertBroadcaster } from "./cron/alert-broadcaster";
+import { startTempCleanupJob } from "./cron/tempCleanup";
 import { connectRedis } from "./utils/redis";
 import { warmCache } from "./services/cache.service";
 
 const port = process.env.PORT || 4000;
+
+if (process.env.NODE_ENV === "production" && process.env.VERIFY_ENABLE_MOCKS === "true") {
+    throw new Error("FATAL: VERIFY_ENABLE_MOCKS must not be enabled in production.");
+}
 
 if (process.env.NODE_ENV !== "test") {
     const server = app.listen(port, async () => {
@@ -18,6 +23,7 @@ if (process.env.NODE_ENV !== "test") {
     });
 
     startAlertBroadcaster();
+    startTempCleanupJob();
 
     const gracefulShutdown = createGracefulShutdown(server);
 

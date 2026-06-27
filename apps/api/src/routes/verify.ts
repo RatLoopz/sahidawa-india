@@ -193,7 +193,11 @@ router.post(
             "AUG625D",
         ]);
 
-        if (process.env.VERIFY_ENABLE_MOCKS === "true" && ALLOWED_MOCK_BATCHES.has(upperBatch)) {
+        if (
+            process.env.NODE_ENV !== "production" &&
+            process.env.VERIFY_ENABLE_MOCKS === "true" &&
+            ALLOWED_MOCK_BATCHES.has(upperBatch)
+        ) {
             const brandName = upperBatch.includes("DOLO")
                 ? "Dolo 650"
                 : upperBatch === "AUG625D"

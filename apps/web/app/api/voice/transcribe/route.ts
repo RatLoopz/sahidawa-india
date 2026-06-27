@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { structuredLog } from "@/lib/structuredLogger";
+import { rateLimit } from "@/lib/rateLimit";
 
 const ROUTE = "/api/voice/transcribe";
 const ML_TRANSCRIBE_TIMEOUT_MS = 45_000;
@@ -19,6 +20,18 @@ async function readJsonSafely(response: Response) {
 
 export async function POST(req: Request) {
     const startTime = Date.now();
+
+    const forwardedFor = req.headers.get("x-forwarded-for");
+    const realIp = req.headers.get("x-real-ip");
+    const ip = forwardedFor?.split(",")[0]?.trim() || realIp || "127.0.0.1";
+    const { success } = await rateLimit.limit(ip);
+    if (!success) {
+        return NextResponse.json(
+            { error: "Too many requests. Please try again in a few moments." },
+            { status: 429 }
+        );
+    }
+
     const formData = await req.formData();
     const file = formData.get("file");
     const language = formData.get("language");

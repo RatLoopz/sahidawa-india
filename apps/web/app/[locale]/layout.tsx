@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations } from "next-intl/server";
@@ -73,6 +74,8 @@ export default async function LocaleLayout({
     params: Promise<{ locale: string }>;
 }) {
     const { locale } = await params;
+    const headersList = await headers();
+    const nonce = headersList.get("x-nonce") ?? "";
 
     if (!routing.locales.includes(locale as any)) {
         notFound();
@@ -84,21 +87,7 @@ export default async function LocaleLayout({
 
     return (
         <html lang={locale} dir={isRtl ? "rtl" : "ltr"} suppressHydrationWarning>
-            <head>
-                <script
-                    dangerouslySetInnerHTML={{
-                        __html: `
-                            try {
-                                if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                                    document.documentElement.classList.add('dark');
-                                } else {
-                                    document.documentElement.classList.remove('dark');
-                                }
-                            } catch (_) {}
-                        `,
-                    }}
-                />
-            </head>
+            <head></head>
             <body className="flex min-h-screen flex-col bg-(--color-surface-page) text-(--color-text-primary) transition-colors duration-300">
                 <ServiceWorkerProvider>
                     <ThemeProvider>
