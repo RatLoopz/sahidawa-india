@@ -2,6 +2,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { NextResponse } from "next/server";
 import { detectEmergencyKeywords } from "@/lib/voice/emergency";
 import { rateLimit } from "@/lib/rateLimit";
+import { getClientIp } from "@/lib/getClientIp";
 import { BASE_PROMPT } from "@/lib/chatPrompts";
 import { structuredLog } from "@/lib/structuredLogger";
 import { ChatRoles, ChatRole, ChatMessage } from "@/lib/constants";
@@ -149,9 +150,7 @@ export async function POST(req: Request) {
     const startTime = Date.now();
 
     try {
-        const forwardedFor = req.headers.get("x-forwarded-for");
-        const realIp = req.headers.get("x-real-ip");
-        const ip = forwardedFor?.split(",")[0]?.trim() || realIp || "127.0.0.1";
+        const ip = getClientIp(req);
         const { success } = await rateLimit.limit(ip);
         if (!success) {
             return NextResponse.json(
@@ -258,7 +257,10 @@ export async function POST(req: Request) {
                 }
 
                 const mlAbortController = new AbortController();
-                const mlTimeoutId = setTimeout(() => mlAbortController.abort(), ML_TRIAGE_TIMEOUT_MS);
+                const mlTimeoutId = setTimeout(
+                    () => mlAbortController.abort(),
+                    ML_TRIAGE_TIMEOUT_MS
+                );
 
                 const mlResponse = await fetch(`${mlServiceUrl}/triage/chat`, {
                     method: "POST",
@@ -310,7 +312,9 @@ export async function POST(req: Request) {
                           }
                         : undefined,
                     meta: {
-                        reason: isTimeout ? "ml_service_triage_timeout" : "ml_service_triage_failed",
+                        reason: isTimeout
+                            ? "ml_service_triage_timeout"
+                            : "ml_service_triage_failed",
                         error: mlError.message,
                         fallback: "direct_gemini",
                         ...(isTimeout ? { timeoutMs: ML_TRIAGE_TIMEOUT_MS } : {}),
