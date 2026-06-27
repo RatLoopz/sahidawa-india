@@ -41,7 +41,14 @@
         "heroTitle": {
             "prefix": "अहाँक स्वास्थ्य, ",
             "highlight": "सत्यापित आ सुरक्षित।"
-        }
+        },
+        "scan_section_title": "औषधि स्कैन आ सत्यापित करू",
+        "scan_section_subtitle": "बारकोड या पैकेज स्कैनिंगक उपयोग कऽ औषधि क प्रामाणिकता सत्यापित करू।",
+        "powerful_capabilities": "शक्तिशाली क्षमता",
+        "features_description": "ओहि सभ तरीकाक खोज करू जाहि सँ SahiDawa अहाँक औषधिक सत्यापित करैत आ सुरक्षित रहऽ में मदद कऽ सकैत अछि।",
+        "trusted_by_citizens": "नागरिकक द्वारा विश्वसनीय",
+        "voices_title": "SahiDawa समुदायक आवाज",
+        "voices_description": "औषधिक सुरक्षाक आसान बनेबाक लेल SahiDawa क उपयोग करयवला परिवार, फार्मासिस्ट, डॉक्टर आ योगदानकर्ता लोकनि।"
     },
     "Navigation": {
         "how_it_works": "कोना काज करैत अछि",
