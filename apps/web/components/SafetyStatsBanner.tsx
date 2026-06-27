@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { Link } from "@/i18n/routing";
 import {
     Ban,
     RotateCcw,
@@ -135,8 +136,9 @@ function StatCard({ config, count }: { config: StatConfig; count: number }) {
     const Icon = config.icon;
 
     return (
-        <div
-            className={`group relative overflow-hidden rounded-2xl border border-slate-100/80 bg-white shadow-sm transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-slate-200/80 dark:border-slate-800/80 dark:bg-slate-900 dark:hover:border-slate-700/80 ${config.glowColor}`}
+        <Link
+            href="/alerts"
+            className={`group relative block overflow-hidden rounded-2xl border border-slate-100/80 bg-white shadow-sm transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-slate-200/80 dark:border-slate-800/80 dark:bg-slate-900 dark:hover:border-slate-700/80 ${config.glowColor}`}
         >
             {/* Coloured accent top bar */}
             <div
@@ -157,7 +159,7 @@ function StatCard({ config, count }: { config: StatConfig; count: number }) {
                         className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase ${config.badgeBg} ${config.badgeText}`}
                     >
                         <TrendingDown className="h-3 w-3" />
-                        <span>This Month</span>
+                        <span>All Time</span>
                     </div>
                 </div>
 
@@ -186,7 +188,7 @@ function StatCard({ config, count }: { config: StatConfig; count: number }) {
                 className={`pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 ${config.iconGradient}`}
                 style={{ opacity: 0 }}
             />
-        </div>
+        </Link>
     );
 }
 
@@ -199,19 +201,7 @@ export default function SafetyStatsBanner() {
 
     useEffect(() => {
         async function fetchAlerts() {
-            const now = new Date();
-            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-            const startOfNextMonth = new Date(
-                now.getFullYear(),
-                now.getMonth() + 1,
-                1
-            ).toISOString();
-
-            const { data, error } = await supabase
-                .from("drug_alerts")
-                .select("alert_type")
-                .gte("created_at", startOfMonth)
-                .lt("created_at", startOfNextMonth);
+            const { data, error } = await supabase.from("drug_alerts").select("alert_type");
 
             if (!error && data) {
                 let b = 0,
@@ -270,9 +260,7 @@ export default function SafetyStatsBanner() {
 
                 <div className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-500 shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
                     <Calendar size={12} className="text-slate-400" />
-                    <span>
-                        {monthName} {now.getFullYear()} · India
-                    </span>
+                    <span>All Time · India</span>
                 </div>
             </div>
 
