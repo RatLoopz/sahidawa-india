@@ -137,21 +137,7 @@ const deletePhoneSchema = z.object({
     phone: z.string().min(10).max(20).optional(),
 });
 
-function formatPhoneNumber(phone: string): string | null {
-    let cleaned = phone.trim().replace(/[\s\-\(\)]/g, "");
-    if (/^\d{10}$/.test(cleaned)) {
-        return `+91${cleaned}`;
-    }
-    if (/^\+91\d{10}$/.test(cleaned)) {
-        return cleaned;
-    }
-    if (/^91\d{10}$/.test(cleaned)) {
-        return `+${cleaned}`;
-    }
-    return null;
-}
-
-// Local in-memory fallback store for development when Supabase is offline
+import { formatPhoneNumber } from '../utils/phone';// Local in-memory fallback store for development when Supabase is offline
 interface InMemorySubscriber {
     id: string;
     user_id: string | null;

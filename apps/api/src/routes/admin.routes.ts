@@ -10,6 +10,9 @@ import {
     getAuditLogs,
     getPendingPharmacies,
     updatePharmacyStatus,
+    getAllPharmacies,
+    deletePharmacy,
+    restorePharmacy,
 } from "../controllers/admin.controller";
 import { invalidateDrugCache, KEY_PREFIXES } from "../services/cache.service";
 import { redisClient } from "../utils/redis";
@@ -43,6 +46,9 @@ router.patch("/reports/:id/status", requireAuth, requireRole("admin"), updateRep
 router.post("/medicines", requireAuth, requireRole("admin"), createMedicine);
 
 router.patch("/pharmacies/:id/status", requireAuth, requireRole("admin"), updatePharmacyStatus);
+router.get("/pharmacies", requireAuth, requireRole("admin", "moderator"), getAllPharmacies);
+router.delete("/pharmacies/:id", requireAuth, requireRole("admin"), deletePharmacy);
+router.post("/pharmacies/:id/restore", requireAuth, requireRole("admin"), restorePharmacy);
 
 const InvalidateCacheSchema = z.object({
     drugIds: z.array(z.string()).optional().default([]),
