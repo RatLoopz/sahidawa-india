@@ -1054,7 +1054,8 @@
         "no_photo_label": "No photo",
         "report_card_district_label": "District",
         "report_card_submitted_label": "Submitted",
-        "report_card_batch_label": "Batch"
+        "report_card_batch_label": "Batch",
+        "load_more_button": "Load More"
     },
     "Map": {
         "errors": {
