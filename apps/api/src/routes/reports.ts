@@ -197,37 +197,39 @@ reportsRouter.get("/mine", requireAuth, async (req: AuthenticatedRequest, res: R
         return;
     }
 
-    const rawPage = parseInt(req.query.page as string, 10);
+    const cursor = req.query.cursor as string | undefined;
+
     const rawLimit = parseInt(req.query.limit as string, 10);
-    const page = isNaN(rawPage) || rawPage < 1 ? 1 : rawPage;
     const limit = isNaN(rawLimit) || rawLimit < 1 ? 20 : Math.min(rawLimit, 100);
-    const offset = (page - 1) * limit;
 
     try {
-        const { data, error, count } = await supabase
+        let query = supabase
             .from("counterfeit_reports")
             .select(
-                "id, reported_brand_name, scanned_barcode, photo_url, district, status, created_at",
-                { count: "exact" }
+                "id, reported_brand_name, scanned_barcode, photo_url, district, status, created_at"
             )
             .eq("reporter_id", userId)
             .order("created_at", { ascending: false })
-            .range(offset, offset + limit - 1);
+            .limit(limit);
+
+        if (cursor) {
+            query = query.lt("created_at", cursor);
+        }
+
+        const { data, error } = await query;
 
         if (error) {
             res.status(500).json({ error: "Failed to fetch your reports" });
             return;
         }
 
-        const totalCount = count ?? 0;
-        const totalPageCount = Math.ceil(totalCount / limit);
+        const reports = data ?? [];
+
+        const nextCursor = reports.length === limit ? reports[reports.length - 1].created_at : null;
 
         res.json({
-            reports: data ?? [],
-            pageIndex: page,
-            pageSize: (data ?? []).length,
-            totalCount,
-            totalPageCount,
+            reports,
+            nextCursor,
         });
     } catch (err) {
         console.error("Unexpected error in GET /api/reports/mine:", err);

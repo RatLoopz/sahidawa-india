@@ -7,6 +7,9 @@ import { limiter } from "../middleware/rateLimit";
 import { requireAuth, AuthenticatedRequest } from "../middleware/auth";
 import { FormattedPharmacy, PharmacyRpcResult } from "../types/pharmacy.types";
 import { redisCache } from "../middleware/redisCache";
+import multer from "multer";
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 const router = Router();
 
@@ -804,4 +807,228 @@ router.post(
         }
     }
 );
+
+// ── Pharmacy Mutation Endpoints ──────────────────────────────────────────────
+
+/**
+ * Update pharmacy details (PUT /:id)
+ */
+router.put(
+    "/:id",
+    requireAuth,
+    async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const pharmacyId = req.params.id;
+
+            const { data: pharmacy, error: findError } = await supabase
+                .from("pharmacies")
+                .select("id, created_by, status")
+                .eq("id", pharmacyId)
+                .maybeSingle();
+
+            if (findError || !pharmacy) {
+                res.status(404).json({ error: "Pharmacy not found" });
+                return;
+            }
+
+            const isOwner = pharmacy.created_by === req.user!.id;
+            const isAdmin = req.user!.role === "admin" || req.user!.role === "moderator";
+
+            if (!isOwner && !isAdmin) {
+                res.status(403).json({ error: "You can only update pharmacies you own" });
+                return;
+            }
+
+            const updateData = req.body;
+            // Ensure we don't accidentally update restricted fields unless admin
+            delete updateData.id;
+            delete updateData.created_by;
+            if (!isAdmin) {
+                delete updateData.status;
+                delete updateData.is_verified;
+            }
+
+            const { data: updatedPharmacy, error: updateError } = await supabase
+                .from("pharmacies")
+                .update(updateData)
+                .eq("id", pharmacyId)
+                .select()
+                .single();
+
+            if (updateError) {
+                logger.error(`Pharmacy update failed: ${updateError.message}`);
+                res.status(500).json({ error: "Database operation failed during update." });
+                return;
+            }
+
+            res.status(200).json({ pharmacy: updatedPharmacy });
+        } catch (error: any) {
+            next(error);
+        }
+    }
+);
+
+/**
+ * Soft delete pharmacy (DELETE /:id)
+ */
+router.delete(
+    "/:id",
+    requireAuth,
+    async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const pharmacyId = req.params.id;
+
+            const { data: pharmacy, error: findError } = await supabase
+                .from("pharmacies")
+                .select("id, created_by, status")
+                .eq("id", pharmacyId)
+                .maybeSingle();
+
+            if (findError || !pharmacy) {
+                res.status(404).json({ error: "Pharmacy not found" });
+                return;
+            }
+
+            const isOwner = pharmacy.created_by === req.user!.id;
+            const isAdmin = req.user!.role === "admin" || req.user!.role === "moderator";
+
+            if (!isOwner && !isAdmin) {
+                res.status(403).json({ error: "You can only delete pharmacies you own" });
+                return;
+            }
+
+            // Soft delete by updating status
+            const { error: deleteError } = await supabase
+                .from("pharmacies")
+                .update({ status: "rejected" }) // or whatever soft delete status is appropriate
+                .eq("id", pharmacyId);
+
+            if (deleteError) {
+                logger.error(`Pharmacy delete failed: ${deleteError.message}`);
+                res.status(500).json({ error: "Database operation failed during delete." });
+                return;
+            }
+
+            res.status(200).json({ message: "Pharmacy deleted successfully" });
+        } catch (error: any) {
+            next(error);
+        }
+    }
+);
+
+/**
+ * Inventory Bulk Upload (POST /:id/inventory/upload) using Multer
+ */
+router.post(
+    "/:id/inventory/upload",
+    requireAuth,
+    upload.single("file"),
+    async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const pharmacyId = req.params.id;
+
+            const { data: pharmacy, error: findError } = await supabase
+                .from("pharmacies")
+                .select("id, created_by, status")
+                .eq("id", pharmacyId)
+                .maybeSingle();
+
+            if (findError || !pharmacy) {
+                res.status(404).json({ error: "Pharmacy not found" });
+                return;
+            }
+
+            // Ownership check: must be creator OR admin
+            const isOwner = pharmacy.created_by === req.user!.id;
+            const isAdmin = req.user!.role === "admin" || req.user!.role === "moderator";
+
+            if (!isOwner && !isAdmin) {
+                res.status(403).json({
+                    error: "You can only upload inventory for pharmacies you own",
+                });
+                return;
+            }
+
+            // Multer file processing
+            if (!req.file || !req.file.buffer) {
+                res.status(400).json({ error: "No valid file data content provided." });
+                return;
+            }
+
+            const fileContent = req.file.buffer.toString("utf-8");
+
+            const lines = fileContent
+                .split(/\r?\n/)
+                .map((line) => line.trim())
+                .filter(Boolean);
+            if (lines.length <= 1) {
+                res.status(400).json({ error: "The file appears empty or is missing rows." });
+                return;
+            }
+
+            if (lines.length > 501) {
+                res.status(400).json({
+                    error: "Bulk upload exceeds the maximum limit of 500 items per request.",
+                });
+                return;
+            }
+
+            const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+            const rowsToInsert: any[] = [];
+            const failedRows: Array<{ row: number; reason: string }> = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i]
+                    .split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)
+                    .map((v) => v.replace(/^"|"$/g, "").trim());
+
+                const rowData: Record<string, any> = {};
+                headers.forEach((header, index) => {
+                    const val = values[index];
+                    rowData[header] = val === "" || val === undefined ? undefined : val;
+                });
+
+                const validationResult = inventoryRowSchema.safeParse(rowData);
+                if (!validationResult.success) {
+                    const errorMessage = validationResult.error.issues
+                        .map((e: { message: string }) => e.message)
+                        .join(", ");
+                    failedRows.push({ row: i + 1, reason: errorMessage });
+                    continue;
+                }
+
+                rowsToInsert.push({
+                    pharmacy_id: pharmacyId,
+                    medicine_name: validationResult.data.medicine_name,
+                    batch_number: validationResult.data.batch_number,
+                    expiry_date: validationResult.data.expiry_date,
+                    quantity: validationResult.data.quantity,
+                    mrp: validationResult.data.mrp,
+                });
+            }
+
+            let successfulInserts = 0;
+            if (rowsToInsert.length > 0) {
+                const { error } = await supabase.from("pharmacy_inventory").insert(rowsToInsert);
+                if (error) {
+                    logger.error(`Database bulk insertion failed: ${error.message}`);
+                    res.status(500).json({ error: "Database operation failed during insertion." });
+                    return;
+                }
+                successfulInserts = rowsToInsert.length;
+            }
+
+            res.status(200).json({
+                totalRows: lines.length - 1,
+                successCount: successfulInserts,
+                failedCount: failedRows.length,
+                errors: failedRows,
+            });
+        } catch (error: any) {
+            logger.error(`Exception in specific pharmacy upload handler: ${error.message}`);
+            next(error);
+        }
+    }
+);
+
 export default router;

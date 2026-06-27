@@ -60,6 +60,28 @@ export async function POST(req: NextRequest) {
                 { status: 413 }
             );
         }
+        const buffer = Buffer.from(await file.arrayBuffer());
+
+        const isJpeg = buffer.length >= 2 && buffer[0] === 0xff && buffer[1] === 0xd8;
+
+        const isPng =
+            buffer.length >= 4 &&
+            buffer[0] === 0x89 &&
+            buffer[1] === 0x50 &&
+            buffer[2] === 0x4e &&
+            buffer[3] === 0x47;
+
+        const isWebp = buffer.length >= 12 && buffer.toString("ascii", 8, 12) === "WEBP";
+
+        if (!isJpeg && !isPng && !isWebp) {
+            return NextResponse.json(
+                {
+                    error: "invalid_image_format",
+                    message: "File content is not a valid JPEG, PNG, or WebP image.",
+                },
+                { status: 415 }
+            );
+        }
         const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
         const apiKey = process.env.CLOUDINARY_API_KEY;
         const apiSecret = process.env.CLOUDINARY_API_SECRET;
@@ -85,7 +107,9 @@ export async function POST(req: NextRequest) {
         const signature = crypto.createHash("sha256").update(paramsToSign).digest("hex");
 
         const cloudinaryFormData = new FormData();
-        cloudinaryFormData.append("file", file);
+        const validatedFile = new File([buffer], file.name, { type: file.type });
+
+        cloudinaryFormData.append("file", validatedFile);
         cloudinaryFormData.append("api_key", apiKey);
         cloudinaryFormData.append("timestamp", timestamp);
         cloudinaryFormData.append("signature_algorithm", "sha256");
