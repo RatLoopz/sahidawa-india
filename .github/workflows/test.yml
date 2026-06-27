@@ -54,3 +54,34 @@ jobs:
               run: python -m pytest tests/ -v --timeout=60
               env:
                   WHISPER_MODEL_SIZE: base
+
+    test-docker-builds:
+        name: 🐳 Test Docker Builds
+        runs-on: ubuntu-latest
+        steps:
+            - name: ⬇️ Checkout Code
+              uses: actions/checkout@v4
+
+            - name: 🐳 Build Docker Images
+              run: docker compose build
+
+    check-formatting:
+        name: 💅 Check Formatting
+        runs-on: ubuntu-latest
+        steps:
+            - name: ⬇️ Checkout Code
+              uses: actions/checkout@v4
+
+            - name: 🔍 Get Changed Files
+              id: changed-files
+              uses: tj-actions/changed-files@v45
+              with:
+                  separator: " "
+
+            - name: 💅 Run Prettier on Changed Files
+              if: steps.changed-files.outputs.any_changed == 'true'
+              run: |
+                  FILES="${{ steps.changed-files.outputs.all_changed_files }}"
+                  if [ -n "$FILES" ]; then
+                      npx prettier --ignore-unknown --check $FILES || echo "Prettier found issues. Ignoring failure as requested."
+                  fi

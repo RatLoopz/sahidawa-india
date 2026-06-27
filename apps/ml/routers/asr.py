@@ -48,6 +48,9 @@ STREAM_VAD_PARAMETERS = dict(
     threshold=0.3,
 )
 
+MAX_CONCURRENT_STREAMING_SESSIONS = 30
+_streaming_session_semaphore = asyncio.Semaphore(MAX_CONCURRENT_STREAMING_SESSIONS)
+
 WHISPER_MODEL_SIZE = os.getenv("WHISPER_MODEL_SIZE", "small")
 WHISPER_DEVICE = os.getenv("WHISPER_DEVICE", "cpu")
 WHISPER_COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE", "int8")
@@ -897,87 +900,93 @@ async def stream_transcription(websocket: WebSocket):
             )
             await websocket.close(code=1003)
             return
+        if _streaming_session_semaphore.locked():
+            await websocket.send_json(
+                {"type": "error", "error": "Server is at maximum capacity. Please try again shortly."}
+            )
+            await websocket.close(code=1013)
+            return
+        async with _streaming_session_semaphore:
+            session = StreamingAsrSession()
+            mime_type: str = payload.get("mimeType") or "audio/webm"
+            language: str | None = payload.get("language") or websocket.query_params.get("language")
 
-        session = StreamingAsrSession()
-        mime_type: str = payload.get("mimeType") or "audio/webm"
-        language: str | None = payload.get("language") or websocket.query_params.get("language")
+            await websocket.send_json({"type": "ready"})
 
-        await websocket.send_json({"type": "ready"})
-
-        # ---- main loop ----
-        while True:
-            time_left = max(0.0, MAX_SESSION_WALL_SECONDS - (time.monotonic() - session_start))
-            if time_left <= 0:
-                await websocket.send_json({
-                    "type": "error",
-                    "error": "Streaming session timed out."
-                })
-                await websocket.close(code=1008)
-                return
-
-            try:
-                message = await asyncio.wait_for(websocket.receive(), timeout=time_left)
-            except asyncio.TimeoutError:
-                await websocket.send_json({
-                    "type": "error",
-                    "error": "Streaming session timed out."
-                })
-                await websocket.close(code=1008)
-                return
-
-            if message.get("type") == "websocket.disconnect":
-                return
-
-            if message.get("bytes"):
-                partial = session.append_and_maybe_transcribe(
-                    message["bytes"],
-                    mime_type=mime_type,
-                    language=language,
-                )
-
-                if session.total_audio_seconds > MAX_TRANSCRIPTION_DURATION_SECONDS:
-                    final = session.finalize(mime_type=mime_type, language=language)
+            # ---- main loop ----
+            while True:
+                time_left = max(0.0, MAX_SESSION_WALL_SECONDS - (time.monotonic() - session_start))
+                if time_left <= 0:
                     await websocket.send_json({
                         "type": "error",
-                        "error": f"Streaming session exceeded maximum duration of {MAX_TRANSCRIPTION_DURATION_SECONDS}s.",
-                        **final,
+                        "error": "Streaming session timed out."
                     })
-                    await websocket.close(code=1009)
+                    await websocket.close(code=1008)
                     return
 
-                if partial:
-                    await websocket.send_json({"type": "partial", **partial})
-                continue
-
-            if message.get("text"):
                 try:
-                    text_payload = json.loads(message["text"])
-                except JSONDecodeError:
+                    message = await asyncio.wait_for(websocket.receive(), timeout=time_left)
+                except asyncio.TimeoutError:
+                    await websocket.send_json({
+                        "type": "error",
+                        "error": "Streaming session timed out."
+                    })
+                    await websocket.close(code=1008)
+                    return
+
+                if message.get("type") == "websocket.disconnect":
+                    return
+
+                if message.get("bytes"):
+                    partial = session.append_and_maybe_transcribe(
+                        message["bytes"],
+                        mime_type=mime_type,
+                        language=language,
+                    )
+
+                    if session.total_audio_seconds > MAX_TRANSCRIPTION_DURATION_SECONDS:
+                        final = session.finalize(mime_type=mime_type, language=language)
+                        await websocket.send_json({
+                            "type": "error",
+                            "error": f"Streaming session exceeded maximum duration of {MAX_TRANSCRIPTION_DURATION_SECONDS}s.",
+                            **final,
+                        })
+                        await websocket.close(code=1009)
+                        return
+
+                    if partial:
+                        await websocket.send_json({"type": "partial", **partial})
+                    continue
+
+                if message.get("text"):
+                    try:
+                        text_payload = json.loads(message["text"])
+                    except JSONDecodeError:
+                        await websocket.send_json(
+                            {"type": "error", "error": "Invalid JSON in control message."}
+                        )
+                        await websocket.close(code=1003)
+                        return
+
+                    if not isinstance(text_payload, dict):
+                        await websocket.send_json(
+                            {"type": "error", "error": "Control message must be a JSON object."}
+                        )
+                        await websocket.close(code=1003)
+                        return
+
+                    if text_payload.get("type") == "stop":
+                        final = session.finalize(mime_type=mime_type, language=language)
+                        await websocket.send_json({"type": "final", **final})
+                        await websocket.close()
+                        return
+
                     await websocket.send_json(
-                        {"type": "error", "error": "Invalid JSON in control message."}
+                        {"type": "error", "error": "Unknown control message type."}
                     )
                     await websocket.close(code=1003)
                     return
-
-                if not isinstance(text_payload, dict):
-                    await websocket.send_json(
-                        {"type": "error", "error": "Control message must be a JSON object."}
-                    )
-                    await websocket.close(code=1003)
-                    return
-
-                if text_payload.get("type") == "stop":
-                    final = session.finalize(mime_type=mime_type, language=language)
-                    await websocket.send_json({"type": "final", **final})
-                    await websocket.close()
-                    return
-
-                await websocket.send_json(
-                    {"type": "error", "error": "Unknown control message type."}
-                )
-                await websocket.close(code=1003)
-                return
-
+    
     except HTTPException as exc:
         await websocket.send_json({"type": "error", "error": exc.detail})
         await websocket.close(code=1011)

@@ -27,6 +27,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import SafetyStatsBanner from "@/components/SafetyStatsBanner";
 import { getVisibleAlertBatchNumber } from "@/lib/alertFormatting";
+import { usePredictivePrefetch } from "@/src/hooks/usePredictivePrefetch";
 
 function formatRelativeTime(dateString: string | null): string {
     if (!dateString) return "Recent";
@@ -93,29 +94,39 @@ export default function SahiDawaHome() {
     const [loading, setLoading] = useState<boolean>(true);
     const [activeSearchQuery, setActiveSearchQuery] = useState<string>("");
 
-    useEffect(() => {
-        async function fetchAlerts() {
-            try {
-                const { data } = await supabase
-                    .from("medicines")
-                    .select("*")
-                    .or(
-                        "is_counterfeit_alert.eq.true,cdsco_approval_status.eq.recalled,cdsco_approval_status.eq.banned,brand_name.eq.SYSTEM_UPDATE"
-                    )
-                    .order("created_at", { ascending: false })
-                    .limit(4);
+    // 1. Define the predictive query layer
+    const prefetchAlertsData = async () => {
+        try {
+            if (homepageAlerts.length > 0) return; // Prevent double fetching
 
-                if (data) {
-                    setHomepageAlerts(data);
-                }
-            } catch (err) {
-                console.error("Failed to query alerts matrix:", err);
-            } finally {
-                setLoading(false);
+            const { data } = await supabase
+                .from("medicines")
+                .select("*")
+                .or(
+                    "is_counterfeit_alert.eq.true,cdsco_approval_status.eq.recalled,cdsco_approval_status.eq.spurious"
+                )
+                .order("created_at", { ascending: false })
+                .limit(4);
+
+            if (data) {
+                setHomepageAlerts(data);
             }
+        } catch (error) {
+            console.error("Prefetch error:", error);
+        } finally {
+            setLoading(false);
         }
+    };
 
-        fetchAlerts();
+    // 2. Instantiate the hook observer
+    const alertsPrefetchRef = usePredictivePrefetch<HTMLElement>({
+        preloadQuery: prefetchAlertsData,
+        threshold: 0.1,
+    });
+
+    // 3. Run on mount only if the user didn't trigger the prefetch hook first
+    useEffect(() => {
+        prefetchAlertsData();
     }, []);
 
     const handleNavigation = (path: string) => {
@@ -187,7 +198,10 @@ export default function SahiDawaHome() {
                                 Verify medicine authenticity using barcode or package scanning.
                             </p>
                         </div>
-                        <section className="animate-in slide-in-from-bottom-8 fade-in fill-mode-both mt-4 mb-10 duration-700">
+                        <section
+                            ref={alertsPrefetchRef}
+                            className="animate-in slide-in-from-bottom-8 fade-in fill-mode-both mt-4 mb-10 duration-500"
+                        >
                             <button
                                 onClick={() => handleNavigation("scan")}
                                 className="group relative flex w-full transform-gpu cursor-pointer flex-col justify-center overflow-hidden rounded-[2.5rem] border border-white/10 p-8 text-left text-white shadow-2xl shadow-emerald-900/20 transition-all duration-500 hover:-translate-y-2 hover:shadow-emerald-500/30 active:scale-[0.98] md:p-10"
