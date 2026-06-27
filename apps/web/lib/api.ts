@@ -1,8 +1,13 @@
 import { fetchWithRetry } from "./apiWithRetry";
+import { createSWRCache } from "./cacheUtils";
 
 const DEFAULT_API_ORIGIN = "http://localhost:4000";
 const configuredApiUrl = (process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_API_ORIGIN).trim();
 export const API_BASE = configuredApiUrl.replace(/\/+$/, "");
+
+const fuzzyMatchCache = createSWRCache<FuzzyMatch[]>(60_000);       // 60s TTL
+const verifyMedicineCache = createSWRCache<VerifyResult>(300_000);  // 5min TTL
+const verifyBrandCache = createSWRCache<VerifyResult>(300_000);     // 5min TTL
 
 let csrfTokenCache: string | null = null;
 
@@ -421,27 +426,31 @@ export type FuzzyMatch = {
 };
 
 export async function fuzzyMatchBrand(query: string, signal?: AbortSignal): Promise<FuzzyMatch[]> {
-    return fetchWithCsrf<FuzzyMatch[]>(`${API_BASE}/api/v1/scan/match`, {
-        method: "POST",
-        body: JSON.stringify({ query }),
-        timeout: 8000,
-        signal,
-    });
+    return fuzzyMatchCache.get(`fuzzy:${query}`, () =>
+        fetchWithCsrf<FuzzyMatch[]>(`${API_BASE}/api/v1/scan/match`, {
+            method: "POST",
+            body: JSON.stringify({ query }),
+            timeout: 8000,
+            signal,
+        })
+    );
 }
 
 export async function verifyMedicineByBrand(
     brandName: string,
     signal?: AbortSignal
 ): Promise<VerifyResult> {
-    return fetchWithCsrf<VerifyResult>(
-        `${API_BASE}/api/v1/scan/verify-brand`,
-        {
-            method: "POST",
-            body: JSON.stringify({ brandName }),
-            timeout: 10000,
-            signal,
-        },
-        true
+    return verifyBrandCache.get(`verifyBrand:${brandName}`, () =>
+        fetchWithCsrf<VerifyResult>(
+            `${API_BASE}/api/v1/scan/verify-brand`,
+            {
+                method: "POST",
+                body: JSON.stringify({ brandName }),
+                timeout: 10000,
+                signal,
+            },
+            true
+        )
     );
 }
 
