@@ -30,7 +30,7 @@ const MessageContent = ({ msg }: { msg: Message }) => {
 
 const ChatSkeleton = () => {
     return (
-        <div className="max-w-[85%] self-start rounded-2xl rounded-tl-sm border border-(--color-border-muted) bg-(--color-surface-page) p-3 shadow-sm animate-pulse">
+        <div className="max-w-[85%] animate-pulse self-start rounded-2xl rounded-tl-sm border border-(--color-border-muted) bg-(--color-surface-page) p-3 shadow-sm">
             <div className="mb-2 h-3 w-32 rounded bg-gray-300"></div>
             <div className="mb-2 h-3 w-48 rounded bg-gray-300"></div>
             <div className="h-3 w-24 rounded bg-gray-300"></div>

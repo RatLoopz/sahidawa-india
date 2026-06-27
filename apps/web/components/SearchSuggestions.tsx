@@ -26,7 +26,7 @@ export interface SearchSuggestionsProps {
     query?: string;
 }
 
-export default function SearchSuggestions({
+function SearchSuggestions({
     suggestions,
     activeIndex,
     onSelect,
@@ -110,7 +110,7 @@ export default function SearchSuggestions({
             id="search-suggestions-listbox"
             role="listbox"
             aria-label="Search suggestions"
-            className="animate-in fade-in slide-in-from-top-2 absolute top-full right-0 left-0 z-50 mt-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 duration-150"
+            className="absolute top-full right-0 left-0 z-50 mt-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60"
         >
             {isHistory ? (
                 <>
@@ -232,3 +232,5 @@ export default function SearchSuggestions({
         </ul>
     );
 }
+
+export default React.memo(SearchSuggestions);
