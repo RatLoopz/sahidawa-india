@@ -95,6 +95,34 @@ export default function ComparePage() {
         loadMedicines();
     }, []);
 
+    // Keep URL in sync with the currently selected medicines so
+    // browser back/navigation preserves the comparison workflow.
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+
+        const nextM1 = medicine1?.id ?? "";
+        const nextM2 = medicine2?.id ?? "";
+
+        const currentM1 = params.get("m1") ?? "";
+        const currentM2 = params.get("m2") ?? "";
+
+        // Only update when something actually changes to avoid extra history churn.
+        if (currentM1 === nextM1 && currentM2 === nextM2) return;
+
+        if (!nextM1 || !nextM2) {
+            params.delete("m1");
+            params.delete("m2");
+        } else {
+            params.set("m1", nextM1);
+            params.set("m2", nextM2);
+        }
+
+        const qs = params.toString();
+        const newUrl = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
+        window.history.replaceState({}, "", newUrl);
+    }, [medicine1?.id, medicine2?.id]);
+
+
     useEffect(() => {
         if (selectedIds.length < 2) {
             setInteractions([]);
