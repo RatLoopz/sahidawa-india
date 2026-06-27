@@ -33,7 +33,14 @@
         "heroTitle": {
             "prefix": "तुमचे आरोग्य, ",
             "highlight": "पडताळलेले आणि सुरक्षित."
-        }
+        },
+        "scan_section_title": "औषध स्कॅन आणि पडताळा",
+        "scan_section_subtitle": "बारकोड किंवा पॅकेज स्कॅनिंग वापरून औषधाची सत्यता पडताळा.",
+        "powerful_capabilities": "शक्तिशाली क्षमता",
+        "features_description": "SahiDawa तुम्हाला तुमची औषधे पडताळण्यात आणि सुरक्षित राहण्यात कशा प्रकारे मदत करू शकते ते सर्व मार्ग शोधा.",
+        "trusted_by_citizens": "नागरिकांद्वारे विश्वसनीय",
+        "voices_title": "SahiDawa समुदायाचे सूर",
+        "voices_description": "औषध सुरक्षितता सुलभ करण्यासाठी SahiDawa वापरणारे कुटुंब, फार्मासिस्ट, डॉक्टर आणि योगदानकर्ते।"
     },
     "Navigation": {
         "how_it_works": "हे कसे कार्य करते",
