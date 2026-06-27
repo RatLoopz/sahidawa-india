@@ -165,7 +165,7 @@ router.post(
     optionalAuth,
     verifyLimiter,
     (req: Request, res: Response, next) => {
-        if (!isAllowedOrigin(req, true)) {
+        if (!isAllowedOrigin(req)) {
             res.status(403).json({ error: "Access denied: unrecognized origin" });
             return;
         }

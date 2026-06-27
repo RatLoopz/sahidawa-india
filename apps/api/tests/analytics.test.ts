@@ -6,7 +6,8 @@ jest.mock("../src/db/client", () => ({
         from: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
         not: jest.fn().mockReturnThis(),
-        gte: jest.fn(),
+        gte: jest.fn().mockReturnThis(),
+        limit: jest.fn(),
     },
 }));
 
@@ -58,12 +59,13 @@ type HeatmapSupabaseMock = {
     select: jest.Mock;
     not: jest.Mock;
     gte: jest.Mock;
+    limit: jest.Mock;
 };
 
 const mockedSupabase = supabase as unknown as HeatmapSupabaseMock;
 
 function mockHeatmapRows(rows: MockScan[]) {
-    mockedSupabase.gte.mockResolvedValueOnce({
+    mockedSupabase.limit.mockResolvedValueOnce({
         data: rows,
         error: null,
     });

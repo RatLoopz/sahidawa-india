@@ -587,9 +587,11 @@ describe("Reports API Routes", () => {
 
             mockedSupabase.select = jest.fn().mockReturnValue({
                 eq: jest.fn().mockReturnValue({
-                    order: jest.fn().mockResolvedValueOnce({
-                        data: mockReports,
-                        error: null,
+                    order: jest.fn().mockReturnValue({
+                        range: jest.fn().mockResolvedValueOnce({
+                            data: mockReports,
+                            error: null,
+                        }),
                     }),
                 }),
             });
@@ -607,9 +609,11 @@ describe("Reports API Routes", () => {
         it("returns empty array when user has no reports", async () => {
             mockedSupabase.select = jest.fn().mockReturnValue({
                 eq: jest.fn().mockReturnValue({
-                    order: jest.fn().mockResolvedValueOnce({
-                        data: [],
-                        error: null,
+                    order: jest.fn().mockReturnValue({
+                        range: jest.fn().mockResolvedValueOnce({
+                            data: [],
+                            error: null,
+                        }),
                     }),
                 }),
             });

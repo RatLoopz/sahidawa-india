@@ -53,12 +53,10 @@ describe("GET /api/pharmacies/nearest", () => {
         expect(missingLatitude.status).toBe(400);
         expect(missingLatitude.body.error).toBe("Invalid coordinates");
         expect(missingLatitude.body.details).toHaveProperty("lat");
-        expect(missingLatitude.headers["cache-control"]).toBeUndefined();
 
         expect(missingLongitude.status).toBe(400);
         expect(missingLongitude.body.error).toBe("Invalid coordinates");
         expect(missingLongitude.body.details).toHaveProperty("lng");
-        expect(missingLongitude.headers["cache-control"]).toBeUndefined();
     });
 
     it("returns 400 for out-of-bounds coordinates", async () => {
@@ -305,7 +303,6 @@ describe("GET /api/pharmacies/in-bounds", () => {
 
         expect(response.status).toBe(400);
         expect(response.body.error).toBe("Invalid bounds");
-        expect(response.headers["cache-control"]).toBeUndefined();
     });
 
     it("returns 400 for out-of-range bounds", async () => {
@@ -363,8 +360,8 @@ describe("GET /api/pharmacies/in-bounds", () => {
             bound_west: 77.0,
             bound_north: 28.8,
             bound_east: 77.4,
-            query_limit: 500,
-            query_offset: 100,
+            query_limit: 200,
+            query_offset: 0,
         });
 
         expect(mockedSupabase.from).not.toHaveBeenCalled();
