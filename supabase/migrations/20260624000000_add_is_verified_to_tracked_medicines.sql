@@ -1,0 +1,2 @@
+ALTER TABLE tracked_medicines
+ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT FALSE;
