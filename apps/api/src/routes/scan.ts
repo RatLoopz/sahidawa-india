@@ -26,7 +26,11 @@ const ALLOWED_MIME_TYPES = new Set([
 
 const UPLOAD_DIR = path.join(__dirname, "../../temp-uploads");
 if (!fs.existsSync(UPLOAD_DIR)) {
-    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+    fs.mkdirSync(UPLOAD_DIR, { recursive: true, mode: 0o700 });
+} else {
+    // mode only applies on creation — enforce on every boot in case the
+    // directory already existed with looser permissions from a prior run
+    fs.chmodSync(UPLOAD_DIR, 0o700);
 }
 
 // Security: reject non-image uploads before they reach the ML container
@@ -196,33 +200,18 @@ function calculateAdvancedMatchScore(ocrText: string, candidate: string): number
 router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, res: Response) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (upload.single("file") as any)(req, res, async (multerErr: unknown) => {
-        let tempFilePath: string | undefined;
-
-        if (multerErr) {
-            const msg = multerErr instanceof Error ? multerErr.message : "File upload error";
-            logger.warn(`File upload rejected: ${msg}`);
-            res.status(400).json({ error: msg });
-            return;
-        }
-
-        // After multer runs, req.file is populated by the @types/multer augmentation
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const file: Express.Multer.File | undefined = (req as any).file;
 
-        if (!file || !file.filename) {
-            res.status(400).json({ error: "No image file provided." });
-            return;
-        }
+        // Capture the path FIRST, before checking multerErr — multer's disk
+        // storage engine may have already written the file even when an error
+        // (e.g. a fileFilter rejection or size-limit) is reported afterward.
+        // Security: path.basename + path.join still guards against traversal (CodeQL).
+        const tempFilePath: string | undefined = file?.filename
+            ? path.join(UPLOAD_DIR, path.basename(file.filename))
+            : undefined;
 
-        // Security: Prevent path traversal (CodeQL) by ensuring the path only resolves within UPLOAD_DIR
-        const safeFilename = path.basename(file.filename);
-        tempFilePath = path.join(UPLOAD_DIR, safeFilename);
-
-        const mlServiceUrl = getMlServiceUrl();
-        if (!mlServiceUrl) {
-            logger.error(MISSING_ML_SERVICE_URL_MESSAGE, { route: "/api/v1/scan/extract" });
-
-            // Clean up temp file before returning
+        const cleanupTempFile = () => {
             if (tempFilePath && fs.existsSync(tempFilePath)) {
                 try {
                     fs.unlinkSync(tempFilePath);
@@ -231,6 +220,34 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
                     logger.error(`Failed to delete temp file ${tempFilePath}:`, err);
                 }
             }
+        };
+
+        if (multerErr) {
+            const msg = multerErr instanceof Error ? multerErr.message : "File upload error";
+            logger.warn(`File upload rejected: ${msg}`);
+            cleanupTempFile();
+            res.status(400).json({ error: msg });
+            return;
+        }
+
+        if (!file || !file.filename) {
+            res.status(400).json({ error: "No image file provided." });
+            return;
+        }
+
+        if (!tempFilePath) {
+            // Should be unreachable given the check above, but keeps TS's
+            // narrowing happy and guards against a future refactor breaking the invariant
+            logger.error("tempFilePath unexpectedly undefined after file validation");
+            res.status(500).json({ error: "Internal upload error" });
+            return;
+        }
+
+        const mlServiceUrl = getMlServiceUrl();
+        if (!mlServiceUrl) {
+            logger.error(MISSING_ML_SERVICE_URL_MESSAGE, { route: "/api/v1/scan/extract" });
+
+            cleanupTempFile();
 
             res.status(500).json({
                 error: "OCR service is not configured.",
@@ -591,13 +608,7 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
                 details: msg,
             });
         } finally {
-            if (tempFilePath && fs.existsSync(tempFilePath)) {
-                try {
-                    fs.unlinkSync(tempFilePath);
-                } catch (err) {
-                    logger.error(`Failed to delete temp file ${tempFilePath}:`, err);
-                }
-            }
+            cleanupTempFile();
         }
     });
 });

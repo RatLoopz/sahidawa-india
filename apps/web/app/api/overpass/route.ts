@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "crypto";
 import { rateLimit } from "@/lib/rateLimit";
+import { redis } from "@/lib/redis";
 
 const OVERPASS_MIRRORS = [
     "https://overpass.private.coffee/api/interpreter",
@@ -10,6 +12,7 @@ const OVERPASS_MIRRORS = [
 ];
 
 const MAX_QUERY_LENGTH = 10000;
+const CACHE_TTL_SECONDS = 86_400; // 24 hours
 
 export async function POST(req: NextRequest) {
     try {
@@ -42,12 +45,28 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Query exceeds maximum length" }, { status: 400 });
         }
 
-        // Query all mirrors in parallel (race them) for maximum speed and zero timeout chaining
+        // Cache read
+        const hash = createHash("sha256").update(query).digest("hex");
+        const cacheKey = `overpass_cache:${hash}`;
+
+        try {
+            const cached = await redis.get(cacheKey);
+            if (cached) {
+                return NextResponse.json(cached, {
+                    headers: { "X-Cache": "HIT" },
+                });
+            }
+        } catch (redisErr) {
+            // Redis unavailable — log and fall through to upstream fetch
+            console.warn("[overpass] Redis GET failed:", redisErr);
+        }
+
+        // Cache miss: query all mirrors in parallel
         const controllers: AbortController[] = [];
         const fetchPromises = OVERPASS_MIRRORS.map(async (mirror) => {
             const controller = new AbortController();
             controllers.push(controller);
-            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8-second timeout per mirror
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
 
             try {
                 const response = await fetch(mirror, {
@@ -80,13 +99,25 @@ export async function POST(req: NextRequest) {
             }
         });
 
-        // Promise.any returns the first successfully resolved promise
         const fastestData = await Promise.any(fetchPromises);
-        // Abort remaining in-flight requests now that we have a result
+
+        // Abort remaining in-flight requests
         for (const c of controllers) {
             if (!c.signal.aborted) c.abort();
         }
-        return NextResponse.json(fastestData);
+
+        // Cache write (only when elements exist)
+        if (Array.isArray(fastestData?.elements) && fastestData.elements.length > 0) {
+            try {
+                await redis.set(cacheKey, JSON.stringify(fastestData), { ex: CACHE_TTL_SECONDS });
+            } catch (redisErr) {
+                console.warn("[overpass] Redis SET failed:", redisErr);
+            }
+        }
+
+        return NextResponse.json(fastestData, {
+            headers: { "X-Cache": "MISS" },
+        });
     } catch {
         return NextResponse.json(
             { error: "All parallel Overpass mirrors failed" },
