@@ -72,7 +72,6 @@ import eligibilityRouter from "./routes/eligibility";
 import { supabase } from "./db/client";
 import { createCorsOptions } from "./config/cors";
 import { errorHandler } from "./middleware/errorHandler";
-
 // ── Application Initialization ─────────────────────────────────────────────
 const app: Express = express();
 app.set("trust proxy", 1); // Trust first proxy (Nginx) — fixes req.ip for rate limiters
