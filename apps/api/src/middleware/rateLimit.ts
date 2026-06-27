@@ -201,3 +201,21 @@ export const trackingLimiter = rateLimit({
         });
     },
 });
+
+/** Barcode lookup limiter — prevents abuse of barcode scanning for data enumeration.
+ *  Barcode lookups are unauthenticated and moderately expensive (full-text search or exact match).
+ *  Each IP can perform at most 15 barcode lookups per 15 minutes to prevent database enumeration attacks
+ *  and ensure fair access for legitimate pharmacy/clinic use cases. */
+export const barcodeLimiter = rateLimit({
+    skip: () => process.env.NODE_ENV === "test",
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: process.env.NODE_ENV === "development" ? 200 : 15,
+    standardHeaders: true,
+    legacyHeaders: false,
+    store: buildStore("barcode"),
+    handler: (_req, res) => {
+        res.status(429).json({
+            error: "Too many barcode lookups. Please try again later.",
+        });
+    },
+});
