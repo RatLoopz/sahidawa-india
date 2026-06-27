@@ -1,4 +1,5 @@
-import cron from "node-cron";
+// Use require for node-cron to avoid CommonJS/ESM issues
+const cron = require('node-cron');
 import { supabase } from "../db/client";
 import logger from "../utils/logger";
 
