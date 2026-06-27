@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "../../i18n/routing";
+import { getSiteUrl } from "@/lib/env";
 
 import { ThemeProvider } from "./components/ThemeProvider";
 import { OfflineBanner } from "@/components/OfflineBanner";
@@ -26,7 +27,7 @@ export async function generateMetadata({
     params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
     await params;
-    const baseUrl = "https://sahidawa-india-web.vercel.app";
+    const baseUrl = getSiteUrl();
 
     // Generate alternates for all locales
     const alternates = {

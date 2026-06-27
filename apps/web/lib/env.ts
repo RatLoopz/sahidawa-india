@@ -22,3 +22,15 @@ export function getSupabaseAnonKey(): string {
     }
     return key;
 }
+
+/**
+ * Returns the canonical site URL used for SEO metadata (sitemap, robots,
+ * OpenGraph, alternate-language links, share URLs, etc.).
+ *
+ * Reads `NEXT_PUBLIC_SITE_URL` first so preview / staging deployments can
+ * override, then falls back to the production domain.
+ */
+export function getSiteUrl(): string {
+    const url = process.env.NEXT_PUBLIC_SITE_URL || "https://sahidawa.in";
+    return url.replace(/\/+$/, ""); // strip trailing slashes
+}
