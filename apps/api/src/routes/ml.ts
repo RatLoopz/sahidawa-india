@@ -4,7 +4,7 @@ import { promises as dns } from "node:dns";
 import { getMlServiceUrl, MISSING_ML_SERVICE_URL_MESSAGE } from "../config/mlService";
 import { requireAuth, AuthenticatedRequest } from "../middleware/auth";
 import logger from "../utils/logger";
-
+import { limiter } from "../middleware/rateLimit";
 const router = Router();
 
 const analyzeRequestSchema = z.object({
@@ -45,7 +45,7 @@ async function isPrivateHostname(urlStr: string): Promise<boolean> {
 
 const ML_ANALYSIS_TIMEOUT_MS = 8000;
 
-router.post("/analyze", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+router.post("/analyze", limiter, requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     const parsed = analyzeRequestSchema.safeParse(req.body);
 
     if (!parsed.success) {
