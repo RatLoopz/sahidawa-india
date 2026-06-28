@@ -31,7 +31,7 @@ function getStatusColor(daysLeft: number): string {
 export default function MyMedicinesPage() {
     const [medicines, setMedicines] = useState<TrackedMedicine[]>([]);
     const [savedMedicines, setSavedMedicines] = useState<BookmarkedMedicine[]>([]);
-    // const [error, setError] = useState<string | null>(null);
+    const [, setError] = useState<string | null>(null);
 
     useEffect(() => {
         // Fetch tracked medicines from API
