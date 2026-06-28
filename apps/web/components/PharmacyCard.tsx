@@ -6,6 +6,8 @@ import { Clock } from "lucide-react";
  * Parses "09:00 - 21:00" format and checks if current local time falls within.
  */
 export function isPharmacyOpen(operatingHours: string): boolean {
+    if (!operatingHours || typeof operatingHours !== 'string') return false;
+
     const match = operatingHours.match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
     if (!match) return false;
 

@@ -6,7 +6,6 @@ const configuredApiUrl = (process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_API_ORIGIN)
 export const API_BASE = configuredApiUrl.replace(/\/+$/, "");
 
 const fuzzyMatchCache = createSWRCache<FuzzyMatch[]>(60_000);       // 60s TTL
-const verifyMedicineCache = createSWRCache<VerifyResult>(300_000);  // 5min TTL
 const verifyBrandCache = createSWRCache<VerifyResult>(300_000);     // 5min TTL
 
 let csrfTokenCache: string | null = null;

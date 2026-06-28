@@ -2,6 +2,7 @@ import logger from "../utils/logger";
 
 export interface WhatsAppProvider {
     send(phone: string, message: string, language: string): Promise<boolean>;
+    sendOtp(phone: string, otp: string, language: string): Promise<boolean>;
 }
 
 export class GupshupWhatsAppService implements WhatsAppProvider {
@@ -52,6 +53,11 @@ export class GupshupWhatsAppService implements WhatsAppProvider {
             logger.error(`Failed to send WhatsApp to ${phone} via Gupshup`, { error });
             return false;
         }
+    }
+
+    async sendOtp(phone: string, otp: string, language: string): Promise<boolean> {
+        const message = `Your SahiDawa alert registration OTP is: ${otp}. It will expire in 10 minutes.`;
+        return this.send(phone, message, language);
     }
 }
 

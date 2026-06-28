@@ -1,6 +1,7 @@
 import type { VerifiedMedicine, VerifyResult } from "./api";
+import { getSiteUrl } from "./env";
 
-const DEFAULT_VERIFY_URL = "https://sahidawa-india-web.vercel.app";
+const DEFAULT_VERIFY_URL = getSiteUrl();
 
 export type VerificationShareCopy = {
     realStatus: string;

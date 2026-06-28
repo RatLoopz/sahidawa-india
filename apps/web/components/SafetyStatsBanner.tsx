@@ -225,8 +225,8 @@ export default function SafetyStatsBanner() {
         fetchAlerts();
     }, []);
 
-    const now = new Date();
-    const monthName = now.toLocaleString("default", { month: "long" });
+    // const now = new Date();
+    // const monthName = now.toLocaleString("default", { month: "long" });
 
     const cardData = [
         { ...STAT_CONFIG[0], count: banned },
@@ -236,9 +236,9 @@ export default function SafetyStatsBanner() {
     ];
 
     return (
-        <div className="my-6 overflow-hidden rounded-3xl border border-slate-200/60 bg-slate-50/80 shadow-xl shadow-slate-200/30 backdrop-blur-sm dark:border-slate-800/50 dark:bg-slate-950/60 dark:shadow-slate-950/20">
+        <div className="my-6 overflow-hidden rounded-3xl border border-slate-200/60 bg-slate-50/80 shadow-xl shadow-slate-200/30 backdrop-blur-sm transition-colors duration-300 dark:border-slate-800/50 dark:bg-slate-950/60 dark:shadow-slate-950/20">
             {/* Header bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/60 bg-white/60 px-6 py-4 dark:border-slate-800/50 dark:bg-slate-900/60">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/60 bg-white/60 px-6 py-4 transition-colors duration-300 dark:border-slate-800/50 dark:bg-slate-900/60">
                 <div className="flex items-center gap-3">
                     {/* Pulsing LIVE badge */}
                     <span className="relative inline-flex items-center gap-2 rounded-full bg-emerald-500 px-3 py-1 text-[11px] font-bold tracking-widest text-white uppercase shadow-md shadow-emerald-500/30">
@@ -282,7 +282,7 @@ export default function SafetyStatsBanner() {
             </div>
 
             {/* Footer */}
-            <div className="flex items-center gap-2 border-t border-slate-200/60 bg-white/40 px-6 py-3 dark:border-slate-800/50 dark:bg-slate-900/40">
+            <div className="flex items-center gap-2 border-t border-slate-200/60 bg-white/40 px-6 py-3 transition-colors duration-300 dark:border-slate-800/50 dark:bg-slate-900/40">
                 <ShieldCheck size={13} className="shrink-0 text-emerald-500" />
                 <span className="text-[11px] text-slate-400 dark:text-slate-500">
                     Data sourced from CDSCO official registry. Updated in real-time.

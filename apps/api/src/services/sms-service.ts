@@ -2,6 +2,7 @@ import logger from "../utils/logger";
 
 export interface SMSProvider {
     send(phone: string, message: string, language: string): Promise<boolean>;
+    sendOtp(phone: string, otp: string, language: string): Promise<boolean>;
 }
 
 export class TwilioSMSService implements SMSProvider {
@@ -86,6 +87,12 @@ export class TwilioSMSService implements SMSProvider {
             logger.error(`Failed to send SMS to ${phone} via Twilio`, { error });
             return false;
         }
+    }
+
+    async sendOtp(phone: string, otp: string, language: string): Promise<boolean> {
+        // Can be easily extended with i18n/language-specific templates here or migrated to Twilio Verify
+        const message = `Your SahiDawa alert registration OTP is: ${otp}. It will expire in 10 minutes.`;
+        return this.send(phone, message, language);
     }
 }
 
