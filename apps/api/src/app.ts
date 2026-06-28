@@ -71,6 +71,8 @@ import triageRouter from "./routes/triage";
 import interactionsRouter from "./routes/interactions";
 import alternativesRouter from "./routes/alternatives";
 import eligibilityRouter from "./routes/eligibility";
+import productsRouter from "./routes/products";
+import ordersRouter from "./routes/orders";
 import { supabase } from "./db/client";
 import { createCorsOptions } from "./config/cors";
 import { errorHandler } from "./middleware/errorHandler";
@@ -290,6 +292,8 @@ app.use("/api/schedules", medicineSchedulesRouter);
 app.use("/api/v1/abha", abhaRoutes);
 app.use("/api/v1/scheme-eligibility", eligibilityRouter);
 app.use("/api/v1/medicines", trackingRouter);
+app.use("/api/products", productsRouter);
+app.use("/api/orders", ordersRouter);
 
 // ── Swagger UI Documentation (/api/docs) ──────────────────────────────────
 app.use(
