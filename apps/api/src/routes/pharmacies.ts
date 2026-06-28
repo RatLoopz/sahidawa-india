@@ -772,27 +772,6 @@ router.get(
         } catch (err) {
             next(err);
         }
-
-        const pharmacies: FormattedPharmacy[] = ((allPharmacies || []) as PharmacyRow[])
-            .filter((p: PharmacyRow) => p.status === "approved")
-            .map((p: PharmacyRow) => {
-                const coords = extractCoordinates(p);
-                const distanceKm = calculateDistanceKM(
-                    centerLat,
-                    centerLng,
-                    coords.lat,
-                    coords.lng
-                );
-                return { ...formatPharmacy(p, distanceKm), coords };
-            })
-            .filter((p) => p.coords.lat !== 0 && p.coords.lng !== 0)
-            .slice(0, MAX_RESULTS)
-            .map(({ coords, ...rest }) => rest);
-
-        setGeospatialCacheHeaders(res);
-        res.json({ pharmacies });
-    } catch (err) {
-        next(err);
     }
 );
 router.post(

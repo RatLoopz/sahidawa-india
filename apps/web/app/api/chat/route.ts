@@ -5,7 +5,7 @@ import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/getClientIp";
 import { BASE_PROMPT } from "@/lib/chatPrompts";
 import { structuredLog } from "@/lib/structuredLogger";
-import { ChatRoles, ChatRole, ChatMessage } from "@/lib/constants";
+import { ChatRoles, ChatMessage } from "@/lib/constants";
 import crypto from "crypto";
 
 import { trimHistoryByTokens } from "@/lib/chatUtils";

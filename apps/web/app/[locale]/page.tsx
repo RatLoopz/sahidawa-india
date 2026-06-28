@@ -138,9 +138,9 @@ export default function SahiDawaHome() {
         <div className="relative min-h-screen bg-(--color-surface-page) font-sans text-(--color-text-primary) transition-colors duration-300">
             {/* ── Background Mesh (Static & High Performance) ── */}
             <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden select-none">
-                <div className="absolute -top-40 -left-40 h-[600px] w-[600px] rounded-full bg-purple-500/10 blur-[130px] dark:bg-purple-900/10"></div>
-                <div className="absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-emerald-500/10 blur-[130px] dark:bg-emerald-900/10"></div>
-                <div className="absolute bottom-10 left-1/4 h-[600px] w-[600px] rounded-full bg-blue-500/10 blur-[130px] dark:bg-blue-900/10"></div>
+                <div className="absolute -top-40 -left-40 h-[600px] w-[600px] rounded-full bg-purple-500/10 blur-[130px] transition-colors duration-300 dark:bg-purple-900/10"></div>
+                <div className="absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-emerald-500/10 blur-[130px] transition-colors duration-300 dark:bg-emerald-900/10"></div>
+                <div className="absolute bottom-10 left-1/4 h-[600px] w-[600px] rounded-full bg-blue-500/10 blur-[130px] transition-colors duration-300 dark:bg-blue-900/10"></div>
             </div>
 
             {/* ── Main ── */}
@@ -157,7 +157,7 @@ export default function SahiDawaHome() {
                     </div>
 
                     {/* Split-color title */}
-                    <h1 className="text-4xl leading-tight font-black tracking-tight text-slate-900 sm:text-5xl md:text-6xl dark:text-white">
+                    <h1 className="text-4xl leading-tight font-black tracking-tight text-slate-900 transition-colors duration-300 sm:text-5xl md:text-6xl dark:text-white">
                         {tHome("heroTitle.prefix")}
                         <span className="ml-1 block bg-linear-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent sm:inline dark:from-emerald-400 dark:to-teal-400">
                             {tHome("heroTitle.highlight")}
@@ -165,7 +165,7 @@ export default function SahiDawaHome() {
                     </h1>
 
                     {/* Subtitle */}
-                    <p className="mx-auto max-w-2xl text-sm leading-relaxed font-semibold text-slate-500 md:text-base dark:text-slate-400">
+                    <p className="mx-auto max-w-2xl text-sm leading-relaxed font-semibold text-slate-500 transition-colors duration-300 md:text-base dark:text-slate-400">
                         {tHome("subtitle")}
                     </p>
                     {/*Safety Stats Banner*/}
@@ -192,10 +192,10 @@ export default function SahiDawaHome() {
                     {/* ── Primary Action: Scan Medicine ── */}
                     <section className="mt-8 mb-12">
                         <div className="mb-6">
-                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+                            <h2 className="text-2xl font-bold text-slate-900 transition-colors duration-300 dark:text-white">
                                 {tHome("scan_section_title")}
                             </h2>
-                            <p className="mt-2 text-slate-500 dark:text-slate-400">
+                            <p className="mt-2 text-slate-500 transition-colors duration-300 dark:text-slate-400">
                                 {tHome("scan_section_subtitle")}
                             </p>
                         </div>

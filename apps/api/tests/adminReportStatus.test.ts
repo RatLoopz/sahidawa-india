@@ -66,13 +66,30 @@ describe("PATCH /api/v1/admin/reports/:id/status — district_alerts upsert", ()
             }
             if (table === "district_alerts") {
                 return {
+                    select: jest.fn().mockReturnValue({
+                        eq: jest.fn().mockReturnValue({
+                            eq: jest.fn().mockReturnValue({
+                                maybeSingle: jest.fn().mockResolvedValue({
+                                    data: { alert_level: "medium" },
+                                    error: null,
+                                }),
+                            }),
+                        }),
+                    }),
                     upsert: jest
                         .fn()
                         .mockImplementation(
                             (payload: Record<string, unknown>, opts: Record<string, unknown>) => {
                                 upsertPayload = payload;
                                 upsertOpts = opts;
-                                return Promise.resolve({ data: null, error: null });
+                                return {
+                                    select: jest.fn().mockReturnValue({
+                                        single: jest.fn().mockResolvedValue({
+                                            data: { id: "alert-123" },
+                                            error: null,
+                                        }),
+                                    }),
+                                };
                             }
                         ),
                 };
@@ -91,7 +108,7 @@ describe("PATCH /api/v1/admin/reports/:id/status — district_alerts upsert", ()
         expect(response.status).toBe(200);
         expect(upsertPayload).not.toBeNull();
         expect(upsertPayload).toHaveProperty("broadcasted", false);
-        expect(upsertOpts).toEqual({ onConflict: "district" });
+        expect(upsertOpts).toEqual({ onConflict: "district,medicine_name" });
     });
 
     it("does not touch district_alerts when the report count is below threshold", async () => {
