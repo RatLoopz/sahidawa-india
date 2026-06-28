@@ -55,7 +55,7 @@ router.post(
     limiter,
     deletePharmacy
 );
-router.post("/pharmacies/:id/restore", requireAuth, requireRole("admin"), restorePharmacy);
+router.post("/pharmacies/:id/restore", requireAuth, requireRole("admin"), limiter, restorePharmacy);
 
 const InvalidateCacheSchema = z.object({
     drugIds: z.array(z.string()).optional().default([]),
