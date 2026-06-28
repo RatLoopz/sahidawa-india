@@ -164,108 +164,112 @@ export default function Chatbot() {
 
     return (
         <div className={getChatbotPositionClasses({ pathname, isOpen })}>
-            {isOpen && (
-                <div className={getChatbotPanelClasses({ pathname })}>
-                    {/* Header */}
-                    <div className="z-10 flex items-center justify-between bg-green-600 p-4 text-white shadow-md dark:bg-green-700">
-                        <div className="flex items-center gap-3">
-                            <div className="rounded-full bg-white/20 p-2">
-                                <Bot size={20} />
-                            </div>
-                            <div>
-                                <h3 className="text-sm font-bold">{t("title")}</h3>
-                                <p className="text-xs text-white/95">{t("status")}</p>
-                            </div>
+            <div
+                className={`${getChatbotPanelClasses({ pathname })} ${
+                    isOpen
+                        ? "pointer-events-auto scale-100 opacity-100"
+                        : "pointer-events-none scale-95 opacity-0"
+                } origin-bottom-right transition-all duration-300 ease-out`}
+            >
+                {/* Header */}
+                <div className="z-10 flex items-center justify-between bg-green-600 p-4 text-white shadow-md dark:bg-green-700">
+                    <div className="flex items-center gap-3">
+                        <div className="rounded-full bg-white/20 p-2">
+                            <Bot size={20} />
                         </div>
-                        <div className="flex items-center gap-1">
-                            {isConfirmingClear ? (
-                                <div className="flex items-center gap-1 rounded-full bg-white/10 px-1 py-0.5">
-                                    <button
-                                        onClick={handleClear}
-                                        className="rounded-full p-1.5 text-green-300 transition-colors hover:bg-white/20 hover:text-green-200"
-                                        aria-label="Confirm clear conversation"
-                                        title={t("confirmClear")}
-                                    >
-                                        <Check size={16} />
-                                    </button>
-                                    <button
-                                        onClick={() => setIsConfirmingClear(false)}
-                                        className="rounded-full p-1.5 text-red-300 transition-colors hover:bg-white/20 hover:text-red-200"
-                                        aria-label="Cancel clear conversation"
-                                        title={t("cancelClear")}
-                                    >
-                                        <X size={16} />
-                                    </button>
-                                </div>
-                            ) : (
+                        <div>
+                            <h3 className="text-sm font-bold">{t("title")}</h3>
+                            <p className="text-xs text-white/95">{t("status")}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        {isConfirmingClear ? (
+                            <div className="flex items-center gap-1 rounded-full bg-white/10 px-1 py-0.5">
                                 <button
-                                    onClick={() => setIsConfirmingClear(true)}
-                                    className="rounded-full p-2 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
-                                    aria-label={t("clear")}
-                                    title={t("clear")}
+                                    onClick={handleClear}
+                                    className="rounded-full p-1.5 text-green-300 transition-colors hover:bg-white/20 hover:text-green-200"
+                                    aria-label="Confirm clear conversation"
+                                    title={t("confirmClear")}
                                 >
-                                    <Trash2 size={18} />
+                                    <Check size={16} />
                                 </button>
-                            )}
-                            <Link
-                                href="/"
-                                className="rounded-full p-2 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
-                                aria-label="Go to homepage"
-                            >
-                                <Home size={18} />
-                            </Link>
-                            <button
-                                onClick={() => setIsOpen(false)}
-                                className="rounded-full p-2 text-white transition-colors hover:bg-white/20"
-                                aria-label="Close chat"
-                            >
-                                <X size={20} />
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Messages */}
-                    <div className="flex flex-1 flex-col gap-4 overflow-y-auto bg-(--color-surface-muted) p-4">
-                        {isLoadingWelcome ? (
-                            <ChatSkeleton />
-                        ) : (
-                            messages.map((msg, idx) => (
-                                <div
-                                    key={idx}
-                                    className={`max-w-[85%] rounded-2xl p-3 shadow-sm ${
-                                        msg.isBot
-                                            ? "self-start rounded-tl-sm border border-(--color-border-muted) bg-(--color-surface-page) text-(--color-text-primary)"
-                                            : "self-end rounded-tr-sm bg-green-600 text-white dark:bg-green-700"
-                                    }`}
+                                <button
+                                    onClick={() => setIsConfirmingClear(false)}
+                                    className="rounded-full p-1.5 text-red-300 transition-colors hover:bg-white/20 hover:text-red-200"
+                                    aria-label="Cancel clear conversation"
+                                    title={t("cancelClear")}
                                 >
-                                    <MessageContent msg={msg} />
-                                </div>
-                            ))
+                                    <X size={16} />
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => setIsConfirmingClear(true)}
+                                className="rounded-full p-2 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+                                aria-label={t("clear")}
+                                title={t("clear")}
+                            >
+                                <Trash2 size={18} />
+                            </button>
                         )}
-                        <div ref={messagesEndRef} />
-                    </div>
-
-                    {/* Input Area */}
-                    <div className="flex items-center gap-2 border-t border-(--color-border-muted) bg-(--color-surface-page) p-3">
-                        <input
-                            type="text"
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                            placeholder={t("placeholder")}
-                            className="flex-1 rounded-full bg-(--color-surface-muted) px-4 py-3 text-sm text-(--color-text-primary) transition-all placeholder:text-(--color-text-muted) focus:ring-2 focus:ring-green-500/50 focus:outline-none"
-                        />
-                        <button
-                            onClick={handleSend}
-                            disabled={!input.trim()}
-                            className="flex h-11 w-11 items-center justify-center rounded-full bg-green-600 p-3 text-white shadow-md transition-colors hover:bg-green-700 disabled:opacity-50 dark:bg-green-700 dark:hover:bg-green-800"
-                            aria-label="Send message"
+                        <Link
+                            href="/"
+                            className="rounded-full p-2 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+                            aria-label="Go to homepage"
                         >
-                            <Send size={18} className="relative right-[1px] bottom-[1px]" />
+                            <Home size={18} />
+                        </Link>
+                        <button
+                            onClick={() => setIsOpen(false)}
+                            className="rounded-full p-2 text-white transition-colors hover:bg-white/20"
+                            aria-label="Close chat"
+                        >
+                            <X size={20} />
                         </button>
                     </div>
                 </div>
-            )}
+
+                {/* Messages */}
+                <div className="flex flex-1 flex-col gap-4 overflow-y-auto bg-(--color-surface-muted) p-4">
+                    {isLoadingWelcome ? (
+                        <ChatSkeleton />
+                    ) : (
+                        messages.map((msg, idx) => (
+                            <div
+                                key={idx}
+                                className={`max-w-[85%] rounded-2xl p-3 shadow-sm ${
+                                    msg.isBot
+                                        ? "self-start rounded-tl-sm border border-(--color-border-muted) bg-(--color-surface-page) text-(--color-text-primary)"
+                                        : "self-end rounded-tr-sm bg-green-600 text-white dark:bg-green-700"
+                                }`}
+                            >
+                                <MessageContent msg={msg} />
+                            </div>
+                        ))
+                    )}
+                    <div ref={messagesEndRef} />
+                </div>
+
+                {/* Input Area */}
+                <div className="flex items-center gap-2 border-t border-(--color-border-muted) bg-(--color-surface-page) p-3">
+                    <input
+                        type="text"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                        placeholder={t("placeholder")}
+                        className="flex-1 rounded-full bg-(--color-surface-muted) px-4 py-3 text-sm text-(--color-text-primary) transition-all placeholder:text-(--color-text-muted) focus:ring-2 focus:ring-green-500/50 focus:outline-none"
+                    />
+                    <button
+                        onClick={handleSend}
+                        disabled={!input.trim()}
+                        className="flex h-11 w-11 items-center justify-center rounded-full bg-green-600 p-3 text-white shadow-md transition-colors hover:bg-green-700 disabled:opacity-50 dark:bg-green-700 dark:hover:bg-green-800"
+                        aria-label="Send message"
+                    >
+                        <Send size={18} className="relative right-[1px] bottom-[1px]" />
+                    </button>
+                </div>
+            </div>
 
             <div className="group relative flex items-center">
                 {!isOpen && (
