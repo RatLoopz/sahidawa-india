@@ -10,7 +10,7 @@
  *
  * Format: data:image/svg+xml;base64,...
  */
-export function generateSolidPlaceholder(color: string = 'e5e7eb'): string {
+export function generateSolidPlaceholder(color: string = "e5e7eb"): string {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"><rect fill="%23${color}" width="1" height="1"/></svg>`;
     return `data:image/svg+xml;base64,${btoa(svg)}`;
 }
@@ -28,7 +28,7 @@ export function blurHashToDataUrl(blurHash?: string): string | undefined {
     if (!blurHash) return undefined;
 
     // If it's already a data URL, return as is
-    if (blurHash.startsWith('data:')) {
+    if (blurHash.startsWith("data:")) {
         return blurHash;
     }
 
@@ -47,19 +47,29 @@ export function blurHashToDataUrl(blurHash?: string): string | undefined {
  * @returns Transformed URL with blur effect
  */
 export function generateCloudinaryBlurUrl(cloudinaryUrl: string): string {
-    if (!cloudinaryUrl.includes('cloudinary.com')) {
+    // Validate the host against the full hostname rather than a substring match.
+    // A naive includes('cloudinary.com') check would also accept spoofed hosts
+    // such as "evil.com/cloudinary.com" or "cloudinary.com.attacker.net".
+    let host: string;
+    try {
+        host = new URL(cloudinaryUrl).hostname;
+    } catch {
+        return cloudinaryUrl;
+    }
+
+    if (host !== "cloudinary.com" && !host.endsWith(".cloudinary.com")) {
         return cloudinaryUrl;
     }
 
     // Extract the delivery path (e.g., /image/upload/)
-    const parts = cloudinaryUrl.split('/upload/');
+    const parts = cloudinaryUrl.split("/upload/");
     if (parts.length !== 2) return cloudinaryUrl;
 
     const [base, rest] = parts;
 
     // Add blur transformation: q_10 (quality 10), e_blur:300 (blur effect)
     // This creates a low-bandwidth placeholder
-    const transformations = 'q_10,e_blur:300,w_10,h_10';
+    const transformations = "q_10,e_blur:300,w_10,h_10";
 
     return `${base}/upload/${transformations}/${rest}`;
 }
@@ -70,9 +80,7 @@ export function generateCloudinaryBlurUrl(cloudinaryUrl: string): string {
  *
  * Used as fallback when blur_hash is not available
  */
-export function generateGradientPlaceholder(
-    dominantColor: string = '#e5e7eb'
-): string {
+export function generateGradientPlaceholder(dominantColor: string = "#e5e7eb"): string {
     const svg = `
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32">
             <rect width="32" height="32" fill="${dominantColor}"/>
@@ -95,9 +103,7 @@ export function generateGradientPlaceholder(
  * @param imageUrl - URL of the image to generate blurhash for
  * @returns blurhash string (or undefined if generation fails)
  */
-export async function generateBlurhashFromUrl(
-    imageUrl: string
-): Promise<string | undefined> {
+export async function generateBlurhashFromUrl(imageUrl: string): Promise<string | undefined> {
     try {
         // In production, use the 'blurhash' package on the backend
         // Import { encode } from 'blurhash' and:
@@ -110,11 +116,11 @@ export async function generateBlurhashFromUrl(
         // This is a placeholder for the server implementation
 
         console.warn(
-            'Blurhash generation should be done server-side during image upload'
+            `Blurhash generation should be done server-side during image upload (requested for: ${imageUrl})`
         );
         return undefined;
     } catch (err) {
-        console.error('Failed to generate blurhash:', err);
+        console.error("Failed to generate blurhash:", err);
         return undefined;
     }
 }
@@ -125,13 +131,11 @@ export async function generateBlurhashFromUrl(
  * Next.js Image component accepts 'blur' as a placeholder strategy
  * and automatically uses the blurDataURL prop
  */
-export function formatBlurPlaceholder(
-    blurHash?: string | null
-): string | undefined {
+export function formatBlurPlaceholder(blurHash?: string | null): string | undefined {
     if (!blurHash) return undefined;
 
     // If it's a data URL, return directly
-    if (blurHash.startsWith('data:')) {
+    if (blurHash.startsWith("data:")) {
         return blurHash;
     }
 

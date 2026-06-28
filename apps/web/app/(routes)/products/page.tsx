@@ -3,10 +3,9 @@
  * Optimized for performance with lazy-loaded images (issue #2736)
  */
 
-import React, { Suspense } from 'react';
-import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
-import { supabase } from '@/lib/supabase/client';
-import type { Product } from '@/components/ProductCard';
+import React, { Suspense } from "react";
+import ProductCard, { ProductCardSkeleton } from "@/components/ProductCard";
+import type { Product } from "@/components/ProductCard";
 
 /**
  * Server component that fetches products
@@ -21,14 +20,14 @@ async function ProductsGrid() {
         });
 
         if (!response.ok) {
-            throw new Error('Failed to fetch products');
+            throw new Error("Failed to fetch products");
         }
 
         const { products } = await response.json();
 
         if (!products || products.length === 0) {
             return (
-                <div className="col-span-full text-center py-12">
+                <div className="col-span-full py-12 text-center">
                     <p className="text-gray-500">No products found.</p>
                 </div>
             );
@@ -48,9 +47,9 @@ async function ProductsGrid() {
             </>
         );
     } catch (err) {
-        console.error('Error fetching products:', err);
+        console.error("Error fetching products:", err);
         return (
-            <div className="col-span-full text-center py-12">
+            <div className="col-span-full py-12 text-center">
                 <p className="text-red-500">Failed to load products. Please try again later.</p>
             </div>
         );
@@ -93,7 +92,7 @@ interface ProductsPageProps {
  */
 export default function ProductsPage({ searchParams }: ProductsPageProps) {
     const category = searchParams?.category;
-    const sort = searchParams?.sort || 'newest';
+    const sort = searchParams?.sort || "newest";
 
     return (
         <main className="min-h-screen bg-gray-50 py-12">
@@ -110,15 +109,15 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
                 <div className="mb-8 flex flex-col gap-4 sm:flex-row">
                     {/* Category filter */}
                     <select
-                        value={category || ''}
+                        value={category || ""}
                         onChange={(e) => {
                             const url = new URL(window.location.href);
                             if (e.target.value) {
-                                url.searchParams.set('category', e.target.value);
+                                url.searchParams.set("category", e.target.value);
                             } else {
-                                url.searchParams.delete('category');
+                                url.searchParams.delete("category");
                             }
-                            window.history.pushState({}, '', url);
+                            window.history.pushState({}, "", url);
                         }}
                         className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                     >
@@ -134,8 +133,8 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
                         value={sort}
                         onChange={(e) => {
                             const url = new URL(window.location.href);
-                            url.searchParams.set('sort', e.target.value);
-                            window.history.pushState({}, '', url);
+                            url.searchParams.set("sort", e.target.value);
+                            window.history.pushState({}, "", url);
                         }}
                         className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                     >
@@ -170,11 +169,11 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
  * Generate static metadata for SEO
  */
 export const metadata = {
-    title: 'Products | SahiDawa',
-    description: 'Discover verified medicines and health products from trusted sellers.',
+    title: "Products | SahiDawa",
+    description: "Discover verified medicines and health products from trusted sellers.",
     openGraph: {
-        title: 'Products | SahiDawa',
-        description: 'Discover verified medicines and health products from trusted sellers.',
-        url: 'https://sahidawa.in/products',
+        title: "Products | SahiDawa",
+        description: "Discover verified medicines and health products from trusted sellers.",
+        url: "https://sahidawa.in/products",
     },
 };
