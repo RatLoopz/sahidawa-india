@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { initBackgroundSync } from "@/lib/backgroundSync";
 
 /**
  * ServiceWorkerProvider
@@ -69,6 +70,19 @@ export function ServiceWorkerProvider({ children }: { children: React.ReactNode 
         return () => {
             if (updateInterval) clearInterval(updateInterval);
         };
+    }, []);
+
+    // Global background sync for offline reports
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        const cleanup = initBackgroundSync((count) => {
+            toast.success(
+                `${count} pending report${count > 1 ? "s" : ""} submitted now that you're back online.`
+            );
+            // Dispatch a custom event so active pages (like ReportWizard) can update their UI
+            window.dispatchEvent(new CustomEvent("reports-synced", { detail: { count } }));
+        });
+        return cleanup;
     }, []);
 
     return <>{children}</>;

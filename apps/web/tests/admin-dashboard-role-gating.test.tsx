@@ -53,6 +53,7 @@ jest.mock("@/i18n/routing", () => ({
 }));
 
 jest.mock("next-intl", () => ({
+    useLocale: () => "en",
     useTranslations: () => {
         const messages: Record<string, string> = {
             "actions.addMedicine": "Add Medicine",

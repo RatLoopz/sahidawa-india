@@ -2,7 +2,8 @@ import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { supabase } from "../db/client";
 import logger from "../utils/logger";
-import { limiter } from "../middleware/rateLimit";
+import { analyticsLimiter } from "../middleware/rateLimit";
+import { requireAuth } from "../middleware/auth";
 
 const router = Router();
 const QuerySchema = z.object({
@@ -52,7 +53,7 @@ function summarizePushNotificationEvents(rows: PushNotificationEventRow[]) {
     };
 }
 
-router.get("/heatmap", limiter, async (req: Request, res: Response) => {
+router.get("/heatmap", requireAuth, analyticsLimiter, async (req: Request, res: Response) => {
     try {
         const { days } = QuerySchema.parse(req.query);
         const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
@@ -62,7 +63,8 @@ router.get("/heatmap", limiter, async (req: Request, res: Response) => {
             .select("latitude, longitude, created_at")
             .not("latitude", "is", null)
             .not("longitude", "is", null)
-            .gte("created_at", since);
+            .gte("created_at", since)
+            .limit(10000);
 
         if (error) {
             logger.error({ message: "Failed to fetch scan history for heatmap", error, days });

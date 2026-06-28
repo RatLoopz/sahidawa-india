@@ -1,65 +1,56 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { type ComponentType, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { ADMIN_API_BASE } from "@/lib/adminApi";
-import { useSession } from "@/src/components/AuthProvider";
 
-// SSR-safe Recharts import — fixes hydration mismatch (issue #1303)
-const BarChart = dynamic(
-    () => import("recharts").then((mod) => mod.BarChart as unknown as ComponentType<any>),
-    { ssr: false }
-);
-const Bar = dynamic(
-    () => import("recharts").then((mod) => mod.Bar as unknown as ComponentType<any>),
-    { ssr: false }
-);
-const XAxis = dynamic(
-    () => import("recharts").then((mod) => mod.XAxis as unknown as ComponentType<any>),
-    { ssr: false }
-);
-const YAxis = dynamic(
-    () => import("recharts").then((mod) => mod.YAxis as unknown as ComponentType<any>),
-    { ssr: false }
-);
-const Tooltip = dynamic(
-    () => import("recharts").then((mod) => mod.Tooltip as unknown as ComponentType<any>),
-    { ssr: false }
-);
-const ResponsiveContainer = dynamic(
-    () =>
-        import("recharts").then((mod) => mod.ResponsiveContainer as unknown as ComponentType<any>),
-    { ssr: false }
-);
+function getToken(): string {
+    if (typeof window === "undefined") return "";
+    return localStorage.getItem("sb-access-token") ?? "";
+}
 
 interface CacheStats {
     hits: number;
     misses: number;
     hitRate: number;
-    tierBreakdown: { hot: number; warm: number; cold: number };
-    topDrugs: { name: string; count: number }[];
+    tierBreakdown: {
+        hot: number;
+        warm: number;
+        cold: number;
+    };
+    topDrugs: {
+        name: string;
+        count: number;
+    }[];
 }
 
 export default function CacheStatsCard() {
-    const { token } = useSession();
     const [stats, setStats] = useState<CacheStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const fetchStats = async () => {
         try {
+            const token = getToken();
+
             const res = await fetch(`${ADMIN_API_BASE}/cache/stats`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             });
+
             if (res.status === 401 || res.status === 403) {
                 setError("Unauthorized admin access");
                 return;
             }
+
             const json = await res.json();
-            if (json.success) setStats(json.data);
-            else setError("Failed to load stats");
+
+            if (json.success) {
+                setStats(json.data);
+            } else {
+                setError("Failed to load stats");
+            }
         } catch {
             setError("Network error");
         } finally {
@@ -68,24 +59,29 @@ export default function CacheStatsCard() {
     };
 
     useEffect(() => {
-        if (!token) return;
         fetchStats();
-        // auto-refresh every 30 seconds
-        const interval = setInterval(fetchStats, 30_000);
-        return () => clearInterval(interval);
-    }, [token]);
 
-    if (loading)
+        const interval = setInterval(fetchStats, 30000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    if (loading) {
         return (
             <div className="animate-pulse rounded-xl border border-gray-100 bg-[#f9fafb] p-6">
                 <div className="mb-4 h-4 w-40 rounded bg-[#e5e7eb]" />
                 <div className="h-32 rounded bg-[#e5e7eb]" />
             </div>
         );
+    }
 
-    if (error) return <div className="rounded-xl border p-6 text-red-500">⚠️ {error}</div>;
+    if (error) {
+        return <div className="rounded-xl border p-6 text-red-500">⚠️ {error}</div>;
+    }
 
-    if (!stats) return null;
+    if (!stats) {
+        return null;
+    }
 
     const tierData = [
         { name: "Hot (24h)", value: stats.tierBreakdown.hot },
@@ -100,18 +96,19 @@ export default function CacheStatsCard() {
                 <span className="text-xs text-gray-400">Refreshes every 30s</span>
             </div>
 
-            {/* Hit / Miss summary */}
             <div className="grid grid-cols-3 gap-4 text-center">
                 <div className="rounded-lg bg-green-50 p-4">
                     <p className="text-2xl font-bold text-green-600">{stats.hitRate}%</p>
                     <p className="mt-1 text-xs text-gray-500">Hit Rate</p>
                 </div>
+
                 <div className="rounded-lg bg-blue-50 p-4">
                     <p className="text-2xl font-bold text-blue-600">
                         {stats.hits.toLocaleString()}
                     </p>
                     <p className="mt-1 text-xs text-gray-500">Cache Hits</p>
                 </div>
+
                 <div className="rounded-lg bg-red-50 p-4">
                     <p className="text-2xl font-bold text-red-500">
                         {stats.misses.toLocaleString()}
@@ -120,9 +117,9 @@ export default function CacheStatsCard() {
                 </div>
             </div>
 
-            {/* Tier breakdown bar chart */}
             <div>
                 <p className="mb-2 text-sm font-medium text-gray-600">Hits by Cache Tier</p>
+
                 <ResponsiveContainer width="100%" height={160}>
                     <BarChart data={tierData}>
                         <XAxis dataKey="name" tick={{ fontSize: 11 }} />
@@ -133,9 +130,9 @@ export default function CacheStatsCard() {
                 </ResponsiveContainer>
             </div>
 
-            {/* Top drugs table */}
             <div>
                 <p className="mb-2 text-sm font-medium text-gray-600">Top 10 Cached Drugs</p>
+
                 <div className="space-y-1">
                     {stats.topDrugs.map((drug, i) => (
                         <div
@@ -145,9 +142,11 @@ export default function CacheStatsCard() {
                             <span className="text-gray-700">
                                 {i + 1}. {drug.name}
                             </span>
+
                             <span className="font-mono text-gray-500">{drug.count}</span>
                         </div>
                     ))}
+
                     {stats.topDrugs.length === 0 && (
                         <p className="text-xs text-gray-400">No data yet</p>
                     )}

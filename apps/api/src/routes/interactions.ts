@@ -2,8 +2,8 @@ import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { supabase, dbConfig } from "../db/client";
 import logger from "../utils/logger";
-import { escapeIlike } from "../utils/db";
 import { escapePostgrest } from "../utils/db";
+import { interactionCheckLimiter } from "../middleware/rateLimit";
 
 const router = Router();
 
@@ -20,8 +20,20 @@ type InteractionRecord = LocalInteraction & { id?: string };
 const checkSchema = z.object({
     medicines: z
         .array(z.string())
-        .min(2, "At least two medicines are required to check interactions"),
+        .min(2, "At least two medicines are required to check interactions")
+        .max(20, "A maximum of 20 medicines can be checked at once"),
 });
+
+export function buildMedicineResolutionFilter(input: string): string {
+    const escaped = escapePostgrest(input);
+    return `id.eq."${escaped}",brand_name.ilike."%${escaped}%",generic_name.ilike."%${escaped}%"`;
+}
+
+export function buildInteractionPairFilter(a: string, b: string): string {
+    const drugA = escapePostgrest(a);
+    const drugB = escapePostgrest(b);
+    return `and(drug_a_id.eq."${drugA}",drug_b_id.eq."${drugB}"),and(drug_a_id.eq."${drugB}",drug_b_id.eq."${drugA}")`;
+}
 
 // Brand name to generic name static mapping for local offline fallback
 const localBrandMap: Record<string, string> = {
@@ -66,6 +78,7 @@ interface MatchedInteraction {
     description: string;
     clinical_recommendation: string;
     source: string;
+    verified: boolean;
 }
 
 const localInteractions: LocalInteraction[] = [
@@ -238,11 +251,16 @@ async function loadInteractionsForGenerics(genericNames: string[]): Promise<Inte
  *           type: string
  *         example: med-a,med-b,med-c
  */
-router.get("/", async (req: Request, res: Response) => {
+router.get("/", interactionCheckLimiter, async (req: Request, res: Response) => {
     const ids = parseIdsParam(req.query.ids);
 
     if (ids.length < 2) {
         res.status(400).json({ error: "At least two medicine ids are required" });
+        return;
+    }
+
+    if (ids.length > 20) {
+        res.status(400).json({ error: "At most 20 medicine ids are allowed" });
         return;
     }
 
@@ -276,6 +294,7 @@ router.get("/", async (req: Request, res: Response) => {
         const interactionByPair = indexInteractions(
             await loadInteractionsForGenerics(selectedGenerics)
         );
+        const isFallback = dbConfig?.isSupabaseOffline ?? true;
         const interactions = [];
 
         for (let i = 0; i < medicines.length; i++) {
@@ -306,6 +325,7 @@ router.get("/", async (req: Request, res: Response) => {
                         "Follow the prescribed dosage and consult a clinician if symptoms change.",
                     mechanism: match?.mechanism || "No interaction mechanism is documented.",
                     source: match?.source || "SahiDawa interaction checker",
+                    verified: !isFallback,
                 });
             }
         }
@@ -324,19 +344,15 @@ router.get("/", async (req: Request, res: Response) => {
 async function resolveToGeneric(input: string): Promise<{ input: string; generic: string }> {
     const cleanInput = input.trim();
     const lowerInput = cleanInput.toLowerCase();
-
     let dbFailed = dbConfig?.isSupabaseOffline;
     let genericName = cleanInput;
 
     if (!dbFailed) {
         try {
-            const escaped = escapeIlike(cleanInput);
             const { data, error } = await supabase
                 .from("medicines")
                 .select("brand_name, generic_name")
-                .or(
-                    `id.eq.${escaped},brand_name.ilike."%${escapePostgrest(escaped)}%",generic_name.ilike."%${escapePostgrest(escaped)}%"`
-                )
+                .or(buildMedicineResolutionFilter(cleanInput))
                 .limit(1)
                 .maybeSingle();
 
@@ -432,7 +448,7 @@ async function resolveToGeneric(input: string): Promise<{ input: string; generic
  *                       source:
  *                         type: string
  */
-router.post("/check", async (req: Request, res: Response) => {
+router.post("/check", interactionCheckLimiter, async (req: Request, res: Response) => {
     const parsed = checkSchema.safeParse(req.body);
 
     if (!parsed.success) {
@@ -460,68 +476,20 @@ router.post("/check", async (req: Request, res: Response) => {
             new Set(resolvedList.map((r) => r.generic.toLowerCase()))
         );
 
-        // 2. Generate all unique pairs
-        const pairs: [string, string][] = [];
-        for (let i = 0; i < resolvedGenerics.length; i++) {
-            for (let j = i + 1; j < resolvedGenerics.length; j++) {
-                pairs.push([resolvedGenerics[i], resolvedGenerics[j]]);
-            }
-        }
+        // 2. Fetch all potential interactions in one batched query
+        const allInteractions = await loadInteractionsForGenerics(resolvedGenerics);
+        const interactionByPair = indexInteractions(allInteractions);
+        const isFallback = dbConfig?.isSupabaseOffline ?? true;
 
         const matchedInteractions: MatchedInteraction[] = [];
-        let dbFailed = dbConfig?.isSupabaseOffline;
 
-        // 3. Query interactions for each pair
-        await Promise.all(
-            pairs.map(async ([a, b]) => {
-                let match = null;
+        // 3. Generate all unique pairs and check against the batched results in-memory
+        for (let i = 0; i < resolvedGenerics.length; i++) {
+            for (let j = i + 1; j < resolvedGenerics.length; j++) {
+                const a = resolvedGenerics[i];
+                const b = resolvedGenerics[j];
 
-                if (!dbFailed) {
-                    try {
-                        const { data, error } = await supabase
-                            .from("drug_interactions")
-                            .select("*")
-                            .or(
-                                `and(drug_a_id.eq.${a},drug_b_id.eq.${b}),and(drug_a_id.eq.${b},drug_b_id.eq.${a})`
-                            )
-                            .maybeSingle();
-
-                        if (error) {
-                            dbFailed = true;
-                            if (
-                                error.message?.includes("fetch failed") ||
-                                error.message?.includes("refused") ||
-                                error.message?.includes("timeout")
-                            ) {
-                                if (dbConfig) dbConfig.isSupabaseOffline = true;
-                            }
-                        } else if (data) {
-                            match = data;
-                        }
-                    } catch (dbErr: unknown) {
-                        dbFailed = true;
-                        const msg = dbErr instanceof Error ? dbErr.message : String(dbErr);
-                        if (
-                            msg.includes("fetch failed") ||
-                            msg.includes("refused") ||
-                            msg.includes("timeout")
-                        ) {
-                            if (dbConfig) dbConfig.isSupabaseOffline = true;
-                        }
-                    }
-                }
-
-                if (dbFailed || !match) {
-                    // Fallback to local static check
-                    const found = localInteractions.find(
-                        (li) =>
-                            (li.drug_a_id === a && li.drug_b_id === b) ||
-                            (li.drug_a_id === b && li.drug_b_id === a)
-                    );
-                    if (found) {
-                        match = found;
-                    }
-                }
+                const match = interactionByPair.get(getInteractionPairKey(a, b));
 
                 if (match) {
                     // Map back generic names to the original user input strings for display
@@ -540,10 +508,11 @@ router.post("/check", async (req: Request, res: Response) => {
                             match.clinical_recommendation ||
                             "Consult a physician before combining.",
                         source: match.source || "Clinical Literature",
+                        verified: !isFallback,
                     });
                 }
-            })
-        );
+            }
+        }
 
         res.status(200).json({ interactions: matchedInteractions });
     } catch (err) {

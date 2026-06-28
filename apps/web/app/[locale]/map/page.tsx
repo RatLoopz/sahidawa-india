@@ -36,6 +36,14 @@ import { type AshaWorker } from "./PharmacyMap";
 import MapHeaderLoadingIndicator from "./MapHeaderLoadingIndicator";
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
 import { buildCacheKey, saveToCache, loadFromCache } from "./usePharmacyCache";
+import {
+    getCachedPharmacies,
+    getLastSyncTimestamp,
+    mergePharmacyDelta,
+    setCachedPharmacies,
+    setLastSyncTimestamp,
+    type PharmacySyncRecord,
+} from "@/lib/offline/pharmacy-sync";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const DEFAULT_CENTER = { lat: 28.6139, lng: 77.209 }; // New Delhi
@@ -169,6 +177,28 @@ function deduplicateOsm(verified: Pharmacy[], osm: Pharmacy[]): Pharmacy[] {
             return dist < 100;
         });
     });
+}
+
+function sortPharmacies(pharmacies: Pharmacy[]): Pharmacy[] {
+    return [...pharmacies].sort((a, b) => {
+        if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
+        return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
+    });
+}
+
+// ── Geolocation error mapping ─────────────────────────────────────────────────
+// Shared by the initial auto-locate effect and handleLocateUser so the
+// PositionError-code → translated-message mapping isn't duplicated.
+function getGeolocationErrorMessage(
+    code: number,
+    t: ReturnType<typeof useTranslations>
+): string {
+    const messages: Record<number, string> = {
+        1: t("errors.denied"),
+        2: t("errors.unavailable"),
+        3: t("errors.timeout"),
+    };
+    return messages[code] || t("errors.generic");
 }
 
 // ── Draggable Bottom Drawer (PR #144 signature component) ────────────────────
@@ -325,6 +355,18 @@ export default function PharmacyMapPage() {
         return true;
     }, []);
 
+    const hydrateSyncedPharmacies = useCallback(async (cacheKey: string): Promise<boolean> => {
+        const cached = await getCachedPharmacies(cacheKey);
+        if (cached.length === 0) return false;
+
+        const verified = cached.map((vp, i) => toVerifiedPharmacy(vp, -(i + 1)));
+        setPharmacies(sortPharmacies(verified));
+        setPharmacyCount(verified.length);
+        setIsShowingCached(true);
+        initialFetchDone.current = true;
+        return true;
+    }, []);
+
     const fetchNearby = useCallback(
         async (lat: number, lng: number, radius = 10000) => {
             setIsLoading(true);
@@ -348,10 +390,7 @@ export default function PharmacyMapPage() {
                     ashaResult.status === "fulfilled" ? ashaResult.value.map(toAshaWorker) : [];
 
                 const dedupedOsm = deduplicateOsm(verified, osm);
-                const merged = [...verified, ...dedupedOsm].sort((a, b) => {
-                    if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
-                    return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
-                });
+                const merged = sortPharmacies([...verified, ...dedupedOsm]);
                 const livePharmacyLoadFailed = osmResult.status === "rejected";
                 const shouldTryCache = merged.length === 0 && livePharmacyLoadFailed;
 
@@ -429,15 +468,21 @@ export default function PharmacyMapPage() {
                     setUserLocation(loc);
                     fetchNearby(loc.lat, loc.lng, radiusKm * 1000);
                 },
-                () => {
+                (err) => {
+                    // Surface a localized message (e.g. permission denied) instead
+                    // of silently falling back with no feedback to the user.
+                    setLocationError(getGeolocationErrorMessage(err.code, t));
+                    setTimeout(() => setLocationError(null), 4000);
                     fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radiusKm * 1000);
                 },
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
             );
         } else {
+            setLocationError(t("errors.generic"));
+            setTimeout(() => setLocationError(null), 4000);
             fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radiusKm * 1000);
         }
-    }, [fetchNearby]);
+    }, [fetchNearby, t]);
 
     const fetchInBounds = useCallback(
         async (bounds: MapBounds) => {
@@ -449,30 +494,52 @@ export default function PharmacyMapPage() {
                 const centerLng = bounds.center.lng;
                 const radiusKm = 15;
                 const cacheKey = buildCacheKey(centerLat, centerLng);
+                const cachedVerified = await getCachedPharmacies(cacheKey);
+                if (cachedVerified.length > 0) {
+                    await hydrateSyncedPharmacies(cacheKey);
+                } else {
+                    await restoreFromCache(cacheKey);
+                }
+                const since =
+                    cachedVerified.length > 0 ? await getLastSyncTimestamp(cacheKey) : null;
                 const [verifiedResult, osmResult, ashaResult] = await Promise.allSettled([
                     fetchVerifiedPharmaciesInBounds(
                         bounds.south,
                         bounds.west,
                         bounds.north,
-                        bounds.east
+                        bounds.east,
+                        since ?? undefined
                     ),
                     fetchPharmaciesInBounds(bounds.south, bounds.west, bounds.north, bounds.east),
                     fetchNearbyAshaWorkers(centerLat, centerLng, radiusKm),
                 ]);
 
-                const verified =
-                    verifiedResult.status === "fulfilled"
-                        ? verifiedResult.value.map((vp, i) => toVerifiedPharmacy(vp, -(i + 1)))
-                        : [];
+                let verifiedRecords: PharmacySyncRecord[] = cachedVerified;
+                if (verifiedResult.status === "fulfilled") {
+                    const result = verifiedResult.value;
+                    const shouldReplaceCache =
+                        result.fromNetwork &&
+                        (result.delta || !since || result.pharmacies.length > 0);
+                    verifiedRecords = result.delta
+                        ? mergePharmacyDelta(cachedVerified, result.pharmacies)
+                        : shouldReplaceCache
+                          ? result.pharmacies.filter(
+                                (pharmacy) =>
+                                    pharmacy.is_active !== false && !Boolean(pharmacy.deleted_at)
+                            )
+                          : cachedVerified;
+                    if (shouldReplaceCache) {
+                        await setCachedPharmacies(verifiedRecords, cacheKey);
+                        await setLastSyncTimestamp(result.syncedAt, cacheKey);
+                    }
+                }
+                const verified = verifiedRecords.map((vp, i) => toVerifiedPharmacy(vp, -(i + 1)));
                 const osm = osmResult.status === "fulfilled" ? osmResult.value.map(toPharmacy) : [];
                 const asha =
                     ashaResult.status === "fulfilled" ? ashaResult.value.map(toAshaWorker) : [];
 
                 const dedupedOsm = deduplicateOsm(verified, osm);
-                const merged = [...verified, ...dedupedOsm].sort((a, b) => {
-                    if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
-                    return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
-                });
+                const merged = sortPharmacies([...verified, ...dedupedOsm]);
                 const livePharmacyLoadFailed = osmResult.status === "rejected";
                 const shouldTryCache = merged.length === 0 && livePharmacyLoadFailed;
 
@@ -518,7 +585,7 @@ export default function PharmacyMapPage() {
                 setIsLoading(false);
             }
         },
-        [restoreFromCache]
+        [hydrateSyncedPharmacies, restoreFromCache]
     );
 
     // Geolocation
@@ -539,17 +606,12 @@ export default function PharmacyMapPage() {
             },
             (err) => {
                 setIsLocating(false);
-                const messages: Record<number, string> = {
-                    1: t("errors.denied"),
-                    2: t("errors.unavailable"),
-                    3: t("errors.timeout"),
-                };
-                setLocationError(messages[err.code] || t("errors.generic"));
+                setLocationError(getGeolocationErrorMessage(err.code, t));
                 setTimeout(() => setLocationError(null), 4000);
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
         );
-    }, [fetchNearby, radiusKm]);
+    }, [fetchNearby, radiusKm, t]);
 
     const handleMapReady = useCallback(() => {
         if (!initialFetchDone.current) {

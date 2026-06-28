@@ -20,6 +20,7 @@ The core of this change is the migration of the FAQ item rendering logic within 
 Previously, each FAQ item was rendered inside a `div` element, containing a `button` for the question and a conditionally rendered `div` for the answer. The `useState` hook, specifically `openIndex` and `setOpenIndex`, was used to manage which FAQ item was currently expanded. A `toggle` function handled the state updates on button clicks.
 
 The refactor involved the following key steps:
+
 1.  **Removal of React State:** We removed the `useState` import, the `openIndex` state variable, and the `toggle` function from the `FAQPage` component. This significantly reduced the component's client-side JavaScript logic.
 2.  **Semantic HTML Adoption:** Each FAQ item's outer `div` was replaced with a `<details>` HTML element. The question and the chevron icon, previously wrapped in a `button`, are now encapsulated within a `<summary>` element, which is the first child of `<details>`. The answer content, previously a conditional `div` (rendered only when `openIndex === i`), is now a direct child of `<details>`, following the `<summary>`.
 3.  **Accessibility Attributes Removal:** The manual `id`, `aria-expanded`, `aria-controls`, `role="region"`, and `aria-labelledby` attributes, which were necessary for the custom implementation's accessibility, were removed. The native `<details>` and `<summary>` elements provide these semantics inherently, handled directly by the browser.
@@ -48,29 +49,38 @@ To re-implement an accordion using the native HTML `<details>` and `<summary>` e
 1.  **Identify Accordion Structure:** Determine the content that serves as the "question" or "summary" and the content that serves as the "answer" or "details".
 2.  **Wrap with `<details>`:** Enclose each complete accordion item (question + answer) within a `<details>` tag. Apply the `group` class to this `<details>` element if you intend to use `group-open` variants for styling child elements.
     ```html
-    <details class="group overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/30 hover:shadow-md">
+    <details
+        class="group overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/30 hover:shadow-md"
+    >
         <!-- Question/Summary goes here -->
         <!-- Answer/Details goes here -->
     </details>
     ```
 3.  **Define `<summary>`:** Place the "question" content inside a `<summary>` tag as the first child of `<details>`. Apply styling to hide the native disclosure marker and for the question's appearance.
     ```html
-    <summary class="flex w-full list-none items-center justify-between px-6 py-5 text-left transition-colors duration-200 hover:bg-emerald-500/[0.01] [&::-webkit-details-marker]:hidden">
+    <summary
+        class="flex w-full list-none items-center justify-between px-6 py-5 text-left transition-colors duration-200 hover:bg-emerald-500/[0.01] [&::-webkit-details-marker]:hidden"
+    >
         <!-- Question text and custom icon -->
     </summary>
     ```
-    *   `list-none`: Removes default list styling.
-    *   `[&::-webkit-details-marker]:hidden`: Hides the default disclosure triangle in WebKit browsers (e.g., Chrome, Safari).
+    - `list-none`: Removes default list styling.
+    - `[&::-webkit-details-marker]:hidden`: Hides the default disclosure triangle in WebKit browsers (e.g., Chrome, Safari).
 4.  **Add Custom Disclosure Icon:** Include a custom icon (e.g., `ChevronDown` from `lucide-react`) within the `<summary>` element. Apply `transition-transform duration-200 group-open:rotate-180` to this icon to make it rotate when the `<details>` element is open.
     ```jsx
     <div className="ml-4 shrink-0 text-(--color-text-muted)">
-        <ChevronDown size={20} className="transition-transform duration-200 group-open:rotate-180" />
+        <ChevronDown
+            size={20}
+            className="transition-transform duration-200 group-open:rotate-180"
+        />
     </div>
     ```
-    *   The `group-open:rotate-180` class requires the parent `<details>` element to have the `group` class.
+    - The `group-open:rotate-180` class requires the parent `<details>` element to have the `group` class.
 5.  **Place Answer Content:** Directly after the `<summary>` tag, place the "answer" content within a `div` or other appropriate element. This content will be shown/hidden by the browser's native `<details>` functionality.
     ```html
-    <div class="border-t border-(--color-border-muted) px-6 pt-4 pb-5 text-sm leading-relaxed font-medium text-(--color-text-secondary)">
+    <div
+        class="border-t border-(--color-border-muted) px-6 pt-4 pb-5 text-sm leading-relaxed font-medium text-(--color-text-secondary)"
+    >
         {t(`items.${key}.answer`)}
     </div>
     ```
@@ -78,9 +88,10 @@ To re-implement an accordion using the native HTML `<details>` and `<summary>` e
 7.  **Internationalization:** If using `next-intl` as in SahiDawa, retrieve translated content for both the summary and detail sections using `useTranslations` and `t()` as demonstrated in the `FAQPage` component.
 
 **Gotchas:**
-*   Remember to add the `group` class to the `<details>` element for `group-open` variants to work on child elements.
-*   The `[&::-webkit-details-marker]:hidden` class is crucial for hiding the native disclosure triangle if you want to use a custom icon.
-*   Ensure your CSS transitions are smooth for the icon rotation.
+
+- Remember to add the `group` class to the `<details>` element for `group-open` variants to work on child elements.
+- The `[&::-webkit-details-marker]:hidden` class is crucial for hiding the native disclosure triangle if you want to use a custom icon.
+- Ensure your CSS transitions are smooth for the icon rotation.
 
 ## Impact on System Architecture
 
@@ -99,18 +110,19 @@ This change reinforces our commitment to building an accessible and performant p
 This change was primarily verified through manual inspection and interaction in the browser.
 
 1.  **Visual Accordion Behavior:**
-    *   We confirmed that clicking on an FAQ question correctly expands and collapses the corresponding answer.
-    *   We verified that the `ChevronDown` icon correctly rotates 180 degrees when an item is expanded and rotates back when collapsed, using the `group-open:rotate-180` class.
-    *   We ensured that the overall styling, including borders, shadows, and text appearance, remained consistent with the previous implementation.
+    - We confirmed that clicking on an FAQ question correctly expands and collapses the corresponding answer.
+    - We verified that the `ChevronDown` icon correctly rotates 180 degrees when an item is expanded and rotates back when collapsed, using the `group-open:rotate-180` class.
+    - We ensured that the overall styling, including borders, shadows, and text appearance, remained consistent with the previous implementation.
 2.  **Keyboard Navigation:**
-    *   We tested navigating the FAQ items using the Tab key to ensure focus moves correctly between questions.
-    *   We verified that pressing the Spacebar or Enter key while an FAQ question is focused correctly toggles its expanded state, demonstrating native browser handling.
+    - We tested navigating the FAQ items using the Tab key to ensure focus moves correctly between questions.
+    - We verified that pressing the Spacebar or Enter key while an FAQ question is focused correctly toggles its expanded state, demonstrating native browser handling.
 3.  **Accessibility (Implicit):**
-    *   While not explicitly documented with screen reader tests in this PR, the use of native `<details>` and `<summary>` elements inherently provides correct ARIA roles and states, which are automatically announced by screen readers. This was the primary driver for the change.
+    - While not explicitly documented with screen reader tests in this PR, the use of native `<details>` and `<summary>` elements inherently provides correct ARIA roles and states, which are automatically announced by screen readers. This was the primary driver for the change.
 4.  **ESLint Check:**
-    *   An ESLint check was performed, confirming no new errors or warnings were introduced, indicating adherence to our code quality standards.
+    - An ESLint check was performed, confirming no new errors or warnings were introduced, indicating adherence to our code quality standards.
 
 **Edge Cases:**
-*   **No JavaScript:** The `<details>` element functions natively even if JavaScript is disabled, providing a basic, functional accordion experience (items can still be expanded/collapsed). This is a significant improvement over the previous JS-dependent implementation, which would have been non-functional without JavaScript.
-*   **Browser Compatibility:** While widely supported, older browsers might not fully support `<details>`. However, SahiDawa targets modern browsers, and the graceful degradation (content might just be always visible) is acceptable for the FAQ section.
-*   **Dynamic Content:** The current FAQ content is static. If FAQ items were to be dynamically loaded, the `<details>` pattern would still apply without issue, as it's a standard HTML element.
+
+- **No JavaScript:** The `<details>` element functions natively even if JavaScript is disabled, providing a basic, functional accordion experience (items can still be expanded/collapsed). This is a significant improvement over the previous JS-dependent implementation, which would have been non-functional without JavaScript.
+- **Browser Compatibility:** While widely supported, older browsers might not fully support `<details>`. However, SahiDawa targets modern browsers, and the graceful degradation (content might just be always visible) is acceptable for the FAQ section.
+- **Dynamic Content:** The current FAQ content is static. If FAQ items were to be dynamically loaded, the `<details>` pattern would still apply without issue, as it's a standard HTML element.

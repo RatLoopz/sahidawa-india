@@ -267,11 +267,12 @@ export default function ChatUI() {
                 setMessages((prev) =>
                     upsertAssistantMessage(prev, assistantMessageId as string, finalReply)
                 );
-            } catch (err: any) {
+            } catch (err: unknown) {
                 if (isAbortError(err)) return;
                 if (!isActiveRequest()) return;
 
-                const errorMessage = err.message || t("genericError");
+                const errorMessage =
+                    err instanceof Error ? err.message || t("genericError") : t("genericError");
                 const messageId = assistantMessageId || genId();
 
                 setMessages((prev) =>
@@ -303,13 +304,17 @@ export default function ChatUI() {
             alert(t("voiceBrowserRequired"));
             return;
         }
+
         if (isListening) {
             recRef.current?.stop();
             setIsListening(false);
             return;
         }
-        const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        const r = new SR();
+
+        const SpeechRecognition =
+            (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+
         const speechLocales = {
             en: "en-IN",
             hi: "hi-IN",
@@ -323,22 +328,44 @@ export default function ChatUI() {
             pa: "pa-IN",
             or: "or-IN",
         };
-        r.lang = speechLocales[locale as keyof typeof speechLocales] || "en-IN";
-        r.interimResults = false;
-        r.onresult = (e: any) => {
-            if (!isMountedRef.current) return;
-            setInput(e.results[0][0].transcript);
-            setIsListening(false);
+
+        recognition.lang = speechLocales[locale as keyof typeof speechLocales] || "en-IN";
+        recognition.interimResults = true;
+        recognition.continuous = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = () => {
+            if (isMountedRef.current) {
+                setIsListening(true);
+            }
         };
-        r.onerror = r.onend = () => {
+
+        recognition.onresult = (event: any) => {
+            if (!isMountedRef.current) return;
+
+            const transcript = Array.from(event.results)
+                .map((result: any) => result[0].transcript)
+                .join(" ");
+
+            setInput(transcript);
+        };
+
+        recognition.onerror = (event: any) => {
+            console.error("Speech recognition error:", event.error);
             if (isMountedRef.current) {
                 setIsListening(false);
             }
         };
-        recRef.current = r;
-        r.start();
-        setIsListening(true);
-    }, [isListening, t]);
+
+        recognition.onend = () => {
+            if (isMountedRef.current) {
+                setIsListening(false);
+            }
+        };
+
+        recRef.current = recognition;
+        recognition.start();
+    }, [isListening, locale, t]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {

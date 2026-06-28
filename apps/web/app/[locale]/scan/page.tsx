@@ -117,9 +117,15 @@ export default function ScanPage() {
     const handleSaveToABHA = async () => {
         if (!verifyResult?.verified) return;
 
+        const medicineId = verifyResult.medicine?.id;
+        if (!medicineId) {
+            toast.error("Medicine ID is missing. Cannot save to ABHA.");
+            return;
+        }
+
         try {
             await uploadABHAVerification({
-                medicineId: "demo-medicine",
+                medicineId,
                 verificationResult: verifyResult.medicine.is_counterfeit_alert
                     ? "counterfeit"
                     : "verified",
@@ -392,8 +398,15 @@ export default function ScanPage() {
                                 <button
                                     onClick={handleDismissResult}
                                     className="absolute top-4 right-4 z-40 rounded-full bg-white/10 p-2 text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+                                    aria-label="Close verification result (Press Escape)"
+                                    title="Close result (Esc)"
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Escape") {
+                                            handleDismissResult();
+                                        }
+                                    }}
                                 >
-                                    <X size={24} />
+                                    <X size={24} aria-hidden="true" />
                                 </button>
 
                                 {verifyError && (
@@ -519,7 +532,11 @@ export default function ScanPage() {
                     onSubmit={handleBatchSubmit}
                     className="flex w-full max-w-sm flex-col gap-3 sm:flex-row"
                 >
+                    <label htmlFor="batch-input" className="sr-only">
+                        Enter batch number
+                    </label>
                     <input
+                        id="batch-input"
                         type="text"
                         value={batchInput}
                         onChange={(e) => setBatchInput(e.target.value)}
@@ -530,8 +547,16 @@ export default function ScanPage() {
                         type="submit"
                         disabled={isScanning}
                         className="flex items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+                        aria-label={
+                            isScanning
+                                ? "Verifying medicine..."
+                                : isOffline
+                                  ? "Verify button disabled - offline"
+                                  : "Verify medicine batch number"
+                        }
+                        aria-busy={isScanning}
                     >
-                        <Search size={18} />
+                        <Search size={18} aria-hidden="true" />
                         {isOffline ? tScan("offlineVerify") : tScan("verify")}
                     </button>
                 </form>
@@ -542,31 +567,53 @@ export default function ScanPage() {
 
                 <Link
                     href="/history"
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-white/20 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none dark:border-white/20"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-300 bg-white/10 px-4 py-2 text-sm font-bold text-gray-700 shadow-sm transition-colors hover:border-gray-300 hover:bg-gray-100 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none dark:border-white/20 dark:text-white dark:hover:bg-white/20"
                 >
                     <History size={18} />
                     {tScan("viewHistory")}
                 </Link>
+                <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+                    <h3 className="mb-4 text-center text-lg font-bold text-white">Scan Controls</h3>
 
-                <div className="flex gap-4">
-                    <button
-                        onClick={() => setIsCameraActive((prev) => !prev)}
-                        className={`flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-colors focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none ${
-                            isCameraActive
-                                ? "bg-red-500 text-white hover:bg-red-400"
-                                : "bg-emerald-500 text-white hover:bg-emerald-400"
-                        }`}
-                    >
-                        <ScanLine size={18} />
-                        {isCameraActive ? tScan("stopScanner") : tScan("scanBarcode")}
-                    </button>
-                    <label
-                        htmlFor="medicine-upload"
-                        className="flex cursor-pointer items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black shadow-lg transition-colors hover:bg-slate-200"
-                    >
-                        <Layers size={18} />
-                        {tScan("uploadPhoto")}
-                    </label>
+                    <div className="flex justify-center gap-4">
+                        <button
+                            onClick={() => setIsCameraActive((prev) => !prev)}
+                            disabled={isOffline}
+                            className={`flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-colors focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
+                                isCameraActive
+                                    ? "bg-red-500 text-white hover:bg-red-400"
+                                    : "bg-emerald-500 text-white hover:bg-emerald-400"
+                            }`}
+                            aria-label={
+                                isCameraActive
+                                    ? "Stop barcode scanner camera"
+                                    : "Start barcode scanner camera"
+                            }
+                            aria-pressed={isCameraActive}
+                        >
+                            <ScanLine size={18} aria-hidden="true" />
+                            {isCameraActive ? tScan("stopScanner") : tScan("ScanBarcode")}
+                        </button>
+                        <label
+                            htmlFor={isOffline ? undefined : "medicine-upload"}
+                            onClick={(e) => {
+                                if (isOffline) {
+                                    e.preventDefault();
+                                    toast.error(
+                                        "You are currently offline. Please check your internet connection."
+                                    );
+                                }
+                            }}
+                            className={`flex cursor-pointer items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black shadow-lg transition-colors hover:bg-slate-200 ${
+                                isOffline ? "cursor-not-allowed opacity-50" : ""
+                            }`}
+                            aria-label="Upload medicine photo from device (disabled while offline)"
+                            aria-disabled={isOffline}
+                        >
+                            <Layers size={18} aria-hidden="true" />
+                            {tScan("uploadPhoto")}
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>

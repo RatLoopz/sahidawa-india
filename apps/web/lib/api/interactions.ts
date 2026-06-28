@@ -13,10 +13,15 @@ export type InteractionResult = {
     source: string;
 };
 
+export type InteractionResponse = {
+    interactions: InteractionResult[];
+    verified?: boolean;
+};
+
 export async function checkInteractions(
     medicines: string[],
     signal?: AbortSignal
-): Promise<{ interactions: InteractionResult[] }> {
+): Promise<InteractionResponse> {
     const csrfToken = await getCsrfToken();
     const res = await fetchWithRetry(`${API_BASE}/api/v1/interactions/check`, {
         method: "POST",
@@ -38,5 +43,5 @@ export async function checkInteractions(
         throw new Error(errMsg ?? "Failed to check drug interactions");
     }
 
-    return res.json() as Promise<{ interactions: InteractionResult[] }>;
+    return res.json() as Promise<InteractionResponse>;
 }

@@ -41,7 +41,14 @@
         "heroTitle": {
             "prefix": "Your Health, ",
             "highlight": "Verified & Protected."
-        }
+        },
+        "scan_section_title": "Scan & Verify Medicine",
+        "scan_section_subtitle": "Verify medicine authenticity using barcode or package scanning.",
+        "powerful_capabilities": "Powerful Capabilities",
+        "features_description": "Discover all the ways SahiDawa can help you verify your medicines and stay safe.",
+        "trusted_by_citizens": "Trusted by citizens",
+        "voices_title": "Voices from the SahiDawa community",
+        "voices_description": "Families, pharmacists, doctors, and contributors using SahiDawa to make medicine safety easier to act on."
     },
     "Navigation": {
         "how_it_works": "How it Works",
@@ -57,6 +64,18 @@
         "profile": "Profile",
         "language": "English",
         "more": "More"
+    },
+    "Accessibility": {
+        "logo": "SahiDawa Logo",
+        "health_companion": "Health Companion",
+        "select_language": "Select language",
+        "language_options": "Language options",
+        "go_back": "Go back to previous page",
+        "go_back_short": "Go back",
+        "current_language": "Current language: {language}",
+        "toggle_theme": "Toggle theme",
+        "switch_light": "Switch to light mode",
+        "switch_dark": "Switch to dark mode"
     },
     "Health": {
         "quickActions": "Quick actions",
@@ -81,15 +100,14 @@
         "sendMessage": "Send message",
         "footer": "For informational use only • Consult a doctor"
     },
-
     "Scan": {
         "calculateSavings": "Calculate Savings",
         "scanMedicine": "Scan Medicine",
         "positionBarcode": "Position the Barcode",
-        "enterBatchNumber": "Enter batch number",
+        "enterBatchNumber": "Enter Batch Number",
         "verify": "Verify",
-        "batchNumberHelp": "Enter the batch number from the medicine strip, or upload a photo from your gallery.",
-        "viewHistory": "View history",
+        "batchNumberHelp": "Enter the batch number printed on the medicine package",
+        "viewHistory": "View History",
         "stopScanner": "Stop Scanner",
         "scanBarcode": "Scan Barcode",
         "uploadPhoto": "Upload Photo",
@@ -116,6 +134,7 @@
         "genericName": "Generic Name",
         "dosageForm": "Dosage Form",
         "composition": "Composition",
+        "ScanBarcode": "Scan Barcode",
         "offlineVerify": "Queue Scan"
     },
     "BackToTopButton": {
@@ -557,6 +576,8 @@
         "filterExpired": "Expired",
         "filterExpiringSoon": "Expiring Soon",
         "filterSafe": "Safe",
+        "print": "Print",
+        "exportPDF": "Export PDF",
         "exportBackup": "Export Backup",
         "importBackup": "Import Backup",
         "importError": "Invalid backup file. Please upload a valid JSON backup.",
@@ -617,10 +638,54 @@
         "signIn": "Sign In",
         "footerPrompt": "Need to go back?",
         "returnHome": "Return home",
+        "signUpPrompt": "Don't have an account?",
+        "signUpLink": "Sign up",
         "bottomText": "Protected access for SahiDawa community tools.",
         "errors": {
             "databaseNotConfigured": "Authentication is not configured for this environment.",
             "generic": "Unable to sign in. Please try again."
+        }
+    },
+    "SignUp": {
+        "brandSubtitle": "Medicine safety platform",
+        "heading": "Create your account",
+        "description": "Join SahiDawa to track medicine safety reports and verification results.",
+        "missingConfig": {
+            "title": "Authentication is not configured",
+            "description": "Supabase URL or anon key is missing. Add the environment variables before signing up."
+        },
+        "googleButton": "Continue with Google",
+        "githubButton": "Continue with Github",
+        "emailSeparator": "or continue with email",
+        "fullNameLabel": "Full name",
+        "fullNamePlaceholder": "Your full name",
+        "emailLabel": "Email address",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Create a password",
+        "confirmPasswordLabel": "Confirm password",
+        "confirmPasswordPlaceholder": "Re-enter your password",
+        "showPassword": "Show password",
+        "hidePassword": "Hide password",
+        "showConfirmPassword": "Show confirm password",
+        "hideConfirmPassword": "Hide confirm password",
+        "signingUp": "Creating account...",
+        "signUp": "Sign Up",
+        "footerPrompt": "Already have an account?",
+        "signInLink": "Sign in",
+        "bottomText": "Protected access for SahiDawa community tools.",
+        "success": "Account created successfully! Redirecting...",
+        "successConfirmEmail": "Account created! Check your email to confirm your account before signing in.",
+        "errors": {
+            "databaseNotConfigured": "Authentication is not configured for this environment.",
+            "generic": "Unable to create account. Please try again.",
+            "fullNameRequired": "Full name is required.",
+            "emailRequired": "Email address is required.",
+            "emailInvalid": "Please enter a valid email address.",
+            "passwordRequired": "Password is required.",
+            "passwordWeak": "Password must be at least 8 characters and include uppercase, lowercase, and a number.",
+            "confirmPasswordRequired": "Please confirm your password.",
+            "passwordMismatch": "Passwords do not match."
         }
     },
     "AdminLayout": {
@@ -929,7 +994,8 @@
         "clinicalRecommendation": "Clinical Recommendation:",
         "mechanism": "Mechanism:",
         "source": "Source:",
-        "errorMessage": "Failed to complete interaction check. Please try again."
+        "errorMessage": "Failed to complete interaction check. Please try again.",
+        "offlineBadge": "Offline Result — Connect to internet for latest data"
     },
     "ScanHistory": {
         "export_modal_title": "Export Scan History",
@@ -960,6 +1026,8 @@
         "stat_fake": "Fake",
         "empty_title": "No Scan History Yet",
         "empty_description": "Your verified medicines will appear here.",
+        "search_placeholder": "Search medicine...",
+        "no_search_results": "No medicines match your search.",
         "item_status_label": "Status: ",
         "item_delete_button": "Delete",
         "item_copy_success": "Medicine name copied!"
@@ -987,7 +1055,8 @@
         "no_photo_label": "No photo",
         "report_card_district_label": "District",
         "report_card_submitted_label": "Submitted",
-        "report_card_batch_label": "Batch"
+        "report_card_batch_label": "Batch",
+        "load_more_button": "Load More"
     },
     "Map": {
         "errors": {
@@ -1018,6 +1087,85 @@
     },
     "SchemeEligibility": {
         "validationAgeError": "Please enter a valid age.",
-        "validationStateError": "Please select a state."
+        "validationStateError": "Please select a state.",
+        "validationIncomeError": "Please enter a valid annual income.",
+        "validationFamilySizeError": "Please enter a valid family size.",
+        "eligibilityCheckedSuccess": "Eligibility checked successfully!",
+        "eligibilityCheckFailed": "Failed to check eligibility. Please try again.",
+        "title": "Check Your <highlight>Scheme Eligibility</highlight>",
+        "description": "Find out which government health schemes you and your family qualify for in 3 simple steps.",
+        "stepDemographics": "Demographics",
+        "stepIncomeFamily": "Income & Family",
+        "stepIdentification": "Identification",
+        "ageLabel": "What is your age?",
+        "ageDescription": "Age helps verify senior citizen health coverages.",
+        "agePlaceholder": "e.g. 45",
+        "stateLabel": "Which state do you live in?",
+        "stateDescription": "Government health insurance programs vary by state.",
+        "incomeLabel": "What is your family's total annual income?",
+        "incomeDescription": "Your total combined household income in Rupees per year.",
+        "incomePlaceholder": "e.g. 120000",
+        "familySizeLabel": "How many members are in your family?",
+        "familySizeDescription": "Total family members living together in the household.",
+        "familySizePlaceholder": "e.g. 5",
+        "bplQuestion": "Do you have a BPL (Below Poverty Line) card?",
+        "abhaQuestion": "Do you have an ABHA (Ayushman Bharat Health Account) ID?",
+        "yesOption": "Yes, I do",
+        "noOption": "No, I do not",
+        "backButton": "Back",
+        "nextButton": "Next Step",
+        "findSchemesButton": "Find Schemes",
+        "checkingButton": "Checking...",
+        "resultsTitle": "Your Eligible Schemes",
+        "resultsDescription": "We found <countTag>{count} schemes</countTag> you qualify for.",
+        "eligibleBadge": "Eligible",
+        "benefitsCoverage": "Benefits / Coverage",
+        "howToApply": "How to Apply",
+        "visitOfficialPortal": "Visit Official Portal",
+        "noSchemesTitle": "No schemes found matching details.",
+        "noSchemesDescription": "Please consult a village official or check your local government kiosk.",
+        "printPdfButton": "Print / Save as PDF",
+        "checkAgainButton": "Check Again",
+        "printBrandTitle": "SahiDawa — Rural Health Bridge",
+        "printReportTitle": "Government Health Schemes Eligibility Report",
+        "dateGenerated": "Date Generated",
+        "website": "Website",
+        "age": "Age",
+        "years": "years",
+        "stateOfResidence": "State of Residence",
+        "annualFamilyIncome": "Annual Family Income",
+        "familySize": "Family Size",
+        "members": "members",
+        "bplRationCardHolder": "BPL Ration Card Holder",
+        "abhaHealthIdHolder": "ABHA Health ID Holder",
+        "yes": "Yes",
+        "no": "No"
+    },
+    "voiceVerify": {
+        "heading": "Voice Medicine Check",
+        "subtitle": "Speak the medicine name in your language",
+        "statusVerifying": "Verifying medicine...",
+        "statusRecording": "Recording... tap to stop",
+        "statusIdle": "Tap to speak the medicine name",
+        "supportedLanguages": "Supports: Hindi • Tamil • Telugu • Kannada • Bengali • Malayalam + more",
+        "errorMicDenied": "Microphone access denied. Please allow microphone access and try again.",
+        "errorNetwork": "Network error. Please check your connection and try again.",
+        "fallbackText": "No microphone?",
+        "fallbackLinkText": "Use text input instead",
+        "tryAgain": "Try again",
+        "checkAnother": "Check another medicine",
+        "statusVerified": "Verified",
+        "statusSuspicious": "Suspicious",
+        "statusNotFound": "Not Found",
+        "cdscoRegistered": "Registered",
+        "cdscoUnverified": "Unverified",
+        "scriptLabel": "Medicine ({script} script)",
+        "manufacturerLabel": "Manufacturer",
+        "categoryLabel": "Category",
+        "languageDetectedLabel": "Language Detected",
+        "youSaidLabel": "You said",
+        "warningsLabel": "Warnings",
+        "ariaStartRecording": "Start recording",
+        "ariaStopRecording": "Stop recording"
     }
 }

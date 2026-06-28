@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import dynamic from "next/dynamic";
 
 import {
     getScanHistory,
@@ -11,10 +12,10 @@ import {
 } from "@/lib/db/scanHistory";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { ClipboardList, Download, RefreshCw, Trash2 } from "lucide-react";
-import ExportModal from "./ExportModal";
 import { syncScanHistoryWithCloud } from "@/lib/scanHistoryCloudSync";
 import { EmptyState } from "@/components/ui/EmptyState";
 
+const ExportModal = dynamic(() => import("./ExportModal"));
 
 export default function HistoryPage() {
     const [history, setHistory] = useState<ScanHistoryEntry[]>([]);
@@ -22,6 +23,7 @@ export default function HistoryPage() {
     const [syncMessage, setSyncMessage] = useState<string | null>(null);
     const [showClearConfirmation, setShowClearConfirmation] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [search, setSearch] = useState("");
 
     useEffect(() => {
         loadHistory();
@@ -81,6 +83,10 @@ export default function HistoryPage() {
     };
 
     const handleCancelClear = () => setShowClearConfirmation(false);
+
+    const filteredHistory = history.filter((item) =>
+        item.medicineName.toLowerCase().includes(search.toLowerCase())
+    );
 
     const verifiedCount = history.filter(
         (item) => item.status?.toLowerCase() === "verified"
@@ -209,15 +215,27 @@ export default function HistoryPage() {
                     </div>
                 </div>
 
+                {history.length > 0 && (
+                    <input
+                        id="history-search"
+                        type="text"
+                        placeholder={t("search_placeholder")}
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="mb-4 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-(--color-text-primary) placeholder-white/40 outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40"
+                    />
+                )}
                 {history.length === 0 ? (
                     <EmptyState
                         icon={<ClipboardList className="h-10 w-10 text-emerald-500" />}
                         title={t("empty_title")}
                         description={t("empty_description")}
                     />
+                ) : filteredHistory.length === 0 ? (
+                    <p className="text-center text-sm opacity-50">{t("no_search_results")}</p>
                 ) : (
                     <div className="space-y-4">
-                        {history.map((item) => (
+                        {filteredHistory.map((item) => (
                             <div
                                 key={item.id}
                                 className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-sm"

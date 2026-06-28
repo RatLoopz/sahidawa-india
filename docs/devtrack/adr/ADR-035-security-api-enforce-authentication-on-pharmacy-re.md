@@ -12,19 +12,21 @@ Mandatory authentication was implemented for the `POST /api/pharmacies` endpoint
 
 ## Alternatives Considered
 
-| Alternative | Why Rejected |
-|---|---|
-| Implement role-based authorization | While offering more granular control, the immediate priority was establishing basic user authentication. Introducing role-based authorization would have added significant complexity to the middleware and user management system, which was beyond the scope of this critical security fix. |
+| Alternative                              | Why Rejected                                                                                                                                                                                                                                                                                             |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Implement role-based authorization       | While offering more granular control, the immediate priority was establishing basic user authentication. Introducing role-based authorization would have added significant complexity to the middleware and user management system, which was beyond the scope of this critical security fix.            |
 | Utilize IP whitelisting or rate limiting | These measures provide network-level security and can mitigate certain types of abuse (e.g., DoS, brute-force). However, they do not verify user identity or provide accountability for data creation. Authentication was deemed essential for establishing trust and linking actions to specific users. |
 
 ## Consequences
 
 **Positive:**
+
 - Enhanced security posture by preventing unauthorized creation of pharmacy records.
 - Improved data integrity and auditability by linking each pharmacy record to its creating user.
 - Established a clear API contract requiring authenticated requests for pharmacy registration.
 
 **Trade-offs:**
+
 - Increased complexity for client applications, which must now manage and provide authentication tokens for this endpoint.
 - Required a database schema migration to add the `created_by` column, necessitating careful deployment procedures.
 
