@@ -519,10 +519,10 @@ export async function checkAndBroadcastAll(): Promise<void> {
     }
 }
 
-export function startAlertBroadcaster(): void {
+export function startAlertBroadcaster(): { stop: () => void } {
     if (intervalId) {
         logger.warn("Alert broadcaster is already running.");
-        return;
+        return { stop: stopAlertBroadcaster };
     }
 
     logger.info(`Starting Alert Broadcaster periodic loop (interval: ${CHECK_INTERVAL_MS}ms)`);
@@ -535,6 +535,8 @@ export function startAlertBroadcaster(): void {
     intervalId = setInterval(() => {
         void checkAndBroadcastAll();
     }, CHECK_INTERVAL_MS);
+
+    return { stop: stopAlertBroadcaster };
 }
 
 export function stopAlertBroadcaster(): void {
