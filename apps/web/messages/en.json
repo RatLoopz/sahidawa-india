@@ -448,7 +448,8 @@
         "title": "SahiDawa AI",
         "status": "Online",
         "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?",
-        "placeholder": "Ask me about a medicine..."
+        "placeholder": "Ask me about a medicine...",
+        "tooltipLabel": "AI Health Assistant"
     },
     "Alerts": {
         "backHome": "Back to Home Page",

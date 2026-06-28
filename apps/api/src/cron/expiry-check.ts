@@ -1,4 +1,4 @@
-import cron from "node-cron";
+const cron = require("node-cron");
 import webPush from "web-push";
 import { supabase } from "../db/client";
 import logger from "../utils/logger";
@@ -54,9 +54,7 @@ export const initExpiryCron = () => {
                     // --- Web Push ---
                     if (isWebPushConfigured()) {
                         const allSubs = await listPushSubscriptions();
-                        const userSubs = allSubs.filter(
-                            (s) => s.userId === medicine.user_id
-                        );
+                        const userSubs = allSubs.filter((s) => s.userId === medicine.user_id);
 
                         if (userSubs.length > 0) {
                             const results = await Promise.allSettled(
@@ -77,11 +75,7 @@ export const initExpiryCron = () => {
                                 source: "expiry-cron",
                             };
                             const events = results.map((result, i) =>
-                                buildPushDeliveryEvent(
-                                    fakeAlert,
-                                    userSubs[i].endpoint,
-                                    result
-                                )
+                                buildPushDeliveryEvent(fakeAlert, userSubs[i].endpoint, result)
                             );
                             await recordPushDeliveryEvents(events);
 
@@ -97,9 +91,7 @@ export const initExpiryCron = () => {
                                 }
                             });
 
-                            const sent = results.filter(
-                                (r) => r.status === "fulfilled"
-                            ).length;
+                            const sent = results.filter((r) => r.status === "fulfilled").length;
                             if (sent > 0) delivered = true;
                         }
                     }
