@@ -21,6 +21,8 @@ import { limiter } from "../middleware/rateLimit";
 
 const router = Router();
 
+router.use(limiter);
+
 router.get("/reports", requireAuth, requireRole("admin", "moderator"), getPendingReports);
 
 router.get("/medicines", requireAuth, requireRole("admin", "moderator"), getAllMedicines);
@@ -59,7 +61,6 @@ router.post(
     "/cache/invalidate",
     requireAuth,
     requireRole("admin", "moderator"),
-    limiter,
     async (req: Request, res: Response) => {
         try {
             const parsed = InvalidateCacheSchema.safeParse(req.body);
@@ -103,7 +104,6 @@ router.post(
     "/cache/invalidate-synonyms",
     requireAuth,
     requireRole("admin", "moderator"),
-    limiter,
     async (req: Request, res: Response) => {
         try {
             const { medicineNameNormalizer } = await import("../utils/medicineNameNormalizer.js");
