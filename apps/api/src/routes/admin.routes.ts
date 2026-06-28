@@ -99,4 +99,34 @@ router.post(
     }
 );
 
+router.post(
+    "/cache/invalidate-synonyms",
+    requireAuth,
+    requireRole("admin", "moderator"),
+    limiter,
+    async (req: Request, res: Response) => {
+        try {
+            const { medicineNameNormalizer } = await import("../utils/medicineNameNormalizer.js");
+
+            // Delete cache from Redis
+            if (redisClient.isOpen) {
+                await redisClient.del("ocr_synonyms:data");
+            }
+
+            // Reload into memory
+            await medicineNameNormalizer.loadFromDatabase();
+
+            res.status(200).json({
+                success: true,
+                message: "OCR Synonyms cache invalidated and reloaded successfully",
+            });
+        } catch (err) {
+            res.status(500).json({
+                success: false,
+                error: (err as Error).message,
+            });
+        }
+    }
+);
+
 export default router;

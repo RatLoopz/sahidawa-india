@@ -42,12 +42,7 @@
             "prefix": "आपका स्वास्थ्य, ",
             "highlight": "सत्यापित और सुरक्षित।"
         },
-        "scan_medicine": "Scan Medicine",
-        "scan_now": "Scan Now",
-        "find_pharmacy": "Find Pharmacy",
-        "report_subtitle": "Report suspicious medicine",
-        "real_time": "REAL TIME",
-        "alerts_description": "Stay updated with the latest medicine safety alerts and recalls.",
+
         "scan_section_title": "दवा स्कैन और सत्यापित करें",
         "scan_section_subtitle": "बारकोड या पैकेज स्कैनिंग का उपयोग करके दवा की प्रामाणिकता सत्यापित करें।",
         "powerful_capabilities": "शक्तिशाली क्षमताएं",
@@ -56,29 +51,7 @@
         "voices_title": "सहिदवा समुदाय की आवाज़ें",
         "voices_description": "दवा सुरक्षा को आसान बनाने के लिए SahiDawa का उपयोग करने वाले परिवार, फार्मासिस्ट, डॉक्टर और योगदानकर्ता।"
     },
-    "ChildVaccinationTracker": {
-        "childTrackerTitle": "बाल टीकाकरण ट्रैकर",
-        "childTrackerSubtitle": "व्यक्तिगत राष्ट्रीय टीकाकरण अनुसूची देखने और पूर्ण किए गए टीकों को ट्रैक करने के लिए बच्चे की जानकारी दर्ज करें।",
-        "childReminderButton": "रिमाइंडर डाउनलोड करें",
-        "childNameLabel": "बच्चे का नाम",
-        "childNamePlaceholder": "बच्चे का नाम दर्ज करें",
-        "childDobLabel": "जन्म तिथि",
-        "childDefaultName": "बच्चा",
-        "childDobPrompt": "व्यक्तिगत टीकाकरण टाइमलाइन बनाने के लिए जन्म तिथि दर्ज करें।",
-        "childDobFutureError": "जन्म तिथि भविष्य की नहीं हो सकती।",
-        "childDobInvalidError": "मान्य जन्म तिथि दर्ज करें।",
-        "childProfileSummary": "बच्चे की प्रोफ़ाइल",
-        "scheduleSourceLabel": "अनुसूची स्रोत",
-        "childTimelineHeading": "व्यक्तिगत टाइमलाइन",
-        "whereApplicableBadge": "जहाँ लागू हो",
-        "dueDateLabel": "देय तिथि",
-        "officialTimingLabel": "आधिकारिक समय",
-        "completedStatus": "पूर्ण",
-        "dueStatus": "देय",
-        "overdueStatus": "विलंबित",
-        "upcomingStatus": "आगामी",
-        "markCompleteButton": "पूर्ण चिह्नित करें"
-    },
+
     "Navigation": {
         "how_it_works": "यह कैसे काम करता है",
         "alerts": "अलर्ट",
@@ -1195,5 +1168,27 @@
         "warningsLabel": "चेतावनियाँ",
         "ariaStartRecording": "रिकॉर्डिंग शुरू करें",
         "ariaStopRecording": "रिकॉर्डिंग रोकें"
+    },
+    "AdminSynonyms": {
+        "title": "OCR Synonyms",
+        "subtitle": "Manage OCR misreads and medicine synonyms.",
+        "refresh": "Refresh",
+        "addNew": "Add New Rule",
+        "originalTerm": "Original Term",
+        "normalizedTerm": "Normalized Term",
+        "originalPlaceholder": "e.g., asprin",
+        "normalizedPlaceholder": "e.g., aspirin",
+        "typeLabel": "Type",
+        "typeSynonym": "Synonym",
+        "typeMisread": "OCR Misread",
+        "addButton": "Add Rule",
+        "listTitle": "Existing Rules",
+        "emptyList": "No rules found.",
+        "actions": "Actions",
+        "delete": "Delete",
+        "confirmDelete": "Are you sure you want to delete this rule?",
+        "fetchError": "Failed to fetch rules.",
+        "addError": "Failed to add rule.",
+        "deleteError": "Failed to delete rule."
     }
 }

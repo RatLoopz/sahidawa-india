@@ -21,6 +21,10 @@ if (process.env.NODE_ENV !== "test") {
         await connectRedis();
         await warmCache();
 
+        // Load dynamic OCR synonyms
+        const { medicineNameNormalizer } = await import("./utils/medicineNameNormalizer.js");
+        await medicineNameNormalizer.loadFromDatabase();
+
         // Start cron jobs only after Redis is ready
         startAlertBroadcaster();
         startTempCleanupJob();
