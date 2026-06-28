@@ -31,22 +31,6 @@ export async function POST(req: Request) {
         });
         return NextResponse.json({ error: "Audio file is required." }, { status: 400 });
     }
-    
-    const MAX_AUDIO_SIZE_MB = 10;
-    if (file.size > MAX_AUDIO_SIZE_MB * 1024 * 1024) {
-        return NextResponse.json(
-            { error: `Audio file too large. Maximum size is ${MAX_AUDIO_SIZE_MB}MB.` },
-            { status: 413 }
-        );
-    }
-
-    const ALLOWED_MIME_TYPES = ["audio/webm", "audio/ogg", "audio/wav", "audio/mp4"];
-    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-        return NextResponse.json(
-            { error: "Invalid audio format. Accepted formats: webm, ogg, wav, mp4." },
-            { status: 415 }
-        );
-    }
 
     const mlServiceUrl = getMlServiceUrl();
     if (!mlServiceUrl) {
@@ -55,17 +39,17 @@ export async function POST(req: Request) {
             route: ROUTE,
             error: {
                 message: "ML_SERVICE_URL is not configured",
-                code: 503,
+                code: 500,
                 stack: undefined,
             },
             meta: { missingVars: ["ML_SERVICE_URL"] },
         });
         return NextResponse.json(
             {
-                error: "Voice transcription service is currently unavailable.",
+                error: "Server configuration error: transcription service URL is missing.",
                 code: "ML_SERVICE_URL_MISSING",
             },
-            { status: 503 }
+            { status: 500 }
         );
     }
 
