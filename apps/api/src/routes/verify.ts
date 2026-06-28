@@ -7,6 +7,7 @@ import logger from "../utils/logger";
 import { lookupDrugByBatch } from "../services/drugLookup.service";
 import { escapeIlike } from "../utils/db";
 import { isAllowedOrigin } from "../utils/originCheck";
+import { medicineNameNormalizer } from "../utils/medicineNameNormalizer";
 
 function getBatchStatus(recallStatus: string | null | undefined): "safe" | "recalled" | "unknown" {
     if (!recallStatus || recallStatus === "none") return "safe";
@@ -184,6 +185,11 @@ router.post(
 
         const { batchNumber, brandName, barcodeId, latitude, longitude } = parsed.data;
 
+        // Normalize medicine name from OCR or user input to improve search accuracy
+        const normalizedBrandName = brandName
+            ? medicineNameNormalizer.normalize(brandName).normalized
+            : undefined;
+
         const upperBatch = batchNumber.toUpperCase();
         const ALLOWED_MOCK_BATCHES = new Set([
             "DOLO 650",
@@ -193,7 +199,11 @@ router.post(
             "AUG625D",
         ]);
 
-        if (process.env.VERIFY_ENABLE_MOCKS === "true" && ALLOWED_MOCK_BATCHES.has(upperBatch)) {
+        if (
+            process.env.NODE_ENV !== "production" &&
+            process.env.VERIFY_ENABLE_MOCKS === "true" &&
+            ALLOWED_MOCK_BATCHES.has(upperBatch)
+        ) {
             const brandName = upperBatch.includes("DOLO")
                 ? "Dolo 650"
                 : upperBatch === "AUG625D"
@@ -236,7 +246,7 @@ router.post(
         }
         try {
             const data = await lookupDrugByBatch(batchNumber, {
-                brand_name: brandName,
+                brand_name: normalizedBrandName,
                 barcode_id: barcodeId,
             });
 

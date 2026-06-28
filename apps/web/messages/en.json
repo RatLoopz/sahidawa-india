@@ -41,7 +41,14 @@
         "heroTitle": {
             "prefix": "Your Health, ",
             "highlight": "Verified & Protected."
-        }
+        },
+        "scan_section_title": "Scan & Verify Medicine",
+        "scan_section_subtitle": "Verify medicine authenticity using barcode or package scanning.",
+        "powerful_capabilities": "Powerful Capabilities",
+        "features_description": "Discover all the ways SahiDawa can help you verify your medicines and stay safe.",
+        "trusted_by_citizens": "Trusted by citizens",
+        "voices_title": "Voices from the SahiDawa community",
+        "voices_description": "Families, pharmacists, doctors, and contributors using SahiDawa to make medicine safety easier to act on."
     },
     "Navigation": {
         "how_it_works": "How it Works",
@@ -93,15 +100,14 @@
         "sendMessage": "Send message",
         "footer": "For informational use only • Consult a doctor"
     },
-
     "Scan": {
         "calculateSavings": "Calculate Savings",
         "scanMedicine": "Scan Medicine",
         "positionBarcode": "Position the Barcode",
-        "enterBatchNumber": "Enter batch number",
+        "enterBatchNumber": "Enter Batch Number",
         "verify": "Verify",
-        "batchNumberHelp": "Enter the batch number from the medicine strip, or upload a photo from your gallery.",
-        "viewHistory": "View history",
+        "batchNumberHelp": "Enter the batch number printed on the medicine package",
+        "viewHistory": "View History",
         "stopScanner": "Stop Scanner",
         "scanBarcode": "Scan Barcode",
         "uploadPhoto": "Upload Photo",
@@ -128,14 +134,7 @@
         "genericName": "Generic Name",
         "dosageForm": "Dosage Form",
         "composition": "Composition",
-
         "ScanBarcode": "Scan Barcode",
-        "stopScanner": "Stop Scanner",
-        "uploadPhoto": "Upload Photo",
-        "enterBatchNumber": "Enter Batch Number",
-        "batchNumberHelp": "Enter the batch number printed on the medicine package",
-        "verify": "Verify",
-        "viewHistory": "View History",
         "offlineVerify": "Queue Scan"
     },
     "BackToTopButton": {
@@ -1054,7 +1053,8 @@
         "no_photo_label": "No photo",
         "report_card_district_label": "District",
         "report_card_submitted_label": "Submitted",
-        "report_card_batch_label": "Batch"
+        "report_card_batch_label": "Batch",
+        "load_more_button": "Load More"
     },
     "Map": {
         "errors": {
@@ -1145,7 +1145,7 @@
         "statusVerifying": "Verifying medicine...",
         "statusRecording": "Recording... tap to stop",
         "statusIdle": "Tap to speak the medicine name",
-        "supportedLanguages": "Supports: Hindi \u2022 Tamil \u2022 Telugu \u2022 Kannada \u2022 Bengali \u2022 Malayalam + more",
+        "supportedLanguages": "Supports: Hindi • Tamil • Telugu • Kannada • Bengali • Malayalam + more",
         "errorMicDenied": "Microphone access denied. Please allow microphone access and try again.",
         "errorNetwork": "Network error. Please check your connection and try again.",
         "fallbackText": "No microphone?",

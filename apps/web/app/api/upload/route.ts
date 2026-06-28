@@ -1,20 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { rateLimit } from "@/lib/rateLimit";
+import { getClientIp } from "@/lib/getClientIp";
 
 const MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-function getUploadClientIp(req: NextRequest) {
-    const forwardedFor = req.headers.get("x-forwarded-for");
-    const realIp = req.headers.get("x-real-ip");
-
-    return forwardedFor?.split(",")[0]?.trim() || realIp?.trim() || "127.0.0.1";
-}
-
 export async function POST(req: NextRequest) {
     try {
-        const ip = getUploadClientIp(req);
+        const ip = getClientIp(req);
         const { success, reset } = await rateLimit.limit(ip);
         if (!success) {
             const retryAfter = Math.max(1, Math.ceil((reset - Date.now()) / 1000));
@@ -60,6 +54,28 @@ export async function POST(req: NextRequest) {
                 { status: 413 }
             );
         }
+        const buffer = Buffer.from(await file.arrayBuffer());
+
+        const isJpeg = buffer.length >= 2 && buffer[0] === 0xff && buffer[1] === 0xd8;
+
+        const isPng =
+            buffer.length >= 4 &&
+            buffer[0] === 0x89 &&
+            buffer[1] === 0x50 &&
+            buffer[2] === 0x4e &&
+            buffer[3] === 0x47;
+
+        const isWebp = buffer.length >= 12 && buffer.toString("ascii", 8, 12) === "WEBP";
+
+        if (!isJpeg && !isPng && !isWebp) {
+            return NextResponse.json(
+                {
+                    error: "invalid_image_format",
+                    message: "File content is not a valid JPEG, PNG, or WebP image.",
+                },
+                { status: 415 }
+            );
+        }
         const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
         const apiKey = process.env.CLOUDINARY_API_KEY;
         const apiSecret = process.env.CLOUDINARY_API_SECRET;
@@ -85,7 +101,9 @@ export async function POST(req: NextRequest) {
         const signature = crypto.createHash("sha256").update(paramsToSign).digest("hex");
 
         const cloudinaryFormData = new FormData();
-        cloudinaryFormData.append("file", file);
+        const validatedFile = new File([buffer], file.name, { type: file.type });
+
+        cloudinaryFormData.append("file", validatedFile);
         cloudinaryFormData.append("api_key", apiKey);
         cloudinaryFormData.append("timestamp", timestamp);
         cloudinaryFormData.append("signature_algorithm", "sha256");

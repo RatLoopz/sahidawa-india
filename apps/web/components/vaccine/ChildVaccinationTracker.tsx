@@ -333,7 +333,14 @@ export function ChildVaccinationTracker() {
             const dobMatch = text.match(/\b(\d{2})[\/\-](\d{2})[\/\-](\d{4})\b/);
             if (dobMatch) {
                 const isoDate = `${dobMatch[3]}-${dobMatch[2]}-${dobMatch[1]}`;
-                handleDateOfBirthChange(isoDate);
+                const validation = validateChildDateOfBirth(isoDate);
+                if (validation.isValid) {
+                    handleDateOfBirthChange(isoDate);
+                } else {
+                    setOcrError(
+                        "Could not read a valid date of birth from this card. Please enter it manually."
+                    );
+                }
             }
 
             // Match vaccine names against schedule
