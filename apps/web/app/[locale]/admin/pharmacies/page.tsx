@@ -103,7 +103,7 @@ export default function PharmaciesRegistryPage() {
         fetchPharmacies();
     }, [fetchPharmacies]);
 
-    const handleSoftDelete = async (pharmacyId: string) => {
+    const handleDeactivate = async (pharmacyId: string) => {
         if (
             !confirm(
                 "Are you sure you want to deactivate/delete this pharmacy? It will be hidden from all public searches and the map."
@@ -112,17 +112,17 @@ export default function PharmaciesRegistryPage() {
             return;
         }
 
-        setActing(`${pharmacyId}:delete`);
+        setActing(`${pharmacyId}:deactivate`);
         setError(null);
 
         try {
-            const res = await fetch(`${ADMIN_API_BASE}/pharmacies/${pharmacyId}`, {
-                method: "DELETE",
+            const res = await fetch(`${ADMIN_API_BASE}/pharmacies/${pharmacyId}/deactivate`, {
+                method: "POST",
                 headers: authHeaders(),
             });
 
             if (!res.ok) {
-                throw new Error("Failed to delete pharmacy");
+                throw new Error("Failed to deactivate pharmacy");
             }
 
             // Update state locally
@@ -134,7 +134,7 @@ export default function PharmaciesRegistryPage() {
                 )
             );
         } catch {
-            setError("Could not delete this pharmacy. Please try again.");
+            setError("Could not deactivate this pharmacy. Please try again.");
         } finally {
             setActing(null);
         }
@@ -344,7 +344,7 @@ export default function PharmaciesRegistryPage() {
                                                 ) : (
                                                     <div>
                                                         <span className="rounded-full border border-rose-100 bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700">
-                                                            Deleted
+                                                            Inactive
                                                         </span>
                                                         {pharmacy.deleted_at && (
                                                             <span className="mt-1 block text-[10px] text-slate-400">
@@ -360,16 +360,17 @@ export default function PharmaciesRegistryPage() {
                                                         <button
                                                             disabled={Boolean(acting)}
                                                             onClick={() =>
-                                                                handleSoftDelete(pharmacy.id)
+                                                                handleDeactivate(pharmacy.id)
                                                             }
                                                             className="flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-100 disabled:opacity-40"
                                                         >
-                                                            {acting === `${pharmacy.id}:delete` ? (
+                                                            {acting ===
+                                                            `${pharmacy.id}:deactivate` ? (
                                                                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                                             ) : (
                                                                 <Trash2 className="h-3.5 w-3.5" />
                                                             )}
-                                                            Delete
+                                                            Deactivate
                                                         </button>
                                                     ) : (
                                                         <button
