@@ -1027,6 +1027,8 @@
         "stat_fake": "Fake",
         "empty_title": "No Scan History Yet",
         "empty_description": "Your verified medicines will appear here.",
+        "search_placeholder": "Search medicine...",
+        "no_search_results": "No medicines match your search.",
         "item_status_label": "Status: ",
         "item_delete_button": "Delete",
         "item_copy_success": "Medicine name copied!"

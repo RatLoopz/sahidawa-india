@@ -961,6 +961,8 @@
         "stat_fake": "नकली",
         "empty_title": "अखन तक कोनो स्कैन इतिहास नहि",
         "empty_description": "अहाँक सत्यापित दवाइ एतय देखाएत।",
+        "search_placeholder": "दवाइ खोजू...",
+        "no_search_results": "अहाँक खोजसँ मेल खायवला कोनो दवाइ नहि भेटल।",
         "item_status_label": "स्थिति: ",
         "item_delete_button": "मेटाऊ",
         "item_copy_success": "दवाइक नाम कॉपी भेल!"

@@ -802,7 +802,9 @@
         "status_suspicious": "फक्त दुबावीत",
         "status_fake": "फक्त खोटीं",
         "export_button": "CSV तयार करात",
-        "cancel": "रद्द करात"
+        "cancel": "रद्द करात",
+        "search_placeholder": "वखद सोदात...",
+        "no_search_results": "तुमच्या सोदा आड कसलेच वखद मेळ्ळे ना."
     },
     "SchemeEligibility": {
         "validationAgeError": "कृपया वैध वय दाखल करा.",

@@ -1019,6 +1019,8 @@
         "stat_fake": "नकली",
         "empty_title": "अभी तक कोई स्कैन इतिहास नहीं",
         "empty_description": "आपकी सत्यापित दवाएं यहाँ दिखेंगी।",
+        "search_placeholder": "दवा खोजें...",
+        "no_search_results": "आपकी खोज से मेल खाने वाली कोई दवा नहीं मिली।",
         "item_status_label": "स्थिति: ",
         "item_delete_button": "हटाएं",
         "item_copy_success": "दवा का नाम कॉपी हो गया!"

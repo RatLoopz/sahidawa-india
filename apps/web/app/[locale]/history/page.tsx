@@ -219,7 +219,7 @@ export default function HistoryPage() {
                     <input
                         id="history-search"
                         type="text"
-                        placeholder="Search medicine..."
+                        placeholder={t("search_placeholder")}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="mb-4 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-(--color-text-primary) placeholder-white/40 outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40"
@@ -232,7 +232,7 @@ export default function HistoryPage() {
                         description={t("empty_description")}
                     />
                 ) : filteredHistory.length === 0 ? (
-                    <p className="text-center text-sm opacity-50">No medicines match your search.</p>
+                    <p className="text-center text-sm opacity-50">{t("no_search_results")}</p>
                 ) : (
                     <div className="space-y-4">
                         {filteredHistory.map((item) => (

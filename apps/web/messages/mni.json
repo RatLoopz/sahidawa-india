@@ -921,6 +921,8 @@
         "stat_fake": "ꯑꯔꯥꯟꯕꯥ",
         "empty_title": "ꯁ꯭ꯀꯦꯟ ꯍꯤꯁ꯭ꯇ꯭ꯔꯤ ꯑꯃꯠꯇꯥ ꯂꯩꯇ꯭ꯔꯤ",
         "empty_description": "ꯅꯍꯥꯛꯅꯥ ꯆꯦꯛ ꯇꯧꯈꯤꯕꯥ ꯍꯤꯗꯥꯛꯁꯤꯡ ꯃꯐꯝ ꯑꯁꯤꯗꯥ ꯎꯕꯥ ꯐꯪꯒꯅꯤꏏ",
+        "search_placeholder": "ꯃꯦꯗꯤꯁꯤꯟ ꯊꯤꯅꯕ...",
+        "no_search_results": "ꯅꯍꯥꯛꯅꯥ ꯊꯤꯕꯒꯥ ꯃꯥꯟꯅꯕꯥ ꯃꯦꯗꯤꯁꯤꯟ ꯑꯃꯠꯇꯥ ꯂꯩꯇ꯭ꯔꯤꏏ",
         "item_status_label": "ꯐꯤꯚꯝ (Status): ",
         "item_delete_button": "ꯃꯨꯠꯊꯠꯄꯥ",
         "item_copy_success": "ꯍꯤꯗꯥꯛꯀꯤ ꯃꯤꯡ ꯀꯣꯄꯤ ꯇꯧꯈ꯭ꯔꯦ!"
