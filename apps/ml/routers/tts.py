@@ -51,6 +51,24 @@ CACHE_DIR.mkdir(parents=True, exist_ok=True)
 # Cache limit configuration from environment
 MAX_CACHE_SIZE_MB = int(os.getenv("MAX_CACHE_SIZE_MB", "100"))
 MAX_CACHE_FILES = int(os.getenv("MAX_CACHE_FILES", "500"))
+# Supabase Storage configuration for shared TTS cache
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+TTS_CACHE_BUCKET = os.getenv("TTS_CACHE_BUCKET", "tts-cache")
+
+supabase_client = None
+
+if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+    try:
+        from supabase import create_client
+        supabase_client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+        logger.info("Supabase Storage client initialized for TTS cache")
+    except ImportError:
+        logger.warning("supabase package not installed. Install with: pip install supabase")
+    except Exception as e:
+        logger.warning(f"Supabase Storage initialization failed: {e}")
+else:
+    logger.info("Supabase Storage not configured. Using local TTS cache only.")
 
 
 def prune_cache():
@@ -144,6 +162,40 @@ def get_cache_key(text: str, language_code: str, gender: str) -> str:
     """Generate cache key from text, language, and gender"""
     combined = f"{text}:{language_code}:{gender}"
     return hashlib.sha256(combined.encode()).hexdigest()
+
+
+def download_from_supabase_cache(cache_key: str) -> Optional[bytes]:
+    """Download compressed TTS audio from Supabase Storage."""
+    if not supabase_client:
+        return None
+
+    try:
+        storage_path = f"{cache_key}.mp3.gz"
+        return supabase_client.storage.from_(TTS_CACHE_BUCKET).download(storage_path)
+    except Exception as e:
+        logger.info(f"TTS cloud cache miss or download failed: {e}")
+        return None
+
+
+def upload_to_supabase_cache(cache_key: str, compressed_audio: bytes) -> None:
+    """Upload compressed TTS audio to Supabase Storage."""
+    if not supabase_client:
+        return
+
+    try:
+        storage_path = f"{cache_key}.mp3.gz"
+        supabase_client.storage.from_(TTS_CACHE_BUCKET).upload(
+            storage_path,
+            compressed_audio,
+            {
+                "content-type": "audio/mpeg",
+                "cache-control": "31536000",
+                "upsert": "true",
+            },
+        )
+        logger.info(f"Uploaded TTS cache to Supabase Storage: {storage_path}")
+    except Exception as e:
+        logger.warning(f"TTS cloud cache upload failed: {e}")
 
 
 def generate_with_google(text: str, language_code: str, gender: str) -> tuple[bytes, str]:
@@ -265,7 +317,7 @@ async def generate_tts(request: TTSRequest):
     cache_key = get_cache_key(request.text, request.language_code, request.gender)
     cache_file = CACHE_DIR / f"{cache_key}.mp3.gz"
 
-    # Check cache first
+    # Check local cache first
     if cache_file.exists():
         try:
             # Update access time to implement LRU cache policy
@@ -287,6 +339,27 @@ async def generate_tts(request: TTSRequest):
             )
         except Exception as e:
             logger.warning(f"Cache read failed: {e}")
+    # Check Supabase Storage cache
+    compressed_cloud_data = download_from_supabase_cache(cache_key)
+    if compressed_cloud_data:
+        try:
+            audio_data = gzip.decompress(compressed_cloud_data)
+
+            try:
+                with open(cache_file, "wb") as f:
+                    f.write(compressed_cloud_data)
+            except Exception as e:
+                logger.warning(f"Failed to write Supabase cache to local disk: {e}")
+
+            return TTSResponse(
+                audio_base64=base64.b64encode(audio_data).decode('utf-8'),
+                language_code=request.language_code,
+                provider="supabase-cache",
+                cached=True,
+                character_count=len(request.text)
+            )
+        except Exception as e:
+            logger.warning(f"Supabase cache decompress failed: {e}")
 
     # Generate new audio
     try:
@@ -308,6 +381,7 @@ async def generate_tts(request: TTSRequest):
             with open(cache_file, "wb") as f:
                 f.write(compressed_audio)
             logger.info(f"✓ Cached TTS result to {cache_file}")
+            upload_to_supabase_cache(cache_key, compressed_audio)
             try:
                 prune_cache()
             except Exception as pe:

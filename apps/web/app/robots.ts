@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { getSiteUrl } from "@/lib/env";
 
 export default function robots(): MetadataRoute.Robots {
     return {
@@ -7,6 +8,6 @@ export default function robots(): MetadataRoute.Robots {
             allow: "/",
             disallow: "/admin",
         },
-        sitemap: "https://sahidawa.in/sitemap.xml",
+        sitemap: `${getSiteUrl()}/sitemap.xml`,
     };
 }

@@ -24,21 +24,38 @@ export async function lookupDrugByBatch(
         throw new Error("Either brand_name or barcode_id must be provided alongside batch_number");
     }
 
-    const cacheKey = `${batchNumber}|${identifier.barcode_id || ""}|${identifier.brand_name || ""}`;
+    const compositeKey = `${batchNumber}|${identifier.barcode_id || ""}|${identifier.brand_name || ""}`;
 
-    // 1. Try to fetch from Redis cache
+    // 1. Try batch-only cache key first (matches warmCache() format)
     try {
-        const cachedDrug = await getCachedDrug(cacheKey);
+        const batchOnlyDrug = await getCachedDrug(batchNumber);
+        if (batchOnlyDrug) {
+            const matchesIdentifier =
+                (!identifier.barcode_id || batchOnlyDrug.barcode_id === identifier.barcode_id) &&
+                (!identifier.brand_name || batchOnlyDrug.brand_name === identifier.brand_name);
+            if (matchesIdentifier) {
+                logger.info(`Cache HIT (batch-only key) for drug batch: ${batchNumber}`);
+                await incrementHitCount(batchOnlyDrug.id, batchOnlyDrug.brand_name || batchOnlyDrug.generic_name);
+                return batchOnlyDrug;
+            }
+        }
+    } catch (err) {
+        logger.error(`Error checking batch-only cache for batch: ${batchNumber}`, err);
+    }
+
+    // 2. Try composite cache key
+    try {
+        const cachedDrug = await getCachedDrug(compositeKey);
         if (cachedDrug) {
-            logger.info(`Cache HIT for drug batch: ${cacheKey}`);
+            logger.info(`Cache HIT (composite key) for drug batch: ${compositeKey}`);
             return cachedDrug;
         }
     } catch (err) {
-        logger.error(`Error checking cache for batch: ${cacheKey}`, err);
+        logger.error(`Error checking composite cache for batch: ${compositeKey}`, err);
     }
 
-    // 2. Cache miss, query PostgreSQL database
-    logger.info(`Cache MISS for drug batch: ${cacheKey}. Querying database...`);
+    // 3. Cache miss, query PostgreSQL database
+    logger.info(`Cache MISS for drug batch: ${compositeKey}. Querying database...`);
     await incrementMissCount();
 
     try {
@@ -67,10 +84,10 @@ export async function lookupDrugByBatch(
         }
 
         if (data) {
-            // Increment the hit count for the drug ID so that its TTL tier increases and update the top drugs sorted set
             await incrementHitCount(data.id, data.brand_name || data.generic_name);
-            // Save the drug to cache with a tiered TTL determined dynamically
-            await setCachedDrug(cacheKey, data);
+            // Save under both keys so batch-only lookups (warmCache) and composite lookups both hit
+            await setCachedDrug(batchNumber, data);
+            await setCachedDrug(compositeKey, data);
         }
 
         return data;

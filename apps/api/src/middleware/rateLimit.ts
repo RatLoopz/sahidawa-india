@@ -131,6 +131,22 @@ export const analyticsLimiter = createLimiter({
     message: "Too many analytics requests. Please try again later.",
     prefix: "analytics",
 });
+
+// ── Notification registration limiter ──────────────────────────────────────────
+export const notificationRegisterLimiter = rateLimit({
+    skip: () => process.env.NODE_ENV === "test",
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    store: buildStore("notification_register"),
+    handler: (_req, res) => {
+        res.status(429).json({
+            error: "Too many registration attempts",
+        });
+    },
+});
+
 /** Medicine tracking endpoints — throttle to prevent runaway clients from spamming database lookups/inserts. */
 export const trackingLimiter = rateLimit({
     skip: () => process.env.NODE_ENV === "test",
@@ -142,6 +158,38 @@ export const trackingLimiter = rateLimit({
     handler: (_req, res) => {
         res.status(429).json({
             error: "Too many tracking requests. Please try again later.",
+        });
+    },
+});
+
+export const webhookLimiter = rateLimit({
+    skip: () => process.env.NODE_ENV === "test",
+    windowMs: 60 * 1000, // 1 minute
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    store: buildStore("webhook"),
+    handler: (_req, res) => {
+        res.status(429).json({
+            error: "Too many webhook requests. Please try again later.",
+        });
+    },
+});
+
+/** Barcode lookup limiter — prevents abuse of barcode scanning for data enumeration.
+ *  Barcode lookups are unauthenticated and moderately expensive (full-text search or exact match).
+ *  Each IP can perform at most 15 barcode lookups per 15 minutes to prevent database enumeration attacks
+ *  and ensure fair access for legitimate pharmacy/clinic use cases. */
+export const barcodeLimiter = rateLimit({
+    skip: () => process.env.NODE_ENV === "test",
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: process.env.NODE_ENV === "development" ? 200 : 15,
+    standardHeaders: true,
+    legacyHeaders: false,
+    store: buildStore("barcode"),
+    handler: (_req, res) => {
+        res.status(429).json({
+            error: "Too many barcode lookups. Please try again later.",
         });
     },
 });

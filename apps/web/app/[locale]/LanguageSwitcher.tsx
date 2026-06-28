@@ -82,11 +82,11 @@ export default function LanguageSwitcher() {
                     switchLanguage(languages[focusedIndex].code);
                 }
                 break;
-            case "Escape":
-                e.preventDefault();
-                setOpen(false);
-                triggerRef.current?.focus();
-                break;
+            // Escape is intentionally NOT handled here. Closing on Escape and
+            // refocusing the trigger is already handled centrally by the
+            // useOnClickOutside hook below, which listens for Escape at the
+            // document level. Keeping a second local handler here duplicated
+            // that logic without adding any new behavior.
             case "Tab":
                 setOpen(false);
                 break;
