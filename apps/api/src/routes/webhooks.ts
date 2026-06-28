@@ -2,7 +2,6 @@ import { Router, Request, Response } from "express";
 import { redisClient } from "../utils/redis";
 import logger from "../utils/logger";
 import { webhookLimiter } from "../middleware/rateLimit";
-import { createRateLimitMiddleware } from "../middleware/rateLimit";
 
 const router = Router();
 
@@ -40,7 +39,7 @@ router.post(
             }
 
             const keysToDelete: string[] = [];
-            let cursor = 0;
+            let cursor: any = 0;
 
             do {
                 const result = await redisClient.scan(cursor, {
