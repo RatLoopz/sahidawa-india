@@ -70,18 +70,10 @@ export default function ProductCard({
                             alt={product.title}
                             fill
                             className="object-cover transition-transform duration-300 group-hover:scale-105"
-                            // Performance optimization: lazy load non-priority images
-                            // Priority images (hero) load immediately
                             loading={priority ? 'eager' : 'lazy'}
                             priority={priority}
-                            // Blur placeholder while loading (fixes issue #2736)
-                            placeholder={
-                                product.blur_hash
-                                    ? 'blur'
-                                    : 'empty'
-                            }
-                            // Responsive image sizes for different breakpoints
-                            // Prevents loading oversized images on mobile
+                            placeholder={product.blur_hash ? 'blur' : 'empty'}
+                            blurDataURL={product.blur_hash}
                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                         />
                     ) : (
