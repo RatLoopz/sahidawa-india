@@ -13,9 +13,11 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: ⬇️ Checkout Code
-              uses: actions/checkout@v7
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 2
 
-            - name: ⚙️ Setup Node.js 24
+            - name: ⚙️ Setup Node.js 20
               uses: actions/setup-node@v4
               with:
                   node-version: 20
@@ -24,8 +26,40 @@ jobs:
             - name: 📦 Install Dependencies (Monorepo)
               run: npm ci
 
+            - name: ⚡ Cache Turborepo
+              uses: actions/cache@v4
+              id: turbo-cache
+              with:
+                  path: .turbo
+                  key: ${{ runner.os }}-turbo-${{ github.ref_name }}-${{ github.sha }}
+                  restore-keys: |
+                      ${{ runner.os }}-turbo-${{ github.ref_name }}-
+                      ${{ runner.os }}-turbo-main-
+                      ${{ runner.os }}-turbo-
+
+            - name: ⚡ Cache Next.js Build
+              uses: actions/cache@v4
+              id: nextjs-cache
+              with:
+                  path: apps/web/.next/cache
+                  key: ${{ runner.os }}-nextjs-${{ github.ref_name }}-${{ hashFiles('**/package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-nextjs-${{ github.ref_name }}-
+                      ${{ runner.os }}-nextjs-main-
+                      ${{ runner.os }}-nextjs-
+
+            - name: 📊 Report Cache Status
+              run: |
+                  echo "### ⚡ Cache Status" >> $GITHUB_STEP_SUMMARY
+                  echo "| Cache | Status |" >> $GITHUB_STEP_SUMMARY
+                  echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+                  echo "| Turborepo | ${{ steps.turbo-cache.outputs.cache-hit == 'true' && '✅ Hit' || '❌ Miss' }} |" >> $GITHUB_STEP_SUMMARY
+                  echo "| Next.js   | ${{ steps.nextjs-cache.outputs.cache-hit == 'true' && '✅ Hit' || '❌ Miss' }} |" >> $GITHUB_STEP_SUMMARY
+
             - name: 🏗️ Build Workspace Apps
               run: npm run build
+              env:
+                  TURBO_CACHE_DIR: .turbo
 
             - name: 🧪 Run Tests
               run: npm run test

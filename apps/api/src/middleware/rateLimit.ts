@@ -162,6 +162,20 @@ export const trackingLimiter = rateLimit({
     },
 });
 
+export const webhookLimiter = rateLimit({
+    skip: () => process.env.NODE_ENV === "test",
+    windowMs: 60 * 1000, // 1 minute
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    store: buildStore("webhook"),
+    handler: (_req, res) => {
+        res.status(429).json({
+            error: "Too many webhook requests. Please try again later.",
+        });
+    },
+});
+
 /** Barcode lookup limiter — prevents abuse of barcode scanning for data enumeration.
  *  Barcode lookups are unauthenticated and moderately expensive (full-text search or exact match).
  *  Each IP can perform at most 15 barcode lookups per 15 minutes to prevent database enumeration attacks
