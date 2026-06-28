@@ -146,6 +146,26 @@ Open Swagger UI for endpoint testing:
 ```text
 http://localhost:8000/docs
 ```
+## TTS Cache Storage
+
+The ML service can use Supabase Storage as a shared cache for generated TTS audio.
+
+Create a Supabase Storage bucket named:
+
+```text
+tts-cache
+```
+
+Set these environment variables:
+
+```env
+SUPABASE_URL=your-supabase-url
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+TTS_CACHE_BUCKET=tts-cache
+```
+
+Generated TTS audio is compressed with gzip and stored as `.mp3.gz` files. If Supabase Storage is not configured, the service falls back to the local cache directory.
+
 
 ## Troubleshooting
 

@@ -448,3 +448,91 @@ export const getAuditLogs = async (req: AuthenticatedRequest, res: Response): Pr
         res.status(500).json({ error: "Internal server error" });
     }
 };
+
+export const getAllPharmacies = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        const parsed = paginationSchema.safeParse(req.query);
+
+        if (!parsed.success) {
+            res.status(400).json({
+                error: "Invalid pagination parameters",
+                details: parsed.error.issues,
+            });
+            return;
+        }
+
+        const { page, limit } = parsed.data;
+        const offset = (page - 1) * limit;
+
+        const { data, error, count } = await supabase
+            .from("pharmacies")
+            .select(
+                "id, name, license_id, address, district, state, phone_number, is_verified, status, created_at, is_active, deleted_at",
+                { count: "exact" }
+            )
+            .order("created_at", { ascending: false })
+            .range(offset, offset + limit - 1);
+
+        if (error) {
+            res.status(500).json({ error: "Failed to fetch pharmacies" });
+            return;
+        }
+
+        res.json({
+            pharmacies: data ?? [],
+            meta: {
+                total: count || 0,
+                page,
+                limit,
+                totalPages: count ? Math.ceil(count / limit) : 0,
+            },
+        });
+    } catch (err) {
+        console.error("Error in getAllPharmacies:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const deletePharmacy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params;
+
+        const { error } = await supabase.rpc("delete_pharmacy", { pharmacy_id: id });
+
+        if (error) {
+            res.status(500).json({ error: "Failed to delete pharmacy" });
+            return;
+        }
+
+        await logAdminAction(req.user!.id, "PHARMACY_DELETE", "PHARMACY", id as string, {
+            is_active: false,
+        });
+
+        res.json({ message: "Pharmacy soft-deleted successfully" });
+    } catch (err) {
+        console.error("Error in deletePharmacy:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const restorePharmacy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params;
+
+        const { error } = await supabase.rpc("restore_pharmacy", { pharmacy_id: id });
+
+        if (error) {
+            res.status(500).json({ error: "Failed to restore pharmacy" });
+            return;
+        }
+
+        await logAdminAction(req.user!.id, "PHARMACY_RESTORE", "PHARMACY", id as string, {
+            is_active: true,
+        });
+
+        res.json({ message: "Pharmacy restored successfully" });
+    } catch (err) {
+        console.error("Error in restorePharmacy:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};

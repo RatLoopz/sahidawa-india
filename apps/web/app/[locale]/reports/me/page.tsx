@@ -156,54 +156,83 @@ type LoadState =
     | { kind: "loading" }
     | { kind: "authError"; message: string }
     | { kind: "networkError"; message: string }
-    | { kind: "ready"; reports: MyReport[] };
+    | {
+          kind: "ready";
+          reports: MyReport[];
+          nextCursor?: string;
+          isLoadingMore?: boolean;
+      };
 
 export default function MyReportsPage() {
     const t = useTranslations("MyReports");
     const { token, isLoading: authLoading } = useSession();
     const [state, setState] = useState<LoadState>({ kind: "loading" });
 
-    const fetchMine = useCallback(async () => {
-        if (!token) {
-            setState({
-                kind: "authError",
-                message: t("auth_error_description"),
-            });
-            return;
-        }
-
-        setState({ kind: "loading" });
-
-        try {
-            const res = await fetch(`${API_BASE}/api/reports/mine`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-
-            if (res.status === 401) {
+    const fetchMine = useCallback(
+        async (cursor?: string) => {
+            if (!token) {
                 setState({
                     kind: "authError",
-                    message: t("auth_error_expired"),
+                    message: t("auth_error_description"),
                 });
                 return;
             }
 
-            if (!res.ok) {
+            // Set loading state only for initial load, not for "Load More"
+            if (!cursor) {
+                setState({ kind: "loading" });
+            }
+
+            try {
+                const url = new URL(`${API_BASE}/api/reports/mine`);
+                if (cursor) {
+                    url.searchParams.set("cursor", cursor);
+                }
+
+                const res = await fetch(url.toString(), {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                if (res.status === 401) {
+                    setState({
+                        kind: "authError",
+                        message: t("auth_error_expired"),
+                    });
+                    return;
+                }
+
+                if (!res.ok) {
+                    setState({
+                        kind: "networkError",
+                        message: `Could not load your reports (status ${res.status}).`,
+                    });
+                    return;
+                }
+
+                const json = (await res.json()) as {
+                    reports?: MyReport[];
+                    nextCursor?: string;
+                };
+                const newReports = json.reports ?? [];
+
+                setState((prevState) => ({
+                    kind: "ready",
+                    reports:
+                        cursor && prevState.kind === "ready"
+                            ? [...prevState.reports, ...newReports]
+                            : newReports,
+                    nextCursor: json.nextCursor,
+                    isLoadingMore: false,
+                }));
+            } catch {
                 setState({
                     kind: "networkError",
-                    message: `Could not load your reports (status ${res.status}).`,
+                    message: t("network_error_api_unreachable"),
                 });
-                return;
             }
-
-            const json = (await res.json()) as { reports?: MyReport[] };
-            setState({ kind: "ready", reports: json.reports ?? [] });
-        } catch {
-            setState({
-                kind: "networkError",
-                message: t("network_error_api_unreachable"),
-            });
-        }
-    }, [t, token]);
+        },
+        [t, token]
+    );
 
     useEffect(() => {
         if (!authLoading) {
@@ -245,7 +274,7 @@ export default function MyReportsPage() {
                     </div>
                     <button
                         type="button"
-                        onClick={fetchMine}
+                        onClick={() => fetchMine()}
                         disabled={state.kind === "loading"}
                         aria-label={t("refresh_button_aria_label")}
                         className="rounded-full border border-(--color-border-muted) bg-(--color-surface-page) p-2.5 text-(--color-text-secondary) shadow-sm transition hover:bg-(--color-surface-muted) hover:text-(--color-text-primary) disabled:opacity-50"
@@ -314,19 +343,45 @@ export default function MyReportsPage() {
                 )}
 
                 {state.kind === "ready" && state.reports.length > 0 && (
-                    <section className="flex flex-col gap-3" aria-label="Your reports">
-                        {state.reports.map((report) => (
-                            <ReportCard
-                                key={report.id}
-                                report={report}
-                                statusLabel={getStatusLabel(report.status)}
-                                districtLabel={t("report_card_district_label")}
-                                submittedLabel={t("report_card_submitted_label")}
-                                batchLabel={t("report_card_batch_label")}
-                                noPhotoLabel={t("no_photo_label")}
-                            />
-                        ))}
-                    </section>
+                    <>
+                        <section className="flex flex-col gap-3" aria-label="Your reports">
+                            {state.reports.map((report) => (
+                                <ReportCard
+                                    key={report.id}
+                                    report={report}
+                                    statusLabel={getStatusLabel(report.status)}
+                                    districtLabel={t("report_card_district_label")}
+                                    submittedLabel={t("report_card_submitted_label")}
+                                    batchLabel={t("report_card_batch_label")}
+                                    noPhotoLabel={t("no_photo_label")}
+                                />
+                            ))}
+                        </section>
+
+                        {state.nextCursor && (
+                            <div className="mt-4 flex justify-center">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (state.kind === "ready") {
+                                            setState((prev) => ({
+                                                ...prev,
+                                                isLoadingMore: true,
+                                            }));
+                                            fetchMine(state.nextCursor);
+                                        }
+                                    }}
+                                    disabled={state.isLoadingMore}
+                                    className="inline-flex items-center gap-2 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) px-6 py-3 font-semibold text-(--color-text-primary) shadow-sm transition hover:bg-(--color-surface-muted) disabled:opacity-50"
+                                >
+                                    {state.isLoadingMore ? (
+                                        <RefreshCw size={16} className="animate-spin" />
+                                    ) : null}
+                                    {t("load_more_button")}
+                                </button>
+                            </div>
+                        )}
+                    </>
                 )}
             </main>
         </div>

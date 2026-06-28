@@ -140,29 +140,32 @@ reportsRouter.post(
 
             const { data: report, error } = await supabase
                 .from("counterfeit_reports")
-                .insert({
-                    reported_brand_name: data.medicineName,
-                    manufacturer: data.manufacturer,
-                    description: data.description,
-                    photo_url: data.images[0],
-                    photo_urls: data.images,
-                    pharmacy_name: data.pharmacyName,
-                    address: data.address,
-                    city: data.city,
-                    state: data.state,
-                    pincode: data.pincode,
-                    district,
-                    report_location: buildReportLocation(data.latitude, data.longitude),
-                    reporter_id: req.user?.id ?? null,
-                    ip_address: ipAddress,
-                    report_hash: computeReportHash(validationPayload),
-                    risk_score: validation.riskScore,
-                    is_escalated: !validation.passed,
-                    duplicate_group_id: validation.duplicateGroupId ?? null,
-                    status: "pending",
-                    scanned_barcode: data.scannedBarcode ?? null,
-                    medicine_id: data.medicineId ?? null,
-                })
+                .upsert(
+                    {
+                        reported_brand_name: data.medicineName,
+                        manufacturer: data.manufacturer,
+                        description: data.description,
+                        photo_url: data.images[0],
+                        photo_urls: data.images,
+                        pharmacy_name: data.pharmacyName,
+                        address: data.address,
+                        city: data.city,
+                        state: data.state,
+                        pincode: data.pincode,
+                        district,
+                        report_location: buildReportLocation(data.latitude, data.longitude),
+                        reporter_id: req.user?.id ?? null,
+                        ip_address: ipAddress,
+                        report_hash: computeReportHash(validationPayload),
+                        risk_score: validation.riskScore,
+                        is_escalated: !validation.passed,
+                        duplicate_group_id: validation.duplicateGroupId ?? null,
+                        status: "pending",
+                        scanned_barcode: data.scannedBarcode ?? null,
+                        medicine_id: data.medicineId ?? null,
+                    },
+                    { onConflict: "report_hash", ignoreDuplicates: true }
+                )
                 .select(
                     "id, reported_brand_name, status, district, created_at, scanned_barcode, medicine_id"
                 )

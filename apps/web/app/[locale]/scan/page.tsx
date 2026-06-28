@@ -567,7 +567,7 @@ export default function ScanPage() {
 
                 <Link
                     href="/history"
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-white/20 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none dark:border-white/20"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-300 bg-white/10 px-4 py-2 text-sm font-bold text-gray-700 shadow-sm transition-colors hover:border-gray-300 hover:bg-gray-100 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none dark:border-white/20 dark:text-white dark:hover:bg-white/20"
                 >
                     <History size={18} />
                     {tScan("viewHistory")}
