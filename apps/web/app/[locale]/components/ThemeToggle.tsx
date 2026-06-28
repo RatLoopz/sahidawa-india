@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
 export function ThemeToggle() {
-    const { theme, setTheme, resolvedTheme } = useTheme();
+    const { setTheme, resolvedTheme } = useTheme();
     const tA11y = useTranslations("Accessibility");
     const [mounted, setMounted] = useState(false);
 
