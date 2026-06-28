@@ -1,5 +1,8 @@
+// @ts-ignore - optional dependency
 import { NodeSDK } from "@opentelemetry/sdk-node";
+// @ts-ignore - optional dependency
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
+// @ts-ignore - optional dependency
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 
 const traceExporter = new OTLPTraceExporter({
@@ -19,6 +22,6 @@ sdk.start();
 process.on("SIGTERM", () => {
     sdk.shutdown()
         .then(() => console.log("Tracing terminated"))
-        .catch((error) => console.log("Error terminating tracing", error))
+        .catch((error: unknown) => console.log("Error terminating tracing", error))
         .finally(() => process.exit(0));
 });

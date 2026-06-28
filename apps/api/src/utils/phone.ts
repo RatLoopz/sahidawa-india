@@ -3,7 +3,8 @@
  * Industry-standard phone number validation for international numbers
  */
 
-import { parsePhoneNumberFromString, CountryCode } from 'libphonenumber-js';
+// @ts-ignore - optional dependency
+import { parsePhoneNumberFromString, CountryCode } from "libphonenumber-js";
 
 /**
  * Format and validate a phone number using libphonenumber-js
@@ -13,23 +14,23 @@ import { parsePhoneNumberFromString, CountryCode } from 'libphonenumber-js';
  */
 export function formatPhoneNumber(
     phone: string,
-    defaultCountry: CountryCode = 'IN'
+    defaultCountry: CountryCode = "IN"
 ): string | null {
-    if (!phone || typeof phone !== 'string') {
+    if (!phone || typeof phone !== "string") {
         return null;
     }
 
     try {
         // Parse the phone number with default country
         const phoneNumber = parsePhoneNumberFromString(phone, defaultCountry);
-        
+
         // Check if the number is valid
         if (!phoneNumber || !phoneNumber.isValid()) {
             return null;
         }
 
         // Return in E.164 format (e.g., +911234567890)
-        return phoneNumber.format('E.164');
+        return phoneNumber.format("E.164");
     } catch (error) {
         // If parsing fails, return null
         return null;
@@ -42,11 +43,8 @@ export function formatPhoneNumber(
  * @param defaultCountry - Default country code
  * @returns Boolean indicating if the phone number is valid
  */
-export function isValidPhoneNumber(
-    phone: string,
-    defaultCountry: CountryCode = 'IN'
-): boolean {
-    if (!phone || typeof phone !== 'string') {
+export function isValidPhoneNumber(phone: string, defaultCountry: CountryCode = "IN"): boolean {
+    if (!phone || typeof phone !== "string") {
         return false;
     }
 
@@ -66,9 +64,9 @@ export function isValidPhoneNumber(
  */
 export function getPhoneCountryCode(
     phone: string,
-    defaultCountry: CountryCode = 'IN'
+    defaultCountry: CountryCode = "IN"
 ): string | null {
-    if (!phone || typeof phone !== 'string') {
+    if (!phone || typeof phone !== "string") {
         return null;
     }
 
@@ -81,4 +79,4 @@ export function getPhoneCountryCode(
     } catch (error) {
         return null;
     }
-}"# Trigger rebuild" 
+}

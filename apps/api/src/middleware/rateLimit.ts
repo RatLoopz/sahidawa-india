@@ -1,4 +1,5 @@
 import rateLimit, { Store } from "express-rate-limit";
+// @ts-ignore - optional dependency
 import { RedisStore } from "rate-limit-redis";
 import { redisClient } from "../utils/redis";
 import logger from "../utils/logger";
