@@ -58,13 +58,20 @@ export default function FAQPage() {
                             >
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
-                                        <HelpCircle size={16} strokeWidth={2.5} aria-hidden="true" />
+                                        <HelpCircle
+                                            size={16}
+                                            strokeWidth={2.5}
+                                            aria-hidden="true"
+                                        />
                                     </div>
                                     <span className="font-bold text-(--color-text-primary)">
                                         {t(`items.${key}.question`)}
                                     </span>
                                 </div>
-                                <div className="ml-4 shrink-0 text-(--color-text-muted)" aria-hidden="true">
+                                <div
+                                    className="ml-4 shrink-0 text-(--color-text-muted)"
+                                    aria-hidden="true"
+                                >
                                     <ChevronDown
                                         size={20}
                                         className="transition-transform duration-200 group-open:rotate-180"

@@ -155,7 +155,9 @@ export default function MedicineSearchSelect({
 
     return (
         <div ref={rootRef} className="relative w-full">
-            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">{label}</label>
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                {label}
+            </label>
 
             {/* ── selected state ── */}
             {value ? (
@@ -164,7 +166,9 @@ export default function MedicineSearchSelect({
                         <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
                             {labelFor(value)}
                         </p>
-                        <p className="truncate text-xs text-slate-500 dark:text-slate-400">{value.manufacturer}</p>
+                        <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+                            {value.manufacturer}
+                        </p>
                     </div>
                     <button
                         type="button"
@@ -327,7 +331,9 @@ export default function MedicineSearchSelect({
                         </li>
                     )}
                     {!loading && query.trim().length >= 2 && results.length === 0 && (
-                        <li className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">No results</li>
+                        <li className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">
+                            No results
+                        </li>
                     )}
                     {!loading &&
                         results.map((m, index) => (

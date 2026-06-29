@@ -33,10 +33,7 @@ describe("buildOrConditions — multi-word OR filter builder (#2643)", () => {
 
     describe("multi-word query — core bug fix", () => {
         it("produces a single comma-separated OR string for two words", () => {
-            const result = buildOrConditions(
-                ["medicine_name"],
-                ["amoxicillin", "clavulanate"]
-            );
+            const result = buildOrConditions(["medicine_name"], ["amoxicillin", "clavulanate"]);
             // Both words must appear in the same OR string
             expect(result).toContain("amoxicillin");
             expect(result).toContain("clavulanate");
@@ -53,20 +50,14 @@ describe("buildOrConditions — multi-word OR filter builder (#2643)", () => {
         });
 
         it("each word gets its own ilike condition", () => {
-            const result = buildOrConditions(
-                ["medicine_name"],
-                ["amoxicillin", "clavulanate"]
-            );
+            const result = buildOrConditions(["medicine_name"], ["amoxicillin", "clavulanate"]);
             // Count occurrences of 'ilike' — should be 2 (one per word)
             const ilikes = result.match(/ilike/g) ?? [];
             expect(ilikes.length).toBe(2);
         });
 
         it("does not duplicate conditions for repeated words", () => {
-            const result = buildOrConditions(
-                ["medicine_name"],
-                ["aspirin", "aspirin"]
-            );
+            const result = buildOrConditions(["medicine_name"], ["aspirin", "aspirin"]);
             // Still two conditions (deduplication is the caller's job, not buildOrConditions)
             const ilikes = result.match(/ilike/g) ?? [];
             expect(ilikes.length).toBe(2);
@@ -117,17 +108,11 @@ describe("pharmacy medicine search query normalisation", () => {
     }
 
     it("splits 'Amoxicillin Clavulanate' into two words", () => {
-        expect(normaliseQuery("Amoxicillin Clavulanate")).toEqual([
-            "amoxicillin",
-            "clavulanate",
-        ]);
+        expect(normaliseQuery("Amoxicillin Clavulanate")).toEqual(["amoxicillin", "clavulanate"]);
     });
 
     it("strips leading/trailing whitespace before splitting", () => {
-        expect(normaliseQuery("  Paracetamol 500mg  ")).toEqual([
-            "paracetamol",
-            "500mg",
-        ]);
+        expect(normaliseQuery("  Paracetamol 500mg  ")).toEqual(["paracetamol", "500mg"]);
     });
 
     it("drops single-character words", () => {

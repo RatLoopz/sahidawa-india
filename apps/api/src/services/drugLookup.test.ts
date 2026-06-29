@@ -1,4 +1,4 @@
-import { lookupDrugByBatch } from "./drugLookup.service";
+import { lookupDrugByBatch, ServiceUnavailableError } from "./drugLookup.service";
 import { supabase } from "../db/client";
 import {
     getCachedDrug,
@@ -125,7 +125,7 @@ describe("drugLookup Service - lookupDrugByBatch", () => {
         mockMaybeSingle.mockResolvedValue({ data: null, error: dbError });
 
         await expect(lookupDrugByBatch(batchNumber, { brand_name: "Dolo 650" })).rejects.toThrow(
-            dbError
+            ServiceUnavailableError
         );
 
         expect(getCachedDrug).toHaveBeenCalledWith("B12345");
