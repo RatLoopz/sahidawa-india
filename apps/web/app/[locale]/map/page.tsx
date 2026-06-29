@@ -186,6 +186,21 @@ function sortPharmacies(pharmacies: Pharmacy[]): Pharmacy[] {
     });
 }
 
+// ── Geolocation error mapping ─────────────────────────────────────────────────
+// Shared by the initial auto-locate effect and handleLocateUser so the
+// PositionError-code → translated-message mapping isn't duplicated.
+function getGeolocationErrorMessage(
+    code: number,
+    t: ReturnType<typeof useTranslations>
+): string {
+    const messages: Record<number, string> = {
+        1: t("errors.denied"),
+        2: t("errors.unavailable"),
+        3: t("errors.timeout"),
+    };
+    return messages[code] || t("errors.generic");
+}
+
 // ── Draggable Bottom Drawer (PR #144 signature component) ────────────────────
 function BottomDrawer({
     children,
@@ -453,15 +468,21 @@ export default function PharmacyMapPage() {
                     setUserLocation(loc);
                     fetchNearby(loc.lat, loc.lng, radiusKm * 1000);
                 },
-                () => {
+                (err) => {
+                    // Surface a localized message (e.g. permission denied) instead
+                    // of silently falling back with no feedback to the user.
+                    setLocationError(getGeolocationErrorMessage(err.code, t));
+                    setTimeout(() => setLocationError(null), 4000);
                     fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radiusKm * 1000);
                 },
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
             );
         } else {
+            setLocationError(t("errors.generic"));
+            setTimeout(() => setLocationError(null), 4000);
             fetchNearby(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng, radiusKm * 1000);
         }
-    }, [fetchNearby]);
+    }, [fetchNearby, t]);
 
     const fetchInBounds = useCallback(
         async (bounds: MapBounds) => {
@@ -585,17 +606,12 @@ export default function PharmacyMapPage() {
             },
             (err) => {
                 setIsLocating(false);
-                const messages: Record<number, string> = {
-                    1: t("errors.denied"),
-                    2: t("errors.unavailable"),
-                    3: t("errors.timeout"),
-                };
-                setLocationError(messages[err.code] || t("errors.generic"));
+                setLocationError(getGeolocationErrorMessage(err.code, t));
                 setTimeout(() => setLocationError(null), 4000);
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
         );
-    }, [fetchNearby, radiusKm]);
+    }, [fetchNearby, radiusKm, t]);
 
     const handleMapReady = useCallback(() => {
         if (!initialFetchDone.current) {

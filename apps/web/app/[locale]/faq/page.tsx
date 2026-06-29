@@ -40,24 +40,43 @@ export default function FAQPage() {
                         <details
                             key={i}
                             className="group overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/30 hover:shadow-md"
+                            onToggle={(e) => {
+                                const el = e.currentTarget;
+                                const summary = el.querySelector("summary");
+                                if (summary) {
+                                    summary.setAttribute(
+                                        "aria-expanded",
+                                        el.open ? "true" : "false"
+                                    );
+                                }
+                            }}
                         >
-                            <summary className="flex w-full list-none items-center justify-between px-6 py-5 text-left transition-colors duration-200 hover:bg-emerald-500/[0.01] [&::-webkit-details-marker]:hidden">
+                            <summary
+                                className="flex w-full list-none items-center justify-between px-6 py-5 text-left transition-colors duration-200 hover:bg-emerald-500/[0.01] [&::-webkit-details-marker]:hidden"
+                                aria-expanded="false"
+                                aria-controls={`faq-answer-${key}`}
+                            >
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
-                                        <HelpCircle size={16} strokeWidth={2.5} />
+                                        <HelpCircle size={16} strokeWidth={2.5} aria-hidden="true" />
                                     </div>
                                     <span className="font-bold text-(--color-text-primary)">
                                         {t(`items.${key}.question`)}
                                     </span>
                                 </div>
-                                <div className="ml-4 shrink-0 text-(--color-text-muted)">
+                                <div className="ml-4 shrink-0 text-(--color-text-muted)" aria-hidden="true">
                                     <ChevronDown
                                         size={20}
                                         className="transition-transform duration-200 group-open:rotate-180"
                                     />
                                 </div>
                             </summary>
-                            <div className="border-t border-(--color-border-muted) px-6 pt-4 pb-5 text-sm leading-relaxed font-medium text-(--color-text-secondary)">
+                            <div
+                                id={`faq-answer-${key}`}
+                                role="region"
+                                aria-label={t(`items.${key}.question`)}
+                                className="border-t border-(--color-border-muted) px-6 pt-4 pb-5 text-sm leading-relaxed font-medium text-(--color-text-secondary)"
+                            >
                                 {t(`items.${key}.answer`)}
                             </div>
                         </details>

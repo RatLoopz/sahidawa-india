@@ -1,5 +1,4 @@
 name: 🛡️ PR Quality Check
-env:
 
 on:
   pull_request:

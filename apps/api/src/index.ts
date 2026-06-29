@@ -20,10 +20,11 @@ if (process.env.NODE_ENV !== "test") {
         // Initialize Redis Connection and warm cache
         await connectRedis();
         await warmCache();
-    });
 
-    startAlertBroadcaster();
-    startTempCleanupJob();
+        // Start cron jobs only after Redis is ready
+        startAlertBroadcaster();
+        startTempCleanupJob();
+    });
 
     const gracefulShutdown = createGracefulShutdown(server);
 

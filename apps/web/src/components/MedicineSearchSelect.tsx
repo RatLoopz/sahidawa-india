@@ -155,16 +155,16 @@ export default function MedicineSearchSelect({
 
     return (
         <div ref={rootRef} className="relative w-full">
-            <label className="mb-1 block text-sm font-medium text-slate-700">{label}</label>
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">{label}</label>
 
             {/* ── selected state ── */}
             {value ? (
-                <div className="flex items-start justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                <div className="flex items-start justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-800">
                     <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-slate-900">
+                        <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
                             {labelFor(value)}
                         </p>
-                        <p className="truncate text-xs text-slate-500">{value.manufacturer}</p>
+                        <p className="truncate text-xs text-slate-500 dark:text-slate-400">{value.manufacturer}</p>
                     </div>
                     <button
                         type="button"
@@ -173,7 +173,7 @@ export default function MedicineSearchSelect({
                             setOpen(true);
                             inputRef.current?.focus();
                         }}
-                        className="rounded p-1 text-slate-400 hover:bg-white hover:text-slate-700"
+                        className="rounded p-1 text-slate-400 hover:bg-white hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-700 dark:hover:text-slate-200"
                         aria-label={`Clear ${label}`}
                     >
                         <X size={16} />
@@ -184,7 +184,7 @@ export default function MedicineSearchSelect({
                     {/* ── search input ── */}
                     <div className="relative">
                         <Search
-                            className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-slate-400"
+                            className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-slate-400 dark:text-slate-500"
                             size={16}
                         />
                         <input
@@ -250,7 +250,7 @@ export default function MedicineSearchSelect({
                                 }
                             }}
                             placeholder={placeholder}
-                            className="w-full rounded-lg border border-slate-300 bg-white py-2 pr-8 pl-9 text-sm focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600 focus:outline-none"
+                            className="w-full rounded-lg border border-slate-300 bg-white py-2 pr-8 pl-9 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-500 dark:focus:ring-emerald-500"
                             autoComplete="off"
                         />
 
@@ -260,7 +260,7 @@ export default function MedicineSearchSelect({
                                 type="button"
                                 onClick={handleClearQuery}
                                 aria-label="Clear search"
-                                className="absolute top-1/2 right-2.5 -translate-y-1/2 rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                                className="absolute top-1/2 right-2.5 -translate-y-1/2 rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-slate-500 dark:hover:bg-slate-700 dark:hover:text-slate-300"
                             >
                                 <X size={14} />
                             </button>
@@ -270,7 +270,7 @@ export default function MedicineSearchSelect({
                     {/* ── recent searches chips ── */}
                     {showHistory && (
                         <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                            <span className="flex items-center gap-1 text-xs text-slate-400">
+                            <span className="flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500">
                                 <Clock size={11} />
                                 Recent:
                             </span>
@@ -287,7 +287,7 @@ export default function MedicineSearchSelect({
                                             handleChipClick(entry);
                                         }
                                     }}
-                                    className="chip-btn inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs text-slate-600 transition-all duration-150 hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 focus:outline-none"
+                                    className="chip-btn inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs text-slate-600 transition-all duration-150 hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-emerald-500 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400 dark:focus:ring-offset-slate-900"
                                 >
                                     {entry.query}
                                 </button>
@@ -296,7 +296,7 @@ export default function MedicineSearchSelect({
                             <button
                                 type="button"
                                 onClick={handleClearHistory}
-                                className="ml-auto rounded text-xs text-slate-400 underline-offset-2 transition-colors duration-150 hover:text-rose-500 hover:underline focus:ring-1 focus:ring-rose-400 focus:outline-none"
+                                className="ml-auto rounded text-xs text-slate-400 underline-offset-2 transition-colors duration-150 hover:text-rose-500 hover:underline focus:ring-1 focus:ring-rose-400 focus:outline-none dark:text-slate-500 dark:hover:text-rose-400"
                             >
                                 Clear history
                             </button>
@@ -310,24 +310,24 @@ export default function MedicineSearchSelect({
                 <ul
                     id={listId}
                     role="listbox"
-                    className="absolute z-50 mt-1 max-h-52 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+                    className="absolute z-50 mt-1 max-h-52 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-900/50"
                 >
                     {loading && (
                         <li
                             aria-live="polite"
-                            className="flex items-center gap-2 px-3 py-2 text-sm text-slate-500"
+                            className="flex items-center gap-2 px-3 py-2 text-sm text-slate-500 dark:text-slate-400"
                         >
                             <Loader2 size={14} className="animate-spin" aria-hidden="true" />
                             Searching
                         </li>
                     )}
                     {!loading && query.trim().length < 2 && (
-                        <li className="px-3 py-2 text-sm text-slate-500">
+                        <li className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">
                             Enter at least 2 characters
                         </li>
                     )}
                     {!loading && query.trim().length >= 2 && results.length === 0 && (
-                        <li className="px-3 py-2 text-sm text-slate-500">No results</li>
+                        <li className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">No results</li>
                     )}
                     {!loading &&
                         results.map((m, index) => (
@@ -342,8 +342,8 @@ export default function MedicineSearchSelect({
                                     onMouseEnter={() => setActiveIndex(index)}
                                     className={`w-full px-3 py-2 text-left text-sm focus:outline-none ${
                                         activeIndex === index
-                                            ? "bg-emerald-100"
-                                            : "hover:bg-slate-50"
+                                            ? "bg-emerald-100 dark:bg-emerald-900/40"
+                                            : "hover:bg-slate-50 dark:hover:bg-slate-800"
                                     }`}
                                     onClick={() => {
                                         onChange(m);
@@ -352,10 +352,10 @@ export default function MedicineSearchSelect({
                                         setActiveIndex(-1);
                                     }}
                                 >
-                                    <span className="font-medium text-slate-900">
+                                    <span className="font-medium text-slate-900 dark:text-slate-100">
                                         {labelFor(m)}
                                     </span>
-                                    <span className="block text-xs text-slate-500">
+                                    <span className="block text-xs text-slate-500 dark:text-slate-400">
                                         {m.manufacturer}
                                     </span>
                                 </button>

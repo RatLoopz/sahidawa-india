@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { supabase } from "../db/client";
 import logger from "../utils/logger";
 import { escapePostgrest } from "../utils/db";
+import { barcodeLimiter } from "../middleware/rateLimit";
 
 const router = Router();
 
@@ -61,7 +62,7 @@ function extractCoordinates(p: StoreLocation): { lat: number; lng: number } {
  *       500:
  *         description: Server error
  */
-router.get("/:medicine_id", async (req: Request, res: Response): Promise<void> => {
+router.get("/:medicine_id", barcodeLimiter, async (req: Request, res: Response): Promise<void> => {
     try {
         const medicine_id = req.params.medicine_id as string;
         const lat = req.query.lat ? parseFloat(req.query.lat as string) : undefined;
