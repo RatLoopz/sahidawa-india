@@ -16,6 +16,26 @@ interface BookmarkedMedicine {
     jan_aushadhi_price: number;
 }
 
+function getSavedMedicineBookmarks(): BookmarkedMedicine[] {
+    if (typeof window === "undefined") return [];
+
+    try {
+        const stored = localStorage.getItem("medicine-bookmarks");
+        if (!stored) return [];
+
+        const parsed = JSON.parse(stored);
+        if (!Array.isArray(parsed)) {
+            localStorage.setItem("medicine-bookmarks", "[]");
+            return [];
+        }
+
+        return parsed;
+    } catch {
+        localStorage.setItem("medicine-bookmarks", "[]");
+        return [];
+    }
+}
+
 function getDaysUntilExpiry(expiryDate: string): number {
     const diff = new Date(expiryDate).getTime() - new Date().getTime();
     return Math.ceil(diff / (1000 * 3600 * 24));
@@ -41,7 +61,7 @@ export default function MyMedicinesPage() {
             .catch(() => setError("Failed to load tracked medicines."));
 
         // Load bookmarks from localStorage
-        const bookmarks = JSON.parse(localStorage.getItem("medicine-bookmarks") || "[]");
+        const bookmarks = getSavedMedicineBookmarks();
         setSavedMedicines(bookmarks);
     }, []);
 
