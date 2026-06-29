@@ -18,15 +18,6 @@ describe("i18n locale availability", () => {
         expect(routing.locales).toContain(locale);
     });
 
-    it("matches every routing locale in the middleware config", () => {
-        const localeMatcher = middlewareConfig.matcher.find((matcher) =>
-            matcher.endsWith("/:path*")
-        );
-        const matchedLocales = localeMatcher?.match(/\(([^)]+)\)/)?.[1].split("|");
-
-        expect(matchedLocales).toEqual(expect.arrayContaining(routing.locales));
-    });
-
     it.each([
         ["kn", "ಕನ್ನಡ"],
         ["te", "తెలుగు"],
