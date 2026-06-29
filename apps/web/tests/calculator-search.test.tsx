@@ -4,7 +4,6 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import CalculatorPage from "../app/[locale]/calculator/page";
-import { supabase } from "@/lib/supabase";
 
 // Mock supabase client
 jest.mock("@/lib/supabase", () => {
