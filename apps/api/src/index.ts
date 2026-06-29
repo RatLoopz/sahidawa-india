@@ -2,8 +2,7 @@ import "./tracing";
 import app from "./app";
 import { createGracefulShutdown } from "./gracefulShutdown";
 import logger from "./utils/logger";
-import { startAlertBroadcaster } from "./cron/alert-broadcaster";
-import { startTempCleanupJob } from "./cron/tempCleanup";
+import { jobScheduler } from "./services/jobScheduler.service";
 import { connectRedis } from "./utils/redis";
 import { warmCache } from "./services/cache.service";
 
@@ -22,8 +21,7 @@ if (process.env.NODE_ENV !== "test") {
         await warmCache();
 
         // Start cron jobs only after Redis is ready
-        startAlertBroadcaster();
-        startTempCleanupJob();
+        jobScheduler.start();
     });
 
     const gracefulShutdown = createGracefulShutdown(server);
@@ -35,4 +33,12 @@ if (process.env.NODE_ENV !== "test") {
     process.on("unhandledRejection", (reason) => {
         void gracefulShutdown("unhandledRejection", reason);
     });
+
+    const shutdown = () => {
+        jobScheduler.shutdown();
+        process.exit(0);
+    };
+
+    process.on("SIGTERM", shutdown);
+    process.on("SIGINT", shutdown);
 }

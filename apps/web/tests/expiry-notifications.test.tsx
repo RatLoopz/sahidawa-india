@@ -136,10 +136,9 @@ describe("Expiry Tracker Notifications Library", () => {
                 notified1Day: true,
             });
 
-            mockGetNotifications.mockResolvedValue([
-                { tag: "med-1-7days", close: jest.fn() },
-                { tag: "med-2-7days", close: jest.fn() },
-            ]);
+            const matchingNotification = { tag: "med-1-7days", close: jest.fn() };
+            const unrelatedNotification = { tag: "med-2-7days", close: jest.fn() };
+            mockGetNotifications.mockResolvedValue([matchingNotification, unrelatedNotification]);
 
             await cancelNotificationsForMedicine("med-1");
 
@@ -149,10 +148,9 @@ describe("Expiry Tracker Notifications Library", () => {
             expect(item?.notified1Day).toBe(false);
 
             // Verify Sw notifications were fetched and closed
-            expect(mockGetNotifications).toHaveBeenCalledWith({ includeTriggered: true });
-            const notifications = await mockGetNotifications();
-            expect(notifications[0].close).toHaveBeenCalledTimes(1);
-            expect(notifications[1].close).not.toHaveBeenCalled();
+            expect(mockGetNotifications).toHaveBeenCalledWith();
+            expect(matchingNotification.close).toHaveBeenCalledTimes(1);
+            expect(unrelatedNotification.close).not.toHaveBeenCalled();
         });
     });
 
