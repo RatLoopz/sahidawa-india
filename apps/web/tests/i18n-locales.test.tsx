@@ -2,7 +2,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import LanguageSwitcher from "../app/[locale]/LanguageSwitcher";
 import { routing } from "../i18n/routing";
-import { config as middlewareConfig } from "../proxy";
 
 let activeLocale = "en";
 
