@@ -181,7 +181,8 @@ describe("Redis Caching and Drug Lookup Services", () => {
         it("should resolve drug IDs to batch numbers and delete cache keys", async () => {
             const mockData = [{ batch_number: "BATCH-1" }, { batch_number: "BATCH-2" }];
 
-            mockSupabase.in.mockResolvedValueOnce({ data: mockData, error: null });
+            mockSupabase.in.mockReturnThis();
+            mockSupabase.limit.mockResolvedValueOnce({ data: mockData, error: null });
 
             await invalidateDrugCache(["med-1", "med-2"]);
 
