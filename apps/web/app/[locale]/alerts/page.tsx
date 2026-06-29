@@ -443,6 +443,10 @@ export default function FullAlertsLogPage() {
                                         alert.cdsco_approval_status === "banned" ||
                                         alert.is_counterfeit_alert ||
                                         alert.alert_type === "Banned";
+                                    // System updates have no detail metadata, so only
+                                    // medicine alerts expose a collapsible detail pane.
+                                    const isCollapsible = !isSystem;
+                                    const isExpanded = expandedAlertId === alert.id;
 
                                     return (
                                         <motion.div
@@ -452,18 +456,33 @@ export default function FullAlertsLogPage() {
                                             exit={{ opacity: 0, y: -15 }}
                                             transition={{ duration: 0.3 }}
                                             key={alert.id}
-                                            onClick={() => toggleExpand(alert.id)}
-                                            tabIndex={0}
-                                            role="button"
-                                            aria-expanded={expandedAlertId === alert.id}
-                                            onKeyDown={(e) => {
-                                                if (e.key === "Enter" || e.key === " ") {
-                                                    e.preventDefault();
-                                                    toggleExpand(alert.id);
-                                                }
-                                            }}
-                                            className={`group relative flex cursor-pointer flex-col overflow-hidden rounded-3xl border bg-(--color-surface-page) p-6 shadow-xs transition-all focus:ring-2 focus:ring-emerald-500/20 focus:outline-hidden ${
-                                                expandedAlertId === alert.id
+                                            onClick={
+                                                isCollapsible
+                                                    ? () => toggleExpand(alert.id)
+                                                    : undefined
+                                            }
+                                            tabIndex={isCollapsible ? 0 : undefined}
+                                            role={isCollapsible ? "button" : undefined}
+                                            aria-expanded={isCollapsible ? isExpanded : undefined}
+                                            aria-controls={
+                                                isCollapsible
+                                                    ? `alert-details-${alert.id}`
+                                                    : undefined
+                                            }
+                                            onKeyDown={
+                                                isCollapsible
+                                                    ? (e) => {
+                                                          if (e.key === "Enter" || e.key === " ") {
+                                                              e.preventDefault();
+                                                              toggleExpand(alert.id);
+                                                          }
+                                                      }
+                                                    : undefined
+                                            }
+                                            className={`group relative flex flex-col overflow-hidden rounded-3xl border bg-(--color-surface-page) p-6 shadow-xs transition-all focus:ring-2 focus:ring-emerald-500/20 focus:outline-hidden ${
+                                                isCollapsible ? "cursor-pointer" : ""
+                                            } ${
+                                                isExpanded
                                                     ? "border-emerald-500/30 ring-2 ring-emerald-500/5"
                                                     : "border-(--color-border-muted)"
                                             }`}
@@ -508,80 +527,114 @@ export default function FullAlertsLogPage() {
                                                             : alert.composition || t("noDetails")}
                                                     </p>
 
-                                                    {/* Key-Value Metadata Grid */}
-                                                    {!isSystem && (
-                                                        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-bold text-(--color-text-muted)">
-                                                            <div
-                                                                className="flex items-center gap-1.5"
-                                                                onClick={(e) => e.stopPropagation()}
+                                                    {/* Key-Value Metadata Grid (collapsible detail pane) */}
+                                                    <AnimatePresence initial={false}>
+                                                        {isCollapsible && isExpanded && (
+                                                            <motion.div
+                                                                key="details"
+                                                                id={`alert-details-${alert.id}`}
+                                                                initial={{ height: 0, opacity: 0 }}
+                                                                animate={{
+                                                                    height: "auto",
+                                                                    opacity: 1,
+                                                                }}
+                                                                exit={{ height: 0, opacity: 0 }}
+                                                                transition={{
+                                                                    duration: 0.25,
+                                                                    ease: "easeInOut",
+                                                                }}
+                                                                className="overflow-hidden"
                                                             >
-                                                                <span>
-                                                                    {t("batchLabel")}{" "}
-                                                                    <span className="font-extrabold text-(--color-text-primary)">
-                                                                        {alert.batch_number}
-                                                                    </span>
-                                                                </span>
-                                                                <CopyButton
-                                                                    text={alert.batch_number || ""}
-                                                                />
-                                                            </div>
-                                                            {alert.manufacturer && (
-                                                                <>
-                                                                    <span className="text-(--color-border-muted)">
-                                                                        •
-                                                                    </span>
-                                                                    <div className="flex items-center gap-1">
-                                                                        <Building2
-                                                                            size={12}
-                                                                            className="opacity-80"
-                                                                        />
+                                                                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-bold text-(--color-text-muted)">
+                                                                    <div
+                                                                        className="flex items-center gap-1.5"
+                                                                        onClick={(e) =>
+                                                                            e.stopPropagation()
+                                                                        }
+                                                                    >
                                                                         <span>
-                                                                            {t("manufacturerLabel")}{" "}
-                                                                            <span className="inline-block max-w-[150px] truncate align-bottom font-extrabold text-(--color-text-primary) sm:max-w-[250px]">
-                                                                                {alert.manufacturer}
-                                                                            </span>
-                                                                        </span>
-                                                                    </div>
-                                                                </>
-                                                            )}
-                                                            {(alert.state || alert.district) && (
-                                                                <>
-                                                                    <span className="text-(--color-border-muted)">
-                                                                        •
-                                                                    </span>
-                                                                    <div className="flex items-center gap-1">
-                                                                        <MapPin
-                                                                            size={12}
-                                                                            className="opacity-80"
-                                                                        />
-                                                                        <span>
-                                                                            {t("regionLabel")}{" "}
+                                                                            {t("batchLabel")}{" "}
                                                                             <span className="font-extrabold text-(--color-text-primary)">
-                                                                                {[
-                                                                                    alert.state,
-                                                                                    alert.district,
-                                                                                ]
-                                                                                    .filter(Boolean)
-                                                                                    .join(", ")}
+                                                                                {alert.batch_number}
                                                                             </span>
                                                                         </span>
+                                                                        <CopyButton
+                                                                            text={
+                                                                                alert.batch_number ||
+                                                                                ""
+                                                                            }
+                                                                        />
                                                                     </div>
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                    )}
+                                                                    {alert.manufacturer && (
+                                                                        <>
+                                                                            <span className="text-(--color-border-muted)">
+                                                                                •
+                                                                            </span>
+                                                                            <div className="flex items-center gap-1">
+                                                                                <Building2
+                                                                                    size={12}
+                                                                                    className="opacity-80"
+                                                                                />
+                                                                                <span>
+                                                                                    {t(
+                                                                                        "manufacturerLabel"
+                                                                                    )}{" "}
+                                                                                    <span className="inline-block max-w-[150px] truncate align-bottom font-extrabold text-(--color-text-primary) sm:max-w-[250px]">
+                                                                                        {
+                                                                                            alert.manufacturer
+                                                                                        }
+                                                                                    </span>
+                                                                                </span>
+                                                                            </div>
+                                                                        </>
+                                                                    )}
+                                                                    {(alert.state ||
+                                                                        alert.district) && (
+                                                                        <>
+                                                                            <span className="text-(--color-border-muted)">
+                                                                                •
+                                                                            </span>
+                                                                            <div className="flex items-center gap-1">
+                                                                                <MapPin
+                                                                                    size={12}
+                                                                                    className="opacity-80"
+                                                                                />
+                                                                                <span>
+                                                                                    {t(
+                                                                                        "regionLabel"
+                                                                                    )}{" "}
+                                                                                    <span className="font-extrabold text-(--color-text-primary)">
+                                                                                        {[
+                                                                                            alert.state,
+                                                                                            alert.district,
+                                                                                        ]
+                                                                                            .filter(
+                                                                                                Boolean
+                                                                                            )
+                                                                                            .join(
+                                                                                                ", "
+                                                                                            )}
+                                                                                    </span>
+                                                                                </span>
+                                                                            </div>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
                                                 </div>
 
-                                                <div className="group-hover:text-slate-650 shrink-0 text-slate-400 transition-colors">
-                                                    <ChevronDown
-                                                        size={18}
-                                                        className={`transition-transform duration-300 ${
-                                                            expandedAlertId === alert.id
-                                                                ? "rotate-180"
-                                                                : ""
-                                                        }`}
-                                                    />
-                                                </div>
+                                                {isCollapsible && (
+                                                    <div className="group-hover:text-slate-650 shrink-0 text-slate-400 transition-colors">
+                                                        <ChevronDown
+                                                            size={18}
+                                                            className={`transition-transform duration-300 ${
+                                                                isExpanded ? "rotate-180" : ""
+                                                            }`}
+                                                        />
+                                                    </div>
+                                                )}
                                             </div>
                                         </motion.div>
                                     );
