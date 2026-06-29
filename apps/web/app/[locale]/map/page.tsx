@@ -189,10 +189,7 @@ function sortPharmacies(pharmacies: Pharmacy[]): Pharmacy[] {
 // ── Geolocation error mapping ─────────────────────────────────────────────────
 // Shared by the initial auto-locate effect and handleLocateUser so the
 // PositionError-code → translated-message mapping isn't duplicated.
-function getGeolocationErrorMessage(
-    code: number,
-    t: ReturnType<typeof useTranslations>
-): string {
+function getGeolocationErrorMessage(code: number, t: ReturnType<typeof useTranslations>): string {
     const messages: Record<number, string> = {
         1: t("errors.denied"),
         2: t("errors.unavailable"),
@@ -979,6 +976,7 @@ export default function PharmacyMapPage() {
                         {showSearchArea && !isLoading && (
                             <div className="absolute top-4 left-1/2 z-1000 -translate-x-1/2">
                                 <button
+                                    data-testid="search-area-btn"
                                     onClick={handleSearchThisArea}
                                     className="flex items-center gap-2 rounded-full border border-(--color-border-muted) bg-(--color-surface-page) px-5 py-2.5 text-xs font-bold text-(--color-text-primary) shadow-xl transition-all hover:bg-(--color-surface-muted) hover:shadow-2xl active:scale-95"
                                 >

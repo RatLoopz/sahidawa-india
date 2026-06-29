@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Pill, Plus, Bookmark, Trash2 } from "lucide-react";
+import { Pill, Bookmark, Trash2 } from "lucide-react";
 
 interface TrackedMedicine {
     id: string;
@@ -31,33 +31,33 @@ function getStatusColor(daysLeft: number): string {
 export default function MyMedicinesPage() {
     const [medicines, setMedicines] = useState<TrackedMedicine[]>([]);
     const [savedMedicines, setSavedMedicines] = useState<BookmarkedMedicine[]>([]);
-    const [error, setError] = useState<string | null>(null);
+    const [, setError] = useState<string | null>(null);
 
     useEffect(() => {
         // Fetch tracked medicines from API
         fetch("/api/v1/medicines/tracked")
-            .then((res) => res.ok ? res.json() : [])
+            .then((res) => (res.ok ? res.json() : []))
             .then((data) => setMedicines(Array.isArray(data) ? data : []))
             .catch(() => setError("Failed to load tracked medicines."));
 
         // Load bookmarks from localStorage
-        const bookmarks = JSON.parse(localStorage.getItem('medicine-bookmarks') || '[]');
+        const bookmarks = JSON.parse(localStorage.getItem("medicine-bookmarks") || "[]");
         setSavedMedicines(bookmarks);
     }, []);
 
     const removeBookmark = (name: string) => {
         const updated = savedMedicines.filter((item) => item.alternative_name !== name);
-        localStorage.setItem('medicine-bookmarks', JSON.stringify(updated));
+        localStorage.setItem("medicine-bookmarks", JSON.stringify(updated));
         setSavedMedicines(updated);
     };
 
-    const medicinesWithDays = useMemo(() => 
-        medicines.map((m) => ({ ...m, daysLeft: getDaysUntilExpiry(m.expiry_date) })), 
-    [medicines]);
+    const medicinesWithDays = useMemo(
+        () => medicines.map((m) => ({ ...m, daysLeft: getDaysUntilExpiry(m.expiry_date) })),
+        [medicines]
+    );
 
     return (
-        <div className="mx-auto w-full max-w-4xl p-6 space-y-12">
-            
+        <div className="mx-auto w-full max-w-4xl space-y-12 p-6">
             {/* Tracked Medicines Section */}
             <section>
                 <h1 className="mb-4 text-2xl font-bold">My Tracked Medicines</h1>
@@ -65,7 +65,10 @@ export default function MyMedicinesPage() {
                     <div className="flex flex-col items-center justify-center space-y-4 rounded-2xl border-2 border-dashed border-slate-200 p-16 text-center">
                         <Pill className="h-8 w-8 text-emerald-600" />
                         <h3 className="text-xl font-semibold">No Medicines Tracked</h3>
-                        <button onClick={() => window.location.href = "/scan"} className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm hover:bg-emerald-700">
+                        <button
+                            onClick={() => (window.location.href = "/scan")}
+                            className="rounded-xl bg-emerald-600 px-4 py-2 text-sm text-white hover:bg-emerald-700"
+                        >
                             Add First Medicine
                         </button>
                     </div>
@@ -82,8 +85,14 @@ export default function MyMedicinesPage() {
                             {medicinesWithDays.map((m) => (
                                 <tr key={m.id}>
                                     <td className="border p-2">{m.medicine_name}</td>
-                                    <td className="border p-2">{new Date(m.expiry_date).toLocaleDateString()}</td>
-                                    <td className={`border p-2 text-white ${getStatusColor(m.daysLeft)}`}>{m.daysLeft} days left</td>
+                                    <td className="border p-2">
+                                        {new Date(m.expiry_date).toLocaleDateString()}
+                                    </td>
+                                    <td
+                                        className={`border p-2 text-white ${getStatusColor(m.daysLeft)}`}
+                                    >
+                                        {m.daysLeft} days left
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -93,21 +102,31 @@ export default function MyMedicinesPage() {
 
             {/* Saved Bookmarks Section */}
             <section>
-                <h2 className="mb-4 text-xl font-bold flex items-center gap-2">
+                <h2 className="mb-4 flex items-center gap-2 text-xl font-bold">
                     <Bookmark className="text-emerald-600" /> Saved Alternatives
                 </h2>
                 {savedMedicines.length === 0 ? (
                     <p className="text-slate-500 italic">No bookmarks yet.</p>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         {savedMedicines.map((med) => (
-                            <div key={med.alternative_name} className="flex justify-between items-center p-4 border rounded-2xl bg-white shadow-sm">
+                            <div
+                                key={med.alternative_name}
+                                className="flex items-center justify-between rounded-2xl border bg-white p-4 shadow-sm"
+                            >
                                 <div>
-                                    <h4 className="font-bold text-emerald-800">{med.alternative_name}</h4>
+                                    <h4 className="font-bold text-emerald-800">
+                                        {med.alternative_name}
+                                    </h4>
                                     <p className="text-xs text-gray-500">Brand: {med.brand_name}</p>
-                                    <p className="text-emerald-600 font-bold">₹{med.jan_aushadhi_price}</p>
+                                    <p className="font-bold text-emerald-600">
+                                        ₹{med.jan_aushadhi_price}
+                                    </p>
                                 </div>
-                                <button onClick={() => removeBookmark(med.alternative_name)} className="text-red-400 hover:text-red-600">
+                                <button
+                                    onClick={() => removeBookmark(med.alternative_name)}
+                                    className="text-red-400 hover:text-red-600"
+                                >
                                     <Trash2 size={18} />
                                 </button>
                             </div>

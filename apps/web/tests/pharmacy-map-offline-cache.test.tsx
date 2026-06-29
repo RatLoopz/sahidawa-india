@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor, within, fireEvent } from "@testing-library/react";
 
 import PharmacyMapPage from "../app/[locale]/map/page";
 import type { Pharmacy } from "../app/[locale]/map/PharmacyMap";
@@ -15,9 +15,10 @@ import {
 import { fetchPharmacies, fetchPharmaciesInBounds } from "../app/[locale]/map/overpassApi";
 import { getCachedPharmacies, getLastSyncTimestamp } from "../lib/offline/pharmacy-sync";
 
+const mockT = (key: string) => key;
 jest.mock("next-intl", () => ({
     useLocale: () => "en",
-    useTranslations: () => (key: string) => key,
+    useTranslations: () => mockT,
 }));
 
 jest.mock("next-intl/server", () => ({
@@ -53,15 +54,19 @@ jest.mock("../app/[locale]/map/PharmacyMap", () => ({
             </button>
             <button
                 type="button"
-                onClick={() =>
-                    onMapMoveEnd?.({
-                        south: 28.5,
-                        west: 77.1,
-                        north: 28.7,
-                        east: 77.3,
-                        center: { lat: 28.6139, lng: 77.209 },
-                    })
-                }
+                onClick={() => {
+                    console.log("Mock map moved clicked, onMapMoveEnd present?", !!onMapMoveEnd);
+                    onMapMoveEnd?.(
+                        {
+                            south: 28.5,
+                            west: 77.1,
+                            north: 28.7,
+                            east: 77.3,
+                            center: { lat: 28.6139, lng: 77.209 },
+                        } as any,
+                        14
+                    );
+                }}
             >
                 Mock map moved
             </button>
@@ -213,13 +218,19 @@ describe("PharmacyMapPage offline pharmacy cache", () => {
         render(<PharmacyMapPage />);
 
         await screen.findByTestId("mock-pharmacy-map");
-        screen.getByRole("button", { name: "Mock map ready" }).click();
+        fireEvent.click(screen.getByRole("button", { name: "Mock map ready" }));
         await waitFor(() => {
             expect(saveToCacheMock).toHaveBeenCalled();
         });
-        screen.getByRole("button", { name: "Mock map moved" }).click();
-        await screen.findByRole("button", { name: "Search this area" });
-        screen.getByRole("button", { name: "Search this area" }).click();
+        await waitFor(
+            () => {
+                expect(screen.queryByText(/Fetching pharmacies/i)).toBeNull();
+            },
+            { timeout: 2000 }
+        );
+        fireEvent.click(screen.getByRole("button", { name: "Mock map moved" }));
+        const searchAreaBtn = await screen.findByTestId("search-area-btn");
+        fireEvent.click(searchAreaBtn);
 
         await waitFor(() => {
             expect(fetchVerifiedPharmaciesInBoundsMock).toHaveBeenCalledWith(

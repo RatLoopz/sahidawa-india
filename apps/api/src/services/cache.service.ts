@@ -2,6 +2,7 @@ import { supabase } from "../db/client";
 import { hotDrugs } from "../db/seeds/hot_drugs_seed";
 import { redisClient } from "../utils/redis";
 import logger from "../utils/logger";
+
 // TTL Tiers in seconds
 export const TTL_TIERS = {
     HOT: 86400, // 24 hours
@@ -20,6 +21,8 @@ export const KEY_PREFIXES = {
     DRUG_CACHE: "drug:batch:",
     DRUG_HITS: "hits:drug:",
 };
+
+const CACHE_INVALIDATION_CHUNK_SIZE = 100;
 
 /**
  * Warms the Redis cache by loading all medicines from database matching the hot drugs seed.
@@ -215,19 +218,25 @@ export async function incrementMissCount(): Promise<number> {
 
 /**
  * Invalidates cache entries for specified drug IDs (resolves to batch numbers and deletes).
+ * Supabase query is capped at 1000 rows as a safety limit.
+ * Redis DEL commands are chunked at 100 keys each to avoid blocking the event loop.
+ * Returns the list of deleted cache keys for audit logging.
  */
-export async function invalidateDrugCache(drugIds: string[]): Promise<void> {
-    if (!redisClient.isOpen || drugIds.length === 0) return;
+export async function invalidateDrugCache(drugIds: string[]): Promise<string[]> {
+    if (!redisClient.isOpen || drugIds.length === 0) return [];
     try {
         const cleanIds = drugIds.map((id) => id.replace("drug:", ""));
+
+        // Safety cap: never pull more than 1000 batch rows in one query
         const { data, error } = await supabase
             .from("medicines")
             .select("batch_number")
-            .in("id", cleanIds);
+            .in("id", cleanIds)
+            .limit(1000);
 
         if (error) {
             logger.error("Failed to fetch batch numbers for invalidation", error);
-            return;
+            return [];
         }
 
         if (data && data.length > 0) {
@@ -237,14 +246,21 @@ export async function invalidateDrugCache(drugIds: string[]): Promise<void> {
                 .map((batch) => `${KEY_PREFIXES.DRUG_CACHE}${batch}`);
 
             if (keysToDelete.length > 0) {
-                await redisClient.del(keysToDelete);
+                // Chunk DEL to avoid blocking the Redis event loop
+                for (let i = 0; i < keysToDelete.length; i += CACHE_INVALIDATION_CHUNK_SIZE) {
+                    const chunk = keysToDelete.slice(i, i + CACHE_INVALIDATION_CHUNK_SIZE);
+                    await redisClient.del(chunk);
+                }
                 logger.info(
                     `Invalidated cache keys: ${keysToDelete.join(", ").replace(/[\r\n]/g, "")}`
                 );
+                return keysToDelete;
             }
         }
+        return [];
     } catch (err) {
         logger.error("Error invalidating cache", err);
+        return [];
     }
 }
 

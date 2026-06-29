@@ -32,7 +32,8 @@ function buildRequest(
     fileType = "image/jpeg"
 ) {
     const formData = new FormData();
-    formData.append("file", new Blob(["fake-image-bytes"], { type: fileType }), "photo.jpg");
+    const fakeImageBytes = new Uint8Array([0xff, 0xd8, 0xff, 0x00]);
+    formData.append("file", new Blob([fakeImageBytes], { type: fileType }), "photo.jpg");
     for (const [key, value] of Object.entries(fields)) {
         formData.append(key, value);
     }

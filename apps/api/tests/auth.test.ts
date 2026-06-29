@@ -293,6 +293,9 @@ describe("auth middleware — security: BYPASS_AUTH_FOR_TESTING hardening (auth 
 
         expect(next).toHaveBeenCalled();
         expect(req.user?.role).toBe("user");
+    });
+});
+
 describe("getUserRole", () => {
     const buildUser = (app_metadata, user_metadata): User =>
         ({

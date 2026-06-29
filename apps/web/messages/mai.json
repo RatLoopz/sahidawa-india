@@ -435,7 +435,8 @@
         "title": "SahiDawa AI",
         "status": "ऑनलाइन",
         "welcome": "नमस्ते! हम SahiDawa AI सहायक छी। आइ अहाँक दवाइक बारेमे कोना सहायता करू?",
-        "placeholder": "दवाइक बारेमे पूछू..."
+        "placeholder": "दवाइक बारेमे पूछू...",
+        "tooltipLabel": "AI Health Assistant"
     },
     "Alerts": {
         "backHome": "होम पेज पर वापस जाऊ",

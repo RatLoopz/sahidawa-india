@@ -2,8 +2,7 @@ import "./tracing";
 import app from "./app";
 import { createGracefulShutdown } from "./gracefulShutdown";
 import logger from "./utils/logger";
-import { startAlertBroadcaster } from "./cron/alert-broadcaster";
-import { startTempCleanupJob } from "./cron/tempCleanup";
+import { jobScheduler } from "./services/jobScheduler.service";
 import { connectRedis } from "./utils/redis";
 import { warmCache } from "./services/cache.service";
 
@@ -35,8 +34,19 @@ if (
         "FATAL: BYPASS_AUTH_FOR_TESTING must never be set outside local development. " +
             "Detected a non-development NODE_ENV or a cloud platform environment variable."
     );
+}
+
 if (process.env.NODE_ENV === "production" && process.env.VERIFY_ENABLE_MOCKS === "true") {
     throw new Error("FATAL: VERIFY_ENABLE_MOCKS must not be enabled in production.");
+}
+
+if (process.env.BYPASS_AUTH_FOR_TESTING === "true") {
+    if (process.env.RAILWAY_ENVIRONMENT_NAME || process.env.NODE_ENV === "production") {
+        throw new Error("FATAL: BYPASS_AUTH_FOR_TESTING must never be set in cloud environments.");
+    }
+    logger.warn(
+        "SECURITY WARNING: BYPASS_AUTH_FOR_TESTING is active. Authentication is disabled for local testing."
+    );
 }
 
 if (process.env.NODE_ENV !== "test") {
@@ -48,8 +58,7 @@ if (process.env.NODE_ENV !== "test") {
         await warmCache();
 
         // Start cron jobs only after Redis is ready
-        startAlertBroadcaster();
-        startTempCleanupJob();
+        jobScheduler.start();
     });
 
     const gracefulShutdown = createGracefulShutdown(server);
@@ -61,4 +70,12 @@ if (process.env.NODE_ENV !== "test") {
     process.on("unhandledRejection", (reason) => {
         void gracefulShutdown("unhandledRejection", reason);
     });
+
+    const shutdown = () => {
+        jobScheduler.shutdown();
+        process.exit(0);
+    };
+
+    process.on("SIGTERM", shutdown);
+    process.on("SIGINT", shutdown);
 }

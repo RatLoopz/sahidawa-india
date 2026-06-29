@@ -93,6 +93,7 @@ const inventoryRowSchema = z.object({
 router.post(
     "/",
     requireAuth,
+    limiter,
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
         const parsed = registerPharmacySchema.safeParse(req.body);
         if (!parsed.success) {
@@ -772,32 +773,12 @@ router.get(
         } catch (err) {
             next(err);
         }
-
-        const pharmacies: FormattedPharmacy[] = ((allPharmacies || []) as PharmacyRow[])
-            .filter((p: PharmacyRow) => p.status === "approved")
-            .map((p: PharmacyRow) => {
-                const coords = extractCoordinates(p);
-                const distanceKm = calculateDistanceKM(
-                    centerLat,
-                    centerLng,
-                    coords.lat,
-                    coords.lng
-                );
-                return { ...formatPharmacy(p, distanceKm), coords };
-            })
-            .filter((p) => p.coords.lat !== 0 && p.coords.lng !== 0)
-            .slice(0, MAX_RESULTS)
-            .map(({ coords, ...rest }) => rest);
-
-        setGeospatialCacheHeaders(res);
-        res.json({ pharmacies });
-    } catch (err) {
-        next(err);
     }
 );
 router.post(
     "/bulk-upload",
     requireAuth,
+    limiter,
     async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             if (!req.user) {
@@ -907,6 +888,7 @@ router.post(
 router.put(
     "/:id",
     requireAuth,
+    limiter,
     async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const pharmacyId = req.params.id;
@@ -965,6 +947,7 @@ router.put(
 router.delete(
     "/:id",
     requireAuth,
+    limiter,
     async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const pharmacyId = req.params.id;
@@ -1013,6 +996,7 @@ router.delete(
 router.post(
     "/:id/inventory/upload",
     requireAuth,
+    limiter,
     upload.single("file"),
     async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
         try {

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
 import { cookies } from "next/headers";
@@ -20,7 +20,7 @@ const hasRedisCredentials =
 
 const redis = hasRedisCredentials ? Redis.fromEnv() : null;
 
-export async function GET(request: NextRequest) {
+export async function GET() {
     try {
         // Security: Verify admin session
         const cookieStore = await cookies();
@@ -70,6 +70,10 @@ export async function GET(request: NextRequest) {
                     },
                 ],
                 totalRejections: 23,
+                otpMetrics: {
+                    totalHits: 12,
+                    blocked: 3,
+                },
                 windowSeconds: 60,
                 fetchedAt: new Date().toISOString(),
                 isDemo: true,
@@ -85,10 +89,17 @@ export async function GET(request: NextRequest) {
             count: number;
             lastBlocked: string;
         }
+        interface OtpMetrics {
+            totalHits: number;
+            blocked: number;
+        }
 
         const blockedIps: BlockedIP[] = [];
         let totalRejections = 0;
-
+        const otpMetrics: OtpMetrics = {
+            totalHits: 0,
+            blocked: 0,
+        };
         // Aggregate rejection data per IP
         const ipMap = new Map<string, { count: number; lastBlocked: string }>();
 
@@ -97,13 +108,12 @@ export async function GET(request: NextRequest) {
                 // Key format: upstash_ratelimit_<identifier>
                 // Extract IP or identifier from key
                 const identifier = key.replace("upstash_ratelimit_", "");
-
+                const isOtpKey = key.includes("notification_register");
                 // Fetch the value (contains rejection count and timestamp)
                 const data = await redis.get(key);
 
                 if (data) {
                     // Data structure from Upstash: { limit, remaining, reset, pending, success }
-                    // For failed requests: success = false
                     const count = typeof data === "number" ? data : 1;
                     const now = new Date().toISOString();
 
@@ -112,9 +122,16 @@ export async function GET(request: NextRequest) {
                     }
 
                     const current = ipMap.get(identifier)!;
+
                     current.count += count;
                     current.lastBlocked = now;
+
                     totalRejections += count;
+
+                    if (isOtpKey) {
+                        otpMetrics.totalHits += count;
+                        otpMetrics.blocked += 1;
+                    }
                 }
             } catch (err) {
                 // Skip malformed keys
@@ -137,6 +154,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
             blockedIps: blockedIps.slice(0, 100), // Limit to top 100 IPs
             totalRejections,
+            otpMetrics,
             windowSeconds: 60,
             fetchedAt: new Date().toISOString(),
             isDemo: false,

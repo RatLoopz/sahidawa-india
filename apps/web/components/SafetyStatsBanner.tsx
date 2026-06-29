@@ -225,8 +225,8 @@ export default function SafetyStatsBanner() {
         fetchAlerts();
     }, []);
 
-    const now = new Date();
-    const monthName = now.toLocaleString("default", { month: "long" });
+    // const now = new Date();
+    // const monthName = now.toLocaleString("default", { month: "long" });
 
     const cardData = [
         { ...STAT_CONFIG[0], count: banned },

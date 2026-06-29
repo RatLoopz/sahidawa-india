@@ -22,6 +22,13 @@ jest.mock("@/lib/rateLimit", () => ({
     },
 }));
 
+jest.mock("@/lib/redis", () => ({
+    redis: {
+        get: jest.fn().mockResolvedValue(null),
+        set: jest.fn().mockResolvedValue("OK"),
+    },
+}));
+
 function buildRequest(body: any, headers: Record<string, string> = {}) {
     return new Request("http://localhost/api/overpass", {
         method: "POST",

@@ -146,7 +146,7 @@ export const createAuthMiddleware =
                     error.message?.includes("refused");
 
                 if (isConnectionError) {
-                    if (dbConfig) dbConfig.isSupabaseOffline = true;
+                    if (dbConfig) dbConfig.setOffline();
                     logger.warn({
                         message: "Supabase auth server returned connection error.",
                         error: error.message,
@@ -193,7 +193,7 @@ export const createAuthMiddleware =
                 errMsg.includes("refused") ||
                 errMsg.includes("timeout")
             ) {
-                if (dbConfig) dbConfig.isSupabaseOffline = true;
+                if (dbConfig) dbConfig.setOffline();
             }
 
             logger.warn({
@@ -258,7 +258,7 @@ export const createOptionalAuthMiddleware =
                     error.message?.includes("refused");
 
                 if (isConnectionError) {
-                    if (dbConfig) dbConfig.isSupabaseOffline = true;
+                    if (dbConfig) dbConfig.setOffline();
                     logger.warn({
                         message: "Supabase auth server returned connection error.",
                         error: error.message,
@@ -309,7 +309,7 @@ export const createOptionalAuthMiddleware =
                 errMsg.includes("refused") ||
                 errMsg.includes("timeout")
             ) {
-                if (dbConfig) dbConfig.isSupabaseOffline = true;
+                if (dbConfig) dbConfig.setOffline();
             }
 
             logger.warn({

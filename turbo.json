@@ -12,7 +12,10 @@
                 "CLOUDINARY_CLOUD_NAME",
                 "CLOUDINARY_API_KEY",
                 "CLOUDINARY_API_SECRET",
-                "NEXT_PUBLIC_*"
+                "NEXT_PUBLIC_SUPABASE_URL",
+                "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+                "NEXT_PUBLIC_API_URL",
+                "NEXT_PUBLIC_SITE_URL"
             ]
         },
         "test": {

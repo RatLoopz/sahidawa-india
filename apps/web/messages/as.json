@@ -381,7 +381,8 @@
         "title": "SahiDawa AI",
         "status": "অনলাইন",
         "welcome": "নমস্কাৰ! মই SahiDawa AI সহায়ক। আজি আপোনাৰ ঔষধৰ বিষয়ে কেনেকৈ সহায় কৰিব পাৰো?",
-        "placeholder": "ঔষধৰ বিষয়ে সোধক..."
+        "placeholder": "ঔষধৰ বিষয়ে সোধক...",
+        "tooltipLabel": "AI Health Assistant"
     },
     "Alerts": {
         "backHome": "হোম পেজলৈ ঘূৰি যাওক",
