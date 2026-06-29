@@ -23,6 +23,26 @@ interface GenericAlternativeCardProps {
     alternative: GenericAlternative;
 }
 
+function getSavedMedicineBookmarks(): GenericAlternative[] {
+    if (typeof window === "undefined") return [];
+
+    try {
+        const stored = localStorage.getItem("medicine-bookmarks");
+        if (!stored) return [];
+
+        const parsed = JSON.parse(stored);
+        if (!Array.isArray(parsed)) {
+            localStorage.setItem("medicine-bookmarks", "[]");
+            return [];
+        }
+
+        return parsed;
+    } catch {
+        localStorage.setItem("medicine-bookmarks", "[]");
+        return [];
+    }
+}
+
 export default function GenericAlternativeCard({ alternative }: GenericAlternativeCardProps) {
     const router = useRouter();
     const params = useParams();
@@ -31,7 +51,7 @@ export default function GenericAlternativeCard({ alternative }: GenericAlternati
     const [isBookmarked, setIsBookmarked] = useState(false);
 
     useEffect(() => {
-        const saved = JSON.parse(localStorage.getItem("medicine-bookmarks") || "[]");
+        const saved = getSavedMedicineBookmarks();
         const exists = saved.some(
             (item: GenericAlternative) => item.alternative_name === alternative.alternative_name
         );
@@ -39,7 +59,7 @@ export default function GenericAlternativeCard({ alternative }: GenericAlternati
     }, [alternative.alternative_name]);
 
     const handleBookmark = () => {
-        const saved = JSON.parse(localStorage.getItem("medicine-bookmarks") || "[]");
+        const saved = getSavedMedicineBookmarks();
         if (isBookmarked) {
             const filtered = saved.filter(
                 (item: GenericAlternative) => item.alternative_name !== alternative.alternative_name

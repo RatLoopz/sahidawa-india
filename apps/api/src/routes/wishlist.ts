@@ -7,12 +7,19 @@ import { limiter } from "../middleware/rateLimit";
 
 const router = Router();
 
+const MAX_WISHLIST_BATCH_PRODUCT_IDS = 100;
+
 const wishlistItemSchema = z.object({
     product_id: z.string().uuid("Invalid product ID"),
 });
 
+const wishlistBatchProductIdsSchema = z
+    .array(z.string().uuid())
+    .nonempty("At least one product ID required")
+    .max(MAX_WISHLIST_BATCH_PRODUCT_IDS, "Maximum 100 product IDs allowed");
+
 const guestWishlistSchema = z.object({
-    product_ids: z.array(z.string().uuid()).nonempty("At least one product ID required"),
+    product_ids: wishlistBatchProductIdsSchema,
 });
 
 interface WishlistItem {
@@ -260,7 +267,7 @@ router.post(
     requireAuth,
     limiter,
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-        const parsed = z.object({ product_ids: z.array(z.string().uuid()) }).safeParse(req.body);
+        const parsed = z.object({ product_ids: wishlistBatchProductIdsSchema }).safeParse(req.body);
         if (!parsed.success) {
             res.status(400).json({
                 error: "Invalid request",
