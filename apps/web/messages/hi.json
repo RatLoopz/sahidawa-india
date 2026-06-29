@@ -42,7 +42,6 @@
             "prefix": "आपका स्वास्थ्य, ",
             "highlight": "सत्यापित और सुरक्षित।"
         },
-
         "scan_section_title": "दवा स्कैन और सत्यापित करें",
         "scan_section_subtitle": "बारकोड या पैकेज स्कैनिंग का उपयोग करके दवा की प्रामाणिकता सत्यापित करें।",
         "powerful_capabilities": "शक्तिशाली क्षमताएं",
@@ -1168,27 +1167,5 @@
         "warningsLabel": "चेतावनियाँ",
         "ariaStartRecording": "रिकॉर्डिंग शुरू करें",
         "ariaStopRecording": "रिकॉर्डिंग रोकें"
-    },
-    "AdminSynonyms": {
-        "title": "OCR Synonyms",
-        "subtitle": "Manage OCR misreads and medicine synonyms.",
-        "refresh": "Refresh",
-        "addNew": "Add New Rule",
-        "originalTerm": "Original Term",
-        "normalizedTerm": "Normalized Term",
-        "originalPlaceholder": "e.g., asprin",
-        "normalizedPlaceholder": "e.g., aspirin",
-        "typeLabel": "Type",
-        "typeSynonym": "Synonym",
-        "typeMisread": "OCR Misread",
-        "addButton": "Add Rule",
-        "listTitle": "Existing Rules",
-        "emptyList": "No rules found.",
-        "actions": "Actions",
-        "delete": "Delete",
-        "confirmDelete": "Are you sure you want to delete this rule?",
-        "fetchError": "Failed to fetch rules.",
-        "addError": "Failed to add rule.",
-        "deleteError": "Failed to delete rule."
     }
 }

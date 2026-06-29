@@ -756,27 +756,5 @@
             "confirmPasswordRequired": "Please confirm your password.",
             "passwordMismatch": "Passwords do not match."
         }
-    },
-    "AdminSynonyms": {
-        "title": "OCR Synonyms",
-        "subtitle": "Manage OCR misreads and medicine synonyms.",
-        "refresh": "Refresh",
-        "addNew": "Add New Rule",
-        "originalTerm": "Original Term",
-        "normalizedTerm": "Normalized Term",
-        "originalPlaceholder": "e.g., asprin",
-        "normalizedPlaceholder": "e.g., aspirin",
-        "typeLabel": "Type",
-        "typeSynonym": "Synonym",
-        "typeMisread": "OCR Misread",
-        "addButton": "Add Rule",
-        "listTitle": "Existing Rules",
-        "emptyList": "No rules found.",
-        "actions": "Actions",
-        "delete": "Delete",
-        "confirmDelete": "Are you sure you want to delete this rule?",
-        "fetchError": "Failed to fetch rules.",
-        "addError": "Failed to add rule.",
-        "deleteError": "Failed to delete rule."
     }
 }
