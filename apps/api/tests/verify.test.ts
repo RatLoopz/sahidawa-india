@@ -11,6 +11,7 @@ jest.mock("../src/db/client", () => {
         eq: jest.fn().mockReturnThis(),
         gte: jest.fn().mockReturnThis(),
         insert: jest.fn().mockReturnThis(),
+        rpc: jest.fn().mockReturnThis(),
     };
 
     return { supabase: mock };
@@ -24,33 +25,35 @@ describe("POST /api/verify", () => {
     });
 
     it("should verify a valid batch number", async () => {
-        // Mock scan history counts and insert
-        ((supabase as any).gte as jest.Mock)
-            .mockResolvedValueOnce({ count: 0, error: null })
-            .mockResolvedValueOnce({ count: 0, error: null });
         ((supabase as any).insert as jest.Mock).mockResolvedValue({ data: null, error: null });
 
         // Mock a successful lookup
-        ((supabase as any).maybeSingle as jest.Mock).mockResolvedValue({
-            data: {
-                id: "11111111-1111-1111-1111-111111111111",
-                barcode_id: "1234567890123",
-                brand_name: "Test Brand",
-                generic_name: "Test Generic",
-                manufacturer: "Test Mfg",
-                batch_number: "AUG625D",
-                expiry_date: "2025-12-31",
-                cdsco_approval_status: "Approved",
-                is_counterfeit_alert: false,
-                is_cdsco_verified: true,
-                cdsco_match_score: 98.4,
-                matched_cdsco_product: "Test Brand",
-                matched_cdsco_manufacturer: "Test Mfg",
-                product_match_score: 97,
-                manufacturer_match_score: 100,
-            },
-            error: null,
-        });
+        ((supabase as any).maybeSingle as jest.Mock)
+            // 1. lookupDrugByBatch
+            .mockResolvedValueOnce({
+                data: {
+                    id: "11111111-1111-1111-1111-111111111111",
+                    barcode_id: "1234567890123",
+                    brand_name: "Test Brand",
+                    generic_name: "Test Generic",
+                    manufacturer: "Test Mfg",
+                    batch_number: "AUG625D",
+                    expiry_date: "2025-12-31",
+                    cdsco_approval_status: "Approved",
+                    is_counterfeit_alert: false,
+                    is_cdsco_verified: true,
+                    cdsco_match_score: 98.4,
+                    matched_cdsco_product: "Test Brand",
+                    matched_cdsco_manufacturer: "Test Mfg",
+                    product_match_score: 97,
+                    manufacturer_match_score: 100,
+                },
+                error: null,
+            })
+            // 2. batch recall check
+            .mockResolvedValueOnce({ data: { recall_status: "none" }, error: null })
+            // 3. scan counts RPC
+            .mockResolvedValueOnce({ data: { count_24h: 0, count_7d: 0 }, error: null });
 
         const res = await request(app)
             .post("/api/verify")
@@ -67,30 +70,33 @@ describe("POST /api/verify", () => {
     });
 
     it("should flag suspicious duplicate scan volume", async () => {
-        ((supabase as any).gte as jest.Mock)
-            .mockResolvedValueOnce({ count: 2, error: null })
-            .mockResolvedValueOnce({ count: 5, error: null });
         ((supabase as any).insert as jest.Mock).mockResolvedValue({ data: null, error: null });
-        ((supabase as any).maybeSingle as jest.Mock).mockResolvedValueOnce({
-            data: {
-                id: "11111111-1111-1111-1111-111111111111",
-                barcode_id: "1234567890123",
-                brand_name: "Test Brand",
-                generic_name: "Test Generic",
-                manufacturer: "Test Mfg",
-                batch_number: "AUG625D",
-                expiry_date: "2025-12-31",
-                cdsco_approval_status: "Approved",
-                is_counterfeit_alert: false,
-                is_cdsco_verified: false,
-                cdsco_match_score: 42.1,
-                matched_cdsco_product: null,
-                matched_cdsco_manufacturer: null,
-                product_match_score: 44,
-                manufacturer_match_score: 38,
-            },
-            error: null,
-        });
+        ((supabase as any).maybeSingle as jest.Mock)
+            // 1. lookupDrugByBatch
+            .mockResolvedValueOnce({
+                data: {
+                    id: "11111111-1111-1111-1111-111111111111",
+                    barcode_id: "1234567890123",
+                    brand_name: "Test Brand",
+                    generic_name: "Test Generic",
+                    manufacturer: "Test Mfg",
+                    batch_number: "AUG625D",
+                    expiry_date: "2025-12-31",
+                    cdsco_approval_status: "Approved",
+                    is_counterfeit_alert: false,
+                    is_cdsco_verified: false,
+                    cdsco_match_score: 42.1,
+                    matched_cdsco_product: null,
+                    matched_cdsco_manufacturer: null,
+                    product_match_score: 44,
+                    manufacturer_match_score: 38,
+                },
+                error: null,
+            })
+            // 2. batch recall check
+            .mockResolvedValueOnce({ data: { recall_status: "none" }, error: null })
+            // 3. scan counts RPC
+            .mockResolvedValueOnce({ data: { count_24h: 2, count_7d: 5 }, error: null });
 
         const res = await request(app)
             .post("/api/verify")
