@@ -207,9 +207,7 @@ function SearchSuggestions({
                                                     : "text-slate-300 opacity-0 group-hover:opacity-100"
                                             }`}
                                             aria-label={
-                                                item.pinned
-                                                    ? "Unpin search query"
-                                                    : "Pin search query"
+                                                item.pinned ? "Unpin search query" : "Pin search query"
                                             }
                                         >
                                             <Pin
@@ -237,7 +235,9 @@ function SearchSuggestions({
                     </div>
                 </>
             ) : (
-                <div style={{ height: `${virtualizer.getTotalSize()}px`, position: "relative" }}>
+                <div
+                    style={{ height: `${virtualizer.getTotalSize()}px`, position: "relative" }}
+                >
                     {virtualizer.getVirtualItems().map((virtualItem) => {
                         const suggestion = suggestions[virtualItem.index];
                         const isActive = virtualItem.index === activeIndex;
@@ -271,9 +271,7 @@ function SearchSuggestions({
                                     className={`shrink-0 ${isActive ? "text-emerald-500" : "text-slate-400"}`}
                                     aria-hidden="true"
                                 />
-                                <span className="truncate">
-                                    {highlightMatch(suggestion, query)}
-                                </span>
+                                <span className="truncate">{highlightMatch(suggestion, query)}</span>
                             </li>
                         );
                     })}

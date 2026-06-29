@@ -11,7 +11,9 @@ export const dbConfig = {
         if (!this.isSupabaseOffline) {
             this.isSupabaseOffline = true;
             this.offlineSince = new Date();
-            logger.warn("Supabase marked offline. Auto-recovery probe will reset this every 30s.");
+            logger.warn(
+                "Supabase marked offline. Auto-recovery probe will reset this every 30s."
+            );
         }
     },
     setOnline() {

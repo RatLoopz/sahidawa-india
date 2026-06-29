@@ -42,60 +42,19 @@ const extractToken = (req: Request): string | null => {
 };
 
 const getMockUser = (): AuthenticatedUser => {
-    // SECURITY: default is "user", never "admin" — an unset MOCK_USER_ROLE
-    // must never silently grant elevated privileges, even in the legitimate
-    // local-dev bypass case.
-    const mockRole = (process.env.MOCK_USER_ROLE as AuthRole) || "user";
     return {
         id: process.env.MOCK_USER_ID || "mock-user-id",
         email: process.env.MOCK_USER_EMAIL || "mock@sahidawa.local",
-        role: mockRole,
+        role: (process.env.MOCK_USER_ROLE as AuthRole) || "user",
         raw: {
             id: process.env.MOCK_USER_ID || "mock-user-id",
             email: process.env.MOCK_USER_EMAIL || "mock@sahidawa.local",
-            app_metadata: { role: mockRole },
+            app_metadata: { role: process.env.MOCK_USER_ROLE || "user" },
             user_metadata: {},
             aud: "authenticated",
             created_at: new Date().toISOString(),
         } as User,
     };
-};
-
-/**
- * SECURITY: The auth bypass (BYPASS_AUTH_FOR_TESTING) exists only to let a
- * developer keep working against a local API when their local Supabase is
- * offline. It must never be reachable from anywhere but the developer's own
- * machine — env vars can leak into a deploy, but request origin can't be
- * spoofed by a misconfigured .env alone.
- */
-const LOCALHOST_IPS = new Set(["127.0.0.1", "::1", "::ffff:127.0.0.1"]);
-
-const isLocalhostRequest = (req: Request): boolean => LOCALHOST_IPS.has(req.ip ?? "");
-
-/**
- * Returns true only when every condition required to use the local-dev auth
- * bypass is satisfied: explicit opt-in env var, development environment, and
- * the request physically originating from localhost. Logs a visible warning
- * the moment the bypass is about to be used so it's never silently active.
- */
-const canUseAuthBypass = (req: Request): boolean => {
-    if (process.env.NODE_ENV !== "development" || process.env.BYPASS_AUTH_FOR_TESTING !== "true") {
-        return false;
-    }
-
-    if (!isLocalhostRequest(req)) {
-        logger.warn({
-            message:
-                "Auth bypass env vars are set but request did not originate from localhost — bypass denied.",
-            ip: req.ip,
-        });
-        return false;
-    }
-
-    logger.warn(
-        "SECURITY WARNING: AUTH BYPASS ACTIVE — request authenticated via BYPASS_AUTH_FOR_TESTING mock user. This must never happen outside local development."
-    );
-    return true;
 };
 
 export const createAuthMiddleware =
@@ -109,7 +68,15 @@ export const createAuthMiddleware =
         }
 
         if (dbConfig?.isSupabaseOffline) {
-            if (canUseAuthBypass(req)) {
+            if (
+                process.env.NODE_ENV === "development" &&
+                process.env.BYPASS_AUTH_FOR_TESTING === "true"
+            ) {
+                const isLocalhost = ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(req.ip ?? "");
+                if (!isLocalhost) {
+                    res.status(401).json({ error: "Auth bypass is only valid for localhost" });
+                    return;
+                }
                 req.user = getMockUser();
                 next();
             } else {
@@ -151,7 +118,19 @@ export const createAuthMiddleware =
                         message: "Supabase auth server returned connection error.",
                         error: error.message,
                     });
-                    if (canUseAuthBypass(req)) {
+                    if (
+                        process.env.NODE_ENV === "development" &&
+                        process.env.BYPASS_AUTH_FOR_TESTING === "true"
+                    ) {
+                        const isLocalhost = ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(
+                            req.ip ?? ""
+                        );
+                        if (!isLocalhost) {
+                            res.status(401).json({
+                                error: "Auth bypass is only valid for localhost",
+                            });
+                            return;
+                        }
                         req.user = getMockUser();
                         next();
                         return;
@@ -201,7 +180,10 @@ export const createAuthMiddleware =
                 error: errMsg,
             });
 
-            if (canUseAuthBypass(req)) {
+            if (
+                process.env.NODE_ENV === "development" &&
+                process.env.BYPASS_AUTH_FOR_TESTING === "true"
+            ) {
                 req.user = getMockUser();
                 next();
             } else {
@@ -224,7 +206,10 @@ export const createOptionalAuthMiddleware =
         }
 
         if (dbConfig?.isSupabaseOffline) {
-            if (canUseAuthBypass(req)) {
+            if (
+                process.env.NODE_ENV === "development" &&
+                process.env.BYPASS_AUTH_FOR_TESTING === "true"
+            ) {
                 req.user = getMockUser();
             }
             return next();
@@ -263,7 +248,10 @@ export const createOptionalAuthMiddleware =
                         message: "Supabase auth server returned connection error.",
                         error: error.message,
                     });
-                    if (canUseAuthBypass(req)) {
+                    if (
+                        process.env.NODE_ENV === "development" &&
+                        process.env.BYPASS_AUTH_FOR_TESTING === "true"
+                    ) {
                         req.user = getMockUser();
                     }
                     next();
@@ -317,7 +305,10 @@ export const createOptionalAuthMiddleware =
                 error: errMsg,
             });
 
-            if (canUseAuthBypass(req)) {
+            if (
+                process.env.NODE_ENV === "development" &&
+                process.env.BYPASS_AUTH_FOR_TESTING === "true"
+            ) {
                 req.user = getMockUser();
             }
             next();

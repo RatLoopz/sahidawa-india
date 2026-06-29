@@ -27,9 +27,7 @@ interface MetricsData {
 }
 
 type LoadState =
-    | { kind: "loading" }
-    | { kind: "error"; message: string }
-    | { kind: "ready"; data: MetricsData };
+    { kind: "loading" } | { kind: "error"; message: string } | { kind: "ready"; data: MetricsData };
 
 export default function RateLimitsPage() {
     const [state, setState] = useState<LoadState>({ kind: "loading" });

@@ -138,7 +138,7 @@ const deletePhoneSchema = z.object({
     phone: z.string().min(10).max(20).optional(),
 });
 
-import { formatPhoneNumber } from "../utils/phone"; // Local in-memory fallback store for development when Supabase is offline
+import { formatPhoneNumber } from '../utils/phone';// Local in-memory fallback store for development when Supabase is offline
 interface InMemorySubscriber {
     id: string;
     user_id: string | null;
