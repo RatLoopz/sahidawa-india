@@ -322,7 +322,7 @@ export async function POST(req: Request) {
 
                 // Fallback direct Gemini call
                 const response = await ai.models.generateContent({
-                    model: "gemini-2.5-flash",
+                    model: "gemini-3.5-flash",
                     contents: buildVoiceTriagePrompt(
                         latestMessageText,
                         typeof responseLanguage === "string" && responseLanguage.trim().length > 0
@@ -372,7 +372,7 @@ export async function POST(req: Request) {
                 if (!summary) {
                     const summaryPrompt = `Summarize the following conversation history briefly to retain key context for the ongoing chat. Keep it concise.\n\n${droppedText}`;
                     const summaryResponse = await ai.models.generateContent({
-                        model: "gemini-2.5-flash",
+                        model: "gemini-3.5-flash",
                         contents: summaryPrompt,
                     });
 
@@ -461,7 +461,7 @@ export async function POST(req: Request) {
         const systemPrompt = BASE_PROMPT.replace("{language}", language);
 
         const responseStream = (await ai.models.generateContentStream({
-            model: "gemini-2.5-flash",
+            model: "gemini-3.5-flash",
             contents: formattedContents,
             config: {
                 systemInstruction: systemPrompt,

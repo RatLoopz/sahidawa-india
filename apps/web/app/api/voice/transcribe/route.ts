@@ -43,7 +43,7 @@ export async function POST(req: Request) {
         });
         return NextResponse.json({ error: "Audio file is required." }, { status: 400 });
     }
-    
+
     const MAX_AUDIO_SIZE_MB = 10;
     if (file.size > MAX_AUDIO_SIZE_MB * 1024 * 1024) {
         return NextResponse.json(
