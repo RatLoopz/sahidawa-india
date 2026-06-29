@@ -222,7 +222,7 @@ describe("VaccineHubPage Integration Tests", () => {
 
         // Enter date
         const dateInput = screen.getByLabelText(/birth date/i) as HTMLInputElement;
-        await user.type(dateInput, "2024-01-01");
+        await user.type(dateInput, "01012024");
 
         // Verify doses are calculated
         await waitFor(() => {
@@ -288,7 +288,7 @@ describe("VaccineHubPage Integration Tests", () => {
         await user.click(polioOption);
 
         const dateInput = screen.getByLabelText(/birth date/i) as HTMLInputElement;
-        await user.type(dateInput, "2024-01-01");
+        await user.type(dateInput, "01012024");
 
         // Unmount and remount
         unmount();
@@ -320,7 +320,7 @@ describe("VaccineHubPage Integration Tests", () => {
         await user.click(polioOption);
 
         const dateInput = screen.getByLabelText(/birth date/i) as HTMLInputElement;
-        await user.type(dateInput, "2024-01-01");
+        await user.type(dateInput, "01012024");
 
         expect(localStorage.getItem("vaccine-hub-initial-date")).toBe("2024-01-01");
 
@@ -329,7 +329,7 @@ describe("VaccineHubPage Integration Tests", () => {
         await user.click(selector);
 
         await waitFor(() => {
-            screen.getByText(/Measles/i);
+            expect(screen.getAllByText(/Measles/i)[0]).toBeInTheDocument();
         });
 
         const measlesOption = screen.getByText(/Measles, Mumps & Rubella/i);
