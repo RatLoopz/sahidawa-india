@@ -143,7 +143,7 @@ describe("POST /api/chat", () => {
         await expect(response.text()).resolves.toBe("Hello! I can help.");
 
         expect(generateContentStreamMock).toHaveBeenCalledWith({
-            model: "gemini-2.5-flash",
+            model: "gemini-3.5-flash",
             contents: [
                 { role: "user", parts: [{ text: "Hello" }] },
                 { role: "model", parts: [{ text: "Hi! How can I help you today?" }] },
