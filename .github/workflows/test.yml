@@ -60,6 +60,8 @@ jobs:
               run: npm run build
               env:
                   TURBO_CACHE_DIR: .turbo
+                  NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+                  NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key
 
             - name: 🧪 Run Tests
               run: npm run test
