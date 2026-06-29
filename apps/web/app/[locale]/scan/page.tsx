@@ -40,23 +40,15 @@ function formatMedicineDetails(medicine: VerifiedMedicine) {
 }
 
 async function copyTextToClipboard(text: string) {
+    if (!navigator.clipboard?.writeText) {
+        return false;
+    }
+
     try {
-        if (!navigator.clipboard?.writeText) {
-            throw new Error("Clipboard API unavailable");
-        }
         await navigator.clipboard.writeText(text);
         return true;
     } catch {
-        const textArea = document.createElement("textarea");
-        textArea.value = text;
-        textArea.setAttribute("readonly", "");
-        textArea.style.position = "fixed";
-        textArea.style.opacity = "0";
-        document.body.appendChild(textArea);
-        textArea.select();
-        const copied = document.execCommand("copy");
-        document.body.removeChild(textArea);
-        return copied;
+        return false;
     }
 }
 
