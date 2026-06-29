@@ -34,7 +34,7 @@ if (!GEMINI_API_KEY) {
   process.exit(1);
 }
 
-const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 const MAX_DIFF_CHARS = 12000; // Stay well within context limits
 
 // ─── Input ────────────────────────────────────────────────────────────────────
@@ -67,12 +67,11 @@ const prSlug      = ctx.prTitle
 
 // ─── Gemini API Call ──────────────────────────────────────────────────────────
 
-async function callGemini(prompt) {
+async function callGemini(prompt, retries = 3) {
   const body = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
       temperature: 0.3,
-      // No maxOutputTokens — let Gemini use its full default limit
     },
     safetySettings: [
       { category: "HARM_CATEGORY_HARASSMENT",        threshold: "BLOCK_NONE" },
@@ -82,36 +81,61 @@ async function callGemini(prompt) {
     ],
   };
 
-  const response = await fetch(GEMINI_ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  let lastErr = "";
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(GEMINI_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
 
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Gemini API error ${response.status}: ${err}`);
-  }
+      if (!response.ok) {
+        const err = await response.text();
+        if (response.status === 429 || response.status === 503 || response.status === 500) {
+          console.warn(`⚠️ Gemini API error ${response.status} on attempt ${attempt}: ${err}`);
+          lastErr = `Gemini API error ${response.status}: ${err}`;
+          if (attempt < retries) {
+            const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+            console.log(`⏳ Retrying in ${Math.round(delay / 1000)}s...`);
+            await new Promise(res => setTimeout(res, delay));
+            continue;
+          }
+        }
+        throw new Error(`Gemini API error ${response.status}: ${err}`);
+      }
 
-  const data = await response.json();
-  const candidate = data.candidates?.[0];
-  
-  if (!candidate) {
-    console.error("Gemini API returned no candidates:", JSON.stringify(data, null, 2));
-    throw new Error("No candidates returned from Gemini API.");
-  }
-  
-  if (candidate.finishReason && candidate.finishReason !== "STOP") {
-    console.warn(`⚠️ Warning: Gemini generation stopped early! Reason: ${candidate.finishReason}`);
-  }
+      const data = await response.json();
+      const candidate = data.candidates?.[0];
+      
+      if (!candidate) {
+        console.error("Gemini API returned no candidates:", JSON.stringify(data, null, 2));
+        throw new Error("No candidates returned from Gemini API.");
+      }
+      
+      if (candidate.finishReason && candidate.finishReason !== "STOP") {
+        console.warn(`⚠️ Warning: Gemini generation stopped early! Reason: ${candidate.finishReason}`);
+      }
 
-  const text = candidate.content?.parts?.[0]?.text || "";
-  
-  if (!text.trim()) {
-    console.error("Gemini API returned empty text. Full response:", JSON.stringify(data, null, 2));
-  }
+      const text = candidate.content?.parts?.[0]?.text || "";
+      
+      if (!text.trim()) {
+        console.error("Gemini API returned empty text. Full response:", JSON.stringify(data, null, 2));
+      }
 
-  return text;
+      return text;
+    } catch (e) {
+      lastErr = e.message;
+      if (attempt < retries && e.message.includes("fetch")) {
+         const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+         console.log(`⏳ Network error. Retrying in ${Math.round(delay / 1000)}s...`);
+         await new Promise(res => setTimeout(res, delay));
+         continue;
+      }
+      throw e;
+    }
+  }
+  throw new Error(`Failed after ${retries} attempts. Last error: ${lastErr}`);
 }
 
 // ─── Prompt Templates ─────────────────────────────────────────────────────────

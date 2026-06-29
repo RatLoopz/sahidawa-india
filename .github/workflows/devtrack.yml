@@ -147,7 +147,13 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # ── 7. Generate knowledge docs via Gemini ─────────────────────────────────
-      - name: "🤖 Generate knowledge doc (Gemini 2.5 Flash)"
+      - name: "🐛 Debug: Test Gemini Models"
+        run: node .github/scripts/test_gemini.mjs
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        if: steps.score.outputs.verdict != 'SKIP'
+
+      - name: "🤖 Generate knowledge doc (Gemini 3.5 Flash)"
         id: generate
         if: steps.score.outputs.verdict != 'SKIP'
         env:
