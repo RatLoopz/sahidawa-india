@@ -4,7 +4,7 @@ import { supabase } from "../db/client";
 import { verifyLimiter } from "../middleware/rateLimit";
 import { optionalAuth } from "../middleware/auth";
 import logger from "../utils/logger";
-import { lookupDrugByBatch } from "../services/drugLookup.service";
+import { lookupDrugByBatch, ServiceUnavailableError } from "../services/drugLookup.service";
 import { escapeIlike } from "../utils/db";
 import { isAllowedOrigin } from "../utils/originCheck";
 import { medicineNameNormalizer } from "../utils/medicineNameNormalizer";
@@ -14,6 +14,7 @@ function getBatchStatus(recallStatus: string | null | undefined): "safe" | "reca
     if (recallStatus === "recalled") return "recalled";
     return "unknown";
 }
+
 function maskClientIp(ip: string | undefined): string | null {
     if (!ip) return null;
 
@@ -131,9 +132,9 @@ const verifySchema = z
  *       400:
  *         description: Invalid request body
  *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Medicine not found in database
  *         content:
@@ -147,6 +148,25 @@ const verifySchema = z
  *                 message:
  *                   type: string
  *                   example: "Medicine not found"
+ *       503:
+ *         description: Both Redis and Supabase are unreachable
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 verified:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: object
+ *                   properties:
+ *                     code:
+ *                       type: string
+ *                       example: "errors.serviceUnavailable"
+ *                     message:
+ *                       type: string
+ *                       example: "Service temporarily unavailable. Please try again later."
  *       500:
  *         description: Database lookup failed
  *         content:
@@ -222,7 +242,7 @@ router.post(
                 generic_name: genericName,
                 manufacturer: "Micro Labs Ltd",
                 batch_number: upperBatch,
-                expiry_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000 * 2).toISOString(), // 2 years expiry
+                expiry_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000 * 2).toISOString(),
                 cdsco_approval_status: "approved",
                 is_counterfeit_alert: false,
                 is_cdsco_verified: true,
@@ -244,6 +264,7 @@ router.post(
             });
             return;
         }
+
         try {
             const data = await lookupDrugByBatch(batchNumber, {
                 brand_name: normalizedBrandName,
@@ -257,6 +278,7 @@ router.post(
                 });
                 return;
             }
+
             // Look up batch recall status from batches table
             const { data: batchData } = await supabase
                 .from("batches")
@@ -352,6 +374,23 @@ router.post(
                 },
             });
         } catch (err) {
+            // ServiceUnavailableError means both Redis and Supabase are unreachable
+            if (err instanceof ServiceUnavailableError) {
+                logger.error({
+                    message: "Both Redis and Supabase unreachable in /api/verify",
+                    code: err.code,
+                    route: "/api/verify",
+                });
+                res.status(503).json({
+                    verified: false,
+                    error: {
+                        code: err.code,
+                        message: err.message,
+                    },
+                });
+                return;
+            }
+
             logger.error({
                 message: "Unexpected error in /api/verify",
                 error: err,
