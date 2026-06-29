@@ -42,6 +42,7 @@ export default function Chatbot() {
     const pathname = usePathname();
     const t = useTranslations("chatbot");
     const tHome = useTranslations("Home");
+    const tA11y = useTranslations("A11y");
     const [isOpen, setIsOpen] = useState(false);
     const [isLoadingWelcome, setIsLoadingWelcome] = useState(true);
     const [messages, setMessages] = useState<Message[]>([
@@ -188,16 +189,16 @@ export default function Chatbot() {
                                 <button
                                     onClick={handleClear}
                                     className="rounded-full p-1.5 text-green-300 transition-colors hover:bg-white/20 hover:text-green-200"
-                                    aria-label="Confirm clear conversation"
-                                    title={t("confirmClear")}
+                                    aria-label={tA11y("confirmClearConversation")}
+                                    title={tA11y("confirmClearConversation")}
                                 >
                                     <Check size={16} />
                                 </button>
                                 <button
                                     onClick={() => setIsConfirmingClear(false)}
                                     className="rounded-full p-1.5 text-red-300 transition-colors hover:bg-white/20 hover:text-red-200"
-                                    aria-label="Cancel clear conversation"
-                                    title={t("cancelClear")}
+                                    aria-label={tA11y("cancelClearConversation")}
+                                    title={tA11y("cancelClearConversation")}
                                 >
                                     <X size={16} />
                                 </button>
@@ -215,14 +216,14 @@ export default function Chatbot() {
                         <Link
                             href="/"
                             className="rounded-full p-2 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
-                            aria-label="Go to homepage"
+                            aria-label={tA11y("goToHomepage")}
                         >
                             <Home size={18} />
                         </Link>
                         <button
                             onClick={() => setIsOpen(false)}
                             className="rounded-full p-2 text-white transition-colors hover:bg-white/20"
-                            aria-label="Close chat"
+                            aria-label={tA11y("closeChat")}
                         >
                             <X size={20} />
                         </button>
@@ -264,7 +265,7 @@ export default function Chatbot() {
                         onClick={handleSend}
                         disabled={!input.trim()}
                         className="flex h-11 w-11 items-center justify-center rounded-full bg-green-600 p-3 text-white shadow-md transition-colors hover:bg-green-700 disabled:opacity-50 dark:bg-green-700 dark:hover:bg-green-800"
-                        aria-label="Send message"
+                        aria-label={tA11y("sendMessage")}
                     >
                         <Send size={18} className="relative right-[1px] bottom-[1px]" />
                     </button>
@@ -281,7 +282,7 @@ export default function Chatbot() {
                 <button
                     onClick={() => setIsOpen(!isOpen)}
                     className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full bg-green-600 text-white shadow-[0_8px_20px_rgba(22,163,74,0.3)] transition-all hover:scale-105 hover:shadow-[0_8px_25px_rgba(22,163,74,0.4)] active:scale-95 dark:bg-green-700 dark:hover:bg-green-800"
-                    aria-label={isOpen ? "Close AI chat" : "Open AI chat"}
+                    aria-label={isOpen ? tA11y("closeAiChat") : tA11y("openAiChat")}
                 >
                     {isOpen ? <X size={28} /> : <MessageSquare size={28} />}
                 </button>

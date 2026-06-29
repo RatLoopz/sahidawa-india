@@ -37,6 +37,7 @@ export default function MobileMenu({
     const pathname = usePathname();
     const tHome = useTranslations("Home");
     const tNav = useTranslations("Navigation");
+    const tA11y = useTranslations("A11y");
     const menuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -69,7 +70,7 @@ export default function MobileMenu({
             <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
-                aria-label="Toggle system parameters"
+                aria-label={tA11y("toggleSystemParameters")}
                 aria-expanded={isMenuOpen}
             >
                 {isMenuOpen ? <X size={16} /> : <Menu size={16} />}

@@ -193,7 +193,7 @@ router.get("/status", optionalAuth, async (req: AuthenticatedRequest, res) => {
                         error.message?.includes("refused") ||
                         error.message?.includes("timeout")
                     ) {
-                        if (dbConfig) dbConfig.isSupabaseOffline = true;
+                        if (dbConfig) dbConfig.setOffline();
                     }
                 } else {
                     subscriber = data;
@@ -206,7 +206,7 @@ router.get("/status", optionalAuth, async (req: AuthenticatedRequest, res) => {
                     msg.includes("refused") ||
                     msg.includes("timeout")
                 ) {
-                    if (dbConfig) dbConfig.isSupabaseOffline = true;
+                    if (dbConfig) dbConfig.setOffline();
                 }
             }
         }
@@ -285,7 +285,7 @@ router.post(
                             findError.message?.includes("refused") ||
                             findError.message?.includes("timeout")
                         ) {
-                            if (dbConfig) dbConfig.isSupabaseOffline = true;
+                            if (dbConfig) dbConfig.setOffline();
                         }
                     } else {
                         existing = data;
@@ -298,7 +298,7 @@ router.post(
                         msg.includes("refused") ||
                         msg.includes("timeout")
                     ) {
-                        if (dbConfig) dbConfig.isSupabaseOffline = true;
+                        if (dbConfig) dbConfig.setOffline();
                     }
                 }
             }
@@ -460,7 +460,7 @@ router.post("/verify-otp", async (req, res) => {
                         error.message?.includes("refused") ||
                         error.message?.includes("timeout")
                     ) {
-                        if (dbConfig) dbConfig.isSupabaseOffline = true;
+                        if (dbConfig) dbConfig.setOffline();
                     }
                 } else {
                     subscriber = data;
@@ -473,7 +473,7 @@ router.post("/verify-otp", async (req, res) => {
                     msg.includes("refused") ||
                     msg.includes("timeout")
                 ) {
-                    if (dbConfig) dbConfig.isSupabaseOffline = true;
+                    if (dbConfig) dbConfig.setOffline();
                 }
             }
         }
@@ -579,7 +579,7 @@ router.patch("/phone", optionalAuth, async (req: AuthenticatedRequest, res) => {
                         error.message?.includes("refused") ||
                         error.message?.includes("timeout")
                     ) {
-                        if (dbConfig) dbConfig.isSupabaseOffline = true;
+                        if (dbConfig) dbConfig.setOffline();
                     }
                 } else {
                     data = dbData;
@@ -592,7 +592,7 @@ router.patch("/phone", optionalAuth, async (req: AuthenticatedRequest, res) => {
                     msg.includes("refused") ||
                     msg.includes("timeout")
                 ) {
-                    if (dbConfig) dbConfig.isSupabaseOffline = true;
+                    if (dbConfig) dbConfig.setOffline();
                 }
             }
         }
@@ -669,7 +669,7 @@ router.delete("/phone", optionalAuth, async (req: AuthenticatedRequest, res) => 
                         error.message?.includes("refused") ||
                         error.message?.includes("timeout")
                     ) {
-                        if (dbConfig) dbConfig.isSupabaseOffline = true;
+                        if (dbConfig) dbConfig.setOffline();
                     }
                 } else {
                     data = dbData;
@@ -682,7 +682,7 @@ router.delete("/phone", optionalAuth, async (req: AuthenticatedRequest, res) => 
                     msg.includes("refused") ||
                     msg.includes("timeout")
                 ) {
-                    if (dbConfig) dbConfig.isSupabaseOffline = true;
+                    if (dbConfig) dbConfig.setOffline();
                 }
             }
         }

@@ -50,6 +50,18 @@
         "voices_title": "Voices from the SahiDawa community",
         "voices_description": "Families, pharmacists, doctors, and contributors using SahiDawa to make medicine safety easier to act on."
     },
+    "A11y": {
+        "confirmClearConversation": "Confirm clear conversation",
+        "cancelClearConversation": "Cancel clear conversation",
+        "goToHomepage": "Go to homepage",
+        "closeChat": "Close chat",
+        "sendMessage": "Send message",
+        "openAiChat": "Open AI chat",
+        "closeAiChat": "Close AI chat",
+        "mainNavigation": "Main navigation",
+        "mobileNavigation": "Mobile navigation",
+        "toggleSystemParameters": "Toggle system parameters"
+    },
     "Navigation": {
         "how_it_works": "How it Works",
         "alerts": "Alerts",

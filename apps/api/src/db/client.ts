@@ -6,6 +6,29 @@ import { MAX_RETRIES, RETRY_DELAY_MS, fetchWithRetry } from "./fetchUtils";
 
 export const dbConfig = {
     isSupabaseOffline: false,
+    offlineSince: null as Date | null,
+    setOffline() {
+        if (!this.isSupabaseOffline) {
+            this.isSupabaseOffline = true;
+            this.offlineSince = new Date();
+            logger.warn(
+                "Supabase marked offline. Auto-recovery probe will reset this every 30s."
+            );
+        }
+    },
+    setOnline() {
+        if (this.isSupabaseOffline) {
+            logger.info(
+                `Supabase connection recovered after ${
+                    this.offlineSince
+                        ? Math.round((Date.now() - this.offlineSince.getTime()) / 1000)
+                        : "?"
+                }s offline.`
+            );
+        }
+        this.isSupabaseOffline = false;
+        this.offlineSince = null;
+    },
 };
 
 dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
@@ -170,23 +193,12 @@ async function probeSupabase(): Promise<void> {
         const res = await fetch(`${supabaseUrl}/auth/v1/health`, { signal: checkTimeout });
 
         if (!res.ok) {
-            dbConfig.isSupabaseOffline = true;
-
-            logger.warn(
-                "Supabase database health check failed. Setting database state to offline fallback mode."
-            );
+            dbConfig.setOffline();
         } else {
-            if (dbConfig.isSupabaseOffline) {
-                logger.info("Supabase database health check passed. Restoring online mode.");
-            }
-            dbConfig.isSupabaseOffline = false;
+            dbConfig.setOnline();
         }
     } catch {
-        dbConfig.isSupabaseOffline = true;
-
-        logger.warn(
-            "Supabase database health check failed. Setting database state to offline fallback mode."
-        );
+        dbConfig.setOffline();
     }
 }
 
