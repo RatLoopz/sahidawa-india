@@ -65,6 +65,19 @@
         "language": "English",
         "more": "More"
     },
+    "Tooltips": {
+        "home": "Go to Home",
+        "scan": "Scan Medicine",
+        "map": "Find Nearby Pharmacies",
+        "history": "View Scan History",
+        "reports": "Report Suspicious Medicine",
+        "profile": "View Profile",
+        "notifications": "View Notifications",
+        "changeLanguage": "Change Language",
+        "toggleTheme": "Toggle Theme",
+        "menu": "Open Menu",
+        "closeMenu": "Close Menu"
+    },
     "Accessibility": {
         "logo": "SahiDawa Logo",
         "health_companion": "Health Companion",
@@ -448,8 +461,7 @@
         "title": "SahiDawa AI",
         "status": "Online",
         "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?",
-        "placeholder": "Ask me about a medicine...",
-        "tooltipLabel": "AI Health Assistant"
+        "placeholder": "Ask me about a medicine..."
     },
     "Alerts": {
         "backHome": "Back to Home Page",

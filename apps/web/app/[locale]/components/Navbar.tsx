@@ -2,7 +2,19 @@
 
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import Image from "next/image";
-import { MessageCircle, Bookmark } from "lucide-react";
+import {
+    MessageCircle,
+    Bookmark,
+    Home,
+    Scan,
+    MapPin,
+    Bell,
+    User,
+    Menu,
+    History,
+    Shield,
+    Pill,
+} from "lucide-react";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import LanguageSwitcher from "../LanguageSwitcher";
@@ -10,6 +22,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { useSession } from "@/src/components/AuthProvider";
 import { createBrowserClient } from "@supabase/ssr";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
+import { Tooltip } from "@/components/ui/Tooltip";
 
 // Sub-components
 import DesktopNavLinks from "./Navbar/DesktopNavLinks";
@@ -22,6 +35,7 @@ export default function Navbar() {
     const router = useRouter();
     const tHome = useTranslations("Home");
     const tNavbar = useTranslations("Navbar");
+    const tTooltips = useTranslations("Tooltips");
     const { session, isLoading: authLoading } = useSession();
 
     const supabase = useMemo(() => createBrowserClient(getSupabaseUrl(), getSupabaseAnonKey()), []);
@@ -87,6 +101,15 @@ export default function Navbar() {
         return null;
     }
 
+    // Nav items for tooltips
+    const navItems = [
+        { href: "/", icon: Home, label: tTooltips("home") },
+        { href: "/scan", icon: Scan, label: tTooltips("scan") },
+        { href: "/map", icon: MapPin, label: tTooltips("map") },
+        { href: "/history", icon: History, label: tTooltips("history") },
+        { href: "/reports", icon: Shield, label: tTooltips("reports") },
+    ];
+
     return (
         <>
             <header className="sticky top-0 z-[100] w-full border-b border-white/30 bg-white/60 shadow-sm shadow-black/5 backdrop-blur-md transition-colors duration-300 dark:border-white/10 dark:bg-slate-900/60">
@@ -107,7 +130,49 @@ export default function Navbar() {
                         </Link>
                     </div>
 
-                    <DesktopNavLinks />
+                    {/* Desktop Nav Links with Tooltips */}
+                    <div className="hidden items-center gap-1 md:flex">
+                        {navItems.map((item) => {
+                            const isActive = pathname === item.href;
+                            return (
+                                <Tooltip
+                                    key={item.href}
+                                    content={item.label}
+                                    position="bottom"
+                                    delay={300}
+                                >
+                                    <Link
+                                        href={item.href}
+                                        className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                                            isActive
+                                                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                                                : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                                        }`}
+                                    >
+                                        <item.icon className="h-5 w-5" />
+                                    </Link>
+                                </Tooltip>
+                            );
+                        })}
+
+                        {/* Language Switcher with Tooltip */}
+                        <Tooltip
+                            content={tTooltips("changeLanguage")}
+                            position="bottom"
+                            delay={300}
+                        >
+                            <div className="ml-2">
+                                <LanguageSwitcher />
+                            </div>
+                        </Tooltip>
+
+                        {/* Theme Toggle with Tooltip */}
+                        <Tooltip content={tTooltips("toggleTheme")} position="bottom" delay={300}>
+                            <div className="ml-1">
+                                <ThemeToggle />
+                            </div>
+                        </Tooltip>
+                    </div>
 
                     <div className="flex min-w-0 shrink-0 items-center justify-end gap-1 sm:gap-2">
                         {/* Bookmarks Link - Visible for Authenticated Users */}
