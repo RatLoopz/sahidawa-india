@@ -22,15 +22,6 @@ interface WishlistItem {
     created_at: string;
 }
 
-interface ProductWithWishlist {
-    id: string;
-    name: string;
-    price: number;
-    image_url?: string;
-    description?: string;
-    wishlisted_at?: string;
-}
-
 export async function mergeGuestWishlist(
     userId: string,
     guestProductIds: string[]
@@ -51,7 +42,9 @@ export async function mergeGuestWishlist(
         }
 
         const existingProductIds = new Set(
-            (existingWishlist || []).map((item: WishlistItem) => item.product_id)
+            (existingWishlist || []).map(
+                (item: Pick<WishlistItem, "product_id">) => item.product_id
+            )
         );
         const newProductIds = guestProductIds.filter((id) => !existingProductIds.has(id));
 
@@ -74,7 +67,7 @@ export async function mergeGuestWishlist(
             return [];
         }
 
-        return (inserted || []).map((item: WishlistItem) => item.product_id);
+        return (inserted || []).map((item: Pick<WishlistItem, "product_id">) => item.product_id);
     } catch (err) {
         logger.error("Error merging guest wishlist", { error: err });
         return [];
@@ -84,7 +77,7 @@ export async function mergeGuestWishlist(
 /**
  * POST /api/wishlist
  * Add a product to the authenticated user's wishlist.
- * Returns 409 if the item is already wishlisteded.
+ * Returns 409 if the item is already wishlisted.
  */
 router.post(
     "/",
@@ -296,7 +289,9 @@ router.post(
             }
 
             const wishlistedIds = new Set(
-                (wishlistItems || []).map((item: WishlistItem) => item.product_id)
+                (wishlistItems || []).map(
+                    (item: Pick<WishlistItem, "product_id">) => item.product_id
+                )
             );
             const wishlistStatus = product_ids.reduce(
                 (acc: Record<string, boolean>, id: string) => {
