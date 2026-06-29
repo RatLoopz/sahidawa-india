@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { Search, Clock, Pin, X } from "lucide-react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 export interface HistoryItem {
     query: string;
@@ -42,6 +43,8 @@ function SearchSuggestions({
     onDeleteItem,
     query = "",
 }: SearchSuggestionsProps) {
+    const parentRef = useRef<HTMLUListElement>(null);
+
     function highlightMatch(text: string, query: string) {
         if (!query) return text;
         const lowerText = text.toLowerCase();
@@ -63,6 +66,22 @@ function SearchSuggestions({
             </>
         );
     }
+
+    const items = isHistory ? historyItems : suggestions;
+
+    const virtualizer = useVirtualizer({
+        count: items.length,
+        getScrollElement: () => parentRef.current,
+        estimateSize: () => 48,
+        overscan: 5,
+    });
+
+    // Scroll active item into view on keyboard navigation
+    useEffect(() => {
+        if (activeIndex >= 0 && activeIndex < items.length) {
+            virtualizer.scrollToIndex(activeIndex, { align: "auto" });
+        }
+    }, [activeIndex, items.length, virtualizer]);
 
     if (!visible && !isLoading && !error && !noResults) return null;
     if (isHistory && (!historyItems || historyItems.length === 0)) return null;
@@ -107,14 +126,16 @@ function SearchSuggestions({
 
     return (
         <ul
+            ref={parentRef}
             id="search-suggestions-listbox"
             role="listbox"
             aria-label="Search suggestions"
-            className="absolute top-full right-0 left-0 z-50 mt-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60"
+            className="absolute top-full right-0 left-0 z-50 mt-2 max-h-72 overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60"
         >
             {isHistory ? (
                 <>
-                    <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-5 py-2.5 text-[11px] font-bold tracking-wider text-slate-400 uppercase select-none">
+                    {/* Sticky header — outside virtualizer so it's always visible */}
+                    <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-5 py-2.5 text-[11px] font-bold tracking-wider text-slate-400 uppercase select-none">
                         <span>Recent Searches</span>
                         <button
                             type="button"
@@ -129,105 +150,132 @@ function SearchSuggestions({
                         </button>
                     </div>
 
-                    {historyItems.map((item, index) => {
-                        const isActive = index === activeIndex;
+                    {/* Virtualizer container */}
+                    <div
+                        style={{ height: `${virtualizer.getTotalSize()}px`, position: "relative" }}
+                    >
+                        {virtualizer.getVirtualItems().map((virtualItem) => {
+                            const item = historyItems[virtualItem.index];
+                            const isActive = virtualItem.index === activeIndex;
+                            return (
+                                <li
+                                    key={`${item.query}-${virtualItem.index}`}
+                                    id={`search-suggestion-${virtualItem.index}`}
+                                    role="option"
+                                    aria-selected={isActive}
+                                    data-index={virtualItem.index}
+                                    ref={virtualizer.measureElement}
+                                    onMouseDown={(e) => {
+                                        e.preventDefault();
+                                        onSelect(item.query);
+                                    }}
+                                    style={{
+                                        position: "absolute",
+                                        top: 0,
+                                        left: 0,
+                                        width: "100%",
+                                        transform: `translateY(${virtualItem.start}px)`,
+                                    }}
+                                    className={`group flex cursor-pointer items-center justify-between px-5 py-3 text-sm font-medium transition-colors duration-100 ${
+                                        isActive
+                                            ? "bg-emerald-50 text-emerald-700"
+                                            : "text-slate-700 hover:bg-slate-50"
+                                    }`}
+                                >
+                                    {/* Left: clock + label */}
+                                    <div className="flex min-w-0 items-center gap-3">
+                                        <Clock
+                                            size={14}
+                                            className={`shrink-0 ${isActive ? "text-emerald-500" : "text-slate-400"}`}
+                                            aria-hidden="true"
+                                        />
+                                        <span className="truncate">{item.query}</span>
+                                    </div>
+
+                                    {/* Right: pin + delete */}
+                                    <div className="flex shrink-0 items-center">
+                                        <button
+                                            type="button"
+                                            onMouseDown={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                onPinToggle?.(item.query);
+                                            }}
+                                            className={`rounded p-1 transition-colors hover:bg-slate-200/50 ${
+                                                item.pinned
+                                                    ? "text-emerald-500"
+                                                    : "text-slate-300 opacity-0 group-hover:opacity-100"
+                                            }`}
+                                            aria-label={
+                                                item.pinned ? "Unpin search query" : "Pin search query"
+                                            }
+                                        >
+                                            <Pin
+                                                size={14}
+                                                className={item.pinned ? "fill-emerald-500" : ""}
+                                            />
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onMouseDown={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                onDeleteItem?.(item.query);
+                                            }}
+                                            className="rounded p-1 text-slate-300 opacity-0 transition-colors group-hover:opacity-100 hover:bg-red-50 hover:text-red-400"
+                                            aria-label="Remove from history"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    </div>
+                                </li>
+                            );
+                        })}
+                    </div>
+                </>
+            ) : (
+                <div
+                    style={{ height: `${virtualizer.getTotalSize()}px`, position: "relative" }}
+                >
+                    {virtualizer.getVirtualItems().map((virtualItem) => {
+                        const suggestion = suggestions[virtualItem.index];
+                        const isActive = virtualItem.index === activeIndex;
                         return (
                             <li
-                                key={`${item.query}-${index}`}
-                                id={`search-suggestion-${index}`}
+                                key={`${suggestion}-${virtualItem.index}`}
+                                id={`search-suggestion-${virtualItem.index}`}
                                 role="option"
                                 aria-selected={isActive}
+                                data-index={virtualItem.index}
+                                ref={virtualizer.measureElement}
                                 onMouseDown={(e) => {
                                     e.preventDefault();
-                                    onSelect(item.query);
+                                    onSelect(suggestion);
                                 }}
-                                className={`group flex cursor-pointer items-center justify-between px-5 py-3 text-sm font-medium transition-colors duration-100 ${
+                                style={{
+                                    position: "absolute",
+                                    top: 0,
+                                    left: 0,
+                                    width: "100%",
+                                    transform: `translateY(${virtualItem.start}px)`,
+                                }}
+                                className={`flex cursor-pointer items-center gap-3 px-5 py-3 text-sm font-medium transition-colors duration-100 ${
                                     isActive
                                         ? "bg-emerald-50 text-emerald-700"
                                         : "text-slate-700 hover:bg-slate-50"
-                                } last:rounded-b-2xl`}
+                                }`}
                             >
-                                {/* Left: clock + label */}
-                                <div className="flex min-w-0 items-center gap-3">
-                                    <Clock
-                                        size={14}
-                                        className={`shrink-0 ${isActive ? "text-emerald-500" : "text-slate-400"}`}
-                                        aria-hidden="true"
-                                    />
-                                    <span className="truncate">{item.query}</span>
-                                </div>
-
-                                {/* Right: pin + delete — kept in a tight flex row with no gap */}
-                                <div className="flex shrink-0 items-center">
-                                    {/* Pin button */}
-                                    <button
-                                        type="button"
-                                        onMouseDown={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            onPinToggle?.(item.query);
-                                        }}
-                                        className={`rounded p-1 transition-colors hover:bg-slate-200/50 ${
-                                            item.pinned
-                                                ? "text-emerald-500"
-                                                : "text-slate-300 opacity-0 group-hover:opacity-100"
-                                        }`}
-                                        aria-label={
-                                            item.pinned ? "Unpin search query" : "Pin search query"
-                                        }
-                                    >
-                                        <Pin
-                                            size={14}
-                                            className={item.pinned ? "fill-emerald-500" : ""}
-                                        />
-                                    </button>
-
-                                    {/* Delete button */}
-                                    <button
-                                        type="button"
-                                        onMouseDown={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            onDeleteItem?.(item.query);
-                                        }}
-                                        className="rounded p-1 text-slate-300 opacity-0 transition-colors group-hover:opacity-100 hover:bg-red-50 hover:text-red-400"
-                                        aria-label="Remove from history"
-                                    >
-                                        <X size={14} />
-                                    </button>
-                                </div>
+                                <Search
+                                    size={14}
+                                    className={`shrink-0 ${isActive ? "text-emerald-500" : "text-slate-400"}`}
+                                    aria-hidden="true"
+                                />
+                                <span className="truncate">{highlightMatch(suggestion, query)}</span>
                             </li>
                         );
                     })}
-                </>
-            ) : (
-                suggestions.map((suggestion, index) => {
-                    const isActive = index === activeIndex;
-                    return (
-                        <li
-                            key={`${suggestion}-${index}`}
-                            id={`search-suggestion-${index}`}
-                            role="option"
-                            aria-selected={isActive}
-                            onMouseDown={(e) => {
-                                e.preventDefault();
-                                onSelect(suggestion);
-                            }}
-                            className={`flex cursor-pointer items-center gap-3 px-5 py-3 text-sm font-medium transition-colors duration-100 ${
-                                isActive
-                                    ? "bg-emerald-50 text-emerald-700"
-                                    : "text-slate-700 hover:bg-slate-50"
-                            } first:rounded-t-2xl last:rounded-b-2xl`}
-                        >
-                            <Search
-                                size={14}
-                                className={`shrink-0 ${isActive ? "text-emerald-500" : "text-slate-400"}`}
-                                aria-hidden="true"
-                            />
-                            <span className="truncate">{highlightMatch(suggestion, query)}</span>
-                        </li>
-                    );
-                })
+                </div>
             )}
         </ul>
     );

@@ -93,6 +93,7 @@ const inventoryRowSchema = z.object({
 router.post(
     "/",
     requireAuth,
+    limiter,
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
         const parsed = registerPharmacySchema.safeParse(req.body);
         if (!parsed.success) {
@@ -777,6 +778,7 @@ router.get(
 router.post(
     "/bulk-upload",
     requireAuth,
+    limiter,
     async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             if (!req.user) {
@@ -886,6 +888,7 @@ router.post(
 router.put(
     "/:id",
     requireAuth,
+    limiter,
     async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const pharmacyId = req.params.id;
@@ -944,6 +947,7 @@ router.put(
 router.delete(
     "/:id",
     requireAuth,
+    limiter,
     async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const pharmacyId = req.params.id;
@@ -992,6 +996,7 @@ router.delete(
 router.post(
     "/:id/inventory/upload",
     requireAuth,
+    limiter,
     upload.single("file"),
     async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
         try {

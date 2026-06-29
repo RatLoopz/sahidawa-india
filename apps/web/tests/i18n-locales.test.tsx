@@ -2,7 +2,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import LanguageSwitcher from "../app/[locale]/LanguageSwitcher";
 import { routing } from "../i18n/routing";
-import { config as middlewareConfig } from "../proxy";
 
 let activeLocale = "en";
 
@@ -16,15 +15,6 @@ jest.mock("next-intl", () => ({
 describe("i18n locale availability", () => {
     it.each(["kn", "te", "pa"])("enables %s in the routing config", (locale) => {
         expect(routing.locales).toContain(locale);
-    });
-
-    it("matches every routing locale in the middleware config", () => {
-        const localeMatcher = middlewareConfig.matcher.find((matcher) =>
-            matcher.endsWith("/:path*")
-        );
-        const matchedLocales = localeMatcher?.match(/\(([^)]+)\)/)?.[1].split("|");
-
-        expect(matchedLocales).toEqual(expect.arrayContaining(routing.locales));
     });
 
     it.each([

@@ -45,11 +45,11 @@ const getMockUser = (): AuthenticatedUser => {
     return {
         id: process.env.MOCK_USER_ID || "mock-user-id",
         email: process.env.MOCK_USER_EMAIL || "mock@sahidawa.local",
-        role: (process.env.MOCK_USER_ROLE as AuthRole) || "admin",
+        role: (process.env.MOCK_USER_ROLE as AuthRole) || "user",
         raw: {
             id: process.env.MOCK_USER_ID || "mock-user-id",
             email: process.env.MOCK_USER_EMAIL || "mock@sahidawa.local",
-            app_metadata: { role: process.env.MOCK_USER_ROLE || "admin" },
+            app_metadata: { role: process.env.MOCK_USER_ROLE || "user" },
             user_metadata: {},
             aud: "authenticated",
             created_at: new Date().toISOString(),
@@ -72,6 +72,11 @@ export const createAuthMiddleware =
                 process.env.NODE_ENV === "development" &&
                 process.env.BYPASS_AUTH_FOR_TESTING === "true"
             ) {
+                const isLocalhost = ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(req.ip ?? "");
+                if (!isLocalhost) {
+                    res.status(401).json({ error: "Auth bypass is only valid for localhost" });
+                    return;
+                }
                 req.user = getMockUser();
                 next();
             } else {
@@ -108,7 +113,7 @@ export const createAuthMiddleware =
                     error.message?.includes("refused");
 
                 if (isConnectionError) {
-                    if (dbConfig) dbConfig.isSupabaseOffline = true;
+                    if (dbConfig) dbConfig.setOffline();
                     logger.warn({
                         message: "Supabase auth server returned connection error.",
                         error: error.message,
@@ -117,6 +122,15 @@ export const createAuthMiddleware =
                         process.env.NODE_ENV === "development" &&
                         process.env.BYPASS_AUTH_FOR_TESTING === "true"
                     ) {
+                        const isLocalhost = ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(
+                            req.ip ?? ""
+                        );
+                        if (!isLocalhost) {
+                            res.status(401).json({
+                                error: "Auth bypass is only valid for localhost",
+                            });
+                            return;
+                        }
                         req.user = getMockUser();
                         next();
                         return;
@@ -158,7 +172,7 @@ export const createAuthMiddleware =
                 errMsg.includes("refused") ||
                 errMsg.includes("timeout")
             ) {
-                if (dbConfig) dbConfig.isSupabaseOffline = true;
+                if (dbConfig) dbConfig.setOffline();
             }
 
             logger.warn({
@@ -229,7 +243,7 @@ export const createOptionalAuthMiddleware =
                     error.message?.includes("refused");
 
                 if (isConnectionError) {
-                    if (dbConfig) dbConfig.isSupabaseOffline = true;
+                    if (dbConfig) dbConfig.setOffline();
                     logger.warn({
                         message: "Supabase auth server returned connection error.",
                         error: error.message,
@@ -283,7 +297,7 @@ export const createOptionalAuthMiddleware =
                 errMsg.includes("refused") ||
                 errMsg.includes("timeout")
             ) {
-                if (dbConfig) dbConfig.isSupabaseOffline = true;
+                if (dbConfig) dbConfig.setOffline();
             }
 
             logger.warn({

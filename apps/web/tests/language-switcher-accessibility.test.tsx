@@ -44,7 +44,7 @@ describe("LanguageSwitcher Accessibility", () => {
         // Verify trigger button attributes
         expect(markup).toContain('aria-haspopup="listbox"');
         expect(markup).toContain('aria-expanded="false"');
-        expect(markup).toContain('aria-label="Select language"');
+        expect(markup).toContain('aria-label="select_language"');
 
         // Verify that the dropdown listbox is NOT rendered
         expect(markup).not.toContain('role="listbox"');
@@ -64,7 +64,7 @@ describe("LanguageSwitcher Accessibility", () => {
 
         // Verify listbox attributes
         expect(markup).toContain('role="listbox"');
-        expect(markup).toContain('aria-label="Language options"');
+        expect(markup).toContain('aria-label="language_options"');
         expect(markup).toContain('aria-activedescendant="lang-option-1"');
         expect(markup).toContain('tabindex="-1"');
 

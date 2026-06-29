@@ -264,13 +264,11 @@ export async function cancelNotificationsForMedicine(id: string) {
         const registration = await navigator.serviceWorker.getRegistration();
         if (registration) {
             try {
-                const notifications = await (registration as any).getNotifications({
-                    includeTriggered: true,
-                });
+                const notifications = await registration.getNotifications();
                 const tagsToCancel = [`${id}-7days`, `${id}-1day`];
-                notifications.forEach((n: any) => {
-                    if (tagsToCancel.includes(n.tag)) {
-                        n.close();
+                notifications.forEach((notification) => {
+                    if (tagsToCancel.includes(notification.tag)) {
+                        notification.close();
                     }
                 });
             } catch (e) {

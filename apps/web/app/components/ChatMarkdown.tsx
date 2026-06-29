@@ -1,6 +1,11 @@
 "use client";
 
-import type { AnchorHTMLAttributes, ComponentPropsWithoutRef } from "react";
+import {
+    createContext,
+    useContext,
+    type AnchorHTMLAttributes,
+    type ComponentPropsWithoutRef,
+} from "react";
 import Markdown, { type MarkdownToJSX } from "markdown-to-jsx";
 import { normalizeChatMarkdown } from "@/lib/chatFormatting";
 
@@ -39,6 +44,42 @@ const MarkdownTable = ({ children }: ComponentPropsWithoutRef<"table">) => (
     </div>
 );
 
+/**
+ * Nested <ul>/<ol> compound their left padding with every ancestor list —
+ * each level adds its own indent on top of the parent's. In a narrow chat
+ * bubble (max-w-[78%]/[85%] of the message column), that compounding used to
+ * eat most of the available width by depth 3-4, squeezing wrapped text into
+ * a thin strip near the bubble's right edge (the "bleeds to the edge"
+ * symptom). ListDepthContext lets nested <ul>/<ol> know how deep they are so
+ * indentation can be capped past a maximum depth, rather than growing
+ * without bound for every additional level the model happens to produce.
+ */
+const ListDepthContext = createContext(0);
+
+const MAX_INDENTED_DEPTH = 3;
+const LIST_INDENT_CLASSES = ["pl-4", "pl-3", "pl-3", "pl-2"];
+
+const getListIndentClass = (depth: number) =>
+    LIST_INDENT_CLASSES[Math.min(depth, MAX_INDENTED_DEPTH)];
+
+const MarkdownList = (tag: "ul" | "ol") =>
+    function List({ children, ...props }: ComponentPropsWithoutRef<"ul" | "ol">) {
+        const depth = useContext(ListDepthContext);
+        const Tag = tag;
+        const listClass = tag === "ul" ? "list-disc" : "list-decimal";
+
+        return (
+            <ListDepthContext.Provider value={depth + 1}>
+                <Tag {...props} className={`${listClass} space-y-1.5 ${getListIndentClass(depth)}`}>
+                    {children}
+                </Tag>
+            </ListDepthContext.Provider>
+        );
+    };
+
+const MarkdownUl = MarkdownList("ul");
+const MarkdownOl = MarkdownList("ol");
+
 const markdownOptions: MarkdownToJSX.Options = {
     disableParsingRawHTML: true,
     overrides: {
@@ -62,14 +103,8 @@ const markdownOptions: MarkdownToJSX.Options = {
             component: "p",
             props: { className: "my-0" },
         },
-        ul: {
-            component: "ul",
-            props: { className: "list-disc space-y-1.5 pl-5" },
-        },
-        ol: {
-            component: "ol",
-            props: { className: "list-decimal space-y-1.5 pl-5" },
-        },
+        ul: MarkdownUl,
+        ol: MarkdownOl,
         li: {
             component: "li",
             props: { className: "pl-1" },

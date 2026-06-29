@@ -472,6 +472,7 @@ describe("Reports API Routes", () => {
             const response = await request(app)
                 .post("/api/reports")
                 .set("X-Forwarded-For", "9.9.9.9")
+                .set("X-Forwarded-Proto", "https")
                 .send(payload);
 
             process.env.NODE_ENV = originalEnv;
@@ -588,7 +589,7 @@ describe("Reports API Routes", () => {
             mockedSupabase.select = jest.fn().mockReturnValue({
                 eq: jest.fn().mockReturnValue({
                     order: jest.fn().mockReturnValue({
-                        range: jest.fn().mockResolvedValueOnce({
+                        limit: jest.fn().mockResolvedValueOnce({
                             data: mockReports,
                             error: null,
                         }),
@@ -610,7 +611,7 @@ describe("Reports API Routes", () => {
             mockedSupabase.select = jest.fn().mockReturnValue({
                 eq: jest.fn().mockReturnValue({
                     order: jest.fn().mockReturnValue({
-                        range: jest.fn().mockResolvedValueOnce({
+                        limit: jest.fn().mockResolvedValueOnce({
                             data: [],
                             error: null,
                         }),
@@ -783,9 +784,26 @@ describe("Reports API Routes", () => {
                 }
                 if (table === "district_alerts") {
                     return {
+                        select: jest.fn().mockReturnValue({
+                            eq: jest.fn().mockReturnValue({
+                                eq: jest.fn().mockReturnValue({
+                                    maybeSingle: jest.fn().mockResolvedValue({
+                                        data: { alert_level: "low" },
+                                        error: null,
+                                    }),
+                                }),
+                            }),
+                        }),
                         upsert: jest.fn().mockImplementation((payload: Record<string, unknown>) => {
                             upsertPayload = payload;
-                            return Promise.resolve({ data: null, error: null });
+                            return {
+                                select: jest.fn().mockReturnValue({
+                                    single: jest.fn().mockResolvedValue({
+                                        data: payload,
+                                        error: null,
+                                    }),
+                                }),
+                            };
                         }),
                     };
                 }

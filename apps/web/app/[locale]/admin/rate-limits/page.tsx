@@ -13,16 +13,21 @@ interface BlockedIP {
 
 interface MetricsData {
     blockedIps: BlockedIP[];
+
     totalRejections: number;
+
+    otpMetrics: {
+        totalHits: number;
+        blocked: number;
+    };
+
     windowSeconds: number;
     fetchedAt: string;
     isDemo?: boolean;
 }
 
 type LoadState =
-    | { kind: "loading" }
-    | { kind: "error"; message: string }
-    | { kind: "ready"; data: MetricsData };
+    { kind: "loading" } | { kind: "error"; message: string } | { kind: "ready"; data: MetricsData };
 
 export default function RateLimitsPage() {
     const [state, setState] = useState<LoadState>({ kind: "loading" });
@@ -79,7 +84,10 @@ export default function RateLimitsPage() {
                     className="rounded-lg border border-(--color-border-muted) bg-(--color-surface-page) p-2 text-(--color-text-secondary) transition hover:bg-(--color-surface-muted) disabled:opacity-50"
                     aria-label="Refresh metrics"
                 >
-                    <RefreshCw size={20} className={state.kind === "loading" ? "animate-spin" : ""} />
+                    <RefreshCw
+                        size={20}
+                        className={state.kind === "loading" ? "animate-spin" : ""}
+                    />
                 </button>
             </div>
 
@@ -97,7 +105,9 @@ export default function RateLimitsPage() {
                     <div className="flex gap-3">
                         <AlertTriangle className="h-5 w-5 flex-shrink-0 text-rose-600" />
                         <div>
-                            <h3 className="font-semibold text-rose-900 dark:text-rose-100">Error</h3>
+                            <h3 className="font-semibold text-rose-900 dark:text-rose-100">
+                                Error
+                            </h3>
                             <p className="mt-1 text-sm text-rose-700 dark:text-rose-300">
                                 {state.message}
                             </p>
@@ -109,7 +119,7 @@ export default function RateLimitsPage() {
             {/* Metrics Summary */}
             {state.kind === "ready" && (
                 <>
-                    <div className="grid gap-4 md:grid-cols-3">
+                    <div className="grid gap-4 md:grid-cols-4">
                         {/* Total Rejections Card */}
                         <Card className="border-(--color-border-muted) bg-(--color-surface-page)">
                             <div className="flex items-start justify-between">
@@ -128,9 +138,7 @@ export default function RateLimitsPage() {
                         {/* Unique IPs Card */}
                         <Card className="border-(--color-border-muted) bg-(--color-surface-page)">
                             <div>
-                                <p className="text-sm text-(--color-text-secondary)">
-                                    Blocked IPs
-                                </p>
+                                <p className="text-sm text-(--color-text-secondary)">Blocked IPs</p>
                                 <p className="mt-2 text-3xl font-bold text-(--color-text-primary)">
                                     {state.data.blockedIps.length}
                                 </p>
@@ -140,11 +148,24 @@ export default function RateLimitsPage() {
                         {/* Time Window Card */}
                         <Card className="border-(--color-border-muted) bg-(--color-surface-page)">
                             <div>
-                                <p className="text-sm text-(--color-text-secondary)">
-                                    Time Window
-                                </p>
+                                <p className="text-sm text-(--color-text-secondary)">Time Window</p>
                                 <p className="mt-2 text-3xl font-bold text-(--color-text-primary)">
                                     {state.data.windowSeconds}s
+                                </p>
+                            </div>
+                        </Card>
+                        <Card className="border-(--color-border-muted) bg-(--color-surface-page)">
+                            <div>
+                                <p className="text-sm text-(--color-text-secondary)">
+                                    OTP Registration Blocks
+                                </p>
+
+                                <p className="mt-2 text-3xl font-bold text-(--color-text-primary)">
+                                    {state.data.otpMetrics.blocked}
+                                </p>
+
+                                <p className="mt-1 text-xs text-(--color-text-secondary)">
+                                    Total Hits: {state.data.otpMetrics.totalHits}
                                 </p>
                             </div>
                         </Card>

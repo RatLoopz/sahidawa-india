@@ -61,6 +61,7 @@ interface MobileBottomNavProps {
 export default function MobileBottomNav({ isNavVisible }: MobileBottomNavProps) {
     const pathname = usePathname();
     const tNav = useTranslations("Navigation");
+    const tA11y = useTranslations("A11y");
 
     const isActive = (href: string) => {
         if (href === "/") return pathname === "/";
@@ -70,7 +71,7 @@ export default function MobileBottomNav({ isNavVisible }: MobileBottomNavProps) 
     return (
         <nav
             className={`fixed right-0 bottom-0 left-0 z-50 flex items-center justify-around border-t border-(--color-border-muted)/60 bg-(--color-surface-page)/90 px-1 py-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-md transition-transform duration-300 ease-out md:hidden ${isNavVisible ? "translate-y-0" : "translate-y-full"}`}
-            aria-label="Mobile navigation"
+            aria-label={tA11y("mobileNavigation")}
         >
             {MOBILE_NAV_ITEMS.map(
                 ({
