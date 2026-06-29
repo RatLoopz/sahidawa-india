@@ -40,10 +40,10 @@ export function sweepOrphanedTempFiles(): void {
     }
 }
 
-export function startTempCleanupJob(): void {
+export function startTempCleanupJob(): { stop: () => void } {
     if (intervalId) {
         logger.warn("Temp cleanup job is already running.");
-        return;
+        return { stop: stopTempCleanupJob };
     }
 
     logger.info(`Starting temp upload cleanup loop (interval: ${CHECK_INTERVAL_MS}ms)`);
@@ -56,6 +56,8 @@ export function startTempCleanupJob(): void {
     intervalId = setInterval(() => {
         sweepOrphanedTempFiles();
     }, CHECK_INTERVAL_MS);
+
+    return { stop: stopTempCleanupJob };
 }
 
 export function stopTempCleanupJob(): void {

@@ -9,8 +9,7 @@ import { ChatRoles, ChatMessage } from "@/lib/constants";
 import crypto from "crypto";
 
 import { trimHistoryByTokens } from "@/lib/chatUtils";
-
-const summaryCache = new Map<string, string>();
+import { redis } from "@/lib/redis";
 
 const ML_TRIAGE_TIMEOUT_MS = 30_000;
 
@@ -355,7 +354,20 @@ export async function POST(req: Request) {
                     .join("\n");
                 const cacheKey = crypto.createHash("sha256").update(droppedText).digest("hex");
 
-                let summary = summaryCache.get(cacheKey);
+                let summary: string | null = null;
+
+                try {
+                    summary = await redis.get<string>(cacheKey);
+                } catch (error) {
+                    structuredLog({
+                        log_level: "warn",
+                        route: ROUTE,
+                        meta: {
+                            reason: "redis_get_failed",
+                            error: error instanceof Error ? error.message : String(error),
+                        },
+                    });
+                }
 
                 if (!summary) {
                     const summaryPrompt = `Summarize the following conversation history briefly to retain key context for the ongoing chat. Keep it concise.\n\n${droppedText}`;
@@ -366,10 +378,19 @@ export async function POST(req: Request) {
 
                     summary = summaryResponse.text || "";
                     if (summary) {
-                        summaryCache.set(cacheKey, summary);
-                        if (summaryCache.size > 1000) {
-                            const firstKey = summaryCache.keys().next().value;
-                            if (firstKey) summaryCache.delete(firstKey);
+                        try {
+                            await redis.set(cacheKey, summary, {
+                                ex: 3600, // 1 hour TTL
+                            });
+                        } catch (error) {
+                            structuredLog({
+                                log_level: "warn",
+                                route: ROUTE,
+                                meta: {
+                                    reason: "redis_set_failed",
+                                    error: error instanceof Error ? error.message : String(error),
+                                },
+                            });
                         }
                     }
                 }
@@ -387,7 +408,10 @@ export async function POST(req: Request) {
                 structuredLog({
                     log_level: "warn",
                     route: ROUTE,
-                    meta: { reason: "summarization_failed", error: String(error) },
+                    meta: {
+                        reason: "summarization_failed",
+                        error: error instanceof Error ? error.message : String(error),
+                    },
                 });
             }
         }

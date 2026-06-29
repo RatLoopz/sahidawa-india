@@ -94,6 +94,17 @@ jest.mock("next-intl", () => ({
     },
 }));
 
+jest.mock("@tanstack/react-virtual", () => ({
+    useVirtualizer: ({ count }: { count: number }) => ({
+        getVirtualItems: () =>
+            Array.from({ length: count }).map((_, i) => ({
+                index: i,
+                start: i * 80,
+            })),
+        getTotalSize: () => count * 80,
+    }),
+}));
+
 const report = {
     id: "report-1",
     reported_brand_name: "Suspect Med",

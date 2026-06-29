@@ -8,14 +8,31 @@ import {
 import logger from "../utils/logger";
 
 /**
- * Looks up a drug by its batch number and an identifier (barcode or brand name).
- * It first checks the Redis cache. If missed, it queries the database and caches the result.
+ * Thrown when both Redis and Supabase are unreachable during a drug lookup.
+ * Route handlers should catch this and return 503.
  */
+export class ServiceUnavailableError extends Error {
+    public readonly code: string;
+
+    constructor(message = "Service temporarily unavailable. Please try again later.") {
+        super(message);
+        this.name = "ServiceUnavailableError";
+        this.code = "errors.serviceUnavailable";
+    }
+}
+
 export interface DrugLookupIdentifier {
     brand_name?: string;
     barcode_id?: string;
 }
 
+/**
+ * Looks up a drug by its batch number and an identifier (barcode or brand name).
+ * Checks Redis cache first. On cache miss, queries Supabase and caches the result.
+ *
+ * Throws ServiceUnavailableError if both Redis and Supabase are unreachable,
+ * so callers can return a clean 503 instead of crashing.
+ */
 export async function lookupDrugByBatch(
     batchNumber: string,
     identifier: DrugLookupIdentifier
@@ -35,12 +52,16 @@ export async function lookupDrugByBatch(
                 (!identifier.brand_name || batchOnlyDrug.brand_name === identifier.brand_name);
             if (matchesIdentifier) {
                 logger.info(`Cache HIT (batch-only key) for drug batch: ${batchNumber}`);
-                await incrementHitCount(batchOnlyDrug.id, batchOnlyDrug.brand_name || batchOnlyDrug.generic_name);
+                await incrementHitCount(
+                    batchOnlyDrug.id,
+                    batchOnlyDrug.brand_name || batchOnlyDrug.generic_name
+                );
                 return batchOnlyDrug;
             }
         }
     } catch (err) {
         logger.error(`Error checking batch-only cache for batch: ${batchNumber}`, err);
+        // Non-fatal — fall through to composite key check
     }
 
     // 2. Try composite cache key
@@ -52,11 +73,14 @@ export async function lookupDrugByBatch(
         }
     } catch (err) {
         logger.error(`Error checking composite cache for batch: ${compositeKey}`, err);
+        // Non-fatal — fall through to DB lookup
     }
 
-    // 3. Cache miss, query PostgreSQL database
+    // 3. Cache miss — query Supabase
     logger.info(`Cache MISS for drug batch: ${compositeKey}. Querying database...`);
     await incrementMissCount();
+
+    let dbError: unknown = null;
 
     try {
         let query = supabase
@@ -75,27 +99,31 @@ export async function lookupDrugByBatch(
         const { data, error } = await query.limit(1).maybeSingle();
 
         if (error) {
+            dbError = error;
             logger.error({
                 message: "Database lookup failed in drugLookup service",
                 error,
                 batchNumber: batchNumber.replace(/[\r\n]/g, ""),
             });
-            throw error;
+            // Will be handled below
+        } else {
+            if (data) {
+                await incrementHitCount(data.id, data.brand_name || data.generic_name);
+                // Cache under both keys so batch-only and composite lookups both hit
+                await setCachedDrug(batchNumber, data);
+                await setCachedDrug(compositeKey, data);
+            }
+            return data;
         }
-
-        if (data) {
-            await incrementHitCount(data.id, data.brand_name || data.generic_name);
-            // Save under both keys so batch-only lookups (warmCache) and composite lookups both hit
-            await setCachedDrug(batchNumber, data);
-            await setCachedDrug(compositeKey, data);
-        }
-
-        return data;
     } catch (err) {
+        dbError = err;
         logger.error(
             `Unexpected error in lookupDrugByBatch for batch: ${batchNumber.replace(/[\r\n]/g, "")}`,
             err
         );
-        throw err;
     }
+
+    // 4. Both Redis and Supabase failed — throw ServiceUnavailableError
+    // so the route handler can return a clean 503 instead of a raw 500
+    throw new ServiceUnavailableError();
 }

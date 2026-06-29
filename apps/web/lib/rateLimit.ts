@@ -14,14 +14,14 @@ class MockRateLimit {
                     "Please set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN."
             );
         }
-        return { success: true, limit: 10, remaining: 9, reset: 0 };
+        return { success: true, limit: 30, remaining: 29, reset: 0 };
     }
 }
 
 export const rateLimit = hasCredentials
     ? new Ratelimit({
           redis: Redis.fromEnv(),
-          limiter: Ratelimit.slidingWindow(10, "60 s"),
+          limiter: Ratelimit.slidingWindow(30, "60 s"),
           analytics: true,
       })
     : (new MockRateLimit() as unknown as Ratelimit);
