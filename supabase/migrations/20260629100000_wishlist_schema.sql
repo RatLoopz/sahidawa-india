@@ -1,8 +1,8 @@
--- Create wishlists table for authenticated user product wishlists
+-- Create wishlists table for authenticated user medicine wishlists
 CREATE TABLE IF NOT EXISTS wishlists (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-    product_id uuid REFERENCES products(id) ON DELETE CASCADE NOT NULL,
+    product_id uuid REFERENCES medicines(id) ON DELETE CASCADE NOT NULL,
     created_at timestamptz DEFAULT now(),
     CONSTRAINT unique_user_product UNIQUE(user_id, product_id)
 );
@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS wishlists (
 -- Create index for efficient user lookups
 CREATE INDEX IF NOT EXISTS idx_wishlists_user_id ON wishlists(user_id);
 
--- Create index for efficient product lookups
+-- Create index for efficient medicine lookups
 CREATE INDEX IF NOT EXISTS idx_wishlists_product_id ON wishlists(product_id);
 
 -- Enable RLS
