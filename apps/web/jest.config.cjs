@@ -9,6 +9,7 @@ module.exports = {
     testEnvironment: "node",
     setupFiles: ["<rootDir>/jest.env.cjs"],
     roots: ["<rootDir>/tests"],
+    testPathIgnorePatterns: ["<rootDir>/tests/e2e/"],
     moduleNameMapper: {
         "\\.css$": "<rootDir>/tests/mocks/styleMock.ts",
         "^leaflet$": "<rootDir>/tests/mocks/leaflet.ts",
