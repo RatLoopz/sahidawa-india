@@ -34,7 +34,7 @@ if (!GEMINI_API_KEY) {
   process.exit(1);
 }
 
-const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 const MAX_DIFF_CHARS = 12000; // Stay well within context limits
 
 // ─── Input ────────────────────────────────────────────────────────────────────
