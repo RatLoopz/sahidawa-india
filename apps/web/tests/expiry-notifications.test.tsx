@@ -160,6 +160,7 @@ describe("Expiry Tracker Notifications Library", () => {
         it("sends a notification and updates the notified flag if current time falls in the 7 days warning window", async () => {
             // Target expiry exactly 7 days from now
             const now = new Date();
+            now.setHours(12, 0, 0, 0); // force time after 9:00 AM to avoid timezone flakes
             const expiry = new Date(now);
             expiry.setDate(now.getDate() + 7);
             expiry.setHours(0, 0, 0, 0);
