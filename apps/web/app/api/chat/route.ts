@@ -129,6 +129,19 @@ const VOICE_TRIAGE_SCHEMA = {
     propertyOrdering: ["summary", "recommendations", "disclaimer", "emergency"],
 };
 
+interface ErrorWithStatus {
+    status: number;
+}
+
+function isErrorWithStatus(error: unknown): error is ErrorWithStatus {
+    return (
+        typeof error === "object" &&
+        error !== null &&
+        "status" in error &&
+        typeof (error as { status: unknown }).status === "number"
+    );
+}
+
 function buildVoiceTriagePrompt(transcript: string, responseLanguage: string) {
     return [
         `Citizen transcript: ${JSON.stringify(transcript)}`,
@@ -244,7 +257,7 @@ export async function POST(req: Request) {
                     );
                 }
 
-                const formattedMessages = trimmedMessages.map((m: any) => ({
+                const formattedMessages = trimmedMessages.map((m: ChatMessage) => ({
                     role:
                         m.role === ChatRoles.ASSISTANT || m.role === ChatRoles.MODEL
                             ? ChatRoles.ASSISTANT
@@ -258,7 +271,10 @@ export async function POST(req: Request) {
                 }
 
                 const mlAbortController = new AbortController();
-                const mlTimeoutId = setTimeout(() => mlAbortController.abort(), ML_TRIAGE_TIMEOUT_MS);
+                const mlTimeoutId = setTimeout(
+                    () => mlAbortController.abort(),
+                    ML_TRIAGE_TIMEOUT_MS
+                );
 
                 const mlResponse = await fetch(`${mlServiceUrl}/triage/chat`, {
                     method: "POST",
@@ -296,8 +312,10 @@ export async function POST(req: Request) {
                         responseLanguage,
                     },
                 });
-            } catch (mlError: any) {
+            } catch (mlError: unknown) {
                 const isTimeout = mlError instanceof Error && mlError.name === "AbortError";
+                const mlErrorStack = mlError instanceof Error ? mlError.stack : undefined;
+                const mlErrorMessage = mlError instanceof Error ? mlError.message : String(mlError);
                 structuredLog({
                     log_level: isTimeout ? "error" : "warn",
                     route: ROUTE,
@@ -306,12 +324,14 @@ export async function POST(req: Request) {
                         ? {
                               message: "ML triage service timed out",
                               code: 504,
-                              stack: mlError.stack,
+                              stack: mlErrorStack,
                           }
                         : undefined,
                     meta: {
-                        reason: isTimeout ? "ml_service_triage_timeout" : "ml_service_triage_failed",
-                        error: mlError.message,
+                        reason: isTimeout
+                            ? "ml_service_triage_timeout"
+                            : "ml_service_triage_failed",
+                        error: mlErrorMessage,
                         fallback: "direct_gemini",
                         ...(isTimeout ? { timeoutMs: ML_TRIAGE_TIMEOUT_MS } : {}),
                     },
@@ -483,9 +503,9 @@ export async function POST(req: Request) {
                 "Cache-Control": "no-cache, no-transform",
             },
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         const latency_ms = Date.now() - startTime;
-        const statusCode: number = error?.status || 500;
+        const statusCode: number = isErrorWithStatus(error) ? error.status : 500;
         structuredLog({
             log_level: "error",
             route: ROUTE,
