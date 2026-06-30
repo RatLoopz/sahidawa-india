@@ -2,11 +2,13 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { Pill, Plus } from "lucide-react";
+import { Badge } from "@/components/ui/Badge";
 
 interface TrackedMedicine {
     id: string;
     medicine_name: string;
     expiry_date: string;
+    is_verified: boolean;
 }
 
 function getDaysUntilExpiry(expiryDate: string): number {
@@ -95,7 +97,26 @@ export default function MyMedicinesPage() {
                     <tbody>
                         {medicinesWithDays.map((m) => (
                             <tr key={m.id}>
-                                <td className="border p-2">{m.medicine_name}</td>
+                                <td className="border p-2">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <span>{m.medicine_name}</span>
+                                        {m.is_verified ? (
+                                            <Badge
+                                                variant="success"
+                                                aria-label="Verification status"
+                                            >
+                                                ✓ Verified
+                                            </Badge>
+                                        ) : (
+                                            <Badge
+                                                variant="warning"
+                                                aria-label="Verification status"
+                                            >
+                                                ⚠ Unverified
+                                            </Badge>
+                                        )}
+                                    </div>
+                                </td>
                                 <td className="border p-2">
                                     {new Date(m.expiry_date).toLocaleDateString()}
                                 </td>
