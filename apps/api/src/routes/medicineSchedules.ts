@@ -7,7 +7,20 @@ import logger from "../utils/logger";
 import { redisClient } from "../utils/redis";
 
 const router = Router();
+const invalidateTodaySummaryCache = async (userId: string) => {
+    if (!redisClient.isOpen) return;
 
+    const { today } = getIstDateTime();
+    const cacheKey = `schedules:summary:${userId}:${today}`;
+
+    try {
+        await redisClient.del(cacheKey);
+    } catch (redisErr) {
+        logger.error("Failed to invalidate summary cache", {
+            error: redisErr,
+        });
+    }
+};
 const createScheduleSchema = z.object({
     medicine_name: z.string().min(1, "Medicine name is required"),
     dosage: z.string().min(1, "Dosage is required").default("1 tablet"),
@@ -115,7 +128,7 @@ router.get("/:id", requireAuth, async (req: AuthenticatedRequest, res: Response)
             res.status(404).json({ error: "Schedule not found" });
             return;
         }
-
+        await invalidateTodaySummaryCache(req.user!.id);
         res.json({ schedule: data });
     } catch (err) {
         logger.error("Error fetching schedule", { error: err, scheduleId: req.params.id });
@@ -148,7 +161,7 @@ router.post("/", requireAuth, async (req: AuthenticatedRequest, res: Response) =
             res.status(500).json({ error: "Failed to create schedule" });
             return;
         }
-
+        await invalidateTodaySummaryCache(req.user!.id);
         res.status(201).json({ schedule: data });
     } catch (err) {
         logger.error("Error creating schedule", { error: err });
@@ -185,7 +198,7 @@ router.put("/:id", requireAuth, async (req: AuthenticatedRequest, res: Response)
             res.status(404).json({ error: "Schedule not found" });
             return;
         }
-
+        await invalidateTodaySummaryCache(req.user!.id);
         res.json({ schedule: data });
     } catch (err) {
         logger.error("Error updating schedule", { error: err, scheduleId: req.params.id });
@@ -206,7 +219,7 @@ router.delete("/:id", requireAuth, async (req: AuthenticatedRequest, res: Respon
             res.status(500).json({ error: "Failed to delete schedule" });
             return;
         }
-
+        await invalidateTodaySummaryCache(req.user!.id);
         res.json({ success: true });
     } catch (err) {
         logger.error("Error deleting schedule", { error: err, scheduleId: req.params.id });

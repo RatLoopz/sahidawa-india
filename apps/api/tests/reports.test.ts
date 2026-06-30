@@ -7,7 +7,7 @@ jest.mock("../src/db/client", () => ({
     supabase: {
         from: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
-        insert: jest.fn().mockReturnThis(),
+        upsert: jest.fn().mockReturnThis(),
         update: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         gte: jest.fn().mockReturnThis(),
@@ -83,7 +83,7 @@ describe("Reports API Routes", () => {
         Object.assign(mockedSupabase, {
             from: jest.fn().mockReturnThis(),
             select: jest.fn().mockReturnThis(),
-            insert: jest.fn().mockReturnThis(),
+            upsert: jest.fn().mockReturnThis(),
             update: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
             gte: jest.fn().mockReturnThis(),
@@ -145,7 +145,7 @@ describe("Reports API Routes", () => {
                 longitude: 77.5946,
             };
 
-            mockedSupabase.insert = jest.fn().mockReturnValue({
+            mockedSupabase.upsert = jest.fn().mockReturnValue({
                 select: jest.fn().mockReturnValue({
                     single: jest.fn().mockResolvedValueOnce({
                         data: {
@@ -181,7 +181,7 @@ describe("Reports API Routes", () => {
                 longitude: 72.8777,
             };
 
-            mockedSupabase.insert = jest.fn().mockReturnValue({
+            mockedSupabase.upsert = jest.fn().mockReturnValue({
                 select: jest.fn().mockReturnValue({
                     single: jest.fn().mockResolvedValueOnce({
                         data: {
@@ -228,7 +228,7 @@ describe("Reports API Routes", () => {
                 pincode: "110001",
             };
 
-            mockedSupabase.insert = jest.fn().mockReturnValue({
+            mockedSupabase.upsert = jest.fn().mockReturnValue({
                 select: jest.fn().mockReturnValue({
                     single: jest.fn().mockResolvedValueOnce({
                         data: {
@@ -283,7 +283,7 @@ describe("Reports API Routes", () => {
             };
 
             let insertedPayload: Record<string, unknown> = {};
-            mockedSupabase.insert = jest.fn().mockImplementation((vals) => {
+            mockedSupabase.upsert = jest.fn().mockImplementation((vals) => {
                 insertedPayload = vals;
                 return {
                     select: jest.fn().mockReturnValue({
@@ -320,7 +320,7 @@ describe("Reports API Routes", () => {
             };
 
             let insertedPayload: Record<string, unknown> = {};
-            mockedSupabase.insert = jest.fn().mockImplementation((vals) => {
+            mockedSupabase.upsert = jest.fn().mockImplementation((vals) => {
                 insertedPayload = vals;
                 return {
                     select: jest.fn().mockReturnValue({
@@ -361,7 +361,7 @@ describe("Reports API Routes", () => {
             };
 
             let insertedPayload: Record<string, unknown> = {};
-            mockedSupabase.insert = jest.fn().mockImplementation((vals) => {
+            mockedSupabase.upsert = jest.fn().mockImplementation((vals) => {
                 insertedPayload = vals;
                 return {
                     select: jest.fn().mockReturnValue({
@@ -406,7 +406,7 @@ describe("Reports API Routes", () => {
                 pincode: "411001",
             };
 
-            mockedSupabase.insert = jest.fn().mockReturnValue({
+            mockedSupabase.upsert = jest.fn().mockReturnValue({
                 select: jest.fn().mockReturnValue({
                     single: jest.fn().mockResolvedValueOnce({
                         data: {
@@ -472,6 +472,7 @@ describe("Reports API Routes", () => {
             const response = await request(app)
                 .post("/api/reports")
                 .set("X-Forwarded-For", "9.9.9.9")
+                .set("X-Forwarded-Proto", "https")
                 .send(payload);
 
             process.env.NODE_ENV = originalEnv;
@@ -588,7 +589,7 @@ describe("Reports API Routes", () => {
             mockedSupabase.select = jest.fn().mockReturnValue({
                 eq: jest.fn().mockReturnValue({
                     order: jest.fn().mockReturnValue({
-                        range: jest.fn().mockResolvedValueOnce({
+                        limit: jest.fn().mockResolvedValueOnce({
                             data: mockReports,
                             error: null,
                         }),
@@ -610,7 +611,7 @@ describe("Reports API Routes", () => {
             mockedSupabase.select = jest.fn().mockReturnValue({
                 eq: jest.fn().mockReturnValue({
                     order: jest.fn().mockReturnValue({
-                        range: jest.fn().mockResolvedValueOnce({
+                        limit: jest.fn().mockResolvedValueOnce({
                             data: [],
                             error: null,
                         }),
@@ -783,9 +784,26 @@ describe("Reports API Routes", () => {
                 }
                 if (table === "district_alerts") {
                     return {
+                        select: jest.fn().mockReturnValue({
+                            eq: jest.fn().mockReturnValue({
+                                eq: jest.fn().mockReturnValue({
+                                    maybeSingle: jest.fn().mockResolvedValue({
+                                        data: { alert_level: "low" },
+                                        error: null,
+                                    }),
+                                }),
+                            }),
+                        }),
                         upsert: jest.fn().mockImplementation((payload: Record<string, unknown>) => {
                             upsertPayload = payload;
-                            return Promise.resolve({ data: null, error: null });
+                            return {
+                                select: jest.fn().mockReturnValue({
+                                    single: jest.fn().mockResolvedValue({
+                                        data: payload,
+                                        error: null,
+                                    }),
+                                }),
+                            };
                         }),
                     };
                 }

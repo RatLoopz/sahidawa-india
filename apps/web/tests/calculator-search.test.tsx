@@ -4,7 +4,6 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import CalculatorPage from "../app/[locale]/calculator/page";
-import { supabase } from "@/lib/supabase";
 
 // Mock supabase client
 jest.mock("@/lib/supabase", () => {
@@ -41,30 +40,38 @@ describe("CalculatorPage search safety", () => {
         jest.clearAllMocks();
     });
 
-    it("should escape double quotes in search query to prevent PostgREST injection", async () => {
-        render(<CalculatorPage />);
+    it("should encode double quotes in search query when calling API", async () => {
+        const originalFetch = global.fetch;
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: true,
+            json: async () => [],
+        }) as jest.Mock;
 
-        // Find the medicine search select input
-        const searchInput = screen.getByRole("combobox");
+        try {
+            render(<CalculatorPage />);
 
-        // Type a query with double quotes: Crocin" OR "Paracetamol
-        fireEvent.change(searchInput, { target: { value: 'Crocin" OR "Paracetamol' } });
+            // Find the medicine search select input
+            const searchInput = screen.getByRole("combobox");
 
-        // Wait for debounced search to trigger the database query (MedicineSearchSelect has 300ms debounce)
-        await waitFor(
-            () => {
-                expect(supabase.from).toHaveBeenCalledWith("medicines");
-            },
-            { timeout: 1000 }
-        );
+            // Type a query with double quotes: Crocin" OR "Paracetamol
+            fireEvent.change(searchInput, { target: { value: 'Crocin" OR "Paracetamol' } });
 
-        // Verify the argument passed to .or()
-        const mockOr = (supabase as any)._mockOr;
-        expect(mockOr).toHaveBeenCalled();
-        const callArg = mockOr.mock.calls[0][0];
+            // Wait for debounced search to trigger the database query (MedicineSearchSelect has 300ms debounce)
+            await waitFor(
+                () => {
+                    expect(global.fetch).toHaveBeenCalled();
+                },
+                { timeout: 1000 }
+            );
 
-        // It should contain properly escaped double quotes '""' instead of '"'
-        expect(callArg).toContain('brand_name.ilike."%Crocin"" OR ""Paracetamol%"');
-        expect(callArg).toContain('generic_name.ilike."%Crocin"" OR ""Paracetamol%"');
+            // Verify the argument passed to fetch
+            const fetchMock = global.fetch as jest.Mock;
+            const callArg = fetchMock.mock.calls[0][0];
+
+            // It should be properly URI encoded
+            expect(callArg).toBe("/api/medicines/search?q=Crocin%22%20OR%20%22Paracetamol");
+        } finally {
+            global.fetch = originalFetch;
+        }
     });
 });

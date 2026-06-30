@@ -6,7 +6,7 @@ import {
     extractMedicineName,
     extractBatchNumber,
     extractExpiryDate,
-} from "@/src/utils/medicineParser";
+} from "@/lib/sync/medicineParser";
 import { verifyMedicine, verifyMedicineByBrand, VerifyResult, fuzzyMatchBrand } from "@/lib/api";
 import { structuredLog } from "@/lib/structuredLogger";
 import { saveScanHistory } from "@/lib/db/scanHistory";

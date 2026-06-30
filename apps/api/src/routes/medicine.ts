@@ -4,6 +4,7 @@ import { supabase } from "../db/client";
 import { redisClient } from "../utils/redis";
 import { scanQueryLimiter } from "../middleware/rateLimit";
 import { escapePostgrest } from "../utils/db";
+import { getMlServiceUrl } from "../config/mlService";
 
 const router = Router();
 
@@ -17,7 +18,7 @@ const upload = multer({
     },
 });
 
-const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://localhost:8000";
+const ML_SERVICE_URL = getMlServiceUrl();
 
 export function buildMedicineVoiceSearchFilter(transcribedText: string): string {
     const safeTranscribedText = escapePostgrest(transcribedText);
@@ -35,6 +36,10 @@ router.post(
     upload.single("audio"),
     async (req: Request, res: Response) => {
         try {
+            if (!ML_SERVICE_URL) {
+                return res.status(503).json({ success: false, error: "ML service not configured" });
+            }
+
             if (!req.file) {
                 return res.status(400).json({ success: false, error: "No audio file provided." });
             }
@@ -108,7 +113,6 @@ router.post(
 
             // Cache result in Redis (key: transcribed medicine name, TTL: 1 hour)
             try {
-                // Use the shared redisClient
                 if (transcribedText) {
                     const cacheKey = `medicine:voice:${transcribedText.toLowerCase().replace(/\s+/g, "_")}`;
                     await redisClient.setEx(cacheKey, 3600, JSON.stringify(result));
@@ -133,6 +137,10 @@ router.post(
  */
 router.get("/languages", async (_req: Request, res: Response) => {
     try {
+        if (!ML_SERVICE_URL) {
+            return res.status(503).json({ error: "ML service not configured" });
+        }
+
         const mlResponse = await fetch(`${ML_SERVICE_URL}/voice/languages`);
         const data = await mlResponse.json();
         res.json(data);

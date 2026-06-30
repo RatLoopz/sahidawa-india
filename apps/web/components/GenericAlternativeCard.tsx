@@ -1,5 +1,5 @@
-import React from "react";
-import { TrendingDown, MapPin, Sparkles, ArrowRight, Pill } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { TrendingDown, MapPin, Sparkles, ArrowRight, Pill, Bookmark } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 
 export interface NearestStore {
@@ -23,10 +23,54 @@ interface GenericAlternativeCardProps {
     alternative: GenericAlternative;
 }
 
+function getSavedMedicineBookmarks(): GenericAlternative[] {
+    if (typeof window === "undefined") return [];
+
+    try {
+        const stored = localStorage.getItem("medicine-bookmarks");
+        if (!stored) return [];
+
+        const parsed = JSON.parse(stored);
+        if (!Array.isArray(parsed)) {
+            localStorage.setItem("medicine-bookmarks", "[]");
+            return [];
+        }
+
+        return parsed;
+    } catch {
+        localStorage.setItem("medicine-bookmarks", "[]");
+        return [];
+    }
+}
+
 export default function GenericAlternativeCard({ alternative }: GenericAlternativeCardProps) {
     const router = useRouter();
     const params = useParams();
     const locale = Array.isArray(params.locale) ? params.locale[0] : params.locale || "en";
+
+    const [isBookmarked, setIsBookmarked] = useState(false);
+
+    useEffect(() => {
+        const saved = getSavedMedicineBookmarks();
+        const exists = saved.some(
+            (item: GenericAlternative) => item.alternative_name === alternative.alternative_name
+        );
+        setIsBookmarked(exists);
+    }, [alternative.alternative_name]);
+
+    const handleBookmark = () => {
+        const saved = getSavedMedicineBookmarks();
+        if (isBookmarked) {
+            const filtered = saved.filter(
+                (item: GenericAlternative) => item.alternative_name !== alternative.alternative_name
+            );
+            localStorage.setItem("medicine-bookmarks", JSON.stringify(filtered));
+        } else {
+            saved.push(alternative);
+            localStorage.setItem("medicine-bookmarks", JSON.stringify(saved));
+        }
+        setIsBookmarked(!isBookmarked);
+    };
 
     const brandPrice = alternative.brand_price;
     const genericPrice = alternative.jan_aushadhi_price;
@@ -34,25 +78,30 @@ export default function GenericAlternativeCard({ alternative }: GenericAlternati
     const savingsPct = alternative.savings_percentage;
 
     const handleNavigateToMap = () => {
-        // Navigate to the map page with pre-filtered settings
         router.push(`/${locale}/map?filter=govt`);
     };
 
     return (
         <div className="group relative w-full overflow-hidden rounded-[2.5rem] border border-emerald-500/20 bg-linear-to-b from-white to-emerald-50/10 p-6 text-(--color-text-primary) shadow-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl dark:border-emerald-500/10 dark:from-slate-900 dark:to-emerald-950/10">
-            {/* Ambient Background Glow */}
             <div className="pointer-events-none absolute -top-16 -right-16 h-32 w-32 rounded-full bg-emerald-500/10 blur-2xl transition-all duration-500 group-hover:scale-150 dark:bg-emerald-500/5"></div>
 
             <div className="flex flex-col space-y-5">
-                {/* Header Badge */}
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 rounded-full bg-emerald-100 px-3.5 py-1 text-xs font-black text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-400">
-                        <Sparkles size={12} className="animate-pulse" />
-                        <span>
-                            {savingsAmount > 0
-                                ? "Cheaper Alternative Available"
-                                : "Alternative Available"}
-                        </span>
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 rounded-full bg-emerald-100 px-3.5 py-1 text-xs font-black text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-400">
+                            <Sparkles size={12} className="animate-pulse" />
+                            <span>
+                                {savingsAmount > 0
+                                    ? "Cheaper Alternative Available"
+                                    : "Alternative Available"}
+                            </span>
+                        </div>
+                        <button
+                            onClick={handleBookmark}
+                            className={`rounded-full p-2 transition-all ${isBookmarked ? "bg-emerald-600 text-white" : "bg-gray-100 text-gray-400 hover:bg-gray-200"}`}
+                        >
+                            <Bookmark size={14} fill={isBookmarked ? "currentColor" : "none"} />
+                        </button>
                     </div>
                     {savingsAmount > 0 && (
                         <div className="flex items-center gap-1 text-sm font-black text-emerald-600 dark:text-emerald-400">
@@ -62,9 +111,7 @@ export default function GenericAlternativeCard({ alternative }: GenericAlternati
                     )}
                 </div>
 
-                {/* Brand vs Generic Comparison */}
                 <div className="space-y-4">
-                    {/* Brand Prescribed */}
                     <div className="flex items-start justify-between gap-4 rounded-2xl border border-dashed border-(--color-border-muted) bg-slate-50/50 p-4 dark:bg-slate-800/10">
                         <div className="space-y-1">
                             <span className="text-[10px] font-bold tracking-wider text-(--color-text-muted) uppercase">
@@ -87,7 +134,6 @@ export default function GenericAlternativeCard({ alternative }: GenericAlternati
                         </div>
                     </div>
 
-                    {/* Generic Alternative */}
                     <div className="flex items-start justify-between gap-4 rounded-2xl border border-emerald-500/25 bg-emerald-50/30 p-4 dark:border-emerald-500/15 dark:bg-emerald-950/10">
                         <div className="space-y-1">
                             <span className="text-[10px] font-bold tracking-wider text-emerald-600 uppercase dark:text-emerald-400">
@@ -115,7 +161,6 @@ export default function GenericAlternativeCard({ alternative }: GenericAlternati
                     </div>
                 </div>
 
-                {/* Savings Summary Banner */}
                 {savingsAmount > 0 && (
                     <div className="rounded-2xl bg-linear-to-r from-emerald-500 to-teal-600 p-4 text-center text-white shadow-md shadow-emerald-500/10">
                         <p className="text-xs font-medium opacity-90">
@@ -127,7 +172,6 @@ export default function GenericAlternativeCard({ alternative }: GenericAlternati
                     </div>
                 )}
 
-                {/* Nearest Store Info */}
                 {alternative.nearest_store && (
                     <div className="flex items-start gap-3 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) p-4">
                         <div className="mt-1 rounded-xl bg-emerald-100 p-2 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
@@ -150,7 +194,6 @@ export default function GenericAlternativeCard({ alternative }: GenericAlternati
                     </div>
                 )}
 
-                {/* Call to Action Button */}
                 <button
                     onClick={handleNavigateToMap}
                     className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 text-sm font-black text-white shadow-lg shadow-emerald-600/15 transition-all duration-200 hover:bg-emerald-500 hover:shadow-emerald-500/25 active:scale-98"

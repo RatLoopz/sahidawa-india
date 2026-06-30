@@ -119,6 +119,7 @@ const createInitialMessage = (locale: string): Message => ({
 
 export default function ChatUI() {
     const t = useTranslations("Health");
+    const tVoiceError = useTranslations("VoicePage.errors");
 
     // Quick actions configuration
     const ACTIONS = [
@@ -340,6 +341,8 @@ export default function ChatUI() {
             }
         };
 
+        const initialInput = input.trim();
+
         recognition.onresult = (event: any) => {
             if (!isMountedRef.current) return;
 
@@ -347,13 +350,32 @@ export default function ChatUI() {
                 .map((result: any) => result[0].transcript)
                 .join(" ");
 
-            setInput(transcript);
+            const space = initialInput.length > 0 ? " " : "";
+            setInput(initialInput + space + transcript);
         };
 
         recognition.onerror = (event: any) => {
             console.error("Speech recognition error:", event.error);
             if (isMountedRef.current) {
                 setIsListening(false);
+            }
+            if (event.error === "not-allowed") {
+                alert(
+                    tVoiceError("permission_message") ||
+                        "Please allow microphone permission in your browser settings and try again."
+                );
+            } else if (event.error === "network") {
+                alert(
+                    tVoiceError("network_message") ||
+                        "Your browser could not finish the voice capture. Please check your connection and try again."
+                );
+            } else if (event.error === "no-speech") {
+                // Ignore no-speech, it just means they didn't say anything
+            } else {
+                alert(
+                    tVoiceError("generic_message") ||
+                        "We could not process your voice input this time. Please try again."
+                );
             }
         };
 
@@ -364,8 +386,18 @@ export default function ChatUI() {
         };
 
         recRef.current = recognition;
-        recognition.start();
-    }, [isListening, locale, t]);
+
+        try {
+            recognition.start();
+        } catch (e) {
+            console.error("Failed to start speech recognition:", e);
+            alert(
+                t("voiceBrowserRequired") ||
+                    "Voice recognition is not supported or failed to start."
+            );
+            setIsListening(false);
+        }
+    }, [isListening, locale, t, input]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {
