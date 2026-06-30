@@ -61,6 +61,21 @@ jest.mock("../src/middleware/auth", () => {
     };
 });
 
+// Mock sms + whatsapp services to prevent BullMQ/Redis connection attempts in CI
+jest.mock("../src/services/sms-service", () => ({
+    smsService: {
+        send: jest.fn().mockResolvedValue(true),
+        sendOtp: jest.fn().mockResolvedValue(true),
+    },
+}));
+
+jest.mock("../src/services/whatsapp-service", () => ({
+    whatsappService: {
+        send: jest.fn().mockResolvedValue(true),
+        sendOtp: jest.fn().mockResolvedValue(true),
+    },
+}));
+
 import express from "express";
 import request from "supertest";
 import notificationsRouter from "../src/routes/notifications";
