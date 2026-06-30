@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
 import { rateLimit } from "@/lib/rateLimit";
+import { getClientIp } from "@/lib/getClientIp";
 import { redis } from "@/lib/redis";
 
 const OVERPASS_MIRRORS = [
@@ -16,9 +17,7 @@ const CACHE_TTL_SECONDS = 86_400; // 24 hours
 
 export async function POST(req: NextRequest) {
     try {
-        const forwardedFor = req.headers.get("x-forwarded-for");
-        const realIp = req.headers.get("x-real-ip");
-        const ip = forwardedFor?.split(",")[0]?.trim() || realIp || "127.0.0.1";
+        const ip = getClientIp(req);
 
         const { success } = await rateLimit.limit(ip);
         if (!success) {

@@ -13,6 +13,7 @@ const activeDesktopNavLinkClassName =
 export default function DesktopNavLinks() {
     const pathname = usePathname();
     const tNav = useTranslations("Navigation");
+    const tA11y = useTranslations("A11y");
     const [isFeaturesOpen, setIsFeaturesOpen] = useState(false);
     const featuresRef = useRef<HTMLDivElement>(null);
 
@@ -51,7 +52,7 @@ export default function DesktopNavLinks() {
     return (
         <nav
             className="hidden items-center justify-center gap-4 text-sm font-semibold text-(--color-text-secondary) lg:flex xl:gap-6"
-            aria-label="Main navigation"
+            aria-label={tA11y("mainNavigation")}
         >
             <Link
                 href="/how-it-works"

@@ -87,7 +87,7 @@ describe("POST /api/voice/transcribe", () => {
         expect(data.error).toBe("Audio file is required.");
     });
 
-    it("returns 500 when ML_SERVICE_URL is missing", async () => {
+    it("returns 503 when ML_SERVICE_URL is missing", async () => {
         delete process.env.ML_SERVICE_URL;
         global.fetch = jest.fn() as unknown as typeof fetch;
 
@@ -102,7 +102,7 @@ describe("POST /api/voice/transcribe", () => {
         const response = await POST(request);
         const data = await response.json();
 
-        expect(response.status).toBe(500);
+        expect(response.status).toBe(503);
         expect(data.code).toBe("ML_SERVICE_URL_MISSING");
         expect(global.fetch).not.toHaveBeenCalled();
     });

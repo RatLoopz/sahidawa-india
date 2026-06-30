@@ -7,7 +7,7 @@ type ChatbotPanelOptions = {
     pathname: string | null;
 };
 
-const POSITION_BASE_CLASSES = "fixed z-10 font-sans";
+const POSITION_BASE_CLASSES = "fixed z-10 font-sans transition-all duration-300 ease-out";
 const DEFAULT_CHATBOT_POSITION_CLASSES = `${POSITION_BASE_CLASSES} bottom-[4.5rem] right-4 md:bottom-6 md:right-6`;
 const MAP_CHATBOT_DESKTOP_LEFT = "md:left-[calc(clamp(22rem,26vw,30rem)+2.75rem)]";
 const MAP_CHATBOT_CLOSED_POSITION_CLASSES = `${POSITION_BASE_CLASSES} bottom-[4.5rem] left-4 md:bottom-6 ${MAP_CHATBOT_DESKTOP_LEFT}`;

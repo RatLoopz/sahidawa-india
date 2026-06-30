@@ -52,6 +52,8 @@ export type PushDeliveryEvent = {
 };
 
 const memorySubscriptions = new Map<string, StoredSubscription>();
+const MAX_MEMORY_SUBSCRIPTIONS = 1000;
+const PAGE_SIZE = 500;
 
 const mockRecallFeed: RecallAlert[] = [
     {
@@ -108,8 +110,15 @@ export async function savePushSubscription(subscription: PushSubscription, userI
         createdAt: new Date().toISOString(),
         userId,
     };
-    memorySubscriptions.set(subscription.endpoint, stored);
+    if (memorySubscriptions.size >= MAX_MEMORY_SUBSCRIPTIONS) {
+        const oldestKey = memorySubscriptions.keys().next().value;
 
+        if (oldestKey) {
+            memorySubscriptions.delete(oldestKey);
+        }
+    }
+
+    memorySubscriptions.set(subscription.endpoint, stored);
     const { error } = await supabase.from("push_subscriptions").upsert(
         {
             endpoint: subscription.endpoint,
@@ -129,27 +138,38 @@ export async function removePushSubscription(endpoint: string) {
 }
 
 async function listPersistedSubscriptions(): Promise<StoredSubscription[]> {
-    const { data, error } = await supabase
-        .from("push_subscriptions")
-        .select("endpoint, subscription, created_at, user_id")
-        .order("created_at", { ascending: false });
-
-    if (error || !data) {
-        return [];
-    }
-
     const results: StoredSubscription[] = [];
+    let from = 0;
 
-    for (const row of data) {
-        const parsed = pushSubscriptionSchema.safeParse(row.subscription);
-        if (!parsed.success) continue;
+    while (true) {
+        const { data, error } = await supabase
+            .from("push_subscriptions")
+            .select("endpoint, subscription, created_at, user_id")
+            .order("created_at", { ascending: false })
+            .range(from, from + PAGE_SIZE - 1);
 
-        results.push({
-            endpoint: row.endpoint as string,
-            subscription: parsed.data as PushSubscription,
-            createdAt: (row.created_at as string | null) ?? new Date().toISOString(),
-            userId: row.user_id as string,
-        });
+        if (error || !data || data.length === 0) {
+            break;
+        }
+
+        for (const row of data) {
+            const parsed = pushSubscriptionSchema.safeParse(row.subscription);
+
+            if (!parsed.success) continue;
+
+            results.push({
+                endpoint: row.endpoint as string,
+                subscription: parsed.data as PushSubscription,
+                createdAt: (row.created_at as string | null) ?? new Date().toISOString(),
+                userId: row.user_id as string,
+            });
+        }
+
+        if (data.length < PAGE_SIZE) {
+            break;
+        }
+
+        from += PAGE_SIZE;
     }
 
     return results;
@@ -158,6 +178,7 @@ async function listPersistedSubscriptions(): Promise<StoredSubscription[]> {
 export async function listPushSubscriptions() {
     const persisted = await listPersistedSubscriptions();
     if (persisted.length > 0) {
+        memorySubscriptions.clear();
         return persisted;
     }
 

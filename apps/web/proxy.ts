@@ -51,7 +51,7 @@ export default async function middleware(req: NextRequest) {
         `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
         `style-src 'self' 'nonce-${nonce}'`,
         `connect-src ${connectSrc}`,
-        "img-src 'self' blob: data:",
+        "img-src 'self' blob: data: https://res.cloudinary.com",
         "font-src 'self'",
         "object-src 'none'",
         "base-uri 'self'",

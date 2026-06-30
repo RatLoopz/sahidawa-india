@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { AlertTriangle, Loader2, Plus, ShieldCheck, X } from "lucide-react";
+import { AlertTriangle, Copy, Loader2, Plus, ShieldCheck, X } from "lucide-react";
+import { toast } from "sonner";
 import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
 import ComparisonGrid, {
@@ -52,6 +53,7 @@ export default function ComparePage() {
     const tInteractions = useTranslations("Interactions");
     const tExpiryTracker = useTranslations("ExpiryTracker");
     const tHome = useTranslations("Home");
+    const tHistory = useTranslations("History");
     const [selectedMedicines, setSelectedMedicines] = useState<(Medicine | null)[]>([null, null]);
     const [interactions, setInteractions] = useState<InteractionWarning[]>([]);
     const [interactionsLoading, setInteractionsLoading] = useState(false);
@@ -122,7 +124,6 @@ export default function ComparePage() {
         window.history.replaceState({}, "", newUrl);
     }, [medicine1?.id, medicine2?.id]);
 
-
     useEffect(() => {
         if (selectedIds.length < 2) {
             setInteractions([]);
@@ -176,6 +177,11 @@ export default function ComparePage() {
 
         return () => controller.abort();
     }, [selectedIds.length, selectedIdsKey]);
+
+    const handleCopy = (text: string) => {
+        void navigator.clipboard.writeText(text);
+        toast.success(tHistory("item_copy_success"));
+    };
 
     const handleSearch = useCallback((q: string) => searchMedicines(q), []);
 
@@ -364,8 +370,18 @@ export default function ComparePage() {
                                         className="rounded-lg border border-slate-200 p-4"
                                     >
                                         <div className="flex flex-wrap items-center justify-between gap-2">
-                                            <h3 className="font-semibold text-slate-900">
+                                            <h3 className="flex items-center gap-2 font-semibold text-slate-900">
                                                 {interaction.drugA} + {interaction.drugB}
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleCopy(
+                                                            `${interaction.drugA} + ${interaction.drugB}`
+                                                        )
+                                                    }
+                                                >
+                                                    <Copy size={14} />
+                                                </button>
                                             </h3>
                                             <span
                                                 className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${severityClass(
