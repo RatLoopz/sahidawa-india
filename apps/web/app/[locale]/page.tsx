@@ -652,7 +652,7 @@ export default function SahiDawaHome() {
                                                             <span className="shrink-0 text-[11px] font-medium text-(--color-text-muted)">
                                                                 {formatRelativeTime(
                                                                     alert.created_at,
-                                                                    locale
+                                                                    locale || "en"
                                                                 )}
                                                             </span>
                                                         </div>
