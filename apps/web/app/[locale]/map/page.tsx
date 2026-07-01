@@ -739,6 +739,10 @@ export default function PharmacyMapPage() {
         setSelectedPharmacyId(pharmacyId);
     }, []);
 
+    const hasActiveMapFilters = Boolean(
+        searchQuery.trim() || activeFilter !== "all" || activeAdvancedFilterCount > 0
+    );
+
     const pharmacyPanelProps = {
         pharmacies: filteredPharmacies,
         isLoading,
@@ -748,6 +752,12 @@ export default function PharmacyMapPage() {
         riskSummaryText,
         onSelectPharmacy: handleSelectPharmacy,
         onHeatmapModeChange: setHeatmapMode,
+        emptyStateTitle: "No pharmacies found nearby",
+        emptyStateDescription: hasActiveMapFilters
+            ? "Try clearing your search or filters, or widen the area to discover more nearby pharmacies."
+            : "Try widening the search area or using your current location to find nearby verified stores.",
+        emptyStateActionLabel: "Use my location",
+        onEmptyStateAction: handleLocateUser,
     };
 
     return (
