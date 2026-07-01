@@ -9,6 +9,7 @@ import { ExpiryForm } from "./components/ExpiryForm";
 import { ExpiryModal } from "./components/ExpiryModal";
 import { ExpirySummary } from "./components/ExpirySummary";
 import { ExpiryTable } from "./components/ExpiryTable";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { formatDateInputValue, isValidDateString, parseLocalDate } from "./components/dateUtils";
 import type { FilterStatus, SortOption } from "./components/types";
 import {
@@ -44,6 +45,19 @@ export default function ExpiryTrackerPage() {
     const [sortBy, setSortBy] = useState<SortOption>("expirySoonest");
     const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+    // Confirmation dialog state
+    const [confirmDialog, setConfirmDialog] = useState<{
+        isOpen: boolean;
+        type: "single" | "bulk";
+        medicineId?: string;
+        medicineName?: string;
+        count?: number;
+    }>({
+        isOpen: false,
+        type: "single",
+    });
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // IO / System state
     const [importError, setImportError] = useState<string | null>(null);
@@ -190,15 +204,62 @@ export default function ExpiryTrackerPage() {
         }
     };
 
-    const handleDelete = async (id: string) => {
-        await deleteMedicine(id);
-        if (editingId === id) cancelEdit();
-        setSelectedIds((prev) => {
-            if (!prev.has(id)) return prev;
-            const next = new Set(prev);
-            next.delete(id);
-            return next;
+    const handleDelete = (id: string) => {
+        const medicine = medicines.find((m) => m.id === id);
+        setConfirmDialog({
+            isOpen: true,
+            type: "single",
+            medicineId: id,
+            medicineName: medicine?.name || "this medicine",
         });
+    };
+
+    const confirmDeleteMedicine = async () => {
+        if (confirmDialog.medicineId) {
+            setIsDeleting(true);
+            try {
+                await deleteMedicine(confirmDialog.medicineId);
+                if (editingId === confirmDialog.medicineId) cancelEdit();
+                setSelectedIds((prev) => {
+                    if (!prev.has(confirmDialog.medicineId!)) return prev;
+                    const next = new Set(prev);
+                    next.delete(confirmDialog.medicineId!);
+                    return next;
+                });
+                toast.success("Medicine deleted successfully");
+            } catch (error) {
+                console.error("Failed to delete medicine:", error);
+                toast.error("Failed to delete medicine. Please try again.");
+            } finally {
+                setIsDeleting(false);
+                setConfirmDialog({ isOpen: false, type: "single" });
+            }
+        }
+    };
+
+    const handleBulkDelete = () => {
+        if (selectedIds.size === 0) return;
+        setConfirmDialog({
+            isOpen: true,
+            type: "bulk",
+            count: selectedIds.size,
+        });
+    };
+
+    const confirmBulkDelete = async () => {
+        if (selectedIds.size === 0) return;
+        setIsDeleting(true);
+        try {
+            await bulkDeleteMedicines(Array.from(selectedIds));
+            setSelectedIds(new Set());
+            toast.success(`${selectedIds.size} medicines deleted successfully`);
+        } catch (error) {
+            console.error("Failed to delete medicines:", error);
+            toast.error("Failed to delete medicines. Please try again.");
+        } finally {
+            setIsDeleting(false);
+            setConfirmDialog({ isOpen: false, type: "single" });
+        }
     };
 
     const startEdit = (med: Medicine) => {
@@ -228,12 +289,6 @@ export default function ExpiryTrackerPage() {
             else next.add(id);
             return next;
         });
-    };
-
-    const handleBulkDelete = async () => {
-        if (selectedIds.size === 0) return;
-        await bulkDeleteMedicines(Array.from(selectedIds));
-        setSelectedIds(new Set());
     };
 
     const getDiffDays = (dateStr: string) => {
@@ -471,6 +526,38 @@ export default function ExpiryTrackerPage() {
                 onRetry={() => {
                     setApiError(null);
                 }}
+            />
+
+            {/* Single delete confirmation */}
+            <ConfirmationDialog
+                isOpen={confirmDialog.isOpen && confirmDialog.type === "single"}
+                title={t("deleteConfirmTitle") || "Delete Medicine?"}
+                description={
+                    t("deleteConfirmMessage") ||
+                    `This will permanently remove "${confirmDialog.medicineName}" from your tracked medicines. This action cannot be undone.`
+                }
+                confirmText={t("deleteMedicine") || "Delete"}
+                cancelText={t("cancelButton") || "Cancel"}
+                variant="danger"
+                isLoading={isDeleting}
+                onConfirm={confirmDeleteMedicine}
+                onCancel={() => setConfirmDialog({ isOpen: false, type: "single" })}
+            />
+
+            {/* Bulk delete confirmation */}
+            <ConfirmationDialog
+                isOpen={confirmDialog.isOpen && confirmDialog.type === "bulk"}
+                title={t("bulkDeleteConfirmTitle") || "Delete Multiple Medicines?"}
+                description={
+                    t("bulkDeleteConfirmMessage") ||
+                    `This will permanently remove ${confirmDialog.count} medicine(s) from your tracked list. This action cannot be undone.`
+                }
+                confirmText={t("deleteMedicine") || "Delete All"}
+                cancelText={t("cancelButton") || "Cancel"}
+                variant="danger"
+                isLoading={isDeleting}
+                onConfirm={confirmBulkDelete}
+                onCancel={() => setConfirmDialog({ isOpen: false, type: "single" })}
             />
         </div>
     );

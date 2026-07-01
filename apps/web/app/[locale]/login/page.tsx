@@ -226,7 +226,10 @@ export default function LoginPage() {
                     <form onSubmit={handleLogin} className="space-y-5">
                         {/* Email */}
                         <div>
-                            <label className="text-sm font-medium text-(--color-text-primary)">
+                            <label
+                                htmlFor="login-email"
+                                className="text-sm font-medium text-(--color-text-primary)"
+                            >
                                 {t("emailLabel")}
                             </label>
 
@@ -234,6 +237,7 @@ export default function LoginPage() {
                                 <Mail className="h-5 w-5 text-(--color-text-muted)" />
 
                                 <input
+                                    id="login-email"
                                     type="email"
                                     placeholder={t("emailPlaceholder")}
                                     value={email}
@@ -247,7 +251,10 @@ export default function LoginPage() {
 
                         {/* Password */}
                         <div>
-                            <label className="text-sm font-medium text-(--color-text-primary)">
+                            <label
+                                htmlFor="login-password"
+                                className="text-sm font-medium text-(--color-text-primary)"
+                            >
                                 {t("passwordLabel")}
                             </label>
 
@@ -255,6 +262,7 @@ export default function LoginPage() {
                                 <Lock className="h-5 w-5 text-(--color-text-muted)" />
 
                                 <input
+                                    id="login-password"
                                     type={showPassword ? "text" : "password"}
                                     placeholder={t("passwordPlaceholder")}
                                     value={password}
