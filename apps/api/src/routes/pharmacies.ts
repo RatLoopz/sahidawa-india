@@ -45,6 +45,8 @@ interface PharmacyRow {
     updated_at?: string;
     is_active?: boolean;
     deleted_at?: string | null;
+    operating_hours?: string | null;
+    timezone?: string | null;
 }
 
 /** Internal type used during sorting (includes raw numeric distance) */
@@ -257,6 +259,8 @@ function formatPharmacy(p: PharmacyRow, distanceKm: number): FormattedPharmacy {
         updated_at: p.updated_at,
         is_active: p.is_active,
         deleted_at: p.deleted_at,
+        operating_hours: p.operating_hours ?? null,
+        timezone: p.timezone ?? null,
     };
 }
 
@@ -643,6 +647,8 @@ router.get(
                         is_verified: p.is_verified ?? false,
                         district: p.district || null,
                         state: p.state || null,
+                        operating_hours: p.operating_hours ?? null,
+                        timezone: p.timezone ?? null,
                     }))
                     .slice(0, MAX_RESULTS);
 
@@ -663,7 +669,7 @@ router.get(
             const { data: allPharmacies, error: fetchError } = await supabase
                 .from("pharmacies")
                 .select(
-                    "id, name, address, location, phone_number, is_verified, district, state, status, updated_at, is_active, deleted_at"
+                    "name, address, location, phone_number, is_verified, district, state, status, operating_hours, timezone"
                 )
                 .eq("status", "approved")
                 .limit(3000);
@@ -885,6 +891,8 @@ router.get(
                         updated_at: p.updated_at,
                         is_active: p.is_active ?? true,
                         deleted_at: p.deleted_at ?? null,
+                        operating_hours: p.operating_hours ?? null,
+                        timezone: p.timezone ?? null,
                     }))
                     .slice(0, MAX_RESULTS);
                 setGeospatialCacheHeaders(res);
@@ -905,7 +913,7 @@ router.get(
                 query = supabase
                     .from("pharmacies")
                     .select(
-                        "id, name, address, location, phone_number, is_verified, district, state, status, updated_at, is_active, deleted_at"
+                        "id, name, address, location, phone_number, is_verified, district, state, status, updated_at, is_active, deleted_at, operating_hours, timezone"
                     )
                     .eq("status", "approved")
                     .gt("updated_at", since.toISOString());
@@ -913,7 +921,7 @@ router.get(
                 query = supabase
                     .from("pharmacies")
                     .select(
-                        "id, name, address, location, phone_number, is_verified, district, state, status, updated_at, is_active, deleted_at"
+                        "id, name, address, location, phone_number, is_verified, district, state, status, updated_at, is_active, deleted_at, operating_hours, timezone"
                     )
                     .eq("status", "approved");
             }
@@ -953,6 +961,8 @@ router.get(
                         updated_at: p.updated_at,
                         is_active: p.is_active,
                         deleted_at: p.deleted_at,
+                        operating_hours: p.operating_hours ?? null,
+                        timezone: p.timezone ?? null,
                         coords,
                     };
                 })

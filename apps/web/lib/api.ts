@@ -243,6 +243,10 @@ export type VerifiedPharmacy = {
     updated_at?: string;
     is_active?: boolean;
     deleted_at?: string | null;
+    /** OSM `opening_hours` syntax, e.g. "Mo-Sa 09:00-21:00". Null/absent = unavailable. */
+    operating_hours?: string | null;
+    /** IANA timezone for evaluating operating_hours, e.g. "Asia/Kolkata". */
+    timezone?: string | null;
 };
 
 export async function fetchVerifiedPharmacies(
