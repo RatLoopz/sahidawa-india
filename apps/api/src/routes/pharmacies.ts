@@ -663,7 +663,7 @@ router.get(
             const { data: allPharmacies, error: fetchError } = await supabase
                 .from("pharmacies")
                 .select(
-                    "name, address, location, phone_number, is_verified, district, state, status"
+                    "id, name, address, location, phone_number, is_verified, district, state, status, updated_at, is_active, deleted_at"
                 )
                 .eq("status", "approved")
                 .limit(3000);

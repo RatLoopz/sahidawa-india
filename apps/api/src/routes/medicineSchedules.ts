@@ -341,10 +341,19 @@ router.get("/:id/stats", requireAuth, async (req: AuthenticatedRequest, res: Res
         const { from, to } = queryParsed.data;
         const fromDate = new Date(from);
         const toDate = new Date(to);
-        const dayCount = Math.max(
-            1,
-            Math.round((toDate.getTime() - fromDate.getTime()) / 86400000) + 1
-        );
+
+        if (fromDate > toDate) {
+            res.status(400).json({ error: "from date must be before to date" });
+            return;
+        }
+
+        const dayCount = Math.round((toDate.getTime() - fromDate.getTime()) / 86400000) + 1;
+
+        if (dayCount > 365) {
+            res.status(400).json({ error: "Date range cannot exceed 365 days" });
+            return;
+        }
+
         const expectedDoses = dayCount * schedule.frequency;
 
         const { data: doseLogs, error: doseError } = await supabase
@@ -353,7 +362,8 @@ router.get("/:id/stats", requireAuth, async (req: AuthenticatedRequest, res: Res
             .eq("schedule_id", req.params.id)
             .eq("user_id", req.user!.id)
             .gte("log_date", from)
-            .lte("log_date", to);
+            .lte("log_date", to)
+            .limit(500);
 
         if (doseError) {
             res.status(500).json({ error: "Failed to fetch adherence data" });
