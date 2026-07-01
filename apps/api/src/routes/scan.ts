@@ -22,6 +22,12 @@ const ALLOWED_MIME_TYPES = new Set([
     "image/webp",
     "image/gif",
     "image/bmp",
+    "audio/webm",
+    "audio/mp4",
+    "audio/mpeg",
+    "audio/wav",
+    "audio/ogg",
+    "audio/aac",
 ]);
 
 const UPLOAD_DIR = path.join(__dirname, "../../temp-uploads");
@@ -53,7 +59,7 @@ const upload = multer({
             cb(
                 Object.assign(
                     new Error(
-                        `Invalid file type "${file.mimetype}". Only JPEG, PNG, WEBP, GIF, and BMP images are accepted.`
+                        `Invalid file type "${file.mimetype}". Only supported image and audio formats are accepted.`
                     ),
                     { code: "INVALID_MIME" }
                 )
@@ -862,6 +868,8 @@ import { resolveConflict } from "../utils/conflictResolution";
 
 router.post(
     "/submit",
+    uploadRateLimiter,
+    validateUploadSize,
     upload.fields([{ name: "image" }, { name: "voice" }]),
     idempotencyMiddleware,
     async (req: Request, res: Response) => {
