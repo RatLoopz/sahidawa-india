@@ -59,7 +59,6 @@ export function ConfirmationDialog({
         }
     };
 
-    const accentColor = variant === "danger" ? "red" : "orange";
     const accentBg =
         variant === "danger"
             ? "bg-red-50 dark:bg-red-950/20"
