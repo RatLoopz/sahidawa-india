@@ -5,8 +5,10 @@ import { requireAuth } from "../middleware/auth";
 import type { AuthenticatedRequest } from "../middleware/auth";
 import logger from "../utils/logger";
 import { redisClient } from "../utils/redis";
+import { scheduleLimiter } from "../middleware/rateLimit";
 
 const router = Router();
+router.use(scheduleLimiter);
 const invalidateUserSummaryCaches = async (userId: string) => {
     if (!redisClient.isOpen) return;
 
