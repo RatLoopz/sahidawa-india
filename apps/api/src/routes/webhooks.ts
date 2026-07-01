@@ -1,9 +1,15 @@
 import { Router, Request, Response } from "express";
+import crypto from "crypto";
 import { redisClient } from "../utils/redis";
 import logger from "../utils/logger";
 import { webhookLimiter } from "../middleware/rateLimit";
 
 const router = Router();
+function safeCompare(a: string, b: string): boolean {
+    const hashA = crypto.createHash("sha256").update(a).digest();
+    const hashB = crypto.createHash("sha256").update(b).digest();
+    return crypto.timingSafeEqual(hashA, hashB);
+}
 
 /**
  * POST /api/webhooks/supabase/health-schemes
@@ -17,11 +23,16 @@ router.post(
     "/supabase/health-schemes",
     webhookLimiter,
     async (req: Request, res: Response): Promise<void> => {
-        // Verify secret token
+        // Verify secret token using a timing-safe comparison
         const secret = process.env.SUPABASE_WEBHOOK_SECRET;
         const authHeader = req.headers["authorization"];
 
-        if (!secret || authHeader !== `Bearer ${secret}`) {
+        const isValid =
+            typeof secret === "string" &&
+            typeof authHeader === "string" &&
+            safeCompare(authHeader, `Bearer ${secret}`);
+
+        if (!isValid) {
             logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/health-schemes", {
                 ip: req.ip,
                 headers: req.headers,
