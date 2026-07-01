@@ -78,10 +78,129 @@ const testimonials = [
     },
 ];
 
+function HealthcareHeroIllustration() {
+    return (
+        <div
+            className="mx-auto w-full max-w-[360px] px-4 sm:max-w-[440px] md:max-w-[500px]"
+            aria-hidden="true"
+        >
+            <svg
+                className="h-auto w-full drop-shadow-[0_22px_45px_rgba(16,185,129,0.16)]"
+                viewBox="0 0 520 250"
+                role="img"
+                focusable="false"
+            >
+                <defs>
+                    <linearGradient id="heroShieldGradient" x1="130" x2="365" y1="25" y2="230">
+                        <stop stopColor="#10b981" />
+                        <stop offset="1" stopColor="#14b8a6" />
+                    </linearGradient>
+                    <linearGradient id="heroCardGradient" x1="190" x2="375" y1="38" y2="218">
+                        <stop stopColor="#ffffff" />
+                        <stop offset="1" stopColor="#ecfdf5" />
+                    </linearGradient>
+                    <filter id="heroSoftShadow" x="80" y="0" width="360" height="260">
+                        <feDropShadow
+                            dx="0"
+                            dy="18"
+                            floodColor="#047857"
+                            floodOpacity="0.18"
+                            stdDeviation="18"
+                        />
+                    </filter>
+                </defs>
+
+                <ellipse cx="260" cy="218" rx="150" ry="18" fill="#10b981" opacity="0.08" />
+                <circle className="healthcare-pulse" cx="99" cy="88" r="21" fill="#dbeafe" />
+                <circle className="healthcare-pulse" cx="424" cy="77" r="26" fill="#dcfce7" />
+                <circle cx="77" cy="173" r="10" fill="#14b8a6" opacity="0.22" />
+                <circle cx="443" cy="172" r="12" fill="#2563eb" opacity="0.14" />
+
+                <g className="healthcare-float" filter="url(#heroSoftShadow)">
+                    <path
+                        d="M260 26c39 28 78 31 111 30 2 77-21 131-111 169-90-38-113-92-111-169 33 1 72-2 111-30Z"
+                        fill="url(#heroShieldGradient)"
+                    />
+                    <path
+                        d="M260 48c31 20 61 25 88 25-1 59-19 99-88 130-69-31-87-71-88-130 27 0 57-5 88-25Z"
+                        fill="url(#heroCardGradient)"
+                        opacity="0.98"
+                    />
+                    <path
+                        d="M260 90v74M223 127h74"
+                        stroke="#10b981"
+                        strokeLinecap="round"
+                        strokeWidth="22"
+                    />
+                </g>
+
+                <path
+                    className="healthcare-dash"
+                    d="M63 139h95l19-34 28 69 33-86 31 51h187"
+                    fill="none"
+                    stroke="#2563eb"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="8"
+                />
+                <path
+                    d="M63 139h95l19-34 28 69 33-86 31 51h187"
+                    fill="none"
+                    stroke="#bfdbfe"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="3"
+                    opacity="0.7"
+                />
+
+                <g className="healthcare-float healthcare-delay-short">
+                    <rect
+                        x="91"
+                        y="38"
+                        width="58"
+                        height="38"
+                        rx="19"
+                        fill="#ffffff"
+                        stroke="#a7f3d0"
+                        strokeWidth="3"
+                    />
+                    <path
+                        d="M120 50v14M113 57h14"
+                        stroke="#10b981"
+                        strokeLinecap="round"
+                        strokeWidth="5"
+                    />
+                </g>
+
+                <g className="healthcare-float healthcare-delay-long">
+                    <rect
+                        x="385"
+                        y="153"
+                        width="72"
+                        height="38"
+                        rx="19"
+                        fill="#ffffff"
+                        stroke="#bae6fd"
+                        strokeWidth="3"
+                        transform="rotate(-12 421 172)"
+                    />
+                    <path
+                        d="M421 153v38"
+                        stroke="#38bdf8"
+                        strokeLinecap="round"
+                        strokeWidth="3"
+                        transform="rotate(-12 421 172)"
+                    />
+                </g>
+            </svg>
+        </div>
+    );
+}
+
 export default function SahiDawaHome() {
     const router = useRouter();
     const params = useParams();
-    const locale = Array.isArray(params.locale) ? params.locale[0] : params.locale;
+    const locale = (Array.isArray(params.locale) ? params.locale[0] : params.locale) ?? "en";
     const tHome = useTranslations("Home");
     const tContact = useTranslations("contact");
 
@@ -162,6 +281,9 @@ export default function SahiDawaHome() {
                     <p className="mx-auto max-w-2xl text-sm leading-relaxed font-semibold text-slate-500 transition-colors duration-300 md:text-base dark:text-slate-400">
                         {tHome("subtitle")}
                     </p>
+
+                    <HealthcareHeroIllustration />
+
                     {/*Safety Stats Banner*/}
                     <SafetyStatsBanner />
 

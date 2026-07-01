@@ -112,6 +112,67 @@
         animation: bounce 1.4s ease-in-out infinite;
     }
 
+    @keyframes healthcareFloat {
+        0%,
+        100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    @keyframes healthcarePulse {
+        0%,
+        100% {
+            opacity: 0.72;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 1;
+            transform: scale(1.04);
+        }
+    }
+
+    @keyframes healthcareDash {
+        0% {
+            stroke-dashoffset: 420;
+            opacity: 0.35;
+        }
+        45%,
+        70% {
+            stroke-dashoffset: 0;
+            opacity: 1;
+        }
+        100% {
+            stroke-dashoffset: -420;
+            opacity: 0.35;
+        }
+    }
+
+    .healthcare-float {
+        animation: healthcareFloat 6s ease-in-out infinite;
+    }
+
+    .healthcare-pulse {
+        animation: healthcarePulse 2.8s ease-in-out infinite;
+        transform-origin: center;
+    }
+
+    .healthcare-dash {
+        animation: healthcareDash 3.6s ease-in-out infinite;
+        stroke-dasharray: 420;
+        stroke-dashoffset: 420;
+    }
+
+    .healthcare-delay-short {
+        animation-delay: 0.8s;
+    }
+
+    .healthcare-delay-long {
+        animation-delay: 1.4s;
+    }
+
     /* Blob Animation for Glassmorphism */
 
     @keyframes testimonial-marquee {
@@ -360,6 +421,15 @@
         animation: none !important;
     }
 
+    .healthcare-float,
+    .healthcare-pulse,
+    .healthcare-dash {
+        animation: none !important;
+    }
+
+    .healthcare-dash {
+        stroke-dashoffset: 0;
+    }
 }
 
 @keyframes shimmer {
