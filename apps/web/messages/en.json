@@ -41,7 +41,26 @@
         "heroTitle": {
             "prefix": "Your Health, ",
             "highlight": "Verified & Protected."
-        }
+        },
+        "scan_section_title": "Scan & Verify Medicine",
+        "scan_section_subtitle": "Verify medicine authenticity using barcode or package scanning.",
+        "powerful_capabilities": "Powerful Capabilities",
+        "features_description": "Discover all the ways SahiDawa can help you verify your medicines and stay safe.",
+        "trusted_by_citizens": "Trusted by citizens",
+        "voices_title": "Voices from the SahiDawa community",
+        "voices_description": "Families, pharmacists, doctors, and contributors using SahiDawa to make medicine safety easier to act on."
+    },
+    "A11y": {
+        "confirmClearConversation": "Confirm clear conversation",
+        "cancelClearConversation": "Cancel clear conversation",
+        "goToHomepage": "Go to homepage",
+        "closeChat": "Close chat",
+        "sendMessage": "Send message",
+        "openAiChat": "Open AI chat",
+        "closeAiChat": "Close AI chat",
+        "mainNavigation": "Main navigation",
+        "mobileNavigation": "Mobile navigation",
+        "toggleSystemParameters": "Toggle system parameters"
     },
     "Navigation": {
         "how_it_works": "How it Works",
@@ -93,15 +112,14 @@
         "sendMessage": "Send message",
         "footer": "For informational use only • Consult a doctor"
     },
-
     "Scan": {
         "calculateSavings": "Calculate Savings",
         "scanMedicine": "Scan Medicine",
         "positionBarcode": "Position the Barcode",
-        "enterBatchNumber": "Enter batch number",
+        "enterBatchNumber": "Enter Batch Number",
         "verify": "Verify",
-        "batchNumberHelp": "Enter the batch number from the medicine strip, or upload a photo from your gallery.",
-        "viewHistory": "View history",
+        "batchNumberHelp": "Enter the batch number printed on the medicine package",
+        "viewHistory": "View History",
         "stopScanner": "Stop Scanner",
         "scanBarcode": "Scan Barcode",
         "uploadPhoto": "Upload Photo",
@@ -128,15 +146,12 @@
         "genericName": "Generic Name",
         "dosageForm": "Dosage Form",
         "composition": "Composition",
-
         "ScanBarcode": "Scan Barcode",
-        "stopScanner": "Stop Scanner",
-        "uploadPhoto": "Upload Photo",
-        "enterBatchNumber": "Enter Batch Number",
-        "batchNumberHelp": "Enter the batch number printed on the medicine package",
-        "verify": "Verify",
-        "viewHistory": "View History",
-        "offlineVerify": "Queue Scan"
+        "offlineVerify": "Queue Scan",
+
+        "batch_recalled_title": "This batch has been recalled",
+        "batch_recalled_body": "Please do not use this medicine. Return it to your pharmacy immediately.",
+        "save_to_abha": "Save to ABHA Record"
     },
     "BackToTopButton": {
         "label": "Back to top"
@@ -449,7 +464,8 @@
         "title": "SahiDawa AI",
         "status": "Online",
         "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?",
-        "placeholder": "Ask me about a medicine..."
+        "placeholder": "Ask me about a medicine...",
+        "tooltipLabel": "AI Health Assistant"
     },
     "Alerts": {
         "backHome": "Back to Home Page",
@@ -1027,6 +1043,8 @@
         "stat_fake": "Fake",
         "empty_title": "No Scan History Yet",
         "empty_description": "Your verified medicines will appear here.",
+        "search_placeholder": "Search medicine...",
+        "no_search_results": "No medicines match your search.",
         "item_status_label": "Status: ",
         "item_delete_button": "Delete",
         "item_copy_success": "Medicine name copied!"
@@ -1054,7 +1072,8 @@
         "no_photo_label": "No photo",
         "report_card_district_label": "District",
         "report_card_submitted_label": "Submitted",
-        "report_card_batch_label": "Batch"
+        "report_card_batch_label": "Batch",
+        "load_more_button": "Load More"
     },
     "Map": {
         "errors": {
@@ -1145,7 +1164,7 @@
         "statusVerifying": "Verifying medicine...",
         "statusRecording": "Recording... tap to stop",
         "statusIdle": "Tap to speak the medicine name",
-        "supportedLanguages": "Supports: Hindi \u2022 Tamil \u2022 Telugu \u2022 Kannada \u2022 Bengali \u2022 Malayalam + more",
+        "supportedLanguages": "Supports: Hindi • Tamil • Telugu • Kannada • Bengali • Malayalam + more",
         "errorMicDenied": "Microphone access denied. Please allow microphone access and try again.",
         "errorNetwork": "Network error. Please check your connection and try again.",
         "fallbackText": "No microphone?",
@@ -1165,5 +1184,27 @@
         "warningsLabel": "Warnings",
         "ariaStartRecording": "Start recording",
         "ariaStopRecording": "Stop recording"
+    },
+    "AdminSynonyms": {
+        "title": "OCR Synonyms",
+        "subtitle": "Manage OCR misreads and medicine synonyms.",
+        "refresh": "Refresh",
+        "addNew": "Add New Rule",
+        "originalTerm": "Original Term",
+        "normalizedTerm": "Normalized Term",
+        "originalPlaceholder": "e.g., asprin",
+        "normalizedPlaceholder": "e.g., aspirin",
+        "typeLabel": "Type",
+        "typeSynonym": "Synonym",
+        "typeMisread": "OCR Misread",
+        "addButton": "Add Rule",
+        "listTitle": "Existing Rules",
+        "emptyList": "No rules found.",
+        "actions": "Actions",
+        "delete": "Delete",
+        "confirmDelete": "Are you sure you want to delete this rule?",
+        "fetchError": "Failed to fetch rules.",
+        "addError": "Failed to add rule.",
+        "deleteError": "Failed to delete rule."
     }
 }

@@ -27,27 +27,22 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import SafetyStatsBanner from "@/components/SafetyStatsBanner";
 import { getVisibleAlertBatchNumber } from "@/lib/alertFormatting";
+import { usePredictivePrefetch } from "@/src/hooks/usePredictivePrefetch";
 
-function formatRelativeTime(dateString: string | null): string {
-    if (!dateString) return "Recent";
+function formatRelativeTime(dateString: string | null, locale: string): string {
+    if (!dateString) return "—";
 
     const now = new Date();
     const past = new Date(dateString);
-    const msPerMinute = 60 * 1000;
-    const msPerHour = msPerMinute * 60;
-    const msPerDay = msPerHour * 24;
-
     const elapsed = now.getTime() - past.getTime();
+    const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+    if (Math.abs(elapsed) < 60000) return rtf.format(0, "second");
 
-    if (elapsed < msPerMinute) {
-        return "Just now";
-    } else if (elapsed < msPerHour) {
-        return `${Math.round(elapsed / msPerMinute)}m ago`;
-    } else if (elapsed < msPerDay) {
-        return `${Math.round(elapsed / msPerHour)}h ago`;
-    } else {
-        return past.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-    }
+    if (Math.abs(elapsed) < 3600000) return rtf.format(-Math.round(elapsed / 60000), "minute");
+
+    if (Math.abs(elapsed) < 86400000) return rtf.format(-Math.round(elapsed / 3600000), "hour");
+
+    return rtf.format(-Math.round(elapsed / 86400000), "day");
 }
 
 const testimonials = [
@@ -86,36 +81,47 @@ const testimonials = [
 export default function SahiDawaHome() {
     const router = useRouter();
     const params = useParams();
-    const locale = Array.isArray(params.locale) ? params.locale[0] : params.locale;
+    const locale = Array.isArray(params.locale) ? params.locale[0] : (params.locale ?? "en");
     const tHome = useTranslations("Home");
+    const tContact = useTranslations("contact");
 
     const [homepageAlerts, setHomepageAlerts] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [activeSearchQuery, setActiveSearchQuery] = useState<string>("");
 
-    useEffect(() => {
-        async function fetchAlerts() {
-            try {
-                const { data } = await supabase
-                    .from("medicines")
-                    .select("*")
-                    .or(
-                        "is_counterfeit_alert.eq.true,cdsco_approval_status.eq.recalled,cdsco_approval_status.eq.banned,brand_name.eq.SYSTEM_UPDATE"
-                    )
-                    .order("created_at", { ascending: false })
-                    .limit(4);
+    // 1. Define the predictive query layer
+    const prefetchAlertsData = async () => {
+        try {
+            if (homepageAlerts.length > 0) return; // Prevent double fetching
 
-                if (data) {
-                    setHomepageAlerts(data);
-                }
-            } catch (err) {
-                console.error("Failed to query alerts matrix:", err);
-            } finally {
-                setLoading(false);
+            const { data } = await supabase
+                .from("medicines")
+                .select("*")
+                .or(
+                    "is_counterfeit_alert.eq.true,cdsco_approval_status.eq.recalled,cdsco_approval_status.eq.spurious"
+                )
+                .order("created_at", { ascending: false })
+                .limit(4);
+
+            if (data) {
+                setHomepageAlerts(data);
             }
+        } catch (error) {
+            console.error("Prefetch error:", error);
+        } finally {
+            setLoading(false);
         }
+    };
 
-        fetchAlerts();
+    // 2. Instantiate the hook observer
+    const alertsPrefetchRef = usePredictivePrefetch<HTMLElement>({
+        preloadQuery: prefetchAlertsData,
+        threshold: 0.1,
+    });
+
+    // 3. Run on mount only if the user didn't trigger the prefetch hook first
+    useEffect(() => {
+        prefetchAlertsData();
     }, []);
 
     const handleNavigation = (path: string) => {
@@ -126,9 +132,9 @@ export default function SahiDawaHome() {
         <div className="relative min-h-screen bg-(--color-surface-page) font-sans text-(--color-text-primary) transition-colors duration-300">
             {/* ── Background Mesh (Static & High Performance) ── */}
             <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden select-none">
-                <div className="absolute -top-40 -left-40 h-[600px] w-[600px] rounded-full bg-purple-500/10 blur-[130px] dark:bg-purple-900/10"></div>
-                <div className="absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-emerald-500/10 blur-[130px] dark:bg-emerald-900/10"></div>
-                <div className="absolute bottom-10 left-1/4 h-[600px] w-[600px] rounded-full bg-blue-500/10 blur-[130px] dark:bg-blue-900/10"></div>
+                <div className="absolute -top-40 -left-40 h-[600px] w-[600px] rounded-full bg-purple-500/10 blur-[130px] transition-colors duration-300 dark:bg-purple-900/10"></div>
+                <div className="absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-emerald-500/10 blur-[130px] transition-colors duration-300 dark:bg-emerald-900/10"></div>
+                <div className="absolute bottom-10 left-1/4 h-[600px] w-[600px] rounded-full bg-blue-500/10 blur-[130px] transition-colors duration-300 dark:bg-blue-900/10"></div>
             </div>
 
             {/* ── Main ── */}
@@ -141,11 +147,11 @@ export default function SahiDawaHome() {
                             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                         </span>
-                        GSSoC 2026 Open Source Project
+                        {tContact("badge")}
                     </div>
 
                     {/* Split-color title */}
-                    <h1 className="text-4xl leading-tight font-black tracking-tight text-slate-900 sm:text-5xl md:text-6xl dark:text-white">
+                    <h1 className="text-4xl leading-tight font-black tracking-tight text-slate-900 transition-colors duration-300 sm:text-5xl md:text-6xl dark:text-white">
                         {tHome("heroTitle.prefix")}
                         <span className="ml-1 block bg-linear-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent sm:inline dark:from-emerald-400 dark:to-teal-400">
                             {tHome("heroTitle.highlight")}
@@ -153,7 +159,7 @@ export default function SahiDawaHome() {
                     </h1>
 
                     {/* Subtitle */}
-                    <p className="mx-auto max-w-2xl text-sm leading-relaxed font-semibold text-slate-500 md:text-base dark:text-slate-400">
+                    <p className="mx-auto max-w-2xl text-sm leading-relaxed font-semibold text-slate-500 transition-colors duration-300 md:text-base dark:text-slate-400">
                         {tHome("subtitle")}
                     </p>
                     {/*Safety Stats Banner*/}
@@ -180,14 +186,17 @@ export default function SahiDawaHome() {
                     {/* ── Primary Action: Scan Medicine ── */}
                     <section className="mt-8 mb-12">
                         <div className="mb-6">
-                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-                                Scan & Verify Medicine
+                            <h2 className="text-2xl font-bold text-slate-900 transition-colors duration-300 dark:text-white">
+                                {tHome("scan_section_title")}
                             </h2>
-                            <p className="mt-2 text-slate-500 dark:text-slate-400">
-                                Verify medicine authenticity using barcode or package scanning.
+                            <p className="mt-2 text-slate-500 transition-colors duration-300 dark:text-slate-400">
+                                {tHome("scan_section_subtitle")}
                             </p>
                         </div>
-                        <section className="animate-in slide-in-from-bottom-8 fade-in fill-mode-both mt-4 mb-10 duration-700">
+                        <section
+                            ref={alertsPrefetchRef}
+                            className="animate-in slide-in-from-bottom-8 fade-in fill-mode-both mt-4 mb-10 duration-500"
+                        >
                             <button
                                 onClick={() => handleNavigation("scan")}
                                 className="group relative flex w-full transform-gpu cursor-pointer flex-col justify-center overflow-hidden rounded-[2.5rem] border border-white/10 p-8 text-left text-white shadow-2xl shadow-emerald-900/20 transition-all duration-500 hover:-translate-y-2 hover:shadow-emerald-500/30 active:scale-[0.98] md:p-10"
@@ -301,15 +310,14 @@ export default function SahiDawaHome() {
                             <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/50 bg-white/50 px-4 py-2 text-sm font-bold shadow-sm backdrop-blur-md dark:border-slate-800/50 dark:bg-slate-900/50">
                                 <span className="flex h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
                                 <span className="text-slate-700 dark:text-slate-300">
-                                    Powerful Capabilities
+                                    {tHome("powerful_capabilities")}
                                 </span>
                             </div>
                             <h2 className="bg-linear-to-r from-slate-900 via-slate-700 to-slate-900 bg-clip-text text-center text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl dark:from-white dark:via-slate-200 dark:to-slate-400">
                                 {tHome("explore_features")}
                             </h2>
                             <p className="max-w-2xl text-center font-medium text-slate-500 dark:text-slate-400">
-                                Discover all the ways SahiDawa can help you verify your medicines
-                                and stay safe.
+                                {tHome("features_description")}
                             </p>
                         </div>
 
@@ -643,7 +651,8 @@ export default function SahiDawaHome() {
                                                             </h4>
                                                             <span className="shrink-0 text-[11px] font-medium text-(--color-text-muted)">
                                                                 {formatRelativeTime(
-                                                                    alert.created_at
+                                                                    alert.created_at,
+                                                                    locale || "en"
                                                                 )}
                                                             </span>
                                                         </div>
@@ -705,15 +714,14 @@ export default function SahiDawaHome() {
                             <div>
                                 <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 text-[11px] font-extrabold tracking-widest text-emerald-600 uppercase dark:border-emerald-400/20 dark:text-emerald-400">
                                     <Star size={13} className="fill-current" aria-hidden="true" />
-                                    Trusted by citizens
+                                    {tHome("trusted_by_citizens")}
                                 </div>
                                 <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
-                                    Voices from the SahiDawa community
+                                    {tHome("voices_title")}
                                 </h2>
                             </div>
                             <p className="max-w-md text-sm leading-relaxed font-medium text-slate-500 dark:text-slate-400">
-                                Families, pharmacists, doctors, and contributors using SahiDawa to
-                                make medicine safety easier to act on.
+                                {tHome("voices_description")}
                             </p>
                         </div>
 

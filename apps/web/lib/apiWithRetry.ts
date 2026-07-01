@@ -164,6 +164,8 @@ function sleep(ms: number): Promise<void> {
 }
 
 const OFFLINE_QUEUE_STORAGE_KEY = "offline-request-queue";
+const MAX_QUEUE_SIZE = 50;
+const QUEUE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 class OfflineRequestQueue {
     private queue: Array<{
@@ -174,6 +176,11 @@ class OfflineRequestQueue {
         retryCount: number;
     }> = [];
 
+    private removeExpiredRequests(): void {
+        const now = Date.now();
+        this.queue = this.queue.filter((request) => now - request.timestamp <= QUEUE_TTL);
+    }
+
     private listeners: Set<() => void> = new Set();
 
     constructor() {
@@ -183,6 +190,8 @@ class OfflineRequestQueue {
             const stored = localStorage.getItem(OFFLINE_QUEUE_STORAGE_KEY);
             if (stored) {
                 this.queue = JSON.parse(stored);
+                this.removeExpiredRequests();
+                this.persist();
             }
         } catch {
             this.queue = [];
@@ -192,6 +201,12 @@ class OfflineRequestQueue {
 
     add(url: string, options: FetchOptions): string {
         const id = `${Date.now()}-${Math.random()}`;
+        this.removeExpiredRequests();
+
+        while (this.queue.length >= MAX_QUEUE_SIZE) {
+            this.queue.shift();
+        }
+
         this.queue.push({
             id,
             url,
@@ -211,6 +226,11 @@ class OfflineRequestQueue {
     }
 
     getAll() {
+        const oldLength = this.queue.length;
+        this.removeExpiredRequests();
+        if (this.queue.length !== oldLength) {
+            this.persist();
+        }
         return [...this.queue];
     }
 
@@ -228,10 +248,22 @@ class OfflineRequestQueue {
     private persist(): void {
         if (typeof window === "undefined") return;
 
+        this.removeExpiredRequests();
+
         try {
             localStorage.setItem(OFFLINE_QUEUE_STORAGE_KEY, JSON.stringify(this.queue));
-        } catch {
-            // Ignore storage failures
+        } catch (error) {
+            if (error instanceof DOMException && error.name === "QuotaExceededError") {
+                // Remove oldest half of the queue
+                this.queue.splice(0, Math.ceil(this.queue.length / 2));
+
+                try {
+                    localStorage.setItem(OFFLINE_QUEUE_STORAGE_KEY, JSON.stringify(this.queue));
+                    this.notify();
+                } catch {
+                    // Ignore storage failures
+                }
+            }
         }
     }
 

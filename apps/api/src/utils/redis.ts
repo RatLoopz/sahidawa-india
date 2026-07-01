@@ -3,9 +3,17 @@ import logger from "./logger";
 
 const redisUrl = process.env.REDIS_URL;
 
-export const redisClient = createClient({
-    url: redisUrl || undefined,
-});
+function isValidUrl(str: string): boolean {
+    try {
+        new URL(str);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+export const redisClient =
+    redisUrl && isValidUrl(redisUrl) ? createClient({ url: redisUrl }) : createClient();
 
 redisClient.on("error", (err) => {
     logger.error("Redis Client Error", err);

@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { API_BASE } from "@/lib/api";
+import { useSession } from "@/src/components/AuthProvider";
 
 interface UploadResult {
     totalRows: number;
@@ -10,6 +12,7 @@ interface UploadResult {
 }
 
 export default function BulkUploadPage() {
+    const { token } = useSession();
     const [file, setFile] = useState<File | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -62,10 +65,11 @@ export default function BulkUploadPage() {
             }
 
             try {
-                const response = await fetch("/api/pharmacies/bulk-upload", {
+                const response = await fetch(`${API_BASE}/api/pharmacies/bulk-upload`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
+                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
                     },
                     body: JSON.stringify({ fileContent: textContent }),
                 });

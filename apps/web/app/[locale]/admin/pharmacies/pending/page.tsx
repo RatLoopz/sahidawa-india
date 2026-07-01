@@ -132,10 +132,13 @@ export default function PendingPharmaciesPage() {
                         <ShieldAlert className="h-4 w-4 text-slate-400" />
                         Reports
                     </Link>
-                    <div className="flex w-full items-center gap-3 rounded-xl bg-emerald-50 px-3 py-2.5 text-sm font-medium text-emerald-600">
+                    <Link
+                        href="/admin/pharmacies"
+                        className="flex w-full items-center gap-3 rounded-xl bg-emerald-50 px-3 py-2.5 text-sm font-medium text-emerald-600"
+                    >
                         <Store className="h-4 w-4" />
                         Pharmacies
-                    </div>
+                    </Link>
                 </nav>
                 <p className="px-1 text-xs text-slate-400">SahiDawa Admin v1.0</p>
             </aside>
@@ -159,6 +162,21 @@ export default function PendingPharmaciesPage() {
                 </header>
 
                 <div className="flex flex-1 flex-col gap-6 overflow-y-auto p-8">
+                    {/* Sub-nav tabs */}
+                    <div className="border-b border-slate-200">
+                        <nav className="flex gap-6" aria-label="Tabs">
+                            <Link
+                                href="/admin/pharmacies"
+                                className="border-b-2 border-transparent px-1 pb-4 text-sm font-medium text-slate-500 hover:border-slate-300 hover:text-slate-700"
+                            >
+                                All Pharmacies
+                            </Link>
+                            <div className="border-b-2 border-emerald-500 px-1 pb-4 text-sm font-semibold text-emerald-600">
+                                Pending Approval ({pharmacies.length})
+                            </div>
+                        </nav>
+                    </div>
+
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         <MetricCard
                             label="Awaiting review"

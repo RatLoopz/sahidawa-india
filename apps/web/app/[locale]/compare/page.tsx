@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { AlertTriangle, Loader2, Plus, ShieldCheck, X } from "lucide-react";
+import { AlertTriangle, Copy, Loader2, Plus, ShieldCheck, X } from "lucide-react";
+import { toast } from "sonner";
 import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
 import ComparisonGrid, {
@@ -52,6 +53,7 @@ export default function ComparePage() {
     const tInteractions = useTranslations("Interactions");
     const tExpiryTracker = useTranslations("ExpiryTracker");
     const tHome = useTranslations("Home");
+    const tHistory = useTranslations("History");
     const [selectedMedicines, setSelectedMedicines] = useState<(Medicine | null)[]>([null, null]);
     const [interactions, setInteractions] = useState<InteractionWarning[]>([]);
     const [interactionsLoading, setInteractionsLoading] = useState(false);
@@ -94,6 +96,33 @@ export default function ComparePage() {
 
         loadMedicines();
     }, []);
+
+    // Keep URL in sync with the currently selected medicines so
+    // browser back/navigation preserves the comparison workflow.
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+
+        const nextM1 = medicine1?.id ?? "";
+        const nextM2 = medicine2?.id ?? "";
+
+        const currentM1 = params.get("m1") ?? "";
+        const currentM2 = params.get("m2") ?? "";
+
+        // Only update when something actually changes to avoid extra history churn.
+        if (currentM1 === nextM1 && currentM2 === nextM2) return;
+
+        if (!nextM1 || !nextM2) {
+            params.delete("m1");
+            params.delete("m2");
+        } else {
+            params.set("m1", nextM1);
+            params.set("m2", nextM2);
+        }
+
+        const qs = params.toString();
+        const newUrl = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
+        window.history.replaceState({}, "", newUrl);
+    }, [medicine1?.id, medicine2?.id]);
 
     useEffect(() => {
         if (selectedIds.length < 2) {
@@ -148,6 +177,11 @@ export default function ComparePage() {
 
         return () => controller.abort();
     }, [selectedIds.length, selectedIdsKey]);
+
+    const handleCopy = (text: string) => {
+        void navigator.clipboard.writeText(text);
+        toast.success(tHistory("item_copy_success"));
+    };
 
     const handleSearch = useCallback((q: string) => searchMedicines(q), []);
 
@@ -293,11 +327,7 @@ export default function ComparePage() {
                         </button>
                     </div>
                 )}
-                <ComparisonGrid
-                    medicine1={medicine1}
-                    medicine2={medicine2}
-                    labels={comparisonLabels}
-                />
+                <ComparisonGrid medicines={selectedMedicines} labels={comparisonLabels} />
                 {selectedIds.length >= 2 && (
                     <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm print:hidden">
                         <div className="mb-4 flex items-start justify-between gap-3">
@@ -336,8 +366,18 @@ export default function ComparePage() {
                                         className="rounded-lg border border-slate-200 p-4"
                                     >
                                         <div className="flex flex-wrap items-center justify-between gap-2">
-                                            <h3 className="font-semibold text-slate-900">
+                                            <h3 className="flex items-center gap-2 font-semibold text-slate-900">
                                                 {interaction.drugA} + {interaction.drugB}
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleCopy(
+                                                            `${interaction.drugA} + ${interaction.drugB}`
+                                                        )
+                                                    }
+                                                >
+                                                    <Copy size={14} />
+                                                </button>
                                             </h3>
                                             <span
                                                 className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${severityClass(

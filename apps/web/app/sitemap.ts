@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
 import { routing } from "@/i18n/routing";
+import { getSiteUrl } from "@/lib/env";
 
 export default function sitemap(): MetadataRoute.Sitemap {
     const locales = routing.locales;
-    const baseUrl = "https://sahidawa.in";
+    const baseUrl = getSiteUrl();
 
     const routes = [
         "",

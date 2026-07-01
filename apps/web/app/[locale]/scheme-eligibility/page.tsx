@@ -164,7 +164,10 @@ export default function SchemeEligibilityPage() {
                             </p>
                         </div>
                         <div className="text-right text-xs text-slate-400">
-                            <p>{tSchemeEligibility("dateGenerated")}: {new Date().toLocaleDateString("en-IN")}</p>
+                            <p>
+                                {tSchemeEligibility("dateGenerated")}:{" "}
+                                {new Date().toLocaleDateString("en-IN")}
+                            </p>
                             <p>{tSchemeEligibility("website")}: www.sahidawa.in</p>
                         </div>
                     </div>
@@ -172,7 +175,8 @@ export default function SchemeEligibilityPage() {
                     <div className="mt-6 grid grid-cols-2 gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm">
                         <div>
                             <p>
-                                <strong>{tSchemeEligibility("age")}:</strong> {age} {tSchemeEligibility("years")}
+                                <strong>{tSchemeEligibility("age")}:</strong> {age}{" "}
+                                {tSchemeEligibility("years")}
                             </p>
                             <p>
                                 <strong>{tSchemeEligibility("stateOfResidence")}:</strong> {state}
@@ -184,13 +188,16 @@ export default function SchemeEligibilityPage() {
                         </div>
                         <div>
                             <p>
-                                <strong>{tSchemeEligibility("familySize")}:</strong> {familySize} {tSchemeEligibility("members")}
+                                <strong>{tSchemeEligibility("familySize")}:</strong> {familySize}{" "}
+                                {tSchemeEligibility("members")}
                             </p>
                             <p>
-                                <strong>{tSchemeEligibility("bplRationCardHolder")}:</strong> {hasBplCard ? tSchemeEligibility("yes") : tSchemeEligibility("no")}
+                                <strong>{tSchemeEligibility("bplRationCardHolder")}:</strong>{" "}
+                                {hasBplCard ? tSchemeEligibility("yes") : tSchemeEligibility("no")}
                             </p>
                             <p>
-                                <strong>{tSchemeEligibility("abhaHealthIdHolder")}:</strong> {hasAbhaId ? tSchemeEligibility("yes") : tSchemeEligibility("no")}
+                                <strong>{tSchemeEligibility("abhaHealthIdHolder")}:</strong>{" "}
+                                {hasAbhaId ? tSchemeEligibility("yes") : tSchemeEligibility("no")}
                             </p>
                         </div>
                     </div>
@@ -349,7 +356,9 @@ export default function SchemeEligibilityPage() {
                                                 id="annualIncome"
                                                 value={annualIncome}
                                                 onChange={(e) => setAnnualIncome(e.target.value)}
-                                                placeholder={tSchemeEligibility("incomePlaceholder")}
+                                                placeholder={tSchemeEligibility(
+                                                    "incomePlaceholder"
+                                                )}
                                                 className="w-full rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) py-4 pr-5 pl-10 text-base font-medium outline-hidden transition-all focus:border-emerald-500 focus:bg-(--color-surface-page) dark:bg-slate-800/50"
                                                 min="0"
                                                 required
@@ -372,7 +381,9 @@ export default function SchemeEligibilityPage() {
                                             id="familySize"
                                             value={familySize}
                                             onChange={(e) => setFamilySize(e.target.value)}
-                                            placeholder={tSchemeEligibility("familySizePlaceholder")}
+                                            placeholder={tSchemeEligibility(
+                                                "familySizePlaceholder"
+                                            )}
                                             className="w-full rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-5 py-4 text-base font-medium outline-hidden transition-all focus:border-emerald-500 focus:bg-(--color-surface-page) dark:bg-slate-800/50"
                                             min="1"
                                             max="30"
@@ -485,11 +496,15 @@ export default function SchemeEligibilityPage() {
                                             {loading ? (
                                                 <>
                                                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                                                    <span>{tSchemeEligibility("checkingButton")}</span>
+                                                    <span>
+                                                        {tSchemeEligibility("checkingButton")}
+                                                    </span>
                                                 </>
                                             ) : (
                                                 <>
-                                                    <span>{tSchemeEligibility("findSchemesButton")}</span>
+                                                    <span>
+                                                        {tSchemeEligibility("findSchemesButton")}
+                                                    </span>
                                                     <ArrowRight size={16} />
                                                 </>
                                             )}
@@ -574,7 +589,11 @@ export default function SchemeEligibilityPage() {
                                                         rel="noopener noreferrer"
                                                         className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-600 px-4 py-2 text-xs font-bold text-emerald-600 transition-all hover:bg-emerald-50 dark:border-emerald-500 dark:text-emerald-400"
                                                     >
-                                                        <span>{tSchemeEligibility("visitOfficialPortal")}</span>
+                                                        <span>
+                                                            {tSchemeEligibility(
+                                                                "visitOfficialPortal"
+                                                            )}
+                                                        </span>
                                                         <ChevronRight size={14} />
                                                     </a>
                                                 </div>

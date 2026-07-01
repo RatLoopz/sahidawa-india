@@ -14,3 +14,13 @@ export function escapeIlike(word: string): string {
 export function escapePostgrest(val: string): string {
     return val.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_").replace(/"/g, '""');
 }
+
+export function buildOrConditions(fields: string[], words: string[]): string {
+    return words
+        .map((word) => {
+            const safeWord = escapePostgrest(word);
+
+            return fields.map((field) => `${field}.ilike."%${safeWord}%"`).join(",");
+        })
+        .join(",");
+}

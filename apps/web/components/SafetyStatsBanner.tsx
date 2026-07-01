@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { Link } from "@/i18n/routing";
 import {
     Ban,
     RotateCcw,
@@ -135,8 +136,9 @@ function StatCard({ config, count }: { config: StatConfig; count: number }) {
     const Icon = config.icon;
 
     return (
-        <div
-            className={`group relative overflow-hidden rounded-2xl border border-slate-100/80 bg-white shadow-sm transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-slate-200/80 dark:border-slate-800/80 dark:bg-slate-900 dark:hover:border-slate-700/80 ${config.glowColor}`}
+        <Link
+            href="/alerts"
+            className={`group relative block overflow-hidden rounded-2xl border border-slate-100/80 bg-white shadow-sm transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-slate-200/80 dark:border-slate-800/80 dark:bg-slate-900 dark:hover:border-slate-700/80 ${config.glowColor}`}
         >
             {/* Coloured accent top bar */}
             <div
@@ -157,7 +159,7 @@ function StatCard({ config, count }: { config: StatConfig; count: number }) {
                         className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase ${config.badgeBg} ${config.badgeText}`}
                     >
                         <TrendingDown className="h-3 w-3" />
-                        <span>This Month</span>
+                        <span>All Time</span>
                     </div>
                 </div>
 
@@ -186,7 +188,7 @@ function StatCard({ config, count }: { config: StatConfig; count: number }) {
                 className={`pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 ${config.iconGradient}`}
                 style={{ opacity: 0 }}
             />
-        </div>
+        </Link>
     );
 }
 
@@ -199,19 +201,7 @@ export default function SafetyStatsBanner() {
 
     useEffect(() => {
         async function fetchAlerts() {
-            const now = new Date();
-            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-            const startOfNextMonth = new Date(
-                now.getFullYear(),
-                now.getMonth() + 1,
-                1
-            ).toISOString();
-
-            const { data, error } = await supabase
-                .from("drug_alerts")
-                .select("alert_type")
-                .gte("created_at", startOfMonth)
-                .lt("created_at", startOfNextMonth);
+            const { data, error } = await supabase.from("drug_alerts").select("alert_type");
 
             if (!error && data) {
                 let b = 0,
@@ -235,8 +225,8 @@ export default function SafetyStatsBanner() {
         fetchAlerts();
     }, []);
 
-    const now = new Date();
-    const monthName = now.toLocaleString("default", { month: "long" });
+    // const now = new Date();
+    // const monthName = now.toLocaleString("default", { month: "long" });
 
     const cardData = [
         { ...STAT_CONFIG[0], count: banned },
@@ -246,9 +236,9 @@ export default function SafetyStatsBanner() {
     ];
 
     return (
-        <div className="my-6 overflow-hidden rounded-3xl border border-slate-200/60 bg-slate-50/80 shadow-xl shadow-slate-200/30 backdrop-blur-sm dark:border-slate-800/50 dark:bg-slate-950/60 dark:shadow-slate-950/20">
+        <div className="my-6 overflow-hidden rounded-3xl border border-slate-200/60 bg-slate-50/80 shadow-xl shadow-slate-200/30 backdrop-blur-sm transition-colors duration-300 dark:border-slate-800/50 dark:bg-slate-950/60 dark:shadow-slate-950/20">
             {/* Header bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/60 bg-white/60 px-6 py-4 dark:border-slate-800/50 dark:bg-slate-900/60">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/60 bg-white/60 px-6 py-4 transition-colors duration-300 dark:border-slate-800/50 dark:bg-slate-900/60">
                 <div className="flex items-center gap-3">
                     {/* Pulsing LIVE badge */}
                     <span className="relative inline-flex items-center gap-2 rounded-full bg-emerald-500 px-3 py-1 text-[11px] font-bold tracking-widest text-white uppercase shadow-md shadow-emerald-500/30">
@@ -270,9 +260,7 @@ export default function SafetyStatsBanner() {
 
                 <div className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-500 shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
                     <Calendar size={12} className="text-slate-400" />
-                    <span>
-                        {monthName} {now.getFullYear()} · India
-                    </span>
+                    <span>All Time · India</span>
                 </div>
             </div>
 
@@ -294,7 +282,7 @@ export default function SafetyStatsBanner() {
             </div>
 
             {/* Footer */}
-            <div className="flex items-center gap-2 border-t border-slate-200/60 bg-white/40 px-6 py-3 dark:border-slate-800/50 dark:bg-slate-900/40">
+            <div className="flex items-center gap-2 border-t border-slate-200/60 bg-white/40 px-6 py-3 transition-colors duration-300 dark:border-slate-800/50 dark:bg-slate-900/40">
                 <ShieldCheck size={13} className="shrink-0 text-emerald-500" />
                 <span className="text-[11px] text-slate-400 dark:text-slate-500">
                     Data sourced from CDSCO official registry. Updated in real-time.

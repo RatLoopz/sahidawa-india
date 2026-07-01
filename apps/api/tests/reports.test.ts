@@ -7,7 +7,7 @@ jest.mock("../src/db/client", () => ({
     supabase: {
         from: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
-        insert: jest.fn().mockReturnThis(),
+        upsert: jest.fn().mockReturnThis(),
         update: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         gte: jest.fn().mockReturnThis(),
@@ -83,7 +83,7 @@ describe("Reports API Routes", () => {
         Object.assign(mockedSupabase, {
             from: jest.fn().mockReturnThis(),
             select: jest.fn().mockReturnThis(),
-            insert: jest.fn().mockReturnThis(),
+            upsert: jest.fn().mockReturnThis(),
             update: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
             gte: jest.fn().mockReturnThis(),
@@ -145,7 +145,7 @@ describe("Reports API Routes", () => {
                 longitude: 77.5946,
             };
 
-            mockedSupabase.insert = jest.fn().mockReturnValue({
+            mockedSupabase.upsert = jest.fn().mockReturnValue({
                 select: jest.fn().mockReturnValue({
                     single: jest.fn().mockResolvedValueOnce({
                         data: {
@@ -181,7 +181,7 @@ describe("Reports API Routes", () => {
                 longitude: 72.8777,
             };
 
-            mockedSupabase.insert = jest.fn().mockReturnValue({
+            mockedSupabase.upsert = jest.fn().mockReturnValue({
                 select: jest.fn().mockReturnValue({
                     single: jest.fn().mockResolvedValueOnce({
                         data: {
@@ -228,7 +228,7 @@ describe("Reports API Routes", () => {
                 pincode: "110001",
             };
 
-            mockedSupabase.insert = jest.fn().mockReturnValue({
+            mockedSupabase.upsert = jest.fn().mockReturnValue({
                 select: jest.fn().mockReturnValue({
                     single: jest.fn().mockResolvedValueOnce({
                         data: {
@@ -283,7 +283,7 @@ describe("Reports API Routes", () => {
             };
 
             let insertedPayload: Record<string, unknown> = {};
-            mockedSupabase.insert = jest.fn().mockImplementation((vals) => {
+            mockedSupabase.upsert = jest.fn().mockImplementation((vals) => {
                 insertedPayload = vals;
                 return {
                     select: jest.fn().mockReturnValue({
@@ -320,7 +320,7 @@ describe("Reports API Routes", () => {
             };
 
             let insertedPayload: Record<string, unknown> = {};
-            mockedSupabase.insert = jest.fn().mockImplementation((vals) => {
+            mockedSupabase.upsert = jest.fn().mockImplementation((vals) => {
                 insertedPayload = vals;
                 return {
                     select: jest.fn().mockReturnValue({
@@ -361,7 +361,7 @@ describe("Reports API Routes", () => {
             };
 
             let insertedPayload: Record<string, unknown> = {};
-            mockedSupabase.insert = jest.fn().mockImplementation((vals) => {
+            mockedSupabase.upsert = jest.fn().mockImplementation((vals) => {
                 insertedPayload = vals;
                 return {
                     select: jest.fn().mockReturnValue({
@@ -406,7 +406,7 @@ describe("Reports API Routes", () => {
                 pincode: "411001",
             };
 
-            mockedSupabase.insert = jest.fn().mockReturnValue({
+            mockedSupabase.upsert = jest.fn().mockReturnValue({
                 select: jest.fn().mockReturnValue({
                     single: jest.fn().mockResolvedValueOnce({
                         data: {
@@ -472,6 +472,7 @@ describe("Reports API Routes", () => {
             const response = await request(app)
                 .post("/api/reports")
                 .set("X-Forwarded-For", "9.9.9.9")
+                .set("X-Forwarded-Proto", "https")
                 .send(payload);
 
             process.env.NODE_ENV = originalEnv;
@@ -588,7 +589,7 @@ describe("Reports API Routes", () => {
             mockedSupabase.select = jest.fn().mockReturnValue({
                 eq: jest.fn().mockReturnValue({
                     order: jest.fn().mockReturnValue({
-                        range: jest.fn().mockResolvedValueOnce({
+                        limit: jest.fn().mockResolvedValueOnce({
                             data: mockReports,
                             error: null,
                         }),
@@ -610,7 +611,7 @@ describe("Reports API Routes", () => {
             mockedSupabase.select = jest.fn().mockReturnValue({
                 eq: jest.fn().mockReturnValue({
                     order: jest.fn().mockReturnValue({
-                        range: jest.fn().mockResolvedValueOnce({
+                        limit: jest.fn().mockResolvedValueOnce({
                             data: [],
                             error: null,
                         }),
@@ -783,9 +784,26 @@ describe("Reports API Routes", () => {
                 }
                 if (table === "district_alerts") {
                     return {
+                        select: jest.fn().mockReturnValue({
+                            eq: jest.fn().mockReturnValue({
+                                eq: jest.fn().mockReturnValue({
+                                    maybeSingle: jest.fn().mockResolvedValue({
+                                        data: { alert_level: "low" },
+                                        error: null,
+                                    }),
+                                }),
+                            }),
+                        }),
                         upsert: jest.fn().mockImplementation((payload: Record<string, unknown>) => {
                             upsertPayload = payload;
-                            return Promise.resolve({ data: null, error: null });
+                            return {
+                                select: jest.fn().mockReturnValue({
+                                    single: jest.fn().mockResolvedValue({
+                                        data: payload,
+                                        error: null,
+                                    }),
+                                }),
+                            };
                         }),
                     };
                 }
@@ -803,6 +821,113 @@ describe("Reports API Routes", () => {
             expect(response.status).toBe(200);
             expect(upsertPayload).not.toBeNull();
             expect(upsertPayload).toHaveProperty("broadcasted", false);
+        });
+
+        it("escalated reports that are approved as verified_fake increment the district's verified counterfeit count", async () => {
+            const updatedReport = {
+                id: "report-id-123",
+                district: "Delhi",
+                reported_brand_name: "Fake Medicine",
+                status: "verified_fake",
+                is_escalated: false, // Updated state
+                created_at: "2026-06-01T00:00:00Z",
+            };
+
+            let updatePayload: Record<string, unknown> | null = null;
+            let countQueryExecuted = false;
+            const originalFrom = mockedSupabase.from;
+
+            (mockedSupabase.from as jest.Mock) = jest.fn().mockImplementation((table: string) => {
+                if (table === "counterfeit_reports") {
+                    return {
+                        select: jest.fn().mockImplementation((_cols?: string, opts?: any) => {
+                            if (opts && opts.head) {
+                                return {
+                                    eq: jest.fn().mockReturnValue({
+                                        eq: jest.fn().mockReturnValue({
+                                            eq: jest.fn().mockImplementation((col, val) => {
+                                                if (col === "is_escalated" && val === false) {
+                                                    countQueryExecuted = true;
+                                                    return Promise.resolve({
+                                                        count: 5,
+                                                        error: null,
+                                                    });
+                                                }
+                                                return Promise.resolve({ count: 5, error: null });
+                                            }),
+                                        }),
+                                    }),
+                                };
+                            }
+                            return {
+                                eq: jest.fn().mockReturnValue({
+                                    single: jest.fn().mockResolvedValue({
+                                        data: {
+                                            id: "report-id-123",
+                                            is_escalated: true,
+                                            district: "Delhi",
+                                            reported_brand_name: "Fake Medicine",
+                                        },
+                                        error: null,
+                                    }),
+                                }),
+                            };
+                        }),
+                        update: jest.fn().mockImplementation((payload) => {
+                            updatePayload = payload;
+                            return {
+                                eq: jest.fn().mockReturnValue({
+                                    select: jest.fn().mockReturnValue({
+                                        single: jest
+                                            .fn()
+                                            .mockResolvedValue({
+                                                data: updatedReport,
+                                                error: null,
+                                            }),
+                                    }),
+                                }),
+                            };
+                        }),
+                    };
+                }
+                if (table === "district_alerts") {
+                    return {
+                        select: jest.fn().mockReturnValue({
+                            eq: jest.fn().mockReturnValue({
+                                eq: jest.fn().mockReturnValue({
+                                    maybeSingle: jest.fn().mockResolvedValue({
+                                        data: { alert_level: "low" },
+                                        error: null,
+                                    }),
+                                }),
+                            }),
+                        }),
+                        upsert: jest.fn().mockImplementation((payload: Record<string, unknown>) => {
+                            return {
+                                select: jest.fn().mockReturnValue({
+                                    single: jest.fn().mockResolvedValue({
+                                        data: payload,
+                                        error: null,
+                                    }),
+                                }),
+                            };
+                        }),
+                    };
+                }
+                return {};
+            });
+
+            const response = await request(app)
+                .patch("/api/reports/report-id-123/status")
+                .set("Authorization", "Bearer admin-token")
+                .set("X-Admin", "true")
+                .send({ status: "verified_fake" });
+
+            mockedSupabase.from = originalFrom;
+
+            expect(response.status).toBe(200);
+            expect(updatePayload).toHaveProperty("is_escalated", false);
+            expect(countQueryExecuted).toBe(true);
         });
     });
 });

@@ -8,6 +8,7 @@ import { supabase } from "../src/db/client";
 jest.mock("../src/db/client", () => ({
     supabase: {
         from: jest.fn(),
+        rpc: jest.fn(),
     },
 }));
 
@@ -46,9 +47,10 @@ describe("reportValidation.service - distinct count checks", () => {
     });
 
     it("should NOT flag geographic spread when 5 duplicate reports come from the same IP and same district", async () => {
-        (supabase.from as jest.Mock).mockImplementation(() =>
-            mockQueryResult(Array(5).fill({ district: "Pune" }))
-        );
+        (supabase.rpc as jest.Mock).mockResolvedValue({
+            data: { geo_count: 1 },
+            error: null,
+        });
 
         const result = await validateReport(basePayload, "1.2.3.4", null);
 
@@ -57,9 +59,10 @@ describe("reportValidation.service - distinct count checks", () => {
     });
 
     it("should flag geographic spread when an IP reports for 3+ distinct districts", async () => {
-        (supabase.from as jest.Mock).mockImplementation(() =>
-            mockQueryResult([{ district: "Pune" }, { district: "Mumbai" }, { district: "Nashik" }])
-        );
+        (supabase.rpc as jest.Mock).mockResolvedValue({
+            data: { geo_count: 3 },
+            error: null,
+        });
 
         const result = await validateReport(basePayload, "1.2.3.4", null);
 
@@ -68,9 +71,10 @@ describe("reportValidation.service - distinct count checks", () => {
     });
 
     it("should NOT flag Sybil pattern when 8 duplicate reports come from the same IP for one district", async () => {
-        (supabase.from as jest.Mock).mockImplementation(() =>
-            mockQueryResult(Array(8).fill({ ip_address: "1.2.3.4" }))
-        );
+        (supabase.rpc as jest.Mock).mockResolvedValue({
+            data: { sybil_district_count: 1 },
+            error: null,
+        });
 
         const result = await validateReport(basePayload, "1.2.3.4", null);
 
@@ -81,9 +85,10 @@ describe("reportValidation.service - distinct count checks", () => {
     });
 
     it("should flag Sybil pattern when 8+ distinct IPs report for the same district", async () => {
-        (supabase.from as jest.Mock).mockImplementation(() =>
-            mockQueryResult(Array.from({ length: 8 }, (_, i) => ({ ip_address: `1.2.3.${i}` })))
-        );
+        (supabase.rpc as jest.Mock).mockResolvedValue({
+            data: { sybil_district_count: 8 },
+            error: null,
+        });
 
         const result = await validateReport(basePayload, "1.2.3.4", null);
 

@@ -15,7 +15,11 @@ interface MedicineLookup {
     generic_name: string;
 }
 
-type InteractionRecord = LocalInteraction & { id?: string };
+type InteractionRecord = LocalInteraction & {
+    id?: string;
+    last_updated_at?: string;
+    data_version?: string;
+};
 
 const checkSchema = z.object({
     medicines: z
@@ -79,6 +83,8 @@ interface MatchedInteraction {
     clinical_recommendation: string;
     source: string;
     verified: boolean;
+    last_updated_at?: string;
+    disclaimer?: string;
 }
 
 const localInteractions: LocalInteraction[] = [
@@ -129,6 +135,40 @@ const localInteractions: LocalInteraction[] = [
         source: "DrugBank",
     },
 ];
+
+// Runtime interaction cache (seeded from static fallback)
+let cachedInteractions: LocalInteraction[] = [...localInteractions];
+
+async function warmInteractionCache() {
+    try {
+        const { data, error } = await supabase
+            .from("drug_interactions")
+            .select("*");
+
+        if (error) {
+            logger.warn(
+                "Interaction cache warm failed — using static fallback",
+                { error: error.message }
+            );
+            return;
+        }
+
+        if (data && data.length > 0) {
+            cachedInteractions = data as unknown as LocalInteraction[];
+        }
+    } catch (err) {
+        logger.warn(
+            "Interaction cache warm failed — using static fallback",
+            { error: err instanceof Error ? err.message : String(err) }
+        );
+    }
+}
+
+warmInteractionCache();
+
+setInterval(() => {
+    void warmInteractionCache();
+}, 24 * 60 * 60 * 1000);
 
 function displayMedicineName(medicine: MedicineLookup): string {
     return medicine.brand_name?.trim() || medicine.generic_name;
@@ -197,7 +237,7 @@ function indexInteractions(interactions: InteractionRecord[]): Map<string, Inter
 
 function getLocalInteractionsForGenerics(genericNames: string[]): InteractionRecord[] {
     const selectedGenerics = new Set(genericNames);
-    return localInteractions.filter(
+    return cachedInteractions.filter(
         (interaction) =>
             selectedGenerics.has(interaction.drug_a_id) &&
             selectedGenerics.has(interaction.drug_b_id)
@@ -326,6 +366,10 @@ router.get("/", interactionCheckLimiter, async (req: Request, res: Response) => 
                     mechanism: match?.mechanism || "No interaction mechanism is documented.",
                     source: match?.source || "SahiDawa interaction checker",
                     verified: !isFallback,
+                    disclaimer: isFallback
+                    ? "⚠️ Using offline interaction database. Data may be outdated. Consult a pharmacist."
+                    : undefined,
+                    last_updated_at: match?.last_updated_at,
                 });
             }
         }
@@ -469,7 +513,9 @@ router.post("/check", interactionCheckLimiter, async (req: Request, res: Respons
 
         const genericToOriginalMap = new Map<string, string>();
         resolvedList.forEach((r) => {
-            genericToOriginalMap.set(r.generic.toLowerCase(), r.input);
+            if (!genericToOriginalMap.has(r.generic.toLowerCase())) {
+                genericToOriginalMap.set(r.generic.toLowerCase(), r.input);
+            }
         });
 
         const resolvedGenerics = Array.from(
@@ -509,6 +555,10 @@ router.post("/check", interactionCheckLimiter, async (req: Request, res: Respons
                             "Consult a physician before combining.",
                         source: match.source || "Clinical Literature",
                         verified: !isFallback,
+                        disclaimer: isFallback
+                        ? "⚠️ Using offline interaction database. Data may be outdated. Consult a pharmacist."
+                        : undefined,
+                        last_updated_at: (match as any).last_updated_at,
                     });
                 }
             }

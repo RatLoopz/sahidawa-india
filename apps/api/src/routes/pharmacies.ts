@@ -7,6 +7,10 @@ import { limiter } from "../middleware/rateLimit";
 import { requireAuth, AuthenticatedRequest } from "../middleware/auth";
 import { FormattedPharmacy, PharmacyRpcResult } from "../types/pharmacy.types";
 import { redisCache } from "../middleware/redisCache";
+import multer from "multer";
+import { buildOrConditions } from "../utils/db";
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 const router = Router();
 
@@ -15,12 +19,19 @@ const router = Router();
 /** Maximum number of pharmacies returned per request */
 const MAX_RESULTS = 200;
 
+const GEOSPATIAL_CACHE_CONTROL = "public, max-age=300, s-maxage=300, stale-while-revalidate=600";
+
+const setGeospatialCacheHeaders = (res: Response) => {
+    res.setHeader("Cache-Control", GEOSPATIAL_CACHE_CONTROL);
+};
+
 import { cacheMiddleware } from "../middleware/cache";
 
 // ── TypeScript interfaces ────────────────────────────────────────────────────
 
 /** Raw pharmacy row returned by Supabase table queries (fallback path) */
 interface PharmacyRow {
+    id?: string;
     name: string;
     address: string;
     lat?: number;
@@ -31,6 +42,9 @@ interface PharmacyRow {
     district: string | null;
     state: string | null;
     status?: "pending" | "approved" | "rejected";
+    updated_at?: string;
+    is_active?: boolean;
+    deleted_at?: string | null;
 }
 
 /** Internal type used during sorting (includes raw numeric distance) */
@@ -80,6 +94,7 @@ const inventoryRowSchema = z.object({
 router.post(
     "/",
     requireAuth,
+    limiter,
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
         const parsed = registerPharmacySchema.safeParse(req.body);
         if (!parsed.success) {
@@ -167,9 +182,8 @@ const boundsQuerySchema = z
         west: z.coerce.number().min(-180).max(180),
         north: z.coerce.number().min(-90).max(90),
         east: z.coerce.number().min(-180).max(180),
-
+        since: z.coerce.date().optional(),
         limit: z.coerce.number().int().min(1).max(1000).default(200),
-
         offset: z.coerce.number().int().min(0).default(0),
     })
     .refine((data) => data.south < data.north, {
@@ -230,6 +244,7 @@ function extractCoordinates(p: PharmacyRow): { lat: number; lng: number } {
 function formatPharmacy(p: PharmacyRow, distanceKm: number): FormattedPharmacy {
     const coords = extractCoordinates(p);
     return {
+        id: p.id,
         name: p.name || "Unknown Pharmacy",
         address: p.address || "Unknown Address",
         lat: coords.lat,
@@ -239,6 +254,9 @@ function formatPharmacy(p: PharmacyRow, distanceKm: number): FormattedPharmacy {
         is_verified: p.is_verified ?? false,
         district: p.district || null,
         state: p.state || null,
+        updated_at: p.updated_at,
+        is_active: p.is_active,
+        deleted_at: p.deleted_at,
     };
 }
 
@@ -283,6 +301,209 @@ function handleFetchError(
 }
 
 // ── Routes ───────────────────────────────────────────────────────────────────
+
+/**
+ * @openapi
+ * /api/pharmacies/search-by-medicine:
+ *   get:
+ *     summary: Find pharmacies stocking a medicine by name
+ *     description: >
+ *       Searches the pharmacy_inventory table for pharmacies that stock a
+ *       medicine whose name matches the given query. Multi-word queries are
+ *       handled correctly: every word in the query is applied as a separate
+ *       ILIKE condition joined by OR in a single Supabase `.or()` call,
+ *       preventing the silent last-word-only bug that occurred when `.or()`
+ *       was chained in a loop.
+ *
+ *       Results are distinct pharmacies deduplicated by pharmacy_id. Matches
+ *       are cached in Redis for 5 minutes.
+ *     tags:
+ *       - Pharmacies
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ *           minLength: 2
+ *         description: Medicine name (or partial name) to search for
+ *         example: "Amoxicillin Clavulanate"
+ *     responses:
+ *       200:
+ *         description: List of matching pharmacies
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 pharmacies:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       pharmacy_id:
+ *                         type: string
+ *                       pharmacy_name:
+ *                         type: string
+ *                       address:
+ *                         type: string
+ *                       district:
+ *                         type: string
+ *                         nullable: true
+ *                       state:
+ *                         type: string
+ *                         nullable: true
+ *                       phone_number:
+ *                         type: string
+ *                         nullable: true
+ *                       is_verified:
+ *                         type: boolean
+ *                       matched_medicines:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                 query:
+ *                   type: string
+ *                 total:
+ *                   type: integer
+ *       400:
+ *         description: Missing or invalid query parameter
+ *       500:
+ *         description: Database error
+ */
+router.get(
+    "/search-by-medicine",
+    limiter,
+    async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const rawQuery = (req.query.q as string | undefined)?.trim() ?? "";
+
+            if (rawQuery.length < 2) {
+                res.status(400).json({
+                    error: "Query parameter 'q' must be at least 2 characters long",
+                });
+                return;
+            }
+
+            // Normalise and split into individual search words.
+            // Words shorter than 2 characters are dropped to avoid too-broad matches.
+            const words = rawQuery
+                .toLowerCase()
+                .split(/\s+/)
+                .map((w) => w.trim())
+                .filter((w) => w.length >= 2);
+
+            if (words.length === 0) {
+                res.status(400).json({
+                    error: "Query contains no searchable words (each word must be at least 2 characters)",
+                });
+                return;
+            }
+
+            // Try Redis cache first
+            const cacheKey = `pharmacies:medicine-search:${words.join(":")}`;
+            try {
+                if (redisClient.isOpen) {
+                    const cached = await redisClient.get(cacheKey);
+                    if (cached) {
+                        logger.info(`Cache HIT for pharmacy medicine search: "${rawQuery}"`);
+                        res.json(JSON.parse(cached));
+                        return;
+                    }
+                }
+            } catch (cacheErr) {
+                logger.warn(`Redis read error for medicine search cache: ${cacheErr}`);
+            }
+
+            // Build a single OR filter string so that all words are applied in one
+            // .or() call. This is critical: calling .or() in a loop overwrites the
+            // previous condition, causing only the last word to be effective
+            // (the root cause of issue #2643).
+            const orFilter = buildOrConditions(["medicine_name"], words);
+
+            const { data: inventoryRows, error: inventoryError } = await supabase
+                .from("pharmacy_inventory")
+                .select(
+                    "medicine_name, pharmacy_id, pharmacies!inner(id, name, address, district, state, phone_number, is_verified, status)"
+                )
+                .or(orFilter)
+                .limit(500);
+
+            if (inventoryError) {
+                logger.error("Pharmacy medicine search DB error", {
+                    message: inventoryError.message,
+                    code: inventoryError.code,
+                    query: rawQuery,
+                });
+                res.status(500).json({ error: "Database query failed" });
+                return;
+            }
+
+            // Deduplicate by pharmacy_id, collecting matched medicine names per pharmacy
+            const pharmacyMap = new Map<
+                string,
+                {
+                    pharmacy_id: string;
+                    pharmacy_name: string;
+                    address: string;
+                    district: string | null;
+                    state: string | null;
+                    phone_number: string | null;
+                    is_verified: boolean;
+                    matched_medicines: Set<string>;
+                }
+            >();
+
+            for (const row of inventoryRows ?? []) {
+                const pharmacy = (row as any).pharmacies;
+                if (!pharmacy || pharmacy.status !== "approved") continue;
+
+                const pid: string = pharmacy.id;
+                if (!pharmacyMap.has(pid)) {
+                    pharmacyMap.set(pid, {
+                        pharmacy_id: pid,
+                        pharmacy_name: pharmacy.name ?? "Unknown Pharmacy",
+                        address: pharmacy.address ?? "Unknown Address",
+                        district: pharmacy.district ?? null,
+                        state: pharmacy.state ?? null,
+                        phone_number: pharmacy.phone_number ?? null,
+                        is_verified: pharmacy.is_verified ?? false,
+                        matched_medicines: new Set<string>(),
+                    });
+                }
+                if (row.medicine_name) {
+                    pharmacyMap.get(pid)!.matched_medicines.add(row.medicine_name);
+                }
+            }
+
+            const pharmacies = Array.from(pharmacyMap.values()).map(
+                ({ matched_medicines, ...rest }) => ({
+                    ...rest,
+                    matched_medicines: Array.from(matched_medicines),
+                })
+            );
+
+            const responseBody = {
+                pharmacies,
+                query: rawQuery,
+                total: pharmacies.length,
+            };
+
+            // Cache for 5 minutes
+            try {
+                if (redisClient.isOpen) {
+                    await redisClient.set(cacheKey, JSON.stringify(responseBody), { EX: 300 });
+                }
+            } catch (cacheErr) {
+                logger.warn(`Redis write error for medicine search cache: ${cacheErr}`);
+            }
+
+            res.json(responseBody);
+        } catch (err) {
+            next(err);
+        }
+    }
+);
 
 /**
  * @openapi
@@ -618,27 +839,40 @@ router.get(
                 return;
             }
 
-            const { south, west, north, east, limit, offset } = result.data;
+            const { south, west, north, east, since, limit, offset } = result.data;
+            const syncedAt = new Date().toISOString();
 
             const centerLat = (south + north) / 2;
             const centerLng = (west + east) / 2;
 
-            // Primary path: PostGIS spatial query via RPC
-            const { data: rpcData, error: rpcError } = await supabase.rpc(
-                "get_pharmacies_in_bounds" as string,
-                {
+            let rpcData, rpcError;
+            if (since) {
+                const { data, error } = await supabase.rpc("get_pharmacies_in_bounds_delta", {
+                    bound_south: south,
+                    bound_west: west,
+                    bound_north: north,
+                    bound_east: east,
+                    since: since.toISOString(),
+                });
+                rpcData = data;
+                rpcError = error;
+            } else {
+                const { data, error } = await supabase.rpc("get_pharmacies_in_bounds", {
                     bound_south: south,
                     bound_west: west,
                     bound_north: north,
                     bound_east: east,
                     query_limit: limit,
                     query_offset: offset,
-                }
-            );
+                });
+                rpcData = data;
+                rpcError = error;
+            }
 
             if (!rpcError && rpcData) {
                 const pharmacies: FormattedPharmacy[] = (rpcData as PharmacyRpcResult[])
                     .map((p: PharmacyRpcResult) => ({
+                        id: p.id,
                         name: p.name || "Unknown Pharmacy",
                         address: p.address || "Unknown Address",
                         lat: p.lat,
@@ -648,9 +882,17 @@ router.get(
                         is_verified: p.is_verified ?? false,
                         district: p.district || null,
                         state: p.state || null,
+                        updated_at: p.updated_at,
+                        is_active: p.is_active ?? true,
+                        deleted_at: p.deleted_at ?? null,
                     }))
                     .slice(0, MAX_RESULTS);
-                return res.json({ pharmacies });
+                setGeospatialCacheHeaders(res);
+                return res.json({
+                    pharmacies,
+                    syncedAt,
+                    delta: since !== undefined,
+                });
             }
 
             // Fallback path: in-memory bounding box filter
@@ -658,13 +900,25 @@ router.get(
                 error: rpcError?.message,
             });
 
-            const { data: allPharmacies, error: fetchError } = await supabase
-                .from("pharmacies")
-                .select(
-                    "name, address, location, phone_number, is_verified, district, state, status"
-                )
-                .eq("status", "approved")
-                .limit(3000);
+            let query;
+            if (since) {
+                query = supabase
+                    .from("pharmacies")
+                    .select(
+                        "id, name, address, location, phone_number, is_verified, district, state, status, updated_at, is_active, deleted_at"
+                    )
+                    .eq("status", "approved")
+                    .gt("updated_at", since.toISOString());
+            } else {
+                query = supabase
+                    .from("pharmacies")
+                    .select(
+                        "id, name, address, location, phone_number, is_verified, district, state, status, updated_at, is_active, deleted_at"
+                    )
+                    .eq("status", "approved");
+            }
+
+            const { data: allPharmacies, error: fetchError } = await query.limit(3000);
 
             if (fetchError) {
                 handleFetchError(fetchError, res);
@@ -672,7 +926,11 @@ router.get(
             }
 
             const pharmacies: FormattedPharmacy[] = ((allPharmacies || []) as PharmacyRow[])
-                .filter((p: PharmacyRow) => p.status === "approved")
+                .filter((p: PharmacyRow) => {
+                    if (p.status !== "approved") return false;
+                    if (!since && p.is_active === false) return false;
+                    return true;
+                })
                 .map((p: PharmacyRow) => {
                     const coords = extractCoordinates(p);
                     const distanceKm = calculateDistanceKM(
@@ -681,7 +939,22 @@ router.get(
                         coords.lat,
                         coords.lng
                     );
-                    return { ...formatPharmacy(p, distanceKm), coords };
+                    return {
+                        id: p.id,
+                        name: p.name || "Unknown Pharmacy",
+                        address: p.address || "Unknown Address",
+                        lat: coords.lat,
+                        lng: coords.lng,
+                        distance: `${distanceKm.toFixed(1)} km`,
+                        phone_number: p.phone_number || null,
+                        is_verified: p.is_verified ?? false,
+                        district: p.district || null,
+                        state: p.state || null,
+                        updated_at: p.updated_at,
+                        is_active: p.is_active,
+                        deleted_at: p.deleted_at,
+                        coords,
+                    };
                 })
                 .filter(
                     (p) =>
@@ -695,7 +968,12 @@ router.get(
                 .slice(0, MAX_RESULTS)
                 .map(({ coords, ...rest }) => rest);
 
-            res.json({ pharmacies });
+            setGeospatialCacheHeaders(res);
+            res.json({
+                pharmacies,
+                syncedAt,
+                delta: since !== undefined,
+            });
         } catch (err) {
             next(err);
         }
@@ -704,6 +982,7 @@ router.get(
 router.post(
     "/bulk-upload",
     requireAuth,
+    limiter,
     async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             if (!req.user) {
@@ -804,4 +1083,231 @@ router.post(
         }
     }
 );
+
+// ── Pharmacy Mutation Endpoints ──────────────────────────────────────────────
+
+/**
+ * Update pharmacy details (PUT /:id)
+ */
+router.put(
+    "/:id",
+    requireAuth,
+    limiter,
+    async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const pharmacyId = req.params.id;
+
+            const { data: pharmacy, error: findError } = await supabase
+                .from("pharmacies")
+                .select("id, created_by, status")
+                .eq("id", pharmacyId)
+                .maybeSingle();
+
+            if (findError || !pharmacy) {
+                res.status(404).json({ error: "Pharmacy not found" });
+                return;
+            }
+
+            const isOwner = pharmacy.created_by === req.user!.id;
+            const isAdmin = req.user!.role === "admin" || req.user!.role === "moderator";
+
+            if (!isOwner && !isAdmin) {
+                res.status(403).json({ error: "You can only update pharmacies you own" });
+                return;
+            }
+
+            const updateData = req.body;
+            // Ensure we don't accidentally update restricted fields unless admin
+            delete updateData.id;
+            delete updateData.created_by;
+            if (!isAdmin) {
+                delete updateData.status;
+                delete updateData.is_verified;
+            }
+
+            const { data: updatedPharmacy, error: updateError } = await supabase
+                .from("pharmacies")
+                .update(updateData)
+                .eq("id", pharmacyId)
+                .select()
+                .single();
+
+            if (updateError) {
+                logger.error(`Pharmacy update failed: ${updateError.message}`);
+                res.status(500).json({ error: "Database operation failed during update." });
+                return;
+            }
+
+            res.status(200).json({ pharmacy: updatedPharmacy });
+        } catch (error: any) {
+            next(error);
+        }
+    }
+);
+
+/**
+ * Soft delete pharmacy (DELETE /:id)
+ */
+router.delete(
+    "/:id",
+    requireAuth,
+    limiter,
+    async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const pharmacyId = req.params.id;
+
+            const { data: pharmacy, error: findError } = await supabase
+                .from("pharmacies")
+                .select("id, created_by, status")
+                .eq("id", pharmacyId)
+                .maybeSingle();
+
+            if (findError || !pharmacy) {
+                res.status(404).json({ error: "Pharmacy not found" });
+                return;
+            }
+
+            const isOwner = pharmacy.created_by === req.user!.id;
+            const isAdmin = req.user!.role === "admin" || req.user!.role === "moderator";
+
+            if (!isOwner && !isAdmin) {
+                res.status(403).json({ error: "You can only delete pharmacies you own" });
+                return;
+            }
+
+            // Soft delete by updating status
+            const { error: deleteError } = await supabase
+                .from("pharmacies")
+                .update({ status: "rejected" }) // or whatever soft delete status is appropriate
+                .eq("id", pharmacyId);
+
+            if (deleteError) {
+                logger.error(`Pharmacy delete failed: ${deleteError.message}`);
+                res.status(500).json({ error: "Database operation failed during delete." });
+                return;
+            }
+
+            res.status(200).json({ message: "Pharmacy deleted successfully" });
+        } catch (error: any) {
+            next(error);
+        }
+    }
+);
+
+/**
+ * Inventory Bulk Upload (POST /:id/inventory/upload) using Multer
+ */
+router.post(
+    "/:id/inventory/upload",
+    requireAuth,
+    limiter,
+    upload.single("file"),
+    async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const pharmacyId = req.params.id;
+
+            const { data: pharmacy, error: findError } = await supabase
+                .from("pharmacies")
+                .select("id, created_by, status")
+                .eq("id", pharmacyId)
+                .maybeSingle();
+
+            if (findError || !pharmacy) {
+                res.status(404).json({ error: "Pharmacy not found" });
+                return;
+            }
+
+            // Ownership check: must be creator OR admin
+            const isOwner = pharmacy.created_by === req.user!.id;
+            const isAdmin = req.user!.role === "admin" || req.user!.role === "moderator";
+
+            if (!isOwner && !isAdmin) {
+                res.status(403).json({
+                    error: "You can only upload inventory for pharmacies you own",
+                });
+                return;
+            }
+
+            // Multer file processing
+            if (!req.file || !req.file.buffer) {
+                res.status(400).json({ error: "No valid file data content provided." });
+                return;
+            }
+
+            const fileContent = req.file.buffer.toString("utf-8");
+
+            const lines = fileContent
+                .split(/\r?\n/)
+                .map((line) => line.trim())
+                .filter(Boolean);
+            if (lines.length <= 1) {
+                res.status(400).json({ error: "The file appears empty or is missing rows." });
+                return;
+            }
+
+            if (lines.length > 501) {
+                res.status(400).json({
+                    error: "Bulk upload exceeds the maximum limit of 500 items per request.",
+                });
+                return;
+            }
+
+            const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+            const rowsToInsert: any[] = [];
+            const failedRows: Array<{ row: number; reason: string }> = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i]
+                    .split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)
+                    .map((v) => v.replace(/^"|"$/g, "").trim());
+
+                const rowData: Record<string, any> = {};
+                headers.forEach((header, index) => {
+                    const val = values[index];
+                    rowData[header] = val === "" || val === undefined ? undefined : val;
+                });
+
+                const validationResult = inventoryRowSchema.safeParse(rowData);
+                if (!validationResult.success) {
+                    const errorMessage = validationResult.error.issues
+                        .map((e: { message: string }) => e.message)
+                        .join(", ");
+                    failedRows.push({ row: i + 1, reason: errorMessage });
+                    continue;
+                }
+
+                rowsToInsert.push({
+                    pharmacy_id: pharmacyId,
+                    medicine_name: validationResult.data.medicine_name,
+                    batch_number: validationResult.data.batch_number,
+                    expiry_date: validationResult.data.expiry_date,
+                    quantity: validationResult.data.quantity,
+                    mrp: validationResult.data.mrp,
+                });
+            }
+
+            let successfulInserts = 0;
+            if (rowsToInsert.length > 0) {
+                const { error } = await supabase.from("pharmacy_inventory").insert(rowsToInsert);
+                if (error) {
+                    logger.error(`Database bulk insertion failed: ${error.message}`);
+                    res.status(500).json({ error: "Database operation failed during insertion." });
+                    return;
+                }
+                successfulInserts = rowsToInsert.length;
+            }
+
+            res.status(200).json({
+                totalRows: lines.length - 1,
+                successCount: successfulInserts,
+                failedCount: failedRows.length,
+                errors: failedRows,
+            });
+        } catch (error: any) {
+            logger.error(`Exception in specific pharmacy upload handler: ${error.message}`);
+            next(error);
+        }
+    }
+);
+
 export default router;

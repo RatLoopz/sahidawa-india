@@ -396,7 +396,8 @@
         "title": "SahiDawa AI",
         "status": "آن لائن",
         "welcome": "سلام! مان SahiDawa AI اسسٽنٽ آهيان. اڄ آئون توهان جي دوائن بابت ڪيئن مدد ڪري سگهان ٿو؟",
-        "placeholder": "مون کان ڪنهن دوا بابت پڇو..."
+        "placeholder": "مون کان ڪنهن دوا بابت پڇو...",
+        "tooltipLabel": "AI Health Assistant"
     },
     "Alerts": {
         "backHome": "هوم پيج ڏانهن واپس وڃو",
@@ -921,6 +922,8 @@
         "stat_fake": "جعلي",
         "empty_title": "اڃا تائين ڪا اسڪين تاريخ ناهي",
         "empty_description": "توهان جون تصديق ٿيل دوائون هتي ظاهر ٿينديون.",
+        "search_placeholder": "دوا ڳوليو...",
+        "no_search_results": "توهان جي ڳولا سان ميل کائيندڙ ڪا به دوا نه ملي.",
         "item_status_label": "اسٽيٽس: ",
         "item_delete_button": "ختم ڪريو",
         "item_copy_success": "دوا جو نالو ڪاپي ٿي ويو!"

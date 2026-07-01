@@ -2,23 +2,19 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { NextResponse } from "next/server";
 import { detectEmergencyKeywords } from "@/lib/voice/emergency";
 import { rateLimit } from "@/lib/rateLimit";
+import { getClientIp } from "@/lib/getClientIp";
 import { BASE_PROMPT } from "@/lib/chatPrompts";
 import { structuredLog } from "@/lib/structuredLogger";
-import { ChatRoles, ChatRole } from "@/lib/constants";
+import { ChatRoles, ChatMessage } from "@/lib/constants";
 import crypto from "crypto";
 
 import { trimHistoryByTokens } from "@/lib/chatUtils";
+import { redis } from "@/lib/redis";
 
-const summaryCache = new Map<string, string>();
+const ML_TRIAGE_TIMEOUT_MS = 30_000;
 
 const DEFAULT_DISCLAIMER =
     "This guidance is for informational use only and is not a diagnosis. Consult a doctor or pharmacist, especially for severe or persistent symptoms.";
-
-type ChatMessage = {
-    text?: string;
-    content?: string;
-    role?: ChatRole | string;
-};
 
 type VoiceTriageResponse = {
     text: string;
@@ -133,6 +129,19 @@ const VOICE_TRIAGE_SCHEMA = {
     propertyOrdering: ["summary", "recommendations", "disclaimer", "emergency"],
 };
 
+interface ErrorWithStatus {
+    status: number;
+}
+
+function isErrorWithStatus(error: unknown): error is ErrorWithStatus {
+    return (
+        typeof error === "object" &&
+        error !== null &&
+        "status" in error &&
+        typeof (error as { status: unknown }).status === "number"
+    );
+}
+
 function buildVoiceTriagePrompt(transcript: string, responseLanguage: string) {
     return [
         `Citizen transcript: ${JSON.stringify(transcript)}`,
@@ -153,9 +162,7 @@ export async function POST(req: Request) {
     const startTime = Date.now();
 
     try {
-        const forwardedFor = req.headers.get("x-forwarded-for");
-        const realIp = req.headers.get("x-real-ip");
-        const ip = forwardedFor?.split(",")[0]?.trim() || realIp || "127.0.0.1";
+        const ip = getClientIp(req);
         const { success } = await rateLimit.limit(ip);
         if (!success) {
             return NextResponse.json(
@@ -226,11 +233,29 @@ export async function POST(req: Request) {
             let emergencyFromML = false;
 
             try {
-                const mlServiceUrl =
-                    process.env.ML_SERVICE_URL?.trim() ||
-                    process.env.NEXT_PUBLIC_ML_SERVICE_URL?.trim() ||
-                    "http://localhost:8000";
-                const formattedMessages = trimmedMessages.map((m: any) => ({
+                const mlServiceUrl = process.env.ML_SERVICE_URL?.trim()?.replace(/\/+$/, "");
+
+                if (!mlServiceUrl) {
+                    structuredLog({
+                        log_level: "error",
+                        route: ROUTE,
+                        error: {
+                            message: "ML_SERVICE_URL is not configured",
+                            code: 500,
+                            stack: undefined,
+                        },
+                        meta: { missingVars: ["ML_SERVICE_URL"] },
+                    });
+                    return NextResponse.json(
+                        {
+                            error: "Server configuration error: ML service URL is missing.",
+                            code: "ML_SERVICE_URL_MISSING",
+                        },
+                        { status: 500 }
+                    );
+                }
+
+                const formattedMessages = trimmedMessages.map((m: ChatMessage) => ({
                     role:
                         m.role === ChatRoles.ASSISTANT || m.role === ChatRoles.MODEL
                             ? ChatRoles.ASSISTANT
@@ -243,6 +268,12 @@ export async function POST(req: Request) {
                     formattedMessages.push({ role: ChatRoles.USER, content: latestMessageText });
                 }
 
+                const mlAbortController = new AbortController();
+                const mlTimeoutId = setTimeout(
+                    () => mlAbortController.abort(),
+                    ML_TRIAGE_TIMEOUT_MS
+                );
+
                 const mlResponse = await fetch(`${mlServiceUrl}/triage/chat`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -250,7 +281,10 @@ export async function POST(req: Request) {
                         messages: formattedMessages,
                         locale: locale || "en",
                     }),
+                    signal: mlAbortController.signal,
                 });
+
+                clearTimeout(mlTimeoutId);
 
                 if (!mlResponse.ok) {
                     throw new Error(`ML service returned status ${mlResponse.status}`);
@@ -276,20 +310,34 @@ export async function POST(req: Request) {
                         responseLanguage,
                     },
                 });
-            } catch (mlError: any) {
+            } catch (mlError: unknown) {
+                const isTimeout = mlError instanceof Error && mlError.name === "AbortError";
+                const mlErrorStack = mlError instanceof Error ? mlError.stack : undefined;
+                const mlErrorMessage = mlError instanceof Error ? mlError.message : String(mlError);
                 structuredLog({
-                    log_level: "warn",
+                    log_level: isTimeout ? "error" : "warn",
                     route: ROUTE,
+                    latency_ms: Date.now() - startTime,
+                    error: isTimeout
+                        ? {
+                              message: "ML triage service timed out",
+                              code: 504,
+                              stack: mlErrorStack,
+                          }
+                        : undefined,
                     meta: {
-                        reason: "ml_service_triage_failed",
-                        error: mlError.message,
+                        reason: isTimeout
+                            ? "ml_service_triage_timeout"
+                            : "ml_service_triage_failed",
+                        error: mlErrorMessage,
                         fallback: "direct_gemini",
+                        ...(isTimeout ? { timeoutMs: ML_TRIAGE_TIMEOUT_MS } : {}),
                     },
                 });
 
                 // Fallback direct Gemini call
                 const response = await ai.models.generateContent({
-                    model: "gemini-2.5-flash",
+                    model: "gemini-3.5-flash",
                     contents: buildVoiceTriagePrompt(
                         latestMessageText,
                         typeof responseLanguage === "string" && responseLanguage.trim().length > 0
@@ -321,21 +369,43 @@ export async function POST(req: Request) {
                     .join("\n");
                 const cacheKey = crypto.createHash("sha256").update(droppedText).digest("hex");
 
-                let summary = summaryCache.get(cacheKey);
+                let summary: string | null = null;
+
+                try {
+                    summary = await redis.get<string>(cacheKey);
+                } catch (error) {
+                    structuredLog({
+                        log_level: "warn",
+                        route: ROUTE,
+                        meta: {
+                            reason: "redis_get_failed",
+                            error: error instanceof Error ? error.message : String(error),
+                        },
+                    });
+                }
 
                 if (!summary) {
                     const summaryPrompt = `Summarize the following conversation history briefly to retain key context for the ongoing chat. Keep it concise.\n\n${droppedText}`;
                     const summaryResponse = await ai.models.generateContent({
-                        model: "gemini-2.5-flash",
+                        model: "gemini-3.5-flash",
                         contents: summaryPrompt,
                     });
 
                     summary = summaryResponse.text || "";
                     if (summary) {
-                        summaryCache.set(cacheKey, summary);
-                        if (summaryCache.size > 1000) {
-                            const firstKey = summaryCache.keys().next().value;
-                            if (firstKey) summaryCache.delete(firstKey);
+                        try {
+                            await redis.set(cacheKey, summary, {
+                                ex: 3600, // 1 hour TTL
+                            });
+                        } catch (error) {
+                            structuredLog({
+                                log_level: "warn",
+                                route: ROUTE,
+                                meta: {
+                                    reason: "redis_set_failed",
+                                    error: error instanceof Error ? error.message : String(error),
+                                },
+                            });
                         }
                     }
                 }
@@ -353,14 +423,35 @@ export async function POST(req: Request) {
                 structuredLog({
                     log_level: "warn",
                     route: ROUTE,
-                    meta: { reason: "summarization_failed", error: String(error) },
+                    meta: {
+                        reason: "summarization_failed",
+                        error: error instanceof Error ? error.message : String(error),
+                    },
                 });
             }
         }
 
         const formattedContents = mapMessagesToGeminiContents(trimmedMessages);
 
-        const supportedLocales = ["en", "gu", "bn", "te", "ta", "mr", "ur", "kn", "pa", "or", "hi"];
+        const supportedLocales = [
+            "en",
+            "gu",
+            "bn",
+            "te",
+            "ta",
+            "mr",
+            "ur",
+            "kn",
+            "pa",
+            "or",
+            "hi",
+            "as",
+            "ks",
+            "kok",
+            "mai",
+            "ml",
+            "sa",
+        ];
         const finalLocale = supportedLocales.includes(locale) ? locale : "en";
         const localeMap = {
             en: "English",
@@ -374,12 +465,18 @@ export async function POST(req: Request) {
             te: "Telugu",
             ur: "Urdu",
             or: "Odia",
+            as: "Assamese",
+            ks: "Kashmiri",
+            kok: "Konkani",
+            mai: "Maithili",
+            ml: "Malayalam",
+            sa: "Sanskrit",
         };
         const language = localeMap[finalLocale as keyof typeof localeMap] || "English";
         const systemPrompt = BASE_PROMPT.replace("{language}", language);
 
         const responseStream = (await ai.models.generateContentStream({
-            model: "gemini-2.5-flash",
+            model: "gemini-3.5-flash",
             contents: formattedContents,
             config: {
                 systemInstruction: systemPrompt,
@@ -453,9 +550,9 @@ export async function POST(req: Request) {
                 "Cache-Control": "no-cache, no-transform",
             },
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         const latency_ms = Date.now() - startTime;
-        const statusCode: number = error?.status || 500;
+        const statusCode: number = isErrorWithStatus(error) ? error.status : 500;
         structuredLog({
             log_level: "error",
             route: ROUTE,

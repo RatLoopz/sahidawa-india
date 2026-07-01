@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "../../i18n/routing";
+import { getSiteUrl } from "@/lib/env";
 
 import { ThemeProvider } from "./components/ThemeProvider";
 import { OfflineBanner } from "@/components/OfflineBanner";
@@ -25,7 +26,7 @@ export async function generateMetadata({
     params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
     await params;
-    const baseUrl = "https://sahidawa-india-web.vercel.app";
+    const baseUrl = getSiteUrl();
 
     // Generate alternates for all locales
     const alternates = {
@@ -73,6 +74,7 @@ export default async function LocaleLayout({
     params: Promise<{ locale: string }>;
 }) {
     const { locale } = await params;
+    // Unused variables removed
 
     if (!routing.locales.includes(locale as any)) {
         notFound();
@@ -84,21 +86,7 @@ export default async function LocaleLayout({
 
     return (
         <html lang={locale} dir={isRtl ? "rtl" : "ltr"} suppressHydrationWarning>
-            <head>
-                <script
-                    dangerouslySetInnerHTML={{
-                        __html: `
-                            try {
-                                if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                                    document.documentElement.classList.add('dark');
-                                } else {
-                                    document.documentElement.classList.remove('dark');
-                                }
-                            } catch (_) {}
-                        `,
-                    }}
-                />
-            </head>
+            <head></head>
             <body className="flex min-h-screen flex-col bg-(--color-surface-page) text-(--color-text-primary) transition-colors duration-300">
                 <ServiceWorkerProvider>
                     <ThemeProvider>

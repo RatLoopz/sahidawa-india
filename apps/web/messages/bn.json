@@ -33,7 +33,14 @@
         "heroTitle": {
             "prefix": "আপনার স্বাস্থ্য, ",
             "highlight": "যাচাইকৃত ও সুরক্ষিত।"
-        }
+        },
+        "scan_section_title": "ওষুধ স্ক্যান এবং যাচাই করুন",
+        "scan_section_subtitle": "বারকোড বা প্যাকেজ স্ক্যানিং ব্যবহার করে ওষুধের সত্যতা যাচাই করুন।",
+        "powerful_capabilities": "শক্তিশালী ক্ষমতা",
+        "features_description": "SahiDawa কীভাবে আপনার ওষুধ যাচাই করতে এবং নিরাপদ থাকতে সাহায্য করতে পারে তার সব উপায় আবিষ্কার করুন।",
+        "trusted_by_citizens": "নাগরিকদের দ্বারা বিশ্বস্ত",
+        "voices_title": "SahiDawa সম্প্রদায়ের কণ্ঠস্বর",
+        "voices_description": "ওষুধের সুরক্ষা সহজতর করার জন্য SahiDawa ব্যবহারকারী পরিবার, ফার্মাসিস্ট, চিকিৎসক এবং অবদানকারীগণ।"
     },
     "Navigation": {
         "how_it_works": "কিভাবে কাজ করে",
@@ -368,7 +375,8 @@
         "placeholder": "Ask me about a medicine...",
         "status": "Online",
         "title": "SahiDawa AI",
-        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"
+        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?",
+        "tooltipLabel": "AI Health Assistant"
     },
     "Alerts": {
         "backHome": "হোম পৃষ্ঠায় ফিরে যান",
@@ -651,6 +659,75 @@
         "nav_vaccine": "Vaccine Hub",
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
+    },
+    "howItWorks": {
+        "badge": "Safe Healthcare � AI Powered",
+        "heroTitle": "How <highlight>SahiDawa</highlight> Works",
+        "heroSubtitle": "Learn how SahiDawa helps users verify medicines, discover trusted pharmacies, receive official alerts, and stay protected from counterfeit drugs using AI-powered healthcare tools.",
+        "ctaButtons": {
+            "scan": "Start Scanning",
+            "map": "Explore Pharmacy Map"
+        },
+        "steps": {
+            "scan": {
+                "title": "Scan Medicine",
+                "description": "Point your device camera at the barcode or QR code on any medicine packaging."
+            },
+            "verify": {
+                "title": "Verify Instantly",
+                "description": "AI cross-references scanned details with CDSCO records to check authenticity."
+            },
+            "alerts": {
+                "title": "Check Alerts",
+                "description": "Get real-time safety alerts if the batch is recalled, banned, or substandard."
+            },
+            "pharmacies": {
+                "title": "Find Pharmacies",
+                "description": "Locate Jan Aushadhi stores and verified nearby pharmacies stocking real medicines."
+            },
+            "protect": {
+                "title": "Stay Protected",
+                "description": "Keep records of your scans, report fakes, and safeguard your family's health."
+            }
+        },
+        "features": {
+            "title": "Platform Features",
+            "subtitle": "Everything you need for safer healthcare decisions.",
+            "cards": {
+                "verifyMedicines": {
+                    "title": "Verify Medicines",
+                    "description": "Instantly verify medicine authenticity using barcode, batch number, or medicine details."
+                },
+                "scanOrSearch": {
+                    "title": "Scan or Search",
+                    "description": "Scan packaging or manually search medicines for trusted healthcare information."
+                },
+                "aiAssistant": {
+                    "title": "AI Health Assistant",
+                    "description": "Get AI-powered guidance for symptoms, side effects, precautions, and medicine usage."
+                },
+                "trustedPharmacies": {
+                    "title": "Trusted Pharmacies",
+                    "description": "Find verified pharmacies nearby with reliable medicine availability and ratings."
+                },
+                "cdscoAlerts": {
+                    "title": "CDSCO Alerts",
+                    "description": "Stay updated with official CDSCO medicine recalls, warnings, and health alerts."
+                },
+                "reportMedicines": {
+                    "title": "Report Suspicious Medicines",
+                    "description": "Help the community by reporting counterfeit or suspicious medicines instantly."
+                }
+            }
+        },
+        "ctaBanner": {
+            "title": "Safer Healthcare Starts Here",
+            "subtitle": "Verify medicines, access trusted healthcare information, and stay protected from counterfeit drugs with AI-powered assistance.",
+            "buttons": {
+                "scan": "Scan Medicine",
+                "alerts": "View Alerts"
+            }
+        }
     },
     "medicineSafety": {
         "guideTitle": "ব্যবহার ও নিরাপত্তা নির্দেশিকা",
