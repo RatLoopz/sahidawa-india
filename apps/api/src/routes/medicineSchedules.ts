@@ -130,7 +130,6 @@ router.get("/:id", requireAuth, async (req: AuthenticatedRequest, res: Response)
             res.status(404).json({ error: "Schedule not found" });
             return;
         }
-        await invalidateUserSummaryCaches(req.user!.id);
         res.json({ schedule: data });
     } catch (err) {
         logger.error("Error fetching schedule", { error: err, scheduleId: req.params.id });
