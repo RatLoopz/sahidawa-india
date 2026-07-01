@@ -7,17 +7,19 @@ import logger from "../utils/logger";
 import { redisClient } from "../utils/redis";
 
 const router = Router();
-const invalidateTodaySummaryCache = async (userId: string) => {
+const invalidateUserSummaryCaches = async (userId: string) => {
     if (!redisClient.isOpen) return;
 
-    const { today } = getIstDateTime();
-    const cacheKey = `schedules:summary:${userId}:${today}`;
+    const matchPattern = `schedules:summary:${userId}:*`;
 
     try {
-        await redisClient.del(cacheKey);
+        for await (const key of redisClient.scanIterator({ MATCH: matchPattern, COUNT: 100 })) {
+            await redisClient.del(key);
+        }
     } catch (redisErr) {
-        logger.error("Failed to invalidate summary cache", {
+        logger.error("Failed to invalidate user summary caches", {
             error: redisErr,
+            userId,
         });
     }
 };
@@ -128,7 +130,6 @@ router.get("/:id", requireAuth, async (req: AuthenticatedRequest, res: Response)
             res.status(404).json({ error: "Schedule not found" });
             return;
         }
-        await invalidateTodaySummaryCache(req.user!.id);
         res.json({ schedule: data });
     } catch (err) {
         logger.error("Error fetching schedule", { error: err, scheduleId: req.params.id });
@@ -161,7 +162,7 @@ router.post("/", requireAuth, async (req: AuthenticatedRequest, res: Response) =
             res.status(500).json({ error: "Failed to create schedule" });
             return;
         }
-        await invalidateTodaySummaryCache(req.user!.id);
+        await invalidateUserSummaryCaches(req.user!.id);
         res.status(201).json({ schedule: data });
     } catch (err) {
         logger.error("Error creating schedule", { error: err });
@@ -198,7 +199,7 @@ router.put("/:id", requireAuth, async (req: AuthenticatedRequest, res: Response)
             res.status(404).json({ error: "Schedule not found" });
             return;
         }
-        await invalidateTodaySummaryCache(req.user!.id);
+        await invalidateUserSummaryCaches(req.user!.id);
         res.json({ schedule: data });
     } catch (err) {
         logger.error("Error updating schedule", { error: err, scheduleId: req.params.id });
@@ -219,7 +220,7 @@ router.delete("/:id", requireAuth, async (req: AuthenticatedRequest, res: Respon
             res.status(500).json({ error: "Failed to delete schedule" });
             return;
         }
-        await invalidateTodaySummaryCache(req.user!.id);
+        await invalidateUserSummaryCaches(req.user!.id);
         res.json({ success: true });
     } catch (err) {
         logger.error("Error deleting schedule", { error: err, scheduleId: req.params.id });
@@ -340,10 +341,19 @@ router.get("/:id/stats", requireAuth, async (req: AuthenticatedRequest, res: Res
         const { from, to } = queryParsed.data;
         const fromDate = new Date(from);
         const toDate = new Date(to);
-        const dayCount = Math.max(
-            1,
-            Math.round((toDate.getTime() - fromDate.getTime()) / 86400000) + 1
-        );
+
+        if (fromDate > toDate) {
+            res.status(400).json({ error: "from date must be before to date" });
+            return;
+        }
+
+        const dayCount = Math.round((toDate.getTime() - fromDate.getTime()) / 86400000) + 1;
+
+        if (dayCount > 365) {
+            res.status(400).json({ error: "Date range cannot exceed 365 days" });
+            return;
+        }
+
         const expectedDoses = dayCount * schedule.frequency;
 
         const { data: doseLogs, error: doseError } = await supabase
@@ -352,7 +362,8 @@ router.get("/:id/stats", requireAuth, async (req: AuthenticatedRequest, res: Res
             .eq("schedule_id", req.params.id)
             .eq("user_id", req.user!.id)
             .gte("log_date", from)
-            .lte("log_date", to);
+            .lte("log_date", to)
+            .limit(500);
 
         if (doseError) {
             res.status(500).json({ error: "Failed to fetch adherence data" });

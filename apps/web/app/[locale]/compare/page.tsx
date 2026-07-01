@@ -327,11 +327,7 @@ export default function ComparePage() {
                         </button>
                     </div>
                 )}
-                <ComparisonGrid
-                    medicine1={medicine1}
-                    medicine2={medicine2}
-                    labels={comparisonLabels}
-                />
+                <ComparisonGrid medicines={selectedMedicines} labels={comparisonLabels} />
                 {selectedIds.length >= 2 && (
                     <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm print:hidden">
                         <div className="mb-4 flex items-start justify-between gap-3">

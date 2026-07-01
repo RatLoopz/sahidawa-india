@@ -56,6 +56,26 @@ WHISPER_DEVICE = os.getenv("WHISPER_DEVICE", "cpu")
 WHISPER_COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE", "int8")
 WHISPER_PRELOAD_ON_STARTUP = os.getenv("WHISPER_PRELOAD_ON_STARTUP", "").strip().lower()
 
+# Supabase configuration for dynamically fetching the medicine database list
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+
+supabase_client = None
+
+if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+    try:
+        from supabase import create_client
+        supabase_client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+        logger.info("Supabase client initialized for medicine database list")
+    except ImportError:
+        logger.warning("supabase package not installed. Install with: pip install supabase")
+    except Exception as e:
+        logger.warning(f"Supabase client initialization failed: {e}")
+
+_medicine_list_cache: list[str] = []
+_medicine_list_cache_timestamp: float = 0.0
+MEDICINE_LIST_CACHE_TTL_SECONDS = 3600
+
 # Load model lazily on first request — prevents blocking startup of the FastAPI microservice.
 model: WhisperModel | None = None
 
@@ -121,12 +141,35 @@ def get_medicine_database_list() -> list[str]:
     Utility helper to fetch valid medicine masters from backend DB layers.
     Includes baseline fallback targets for test execution parameters.
     """
+    global _medicine_list_cache, _medicine_list_cache_timestamp
+
+    fallback = ["Paracetamol", "Crocin", "Amoxicillin", "Ibuprofen", "Aspirin", "Metformin"]
+
+    if not supabase_client:
+        return fallback
+
+    now = time.time()
+    if _medicine_list_cache and (now - _medicine_list_cache_timestamp) < MEDICINE_LIST_CACHE_TTL_SECONDS:
+        return _medicine_list_cache
+
     try:
-        # TODO: Link to actual database schema or configuration lookup when fully connected to Supabase seeds
-        return ["Paracetamol", "Crocin", "Amoxicillin", "Ibuprofen", "Aspirin", "Metformin"]
+        response = supabase_client.table("medicines").select("brand_name, generic_name").execute()
+        names: set[str] = set()
+        for row in response.data or []:
+            if row.get("brand_name"):
+                names.add(row["brand_name"])
+            if row.get("generic_name"):
+                names.add(row["generic_name"])
+
+        if names:
+            _medicine_list_cache = sorted(names)
+            _medicine_list_cache_timestamp = now
+            return _medicine_list_cache
+
+        return fallback
     except Exception as e:
         logger.warning(f"Failed to query medicine master dataset: {e}")
-        return []
+        return _medicine_list_cache or fallback
 
 
 @asynccontextmanager
