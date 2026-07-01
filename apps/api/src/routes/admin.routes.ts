@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { z } from "zod";
 
 import { requireAuth, requireRole } from "../middleware/auth";
+import { supabase } from "../db/client";
 import {
     getPendingReports,
     updateReportStatus,
@@ -163,6 +164,72 @@ router.post(
             res.status(200).json({
                 success: true,
                 message: "OCR Synonyms cache invalidated and reloaded successfully",
+            });
+        } catch (err) {
+            res.status(500).json({
+                success: false,
+                error: (err as Error).message,
+            });
+        }
+    }
+);
+
+const BulkSynonymsSchema = z
+    .array(
+        z.object({
+            original_term: z.string().min(1),
+            normalized_term: z.string().min(1),
+            type: z.enum(["synonym", "misread"]),
+        })
+    )
+    .max(1000, "Maximum 1000 rules per request");
+
+router.post(
+    "/synonyms/bulk",
+    requireAuth,
+    requireRole("admin", "moderator"),
+    async (req: AuthenticatedRequest, res: Response) => {
+        try {
+            const parsed = BulkSynonymsSchema.safeParse(req.body);
+
+            if (!parsed.success) {
+                res.status(400).json({
+                    success: false,
+                    error: "Invalid payload format",
+                    details: parsed.error.issues,
+                });
+                return;
+            }
+
+            const rows = parsed.data;
+
+            if (rows.length === 0) {
+                res.status(400).json({ success: false, error: "Empty payload" });
+                return;
+            }
+
+            const { error } = await supabase.from("ocr_synonyms").insert(rows);
+
+            if (error) {
+                res.status(500).json({ success: false, error: error.message });
+                return;
+            }
+
+            // Invalidate cache
+            if (redisClient.isOpen) {
+                await redisClient.del("ocr_synonyms:data");
+            }
+            const { medicineNameNormalizer } = await import("../utils/medicineNameNormalizer.js");
+            await medicineNameNormalizer.loadFromDatabase();
+
+            await logAdminAction(req.user!.id, "BULK_INSERT_SYNONYMS", "MEDICINE", "bulk", {
+                count: rows.length,
+            });
+
+            res.status(200).json({
+                success: true,
+                message: "Synonyms added successfully",
+                inserted: rows.length,
             });
         } catch (err) {
             res.status(500).json({
