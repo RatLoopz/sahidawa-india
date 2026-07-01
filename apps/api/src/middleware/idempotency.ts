@@ -2,10 +2,16 @@ import { Request, Response, NextFunction } from "express";
 import { redisClient } from "../utils/redis";
 import { supabase } from "../db/client";
 
-export async function idempotencyMiddleware(req: Request, res: Response, next: NextFunction) {
-    const key = req.header("Idempotency-Key");
-    if (!key) {
+export const idempotencyMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+    const rawKey = req.headers["idempotency-key"] as string;
+    if (!rawKey) {
         return res.status(400).json({ error: "Idempotency-Key header required" });
+    }
+
+    // Sanitize the key to prevent Redis injection or path traversal (expecting UUID-like string)
+    const key = String(rawKey).replace(/[^a-zA-Z0-9-]/g, "");
+    if (!key) {
+        return res.status(400).json({ error: "Invalid Idempotency-Key format" });
     }
 
     try {
@@ -33,7 +39,7 @@ export async function idempotencyMiddleware(req: Request, res: Response, next: N
 
     (req as any).idempotencyKey = key;
     next();
-}
+};
 
 async function getPartsStatus(scanId: string) {
     const { data } = await supabase

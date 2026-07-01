@@ -874,7 +874,8 @@ router.post(
 
         try {
             // Note: we require a user to be authenticated in a real app, assuming auth.uid() is available
-            const userId = req.user?.id || (req as any).session?.user?.id || "anonymous_user";
+            const userId =
+                (req as any).user?.id || (req as any).session?.user?.id || "anonymous_user";
 
             const resolvedScanId = await resolveConflict({
                 scanId,

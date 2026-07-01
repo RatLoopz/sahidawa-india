@@ -11,6 +11,22 @@ export async function resolveConflict(input: {
     clientUpdatedAt: string;
     userId: string;
 }) {
+    const safeMetadata = {
+        medicine_name: input.metadata?.medicine_name,
+        timestamp: input.metadata?.timestamp,
+        scanned_at: input.metadata?.scanned_at,
+        query: input.metadata?.query,
+        source: input.metadata?.source,
+        status: input.metadata?.status,
+        brand_name: input.metadata?.brand_name,
+        generic_name: input.metadata?.generic_name,
+        manufacturer: input.metadata?.manufacturer,
+        batch_number: input.metadata?.batch_number,
+        expiry_date: input.metadata?.expiry_date,
+        cdsco_approval_status: input.metadata?.cdsco_approval_status,
+        is_counterfeit_alert: input.metadata?.is_counterfeit_alert,
+    };
+
     const existing = input.scanId
         ? (
               await supabase
@@ -25,7 +41,7 @@ export async function resolveConflict(input: {
         const { data, error } = await supabase
             .from("user_scan_history")
             .insert({
-                ...input.metadata,
+                ...safeMetadata,
                 id: input.scanId,
                 user_id: input.userId,
                 device_id: input.deviceId,
@@ -44,14 +60,14 @@ export async function resolveConflict(input: {
         new Date(Number(input.clientUpdatedAt)) > new Date(existing.client_updated_at || 0);
 
     if (incomingIsNewer) {
-        await supabase
+        const { error: updateError } = await supabase
             .from("user_scan_history")
             .update({
-                ...input.metadata,
+                ...safeMetadata,
                 device_id: input.deviceId,
                 client_updated_at: new Date(Number(input.clientUpdatedAt)).toISOString(),
             })
-            .eq("id", existing.id);
+            .eq("id", input.scanId);
 
         await supabase.from("scan_conflict_log").insert({
             scan_id: existing.id,
