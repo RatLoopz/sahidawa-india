@@ -507,3 +507,82 @@ describe("POST /api/pharmacies", () => {
         expect(response.body.error).toBe("Invalid pharmacy payload");
     });
 });
+
+describe("POST /api/pharmacies/bulk-upload — BOM stripping", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("parses CSV with UTF-8 BOM marker correctly", async () => {
+        const csvWithBOM =
+            "\uFEFFmedicine_name,batch_number,expiry_date,quantity,mrp\n" +
+            "Paracetamol 500mg,BATCH001,2027-01-01,100,50\n";
+
+        const fromMock = jest.fn();
+        const selectMock = jest.fn().mockReturnThis();
+        const eqMock = jest.fn().mockReturnThis();
+        const maybeSingleMock = jest.fn().mockResolvedValue({
+            data: { id: "pharmacy-uuid-123" },
+            error: null,
+        });
+        const insertMock = jest.fn().mockResolvedValue({ error: null });
+
+        (mockedSupabase.from as jest.Mock).mockImplementation((table: string) => {
+            if (table === "pharmacies") {
+                return {
+                    select: selectMock,
+                    eq: eqMock,
+                    maybeSingle: maybeSingleMock,
+                };
+            }
+            if (table === "pharmacy_inventory") {
+                return { insert: insertMock };
+            }
+            return {};
+        });
+
+        const response = await request(app)
+            .post("/api/pharmacies/bulk-upload")
+            .send({ fileContent: csvWithBOM });
+
+        expect(response.status).toBe(200);
+        expect(response.body.successCount).toBe(1);
+        expect(response.body.failedCount).toBe(0);
+    });
+
+    it("parses CSV without BOM marker correctly", async () => {
+        const csvWithoutBOM =
+            "medicine_name,batch_number,expiry_date,quantity,mrp\n" +
+            "Ibuprofen 400mg,BATCH002,2027-06-01,50,30\n";
+
+        const selectMock = jest.fn().mockReturnThis();
+        const eqMock = jest.fn().mockReturnThis();
+        const maybeSingleMock = jest.fn().mockResolvedValue({
+            data: { id: "pharmacy-uuid-123" },
+            error: null,
+        });
+        const insertMock = jest.fn().mockResolvedValue({ error: null });
+
+        (mockedSupabase.from as jest.Mock).mockImplementation((table: string) => {
+            if (table === "pharmacies") {
+                return {
+                    select: selectMock,
+                    eq: eqMock,
+                    maybeSingle: maybeSingleMock,
+                };
+            }
+            if (table === "pharmacy_inventory") {
+                return { insert: insertMock };
+            }
+            return {};
+        });
+
+        const response = await request(app)
+            .post("/api/pharmacies/bulk-upload")
+            .send({ fileContent: csvWithoutBOM });
+
+        expect(response.status).toBe(200);
+        expect(response.body.successCount).toBe(1);
+        expect(response.body.failedCount).toBe(0);
+    });
+});

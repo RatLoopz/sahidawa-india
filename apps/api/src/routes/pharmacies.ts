@@ -990,11 +990,12 @@ router.post(
                 return;
             }
 
-            const { fileContent } = req.body;
-            if (!fileContent || typeof fileContent !== "string") {
+            const { fileContent: rawFileContent } = req.body;
+            if (!rawFileContent || typeof rawFileContent !== "string") {
                 res.status(400).json({ error: "No valid file data content provided." });
                 return;
             }
+            const fileContent = rawFileContent.replace(/^\uFEFF/, "");
 
             const { data: pharmacy, error: pharmError } = await supabase
                 .from("pharmacies")
@@ -1234,7 +1235,7 @@ router.post(
                 return;
             }
 
-            const fileContent = req.file.buffer.toString("utf-8");
+            const fileContent = req.file.buffer.toString("utf-8").replace(/^\uFEFF/, "");
 
             const lines = fileContent
                 .split(/\r?\n/)
