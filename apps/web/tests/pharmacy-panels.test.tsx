@@ -76,6 +76,7 @@ describe("PharmacyPanels", () => {
             emptyStateDescription:
                 "Try widening the search area or using your current location to find nearby verified stores.",
             emptyStateActionLabel: "Use my location",
+            onEmptyStateAction: () => undefined,
         });
 
         expect(markup).toContain("Nearby Pharmacies");

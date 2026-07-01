@@ -601,6 +601,10 @@ export default function PharmacyPanels({
     onSelectPharmacy,
     onHeatmapModeChange,
     className,
+    emptyStateTitle,
+    emptyStateDescription,
+    emptyStateActionLabel,
+    onEmptyStateAction,
 }: PharmacyPanelsProps) {
     const verifiedCount = pharmacies.filter((pharmacy) => pharmacy.isVerified).length;
     const govtCount = pharmacies.filter((pharmacy) => pharmacy.type === "govt").length;
