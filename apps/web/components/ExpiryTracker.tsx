@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useTranslations } from "next-intl";
+import { API_BASE } from "@/lib/api";
 
 interface ExpiryTrackerProps {
     medicineId: string;
@@ -10,21 +11,30 @@ export const ExpiryTracker = ({ medicineId, medicineName }: ExpiryTrackerProps) 
     const t = useTranslations("Tracking");
     const [batchNumber, setBatchNumber] = useState("");
     const [expiryDate, setExpiryDate] = useState("");
+    const [error, setError] = useState<string | null>(null);
 
     const handleTrack = async () => {
-        const response = await fetch("/api/v1/medicines/track", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                medicine_id: medicineId,
-                medicine_name: medicineName,
-                batch_number: batchNumber,
-                expiry_date: expiryDate,
-            }),
-        });
+        setError(null);
 
-        if (response.ok) {
-            alert(t("success"));
+        try {
+            const response = await fetch(`${API_BASE}/api/v1/medicines/track`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    medicine_id: medicineId,
+                    medicine_name: medicineName,
+                    batch_number: batchNumber,
+                    expiry_date: expiryDate,
+                }),
+            });
+
+            if (response.ok) {
+                alert(t("success"));
+            } else {
+                setError(t("error"));
+            }
+        } catch (err) {
+            setError(t("error"));
         }
     };
 
@@ -46,6 +56,7 @@ export const ExpiryTracker = ({ medicineId, medicineName }: ExpiryTrackerProps) 
             <button onClick={handleTrack} className="mt-2 w-full bg-green-600 p-2 text-white">
                 {t("trackButton")}
             </button>
+            {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
         </div>
     );
 };
