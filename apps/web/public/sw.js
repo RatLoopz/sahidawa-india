@@ -556,3 +556,17 @@ self.addEventListener("message", (event) => {
         self.skipWaiting();
     }
 });
+
+// ---------------------------------------------------------------------------
+// BACKGROUND SYNC — offline submissions
+// ---------------------------------------------------------------------------
+self.addEventListener("sync", (event) => {
+    if (event.tag === "sahidawa-sync-scans") {
+        event.waitUntil(flushQueueFromServiceWorker());
+    }
+});
+
+async function flushQueueFromServiceWorker() {
+    const clientsList = await self.clients.matchAll();
+    clientsList.forEach((client) => client.postMessage({ type: "FLUSH_SYNC_QUEUE" }));
+}

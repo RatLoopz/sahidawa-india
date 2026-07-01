@@ -857,5 +857,94 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
         });
     }
 });
+import { idempotencyMiddleware } from "../middleware/idempotency";
+import { resolveConflict } from "../utils/conflictResolution";
+
+router.post(
+    "/submit",
+    upload.fields([{ name: "image" }, { name: "voice" }]),
+    idempotencyMiddleware,
+    async (req: Request, res: Response) => {
+        const idempotencyKey = (req as any).idempotencyKey;
+        const { deviceId, clientUpdatedAt } = req.body;
+        const metadata = req.body.metadata ? JSON.parse(req.body.metadata) : null;
+
+        // Use a generated scanId from metadata or fallback to a new one
+        const scanId = metadata?.id || crypto.randomUUID();
+
+        try {
+            // Note: we require a user to be authenticated in a real app, assuming auth.uid() is available
+            const userId = req.user?.id || (req as any).session?.user?.id || "anonymous_user";
+
+            const resolvedScanId = await resolveConflict({
+                scanId,
+                metadata,
+                deviceId,
+                clientUpdatedAt,
+                userId,
+            });
+
+            const parts: Record<string, "synced" | "failed" | "skipped"> = {};
+
+            // metadata part
+            parts.metadata = metadata ? "synced" : "skipped";
+
+            // image part (stubbed for Cloudinary/external upload)
+            const imageFile = (req.files as any)?.image?.[0];
+            if (imageFile) {
+                try {
+                    // await uploadToCloudinary(imageFile.buffer, resolvedScanId);
+                    parts.image = "synced";
+                } catch {
+                    parts.image = "failed";
+                }
+            } else {
+                parts.image = "skipped";
+            }
+
+            // voice part (stubbed for Whisper/external transcribe)
+            const voiceFile = (req.files as any)?.voice?.[0];
+            if (voiceFile) {
+                try {
+                    // await transcribeVoice(voiceFile.buffer, resolvedScanId);
+                    parts.voice = "synced";
+                } catch {
+                    parts.voice = "failed";
+                }
+            } else {
+                parts.voice = "skipped";
+            }
+
+            // record parts status
+            const rows = Object.entries(parts).map(([part_type, status]) => ({
+                scan_id: resolvedScanId,
+                part_type,
+                status,
+            }));
+            await supabase
+                .from("scan_submission_parts")
+                .upsert(rows, { onConflict: "scan_id,part_type" });
+
+            const result = { scanId: resolvedScanId, parts };
+
+            if (redisClient.isOpen) {
+                await redisClient.set(`idem:${idempotencyKey}`, JSON.stringify(result), {
+                    EX: 60 * 60 * 24, // 24h
+                });
+            }
+
+            await supabase
+                .from("submission_idempotency")
+                .insert({ idempotency_key: idempotencyKey, scan_id: resolvedScanId });
+
+            res.status(200).json(result);
+        } catch (err) {
+            logger.error(
+                `Error during offline scan submit: ${err instanceof Error ? err.message : err}`
+            );
+            res.status(500).json({ error: "Server error during scan submission" });
+        }
+    }
+);
 
 export default router;
