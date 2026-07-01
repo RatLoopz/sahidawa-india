@@ -1184,7 +1184,7 @@ export default function VoiceTriagePage() {
                 subtitle={t("header_subtitle")}
                 backHref="/"
                 variant="light"
-                showLanguage={true}
+                showLanguage="label"
                 languageName={
                     isLanguageSelectionLocked
                         ? step === "result" && resultLanguageCode
