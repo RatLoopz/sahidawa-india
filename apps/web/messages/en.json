@@ -634,7 +634,12 @@
         "pdfExportSuccess": "PDF exported successfully",
         "noMedicinesToDisplay": "No medicines to display",
         "generatedOn": "Generated On",
-        "deleteMedicine": "Delete medicine"
+        "deleteMedicine": "Delete medicine",
+        "cancelButton": "Cancel",
+        "deleteConfirmTitle": "Delete Medicine?",
+        "deleteConfirmMessage": "This will permanently remove \"{medicine}\" from your tracked medicines. This action cannot be undone.",
+        "bulkDeleteConfirmTitle": "Delete Multiple Medicines?",
+        "bulkDeleteConfirmMessage": "This will permanently remove {count} medicine(s) from your tracked list. This action cannot be undone."
     },
     "Login": {
         "brandSubtitle": "Medicine safety platform",

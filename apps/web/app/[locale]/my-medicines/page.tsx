@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Pill, Plus, Bookmark, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 
 interface TrackedMedicine {
     id: string;
@@ -54,6 +55,13 @@ export default function MyMedicinesPage() {
     const [medicines, setMedicines] = useState<TrackedMedicine[]>([]);
     const [savedMedicines, setSavedMedicines] = useState<BookmarkedMedicine[]>([]);
     const [, setError] = useState<string | null>(null);
+    const [confirmDialog, setConfirmDialog] = useState<{
+        isOpen: boolean;
+        bookmarkName?: string;
+    }>({
+        isOpen: false,
+    });
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         // Fetch tracked medicines from API
@@ -68,9 +76,25 @@ export default function MyMedicinesPage() {
     }, []);
 
     const removeBookmark = (name: string) => {
-        const updated = savedMedicines.filter((item) => item.alternative_name !== name);
-        localStorage.setItem("medicine-bookmarks", JSON.stringify(updated));
-        setSavedMedicines(updated);
+        setConfirmDialog({
+            isOpen: true,
+            bookmarkName: name,
+        });
+    };
+
+    const confirmRemoveBookmark = async () => {
+        if (!confirmDialog.bookmarkName) return;
+        setIsDeleting(true);
+        try {
+            const updated = savedMedicines.filter((item) => item.alternative_name !== confirmDialog.bookmarkName);
+            localStorage.setItem("medicine-bookmarks", JSON.stringify(updated));
+            setSavedMedicines(updated);
+        } catch (error) {
+            console.error("Failed to remove bookmark:", error);
+        } finally {
+            setIsDeleting(false);
+            setConfirmDialog({ isOpen: false });
+        }
     };
 
     const medicinesWithDays = useMemo(
@@ -189,6 +213,19 @@ export default function MyMedicinesPage() {
                     </div>
                 )}
             </section>
+
+            {/* Bookmark deletion confirmation */}
+            <ConfirmationDialog
+                isOpen={confirmDialog.isOpen}
+                title="Remove Bookmark?"
+                description={`This will remove "${confirmDialog.bookmarkName}" from your saved alternatives. You can add it back later if needed.`}
+                confirmText="Remove"
+                cancelText="Cancel"
+                variant="warning"
+                isLoading={isDeleting}
+                onConfirm={confirmRemoveBookmark}
+                onCancel={() => setConfirmDialog({ isOpen: false })}
+            />
         </div>
     );
 }

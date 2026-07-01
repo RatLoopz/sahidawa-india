@@ -79,7 +79,12 @@
         "pdfExportSuccess": "PDF सफलतापूर्वक निर्यात हुई",
         "noMedicinesToDisplay": "दिखाने के लिए कोई दवा नहीं",
         "generatedOn": "तैयार तिथि",
-        "deleteMedicine": "दवा हटाएं"
+        "deleteMedicine": "दवा हटाएं",
+        "cancelButton": "रद्द करें",
+        "deleteConfirmTitle": "दवा हटाएं?",
+        "deleteConfirmMessage": "यह \"{medicine}\" को आपकी ट्रैक की गई दवाओं से स्थायी रूप से हटा देगा। यह कार्रवाई पूर्ववत नहीं की जा सकती।",
+        "bulkDeleteConfirmTitle": "कई दवाएं हटाएं?",
+        "bulkDeleteConfirmMessage": "यह आपकी ट्रैक की गई सूची से {count} दवा(ओं) को स्थायी रूप से हटा देगा। यह कार्रवाई पूर्ववत नहीं की जा सकती।"
     },
     "Navigation": {
         "how_it_works": "यह कैसे काम करता है",
