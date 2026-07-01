@@ -328,6 +328,33 @@
         },
         "footer": "SahiDawa is free, open-source, and built for 1.4 billion Indians. No ads. No premium. No data sold. Ever."
     },
+    "Footer": {
+        "brandSubtitle": "India's first open-source medicine verification platform. Scan, verify, and trust your medicines with community-powered transparency.",
+        "madeForGssoc": "Made for GSSoC 2026",
+        "quickLinks": {
+            "title": "Helpful Links",
+            "expiry_tracker": "Expiry Tracker",
+            "faq": "FAQ",
+            "about": "About",
+            "privacy": "Privacy Policy",
+            "contact": "Contact"
+        },
+        "resources": {
+            "title": "Resources",
+            "github": "GitHub",
+            "contributing": "Contributing"
+        },
+        "connectWithUs": "Connect With Us",
+        "social": {
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "twitter": "Twitter"
+        },
+        "contactEmail": "contact@sahidawa.in",
+        "copyright": "© 2026 SahiDawa. Open Source under MIT License.",
+        "builtWith": "Built with",
+        "builtWithSuffix": "for the open-source community"
+    },
     "about": {
         "badge": "GSSoC 2026 Open Source Project",
         "heroTitle": "About <highlight>SahiDawa</highlight>",
