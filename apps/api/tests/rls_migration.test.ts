@@ -38,3 +38,26 @@ describe("RLS Migration — tracked_medicines", () => {
         expect(refMatch).not.toBeNull();
     });
 });
+
+describe("RLS Migration — tracked_medicines guest policy", () => {
+    const migrationPath = join(
+        MIGRATIONS_DIR,
+        "20260701000000_add_guest_rls_tracked_medicines.sql"
+    );
+    const sql = readFileSync(migrationPath, "utf8");
+
+    it("migration file exists", () => {
+        expect(sql).toBeTruthy();
+    });
+
+    it("creates guest access policy for anon users", () => {
+        expect(sql).toContain('CREATE POLICY "tracked_medicines_guest_access"');
+        expect(sql).toContain("TO anon");
+        expect(sql).toContain("USING (");
+        expect(sql).toContain(
+            "session_id = current_setting('request.jwt.claims', true)::json->>'session_id'"
+        );
+        expect(sql).toContain("AND user_id IS NULL");
+        expect(sql).toContain("WITH CHECK (");
+    });
+});
