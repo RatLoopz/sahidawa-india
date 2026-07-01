@@ -354,7 +354,10 @@ function PharmacyPanelRow({
                         <Heart size={6} />
                         {pharmacy.type === "govt" ? "Jan Aushadhi" : "Private"}
                     </span>
-                    <PharmacyStatusBadge operatingHours={pharmacy.operatingHours} />
+                    <PharmacyStatusBadge
+                        operatingHours={pharmacy.operatingHours}
+                        timezone={pharmacy.timezone}
+                    />
                 </div>
 
                 {/* TRUST BREAKDOWN PANEL */}
