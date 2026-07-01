@@ -8,7 +8,7 @@ import { requireApiKey, ApiKeyRequest } from "../middleware/apiKeyAuth";
 import logger from "../utils/logger";
 import { redisClient } from "../utils/redis";
 import { KEY_PREFIXES } from "../services/cache.service";
-import { limiter } from "../middleware/rateLimit";
+import { limiter, alertsReadLimiter } from "../middleware/rateLimit";
 
 const AlertSchema = z
     .object({
@@ -44,7 +44,7 @@ const alertsRouter = Router();
  *     totalPageCount: number,   // ceil(totalCount / limit)
  *   }
  */
-alertsRouter.get("/", async (req: Request, res: Response) => {
+alertsRouter.get("/", alertsReadLimiter, async (req: Request, res: Response) => {
     const rawPage = parseInt(req.query.page as string, 10);
     const rawLimit = parseInt(req.query.limit as string, 10);
     const brand = req.query.brand as string;
