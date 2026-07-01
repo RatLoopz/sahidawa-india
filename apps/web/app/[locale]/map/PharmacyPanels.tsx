@@ -38,6 +38,10 @@ export interface PharmacyPanelsProps {
     onSelectPharmacy: (pharmacyId: number) => void;
     onHeatmapModeChange: (mode: HeatmapMode) => void;
     className?: string;
+    emptyStateTitle?: string;
+    emptyStateDescription?: string;
+    emptyStateActionLabel?: string;
+    onEmptyStateAction?: () => void;
 }
 
 export interface TrustBreakdown {
@@ -715,8 +719,13 @@ export default function PharmacyPanels({
                 ) : pharmacies.length === 0 ? (
                     <EmptyState
                         icon={<MapPin size={26} className="text-slate-400" />}
-                        title="No pharmacies found"
-                        description="Try panning the map and pressing “Search this area”"
+                        title={emptyStateTitle ?? "No pharmacies found nearby"}
+                        description={
+                            emptyStateDescription ??
+                            "Try widening the search area or using your current location to find nearby verified stores."
+                        }
+                        actionLabel={emptyStateActionLabel}
+                        onAction={onEmptyStateAction}
                         className="border-none !bg-transparent p-6 shadow-none"
                     />
                 ) : (
