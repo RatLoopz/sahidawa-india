@@ -8,7 +8,7 @@ const router = Router();
 
 // Validation schema
 const trackSchema = z.object({
-    medicine_id: z.string(),
+    medicine_id: z.string().uuid("Invalid medicine ID format"),
     medicine_name: z.string().min(1).max(200),
     batch_number: z.string().max(100).optional(),
     expiry_date: z.string().date(),

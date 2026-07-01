@@ -1,0 +1,40 @@
+import { readFileSync } from "fs";
+import { join } from "path";
+
+const MIGRATIONS_DIR = join(__dirname, "..", "..", "..", "supabase", "migrations");
+const MIGRATION_FILE = "20260630000000_enable_rls_tracked_medicines.sql";
+const RLS_REFERENCE_FILE = "20260529000000_add_rls_policies.sql";
+
+describe("RLS Migration — tracked_medicines", () => {
+    const migrationPath = join(MIGRATIONS_DIR, MIGRATION_FILE);
+    const sql = readFileSync(migrationPath, "utf8");
+
+    it("migration file exists", () => {
+        expect(sql).toBeTruthy();
+    });
+
+    it("enables RLS on tracked_medicines", () => {
+        expect(sql).toContain("ALTER TABLE public.tracked_medicines ENABLE ROW LEVEL SECURITY");
+    });
+
+    it("creates owner-only policy for authenticated users", () => {
+        expect(sql).toContain('CREATE POLICY "tracked_medicines_owner_only"');
+        expect(sql).toContain("TO authenticated");
+        expect(sql).toContain("USING (user_id = auth.uid())");
+        expect(sql).toContain("WITH CHECK (user_id = auth.uid())");
+    });
+
+    it("creates service_role all-access policy", () => {
+        expect(sql).toContain('CREATE POLICY "tracked_medicines_service_all"');
+        expect(sql).toContain("TO service_role");
+    });
+
+    it("uses consistent policy naming with existing RLS file", () => {
+        const refSql = readFileSync(join(MIGRATIONS_DIR, RLS_REFERENCE_FILE), "utf8");
+        const refPattern = /CREATE POLICY "(\w+)_service_all"/;
+        const refMatch = refSql.match(refPattern);
+        const ourPattern = /CREATE POLICY "tracked_medicines_service_all"/;
+        expect(ourPattern.test(sql)).toBe(true);
+        expect(refMatch).not.toBeNull();
+    });
+});

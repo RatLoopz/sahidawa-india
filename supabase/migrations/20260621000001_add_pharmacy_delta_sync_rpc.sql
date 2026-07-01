@@ -13,8 +13,15 @@
 -- the rug. A follow-up issue should add a tombstone table or soft-delete
 -- flag if deletions need to propagate to clients holding stale data.
 -- =============================================================================
+DROP FUNCTION IF EXISTS public.get_pharmacies_in_bounds_delta(
+    DOUBLE PRECISION,
+    DOUBLE PRECISION,
+    DOUBLE PRECISION,
+    DOUBLE PRECISION,
+    TIMESTAMP WITH TIME ZONE
+);
 
-CREATE OR REPLACE FUNCTION get_pharmacies_in_bounds_delta(
+CREATE FUNCTION public.get_pharmacies_in_bounds_delta(
   bound_south DOUBLE PRECISION,
   bound_west  DOUBLE PRECISION,
   bound_north DOUBLE PRECISION,

@@ -319,6 +319,9 @@ router.post(
                     "This batch has unusually high scan volume in the last week, increasing the risk of counterfeit reuse."
                 );
             }
+            const clientIp = maskClientIp(req.ip);
+            const userAgent = req.headers["user-agent"] ?? null;
+            const origin = req.headers.origin ?? null;
 
             setImmediate(async () => {
                 const { error: insertError } = await supabase.from("scan_history").insert([
@@ -326,9 +329,9 @@ router.post(
                         batch_number: data.batch_number,
                         medicine_id: data.id,
                         barcode_id: data.barcode_id,
-                        client_ip: maskClientIp(req.ip),
-                        origin: req.headers.origin ?? null,
-                        user_agent: req.headers["user-agent"] ?? null,
+                        client_ip: clientIp,
+                        origin,
+                        user_agent: userAgent,
                         latitude: latitude ?? null,
                         longitude: longitude ?? null,
                     },

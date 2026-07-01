@@ -189,11 +189,13 @@ export function useMedicineTracker(): UseMedicineTrackerReturn {
                     })
                     .eq("id", id);
 
-                if (!error) {
-                    setMedicines((prev) => prev.map((m) => (m.id === id ? updatedMed : m)));
-                    await cancelNotificationsForMedicine(id);
-                    scheduleNotificationsForMedicine(updatedMed);
+                if (error) {
+                    throw new Error("Failed to update medicine in Supabase");
                 }
+
+                setMedicines((prev) => prev.map((m) => (m.id === id ? updatedMed : m)));
+                await cancelNotificationsForMedicine(id);
+                scheduleNotificationsForMedicine(updatedMed);
             } else {
                 setMedicines((prev) => {
                     const updated = prev.map((m) => (m.id === id ? updatedMed : m));

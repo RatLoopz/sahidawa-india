@@ -341,9 +341,14 @@ reportsRouter.patch(
                 return;
             }
 
+            const updatePayload: Record<string, unknown> = { status };
+            if (status === "verified_fake" || status === "false_alarm") {
+                updatePayload.is_escalated = false;
+            }
+
             const { data, error } = await supabase
                 .from("counterfeit_reports")
-                .update({ status })
+                .update(updatePayload)
                 .eq("id", req.params.id)
                 .select()
                 .single();

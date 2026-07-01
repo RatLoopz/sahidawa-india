@@ -171,8 +171,13 @@ export default function ExpiryTrackerPage() {
             setDateError("");
 
             if (editingId) {
-                await editMedicine(editingId, { name, expiryDate, batchNumber, notes });
-                cancelEdit();
+                try {
+                    await editMedicine(editingId, { name, expiryDate, batchNumber, notes });
+                    cancelEdit();
+                } catch (error) {
+                    console.error("Failed to update medicine:", error);
+                    toast.error("Failed to save changes. Please try again.");
+                }
             } else {
                 await addMedicine({ name, expiryDate, batchNumber, notes });
                 setName("");

@@ -27,8 +27,6 @@ router.use(limiter);
 
 router.get("/reports", requireAuth, requireRole("admin", "moderator"), getPendingReports);
 const CACHE_INVALIDATION_CHUNK_SIZE = 100;
-
-router.get("/reports", requireAuth, requireRole("admin", "moderator"), getPendingReports);
 router.get("/medicines", requireAuth, requireRole("admin", "moderator"), getAllMedicines);
 router.get(
     "/pharmacies/pending",

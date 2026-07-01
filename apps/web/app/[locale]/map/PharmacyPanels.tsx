@@ -610,7 +610,7 @@ export default function PharmacyPanels({
 
     return (
         <section
-            className={`flex h-full flex-col overflow-hidden rounded-[28px] border border-(--color-border-muted) bg-(--color-surface-page)/96 shadow-xl backdrop-blur-xl ${
+            className={`relative z-10 flex h-full flex-col overflow-hidden rounded-[28px] border border-(--color-border-muted) bg-(--color-surface-page)/96 shadow-xl backdrop-blur-xl ${
                 className || ""
             }`}
         >

@@ -208,15 +208,15 @@ function shareComparison(medicine1: Medicine | null, medicine2: Medicine | null)
 }
 
 export default function ComparisonGrid({
-    medicine1,
-    medicine2,
+    medicines,
     labels = defaultLabels,
 }: {
-    medicine1: Medicine | null;
-    medicine2: Medicine | null;
+    medicines: (Medicine | null)[];
     labels?: ComparisonGridLabels;
 }) {
-    if (!medicine1 && !medicine2) {
+    const validMedicines = medicines.filter((m): m is Medicine => m !== null);
+
+    if (validMedicines.length === 0) {
         return (
             <div className="rounded-xl border border-dashed border-slate-200 bg-white py-14 text-center text-slate-500">
                 {labels.emptyComparison}
@@ -224,11 +224,17 @@ export default function ComparisonGrid({
         );
     }
 
-    const directComparison = getDirectComparison(medicine1, medicine2);
+    const directComparison =
+        validMedicines.length >= 2
+            ? getDirectComparison(
+                  validMedicines.reduce((a, b) =>
+                      (a.mrp ?? Infinity) < (b.mrp ?? Infinity) ? a : b
+                  ),
+                  validMedicines.reduce((a, b) => ((a.mrp ?? 0) > (b.mrp ?? 0) ? a : b))
+              )
+            : null;
 
-    const flaggedMedicines = [medicine1, medicine2].filter(
-        (m): m is Medicine => m != null && isFlaggedStatus(m.cdsco_approval_status)
-    );
+    const flaggedMedicines = validMedicines.filter((m) => isFlaggedStatus(m.cdsco_approval_status));
 
     const rows: { label: string; getValue: (m: Medicine) => string }[] = [
         { label: labels.rows.brandName, getValue: (m) => m.brand_name?.trim() || "—" },
@@ -286,12 +292,14 @@ export default function ComparisonGrid({
                             <th className="w-1/4 px-5 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase">
                                 {labels.fieldHeader}
                             </th>
-                            <th className="px-5 py-3 text-center text-sm font-semibold text-slate-800">
-                                {medicine1 ? displayName(medicine1) : labels.medicineA}
-                            </th>
-                            <th className="px-5 py-3 text-center text-sm font-semibold text-slate-800">
-                                {medicine2 ? displayName(medicine2) : labels.medicineB}
-                            </th>
+                            {validMedicines.map((medicine) => (
+                                <th
+                                    key={medicine.id}
+                                    className="px-5 py-3 text-center text-sm font-semibold text-slate-800"
+                                >
+                                    {displayName(medicine)}
+                                </th>
+                            ))}
                         </tr>
                     </thead>
                     <tbody>
@@ -302,42 +310,30 @@ export default function ComparisonGrid({
                                     <td className="px-5 py-3 font-medium text-slate-600">
                                         {label}
                                     </td>
-                                    <td className="px-5 py-3 text-center text-slate-800">
-                                        {medicine1 ? (
-                                            isCdsco ? (
+                                    {validMedicines.map((medicine) => (
+                                        <td
+                                            key={medicine.id}
+                                            className="px-5 py-3 text-center text-slate-800"
+                                        >
+                                            {isCdsco ? (
                                                 <CdscoStatusBadge
-                                                    status={medicine1.cdsco_approval_status}
+                                                    status={medicine.cdsco_approval_status}
                                                 />
                                             ) : (
-                                                getValue(medicine1)
-                                            )
-                                        ) : (
-                                            "—"
-                                        )}
-                                    </td>
-                                    <td className="px-5 py-3 text-center text-slate-800">
-                                        {medicine2 ? (
-                                            isCdsco ? (
-                                                <CdscoStatusBadge
-                                                    status={medicine2.cdsco_approval_status}
-                                                />
-                                            ) : (
-                                                getValue(medicine2)
-                                            )
-                                        ) : (
-                                            "—"
-                                        )}
-                                    </td>
+                                                getValue(medicine)
+                                            )}
+                                        </td>
+                                    ))}
                                 </tr>
                             );
                         })}
                     </tbody>
                 </table>
-                {medicine1 && medicine2 && (
+                {validMedicines.length >= 2 && (
                     <div className="flex justify-end border-t border-slate-200 p-4">
                         <button
                             type="button"
-                            onClick={() => shareComparison(medicine1, medicine2)}
+                            onClick={() => shareComparison(validMedicines[0], validMedicines[1])}
                             className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                         >
                             Share Comparison

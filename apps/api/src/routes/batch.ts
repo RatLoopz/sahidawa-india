@@ -426,22 +426,28 @@ router.post("/report", batchLimiter, async (req: Request, res: Response) => {
             medicine_id = medicineMatch.id;
         }
 
-        const { error } = await supabase.from("counterfeit_reports").insert({
-            medicine_id,
-            scanned_barcode: barcodeId ?? batchNumber,
-            reported_brand_name: brandName ?? batchNumber,
-            description,
-            city: city ?? null,
-            state: state ?? null,
-            pincode: pincode ?? null,
-            pharmacy_name: pharmacyName ?? null,
-            status: "pending",
-            ip_address: hashedIp ?? null,
-            report_hash: computeReportHash(reportPayload),
-            risk_score: validation.riskScore,
-            is_escalated: validation.riskScore >= 0.6,
-            duplicate_group_id: validation.duplicateGroupId ?? null,
-        });
+        const { data: upserted, error } = await supabase
+            .from("counterfeit_reports")
+            .upsert(
+                {
+                    medicine_id,
+                    scanned_barcode: barcodeId ?? batchNumber,
+                    reported_brand_name: brandName ?? batchNumber,
+                    description,
+                    city: city ?? null,
+                    state: state ?? null,
+                    pincode: pincode ?? null,
+                    pharmacy_name: pharmacyName ?? null,
+                    status: "pending",
+                    ip_address: hashedIp ?? null,
+                    report_hash: computeReportHash(reportPayload),
+                    risk_score: validation.riskScore,
+                    is_escalated: validation.riskScore >= 0.6,
+                    duplicate_group_id: validation.duplicateGroupId ?? null,
+                },
+                { onConflict: "report_hash", ignoreDuplicates: true }
+            )
+            .select();
 
         if (error) {
             logger.error({
@@ -450,6 +456,14 @@ router.post("/report", batchLimiter, async (req: Request, res: Response) => {
                 route: "/api/verify/batch/report",
             });
             res.status(500).json({ error: "Failed to submit report" });
+            return;
+        }
+
+        if (!upserted || upserted.length === 0) {
+            res.status(200).json({
+                success: true,
+                message: "This batch report has already been logged. Thank you for helping keep India safe.",
+            });
             return;
         }
 

@@ -59,7 +59,7 @@ async def run(
     refresh_cdsco: bool = False,
     limit: int = None,
     backfill_ja_price: bool = False,
-) -> dict | None:
+) -> dict | bool:
     _banner("SahiDawa Unified ETL Pipeline")
 
     # ── RETRY MODE ─────────────────────────────────────────────────────────────
@@ -86,7 +86,7 @@ async def run(
         ja_files = sorted(RAW_DIR.glob("janaushadhi_raw_*.csv"))
         if not ja_files:
             logger.error("No existing raw Jan Aushadhi file found. Remove --skip-scrape and try again.")
-            return None
+            return False
         raw_ja_path = ja_files[-1]
         logger.info(f"Using existing Jan Aushadhi raw file: {raw_ja_path.name}")
 
@@ -95,13 +95,13 @@ async def run(
         comm_files = sorted(comm_dir.glob("indian_medicine_data.csv"))
         if not comm_files:
             logger.error("No existing raw Commercial file found. Remove --skip-scrape and try again.")
-            return None
+            return False
         raw_comm_path = comm_files[-1]
         logger.info(f"Using existing Commercial raw file: {raw_comm_path.name}")
 
     if scrape_only:
         logger.info(f"Scrape complete. Jan Aushadhi: {raw_ja_path}, Commercial: {raw_comm_path}")
-        return None
+        return True
 
     # ── STEP 2: NORMALIZE ──────────────────────────────────────────────────────
     logger.info("STEP 2/3 — Normalizing raw data...")
@@ -288,11 +288,21 @@ if __name__ == "__main__":
                         ))
     args = parser.parse_args()
 
-    asyncio.run(run(
-        skip_scrape=args.skip_scrape,
-        scrape_only=args.scrape_only,
-        retry_failed=args.retry_failed,
-        refresh_cdsco=args.refresh_cdsco,
-        limit=args.limit,
-        backfill_ja_price=args.backfill_ja_price,
-    ))
+    try:
+        result = asyncio.run(
+            run(
+                skip_scrape=args.skip_scrape,
+                scrape_only=args.scrape_only,
+                retry_failed=args.retry_failed,
+                refresh_cdsco=args.refresh_cdsco,
+                limit=args.limit,
+                backfill_ja_price=args.backfill_ja_price,
+            )
+        )
+
+        if result is False:
+            sys.exit(1)
+
+    except Exception:
+        logger.exception("ETL pipeline failed")
+        sys.exit(1)
