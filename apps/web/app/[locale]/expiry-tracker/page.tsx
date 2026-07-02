@@ -24,9 +24,9 @@ export default function ExpiryTrackerPage() {
         isLoaded,
         addMedicine,
         editMedicine,
-        deleteMedicine,
         bulkDeleteMedicines,
         importMedicines,
+        snoozeMedicine,
     } = useMedicineTracker();
 
     // Form state
@@ -238,8 +238,16 @@ export default function ExpiryTrackerPage() {
         return Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     };
 
-    const getExpiryStatus = (dateStr: string) => {
-        const diffDays = getDiffDays(dateStr);
+    const getExpiryStatus = (med: Medicine) => {
+        if (med.snoozedUntil && new Date(med.snoozedUntil) > new Date()) {
+            return {
+                icon: <CheckCircle2 size={14} />,
+                text: t("statusSafe"),
+                color: "text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-900/30",
+                key: "safe" as FilterStatus,
+            };
+        }
+        const diffDays = getDiffDays(med.expiryDate);
         if (diffDays < 0)
             return {
                 icon: <XCircle size={14} />,
@@ -291,7 +299,7 @@ export default function ExpiryTrackerPage() {
             med.name,
             parseLocalDate(med.expiryDate).toLocaleDateString(),
             med.batchNumber ?? "—",
-            getExpiryStatus(med.expiryDate).text,
+            getExpiryStatus(med).text,
         ]);
 
         try {
@@ -375,7 +383,7 @@ export default function ExpiryTrackerPage() {
     const processedMedicines = medicines
         .filter((med) => {
             if (filterStatus === "all") return true;
-            return getExpiryStatus(med.expiryDate).key === filterStatus;
+            return getExpiryStatus(med).key === filterStatus;
         })
         .filter((med) => med.name.toLowerCase().includes(searchQuery.toLowerCase()))
         .sort((a, b) => {
@@ -452,6 +460,7 @@ export default function ExpiryTrackerPage() {
                             onToggleSelect={toggleSelect}
                             onStartEdit={startEdit}
                             onDelete={handleDelete}
+                            onSnooze={snoozeMedicine}
                         />
                     </div>
                 </div>
