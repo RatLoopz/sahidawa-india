@@ -165,7 +165,7 @@ export default function FullAlertsLogPage() {
             };
             loadMore();
         }
-    }, [page, fetchAlerts, loading]);
+    }, [page]);
 
     const criticalCount = allAlerts.filter(
         (alert) =>
