@@ -822,5 +822,66 @@
             "confirmPasswordRequired": "Please confirm your password.",
             "passwordMismatch": "Passwords do not match."
         }
+    },
+    "MyMedicines": {
+        "page": {
+            "title": "میۆن ٹریک کرمژ دَوایہٕ",
+            "loading": "توٚہنٛد ٹریک کرمژ دَوایہٕ لوڈ گَژھان..."
+        },
+        "errors": {
+            "title": "توٚہنٛد دَوایہٕ لوڈ نہٕ گیہ",
+            "generic": "توٚہنٛدِ ٹریک کرمژ دَوایہٕ حاصل کرنہٕ منٛز کانٛہہ غلط گیہ.",
+            "fetchFailed": "ٹریک کرمژ دَوایہٕ لوڈ کرنس منٛز ناکام. مہربانی کرِتھ پننہٕ کنکشن چیک کریو تہٕ دوبارہ کوشش کریو.",
+            "tryAgain": "دوبارہ کوشش کریو"
+        },
+        "emptyState": {
+            "title": "اَتہٕ تام کانٛہہ دَوا ٹریک نہٕ کرمژ",
+            "description": "فعال شیڈول، حفاظتی اپڈیٹ تہٕ میعاد ختم گژھنُک وقت خودکار طریقس منٛز ٹریک کرنہٕ خٲطرٕ پننہٕ حالیہٕ دَوایہٕ شٲمِل کریو.",
+            "addFirst": "پننہٕ اَکھ نمبر دَوا شٲمِل کریو"
+        },
+        "table": {
+            "name": "ناو",
+            "expiry": "میعاد",
+            "status": "حالت",
+            "daysLeft": "{count} دۄہ باقی"
+        },
+        "badges": {
+            "verified": "تصدیق شُدہ",
+            "unverified": "غیرتصدیق شُدہ",
+            "requestVerificationTitle": "تصدیقُک درخواست کرنہٕ خٲطرٕ کلک کریو"
+        },
+        "bookmarks": {
+            "savedAlternatives": "محفوظ کرمژ متبادل",
+            "noBookmarks": "اَتہٕ تام کانٛہہ بُک مارک چھُنہٕ.",
+            "brand": "برانڈ: {brand}"
+        },
+        "removeDialog": {
+            "title": "بُک مارک ہٹاونہٕ؟",
+            "description": "یہ \"{name}\" توٚہنٛدِس محفوظ کرمژ متبادلَس منٛز ہٹاوی. ضرورت گژھنس پؠٹھ توہِ زِ ییہ بعد منٛز دوبارہ شٲمِل کریو.",
+            "confirm": "ہٹاو",
+            "cancel": "منسوخ کریو"
+        }
+    "NotFound": {
+        "badge": "Error 404",
+        "title": "Page Not Found",
+        "description": "We couldn't find the medicine or page you were looking for. It might have been moved, or the URL might be incorrect.",
+        "backHome": "Back to Home",
+        "scanMedicine": "Scan Medicine"
+    "Settings": {
+        "channelRequired": "Kam az kam akh rabita channel (SMS ya WhatsApp) chalu asun zaruri chu.",
+        "optOutConfirm": "Tohi pakka opt out karith tamam SMS te WhatsApp alert band karun chiv?",
+        "loadingPreferences": "Tuhund tarjihat load gachhan chh...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
     }
 }

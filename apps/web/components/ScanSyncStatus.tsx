@@ -23,7 +23,7 @@ export function ScanSyncStatus({ idempotencyKey }: { idempotencyKey: string }) {
 
                 const hasFailed = Object.values(entry.parts).includes("failed");
                 setStatus(hasFailed ? "failed" : "pending");
-            } catch (err) {
+            } catch {
                 if (mounted) setStatus("failed");
             }
         }

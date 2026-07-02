@@ -157,6 +157,14 @@ describe("POST /api/schedules", () => {
 });
 
 describe("GET /api/schedules/:id", () => {
+    it("returns 400 for non-UUID schedule ID", async () => {
+        const res = await request(app)
+            .get("/api/schedules/nonexistent")
+            .set("Authorization", "Bearer test-token");
+
+        expect(res.status).toBe(400);
+    });
+
     it("returns 404 when schedule not found", async () => {
         (mockedSupabase.from as jest.Mock).mockReturnValue(mockedSupabase);
         (mockedSupabase.select as jest.Mock).mockReturnValue(mockedSupabase);
@@ -164,7 +172,7 @@ describe("GET /api/schedules/:id", () => {
         mockedSupabase.maybeSingle.mockResolvedValue({ data: null, error: null });
 
         const res = await request(app)
-            .get("/api/schedules/nonexistent")
+            .get("/api/schedules/00000000-0000-4000-8000-000000000001")
             .set("Authorization", "Bearer test-token");
 
         expect(res.status).toBe(404);
@@ -192,7 +200,7 @@ describe("GET /api/schedules/:id", () => {
         mockedSupabase.maybeSingle.mockResolvedValue({ data: mockSchedule, error: null });
 
         const res = await request(app)
-            .get("/api/schedules/sched-1")
+            .get("/api/schedules/00000000-0000-4000-8000-000000000001")
             .set("Authorization", "Bearer test-token");
 
         expect(res.status).toBe(200);
@@ -215,7 +223,7 @@ describe("PUT /api/schedules/:id", () => {
         mockedSupabase.single.mockResolvedValue({ data: updatedSchedule, error: null });
 
         const res = await request(app)
-            .put("/api/schedules/sched-1")
+            .put("/api/schedules/00000000-0000-4000-8000-000000000001")
             .set("Authorization", "Bearer test-token")
             .send({ medicine_name: "Ibuprofen (Updated)", notes: "Take before food" });
 
@@ -232,7 +240,7 @@ describe("DELETE /api/schedules/:id", () => {
         mockedSupabase.error = null;
 
         const res = await request(app)
-            .delete("/api/schedules/sched-1")
+            .delete("/api/schedules/00000000-0000-4000-8000-000000000001")
             .set("Authorization", "Bearer test-token");
 
         expect(res.status).toBe(200);
@@ -265,7 +273,7 @@ describe("POST /api/schedules/:id/doses", () => {
         mockedSupabase.single.mockResolvedValue({ data: doseEntry, error: null });
 
         const res = await request(app)
-            .post("/api/schedules/sched-1/doses")
+            .post("/api/schedules/00000000-0000-4000-8000-000000000001/doses")
             .set("Authorization", "Bearer test-token")
             .send({
                 log_date: "2026-06-10",

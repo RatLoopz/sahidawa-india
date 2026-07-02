@@ -1,5 +1,5 @@
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const models = ["gemini-2.5-flash", "gemini-3.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+const models = ["gemini-2.0-flash", "gemini-3.5-flash"];
 
 async function testModel(model) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;

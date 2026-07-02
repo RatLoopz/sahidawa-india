@@ -141,15 +141,12 @@ let cachedInteractions: LocalInteraction[] = [...localInteractions];
 
 async function warmInteractionCache() {
     try {
-        const { data, error } = await supabase
-            .from("drug_interactions")
-            .select("*");
+        const { data, error } = await supabase.from("drug_interactions").select("*");
 
         if (error) {
-            logger.warn(
-                "Interaction cache warm failed — using static fallback",
-                { error: error.message }
-            );
+            logger.warn("Interaction cache warm failed — using static fallback", {
+                error: error.message,
+            });
             return;
         }
 
@@ -157,18 +154,20 @@ async function warmInteractionCache() {
             cachedInteractions = data as unknown as LocalInteraction[];
         }
     } catch (err) {
-        logger.warn(
-            "Interaction cache warm failed — using static fallback",
-            { error: err instanceof Error ? err.message : String(err) }
-        );
+        logger.warn("Interaction cache warm failed — using static fallback", {
+            error: err instanceof Error ? err.message : String(err),
+        });
     }
 }
 
 warmInteractionCache();
 
-setInterval(() => {
-    void warmInteractionCache();
-}, 24 * 60 * 60 * 1000);
+setInterval(
+    () => {
+        void warmInteractionCache();
+    },
+    24 * 60 * 60 * 1000
+);
 
 function displayMedicineName(medicine: MedicineLookup): string {
     return medicine.brand_name?.trim() || medicine.generic_name;
@@ -367,8 +366,8 @@ router.get("/", interactionCheckLimiter, async (req: Request, res: Response) => 
                     source: match?.source || "SahiDawa interaction checker",
                     verified: !isFallback,
                     disclaimer: isFallback
-                    ? "⚠️ Using offline interaction database. Data may be outdated. Consult a pharmacist."
-                    : undefined,
+                        ? "⚠️ Using offline interaction database. Data may be outdated. Consult a pharmacist."
+                        : undefined,
                     last_updated_at: match?.last_updated_at,
                 });
             }
@@ -381,6 +380,16 @@ router.get("/", interactionCheckLimiter, async (req: Request, res: Response) => 
         res.status(500).json({ error: "Failed to check medicine interactions", details: msg });
     }
 });
+
+/**
+ * Normalizes brand names for offline fallback by removing dosages, units, and punctuation.
+ */
+function normalizeOfflineBrandName(input: string): string {
+    return input
+        .toLowerCase()
+        .replace(/\b(500|650|500mg|650mg|mg)\b/g, "")
+        .replace(/[\s\-_,.]+/g, "");
+}
 
 /**
  * Resolves a medicine input string (brand name, generic name, or ID) to its generic name.
@@ -427,7 +436,8 @@ async function resolveToGeneric(input: string): Promise<{ input: string; generic
 
     if (dbFailed) {
         // Fallback to local static map
-        const mapped = localBrandMap[lowerInput.replace(/\s+/g, "")];
+        const normalizedForOffline = normalizeOfflineBrandName(input);
+        const mapped = localBrandMap[normalizedForOffline];
         if (mapped) {
             genericName = mapped;
         }
@@ -556,8 +566,8 @@ router.post("/check", interactionCheckLimiter, async (req: Request, res: Respons
                         source: match.source || "Clinical Literature",
                         verified: !isFallback,
                         disclaimer: isFallback
-                        ? "⚠️ Using offline interaction database. Data may be outdated. Consult a pharmacist."
-                        : undefined,
+                            ? "⚠️ Using offline interaction database. Data may be outdated. Consult a pharmacist."
+                            : undefined,
                         last_updated_at: (match as any).last_updated_at,
                     });
                 }

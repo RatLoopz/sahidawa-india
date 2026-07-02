@@ -33,7 +33,7 @@ export const ExpiryTracker = ({ medicineId, medicineName }: ExpiryTrackerProps) 
             } else {
                 setError(t("error"));
             }
-        } catch (err) {
+        } catch {
             setError(t("error"));
         }
     };

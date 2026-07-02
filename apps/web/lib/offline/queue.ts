@@ -92,7 +92,7 @@ async function syncOneEntry(entry: any) {
                 attemptCount: entry.attemptCount + 1,
             });
         }
-    } catch (err) {
+    } catch {
         await db.put("pendingScans", { ...entry, attemptCount: entry.attemptCount + 1 });
         // Exponential backoff re-registration handled by Background Sync retry semantics;
         // for browsers without SyncManager, fall back to a setTimeout retry loop.

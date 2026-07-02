@@ -214,7 +214,11 @@ export function useMedicineTracker(): UseMedicineTrackerReturn {
         async (id: string) => {
             if (userId) {
                 const itemToDelete = medicines.find((med) => med.id === id);
-                await supabase.from("expiry_tracker_items").delete().eq("id", id);
+                const { error } = await supabase.from("expiry_tracker_items").delete().eq("id", id);
+
+                if (error) {
+                    throw new Error("Failed to delete medicine from database");
+                }
 
                 const saved = localStorage.getItem("sahidawa_expiry_tracker");
                 if (saved) {
@@ -255,7 +259,13 @@ export function useMedicineTracker(): UseMedicineTrackerReturn {
     const bulkDeleteMedicines = useCallback(
         async (ids: string[]) => {
             if (userId) {
-                await supabase.from("expiry_tracker_items").delete().in("id", ids);
+                const { error } = await supabase
+                    .from("expiry_tracker_items")
+                    .delete()
+                    .in("id", ids);
+                if (error) {
+                    throw new Error("Failed to delete medicines from database");
+                }
                 setMedicines((prev) => prev.filter((m) => !ids.includes(m.id)));
             } else {
                 setMedicines((prev) => {

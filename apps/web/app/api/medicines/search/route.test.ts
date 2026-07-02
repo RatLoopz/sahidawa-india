@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { GET } from "./route";
 import { supabase } from "@/lib/supabase";
+import { redis } from "@/lib/redis";
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -23,7 +24,7 @@ jest.mock("@/lib/redis", () => ({
 
 const mockLimit = jest.fn();
 jest.mock("@/lib/rateLimit", () => ({
-    rateLimit: { limit: mockLimit },
+    rateLimit: { limit: (...args: unknown[]) => mockLimit(...args) },
 }));
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -76,6 +77,23 @@ describe("GET /api/medicines/search", () => {
         const res = await GET(makeRequest(""));
         expect(res.status).toBe(200);
         expect(await res.json()).toEqual([]);
+    });
+
+    it("returns 400 for query longer than 100 characters", async () => {
+        const res = await GET(makeRequest("a".repeat(101)));
+        expect(res.status).toBe(400);
+        await expect(res.json()).resolves.toEqual({
+            error: "Search query must be 100 characters or fewer.",
+        });
+    });
+
+    it("does not reach Redis or DB for query longer than 100 characters", async () => {
+        const res = await GET(makeRequest("a".repeat(101)));
+
+        expect(res.status).toBe(400);
+        expect(redis.get).not.toHaveBeenCalled();
+        expect(redis.set).not.toHaveBeenCalled();
+        expect(supabase.from as jest.Mock).not.toHaveBeenCalled();
     });
 
     it("returns 429 when rate limit exceeded", async () => {

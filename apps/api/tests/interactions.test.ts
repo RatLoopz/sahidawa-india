@@ -200,6 +200,27 @@ describe("POST /api/v1/interactions/check", () => {
         expect(res.body.interactions[0].severity).toBe("serious");
     });
 
+    it("should normalize offline brand names with dosages (e.g., Crocin 650, Dolo-650, Calpol 500mg)", async () => {
+        dbConfig.isSupabaseOffline = true;
+
+        const tests = [
+            ["Crocin 650", "Coumadin"],
+            ["Dolo-650", "Warfarin"],
+            ["Calpol 500mg", "Warfarin"],
+        ];
+
+        for (const medicines of tests) {
+            const res = await request(app).post("/api/v1/interactions/check").send({ medicines });
+
+            expect(res.status).toBe(200);
+            expect(res.body.interactions).toHaveLength(1);
+            expect(res.body.interactions[0].drugA).toBe(medicines[0]);
+            expect(res.body.interactions[0].drugAGeneric).toBe("paracetamol");
+            expect(res.body.interactions[0].drugBGeneric).toBe("warfarin");
+            expect(res.body.interactions[0].severity).toBe("serious");
+        }
+    });
+
     it("should handle error during name resolution and automatically set isSupabaseOffline", async () => {
         const mockMaybeSingle = supabase.maybeSingle as jest.Mock;
 
