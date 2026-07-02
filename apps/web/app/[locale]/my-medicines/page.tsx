@@ -32,8 +32,6 @@ type FetchStatus = "loading" | "success" | "error";
 
 export default function MyMedicinesPage() {
     const [medicines, setMedicines] = useState<TrackedMedicine[]>([]);
-    const [savedMedicines, setSavedMedicines] = useState<BookmarkedMedicine[]>([]);
-    const [, setError] = useState<string | null>(null);
     const t = useTranslations("MyMedicines");
     const bookmarks = useBookmarksStore((state) => state.bookmarks);
     const removeBookmarkFromStore = useBookmarksStore((state) => state.removeBookmark);
@@ -233,10 +231,8 @@ export default function MyMedicinesPage() {
                 <h2 className="mb-4 flex items-center gap-2 text-xl font-bold">
                     <Bookmark className="text-emerald-600" /> {t("bookmarks.savedAlternatives")}
                 </h2>
-                {savedMedicines.length === 0 ? (
-                    <p className="text-slate-500 italic">{t("bookmarks.noBookmarks")}</p>
                 {bookmarks.length === 0 ? (
-                    <p className="text-slate-500 italic">No bookmarks yet.</p>
+                    <p className="text-slate-500 italic">{t("bookmarks.noBookmarks")}</p>
                 ) : (
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         {bookmarks.map((med) => (
