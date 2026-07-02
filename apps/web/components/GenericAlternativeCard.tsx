@@ -1,7 +1,7 @@
 import React from "react";
 import { TrendingDown, MapPin, Sparkles, ArrowRight, Pill, Bookmark } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
-import { useBookmarksStore } from "@/stores/useBookmarksStore";
+import { useBookmarksStore } from "@/src/stores/useBookmarksStore";
 
 export interface NearestStore {
     name: string;
