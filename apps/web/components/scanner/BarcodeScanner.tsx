@@ -29,7 +29,7 @@ function playFeedback(): void {
         if (typeof navigator !== "undefined" && "vibrate" in navigator) {
             navigator.vibrate([100, 50, 100]);
         }
-    } catch (e) {
+    } catch {
         // Silently ignore vibration errors
     }
 
@@ -54,7 +54,7 @@ function playFeedback(): void {
             oscillator.start();
             oscillator.stop(ctx.currentTime + 0.1);
         }
-    } catch (e) {
+    } catch {
         // Silently ignore audio playback errors
     }
 }
