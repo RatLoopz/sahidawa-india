@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { TrendingDown, MapPin, Sparkles, ArrowRight, Pill, Bookmark } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
+import { useBookmarksStore } from "@/stores/useBookmarksStore";
 
 export interface NearestStore {
     name: string;
@@ -23,53 +24,23 @@ interface GenericAlternativeCardProps {
     alternative: GenericAlternative;
 }
 
-function getSavedMedicineBookmarks(): GenericAlternative[] {
-    if (typeof window === "undefined") return [];
-
-    try {
-        const stored = localStorage.getItem("medicine-bookmarks");
-        if (!stored) return [];
-
-        const parsed = JSON.parse(stored);
-        if (!Array.isArray(parsed)) {
-            localStorage.setItem("medicine-bookmarks", "[]");
-            return [];
-        }
-
-        return parsed;
-    } catch {
-        localStorage.setItem("medicine-bookmarks", "[]");
-        return [];
-    }
-}
-
 export default function GenericAlternativeCard({ alternative }: GenericAlternativeCardProps) {
     const router = useRouter();
     const params = useParams();
     const locale = Array.isArray(params.locale) ? params.locale[0] : params.locale || "en";
 
-    const [isBookmarked, setIsBookmarked] = useState(false);
-
-    useEffect(() => {
-        const saved = getSavedMedicineBookmarks();
-        const exists = saved.some(
-            (item: GenericAlternative) => item.alternative_name === alternative.alternative_name
-        );
-        setIsBookmarked(exists);
-    }, [alternative.alternative_name]);
+    const isBookmarked = useBookmarksStore((state) =>
+        state.isBookmarked(alternative.alternative_name)
+    );
+    const addBookmark = useBookmarksStore((state) => state.addBookmark);
+    const removeBookmark = useBookmarksStore((state) => state.removeBookmark);
 
     const handleBookmark = () => {
-        const saved = getSavedMedicineBookmarks();
         if (isBookmarked) {
-            const filtered = saved.filter(
-                (item: GenericAlternative) => item.alternative_name !== alternative.alternative_name
-            );
-            localStorage.setItem("medicine-bookmarks", JSON.stringify(filtered));
+            removeBookmark(alternative.alternative_name);
         } else {
-            saved.push(alternative);
-            localStorage.setItem("medicine-bookmarks", JSON.stringify(saved));
+            addBookmark(alternative);
         }
-        setIsBookmarked(!isBookmarked);
     };
 
     const brandPrice = alternative.brand_price;
