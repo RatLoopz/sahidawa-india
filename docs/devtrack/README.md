@@ -847,3 +847,4 @@
 | [#2568](https://github.com/RatLoopz/sahidawa-india/pull/2568) | 2026-06-25 | Frontend | 8     | @Shreya-nipunge          | [View Doc](devtrack/2026-06/PR-2568-fix-2557-rate-limit-and-validate-overpass-proxy-re.md)                                                                                     |
 | [#2805](https://github.com/RatLoopz/sahidawa-india/pull/2805) | 2026-06-29 | Frontend | 10 | @Shreya-nipunge | [View Doc](devtrack/2026-06/PR-2805-fix-2802-guard-corrupt-medicine-bookmarks-storage.md) |
 | [#2855](https://github.com/RatLoopz/sahidawa-india/pull/2855) | 2026-07-01 | Backend | 9 | @hrx01-dev | [View Doc](devtrack/2026-07/PR-2855-fix-counterfeit-reports-reviewed-and-approved-by-a.md) |
+| [#2952](https://github.com/RatLoopz/sahidawa-india/pull/2952) | 2026-07-02 | Frontend | 5 | @shauryavardhan1307 | [View Doc](devtrack/2026-07/PR-2952-fix-web-wrap-fetchalerts-in-usecallback-to-prevent.md) |
