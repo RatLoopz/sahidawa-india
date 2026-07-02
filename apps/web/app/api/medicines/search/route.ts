@@ -4,6 +4,7 @@ import { redis } from "@/lib/redis";
 import { rateLimit } from "@/lib/rateLimit";
 
 const CACHE_TTL = 24 * 60 * 60;
+const MAX_QUERY_LENGTH = 100;
 
 function escapePostgrest(val: string) {
     // Escape backslash first (must be first to avoid double-escaping),
@@ -49,6 +50,13 @@ export async function GET(request: NextRequest) {
         // Whitespace-only or too-short queries short-circuit without hitting DB
         if (query.length < 2) {
             return NextResponse.json([]);
+        }
+
+        if (query.length > MAX_QUERY_LENGTH) {
+            return NextResponse.json(
+                { error: "Search query must be 100 characters or fewer." },
+                { status: 400 }
+            );
         }
 
         const escaped = escapePostgrest(query);
