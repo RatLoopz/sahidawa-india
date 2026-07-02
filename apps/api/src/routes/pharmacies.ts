@@ -9,6 +9,7 @@ import { FormattedPharmacy, PharmacyRpcResult } from "../types/pharmacy.types";
 import { redisCache } from "../middleware/redisCache";
 import multer from "multer";
 import { buildOrConditions } from "../utils/db";
+import Papa from "papaparse";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -989,6 +990,7 @@ router.get(
         }
     }
 );
+
 router.post(
     "/bulk-upload",
     requireAuth,
@@ -1005,6 +1007,8 @@ router.post(
                 res.status(400).json({ error: "No valid file data content provided." });
                 return;
             }
+
+            // Strip UTF-8 BOM if present
             const fileContent = rawFileContent.replace(/^\uFEFF/, "");
 
             const { data: pharmacy, error: pharmError } = await supabase
@@ -1020,45 +1024,45 @@ router.post(
                 return;
             }
 
-            const lines = fileContent
-                .split(/\r?\n/)
-                .map((line) => line.trim())
-                .filter(Boolean);
-            if (lines.length <= 1) {
+            // Parse CSV with papaparse — handles quoted fields, embedded commas,
+            // escaped/nested quotes, and inconsistent line endings correctly
+            const parseResult = Papa.parse<Record<string, string>>(fileContent, {
+                header: true,
+                skipEmptyLines: true,
+                transformHeader: (h) => h.trim().toLowerCase(),
+                transform: (v) => v.trim(),
+            });
+
+            if (parseResult.data.length === 0) {
                 res.status(400).json({ error: "The file appears empty or is missing rows." });
                 return;
             }
 
-            if (lines.length > 501) {
+            if (parseResult.data.length > 500) {
                 res.status(400).json({
                     error: "Bulk upload exceeds the maximum limit of 500 items per request.",
                 });
                 return;
             }
 
-            const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
             const rowsToInsert: any[] = [];
             const failedRows: Array<{ row: number; reason: string }> = [];
 
-            for (let i = 1; i < lines.length; i++) {
-                const values = lines[i]
-                    .split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)
-                    .map((v) => v.replace(/^"|"$/g, "").trim());
+            parseResult.data.forEach((rowData, index) => {
+                // Normalise empty strings to undefined so Zod optional fields work correctly
+                const normalised: Record<string, any> = {};
+                for (const key of Object.keys(rowData)) {
+                    normalised[key] = rowData[key] === "" ? undefined : rowData[key];
+                }
 
-                const rowData: Record<string, any> = {};
-                headers.forEach((header, index) => {
-                    // Safe guard indexing length bounds gracefully
-                    const val = values[index];
-                    rowData[header] = val === "" || val === undefined ? undefined : val;
-                });
-
-                const validationResult = inventoryRowSchema.safeParse(rowData);
+                const validationResult = inventoryRowSchema.safeParse(normalised);
                 if (!validationResult.success) {
                     const errorMessage = validationResult.error.issues
                         .map((e: { message: string }) => e.message)
                         .join(", ");
-                    failedRows.push({ row: i + 1, reason: errorMessage });
-                    continue;
+                    // +2: 1 for header row, 1 for 1-based row numbering
+                    failedRows.push({ row: index + 2, reason: errorMessage });
+                    return;
                 }
 
                 rowsToInsert.push({
@@ -1069,7 +1073,7 @@ router.post(
                     quantity: validationResult.data.quantity,
                     mrp: validationResult.data.mrp,
                 });
-            }
+            });
 
             let successfulInserts = 0;
             if (rowsToInsert.length > 0) {
@@ -1083,7 +1087,7 @@ router.post(
             }
 
             res.status(200).json({
-                totalRows: lines.length - 1,
+                totalRows: parseResult.data.length,
                 successCount: successfulInserts,
                 failedCount: failedRows.length,
                 errors: failedRows,
@@ -1189,7 +1193,7 @@ router.delete(
             // Soft delete by updating status
             const { error: deleteError } = await supabase
                 .from("pharmacies")
-                .update({ status: "rejected" }) // or whatever soft delete status is appropriate
+                .update({ status: "rejected" })
                 .eq("id", pharmacyId);
 
             if (deleteError) {
@@ -1239,52 +1243,53 @@ router.post(
                 return;
             }
 
-            // Multer file processing
             if (!req.file || !req.file.buffer) {
                 res.status(400).json({ error: "No valid file data content provided." });
                 return;
             }
 
+            // Strip UTF-8 BOM if present
             const fileContent = req.file.buffer.toString("utf-8").replace(/^\uFEFF/, "");
 
-            const lines = fileContent
-                .split(/\r?\n/)
-                .map((line) => line.trim())
-                .filter(Boolean);
-            if (lines.length <= 1) {
+            // Parse CSV with papaparse — handles quoted fields, embedded commas,
+            // escaped/nested quotes, and inconsistent line endings correctly
+            const parseResult = Papa.parse<Record<string, string>>(fileContent, {
+                header: true,
+                skipEmptyLines: true,
+                transformHeader: (h) => h.trim().toLowerCase(),
+                transform: (v) => v.trim(),
+            });
+
+            if (parseResult.data.length === 0) {
                 res.status(400).json({ error: "The file appears empty or is missing rows." });
                 return;
             }
 
-            if (lines.length > 501) {
+            if (parseResult.data.length > 500) {
                 res.status(400).json({
                     error: "Bulk upload exceeds the maximum limit of 500 items per request.",
                 });
                 return;
             }
 
-            const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
             const rowsToInsert: any[] = [];
             const failedRows: Array<{ row: number; reason: string }> = [];
 
-            for (let i = 1; i < lines.length; i++) {
-                const values = lines[i]
-                    .split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)
-                    .map((v) => v.replace(/^"|"$/g, "").trim());
+            parseResult.data.forEach((rowData, index) => {
+                // Normalise empty strings to undefined so Zod optional fields work correctly
+                const normalised: Record<string, any> = {};
+                for (const key of Object.keys(rowData)) {
+                    normalised[key] = rowData[key] === "" ? undefined : rowData[key];
+                }
 
-                const rowData: Record<string, any> = {};
-                headers.forEach((header, index) => {
-                    const val = values[index];
-                    rowData[header] = val === "" || val === undefined ? undefined : val;
-                });
-
-                const validationResult = inventoryRowSchema.safeParse(rowData);
+                const validationResult = inventoryRowSchema.safeParse(normalised);
                 if (!validationResult.success) {
                     const errorMessage = validationResult.error.issues
                         .map((e: { message: string }) => e.message)
                         .join(", ");
-                    failedRows.push({ row: i + 1, reason: errorMessage });
-                    continue;
+                    // +2: 1 for header row, 1 for 1-based row numbering
+                    failedRows.push({ row: index + 2, reason: errorMessage });
+                    return;
                 }
 
                 rowsToInsert.push({
@@ -1295,7 +1300,7 @@ router.post(
                     quantity: validationResult.data.quantity,
                     mrp: validationResult.data.mrp,
                 });
-            }
+            });
 
             let successfulInserts = 0;
             if (rowsToInsert.length > 0) {
@@ -1309,7 +1314,7 @@ router.post(
             }
 
             res.status(200).json({
-                totalRows: lines.length - 1,
+                totalRows: parseResult.data.length,
                 successCount: successfulInserts,
                 failedCount: failedRows.length,
                 errors: failedRows,
