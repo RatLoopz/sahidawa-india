@@ -392,22 +392,28 @@ function normalizeOfflineBrandName(input: string): string {
 }
 
 /**
- * Resolves a medicine input string (brand name, generic name, or ID) to its generic name.
+ * Resolves a list of medicine input strings to their generic names in a single batched query.
  */
-async function resolveToGeneric(input: string): Promise<{ input: string; generic: string }> {
-    const cleanInput = input.trim();
-    const lowerInput = cleanInput.toLowerCase();
+async function resolveMedicinesToGenerics(
+    inputs: string[]
+): Promise<Array<{ input: string; generic: string }>> {
+    const cleanInputs = inputs.map((i) => i.trim()).filter(Boolean);
     let dbFailed = dbConfig?.isSupabaseOffline;
-    let genericName = cleanInput;
 
-    if (!dbFailed) {
+    // Default each input to itself
+    const resultsMap = new Map<string, string>();
+    for (const input of cleanInputs) {
+        resultsMap.set(input.toLowerCase(), input);
+    }
+
+    if (!dbFailed && cleanInputs.length > 0) {
         try {
+            // Build a single massive OR query combining all the resolution filters
+            const orQuery = cleanInputs.map(buildMedicineResolutionFilter).join(",");
             const { data, error } = await supabase
                 .from("medicines")
                 .select("brand_name, generic_name")
-                .or(buildMedicineResolutionFilter(cleanInput))
-                .limit(1)
-                .maybeSingle();
+                .or(orQuery);
 
             if (error) {
                 dbFailed = true;
@@ -418,8 +424,19 @@ async function resolveToGeneric(input: string): Promise<{ input: string; generic
                 ) {
                     if (dbConfig) dbConfig.isSupabaseOffline = true;
                 }
-            } else if (data && data.generic_name) {
-                genericName = data.generic_name;
+            } else if (data) {
+                // Match the returned DB rows back to the inputs
+                for (const input of cleanInputs) {
+                    const lowerInput = input.toLowerCase();
+                    const match = data.find(
+                        (d) =>
+                            d.brand_name?.toLowerCase().includes(lowerInput) ||
+                            d.generic_name?.toLowerCase().includes(lowerInput)
+                    );
+                    if (match && match.generic_name) {
+                        resultsMap.set(lowerInput, match.generic_name);
+                    }
+                }
             }
         } catch (dbErr: unknown) {
             dbFailed = true;
@@ -435,15 +452,20 @@ async function resolveToGeneric(input: string): Promise<{ input: string; generic
     }
 
     if (dbFailed) {
-        // Fallback to local static map
-        const normalizedForOffline = normalizeOfflineBrandName(input);
-        const mapped = localBrandMap[normalizedForOffline];
-        if (mapped) {
-            genericName = mapped;
+        // Fallback to local static map for all inputs
+        for (const input of cleanInputs) {
+            const normalizedForOffline = normalizeOfflineBrandName(input);
+            const mapped = localBrandMap[normalizedForOffline];
+            if (mapped) {
+                resultsMap.set(input.toLowerCase(), mapped);
+            }
         }
     }
 
-    return { input: cleanInput, generic: genericName };
+    return cleanInputs.map((input) => ({
+        input,
+        generic: resultsMap.get(input.toLowerCase()) || input,
+    }));
 }
 
 /**
@@ -516,10 +538,9 @@ router.post("/check", interactionCheckLimiter, async (req: Request, res: Respons
     const { medicines } = parsed.data;
 
     try {
-        // 1. Resolve all inputs to generic names in parallel
-        const resolvedList: Array<{ input: string; generic: string }> = await Promise.all(
-            medicines.map((medicine) => resolveToGeneric(medicine))
-        );
+        // 1. Resolve all inputs to generic names in a single batched query
+        const resolvedList: Array<{ input: string; generic: string }> =
+            await resolveMedicinesToGenerics(medicines);
 
         const genericToOriginalMap = new Map<string, string>();
         resolvedList.forEach((r) => {

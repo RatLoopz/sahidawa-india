@@ -858,12 +858,14 @@
             "confirm": "निष्कासयतु",
             "cancel": "रद्दं कुर्वन्तु"
         }
+    },
     "NotFound": {
         "badge": "Error 404",
         "title": "Page Not Found",
         "description": "We couldn't find the medicine or page you were looking for. It might have been moved, or the URL might be incorrect.",
         "backHome": "Back to Home",
         "scanMedicine": "Scan Medicine"
+    },
     "Settings": {
         "channelRequired": "Nyunatinyunam ekam sancharamadhyamam (SMS va WhatsApp) sakshamam bhavitavyam.",
         "optOutConfirm": "Kim bhavan/bhavati nischayena opt out kritva sarvani SMS tatha WhatsApp sachetanani sthagayitum icchati?",
@@ -880,5 +882,12 @@
         "languageOptionPa": "ਪੰਜਾਬੀ",
         "languageOptionUr": "اردو",
         "languageOptionAs": "অসমীয়া"
+    },
+    "AbhaRecords": {
+        "backToProfile": "प्रोफाइल प्रति गच्छतु",
+        "title": "ABHA लेखाः",
+        "loading": "लेखाः लोड् क्रियते...",
+        "noPrescriptions": "किञ्चिदपि व्यवस्थापत्रं न प्राप्तम्।",
+        "failedToLoad": "लेखाः लोड् कर्तुं असफलम्"
     }
 }

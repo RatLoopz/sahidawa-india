@@ -1,7 +1,10 @@
 import { Request, Response, NextFunction } from "express";
-import crypto from "crypto";
+import crypto, { pbkdf2 } from "crypto";
+import { promisify } from "util";
 import { supabase } from "../db/client";
 import logger from "../utils/logger";
+
+const pbkdf2Async = promisify(pbkdf2);
 
 export interface ApiKeyInfo {
     keyId: string;
@@ -21,9 +24,12 @@ export const requireApiKey = async (req: ApiKeyRequest, res: Response, next: Nex
         return;
     }
 
-    const keyHash = crypto
-        .pbkdf2Sync(apiKey, "sahidawa-api-key-v1", 100000, 64, "sha512")
-        .toString("hex");
+    // Use the async pbkdf2 variant to avoid blocking the Node.js event loop.
+    // pbkdf2Sync with 100k iterations can stall the server for 200-500ms per
+    // request, creating a CPU-based DoS vector. The async version offloads the
+    // computation to libuv's thread pool, keeping the event loop responsive.
+    const keyHashBuffer = await pbkdf2Async(apiKey, "sahidawa-api-key-v1", 100000, 64, "sha512");
+    const keyHash = keyHashBuffer.toString("hex");
 
     try {
         const { data, error } = await supabase

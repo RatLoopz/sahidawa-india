@@ -861,12 +861,14 @@
             "confirm": "ہٹاو",
             "cancel": "منسوخ کریو"
         }
+    },
     "NotFound": {
         "badge": "Error 404",
         "title": "Page Not Found",
         "description": "We couldn't find the medicine or page you were looking for. It might have been moved, or the URL might be incorrect.",
         "backHome": "Back to Home",
         "scanMedicine": "Scan Medicine"
+    },
     "Settings": {
         "channelRequired": "Kam az kam akh rabita channel (SMS ya WhatsApp) chalu asun zaruri chu.",
         "optOutConfirm": "Tohi pakka opt out karith tamam SMS te WhatsApp alert band karun chiv?",
@@ -883,5 +885,12 @@
         "languageOptionPa": "ਪੰਜਾਬੀ",
         "languageOptionUr": "اردو",
         "languageOptionAs": "অসমীয়া"
+    },
+    "AbhaRecords": {
+        "backToProfile": "پروفائل کن واپس گژھیو",
+        "title": "ABHA ریکارڈز",
+        "loading": "ریکارڈ لوڈ گژھان...",
+        "noPrescriptions": "کانہہ نسخہ آو نہ لبھنہ۔",
+        "failedToLoad": "ریکارڈ لوڈ کرنے میں ناکام"
     }
 }

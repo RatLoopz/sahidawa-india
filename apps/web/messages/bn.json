@@ -921,12 +921,14 @@
             "confirm": "সরান",
             "cancel": "বাতিল"
         }
+    },
     "NotFound": {
         "badge": "404 ত্রুটি",
         "title": "পৃষ্ঠা পাওয়া যায়নি",
         "description": "আপনি যে পৃষ্ঠাটি খুঁজছেন তা বিদ্যমান নেই বা সরানো হতে পারে।",
         "backHome": "হোমে ফিরে যান",
         "scanMedicine": "ওষুধ স্ক্যান করুন"
+    },
     "Settings": {
         "channelRequired": "Kom pokkhe ekti jogajog madhyam (SMS ba WhatsApp) chalu thakte hobe.",
         "optOutConfirm": "Apni ki nischit je opt out kore shob SMS o WhatsApp sotorkota bondho korte chan?",
@@ -943,5 +945,12 @@
         "languageOptionPa": "ਪੰਜਾਬੀ",
         "languageOptionUr": "اردو",
         "languageOptionAs": "অসমীয়া"
+    },
+    "AbhaRecords": {
+        "backToProfile": "প্রোফাইলে ফিরে যান",
+        "title": "ABHA রেকর্ড",
+        "loading": "রেকর্ড লোড হচ্ছে...",
+        "noPrescriptions": "কোনো প্রেসক্রিপশন পাওয়া যায়নি।",
+        "failedToLoad": "রেকর্ড লোড করতে ব্যর্থ হয়েছে"
     }
 }

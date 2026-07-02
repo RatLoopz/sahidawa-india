@@ -36,7 +36,12 @@ import { type AshaWorker } from "./PharmacyMap";
 import MapHeaderLoadingIndicator from "./MapHeaderLoadingIndicator";
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
 import { getOpenNowStatus } from "../../../lib/openingHours";
-import { buildCacheKey, saveToCache, loadFromCache } from "./usePharmacyCache";
+import {
+    buildNearbyCacheKey,
+    buildBoundsCacheKey,
+    saveToCache,
+    loadFromCache,
+} from "./usePharmacyCache";
 import {
     getCachedPharmacies,
     getLastSyncTimestamp,
@@ -376,7 +381,7 @@ export default function PharmacyMapPage() {
             setShowSearchArea(false);
             try {
                 const radiusKm = Math.round(radius / 1000);
-                const cacheKey = buildCacheKey(lat, lng);
+                const cacheKey = buildNearbyCacheKey(lat, lng, radius);
                 const [verifiedResult, osmResult, ashaResult] = await Promise.allSettled([
                     fetchVerifiedPharmacies(lat, lng, radiusKm),
                     fetchPharmacies(lat, lng, radius),
@@ -426,7 +431,7 @@ export default function PharmacyMapPage() {
                 console.error("Critical error in pharmacy rendering:", err);
 
                 // ── Offline fallback: try loading from IndexedDB ──────────────
-                const cacheKey = buildCacheKey(lat, lng);
+                const cacheKey = buildNearbyCacheKey(lat, lng, radius);
                 if (await restoreFromCache(cacheKey)) {
                     return;
                 }
@@ -495,7 +500,7 @@ export default function PharmacyMapPage() {
                 const centerLat = bounds.center.lat;
                 const centerLng = bounds.center.lng;
                 const radiusKm = 15;
-                const cacheKey = buildCacheKey(centerLat, centerLng);
+                const cacheKey = buildBoundsCacheKey(bounds);
                 const cachedVerified = await getCachedPharmacies(cacheKey);
                 if (cachedVerified.length > 0) {
                     await hydrateSyncedPharmacies(cacheKey);
@@ -574,9 +579,7 @@ export default function PharmacyMapPage() {
                 console.error("Critical error in bound pharmacy rendering:", err);
 
                 // ── Offline fallback for bounds fetch ─────────────────────────
-                const centerLat = bounds.center.lat;
-                const centerLng = bounds.center.lng;
-                const cacheKey = buildCacheKey(centerLat, centerLng);
+                const cacheKey = buildBoundsCacheKey(bounds);
                 if (await restoreFromCache(cacheKey)) {
                     return;
                 }

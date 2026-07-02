@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { X, Upload, CheckCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { API_BASE } from "@/lib/api";
 
 interface RequestVerificationModalProps {
     isOpen: boolean;
@@ -42,7 +43,7 @@ export function RequestVerificationModal({
             formData.append("file", file);
 
             // Connects to the existing scan extract route acting as our OCR processor / verification queue
-            const res = await fetch("/api/v1/scan/extract", {
+            const res = await fetch(`${API_BASE}/api/v1/scan/extract`, {
                 method: "POST",
                 body: formData,
             });

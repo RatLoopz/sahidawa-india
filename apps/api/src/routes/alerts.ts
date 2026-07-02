@@ -134,24 +134,61 @@ alertsRouter.post("/ingest", requireApiKey, limiter, async (req: ApiKeyRequest, 
             return;
         }
 
-        const updatePromises = validatedAlerts.map((alert) => {
-            if (alert.batch_number) {
-                let q = supabase
-                    .from("medicines")
-                    .update({ status: medicineStatus, is_counterfeit_alert: true })
-                    .eq("batch_number", alert.batch_number);
+        // Batch the medicine status updates to avoid O(N) individual UPDATE queries.
+        // Alerts are grouped into two buckets by their secondary discriminator:
+        //   - byManufacturer: alerts that have a manufacturer field
+        //   - byBrandName:    alerts that have only a brand name (no manufacturer)
+        // Each bucket is resolved in a single UPDATE ... WHERE batch_number IN (...)
+        // query, capping the total number of DB round-trips at 2 regardless of N.
+        const byManufacturer = new Map<string, string[]>(); // manufacturer -> batch_numbers[]
+        const byBrandName = new Map<string, string[]>(); // brand_name -> batch_numbers[]
+        const noBatchAlerts: typeof validatedAlerts = [];
 
-                if (alert.manufacturer) {
-                    q = q.eq("manufacturer", alert.manufacturer);
-                } else if (alert.reported_brand_name) {
-                    q = q.eq("brand_name", alert.reported_brand_name);
-                }
-                return q;
+        for (const alert of validatedAlerts) {
+            if (!alert.batch_number) {
+                noBatchAlerts.push(alert);
+                continue;
             }
-            return Promise.resolve();
-        });
+            if (alert.manufacturer) {
+                if (!byManufacturer.has(alert.manufacturer)) {
+                    byManufacturer.set(alert.manufacturer, []);
+                }
+                byManufacturer.get(alert.manufacturer)!.push(alert.batch_number);
+            } else if (alert.reported_brand_name) {
+                if (!byBrandName.has(alert.reported_brand_name)) {
+                    byBrandName.set(alert.reported_brand_name, []);
+                }
+                byBrandName.get(alert.reported_brand_name)!.push(alert.batch_number);
+            }
+        }
 
-        await Promise.all(updatePromises);
+        const batchUpdatePromises: Promise<unknown>[] = [];
+
+        for (const [manufacturer, batchNumbers] of byManufacturer) {
+            batchUpdatePromises.push(
+                Promise.resolve(
+                    supabase
+                        .from("medicines")
+                        .update({ status: medicineStatus, is_counterfeit_alert: true })
+                        .in("batch_number", batchNumbers)
+                        .eq("manufacturer", manufacturer)
+                )
+            );
+        }
+
+        for (const [brandName, batchNumbers] of byBrandName) {
+            batchUpdatePromises.push(
+                Promise.resolve(
+                    supabase
+                        .from("medicines")
+                        .update({ status: medicineStatus, is_counterfeit_alert: true })
+                        .in("batch_number", batchNumbers)
+                        .eq("brand_name", brandName)
+                )
+            );
+        }
+
+        await Promise.all(batchUpdatePromises);
 
         // 3.5 Invalidate the cache for the updated batch numbers
         const batchNumbersToInvalidate = validatedAlerts

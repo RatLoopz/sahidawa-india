@@ -1178,11 +1178,19 @@
             "confirm": "हटाउ",
             "cancel": "रद्द करू"
         }
+    },
     "NotFound": {
         "badge": "Error 404",
         "title": "Page Not Found",
         "description": "We couldn't find the medicine or page you were looking for. It might have been moved, or the URL might be incorrect.",
         "backHome": "Back to Home",
         "scanMedicine": "Scan Medicine"
+    },
+    "AbhaRecords": {
+        "backToProfile": "प्रोफाइल पर वापस जाओ",
+        "title": "ABHA रेकॉर्ड",
+        "loading": "रेकॉर्ड लोड भ रहल अछि...",
+        "noPrescriptions": "कोनो नुस्खा नहि भेटल।",
+        "failedToLoad": "रेकॉर्ड लोड करबामे असफल"
     }
 }
