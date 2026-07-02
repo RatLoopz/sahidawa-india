@@ -1258,6 +1258,44 @@
         "invalidCsv": "Invalid CSV format. Ensure columns: original_term, normalized_term, type.",
         "uploadError": "Failed to upload CSV rules."
     },
+    "MyMedicines": {
+        "page": {
+            "title": "My Tracked Medicines",
+            "loading": "Loading your tracked medicines..."
+        },
+        "errors": {
+            "title": "Couldn't Load Your Medicines",
+            "generic": "Something went wrong while fetching your tracked medicines.",
+            "fetchFailed": "Failed to load tracked medicines. Please check your connection and try again.",
+            "tryAgain": "Try Again"
+        },
+        "emptyState": {
+            "title": "No Medicines Tracked Yet",
+            "description": "Add your current prescriptions to track active schedules, safety updates, and expiry windows automatically.",
+            "addFirst": "Add your first medicine"
+        },
+        "table": {
+            "name": "Name",
+            "expiry": "Expiry",
+            "status": "Status",
+            "daysLeft": "{count} days left"
+        },
+        "badges": {
+            "verified": "Verified",
+            "unverified": "Unverified",
+            "requestVerificationTitle": "Click to request verification"
+        },
+        "bookmarks": {
+            "savedAlternatives": "Saved Alternatives",
+            "noBookmarks": "No bookmarks yet.",
+            "brand": "Brand: {brand}"
+        },
+        "removeDialog": {
+            "title": "Remove Bookmark?",
+            "description": "This will remove \"{name}\" from your saved alternatives. You can add it back later if needed.",
+            "confirm": "Remove",
+            "cancel": "Cancel"
+        }
     "NotFound": {
         "badge": "404 Error",
         "title": "Page not found",

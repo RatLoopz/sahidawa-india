@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { RequestVerificationModal } from "@/components/RequestVerificationModal";
 import { API_BASE } from "@/lib/api";
+import { useTranslations } from "next-intl";
 import { useBookmarksStore } from "@/stores/useBookmarksStore";
 
 interface TrackedMedicine {
@@ -31,6 +32,9 @@ type FetchStatus = "loading" | "success" | "error";
 
 export default function MyMedicinesPage() {
     const [medicines, setMedicines] = useState<TrackedMedicine[]>([]);
+    const [savedMedicines, setSavedMedicines] = useState<BookmarkedMedicine[]>([]);
+    const [, setError] = useState<string | null>(null);
+    const t = useTranslations("MyMedicines");
     const bookmarks = useBookmarksStore((state) => state.bookmarks);
     const removeBookmarkFromStore = useBookmarksStore((state) => state.removeBookmark);
 
@@ -77,11 +81,7 @@ export default function MyMedicinesPage() {
 
                 setMedicines([]);
                 setStatus("error");
-                setErrorMessage(
-                    err instanceof Error
-                        ? err.message
-                        : "Failed to load tracked medicines. Please check your connection and try again."
-                );
+                setErrorMessage(err instanceof Error ? err.message : t("errors.fetchFailed"));
             }
         };
 
@@ -119,13 +119,13 @@ export default function MyMedicinesPage() {
         <div className="mx-auto w-full max-w-4xl space-y-12 p-6">
             {/* Tracked Medicines Section */}
             <section>
-                <h1 className="mb-4 text-2xl font-bold">My Tracked Medicines</h1>
+                <h1 className="mb-4 text-2xl font-bold">{t("page.title")}</h1>
 
                 {status === "loading" ? (
                     <div className="flex flex-col items-center justify-center space-y-3 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 px-4 py-16 text-center dark:border-slate-800 dark:bg-slate-900/20">
                         <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
                         <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Loading your tracked medicines...
+                            {t("page.loading")}
                         </p>
                     </div>
                 ) : status === "error" ? (
@@ -136,11 +136,10 @@ export default function MyMedicinesPage() {
                         </div>
                         <div className="max-w-sm space-y-1.5">
                             <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200">
-                                Couldn&apos;t Load Your Medicines
+                                {t("errors.title")}
                             </h3>
                             <p className="text-sm text-slate-500 dark:text-slate-400">
-                                {errorMessage ??
-                                    "Something went wrong while fetching your tracked medicines."}
+                                {errorMessage ?? t("errors.generic")}
                             </p>
                         </div>
                         <button
@@ -149,7 +148,7 @@ export default function MyMedicinesPage() {
                             className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-red-700"
                         >
                             <RefreshCw className="h-4 w-4" />
-                            Try Again
+                            {t("errors.tryAgain")}
                         </button>
                     </div>
                 ) : medicines.length === 0 ? (
@@ -160,11 +159,10 @@ export default function MyMedicinesPage() {
                         </div>
                         <div className="max-w-sm space-y-1.5">
                             <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200">
-                                No Medicines Tracked Yet
+                                {t("emptyState.title")}
                             </h3>
                             <p className="text-sm text-slate-500 dark:text-slate-400">
-                                Add your current prescriptions to track active schedules, safety
-                                updates, and expiry windows automatically.
+                                {t("emptyState.description")}
                             </p>
                         </div>
                         <button
@@ -173,16 +171,16 @@ export default function MyMedicinesPage() {
                             className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-emerald-700"
                         >
                             <Plus className="h-4 w-4" />
-                            Add your first medicine
+                            {t("emptyState.addFirst")}
                         </button>
                     </div>
                 ) : (
                     <table className="w-full border-collapse">
                         <thead>
                             <tr>
-                                <th className="border p-2">Name</th>
-                                <th className="border p-2">Expiry</th>
-                                <th className="border p-2">Status</th>
+                                <th className="border p-2">{t("table.name")}</th>
+                                <th className="border p-2">{t("table.expiry")}</th>
+                                <th className="border p-2">{t("table.status")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -196,20 +194,20 @@ export default function MyMedicinesPage() {
                                                     variant="success"
                                                     aria-label="Verification status"
                                                 >
-                                                    ✓ Verified
+                                                    ✓ {t("badges.verified")}
                                                 </Badge>
                                             )}
                                             {m.is_verified === false && (
                                                 <button
                                                     onClick={() => handleUnverifiedClick(m)}
                                                     className="transition-transform hover:scale-105 active:scale-95"
-                                                    title="Click to request verification"
+                                                    title={t("badges.requestVerificationTitle")}
                                                 >
                                                     <Badge
                                                         variant="warning"
                                                         aria-label="Verification status"
                                                     >
-                                                        ⚠ Unverified
+                                                        ⚠ {t("badges.unverified")}
                                                     </Badge>
                                                 </button>
                                             )}
@@ -221,7 +219,7 @@ export default function MyMedicinesPage() {
                                     <td
                                         className={`border p-2 text-white ${getStatusColor(m.daysLeft)}`}
                                     >
-                                        {m.daysLeft} days left
+                                        {t("table.daysLeft", { count: m.daysLeft })}
                                     </td>
                                 </tr>
                             ))}
@@ -233,8 +231,10 @@ export default function MyMedicinesPage() {
             {/* Saved Bookmarks Section */}
             <section>
                 <h2 className="mb-4 flex items-center gap-2 text-xl font-bold">
-                    <Bookmark className="text-emerald-600" /> Saved Alternatives
+                    <Bookmark className="text-emerald-600" /> {t("bookmarks.savedAlternatives")}
                 </h2>
+                {savedMedicines.length === 0 ? (
+                    <p className="text-slate-500 italic">{t("bookmarks.noBookmarks")}</p>
                 {bookmarks.length === 0 ? (
                     <p className="text-slate-500 italic">No bookmarks yet.</p>
                 ) : (
@@ -248,7 +248,9 @@ export default function MyMedicinesPage() {
                                     <h4 className="font-bold text-emerald-800">
                                         {med.alternative_name}
                                     </h4>
-                                    <p className="text-xs text-gray-500">Brand: {med.brand_name}</p>
+                                    <p className="text-xs text-gray-500">
+                                        {t("bookmarks.brand", { brand: med.brand_name })}
+                                    </p>
                                     <p className="font-bold text-emerald-600">
                                         ₹{med.jan_aushadhi_price}
                                     </p>
@@ -268,10 +270,12 @@ export default function MyMedicinesPage() {
             {/* Bookmark deletion confirmation */}
             <ConfirmationDialog
                 isOpen={confirmDialog.isOpen}
-                title="Remove Bookmark?"
-                description={`This will remove "${confirmDialog.bookmarkName}" from your saved alternatives. You can add it back later if needed.`}
-                confirmText="Remove"
-                cancelText="Cancel"
+                title={t("removeDialog.title")}
+                description={t("removeDialog.description", {
+                    name: confirmDialog.bookmarkName ?? "",
+                })}
+                confirmText={t("removeDialog.confirm")}
+                cancelText={t("removeDialog.cancel")}
                 variant="warning"
                 isLoading={isDeleting}
                 onConfirm={confirmRemoveBookmark}
