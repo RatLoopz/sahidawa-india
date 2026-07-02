@@ -888,5 +888,22 @@
             "confirmPasswordRequired": "Please confirm your password.",
             "passwordMismatch": "Passwords do not match."
         }
+    },
+    "Settings": {
+        "channelRequired": "Ontoto eta jogajog madhyam (SMS ba WhatsApp) sokriyo hobo lagibo.",
+        "optOutConfirm": "Apuni nischitne je opt out kori sob SMS aru WhatsApp sotorkobarta bondho koribo bisare?",
+        "loadingPreferences": "Apunar pochondosomuh load hoi ase...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
     }
 }

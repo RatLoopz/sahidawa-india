@@ -917,7 +917,22 @@
         "optOutSuccess": "सब सूचनासँ सफलतापूर्वक बाहर भेलहुँ।",
         "errorMessage": "सेटिंग अपडेट करबामे विफल। कृपया फेर प्रयास करू।",
         "phoneInvalid": "कृपया एकटा वैध १०-अंकीय भारतीय फोन नंबर दर्ज करू।",
-        "districtRequired": "स्थानीयकृत चेतावनी प्राप्त करबाक लेल कृपया एकटा जिला निर्दिष्ट करू।"
+        "districtRequired": "स्थानीयकृत चेतावनी प्राप्त करबाक लेल कृपया एकटा जिला निर्दिष्ट करू।",
+        "channelRequired": "Kam sa kam ekta sanchar madhyam (SMS wa WhatsApp) saksham hoybak chahi.",
+        "optOutConfirm": "Ki ahan nishchit chhi je opt out ka sab SMS aa WhatsApp alert band karay chahait chhi?",
+        "loadingPreferences": "Ahank prathamikta load bha rahal achhi...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
     },
     "Interactions": {
         "title": "दवाइ अंतःक्रिया जाँचकर्ता",

@@ -882,5 +882,22 @@
             "confirmPasswordRequired": "Please confirm your password.",
             "passwordMismatch": "Passwords do not match."
         }
+    },
+    "Settings": {
+        "channelRequired": "Ghatto-ghatt ikk sanchar channel (SMS ja WhatsApp) chalu hona lazmi hai.",
+        "optOutConfirm": "Ki tusi yakeeni taur te opt out karke sare SMS ate WhatsApp alert band karna chaunde ho?",
+        "loadingPreferences": "Tuhadian pasandan load ho rahian han...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
     }
 }

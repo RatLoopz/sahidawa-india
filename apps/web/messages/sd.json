@@ -870,7 +870,22 @@
         "optOutSuccess": "سڀني نوٽيفڪيشنن مان ڪاميابي سان آپٽ آئوٽ ڪيو ويو.",
         "errorMessage": "سيٽنگون اپڊيٽ ڪرڻ ۾ ناڪامي. مهرباني ڪري ٻيهر ڪوشش ڪريو.",
         "phoneInvalid": "مهرباني ڪري صحيح 10 عددي هندستاني فون نمبر داخل ڪريو.",
-        "districtRequired": "مقامي خبرداريون حاصل ڪرڻ لاءِ مهرباني ڪري ضلعو بيان ڪريو."
+        "districtRequired": "مقامي خبرداريون حاصل ڪرڻ لاءِ مهرباني ڪري ضلعو بيان ڪريو.",
+        "channelRequired": "Ghat mein ghat hik rabti jo channel (SMS ya WhatsApp) faal hajan zaruri aahe.",
+        "optOutConfirm": "Cha tawhan pakka opt out kare sab SMS ain WhatsApp alert band karan chahyo tha?",
+        "loadingPreferences": "Tawhan joon tarjeehun load thi rahyun aahin...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
     },
     "Interactions": {
         "title": "دوائن جي باهمي اثرن جي جاچ",

@@ -979,7 +979,22 @@
         "optOutSuccess": "सभी सूचनाओं से सफलतापूर्वक सदस्यता रद्द हुई।",
         "errorMessage": "सेटिंग अपडेट नहीं हो सकी। कृपया पुनः प्रयास करें।",
         "phoneInvalid": "कृपया एक सही 10 अंकों का भारतीय फ़ोन नंबर दर्ज करें।",
-        "districtRequired": "स्थानीय चेतावनियाँ पाने के लिए कृपया जिला बताएं।"
+        "districtRequired": "स्थानीय चेतावनियाँ पाने के लिए कृपया जिला बताएं।",
+        "channelRequired": "Kam se kam ek sanchar madhyam (SMS ya WhatsApp) saksham hona chahiye.",
+        "optOutConfirm": "Kya aap waqai opt out karke sabhi SMS aur WhatsApp alert band karna chahte hain?",
+        "loadingPreferences": "Aapki prathamiktaen load ho rahi hain...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
     },
     "Interactions": {
         "title": "दवा इंटरेक्शन जाँचकर्ता",

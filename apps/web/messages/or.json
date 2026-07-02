@@ -882,5 +882,22 @@
             "confirmPasswordRequired": "Please confirm your password.",
             "passwordMismatch": "Passwords do not match."
         }
+    },
+    "Settings": {
+        "channelRequired": "Kam se kam gotie jogajog madhyam (SMS kimba WhatsApp) sakriya heba abasyak.",
+        "optOutConfirm": "Apana nischita ki opt out kari samasta SMS ebam WhatsApp satarkata band karibaku chahanti?",
+        "loadingPreferences": "Apananka pasandagudika load heuchhi...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
     }
 }

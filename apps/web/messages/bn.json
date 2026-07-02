@@ -882,5 +882,22 @@
             "confirmPasswordRequired": "Please confirm your password.",
             "passwordMismatch": "Passwords do not match."
         }
+    },
+    "Settings": {
+        "channelRequired": "Kom pokkhe ekti jogajog madhyam (SMS ba WhatsApp) chalu thakte hobe.",
+        "optOutConfirm": "Apni ki nischit je opt out kore shob SMS o WhatsApp sotorkota bondho korte chan?",
+        "loadingPreferences": "Apnar pochondoguli load hocche...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
     }
 }
