@@ -653,6 +653,75 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
+    "howItWorks": {
+        "badge": "Safe Healthcare � AI Powered",
+        "heroTitle": "How <highlight>SahiDawa</highlight> Works",
+        "heroSubtitle": "Learn how SahiDawa helps users verify medicines, discover trusted pharmacies, receive official alerts, and stay protected from counterfeit drugs using AI-powered healthcare tools.",
+        "ctaButtons": {
+            "scan": "Start Scanning",
+            "map": "Explore Pharmacy Map"
+        },
+        "steps": {
+            "scan": {
+                "title": "Scan Medicine",
+                "description": "Point your device camera at the barcode or QR code on any medicine packaging."
+            },
+            "verify": {
+                "title": "Verify Instantly",
+                "description": "AI cross-references scanned details with CDSCO records to check authenticity."
+            },
+            "alerts": {
+                "title": "Check Alerts",
+                "description": "Get real-time safety alerts if the batch is recalled, banned, or substandard."
+            },
+            "pharmacies": {
+                "title": "Find Pharmacies",
+                "description": "Locate Jan Aushadhi stores and verified nearby pharmacies stocking real medicines."
+            },
+            "protect": {
+                "title": "Stay Protected",
+                "description": "Keep records of your scans, report fakes, and safeguard your family's health."
+            }
+        },
+        "features": {
+            "title": "Platform Features",
+            "subtitle": "Everything you need for safer healthcare decisions.",
+            "cards": {
+                "verifyMedicines": {
+                    "title": "Verify Medicines",
+                    "description": "Instantly verify medicine authenticity using barcode, batch number, or medicine details."
+                },
+                "scanOrSearch": {
+                    "title": "Scan or Search",
+                    "description": "Scan packaging or manually search medicines for trusted healthcare information."
+                },
+                "aiAssistant": {
+                    "title": "AI Health Assistant",
+                    "description": "Get AI-powered guidance for symptoms, side effects, precautions, and medicine usage."
+                },
+                "trustedPharmacies": {
+                    "title": "Trusted Pharmacies",
+                    "description": "Find verified pharmacies nearby with reliable medicine availability and ratings."
+                },
+                "cdscoAlerts": {
+                    "title": "CDSCO Alerts",
+                    "description": "Stay updated with official CDSCO medicine recalls, warnings, and health alerts."
+                },
+                "reportMedicines": {
+                    "title": "Report Suspicious Medicines",
+                    "description": "Help the community by reporting counterfeit or suspicious medicines instantly."
+                }
+            }
+        },
+        "ctaBanner": {
+            "title": "Safer Healthcare Starts Here",
+            "subtitle": "Verify medicines, access trusted healthcare information, and stay protected from counterfeit drugs with AI-powered assistance.",
+            "buttons": {
+                "scan": "Scan Medicine",
+                "alerts": "View Alerts"
+            }
+        }
+    },
     "medicineSafety": {
         "guideTitle": "उपयोगः तथा सुरक्षा मार्गदर्शिका",
         "noDosageInfo": "अस्य वयःसमूहस्य कृते मात्रा-विवरणं न उपलब्धम्।",
@@ -750,5 +819,75 @@
             "confirmPasswordRequired": "Please confirm your password.",
             "passwordMismatch": "Passwords do not match."
         }
+    },
+    "MyMedicines": {
+        "page": {
+            "title": "मम अनुरक्षितानि औषधानि",
+            "loading": "भवतः अनुरक्षितानि औषधानि आयोज्यन्ते..."
+        },
+        "errors": {
+            "title": "भवतः औषधानि आयोजयितुं न शक्यन्त",
+            "generic": "भवतः अनुरक्षितानि औषधानि आनयन् किमपि दोषः अभवत्.",
+            "fetchFailed": "अनुरक्षितानि औषधानि आयोजयितुं असफलम्. कृपया स्वसम्बन्धं परीक्ष्य पुनः प्रयत्नं कुर्वन्तु.",
+            "tryAgain": "पुनः प्रयत्नं कुर्वन्तु"
+        },
+        "emptyState": {
+            "title": "अद्यापि कानिचित् औषधानि न अनुरक्षितानि",
+            "description": "सक्रियसूचीः, सुरक्षा-नवीनीकरणानि, मीयादसमयं च स्वयमेव अनुरक्षितुं स्वस्य वर्तमानानि औषधानि योजयन्तु.",
+            "addFirst": "स्वस्य प्रथमम् औषधं योजयन्तु"
+        },
+        "table": {
+            "name": "नाम",
+            "expiry": "मीयादः",
+            "status": "स्थितिः",
+            "daysLeft": "{count} दिनानि शिष्टानि"
+        },
+        "badges": {
+            "verified": "सत्यापितम्",
+            "unverified": "असत्यापितम्",
+            "requestVerificationTitle": "सत्यापनार्थं क्लिक् कुर्वन्तु"
+        },
+        "bookmarks": {
+            "savedAlternatives": "रक्षिताः विकल्पाः",
+            "noBookmarks": "अद्यापि बुकमार्काः न सन्ति.",
+            "brand": "ब्रान्ड्: {brand}"
+        },
+        "removeDialog": {
+            "title": "बुकमार्कं निष्कासयतु किम्?",
+            "description": "एतत् \"{name}\" भवतः रक्षितविकल्पेभ्यः निष्कासयिष्यति. आवश्यकता चेत् भवान् पश्चात् पुनः योजयितुं शक्नोति.",
+            "confirm": "निष्कासयतु",
+            "cancel": "रद्दं कुर्वन्तु"
+        }
+    },
+    "NotFound": {
+        "badge": "Error 404",
+        "title": "Page Not Found",
+        "description": "We couldn't find the medicine or page you were looking for. It might have been moved, or the URL might be incorrect.",
+        "backHome": "Back to Home",
+        "scanMedicine": "Scan Medicine"
+    },
+    "Settings": {
+        "channelRequired": "Nyunatinyunam ekam sancharamadhyamam (SMS va WhatsApp) sakshamam bhavitavyam.",
+        "optOutConfirm": "Kim bhavan/bhavati nischayena opt out kritva sarvani SMS tatha WhatsApp sachetanani sthagayitum icchati?",
+        "loadingPreferences": "Bhavatah/bhavatyah prathamikatah load bhavanti...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
+    },
+    "AbhaRecords": {
+        "backToProfile": "प्रोफाइल प्रति गच्छतु",
+        "title": "ABHA लेखाः",
+        "loading": "लेखाः लोड् क्रियते...",
+        "noPrescriptions": "किञ्चिदपि व्यवस्थापत्रं न प्राप्तम्।",
+        "failedToLoad": "लेखाः लोड् कर्तुं असफलम्"
     }
 }

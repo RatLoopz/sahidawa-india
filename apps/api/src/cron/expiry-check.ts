@@ -14,7 +14,7 @@ import {
 function buildExpiryPayload(medicineName: string, daysLeft: number) {
     return {
         title: `Medicine expiring in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`,
-        body: `${medicineName} expires in ${daysLeft} days. Please check your stock.`,
+        body: `${medicineName} expires in ${daysLeft} day${daysLeft === 1 ? "" : "s"}. Please check your stock.`,
         url: "/expiry-tracker",
     };
 }
@@ -23,19 +23,30 @@ export const initExpiryCron = () => {
     // Runs every day at 00:00 (midnight)
     cron.schedule("0 0 * * *", async () => {
         logger.info("Running medicine expiry check...");
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const alertWindows = [
+            { days: 30, min: 15, max: 30 },
+            { days: 14, min: 8, max: 14 },
+            { days: 7, min: 0, max: 7 },
+        ];
+        for (const window of alertWindows) {
+            const days = window.days;
 
-        const alertWindows = [30, 14, 7];
+            const minDate = new Date(today);
+            minDate.setDate(today.getDate() + window.min);
+            minDate.setHours(0, 0, 0, 0);
 
-        for (const days of alertWindows) {
-            const thresholdDate = new Date();
-            thresholdDate.setDate(thresholdDate.getDate() + days);
-
+            const maxDate = new Date(today);
+            maxDate.setDate(today.getDate() + window.max);
+            maxDate.setHours(23, 59, 59, 999);
             const flagColumn = `notified_${days}d`;
 
             const { data, error } = await supabase
                 .from("tracked_medicines")
                 .select("*")
-                .lte("expiry_date", thresholdDate.toISOString())
+                .gte("expiry_date", minDate.toISOString())
+                .lte("expiry_date", maxDate.toISOString())
                 .eq(flagColumn, false);
 
             if (error) {
@@ -49,7 +60,13 @@ export const initExpiryCron = () => {
             for (const medicine of data || []) {
                 try {
                     let delivered = false;
-                    const payload = buildExpiryPayload(medicine.name, days);
+                    const expiry = new Date(medicine.expiry_date);
+
+                    const daysLeft = Math.max(
+                        0,
+                        Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+                    );
+                    const payload = buildExpiryPayload(medicine.name, daysLeft);
 
                     // --- Web Push ---
                     if (isWebPushConfigured()) {
@@ -105,7 +122,7 @@ export const initExpiryCron = () => {
                             .maybeSingle();
 
                         if (subscriber?.phone) {
-                            const smsMessage = `SahiDawa Alert: ${medicine.name} expires in ${days} days. Please check your stock.`;
+                            const smsMessage = `SahiDawa Alert: ${medicine.name} expires in ${daysLeft} day${daysLeft === 1 ? "" : "s"}. Please check your stock.`;
                             const smsSent = await smsService.send(
                                 subscriber.phone,
                                 smsMessage,

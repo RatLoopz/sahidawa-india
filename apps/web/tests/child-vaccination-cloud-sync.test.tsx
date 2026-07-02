@@ -231,6 +231,47 @@ describe("ChildVaccinationTracker cloud sync", () => {
         expect(localStorage.getItem(TRACKER_STORAGE_KEY)).toBeNull();
     });
 
+    it("shows a retryable error when completed dose sync fails", async () => {
+        const mocks = configureSupabaseMock({
+            sessionUserId: "user-1",
+        });
+        mocks.completedInsert.mockResolvedValueOnce({
+            error: new Error("insert failed"),
+        });
+
+        render(<ChildVaccinationTracker />);
+
+        fireEvent.change(screen.getByLabelText("Child name"), {
+            target: { value: "Maya" },
+        });
+        fireEvent.change(screen.getByLabelText("Date of birth"), {
+            target: { value: "2024-01-01" },
+        });
+
+        await waitFor(() => {
+            expect(mocks.profileUpsert).toHaveBeenCalled();
+        });
+
+        fireEvent.click(await screen.findByRole("button", { name: /mark BCG completed/i }));
+
+        await waitFor(() => {
+            expect(
+                screen.getByText(/couldn't save this vaccination change to your account/i)
+            ).toBeInTheDocument();
+        });
+
+        fireEvent.click(screen.getByRole("button", { name: /try again/i }));
+
+        await waitFor(() => {
+            expect(mocks.completedInsert).toHaveBeenCalledTimes(2);
+        });
+        await waitFor(() => {
+            expect(
+                screen.queryByText(/couldn't save this vaccination change to your account/i)
+            ).not.toBeInTheDocument();
+        });
+    });
+
     it("deletes completed doses from Supabase when authenticated users uncheck them", async () => {
         const mocks = configureSupabaseMock({
             sessionUserId: "user-1",

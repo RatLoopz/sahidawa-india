@@ -51,6 +51,10 @@ export default function SignUpPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+    const getAuthErrorMessage = (message: string) => {
+        return message === "Failed to fetch" ? t("errors.generic") : message;
+    };
+
     const validateForm = (): string | null => {
         const trimmedName = fullName.trim();
         const trimmedEmail = email.trim();
@@ -119,7 +123,7 @@ export default function SignUpPage() {
             });
 
             if (signUpError) {
-                setError(signUpError.message);
+                setError(getAuthErrorMessage(signUpError.message));
                 setLoading(false);
                 return;
             }
@@ -160,7 +164,7 @@ export default function SignUpPage() {
             });
 
             if (oauthError) {
-                setError(oauthError.message);
+                setError(getAuthErrorMessage(oauthError.message));
                 setLoading(false);
             }
         } catch {
@@ -189,7 +193,7 @@ export default function SignUpPage() {
             });
 
             if (oauthError) {
-                setError(oauthError.message);
+                setError(getAuthErrorMessage(oauthError.message));
                 setLoading(false);
             }
         } catch {

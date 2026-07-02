@@ -629,9 +629,12 @@ describe("Reports API Routes", () => {
     });
 
     describe("PATCH /api/reports/:id/status", () => {
+        const REPORT_UUID = "00000000-0000-4000-8000-000000000004";
+        const NONEXISTENT_UUID = "00000000-0000-4000-8000-000000000099";
+
         it("returns 403 when non-admin user tries to update status", async () => {
             const response = await request(app)
-                .patch("/api/reports/report-id-123/status")
+                .patch(`/api/reports/${REPORT_UUID}/status`)
                 .set("Authorization", "Bearer test-token")
                 .send({ status: "verified_fake" });
 
@@ -641,7 +644,7 @@ describe("Reports API Routes", () => {
 
         it("returns 400 when invalid status is provided", async () => {
             const response = await request(app)
-                .patch("/api/reports/report-id-123/status")
+                .patch(`/api/reports/${REPORT_UUID}/status`)
                 .set("Authorization", "Bearer admin-token")
                 .set("X-Admin", "true")
                 .send({ status: "invalid_status" });
@@ -657,7 +660,7 @@ describe("Reports API Routes", () => {
                 .mockResolvedValueOnce({ data: null, error: null });
 
             const response = await request(app)
-                .patch("/api/reports/non-existent-id/status")
+                .patch(`/api/reports/${NONEXISTENT_UUID}/status`)
                 .set("Authorization", "Bearer admin-token")
                 .set("X-Admin", "true")
                 .send({ status: "verified_fake" });
@@ -680,7 +683,7 @@ describe("Reports API Routes", () => {
                 .mockResolvedValueOnce({ data: updatedReport, error: null });
 
             const response = await request(app)
-                .patch("/api/reports/report-id-123/status")
+                .patch(`/api/reports/${REPORT_UUID}/status`)
                 .set("Authorization", "Bearer admin-token")
                 .set("X-Admin", "true")
                 .send({ status: "verified_fake" });
@@ -705,7 +708,7 @@ describe("Reports API Routes", () => {
                 .mockResolvedValueOnce({ data: updatedReport, error: null });
 
             const response = await request(app)
-                .patch("/api/reports/report-id-123/status")
+                .patch(`/api/reports/${REPORT_UUID}/status`)
                 .set("Authorization", "Bearer admin-token")
                 .set("X-Admin", "true")
                 .send({ status: "verified_fake" });
@@ -720,11 +723,11 @@ describe("Reports API Routes", () => {
             for (const status of validStatuses) {
                 mockedSupabase.single = jest
                     .fn()
-                    .mockResolvedValueOnce({ data: { id: "report-id" }, error: null })
-                    .mockResolvedValueOnce({ data: { id: "report-id", status }, error: null });
+                    .mockResolvedValueOnce({ data: { id: REPORT_UUID }, error: null })
+                    .mockResolvedValueOnce({ data: { id: REPORT_UUID, status }, error: null });
 
                 const response = await request(app)
-                    .patch(`/api/reports/report-id-${status}/status`)
+                    .patch(`/api/reports/${REPORT_UUID}/status`)
                     .set("Authorization", "Bearer admin-token")
                     .set("X-Admin", "true")
                     .send({ status });
@@ -811,7 +814,7 @@ describe("Reports API Routes", () => {
             });
 
             const response = await request(app)
-                .patch("/api/reports/report-id-123/status")
+                .patch(`/api/reports/${REPORT_UUID}/status`)
                 .set("Authorization", "Bearer admin-token")
                 .set("X-Admin", "true")
                 .send({ status: "verified_fake" });
@@ -821,6 +824,111 @@ describe("Reports API Routes", () => {
             expect(response.status).toBe(200);
             expect(upsertPayload).not.toBeNull();
             expect(upsertPayload).toHaveProperty("broadcasted", false);
+        });
+
+        it("escalated reports that are approved as verified_fake increment the district's verified counterfeit count", async () => {
+            const updatedReport = {
+                id: "report-id-123",
+                district: "Delhi",
+                reported_brand_name: "Fake Medicine",
+                status: "verified_fake",
+                is_escalated: false, // Updated state
+                created_at: "2026-06-01T00:00:00Z",
+            };
+
+            let updatePayload: Record<string, unknown> | null = null;
+            let countQueryExecuted = false;
+            const originalFrom = mockedSupabase.from;
+
+            (mockedSupabase.from as jest.Mock) = jest.fn().mockImplementation((table: string) => {
+                if (table === "counterfeit_reports") {
+                    return {
+                        select: jest.fn().mockImplementation((_cols?: string, opts?: any) => {
+                            if (opts && opts.head) {
+                                return {
+                                    eq: jest.fn().mockReturnValue({
+                                        eq: jest.fn().mockReturnValue({
+                                            eq: jest.fn().mockImplementation((col, val) => {
+                                                if (col === "is_escalated" && val === false) {
+                                                    countQueryExecuted = true;
+                                                    return Promise.resolve({
+                                                        count: 5,
+                                                        error: null,
+                                                    });
+                                                }
+                                                return Promise.resolve({ count: 5, error: null });
+                                            }),
+                                        }),
+                                    }),
+                                };
+                            }
+                            return {
+                                eq: jest.fn().mockReturnValue({
+                                    single: jest.fn().mockResolvedValue({
+                                        data: {
+                                            id: "report-id-123",
+                                            is_escalated: true,
+                                            district: "Delhi",
+                                            reported_brand_name: "Fake Medicine",
+                                        },
+                                        error: null,
+                                    }),
+                                }),
+                            };
+                        }),
+                        update: jest.fn().mockImplementation((payload) => {
+                            updatePayload = payload;
+                            return {
+                                eq: jest.fn().mockReturnValue({
+                                    select: jest.fn().mockReturnValue({
+                                        single: jest.fn().mockResolvedValue({
+                                            data: updatedReport,
+                                            error: null,
+                                        }),
+                                    }),
+                                }),
+                            };
+                        }),
+                    };
+                }
+                if (table === "district_alerts") {
+                    return {
+                        select: jest.fn().mockReturnValue({
+                            eq: jest.fn().mockReturnValue({
+                                eq: jest.fn().mockReturnValue({
+                                    maybeSingle: jest.fn().mockResolvedValue({
+                                        data: { alert_level: "low" },
+                                        error: null,
+                                    }),
+                                }),
+                            }),
+                        }),
+                        upsert: jest.fn().mockImplementation((payload: Record<string, unknown>) => {
+                            return {
+                                select: jest.fn().mockReturnValue({
+                                    single: jest.fn().mockResolvedValue({
+                                        data: payload,
+                                        error: null,
+                                    }),
+                                }),
+                            };
+                        }),
+                    };
+                }
+                return {};
+            });
+
+            const response = await request(app)
+                .patch(`/api/reports/${REPORT_UUID}/status`)
+                .set("Authorization", "Bearer admin-token")
+                .set("X-Admin", "true")
+                .send({ status: "verified_fake" });
+
+            mockedSupabase.from = originalFrom;
+
+            expect(response.status).toBe(200);
+            expect(updatePayload).toHaveProperty("is_escalated", false);
+            expect(countQueryExecuted).toBe(true);
         });
     });
 });

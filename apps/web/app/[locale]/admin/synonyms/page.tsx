@@ -5,7 +5,8 @@ import { useTranslations } from "next-intl";
 import { createBrowserClient } from "@supabase/ssr";
 import { ADMIN_API_BASE } from "@/lib/adminApi";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
-import { Loader2, RefreshCw, Trash2, Plus, AlertCircle, FileText } from "lucide-react";
+import { Loader2, RefreshCw, Trash2, Plus, AlertCircle, FileText, Upload } from "lucide-react";
+import { toast } from "sonner";
 import Card from "@/components/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 
@@ -33,6 +34,7 @@ export default function AdminSynonymsPage() {
     const [originalTerm, setOriginalTerm] = useState("");
     const [normalizedTerm, setNormalizedTerm] = useState("");
     const [type, setType] = useState<"misread" | "synonym">("synonym");
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     const supabase = useMemo(() => createBrowserClient(getSupabaseUrl(), getSupabaseAnonKey()), []);
 
@@ -118,6 +120,69 @@ export default function AdminSynonymsPage() {
         fetchSynonyms();
     }, []);
 
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setActionLoading("upload");
+        setError(null);
+
+        try {
+            const text = await file.text();
+            const lines = text
+                .split("\n")
+                .map((l) => l.trim())
+                .filter(Boolean);
+            if (lines.length < 2) throw new Error(t("invalidCsv"));
+
+            const headerLine = lines[0].toLowerCase();
+            if (
+                !headerLine.includes("original_term") ||
+                !headerLine.includes("normalized_term") ||
+                !headerLine.includes("type")
+            ) {
+                throw new Error(t("invalidCsv"));
+            }
+
+            const payload = [];
+            for (let i = 1; i < lines.length; i++) {
+                const cols = lines[i].split(",").map((c) => c.trim().replace(/^"|"$/g, ""));
+                if (cols.length >= 3) {
+                    payload.push({
+                        original_term: cols[0],
+                        normalized_term: cols[1],
+                        type: cols[2] === "misread" ? "misread" : "synonym",
+                    });
+                }
+            }
+
+            if (payload.length === 0) throw new Error(t("invalidCsv"));
+
+            const res = await fetch(`${ADMIN_API_BASE}/synonyms/bulk`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${getToken()}`,
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || t("uploadError"));
+
+            if (fileInputRef.current) fileInputRef.current.value = "";
+
+            await fetchSynonyms();
+            await invalidateCache();
+            toast.success(t("uploadSuccess", { count: payload.length }));
+        } catch (err: any) {
+            setError(err.message || t("uploadError"));
+            if (fileInputRef.current) fileInputRef.current.value = "";
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -125,14 +190,35 @@ export default function AdminSynonymsPage() {
                     <h1 className="text-3xl font-bold text-(--color-text-primary)">{t("title")}</h1>
                     <p className="mt-1 text-sm text-(--color-text-secondary)">{t("subtitle")}</p>
                 </div>
-                <button
-                    onClick={fetchSynonyms}
-                    disabled={loading}
-                    className="flex items-center gap-2 rounded-lg border border-(--color-border-muted) bg-(--color-surface-page) px-3 py-2 text-sm text-(--color-text-secondary) transition hover:bg-(--color-surface-muted) disabled:opacity-50"
-                >
-                    <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-                    {t("refresh")}
-                </button>
+                <div className="flex items-center gap-3">
+                    <input
+                        type="file"
+                        accept=".csv"
+                        className="hidden"
+                        ref={fileInputRef}
+                        onChange={handleFileUpload}
+                    />
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={actionLoading === "upload"}
+                        className="flex items-center gap-2 rounded-lg border border-(--color-border-muted) bg-(--color-surface-page) px-3 py-2 text-sm text-(--color-text-secondary) transition hover:bg-(--color-surface-muted) disabled:opacity-50"
+                    >
+                        {actionLoading === "upload" ? (
+                            <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                            <Upload size={16} />
+                        )}
+                        {t("uploadCsv")}
+                    </button>
+                    <button
+                        onClick={fetchSynonyms}
+                        disabled={loading}
+                        className="flex items-center gap-2 rounded-lg border border-(--color-border-muted) bg-(--color-surface-page) px-3 py-2 text-sm text-(--color-text-secondary) transition hover:bg-(--color-surface-muted) disabled:opacity-50"
+                    >
+                        <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+                        {t("refresh")}
+                    </button>
+                </div>
             </div>
 
             {error && (

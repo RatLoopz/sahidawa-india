@@ -30,15 +30,13 @@ describe("ComparisonGrid", () => {
     };
 
     it("renders empty state when no medicines are selected", () => {
-        const markup = renderToStaticMarkup(<ComparisonGrid medicine1={null} medicine2={null} />);
+        const markup = renderToStaticMarkup(<ComparisonGrid medicines={[null, null]} />);
 
         expect(markup).toContain("Select two medicines above to see the comparison.");
     });
 
     it("renders medicine names in table headers", () => {
-        const markup = renderToStaticMarkup(
-            <ComparisonGrid medicine1={medicineA} medicine2={medicineB} />
-        );
+        const markup = renderToStaticMarkup(<ComparisonGrid medicines={[medicineA, medicineB]} />);
 
         expect(markup).toContain("Crocin");
         expect(markup).toContain("Dolo");
@@ -50,26 +48,20 @@ describe("ComparisonGrid", () => {
             brand_name: null,
         };
 
-        const markup = renderToStaticMarkup(
-            <ComparisonGrid medicine1={genericMedicine} medicine2={null} />
-        );
+        const markup = renderToStaticMarkup(<ComparisonGrid medicines={[genericMedicine, null]} />);
 
         expect(markup).toContain("Paracetamol");
     });
 
     it("formats prices correctly", () => {
-        const markup = renderToStaticMarkup(
-            <ComparisonGrid medicine1={medicineA} medicine2={medicineB} />
-        );
+        const markup = renderToStaticMarkup(<ComparisonGrid medicines={[medicineA, medicineB]} />);
 
         expect(markup).toContain("₹100.00");
         expect(markup).toContain("₹25.00");
     });
 
     it("shows savings amount and percentage", () => {
-        const markup = renderToStaticMarkup(
-            <ComparisonGrid medicine1={medicineA} medicine2={medicineB} />
-        );
+        const markup = renderToStaticMarkup(<ComparisonGrid medicines={[medicineA, medicineB]} />);
 
         expect(markup).toContain("Save ₹75.00 (75.0%)");
     });
@@ -81,26 +73,20 @@ describe("ComparisonGrid", () => {
             jan_aushadhi_price: 50,
         };
 
-        const markup = renderToStaticMarkup(
-            <ComparisonGrid medicine1={medicine} medicine2={null} />
-        );
+        const markup = renderToStaticMarkup(<ComparisonGrid medicines={[medicine, null]} />);
 
         expect(markup).toContain("No savings");
     });
 
     it("formats CDSCO status labels", () => {
-        const markup = renderToStaticMarkup(
-            <ComparisonGrid medicine1={medicineA} medicine2={medicineB} />
-        );
+        const markup = renderToStaticMarkup(<ComparisonGrid medicines={[medicineA, medicineB]} />);
 
         expect(markup).toContain("Approved");
         expect(markup).toContain("Recalled");
     });
 
     it("shows a safety alert banner when a medicine is recalled", () => {
-        const markup = renderToStaticMarkup(
-            <ComparisonGrid medicine1={medicineA} medicine2={medicineB} />
-        );
+        const markup = renderToStaticMarkup(<ComparisonGrid medicines={[medicineA, medicineB]} />);
 
         expect(markup).toContain('role="alert"');
         expect(markup).toContain("Safety alert");
@@ -113,9 +99,7 @@ describe("ComparisonGrid", () => {
             cdsco_approval_status: "banned",
         };
 
-        const markup = renderToStaticMarkup(
-            <ComparisonGrid medicine1={bannedMedicine} medicine2={null} />
-        );
+        const markup = renderToStaticMarkup(<ComparisonGrid medicines={[bannedMedicine, null]} />);
 
         expect(markup).toContain('role="alert"');
         expect(markup).toContain("Crocin has been flagged as");
@@ -128,7 +112,7 @@ describe("ComparisonGrid", () => {
         };
 
         const markup = renderToStaticMarkup(
-            <ComparisonGrid medicine1={medicineA} medicine2={approvedMedicine} />
+            <ComparisonGrid medicines={[medicineA, approvedMedicine]} />
         );
 
         expect(markup).not.toContain("Safety alert");
@@ -141,10 +125,24 @@ describe("ComparisonGrid", () => {
             jan_aushadhi_price: null,
         };
 
-        const markup = renderToStaticMarkup(
-            <ComparisonGrid medicine1={medicine} medicine2={null} />
-        );
+        const markup = renderToStaticMarkup(<ComparisonGrid medicines={[medicine, null]} />);
 
         expect(markup).toContain("Price unavailable");
+    });
+
+    it("renders more than two medicines", () => {
+        const medicineC = {
+            ...medicineA,
+            id: "3",
+            brand_name: "Calpol",
+        };
+
+        const markup = renderToStaticMarkup(
+            <ComparisonGrid medicines={[medicineA, medicineB, medicineC]} />
+        );
+
+        expect(markup).toContain("Crocin");
+        expect(markup).toContain("Dolo");
+        expect(markup).toContain("Calpol");
     });
 });

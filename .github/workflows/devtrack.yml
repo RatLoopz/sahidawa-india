@@ -30,7 +30,7 @@ jobs:
     steps:
       # ── 1. Checkout ───────────────────────────────────────────────────────────
       - name: "⬇️ Checkout full history"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.base.ref }}
           fetch-depth: 0
@@ -38,9 +38,9 @@ jobs:
 
       # ── 2. Setup Node.js ──────────────────────────────────────────────────────
       - name: "⚙️ Setup Node.js 24"
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
 
       # ── 3. Extract PR metadata ────────────────────────────────────────────────
       - name: "🔍 Extract PR metadata"
@@ -234,6 +234,10 @@ jobs:
             const treeItems = [];
             for (const { rel, full } of filesToCommit) {
               const content = fs.readFileSync(full, "utf8");
+              
+              // Add a 1s delay to prevent triggering GitHub's secondary rate limits on API mutations
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              
               const { data: blob } = await github.rest.git.createBlob({
                 owner, repo, content, encoding: "utf-8"
               });

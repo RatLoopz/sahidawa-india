@@ -52,46 +52,46 @@ jest.mock("@/i18n/routing", () => ({
     ),
 }));
 
+const mockMessages: Record<string, string> = {
+    "actions.addMedicine": "Add Medicine",
+    "actions.falseAlarm": "False alarm",
+    "actions.markFake": "Mark fake",
+    "actions.refresh": "Refresh",
+    "actions.signIn": "Sign In",
+    "header.subtitle": "Manage community-reported counterfeit medicines",
+    "header.title": "Moderation Dashboard",
+    "medicine.columns.barcode": "Barcode",
+    "medicine.columns.brand": "Brand",
+    "medicine.columns.generic": "Generic",
+    "medicine.columns.manufacturer": "Manufacturer",
+    "medicine.columns.status": "Status",
+    "medicine.empty": "No medicines found",
+    "medicine.title": "Medicine Master",
+    "nav.logs": "Audit Logs",
+    "nav.medicine": "Medicine Master",
+    "nav.reports": "Reports",
+    "reports.columns.actions": "Actions",
+    "reports.columns.barcode": "Barcode",
+    "reports.columns.district": "District",
+    "reports.columns.medicine": "Medicine",
+    "reports.columns.reported": "Reported",
+    "reports.empty": "No pending reports",
+    "reports.loading": "Loading reports...",
+    "reports.title": "Incoming Reports",
+    searchPlaceholder: "Search...",
+};
+
+const mockTranslate = (key: string, values?: Record<string, unknown>) => {
+    if (key === "reports.pendingCount") {
+        return `${String(values?.count ?? 0)} pending reports`;
+    }
+
+    return mockMessages[key] ?? key;
+};
+
 jest.mock("next-intl", () => ({
     useLocale: () => "en",
-    useTranslations: () => {
-        const messages: Record<string, string> = {
-            "actions.addMedicine": "Add Medicine",
-            "actions.falseAlarm": "False alarm",
-            "actions.markFake": "Mark fake",
-            "actions.refresh": "Refresh",
-            "actions.signIn": "Sign In",
-            "header.subtitle": "Manage community-reported counterfeit medicines",
-            "header.title": "Moderation Dashboard",
-            "medicine.columns.barcode": "Barcode",
-            "medicine.columns.brand": "Brand",
-            "medicine.columns.generic": "Generic",
-            "medicine.columns.manufacturer": "Manufacturer",
-            "medicine.columns.status": "Status",
-            "medicine.empty": "No medicines found",
-            "medicine.title": "Medicine Master",
-            "nav.logs": "Audit Logs",
-            "nav.medicine": "Medicine Master",
-            "nav.reports": "Reports",
-            "reports.columns.actions": "Actions",
-            "reports.columns.barcode": "Barcode",
-            "reports.columns.district": "District",
-            "reports.columns.medicine": "Medicine",
-            "reports.columns.reported": "Reported",
-            "reports.empty": "No pending reports",
-            "reports.loading": "Loading reports...",
-            "reports.title": "Incoming Reports",
-            searchPlaceholder: "Search...",
-        };
-
-        return (key: string, values?: Record<string, unknown>) => {
-            if (key === "reports.pendingCount") {
-                return `${String(values?.count ?? 0)} pending reports`;
-            }
-
-            return messages[key] ?? key;
-        };
-    },
+    useTranslations: () => mockTranslate,
 }));
 
 jest.mock("@tanstack/react-virtual", () => ({

@@ -72,11 +72,19 @@ describe("PharmacyPanels", () => {
             pharmacies: [],
             isLoading: false,
             selectedPharmacyId: null,
+            emptyStateTitle: "No pharmacies found nearby",
+            emptyStateDescription:
+                "Try widening the search area or using your current location to find nearby verified stores.",
+            emptyStateActionLabel: "Use my location",
+            onEmptyStateAction: () => undefined,
         });
 
         expect(markup).toContain("Nearby Pharmacies");
-        expect(markup).toContain("No pharmacies found");
-        expect(markup).toContain("Search this area");
+        expect(markup).toContain("No pharmacies found nearby");
+        expect(markup).toContain(
+            "Try widening the search area or using your current location to find nearby verified stores."
+        );
+        expect(markup).toContain("Use my location");
     });
 
     it("renders the loading state when pharmacies are still being fetched", () => {

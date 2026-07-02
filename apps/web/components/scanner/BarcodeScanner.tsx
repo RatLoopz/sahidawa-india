@@ -23,6 +23,42 @@ function stopMediaStream(stream: MediaStream | null): void {
 
 const SCANNER_INACTIVITY_TIMEOUT = 45000;
 
+function playFeedback(): void {
+    // 1. Haptic Feedback
+    try {
+        if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+            navigator.vibrate([100, 50, 100]);
+        }
+    } catch {
+        // Silently ignore vibration errors
+    }
+
+    // 2. Audio Beep
+    try {
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioContextClass) {
+            const ctx = new AudioContextClass();
+            const oscillator = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+
+            oscillator.type = "sine";
+            oscillator.frequency.setValueAtTime(880, ctx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1);
+
+            gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+
+            oscillator.connect(gainNode);
+            gainNode.connect(ctx.destination);
+
+            oscillator.start();
+            oscillator.stop(ctx.currentTime + 0.1);
+        }
+    } catch {
+        // Silently ignore audio playback errors
+    }
+}
+
 export function BarcodeScanner({
     onScan,
     debounceMs = 2000,
@@ -163,6 +199,7 @@ export function BarcodeScanner({
                             const text = result.getText().trim();
                             if (shouldEmitScan(text)) {
                                 resetInactivityTimer();
+                                playFeedback();
                                 onScan(text);
                             }
                         }

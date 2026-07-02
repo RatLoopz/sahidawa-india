@@ -1,4 +1,5 @@
 import express, { Router } from "express";
+import { randomInt } from "node:crypto";
 import { z } from "zod";
 import { requireAuth, requireRole, optionalAuth, AuthenticatedRequest } from "../middleware/auth";
 import { notificationRegisterLimiter } from "../middleware/rateLimit";
@@ -263,7 +264,7 @@ router.post(
                 req.user.raw?.user_metadata?.phone === formattedPhone);
 
         const targetStatus = isOwner ? "active" : "pending";
-        const otp = isOwner ? null : Math.floor(100000 + Math.random() * 900000).toString();
+        const otp = isOwner ? null : randomInt(100000, 1000000).toString();
         const otpExpires = isOwner ? null : new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
         try {

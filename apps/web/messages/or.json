@@ -660,6 +660,75 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
+    "howItWorks": {
+        "badge": "Safe Healthcare � AI Powered",
+        "heroTitle": "How <highlight>SahiDawa</highlight> Works",
+        "heroSubtitle": "Learn how SahiDawa helps users verify medicines, discover trusted pharmacies, receive official alerts, and stay protected from counterfeit drugs using AI-powered healthcare tools.",
+        "ctaButtons": {
+            "scan": "Start Scanning",
+            "map": "Explore Pharmacy Map"
+        },
+        "steps": {
+            "scan": {
+                "title": "Scan Medicine",
+                "description": "Point your device camera at the barcode or QR code on any medicine packaging."
+            },
+            "verify": {
+                "title": "Verify Instantly",
+                "description": "AI cross-references scanned details with CDSCO records to check authenticity."
+            },
+            "alerts": {
+                "title": "Check Alerts",
+                "description": "Get real-time safety alerts if the batch is recalled, banned, or substandard."
+            },
+            "pharmacies": {
+                "title": "Find Pharmacies",
+                "description": "Locate Jan Aushadhi stores and verified nearby pharmacies stocking real medicines."
+            },
+            "protect": {
+                "title": "Stay Protected",
+                "description": "Keep records of your scans, report fakes, and safeguard your family's health."
+            }
+        },
+        "features": {
+            "title": "Platform Features",
+            "subtitle": "Everything you need for safer healthcare decisions.",
+            "cards": {
+                "verifyMedicines": {
+                    "title": "Verify Medicines",
+                    "description": "Instantly verify medicine authenticity using barcode, batch number, or medicine details."
+                },
+                "scanOrSearch": {
+                    "title": "Scan or Search",
+                    "description": "Scan packaging or manually search medicines for trusted healthcare information."
+                },
+                "aiAssistant": {
+                    "title": "AI Health Assistant",
+                    "description": "Get AI-powered guidance for symptoms, side effects, precautions, and medicine usage."
+                },
+                "trustedPharmacies": {
+                    "title": "Trusted Pharmacies",
+                    "description": "Find verified pharmacies nearby with reliable medicine availability and ratings."
+                },
+                "cdscoAlerts": {
+                    "title": "CDSCO Alerts",
+                    "description": "Stay updated with official CDSCO medicine recalls, warnings, and health alerts."
+                },
+                "reportMedicines": {
+                    "title": "Report Suspicious Medicines",
+                    "description": "Help the community by reporting counterfeit or suspicious medicines instantly."
+                }
+            }
+        },
+        "ctaBanner": {
+            "title": "Safer Healthcare Starts Here",
+            "subtitle": "Verify medicines, access trusted healthcare information, and stay protected from counterfeit drugs with AI-powered assistance.",
+            "buttons": {
+                "scan": "Scan Medicine",
+                "alerts": "View Alerts"
+            }
+        }
+    },
     "medicineSafety": {
         "guideTitle": "ବ୍ୟବହାର ଓ ସୁରକ୍ଷା ମାର୍ଗଦର୍ଶିକା",
         "noDosageInfo": "ଏହି ବୟସ ଗୋଷ୍ଠୀ ପାଇଁ ଡୋଜ୍ ସୂଚନା ଉପଲବ୍ଧ ନାହିଁ।",
@@ -813,5 +882,75 @@
             "confirmPasswordRequired": "Please confirm your password.",
             "passwordMismatch": "Passwords do not match."
         }
+    },
+    "MyMedicines": {
+        "page": {
+            "title": "ମୋର ଟ୍ରାକ୍ କରାଯାଇଥିବା ଔଷଧ",
+            "loading": "ଆପଣଙ୍କ ଟ୍ରାକ୍ କରାଯାଇଥିବା ଔଷଧ ଲୋଡ୍ ହେଉଛି..."
+        },
+        "errors": {
+            "title": "ଆପଣଙ୍କ ଔଷଧ ଲୋଡ୍ କରାଯାଇପାରିଲା ନାହିଁ",
+            "generic": "ଆପଣଙ୍କ ଟ୍ରାକ୍ କରାଯାଇଥିବା ଔଷଧ ଆଣିବା ସମୟରେ କିଛି ଭୁଲ ହେଲା।",
+            "fetchFailed": "ଟ୍ରାକ୍ କରାଯାଇଥିବା ଔଷଧ ଲୋଡ୍ କରିବାରେ ବିଫଳ। ଦୟାକରି ଆପଣଙ୍କ ସଂଯୋଗ ଯାଞ୍ଚ କରନ୍ତୁ ଏବଂ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।",
+            "tryAgain": "ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ"
+        },
+        "emptyState": {
+            "title": "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ଔଷଧ ଟ୍ରାକ୍ କରାଯାଇନାହିଁ",
+            "description": "ସକ୍ରିୟ ସୂଚୀ, ସୁରକ୍ଷା ଅପଡେଟ୍ ଏବଂ ମିଆଦ ଉତ୍ତୀର୍ଣ୍ଣ ସମୟକୁ ସ୍ୱୟଂଚାଳିତ ଭାବରେ ଟ୍ରାକ୍ କରିବାକୁ ଆପଣଙ୍କ ବର୍ତ୍ତମାନର ଔଷଧ ଯୋଡନ୍ତୁ।",
+            "addFirst": "ଆପଣଙ୍କ ପ୍ରଥମ ଔଷଧ ଯୋଡନ୍ତୁ"
+        },
+        "table": {
+            "name": "ନାମ",
+            "expiry": "ମିଆଦ",
+            "status": "ସ୍ଥିତି",
+            "daysLeft": "{count} ଦିନ ବାକି"
+        },
+        "badges": {
+            "verified": "ଯାଞ୍ଚିତ",
+            "unverified": "ଅଯାଞ୍ଚିତ",
+            "requestVerificationTitle": "ଯାଞ୍ଚ ଅନୁରୋଧ କରିବାକୁ କ୍ଲିକ୍ କରନ୍ତୁ"
+        },
+        "bookmarks": {
+            "savedAlternatives": "ସାଇତି ରଖାଯାଇଥିବା ବିକଳ୍ପ",
+            "noBookmarks": "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ବୁକମାର୍କ ନାହିଁ।",
+            "brand": "ବ୍ରାଣ୍ଡ: {brand}"
+        },
+        "removeDialog": {
+            "title": "ବୁକମାର୍କ ହଟାଇବେ?",
+            "description": "ଏହା \"{name}\" କୁ ଆପଣଙ୍କ ସାଇତି ରଖାଯାଇଥିବା ବିକଳ୍ପରୁ ହଟାଇଦେବ। ଆବଶ୍ୟକ ହେଲେ ଆପଣ ଏହାକୁ ପରେ ପୁଣି ଯୋଡିପାରିବେ।",
+            "confirm": "ହଟାନ୍ତୁ",
+            "cancel": "ବାତିଲ୍ କରନ୍ତୁ"
+        }
+    },
+    "NotFound": {
+        "badge": "404 ତ୍ରୁଟି",
+        "title": "ପୃଷ୍ଠା ମିଳିଲା ନାହିଁ",
+        "description": "ଆପଣ ଖୋଜୁଥିବା ପୃଷ୍ଠାଟି ନାହିଁ କିମ୍ବା ଘୁଞ୍ଚାଯାଇଥାଇପାରେ।",
+        "backHome": "ହୋମ୍ କୁ ଫେରିଯାଆନ୍ତୁ",
+        "scanMedicine": "ଔଷଧ ସ୍କାନ କରନ୍ତୁ"
+    },
+    "Settings": {
+        "channelRequired": "Kam se kam gotie jogajog madhyam (SMS kimba WhatsApp) sakriya heba abasyak.",
+        "optOutConfirm": "Apana nischita ki opt out kari samasta SMS ebam WhatsApp satarkata band karibaku chahanti?",
+        "loadingPreferences": "Apananka pasandagudika load heuchhi...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
+    },
+    "AbhaRecords": {
+        "backToProfile": "ପ୍ରୋଫାଇଲ୍‌କୁ ଫେରନ୍ତୁ",
+        "title": "ABHA ରେକର୍ଡ",
+        "loading": "ରେକର୍ଡ ଲୋଡ୍ ହେଉଛି...",
+        "noPrescriptions": "କୌଣସି ପ୍ରେସକ୍ରିପସନ୍ ମିଳିଲା ନାହିଁ।",
+        "failedToLoad": "ରେକର୍ଡ ଲୋଡ୍ କରିବାରେ ବିଫଳ"
     }
 }

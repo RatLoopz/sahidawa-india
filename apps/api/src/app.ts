@@ -16,6 +16,7 @@ import medicineSchedulesRouter from "./routes/medicineSchedules";
 import abhaRoutes from "./routes/abha";
 import trackingRouter from "./routes/tracking";
 import { initExpiryCron } from "./cron/expiry-check";
+import { initDistrictAlertSyncCron } from "./cron/districtAlertSync";
 // ── Environment Configuration ──────────────────────────────────────────────
 const rootEnvPath = path.resolve(__dirname, "../../../.env");
 dotenv.config({ path: rootEnvPath });
@@ -85,6 +86,7 @@ app.use(httpsRedirect);
 
 app.use(compression());
 initExpiryCron();
+initDistrictAlertSyncCron();
 // ── Global Middleware Configuration ───────────────────────────────────────
 app.use(cookieParser());
 
@@ -120,9 +122,13 @@ const { doubleCsrfProtection, generateCsrfToken: generateToken } = doubleCsrf({
 });
 
 // Skip CSRF in test and development environments to support cross-port local testing
-if (process.env.NODE_ENV !== "test" && process.env.NODE_ENV !== "development") {
-    app.use(doubleCsrfProtection);
-}
+const isTestOrDev = process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development";
+app.use((req: Request, res: Response, next: NextFunction) => {
+    if (isTestOrDev) {
+        return next();
+    }
+    doubleCsrfProtection(req, res, next);
+});
 
 // ── CSRF token endpoint — frontend fetches this once on load ───────────────
 app.get("/api/csrf-token", (req: Request, res: Response) => {

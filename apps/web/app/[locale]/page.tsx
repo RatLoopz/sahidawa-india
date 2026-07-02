@@ -81,7 +81,7 @@ const testimonials = [
 export default function SahiDawaHome() {
     const router = useRouter();
     const params = useParams();
-    const locale = Array.isArray(params.locale) ? params.locale[0] : params.locale;
+    const locale = Array.isArray(params.locale) ? params.locale[0] : (params.locale ?? "en");
     const tHome = useTranslations("Home");
     const tContact = useTranslations("contact");
 
@@ -652,7 +652,7 @@ export default function SahiDawaHome() {
                                                             <span className="shrink-0 text-[11px] font-medium text-(--color-text-muted)">
                                                                 {formatRelativeTime(
                                                                     alert.created_at,
-                                                                    locale
+                                                                    locale || "en"
                                                                 )}
                                                             </span>
                                                         </div>

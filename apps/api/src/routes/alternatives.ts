@@ -66,9 +66,12 @@ function extractCoordinates(p: StoreLocation): { lat: number; lng: number } {
 router.get("/:medicine_id", barcodeLimiter, async (req: Request, res: Response): Promise<void> => {
     try {
         const medicine_id = req.params.medicine_id as string;
-        const cacheKey = `alt_cache:${medicine_id.toLowerCase()}`;
         const lat = req.query.lat ? parseFloat(req.query.lat as string) : undefined;
         const lng = req.query.lng ? parseFloat(req.query.lng as string) : undefined;
+        const cacheKey =
+            lat !== undefined && lng !== undefined
+                ? `alt_cache:${medicine_id.toLowerCase()}:${lat.toFixed(3)}:${lng.toFixed(3)}`
+                : `alt_cache:${medicine_id.toLowerCase()}`;
 
         if (lat !== undefined && lng !== undefined) {
             if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {

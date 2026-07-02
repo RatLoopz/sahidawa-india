@@ -10,6 +10,7 @@ import crypto from "crypto";
 
 import { trimHistoryByTokens } from "@/lib/chatUtils";
 import { redis } from "@/lib/redis";
+import { getMlServiceUrl } from "@/lib/mlService";
 
 const ML_TRIAGE_TIMEOUT_MS = 30_000;
 
@@ -129,6 +130,38 @@ const VOICE_TRIAGE_SCHEMA = {
     propertyOrdering: ["summary", "recommendations", "disclaimer", "emergency"],
 };
 
+interface ErrorWithStatus {
+    status: number;
+}
+
+function isErrorWithStatus(error: unknown): error is ErrorWithStatus {
+    return (
+        typeof error === "object" &&
+        error !== null &&
+        "status" in error &&
+        typeof (error as { status: unknown }).status === "number"
+    );
+}
+
+async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
+    const maxRetries = 3;
+    let attempt = 0;
+    while (true) {
+        try {
+            return await fn();
+        } catch (error: unknown) {
+            const status = isErrorWithStatus(error) ? error.status : undefined;
+            if ((status === 429 || status === 503) && attempt < maxRetries) {
+                const delay = Math.pow(2, attempt) * 1000;
+                await new Promise((resolve) => setTimeout(resolve, delay));
+                attempt++;
+                continue;
+            }
+            throw error;
+        }
+    }
+}
+
 function buildVoiceTriagePrompt(transcript: string, responseLanguage: string) {
     return [
         `Citizen transcript: ${JSON.stringify(transcript)}`,
@@ -220,7 +253,7 @@ export async function POST(req: Request) {
             let emergencyFromML = false;
 
             try {
-                const mlServiceUrl = process.env.ML_SERVICE_URL?.trim()?.replace(/\/+$/, "");
+                const mlServiceUrl = getMlServiceUrl();
 
                 if (!mlServiceUrl) {
                     structuredLog({
@@ -242,7 +275,7 @@ export async function POST(req: Request) {
                     );
                 }
 
-                const formattedMessages = trimmedMessages.map((m: any) => ({
+                const formattedMessages = trimmedMessages.map((m: ChatMessage) => ({
                     role:
                         m.role === ChatRoles.ASSISTANT || m.role === ChatRoles.MODEL
                             ? ChatRoles.ASSISTANT
@@ -297,8 +330,10 @@ export async function POST(req: Request) {
                         responseLanguage,
                     },
                 });
-            } catch (mlError: any) {
+            } catch (mlError: unknown) {
                 const isTimeout = mlError instanceof Error && mlError.name === "AbortError";
+                const mlErrorStack = mlError instanceof Error ? mlError.stack : undefined;
+                const mlErrorMessage = mlError instanceof Error ? mlError.message : String(mlError);
                 structuredLog({
                     log_level: isTimeout ? "error" : "warn",
                     route: ROUTE,
@@ -307,35 +342,38 @@ export async function POST(req: Request) {
                         ? {
                               message: "ML triage service timed out",
                               code: 504,
-                              stack: mlError.stack,
+                              stack: mlErrorStack,
                           }
                         : undefined,
                     meta: {
                         reason: isTimeout
                             ? "ml_service_triage_timeout"
                             : "ml_service_triage_failed",
-                        error: mlError.message,
+                        error: mlErrorMessage,
                         fallback: "direct_gemini",
                         ...(isTimeout ? { timeoutMs: ML_TRIAGE_TIMEOUT_MS } : {}),
                     },
                 });
 
                 // Fallback direct Gemini call
-                const response = await ai.models.generateContent({
-                    model: "gemini-3.5-flash",
-                    contents: buildVoiceTriagePrompt(
-                        latestMessageText,
-                        typeof responseLanguage === "string" && responseLanguage.trim().length > 0
-                            ? responseLanguage.trim()
-                            : "English"
-                    ),
-                    config: {
-                        systemInstruction:
-                            "You are the SahiDawa voice triage assistant for India. Help users understand possible next steps based on symptoms, but never claim certainty or replace medical professionals. Be calm, concise, practical, and safety-first.",
-                        responseMimeType: "application/json",
-                        responseSchema: VOICE_TRIAGE_SCHEMA,
-                    },
-                });
+                const response = await withRetry(() =>
+                    ai.models.generateContent({
+                        model: "gemini-3.5-flash",
+                        contents: buildVoiceTriagePrompt(
+                            latestMessageText,
+                            typeof responseLanguage === "string" &&
+                                responseLanguage.trim().length > 0
+                                ? responseLanguage.trim()
+                                : "English"
+                        ),
+                        config: {
+                            systemInstruction:
+                                "You are the SahiDawa voice triage assistant for India. Help users understand possible next steps based on symptoms, but never claim certainty or replace medical professionals. Be calm, concise, practical, and safety-first.",
+                            responseMimeType: "application/json",
+                            responseSchema: VOICE_TRIAGE_SCHEMA,
+                        },
+                    })
+                );
 
                 parsedResponse = parseVoiceTriageResponse(response.text ?? "");
                 emergencyFromML = parsedResponse.emergency;
@@ -371,10 +409,12 @@ export async function POST(req: Request) {
 
                 if (!summary) {
                     const summaryPrompt = `Summarize the following conversation history briefly to retain key context for the ongoing chat. Keep it concise.\n\n${droppedText}`;
-                    const summaryResponse = await ai.models.generateContent({
-                        model: "gemini-3.5-flash",
-                        contents: summaryPrompt,
-                    });
+                    const summaryResponse = await withRetry(() =>
+                        ai.models.generateContent({
+                            model: "gemini-3.5-flash",
+                            contents: summaryPrompt,
+                        })
+                    );
 
                     summary = summaryResponse.text || "";
                     if (summary) {
@@ -460,13 +500,15 @@ export async function POST(req: Request) {
         const language = localeMap[finalLocale as keyof typeof localeMap] || "English";
         const systemPrompt = BASE_PROMPT.replace("{language}", language);
 
-        const responseStream = (await ai.models.generateContentStream({
-            model: "gemini-3.5-flash",
-            contents: formattedContents,
-            config: {
-                systemInstruction: systemPrompt,
-            },
-        })) as AsyncIterable<TextStreamChunk>;
+        const responseStream = (await withRetry(() =>
+            ai.models.generateContentStream({
+                model: "gemini-3.5-flash",
+                contents: formattedContents,
+                config: {
+                    systemInstruction: systemPrompt,
+                },
+            })
+        )) as AsyncIterable<TextStreamChunk>;
         const responseIterator = responseStream[Symbol.asyncIterator]();
         const firstStreamResult = await responseIterator.next();
 
@@ -535,9 +577,9 @@ export async function POST(req: Request) {
                 "Cache-Control": "no-cache, no-transform",
             },
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         const latency_ms = Date.now() - startTime;
-        const statusCode: number = error?.status || 500;
+        const statusCode: number = isErrorWithStatus(error) ? error.status : 500;
         structuredLog({
             log_level: "error",
             route: ROUTE,

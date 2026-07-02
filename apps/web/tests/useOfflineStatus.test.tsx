@@ -30,6 +30,10 @@ describe("useOfflineStatus", () => {
     let root: Root;
     let container: HTMLDivElement;
 
+    beforeAll(() => {
+        (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+    });
+
     beforeEach(() => {
         jest.useFakeTimers();
 

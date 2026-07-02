@@ -193,3 +193,21 @@ export const barcodeLimiter = rateLimit({
         });
     },
 });
+
+// Medicine schedule limiter
+export const scheduleLimiter = createLimiter({
+    windowMs: 15 * 60 * 1000,
+    max: 60,
+    message: "Too many schedule requests. Please try again later.",
+    prefix: "schedules",
+});
+
+// Alerts read limiter
+// GET /api/v1/alerts is unauthenticated and runs paginated DB queries with
+// ILIKE filters. Throttle to prevent enumeration and connection pool exhaustion.
+export const alertsReadLimiter = createLimiter({
+    windowMs: 15 * 60 * 1000,
+    max: 60,
+    message: "Too many alerts requests. Please try again later.",
+    prefix: "alerts_read",
+});

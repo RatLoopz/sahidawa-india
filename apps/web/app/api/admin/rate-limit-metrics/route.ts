@@ -1,9 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
 import { cookies } from "next/headers";
 import { getAdminRoleFromSession } from "@/lib/adminAuth";
 import { Redis } from "@upstash/redis";
+import { rateLimit } from "@/lib/rateLimit";
+import { getClientIp } from "@/lib/getClientIp";
 
 /**
  * GET /api/admin/rate-limit-metrics
@@ -20,8 +22,17 @@ const hasRedisCredentials =
 
 const redis = hasRedisCredentials ? Redis.fromEnv() : null;
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
+        const ip = getClientIp(req);
+        const { success } = await rateLimit.limit(ip);
+        if (!success) {
+            return NextResponse.json(
+                { error: "Too many requests. Please try again later." },
+                { status: 429 }
+            );
+        }
+
         // Security: Verify admin session
         const cookieStore = await cookies();
         const supabase = createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {

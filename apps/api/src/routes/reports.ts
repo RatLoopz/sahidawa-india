@@ -1,6 +1,7 @@
 import { Router, Response, NextFunction } from "express";
 import { z } from "zod";
 import { supabase } from "../db/client";
+import { uuidSchema } from "../utils/validation";
 import { AuthenticatedRequest, optionalAuth, requireAuth, requireRole } from "../middleware/auth";
 import { reportLimiter } from "../middleware/rateLimit";
 import {
@@ -71,7 +72,7 @@ const createReportSchema = z
             .max(180, "Longitude must be between -180 and 180")
             .optional(),
         scannedBarcode: z.string().optional(),
-        medicineId: z.string().uuid().optional(),
+        medicineId: uuidSchema.optional(),
     })
     .superRefine((data, ctx) => {
         const validDistricts =
@@ -317,6 +318,12 @@ reportsRouter.patch(
     requireAuth,
     requireRole("admin"),
     async (req, res: Response) => {
+        const parsedId = uuidSchema.safeParse(req.params.id);
+        if (!parsedId.success) {
+            res.status(400).json({ error: "Invalid UUID format" });
+            return;
+        }
+
         const { status } = req.body as { status?: string };
         const allowedStatuses = ["pending", "verified_fake", "false_alarm"];
 
@@ -341,9 +348,14 @@ reportsRouter.patch(
                 return;
             }
 
+            const updatePayload: Record<string, unknown> = { status };
+            if (status === "verified_fake" || status === "false_alarm") {
+                updatePayload.is_escalated = false;
+            }
+
             const { data, error } = await supabase
                 .from("counterfeit_reports")
-                .update({ status })
+                .update(updatePayload)
                 .eq("id", req.params.id)
                 .select()
                 .single();
