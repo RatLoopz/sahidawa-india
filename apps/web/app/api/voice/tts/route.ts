@@ -2,16 +2,12 @@ import { NextResponse } from "next/server";
 import { structuredLog } from "@/lib/structuredLogger";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/getClientIp";
+import { getMlServiceUrl } from "@/lib/mlService";
 
 const ROUTE = "/api/voice/tts";
 const ML_TTS_TIMEOUT_MS = 15_000;
 const LANGUAGE_CODE_PATTERN = /^[a-z]{2}-[A-Z]{2}$/;
 const MAX_TEXT_LENGTH = 5000;
-
-function getMlServiceUrl() {
-    const configuredUrl = process.env.ML_SERVICE_URL?.trim();
-    return configuredUrl ? configuredUrl.replace(/\/+$/, "") : null;
-}
 
 async function readJsonSafely(response: Response) {
     try {
