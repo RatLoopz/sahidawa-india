@@ -47,7 +47,7 @@ def embed_query(text: str) -> Optional[list[float]]:
         )
 
         if response.status_code != 200:
-            logging.warning("Embedding API failed (%s): %s", response.status_code, response.text,)
+            logging.warning("Embedding API failed with status code %s.", response.status_code,)
             return None
 
         body = response.json()
@@ -69,4 +69,3 @@ def embed_query(text: str) -> Optional[list[float]]:
     except Exception:
         logging.exception("Unexpected embedding error.")
         return None
-

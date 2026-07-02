@@ -273,7 +273,6 @@ def format_medicine_context(medicines: List[Dict[str, Any]]) -> str:
             f"Brand: {medicine.get('brand_name', 'Unknown')}",
             f"Generic: {medicine.get('generic_name', 'Unknown')}",
             f"Composition: {medicine.get('composition', 'Unknown')}",
-            f"Strength: {medicine.get('strength', 'Unknown')}",
         ]
         manufacturer = medicine.get("manufacturer")
         if manufacturer:
