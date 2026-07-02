@@ -40,7 +40,7 @@ jobs:
       - name: "⚙️ Setup Node.js 24"
         uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
 
       # ── 3. Extract PR metadata ────────────────────────────────────────────────
       - name: "🔍 Extract PR metadata"
@@ -153,7 +153,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         if: steps.score.outputs.verdict != 'SKIP'
 
-      - name: "🤖 Generate knowledge doc (Gemini 3.5 Flash)"
+      - name: "🤖 Generate knowledge doc (Gemini 1.5 Flash)"
         id: generate
         if: steps.score.outputs.verdict != 'SKIP'
         env:
