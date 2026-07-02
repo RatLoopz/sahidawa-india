@@ -921,12 +921,14 @@
             "confirm": "அகற்று",
             "cancel": "ரத்து செய்"
         }
+    },
     "NotFound": {
         "badge": "404 பிழை",
         "title": "பக்கம் காணப்படவில்லை",
         "description": "நீங்கள் தேடும் பக்கம் இல்லை அல்லது நகர்த்தப்பட்டிருக்கலாம்.",
         "backHome": "முகப்புக்குத் திரும்பு",
         "scanMedicine": "மருந்தை ஸ்கேன் செய்யவும்"
+    },
     "Settings": {
         "channelRequired": "Kuraindhathu oru thodarbu channel (SMS allathu WhatsApp) iyakkappattirukka vendum.",
         "optOutConfirm": "Neengal vilagi anaithu SMS matrum WhatsApp echarikkaigalai nirutha virumbugireergala?",
@@ -943,5 +945,12 @@
         "languageOptionPa": "ਪੰਜਾਬੀ",
         "languageOptionUr": "اردو",
         "languageOptionAs": "অসমীয়া"
+    },
+    "AbhaRecords": {
+        "backToProfile": "சுயவிவரத்திற்குத் திரும்பு",
+        "title": "ABHA பதிவுகள்",
+        "loading": "பதிவுகள் ஏற்றப்படுகின்றன...",
+        "noPrescriptions": "மருந்துச்சீட்டுகள் எதுவும் காணப்படவில்லை.",
+        "failedToLoad": "பதிவுகளை ஏற்ற முடியவில்லை"
     }
 }

@@ -66,19 +66,17 @@ export async function syncDistrictAlertTallies(): Promise<void> {
 
             const previous_alert_level = existing?.alert_level ?? null;
 
-            const { error: upsertError } = await supabase
-                .from("district_alerts")
-                .upsert(
-                    {
-                        district,
-                        medicine_name,
-                        alert_level,
-                        previous_alert_level,
-                        is_active: true,
-                        updated_at: new Date().toISOString(),
-                    },
-                    { onConflict: "district,medicine_name" }
-                );
+            const { error: upsertError } = await supabase.from("district_alerts").upsert(
+                {
+                    district,
+                    medicine_name,
+                    alert_level,
+                    previous_alert_level,
+                    is_active: true,
+                    updated_at: new Date().toISOString(),
+                },
+                { onConflict: "district,medicine_name" }
+            );
 
             if (upsertError) {
                 logger.error("District alert sync: upsert failed", {
@@ -106,9 +104,7 @@ export async function syncDistrictAlertTallies(): Promise<void> {
         if (allAlerts) {
             for (const alert of allAlerts) {
                 const stillActive = activeKeys.some(
-                    (k) =>
-                        k.district === alert.district &&
-                        k.medicine_name === alert.medicine_name
+                    (k) => k.district === alert.district && k.medicine_name === alert.medicine_name
                 );
 
                 if (!stillActive) {

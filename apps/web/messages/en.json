@@ -1144,6 +1144,13 @@
         "saveRecord": "Save to ABHA Record",
         "noRecords": "No prescriptions found."
     },
+    "AbhaRecords": {
+        "backToProfile": "Back to Profile",
+        "title": "ABHA Records",
+        "loading": "Loading records...",
+        "noPrescriptions": "No prescriptions found.",
+        "failedToLoad": "Failed to load records"
+    },
     "Tracking": {
         "success": "Medicine tracked successfully!",
         "trackButton": "Track Expiry"
@@ -1296,6 +1303,7 @@
             "confirm": "Remove",
             "cancel": "Cancel"
         }
+    },
     "NotFound": {
         "badge": "404 Error",
         "title": "Page not found",

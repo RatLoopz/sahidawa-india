@@ -921,12 +921,14 @@
             "confirm": "ਹਟਾਓ",
             "cancel": "ਰੱਦ ਕਰੋ"
         }
+    },
     "NotFound": {
         "badge": "404 ਗਲਤੀ",
         "title": "ਸਫ਼ਾ ਨਹੀਂ ਲੱਭਿਆ",
         "description": "ਜੋ ਸਫ਼ਾ ਤੁਸੀਂ ਲੱਭ ਰਹੇ ਹੋ ਉਹ ਮੌਜੂਦ ਨਹੀਂ ਹੈ ਜਾਂ ਹਟਾ ਦਿੱਤਾ ਗਿਆ ਹੈ।",
         "backHome": "ਮੁੱਖ ਸਫ਼ੇ 'ਤੇ ਵਾਪਸ ਜਾਓ",
         "scanMedicine": "ਦਵਾਈ ਸਕੈਨ ਕਰੋ"
+    },
     "Settings": {
         "channelRequired": "Ghatto-ghatt ikk sanchar channel (SMS ja WhatsApp) chalu hona lazmi hai.",
         "optOutConfirm": "Ki tusi yakeeni taur te opt out karke sare SMS ate WhatsApp alert band karna chaunde ho?",
@@ -943,5 +945,12 @@
         "languageOptionPa": "ਪੰਜਾਬੀ",
         "languageOptionUr": "اردو",
         "languageOptionAs": "অসমীয়া"
+    },
+    "AbhaRecords": {
+        "backToProfile": "ਪ੍ਰੋਫਾਈਲ 'ਤੇ ਵਾਪਸ ਜਾਓ",
+        "title": "ABHA ਰਿਕਾਰਡ",
+        "loading": "ਰਿਕਾਰਡ ਲੋਡ ਕੀਤੇ ਜਾ ਰਹੇ ਹਨ...",
+        "noPrescriptions": "ਕੋਈ ਪਰਚੀ ਨਹੀਂ ਮਿਲੀ।",
+        "failedToLoad": "ਰਿਕਾਰਡ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ"
     }
 }

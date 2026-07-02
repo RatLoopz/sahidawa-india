@@ -110,10 +110,7 @@ export function ConfirmationDialog({
                         <AlertTriangle size={24} />
                     </div>
                     <div className="flex-1 pr-8">
-                        <h2
-                            id="confirmation-title"
-                            className={`text-lg font-bold ${accentText}`}
-                        >
+                        <h2 id="confirmation-title" className={`text-lg font-bold ${accentText}`}>
                             {title}
                         </h2>
                     </div>
