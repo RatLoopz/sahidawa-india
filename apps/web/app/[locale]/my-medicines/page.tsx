@@ -2,12 +2,13 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { Pill, Plus, Bookmark, Trash2, AlertTriangle, RefreshCw } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Badge } from "@/components/ui/Badge";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { RequestVerificationModal } from "@/components/RequestVerificationModal";
 import { API_BASE } from "@/lib/api";
 import { useTranslations } from "next-intl";
-import { useBookmarksStore } from "@/stores/useBookmarksStore";
+import { useBookmarksStore } from "@/src/stores/useBookmarksStore";
 
 interface TrackedMedicine {
     id: string;
@@ -22,10 +23,10 @@ function getDaysUntilExpiry(expiryDate: string): number {
 }
 
 function getStatusColor(daysLeft: number): string {
-    if (daysLeft < 7) return "bg-red-500";
-    if (daysLeft < 14) return "bg-orange-500";
-    if (daysLeft < 30) return "bg-yellow-500";
-    return "bg-green-500";
+    if (daysLeft < 7) return "bg-[var(--color-accent-danger)]";
+    if (daysLeft < 14) return "bg-[var(--color-accent-warning)]";
+    if (daysLeft < 30) return "bg-[var(--color-brand-secondary)]";
+    return "bg-[var(--color-brand-primary)]";
 }
 
 type FetchStatus = "loading" | "success" | "error";
@@ -173,56 +174,76 @@ export default function MyMedicinesPage() {
                         </button>
                     </div>
                 ) : (
-                    <table className="w-full border-collapse">
-                        <thead>
-                            <tr>
-                                <th className="border p-2">{t("table.name")}</th>
-                                <th className="border p-2">{t("table.expiry")}</th>
-                                <th className="border p-2">{t("table.status")}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {medicinesWithDays.map((m) => (
-                                <tr key={m.id}>
-                                    <td className="border p-2">
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <span>{m.medicine_name}</span>
-                                            {m.is_verified === true && (
-                                                <Badge
-                                                    variant="success"
-                                                    aria-label="Verification status"
-                                                >
-                                                    ✓ {t("badges.verified")}
-                                                </Badge>
-                                            )}
-                                            {m.is_verified === false && (
-                                                <button
-                                                    onClick={() => handleUnverifiedClick(m)}
-                                                    className="transition-transform hover:scale-105 active:scale-95"
-                                                    title={t("badges.requestVerificationTitle")}
-                                                >
-                                                    <Badge
-                                                        variant="warning"
-                                                        aria-label="Verification status"
-                                                    >
-                                                        ⚠ {t("badges.unverified")}
-                                                    </Badge>
-                                                </button>
-                                            )}
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <AnimatePresence>
+                            {medicinesWithDays.map((med) => (
+                                <motion.div
+                                    key={med.id}
+                                    initial={{ opacity: 0, y: 15 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -15 }}
+                                    transition={{ duration: 0.25 }}
+                                    whileHover={{
+                                        y: -4,
+                                        scale: 1.02,
+                                    }}
+                                    className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:border-emerald-500 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:hover:border-emerald-500"
+                                >
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div className="flex min-w-0 items-center gap-3">
+                                            <div className="rounded-full bg-[var(--color-brand-primary-soft)] p-2">
+                                                <Pill className="h-5 w-5 text-[var(--color-brand-primary-dark)]" />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <h3 className="leading-5 font-semibold break-words text-slate-900 dark:text-slate-100">
+                                                        {med.medicine_name}
+                                                    </h3>
+                                                    {med.is_verified === true && (
+                                                        <Badge
+                                                            variant="success"
+                                                            aria-label="Verification status"
+                                                        >
+                                                            ✓ {t("badges.verified")}
+                                                        </Badge>
+                                                    )}
+                                                    {med.is_verified === false && (
+                                                        <button
+                                                            onClick={() =>
+                                                                handleUnverifiedClick(med)
+                                                            }
+                                                            className="transition-transform hover:scale-105 active:scale-95"
+                                                            title={t(
+                                                                "badges.requestVerificationTitle"
+                                                            )}
+                                                        >
+                                                            <Badge
+                                                                variant="warning"
+                                                                aria-label="Verification status"
+                                                            >
+                                                                ⚠ {t("badges.unverified")}
+                                                            </Badge>
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                                    {t("table.expiry")}:{" "}
+                                                    {new Date(med.expiry_date).toLocaleDateString()}
+                                                </p>
+                                            </div>
                                         </div>
-                                    </td>
-                                    <td className="border p-2">
-                                        {new Date(m.expiry_date).toLocaleDateString()}
-                                    </td>
-                                    <td
-                                        className={`border p-2 text-white ${getStatusColor(m.daysLeft)}`}
-                                    >
-                                        {t("table.daysLeft", { count: m.daysLeft })}
-                                    </td>
-                                </tr>
+                                        <span
+                                            className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold text-white ${getStatusColor(
+                                                med.daysLeft
+                                            )}`}
+                                        >
+                                            {t("table.daysLeft", { count: med.daysLeft })}
+                                        </span>
+                                    </div>
+                                </motion.div>
                             ))}
-                        </tbody>
-                    </table>
+                        </AnimatePresence>
+                    </div>
                 )}
             </section>
 

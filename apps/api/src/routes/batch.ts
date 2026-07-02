@@ -462,7 +462,8 @@ router.post("/report", batchLimiter, async (req: Request, res: Response) => {
         if (!upserted || upserted.length === 0) {
             res.status(200).json({
                 success: true,
-                message: "This batch report has already been logged. Thank you for helping keep India safe.",
+                message:
+                    "This batch report has already been logged. Thank you for helping keep India safe.",
             });
             return;
         }

@@ -1079,11 +1079,19 @@
             "confirm": "ꯁꯦꯝꯗꯣꯛꯎ",
             "cancel": "ꯀꯛꯊꯠꯄꯤꯌꯨ"
         }
+    },
     "NotFound": {
         "badge": "Error 404",
         "title": "Page Not Found",
         "description": "We couldn't find the medicine or page you were looking for. It might have been moved, or the URL might be incorrect.",
         "backHome": "Back to Home",
         "scanMedicine": "Scan Medicine"
+    },
+    "AbhaRecords": {
+        "backToProfile": "ꯄ꯭抄ꯣꯐꯥꯏꯜꯗꯥ ꯍꯜꯂꯨ",
+        "title": "ABHA ꯔꯦꯀꯣꯔ꯭ꯗꯁꯤꯡ",
+        "loading": "ꯔꯦꯀꯣꯔ꯭ꯗꯁꯤꯡ ꯂꯣꯗ ꯇꯧꯔꯤ...",
+        "noPrescriptions": "ꯀꯔꯤꯒꯨꯝꯕꯥ ꯄ꯭ꯔꯦꯁ꯭ꯀ꯭ꯔꯤꯄ꯭ꯁꯟ ꯑꯃꯠꯇꯥ ꯐꯪꯗꯦ꯫",
+        "failedToLoad": "ꯔꯦꯀꯣꯔ꯭ꯗꯁꯤꯡ ꯂꯣꯗ ꯇꯧꯕꯥ ꯉꯃꯈꯤꯗꯦ"
     }
 }

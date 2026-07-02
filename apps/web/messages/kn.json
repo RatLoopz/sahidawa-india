@@ -921,12 +921,14 @@
             "confirm": "ತೆಗೆದುಹಾಕಿ",
             "cancel": "ರದ್ದುಗೊಳಿಸಿ"
         }
+    },
     "NotFound": {
         "badge": "404 ದೋಷ",
         "title": "ಪುಟ ಕಂಡುಬಂದಿಲ್ಲ",
         "description": "ನೀವು ಹುಡುಕುತ್ತಿರುವ ಪುಟ ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ ಅಥವಾ ಸ್ಥಳಾಂತರಿಸಿರಬಹುದು.",
         "backHome": "ಮುಖಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ",
         "scanMedicine": "ಔಷಧಿಯನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ"
+    },
     "Settings": {
         "channelRequired": "Kanishta ondu samvahana channel (SMS athava WhatsApp) sakriyavagirabeku.",
         "optOutConfirm": "Nivu khachitavagi opt out madi ella SMS mattu WhatsApp eccharikegalannu nillisalu bayasuvira?",
@@ -943,5 +945,12 @@
         "languageOptionPa": "ਪੰਜਾਬੀ",
         "languageOptionUr": "اردو",
         "languageOptionAs": "অসমীয়া"
+    },
+    "AbhaRecords": {
+        "backToProfile": "ಪ್ರೊಫೈಲ್‌ಗೆ ಹಿಂತಿರುಗಿ",
+        "title": "ABHA ದಾಖಲೆಗಳು",
+        "loading": "ದಾಖಲೆಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
+        "noPrescriptions": "ಯಾವುದೇ ಪ್ರಿಸ್ಕ್ರಿಪ್ಷನ್ ಕಂಡುಬಂದಿಲ್ಲ.",
+        "failedToLoad": "ದಾಖಲೆಗಳನ್ನು ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ"
     }
 }

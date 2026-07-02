@@ -858,12 +858,14 @@
             "confirm": "ہٹائیں",
             "cancel": "منسوخ کریں"
         }
+    },
     "NotFound": {
         "badge": "404 خرابی",
         "title": "صفحہ نہیں ملا",
         "description": "آپ جو صفحہ تلاش کر رہے ہیں وہ موجود نہیں ہے یا منتقل کر دیا گیا ہے۔",
         "backHome": "ہوم پر واپس جائیں",
         "scanMedicine": "دوا اسکین کریں"
+    },
     "Settings": {
         "channelRequired": "Kam az kam aik rabta channel (SMS ya WhatsApp) faal hona zaroori hai.",
         "optOutConfirm": "Kya aap waqai opt out kar ke tamam SMS aur WhatsApp alerts band karna chahte hain?",
@@ -880,5 +882,12 @@
         "languageOptionPa": "ਪੰਜਾਬੀ",
         "languageOptionUr": "اردو",
         "languageOptionAs": "অসমীয়া"
+    },
+    "AbhaRecords": {
+        "backToProfile": "پروفائل پر واپس جائیں",
+        "title": "ABHA ریکارڈز",
+        "loading": "ریکارڈ لوڈ ہو رہے ہیں...",
+        "noPrescriptions": "کوئی نسخہ نہیں ملا۔",
+        "failedToLoad": "ریکارڈ لوڈ کرنے میں ناکامی"
     }
 }

@@ -936,12 +936,14 @@
             "confirm": "દૂર કરો",
             "cancel": "રદ કરો"
         }
+    },
     "NotFound": {
         "badge": "404 ભૂલ",
         "title": "પૃષ્ઠ મળ્યું નથી",
         "description": "તમે જે પૃષ્ઠ શોધી રહ્યાં છો તે અસ્તિત્વમાં નથી અથવા ખસેડવામાં આવ્યું હોઈ શકે છે.",
         "backHome": "હોમ પર પાછા જાઓ",
         "scanMedicine": "દવા સ્કેન કરો"
+    },
     "Settings": {
         "channelRequired": "Ochama ochu ek sanchar madhyam (SMS athva WhatsApp) saksham hovu jaruri che.",
         "optOutConfirm": "Shu tame kharekhar opt out kari badha SMS ane WhatsApp alert bandh karva mango cho?",
@@ -958,5 +960,12 @@
         "languageOptionPa": "ਪੰਜਾਬੀ",
         "languageOptionUr": "اردو",
         "languageOptionAs": "অসমীয়া"
+    },
+    "AbhaRecords": {
+        "backToProfile": "પ્રોફાઇલ પર પાછા જાઓ",
+        "title": "ABHA રેકોર્ડ્સ",
+        "loading": "રેકોર્ડ્સ લોડ થઈ રહ્યા છે...",
+        "noPrescriptions": "કોઈ પ્રિસ્ક્રિપ્શન મળ્યા નથી.",
+        "failedToLoad": "રેકોર્ડ્સ લોડ કરવામાં નિષ્ફળ"
     }
 }
