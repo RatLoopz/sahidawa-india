@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { Clock, Loader2, Search, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { Medicine } from "./ComparisonGrid";
 
 // ─── constants ────────────────────────────────────────────────────────────────
@@ -75,8 +76,10 @@ export default function MedicineSearchSelect({
     value,
     onChange,
     onSearch,
-    placeholder = "Search brand or generic name",
+    placeholder,
 }: Props) {
+    const t = useTranslations("MedicineSearch");
+    const resolvedPlaceholder = placeholder || t("placeholder");
     const listId = useId();
     const rootRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -178,7 +181,7 @@ export default function MedicineSearchSelect({
                             inputRef.current?.focus();
                         }}
                         className="rounded p-1 text-slate-400 hover:bg-white hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-700 dark:hover:text-slate-200"
-                        aria-label={`Clear ${label}`}
+                        aria-label={t("clearLabelAria", { label })}
                     >
                         <X size={16} />
                     </button>
@@ -253,7 +256,7 @@ export default function MedicineSearchSelect({
                                         break;
                                 }
                             }}
-                            placeholder={placeholder}
+                            placeholder={resolvedPlaceholder}
                             className="w-full rounded-lg border border-slate-300 bg-white py-2 pr-8 pl-9 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-500 dark:focus:ring-emerald-500"
                             autoComplete="off"
                         />
@@ -263,7 +266,7 @@ export default function MedicineSearchSelect({
                             <button
                                 type="button"
                                 onClick={handleClearQuery}
-                                aria-label="Clear search"
+                                aria-label={t("clearSearchAria")}
                                 className="absolute top-1/2 right-2.5 -translate-y-1/2 rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-slate-500 dark:hover:bg-slate-700 dark:hover:text-slate-300"
                             >
                                 <X size={14} />
@@ -276,14 +279,14 @@ export default function MedicineSearchSelect({
                         <div className="mt-2 flex flex-wrap items-center gap-1.5">
                             <span className="flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500">
                                 <Clock size={11} />
-                                Recent:
+                                {t("recent")}
                             </span>
 
                             {history.map((entry) => (
                                 <button
                                     key={entry.query}
                                     type="button"
-                                    title={`Searched ${timeAgo(entry.savedAt)}`}
+                                    title={t("searchedAgo", { timeAgo: timeAgo(entry.savedAt) })}
                                     onClick={() => handleChipClick(entry)}
                                     onKeyDown={(e) => {
                                         if (e.key === "Enter" || e.key === " ") {
@@ -302,7 +305,7 @@ export default function MedicineSearchSelect({
                                 onClick={handleClearHistory}
                                 className="ml-auto rounded text-xs text-slate-400 underline-offset-2 transition-colors duration-150 hover:text-rose-500 hover:underline focus:ring-1 focus:ring-rose-400 focus:outline-none dark:text-slate-500 dark:hover:text-rose-400"
                             >
-                                Clear history
+                                {t("clearHistory")}
                             </button>
                         </div>
                     )}
@@ -322,17 +325,17 @@ export default function MedicineSearchSelect({
                             className="flex items-center gap-2 px-3 py-2 text-sm text-slate-500 dark:text-slate-400"
                         >
                             <Loader2 size={14} className="animate-spin" aria-hidden="true" />
-                            Searching
+                            {t("searching")}
                         </li>
                     )}
                     {!loading && query.trim().length < 2 && (
                         <li className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">
-                            Enter at least 2 characters
+                            {t("minChars")}
                         </li>
                     )}
                     {!loading && query.trim().length >= 2 && results.length === 0 && (
                         <li className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">
-                            No results
+                            {t("noResults")}
                         </li>
                     )}
                     {!loading &&
