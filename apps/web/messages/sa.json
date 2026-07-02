@@ -819,5 +819,22 @@
             "confirmPasswordRequired": "Please confirm your password.",
             "passwordMismatch": "Passwords do not match."
         }
+    },
+    "Settings": {
+        "channelRequired": "Nyunatinyunam ekam sancharamadhyamam (SMS va WhatsApp) sakshamam bhavitavyam.",
+        "optOutConfirm": "Kim bhavan/bhavati nischayena opt out kritva sarvani SMS tatha WhatsApp sachetanani sthagayitum icchati?",
+        "loadingPreferences": "Bhavatah/bhavatyah prathamikatah load bhavanti...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
     }
 }

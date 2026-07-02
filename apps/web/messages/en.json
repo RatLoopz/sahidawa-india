@@ -1022,7 +1022,22 @@
         "optOutSuccess": "Successfully opted out of all notifications.",
         "errorMessage": "Failed to update settings. Please try again.",
         "phoneInvalid": "Please enter a valid 10-digit Indian phone number.",
-        "districtRequired": "Please specify a district to get localized warnings."
+        "districtRequired": "Please specify a district to get localized warnings.",
+        "channelRequired": "At least one communication channel (SMS or WhatsApp) must be enabled.",
+        "optOutConfirm": "Are you sure you want to opt out and stop receiving all SMS & WhatsApp alerts?",
+        "loadingPreferences": "Loading your preferences...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
     },
     "Interactions": {
         "title": "Medicine Interaction Checker",
