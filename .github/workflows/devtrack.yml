@@ -234,6 +234,10 @@ jobs:
             const treeItems = [];
             for (const { rel, full } of filesToCommit) {
               const content = fs.readFileSync(full, "utf8");
+              
+              // Add a 1s delay to prevent triggering GitHub's secondary rate limits on API mutations
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              
               const { data: blob } = await github.rest.git.createBlob({
                 owner, repo, content, encoding: "utf-8"
               });
