@@ -48,9 +48,6 @@ RETURNS TABLE (
   generic_name       VARCHAR(500),
   manufacturer       VARCHAR(255),
   composition        TEXT,
-  strength           VARCHAR(100),
-  dosage_form        VARCHAR(100),
-  schedule           VARCHAR(50),
   mrp                NUMERIC(10, 2),
   jan_aushadhi_price NUMERIC(10, 2),
   similarity         DOUBLE PRECISION
@@ -63,9 +60,6 @@ BEGIN
     m.generic_name,
     m.manufacturer,
     m.composition,
-    m.strength,
-    m.dosage_form,
-    m.schedule,
     m.mrp,
     m.jan_aushadhi_price,
     GREATEST(
