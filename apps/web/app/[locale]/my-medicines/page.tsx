@@ -7,39 +7,13 @@ import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { RequestVerificationModal } from "@/components/RequestVerificationModal";
 import { API_BASE } from "@/lib/api";
 import { useTranslations } from "next-intl";
+import { useBookmarksStore } from "@/stores/useBookmarksStore";
 
 interface TrackedMedicine {
     id: string;
     medicine_name: string;
     expiry_date: string;
     is_verified: boolean;
-}
-
-// Updated interface to include bookmark data structure
-interface BookmarkedMedicine {
-    alternative_name: string;
-    brand_name: string;
-    jan_aushadhi_price: number;
-}
-
-function getSavedMedicineBookmarks(): BookmarkedMedicine[] {
-    if (typeof window === "undefined") return [];
-
-    try {
-        const stored = localStorage.getItem("medicine-bookmarks");
-        if (!stored) return [];
-
-        const parsed = JSON.parse(stored);
-        if (!Array.isArray(parsed)) {
-            localStorage.setItem("medicine-bookmarks", "[]");
-            return [];
-        }
-
-        return parsed;
-    } catch {
-        localStorage.setItem("medicine-bookmarks", "[]");
-        return [];
-    }
 }
 
 function getDaysUntilExpiry(expiryDate: string): number {
@@ -61,6 +35,9 @@ export default function MyMedicinesPage() {
     const [savedMedicines, setSavedMedicines] = useState<BookmarkedMedicine[]>([]);
     const [, setError] = useState<string | null>(null);
     const t = useTranslations("MyMedicines");
+    const bookmarks = useBookmarksStore((state) => state.bookmarks);
+    const removeBookmarkFromStore = useBookmarksStore((state) => state.removeBookmark);
+
     const [confirmDialog, setConfirmDialog] = useState<{
         isOpen: boolean;
         bookmarkName?: string;
@@ -110,10 +87,6 @@ export default function MyMedicinesPage() {
 
         fetchTrackedMedicines();
 
-        // Load bookmarks from localStorage
-        const bookmarks = getSavedMedicineBookmarks();
-        setSavedMedicines(bookmarks);
-
         return () => {
             cancelled = true;
         };
@@ -126,17 +99,11 @@ export default function MyMedicinesPage() {
         });
     };
 
-    const confirmRemoveBookmark = async () => {
+    const confirmRemoveBookmark = () => {
         if (!confirmDialog.bookmarkName) return;
         setIsDeleting(true);
         try {
-            const updated = savedMedicines.filter(
-                (item) => item.alternative_name !== confirmDialog.bookmarkName
-            );
-            localStorage.setItem("medicine-bookmarks", JSON.stringify(updated));
-            setSavedMedicines(updated);
-        } catch (error) {
-            console.error("Failed to remove bookmark:", error);
+            removeBookmarkFromStore(confirmDialog.bookmarkName);
         } finally {
             setIsDeleting(false);
             setConfirmDialog({ isOpen: false });
@@ -268,9 +235,11 @@ export default function MyMedicinesPage() {
                 </h2>
                 {savedMedicines.length === 0 ? (
                     <p className="text-slate-500 italic">{t("bookmarks.noBookmarks")}</p>
+                {bookmarks.length === 0 ? (
+                    <p className="text-slate-500 italic">No bookmarks yet.</p>
                 ) : (
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        {savedMedicines.map((med) => (
+                        {bookmarks.map((med) => (
                             <div
                                 key={med.alternative_name}
                                 className="flex items-center justify-between rounded-2xl border bg-white p-4 shadow-sm"

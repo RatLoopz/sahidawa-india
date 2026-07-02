@@ -33,7 +33,7 @@ describe("PATCH /api/v1/admin/reports/:id/status — district_alerts upsert", ()
 
     it("resets broadcasted=false on the district_alerts upsert when threshold is crossed", async () => {
         const updatedReport = {
-            id: "report-id-123",
+            id: "00000000-0000-4000-8000-000000000004",
             district: "Delhi",
             reported_brand_name: "Fake Medicine",
             status: "verified_fake",
@@ -101,7 +101,7 @@ describe("PATCH /api/v1/admin/reports/:id/status — district_alerts upsert", ()
         });
 
         const response = await request(app)
-            .patch("/api/v1/admin/reports/report-id-123/status")
+            .patch("/api/v1/admin/reports/00000000-0000-4000-8000-000000000004/status")
             .set("Authorization", "Bearer admin-token")
             .send({ status: "verified_fake" });
 
@@ -113,7 +113,7 @@ describe("PATCH /api/v1/admin/reports/:id/status — district_alerts upsert", ()
 
     it("does not touch district_alerts when the report count is below threshold", async () => {
         const updatedReport = {
-            id: "report-id-456",
+            id: "00000000-0000-4000-8000-000000000005",
             district: "Pune",
             reported_brand_name: "Some Medicine",
             status: "verified_fake",
@@ -153,7 +153,7 @@ describe("PATCH /api/v1/admin/reports/:id/status — district_alerts upsert", ()
         });
 
         const response = await request(app)
-            .patch("/api/v1/admin/reports/report-id-456/status")
+            .patch("/api/v1/admin/reports/00000000-0000-4000-8000-000000000005/status")
             .set("Authorization", "Bearer admin-token")
             .send({ status: "verified_fake" });
 

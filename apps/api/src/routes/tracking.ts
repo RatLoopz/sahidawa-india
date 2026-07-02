@@ -3,12 +3,13 @@ import { supabase } from "../db/client";
 import { requireAuth, AuthenticatedRequest } from "../middleware/auth";
 import { z } from "zod";
 import { trackingLimiter } from "../middleware/rateLimit";
+import { uuidSchema } from "../utils/validation";
 
 const router = Router();
 
 // Validation schema
 const trackSchema = z.object({
-    medicine_id: z.string().uuid("Invalid medicine ID format"),
+    medicine_id: uuidSchema,
     medicine_name: z.string().min(1).max(200),
     batch_number: z.string().max(100).optional(),
     expiry_date: z.string().date(),

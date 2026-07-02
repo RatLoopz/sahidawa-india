@@ -29,6 +29,9 @@ import app from "../src/app";
 import { supabase } from "../src/db/client";
 import { logAdminAction } from "../src/services/audit.service";
 
+const PHARMACY_UUID_1 = "00000000-0000-4000-8000-000000000002";
+const PHARMACY_UUID_2 = "00000000-0000-4000-8000-000000000003";
+
 describe("Admin pharmacy moderation routes", () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -65,7 +68,7 @@ describe("Admin pharmacy moderation routes", () => {
 
     it("approves a pharmacy and logs the admin action", async () => {
         const single = jest.fn().mockResolvedValue({
-            data: { id: "pharmacy-1", status: "approved", is_verified: true },
+            data: { id: PHARMACY_UUID_1, status: "approved", is_verified: true },
             error: null,
         });
         const select = jest.fn().mockReturnValue({ single });
@@ -75,26 +78,26 @@ describe("Admin pharmacy moderation routes", () => {
         (supabase.from as jest.Mock).mockReturnValue({ update });
 
         const res = await request(app)
-            .patch("/api/v1/admin/pharmacies/pharmacy-1/status")
+            .patch(`/api/v1/admin/pharmacies/${PHARMACY_UUID_1}/status`)
             .set("Authorization", "Bearer test-token")
             .send({ status: "approved" });
 
         expect(res.status).toBe(200);
         expect(res.body.pharmacy.status).toBe("approved");
         expect(update).toHaveBeenCalledWith({ status: "approved", is_verified: true });
-        expect(eq).toHaveBeenCalledWith("id", "pharmacy-1");
+        expect(eq).toHaveBeenCalledWith("id", PHARMACY_UUID_1);
         expect(logAdminAction).toHaveBeenCalledWith(
             "test-admin-uuid",
             "PHARMACY_APPROVED",
             "PHARMACY",
-            "pharmacy-1",
+            PHARMACY_UUID_1,
             { status: "approved" }
         );
     });
 
     it("rejects a pharmacy without marking it verified", async () => {
         const single = jest.fn().mockResolvedValue({
-            data: { id: "pharmacy-2", status: "rejected", is_verified: false },
+            data: { id: PHARMACY_UUID_2, status: "rejected", is_verified: false },
             error: null,
         });
         const select = jest.fn().mockReturnValue({ single });
@@ -104,7 +107,7 @@ describe("Admin pharmacy moderation routes", () => {
         (supabase.from as jest.Mock).mockReturnValue({ update });
 
         const res = await request(app)
-            .patch("/api/v1/admin/pharmacies/pharmacy-2/status")
+            .patch(`/api/v1/admin/pharmacies/${PHARMACY_UUID_2}/status`)
             .set("Authorization", "Bearer test-token")
             .send({ status: "rejected" });
 
@@ -114,14 +117,14 @@ describe("Admin pharmacy moderation routes", () => {
             "test-admin-uuid",
             "PHARMACY_REJECTED",
             "PHARMACY",
-            "pharmacy-2",
+            PHARMACY_UUID_2,
             { status: "rejected" }
         );
     });
 
     it("rejects invalid pharmacy statuses", async () => {
         const res = await request(app)
-            .patch("/api/v1/admin/pharmacies/pharmacy-1/status")
+            .patch(`/api/v1/admin/pharmacies/${PHARMACY_UUID_1}/status`)
             .set("Authorization", "Bearer test-token")
             .send({ status: "pending" });
 

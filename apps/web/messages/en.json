@@ -148,7 +148,6 @@
         "composition": "Composition",
         "ScanBarcode": "Scan Barcode",
         "offlineVerify": "Queue Scan",
-
         "batch_recalled_title": "This batch has been recalled",
         "batch_recalled_body": "Please do not use this medicine. Return it to your pharmacy immediately.",
         "save_to_abha": "Save to ABHA Record"
@@ -1022,7 +1021,22 @@
         "optOutSuccess": "Successfully opted out of all notifications.",
         "errorMessage": "Failed to update settings. Please try again.",
         "phoneInvalid": "Please enter a valid 10-digit Indian phone number.",
-        "districtRequired": "Please specify a district to get localized warnings."
+        "districtRequired": "Please specify a district to get localized warnings.",
+        "channelRequired": "At least one communication channel (SMS or WhatsApp) must be enabled.",
+        "optOutConfirm": "Are you sure you want to opt out and stop receiving all SMS & WhatsApp alerts?",
+        "loadingPreferences": "Loading your preferences...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
     },
     "Interactions": {
         "title": "Medicine Interaction Checker",
@@ -1282,5 +1296,11 @@
             "confirm": "Remove",
             "cancel": "Cancel"
         }
+    "NotFound": {
+        "badge": "404 Error",
+        "title": "Page not found",
+        "description": "The page you are looking for doesn't exist or may have been moved.",
+        "backHome": "Go back home",
+        "scanMedicine": "Scan Medicine"
     }
 }

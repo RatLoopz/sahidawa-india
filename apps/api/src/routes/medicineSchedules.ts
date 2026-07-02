@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { z } from "zod";
+import { uuidSchema } from "../utils/validation";
 import { supabase } from "../db/client";
 import { requireAuth } from "../middleware/auth";
 import type { AuthenticatedRequest } from "../middleware/auth";
@@ -39,7 +40,7 @@ const createScheduleSchema = z.object({
         .nullable()
         .optional(),
     notes: z.string().optional(),
-    medicine_id: z.string().uuid().nullable().optional(),
+    medicine_id: uuidSchema.nullable().optional(),
 });
 
 const updateScheduleSchema = createScheduleSchema.partial();
@@ -115,6 +116,11 @@ router.get("/", requireAuth, async (req: AuthenticatedRequest, res: Response) =>
 
 // Get single schedule by id
 router.get("/:id", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    const parsedId = uuidSchema.safeParse(req.params.id);
+    if (!parsedId.success) {
+        res.status(400).json({ error: "Invalid UUID format" });
+        return;
+    }
     try {
         const { data, error } = await supabase
             .from("medicine_schedules")
@@ -174,6 +180,11 @@ router.post("/", requireAuth, async (req: AuthenticatedRequest, res: Response) =
 
 // Update schedule
 router.put("/:id", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    const parsedId = uuidSchema.safeParse(req.params.id);
+    if (!parsedId.success) {
+        res.status(400).json({ error: "Invalid UUID format" });
+        return;
+    }
     const parsed = updateScheduleSchema.safeParse(req.body);
     if (!parsed.success) {
         res.status(400).json({
@@ -211,6 +222,11 @@ router.put("/:id", requireAuth, async (req: AuthenticatedRequest, res: Response)
 
 // Delete schedule
 router.delete("/:id", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    const parsedId = uuidSchema.safeParse(req.params.id);
+    if (!parsedId.success) {
+        res.status(400).json({ error: "Invalid UUID format" });
+        return;
+    }
     try {
         const { error } = await supabase
             .from("medicine_schedules")
@@ -232,6 +248,11 @@ router.delete("/:id", requireAuth, async (req: AuthenticatedRequest, res: Respon
 
 // Log a dose (taken/skipped) - upsert to handle re-marking
 router.post("/:id/doses", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    const parsedId = uuidSchema.safeParse(req.params.id);
+    if (!parsedId.success) {
+        res.status(400).json({ error: "Invalid UUID format" });
+        return;
+    }
     const parsed = doseSchema.safeParse(req.body);
     if (!parsed.success) {
         res.status(400).json({
@@ -296,6 +317,11 @@ router.post("/:id/doses", requireAuth, async (req: AuthenticatedRequest, res: Re
 
 // Get dose logs for a schedule
 router.get("/:id/doses", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    const parsedId = uuidSchema.safeParse(req.params.id);
+    if (!parsedId.success) {
+        res.status(400).json({ error: "Invalid UUID format" });
+        return;
+    }
     try {
         const { data, error } = await supabase
             .from("dose_logs")
@@ -319,6 +345,11 @@ router.get("/:id/doses", requireAuth, async (req: AuthenticatedRequest, res: Res
 
 // Get adherence statistics for a schedule
 router.get("/:id/stats", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    const parsedId = uuidSchema.safeParse(req.params.id);
+    if (!parsedId.success) {
+        res.status(400).json({ error: "Invalid UUID format" });
+        return;
+    }
     const queryParsed = statsSchema.safeParse(req.query);
     if (!queryParsed.success) {
         res.status(400).json({

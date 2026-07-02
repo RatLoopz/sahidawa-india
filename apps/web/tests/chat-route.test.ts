@@ -1,6 +1,7 @@
 process.env.GEMINI_API_KEY = "test-api-key";
 const generateContentMock = jest.fn();
 const generateContentStreamMock = jest.fn();
+const mockRateLimit = jest.fn();
 
 jest.mock("@google/genai", () => ({
     GoogleGenAI: jest.fn().mockImplementation(() => ({
@@ -16,6 +17,19 @@ jest.mock("@google/genai", () => ({
         BOOLEAN: "BOOLEAN",
         INTEGER: "INTEGER",
         NUMBER: "NUMBER",
+    },
+}));
+
+jest.mock("@/lib/rateLimit", () => ({
+    rateLimit: {
+        limit: mockRateLimit,
+    },
+}));
+
+jest.mock("@/lib/redis", () => ({
+    redis: {
+        get: jest.fn(),
+        set: jest.fn(),
     },
 }));
 
@@ -37,9 +51,23 @@ function createFailingTextStream(error: unknown) {
 }
 
 describe("POST /api/chat", () => {
+    const originalFetch = global.fetch;
+    const originalMlServiceUrl = process.env.ML_SERVICE_URL;
+
     beforeEach(() => {
         generateContentMock.mockReset();
         generateContentStreamMock.mockReset();
+        mockRateLimit.mockReset();
+        mockRateLimit.mockResolvedValue({ success: true });
+        process.env.ML_SERVICE_URL = "https://ml-service.example.com";
+        global.fetch = jest
+            .fn()
+            .mockRejectedValue(new Error("ML unavailable")) as unknown as typeof fetch;
+    });
+
+    afterAll(() => {
+        global.fetch = originalFetch;
+        process.env.ML_SERVICE_URL = originalMlServiceUrl;
     });
 
     it("forces emergency true when deterministic detection matches", async () => {
@@ -70,6 +98,32 @@ describe("POST /api/chat", () => {
             emergency: true,
         });
         expect(generateContentStreamMock).not.toHaveBeenCalled();
+    });
+
+    it("does not call ML service when voice triage ML_SERVICE_URL is unsafe", async () => {
+        process.env.ML_SERVICE_URL = "http://127.0.0.1:8000";
+
+        const response = await POST(
+            new Request("http://localhost/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    mode: "voice-triage",
+                    responseLanguage: "English",
+                    messages: [{ text: "I have a mild cough since yesterday" }],
+                }),
+            })
+        );
+
+        const data = await response.json();
+
+        expect(response.status).toBe(500);
+        expect(data).toEqual({
+            error: "Server configuration error: ML service URL is missing.",
+            code: "ML_SERVICE_URL_MISSING",
+        });
+        expect(global.fetch).not.toHaveBeenCalled();
+        expect(generateContentMock).not.toHaveBeenCalled();
     });
 
     it("keeps non-emergency responses false when neither detector signals danger", async () => {

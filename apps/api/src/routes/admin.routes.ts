@@ -1,5 +1,6 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { z } from "zod";
+import { uuidSchema } from "../utils/validation";
 
 import { requireAuth, requireRole } from "../middleware/auth";
 import { supabase } from "../db/client";
@@ -24,6 +25,15 @@ import { AuthenticatedRequest } from "../middleware/auth";
 
 const router = Router();
 
+const validateIdParam = (req: Request, res: Response, next: NextFunction): void => {
+    const parsed = uuidSchema.safeParse(req.params.id);
+    if (!parsed.success) {
+        res.status(400).json({ error: "Invalid UUID format" });
+        return;
+    }
+    next();
+};
+
 router.use(limiter);
 
 router.get("/reports", requireAuth, requireRole("admin", "moderator"), getPendingReports);
@@ -42,23 +52,50 @@ router.get(
     requireRole("admin", "moderator"),
     getPushNotificationAnalytics
 );
-router.patch("/reports/:id/status", requireAuth, requireRole("admin"), updateReportStatus);
+router.patch(
+    "/reports/:id/status",
+    requireAuth,
+    requireRole("admin"),
+    validateIdParam,
+    updateReportStatus
+);
 router.post("/medicines", requireAuth, requireRole("admin"), createMedicine);
-router.patch("/pharmacies/:id/status", requireAuth, requireRole("admin"), updatePharmacyStatus);
+router.patch(
+    "/pharmacies/:id/status",
+    requireAuth,
+    requireRole("admin"),
+    validateIdParam,
+    updatePharmacyStatus
+);
 router.get("/pharmacies", requireAuth, requireRole("admin", "moderator"), getAllPharmacies);
-router.delete("/pharmacies/:id", limiter, requireAuth, requireRole("admin"), deletePharmacy);
+router.delete(
+    "/pharmacies/:id",
+    limiter,
+    requireAuth,
+    requireRole("admin"),
+    validateIdParam,
+    deletePharmacy
+);
 router.post(
     "/pharmacies/:id/deactivate",
     limiter,
     requireAuth,
     requireRole("admin"),
+    validateIdParam,
     deletePharmacy
 );
-router.post("/pharmacies/:id/restore", limiter, requireAuth, requireRole("admin"), restorePharmacy);
+router.post(
+    "/pharmacies/:id/restore",
+    limiter,
+    requireAuth,
+    requireRole("admin"),
+    validateIdParam,
+    restorePharmacy
+);
 
 const InvalidateCacheSchema = z.object({
     drugIds: z
-        .array(z.string().uuid({ message: "Each drugId must be a valid UUID" }))
+        .array(uuidSchema)
         .max(100, "Maximum 100 drug IDs per request")
         .optional()
         .default([]),

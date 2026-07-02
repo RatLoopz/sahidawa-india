@@ -260,7 +260,7 @@ def evaluate_pr_impact(pr: dict) -> None:
 
     url = (
         "https://generativelanguage.googleapis.com/v1beta/models/"
-        f"gemini-3.5-flash:generateContent?key={gemini_api_key}"
+        "gemini-3.5-flash:generateContent?key={gemini_api_key}"
     )
     payload = {
         "systemInstruction": {"parts": [{"text": system_prompt}]},

@@ -864,5 +864,27 @@
             "confirm": "നീക്കം ചെയ്യുക",
             "cancel": "റദ്ദാക്കുക"
         }
+    "NotFound": {
+        "badge": "Error 404",
+        "title": "Page Not Found",
+        "description": "We couldn't find the medicine or page you were looking for. It might have been moved, or the URL might be incorrect.",
+        "backHome": "Back to Home",
+        "scanMedicine": "Scan Medicine"
+    "Settings": {
+        "channelRequired": "Kurannathu oru aashayavinimaya channel (SMS allenkil WhatsApp) sakriyamaayirikkanam.",
+        "optOutConfirm": "Ningal opt out cheythu ella SMS, WhatsApp alertukalum niruthanamennu urappano?",
+        "loadingPreferences": "Ningalude munganangal load cheyyunnu...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
     }
 }

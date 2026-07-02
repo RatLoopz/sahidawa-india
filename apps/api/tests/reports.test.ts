@@ -629,9 +629,12 @@ describe("Reports API Routes", () => {
     });
 
     describe("PATCH /api/reports/:id/status", () => {
+        const REPORT_UUID = "00000000-0000-4000-8000-000000000004";
+        const NONEXISTENT_UUID = "00000000-0000-4000-8000-000000000099";
+
         it("returns 403 when non-admin user tries to update status", async () => {
             const response = await request(app)
-                .patch("/api/reports/report-id-123/status")
+                .patch(`/api/reports/${REPORT_UUID}/status`)
                 .set("Authorization", "Bearer test-token")
                 .send({ status: "verified_fake" });
 
@@ -641,7 +644,7 @@ describe("Reports API Routes", () => {
 
         it("returns 400 when invalid status is provided", async () => {
             const response = await request(app)
-                .patch("/api/reports/report-id-123/status")
+                .patch(`/api/reports/${REPORT_UUID}/status`)
                 .set("Authorization", "Bearer admin-token")
                 .set("X-Admin", "true")
                 .send({ status: "invalid_status" });
@@ -657,7 +660,7 @@ describe("Reports API Routes", () => {
                 .mockResolvedValueOnce({ data: null, error: null });
 
             const response = await request(app)
-                .patch("/api/reports/non-existent-id/status")
+                .patch(`/api/reports/${NONEXISTENT_UUID}/status`)
                 .set("Authorization", "Bearer admin-token")
                 .set("X-Admin", "true")
                 .send({ status: "verified_fake" });
@@ -680,7 +683,7 @@ describe("Reports API Routes", () => {
                 .mockResolvedValueOnce({ data: updatedReport, error: null });
 
             const response = await request(app)
-                .patch("/api/reports/report-id-123/status")
+                .patch(`/api/reports/${REPORT_UUID}/status`)
                 .set("Authorization", "Bearer admin-token")
                 .set("X-Admin", "true")
                 .send({ status: "verified_fake" });
@@ -705,7 +708,7 @@ describe("Reports API Routes", () => {
                 .mockResolvedValueOnce({ data: updatedReport, error: null });
 
             const response = await request(app)
-                .patch("/api/reports/report-id-123/status")
+                .patch(`/api/reports/${REPORT_UUID}/status`)
                 .set("Authorization", "Bearer admin-token")
                 .set("X-Admin", "true")
                 .send({ status: "verified_fake" });
@@ -720,11 +723,11 @@ describe("Reports API Routes", () => {
             for (const status of validStatuses) {
                 mockedSupabase.single = jest
                     .fn()
-                    .mockResolvedValueOnce({ data: { id: "report-id" }, error: null })
-                    .mockResolvedValueOnce({ data: { id: "report-id", status }, error: null });
+                    .mockResolvedValueOnce({ data: { id: REPORT_UUID }, error: null })
+                    .mockResolvedValueOnce({ data: { id: REPORT_UUID, status }, error: null });
 
                 const response = await request(app)
-                    .patch(`/api/reports/report-id-${status}/status`)
+                    .patch(`/api/reports/${REPORT_UUID}/status`)
                     .set("Authorization", "Bearer admin-token")
                     .set("X-Admin", "true")
                     .send({ status });
@@ -811,7 +814,7 @@ describe("Reports API Routes", () => {
             });
 
             const response = await request(app)
-                .patch("/api/reports/report-id-123/status")
+                .patch(`/api/reports/${REPORT_UUID}/status`)
                 .set("Authorization", "Bearer admin-token")
                 .set("X-Admin", "true")
                 .send({ status: "verified_fake" });
@@ -878,12 +881,10 @@ describe("Reports API Routes", () => {
                             return {
                                 eq: jest.fn().mockReturnValue({
                                     select: jest.fn().mockReturnValue({
-                                        single: jest
-                                            .fn()
-                                            .mockResolvedValue({
-                                                data: updatedReport,
-                                                error: null,
-                                            }),
+                                        single: jest.fn().mockResolvedValue({
+                                            data: updatedReport,
+                                            error: null,
+                                        }),
                                     }),
                                 }),
                             };
@@ -918,7 +919,7 @@ describe("Reports API Routes", () => {
             });
 
             const response = await request(app)
-                .patch("/api/reports/report-id-123/status")
+                .patch(`/api/reports/${REPORT_UUID}/status`)
                 .set("Authorization", "Bearer admin-token")
                 .set("X-Admin", "true")
                 .send({ status: "verified_fake" });
