@@ -16,18 +16,10 @@ logging.basicConfig(level=logging.INFO)
 CDSCO_ALERTS_URL = "https://cdsco.gov.in/opencms/opencms/en/Notifications/Alerts/"
 
 API_BASE_URL = os.getenv("API_BASE_URL", "").strip().rstrip("/")
-if not API_BASE_URL:
-    logging.error("CRITICAL ERROR: API_BASE_URL is not set in environment.")
-    sys.exit(1)
-
-INGEST_API_URL = API_BASE_URL + "/api/v1/alerts/ingest"
-
 API_SECRET_KEY = os.getenv("API_SECRET_KEY")
-if not API_SECRET_KEY:
-    logging.error("CRITICAL ERROR: API_SECRET_KEY is not set in environment.")
-    sys.exit(1)
 
-ALERTS_API_URL = API_BASE_URL + "/api/v1/alerts"
+INGEST_API_URL = API_BASE_URL + "/api/v1/alerts/ingest" if API_BASE_URL else ""
+ALERTS_API_URL = API_BASE_URL + "/api/v1/alerts" if API_BASE_URL else ""
 
 def scrape_cdsco_alerts():
     logging.info(f"Checking {CDSCO_ALERTS_URL} for new alerts...")
@@ -149,4 +141,10 @@ def ingest_alerts(alerts: list):
         return False
 
 if __name__ == "__main__":
+    if not API_BASE_URL:
+        logging.error("API_BASE_URL is not set in environment. Exiting.")
+        sys.exit(1)
+    if not API_SECRET_KEY:
+        logging.error("API_SECRET_KEY is not set in environment. Exiting.")
+        sys.exit(1)
     scrape_cdsco_alerts()

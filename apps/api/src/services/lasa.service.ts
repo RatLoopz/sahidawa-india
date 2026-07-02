@@ -34,6 +34,11 @@ interface CacheEntry {
     expiresAt: number;
 }
 
+interface LasaConflictRow {
+    name: string;
+    match_type: LasaMatchType;
+}
+
 const cache = new Map<string, CacheEntry>();
 const inFlight = new Map<string, Promise<LasaMatch[]>>();
 
@@ -85,9 +90,9 @@ export const detectLasaConflicts = async (medicineName: string): Promise<LasaMat
                 throw new Error(`Failed to check LASA conflicts: ${error.message}`);
             }
 
-            const result: LasaMatch[] = (data || []).map((row: any) => ({
+            const result: LasaMatch[] = (data || []).map((row: LasaConflictRow) => ({
                 name: row.name,
-                type: row.match_type as LasaMatchType,
+                type: row.match_type,
                 score: row.match_type === "sound-alike" ? 1.0 : 0.85,
             }));
 
@@ -98,9 +103,6 @@ export const detectLasaConflicts = async (medicineName: string): Promise<LasaMat
         }
     })();
 
-    if (inFlight.size >= MAX_INFLIGHT) {
-        inFlight.clear();
-    }
     inFlight.set(cacheKey, promise);
     return promise;
 };

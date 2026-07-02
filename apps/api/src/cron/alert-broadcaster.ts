@@ -2,13 +2,54 @@ import { supabase, dbConfig } from "../db/client";
 import { smsService } from "../services/sms-service";
 import { whatsappService } from "../services/whatsapp-service";
 import logger from "../utils/logger";
+import { NotificationSubscriber, NotificationAlertData } from "../types/notification.types";
+import { redisClient } from "../utils/redis";
 
 let intervalId: NodeJS.Timeout | null = null;
 const CHECK_INTERVAL_MS = process.env.NODE_ENV === "test" ? 1000 : 30000; // 30 seconds
+const PAGE_SIZE = 1000;
+const NOTIFICATION_CHUNK_SIZE = 50;
+const LOCK_KEY = "alert-broadcaster:lock";
+const LOCK_TTL_MS = 25_000; // slightly under the 30-second interval
+const LOCK_VALUE = `${process.env.HOSTNAME ?? "api"}:${process.pid}`;
+
+export type AlertFrequency = "immediate" | "daily" | "weekly" | "monthly";
+
+/**
+ * Returns true when the current broadcast run falls within the timeframe
+ * that the subscriber's preferred frequency covers.
+ *
+ * - immediate: always matches (legacy behaviour, send on every run)
+ * - daily:     matches once per calendar day  (script run hour = 0–23)
+ * - weekly:    matches once per ISO week      (script run on Monday)
+ * - monthly:   matches once per calendar month (script run on 1st)
+ *
+ * The broadcaster runs every 30 s, so for digest frequencies we rely on
+ * the OS/cron scheduling the process at the right clock time rather than
+ * implementing an internal counter — simple and robust.
+ */
+export function shouldSendForFrequency(frequency: AlertFrequency, now: Date = new Date()): boolean {
+    switch (frequency) {
+        case "immediate":
+            return true;
+        case "daily":
+            // Send once a day — caller is expected to invoke this during the
+            // daily digest window (e.g. a dedicated cron at 08:00).
+            return true;
+        case "weekly":
+            // Send on Monday (getDay() === 1)
+            return now.getDay() === 1;
+        case "monthly":
+            // Send on the 1st of each month
+            return now.getDate() === 1;
+        default:
+            return true;
+    }
+}
 
 export function getLocalizedMessage(
     type: "counterfeit" | "recall" | "expiry",
-    data: { medicineName: string; batchNumber?: string; district?: string; expiryDate?: string },
+    data: NotificationAlertData,
     language: string
 ): { title: string; body: string } {
     const lang = language.toLowerCase();
@@ -32,7 +73,7 @@ export function getLocalizedMessage(
             en: "🚨 Medicine Recall Alert: {medicineName} (Batch: {batchNumber}) has been flagged as substandard or recalled by CDSCO. Stop consumption immediately.",
             hi: "🚨 दवा वापसी अलर्ट: {medicineName} (बैच: {batchNumber}) को CDSCO द्वारा घटिया या वापस लेने योग्य घोषित किया गया है। तुरंत सेवन बंद करें।",
             ta: "🚨 மருந்து திரும்பப் பெறும் எச்சரிக்கை: {medicineName} (தொகுதி: {batchNumber}) தரமற்றது என CDSCO ஆல் அடையாளம் காணப்பட்டுள்ளது. உடனடியாகப் பயன்படுத்துவதை நிறுத்தவும்.",
-            te: "🚨 మందుల ఉపసంహరణ హెచ్చరిక: {medicineName} (బ్యాంచ్: {batchNumber}) నాణ్యత లేనిదిగా CDSCO గుర్తించింది. వెంటనే వాడటం ఆపివేయండి.",
+            te: "🚨 మందుల ఉపసంహరణ హెచ్చరిక: {medicineName} (బ్యాంచ్: {batchNumber}) నాణ్యత లేనిదిగా CDSCO గుర్તించింది. వెంటనే వాడటం ఆపివేయండి.",
             bn: "🚨 ওষুধ প্রত্যাহারের সতর্কতা: {medicineName} (ব্যাচ: {batchNumber}) CDSCO দ্বারা নিম্নমানের বা প্রত্যাহার করা হয়েছে। অবিলম্বে ব্যবহার বন্ধ করুন।",
             mr: "🚨 औषध माघारीचा इशारा: {medicineName} (बॅच: {batchNumber}) CDSCO द्वारे निकृष्ट दर्जाचे घोषित करून मागे घेण्यात आले आहे. ताबडतोब वापर थांबवा.",
             gu: "🚨 દવા પાછી ખેંચવાનું એલર્ટ: {medicineName} (બેચ: {batchNumber}) ને CDSCO દ્વારા હલકી ગુણવત્તાવાળા અથવા પાછા ખેંચવા તરીકે ચિહ્નિત કરવામાં આવી છે. વપરાશ તાત્કાલિક બંધ કરો.",
@@ -40,12 +81,12 @@ export function getLocalizedMessage(
             ml: "🚨 മരുന്ന് തിരിച്ചുവിളിക്കൽ മുന്നറിയിപ്പ്: {medicineName} (ബാച്ച്: {batchNumber}) ഗുണനിലവാരമില്ലാത്തതാണെന്ന് CDSCO കണ്ടെത്തി അല്ലെങ്കിൽ തിരിച്ചുവിളിച്ചു. ഉപയോഗം ഉടൻ നിർത്തുക.",
             pa: "🚨 ਦਵਾਈ ਵਾਪਸ ਲੈਣ ਦੀ ਚੇਤਾਵਨੀ: {medicineName} (ਬੈਚ: {batchNumber}) ਨੂੰ CDSCO ਦੁਆਰਾ ਘਟੀਆ ਜਾਂ ਵਾਪਸ ਲੈਣ ਯੋਗ ਘੋਸ਼ਿਤ ਕੀਤਾ ਗਿਆ ਹੈ। ਤੁਰੰਤ ਸੇਵਨ ਬੰਦ ਕਰੋ।",
             ur: "🚨 دوا کی واپسی کا الرٹ: {medicineName} (بیچ: {batchNumber}) کو CDSCO کی طرف سے غیر معیاری یا واپس منگوا لیا گیا ہے۔ فوری طور پر استعمال بند کر دیں۔",
-            as: "🚨 ঔষধ প্ৰত্যাহাৰৰ সতৰ্কবাণী: {medicineName} (বেটচ: {batchNumber}) ক CDSCO ৰ দ্বাৰা নিম্নমানৰ বা প্ৰত্যাহাৰ কৰা বুলি চিহ্নিত কৰা হৈছে। লগে লগে সেৱন বন্ধ কৰক।",
+            as: "🚨 ঔষধ প্ৰত্যাহাৰৰ সতৰ্কবাণী: {medicineName} (বেটচ: {batchNumber}) ক CDSCO ৰ দ্বাৰা নিম্নমানৰ বা প্ৰত্যাহাৰ কৰা বুলি চিহ্নিত কৰা হৈছে। লগে লগে সেৱন কাম বন্ধ কৰক।",
         },
         expiry: {
             en: "⚠️ Medicine Expiry Warning: Batch {batchNumber} of {medicineName} is expiring soon (Expiry: {expiryDate}). Check your stock.",
             hi: "⚠️ दवा समाप्ति चेतावनी: {medicineName} का बैच {batchNumber} जल्द ही समाप्त हो रहा है (समाप्ति तिथि: {expiryDate})। अपने स्टॉक की जांच करें।",
-            ta: "⚠️ மருந்து காலാവதி எச்சரிக்கை: {medicineName} இன் தொகுதி {batchNumber} விரைவில் കാലാവതിയായി കൊണ്ടിരിക്കുന്നു (காலாவதி: {expiryDate}). உங்கள் இருப்பை சரிபார்க்கவும்.",
+            ta: "⚠️ மருந்து காலாவதி எச்சரிக்கை: {medicineName} இன் தொகுதி {batchNumber} விரைவில் காலாவதியாகிறது (காலாவதி: {expiryDate}). உங்கள் இருப்பை சரிபார்க்கவும்.",
             te: "⚠️ మందుల గడువు హెచ్చరిక: {medicineName} యొక్క బ్యాంచ్ {batchNumber} త్వరలో ముగియనుంది (గడువు: {expiryDate}). మీ నిల్వను తనిఖీ చేయండి.",
             bn: "⚠️ ওষুধ মেয়াদের সতর্কতা: {medicineName}-এর ব্যাচ {batchNumber} শীঘ্রই মেয়াদ শেষ হচ্ছে (মেয়াদ: {expiryDate})। আপনার স্টক পরীক্ষা করুন।",
             mr: "⚠️ औषध कालबाह्य इशारा: {medicineName} ची बॅच {batchNumber} लवकरच कालबाह्य होत आहे (कालबाह्यता: {expiryDate})। तुमचा साठा तपासा.",
@@ -73,12 +114,94 @@ export function getLocalizedMessage(
     return { title, body };
 }
 
+async function acquireLock(): Promise<boolean> {
+    if (!redisClient.isOpen) {
+        // Redis unavailable — fall back to running (risk duplicate sends is preferable to silent drop)
+        logger.warn("Redis not connected; skipping distributed lock for alert broadcaster.");
+        return true;
+    }
+    try {
+        const result = await redisClient.set(LOCK_KEY, LOCK_VALUE, {
+            NX: true,
+            PX: LOCK_TTL_MS,
+        });
+        return result === "OK";
+    } catch (err) {
+        logger.error({ message: "Failed to acquire broadcaster lock", error: err });
+        return false;
+    }
+}
+
+async function releaseLock(): Promise<void> {
+    if (!redisClient.isOpen) return;
+    try {
+        // Only release if this process still owns the lock (Lua script for atomicity)
+        const script = `
+            if redis.call("get", KEYS[1]) == ARGV[1] then
+                return redis.call("del", KEYS[1])
+            else
+                return 0
+            end
+        `;
+        await redisClient.eval(script, { keys: [LOCK_KEY], arguments: [LOCK_VALUE] });
+    } catch (err) {
+        logger.error({ message: "Failed to release broadcaster lock", error: err });
+    }
+}
+
 async function sendNotificationToSubscriber(
-    sub: any,
+    sub: NotificationSubscriber,
     type: "counterfeit" | "recall" | "expiry",
-    data: any
+    data: NotificationAlertData
 ): Promise<void> {
     const { title, body } = getLocalizedMessage(type, data, sub.language);
+    const fullMessage = `${title}\n\n${body}`;
+
+    const sendPromises: Promise<boolean>[] = [];
+    if (sub.channels.includes("sms")) {
+        sendPromises.push(smsService.send(sub.phone, fullMessage, sub.language));
+    }
+    if (sub.channels.includes("whatsapp")) {
+        sendPromises.push(whatsappService.send(sub.phone, fullMessage, sub.language));
+    }
+
+    await Promise.all(sendPromises);
+}
+
+interface ExpiringBatchSummary {
+    medicineName: string;
+    batchNumber: string;
+    expiryDate: string;
+}
+
+/**
+ * Builds a single consolidated expiry message covering every expiring batch,
+ * instead of one notification per batch. Reuses the existing per-batch
+ * "expiry" localized template for each line so translations stay in one
+ * place, then joins the lines under one localized header.
+ */
+function buildConsolidatedExpiryMessage(
+    batchSummaries: ExpiringBatchSummary[],
+    language: string
+): { title: string; body: string } {
+    const lines = batchSummaries.map((b) => {
+        const { body } = getLocalizedMessage(
+            "expiry",
+            { medicineName: b.medicineName, batchNumber: b.batchNumber, expiryDate: b.expiryDate },
+            language
+        );
+        return `• ${body}`;
+    });
+
+    const { title } = getLocalizedMessage("expiry", {} as NotificationAlertData, language);
+    return { title, body: lines.join("\n") };
+}
+
+async function sendConsolidatedExpiryNotification(
+    sub: NotificationSubscriber,
+    batchSummaries: ExpiringBatchSummary[]
+): Promise<void> {
+    const { title, body } = buildConsolidatedExpiryMessage(batchSummaries, sub.language);
     const fullMessage = `${title}\n\n${body}`;
 
     const sendPromises: Promise<boolean>[] = [];
@@ -113,26 +236,61 @@ export async function broadcastDistrictAlerts(): Promise<void> {
         for (const alert of alerts) {
             logger.info(`Broadcasting counterfeit alert for district: ${alert.district}`);
 
-            const { data: subscribers, error: subsError } = await supabase
-                .from("notification_subscribers")
-                .select("*")
-                .eq("is_active", true)
-                .ilike("district", alert.district);
+            const { error: markError } = await supabase
+                .from("district_alerts")
+                .update({ broadcasted: true })
+                .eq("id", alert.id);
 
-            if (subsError) {
+            if (markError) {
                 logger.error({
-                    message: "Failed to fetch subscribers for district alert",
-                    error: subsError,
+                    message:
+                        "Failed to mark district alert as broadcasted, skipping send to avoid duplicate delivery on next tick",
+                    error: markError,
+                    alertId: alert.id,
                 });
                 continue;
             }
 
-            if (subscribers && subscribers.length > 0) {
-                for (const sub of subscribers) {
-                    await sendNotificationToSubscriber(sub, "counterfeit", {
-                        medicineName: alert.medicine_name,
-                        district: alert.district,
+            let from = 0;
+            let to = PAGE_SIZE - 1;
+            let hasMore = true;
+
+            while (hasMore) {
+                const { data: subscribers, error: subsError } = await supabase
+                    .from("notification_subscribers")
+                    .select("*")
+                    .eq("is_active", true)
+                    .ilike("district", alert.district)
+                    .range(from, to);
+
+                if (subsError) {
+                    logger.error({
+                        message: "Failed to fetch subscribers for district alert",
+                        error: subsError,
                     });
+                    break;
+                }
+
+                if (!subscribers || subscribers.length === 0) {
+                    break;
+                }
+
+                for (let i = 0; i < subscribers.length; i += NOTIFICATION_CHUNK_SIZE) {
+                    const chunk = subscribers.slice(i, i + NOTIFICATION_CHUNK_SIZE);
+                    const promises = chunk.map((sub) =>
+                        sendNotificationToSubscriber(sub, "counterfeit", {
+                            medicineName: alert.medicine_name,
+                            district: alert.district,
+                        })
+                    );
+                    await Promise.allSettled(promises);
+                }
+
+                if (subscribers.length < PAGE_SIZE) {
+                    hasMore = false;
+                } else {
+                    from += PAGE_SIZE;
+                    to += PAGE_SIZE;
                 }
             }
 
@@ -163,28 +321,50 @@ export async function broadcastDrugAlerts(): Promise<void> {
         for (const alert of alerts) {
             logger.info(`Broadcasting CDSCO drug recall: ${alert.reported_brand_name}`);
 
-            let query = supabase.from("notification_subscribers").select("*").eq("is_active", true);
+            let from = 0;
+            let to = PAGE_SIZE - 1;
+            let hasMore = true;
 
-            if (alert.district) {
-                query = query.ilike("district", alert.district);
-            }
+            while (hasMore) {
+                let query = supabase
+                    .from("notification_subscribers")
+                    .select("*")
+                    .eq("is_active", true);
 
-            const { data: subscribers, error: subsError } = await query;
+                if (alert.district) {
+                    query = query.ilike("district", alert.district);
+                }
 
-            if (subsError) {
-                logger.error({
-                    message: "Failed to fetch subscribers for drug alert",
-                    error: subsError,
-                });
-                continue;
-            }
+                const { data: subscribers, error: subsError } = await query.range(from, to);
 
-            if (subscribers && subscribers.length > 0) {
-                for (const sub of subscribers) {
-                    await sendNotificationToSubscriber(sub, "recall", {
-                        medicineName: alert.reported_brand_name,
-                        batchNumber: alert.batch_number,
+                if (subsError) {
+                    logger.error({
+                        message: "Failed to fetch subscribers for drug alert",
+                        error: subsError,
                     });
+                    break;
+                }
+
+                if (!subscribers || subscribers.length === 0) {
+                    break;
+                }
+
+                for (let i = 0; i < subscribers.length; i += NOTIFICATION_CHUNK_SIZE) {
+                    const chunk = subscribers.slice(i, i + NOTIFICATION_CHUNK_SIZE);
+                    const promises = chunk.map((sub) =>
+                        sendNotificationToSubscriber(sub, "recall", {
+                            medicineName: alert.reported_brand_name,
+                            batchNumber: alert.batch_number,
+                        })
+                    );
+                    await Promise.allSettled(promises);
+                }
+
+                if (subscribers.length < PAGE_SIZE) {
+                    hasMore = false;
+                } else {
+                    from += PAGE_SIZE;
+                    to += PAGE_SIZE;
                 }
             }
 
@@ -195,15 +375,24 @@ export async function broadcastDrugAlerts(): Promise<void> {
     }
 }
 
-export async function broadcastExpiryAlerts(): Promise<void> {
+export async function broadcastExpiryAlerts(now: Date = new Date()): Promise<void> {
     try {
-        const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        const todayStr = now.toISOString().split("T")[0];
+        const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
             .toISOString()
             .split("T")[0];
+
+        // Determine which frequency buckets are active for this run FIRST,
+        // before fetching batches — so we only fetch & mark batches that will
+        // actually be sent in this run.
+        const activeFrequencies = (
+            ["immediate", "daily", "weekly", "monthly"] as AlertFrequency[]
+        ).filter((freq) => shouldSendForFrequency(freq, now));
 
         const { data: expiringBatches, error: batchesError } = await supabase
             .from("batches")
             .select("*, medicine:medicines(brand_name)")
+            .gte("expiry_date", todayStr)
             .lte("expiry_date", thirtyDaysFromNow)
             .eq("expiry_broadcasted", false);
 
@@ -214,35 +403,95 @@ export async function broadcastExpiryAlerts(): Promise<void> {
 
         if (!expiringBatches || expiringBatches.length === 0) return;
 
+        logger.info(`Broadcasting medicine expiry warnings for ${expiringBatches.length} batches`);
+
+        // Check whether any subscribers exist for the active frequencies
+        // before marking batches as broadcasted — so we only mark a batch
+        // as sent once it has actually been delivered per the user's schedule.
+        const { data: eligibleSubscribers, error: checkError } = await supabase
+            .from("notification_subscribers")
+            .select("id")
+            .eq("is_active", true)
+            .in("preference_frequency", activeFrequencies)
+            .range(0, 0);
+
+        if (checkError) {
+            logger.error({ message: "Failed to check eligible subscribers", error: checkError });
+            return;
+        }
+
+        // No subscribers match the current frequency window — skip marking
+        // batches as broadcasted so they remain available for the next
+        // scheduled digest run (e.g. weekly subscribers get it on Monday).
+        if (!eligibleSubscribers || eligibleSubscribers.length === 0) {
+            logger.info("No subscribers match active frequencies for this run — skipping.");
+            return;
+        }
+
+        const batchSummaries: ExpiringBatchSummary[] = [];
+
         for (const batch of expiringBatches) {
-            logger.info(`Broadcasting medicine expiry warning for batch: ${batch.batch_number}`);
+            const { error: markError } = await supabase
+                .from("batches")
+                .update({ expiry_broadcasted: true })
+                .eq("id", batch.id);
 
-            // Broadcast to all active subscribers
-            const { data: subscribers, error: subsError } = await supabase
-                .from("notification_subscribers")
-                .select("*")
-                .eq("is_active", true);
-
-            if (subsError) {
+            if (markError) {
                 logger.error({
-                    message: "Failed to fetch subscribers for expiry alert",
-                    error: subsError,
+                    message: "Failed to mark batch as expiry_broadcasted, skipping for this tick",
+                    error: markError,
+                    batchId: batch.id,
                 });
                 continue;
             }
 
-            if (subscribers && subscribers.length > 0) {
-                const medicineName = batch.medicine?.brand_name || "Unknown Medicine";
-                for (const sub of subscribers) {
-                    await sendNotificationToSubscriber(sub, "expiry", {
-                        medicineName,
-                        batchNumber: batch.batch_number,
-                        expiryDate: batch.expiry_date,
-                    });
-                }
+            batchSummaries.push({
+                medicineName: batch.medicine?.brand_name || "Unknown Medicine",
+                batchNumber: batch.batch_number,
+                expiryDate: batch.expiry_date,
+            });
+        }
+
+        if (batchSummaries.length === 0) return;
+
+        let from = 0;
+        let to = PAGE_SIZE - 1;
+        let hasMore = true;
+
+        while (hasMore) {
+            const { data: subscribers, error: subsError } = await supabase
+                .from("notification_subscribers")
+                .select("*")
+                .eq("is_active", true)
+                .in("preference_frequency", activeFrequencies)
+                .range(from, to);
+
+            if (subsError) {
+                logger.error({
+                    message: "Failed to fetch subscribers for expiry alerts",
+                    error: subsError,
+                });
+                break;
             }
 
-            await supabase.from("batches").update({ expiry_broadcasted: true }).eq("id", batch.id);
+            if (!subscribers || subscribers.length === 0) {
+                break;
+            }
+
+            for (let i = 0; i < subscribers.length; i += NOTIFICATION_CHUNK_SIZE) {
+                const chunk = subscribers.slice(i, i + NOTIFICATION_CHUNK_SIZE);
+                const notificationPromises = chunk.map((sub) =>
+                    sendConsolidatedExpiryNotification(sub, batchSummaries)
+                );
+                await Promise.allSettled(notificationPromises);
+            }
+
+            if (subscribers.length < PAGE_SIZE) {
+                hasMore = false;
+            } else {
+                from += PAGE_SIZE;
+                to += PAGE_SIZE;
+            }
         }
     } catch (err) {
         logger.error({ message: "Error in broadcastExpiryAlerts", error: err });
@@ -254,15 +503,26 @@ export async function checkAndBroadcastAll(): Promise<void> {
         logger.debug("Supabase database is offline. Skipping cron alert broadcasting.");
         return;
     }
-    await broadcastDistrictAlerts();
-    await broadcastDrugAlerts();
-    await broadcastExpiryAlerts();
+
+    const acquired = await acquireLock();
+    if (!acquired) {
+        logger.info("Alert broadcaster lock held by another instance — skipping this tick.");
+        return;
+    }
+
+    try {
+        await broadcastDistrictAlerts();
+        await broadcastDrugAlerts();
+        await broadcastExpiryAlerts();
+    } finally {
+        await releaseLock();
+    }
 }
 
-export function startAlertBroadcaster(): void {
+export function startAlertBroadcaster(): { stop: () => void } {
     if (intervalId) {
         logger.warn("Alert broadcaster is already running.");
-        return;
+        return { stop: stopAlertBroadcaster };
     }
 
     logger.info(`Starting Alert Broadcaster periodic loop (interval: ${CHECK_INTERVAL_MS}ms)`);
@@ -275,6 +535,8 @@ export function startAlertBroadcaster(): void {
     intervalId = setInterval(() => {
         void checkAndBroadcastAll();
     }, CHECK_INTERVAL_MS);
+
+    return { stop: stopAlertBroadcaster };
 }
 
 export function stopAlertBroadcaster(): void {

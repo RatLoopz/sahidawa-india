@@ -54,13 +54,26 @@ export interface MedicineRow {
     brand_name: string | null;
     generic_name: string;
     manufacturer: string | null;
-    composition: string | null;
-    strength: string | null;
-    dosage_form: string | null;
-    schedule: string | null;
-    mrp: number | string | null;
-    jan_aushadhi_price: number | string | null;
+    composition?: string | null;
+    strength?: string | null;
+    dosage_form?: string | null;
+    schedule?: string | null;
+    mrp?: number | string | null;
+    jan_aushadhi_price?: number | string | null;
     similarity?: number | null;
+    batch_number?: string | null;
+    barcode_id?: string | null;
+    manufacturing_date?: string | null;
+    expiry_date?: string | null;
+    cdsco_approval_status?: string | null;
+    is_counterfeit_alert?: boolean | null;
+    is_cdsco_verified?: boolean | null;
+    cdsco_match_score?: number | null;
+    matched_cdsco_product?: string | null;
+    matched_cdsco_manufacturer?: string | null;
+    product_match_score?: number | null;
+    manufacturer_match_score?: number | null;
+    manufacturer_id?: string | null;
 }
 
 /** Formatted medicine returned in API responses. */
@@ -270,14 +283,15 @@ export async function retrieveRelevantMedicines(
     });
 
     // Tier 3 — in-memory ILIKE filter over the table.
-    const pattern = `%${escapeIlike(query)}%`;
+    const safe = escapePostgrest(escapeIlike(query));
+    const pattern = `%${safe}%`;
     const { data: tableData, error: tableError } = await anonSupabase
         .from("medicines")
         .select(
             "id, brand_name, generic_name, manufacturer, composition, strength, dosage_form, schedule, mrp, jan_aushadhi_price"
         )
         .or(
-            `generic_name.ilike."${escapePostgrest(pattern)}",brand_name.ilike."${escapePostgrest(pattern)}",composition.ilike."${escapePostgrest(pattern)}"`
+            `generic_name.ilike."${pattern}",brand_name.ilike."${pattern}",composition.ilike."${pattern}"`
         )
         .limit(limit);
 

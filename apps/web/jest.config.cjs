@@ -6,10 +6,12 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
 }
 
 module.exports = {
-    testEnvironment: "node",
+    testEnvironment: "jsdom",
     setupFiles: ["<rootDir>/jest.env.cjs"],
     roots: ["<rootDir>/tests"],
+    testPathIgnorePatterns: ["<rootDir>/tests/e2e/"],
     moduleNameMapper: {
+        "\\.css$": "<rootDir>/tests/mocks/styleMock.ts",
         "^leaflet$": "<rootDir>/tests/mocks/leaflet.ts",
         "^react-leaflet$": "<rootDir>/tests/mocks/react-leaflet.ts",
         "^leaflet/dist/leaflet.css$": "<rootDir>/tests/mocks/leaflet.ts",

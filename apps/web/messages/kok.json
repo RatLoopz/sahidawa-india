@@ -41,7 +41,14 @@
         "heroTitle": {
             "prefix": "तुमचें भलायकी, ",
             "highlight": "तपासिल्ली आनी राखिल्ली."
-        }
+        },
+        "scan_section_title": "वखद स्कॅन आनी पडताळात",
+        "scan_section_subtitle": "बारकोड वा पॅकेज स्कॅनिंग वापरून वखदाची खरीपण पडताळात.",
+        "powerful_capabilities": "शक्तीशाली क्षमता",
+        "features_description": "सहिदावा (SahiDawa) तुमकां तुमच्या वखदांची पडताळणी करपाक आनी सुरक्षित उरपाक कशे तरेन मदत करू शकता ते सगळे मार्ग सोदा.",
+        "trusted_by_citizens": "नागरिकां कडल्यान विस्वाशी",
+        "voices_title": "सहिदावा समुदायाचे ताळे",
+        "voices_description": "वखदांची सुरक्षा सवाय करपाक सहिदावा वापरपी कुटुंब, फार्मासिस्ट, दोतोर आनी योगदानकर्ते."
     },
     "Navigation": {
         "how_it_works": "हें कशें काम करता",
@@ -378,7 +385,8 @@
         "title": "सहीदवा AI",
         "status": "ऑनलाइन",
         "welcome": "नमस्कार! हांव सहीदवा AI सहाय्यक. आज वखदांविशीं तुमकां कशी मदत करूंक शकता?",
-        "placeholder": "म्हाका वखदाविशीं विचारात..."
+        "placeholder": "म्हाका वखदाविशीं विचारात...",
+        "tooltipLabel": "AI Health Assistant"
     },
     "Alerts": {
         "backHome": "मुखेल पानाचेर परत वचात",
@@ -469,7 +477,15 @@
         "importDateError": "बॅकअपांत चुकीचो तारीख फॉरमॅट मेळ्ळा. सगळ्यो तारखो YYYY-MM-DD फॉरमॅटांत आसूंक जाय.",
         "statusExpired": "एक्सपायर जाल्लें",
         "statusExpiringSoon": "बेगीन एक्सपायर जातलें ({days} दिसांत)",
-        "statusSafe": "सुरक्षित"
+        "statusSafe": "सुरक्षित",
+        "exportCSV": "CSV निर्यात करा",
+        "exportPDF": "PDF निर्यात करा",
+        "print": "प्रिंट करा",
+        "csvExportSuccess": "CSV यशस्वीरित्या निर्यात केले",
+        "pdfExportSuccess": "PDF यशस्वीरित्या निर्यात केले",
+        "noMedicinesToDisplay": "दाखवण्यासाठी कोणतीही औषधे नाहीत",
+        "generatedOn": "अप फाईल. कृपा करून योग्य ",
+        "deleteMedicine": "औषध हटवा"
     },
     "Login": {
         "brandSubtitle": "वखद सुरक्षितताय व्यासपीठ",
@@ -494,7 +510,9 @@
         "errors": {
             "databaseNotConfigured": "ह्या एन्व्हायरमेंट खातीर ऑथेंटिकेशन कॉन्फिगर केल्लें ना.",
             "generic": "भितर सरपाक शक्य ना. कृपा करून परतून प्रयत्न करात."
-        }
+        },
+        "signUpPrompt": "Don't have an account?",
+        "signUpLink": "Sign up"
     },
     "AdminLayout": {
         "accessDeniedTitle": "प्रवेश नाकारला",
@@ -792,6 +810,199 @@
         "status_suspicious": "फक्त दुबावीत",
         "status_fake": "फक्त खोटीं",
         "export_button": "CSV तयार करात",
-        "cancel": "रद्द करात"
+        "cancel": "रद्द करात",
+        "search_placeholder": "वखद सोदात...",
+        "no_search_results": "तुमच्या सोदा आड कसलेच वखद मेळ्ळे ना."
+    },
+    "SchemeEligibility": {
+        "validationAgeError": "कृपया वैध वय दाखल करा.",
+        "validationStateError": "कृपया एक राज्य निवडा.",
+        "validationIncomeError": "ದಯವಿಕ್ ಕರ್ನ್ ಸಾರ್ಕಿ ವಾರ್ಷಿಕ್ ಯೆಣಾವಳ್ ಬರಯಾತ್.",
+        "validationFamilySizeError": "ದಯವಿಕ್ ಕರ್ನ್ ಸಾಂದ್ಯಾಂಚಿ ಸಾರ್ಕಿ ಸಂಖ್ಯಾ ಬರಯಾತ್.",
+        "eligibilityCheckedSuccess": "ಪಾತ್ರತಾ ಸಾರ್ಕೆಂ ತಪಾಸ್ಲಾಂ!",
+        "eligibilityCheckFailed": "ತಪಾಸ್ ಕರ್ಪಾಕ್ ಜಾಲೆಂನಾ. ವಿನಂತಿ ಕರ್ತಾ ಹರಯೇಕ್ ಪಾವ್ಟಿಂ ಪ್ರೇತನ್ ಕರಾತ್.",
+        "title": "<highlight>ಯೋಜನಾ ಪಾತ್ರತಾ</highlight> ತಪಾಸಾತ್",
+        "description": "೩ ಸರಳ್ ಪಾಂವ್ಲಾನಿ ತುಮಿ ಆಣಿ ತುಮ್ಚೆಂ ಕುಟುಂಬ್ ಖಂಯ್ಚ್ಯಾ ಆರೋಗ್ಯ್ ಯೋಜನೆಂಕ್ ಪಾತ್ರ್ ಆಸಾತ್ ತೆಂ ಜಾಣಾ ಜಾಯಾತ್.",
+        "stepDemographics": "ಜನಸಂಖ್ಯಾ ವಿವರಣ್",
+        "stepIncomeFamily": "ಯೆಣಾವಳ್ ಆನಿ ಕುಟುಂಬ್",
+        "stepIdentification": "ವಳಕ್",
+        "ageLabel": "ತುಮ್ಚೆಂ ಪ್ರಾಯ್ ಕಿತ್ಲೆಂ?",
+        "ageDescription": "ಪ್ರಾಯ್ ಮ್ಹಾಲ್ಗಡ್ಯಾಂಕ್ ಆರೋಗ್ಯ್ ವಿಮೊ ಮೆಳ್ಪಾಕ್ ತಪಾಸ್ ಕರ್ಪಾಕ್ ಮಜ್ಜತ್ ಕರ್ತಾ.",
+        "agePlaceholder": "ಉದಾ. 45",
+        "stateLabel": "ತುಮಿ ಖಂಯ್ಚ್ಯಾ ರಾಜ್ಯಾಂತ್ ರಾಹ್ತಾತ್?",
+        "stateDescription": "ಸರ್ಕಾರಿ ಆರೋಗ್ಯ್ ವಿಮೆ ಯೋಜನೆ ರಾಜ್ಯಾ ವಯ್ಲ್ಯಾನ್ ಬದ್ಲತಾತ್.",
+        "incomeLabel": "ತುಮ್ಚ್ಯಾ ಕುಟುಂಬಾಚಿ ಒಟ್ಟು ವಾರ್ಷಿಕ್ ಯೆಣಾವಳ್ ಕಿತ್ಲಿ?",
+        "incomeDescription": "ವರ್ಸಾಕ್ ರುಪ್ಯಾಂತ್ ತುಮ್ಚ್ಯಾ ಘರಾಚಿ ಒಟ್ಟು ವಾರ್ಷಿಕ್ ಯೆಣಾವಳ್.",
+        "incomePlaceholder": "ಉದಾ. 120000",
+        "familySizeLabel": "ತುಮ್ಚ್ಯಾ ಕುಟುಂಬಾಂತ್ ಕಿತ್ಲೆ ಸಾಂದೆ ಆಸಾತ್?",
+        "familySizeDescription": "ಘರಾಂತ್ ಸಾಂಗಾತಾ ರಾಹ್ಪಿ ಒಟ್ಟು ಸಾಂದೆ.",
+        "familySizePlaceholder": "ಉದಾ. 5",
+        "bplQuestion": "ತುಮ್ಚೆ ಕಡೆನ್ BPL ಕಾರ್ಡ್ ಆಸಾ?",
+        "abhaQuestion": "ತುಮ್ಚೆ ಕಡೆன் ABHA ID ಆಸಾ?",
+        "yesOption": "ವ್ಹಯ್, ಆಸಾ",
+        "noOption": "ನಾ, ನಾ",
+        "backButton": "ಫಾಟಿಂ",
+        "nextButton": "ಮುಂದ್ಲೆಂ ಪಾಂವ್ಲ್",
+        "findSchemesButton": "ಯೋಜನಾ ಸೊಧಾತ್",
+        "checkingButton": "ತಪಾಸಪ್ ಚಾಲು ಆಸಾ...",
+        "resultsTitle": "ತುಮ್ಚ್ಯೊ ಪಾತ್ರ್ ಯೋಜನಾ",
+        "resultsDescription": "ತುಮ್ಕಾ <countTag>{count} ಯೋಜನಾ</countTag> ಮೆಳ್ಳ್ಯಾತ್ ಜ್ಯಾಂಕ್ ತುಮಿ ಪಾತ್ರ್ ಆಸಾತ್.",
+        "eligibleBadge": "ಪಾತ್ರ್",
+        "benefitsCoverage": "ಫಾಯ್ದೆ / ಕವರೇಜ್",
+        "howToApply": "ಅರ್ಜಿ ಕಶಿ ಕರ್ಚಿ",
+        "visitOfficialPortal": "ಅಧಿಕೃತ ಪೋರ್ಟಲಾಕ್ ಭೆಟ್ ದಿಯಾತ್",
+        "noSchemesTitle": "ಖಂಯ್ಚಿಚ್ ಯೋಜನಾ ಮೆಳ್ಳಿ ನಾ.",
+        "noSchemesDescription": "ದಯವಿಕ್ ಕರ್ನ್ ಗಾಂವ್ಚ್ಯಾ ಅಧಿಕಾರ್ಯಾಕ್ ಮೆಳಾತ್ ವಾ ಸರ್ಕಾರಿ ಸೇವಾ ಕೇಂದ್ರಾಂತ್ ವಚಾತ್.",
+        "printPdfButton": "ಪ್ರಿಂಟ್ ಕರಾತ್ / ಪಿಡಿಎಫ್ ಜಾವ್ನ್ ದವರಾತ್",
+        "checkAgainButton": "ಪರ್ತುನ್ ತಪಾಸಾತ್",
+        "printBrandTitle": "SahiDawa — ಗ್ರಾಮೀಣ್ ಆರೋಗ್ಯ್ ಸೇತು",
+        "printReportTitle": "ಸರ್ಕಾರಿ ಆರೋಗ್ಯ್ ಯೋಜನಾ ಪಾತ್ರತಾ ವರದಿ",
+        "dateGenerated": "ವರದಿ ದಿನಾಂಕ್",
+        "website": "ವೆಬ್ಸೈಟ್",
+        "age": "ಪ್ರಾಯ್",
+        "years": "ವರ್ಸಾಂ",
+        "stateOfResidence": "ರಾಜ್",
+        "annualFamilyIncome": "ವಾರ್ಷಿಕ್ ಯೆಣಾವಳ್",
+        "familySize": "ಕುಟುಂಬ್ ಸಾಂದೆ",
+        "members": "ಸಾಂದೆ",
+        "bplRationCardHolder": "BPL ಕಾರ್ಡ್ ಧಾರಿ",
+        "abhaHealthIdHolder": "ABHA ಹೆಲ್ತ್ ಐಡಿ ಧಾರಿ",
+        "yes": "ವ್ಹಯ್",
+        "no": "ನಾ"
+    },
+    "Health": {
+        "quickActions": "Quick actions",
+        "scanMedicine": "Scan Medicine",
+        "verifyAuthenticity": "Verify authenticity",
+        "checkSymptoms": "Check Symptoms",
+        "symptomGuidance": "AI-assisted guidance",
+        "findPharmacy": "Find Pharmacy",
+        "locateStores": "Locate verified stores",
+        "replyFallback": "I'm here to help! Could you rephrase that?",
+        "tooManyRequests": "Too many requests. Please try again in a few moments.",
+        "failedResponse": "Failed to generate AI response",
+        "genericError": "Something went wrong",
+        "returnHome": "Return to chat home",
+        "chatConversation": "Chat conversation",
+        "startVoice": "Start voice input",
+        "stopVoice": "Stop voice input",
+        "healthQuestion": "Type your health question",
+        "voiceBrowserRequired": "Voice input is not supported in this browser.",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "sendMessage": "Send message",
+        "footer": "For informational use only • Consult a doctor"
+    },
+    "SignUp": {
+        "brandSubtitle": "Medicine safety platform",
+        "heading": "Create your account",
+        "description": "Join SahiDawa to track medicine safety reports and verification results.",
+        "missingConfig": {
+            "title": "Authentication is not configured",
+            "description": "Supabase URL or anon key is missing. Add the environment variables before signing up."
+        },
+        "googleButton": "Continue with Google",
+        "githubButton": "Continue with Github",
+        "emailSeparator": "or continue with email",
+        "fullNameLabel": "Full name",
+        "fullNamePlaceholder": "Your full name",
+        "emailLabel": "Email address",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Create a password",
+        "confirmPasswordLabel": "Confirm password",
+        "confirmPasswordPlaceholder": "Re-enter your password",
+        "showPassword": "Show password",
+        "hidePassword": "Hide password",
+        "showConfirmPassword": "Show confirm password",
+        "hideConfirmPassword": "Hide confirm password",
+        "signingUp": "Creating account...",
+        "signUp": "Sign Up",
+        "footerPrompt": "Already have an account?",
+        "signInLink": "Sign in",
+        "bottomText": "Protected access for SahiDawa community tools.",
+        "success": "Account created successfully! Redirecting...",
+        "successConfirmEmail": "Account created! Check your email to confirm your account before signing in.",
+        "errors": {
+            "databaseNotConfigured": "Authentication is not configured for this environment.",
+            "generic": "Unable to create account. Please try again.",
+            "fullNameRequired": "Full name is required.",
+            "emailRequired": "Email address is required.",
+            "emailInvalid": "Please enter a valid email address.",
+            "passwordRequired": "Password is required.",
+            "passwordWeak": "Password must be at least 8 characters and include uppercase, lowercase, and a number.",
+            "confirmPasswordRequired": "Please confirm your password.",
+            "passwordMismatch": "Passwords do not match."
+        }
+    },
+    "MyMedicines": {
+        "page": {
+            "title": "म्हजीं ट्रॅक केल्लीं वखदां",
+            "loading": "तुमचीं ट्रॅक केल्लीं वखदां लोड जावन आसात..."
+        },
+        "errors": {
+            "title": "तुमचीं वखदां लोड करूंक जमलें ना",
+            "generic": "तुमचीं ट्रॅक केल्लीं वखदां हाडटना कितें तरी चुकीचें जालें.",
+            "fetchFailed": "ट्रॅक केल्लीं वखदां लोड करपाक अपेस. उपकार करून तुमचें जोडप तपासात आनी परत यत्न करात.",
+            "tryAgain": "परत यत्न करात"
+        },
+        "emptyState": {
+            "title": "अजून खंयचींच वखदां ट्रॅक केल्लीं ना",
+            "description": "सक्रिय वेळापत्रक, सुरक्षा अपडेट आनी मुजत सोंपपाची वेळ आपोआप ट्रॅक करपाक तुमचीं सद्याचीं वखदां जोडात.",
+            "addFirst": "तुमचें पयलें वखद जोडात"
+        },
+        "table": {
+            "name": "नांव",
+            "expiry": "मुजत",
+            "status": "स्थिती",
+            "daysLeft": "{count} दीस उरात"
+        },
+        "badges": {
+            "verified": "सत्यापित",
+            "unverified": "असत्यापित",
+            "requestVerificationTitle": "सत्यापनाची विनंती करपाक क्लिक करात"
+        },
+        "bookmarks": {
+            "savedAlternatives": "जतनाय केल्ले पर्याय",
+            "noBookmarks": "अजून खंयचेच बुकमार्क ना.",
+            "brand": "ब्रँड: {brand}"
+        },
+        "removeDialog": {
+            "title": "बुकमार्क काडून उडोवचें?",
+            "description": "हें \"{name}\" तुमच्या जतनाय केल्ल्या पर्यायांतल्यान काडून उडयतलें. गरज आसल्यार तुमी हें उपरांत परत जोडूंक शकतात.",
+            "confirm": "काडून उडयात",
+            "cancel": "रद्द करात"
+        }
+    },
+    "NotFound": {
+        "badge": "404 त्रुटी",
+        "title": "पान मेळ्ळें ना",
+        "description": "तुमी सोदतात तें पान अस्तित्वांत ना वा स्थलांतरीत जालां आसूं येता.",
+        "backHome": "मूळ पानाचेर वचात",
+        "scanMedicine": "वखद स्कॅन करात"
+    },
+    "Settings": {
+        "channelRequired": "Unne-unne ek sampark madhyam (SMS va WhatsApp) sakriya aspak zai.",
+        "optOutConfirm": "Tumi kharench opt out korun soglle SMS ani WhatsApp alert bond korpak sodtat?",
+        "loadingPreferences": "Tumchyo posonti load zata...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
+    },
+    "AbhaRecords": {
+        "backToProfile": "फाटी वचात",
+        "title": "ABHA रेकॉड",
+        "loading": "रेकॉड लोड जाता...",
+        "noPrescriptions": "खंयचेंय प्रिस्क्रिप्शन मेळ्ळें ना.",
+        "failedToLoad": "रेकॉड लोड करपाक अपेशी आयलें"
     }
 }

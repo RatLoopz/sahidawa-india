@@ -2,6 +2,8 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { SkeletonLoader } from "@/components/scanner/SkeletonLoader";
+import { uploadABHAVerification } from "@/lib/api/abha";
+import { Camera, Layers, Search, X, ScanLine, History } from "lucide-react";
 import { useMedicineVerification } from "@/hooks/useMedicineVerification";
 import { VerifiedSafeResult } from "@/components/scanner/results/VerifiedSafeResult";
 import { CounterfeitAlertResult } from "@/components/scanner/results/CounterfeitAlertResult";
@@ -9,7 +11,6 @@ import { UnverifiedResult } from "@/components/scanner/results/UnverifiedResult"
 import { ErrorResult } from "@/components/scanner/results/ErrorResult";
 import { formatExpiryForBadge } from "@/lib/medicineDateUtils";
 import { useMedicineImageUpload } from "@/hooks/useMedicineImageUpload";
-import { Camera, Layers, Search, X, ScanLine, History } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
 import { toast } from "sonner";
@@ -18,6 +19,9 @@ import LasaConfirmation from "@/components/scanner/LasaConfirmation";
 import { BarcodeScanner } from "@/components/scanner/BarcodeScanner";
 import LazyImage from "@/components/LazyImage";
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
+import { useOfflineScanner } from "@/hooks/useOfflineScanner";
+import { usePendingScanQueue } from "@/hooks/usePendingScanQueue";
+import { PendingScanQueue } from "@/components/scanner/PendingScanQueue";
 import { useTranslations } from "next-intl";
 import { buildVerificationShareText, type VerificationShareCopy } from "@/lib/verificationShare";
 import { saveScanHistory } from "@/lib/db/scanHistory";
@@ -36,33 +40,22 @@ function formatMedicineDetails(medicine: VerifiedMedicine) {
 }
 
 async function copyTextToClipboard(text: string) {
+    if (!navigator.clipboard?.writeText) {
+        return false;
+    }
+
     try {
-        if (!navigator.clipboard?.writeText) {
-            throw new Error("Clipboard API unavailable");
-        }
         await navigator.clipboard.writeText(text);
         return true;
     } catch {
-        try {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            textArea.setAttribute("readonly", "");
-            textArea.style.position = "fixed";
-            textArea.style.opacity = "0";
-            document.body.appendChild(textArea);
-            textArea.select();
-            const copied = document.execCommand("copy");
-            document.body.removeChild(textArea);
-            return copied;
-        } catch (err) {
-            console.error("Fallback copy failed:", err);
-            return false;
-        }
+        return false;
     }
 }
 
 export default function ScanPage() {
     const tScan = useTranslations("Scan");
+    const { queueBarcode } = useOfflineScanner();
+    const { pending, isSyncing, refresh } = usePendingScanQueue();
     // Add these near the top of your component, inside the main function
     const [isVerifying, setIsVerifying] = useState(false);
     const [apiError, setApiError] = useState<string | null>(null);
@@ -73,23 +66,27 @@ export default function ScanPage() {
     const [copied, setCopied] = useState(false);
     const [batchInput, setBatchInput] = useState("");
     const [isCameraActive, setIsCameraActive] = useState(false);
-
     const [showResult, setShowResult] = useState(false);
+
     const {
         verifyResult,
         verifyError,
         lasaMatches,
         showLasaConfirmation,
         pendingVerifyResult,
-
         setVerifyResult,
         setVerifyError,
         setPendingVerifyResult,
         setShowLasaConfirmation,
-
         handleVerify,
         processVerificationResult,
-    } = useMedicineVerification(abortControllerRef, isMountedRef, setIsScanning, setShowResult);
+    } = useMedicineVerification(abortControllerRef, isMountedRef, setIsScanning, setShowResult, {
+        queueBarcode,
+        onQueued: (barcode) => {
+            setBatchInput(barcode);
+            void refresh();
+        },
+    });
     const {
         uploadedImage,
         ocrText,
@@ -109,7 +106,31 @@ export default function ScanPage() {
         setIsScanning,
     });
 
-    // Auto-retry when coming back online
+    const handleSaveToABHA = async () => {
+        if (!verifyResult?.verified) return;
+
+        const medicineId = verifyResult.medicine?.id;
+        if (!medicineId) {
+            toast.error("Medicine ID is missing. Cannot save to ABHA.");
+            return;
+        }
+
+        try {
+            await uploadABHAVerification({
+                medicineId,
+                verificationResult: verifyResult.medicine.is_counterfeit_alert
+                    ? "counterfeit"
+                    : "verified",
+                scannedAt: new Date().toISOString(),
+            });
+
+            toast.success("Verification saved to ABHA");
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to save to ABHA");
+        }
+    };
+
     const handleVerifyRef = useRef<(batch: string) => Promise<void>>(null as any);
 
     useEffect(() => {
@@ -133,7 +154,6 @@ export default function ScanPage() {
         };
     }, [showResult, verifyError, batchInput, registerRetryCallback, unregisterRetryCallback]);
 
-    // LASA Check State
     const shareCopy: VerificationShareCopy = {
         realStatus: tScan("share.real_status"),
         suspiciousStatus: tScan("share.suspicious_status"),
@@ -179,9 +199,7 @@ export default function ScanPage() {
         } catch (err) {
             if (!isMountedRef.current || controller.signal.aborted) return;
             const errorMsg = err instanceof Error ? err.message : "Verification failed";
-            if (errorMsg === "Request was cancelled.") {
-                return;
-            }
+            if (errorMsg === "Request was cancelled.") return;
             void saveScanHistory({
                 id: crypto.randomUUID(),
                 timestamp: Date.now(),
@@ -199,7 +217,6 @@ export default function ScanPage() {
         }
     };
 
-    // Keep handleVerifyRef current
     useEffect(() => {
         handleVerifyRef.current = handleVerify;
     }, [handleVerify]);
@@ -208,16 +225,20 @@ export default function ScanPage() {
         if (!verifyResult?.verified) return;
 
         const details = formatMedicineDetails(verifyResult.medicine);
-        const success = await copyTextToClipboard(details);
-
-        if (success) {
-            toast.success(tScan("share.copy_success"));
+        const showCopied = () => {
             setCopied(true);
+            toast.success("Medicine details copied!");
             setTimeout(() => setCopied(false), 2000);
+        };
+
+        const copiedSuccessfully = await copyTextToClipboard(details);
+
+        if (copiedSuccessfully) {
+            showCopied();
         } else {
-            toast.error("Failed to copy. Please copy manually.");
+            toast.error("Unable to copy medicine details");
         }
-    }, [verifyResult, tScan]);
+    }, [verifyResult]);
 
     const handleBarcodeScan = useCallback(
         async (scannedText: string) => {
@@ -298,8 +319,8 @@ export default function ScanPage() {
             />
 
             <PageHeader
-                title="Scan Medicine"
-                subtitle="Position the Barcode"
+                title={tScan("scanMedicine")}
+                subtitle={tScan("positionBarcode")}
                 backHref="/"
                 variant="light"
             />
@@ -369,9 +390,17 @@ export default function ScanPage() {
                                 <button
                                     onClick={handleDismissResult}
                                     className="absolute top-4 right-4 z-40 rounded-full bg-white/10 p-2 text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+                                    aria-label="Close verification result (Press Escape)"
+                                    title="Close result (Esc)"
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Escape") {
+                                            handleDismissResult();
+                                        }
+                                    }}
                                 >
-                                    <X size={24} />
+                                    <X size={24} aria-hidden="true" />
                                 </button>
+
                                 {verifyError && (
                                     <ErrorResult
                                         message={verifyError}
@@ -379,6 +408,7 @@ export default function ScanPage() {
                                         isOffline={isOffline}
                                     />
                                 )}
+
                                 {!verifyError &&
                                     verifyResult?.verified &&
                                     verifyResult.medicine.is_counterfeit_alert && (
@@ -391,19 +421,62 @@ export default function ScanPage() {
                                             copied={copied}
                                         />
                                     )}
+
                                 {!verifyError &&
                                     verifyResult?.verified &&
                                     !verifyResult.medicine.is_counterfeit_alert && (
-                                        <VerifiedSafeResult
-                                            medicine={verifyResult.medicine}
-                                            scanMeta={verifyResult.scanMeta}
-                                            onScanAgain={handleScanAgain}
-                                            onShare={handleShare}
-                                            onCopyMedicineDetails={handleCopyMedicineDetails}
-                                            shareLabel={tScan("share.button")}
-                                            copied={copied}
-                                        />
+                                        <div className="flex w-full max-w-sm flex-col items-center gap-6">
+                                            {verifyResult.batch_status && (
+                                                <div
+                                                    className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold ${
+                                                        verifyResult.batch_status === "safe"
+                                                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                                                            : verifyResult.batch_status ===
+                                                                "recalled"
+                                                              ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                                              : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                                                    }`}
+                                                >
+                                                    {verifyResult.batch_status === "safe" &&
+                                                        "Batch Safe"}
+                                                    {verifyResult.batch_status === "recalled" &&
+                                                        "Batch Recalled"}
+                                                    {verifyResult.batch_status === "unknown" &&
+                                                        "Batch Status Unknown"}
+                                                </div>
+                                            )}
+
+                                            {verifyResult.batch_status === "recalled" && (
+                                                <div className="w-full max-w-sm rounded-2xl border border-red-200 bg-red-50 p-4 dark:border-red-900/30 dark:bg-red-900/10">
+                                                    <p className="text-sm font-bold text-red-700 dark:text-red-400">
+                                                        {tScan("batch_recalled_title")}
+                                                    </p>
+
+                                                    <p className="mt-1 text-xs text-red-600 dark:text-red-300">
+                                                        {tScan("batch_recalled_body")}
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            <VerifiedSafeResult
+                                                medicine={verifyResult.medicine}
+                                                scanMeta={verifyResult.scanMeta}
+                                                onScanAgain={handleScanAgain}
+                                                onShare={handleShare}
+                                                shareLabel={tScan("share.button")}
+                                                onCopyMedicineDetails={handleCopyMedicineDetails}
+                                                copied={copied}
+                                            />
+
+                                            <button
+                                                onClick={handleSaveToABHA}
+                                                className="w-full rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white hover:bg-emerald-700"
+                                            >
+                                                {tScan("save_to_abha")}
+                                            </button>
+                                        </div>
                                     )}
+
                                 {!verifyError && verifyResult && !verifyResult.verified && (
                                     <UnverifiedResult
                                         brandName={parsedBrand}
@@ -445,68 +518,94 @@ export default function ScanPage() {
             )}
 
             <div className="flex flex-col items-center gap-6 bg-linear-to-t from-(--color-surface-page) to-transparent p-8">
+                <PendingScanQueue pending={pending} isSyncing={isSyncing} />
+
                 <form
                     onSubmit={handleBatchSubmit}
                     className="flex w-full max-w-sm flex-col gap-3 sm:flex-row"
                 >
+                    <label htmlFor="batch-input" className="sr-only">
+                        Enter batch number
+                    </label>
                     <input
+                        id="batch-input"
                         type="text"
                         value={batchInput}
                         onChange={(e) => setBatchInput(e.target.value)}
-                        placeholder="Enter batch number"
+                        placeholder={tScan("enterBatchNumber")}
                         className="flex-1 rounded-full border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 text-center text-sm font-medium text-(--color-text-primary) placeholder-(--color-text-muted) focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:border-white/20 dark:bg-white/10 dark:text-white dark:placeholder-white/40"
                     />
                     <button
                         type="submit"
-                        disabled={isScanning || isOffline}
+                        disabled={isScanning}
                         className="flex items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+                        aria-label={
+                            isScanning
+                                ? "Verifying medicine..."
+                                : isOffline
+                                  ? "Verify button disabled - offline"
+                                  : "Verify medicine batch number"
+                        }
+                        aria-busy={isScanning}
                     >
-                        <Search size={18} />
-                        {isOffline ? "Offline" : "Verify"}
+                        <Search size={18} aria-hidden="true" />
+                        {isOffline ? tScan("offlineVerify") : tScan("verify")}
                     </button>
                 </form>
 
                 <p className="max-w-xs text-center text-sm font-medium text-slate-400">
-                    Enter the batch number from the medicine strip, or upload a photo from your
-                    gallery.
+                    {tScan("batchNumberHelp")}
                 </p>
+
                 <Link
                     href="/history"
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-white/20 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none dark:border-white/20"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-300 bg-white/10 px-4 py-2 text-sm font-bold text-gray-700 shadow-sm transition-colors hover:border-gray-300 hover:bg-gray-100 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none dark:border-white/20 dark:text-white dark:hover:bg-white/20"
                 >
                     <History size={18} />
-                    View history
+                    {tScan("viewHistory")}
                 </Link>
-                <div className="flex gap-4">
-                    <button
-                        onClick={() => setIsCameraActive((prev) => !prev)}
-                        disabled={isOffline}
-                        className={`flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-colors focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
-                            isCameraActive
-                                ? "bg-red-500 text-white hover:bg-red-400"
-                                : "bg-emerald-500 text-white hover:bg-emerald-400"
-                        }`}
-                    >
-                        <ScanLine size={18} />
-                        {isCameraActive ? "Stop Scanner" : "Scan Barcode"}
-                    </button>
-                    <label
-                        htmlFor={isOffline ? undefined : "medicine-upload"}
-                        onClick={(e) => {
-                            if (isOffline) {
-                                e.preventDefault();
-                                toast.error(
-                                    "You are currently offline. Please check your internet connection."
-                                );
+                <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+                    <h3 className="mb-4 text-center text-lg font-bold text-white">Scan Controls</h3>
+
+                    <div className="flex justify-center gap-4">
+                        <button
+                            onClick={() => setIsCameraActive((prev) => !prev)}
+                            disabled={isOffline}
+                            className={`flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-colors focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
+                                isCameraActive
+                                    ? "bg-red-500 text-white hover:bg-red-400"
+                                    : "bg-emerald-500 text-white hover:bg-emerald-400"
+                            }`}
+                            aria-label={
+                                isCameraActive
+                                    ? "Stop barcode scanner camera"
+                                    : "Start barcode scanner camera"
                             }
-                        }}
-                        className={`flex cursor-pointer items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black shadow-lg transition-colors hover:bg-slate-200 ${
-                            isOffline ? "cursor-not-allowed opacity-50" : ""
-                        }`}
-                    >
-                        <Layers size={18} />
-                        Upload Photo
-                    </label>
+                            aria-pressed={isCameraActive}
+                        >
+                            <ScanLine size={18} aria-hidden="true" />
+                            {isCameraActive ? tScan("stopScanner") : tScan("ScanBarcode")}
+                        </button>
+                        <label
+                            htmlFor={isOffline ? undefined : "medicine-upload"}
+                            onClick={(e) => {
+                                if (isOffline) {
+                                    e.preventDefault();
+                                    toast.error(
+                                        "You are currently offline. Please check your internet connection."
+                                    );
+                                }
+                            }}
+                            className={`flex cursor-pointer items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black shadow-lg transition-colors hover:bg-slate-200 ${
+                                isOffline ? "cursor-not-allowed opacity-50" : ""
+                            }`}
+                            aria-label="Upload medicine photo from device (disabled while offline)"
+                            aria-disabled={isOffline}
+                        >
+                            <Layers size={18} aria-hidden="true" />
+                            {tScan("uploadPhoto")}
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>

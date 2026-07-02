@@ -149,7 +149,9 @@ describe("GET /api/verify/batch/:batchNumber", () => {
                 error: null,
             });
 
-        const response = await request(app).get("/api/verify/batch/MED-FALLBACK-7");
+        const response = await request(app).get(
+            "/api/verify/batch/MED-FALLBACK-7?brandName=Crocin"
+        );
 
         expect(response.status).toBe(200);
         expect(response.body).toMatchObject({
@@ -189,7 +191,7 @@ describe("GET /api/verify/batch/:batchNumber", () => {
         expect(mockedSupabase.from).toHaveBeenNthCalledWith(3, "manufacturers");
         expect(mockedSupabase.eq).toHaveBeenNthCalledWith(1, "batch_number", "MED-FALLBACK-7");
         expect(mockedSupabase.eq).toHaveBeenNthCalledWith(2, "batch_number", "MED-FALLBACK-7");
-        expect(mockedSupabase.eq).toHaveBeenNthCalledWith(3, "id", "manufacturer-7");
+        expect(mockedSupabase.eq).toHaveBeenNthCalledWith(4, "id", "manufacturer-7");
     });
 
     it("returns 404 when neither batch nor medicine records match", async () => {
@@ -197,7 +199,7 @@ describe("GET /api/verify/batch/:batchNumber", () => {
             .mockResolvedValueOnce({ data: null, error: null })
             .mockResolvedValueOnce({ data: null, error: null });
 
-        const response = await request(app).get("/api/verify/batch/UNKNOWN123");
+        const response = await request(app).get("/api/verify/batch/UNKNOWN123?brandName=Unknown");
 
         expect(response.status).toBe(404);
         expect(response.body).toEqual({
@@ -257,7 +259,7 @@ describe("GET /api/verify/batch/:batchNumber", () => {
             .mockResolvedValueOnce({ data: null, error: null })
             .mockResolvedValueOnce({ data: null, error: null });
 
-        await request(app).get("/api/verify/batch/bn2024001");
+        await request(app).get("/api/verify/batch/bn2024001?brandName=SomeBrand");
 
         expect(mockedSupabase.eq).toHaveBeenNthCalledWith(1, "batch_number", "bn2024001");
         expect(mockedSupabase.eq).toHaveBeenNthCalledWith(2, "batch_number", "bn2024001");

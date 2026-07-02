@@ -1,10 +1,21 @@
 import { Router, Request, Response } from "express";
 import { supabase } from "../db/client";
 import logger from "../utils/logger";
+import { escapePostgrest } from "../utils/db";
+import { barcodeLimiter } from "../middleware/rateLimit";
+import { redisClient } from "../utils/redis";
 
 const router = Router();
 
-function extractCoordinates(p: any): { lat: number; lng: number } {
+interface StoreLocation {
+    lat?: string | number;
+    lng?: string | number;
+    location?: {
+        coordinates?: [number, number];
+    };
+}
+
+function extractCoordinates(p: StoreLocation): { lat: number; lng: number } {
     if (p.lat !== undefined && p.lng !== undefined) {
         return { lat: Number(p.lat), lng: Number(p.lng) };
     }
@@ -52,19 +63,52 @@ function extractCoordinates(p: any): { lat: number; lng: number } {
  *       500:
  *         description: Server error
  */
-router.get("/:medicine_id", async (req: Request, res: Response): Promise<void> => {
+router.get("/:medicine_id", barcodeLimiter, async (req: Request, res: Response): Promise<void> => {
     try {
         const medicine_id = req.params.medicine_id as string;
         const lat = req.query.lat ? parseFloat(req.query.lat as string) : undefined;
         const lng = req.query.lng ? parseFloat(req.query.lng as string) : undefined;
+        const cacheKey =
+            lat !== undefined && lng !== undefined
+                ? `alt_cache:${medicine_id.toLowerCase()}:${lat.toFixed(3)}:${lng.toFixed(3)}`
+                : `alt_cache:${medicine_id.toLowerCase()}`;
+
+        if (lat !== undefined && lng !== undefined) {
+            if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                res.status(400).json({
+                    error: "Invalid coordinates: lat must be [-90, 90] and lng must be [-180, 180]",
+                });
+                return;
+            }
+        }
 
         if (!medicine_id) {
             res.status(400).json({ error: "medicine_id is required" });
             return;
         }
+        try {
+            const cached = await redisClient.get(cacheKey);
+
+            if (cached) {
+                logger.info(`Alternatives cache HIT: ${cacheKey}`);
+                res.status(200).json(JSON.parse(cached));
+                return;
+            }
+        } catch (err) {
+            logger.warn("Redis cache read failed", { err });
+        }
+
+        interface MedicineRecord {
+            id?: string;
+            brand_name?: string;
+            generic_name?: string;
+            mrp?: number;
+            brand_price?: number;
+            jan_aushadhi_price?: number;
+        }
 
         // 1. Look up medicine in medicines table by ID, barcode, or brand name
-        let medicine: any = null;
+        let medicine: MedicineRecord | null = null;
 
         // Try UUID match
         const uuidRegex =
@@ -99,14 +143,26 @@ router.get("/:medicine_id", async (req: Request, res: Response): Promise<void> =
             medicine = data;
         }
 
+        interface GenericAlternative {
+            brand_name?: string;
+            generic_name?: string;
+            brand_price?: number;
+            brand_mrp?: number;
+            jan_aushadhi_price?: number;
+            savings_percentage?: number;
+            generic_name_display?: string;
+        }
+
         // 2. Fetch alternative from generic_alternatives
-        let alternative: any = null;
+        let alternative: GenericAlternative | null = null;
 
         if (medicine) {
             const { data } = await supabase
                 .from("generic_alternatives")
                 .select("*")
-                .or(`brand_medicine_id.eq.${medicine.id},brand_name.ilike.%${medicine.brand_name}%`)
+                .or(
+                    `brand_medicine_id.eq.${medicine.id},brand_name.ilike."%${escapePostgrest(String(medicine.brand_name))}%"`
+                )
                 .limit(1)
                 .maybeSingle();
             alternative = data;
@@ -115,32 +171,20 @@ router.get("/:medicine_id", async (req: Request, res: Response): Promise<void> =
             const { data } = await supabase
                 .from("generic_alternatives")
                 .select("*")
-                .or(`brand_name.ilike.%${medicine_id}%,generic_name.ilike.%${medicine_id}%`)
+                .or(
+                    `brand_name.ilike."%${escapePostgrest(String(medicine_id))}%",generic_name.ilike."%${escapePostgrest(medicine_id)}%"`
+                )
                 .limit(1)
                 .maybeSingle();
             alternative = data;
         }
 
         if (!alternative) {
-            // Fallback: Check if the medicine has a generic name and we can construct a dummy generic alternative
-            const brand = medicine || {
-                brand_name: medicine_id,
-                generic_name: "Generic Alternative",
-                mrp: 120.0,
-                jan_aushadhi_price: 15.0,
-            };
-            const brandPrice = Number(brand.mrp || brand.brand_price || 120.0);
-            const jaPrice = Number(brand.jan_aushadhi_price || 15.0);
-            const savings = Math.round(((brandPrice - jaPrice) / brandPrice) * 100);
-
-            alternative = {
-                brand_name: brand.brand_name,
-                generic_name: brand.generic_name,
-                brand_price: brandPrice,
-                jan_aushadhi_price: jaPrice,
-                savings_percentage: savings > 0 ? savings : 0,
-                generic_name_display: `${brand.generic_name} (Generic)`,
-            };
+            res.status(404).json({
+                error: "No generic alternative found for this medicine",
+                suggestion: "Visit your nearest Jan Aushadhi store or ask your pharmacist.",
+            });
+            return;
         }
 
         // 3. Find nearest pharmacy
@@ -196,7 +240,7 @@ router.get("/:medicine_id", async (req: Request, res: Response): Promise<void> =
             alternative.savings_percentage ??
             Math.round(((brandPrice - jaPrice) / brandPrice) * 100);
 
-        res.status(200).json({
+        const responseData = {
             brand_name: alternative.brand_name || medicine?.brand_name || medicine_id,
             generic_name: alternative.generic_name || medicine?.generic_name,
             brand_price: brandPrice,
@@ -209,7 +253,19 @@ router.get("/:medicine_id", async (req: Request, res: Response): Promise<void> =
                     ? `${medicine.generic_name} (Generic)`
                     : "Atorvastatin 10mg (Generic)"),
             nearest_store: nearestStore,
-        });
+        };
+
+        try {
+            await redisClient.set(cacheKey, JSON.stringify(responseData), {
+                EX: 86400,
+            });
+
+            logger.info(`Alternatives cache SET: ${cacheKey}`);
+        } catch (err) {
+            logger.warn("Redis cache write failed", { err });
+        }
+
+        res.status(200).json(responseData);
     } catch (error) {
         logger.error("Error in alternatives lookup", { error });
         res.status(500).json({ error: "Failed to fetch medicine alternatives" });

@@ -10,10 +10,10 @@ export const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
           "https://sahidawa.goswav.in",
       ];
 
-export function isAllowedOrigin(req: Request): boolean {
+export function isAllowedOrigin(req: Request, requireOrigin = false): boolean {
     const origin = req.headers.origin;
     const referer = req.headers.referer;
     const source = origin || (referer ? new URL(referer).origin : null);
-    if (!source) return true;
+    if (!source) return !requireOrigin;
     return ALLOWED_ORIGINS.includes(source);
 }

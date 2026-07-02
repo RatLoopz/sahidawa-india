@@ -38,15 +38,21 @@ const batchParamSchema = z.object({
     batchNumber: BATCH_NUMBER_SCHEMA,
 });
 
-const reportBatchSchema = z.object({
-    batchNumber: BATCH_NUMBER_SCHEMA,
-    description: z.string().min(10, "Description must be at least 10 characters"),
-    reporterName: z.string().optional(),
-    city: z.string().optional(),
-    state: z.string().optional(),
-    pincode: z.string().optional(),
-    pharmacyName: z.string().optional(),
-});
+const reportBatchSchema = z
+    .object({
+        batchNumber: BATCH_NUMBER_SCHEMA,
+        brandName: z.string().optional(),
+        barcodeId: z.string().optional(),
+        description: z.string().min(10, "Description must be at least 10 characters"),
+        reporterName: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        pincode: z.string().optional(),
+        pharmacyName: z.string().optional(),
+    })
+    .refine((data) => data.brandName || data.barcodeId, {
+        message: "Either brandName or barcodeId must be provided alongside batchNumber",
+    });
 
 // ── GET /api/verify/batch/:batchNumber ────────────────────────────────────────
 
@@ -134,14 +140,32 @@ router.get("/:batchNumber", batchLimiter, async (req: Request, res: Response) =>
 
         // ── Fall back to medicines table if no dedicated batch record ─────────
         if (!batchData) {
-            const { data: medicineData, error: medicineError } = await supabase
+            const { brandName, barcodeId } = req.query as {
+                brandName?: string;
+                barcodeId?: string;
+            };
+
+            if (!brandName && !barcodeId) {
+                res.status(400).json({
+                    error: "Missing required composite identifier (brandName or barcodeId query parameter)",
+                });
+                return;
+            }
+
+            let query = supabase
                 .from("medicines")
                 .select(
                     "id, brand_name, generic_name, manufacturer, batch_number, manufacturing_date, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score, manufacturer_id"
                 )
-                .eq("batch_number", batchNumber)
-                .limit(1)
-                .maybeSingle();
+                .eq("batch_number", batchNumber);
+
+            if (barcodeId) {
+                query = query.eq("barcode_id", barcodeId);
+            } else if (brandName) {
+                query = query.eq("brand_name", brandName);
+            }
+
+            const { data: medicineData, error: medicineError } = await query.limit(1).maybeSingle();
 
             if (medicineError) {
                 logger.error({
@@ -336,7 +360,7 @@ router.get("/:batchNumber", batchLimiter, async (req: Request, res: Response) =>
  *         description: Failed to submit report
  */
 router.post("/report", batchLimiter, async (req: Request, res: Response) => {
-    if (!isAllowedOrigin(req)) {
+    if (!isAllowedOrigin(req, true)) {
         res.status(403).json({ error: "Access denied: unrecognized origin" });
         return;
     }
@@ -351,11 +375,12 @@ router.post("/report", batchLimiter, async (req: Request, res: Response) => {
         return;
     }
 
-    const { batchNumber, description, city, state, pincode, pharmacyName } = parsed.data;
+    const { batchNumber, brandName, barcodeId, description, city, state, pincode, pharmacyName } =
+        parsed.data;
     const hashedIp = anonymizeIp(req.ip);
 
     const reportPayload = {
-        medicineName: batchNumber,
+        medicineName: brandName || batchNumber,
         manufacturer: "",
         description,
         pharmacyName: pharmacyName ?? "",
@@ -387,32 +412,42 @@ router.post("/report", batchLimiter, async (req: Request, res: Response) => {
     try {
         // Use .eq() instead of .ilike() — exact match, no wildcard risk
         let medicine_id: string | null = null;
-        const { data: medicineMatch } = await supabase
-            .from("medicines")
-            .select("id")
-            .eq("batch_number", batchNumber)
-            .limit(1)
-            .maybeSingle();
+        let query = supabase.from("medicines").select("id").eq("batch_number", batchNumber);
+
+        if (barcodeId) {
+            query = query.eq("barcode_id", barcodeId);
+        } else if (brandName) {
+            query = query.eq("brand_name", brandName);
+        }
+
+        const { data: medicineMatch } = await query.limit(1).maybeSingle();
 
         if (medicineMatch) {
             medicine_id = medicineMatch.id;
         }
 
-        const { error } = await supabase.from("counterfeit_reports").insert({
-            medicine_id,
-            scanned_barcode: batchNumber,
-            description,
-            city: city ?? null,
-            state: state ?? null,
-            pincode: pincode ?? null,
-            pharmacy_name: pharmacyName ?? null,
-            status: "pending",
-            ip_address: hashedIp ?? null,
-            report_hash: computeReportHash(reportPayload),
-            risk_score: validation.riskScore,
-            is_escalated: validation.riskScore >= 0.6,
-            duplicate_group_id: validation.duplicateGroupId ?? null,
-        });
+        const { data: upserted, error } = await supabase
+            .from("counterfeit_reports")
+            .upsert(
+                {
+                    medicine_id,
+                    scanned_barcode: barcodeId ?? batchNumber,
+                    reported_brand_name: brandName ?? batchNumber,
+                    description,
+                    city: city ?? null,
+                    state: state ?? null,
+                    pincode: pincode ?? null,
+                    pharmacy_name: pharmacyName ?? null,
+                    status: "pending",
+                    ip_address: hashedIp ?? null,
+                    report_hash: computeReportHash(reportPayload),
+                    risk_score: validation.riskScore,
+                    is_escalated: validation.riskScore >= 0.6,
+                    duplicate_group_id: validation.duplicateGroupId ?? null,
+                },
+                { onConflict: "report_hash", ignoreDuplicates: true }
+            )
+            .select();
 
         if (error) {
             logger.error({
@@ -421,6 +456,15 @@ router.post("/report", batchLimiter, async (req: Request, res: Response) => {
                 route: "/api/verify/batch/report",
             });
             res.status(500).json({ error: "Failed to submit report" });
+            return;
+        }
+
+        if (!upserted || upserted.length === 0) {
+            res.status(200).json({
+                success: true,
+                message:
+                    "This batch report has already been logged. Thank you for helping keep India safe.",
+            });
             return;
         }
 

@@ -21,6 +21,7 @@ services:
     environment:
       - NODE_ENV=development
       - NODE_OPTIONS=--max-old-space-size=4096
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -45,6 +46,7 @@ services:
       - PORT=4000
       - REDIS_URL=redis://redis:6379
       - ML_SERVICE_URL=http://ml:8000
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
     env_file:
       - .env
     extra_hosts:
@@ -71,6 +73,7 @@ services:
       - "8000:8000"
     environment:
       - MEDICINES_CSV_PATH=/data/seeds/medicines.csv
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -78,5 +81,11 @@ services:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "4318:4318"
 
 # Note: For the database, please use `npx supabase start` in a separate terminal.

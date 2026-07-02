@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
     WifiOff,
@@ -11,7 +12,10 @@ import {
     MapPin,
     ShieldCheck,
     PartyPopper,
+    History,
 } from "lucide-react";
+import { getVerificationResults, type ScanResult } from "@/lib/offlineCache";
+import { PageHeader } from "../components/PageHeader";
 
 /**
  * OfflinePage — Premium offline fallback UI for SahiDawa.
@@ -19,17 +23,32 @@ import {
  */
 export default function OfflinePage() {
     const t = useTranslations("offline");
+    const params = useParams<{ locale?: string }>();
     const [isRetrying, setIsRetrying] = useState(false);
     const [retryCount, setRetryCount] = useState(0);
     const [showReconnected, setShowReconnected] = useState(false);
 
+    // Resolve the active locale, preferring the route param (works with the
+    // [locale] dynamic segment) and falling back to the first path segment
+    // if params is ever unavailable. Falls back to "/" only as a last resort,
+    // so we never lose the user's locale on reconnect (see #2102).
+    const getLocalizedHomeHref = useCallback(() => {
+        const localeFromParams = params?.locale;
+        const localeFromPath =
+            typeof window !== "undefined" ? window.location.pathname.split("/")[1] : undefined;
+        const locale = localeFromParams || localeFromPath;
+        return locale ? `/${locale}` : "/";
+    }, [params]);
+    const [history, setHistory] = useState<ScanResult[]>([]);
     // Sync initial state from navigator.onLine after mount
     useEffect(() => {
+        setHistory(getVerificationResults());
+
         const handleOnline = () => {
             setShowReconnected(true);
             // Auto-redirect after a short confirmation delay
             setTimeout(() => {
-                window.location.href = "/";
+                window.location.href = getLocalizedHomeHref();
             }, 1800);
         };
 
@@ -44,7 +63,7 @@ export default function OfflinePage() {
             window.removeEventListener("online", handleOnline);
             window.removeEventListener("offline", handleOffline);
         };
-    }, []);
+    }, [getLocalizedHomeHref]);
 
     const handleRetry = useCallback(() => {
         setIsRetrying(true);
@@ -91,6 +110,7 @@ export default function OfflinePage() {
     // ─── Offline state ────────────────────────────────────────────────────────
     return (
         <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6">
+            <PageHeader backHref="/" variant="dark" hideBackButton />
             {/* Background glow blobs */}
             <div className="pointer-events-none absolute top-1/4 left-1/4 h-64 w-64 rounded-full bg-amber-500/5 blur-3xl" />
             <div className="pointer-events-none absolute right-1/4 bottom-1/4 h-80 w-80 rounded-full bg-emerald-500/5 blur-3xl" />
@@ -128,7 +148,7 @@ export default function OfflinePage() {
 
                     <a
                         id="offline-home-btn"
-                        href="/"
+                        href={getLocalizedHomeHref()}
                         className="block w-full rounded-xl border border-slate-700 bg-slate-800 px-6 py-3.5 font-semibold text-slate-200 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-700"
                     >
                         <span className="inline-flex items-center justify-center gap-2.5">
@@ -138,6 +158,29 @@ export default function OfflinePage() {
                     </a>
                 </div>
 
+                {history.length > 0 && (
+                    <div className="mt-8 mb-10 text-left">
+                        <h2 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-emerald-400 uppercase">
+                            <History size={16} /> Recent Scans
+                        </h2>
+                        <div className="space-y-3">
+                            {history.map((scan, i) => (
+                                <div
+                                    key={i}
+                                    className="rounded-xl border border-slate-700 bg-slate-800/50 p-4"
+                                >
+                                    <p className="font-bold text-white">{scan.brand_name}</p>
+                                    <p className="text-xs text-slate-400">
+                                        {scan.active_components}
+                                    </p>
+                                    <p className="mt-1 text-[10px] font-bold text-emerald-500">
+                                        {scan.counterfeit_status}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
                 {/* Feature chips — reassure user what cached features they can still use */}
                 <div className="border-t border-slate-800 pt-8">
                     <p className="mb-4 text-xs font-medium tracking-widest text-slate-500 uppercase">

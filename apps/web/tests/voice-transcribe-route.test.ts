@@ -1,4 +1,22 @@
+const mockRateLimit = jest.fn();
+
+jest.mock("@/lib/rateLimit", () => ({
+    rateLimit: {
+        limit: mockRateLimit,
+    },
+}));
+
 import { POST } from "../app/api/voice/transcribe/route";
+
+function createFormRequest(formData: FormData) {
+    const request = new Request("http://localhost/api/voice/transcribe", {
+        method: "POST",
+    });
+    Object.defineProperty(request, "formData", {
+        value: jest.fn().mockResolvedValue(formData),
+    });
+    return request;
+}
 
 describe("POST /api/voice/transcribe", () => {
     const originalFetch = global.fetch;
@@ -6,6 +24,7 @@ describe("POST /api/voice/transcribe", () => {
 
     beforeEach(() => {
         jest.resetAllMocks();
+        mockRateLimit.mockResolvedValue({ success: true });
         process.env.ML_SERVICE_URL = "http://ml-service.test";
     });
 
@@ -27,10 +46,7 @@ describe("POST /api/voice/transcribe", () => {
 
         const formData = new FormData();
         formData.append("file", new File(["audio"], "voice.webm", { type: "audio/webm" }));
-        const request = new Request("http://localhost/api/voice/transcribe", {
-            method: "POST",
-            body: formData,
-        });
+        const request = createFormRequest(formData);
 
         const response = await POST(request);
         const data = await response.json();
@@ -63,10 +79,7 @@ describe("POST /api/voice/transcribe", () => {
         formData.append("file", new File(["audio"], "voice.webm", { type: "audio/webm" }));
         formData.append("language", "ta-IN");
 
-        const request = new Request("http://localhost/api/voice/transcribe", {
-            method: "POST",
-            body: formData,
-        });
+        const request = createFormRequest(formData);
 
         await POST(request);
 
@@ -75,10 +88,7 @@ describe("POST /api/voice/transcribe", () => {
     });
 
     it("returns 400 when the request does not include audio", async () => {
-        const request = new Request("http://localhost/api/voice/transcribe", {
-            method: "POST",
-            body: new FormData(),
-        });
+        const request = createFormRequest(new FormData());
 
         const response = await POST(request);
         const data = await response.json();
@@ -87,22 +97,36 @@ describe("POST /api/voice/transcribe", () => {
         expect(data.error).toBe("Audio file is required.");
     });
 
-    it("returns 500 when ML_SERVICE_URL is missing", async () => {
+    it("returns 503 when ML_SERVICE_URL is missing", async () => {
         delete process.env.ML_SERVICE_URL;
         global.fetch = jest.fn() as unknown as typeof fetch;
 
         const formData = new FormData();
         formData.append("file", new File(["audio"], "voice.webm", { type: "audio/webm" }));
 
-        const request = new Request("http://localhost/api/voice/transcribe", {
-            method: "POST",
-            body: formData,
-        });
+        const request = createFormRequest(formData);
 
         const response = await POST(request);
         const data = await response.json();
 
-        expect(response.status).toBe(500);
+        expect(response.status).toBe(503);
+        expect(data.code).toBe("ML_SERVICE_URL_MISSING");
+        expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it("returns 503 without fetching when ML_SERVICE_URL is unsafe", async () => {
+        process.env.ML_SERVICE_URL = "http://169.254.169.254";
+        global.fetch = jest.fn() as unknown as typeof fetch;
+
+        const formData = new FormData();
+        formData.append("file", new File(["audio"], "voice.webm", { type: "audio/webm" }));
+
+        const request = createFormRequest(formData);
+
+        const response = await POST(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(503);
         expect(data.code).toBe("ML_SERVICE_URL_MISSING");
         expect(global.fetch).not.toHaveBeenCalled();
     });
@@ -117,10 +141,7 @@ describe("POST /api/voice/transcribe", () => {
         const formData = new FormData();
         formData.append("file", new File(["bad"], "voice.webm", { type: "audio/webm" }));
 
-        const request = new Request("http://localhost/api/voice/transcribe", {
-            method: "POST",
-            body: formData,
-        });
+        const request = createFormRequest(formData);
 
         const response = await POST(request);
         const data = await response.json();
@@ -141,10 +162,7 @@ describe("POST /api/voice/transcribe", () => {
         const formData = new FormData();
         formData.append("file", new File(["bad"], "voice.webm", { type: "audio/webm" }));
 
-        const request = new Request("http://localhost/api/voice/transcribe", {
-            method: "POST",
-            body: formData,
-        });
+        const request = createFormRequest(formData);
 
         const response = await POST(request);
         const data = await response.json();
@@ -161,10 +179,7 @@ describe("POST /api/voice/transcribe", () => {
         const formData = new FormData();
         formData.append("file", new File(["audio"], "voice.webm", { type: "audio/webm" }));
 
-        const request = new Request("http://localhost/api/voice/transcribe", {
-            method: "POST",
-            body: formData,
-        });
+        const request = createFormRequest(formData);
 
         const response = await POST(request);
         const data = await response.json();

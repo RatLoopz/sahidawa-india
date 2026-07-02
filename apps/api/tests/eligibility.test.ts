@@ -1,6 +1,32 @@
 import request from "supertest";
 import app from "../src/app";
 
+jest.mock("../src/db/supabase", () => {
+    return {
+        anonSupabase: {
+            from: jest.fn().mockReturnThis(),
+            select: jest.fn().mockReturnThis(),
+            ilike: jest.fn((field, value) => {
+                if (value.toLowerCase().includes("maharashtra")) {
+                    return Promise.resolve({
+                        data: [
+                            {
+                                scheme_name: "Mahatma Jyotirao Phule Jan Arogya Yojana (MJPJAY)",
+                                description: "Cashless health insurance scheme.",
+                                coverage: "Up to 5 Lakh.",
+                                how_to_apply: "Visit a network hospital.",
+                                link: "https://www.jeevandayee.gov.in/",
+                            },
+                        ],
+                        error: null,
+                    });
+                }
+                return Promise.resolve({ data: [], error: null });
+            }),
+        },
+    };
+});
+
 describe("POST /api/v1/scheme-eligibility", () => {
     it("should evaluate scheme eligibility based on BPL card status and state", async () => {
         const res = await request(app).post("/api/v1/scheme-eligibility").send({

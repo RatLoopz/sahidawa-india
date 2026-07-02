@@ -91,9 +91,9 @@ export default function VaccineHubPage() {
 
         const dtstamp = new Date();
         const formatICSDate = (d: Date) =>
-            d.getFullYear().toString() +
-            String(d.getMonth() + 1).padStart(2, "0") +
-            String(d.getDate()).padStart(2, "0");
+            d.getUTCFullYear().toString() +
+            String(d.getUTCMonth() + 1).padStart(2, "0") +
+            String(d.getUTCDate()).padStart(2, "0");
 
         const formatICSDateTime = (d: Date) =>
             d.getUTCFullYear().toString() +
@@ -108,10 +108,10 @@ export default function VaccineHubPage() {
         const events = vaccine.dosing_intervals_weeks
             .map((weeks, index) => {
                 const date = new Date(initialDate);
-                date.setDate(date.getDate() + weeks * 7);
+                date.setUTCDate(date.getUTCDate() + weeks * 7);
 
                 const endDate = new Date(date);
-                endDate.setDate(endDate.getDate() + 1);
+                endDate.setUTCDate(endDate.getUTCDate() + 1);
 
                 const uidKey = selectedVaccine || vaccine.disease_name.replace(/\s+/g, "-");
 

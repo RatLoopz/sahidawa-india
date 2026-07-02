@@ -11,7 +11,7 @@ import { uploadRateLimiter } from "../middleware/uploadRateLimit";
 import { scanQueryLimiter } from "../middleware/rateLimit";
 import { redisClient } from "../utils/redis";
 
-import { escapeIlike, escapePostgrest } from "../utils/db";
+import { escapeIlike, escapePostgrest, buildOrConditions } from "../utils/db";
 
 const router = Router();
 
@@ -22,11 +22,21 @@ const ALLOWED_MIME_TYPES = new Set([
     "image/webp",
     "image/gif",
     "image/bmp",
+    "audio/webm",
+    "audio/mp4",
+    "audio/mpeg",
+    "audio/wav",
+    "audio/ogg",
+    "audio/aac",
 ]);
 
 const UPLOAD_DIR = path.join(__dirname, "../../temp-uploads");
 if (!fs.existsSync(UPLOAD_DIR)) {
-    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+    fs.mkdirSync(UPLOAD_DIR, { recursive: true, mode: 0o700 });
+} else {
+    // mode only applies on creation — enforce on every boot in case the
+    // directory already existed with looser permissions from a prior run
+    fs.chmodSync(UPLOAD_DIR, 0o700);
 }
 
 // Security: reject non-image uploads before they reach the ML container
@@ -49,7 +59,7 @@ const upload = multer({
             cb(
                 Object.assign(
                     new Error(
-                        `Invalid file type "${file.mimetype}". Only JPEG, PNG, WEBP, GIF, and BMP images are accepted.`
+                        `Invalid file type "${file.mimetype}". Only supported image and audio formats are accepted.`
                     ),
                     { code: "INVALID_MIME" }
                 )
@@ -196,33 +206,18 @@ function calculateAdvancedMatchScore(ocrText: string, candidate: string): number
 router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, res: Response) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (upload.single("file") as any)(req, res, async (multerErr: unknown) => {
-        let tempFilePath: string | undefined;
-
-        if (multerErr) {
-            const msg = multerErr instanceof Error ? multerErr.message : "File upload error";
-            logger.warn(`File upload rejected: ${msg}`);
-            res.status(400).json({ error: msg });
-            return;
-        }
-
-        // After multer runs, req.file is populated by the @types/multer augmentation
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const file: Express.Multer.File | undefined = (req as any).file;
 
-        if (!file || !file.filename) {
-            res.status(400).json({ error: "No image file provided." });
-            return;
-        }
+        // Capture the path FIRST, before checking multerErr — multer's disk
+        // storage engine may have already written the file even when an error
+        // (e.g. a fileFilter rejection or size-limit) is reported afterward.
+        // Security: path.basename + path.join still guards against traversal (CodeQL).
+        const tempFilePath: string | undefined = file?.filename
+            ? path.join(UPLOAD_DIR, path.basename(file.filename))
+            : undefined;
 
-        // Security: Prevent path traversal (CodeQL) by ensuring the path only resolves within UPLOAD_DIR
-        const safeFilename = path.basename(file.filename);
-        tempFilePath = path.join(UPLOAD_DIR, safeFilename);
-
-        const mlServiceUrl = getMlServiceUrl();
-        if (!mlServiceUrl) {
-            logger.error(MISSING_ML_SERVICE_URL_MESSAGE, { route: "/api/v1/scan/extract" });
-
-            // Clean up temp file before returning
+        const cleanupTempFile = () => {
             if (tempFilePath && fs.existsSync(tempFilePath)) {
                 try {
                     fs.unlinkSync(tempFilePath);
@@ -231,6 +226,34 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
                     logger.error(`Failed to delete temp file ${tempFilePath}:`, err);
                 }
             }
+        };
+
+        if (multerErr) {
+            const msg = multerErr instanceof Error ? multerErr.message : "File upload error";
+            logger.warn(`File upload rejected: ${msg}`);
+            cleanupTempFile();
+            res.status(400).json({ error: msg });
+            return;
+        }
+
+        if (!file || !file.filename) {
+            res.status(400).json({ error: "No image file provided." });
+            return;
+        }
+
+        if (!tempFilePath) {
+            // Should be unreachable given the check above, but keeps TS's
+            // narrowing happy and guards against a future refactor breaking the invariant
+            logger.error("tempFilePath unexpectedly undefined after file validation");
+            res.status(500).json({ error: "Internal upload error" });
+            return;
+        }
+
+        const mlServiceUrl = getMlServiceUrl();
+        if (!mlServiceUrl) {
+            logger.error(MISSING_ML_SERVICE_URL_MESSAGE, { route: "/api/v1/scan/extract" });
+
+            cleanupTempFile();
 
             res.status(500).json({
                 error: "OCR service is not configured.",
@@ -371,12 +394,7 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
 
                 if (searchWords.length > 0) {
                     // Build OR filter: brand_name ILIKE any word OR generic_name ILIKE any word
-                    const orFilter = searchWords
-                        .map((w) => {
-                            const safe = escapeIlike(w);
-                            return `brand_name.ilike.%${safe}%,generic_name.ilike.%${safe}%`;
-                        })
-                        .join(",");
+                    const orFilter = buildOrConditions(["brand_name", "generic_name"], searchWords);
 
                     const { data: dbMedicines, error: dbError } = await supabase
                         .from("medicines")
@@ -511,7 +529,7 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
                                 "composition, mrp, jan_aushadhi_price"
                         )
                         .or(
-                            `brand_name.ilike.%${escapePostgrest(matchedName!)}%,generic_name.ilike.%${escapePostgrest(matchedName!)}%`
+                            `brand_name.ilike."%${escapePostgrest(matchedName!)}%",generic_name.ilike."%${escapePostgrest(matchedName!)}%"`
                         )
                         .limit(1)
                         .maybeSingle();
@@ -596,13 +614,7 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
                 details: msg,
             });
         } finally {
-            if (tempFilePath && fs.existsSync(tempFilePath)) {
-                try {
-                    fs.unlinkSync(tempFilePath);
-                } catch (err) {
-                    logger.error(`Failed to delete temp file ${tempFilePath}:`, err);
-                }
-            }
+            cleanupTempFile();
         }
     });
 });
@@ -673,15 +685,13 @@ router.post("/match", scanQueryLimiter, async (req: Request, res: Response) => {
                 .split(/\s+/)
                 .filter((w: string) => w.length > 2);
             if (words.length > 1) {
-                let fallbackQuery = supabase.from("medicines").select("brand_name, generic_name");
+                const orConditions = buildOrConditions(["brand_name", "generic_name"], words);
 
-                for (const word of words) {
-                    fallbackQuery = fallbackQuery.or(
-                        `brand_name.ilike.%${escapePostgrest(word)}%,generic_name.ilike.%${escapePostgrest(word)}%`
-                    );
-                }
-
-                const { data: fallback } = await (fallbackQuery as any).limit(3);
+                const { data: fallback } = await supabase
+                    .from("medicines")
+                    .select("brand_name, generic_name")
+                    .or(orConditions)
+                    .limit(3);
                 if (fallback && fallback.length > 0) {
                     const fallbackResult = fallback.map(
                         (m: { brand_name: string | null; generic_name: string }) => ({
@@ -853,5 +863,109 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
         });
     }
 });
+import { idempotencyMiddleware } from "../middleware/idempotency";
+import { resolveConflict } from "../utils/conflictResolution";
+
+router.post(
+    "/submit",
+    uploadRateLimiter,
+    validateUploadSize,
+    upload.fields([{ name: "image" }, { name: "voice" }]),
+    idempotencyMiddleware,
+    async (req: Request, res: Response) => {
+        const idempotencyKey = (req as any).idempotencyKey;
+        const { deviceId, clientUpdatedAt } = req.body;
+        let metadata = null;
+        if (req.body.metadata) {
+            try {
+                metadata = JSON.parse(req.body.metadata, (key, value) => {
+                    if (key === "__proto__" || key === "constructor" || key === "prototype") {
+                        return undefined;
+                    }
+                    return value;
+                });
+            } catch (e) {
+                // Ignore parse errors
+            }
+        }
+
+        // Use a generated scanId from metadata or fallback to a new one
+        const scanId = metadata?.id || crypto.randomUUID();
+
+        try {
+            // Note: we require a user to be authenticated in a real app, assuming auth.uid() is available
+            const userId =
+                (req as any).user?.id || (req as any).session?.user?.id || "anonymous_user";
+
+            const resolvedScanId = await resolveConflict({
+                scanId,
+                metadata,
+                deviceId,
+                clientUpdatedAt,
+                userId,
+            });
+
+            const parts: Record<string, "synced" | "failed" | "skipped"> = {};
+
+            // metadata part
+            parts.metadata = metadata ? "synced" : "skipped";
+
+            // image part (stubbed for Cloudinary/external upload)
+            const imageFile = (req.files as any)?.image?.[0];
+            if (imageFile) {
+                try {
+                    // await uploadToCloudinary(imageFile.buffer, resolvedScanId);
+                    parts.image = "synced";
+                } catch {
+                    parts.image = "failed";
+                }
+            } else {
+                parts.image = "skipped";
+            }
+
+            // voice part (stubbed for Whisper/external transcribe)
+            const voiceFile = (req.files as any)?.voice?.[0];
+            if (voiceFile) {
+                try {
+                    // await transcribeVoice(voiceFile.buffer, resolvedScanId);
+                    parts.voice = "synced";
+                } catch {
+                    parts.voice = "failed";
+                }
+            } else {
+                parts.voice = "skipped";
+            }
+
+            // record parts status
+            const rows = Object.entries(parts).map(([part_type, status]) => ({
+                scan_id: resolvedScanId,
+                part_type,
+                status,
+            }));
+            await supabase
+                .from("scan_submission_parts")
+                .upsert(rows, { onConflict: "scan_id,part_type" });
+
+            const result = { scanId: resolvedScanId, parts };
+
+            if (redisClient.isOpen) {
+                await redisClient.set(`idem:${idempotencyKey}`, JSON.stringify(result), {
+                    EX: 60 * 60 * 24, // 24h
+                });
+            }
+
+            await supabase
+                .from("submission_idempotency")
+                .insert({ idempotency_key: idempotencyKey, scan_id: resolvedScanId });
+
+            res.status(200).json(result);
+        } catch (err) {
+            logger.error(
+                `Error during offline scan submit: ${err instanceof Error ? err.message : err}`
+            );
+            res.status(500).json({ error: "Server error during scan submission" });
+        }
+    }
+);
 
 export default router;

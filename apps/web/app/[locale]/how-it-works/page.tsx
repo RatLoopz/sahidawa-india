@@ -128,7 +128,7 @@ export default function HowItWorksPage() {
     const t = useTranslations("howItWorks");
     return (
         <main className="min-h-screen overflow-x-hidden bg-gradient-to-b from-(--color-surface-page) via-emerald-500/[0.03] to-(--color-surface-page) text-(--color-text-primary)">
-            <PageHeader backHref="/" variant="light" hideBackButton />
+            <PageHeader backHref="/" variant="light" />
             {/* Hero Section */}
             <section className="relative px-6 pt-24 pb-20">
                 {/* Glow Effects */}
@@ -180,7 +180,7 @@ export default function HowItWorksPage() {
                 <div className="relative mx-auto max-w-6xl">
                     {/* Desktop Connected Path */}
                     <motion.div
-                        className="no-scrollbar relative z-10 flex snap-x snap-mandatory flex-row gap-6 overflow-x-auto pb-6 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6 md:overflow-x-visible md:pb-0"
+                        className="no-scrollbar relative z-10 flex snap-x snap-mandatory flex-row gap-6 overflow-x-auto pb-6 md:grid md:grid-cols-2 md:gap-6 md:overflow-x-visible md:pb-0 lg:grid-cols-3"
                         variants={timelineContainerVariants}
                         initial="hidden"
                         whileInView="visible"
@@ -193,7 +193,7 @@ export default function HowItWorksPage() {
                                 className="w-[calc(100%-3rem)] max-w-sm flex-shrink-0 snap-center md:w-auto md:max-w-none"
                             >
                                 <div
-                                    className={`flex h-full flex-col items-center rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-8 mt-2 md:mt-0 text-center shadow-xs transition-all duration-500 hover:-translate-y-2 hover:shadow-xl active:scale-[0.99] ${step.borderClass}`}
+                                    className={`mt-2 flex h-full flex-col items-center rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-8 text-center shadow-xs transition-all duration-500 hover:-translate-y-2 hover:shadow-xl active:scale-[0.99] md:mt-0 ${step.borderClass}`}
                                 >
                                     {/* Icon Container with Floating Number Badge */}
                                     <div

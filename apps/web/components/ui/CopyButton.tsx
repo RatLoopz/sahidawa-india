@@ -1,5 +1,5 @@
 "use client";
-
+import { handleApiError } from "@/lib/apiErrorHandler";
 import React, { useState } from "react";
 import { Copy, Check } from "lucide-react";
 import { toast } from "sonner";
@@ -30,8 +30,8 @@ export const CopyButton = ({
 
             // Revert icon back to Copy after 2 seconds
             setTimeout(() => setIsCopied(false), 2000);
-        } catch {
-            toast.error("Failed to copy");
+        } catch (error) {
+            await handleApiError(error, "Failed to copy");
         }
     };
 

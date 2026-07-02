@@ -21,6 +21,44 @@ function stopMediaStream(stream: MediaStream | null): void {
     }
 }
 
+const SCANNER_INACTIVITY_TIMEOUT = 45000;
+
+function playFeedback(): void {
+    // 1. Haptic Feedback
+    try {
+        if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+            navigator.vibrate([100, 50, 100]);
+        }
+    } catch {
+        // Silently ignore vibration errors
+    }
+
+    // 2. Audio Beep
+    try {
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioContextClass) {
+            const ctx = new AudioContextClass();
+            const oscillator = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+
+            oscillator.type = "sine";
+            oscillator.frequency.setValueAtTime(880, ctx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1);
+
+            gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+
+            oscillator.connect(gainNode);
+            gainNode.connect(ctx.destination);
+
+            oscillator.start();
+            oscillator.stop(ctx.currentTime + 0.1);
+        }
+    } catch {
+        // Silently ignore audio playback errors
+    }
+}
+
 export function BarcodeScanner({
     onScan,
     debounceMs = 2000,
@@ -34,6 +72,7 @@ export function BarcodeScanner({
     const lastScanRef = useRef<string>("");
     const lastScanTimeRef = useRef<number>(0);
     const controlsRef = useRef<{ stop: () => void } | null>(null);
+    const inactivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Use refs to track external state without restarting the camera hardware
     const isVerifyingRef = useRef(isVerifying);
@@ -42,6 +81,17 @@ export function BarcodeScanner({
     const [status, setStatus] = useState<ScannerStatus>("initializing");
     const [errorMessage, setErrorMessage] = useState<string>("");
     const [retryCount, setRetryCount] = useState(0);
+    const [showInactivity, setShowInactivity] = useState(false);
+
+    const resetInactivityTimer = useCallback(() => {
+        if (inactivityTimerRef.current) {
+            clearTimeout(inactivityTimerRef.current);
+        }
+        setShowInactivity(false);
+        inactivityTimerRef.current = setTimeout(() => {
+            setShowInactivity(true);
+        }, SCANNER_INACTIVITY_TIMEOUT);
+    }, []);
 
     const initializingMessageId = useId();
     const permissionDeniedMessageId = useId();
@@ -72,6 +122,21 @@ export function BarcodeScanner({
         },
         [debounceMs]
     );
+
+    useEffect(() => {
+        if (status === "scanning" && !isVerifying && !apiError) {
+            resetInactivityTimer();
+        } else {
+            if (inactivityTimerRef.current) {
+                clearTimeout(inactivityTimerRef.current);
+            }
+        }
+        return () => {
+            if (inactivityTimerRef.current) {
+                clearTimeout(inactivityTimerRef.current);
+            }
+        };
+    }, [status, isVerifying, apiError, resetInactivityTimer]);
 
     useEffect(() => {
         let cancelled = false;
@@ -133,6 +198,8 @@ export function BarcodeScanner({
 
                             const text = result.getText().trim();
                             if (shouldEmitScan(text)) {
+                                resetInactivityTimer();
+                                playFeedback();
                                 onScan(text);
                             }
                         }
@@ -150,7 +217,6 @@ export function BarcodeScanner({
 
                 controlsRef.current = controls;
                 setStatus("scanning");
-
             } catch (err: unknown) {
                 if (cancelled) return;
                 const errorObj = err instanceof Error ? err : new Error(String(err));
@@ -185,7 +251,7 @@ export function BarcodeScanner({
             stopMediaStream(streamRef.current);
             streamRef.current = null;
         };
-    }, [retryCount, shouldEmitScan, onScan]); // isVerifying and apiError are purposefully removed here!
+    }, [retryCount, shouldEmitScan, onScan, resetInactivityTimer]); // isVerifying and apiError are purposefully removed here!
 
     return (
         <div className="relative h-full w-full overflow-hidden rounded-2xl bg-black">
@@ -390,6 +456,41 @@ export function BarcodeScanner({
                         </div>
                     )}
                 </>
+            )}
+
+            {/* 5. INACTIVITY OVERLAY */}
+            {showInactivity && status === "scanning" && !apiError && !isVerifying && (
+                <div
+                    className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-4 bg-slate-900/95 p-6 text-center backdrop-blur-sm"
+                    role="alert"
+                    aria-live="polite"
+                >
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/20">
+                        <AlertCircle size={32} className="text-amber-400" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white">Having trouble scanning?</h3>
+                    <p className="max-w-xs text-sm text-slate-400">
+                        We haven't detected a barcode in a while. Make sure there is enough light
+                        and the barcode is in focus.
+                    </p>
+                    <div className="mt-2 flex w-full max-w-xs flex-col gap-3">
+                        <button
+                            onClick={() => resetInactivityTimer()}
+                            className="w-full rounded-xl bg-emerald-500 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-600"
+                        >
+                            Keep Scanning
+                        </button>
+                        <button
+                            onClick={() => {
+                                const input = document.getElementById("medicine-upload");
+                                input?.click();
+                            }}
+                            className="w-full rounded-xl border border-slate-700 bg-slate-800 py-3 text-sm font-semibold text-slate-300 transition-colors hover:bg-slate-700"
+                        >
+                            📷 Upload Photo Instead
+                        </button>
+                    </div>
+                </div>
             )}
         </div>
     );

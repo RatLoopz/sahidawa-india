@@ -14,11 +14,21 @@ jest.mock("../src/db/client", () => ({
     },
 }));
 
+jest.mock("../src/middleware/auth", () => ({
+    requireAuth: (req: any, _res: any, next: any) => {
+        req.user = { id: "test-user-uuid", role: "user", email: "user@example.com" };
+        next();
+    },
+    optionalAuth: (_req: any, _res: any, next: any) => next(),
+    requireRole: () => (_req: any, _res: any, next: any) => next(),
+}));
+
 import request from "supertest";
 import app from "../src/app";
 import { supabase } from "../src/db/client";
 
 const mockedSupabase = supabase as jest.Mocked<typeof supabase>;
+const GEOSPATIAL_CACHE_CONTROL = "public, max-age=300, s-maxage=300, stale-while-revalidate=600";
 
 describe("GET /api/pharmacies/nearest", () => {
     beforeEach(() => {
@@ -26,6 +36,15 @@ describe("GET /api/pharmacies/nearest", () => {
     });
 
     // ── Validation tests ─────────────────────────────────────────────────
+    it("should return Cache-Control header", async () => {
+        const response = await request(app).get("/api/pharmacies/nearest").query({
+            lat: 28.6,
+            lng: 77.2,
+            radius: 5,
+        });
+
+        expect(response.headers["cache-control"]).toContain("public");
+    });
 
     it("returns 400 when latitude or longitude is missing", async () => {
         const missingLatitude = await request(app).get("/api/pharmacies/nearest?lng=77.5946");
@@ -96,6 +115,7 @@ describe("GET /api/pharmacies/nearest", () => {
         );
 
         expect(response.status).toBe(200);
+        expect(response.headers["cache-control"]).toBe(GEOSPATIAL_CACHE_CONTROL);
         expect(response.body.pharmacies).toHaveLength(2);
         expect(response.body.pharmacies[0].name).toBe("PMBJAK - AIIMS");
         expect(response.body.pharmacies[0].distance).toBe("2.3 km");
@@ -235,6 +255,7 @@ describe("GET /api/pharmacies/nearest", () => {
         );
 
         expect(response.status).toBe(200);
+        expect(response.headers["cache-control"]).toBe(GEOSPATIAL_CACHE_CONTROL);
 
         expect(mockedSupabase.rpc).toHaveBeenCalledWith("get_nearest_pharmacies", {
             query_lat: 12.9716,
@@ -245,7 +266,7 @@ describe("GET /api/pharmacies/nearest", () => {
         expect(mockedSupabase.from).toHaveBeenCalledWith("pharmacies");
 
         expect(select).toHaveBeenCalledWith(
-            "name, address, location, phone_number, is_verified, district, state, status"
+            "name, address, location, phone_number, is_verified, district, state, status, operating_hours, timezone"
         );
 
         expect(eq).toHaveBeenCalledWith("status", "approved");
@@ -264,6 +285,17 @@ describe("GET /api/pharmacies/nearest", () => {
 describe("GET /api/pharmacies/in-bounds", () => {
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    it("should return Cache-Control header", async () => {
+        const response = await request(app).get("/api/pharmacies/in-bounds").query({
+            south: 28.5,
+            west: 77.1,
+            north: 28.7,
+            east: 77.3,
+        });
+
+        expect(response.headers["cache-control"]).toContain("public");
     });
 
     it("returns 400 when bounds are missing", async () => {
@@ -318,6 +350,7 @@ describe("GET /api/pharmacies/in-bounds", () => {
         );
 
         expect(response.status).toBe(200);
+        expect(response.headers["cache-control"]).toBe(GEOSPATIAL_CACHE_CONTROL);
         expect(response.body.pharmacies).toHaveLength(1);
         expect(response.body.pharmacies[0].name).toBe("PMBJAK - AIIMS");
         expect(response.body.pharmacies[0].distance).toBe("3.5 km");
@@ -327,6 +360,8 @@ describe("GET /api/pharmacies/in-bounds", () => {
             bound_west: 77.0,
             bound_north: 28.8,
             bound_east: 77.4,
+            query_limit: 200,
+            query_offset: 0,
         });
 
         expect(mockedSupabase.from).not.toHaveBeenCalled();
@@ -373,6 +408,7 @@ describe("GET /api/pharmacies/in-bounds", () => {
         );
 
         expect(response.status).toBe(200);
+        expect(response.headers["cache-control"]).toBe(GEOSPATIAL_CACHE_CONTROL);
         expect(response.body.pharmacies).toHaveLength(1);
         expect(response.body.pharmacies[0].name).toBe("Inside Bounds Pharmacy");
         expect(eq).toHaveBeenCalledWith("status", "approved");
@@ -435,6 +471,7 @@ describe("POST /api/pharmacies", () => {
             location: "POINT(77.2 28.56)",
             is_verified: false,
             status: "pending",
+            created_by: "test-user-uuid",
         });
     });
 
@@ -468,5 +505,84 @@ describe("POST /api/pharmacies", () => {
 
         expect(response.status).toBe(400);
         expect(response.body.error).toBe("Invalid pharmacy payload");
+    });
+});
+
+describe("POST /api/pharmacies/bulk-upload — BOM stripping", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("parses CSV with UTF-8 BOM marker correctly", async () => {
+        const csvWithBOM =
+            "\uFEFFmedicine_name,batch_number,expiry_date,quantity,mrp\n" +
+            "Paracetamol 500mg,BATCH001,2027-01-01,100,50\n";
+
+        const fromMock = jest.fn();
+        const selectMock = jest.fn().mockReturnThis();
+        const eqMock = jest.fn().mockReturnThis();
+        const maybeSingleMock = jest.fn().mockResolvedValue({
+            data: { id: "pharmacy-uuid-123" },
+            error: null,
+        });
+        const insertMock = jest.fn().mockResolvedValue({ error: null });
+
+        (mockedSupabase.from as jest.Mock).mockImplementation((table: string) => {
+            if (table === "pharmacies") {
+                return {
+                    select: selectMock,
+                    eq: eqMock,
+                    maybeSingle: maybeSingleMock,
+                };
+            }
+            if (table === "pharmacy_inventory") {
+                return { insert: insertMock };
+            }
+            return {};
+        });
+
+        const response = await request(app)
+            .post("/api/pharmacies/bulk-upload")
+            .send({ fileContent: csvWithBOM });
+
+        expect(response.status).toBe(200);
+        expect(response.body.successCount).toBe(1);
+        expect(response.body.failedCount).toBe(0);
+    });
+
+    it("parses CSV without BOM marker correctly", async () => {
+        const csvWithoutBOM =
+            "medicine_name,batch_number,expiry_date,quantity,mrp\n" +
+            "Ibuprofen 400mg,BATCH002,2027-06-01,50,30\n";
+
+        const selectMock = jest.fn().mockReturnThis();
+        const eqMock = jest.fn().mockReturnThis();
+        const maybeSingleMock = jest.fn().mockResolvedValue({
+            data: { id: "pharmacy-uuid-123" },
+            error: null,
+        });
+        const insertMock = jest.fn().mockResolvedValue({ error: null });
+
+        (mockedSupabase.from as jest.Mock).mockImplementation((table: string) => {
+            if (table === "pharmacies") {
+                return {
+                    select: selectMock,
+                    eq: eqMock,
+                    maybeSingle: maybeSingleMock,
+                };
+            }
+            if (table === "pharmacy_inventory") {
+                return { insert: insertMock };
+            }
+            return {};
+        });
+
+        const response = await request(app)
+            .post("/api/pharmacies/bulk-upload")
+            .send({ fileContent: csvWithoutBOM });
+
+        expect(response.status).toBe(200);
+        expect(response.body.successCount).toBe(1);
+        expect(response.body.failedCount).toBe(0);
     });
 });

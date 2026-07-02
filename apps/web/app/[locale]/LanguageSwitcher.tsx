@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter, usePathname } from "@/i18n/routing";
 import { Globe, ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
@@ -25,6 +25,7 @@ const languages = [
 
 export default function LanguageSwitcher() {
     const locale = useLocale();
+    const tA11y = useTranslations("Accessibility");
     const router = useRouter();
     const pathname = usePathname();
     const [open, setOpen] = useState(false);
@@ -81,11 +82,11 @@ export default function LanguageSwitcher() {
                     switchLanguage(languages[focusedIndex].code);
                 }
                 break;
-            case "Escape":
-                e.preventDefault();
-                setOpen(false);
-                triggerRef.current?.focus();
-                break;
+            // Escape is intentionally NOT handled here. Closing on Escape and
+            // refocusing the trigger is already handled centrally by the
+            // useOnClickOutside hook below, which listens for Escape at the
+            // document level. Keeping a second local handler here duplicated
+            // that logic without adding any new behavior.
             case "Tab":
                 setOpen(false);
                 break;
@@ -113,7 +114,7 @@ export default function LanguageSwitcher() {
                 ref={triggerRef}
                 aria-haspopup="listbox"
                 aria-expanded={open}
-                aria-label="Select language"
+                aria-label={tA11y("select_language")}
                 onClick={() => setOpen(!open)}
                 onKeyDown={handleTriggerKeyDown}
                 className="flex h-9 items-center gap-1.5 rounded-full border border-(--color-border-muted) bg-(--color-surface-muted) px-3 py-1.5 text-sm font-semibold text-(--color-text-primary) shadow-sm transition-colors hover:bg-(--color-border-muted) sm:h-10 sm:px-4 sm:py-2"
@@ -131,7 +132,7 @@ export default function LanguageSwitcher() {
                 <div
                     ref={listboxRef}
                     role="listbox"
-                    aria-label="Language options"
+                    aria-label={tA11y("language_options")}
                     aria-activedescendant={`lang-option-${focusedIndex}`}
                     onKeyDown={handleListKeyDown}
                     tabIndex={-1}

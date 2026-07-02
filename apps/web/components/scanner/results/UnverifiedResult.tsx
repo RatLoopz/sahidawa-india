@@ -18,7 +18,13 @@ export function UnverifiedResult({
     shareLabel: string;
 }) {
     return (
-        <div className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] border border-(--color-border-muted) bg-(--color-surface-page) p-8 text-(--color-text-primary) shadow-2xl">
+        <div
+            className="relative w-full max-w-sm overflow-hidden rounded-[2.5rem] border border-(--color-border-muted) bg-(--color-surface-page) p-8 text-(--color-text-primary) shadow-2xl"
+            role="region"
+            aria-label={`Unverified result - ${brandName || "Unknown medicine"} not found in CDSCO database`}
+            aria-live="polite"
+            aria-atomic="true"
+        >
             <div className="absolute top-0 right-0 left-0 h-2 bg-amber-500"></div>
             <div className="flex flex-col items-center space-y-4 text-center">
                 <div className="dark:text-amber-450 flex h-20 w-20 items-center justify-center rounded-full bg-amber-100 text-amber-600 shadow-inner dark:bg-amber-950/30">
@@ -47,10 +53,15 @@ export function UnverifiedResult({
                     </div>
                 )}
 
-                <div className="border-amber-250 flex w-full items-start gap-3 rounded-2xl border bg-amber-50 p-4 text-left dark:border-amber-900 dark:bg-amber-950/20">
+                <div
+                    className="border-amber-250 flex w-full items-start gap-3 rounded-2xl border bg-amber-50 p-4 text-left dark:border-amber-900 dark:bg-amber-950/20"
+                    role="alert"
+                    aria-live="polite"
+                >
                     <Info
                         size={18}
                         className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400"
+                        aria-hidden="true"
                     />
                     <p className="dark:text-amber-450 text-xs leading-relaxed font-medium text-amber-800">
                         No matching record was found for this medicine batch in the CDSCO database.

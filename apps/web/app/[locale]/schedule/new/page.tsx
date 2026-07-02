@@ -1,26 +1,54 @@
 "use client";
 
 import { useRouter } from "@/i18n/routing";
-import { useState } from "react";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
-import { Link } from "@/i18n/routing";
+import { useCallback, useState } from "react";
+import { Plus, Trash2 } from "lucide-react";
+
 import { PageHeader } from "../../components/PageHeader";
 import Card from "@/components/Card";
+import MedicineSearchSelect from "@/src/components/MedicineSearchSelect";
 import { createSchedule } from "@/lib/scheduleApi";
+import { Medicine } from "@/src/components/ComparisonGrid";
+import { COMPARE_SELECT_FIELDS } from "@/src/lib/compareSelectFields";
+import { supabase } from "@/lib/supabase";
+import { mapMedicineRow } from "@/src/lib/mapMedicineRow";
+import { buildMedicineNameSearchFilter } from "@/lib/supabase/medicineSearch";
 
 const DEFAULT_TIMES = ["08:00", "20:00"];
 
+async function searchMedicines(query: string): Promise<Medicine[]> {
+    const filter = buildMedicineNameSearchFilter(query);
+    if (!filter) return [];
+
+    const { data, error } = await supabase
+        .from("medicines")
+        .select(COMPARE_SELECT_FIELDS)
+        .or(filter)
+        .limit(25);
+
+    if (error) {
+        console.error(error.message);
+        return [];
+    }
+    return ((data ?? []) as Record<string, unknown>[]).map((row) => mapMedicineRow(row));
+}
+
 export default function NewSchedulePage() {
     const router = useRouter();
-    const [medicineName, setMedicineName] = useState("");
+    const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(null);
     const [dosage, setDosage] = useState("1 tablet");
     const [frequency, setFrequency] = useState(2);
     const [times, setTimes] = useState<string[]>(DEFAULT_TIMES);
-    const [startDate, setStartDate] = useState(new Date().toISOString().split("T")[0]);
+    const today = new Date();
+    today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+
+    const [startDate, setStartDate] = useState(today.toISOString().split("T")[0]);
     const [endDate, setEndDate] = useState("");
     const [notes, setNotes] = useState("");
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
+
+    const handleSearch = useCallback((q: string) => searchMedicines(q), []);
 
     const handleTimeChange = (index: number, value: string) => {
         const updated = [...times];
@@ -44,15 +72,16 @@ export default function NewSchedulePage() {
         e.preventDefault();
         setError("");
 
-        if (!medicineName.trim()) {
-            setError("Medicine name is required");
+        if (!selectedMedicine) {
+            setError("Medicine is required");
             return;
         }
 
         setSaving(true);
         try {
             await createSchedule({
-                medicine_name: medicineName.trim(),
+                medicine_name: selectedMedicine.brand_name || selectedMedicine.generic_name,
+                medicine_id: selectedMedicine.id,
                 dosage: dosage.trim(),
                 frequency,
                 times,
@@ -78,7 +107,7 @@ export default function NewSchedulePage() {
             />
 
             <main className="container mx-auto w-full max-w-2xl flex-1 px-4 py-6 md:px-6 md:py-10">
-                <Card className="border-(--color-border-muted) bg-(--color-surface-page)">
+                <Card className="border-(--color-border-muted) bg-(--color-surface-page) dark:border-slate-700 dark:bg-slate-900">
                     <form onSubmit={handleSubmit} className="flex flex-col gap-5 p-6">
                         {error && (
                             <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-400">
@@ -87,19 +116,12 @@ export default function NewSchedulePage() {
                         )}
 
                         <div className="flex flex-col gap-1.5">
-                            <label
-                                htmlFor="medicine_name"
-                                className="text-sm font-bold text-(--color-text-primary)"
-                            >
-                                Medicine Name
-                            </label>
-                            <input
-                                id="medicine_name"
-                                type="text"
-                                value={medicineName}
-                                onChange={(e) => setMedicineName(e.target.value)}
+                            <MedicineSearchSelect
+                                label="Medicine Name"
+                                value={selectedMedicine}
+                                onChange={setSelectedMedicine}
+                                onSearch={handleSearch}
                                 placeholder="e.g. Paracetamol, Amoxicillin"
-                                className="rounded-lg border border-(--color-border-muted) bg-(--color-surface-muted) px-3 py-2.5 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
                             />
                         </div>
 
@@ -217,13 +239,6 @@ export default function NewSchedulePage() {
                         </div>
 
                         <div className="flex items-center gap-3 pt-2">
-                            <Link
-                                href="/schedule"
-                                className="inline-flex items-center gap-1.5 rounded-lg border border-(--color-border-muted) px-4 py-2.5 text-sm font-semibold text-(--color-text-secondary) transition hover:bg-(--color-surface-muted)"
-                            >
-                                <ArrowLeft size={16} />
-                                Cancel
-                            </Link>
                             <button
                                 type="submit"
                                 disabled={saving}

@@ -1,5 +1,5 @@
 "use client";
-
+import { handleApiError } from "@/lib/apiErrorHandler";
 import React, { useState } from "react";
 import {
     CheckCircle,
@@ -13,6 +13,7 @@ import {
 import { PageHeader } from "../components/PageHeader";
 import { checkSchemeEligibility, type EligibleScheme } from "@/lib/api/alternatives";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 const INDIAN_STATES = [
     "Andhra Pradesh",
@@ -69,15 +70,17 @@ export default function SchemeEligibilityPage() {
     const [loading, setLoading] = useState<boolean>(false);
     const [eligibleSchemes, setEligibleSchemes] = useState<EligibleScheme[]>([]);
 
+    const tSchemeEligibility = useTranslations("SchemeEligibility");
+
     const handleNext = () => {
         if (step === 1) {
             const parsedAge = parseInt(age, 10);
             if (isNaN(parsedAge) || parsedAge <= 0 || parsedAge > 120) {
-                toast.error("Please enter a valid age.");
+                toast.error(tSchemeEligibility("validationAgeError"));
                 return;
             }
             if (!state) {
-                toast.error("Please select a state.");
+                toast.error(tSchemeEligibility("validationStateError"));
                 return;
             }
             setStep(2);
@@ -85,11 +88,11 @@ export default function SchemeEligibilityPage() {
             const parsedIncome = parseFloat(annualIncome);
             const parsedSize = parseInt(familySize, 10);
             if (isNaN(parsedIncome) || parsedIncome < 0) {
-                toast.error("Please enter a valid annual income.");
+                toast.error(tSchemeEligibility("validationIncomeError"));
                 return;
             }
             if (isNaN(parsedSize) || parsedSize <= 0 || parsedSize > 30) {
-                toast.error("Please enter a valid family size.");
+                toast.error(tSchemeEligibility("validationFamilySizeError"));
                 return;
             }
             setStep(3);
@@ -116,9 +119,9 @@ export default function SchemeEligibilityPage() {
             });
             setEligibleSchemes(res.eligible_schemes);
             setStep(4);
-            toast.success("Eligibility checked successfully!");
-        } catch (error: any) {
-            toast.error(error.message || "Failed to check eligibility. Please try again.");
+            toast.success(tSchemeEligibility("eligibilityCheckedSuccess"));
+        } catch (error) {
+            await handleApiError(error, tSchemeEligibility("eligibilityCheckFailed"));
         } finally {
             setLoading(false);
         }
@@ -154,40 +157,47 @@ export default function SchemeEligibilityPage() {
                     <div className="flex items-center justify-between">
                         <div>
                             <h1 className="text-3xl font-black text-emerald-800">
-                                SahiDawa — Rural Health Bridge
+                                {tSchemeEligibility("printBrandTitle")}
                             </h1>
                             <p className="text-sm text-slate-500">
-                                Government Health Schemes Eligibility Report
+                                {tSchemeEligibility("printReportTitle")}
                             </p>
                         </div>
                         <div className="text-right text-xs text-slate-400">
-                            <p>Date Generated: {new Date().toLocaleDateString("en-IN")}</p>
-                            <p>Website: www.sahidawa.in</p>
+                            <p>
+                                {tSchemeEligibility("dateGenerated")}:{" "}
+                                {new Date().toLocaleDateString("en-IN")}
+                            </p>
+                            <p>{tSchemeEligibility("website")}: www.sahidawa.in</p>
                         </div>
                     </div>
 
                     <div className="mt-6 grid grid-cols-2 gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm">
                         <div>
                             <p>
-                                <strong>Age:</strong> {age} years
+                                <strong>{tSchemeEligibility("age")}:</strong> {age}{" "}
+                                {tSchemeEligibility("years")}
                             </p>
                             <p>
-                                <strong>State of Residence:</strong> {state}
+                                <strong>{tSchemeEligibility("stateOfResidence")}:</strong> {state}
                             </p>
                             <p>
-                                <strong>Annual Family Income:</strong> ₹
+                                <strong>{tSchemeEligibility("annualFamilyIncome")}:</strong> ₹
                                 {parseFloat(annualIncome).toLocaleString("en-IN")}
                             </p>
                         </div>
                         <div>
                             <p>
-                                <strong>Family Size:</strong> {familySize} members
+                                <strong>{tSchemeEligibility("familySize")}:</strong> {familySize}{" "}
+                                {tSchemeEligibility("members")}
                             </p>
                             <p>
-                                <strong>BPL Ration Card Holder:</strong> {hasBplCard ? "Yes" : "No"}
+                                <strong>{tSchemeEligibility("bplRationCardHolder")}:</strong>{" "}
+                                {hasBplCard ? tSchemeEligibility("yes") : tSchemeEligibility("no")}
                             </p>
                             <p>
-                                <strong>ABHA Health ID Holder:</strong> {hasAbhaId ? "Yes" : "No"}
+                                <strong>{tSchemeEligibility("abhaHealthIdHolder")}:</strong>{" "}
+                                {hasAbhaId ? tSchemeEligibility("yes") : tSchemeEligibility("no")}
                             </p>
                         </div>
                     </div>
@@ -203,14 +213,16 @@ export default function SchemeEligibilityPage() {
                         {step !== 4 && (
                             <div className="no-print mb-8 text-center">
                                 <h1 className="text-3xl font-black tracking-tight text-(--color-text-primary) md:text-4xl">
-                                    Check Your{" "}
-                                    <span className="text-emerald-600 dark:text-emerald-400">
-                                        Scheme Eligibility
-                                    </span>
+                                    {tSchemeEligibility.rich("title", {
+                                        highlight: (chunks) => (
+                                            <span className="text-emerald-600 dark:text-emerald-400">
+                                                {chunks}
+                                            </span>
+                                        ),
+                                    })}
                                 </h1>
                                 <p className="mt-2 text-sm font-medium text-(--color-text-secondary)">
-                                    Find out which government health schemes you and your family
-                                    qualify for in 3 simple steps.
+                                    {tSchemeEligibility("description")}
                                 </p>
                             </div>
                         )}
@@ -229,7 +241,7 @@ export default function SchemeEligibilityPage() {
                                         1
                                     </span>
                                     <span className="hidden text-xs font-bold text-(--color-text-secondary) sm:inline">
-                                        Demographics
+                                        {tSchemeEligibility("stepDemographics")}
                                     </span>
                                 </div>
                                 <div className="mx-4 h-0.5 flex-1 bg-emerald-100 dark:bg-emerald-950/20"></div>
@@ -246,7 +258,7 @@ export default function SchemeEligibilityPage() {
                                         2
                                     </span>
                                     <span className="hidden text-xs font-bold text-(--color-text-secondary) sm:inline">
-                                        Income & Family
+                                        {tSchemeEligibility("stepIncomeFamily")}
                                     </span>
                                 </div>
                                 <div className="mx-4 h-0.5 flex-1 bg-emerald-100 dark:bg-emerald-950/20"></div>
@@ -261,7 +273,7 @@ export default function SchemeEligibilityPage() {
                                         3
                                     </span>
                                     <span className="hidden text-xs font-bold text-(--color-text-secondary) sm:inline">
-                                        Identification
+                                        {tSchemeEligibility("stepIdentification")}
                                     </span>
                                 </div>
                             </div>
@@ -277,17 +289,17 @@ export default function SchemeEligibilityPage() {
                                             htmlFor="age"
                                             className="block text-sm font-bold text-(--color-text-primary)"
                                         >
-                                            What is your age?
+                                            {tSchemeEligibility("ageLabel")}
                                         </label>
                                         <p className="text-xs text-(--color-text-secondary)">
-                                            Age helps verify senior citizen health coverages.
+                                            {tSchemeEligibility("ageDescription")}
                                         </p>
                                         <input
                                             type="number"
                                             id="age"
                                             value={age}
                                             onChange={(e) => setAge(e.target.value)}
-                                            placeholder="e.g. 45"
+                                            placeholder={tSchemeEligibility("agePlaceholder")}
                                             className="w-full rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-5 py-4 text-base font-medium outline-hidden transition-all focus:border-emerald-500 focus:bg-(--color-surface-page) dark:bg-slate-800/50"
                                             min="1"
                                             max="120"
@@ -300,10 +312,10 @@ export default function SchemeEligibilityPage() {
                                             htmlFor="state"
                                             className="block text-sm font-bold text-(--color-text-primary)"
                                         >
-                                            Which state do you live in?
+                                            {tSchemeEligibility("stateLabel")}
                                         </label>
                                         <p className="text-xs text-(--color-text-secondary)">
-                                            Government health insurance programs vary by state.
+                                            {tSchemeEligibility("stateDescription")}
                                         </p>
                                         <select
                                             id="state"
@@ -330,10 +342,10 @@ export default function SchemeEligibilityPage() {
                                             htmlFor="annualIncome"
                                             className="block text-sm font-bold text-(--color-text-primary)"
                                         >
-                                            What is your family's total annual income?
+                                            {tSchemeEligibility("incomeLabel")}
                                         </label>
                                         <p className="text-xs text-(--color-text-secondary)">
-                                            Your total combined household income in Rupees per year.
+                                            {tSchemeEligibility("incomeDescription")}
                                         </p>
                                         <div className="relative">
                                             <span className="absolute top-1/2 left-5 -translate-y-1/2 text-base font-bold text-(--color-text-secondary)">
@@ -344,7 +356,9 @@ export default function SchemeEligibilityPage() {
                                                 id="annualIncome"
                                                 value={annualIncome}
                                                 onChange={(e) => setAnnualIncome(e.target.value)}
-                                                placeholder="e.g. 120000"
+                                                placeholder={tSchemeEligibility(
+                                                    "incomePlaceholder"
+                                                )}
                                                 className="w-full rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) py-4 pr-5 pl-10 text-base font-medium outline-hidden transition-all focus:border-emerald-500 focus:bg-(--color-surface-page) dark:bg-slate-800/50"
                                                 min="0"
                                                 required
@@ -357,17 +371,19 @@ export default function SchemeEligibilityPage() {
                                             htmlFor="familySize"
                                             className="block text-sm font-bold text-(--color-text-primary)"
                                         >
-                                            How many members are in your family?
+                                            {tSchemeEligibility("familySizeLabel")}
                                         </label>
                                         <p className="text-xs text-(--color-text-secondary)">
-                                            Total family members living together in the household.
+                                            {tSchemeEligibility("familySizeDescription")}
                                         </p>
                                         <input
                                             type="number"
                                             id="familySize"
                                             value={familySize}
                                             onChange={(e) => setFamilySize(e.target.value)}
-                                            placeholder="e.g. 5"
+                                            placeholder={tSchemeEligibility(
+                                                "familySizePlaceholder"
+                                            )}
                                             className="w-full rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-5 py-4 text-base font-medium outline-hidden transition-all focus:border-emerald-500 focus:bg-(--color-surface-page) dark:bg-slate-800/50"
                                             min="1"
                                             max="30"
@@ -382,7 +398,7 @@ export default function SchemeEligibilityPage() {
                                 <div className="animate-slideIn no-print space-y-6">
                                     <div className="space-y-3">
                                         <label className="block text-sm font-bold text-(--color-text-primary)">
-                                            Do you have a BPL (Below Poverty Line) card?
+                                            {tSchemeEligibility("bplQuestion")}
                                         </label>
                                         <div className="grid grid-cols-2 gap-4">
                                             <button
@@ -395,7 +411,7 @@ export default function SchemeEligibilityPage() {
                                                 }`}
                                             >
                                                 {hasBplCard && <Check size={18} />}
-                                                <span>Yes, I do</span>
+                                                <span>{tSchemeEligibility("yesOption")}</span>
                                             </button>
                                             <button
                                                 type="button"
@@ -407,14 +423,14 @@ export default function SchemeEligibilityPage() {
                                                 }`}
                                             >
                                                 {!hasBplCard && <Check size={18} />}
-                                                <span>No, I do not</span>
+                                                <span>{tSchemeEligibility("noOption")}</span>
                                             </button>
                                         </div>
                                     </div>
 
                                     <div className="space-y-3">
                                         <label className="block text-sm font-bold text-(--color-text-primary)">
-                                            Do you have an ABHA (Ayushman Bharat Health Account) ID?
+                                            {tSchemeEligibility("abhaQuestion")}
                                         </label>
                                         <div className="grid grid-cols-2 gap-4">
                                             <button
@@ -427,7 +443,7 @@ export default function SchemeEligibilityPage() {
                                                 }`}
                                             >
                                                 {hasAbhaId && <Check size={18} />}
-                                                <span>Yes, I do</span>
+                                                <span>{tSchemeEligibility("yesOption")}</span>
                                             </button>
                                             <button
                                                 type="button"
@@ -439,7 +455,7 @@ export default function SchemeEligibilityPage() {
                                                 }`}
                                             >
                                                 {!hasAbhaId && <Check size={18} />}
-                                                <span>No, I do not</span>
+                                                <span>{tSchemeEligibility("noOption")}</span>
                                             </button>
                                         </div>
                                     </div>
@@ -456,7 +472,7 @@ export default function SchemeEligibilityPage() {
                                             className="flex items-center gap-2 rounded-2xl border border-(--color-border-muted) px-6 py-3.5 text-sm font-bold hover:bg-(--color-surface-muted)"
                                         >
                                             <ChevronLeft size={16} />
-                                            <span>Back</span>
+                                            <span>{tSchemeEligibility("backButton")}</span>
                                         </button>
                                     ) : (
                                         <div />
@@ -468,7 +484,7 @@ export default function SchemeEligibilityPage() {
                                             onClick={handleNext}
                                             className="flex items-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3.5 text-sm font-bold text-white hover:bg-emerald-500"
                                         >
-                                            <span>Next Step</span>
+                                            <span>{tSchemeEligibility("nextButton")}</span>
                                             <ChevronRight size={16} />
                                         </button>
                                     ) : (
@@ -480,11 +496,15 @@ export default function SchemeEligibilityPage() {
                                             {loading ? (
                                                 <>
                                                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                                                    <span>Checking...</span>
+                                                    <span>
+                                                        {tSchemeEligibility("checkingButton")}
+                                                    </span>
                                                 </>
                                             ) : (
                                                 <>
-                                                    <span>Find Schemes</span>
+                                                    <span>
+                                                        {tSchemeEligibility("findSchemesButton")}
+                                                    </span>
                                                     <ArrowRight size={16} />
                                                 </>
                                             )}
@@ -503,14 +523,17 @@ export default function SchemeEligibilityPage() {
                                         <CheckCircle size={32} strokeWidth={2.5} />
                                     </div>
                                     <h2 className="text-3xl font-black text-(--color-text-primary)">
-                                        Your Eligible Schemes
+                                        {tSchemeEligibility("resultsTitle")}
                                     </h2>
                                     <p className="mt-2 text-sm font-medium text-(--color-text-secondary)">
-                                        We found{" "}
-                                        <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
-                                            {eligibleSchemes.length} schemes
-                                        </span>{" "}
-                                        you qualify for.
+                                        {tSchemeEligibility.rich("resultsDescription", {
+                                            count: eligibleSchemes.length,
+                                            countTag: (chunks) => (
+                                                <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
+                                                    {chunks}
+                                                </span>
+                                            ),
+                                        })}
                                     </p>
                                 </div>
 
@@ -534,14 +557,14 @@ export default function SchemeEligibilityPage() {
                                                         </p>
                                                     </div>
                                                     <span className="shrink-0 rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400 print:border print:border-slate-300 print:bg-slate-100 print:text-slate-700">
-                                                        Eligible
+                                                        {tSchemeEligibility("eligibleBadge")}
                                                     </span>
                                                 </div>
 
                                                 {/* Coverage Callout */}
                                                 <div className="border-emerald-250 rounded-2xl border bg-emerald-50/40 p-4 dark:border-emerald-900/20 dark:bg-emerald-950/10 print:border-slate-300 print:bg-slate-50">
                                                     <h4 className="text-xs font-bold tracking-wider text-emerald-700 uppercase dark:text-emerald-400 print:text-slate-700">
-                                                        Benefits / Coverage
+                                                        {tSchemeEligibility("benefitsCoverage")}
                                                     </h4>
                                                     <p className="mt-1 text-sm font-extrabold text-emerald-900 dark:text-emerald-300 print:text-slate-900">
                                                         {scheme.coverage}
@@ -551,7 +574,7 @@ export default function SchemeEligibilityPage() {
                                                 {/* How to Apply */}
                                                 <div>
                                                     <h4 className="text-xs font-bold tracking-wider text-(--color-text-muted) uppercase print:text-slate-700">
-                                                        How to Apply
+                                                        {tSchemeEligibility("howToApply")}
                                                     </h4>
                                                     <p className="mt-1 text-sm leading-relaxed text-(--color-text-primary) print:text-slate-700">
                                                         {scheme.how_to_apply}
@@ -566,7 +589,11 @@ export default function SchemeEligibilityPage() {
                                                         rel="noopener noreferrer"
                                                         className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-600 px-4 py-2 text-xs font-bold text-emerald-600 transition-all hover:bg-emerald-50 dark:border-emerald-500 dark:text-emerald-400"
                                                     >
-                                                        <span>Visit Official Portal</span>
+                                                        <span>
+                                                            {tSchemeEligibility(
+                                                                "visitOfficialPortal"
+                                                            )}
+                                                        </span>
                                                         <ChevronRight size={14} />
                                                     </a>
                                                 </div>
@@ -581,11 +608,10 @@ export default function SchemeEligibilityPage() {
                                                 className="mx-auto mb-2 text-(--color-text-muted)"
                                             />
                                             <p className="font-bold text-(--color-text-primary)">
-                                                No schemes found matching details.
+                                                {tSchemeEligibility("noSchemesTitle")}
                                             </p>
                                             <p className="text-sm text-(--color-text-secondary)">
-                                                Please consult a village official or check your
-                                                local government kiosk.
+                                                {tSchemeEligibility("noSchemesDescription")}
                                             </p>
                                         </div>
                                     )}
@@ -598,13 +624,13 @@ export default function SchemeEligibilityPage() {
                                         className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 text-sm font-black text-white shadow-lg shadow-emerald-600/15 hover:bg-emerald-500"
                                     >
                                         <Printer size={16} />
-                                        <span>Print / Save as PDF</span>
+                                        <span>{tSchemeEligibility("printPdfButton")}</span>
                                     </button>
                                     <button
                                         onClick={handleReset}
                                         className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-(--color-border-muted) py-3.5 text-sm font-black hover:bg-(--color-surface-muted)"
                                     >
-                                        <span>Check Again</span>
+                                        <span>{tSchemeEligibility("checkAgainButton")}</span>
                                     </button>
                                 </div>
                             </div>

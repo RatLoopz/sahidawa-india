@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { ScanHistoryEntry } from "@/lib/db/scanHistory";
 import { Download, Loader, X } from "lucide-react";
 
@@ -19,6 +20,7 @@ export default function ExportModal({ isOpen, onClose, history, t }: ExportModal
     const modalRef = useRef<HTMLDivElement>(null);
 
     useOnClickOutside(modalRef, onClose, isOpen);
+    useFocusTrap(modalRef, isOpen);
 
     if (!isOpen) return null;
 

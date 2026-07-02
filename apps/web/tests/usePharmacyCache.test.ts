@@ -1,7 +1,8 @@
 import type { AshaWorker, Pharmacy } from "../app/[locale]/map/PharmacyMap";
 import type * as PharmacyCache from "../app/[locale]/map/usePharmacyCache";
 
-let buildCacheKey: typeof PharmacyCache.buildCacheKey;
+let buildNearbyCacheKey: typeof PharmacyCache.buildNearbyCacheKey;
+let buildBoundsCacheKey: typeof PharmacyCache.buildBoundsCacheKey;
 let loadFromCache: typeof PharmacyCache.loadFromCache;
 let saveToCache: typeof PharmacyCache.saveToCache;
 let openDBMock: jest.Mock;
@@ -43,7 +44,7 @@ describe("usePharmacyCache", () => {
             { virtual: true }
         );
 
-        ({ buildCacheKey, loadFromCache, saveToCache } =
+        ({ buildNearbyCacheKey, buildBoundsCacheKey, loadFromCache, saveToCache } =
             await import("../app/[locale]/map/usePharmacyCache"));
         jest.spyOn(Date, "now").mockReturnValue(1_800_000_000_000);
     });
@@ -60,7 +61,7 @@ describe("usePharmacyCache", () => {
             createObjectStore: jest.fn(),
         } as never);
 
-        const key = buildCacheKey(28.6139, 77.209);
+        const key = buildNearbyCacheKey(28.6139, 77.209, 10_000);
         await saveToCache(key, samplePharmacies, sampleAshaWorkers);
 
         expect(openDBMock).toHaveBeenCalledWith(
@@ -75,7 +76,7 @@ describe("usePharmacyCache", () => {
                 ashaWorkers: sampleAshaWorkers,
                 timestamp: 1_800_000_000_000,
             },
-            "28.61_77.21"
+            "nearby:28.61:77.21:r:10"
         );
         expect(put).toHaveBeenCalledWith(
             "pharmacy-results",
@@ -88,21 +89,49 @@ describe("usePharmacyCache", () => {
         );
     });
 
-    it("returns cached markers when live network loading fails", async () => {
+    it("returns cached markers for matching search parameters", async () => {
         const entry = {
             pharmacies: samplePharmacies,
             ashaWorkers: sampleAshaWorkers,
             timestamp: 1_800_000_000_000,
         };
-        const get = jest.fn().mockResolvedValueOnce(undefined).mockResolvedValueOnce(entry);
+        const get = jest.fn().mockResolvedValueOnce(entry);
         openDBMock.mockResolvedValue({
             get,
             objectStoreNames: { contains: jest.fn() },
             createObjectStore: jest.fn(),
         } as never);
 
-        await expect(loadFromCache("28.99_77.99")).resolves.toEqual(entry);
-        expect(get).toHaveBeenNthCalledWith(1, "pharmacy-results", "28.99_77.99");
-        expect(get).toHaveBeenNthCalledWith(2, "pharmacy-results", "last-search");
+        const key = buildNearbyCacheKey(28.6139, 77.209, 10_000);
+
+        await expect(loadFromCache(key)).resolves.toEqual(entry);
+        expect(get).toHaveBeenCalledTimes(1);
+        expect(get).toHaveBeenCalledWith("pharmacy-results", "nearby:28.61:77.21:r:10");
+    });
+
+    it("scopes cache keys by radius and bounds", () => {
+        expect(buildNearbyCacheKey(28.6139, 77.209, 1_000)).toBe("nearby:28.61:77.21:r:1");
+        expect(buildNearbyCacheKey(28.6139, 77.209, 25_000)).toBe("nearby:28.61:77.21:r:25");
+        expect(
+            buildBoundsCacheKey({
+                south: 28.60123,
+                west: 77.19876,
+                north: 28.68987,
+                east: 77.27891,
+            })
+        ).toBe("bounds:28.601:77.199:28.690:77.279");
+    });
+
+    it("does not restore an unrelated last-search entry for a scoped cache miss", async () => {
+        const get = jest.fn().mockResolvedValueOnce(undefined);
+        openDBMock.mockResolvedValue({
+            get,
+            objectStoreNames: { contains: jest.fn() },
+            createObjectStore: jest.fn(),
+        } as never);
+
+        await expect(loadFromCache("nearby:28.61:77.21:r:25")).resolves.toBeNull();
+        expect(get).toHaveBeenCalledTimes(1);
+        expect(get).toHaveBeenCalledWith("pharmacy-results", "nearby:28.61:77.21:r:25");
     });
 });

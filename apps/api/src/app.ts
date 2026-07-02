@@ -1,17 +1,22 @@
+import crypto from "crypto";
 import express, { Express, Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
 import path from "path";
 import logger from "./utils/logger";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./utils/swagger";
-import { validateMlServiceConfig } from "./config/mlService";
+import { validateMlServiceConfig, getMlServiceUrl } from "./config/mlService";
+import { redisClient } from "./utils/redis";
 import cookieParser from "cookie-parser";
 import { doubleCsrf } from "csrf-csrf";
+import { httpsRedirect } from "./middleware/httpsRedirect";
 import mapRouter from "./routes/map";
 import medicineSchedulesRouter from "./routes/medicineSchedules";
+
+import abhaRoutes from "./routes/abha";
 import trackingRouter from "./routes/tracking";
 import { initExpiryCron } from "./cron/expiry-check";
-
+import { initDistrictAlertSyncCron } from "./cron/districtAlertSync";
 // ── Environment Configuration ──────────────────────────────────────────────
 const rootEnvPath = path.resolve(__dirname, "../../../.env");
 dotenv.config({ path: rootEnvPath });
@@ -66,29 +71,44 @@ import triageRouter from "./routes/triage";
 import interactionsRouter from "./routes/interactions";
 import alternativesRouter from "./routes/alternatives";
 import eligibilityRouter from "./routes/eligibility";
+import wishlistRouter from "./routes/wishlist";
+import webhooksRouter from "./routes/webhooks";
 import { supabase } from "./db/client";
 import { createCorsOptions } from "./config/cors";
 import { errorHandler } from "./middleware/errorHandler";
-
 // ── Application Initialization ─────────────────────────────────────────────
 const app: Express = express();
 app.set("trust proxy", 1); // Trust first proxy (Nginx) — fixes req.ip for rate limiters
 
+// ── Security: Enforce HTTPS in production ──────────────────────────────────
+// Redirects all HTTP requests to HTTPS (301) to protect sensitive healthcare data
+app.use(httpsRedirect);
+
 app.use(compression());
-app.use(cors(createCorsOptions()));
 initExpiryCron();
+initDistrictAlertSyncCron();
 // ── Global Middleware Configuration ───────────────────────────────────────
 app.use(cookieParser());
 
 // ── CSRF Protection (double-submit cookie pattern) ─────────────────────────
+app.use(cors(createCorsOptions()));
 // csrf-csrf is recognized by CodeQL as a valid CSRF defense unlike custom header checks.
-const {
-    doubleCsrfProtection,
-    generateCsrfToken: generateToken, // FIXED: Extract generateCsrfToken and alias it to generateToken
-} = doubleCsrf({
-    getSecret: () => process.env.CSRF_SECRET || "fallback-secret-change-in-production",
+const ANON_SESSION_COOKIE = "csrf_anon_id";
+
+const { doubleCsrfProtection, generateCsrfToken: generateToken } = doubleCsrf({
+    getSecret: () => {
+        const secret = process.env.CSRF_SECRET;
+        if (!secret) {
+            logger.error("CSRF_SECRET environment variable is not set");
+            throw new Error("CSRF_SECRET environment variable is required");
+        }
+        return secret;
+    },
     getSessionIdentifier: (req: Request) => {
-        return req.cookies?.access_token || "anonymous-session";
+        if (req.cookies?.access_token) {
+            return req.cookies.access_token;
+        }
+        return req.cookies?.[ANON_SESSION_COOKIE] || crypto.randomUUID();
     },
     cookieName:
         process.env.NODE_ENV === "production" ? "__Host-psifi.x-csrf-token" : "psifi.x-csrf-token",
@@ -102,12 +122,30 @@ const {
 });
 
 // Skip CSRF in test and development environments to support cross-port local testing
-if (process.env.NODE_ENV !== "test" && process.env.NODE_ENV !== "development") {
-    app.use(doubleCsrfProtection);
-}
+const isTestOrDev = process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development";
+app.use((req: Request, res: Response, next: NextFunction) => {
+    if (isTestOrDev) {
+        return next();
+    }
+    doubleCsrfProtection(req, res, next);
+});
 
 // ── CSRF token endpoint — frontend fetches this once on load ───────────────
 app.get("/api/csrf-token", (req: Request, res: Response) => {
+    if (!req.cookies?.[ANON_SESSION_COOKIE] && !req.cookies?.access_token) {
+        const anonId = crypto.randomUUID();
+
+        // FIX: Mutate req.cookies so generateToken binds to this exact ID
+        if (!req.cookies) req.cookies = {};
+        req.cookies[ANON_SESSION_COOKIE] = anonId;
+
+        res.cookie(ANON_SESSION_COOKIE, anonId, {
+            httpOnly: true,
+            sameSite: "strict",
+            secure: process.env.NODE_ENV === "production",
+            path: "/",
+        });
+    }
     res.json({ csrfToken: generateToken(req, res) });
 });
 
@@ -122,7 +160,6 @@ app.use(
 );
 
 // Security: restrict CORS to known origins and allow credentials for secure cookies
-app.use(cors(createCorsOptions()));
 
 app.use(express.json({ limit: "1mb" }));
 
@@ -161,8 +198,37 @@ app.get("/health", async (_req: Request, res: Response) => {
     try {
         const { error } = await supabase.from("medicines").select("id").limit(1);
         const uptime = process.uptime();
+
+        // Redis
+        const redisStatus = redisClient.isOpen ? "connected" : "disconnected";
+
+        // ML service — check config first, then do a lightweight reachability ping
+        let mlStatus: string;
+        const mlUrl = getMlServiceUrl();
+        if (!mlUrl) {
+            mlStatus = "not-configured";
+        } else {
+            try {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 3000);
+                const res = await fetch(mlUrl, { method: "HEAD", signal: controller.signal });
+                clearTimeout(timeout);
+                mlStatus = res.ok ? "healthy" : "unreachable";
+            } catch {
+                mlStatus = "unreachable";
+            }
+        }
+
+        // Overall status
+        const overallStatus =
+            redisStatus === "connected" &&
+            mlStatus !== "not-configured" &&
+            mlStatus !== "unreachable"
+                ? "healthy"
+                : "degraded";
+
         const healthData = {
-            status: error ? "degraded" : "ok",
+            status: error ? "degraded" : overallStatus,
             service: "sahidawa-api",
             version: process.env.npm_package_version || "unknown",
             environment: process.env.NODE_ENV || "development",
@@ -170,8 +236,8 @@ app.get("/health", async (_req: Request, res: Response) => {
             database: { status: error ? "unreachable" : "connected" },
             services: {
                 api: "healthy",
-                redis: "not-configured-yet",
-                mlService: "not-configured-yet",
+                redis: redisStatus,
+                mlService: mlStatus,
             },
             system: {
                 nodeVersion: process.version,
@@ -227,9 +293,11 @@ app.use("/api/triage", triageRouter);
 app.use("/api/map", mapRouter);
 app.use("/api/v1/interactions", interactionsRouter);
 app.use("/api/schedules", medicineSchedulesRouter);
-app.use("/api/v1/alternatives", alternativesRouter);
+app.use("/api/v1/abha", abhaRoutes);
 app.use("/api/v1/scheme-eligibility", eligibilityRouter);
+app.use("/api/webhooks", webhooksRouter);
 app.use("/api/v1/medicines", trackingRouter);
+app.use("/api/v1/wishlist", wishlistRouter);
 
 // ── Swagger UI Documentation (/api/docs) ──────────────────────────────────
 app.use(

@@ -8,6 +8,15 @@ export type VoiceLanguageOption = {
 
 export const DEFAULT_VOICE_LANGUAGE = "en-IN";
 
+const LOCALE_TO_VOICE_LANGUAGE: Record<string, string> = {
+    en: "en-IN",
+    hi: "hi-IN",
+    ta: "ta-IN",
+    bn: "bn-IN",
+    mr: "mr-IN",
+    te: "te-IN",
+};
+
 export const VOICE_LANGUAGE_OPTIONS: VoiceLanguageOption[] = [
     {
         value: "en-IN",
@@ -69,4 +78,14 @@ export function resolveVoiceWorkflowLanguage(
     }
 
     return activeLanguage?.trim() ? activeLanguage : selectedLanguage;
+}
+
+export function getVoiceLanguageForLocale(locale: string): string {
+    const normalized = locale.toLowerCase();
+
+    return (
+        LOCALE_TO_VOICE_LANGUAGE[normalized] ??
+        LOCALE_TO_VOICE_LANGUAGE[normalized.split("-")[0]] ??
+        DEFAULT_VOICE_LANGUAGE
+    );
 }

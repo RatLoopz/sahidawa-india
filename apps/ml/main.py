@@ -4,10 +4,18 @@ from dotenv import load_dotenv
 import os
 import logging
 
+from tracing import setup_tracing
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
+
+load_dotenv()
+
+setup_tracing()
+RequestsInstrumentor().instrument()
+
 from services.telemetry import configure_telemetry_logging
 from services.router_loader import include_router_if_available
 
-load_dotenv()
 configure_telemetry_logging()
 logger = logging.getLogger(__name__)
 
@@ -16,6 +24,8 @@ app = FastAPI(
     description="Machine Learning API for medicine verification and voice assistance.",
     version="1.0.0"
 )
+
+FastAPIInstrumentor.instrument_app(app)
 
 # Configure CORS - load dynamically from environment variables
 allowed_origins = os.getenv(
@@ -44,6 +54,7 @@ if not ocr_loaded:
 tts_loaded = include_router_if_available(app, "routers.tts", required=False)
 if not tts_loaded:
     logger.warning("TTS routes are disabled. Install google-cloud-texttospeech or configure Azure TTS.")
+include_router_if_available(app, "routers.voice_verify", required=True)
 
 @app.get("/")
 def read_root():

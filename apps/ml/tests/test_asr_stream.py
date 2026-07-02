@@ -52,6 +52,7 @@ def test_stream_returns_partial_and_final_events(monkeypatch):
     class FakeStreamingSession:
         def __init__(self):
             self.chunk_count = 0
+            self.total_audio_seconds = 0.0
 
         def append_and_maybe_transcribe(self, chunk, *, mime_type, language):
             self.chunk_count += 1

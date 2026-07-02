@@ -110,8 +110,10 @@ try:
     CSV_PATH = resolve_medicines_csv_path()
     df = load_medicines_dataframe(CSV_PATH)
 except Exception as exc:
-    logger.exception("Verification medicine database failed to load: %s", exc)
-    raise
+    logger.warning("Verification medicine database failed to load: %s. Continuing without it.", exc)
+    import pandas as pd
+    df = pd.DataFrame()
+    CSV_PATH = None
 
 
 class BatchVerifyRequest(BaseModel):

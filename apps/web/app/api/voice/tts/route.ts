@@ -1,15 +1,13 @@
 import { NextResponse } from "next/server";
 import { structuredLog } from "@/lib/structuredLogger";
+import { rateLimit } from "@/lib/rateLimit";
+import { getClientIp } from "@/lib/getClientIp";
+import { getMlServiceUrl } from "@/lib/mlService";
 
 const ROUTE = "/api/voice/tts";
 const ML_TTS_TIMEOUT_MS = 15_000;
 const LANGUAGE_CODE_PATTERN = /^[a-z]{2}-[A-Z]{2}$/;
 const MAX_TEXT_LENGTH = 5000;
-
-function getMlServiceUrl() {
-    const configuredUrl = process.env.ML_SERVICE_URL?.trim();
-    return configuredUrl ? configuredUrl.replace(/\/+$/, "") : null;
-}
 
 async function readJsonSafely(response: Response) {
     try {
@@ -21,6 +19,15 @@ async function readJsonSafely(response: Response) {
 
 export async function POST(req: Request) {
     const startTime = Date.now();
+
+    const ip = getClientIp(req);
+    const { success } = await rateLimit.limit(ip);
+    if (!success) {
+        return NextResponse.json(
+            { error: "Too many requests. Please try again in a few moments." },
+            { status: 429 }
+        );
+    }
 
     const body = await req.json().catch(() => null);
     const text = typeof body?.text === "string" ? body.text.trim() : "";

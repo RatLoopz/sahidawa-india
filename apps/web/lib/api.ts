@@ -1,13 +1,22 @@
 import { fetchWithRetry } from "./apiWithRetry";
+import { createSWRCache } from "./cacheUtils";
 
 const DEFAULT_API_ORIGIN = "http://localhost:4000";
 const configuredApiUrl = (process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_API_ORIGIN).trim();
 export const API_BASE = configuredApiUrl.replace(/\/+$/, "");
 
+const fuzzyMatchCache = createSWRCache<FuzzyMatch[]>(60_000); // 60s TTL
+const verifyBrandCache = createSWRCache<VerifyResult>(300_000); // 5min TTL
+
 let csrfTokenCache: string | null = null;
 
 export async function getCsrfToken(): Promise<string> {
     if (csrfTokenCache) return csrfTokenCache;
+    return refreshCsrfToken();
+}
+
+export async function refreshCsrfToken(): Promise<string> {
+    csrfTokenCache = null;
     const res = await fetch(`${API_BASE}/api/csrf-token`, {
         credentials: "include",
     });
@@ -20,6 +29,40 @@ export async function getCsrfToken(): Promise<string> {
     }
     csrfTokenCache = data.csrfToken;
     return csrfTokenCache!;
+}
+
+async function fetchWithCsrf<T>(
+    url: string,
+    options: Omit<import("./apiWithRetry").FetchOptions, "headers"> & {
+        headers?: Record<string, string>;
+    },
+    ignore404: boolean = false
+): Promise<T> {
+    const doFetch = async (token: string) => {
+        return fetchWithRetry(url, {
+            ...options,
+            headers: {
+                "Content-Type": "application/json",
+                "x-csrf-token": token,
+                ...options.headers,
+            },
+            credentials: "include",
+        });
+    };
+
+    let res = await doFetch(await getCsrfToken());
+
+    if (res.status === 403) {
+        const freshToken = await refreshCsrfToken();
+        res = await doFetch(freshToken);
+    }
+
+    if (!res.ok && !(ignore404 && res.status === 404)) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body.error ?? "Server error occurred. Please retry.");
+    }
+
+    return res.json() as Promise<T>;
 }
 
 export type ReportPayload = {
@@ -57,26 +100,12 @@ export async function analyzeMedicineImage(
     imageUrl: string,
     signal?: AbortSignal
 ): Promise<MedicineImageAnalysis> {
-    const csrfToken = await getCsrfToken();
-    const res = await fetchWithRetry(`${API_BASE}/api/ml/analyze`, {
+    return fetchWithCsrf<MedicineImageAnalysis>(`${API_BASE}/api/ml/analyze`, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "x-csrf-token": csrfToken,
-        },
         body: JSON.stringify({ imageUrl }),
         timeout: 10000,
         signal,
     });
-
-    if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as {
-            error?: string;
-        };
-        throw new Error(body.error ?? "Image analysis is unavailable. Please retry.");
-    }
-
-    return res.json() as Promise<MedicineImageAnalysis>;
 }
 
 export async function submitReport(
@@ -84,41 +113,35 @@ export async function submitReport(
     accessToken?: string,
     signal?: AbortSignal
 ): Promise<{ report: SubmittedReport }> {
-    const csrfToken = await getCsrfToken();
-    const res = await fetchWithRetry(`${API_BASE}/api/reports`, {
+    const headers: Record<string, string> = {};
+    if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
+    return fetchWithCsrf<{ report: SubmittedReport }>(`${API_BASE}/api/reports`, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "x-csrf-token": csrfToken,
-            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-        },
-        credentials: "include",
+        headers,
         body: JSON.stringify(payload),
         timeout: 10000,
         signal,
     });
-
-    if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as {
-            error?: string;
-        };
-        throw new Error(body.error ?? "Server error occurred. Please retry.");
-    }
-
-    return res.json() as Promise<{ report: SubmittedReport }>;
 }
+
+type GeocodeResult = {
+    latitude: number;
+    longitude: number;
+    city?: string;
+    state?: string;
+};
 
 export async function geocodePincode(
     pincode: string,
     signal?: AbortSignal
-): Promise<{ latitude: number; longitude: number } | null> {
+): Promise<GeocodeResult | null> {
     if (typeof window !== "undefined" && !window.navigator.onLine) {
         return null;
     }
     try {
         const url =
             `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(pincode)}` +
-            `&country=IN&format=json&limit=1`;
+            `&country=IN&format=json&addressdetails=1&limit=1`;
 
         let abortSignal = signal;
         if (!abortSignal) {
@@ -130,15 +153,32 @@ export async function geocodePincode(
             signal: abortSignal,
         });
         if (!r.ok) return null;
-        const arr = (await r.json()) as Array<{
+        type NominatimResult = {
             lat: string;
             lon: string;
-        }>;
+            address: {
+                city?: string;
+                town?: string;
+                village?: string;
+                municipality?: string;
+                county?: string;
+                state?: string;
+            };
+        };
+        const arr = (await r.json()) as NominatimResult[];
         if (!arr.length) return null;
-        const lat = parseFloat(arr[0].lat);
-        const lng = parseFloat(arr[0].lon);
+        const entry = arr[0];
+        const lat = parseFloat(entry.lat);
+        const lng = parseFloat(entry.lon);
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-        return { latitude: lat, longitude: lng };
+        const city =
+            entry.address?.city ??
+            entry.address?.town ??
+            entry.address?.village ??
+            entry.address?.municipality ??
+            entry.address?.county;
+        const state = entry.address?.state;
+        return { latitude: lat, longitude: lng, city, state };
     } catch (error) {
         if (typeof window !== "undefined") {
             console.warn(
@@ -190,6 +230,7 @@ export type VerifyResult =
       };
 
 export type VerifiedPharmacy = {
+    id?: string;
     name: string;
     address: string;
     lat: number;
@@ -199,6 +240,13 @@ export type VerifiedPharmacy = {
     is_verified: boolean;
     district: string | null;
     state: string | null;
+    updated_at?: string;
+    is_active?: boolean;
+    deleted_at?: string | null;
+    /** OSM `opening_hours` syntax, e.g. "Mo-Sa 09:00-21:00". Null/absent = unavailable. */
+    operating_hours?: string | null;
+    /** IANA timezone for evaluating operating_hours, e.g. "Asia/Kolkata". */
+    timezone?: string | null;
 };
 
 export async function fetchVerifiedPharmacies(
@@ -220,23 +268,66 @@ export async function fetchVerifiedPharmacies(
     }
 }
 
+/**
+ * Response shape for fetchVerifiedPharmaciesInBounds.
+ *
+ * `syncedAt` is the server's timestamp for this response — store it (per
+ * bounding-box / region key) and pass it back as `since` on the next call
+ * to the same area to fetch only what changed (delta sync, #2260).
+ *
+ * `delta` is true when the response only contains changes since `since`
+ * (i.e. the caller passed one and the server honoured it). When false, the
+ * `pharmacies` array is the full result set for the bounds — callers should
+ * replace their local cache for that area rather than merge.
+ *
+ * Note: deletions are not reported. Pharmacies are hard-deleted today with
+ * no tombstone mechanism, so a delta response cannot tell you a previously
+ * seen pharmacy was removed. This is a known gap, not an oversight — see
+ * the PR description for #2260.
+ */
+export type PharmaciesInBoundsResult = {
+    pharmacies: VerifiedPharmacy[];
+    syncedAt: string;
+    delta: boolean;
+    fromNetwork: boolean;
+};
+
 export async function fetchVerifiedPharmaciesInBounds(
     south: number,
     west: number,
     north: number,
     east: number,
+    since?: string | number | Date,
     signal?: AbortSignal
-): Promise<VerifiedPharmacy[]> {
+): Promise<PharmaciesInBoundsResult> {
+    const fallback: PharmaciesInBoundsResult = {
+        pharmacies: [],
+        syncedAt: new Date().toISOString(),
+        delta: false,
+        fromNetwork: false,
+    };
     try {
-        const res = await fetchWithRetry(
-            `${API_BASE}/api/pharmacies/in-bounds?south=${south}&west=${west}&north=${north}&east=${east}`,
-            { timeout: 8000, signal }
-        );
-        if (!res.ok) return [];
+        let url = `${API_BASE}/api/pharmacies/in-bounds?south=${south}&west=${west}&north=${north}&east=${east}`;
+        if (since) {
+            const sinceParam =
+                since instanceof Date
+                    ? since.toISOString()
+                    : typeof since === "number"
+                      ? new Date(since).toISOString()
+                      : since;
+            url += `&since=${encodeURIComponent(sinceParam)}`;
+        }
+        const res = await fetchWithRetry(url, { timeout: 8000, signal });
+        if (!res.ok) return fallback;
         const body = await res.json();
-        return body.pharmacies ?? [];
+        return {
+            pharmacies: body.pharmacies ?? [],
+            syncedAt: body.syncedAt ?? fallback.syncedAt,
+            delta: Boolean(body.delta),
+            fromNetwork: true,
+        };
     } catch {
-        return [];
+        return fallback;
     }
 }
 
@@ -320,23 +411,16 @@ export async function verifyMedicine(
             console.warn("ML service unavailable, falling back to Node API");
         }
     }
-    const csrfToken = await getCsrfToken();
-    const res = await fetchWithRetry(`${API_BASE}/api/verify`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "x-csrf-token": csrfToken,
+    return fetchWithCsrf<VerifyResult>(
+        `${API_BASE}/api/verify`,
+        {
+            method: "POST",
+            body: JSON.stringify({ batchNumber }),
+            timeout: 10000,
+            signal,
         },
-        credentials: "include",
-        body: JSON.stringify({ batchNumber }),
-        timeout: 10000,
-        signal,
-    });
-    if (!res.ok && res.status !== 404) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(body.error ?? "Server error occurred. Please retry.");
-    }
-    return res.json() as Promise<VerifyResult>;
+        true
+    );
 }
 
 export type FuzzyMatch = {
@@ -345,52 +429,32 @@ export type FuzzyMatch = {
 };
 
 export async function fuzzyMatchBrand(query: string, signal?: AbortSignal): Promise<FuzzyMatch[]> {
-    const csrfToken = await getCsrfToken();
-    const res = await fetchWithRetry(`${API_BASE}/api/v1/scan/match`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "x-csrf-token": csrfToken,
-        },
-        body: JSON.stringify({ query }),
-        timeout: 8000,
-        signal,
-    });
-
-    if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as {
-            error?: string;
-        };
-        throw new Error(body.error ?? "Server error occurred. Please retry.");
-    }
-
-    return res.json() as Promise<FuzzyMatch[]>;
+    return fuzzyMatchCache.get(`fuzzy:${query}`, () =>
+        fetchWithCsrf<FuzzyMatch[]>(`${API_BASE}/api/v1/scan/match`, {
+            method: "POST",
+            body: JSON.stringify({ query }),
+            timeout: 8000,
+            signal,
+        })
+    );
 }
 
 export async function verifyMedicineByBrand(
     brandName: string,
     signal?: AbortSignal
 ): Promise<VerifyResult> {
-    const csrfToken = await getCsrfToken();
-    const res = await fetchWithRetry(`${API_BASE}/api/v1/scan/verify-brand`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "x-csrf-token": csrfToken,
-        },
-        body: JSON.stringify({ brandName }),
-        timeout: 10000,
-        signal,
-    });
-
-    if (!res.ok && res.status !== 404) {
-        const body = (await res.json().catch(() => ({}))) as {
-            error?: string;
-        };
-        throw new Error(body.error ?? "Server error occurred. Please retry.");
-    }
-
-    return res.json() as Promise<VerifyResult>;
+    return verifyBrandCache.get(`verifyBrand:${brandName}`, () =>
+        fetchWithCsrf<VerifyResult>(
+            `${API_BASE}/api/v1/scan/verify-brand`,
+            {
+                method: "POST",
+                body: JSON.stringify({ brandName }),
+                timeout: 10000,
+                signal,
+            },
+            true
+        )
+    );
 }
 
 export type LasaMatchType = "sound-alike" | "look-alike";
@@ -406,28 +470,61 @@ export interface LasaCheckResult {
     matches: LasaMatch[];
 }
 
+const lasaCache = new Map<string, LasaCheckResult>();
+const inFlightRequests = new Map<string, Promise<LasaCheckResult>>();
+const MAX_CACHE_SIZE = 100;
+
+function setCachedLasa(key: string, value: LasaCheckResult): void {
+    if (lasaCache.size >= MAX_CACHE_SIZE) {
+        const oldestKey = lasaCache.keys().next().value;
+        if (oldestKey !== undefined) {
+            lasaCache.delete(oldestKey);
+        }
+    }
+    lasaCache.set(key, value);
+}
+
 export async function checkLasaConflicts(
     medicineName: string,
     signal?: AbortSignal
 ): Promise<LasaCheckResult> {
-    const csrfToken = await getCsrfToken();
-    const res = await fetchWithRetry(`${API_BASE}/api/v1/lasa/check`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "x-csrf-token": csrfToken,
-        },
-        body: JSON.stringify({ medicineName }),
-        timeout: 8000,
-        signal,
-    });
-
-    if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as {
-            error?: string;
-        };
-        throw new Error(body.error ?? "Server error occurred. Please retry.");
+    const query = medicineName.trim();
+    if (query.length < 2) {
+        return { hasConflicts: false, matches: [] };
     }
 
-    return res.json() as Promise<LasaCheckResult>;
+    const cacheKey = query.toLowerCase();
+
+    // Check if we have a cached entry
+    const cached = lasaCache.get(cacheKey);
+
+    // If there is an in-flight request, we can reuse its promise
+    let promise = inFlightRequests.get(cacheKey);
+    if (!promise) {
+        promise = fetchWithCsrf<LasaCheckResult>(`${API_BASE}/api/v1/lasa/check`, {
+            method: "POST",
+            body: JSON.stringify({ medicineName: query }),
+            timeout: 8000,
+            signal,
+        })
+            .then((data) => {
+                setCachedLasa(cacheKey, data);
+                return data;
+            })
+            .finally(() => {
+                inFlightRequests.delete(cacheKey);
+            });
+        inFlightRequests.set(cacheKey, promise);
+    }
+
+    if (cached) {
+        // Stale-While-Revalidate: return cached data instantly
+        // and let the in-flight revalidation promise run in the background.
+        // Catch errors silently to prevent unhandled promise rejections.
+        promise.catch(() => {});
+        return cached;
+    }
+
+    // Otherwise, wait for the network request to complete
+    return promise;
 }

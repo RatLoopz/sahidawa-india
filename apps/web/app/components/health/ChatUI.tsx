@@ -10,9 +10,9 @@ import { TypingIndicator } from "./components/TypingIndicator";
 import { TrustBar } from "./components/TrustBar";
 import { Camera, Pill, MapPin, Home } from "lucide-react";
 import { isAbortError, readChatErrorMessage, readTextResponseStream } from "@/lib/chatStream";
+import { useTranslations } from "next-intl";
 
 const genId = () => Math.random().toString(36).slice(2, 10);
-const EMPTY_ASSISTANT_REPLY = "I'm here to help! Could you rephrase that?";
 
 const INITIAL_MESSAGES = {
     en: "Namaste, I'm SahiDawa, your trusted health companion. I can help you verify medicines, understand symptoms, or find nearby care. What would you like help with today?",
@@ -79,34 +79,6 @@ const IconStop = () => (
     </svg>
 );
 
-// Quick actions configuration
-const ACTIONS = [
-    {
-        id: "scan",
-        label: "Scan Medicine",
-        description: "Verify authenticity",
-        icon: <Camera className="h-5 w-5 text-emerald-500" />,
-        prompt: "I'd like to verify a medicine.",
-        accent: "emerald" as const,
-    },
-    {
-        id: "symptoms",
-        label: "Check Symptoms",
-        description: "AI-assisted guidance",
-        icon: <Pill className="h-5 w-5 text-sky-500" />,
-        prompt: "I want to describe my symptoms.",
-        accent: "sky" as const,
-    },
-    {
-        id: "pharmacy",
-        label: "Find Pharmacy",
-        description: "Locate verified stores",
-        icon: <MapPin className="h-5 w-5 text-amber-500" />,
-        prompt: "Help me find a verified pharmacy nearby.",
-        accent: "amber" as const,
-    },
-];
-
 function upsertAssistantMessage(
     messages: Message[],
     id: string,
@@ -146,6 +118,37 @@ const createInitialMessage = (locale: string): Message => ({
 });
 
 export default function ChatUI() {
+    const t = useTranslations("Health");
+    const tVoiceError = useTranslations("VoicePage.errors");
+
+    // Quick actions configuration
+    const ACTIONS = [
+        {
+            id: "scan",
+            label: t("scanMedicine"),
+            description: t("verifyAuthenticity"),
+            icon: <Camera className="h-5 w-5 text-emerald-500" />,
+            prompt: "I'd like to verify a medicine.",
+            accent: "emerald" as const,
+        },
+        {
+            id: "symptoms",
+            label: t("checkSymptoms"),
+            description: t("symptomGuidance"),
+            icon: <Pill className="h-5 w-5 text-sky-500" />,
+            prompt: "I want to describe my symptoms.",
+            accent: "sky" as const,
+        },
+        {
+            id: "pharmacy",
+            label: t("findPharmacy"),
+            description: t("locateStores"),
+            icon: <MapPin className="h-5 w-5 text-amber-500" />,
+            prompt: "Help me find a verified pharmacy nearby.",
+            accent: "amber" as const,
+        },
+    ];
+
     const params = useParams();
     const locale = (params.locale as string) || "en";
     const [messages, setMessages] = useState<Message[]>(() => [createInitialMessage(locale)]);
@@ -226,12 +229,10 @@ export default function ChatUI() {
                     signal: requestController.signal,
                 });
                 if (res.status === 429) {
-                    throw new Error("Too many requests. Please try again in a few moments.");
+                    throw new Error(t("tooManyRequests"));
                 }
                 if (!res.ok) {
-                    throw new Error(
-                        await readChatErrorMessage(res, "Failed to generate AI response")
-                    );
+                    throw new Error(await readChatErrorMessage(res, t("failedResponse")));
                 }
 
                 const reply = await readTextResponseStream(
@@ -259,7 +260,7 @@ export default function ChatUI() {
 
                 if (!isActiveRequest()) return;
 
-                const finalReply = reply || EMPTY_ASSISTANT_REPLY;
+                const finalReply = reply || t("replyFallback");
                 if (!assistantMessageId) {
                     assistantMessageId = genId();
                 }
@@ -267,11 +268,12 @@ export default function ChatUI() {
                 setMessages((prev) =>
                     upsertAssistantMessage(prev, assistantMessageId as string, finalReply)
                 );
-            } catch (err: any) {
+            } catch (err: unknown) {
                 if (isAbortError(err)) return;
                 if (!isActiveRequest()) return;
 
-                const errorMessage = err.message || "Something went wrong";
+                const errorMessage =
+                    err instanceof Error ? err.message || t("genericError") : t("genericError");
                 const messageId = assistantMessageId || genId();
 
                 setMessages((prev) =>
@@ -287,7 +289,7 @@ export default function ChatUI() {
                 }
             }
         },
-        [messages, isTyping, locale]
+        [messages, isTyping, locale, t]
     );
 
     const handleRetry = useCallback(
@@ -300,16 +302,20 @@ export default function ChatUI() {
 
     const toggleVoice = useCallback(() => {
         if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
-            alert("Voice input requires Chrome or Edge.");
+            alert(t("voiceBrowserRequired"));
             return;
         }
+
         if (isListening) {
             recRef.current?.stop();
             setIsListening(false);
             return;
         }
-        const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        const r = new SR();
+
+        const SpeechRecognition =
+            (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+
         const speechLocales = {
             en: "en-IN",
             hi: "hi-IN",
@@ -323,22 +329,75 @@ export default function ChatUI() {
             pa: "pa-IN",
             or: "or-IN",
         };
-        r.lang = speechLocales[locale as keyof typeof speechLocales] || "en-IN";
-        r.interimResults = false;
-        r.onresult = (e: any) => {
-            if (!isMountedRef.current) return;
-            setInput(e.results[0][0].transcript);
-            setIsListening(false);
+
+        recognition.lang = speechLocales[locale as keyof typeof speechLocales] || "en-IN";
+        recognition.interimResults = true;
+        recognition.continuous = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = () => {
+            if (isMountedRef.current) {
+                setIsListening(true);
+            }
         };
-        r.onerror = r.onend = () => {
+
+        const initialInput = input.trim();
+
+        recognition.onresult = (event: any) => {
+            if (!isMountedRef.current) return;
+
+            const transcript = Array.from(event.results)
+                .map((result: any) => result[0].transcript)
+                .join(" ");
+
+            const space = initialInput.length > 0 ? " " : "";
+            setInput(initialInput + space + transcript);
+        };
+
+        recognition.onerror = (event: any) => {
+            console.error("Speech recognition error:", event.error);
+            if (isMountedRef.current) {
+                setIsListening(false);
+            }
+            if (event.error === "not-allowed") {
+                alert(
+                    tVoiceError("permission_message") ||
+                        "Please allow microphone permission in your browser settings and try again."
+                );
+            } else if (event.error === "network") {
+                alert(
+                    tVoiceError("network_message") ||
+                        "Your browser could not finish the voice capture. Please check your connection and try again."
+                );
+            } else if (event.error === "no-speech") {
+                // Ignore no-speech, it just means they didn't say anything
+            } else {
+                alert(
+                    tVoiceError("generic_message") ||
+                        "We could not process your voice input this time. Please try again."
+                );
+            }
+        };
+
+        recognition.onend = () => {
             if (isMountedRef.current) {
                 setIsListening(false);
             }
         };
-        recRef.current = r;
-        r.start();
-        setIsListening(true);
-    }, [isListening]);
+
+        recRef.current = recognition;
+
+        try {
+            recognition.start();
+        } catch (e) {
+            console.error("Failed to start speech recognition:", e);
+            alert(
+                t("voiceBrowserRequired") ||
+                    "Voice recognition is not supported or failed to start."
+            );
+            setIsListening(false);
+        }
+    }, [isListening, locale, t, input]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -368,7 +427,7 @@ export default function ChatUI() {
                         <button
                             onClick={handleHomeClick}
                             className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
-                            aria-label="Return to chat home"
+                            aria-label={t("returnHome")}
                         >
                             <Home size={18} />
                         </button>
@@ -399,7 +458,7 @@ export default function ChatUI() {
                 ref={messagesContainerRef}
                 role="log"
                 aria-live="polite"
-                aria-label="Chat conversation"
+                aria-label={t("chatConversation")}
                 className="absolute inset-0 z-0 overflow-y-auto px-4 pt-28 pb-36"
             >
                 <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -412,7 +471,7 @@ export default function ChatUI() {
                     {showWelcome && !isTyping && messages.length === 1 && (
                         <div>
                             <p className="mb-3 text-xs font-medium tracking-wide text-slate-400 uppercase">
-                                Quick actions
+                                {t("quickActions")}
                             </p>
                             <div className="space-y-3">
                                 {ACTIONS.map((action) => (
@@ -439,14 +498,14 @@ export default function ChatUI() {
                     {isListening && (
                         <div className="mb-3 flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-400">
                             <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-                            <span>Listening... speak clearly</span>
+                            <span>{t("listening")}</span>
                         </div>
                     )}
 
                     <div className="flex items-center gap-3">
                         <button
                             onClick={toggleVoice}
-                            aria-label={isListening ? "Stop voice input" : "Start voice input"}
+                            aria-label={isListening ? t("stopVoice") : t("startVoice")}
                             aria-pressed={isListening}
                             className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
                                 isListening
@@ -458,16 +517,15 @@ export default function ChatUI() {
                         </button>
 
                         <label htmlFor="chat-input" className="sr-only">
-                            Type your health question
+                            {t("healthQuestion")}
                         </label>
                         <textarea
                             id="chat-input"
                             ref={inputRef}
-                            aria-label="Type your health question"
+                            placeholder={t("placeholder")}
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={handleKeyDown}
-                            placeholder="Type your health concern..."
                             rows={1}
                             className="flex-1 resize-none rounded-xl border border-white/40 bg-white/50 px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:border-white/10 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500"
                             style={{ minHeight: 44, maxHeight: 100 }}
@@ -476,7 +534,7 @@ export default function ChatUI() {
                         <button
                             onClick={() => sendMessage(input)}
                             disabled={!input.trim() || isTyping}
-                            aria-label="Send message"
+                            aria-label={t("sendMessage")}
                             className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
                                 input.trim() && !isTyping
                                     ? "bg-linear-to-r from-emerald-500 to-teal-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)] hover:from-emerald-600 hover:to-teal-600 active:scale-95"
@@ -489,9 +547,7 @@ export default function ChatUI() {
 
                     {/* Minimal Footer Text */}
                     <div className="mt-2 text-center">
-                        <p className="text-[10px] font-medium text-slate-400/80">
-                            For informational use only • Consult a doctor
-                        </p>
+                        <p className="text-[10px] font-medium text-slate-400/80">{t("footer")}</p>
                     </div>
                 </div>
             </footer>

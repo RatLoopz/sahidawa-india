@@ -27,6 +27,9 @@
         "alerts_empty_title": "सर्वं स्पष्टम्!",
         "alerts_empty_description": "अधुना सक्रियाः नियामक-सूचनाः न सन्ति। सुरक्षिताः तिष्ठन्तु, औषधानि च सत्यापयन्तु।",
         "view_full_alert_log": "सम्पूर्णं सूचना-लेखं पश्यन्तु",
+        "vaccine_title": "वैक्सीन हब् एवं प्रतिरक्षण-अनुगमकः",
+        "vaccine_subtitle": "उत्तमजनस्वास्थ्यजागरूकतायै टीकाकरणसमयसूचीन्, सुरक्षाविषयकसूचनाः, तथा टीकाकरणोत्तरपरिचर्यानिर्देशान् अवलोकयन्तु।",
+        "vaccine_open": "वैक्सीन हब् उद्घाटयतु",
         "heroTitle": {
             "prefix": "भवतः स्वास्थ्यम्, ",
             "highlight": "प्रमाणीकृतं सुरक्षितं च।"
@@ -362,7 +365,8 @@
         "placeholder": "Ask me about a medicine...",
         "status": "Online",
         "title": "SahiDawa AI",
-        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"
+        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?",
+        "tooltipLabel": "AI Health Assistant"
     },
     "BackToTopButton": {
         "label": "Back to top"
@@ -452,7 +456,15 @@
         "importError": "अमान्या प्रतिलिपिः। कृपया मान्यं JSON प्रतिलिपिं आरोपयतु।",
         "statusExpired": "अवधिक्षीणम्",
         "statusExpiringSoon": "({days} दिनेषु) अवधिक्षीणम्",
-        "statusSafe": "सुरक्षितम्"
+        "statusSafe": "सुरक्षितम्",
+        "exportCSV": "सीएसवी (CSV) निर्यात करें",
+        "exportPDF": "पीडीएफ (PDF) निर्यात करें",
+        "print": "प्रिंट करें",
+        "csvExportSuccess": "सीएसवी (CSV) सफलतापूर्वक निर्यात किया गया",
+        "pdfExportSuccess": "पीडीएफ (PDF) सफलतापूर्वक निर्यात किया गया",
+        "noMedicinesToDisplay": "प्रदर्शित करने के लिए कोई दवा उपलब्ध नहीं है",
+        "generatedOn": "इस तिथि को जनरेट किया गया",
+        "deleteMedicine": "दवा हटाएं"
     },
     "Login": {
         "brandSubtitle": "औषधसुरक्षा-मञ्चः",
@@ -477,7 +489,9 @@
         "errors": {
             "databaseNotConfigured": "अस्मिन् परिवेशे प्रमाणीकरणं विन्यस्तं नास्ति।",
             "generic": "प्रवेशः न सफलः। कृपया पुनः प्रयतध्वम्।"
-        }
+        },
+        "signUpPrompt": "Don't have an account?",
+        "signUpLink": "Sign up"
     },
     "AdminLayout": {
         "accessDeniedTitle": "प्रवेशः निषिद्धः",
@@ -639,37 +653,241 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
-  "medicineSafety": {
-    "guideTitle": "उपयोगः तथा सुरक्षा मार्गदर्शिका",
-    "noDosageInfo": "अस्य वयःसमूहस्य कृते मात्रा-विवरणं न उपलब्धम्।",
-    "closeButton": "सुरक्षा-विवरणं पिधत",
-    "tabs": {
-      "sideEffects": "पार्श्वप्रभावाः",
-      "dosage": "मात्रा",
-      "dietaryIntake": "आहार-सेवनम्"
+    "howItWorks": {
+        "badge": "Safe Healthcare � AI Powered",
+        "heroTitle": "How <highlight>SahiDawa</highlight> Works",
+        "heroSubtitle": "Learn how SahiDawa helps users verify medicines, discover trusted pharmacies, receive official alerts, and stay protected from counterfeit drugs using AI-powered healthcare tools.",
+        "ctaButtons": {
+            "scan": "Start Scanning",
+            "map": "Explore Pharmacy Map"
+        },
+        "steps": {
+            "scan": {
+                "title": "Scan Medicine",
+                "description": "Point your device camera at the barcode or QR code on any medicine packaging."
+            },
+            "verify": {
+                "title": "Verify Instantly",
+                "description": "AI cross-references scanned details with CDSCO records to check authenticity."
+            },
+            "alerts": {
+                "title": "Check Alerts",
+                "description": "Get real-time safety alerts if the batch is recalled, banned, or substandard."
+            },
+            "pharmacies": {
+                "title": "Find Pharmacies",
+                "description": "Locate Jan Aushadhi stores and verified nearby pharmacies stocking real medicines."
+            },
+            "protect": {
+                "title": "Stay Protected",
+                "description": "Keep records of your scans, report fakes, and safeguard your family's health."
+            }
+        },
+        "features": {
+            "title": "Platform Features",
+            "subtitle": "Everything you need for safer healthcare decisions.",
+            "cards": {
+                "verifyMedicines": {
+                    "title": "Verify Medicines",
+                    "description": "Instantly verify medicine authenticity using barcode, batch number, or medicine details."
+                },
+                "scanOrSearch": {
+                    "title": "Scan or Search",
+                    "description": "Scan packaging or manually search medicines for trusted healthcare information."
+                },
+                "aiAssistant": {
+                    "title": "AI Health Assistant",
+                    "description": "Get AI-powered guidance for symptoms, side effects, precautions, and medicine usage."
+                },
+                "trustedPharmacies": {
+                    "title": "Trusted Pharmacies",
+                    "description": "Find verified pharmacies nearby with reliable medicine availability and ratings."
+                },
+                "cdscoAlerts": {
+                    "title": "CDSCO Alerts",
+                    "description": "Stay updated with official CDSCO medicine recalls, warnings, and health alerts."
+                },
+                "reportMedicines": {
+                    "title": "Report Suspicious Medicines",
+                    "description": "Help the community by reporting counterfeit or suspicious medicines instantly."
+                }
+            }
+        },
+        "ctaBanner": {
+            "title": "Safer Healthcare Starts Here",
+            "subtitle": "Verify medicines, access trusted healthcare information, and stay protected from counterfeit drugs with AI-powered assistance.",
+            "buttons": {
+                "scan": "Scan Medicine",
+                "alerts": "View Alerts"
+            }
+        }
     },
-    "sideEffects": {
-      "standardSymptoms": "सामान्यलक्षणानि",
-      "severeRedFlags": "गम्भीरचेतावनी — शीघ्रं वैद्यसहाय्यं प्राप्नुत"
+    "medicineSafety": {
+        "guideTitle": "उपयोगः तथा सुरक्षा मार्गदर्शिका",
+        "noDosageInfo": "अस्य वयःसमूहस्य कृते मात्रा-विवरणं न उपलब्धम्।",
+        "closeButton": "सुरक्षा-विवरणं पिधत",
+        "tabs": {
+            "sideEffects": "पार्श्वप्रभावाः",
+            "dosage": "मात्रा",
+            "dietaryIntake": "आहार-सेवनम्"
+        },
+        "sideEffects": {
+            "standardSymptoms": "सामान्यलक्षणानि",
+            "severeRedFlags": "गम्भीरचेतावनी — शीघ्रं वैद्यसहाय्यं प्राप्नुत"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "बालकाः",
+                "adults": "प्रौढाः",
+                "elderly": "वृद्धाः"
+            },
+            "doseLabel": "मात्रा:",
+            "frequencyLabel": "आवृत्तिः:",
+            "notesHeading": "टिप्पण्यः",
+            "warningsHeading": "चेतावन्यः"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "आहार-सेवनम्"
+            },
+            "storageHeading": "संग्रहणम्",
+            "pregnancyHeading": "गर्भावस्था"
+        },
+        "disclaimer": "एषा सूचना शैक्षिकप्रयोजनार्थम् अस्ति, न तु व्यावसायिकवैद्यकीयपरामर्शस्य विकल्पः।"
     },
-    "dosage": {
-      "tabs": {
-        "kids": "बालकाः",
-        "adults": "प्रौढाः",
-        "elderly": "वृद्धाः"
-      },
-      "doseLabel": "मात्रा:",
-      "frequencyLabel": "आवृत्तिः:",
-      "notesHeading": "टिप्पण्यः",
-      "warningsHeading": "चेतावन्यः"
+    "Health": {
+        "quickActions": "Quick actions",
+        "scanMedicine": "Scan Medicine",
+        "verifyAuthenticity": "Verify authenticity",
+        "checkSymptoms": "Check Symptoms",
+        "symptomGuidance": "AI-assisted guidance",
+        "findPharmacy": "Find Pharmacy",
+        "locateStores": "Locate verified stores",
+        "replyFallback": "I'm here to help! Could you rephrase that?",
+        "tooManyRequests": "Too many requests. Please try again in a few moments.",
+        "failedResponse": "Failed to generate AI response",
+        "genericError": "Something went wrong",
+        "returnHome": "Return to chat home",
+        "chatConversation": "Chat conversation",
+        "startVoice": "Start voice input",
+        "stopVoice": "Stop voice input",
+        "healthQuestion": "Type your health question",
+        "voiceBrowserRequired": "Voice input is not supported in this browser.",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "sendMessage": "Send message",
+        "footer": "For informational use only • Consult a doctor"
     },
-    "dietary": {
-      "tabs": {
-        "dietaryIntake": "आहार-सेवनम्"
-      },
-      "storageHeading": "संग्रहणम्",
-      "pregnancyHeading": "गर्भावस्था"
+    "SignUp": {
+        "brandSubtitle": "Medicine safety platform",
+        "heading": "Create your account",
+        "description": "Join SahiDawa to track medicine safety reports and verification results.",
+        "missingConfig": {
+            "title": "Authentication is not configured",
+            "description": "Supabase URL or anon key is missing. Add the environment variables before signing up."
+        },
+        "googleButton": "Continue with Google",
+        "githubButton": "Continue with Github",
+        "emailSeparator": "or continue with email",
+        "fullNameLabel": "Full name",
+        "fullNamePlaceholder": "Your full name",
+        "emailLabel": "Email address",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Create a password",
+        "confirmPasswordLabel": "Confirm password",
+        "confirmPasswordPlaceholder": "Re-enter your password",
+        "showPassword": "Show password",
+        "hidePassword": "Hide password",
+        "showConfirmPassword": "Show confirm password",
+        "hideConfirmPassword": "Hide confirm password",
+        "signingUp": "Creating account...",
+        "signUp": "Sign Up",
+        "footerPrompt": "Already have an account?",
+        "signInLink": "Sign in",
+        "bottomText": "Protected access for SahiDawa community tools.",
+        "success": "Account created successfully! Redirecting...",
+        "successConfirmEmail": "Account created! Check your email to confirm your account before signing in.",
+        "errors": {
+            "databaseNotConfigured": "Authentication is not configured for this environment.",
+            "generic": "Unable to create account. Please try again.",
+            "fullNameRequired": "Full name is required.",
+            "emailRequired": "Email address is required.",
+            "emailInvalid": "Please enter a valid email address.",
+            "passwordRequired": "Password is required.",
+            "passwordWeak": "Password must be at least 8 characters and include uppercase, lowercase, and a number.",
+            "confirmPasswordRequired": "Please confirm your password.",
+            "passwordMismatch": "Passwords do not match."
+        }
     },
-    "disclaimer": "एषा सूचना शैक्षिकप्रयोजनार्थम् अस्ति, न तु व्यावसायिकवैद्यकीयपरामर्शस्य विकल्पः।"
-  }
+    "MyMedicines": {
+        "page": {
+            "title": "मम अनुरक्षितानि औषधानि",
+            "loading": "भवतः अनुरक्षितानि औषधानि आयोज्यन्ते..."
+        },
+        "errors": {
+            "title": "भवतः औषधानि आयोजयितुं न शक्यन्त",
+            "generic": "भवतः अनुरक्षितानि औषधानि आनयन् किमपि दोषः अभवत्.",
+            "fetchFailed": "अनुरक्षितानि औषधानि आयोजयितुं असफलम्. कृपया स्वसम्बन्धं परीक्ष्य पुनः प्रयत्नं कुर्वन्तु.",
+            "tryAgain": "पुनः प्रयत्नं कुर्वन्तु"
+        },
+        "emptyState": {
+            "title": "अद्यापि कानिचित् औषधानि न अनुरक्षितानि",
+            "description": "सक्रियसूचीः, सुरक्षा-नवीनीकरणानि, मीयादसमयं च स्वयमेव अनुरक्षितुं स्वस्य वर्तमानानि औषधानि योजयन्तु.",
+            "addFirst": "स्वस्य प्रथमम् औषधं योजयन्तु"
+        },
+        "table": {
+            "name": "नाम",
+            "expiry": "मीयादः",
+            "status": "स्थितिः",
+            "daysLeft": "{count} दिनानि शिष्टानि"
+        },
+        "badges": {
+            "verified": "सत्यापितम्",
+            "unverified": "असत्यापितम्",
+            "requestVerificationTitle": "सत्यापनार्थं क्लिक् कुर्वन्तु"
+        },
+        "bookmarks": {
+            "savedAlternatives": "रक्षिताः विकल्पाः",
+            "noBookmarks": "अद्यापि बुकमार्काः न सन्ति.",
+            "brand": "ब्रान्ड्: {brand}"
+        },
+        "removeDialog": {
+            "title": "बुकमार्कं निष्कासयतु किम्?",
+            "description": "एतत् \"{name}\" भवतः रक्षितविकल्पेभ्यः निष्कासयिष्यति. आवश्यकता चेत् भवान् पश्चात् पुनः योजयितुं शक्नोति.",
+            "confirm": "निष्कासयतु",
+            "cancel": "रद्दं कुर्वन्तु"
+        }
+    },
+    "NotFound": {
+        "badge": "Error 404",
+        "title": "Page Not Found",
+        "description": "We couldn't find the medicine or page you were looking for. It might have been moved, or the URL might be incorrect.",
+        "backHome": "Back to Home",
+        "scanMedicine": "Scan Medicine"
+    },
+    "Settings": {
+        "channelRequired": "Nyunatinyunam ekam sancharamadhyamam (SMS va WhatsApp) sakshamam bhavitavyam.",
+        "optOutConfirm": "Kim bhavan/bhavati nischayena opt out kritva sarvani SMS tatha WhatsApp sachetanani sthagayitum icchati?",
+        "loadingPreferences": "Bhavatah/bhavatyah prathamikatah load bhavanti...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
+    },
+    "AbhaRecords": {
+        "backToProfile": "प्रोफाइल प्रति गच्छतु",
+        "title": "ABHA लेखाः",
+        "loading": "लेखाः लोड् क्रियते...",
+        "noPrescriptions": "किञ्चिदपि व्यवस्थापत्रं न प्राप्तम्।",
+        "failedToLoad": "लेखाः लोड् कर्तुं असफलम्"
+    }
 }

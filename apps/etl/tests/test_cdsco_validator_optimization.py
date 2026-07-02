@@ -118,7 +118,7 @@ def test_cdsco_validator_syncs_remote_reference_without_retaining_local_referenc
 
     assert validator._cdsco_df is None
     assert validator._exact_product_map != {}
-    assert validator._first_letter_map == {}
+    assert validator._first_letter_map != {}
     assert getattr(validator, "_all_choices_data", []) == []
     assert client.table_calls
     assert client.table_calls[0]["table"] == "cdsco_reference"
@@ -153,6 +153,26 @@ def test_cdsco_validator_does_not_run_local_global_scan_for_empty_rpc_results(mo
     assert client.calls
     assert not bool(validated.loc[0, "is_cdsco_verified"])
     assert validated.loc[0, "matched_cdsco_product"] is None
+
+
+def test_cdsco_validator_uses_local_global_search_after_rpc_failure():
+    cdsco_data = pd.DataFrame([
+        {"brand_name": "Crocin Pain Relief", "firm_name": "GSK"},
+    ])
+    client = FakeSupabaseRpcClient(raises=TimeoutError("rpc timed out"))
+
+    validator = CDSCOValidator(threshold=80, supabase_client=client)
+    validator.load_reference(cdsco_data)
+
+    input_df = pd.DataFrame([
+        {"brand_name": "Krocin Pain Relief", "manufacturer": "GSK"},
+    ])
+    validated = validator.validate(input_df, product_col="brand_name", manufacturer_col="manufacturer")
+
+    assert client.calls
+    assert bool(validated.loc[0, "is_cdsco_verified"])
+    assert validated.loc[0, "matched_cdsco_product"] == "Crocin Pain Relief"
+    assert validated.loc[0, "matched_cdsco_manufacturer"] == "GSK"
 
 
 def test_cdsco_validator_uses_local_global_search_without_rpc_client():

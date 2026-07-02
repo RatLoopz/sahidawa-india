@@ -371,7 +371,8 @@
         "title": "صحیح دَوا اے آئی",
         "status": "آن لائن",
         "welcome": "خوش آمدید! بِہ چُھس صحیح دَوا اے آئی مَدَدگار۔ اَز کیا دَواہَن مُتلِق مَدَد کَرو؟",
-        "placeholder": "دَوا مُتلِق پُچھِیو..."
+        "placeholder": "دَوا مُتلِق پُچھِیو...",
+        "tooltipLabel": "AI Health Assistant"
     },
     "Alerts": {
         "backHome": "ہوم صفحس پؠٹھ واپس گژھٕو",
@@ -458,7 +459,15 @@
         "importError": "غلط بیک اپ فائل۔",
         "statusExpired": "میعاد ختم",
         "statusExpiringSoon": "({days} دۄہ) باقٕی",
-        "statusSafe": "محفوظ"
+        "statusSafe": "محفوظ",
+        "exportCSV": "سی ایس وی (CSV) ایکسپورٹ کریں",
+        "exportPDF": "پی ڈی ایف (PDF) ایکسپورٹ کریں",
+        "print": "پرنٹ کریں",
+        "csvExportSuccess": "سی ایس وی (CSV) کامیابی کے ساتھ ایکسپورٹ ہو گیا",
+        "pdfExportSuccess": "پی ڈی ایف (PDF) کامیابی کے ساتھ ایکسپورٹ ہو گیا",
+        "noMedicinesToDisplay": "دکھانے کے لیے کوئی ادویات نہیں ہیں",
+        "generatedOn": "اپ امپورٹ کٔر",
+        "deleteMedicine": "دوا حذف کریں"
     },
     "Login": {
         "brandSubtitle": "دوا حفاظت پلیٹ فارم",
@@ -483,7 +492,9 @@
         "errors": {
             "databaseNotConfigured": "تصدیق ترتیب نَہ دِی گٔژھ۔",
             "generic": "سائن اِن ناکام۔ دوبارہ کوشش کٔریو۔"
-        }
+        },
+        "signUpPrompt": "Don't have an account?",
+        "signUpLink": "Sign up"
     },
     "AdminLayout": {
         "accessDeniedTitle": "رسائی منع",
@@ -645,37 +656,241 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
-  "medicineSafety": {
-    "guideTitle": "استعمال تہٕ حفاظت رہنمائی",
-    "noDosageInfo": "یِم عمر گروپ خٲطرٕ خوراکٕچ جانکاری دستیاب نَہ چھِ.",
-    "closeButton": "حفاظتی جانکاری بند کٔریو",
-    "tabs": {
-      "sideEffects": "ضمنی اثرات",
-      "dosage": "خوراک",
-      "dietaryIntake": "غذائی استعمال"
+    "howItWorks": {
+        "badge": "Safe Healthcare � AI Powered",
+        "heroTitle": "How <highlight>SahiDawa</highlight> Works",
+        "heroSubtitle": "Learn how SahiDawa helps users verify medicines, discover trusted pharmacies, receive official alerts, and stay protected from counterfeit drugs using AI-powered healthcare tools.",
+        "ctaButtons": {
+            "scan": "Start Scanning",
+            "map": "Explore Pharmacy Map"
+        },
+        "steps": {
+            "scan": {
+                "title": "Scan Medicine",
+                "description": "Point your device camera at the barcode or QR code on any medicine packaging."
+            },
+            "verify": {
+                "title": "Verify Instantly",
+                "description": "AI cross-references scanned details with CDSCO records to check authenticity."
+            },
+            "alerts": {
+                "title": "Check Alerts",
+                "description": "Get real-time safety alerts if the batch is recalled, banned, or substandard."
+            },
+            "pharmacies": {
+                "title": "Find Pharmacies",
+                "description": "Locate Jan Aushadhi stores and verified nearby pharmacies stocking real medicines."
+            },
+            "protect": {
+                "title": "Stay Protected",
+                "description": "Keep records of your scans, report fakes, and safeguard your family's health."
+            }
+        },
+        "features": {
+            "title": "Platform Features",
+            "subtitle": "Everything you need for safer healthcare decisions.",
+            "cards": {
+                "verifyMedicines": {
+                    "title": "Verify Medicines",
+                    "description": "Instantly verify medicine authenticity using barcode, batch number, or medicine details."
+                },
+                "scanOrSearch": {
+                    "title": "Scan or Search",
+                    "description": "Scan packaging or manually search medicines for trusted healthcare information."
+                },
+                "aiAssistant": {
+                    "title": "AI Health Assistant",
+                    "description": "Get AI-powered guidance for symptoms, side effects, precautions, and medicine usage."
+                },
+                "trustedPharmacies": {
+                    "title": "Trusted Pharmacies",
+                    "description": "Find verified pharmacies nearby with reliable medicine availability and ratings."
+                },
+                "cdscoAlerts": {
+                    "title": "CDSCO Alerts",
+                    "description": "Stay updated with official CDSCO medicine recalls, warnings, and health alerts."
+                },
+                "reportMedicines": {
+                    "title": "Report Suspicious Medicines",
+                    "description": "Help the community by reporting counterfeit or suspicious medicines instantly."
+                }
+            }
+        },
+        "ctaBanner": {
+            "title": "Safer Healthcare Starts Here",
+            "subtitle": "Verify medicines, access trusted healthcare information, and stay protected from counterfeit drugs with AI-powered assistance.",
+            "buttons": {
+                "scan": "Scan Medicine",
+                "alerts": "View Alerts"
+            }
+        }
     },
-    "sideEffects": {
-      "standardSymptoms": "عام علامات",
-      "severeRedFlags": "سنگین انتباہ — فوری طبی امداد حاصل کریں"
+    "medicineSafety": {
+        "guideTitle": "استعمال تہٕ حفاظت رہنمائی",
+        "noDosageInfo": "یِم عمر گروپ خٲطرٕ خوراکٕچ جانکاری دستیاب نَہ چھِ.",
+        "closeButton": "حفاظتی جانکاری بند کٔریو",
+        "tabs": {
+            "sideEffects": "ضمنی اثرات",
+            "dosage": "خوراک",
+            "dietaryIntake": "غذائی استعمال"
+        },
+        "sideEffects": {
+            "standardSymptoms": "عام علامات",
+            "severeRedFlags": "سنگین انتباہ — فوری طبی امداد حاصل کریں"
+        },
+        "dosage": {
+            "tabs": {
+                "kids": "بچے",
+                "adults": "بالغ",
+                "elderly": "معمر"
+            },
+            "doseLabel": "خوراک:",
+            "frequencyLabel": "تعدد:",
+            "notesHeading": "نوٹس",
+            "warningsHeading": "انتباہات"
+        },
+        "dietary": {
+            "tabs": {
+                "dietaryIntake": "غذائی استعمال"
+            },
+            "storageHeading": "ذخیرہ",
+            "pregnancyHeading": "حمل"
+        },
+        "disclaimer": "یہ معلومات تعلیمی مقصد کے لیے ہیں اور پیشہ ورانہ طبی مشورے کا متبادل نہیں ہیں۔"
     },
-    "dosage": {
-      "tabs": {
-        "kids": "بچے",
-        "adults": "بالغ",
-        "elderly": "معمر"
-      },
-      "doseLabel": "خوراک:",
-      "frequencyLabel": "تعدد:",
-      "notesHeading": "نوٹس",
-      "warningsHeading": "انتباہات"
+    "Health": {
+        "quickActions": "Quick actions",
+        "scanMedicine": "Scan Medicine",
+        "verifyAuthenticity": "Verify authenticity",
+        "checkSymptoms": "Check Symptoms",
+        "symptomGuidance": "AI-assisted guidance",
+        "findPharmacy": "Find Pharmacy",
+        "locateStores": "Locate verified stores",
+        "replyFallback": "I'm here to help! Could you rephrase that?",
+        "tooManyRequests": "Too many requests. Please try again in a few moments.",
+        "failedResponse": "Failed to generate AI response",
+        "genericError": "Something went wrong",
+        "returnHome": "Return to chat home",
+        "chatConversation": "Chat conversation",
+        "startVoice": "Start voice input",
+        "stopVoice": "Stop voice input",
+        "healthQuestion": "Type your health question",
+        "voiceBrowserRequired": "Voice input is not supported in this browser.",
+        "listening": "Listening... speak clearly",
+        "placeholder": "Type your health concern...",
+        "sendMessage": "Send message",
+        "footer": "For informational use only • Consult a doctor"
     },
-    "dietary": {
-      "tabs": {
-        "dietaryIntake": "غذائی استعمال"
-      },
-      "storageHeading": "ذخیرہ",
-      "pregnancyHeading": "حمل"
+    "SignUp": {
+        "brandSubtitle": "Medicine safety platform",
+        "heading": "Create your account",
+        "description": "Join SahiDawa to track medicine safety reports and verification results.",
+        "missingConfig": {
+            "title": "Authentication is not configured",
+            "description": "Supabase URL or anon key is missing. Add the environment variables before signing up."
+        },
+        "googleButton": "Continue with Google",
+        "githubButton": "Continue with Github",
+        "emailSeparator": "or continue with email",
+        "fullNameLabel": "Full name",
+        "fullNamePlaceholder": "Your full name",
+        "emailLabel": "Email address",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Create a password",
+        "confirmPasswordLabel": "Confirm password",
+        "confirmPasswordPlaceholder": "Re-enter your password",
+        "showPassword": "Show password",
+        "hidePassword": "Hide password",
+        "showConfirmPassword": "Show confirm password",
+        "hideConfirmPassword": "Hide confirm password",
+        "signingUp": "Creating account...",
+        "signUp": "Sign Up",
+        "footerPrompt": "Already have an account?",
+        "signInLink": "Sign in",
+        "bottomText": "Protected access for SahiDawa community tools.",
+        "success": "Account created successfully! Redirecting...",
+        "successConfirmEmail": "Account created! Check your email to confirm your account before signing in.",
+        "errors": {
+            "databaseNotConfigured": "Authentication is not configured for this environment.",
+            "generic": "Unable to create account. Please try again.",
+            "fullNameRequired": "Full name is required.",
+            "emailRequired": "Email address is required.",
+            "emailInvalid": "Please enter a valid email address.",
+            "passwordRequired": "Password is required.",
+            "passwordWeak": "Password must be at least 8 characters and include uppercase, lowercase, and a number.",
+            "confirmPasswordRequired": "Please confirm your password.",
+            "passwordMismatch": "Passwords do not match."
+        }
     },
-    "disclaimer": "یہ معلومات تعلیمی مقصد کے لیے ہیں اور پیشہ ورانہ طبی مشورے کا متبادل نہیں ہیں۔"
-  }
+    "MyMedicines": {
+        "page": {
+            "title": "میۆن ٹریک کرمژ دَوایہٕ",
+            "loading": "توٚہنٛد ٹریک کرمژ دَوایہٕ لوڈ گَژھان..."
+        },
+        "errors": {
+            "title": "توٚہنٛد دَوایہٕ لوڈ نہٕ گیہ",
+            "generic": "توٚہنٛدِ ٹریک کرمژ دَوایہٕ حاصل کرنہٕ منٛز کانٛہہ غلط گیہ.",
+            "fetchFailed": "ٹریک کرمژ دَوایہٕ لوڈ کرنس منٛز ناکام. مہربانی کرِتھ پننہٕ کنکشن چیک کریو تہٕ دوبارہ کوشش کریو.",
+            "tryAgain": "دوبارہ کوشش کریو"
+        },
+        "emptyState": {
+            "title": "اَتہٕ تام کانٛہہ دَوا ٹریک نہٕ کرمژ",
+            "description": "فعال شیڈول، حفاظتی اپڈیٹ تہٕ میعاد ختم گژھنُک وقت خودکار طریقس منٛز ٹریک کرنہٕ خٲطرٕ پننہٕ حالیہٕ دَوایہٕ شٲمِل کریو.",
+            "addFirst": "پننہٕ اَکھ نمبر دَوا شٲمِل کریو"
+        },
+        "table": {
+            "name": "ناو",
+            "expiry": "میعاد",
+            "status": "حالت",
+            "daysLeft": "{count} دۄہ باقی"
+        },
+        "badges": {
+            "verified": "تصدیق شُدہ",
+            "unverified": "غیرتصدیق شُدہ",
+            "requestVerificationTitle": "تصدیقُک درخواست کرنہٕ خٲطرٕ کلک کریو"
+        },
+        "bookmarks": {
+            "savedAlternatives": "محفوظ کرمژ متبادل",
+            "noBookmarks": "اَتہٕ تام کانٛہہ بُک مارک چھُنہٕ.",
+            "brand": "برانڈ: {brand}"
+        },
+        "removeDialog": {
+            "title": "بُک مارک ہٹاونہٕ؟",
+            "description": "یہ \"{name}\" توٚہنٛدِس محفوظ کرمژ متبادلَس منٛز ہٹاوی. ضرورت گژھنس پؠٹھ توہِ زِ ییہ بعد منٛز دوبارہ شٲمِل کریو.",
+            "confirm": "ہٹاو",
+            "cancel": "منسوخ کریو"
+        }
+    },
+    "NotFound": {
+        "badge": "Error 404",
+        "title": "Page Not Found",
+        "description": "We couldn't find the medicine or page you were looking for. It might have been moved, or the URL might be incorrect.",
+        "backHome": "Back to Home",
+        "scanMedicine": "Scan Medicine"
+    },
+    "Settings": {
+        "channelRequired": "Kam az kam akh rabita channel (SMS ya WhatsApp) chalu asun zaruri chu.",
+        "optOutConfirm": "Tohi pakka opt out karith tamam SMS te WhatsApp alert band karun chiv?",
+        "loadingPreferences": "Tuhund tarjihat load gachhan chh...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
+    },
+    "AbhaRecords": {
+        "backToProfile": "پروفائل کن واپس گژھیو",
+        "title": "ABHA ریکارڈز",
+        "loading": "ریکارڈ لوڈ گژھان...",
+        "noPrescriptions": "کانہہ نسخہ آو نہ لبھنہ۔",
+        "failedToLoad": "ریکارڈ لوڈ کرنے میں ناکام"
+    }
 }
