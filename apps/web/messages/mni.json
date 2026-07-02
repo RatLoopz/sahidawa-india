@@ -870,7 +870,22 @@
         "optOutSuccess": "ꯄꯥꯎꯖꯦꯜ ꯄꯨꯝꯅꯃꯛ ꯃꯥꯌ ꯄꯥꯛꯅꯥ ꯇꯣꯀꯈ꯭ꯔꯦ꯫",
         "errorMessage": "ꯃꯧꯁꯤꯜ ꯑꯄꯗꯦꯠ ꯇꯧꯕꯥ ꯃꯥꯌ ꯄꯥꯛꯈꯤꯗꯦ꯫ ꯑꯃꯨꯛ ꯍꯟꯅꯥ ꯍꯣꯠꯅꯕꯤꯌꯨ꯫",
         "phoneInvalid": "ꯆꯥꯟꯕꯤꯗꯨꯅꯥ ꯆꯨꯝꯕꯥ ꯃꯁꯤꯡ ꯱꯰ ꯂꯩꯕꯥ ꯏꯟꯗꯤꯌꯥꯒꯤ ꯐꯣꯟ ꯃꯁꯤꯡ ꯑꯃꯥ ꯏꯕꯤꯌꯨ꯫",
-        "districtRequired": "ꯃꯐꯃꯗꯨꯒꯤ ꯆꯦꯛꯁꯤꯟ-ꯄꯥꯎꯖꯦꯜ ꯐꯪꯅꯕꯥ ꯗꯤꯁ꯭ꯇ꯭ꯔꯤꯛꯠ ꯑꯃꯥ ꯈꯟꯕꯤꯌꯨ꯫"
+        "districtRequired": "ꯃꯐꯃꯗꯨꯒꯤ ꯆꯦꯛꯁꯤꯟ-ꯄꯥꯎꯖꯦꯜ ꯐꯪꯅꯕꯥ ꯗꯤꯁ꯭ꯇ꯭ꯔꯤꯛꯠ ꯑꯃꯥ ꯈꯟꯕꯤꯌꯨ꯫",
+        "channelRequired": "SMS nattraga WhatsApp loin channel amadi active oigadabani.",
+        "optOutConfirm": "Nang opt out touraduna SMS amadi WhatsApp alert pumnamak lephannaba yamna khangbira?",
+        "loadingPreferences": "Nanggi preferences load touri...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
     },
     "Interactions": {
         "title": "ꯍꯤꯗꯥꯛ ꯄꯨꯟꯅꯥ ꯆꯥꯕꯒꯤ ꯆꯦꯛ ꯇꯧꯐꯝ",

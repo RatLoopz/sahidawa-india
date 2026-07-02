@@ -904,5 +904,21 @@
         "description": "તમે જે પૃષ્ઠ શોધી રહ્યાં છો તે અસ્તિત્વમાં નથી અથવા ખસેડવામાં આવ્યું હોઈ શકે છે.",
         "backHome": "હોમ પર પાછા જાઓ",
         "scanMedicine": "દવા સ્કેન કરો"
+    "Settings": {
+        "channelRequired": "Ochama ochu ek sanchar madhyam (SMS athva WhatsApp) saksham hovu jaruri che.",
+        "optOutConfirm": "Shu tame kharekhar opt out kari badha SMS ane WhatsApp alert bandh karva mango cho?",
+        "loadingPreferences": "Tamari pasandgio load thai rahi che...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
     }
 }

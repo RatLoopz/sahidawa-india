@@ -895,5 +895,21 @@
         "description": "আপুনি বিচৰা পৃষ্ঠাটো নাই বা স্থানান্তৰিত কৰা হৈছে।",
         "backHome": "মূল পৃষ্ঠালৈ উভতি যাওক",
         "scanMedicine": "ঔষধ স্কেন কৰক"
+    "Settings": {
+        "channelRequired": "Ontoto eta jogajog madhyam (SMS ba WhatsApp) sokriyo hobo lagibo.",
+        "optOutConfirm": "Apuni nischitne je opt out kori sob SMS aru WhatsApp sotorkobarta bondho koribo bisare?",
+        "loadingPreferences": "Apunar pochondosomuh load hoi ase...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
     }
 }

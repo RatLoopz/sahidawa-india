@@ -10,6 +10,7 @@ import crypto from "crypto";
 
 import { trimHistoryByTokens } from "@/lib/chatUtils";
 import { redis } from "@/lib/redis";
+import { getMlServiceUrl } from "@/lib/mlService";
 
 const ML_TRIAGE_TIMEOUT_MS = 30_000;
 
@@ -252,7 +253,7 @@ export async function POST(req: Request) {
             let emergencyFromML = false;
 
             try {
-                const mlServiceUrl = process.env.ML_SERVICE_URL?.trim()?.replace(/\/+$/, "");
+                const mlServiceUrl = getMlServiceUrl();
 
                 if (!mlServiceUrl) {
                     structuredLog({

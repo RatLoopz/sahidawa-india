@@ -2,14 +2,10 @@ import { NextResponse } from "next/server";
 import { structuredLog } from "@/lib/structuredLogger";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/getClientIp";
+import { getMlServiceUrl } from "@/lib/mlService";
 
 const ROUTE = "/api/voice/transcribe";
 const ML_TRANSCRIBE_TIMEOUT_MS = 45_000;
-
-function getMlServiceUrl() {
-    const configuredUrl = process.env.ML_SERVICE_URL?.trim();
-    return configuredUrl ? configuredUrl.replace(/\/+$/, "") : null;
-}
 
 async function readJsonSafely(response: Response) {
     try {

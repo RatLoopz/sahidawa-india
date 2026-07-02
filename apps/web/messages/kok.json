@@ -941,5 +941,21 @@
         "description": "तुमी सोदतात तें पान अस्तित्वांत ना वा स्थलांतरीत जालां आसूं येता.",
         "backHome": "मूळ पानाचेर वचात",
         "scanMedicine": "वखद स्कॅन करात"
+    "Settings": {
+        "channelRequired": "Unne-unne ek sampark madhyam (SMS va WhatsApp) sakriya aspak zai.",
+        "optOutConfirm": "Tumi kharench opt out korun soglle SMS ani WhatsApp alert bond korpak sodtat?",
+        "loadingPreferences": "Tumchyo posonti load zata...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
     }
 }
