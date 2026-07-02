@@ -184,7 +184,9 @@ export default function ScheduleDetailPage() {
                                                 : "bg-slate-100 text-slate-600 dark:bg-slate-900/30 dark:text-slate-400"
                                         }`}
                                     >
-                                        {state.schedule.is_active ? t("statusActive") : t("statusPaused")}
+                                        {state.schedule.is_active
+                                            ? t("statusActive")
+                                            : t("statusPaused")}
                                     </span>
                                 </div>
 
@@ -194,7 +196,9 @@ export default function ScheduleDetailPage() {
                                             {t("frequencyLabel")}
                                         </span>
                                         <p className="mt-0.5 font-semibold text-(--color-text-primary)">
-                                            {t("frequencyValue", { count: state.schedule.frequency })}
+                                            {t("frequencyValue", {
+                                                count: state.schedule.frequency,
+                                            })}
                                         </p>
                                     </div>
                                     <div>
@@ -243,7 +247,9 @@ export default function ScheduleDetailPage() {
                                         onClick={handleToggleActive}
                                         className="inline-flex items-center gap-1.5 rounded-lg border border-(--color-border-muted) px-3 py-2 text-sm font-semibold text-(--color-text-secondary) transition hover:bg-(--color-surface-muted)"
                                     >
-                                        {state.schedule.is_active ? t("pauseAction") : t("resumeAction")}
+                                        {state.schedule.is_active
+                                            ? t("pauseAction")
+                                            : t("resumeAction")}
                                     </button>
                                     <button
                                         type="button"
