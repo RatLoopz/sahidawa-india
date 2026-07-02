@@ -882,5 +882,12 @@
             "confirmPasswordRequired": "Please confirm your password.",
             "passwordMismatch": "Passwords do not match."
         }
+    },
+    "NotFound": {
+        "badge": "404 ದೋಷ",
+        "title": "ಪುಟ ಕಂಡುಬಂದಿಲ್ಲ",
+        "description": "ನೀವು ಹುಡುಕುತ್ತಿರುವ ಪುಟ ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ ಅಥವಾ ಸ್ಥಳಾಂತರಿಸಿರಬಹುದು.",
+        "backHome": "ಮುಖಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ",
+        "scanMedicine": "ಔಷಧಿಯನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ"
     }
 }

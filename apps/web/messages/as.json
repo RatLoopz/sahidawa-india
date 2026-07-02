@@ -888,5 +888,12 @@
             "confirmPasswordRequired": "Please confirm your password.",
             "passwordMismatch": "Passwords do not match."
         }
+    },
+    "NotFound": {
+        "badge": "404 ত্ৰুটি",
+        "title": "পৃষ্ঠা পোৱা নগ'ল",
+        "description": "আপুনি বিচৰা পৃষ্ঠাটো নাই বা স্থানান্তৰিত কৰা হৈছে।",
+        "backHome": "মূল পৃষ্ঠালৈ উভতি যাওক",
+        "scanMedicine": "ঔষধ স্কেন কৰক"
     }
 }

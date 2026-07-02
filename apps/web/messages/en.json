@@ -148,7 +148,6 @@
         "composition": "Composition",
         "ScanBarcode": "Scan Barcode",
         "offlineVerify": "Queue Scan",
-
         "batch_recalled_title": "This batch has been recalled",
         "batch_recalled_body": "Please do not use this medicine. Return it to your pharmacy immediately.",
         "save_to_abha": "Save to ABHA Record"
@@ -1243,5 +1242,12 @@
         "uploadSuccess": "Successfully added {count} rules.",
         "invalidCsv": "Invalid CSV format. Ensure columns: original_term, normalized_term, type.",
         "uploadError": "Failed to upload CSV rules."
+    },
+    "NotFound": {
+        "badge": "404 Error",
+        "title": "Page not found",
+        "description": "The page you are looking for doesn't exist or may have been moved.",
+        "backHome": "Go back home",
+        "scanMedicine": "Scan Medicine"
     }
 }

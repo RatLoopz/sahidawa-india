@@ -934,5 +934,12 @@
             "confirmPasswordRequired": "Please confirm your password.",
             "passwordMismatch": "Passwords do not match."
         }
+    },
+    "NotFound": {
+        "badge": "404 त्रुटी",
+        "title": "पान मेळ्ळें ना",
+        "description": "तुमी सोदतात तें पान अस्तित्वांत ना वा स्थलांतरीत जालां आसूं येता.",
+        "backHome": "मूळ पानाचेर वचात",
+        "scanMedicine": "वखद स्कॅन करात"
     }
 }

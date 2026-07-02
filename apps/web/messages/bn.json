@@ -882,5 +882,12 @@
             "confirmPasswordRequired": "Please confirm your password.",
             "passwordMismatch": "Passwords do not match."
         }
+    },
+    "NotFound": {
+        "badge": "404 ত্রুটি",
+        "title": "পৃষ্ঠা পাওয়া যায়নি",
+        "description": "আপনি যে পৃষ্ঠাটি খুঁজছেন তা বিদ্যমান নেই বা সরানো হতে পারে।",
+        "backHome": "হোমে ফিরে যান",
+        "scanMedicine": "ওষুধ স্ক্যান করুন"
     }
 }

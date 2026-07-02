@@ -897,5 +897,12 @@
             "confirmPasswordRequired": "Please confirm your password.",
             "passwordMismatch": "Passwords do not match."
         }
+    },
+    "NotFound": {
+        "badge": "404 ભૂલ",
+        "title": "પૃષ્ઠ મળ્યું નથી",
+        "description": "તમે જે પૃષ્ઠ શોધી રહ્યાં છો તે અસ્તિત્વમાં નથી અથવા ખસેડવામાં આવ્યું હોઈ શકે છે.",
+        "backHome": "હોમ પર પાછા જાઓ",
+        "scanMedicine": "દવા સ્કેન કરો"
     }
 }
