@@ -40,7 +40,7 @@ jobs:
       - name: "⚙️ Setup Node.js 24"
         uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
 
       # ── 3. Extract PR metadata ────────────────────────────────────────────────
       - name: "🔍 Extract PR metadata"
