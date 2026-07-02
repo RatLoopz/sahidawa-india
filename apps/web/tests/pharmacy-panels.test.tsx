@@ -81,7 +81,9 @@ describe("PharmacyPanels", () => {
 
         expect(markup).toContain("Nearby Pharmacies");
         expect(markup).toContain("No pharmacies found nearby");
-        expect(markup).toContain("Try widening the search area or using your current location to find nearby verified stores.");
+        expect(markup).toContain(
+            "Try widening the search area or using your current location to find nearby verified stores."
+        );
         expect(markup).toContain("Use my location");
     });
 
