@@ -864,12 +864,14 @@
             "confirm": "നീക്കം ചെയ്യുക",
             "cancel": "റദ്ദാക്കുക"
         }
+    },
     "NotFound": {
         "badge": "Error 404",
         "title": "Page Not Found",
         "description": "We couldn't find the medicine or page you were looking for. It might have been moved, or the URL might be incorrect.",
         "backHome": "Back to Home",
         "scanMedicine": "Scan Medicine"
+    },
     "Settings": {
         "channelRequired": "Kurannathu oru aashayavinimaya channel (SMS allenkil WhatsApp) sakriyamaayirikkanam.",
         "optOutConfirm": "Ningal opt out cheythu ella SMS, WhatsApp alertukalum niruthanamennu urappano?",
@@ -886,5 +888,12 @@
         "languageOptionPa": "ਪੰਜਾਬੀ",
         "languageOptionUr": "اردو",
         "languageOptionAs": "অসমীয়া"
+    },
+    "AbhaRecords": {
+        "backToProfile": "പ്രൊഫൈലിലേക്ക് മടങ്ങുക",
+        "title": "ABHA റെക്കോർഡുകൾ",
+        "loading": "റെക്കോർഡുകൾ ലോഡ് ചെയ്യുന്നു...",
+        "noPrescriptions": "പ്രിസ്ക്രിപ്ഷനുകളൊന്നും കണ്ടെത്തിയില്ല.",
+        "failedToLoad": "റെക്കോർഡുകൾ ലോഡ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു"
     }
 }

@@ -927,12 +927,14 @@
             "confirm": "আঁতৰাওক",
             "cancel": "বাতিল কৰক"
         }
+    },
     "NotFound": {
         "badge": "404 ত্ৰুটি",
         "title": "পৃষ্ঠা পোৱা নগ'ল",
         "description": "আপুনি বিচৰা পৃষ্ঠাটো নাই বা স্থানান্তৰিত কৰা হৈছে।",
         "backHome": "মূল পৃষ্ঠালৈ উভতি যাওক",
         "scanMedicine": "ঔষধ স্কেন কৰক"
+    },
     "Settings": {
         "channelRequired": "Ontoto eta jogajog madhyam (SMS ba WhatsApp) sokriyo hobo lagibo.",
         "optOutConfirm": "Apuni nischitne je opt out kori sob SMS aru WhatsApp sotorkobarta bondho koribo bisare?",
@@ -949,5 +951,12 @@
         "languageOptionPa": "ਪੰਜਾਬੀ",
         "languageOptionUr": "اردو",
         "languageOptionAs": "অসমীয়া"
+    },
+    "AbhaRecords": {
+        "backToProfile": "প্ৰফাইললৈ ঘূৰি যাওক",
+        "title": "ABHA ৰেকৰ্ডসমূহ",
+        "loading": "ৰেকৰ্ডসমূহ লোড হৈ আছে...",
+        "noPrescriptions": "কোনো প্ৰেছক্ৰিপচন পোৱা নগ’ল।",
+        "failedToLoad": "ৰেকৰ্ডসমূহ লোড কৰিবলৈ ব্যৰ্থ হৈছে"
     }
 }

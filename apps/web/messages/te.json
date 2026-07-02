@@ -921,12 +921,14 @@
             "confirm": "తీసివేయండి",
             "cancel": "రద్దు చేయండి"
         }
+    },
     "NotFound": {
         "badge": "404 లోపం",
         "title": "పేజీ కనుగొనబడలేదు",
         "description": "మీరు వెతుకుతున్న పేజీ లేదు లేదా తీసివేయబడి ఉండవచ్చు.",
         "backHome": "మరలా హోమ్‌కి వెళ్లండి",
         "scanMedicine": "మందును స్కాన్ చేయండి"
+    },
     "Settings": {
         "channelRequired": "Kaneesam oka communication channel (SMS leda WhatsApp) prarambhinchali.",
         "optOutConfirm": "Meeru nijanga opt out chesi anni SMS mariyu WhatsApp heccharikalanu aapalanukuntunnara?",
@@ -943,5 +945,12 @@
         "languageOptionPa": "ਪੰਜਾਬੀ",
         "languageOptionUr": "اردو",
         "languageOptionAs": "অসমীয়া"
+    },
+    "AbhaRecords": {
+        "backToProfile": "ప్రొఫైల్‌కు తిరిగి వెళ్ళు",
+        "title": "ABHA రికార్డులు",
+        "loading": "రికార్డులు లోడ్ అవుతున్నాయి...",
+        "noPrescriptions": "ప్రిస్క్రిప్షన్లు ఏవీ కనుగొనబడలేదు.",
+        "failedToLoad": "రికార్డులను లోడ్ చేయడం విఫలమైంది"
     }
 }

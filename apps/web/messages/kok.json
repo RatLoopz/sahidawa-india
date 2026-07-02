@@ -973,12 +973,14 @@
             "confirm": "काडून उडयात",
             "cancel": "रद्द करात"
         }
+    },
     "NotFound": {
         "badge": "404 त्रुटी",
         "title": "पान मेळ्ळें ना",
         "description": "तुमी सोदतात तें पान अस्तित्वांत ना वा स्थलांतरीत जालां आसूं येता.",
         "backHome": "मूळ पानाचेर वचात",
         "scanMedicine": "वखद स्कॅन करात"
+    },
     "Settings": {
         "channelRequired": "Unne-unne ek sampark madhyam (SMS va WhatsApp) sakriya aspak zai.",
         "optOutConfirm": "Tumi kharench opt out korun soglle SMS ani WhatsApp alert bond korpak sodtat?",
@@ -995,5 +997,12 @@
         "languageOptionPa": "ਪੰਜਾਬੀ",
         "languageOptionUr": "اردو",
         "languageOptionAs": "অসমীয়া"
+    },
+    "AbhaRecords": {
+        "backToProfile": "फाटी वचात",
+        "title": "ABHA रेकॉड",
+        "loading": "रेकॉड लोड जाता...",
+        "noPrescriptions": "खंयचेंय प्रिस्क्रिप्शन मेळ्ळें ना.",
+        "failedToLoad": "रेकॉड लोड करपाक अपेशी आयलें"
     }
 }
