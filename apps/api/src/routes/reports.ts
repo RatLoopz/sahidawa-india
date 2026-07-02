@@ -1,6 +1,7 @@
 import { Router, Response, NextFunction } from "express";
 import { z } from "zod";
 import { supabase } from "../db/client";
+import { uuidSchema } from "../utils/validation";
 import { AuthenticatedRequest, optionalAuth, requireAuth, requireRole } from "../middleware/auth";
 import { reportLimiter } from "../middleware/rateLimit";
 import {
@@ -12,6 +13,8 @@ import { triggerRecallAlert } from "../services/notifications";
 import logger from "../utils/logger";
 
 const reportsRouter = Router();
+const DEFAULT_ADMIN_REPORTS_LIMIT = 20;
+const MAX_ADMIN_REPORTS_LIMIT = 100;
 
 // Blocked hostname patterns for image URL SSRF protection.
 // z.string().url() only validates URL format, not destination.
@@ -69,7 +72,7 @@ const createReportSchema = z
             .max(180, "Longitude must be between -180 and 180")
             .optional(),
         scannedBarcode: z.string().optional(),
-        medicineId: z.string().uuid().optional(),
+        medicineId: uuidSchema.optional(),
     })
     .superRefine((data, ctx) => {
         const validDistricts =
@@ -242,19 +245,68 @@ reportsRouter.get("/mine", requireAuth, async (req: AuthenticatedRequest, res: R
     }
 });
 
-reportsRouter.get("/", requireAuth, requireRole("admin"), async (_req, res: Response) => {
+reportsRouter.get("/", requireAuth, requireRole("admin"), async (req, res: Response) => {
+    const rawLimit = req.query.limit;
+    let limit = DEFAULT_ADMIN_REPORTS_LIMIT;
+
+    if (rawLimit !== undefined) {
+        if (typeof rawLimit !== "string") {
+            res.status(400).json({ error: "Invalid limit parameter" });
+            return;
+        }
+
+        const parsedLimit = Number(rawLimit);
+
+        if (!Number.isInteger(parsedLimit) || parsedLimit < 1) {
+            res.status(400).json({ error: "Invalid limit parameter" });
+            return;
+        }
+
+        limit = Math.min(parsedLimit, MAX_ADMIN_REPORTS_LIMIT);
+    }
+
+    const cursor = req.query.cursor;
+
+    if (cursor !== undefined) {
+        if (typeof cursor !== "string" || Number.isNaN(Date.parse(cursor))) {
+            res.status(400).json({ error: "Invalid cursor parameter" });
+            return;
+        }
+    }
+
     try {
-        const { data, error } = await supabase
+        let query = supabase
             .from("counterfeit_reports")
             .select("*")
-            .order("created_at", { ascending: false });
+            .order("created_at", { ascending: false })
+            .limit(limit + 1);
+
+        if (cursor) {
+            query = query.lt("created_at", cursor);
+        }
+
+        const { data, error } = await query;
 
         if (error) {
             res.status(500).json({ error: "Failed to fetch counterfeit reports" });
             return;
         }
 
-        res.json({ reports: data });
+        const reports = data ?? [];
+        const hasMore = reports.length > limit;
+        const pageReports = reports.slice(0, limit);
+        const nextCursor = hasMore
+            ? (pageReports[pageReports.length - 1]?.created_at ?? null)
+            : null;
+
+        res.json({
+            reports: pageReports,
+            pagination: {
+                limit,
+                hasMore,
+                nextCursor,
+            },
+        });
     } catch (err) {
         console.error("Unexpected error in GET /api/reports:", err);
         res.status(500).json({ error: "An unexpected error occurred" });
@@ -266,6 +318,12 @@ reportsRouter.patch(
     requireAuth,
     requireRole("admin"),
     async (req, res: Response) => {
+        const parsedId = uuidSchema.safeParse(req.params.id);
+        if (!parsedId.success) {
+            res.status(400).json({ error: "Invalid UUID format" });
+            return;
+        }
+
         const { status } = req.body as { status?: string };
         const allowedStatuses = ["pending", "verified_fake", "false_alarm"];
 
@@ -290,9 +348,14 @@ reportsRouter.patch(
                 return;
             }
 
+            const updatePayload: Record<string, unknown> = { status };
+            if (status === "verified_fake" || status === "false_alarm") {
+                updatePayload.is_escalated = false;
+            }
+
             const { data, error } = await supabase
                 .from("counterfeit_reports")
-                .update({ status })
+                .update(updatePayload)
                 .eq("id", req.params.id)
                 .select()
                 .single();

@@ -38,6 +38,10 @@ export interface PharmacyPanelsProps {
     onSelectPharmacy: (pharmacyId: number) => void;
     onHeatmapModeChange: (mode: HeatmapMode) => void;
     className?: string;
+    emptyStateTitle?: string;
+    emptyStateDescription?: string;
+    emptyStateActionLabel?: string;
+    onEmptyStateAction?: () => void;
 }
 
 export interface TrustBreakdown {
@@ -354,7 +358,10 @@ function PharmacyPanelRow({
                         <Heart size={6} />
                         {pharmacy.type === "govt" ? "Jan Aushadhi" : "Private"}
                     </span>
-                    <PharmacyStatusBadge operatingHours={pharmacy.operatingHours} />
+                    <PharmacyStatusBadge
+                        operatingHours={pharmacy.operatingHours}
+                        timezone={pharmacy.timezone}
+                    />
                 </div>
 
                 {/* TRUST BREAKDOWN PANEL */}
@@ -597,6 +604,10 @@ export default function PharmacyPanels({
     onSelectPharmacy,
     onHeatmapModeChange,
     className,
+    emptyStateTitle,
+    emptyStateDescription,
+    emptyStateActionLabel,
+    onEmptyStateAction,
 }: PharmacyPanelsProps) {
     const verifiedCount = pharmacies.filter((pharmacy) => pharmacy.isVerified).length;
     const govtCount = pharmacies.filter((pharmacy) => pharmacy.type === "govt").length;
@@ -610,7 +621,7 @@ export default function PharmacyPanels({
 
     return (
         <section
-            className={`flex h-full flex-col overflow-hidden rounded-[28px] border border-(--color-border-muted) bg-(--color-surface-page)/96 shadow-xl backdrop-blur-xl ${
+            className={`relative z-10 flex h-full flex-col overflow-hidden rounded-[28px] border border-(--color-border-muted) bg-(--color-surface-page)/96 shadow-xl backdrop-blur-xl ${
                 className || ""
             }`}
         >
@@ -715,8 +726,13 @@ export default function PharmacyPanels({
                 ) : pharmacies.length === 0 ? (
                     <EmptyState
                         icon={<MapPin size={26} className="text-slate-400" />}
-                        title="No pharmacies found"
-                        description="Try panning the map and pressing “Search this area”"
+                        title={emptyStateTitle ?? "No pharmacies found nearby"}
+                        description={
+                            emptyStateDescription ??
+                            "Try widening the search area or using your current location to find nearby verified stores."
+                        }
+                        actionLabel={emptyStateActionLabel}
+                        onAction={onEmptyStateAction}
                         className="border-none !bg-transparent p-6 shadow-none"
                     />
                 ) : (

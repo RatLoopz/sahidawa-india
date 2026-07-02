@@ -1,50 +1,44 @@
 "use client";
 
 import { Clock } from "lucide-react";
-
-/**
- * Parses "09:00 - 21:00" format and checks if current local time falls within.
- */
-export function isPharmacyOpen(operatingHours: string): boolean {
-    if (!operatingHours || typeof operatingHours !== "string") return false;
-
-    const match = operatingHours.match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
-    if (!match) return false;
-
-    const openH = parseInt(match[1], 10);
-    const openM = parseInt(match[2], 10);
-    const closeH = parseInt(match[3], 10);
-    const closeM = parseInt(match[4], 10);
-
-    const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    const openMinutes = openH * 60 + openM;
-    const closeMinutes = closeH * 60 + closeM;
-
-    if (openMinutes < closeMinutes) {
-        return currentMinutes >= openMinutes && currentMinutes < closeMinutes;
-    }
-    return currentMinutes >= openMinutes || currentMinutes < closeMinutes;
-}
+import { getOpenNowStatus } from "@/lib/openingHours";
 
 interface PharmacyStatusBadgeProps {
-    operatingHours?: string;
+    operatingHours?: string | null;
+    timezone?: string | null;
 }
 
 /**
- * Renders Open/Closed badge based on current time vs operatingHours string.
+ * Renders an Open / Closed / "Hours unavailable" badge based on the
+ * pharmacy's OSM-syntax operatingHours, evaluated against the current time
+ * in its timezone (see lib/openingHours.ts for the parsing rules).
+ *
+ * Locations with missing or unparseable hours fall back to a visible
+ * "Hours unavailable" badge rather than rendering nothing (#2862).
  */
-export function PharmacyStatusBadge({ operatingHours }: PharmacyStatusBadgeProps) {
-    if (!operatingHours) return null;
+export function PharmacyStatusBadge({ operatingHours, timezone }: PharmacyStatusBadgeProps) {
+    const { status } = getOpenNowStatus(operatingHours, timezone);
 
-    const open = isPharmacyOpen(operatingHours);
+    if (status === "unavailable") {
+        return (
+            <span
+                className="inline-flex items-center gap-0.5 rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold text-slate-500 dark:bg-slate-900 dark:text-slate-400"
+                aria-label="Hours unavailable"
+            >
+                <Clock size={7} />
+                Hours unavailable
+            </span>
+        );
+    }
+
+    const open = status === "open";
 
     return (
         <span
             className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold ${
                 open
                     ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400"
-                    : "bg-slate-100 text-slate-500 dark:bg-slate-900 dark:text-slate-400"
+                    : "bg-rose-100 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400"
             }`}
             aria-label={open ? "Currently open" : "Currently closed"}
         >

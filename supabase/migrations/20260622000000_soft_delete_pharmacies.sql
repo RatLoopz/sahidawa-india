@@ -114,7 +114,15 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- Update get_pharmacies_in_bounds_delta to return is_active and deleted_at,
 -- and return soft-deleted pharmacies if since is specified.
-CREATE OR REPLACE FUNCTION get_pharmacies_in_bounds_delta(
+DROP FUNCTION IF EXISTS public.get_pharmacies_in_bounds_delta(
+    DOUBLE PRECISION,
+    DOUBLE PRECISION,
+    DOUBLE PRECISION,
+    DOUBLE PRECISION,
+    TIMESTAMP WITH TIME ZONE
+);
+
+CREATE FUNCTION public.get_pharmacies_in_bounds_delta(
   bound_south DOUBLE PRECISION,
   bound_west  DOUBLE PRECISION,
   bound_north DOUBLE PRECISION,

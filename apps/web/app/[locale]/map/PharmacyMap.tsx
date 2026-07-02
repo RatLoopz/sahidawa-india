@@ -35,7 +35,10 @@ export interface Pharmacy {
     phone?: string;
     website?: string;
     isVerified?: boolean;
+    /** OSM `opening_hours` syntax, e.g. "Mo-Sa 09:00-21:00". Missing = hours unavailable. */
     operatingHours?: string;
+    /** IANA timezone to evaluate operatingHours against. Defaults to Asia/Kolkata. */
+    timezone?: string;
 }
 
 export interface MapBounds {

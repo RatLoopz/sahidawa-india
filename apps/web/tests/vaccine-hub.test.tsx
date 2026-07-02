@@ -3,6 +3,17 @@ import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import VaccineHubPage from "@/app/[locale]/vaccine-hub/page";
 
+jest.mock("@/lib/supabase", () => ({
+    supabase: {
+        auth: {
+            getSession: jest.fn().mockResolvedValue({ data: { session: null } }),
+            onAuthStateChange: jest
+                .fn()
+                .mockReturnValue({ data: { subscription: { unsubscribe: jest.fn() } } }),
+        },
+    },
+}));
+
 jest.mock("next-intl", () => ({
     useLocale: () => "en",
     useTranslations: () => {

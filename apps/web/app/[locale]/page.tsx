@@ -29,26 +29,20 @@ import SafetyStatsBanner from "@/components/SafetyStatsBanner";
 import { getVisibleAlertBatchNumber } from "@/lib/alertFormatting";
 import { usePredictivePrefetch } from "@/src/hooks/usePredictivePrefetch";
 
-function formatRelativeTime(dateString: string | null): string {
-    if (!dateString) return "Recent";
+function formatRelativeTime(dateString: string | null, locale: string): string {
+    if (!dateString) return "—";
 
     const now = new Date();
     const past = new Date(dateString);
-    const msPerMinute = 60 * 1000;
-    const msPerHour = msPerMinute * 60;
-    const msPerDay = msPerHour * 24;
-
     const elapsed = now.getTime() - past.getTime();
+    const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+    if (Math.abs(elapsed) < 60000) return rtf.format(0, "second");
 
-    if (elapsed < msPerMinute) {
-        return "Just now";
-    } else if (elapsed < msPerHour) {
-        return `${Math.round(elapsed / msPerMinute)}m ago`;
-    } else if (elapsed < msPerDay) {
-        return `${Math.round(elapsed / msPerHour)}h ago`;
-    } else {
-        return past.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-    }
+    if (Math.abs(elapsed) < 3600000) return rtf.format(-Math.round(elapsed / 60000), "minute");
+
+    if (Math.abs(elapsed) < 86400000) return rtf.format(-Math.round(elapsed / 3600000), "hour");
+
+    return rtf.format(-Math.round(elapsed / 86400000), "day");
 }
 
 const testimonials = [
@@ -87,7 +81,7 @@ const testimonials = [
 export default function SahiDawaHome() {
     const router = useRouter();
     const params = useParams();
-    const locale = Array.isArray(params.locale) ? params.locale[0] : params.locale;
+    const locale = Array.isArray(params.locale) ? params.locale[0] : (params.locale ?? "en");
     const tHome = useTranslations("Home");
     const tContact = useTranslations("contact");
 
@@ -657,7 +651,8 @@ export default function SahiDawaHome() {
                                                             </h4>
                                                             <span className="shrink-0 text-[11px] font-medium text-(--color-text-muted)">
                                                                 {formatRelativeTime(
-                                                                    alert.created_at
+                                                                    alert.created_at,
+                                                                    locale || "en"
                                                                 )}
                                                             </span>
                                                         </div>

@@ -4,15 +4,23 @@ import { supabase } from "../db/client";
 import logger from "../utils/logger";
 import { requireAuth, AuthenticatedRequest } from "../middleware/auth";
 import { limiter } from "../middleware/rateLimit";
+import { uuidSchema } from "../utils/validation";
 
 const router = Router();
 
+const MAX_WISHLIST_BATCH_PRODUCT_IDS = 100;
+
 const wishlistItemSchema = z.object({
-    product_id: z.string().uuid("Invalid product ID"),
+    product_id: uuidSchema,
 });
 
+const wishlistBatchProductIdsSchema = z
+    .array(uuidSchema)
+    .nonempty("At least one product ID required")
+    .max(MAX_WISHLIST_BATCH_PRODUCT_IDS, "Maximum 100 product IDs allowed");
+
 const guestWishlistSchema = z.object({
-    product_ids: z.array(z.string().uuid()).nonempty("At least one product ID required"),
+    product_ids: wishlistBatchProductIdsSchema,
 });
 
 interface WishlistItem {
@@ -148,6 +156,12 @@ router.delete(
     requireAuth,
     limiter,
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+        const parsedProductId = uuidSchema.safeParse(req.params.productId);
+        if (!parsedProductId.success) {
+            res.status(400).json({ error: "Invalid UUID format" });
+            return;
+        }
+
         if (!req.user) {
             res.status(401).json({ error: "Unauthorized" });
             return;
@@ -260,7 +274,7 @@ router.post(
     requireAuth,
     limiter,
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-        const parsed = z.object({ product_ids: z.array(z.string().uuid()) }).safeParse(req.body);
+        const parsed = z.object({ product_ids: wishlistBatchProductIdsSchema }).safeParse(req.body);
         if (!parsed.success) {
             res.status(400).json({
                 error: "Invalid request",

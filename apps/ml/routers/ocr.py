@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from starlette.concurrency import run_in_threadpool
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 import pytesseract
 import io
 import logging
@@ -35,6 +35,13 @@ async def extract_text(file: UploadFile = File(...)):
     try:
         # Read image content
         contents = await file.read()
+        
+        try:
+            image_to_verify = Image.open(io.BytesIO(contents))
+            image_to_verify.verify()
+        except (UnidentifiedImageError, SyntaxError):
+            raise HTTPException(status_code=400, detail="Invalid or corrupted image file.")
+            
         image = Image.open(io.BytesIO(contents))
 
         # Perform OCR to extract text

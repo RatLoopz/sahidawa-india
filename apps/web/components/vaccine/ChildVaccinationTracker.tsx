@@ -93,6 +93,8 @@ export function ChildVaccinationTracker() {
     const [tracker, setTracker] = useState<ChildTrackerState>(EMPTY_TRACKER_STATE);
     const [isOcrScanning, setIsOcrScanning] = useState(false);
     const [ocrError, setOcrError] = useState<string | null>(null);
+    const [syncError, setSyncError] = useState<string | null>(null);
+    const [syncRetryToken, setSyncRetryToken] = useState(0);
     const scanInputRef = useRef<HTMLInputElement>(null);
     const [syncContext, setSyncContext] = useState<SyncContext>({ status: "loading" });
     const hasUserEditedRef = useRef(false);
@@ -251,30 +253,56 @@ export function ChildVaccinationTracker() {
             (doseId) => !nextCompletedDoseIds.has(doseId)
         );
 
-        if (!addedDoseIds.length && !removedDoseIds.length) return;
+        if (!addedDoseIds.length && !removedDoseIds.length) {
+            setSyncError(null);
+            return;
+        }
 
-        cloudCompletedDoseIdsRef.current = nextCompletedDoseIds;
+        let isActive = true;
 
         const syncCompletedDoseIds = async () => {
-            await Promise.all([
-                ...addedDoseIds.map((doseId) =>
-                    supabase.from("child_completed_vaccinations").insert({
-                        child_profile_id: cloudProfileId,
-                        dose_id: doseId,
-                    })
-                ),
-                ...removedDoseIds.map((doseId) =>
-                    supabase
-                        .from("child_completed_vaccinations")
-                        .delete()
-                        .eq("child_profile_id", cloudProfileId)
-                        .eq("dose_id", doseId)
-                ),
-            ]);
+            try {
+                const results = await Promise.all([
+                    ...addedDoseIds.map((doseId) =>
+                        supabase.from("child_completed_vaccinations").insert({
+                            child_profile_id: cloudProfileId,
+                            dose_id: doseId,
+                        })
+                    ),
+                    ...removedDoseIds.map((doseId) =>
+                        supabase
+                            .from("child_completed_vaccinations")
+                            .delete()
+                            .eq("child_profile_id", cloudProfileId)
+                            .eq("dose_id", doseId)
+                    ),
+                ]);
+
+                const failedResult = results.find((result) => result.error);
+
+                if (failedResult?.error) {
+                    throw failedResult.error;
+                }
+
+                if (!isActive) return;
+
+                cloudCompletedDoseIdsRef.current = nextCompletedDoseIds;
+                setSyncError(null);
+            } catch {
+                if (!isActive) return;
+
+                setSyncError(
+                    "We couldn't save this vaccination change to your account. Your change is still shown here, but please try syncing again."
+                );
+            }
         };
 
         syncCompletedDoseIds();
-    }, [cloudProfileId, tracker.completedDoseIds]);
+
+        return () => {
+            isActive = false;
+        };
+    }, [cloudProfileId, syncRetryToken, tracker.completedDoseIds]);
 
     const handleNameChange = (childName: string) => {
         hasUserEditedRef.current = true;
@@ -490,6 +518,24 @@ export function ChildVaccinationTracker() {
                         <AlertCircle size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
                         <span>{ocrError}</span>
                     </p>
+                </div>
+            )}
+
+            {syncError && (
+                <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-900 dark:border-red-900 dark:bg-red-950/40 dark:text-red-100">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <p className="flex items-start gap-2">
+                            <AlertCircle size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+                            <span>{syncError}</span>
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => setSyncRetryToken((current) => current + 1)}
+                            className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-lg border border-red-300 bg-white px-3 py-1.5 text-sm font-semibold text-red-800 transition-colors hover:bg-red-100 dark:border-red-800 dark:bg-slate-900 dark:text-red-100 dark:hover:bg-red-950/50"
+                        >
+                            Try again
+                        </button>
+                    </div>
                 </div>
             )}
 

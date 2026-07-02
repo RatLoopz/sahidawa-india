@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import { getPreferredRecordingMimeType } from "@/app/[locale]/voice/lib/recording";
 
 type VerificationResult = {
     medicine_name_original: string;
@@ -55,7 +56,8 @@ export function useVoiceVerification(): UseVoiceVerificationReturn {
         setError(null);
         try {
             const form = new FormData();
-            form.append("audio", blob, "recording.webm");
+            const ext = blob.type.includes("mp4") ? "mp4" : "webm";
+            form.append("audio", blob, `recording.${ext}`);
 
             const res = await fetch("/api/medicine/verify-voice", {
                 method: "POST",
@@ -102,7 +104,8 @@ export function useVoiceVerification(): UseVoiceVerificationReturn {
             draw();
 
             // Start MediaRecorder
-            const recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+            const mimeType = getPreferredRecordingMimeType(MediaRecorder);
+            const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
             chunksRef.current = [];
 
             recorder.ondataavailable = (e) => {
@@ -114,7 +117,7 @@ export function useVoiceVerification(): UseVoiceVerificationReturn {
                 if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
                 setAudioLevel(0);
 
-                const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+                const blob = new Blob(chunksRef.current, { type: mimeType || "audio/webm" });
                 await sendAudioToApi(blob);
             };
 

@@ -79,7 +79,12 @@
         "pdfExportSuccess": "PDF सफलतापूर्वक निर्यात हुई",
         "noMedicinesToDisplay": "दिखाने के लिए कोई दवा नहीं",
         "generatedOn": "तैयार तिथि",
-        "deleteMedicine": "दवा हटाएं"
+        "deleteMedicine": "दवा हटाएं",
+        "cancelButton": "रद्द करें",
+        "deleteConfirmTitle": "दवा हटाएं?",
+        "deleteConfirmMessage": "यह \"{medicine}\" को आपकी ट्रैक की गई दवाओं से स्थायी रूप से हटा देगा। यह कार्रवाई पूर्ववत नहीं की जा सकती।",
+        "bulkDeleteConfirmTitle": "कई दवाएं हटाएं?",
+        "bulkDeleteConfirmMessage": "यह आपकी ट्रैक की गई सूची से {count} दवा(ओं) को स्थायी रूप से हटा देगा। यह कार्रवाई पूर्ववत नहीं की जा सकती।"
     },
     "Navigation": {
         "how_it_works": "यह कैसे काम करता है",
@@ -974,7 +979,22 @@
         "optOutSuccess": "सभी सूचनाओं से सफलतापूर्वक सदस्यता रद्द हुई।",
         "errorMessage": "सेटिंग अपडेट नहीं हो सकी। कृपया पुनः प्रयास करें।",
         "phoneInvalid": "कृपया एक सही 10 अंकों का भारतीय फ़ोन नंबर दर्ज करें।",
-        "districtRequired": "स्थानीय चेतावनियाँ पाने के लिए कृपया जिला बताएं।"
+        "districtRequired": "स्थानीय चेतावनियाँ पाने के लिए कृपया जिला बताएं।",
+        "channelRequired": "Kam se kam ek sanchar madhyam (SMS ya WhatsApp) saksham hona chahiye.",
+        "optOutConfirm": "Kya aap waqai opt out karke sabhi SMS aur WhatsApp alert band karna chahte hain?",
+        "loadingPreferences": "Aapki prathamiktaen load ho rahi hain...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
     },
     "Interactions": {
         "title": "दवा इंटरेक्शन जाँचकर्ता",
@@ -1167,5 +1187,58 @@
         "warningsLabel": "चेतावनियाँ",
         "ariaStartRecording": "रिकॉर्डिंग शुरू करें",
         "ariaStopRecording": "रिकॉर्डिंग रोकें"
+    },
+    "MyMedicines": {
+        "page": {
+            "title": "मेरी ट्रैक की गई दवाएं",
+            "loading": "आपकी ट्रैक की गई दवाएं लोड हो रही हैं..."
+        },
+        "errors": {
+            "title": "आपकी दवाएं लोड नहीं हो सकीं",
+            "generic": "आपकी ट्रैक की गई दवाओं को लाते समय कुछ गलत हो गया।",
+            "fetchFailed": "ट्रैक की गई दवाएं लोड करने में विफल। कृपया अपना कनेक्शन जांचें और पुनः प्रयास करें।",
+            "tryAgain": "पुनः प्रयास करें"
+        },
+        "emptyState": {
+            "title": "अभी तक कोई दवा ट्रैक नहीं की गई",
+            "description": "सक्रिय शेड्यूल, सुरक्षा अपडेट और समाप्ति तिथियों को स्वचालित रूप से ट्रैक करने के लिए अपनी वर्तमान दवाइयां जोड़ें।",
+            "addFirst": "अपनी पहली दवा जोड़ें"
+        },
+        "table": {
+            "name": "नाम",
+            "expiry": "समाप्ति",
+            "status": "स्थिति",
+            "daysLeft": "{count} दिन शेष"
+        },
+        "badges": {
+            "verified": "सत्यापित",
+            "unverified": "असत्यापित",
+            "requestVerificationTitle": "सत्यापन का अनुरोध करने के लिए क्लिक करें"
+        },
+        "bookmarks": {
+            "savedAlternatives": "सहेजे गए विकल्प",
+            "noBookmarks": "अभी तक कोई बुकमार्क नहीं है।",
+            "brand": "ब्रांड: {brand}"
+        },
+        "removeDialog": {
+            "title": "बुकमार्क हटाएं?",
+            "description": "यह \"{name}\" को आपके सहेजे गए विकल्पों से हटा देगा। यदि आवश्यक हो तो आप इसे बाद में वापस जोड़ सकते हैं।",
+            "confirm": "हटाएं",
+            "cancel": "रद्द करें"
+        }
+    },
+    "NotFound": {
+        "badge": "404 त्रुटि",
+        "title": "पृष्ठ नहीं मिला",
+        "description": "आप जो पृष्ठ खोज रहे हैं वह मौजूद नहीं है या हटा दिया गया है।",
+        "backHome": "होम पर वापस जाएं",
+        "scanMedicine": "दवा स्कैन करें"
+    },
+    "AbhaRecords": {
+        "backToProfile": "प्रोफ़ाइल पर वापस जाएं",
+        "title": "ABHA रिकॉर्ड",
+        "loading": "रिकॉर्ड लोड हो रहे हैं...",
+        "noPrescriptions": "कोई नुस्खा नहीं मिला।",
+        "failedToLoad": "रिकॉर्ड लोड करने में विफल"
     }
 }

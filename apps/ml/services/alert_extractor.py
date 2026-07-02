@@ -288,8 +288,8 @@ def extract_alerts_from_pdf_images(pdf_bytes: bytes) -> List[Dict[str, Any]]:
             logging.warning("Empty PDF document.")
             return []
 
-        # Use gemini-1.5-flash since it's highly optimized for multimodal tasks (and cost-efficient)
-        llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0, google_api_key=api_key)
+        # Use gemini-3.5-flash since it's highly optimized for multimodal tasks (and cost-efficient)
+        llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0, google_api_key=api_key)
         structured_llm = llm.with_structured_output(AlertList)
 
         all_alerts = []

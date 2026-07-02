@@ -1,10 +1,5 @@
 export type TargetGroupType =
-    | "Newborn"
-    | "Infant"
-    | "Child"
-    | "Adolescent"
-    | "Adult"
-    | "Pregnant Women";
+    "Newborn" | "Infant" | "Child" | "Adolescent" | "Adult" | "Pregnant Women";
 export type VaccineCategoryType = "Viral" | "Bacterial" | "Combination";
 
 export interface VaccineProfile {

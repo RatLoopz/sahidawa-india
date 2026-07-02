@@ -13,6 +13,8 @@ export interface PharmacyRpcResult {
     updated_at?: string;
     is_active?: boolean;
     deleted_at?: string | null;
+    operating_hours?: string | null;
+    timezone?: string | null;
 }
 
 /** Formatted pharmacy object returned in triage responses. */
@@ -30,4 +32,6 @@ export interface FormattedPharmacy {
     updated_at?: string;
     is_active?: boolean;
     deleted_at?: string | null;
+    operating_hours?: string | null;
+    timezone?: string | null;
 }

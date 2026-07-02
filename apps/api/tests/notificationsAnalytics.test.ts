@@ -7,6 +7,7 @@ var mockDeleteEq: jest.Mock;
 var mockSelect: jest.Mock;
 var mockDelete: jest.Mock;
 var mockFrom: jest.Mock;
+var mockRange: jest.Mock;
 
 jest.mock("web-push", () => ({
     __esModule: true,
@@ -18,7 +19,8 @@ jest.mock("web-push", () => ({
 
 jest.mock("../src/db/client", () => ({
     supabase: (() => {
-        mockOrder = jest.fn();
+        mockRange = jest.fn();
+        mockOrder = jest.fn(() => ({ range: mockRange }));
         mockInsert = jest.fn();
         mockDeleteEq = jest.fn();
         mockSelect = jest.fn(() => ({ order: mockOrder }));
@@ -70,7 +72,7 @@ describe("push notification delivery analytics", () => {
     it("records sent and failed delivery events when recall pushes are dispatched", async () => {
         const sentEndpoint = "https://push.example.test/subscription/sent";
         const goneEndpoint = "https://push.example.test/subscription/gone";
-        mockOrder.mockResolvedValueOnce({
+        mockRange.mockResolvedValueOnce({
             data: [pushSubscriptionRow(sentEndpoint), pushSubscriptionRow(goneEndpoint)],
             error: null,
         });
@@ -126,7 +128,7 @@ describe("push notification delivery analytics", () => {
     });
 
     it("does not fail dispatch results when analytics persistence throws", async () => {
-        mockOrder.mockResolvedValueOnce({
+        mockRange.mockResolvedValueOnce({
             data: [pushSubscriptionRow("https://push.example.test/subscription/sent")],
             error: null,
         });

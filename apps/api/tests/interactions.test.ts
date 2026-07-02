@@ -142,18 +142,14 @@ describe("POST /api/v1/interactions/check", () => {
     });
 
     it("should successfully check interactions when Supabase is online", async () => {
-        const mockMaybeSingle = supabase.maybeSingle as jest.Mock;
-
-        // Mock name resolutions
-        mockMaybeSingle
-            .mockResolvedValueOnce({
-                data: { brand_name: "Crocin", generic_name: "paracetamol" },
-                error: null,
-            })
-            .mockResolvedValueOnce({
-                data: { brand_name: "Coumadin", generic_name: "warfarin" },
-                error: null,
-            });
+        // Mock name resolutions (batched in .or())
+        (supabase.or as jest.Mock).mockResolvedValueOnce({
+            data: [
+                { brand_name: "Crocin", generic_name: "paracetamol" },
+                { brand_name: "Coumadin", generic_name: "warfarin" },
+            ],
+            error: null,
+        });
 
         // Mock drug interaction query
         (supabase.in as jest.Mock).mockReturnValueOnce(supabase).mockResolvedValueOnce({
@@ -200,11 +196,30 @@ describe("POST /api/v1/interactions/check", () => {
         expect(res.body.interactions[0].severity).toBe("serious");
     });
 
-    it("should handle error during name resolution and automatically set isSupabaseOffline", async () => {
-        const mockMaybeSingle = supabase.maybeSingle as jest.Mock;
+    it("should normalize offline brand names with dosages (e.g., Crocin 650, Dolo-650, Calpol 500mg)", async () => {
+        dbConfig.isSupabaseOffline = true;
 
-        // Mock database failure that causes fallback
-        mockMaybeSingle.mockResolvedValueOnce({
+        const tests = [
+            ["Crocin 650", "Coumadin"],
+            ["Dolo-650", "Warfarin"],
+            ["Calpol 500mg", "Warfarin"],
+        ];
+
+        for (const medicines of tests) {
+            const res = await request(app).post("/api/v1/interactions/check").send({ medicines });
+
+            expect(res.status).toBe(200);
+            expect(res.body.interactions).toHaveLength(1);
+            expect(res.body.interactions[0].drugA).toBe(medicines[0]);
+            expect(res.body.interactions[0].drugAGeneric).toBe("paracetamol");
+            expect(res.body.interactions[0].drugBGeneric).toBe("warfarin");
+            expect(res.body.interactions[0].severity).toBe("serious");
+        }
+    });
+
+    it("should handle error during name resolution and automatically set isSupabaseOffline", async () => {
+        // Mock database failure that causes fallback (batched in .or())
+        (supabase.or as jest.Mock).mockResolvedValueOnce({
             data: null,
             error: new Error("fetch failed"),
         });

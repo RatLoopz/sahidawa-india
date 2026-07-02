@@ -14,7 +14,11 @@ interface PageHeaderProps {
     backHref: string;
     variant?: "dark" | "light";
     hideBackButton?: boolean;
-    showLanguage?: boolean;
+    // allowed values:
+    // - undefined / false => render no language UI (default)
+    // - "label" => render a static language label
+    // - "switcher" => render the interactive LanguageSwitcher
+    showLanguage?: boolean | "label" | "switcher";
     languageName?: string;
     contentClassName?: string;
     childrenWrapperClassName?: string;
@@ -29,7 +33,12 @@ export const PageHeader = ({
     backHref,
     variant = "dark",
     hideBackButton = false,
-    showLanguage = false,
+    // Default to showing a static language label on internal page headers
+    // to avoid duplicating the global `LanguageSwitcher` in the navbar.
+    // By default, do not render any page-level language UI to avoid
+    // duplicating the global navbar `LanguageSwitcher` on internal pages.
+    // To show language UI, pass `showLanguage` as either "label" or "switcher".
+    showLanguage,
     languageName,
     contentClassName = "",
     childrenWrapperClassName = "min-w-0 flex-1",
@@ -39,6 +48,37 @@ export const PageHeader = ({
 }: PageHeaderProps) => {
     const tA11y = useTranslations("Accessibility");
     const isDark = variant === "dark";
+
+    const isEmptyHeader = !children && !title && !subtitle;
+
+    // When there is no title/subtitle/children, render a compact back button
+    // instead of the full-width header bar to avoid the empty horizontal box.
+    if (isEmptyHeader) {
+        return (
+            <div className="pointer-events-none">
+                {!hideBackButton && (
+                    <div className="pointer-events-auto absolute top-4 left-4 z-60">
+                        <Link
+                            href={backHref}
+                            aria-label={tA11y("go_back")}
+                            className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${pageHeaderFocusRingClass} ${
+                                isDark
+                                    ? "bg-white/10 backdrop-blur-md hover:bg-white/20"
+                                    : "bg-(--color-surface-muted) hover:bg-(--color-border-muted)"
+                            } ${backButtonClassName}`}
+                        >
+                            <ArrowLeft
+                                size={24}
+                                aria-hidden="true"
+                                className={isDark ? "text-white" : "text-(--color-text-secondary)"}
+                            />
+                            <span className="sr-only">{tA11y("go_back")}</span>
+                        </Link>
+                    </div>
+                )}
+            </div>
+        );
+    }
 
     return (
         <header
@@ -89,7 +129,7 @@ export const PageHeader = ({
                 >
                     {/* STATUS OR QUICK ACTIONS CONTAINER */}
 
-                    {showLanguage ? (
+                    {showLanguage === "label" ? (
                         <div
                             className="flex items-center gap-1.5 rounded-full border border-(--color-border-muted) bg-(--color-surface-page) px-3 py-1.5 shadow-sm"
                             role="status"
@@ -102,10 +142,9 @@ export const PageHeader = ({
                                 {languageName || "English"}
                             </span>
                         </div>
-                    ) : (
-                        /* Integrated your global dynamic LanguageSwitcher directly in place of the empty spacer */
+                    ) : showLanguage === "switcher" ? (
                         <LanguageSwitcher />
-                    )}
+                    ) : null}
                 </div>
             </div>
         </header>

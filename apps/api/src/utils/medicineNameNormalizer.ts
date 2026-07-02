@@ -7,18 +7,32 @@
  * Related: Issue #2686 - OCR-extracted medicine names are not normalized
  */
 
+import { supabase } from "../db/client";
+import { redisClient } from "./redis";
+import logger from "./logger";
+
 export interface NormalizationResult {
     original: string;
     normalized: string;
     corrections: string[];
 }
 
+export interface OcrSynonym {
+    id: string;
+    original_term: string;
+    normalized_term: string;
+    type: "misread" | "synonym";
+}
+
 class MedicineNameNormalizer {
+    private readonly CACHE_KEY = "ocr_synonyms:data";
+    private readonly CACHE_TTL = 3600; // 1 hour
+
     /**
      * OCR commonly confuses these characters with medicine names.
      * Built from analysis of failed lookups and OCR error logs.
      */
-    private readonly commonOcrMisreads = new Map<string, string>([
+    private commonOcrMisreads = new Map<string, string>([
         // Numbers often misread as letters
         ["0", "O"],
         ["1", "I"],
@@ -35,7 +49,7 @@ class MedicineNameNormalizer {
      * Common spelling variations and abbreviations in medicine names.
      * Helps match medicines despite user input variations.
      */
-    private readonly medicineSynonyms = new Map<string, string>([
+    private medicineSynonyms = new Map<string, string>([
         ["acetaminophen", "paracetamol"],
         ["ibuprofen", "ibuprofen"],
         ["clopidogrel", "plavix"],
@@ -43,6 +57,65 @@ class MedicineNameNormalizer {
         ["lisinopril", "prinivil"],
         ["metformin", "glucophage"],
     ]);
+
+    /**
+     * Load OCR synonyms from database (and cache in Redis).
+     */
+    public async loadFromDatabase(): Promise<void> {
+        try {
+            let data: OcrSynonym[] | null = null;
+
+            // 1. Try to read from Redis first
+            if (redisClient.isOpen) {
+                const cached = await redisClient.get(this.CACHE_KEY);
+                if (cached) {
+                    try {
+                        data = JSON.parse(cached);
+                    } catch (e) {
+                        logger.error("Failed to parse cached OCR synonyms", e);
+                    }
+                }
+            }
+
+            // 2. Fallback to DB
+            if (!data) {
+                const { data: dbData, error } = await supabase.from("ocr_synonyms").select("*");
+
+                if (error) {
+                    throw new Error(`Failed to fetch from DB: ${error.message}`);
+                }
+
+                data = dbData as OcrSynonym[];
+
+                // 3. Save to Redis
+                if (redisClient.isOpen && data) {
+                    await redisClient.setEx(this.CACHE_KEY, this.CACHE_TTL, JSON.stringify(data));
+                }
+            }
+
+            if (data && data.length > 0) {
+                const newMisreads = new Map<string, string>();
+                const newSynonyms = new Map<string, string>();
+
+                for (const item of data) {
+                    if (item.type === "misread") {
+                        newMisreads.set(item.original_term, item.normalized_term);
+                    } else if (item.type === "synonym") {
+                        newSynonyms.set(item.original_term, item.normalized_term);
+                    }
+                }
+
+                if (newMisreads.size > 0) this.commonOcrMisreads = newMisreads;
+                if (newSynonyms.size > 0) this.medicineSynonyms = newSynonyms;
+
+                logger.info(
+                    `Loaded OCR rules: ${this.commonOcrMisreads.size} misreads, ${this.medicineSynonyms.size} synonyms`
+                );
+            }
+        } catch (err) {
+            logger.error("Error loading OCR synonyms", err);
+        }
+    }
 
     /**
      * Normalize a single medicine name by applying multiple cleaning passes.

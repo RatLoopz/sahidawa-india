@@ -19,6 +19,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { ExpiryTracker } from "../components/ExpiryTracker";
+import { API_BASE } from "../lib/api";
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -123,7 +124,7 @@ describe("ExpiryTracker component", () => {
         });
 
         const [calledUrl, calledOptions] = fetchMock.mock.calls[0] as [string, RequestInit];
-        expect(calledUrl).toBe("/api/v1/medicines/track");
+        expect(calledUrl).toBe(`${API_BASE}/api/v1/medicines/track`);
         expect(calledOptions.method).toBe("POST");
 
         const body = JSON.parse(calledOptions.body as string);
