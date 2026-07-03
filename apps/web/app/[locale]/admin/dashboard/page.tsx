@@ -13,6 +13,7 @@ import {
     RefreshCw,
     Loader2,
     ShieldAlert,
+    ShieldCheck,
     Plus,
     Clock,
     Pill,
@@ -289,6 +290,13 @@ export default function AdminDashboard() {
                     >
                         <Activity className="h-4 w-4 text-slate-400" />
                         Analytics
+                    </Link>
+                    <Link
+                        href="/admin/approval"
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-slate-500 transition-all hover:bg-slate-50 hover:text-slate-800"
+                    >
+                        <ShieldCheck className="h-4 w-4 text-slate-400" />
+                        Approvals
                     </Link>
                 </nav>
                 <p className="px-1 text-xs text-slate-400">{t("version")}</p>

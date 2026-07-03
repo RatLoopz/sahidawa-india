@@ -15,6 +15,8 @@ import {
     getAllPharmacies,
     deletePharmacy,
     restorePharmacy,
+    getPendingVerificationRequests,
+    reviewVerificationRequest,
 } from "../controllers/admin.controller";
 import { invalidateDrugCache, KEY_PREFIXES } from "../services/cache.service";
 import { redisClient } from "../utils/redis";
@@ -91,6 +93,22 @@ router.post(
     requireRole("admin"),
     validateIdParam,
     restorePharmacy
+);
+
+// ── OCR Verification Queue ────────────────────────────────────────────────────
+router.get(
+    "/verifications",
+    requireAuth,
+    requireRole("admin", "moderator"),
+    getPendingVerificationRequests
+);
+
+router.patch(
+    "/verifications/:id/review",
+    requireAuth,
+    requireRole("admin"),
+    validateIdParam,
+    reviewVerificationRequest
 );
 
 const InvalidateCacheSchema = z.object({
