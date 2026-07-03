@@ -780,7 +780,13 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
         res.status(400).json({ error: "brandName is required and must be a string" });
         return;
     }
-
+    const MAX_BRAND_NAME_LENGTH = 200;
+    if (brandName.length > MAX_BRAND_NAME_LENGTH) {
+        res.status(400).json({
+            error: `brandName must not exceed ${MAX_BRAND_NAME_LENGTH} characters`,
+        });
+        return;
+    }
     const normalizedBrand = brandName.trim().toLowerCase();
     const cacheKey = `brand_cache:${normalizedBrand}`;
 

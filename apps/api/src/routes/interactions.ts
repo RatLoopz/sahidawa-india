@@ -235,7 +235,13 @@ function indexInteractions(interactions: InteractionRecord[]): Map<string, Inter
 }
 
 function getLocalInteractionsForGenerics(genericNames: string[]): InteractionRecord[] {
-    const selectedGenerics = new Set(genericNames);
+    const selectedGenerics = new Set(
+        genericNames.map((name) => {
+            const normalized = normalizeGenericName(name);
+            return localBrandMap[normalized] ?? normalized;
+        })
+    );
+
     return cachedInteractions.filter(
         (interaction) =>
             selectedGenerics.has(interaction.drug_a_id) &&

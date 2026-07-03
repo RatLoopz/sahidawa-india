@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { linkABHA, verifyABHAOtp } from "@/lib/api/abha";
 
@@ -13,6 +14,7 @@ export default function ABHASetupPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [cooldown, setCooldown] = useState(0);
+    const t = useTranslations("AbhaSetup");
 
     useEffect(() => {
         if (cooldown <= 0) return;
@@ -24,7 +26,7 @@ export default function ABHASetupPage() {
         setError("");
 
         if (!abhaAddress.trim()) {
-            setError("ABHA address is required");
+            setError(t("errors.addressRequired"));
             return;
         }
 
@@ -38,7 +40,7 @@ export default function ABHASetupPage() {
             setTxnId(result.txnId);
             setCooldown(30);
         } catch (error) {
-            setError(error instanceof Error ? error.message : "Something went wrong");
+            setError(error instanceof Error ? error.message : t("errors.generic"));
         } finally {
             setLoading(false);
         }
@@ -48,7 +50,7 @@ export default function ABHASetupPage() {
         setError("");
 
         if (!otp.trim()) {
-            setError("OTP is required");
+            setError(t("errors.otpRequired"));
             return;
         }
 
@@ -62,7 +64,7 @@ export default function ABHASetupPage() {
 
             setLinked(true);
         } catch (error) {
-            setError(error instanceof Error ? error.message : "Something went wrong");
+            setError(error instanceof Error ? error.message : t("errors.generic"));
         } finally {
             setLoading(false);
         }
@@ -73,13 +75,13 @@ export default function ABHASetupPage() {
             <div className="mx-auto max-w-2xl">
                 <Link href="/profile" className="mb-6 inline-flex items-center gap-2">
                     <ArrowLeft size={18} />
-                    Back to Profile
+                    {t("back")}
                 </Link>
 
                 <div className="rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-6">
                     <div className="mb-6 flex items-center gap-3">
                         <ShieldCheck className="text-emerald-600" />
-                        <h1 className="text-2xl font-bold">ABHA Setup</h1>
+                        <h1 className="text-2xl font-bold">{t("title")}</h1>
                     </div>
 
                     {error && (
@@ -92,7 +94,7 @@ export default function ABHASetupPage() {
                                 type="text"
                                 value={abhaAddress}
                                 onChange={(e) => setAbhaAddress(e.target.value)}
-                                placeholder="Enter ABHA Address"
+                                placeholder={t("placeholders.address")}
                                 className="w-full rounded-xl border p-3"
                             />
 
@@ -101,7 +103,9 @@ export default function ABHASetupPage() {
                                 disabled={loading || cooldown > 0}
                                 className="rounded-xl bg-emerald-600 px-4 py-2 text-white disabled:opacity-50"
                             >
-                                {cooldown > 0 ? `Resend in ${cooldown}s` : "Generate OTP"}
+                                {cooldown > 0
+                                    ? t("buttons.resendIn", { seconds: cooldown })
+                                    : t("buttons.generateOtp")}
                             </button>
 
                             {txnId && (
@@ -110,7 +114,7 @@ export default function ABHASetupPage() {
                                         type="text"
                                         value={otp}
                                         onChange={(e) => setOtp(e.target.value)}
-                                        placeholder="Enter OTP"
+                                        placeholder={t("placeholders.otp")}
                                         className="w-full rounded-xl border p-3"
                                     />
 
@@ -119,7 +123,7 @@ export default function ABHASetupPage() {
                                         disabled={loading}
                                         className="rounded-xl bg-emerald-600 px-4 py-2 text-white"
                                     >
-                                        Verify OTP
+                                        {t("buttons.verifyOtp")}
                                     </button>
                                 </>
                             )}
@@ -128,7 +132,7 @@ export default function ABHASetupPage() {
 
                     {linked && (
                         <div className="rounded-xl bg-green-100 p-4 text-green-700">
-                            ABHA successfully linked.
+                            {t("success")}
                         </div>
                     )}
                 </div>

@@ -55,7 +55,14 @@ interface PharmacyRow {
 interface PharmacyWithRawDistance extends FormattedPharmacy {
     rawDistance: number;
 }
-
+interface InventoryInsertRow {
+    pharmacy_id: string;
+    medicine_name: string;
+    batch_number: string;
+    expiry_date: string;
+    quantity: number;
+    mrp: number;
+}
 // ── Zod validation schemas ───────────────────────────────────────────────────
 
 // Schema for pharmacy registration. licenseId is required and must be unique
@@ -1046,12 +1053,12 @@ router.post(
                 return;
             }
 
-            const rowsToInsert: any[] = [];
+            const rowsToInsert: InventoryInsertRow[] = [];
             const failedRows: Array<{ row: number; reason: string }> = [];
 
             parseResult.data.forEach((rowData, index) => {
                 // Normalise empty strings to undefined so Zod optional fields work correctly
-                const normalised: Record<string, any> = {};
+                const normalised: Record<string, string | undefined> = {};
                 for (const key of Object.keys(rowData)) {
                     normalised[key] = rowData[key] === "" ? undefined : rowData[key];
                 }
@@ -1093,8 +1100,9 @@ router.post(
                 failedCount: failedRows.length,
                 errors: failedRows,
             });
-        } catch (error: any) {
-            logger.error(`Exception in bulk operations handler: ${error.message}`);
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Unknown error";
+            logger.error(`Exception in bulk operations handler: ${message}`);
             next(error);
         }
     }
@@ -1160,7 +1168,7 @@ router.put(
             }
 
             res.status(200).json({ pharmacy: updatedPharmacy });
-        } catch (error: any) {
+        } catch (error: unknown) {
             next(error);
         }
     }
@@ -1180,7 +1188,7 @@ router.delete(
             return;
         }
         try {
-            const pharmacyId = req.params.id;
+            const pharmacyId = parsedId.data;
 
             const { data: pharmacy, error: findError } = await supabase
                 .from("pharmacies")
@@ -1217,7 +1225,7 @@ router.delete(
             }
 
             res.status(200).json({ message: "Pharmacy deleted successfully" });
-        } catch (error: any) {
+        } catch (error: unknown) {
             next(error);
         }
     }
@@ -1291,12 +1299,12 @@ router.post(
                 return;
             }
 
-            const rowsToInsert: any[] = [];
+            const rowsToInsert: InventoryInsertRow[] = [];
             const failedRows: Array<{ row: number; reason: string }> = [];
 
             parseResult.data.forEach((rowData, index) => {
                 // Normalise empty strings to undefined so Zod optional fields work correctly
-                const normalised: Record<string, any> = {};
+                const normalised: Record<string, string | undefined> = {};
                 for (const key of Object.keys(rowData)) {
                     normalised[key] = rowData[key] === "" ? undefined : rowData[key];
                 }
@@ -1338,8 +1346,9 @@ router.post(
                 failedCount: failedRows.length,
                 errors: failedRows,
             });
-        } catch (error: any) {
-            logger.error(`Exception in specific pharmacy upload handler: ${error.message}`);
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Unknown error";
+            logger.error(`Exception in specific pharmacy upload handler: ${message}`);
             next(error);
         }
     }

@@ -1304,6 +1304,25 @@
             "cancel": "Cancel"
         }
     },
+    "AbhaSetup": {
+        "back": "Back to Profile",
+        "title": "ABHA Setup",
+        "success": "ABHA successfully linked.",
+        "placeholders": {
+            "address": "Enter ABHA Address",
+            "otp": "Enter OTP"
+        },
+        "buttons": {
+            "generateOtp": "Generate OTP",
+            "verifyOtp": "Verify OTP",
+            "resendIn": "Resend in {seconds}s"
+        },
+        "errors": {
+            "addressRequired": "ABHA address is required",
+            "otpRequired": "OTP is required",
+            "generic": "Something went wrong"
+        }
+    },
     "NotFound": {
         "badge": "404 Error",
         "title": "Page not found",
