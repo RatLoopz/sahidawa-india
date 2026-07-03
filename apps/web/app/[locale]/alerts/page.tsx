@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { PageHeader } from "../components/PageHeader";
 import {
     Activity,
@@ -110,32 +110,36 @@ export default function FullAlertsLogPage() {
         }
     }, [inView, loadingMore, hasMore, loading]);
 
-    const fetchAlerts = async (pageNum: number, append = false) => {
-        try {
-            let url = `${API_BASE}/api/v1/alerts?page=${pageNum}&limit=50`;
-            if (debouncedBrandSearch) url += `&brand=${encodeURIComponent(debouncedBrandSearch)}`;
-            if (debouncedRegionSearch)
-                url += `&region=${encodeURIComponent(debouncedRegionSearch)}`;
+    const fetchAlerts = useCallback(
+        async (pageNum: number, append = false) => {
+            try {
+                let url = `${API_BASE}/api/v1/alerts?page=${pageNum}&limit=50`;
+                if (debouncedBrandSearch)
+                    url += `&brand=${encodeURIComponent(debouncedBrandSearch)}`;
+                if (debouncedRegionSearch)
+                    url += `&region=${encodeURIComponent(debouncedRegionSearch)}`;
 
-            const res = await fetch(url);
-            if (!res.ok) {
+                const res = await fetch(url);
+                if (!res.ok) {
+                    setError(true);
+                    return;
+                }
+                const data = await res.json();
+
+                if (append) {
+                    setAllAlerts((prev) => [...prev, ...(data.data || [])]);
+                } else {
+                    setAllAlerts(data.data || []);
+                }
+
+                setTotalCount(data.totalCount || 0);
+                setHasMore(pageNum * 50 < (data.totalCount || 0));
+            } catch {
                 setError(true);
-                return;
             }
-            const data = await res.json();
-
-            if (append) {
-                setAllAlerts((prev) => [...prev, ...(data.data || [])]);
-            } else {
-                setAllAlerts(data.data || []);
-            }
-
-            setTotalCount(data.totalCount || 0);
-            setHasMore(pageNum * 50 < (data.totalCount || 0));
-        } catch {
-            setError(true);
-        }
-    };
+        },
+        [debouncedBrandSearch, debouncedRegionSearch]
+    );
 
     // Initial load and when debounced filters change
     useEffect(() => {
@@ -149,7 +153,7 @@ export default function FullAlertsLogPage() {
 
         const timer = setTimeout(loadData, 400);
         return () => clearTimeout(timer);
-    }, [debouncedBrandSearch, debouncedRegionSearch, refreshTrigger]);
+    }, [fetchAlerts, refreshTrigger]);
 
     // Load more when page changes (triggered by intersection observer)
     useEffect(() => {

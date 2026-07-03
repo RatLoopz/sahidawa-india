@@ -12,6 +12,13 @@ interface CacheEntry {
     timestamp: number;
 }
 
+interface PharmacyBounds {
+    south: number;
+    west: number;
+    north: number;
+    east: number;
+}
+
 function isFresh(entry: CacheEntry | undefined): entry is CacheEntry {
     if (!entry) return false;
     return Date.now() - entry.timestamp <= TTL_MS;
@@ -28,9 +35,24 @@ async function getDB() {
     });
 }
 
-export function buildCacheKey(lat: number, lng: number): string {
-    // Round to 2 decimal places (~1km precision)
-    return `${lat.toFixed(2)}_${lng.toFixed(2)}`;
+function normalizeRadiusKm(radiusMeters: number): number {
+    const radiusKm = Math.round(radiusMeters / 1000);
+    return Number.isFinite(radiusKm) && radiusKm > 0 ? radiusKm : 10;
+}
+
+export function buildNearbyCacheKey(lat: number, lng: number, radiusMeters: number): string {
+    // Round coordinates consistently while keeping radius-specific searches isolated.
+    return `nearby:${lat.toFixed(2)}:${lng.toFixed(2)}:r:${normalizeRadiusKm(radiusMeters)}`;
+}
+
+export function buildBoundsCacheKey(bounds: PharmacyBounds): string {
+    return [
+        "bounds",
+        bounds.south.toFixed(3),
+        bounds.west.toFixed(3),
+        bounds.north.toFixed(3),
+        bounds.east.toFixed(3),
+    ].join(":");
 }
 
 export async function saveToCache(
@@ -53,9 +75,6 @@ export async function loadFromCache(key: string): Promise<CacheEntry | null> {
         const db = await getDB();
         const entry: CacheEntry | undefined = await db.get(STORE, key);
         if (isFresh(entry)) return entry;
-
-        const lastSearchEntry: CacheEntry | undefined = await db.get(STORE, LAST_SEARCH_KEY);
-        if (isFresh(lastSearchEntry)) return lastSearchEntry;
 
         return null;
     } catch (err) {

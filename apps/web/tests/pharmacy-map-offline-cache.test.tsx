@@ -6,7 +6,11 @@ import { render, screen, waitFor, within, fireEvent } from "@testing-library/rea
 
 import PharmacyMapPage from "../app/[locale]/map/page";
 import type { Pharmacy } from "../app/[locale]/map/PharmacyMap";
-import { buildCacheKey, loadFromCache, saveToCache } from "../app/[locale]/map/usePharmacyCache";
+import {
+    buildNearbyCacheKey,
+    loadFromCache,
+    saveToCache,
+} from "../app/[locale]/map/usePharmacyCache";
 import {
     fetchNearbyAshaWorkers,
     fetchVerifiedPharmacies,
@@ -93,7 +97,10 @@ jest.mock("../app/[locale]/map/overpassApi", () => ({
 }));
 
 jest.mock("../app/[locale]/map/usePharmacyCache", () => ({
-    buildCacheKey: jest.fn((lat: number, lng: number) => `${lat.toFixed(2)}_${lng.toFixed(2)}`),
+    buildNearbyCacheKey: jest.fn(
+        (lat: number, lng: number) => `${lat.toFixed(2)}_${lng.toFixed(2)}`
+    ),
+    buildBoundsCacheKey: jest.fn(() => "mock-bounds-key"),
     loadFromCache: jest.fn(),
     saveToCache: jest.fn(),
 }));
@@ -115,7 +122,7 @@ const getCachedPharmaciesMock = jest.mocked(getCachedPharmacies);
 const getLastSyncTimestampMock = jest.mocked(getLastSyncTimestamp);
 const loadFromCacheMock = jest.mocked(loadFromCache);
 const saveToCacheMock = jest.mocked(saveToCache);
-const buildCacheKeyMock = jest.mocked(buildCacheKey);
+const buildNearbyCacheKeyMock = jest.mocked(buildNearbyCacheKey);
 
 const cachedPharmacy: Pharmacy = {
     id: 301,
@@ -204,7 +211,7 @@ describe("PharmacyMapPage offline pharmacy cache", () => {
         expect(
             within(screen.getByTestId("mock-pharmacy-map")).getByText("Last Online Pharmacy")
         ).toBeTruthy();
-        expect(buildCacheKeyMock).toHaveBeenCalledWith(28.6139, 77.209);
+        expect(buildNearbyCacheKeyMock).toHaveBeenCalledWith(28.6139, 77.209, expect.any(Number));
         expect(loadFromCacheMock).toHaveBeenCalledWith("28.61_77.21");
         expect(screen.queryByText("Could not load pharmacies. Try again.")).toBeNull();
     });

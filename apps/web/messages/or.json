@@ -921,12 +921,14 @@
             "confirm": "ହଟାନ୍ତୁ",
             "cancel": "ବାତିଲ୍ କରନ୍ତୁ"
         }
+    },
     "NotFound": {
         "badge": "404 ତ୍ରୁଟି",
         "title": "ପୃଷ୍ଠା ମିଳିଲା ନାହିଁ",
         "description": "ଆପଣ ଖୋଜୁଥିବା ପୃଷ୍ଠାଟି ନାହିଁ କିମ୍ବା ଘୁଞ୍ଚାଯାଇଥାଇପାରେ।",
         "backHome": "ହୋମ୍ କୁ ଫେରିଯାଆନ୍ତୁ",
         "scanMedicine": "ଔଷଧ ସ୍କାନ କରନ୍ତୁ"
+    },
     "Settings": {
         "channelRequired": "Kam se kam gotie jogajog madhyam (SMS kimba WhatsApp) sakriya heba abasyak.",
         "optOutConfirm": "Apana nischita ki opt out kari samasta SMS ebam WhatsApp satarkata band karibaku chahanti?",
@@ -943,5 +945,12 @@
         "languageOptionPa": "ਪੰਜਾਬੀ",
         "languageOptionUr": "اردو",
         "languageOptionAs": "অসমীয়া"
+    },
+    "AbhaRecords": {
+        "backToProfile": "ପ୍ରୋଫାଇଲ୍‌କୁ ଫେରନ୍ତୁ",
+        "title": "ABHA ରେକର୍ଡ",
+        "loading": "ରେକର୍ଡ ଲୋଡ୍ ହେଉଛି...",
+        "noPrescriptions": "କୌଣସି ପ୍ରେସକ୍ରିପସନ୍ ମିଳିଲା ନାହିଁ।",
+        "failedToLoad": "ରେକର୍ଡ ଲୋଡ୍ କରିବାରେ ବିଫଳ"
     }
 }

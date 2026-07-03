@@ -1079,11 +1079,19 @@
             "confirm": "هٽايو",
             "cancel": "منسوخ ڪريو"
         }
+    },
     "NotFound": {
         "badge": "Error 404",
         "title": "Page Not Found",
         "description": "We couldn't find the medicine or page you were looking for. It might have been moved, or the URL might be incorrect.",
         "backHome": "Back to Home",
         "scanMedicine": "Scan Medicine"
+    },
+    "AbhaRecords": {
+        "backToProfile": "پروفائل تي واپس وڃו",
+        "title": "ABHA رڪارڊ",
+        "loading": "رڪارڊ لوڊ ٿي رهيا آهن...",
+        "noPrescriptions": "ڪو به نسخو نه مليو.",
+        "failedToLoad": "رڪارڊ لوڊ ڪرڻ ۾ ناڪام"
     }
 }

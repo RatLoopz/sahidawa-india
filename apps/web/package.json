@@ -54,7 +54,8 @@
         "tailwindcss-rtl": "^0.9.0",
         "tesseract.js": "^7.0.0",
         "uuid": "^14.0.1",
-        "zod": "^4.4.3"
+        "zod": "^4.4.3",
+        "zustand": "^5.0.14"
     },
     "devDependencies": {
         "@playwright/test": "^1.61.1",

@@ -142,18 +142,14 @@ describe("POST /api/v1/interactions/check", () => {
     });
 
     it("should successfully check interactions when Supabase is online", async () => {
-        const mockMaybeSingle = supabase.maybeSingle as jest.Mock;
-
-        // Mock name resolutions
-        mockMaybeSingle
-            .mockResolvedValueOnce({
-                data: { brand_name: "Crocin", generic_name: "paracetamol" },
-                error: null,
-            })
-            .mockResolvedValueOnce({
-                data: { brand_name: "Coumadin", generic_name: "warfarin" },
-                error: null,
-            });
+        // Mock name resolutions (batched in .or())
+        (supabase.or as jest.Mock).mockResolvedValueOnce({
+            data: [
+                { brand_name: "Crocin", generic_name: "paracetamol" },
+                { brand_name: "Coumadin", generic_name: "warfarin" },
+            ],
+            error: null,
+        });
 
         // Mock drug interaction query
         (supabase.in as jest.Mock).mockReturnValueOnce(supabase).mockResolvedValueOnce({
@@ -222,10 +218,8 @@ describe("POST /api/v1/interactions/check", () => {
     });
 
     it("should handle error during name resolution and automatically set isSupabaseOffline", async () => {
-        const mockMaybeSingle = supabase.maybeSingle as jest.Mock;
-
-        // Mock database failure that causes fallback
-        mockMaybeSingle.mockResolvedValueOnce({
+        // Mock database failure that causes fallback (batched in .or())
+        (supabase.or as jest.Mock).mockResolvedValueOnce({
             data: null,
             error: new Error("fetch failed"),
         });
