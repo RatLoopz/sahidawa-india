@@ -190,18 +190,28 @@ const requestAbdm = async <T>(
 };
 
 const encryptWithAbdmPublicKey = (value: string, publicKey: string): string => {
+    if (!publicKey || typeof publicKey !== "string" || publicKey.trim().length === 0) {
+        throw new Error("ABDM public key is empty or invalid");
+    }
+
     const normalizedPublicKey = publicKey.includes("BEGIN PUBLIC KEY")
         ? publicKey
         : `-----BEGIN PUBLIC KEY-----\n${publicKey.match(/.{1,64}/g)?.join("\n")}\n-----END PUBLIC KEY-----`;
 
-    return publicEncrypt(
-        {
-            key: normalizedPublicKey,
-            padding: constants.RSA_PKCS1_OAEP_PADDING,
-            oaepHash: "sha1",
-        },
-        Buffer.from(value, "utf8")
-    ).toString("base64");
+    try {
+        return publicEncrypt(
+            {
+                key: normalizedPublicKey,
+                padding: constants.RSA_PKCS1_OAEP_PADDING,
+                oaepHash: "sha1",
+            },
+            Buffer.from(value, "utf8")
+        ).toString("base64");
+    } catch (error) {
+        throw new Error(
+            `ABDM public key encryption failed: ${error instanceof Error ? error.message : "unknown error"}`
+        );
+    }
 };
 
 const isMappedAbdmError = (message: string): boolean =>
