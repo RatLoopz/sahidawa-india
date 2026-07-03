@@ -191,11 +191,18 @@ reportsRouter.post(
                         "id, reported_brand_name, status, district, created_at, scanned_barcode, medicine_id"
                     )
                     .eq("report_hash", reportHash)
-                    .single();
+                    .maybeSingle();
 
                 if (fetchError) {
                     res.status(500).json({
                         error: "Failed to fetch existing report",
+                    });
+                    return;
+                }
+
+                if (!existingReport) {
+                    res.status(500).json({
+                        error: "Existing report could not be retrieved",
                     });
                     return;
                 }
@@ -366,7 +373,7 @@ reportsRouter.patch(
                 .from("counterfeit_reports")
                 .select("id")
                 .eq("id", req.params.id)
-                .single();
+                .maybeSingle();
 
             if (fetchError || !existing) {
                 res.status(404).json({ error: "Report not found" });
