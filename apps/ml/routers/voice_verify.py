@@ -41,7 +41,7 @@ async def verify_medicine_voice(audio: UploadFile = File(...)):
     detects language, and verifies the medicine via LangChain + CDSCO.
     """
     # Validate file type
-    if audio.content_type not in ["audio/webm", "audio/wav", "audio/ogg", "audio/mp4", "audio/mpeg"]:
+    if not audio.content_type or audio.content_type not in ["audio/webm", "audio/wav", "audio/ogg", "audio/mp4", "audio/mpeg"]:
         raise HTTPException(status_code=400, detail="Unsupported audio format. Use webm, wav, ogg, or mp4.")
 
     # Save to temp file for Whisper

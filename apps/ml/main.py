@@ -28,10 +28,13 @@ app = FastAPI(
 FastAPIInstrumentor.instrument_app(app)
 
 # Configure CORS - load dynamically from environment variables
-allowed_origins = os.getenv(
-    "ALLOWED_ORIGINS",
-    "http://localhost:3000,http://localhost:4000,http://localhost:8000"
-).split(",")
+allowed_origins = [
+    o.strip()
+    for o in os.getenv(
+        "ALLOWED_ORIGINS",
+        "http://localhost:3000,http://localhost:4000,http://localhost:8000"
+    ).split(",")
+]
 
 app.add_middleware(
     CORSMiddleware,
