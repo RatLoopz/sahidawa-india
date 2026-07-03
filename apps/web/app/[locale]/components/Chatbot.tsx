@@ -55,6 +55,7 @@ export default function Chatbot() {
     const [input, setInput] = useState("");
     const [isConfirmingClear, setIsConfirmingClear] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const chatbotRef = useRef<HTMLDivElement>(null);
     const activeRequestRef = useRef<AbortController | null>(null);
 
     const scrollToBottom = () => {
@@ -85,6 +86,21 @@ export default function Chatbot() {
 
         return () => clearTimeout(timer);
     }, []);
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (chatbotRef.current && !chatbotRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isOpen]);
 
     useEffect(() => {
         return () => {
@@ -166,6 +182,7 @@ export default function Chatbot() {
     return (
         <div className={getChatbotPositionClasses({ pathname, isOpen })}>
             <div
+            ref={chatbotRef}
                 className={`${getChatbotPanelClasses({ pathname })} ${
                     isOpen
                         ? "pointer-events-auto scale-100 opacity-100"
@@ -280,7 +297,10 @@ export default function Chatbot() {
                 )}
 
                 <button
-                    onClick={() => setIsOpen(!isOpen)}
+                    onClick={(e) => {
+    e.stopPropagation();
+    setIsOpen(!isOpen);
+}}
                     className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full bg-green-600 text-white shadow-[0_8px_20px_rgba(22,163,74,0.3)] transition-all hover:scale-105 hover:shadow-[0_8px_25px_rgba(22,163,74,0.4)] active:scale-95 dark:bg-green-700 dark:hover:bg-green-800"
                     aria-label={isOpen ? tA11y("closeAiChat") : tA11y("openAiChat")}
                 >
