@@ -55,12 +55,24 @@ export async function mergeGuestWishlist(
             )
         );
         const newProductIds = guestProductIds.filter((id) => !existingProductIds.has(id));
-
         if (newProductIds.length === 0) {
             return [];
         }
+        const { data: existingMedicines } = await supabase
+            .from("medicines")
+            .select("id")
+            .in("id", newProductIds);
 
-        const insertData = newProductIds.map((product_id) => ({
+        const verifiedProductIds = new Set(
+            (existingMedicines || []).map((m: { id: string }) => m.id)
+        );
+        const filteredProductIds = newProductIds.filter((id) => verifiedProductIds.has(id));
+
+        if (filteredProductIds.length === 0) {
+            return [];
+        }
+
+        const insertData = filteredProductIds.map((product_id) => ({
             user_id: userId,
             product_id,
         }));
