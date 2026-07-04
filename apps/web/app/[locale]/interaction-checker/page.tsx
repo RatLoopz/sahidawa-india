@@ -97,20 +97,35 @@ export default function InteractionCheckerPage() {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
             try {
-                const parsed = JSON.parse(stored) as string[];
+                const parsed = JSON.parse(stored);
                 if (Array.isArray(parsed)) {
-                    setSelectedMedicines(parsed);
+                    const validated = parsed
+                        .filter((item): item is string => typeof item === "string")
+                        .map((item) => item.trim().replace(/[\x00-\x1F\x7F-\x9F<>]/g, ""))
+                        .filter((item) => item.length > 0 && item.length <= 100)
+                        .slice(0, 50);
+
+                    setSelectedMedicines(validated);
+
+                    // Sync back to local storage if sanitized/changed
+                    if (
+                        validated.length !== parsed.length ||
+                        validated.some((val, idx) => val !== parsed[idx])
+                    ) {
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(validated));
+                    }
                 }
             } catch (err) {
                 console.error("Failed to parse stored medicines list:", err);
+                localStorage.removeItem(STORAGE_KEY);
             }
         }
     }, []);
 
     // Debounced autocomplete suggestions
     useEffect(() => {
-        const query = searchQuery.trim();
-        if (query.length < 2) {
+        const query = searchQuery.trim().replace(/[\x00-\x1F\x7F-\x9F<>]/g, "");
+        if (query.length < 2 || query.length > 100) {
             setSuggestions([]);
             return;
         }
@@ -151,13 +166,18 @@ export default function InteractionCheckerPage() {
     };
 
     const handleAddMedicine = (medName: string) => {
-        const formatted = medName.trim();
-        if (!formatted) return;
+        const sanitized = medName.trim().replace(/[\x00-\x1F\x7F-\x9F<>]/g, "");
+        if (!sanitized || sanitized.length > 100) return;
+
+        if (selectedMedicines.length >= 50) {
+            setError("Maximum of 50 medicines can be selected.");
+            return;
+        }
 
         // Prevent duplicates (case-insensitive check)
-        const exists = selectedMedicines.some((m) => m.toLowerCase() === formatted.toLowerCase());
+        const exists = selectedMedicines.some((m) => m.toLowerCase() === sanitized.toLowerCase());
         if (!exists) {
-            const updated = [...selectedMedicines, formatted];
+            const updated = [...selectedMedicines, sanitized];
             saveMedicinesList(updated);
         }
 
