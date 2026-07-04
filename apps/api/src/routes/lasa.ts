@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import { z } from "zod";
 import { detectLasaConflicts } from "../services/lasa.service";
 import { lasaLimiter } from "../middleware/rateLimit";
 import logger from "../utils/logger";
@@ -42,19 +43,22 @@ const router = Router();
 
 router.post("/check", lasaLimiter, async (req: Request, res: Response): Promise<void> => {
     try {
-        const { medicineName } = req.body;
+        const checkSchema = z
+            .object({
+                medicineName: z.string().max(MAX_MEDICINE_NAME_LENGTH),
+            })
+            .strict();
 
-        if (!medicineName || typeof medicineName !== "string") {
-            res.status(400).json({ error: "medicineName is required" });
-            return;
-        }
-
-        if (medicineName.length > MAX_MEDICINE_NAME_LENGTH) {
+        const parsedBody = checkSchema.safeParse(req.body);
+        if (!parsedBody.success) {
             res.status(400).json({
-                error: `medicineName must not exceed ${MAX_MEDICINE_NAME_LENGTH} characters`,
+                error: "Invalid medicineName or unknown fields",
+                details: parsedBody.error,
             });
             return;
         }
+
+        const { medicineName } = parsedBody.data;
 
         const matches = await detectLasaConflicts(medicineName);
 

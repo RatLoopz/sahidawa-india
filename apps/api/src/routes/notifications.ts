@@ -23,9 +23,11 @@ const router = Router();
 
 // ── Web Push Notifications (Existing) ──────────────────────────────────────────
 
-const unsubscribeSchema = z.object({
-    endpoint: z.string().url(),
-});
+const unsubscribeSchema = z
+    .object({
+        endpoint: z.string().url(),
+    })
+    .strict();
 
 router.get("/vapid-public-key", (_req, res) => {
     const publicKey = getVapidPublicKey();
@@ -110,21 +112,25 @@ router.post("/recalls/mock/trigger", requireAuth, requireRole("admin"), async (r
 
 // ── SMS & WhatsApp Alert Integration (New) ─────────────────────────────────────
 
-const registerSchema = z.object({
-    phone: z.string().min(10, "Phone number too short").max(20, "Phone number too long"),
-    channels: z.array(z.enum(["sms", "whatsapp"])).min(1, "At least one channel is required"),
-    language: z.string().default("en"),
-    district: z.string().min(2, "District is required"),
-});
+const registerSchema = z
+    .object({
+        phone: z.string().min(10, "Phone number too short").max(20, "Phone number too long"),
+        channels: z.array(z.enum(["sms", "whatsapp"])).min(1, "At least one channel is required"),
+        language: z.string().default("en"),
+        district: z.string().min(2, "District is required"),
+    })
+    .strict();
 
-const updatePhoneSchema = z.object({
-    phone: z.string().min(10).max(20),
-    newPhone: z.string().min(10).max(20).optional(),
-    channels: z.array(z.enum(["sms", "whatsapp"])).optional(),
-    language: z.string().optional(),
-    district: z.string().optional(),
-    is_active: z.boolean().optional(),
-});
+const updatePhoneSchema = z
+    .object({
+        phone: z.string().min(10).max(20),
+        newPhone: z.string().min(10).max(20).optional(),
+        channels: z.array(z.enum(["sms", "whatsapp"])).optional(),
+        language: z.string().optional(),
+        district: z.string().optional(),
+        is_active: z.boolean().optional(),
+    })
+    .strict();
 
 const twilioWebhookSchema = z.object({
     From: z
@@ -135,9 +141,11 @@ const twilioWebhookSchema = z.object({
     Body: z.string().optional(),
 });
 
-const deletePhoneSchema = z.object({
-    phone: z.string().min(10).max(20).optional(),
-});
+const deletePhoneSchema = z
+    .object({
+        phone: z.string().min(10).max(20).optional(),
+    })
+    .strict();
 
 import { formatPhoneNumber } from "../utils/phone"; // Local in-memory fallback store for development when Supabase is offline
 interface InMemorySubscriber {
@@ -423,10 +431,12 @@ router.post(
     }
 );
 
-const verifyOtpSchema = z.object({
-    phone: z.string(),
-    otp: z.string().length(6, "OTP must be exactly 6 digits"),
-});
+const verifyOtpSchema = z
+    .object({
+        phone: z.string(),
+        otp: z.string().length(6, "OTP must be exactly 6 digits"),
+    })
+    .strict();
 
 router.post("/verify-otp", async (req, res) => {
     const parsed = verifyOtpSchema.safeParse(req.body);
@@ -717,12 +727,14 @@ router.delete("/phone", optionalAuth, async (req: AuthenticatedRequest, res) => 
 });
 
 router.post("/broadcast", requireAuth, requireRole("admin"), async (req, res) => {
-    const broadcastSchema = z.object({
-        district: z.string().optional(),
-        title: z.string().min(2),
-        message: z.string().min(5),
-        severity: z.enum(["low", "medium", "high", "critical"]).default("medium"),
-    });
+    const broadcastSchema = z
+        .object({
+            district: z.string().optional(),
+            title: z.string().min(2),
+            message: z.string().min(5),
+            severity: z.enum(["low", "medium", "high", "critical"]).default("medium"),
+        })
+        .strict();
 
     const parsed = broadcastSchema.safeParse(req.body);
     if (!parsed.success) {

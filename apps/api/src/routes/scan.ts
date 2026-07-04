@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import { z } from "zod";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
@@ -645,11 +646,15 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
  *         description: Match suggestions found
  */
 router.post("/match", scanQueryLimiter, async (req: Request, res: Response) => {
-    const { query } = req.body;
-    if (!query || typeof query !== "string") {
-        res.status(400).json({ error: "query parameter is required and must be a string" });
+    const matchSchema = z.object({ query: z.string() }).strict();
+    const parsed = matchSchema.safeParse(req.body);
+    if (!parsed.success) {
+        res.status(400).json({
+            error: "query parameter is required and must be a string or unknown fields present",
+        });
         return;
     }
+    const { query } = parsed.data;
 
     const normalizedQuery = query.trim().toLowerCase();
     const cacheKey = `match_cache:${normalizedQuery}`;
@@ -775,18 +780,16 @@ router.post("/match", scanQueryLimiter, async (req: Request, res: Response) => {
  *         description: Medicine verified successfully
  */
 router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Response) => {
-    const { brandName } = req.body;
-    if (!brandName || typeof brandName !== "string") {
-        res.status(400).json({ error: "brandName is required and must be a string" });
-        return;
-    }
     const MAX_BRAND_NAME_LENGTH = 200;
-    if (brandName.length > MAX_BRAND_NAME_LENGTH) {
+    const brandSchema = z.object({ brandName: z.string().max(MAX_BRAND_NAME_LENGTH) }).strict();
+    const parsed = brandSchema.safeParse(req.body);
+    if (!parsed.success) {
         res.status(400).json({
-            error: `brandName must not exceed ${MAX_BRAND_NAME_LENGTH} characters`,
+            error: `brandName must be a valid string (max ${MAX_BRAND_NAME_LENGTH} chars) and no unknown fields allowed`,
         });
         return;
     }
+    const { brandName } = parsed.data;
     const normalizedBrand = brandName.trim().toLowerCase();
     const cacheKey = `brand_cache:${normalizedBrand}`;
 
@@ -880,11 +883,28 @@ router.post(
     idempotencyMiddleware,
     async (req: Request, res: Response) => {
         const idempotencyKey = (req as any).idempotencyKey;
-        const { deviceId, clientUpdatedAt } = req.body;
+        const submitSchema = z
+            .object({
+                deviceId: z.string().optional(),
+                clientUpdatedAt: z.string().optional(),
+                metadata: z.string().optional(),
+            })
+            .strict();
+
+        const parsedBody = submitSchema.safeParse(req.body);
+        if (!parsedBody.success) {
+            res.status(400).json({
+                error: "Invalid form data or unknown fields",
+                details: parsedBody.error,
+            });
+            return;
+        }
+
+        const { deviceId, clientUpdatedAt } = parsedBody.data;
         let metadata = null;
-        if (req.body.metadata) {
+        if (parsedBody.data.metadata) {
             try {
-                metadata = JSON.parse(req.body.metadata, (key, value) => {
+                metadata = JSON.parse(parsedBody.data.metadata, (key, value) => {
                     if (key === "__proto__" || key === "constructor" || key === "prototype") {
                         return undefined;
                     }
@@ -906,8 +926,8 @@ router.post(
             const resolvedScanId = await resolveConflict({
                 scanId,
                 metadata,
-                deviceId,
-                clientUpdatedAt,
+                deviceId: deviceId ?? "",
+                clientUpdatedAt: clientUpdatedAt ?? "",
                 userId,
             });
 

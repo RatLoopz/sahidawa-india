@@ -99,14 +99,22 @@ alertsRouter.get("/", alertsReadLimiter, async (req: Request, res: Response) => 
  * Protected endpoint to ingest parsed CDSCO alerts from the ML agent.
  */
 alertsRouter.post("/ingest", requireApiKey, limiter, async (req: ApiKeyRequest, res: Response) => {
-    const { alerts } = req.body;
-    const parseResult = AlertsArraySchema.safeParse(alerts);
+    const ingestSchema = z
+        .object({
+            alerts: AlertsArraySchema,
+        })
+        .strict();
+
+    const parseResult = ingestSchema.safeParse(req.body);
     if (!parseResult.success) {
-        res.status(400).json({ error: "Invalid payload schema", details: parseResult.error });
+        res.status(400).json({
+            error: "Invalid payload schema or unknown fields",
+            details: parseResult.error,
+        });
         return;
     }
 
-    const validatedAlerts = parseResult.data;
+    const validatedAlerts = parseResult.data.alerts;
 
     try {
         // 2. Upsert alerts — ON CONFLICT DO NOTHING prevents duplicate rows
