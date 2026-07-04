@@ -1,10 +1,17 @@
 import { Router, Request, Response } from "express";
 import multer from "multer";
+import { createHash } from "crypto";
 import { supabase } from "../db/client";
-import { redisClient } from "../utils/redis";
+import {
+    getCachedVoiceByAudioHash,
+    setCachedVoiceByAudioHash,
+    getCachedVoiceResult,
+    setCachedVoiceResult,
+} from "../services/cache.service";
 import { scanQueryLimiter } from "../middleware/rateLimit";
 import { escapePostgrest } from "../utils/db";
 import { getMlServiceUrl } from "../config/mlService";
+import logger from "../utils/logger";
 
 const router = Router();
 
@@ -29,6 +36,10 @@ export function buildMedicineVoiceSearchFilter(transcribedText: string): string 
  * POST /api/medicine/verify-voice
  * Accepts audio blob from frontend, forwards to Python ML service,
  * verifies with Supabase, caches result in Redis for 1 hour.
+ *
+ * Cache strategy (two layers):
+ *   Layer 1 — Audio hash → Redis: skips ML transcription call entirely on repeat audio.
+ *   Layer 2 — Transcribed text → Redis: skips Supabase DB call on repeat medicine name.
  */
 router.post(
     "/verify-voice",
@@ -44,6 +55,16 @@ router.post(
                 return res.status(400).json({ success: false, error: "No audio file provided." });
             }
 
+            // ── Layer 1: Check cache by audio hash BEFORE calling ML service ──────────
+            // SHA-256 of the raw audio buffer — deterministic, collision-resistant, fast.
+            const audioHash = createHash("sha256").update(req.file.buffer).digest("hex");
+            const cachedByAudio = await getCachedVoiceByAudioHash(audioHash);
+            if (cachedByAudio) {
+                logger.info(`Voice verification served from audio cache (hash: ${audioHash})`);
+                return res.json(cachedByAudio);
+            }
+
+            // ── Audio not cached — forward to ML service for transcription ─────────────
             const form = new FormData();
             const audioBytes = Uint8Array.from(req.file.buffer);
             const audioBlob = new Blob([audioBytes], { type: req.file.mimetype });
@@ -87,7 +108,20 @@ router.post(
                 return res.json(result);
             }
 
+            // ── Layer 2: Check cache by transcribed text BEFORE hitting Supabase ───────
             if (transcribedText) {
+                const cachedByText = await getCachedVoiceResult(transcribedText);
+                if (cachedByText) {
+                    logger.info(
+                        `Voice verification served from text cache for: "${transcribedText}"`
+                    );
+                    // Also back-fill the audio hash cache so future identical audio skips ML too
+                    await setCachedVoiceByAudioHash(audioHash, cachedByText);
+                    return res.json(cachedByText);
+                }
+
+                // ── Cache miss — query Supabase ──────────────────────────────────────────
+                logger.info(`Voice cache MISS for: "${transcribedText}". Querying Supabase...`);
                 const { data: medicines } = await supabase
                     .from("medicines")
                     .select("brand_name, generic_name, manufacturer, is_cdsco_verified")
@@ -107,23 +141,22 @@ router.post(
                         warnings: [],
                     };
                 }
+
+                result.verification = verificationResult;
+
+                // Populate both cache layers for future requests
+                await Promise.all([
+                    setCachedVoiceResult(transcribedText, result),
+                    setCachedVoiceByAudioHash(audioHash, result),
+                ]);
+
+                return res.json(result);
             }
 
             result.verification = verificationResult;
-
-            // Cache result in Redis (key: transcribed medicine name, TTL: 1 hour)
-            try {
-                if (transcribedText) {
-                    const cacheKey = `medicine:voice:${transcribedText.toLowerCase().replace(/\s+/g, "_")}`;
-                    await redisClient.setEx(cacheKey, 3600, JSON.stringify(result));
-                }
-            } catch (cacheErr) {
-                console.error("Redis cache error:", cacheErr);
-            }
-
             return res.json(result);
         } catch (err) {
-            console.error("Voice verification error:", err);
+            logger.error("Voice verification error", err);
             return res
                 .status(500)
                 .json({ success: false, error: "Internal server error. Please try again." });

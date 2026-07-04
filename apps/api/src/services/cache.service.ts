@@ -20,6 +20,8 @@ export const HIT_THRESHOLDS = {
 export const KEY_PREFIXES = {
     DRUG_CACHE: "drug:batch:",
     DRUG_HITS: "hits:drug:",
+    VOICE_CACHE: "medicine:voice:",
+    VOICE_AUDIO_CACHE: "medicine:voice:audio:",
 };
 
 const CACHE_INVALIDATION_CHUNK_SIZE = 100;
@@ -362,5 +364,84 @@ export async function getCacheStats(): Promise<{
             tierBreakdown: { hot: 0, warm: 0, cold: 0 },
             topDrugs: [],
         };
+    }
+}
+
+/**
+ * Retrieves a cached voice verification result by the transcribed medicine name.
+ * Increments the global hit counter on a cache hit.
+ */
+export async function getCachedVoiceResult(transcribedText: string): Promise<any | null> {
+    if (!redisClient.isOpen) return null;
+    const normalizedKey = transcribedText.toLowerCase().replace(/\s+/g, "_");
+    const cacheKey = `${KEY_PREFIXES.VOICE_CACHE}${normalizedKey}`;
+    try {
+        const cached = await redisClient.get(cacheKey);
+        if (cached) {
+            logger.info(`Voice cache HIT for: ${normalizedKey}`);
+            await redisClient.incr("stats:hits");
+            return JSON.parse(cached);
+        }
+    } catch (err) {
+        logger.error(`Error reading voice cache for key: ${normalizedKey}`, err);
+    }
+    return null;
+}
+
+/**
+ * Stores a voice verification result in Redis using TTL_TIERS.COLD (1 hour).
+ * Increments the global miss counter to track cache misses from DB lookups.
+ */
+export async function setCachedVoiceResult(transcribedText: string, result: any): Promise<void> {
+    if (!redisClient.isOpen) return;
+    const normalizedKey = transcribedText.toLowerCase().replace(/\s+/g, "_");
+    const cacheKey = `${KEY_PREFIXES.VOICE_CACHE}${normalizedKey}`;
+    try {
+        await redisClient.set(cacheKey, JSON.stringify(result), {
+            EX: TTL_TIERS.COLD,
+        });
+        await redisClient.incr("stats:misses");
+        logger.info(`Voice cache SET for: ${normalizedKey} (TTL: ${TTL_TIERS.COLD}s)`);
+    } catch (err) {
+        logger.error(`Error writing voice cache for key: ${normalizedKey}`, err);
+    }
+}
+
+/**
+ * Retrieves a cached voice verification result by a SHA-256 hash of the raw audio buffer.
+ * On a hit, the ML transcription call is skipped entirely.
+ * Increments the global hit counter.
+ */
+export async function getCachedVoiceByAudioHash(audioHash: string): Promise<any | null> {
+    if (!redisClient.isOpen) return null;
+    const cacheKey = `${KEY_PREFIXES.VOICE_AUDIO_CACHE}${audioHash}`;
+    try {
+        const cached = await redisClient.get(cacheKey);
+        if (cached) {
+            logger.info(`Voice audio cache HIT for hash: ${audioHash}`);
+            await redisClient.incr("stats:hits");
+            return JSON.parse(cached);
+        }
+    } catch (err) {
+        logger.error(`Error reading voice audio cache for hash: ${audioHash}`, err);
+    }
+    return null;
+}
+
+/**
+ * Stores a voice verification result keyed by a SHA-256 hash of the raw audio buffer.
+ * Uses TTL_TIERS.COLD (1 hour). Increments the global miss counter.
+ */
+export async function setCachedVoiceByAudioHash(audioHash: string, result: any): Promise<void> {
+    if (!redisClient.isOpen) return;
+    const cacheKey = `${KEY_PREFIXES.VOICE_AUDIO_CACHE}${audioHash}`;
+    try {
+        await redisClient.set(cacheKey, JSON.stringify(result), {
+            EX: TTL_TIERS.COLD,
+        });
+        await redisClient.incr("stats:misses");
+        logger.info(`Voice audio cache SET for hash: ${audioHash} (TTL: ${TTL_TIERS.COLD}s)`);
+    } catch (err) {
+        logger.error(`Error writing voice audio cache for hash: ${audioHash}`, err);
     }
 }
