@@ -182,6 +182,16 @@ describe("MedicineNameNormalizer", () => {
             expect(result.normalized).toContain("metformin");
         });
 
+        it("should correct 'rn' misread as 'm'", () => {
+            const result = medicineNameNormalizer.normalize("Warndin");
+            expect(result.normalized).toBe("wamdin");
+        });
+
+        it("should NOT corrupt legitimate lowercase 'l' occurrences (single-char substitutions intentionally disabled)", () => {
+            const result = medicineNameNormalizer.normalize("Lisinopril");
+            expect(result.normalized).toBe("lisinopril");
+        });
+
         it("should handle OCR output with mixed punctuation", () => {
             const result = medicineNameNormalizer.normalize("Aspirin-500|mg_(Brand)");
             expect(result.normalized).toBe("aspirin 500 mg");
