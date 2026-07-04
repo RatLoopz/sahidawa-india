@@ -1,8 +1,9 @@
 "use client";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { X, Upload, CheckCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { API_BASE } from "@/lib/api";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 interface RequestVerificationModalProps {
     isOpen: boolean;
@@ -19,6 +20,9 @@ export function RequestVerificationModal({
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useFocusTrap(containerRef, isOpen);
 
     if (!isOpen) return null;
 
@@ -88,11 +92,28 @@ export function RequestVerificationModal({
         }
     };
 
+    const handleEscape = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === "Escape" && !isLoading) {
+            onClose();
+        }
+    };
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+        <div
+            ref={containerRef}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="request-verification-title"
+            onKeyDown={handleEscape}
+            tabIndex={-1}
+        >
             <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900">
                 <div className="mb-4 flex items-center justify-between">
-                    <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+                    <h3
+                        id="request-verification-title"
+                        className="text-xl font-bold text-slate-800 dark:text-slate-100"
+                    >
                         Request Verification
                     </h3>
                     <button

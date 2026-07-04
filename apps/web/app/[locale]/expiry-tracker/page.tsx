@@ -62,6 +62,7 @@ export default function ExpiryTrackerPage() {
     // IO / System state
     const [importError, setImportError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const scannerTriggerRef = useRef<HTMLButtonElement | null>(null);
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const [isVerifying, setIsVerifying] = useState(false);
     const [apiError, setApiError] = useState<string | null>(null);
@@ -90,6 +91,7 @@ export default function ExpiryTrackerPage() {
     const handleScannerClose = useCallback(() => {
         setIsScannerOpen(false);
         setApiError(null);
+        requestAnimationFrame(() => scannerTriggerRef.current?.focus());
     }, []);
 
     const updateExpiryState = useCallback((dateInputValue: string) => {
@@ -481,7 +483,10 @@ export default function ExpiryTrackerPage() {
                         onDateErrorChange={setDateError}
                         onSubmit={handleSubmit}
                         onCancelEdit={cancelEdit}
-                        onOpenScanner={() => setIsScannerOpen(true)}
+                        onOpenScanner={() => {
+                            scannerTriggerRef.current = document.activeElement as HTMLButtonElement;
+                            setIsScannerOpen(true);
+                        }}
                         onExportPDF={handleExportPDF}
                         onPrint={handlePrint}
                         onExport={handleExport}

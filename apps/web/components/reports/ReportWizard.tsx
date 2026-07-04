@@ -832,6 +832,7 @@ export default function ReportWizard() {
     const [step, setStep] = useState(1);
     const [dir, setDir] = useState(1);
     const [images, setImages] = useState<ImageEntry[]>([]);
+    const stepContentRef = useRef<HTMLDivElement | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [submitErr, setSubmitErr] = useState<string | null>(null);
     const [done, setDone] = useState(false);
@@ -919,6 +920,19 @@ export default function ReportWizard() {
         }, 500);
         return () => clearTimeout(timer);
     }, [JSON.stringify(watchedValues), step, images, restoredDraft, done]);
+
+    useEffect(() => {
+        const target = stepContentRef.current;
+        if (!target) return;
+
+        const focusable = target.querySelector<HTMLElement>(
+            'input:not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+
+        if (focusable) {
+            requestAnimationFrame(() => focusable.focus());
+        }
+    }, [step]);
 
     // Navigation
     const next = async () => {
