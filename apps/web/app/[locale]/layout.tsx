@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
+import { getMessages, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "../../i18n/routing";
+import { getSiteUrl } from "@/lib/env";
 
 import { ThemeProvider } from "./components/ThemeProvider";
 import { OfflineBanner } from "@/components/OfflineBanner";
@@ -25,7 +26,7 @@ export async function generateMetadata({
     params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
     await params;
-    const baseUrl = "https://sahidawa-india-web.vercel.app";
+    const baseUrl = getSiteUrl();
 
     // Generate alternates for all locales
     const alternates = {
@@ -73,39 +74,33 @@ export default async function LocaleLayout({
     params: Promise<{ locale: string }>;
 }) {
     const { locale } = await params;
+    // Unused variables removed
 
     if (!routing.locales.includes(locale as any)) {
         notFound();
     }
 
     const messages = await getMessages();
+    const t = await getTranslations("VoicePage");
     const isRtl = ["ur", "ks"].includes(locale);
 
     return (
         <html lang={locale} dir={isRtl ? "rtl" : "ltr"} suppressHydrationWarning>
-            <head>
-                <script
-                    dangerouslySetInnerHTML={{
-                        __html: `
-                            try {
-                                if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                                    document.documentElement.classList.add('dark');
-                                } else {
-                                    document.documentElement.classList.remove('dark');
-                                }
-                            } catch (_) {}
-                        `,
-                    }}
-                />
-            </head>
+            <head></head>
             <body className="flex min-h-screen flex-col bg-(--color-surface-page) text-(--color-text-primary) transition-colors duration-300">
                 <ServiceWorkerProvider>
                     <ThemeProvider>
                         <NextIntlClientProvider messages={messages}>
                             <AuthProvider>
+                                <a
+                                    href="#main-content"
+                                    className="sr-only absolute top-4 left-4 z-[60] rounded-full bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-lg focus:not-sr-only focus-visible:ring-[3px] focus-visible:ring-emerald-600 focus-visible:ring-offset-2 focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                                >
+                                    {t("skip_to_main_content")}
+                                </a>
                                 <OfflineBanner />
                                 <Navbar />
-                                <main className="flex flex-grow flex-col">
+                                <main id="main-content" className="flex flex-grow flex-col">
                                     <OfflineErrorBoundary>{children}</OfflineErrorBoundary>
                                 </main>
                                 <Footer />

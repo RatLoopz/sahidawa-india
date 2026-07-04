@@ -396,7 +396,8 @@
         "title": "ꯁꯍꯤꯗꯋꯥ AI",
         "status": "ꯑꯣꯟꯂꯥꯏꯟ",
         "welcome": "ꯍꯥꯏ! ꯑꯩꯍꯥꯛ ꯁꯍꯤꯗꯋꯥ AI ꯑꯦꯁꯤꯁ꯭ꯇꯦꯟꯠꯅꯤ꯫ ꯉꯁꯤ ꯅꯍꯥꯛꯀꯤ ꯍꯤꯗꯥꯛꯁꯤꯡꯒꯤ ꯃꯇꯥꯡꯗꯥ ꯀꯔꯅꯥ ꯃꯇꯦꯡ ꯄꯥꯡꯒꯦ?",
-        "placeholder": "ꯍꯤꯗꯥꯛ ꯑꯃꯒꯤ ꯃꯇꯥꯡꯗꯥ ꯑꯩꯉꯣꯟꯗꯥ ꯍꯪꯕꯤꯌꯨ…"
+        "placeholder": "ꯍꯤꯗꯥꯛ ꯑꯃꯒꯤ ꯃꯇꯥꯡꯗꯥ ꯑꯩꯉꯣꯟꯗꯥ ꯍꯪꯕꯤꯌꯨ…",
+        "tooltipLabel": "AI Health Assistant"
     },
     "Alerts": {
         "backHome": "ꯍꯣꯝ ꯄꯦꯖꯗꯥ ꯑꯃꯨꯛ ꯍꯟꯅꯥ ꯆꯠꯄꯥ",
@@ -580,7 +581,9 @@
         "errors": {
             "databaseNotConfigured": "ꯑꯣꯊꯦꯟꯇꯤꯀꯦꯁꯟ ꯑꯁꯤ ꯃꯐꯝ ꯑꯁꯤꯒꯤꯗꯃꛛ ꯁꯦꯠ ꯇꯧꯗ꯭ꯔꯤ꯫",
             "generic": "ꯁꯥꯏꯟ ꯏꯟ ꯇꯧꯕꯥ ꯌꯥꯗ꯭ꯔꯦ꯫ ꯑꯃꯨꯛ ꯍꯟꯅꯥ ꯍꯣꯠꯅꯕꯤꯌꯨ꯫"
-        }
+        },
+        "signUpPrompt": "Don't have an account?",
+        "signUpLink": "Sign up"
     },
     "AdminLayout": {
         "accessDeniedTitle": "ꯆꯪꯕꯥ ꯌꯥꯗ꯭ꯔꯦ (Access denied)",
@@ -867,7 +870,22 @@
         "optOutSuccess": "ꯄꯥꯎꯖꯦꯜ ꯄꯨꯝꯅꯃꯛ ꯃꯥꯌ ꯄꯥꯛꯅꯥ ꯇꯣꯀꯈ꯭ꯔꯦ꯫",
         "errorMessage": "ꯃꯧꯁꯤꯜ ꯑꯄꯗꯦꯠ ꯇꯧꯕꯥ ꯃꯥꯌ ꯄꯥꯛꯈꯤꯗꯦ꯫ ꯑꯃꯨꯛ ꯍꯟꯅꯥ ꯍꯣꯠꯅꯕꯤꯌꯨ꯫",
         "phoneInvalid": "ꯆꯥꯟꯕꯤꯗꯨꯅꯥ ꯆꯨꯝꯕꯥ ꯃꯁꯤꯡ ꯱꯰ ꯂꯩꯕꯥ ꯏꯟꯗꯤꯌꯥꯒꯤ ꯐꯣꯟ ꯃꯁꯤꯡ ꯑꯃꯥ ꯏꯕꯤꯌꯨ꯫",
-        "districtRequired": "ꯃꯐꯃꯗꯨꯒꯤ ꯆꯦꯛꯁꯤꯟ-ꯄꯥꯎꯖꯦꯜ ꯐꯪꯅꯕꯥ ꯗꯤꯁ꯭ꯇ꯭ꯔꯤꯛꯠ ꯑꯃꯥ ꯈꯟꯕꯤꯌꯨ꯫"
+        "districtRequired": "ꯃꯐꯃꯗꯨꯒꯤ ꯆꯦꯛꯁꯤꯟ-ꯄꯥꯎꯖꯦꯜ ꯐꯪꯅꯕꯥ ꯗꯤꯁ꯭ꯇ꯭ꯔꯤꯛꯠ ꯑꯃꯥ ꯈꯟꯕꯤꯌꯨ꯫",
+        "channelRequired": "SMS nattraga WhatsApp loin channel amadi active oigadabani.",
+        "optOutConfirm": "Nang opt out touraduna SMS amadi WhatsApp alert pumnamak lephannaba yamna khangbira?",
+        "loadingPreferences": "Nanggi preferences load touri...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
     },
     "Interactions": {
         "title": "ꯍꯤꯗꯥꯛ ꯄꯨꯟꯅꯥ ꯆꯥꯕꯒꯤ ꯆꯦꯛ ꯇꯧꯐꯝ",
@@ -919,6 +937,8 @@
         "stat_fake": "ꯑꯔꯥꯟꯕꯥ",
         "empty_title": "ꯁ꯭ꯀꯦꯟ ꯍꯤꯁ꯭ꯇ꯭ꯔꯤ ꯑꯃꯠꯇꯥ ꯂꯩꯇ꯭ꯔꯤ",
         "empty_description": "ꯅꯍꯥꯛꯅꯥ ꯆꯦꯛ ꯇꯧꯈꯤꯕꯥ ꯍꯤꯗꯥꯛꯁꯤꯡ ꯃꯐꯝ ꯑꯁꯤꯗꯥ ꯎꯕꯥ ꯐꯪꯒꯅꯤꏏ",
+        "search_placeholder": "ꯃꯦꯗꯤꯁꯤꯟ ꯊꯤꯅꯕ...",
+        "no_search_results": "ꯅꯍꯥꯛꯅꯥ ꯊꯤꯕꯒꯥ ꯃꯥꯟꯅꯕꯥ ꯃꯦꯗꯤꯁꯤꯟ ꯑꯃꯠꯇꯥ ꯂꯩꯇ꯭ꯔꯤꏏ",
         "item_status_label": "ꯐꯤꯚꯝ (Status): ",
         "item_delete_button": "ꯃꯨꯠꯊꯠꯄꯥ",
         "item_copy_success": "ꯍꯤꯗꯥꯛꯀꯤ ꯃꯤꯡ ꯀꯣꯄꯤ ꯇꯧꯈ꯭ꯔꯦ!"
@@ -978,5 +998,100 @@
         "placeholder": "Type your health concern...",
         "sendMessage": "Send message",
         "footer": "For informational use only • Consult a doctor"
+    },
+    "SignUp": {
+        "brandSubtitle": "Medicine safety platform",
+        "heading": "Create your account",
+        "description": "Join SahiDawa to track medicine safety reports and verification results.",
+        "missingConfig": {
+            "title": "Authentication is not configured",
+            "description": "Supabase URL or anon key is missing. Add the environment variables before signing up."
+        },
+        "googleButton": "Continue with Google",
+        "githubButton": "Continue with Github",
+        "emailSeparator": "or continue with email",
+        "fullNameLabel": "Full name",
+        "fullNamePlaceholder": "Your full name",
+        "emailLabel": "Email address",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Create a password",
+        "confirmPasswordLabel": "Confirm password",
+        "confirmPasswordPlaceholder": "Re-enter your password",
+        "showPassword": "Show password",
+        "hidePassword": "Hide password",
+        "showConfirmPassword": "Show confirm password",
+        "hideConfirmPassword": "Hide confirm password",
+        "signingUp": "Creating account...",
+        "signUp": "Sign Up",
+        "footerPrompt": "Already have an account?",
+        "signInLink": "Sign in",
+        "bottomText": "Protected access for SahiDawa community tools.",
+        "success": "Account created successfully! Redirecting...",
+        "successConfirmEmail": "Account created! Check your email to confirm your account before signing in.",
+        "errors": {
+            "databaseNotConfigured": "Authentication is not configured for this environment.",
+            "generic": "Unable to create account. Please try again.",
+            "fullNameRequired": "Full name is required.",
+            "emailRequired": "Email address is required.",
+            "emailInvalid": "Please enter a valid email address.",
+            "passwordRequired": "Password is required.",
+            "passwordWeak": "Password must be at least 8 characters and include uppercase, lowercase, and a number.",
+            "confirmPasswordRequired": "Please confirm your password.",
+            "passwordMismatch": "Passwords do not match."
+        }
+    },
+    "MyMedicines": {
+        "page": {
+            "title": "ꯑꯩꯒꯤ ꯇ꯭ꯔꯦꯛ ꯇꯧꯔꯕ ꯄꯦꯟꯅꯃꯁꯤꯡ",
+            "loading": "ꯅꯪꯒꯤ ꯇ꯭ꯔꯦꯛ ꯇꯧꯔꯕ ꯄꯦꯟꯅꯃꯁꯤꯡ ꯂꯣꯗ ꯇꯧꯔꯤ..."
+        },
+        "errors": {
+            "title": "ꯅꯪꯒꯤ ꯄꯦꯟꯅꯃꯁꯤꯡ ꯂꯣꯗ ꯇꯧꯕ ꯉꯝꯗ꯭ꯔꯦ",
+            "generic": "ꯅꯪꯒꯤ ꯇ꯭ꯔꯦꯛ ꯇꯧꯔꯕ ꯄꯦꯟꯅꯃꯁꯤꯡ ꯄꯨꯔꯛꯄ ꯃꯇꯝꯗ ꯑꯆꯨꯝꯕ ꯑꯃ ꯊꯣꯛꯈ꯭ꯔꯦ.",
+            "fetchFailed": "ꯇ꯭ꯔꯦꯛ ꯇꯧꯔꯕ ꯄꯦꯟꯅꯃꯁꯤꯡ ꯂꯣꯗ ꯇꯧꯕꯗ ꯃꯥꯏꯅꯦ. ꯆꯥꯡꯅꯕ ꯅꯪꯒꯤ ꯀꯅꯦꯛꯁꯟ ꯆꯦꯛ ꯇꯧꯐꯝ ꯑꯃꯁꯨꯡ ꯑꯃꯨꯛ ꯃꯤ ꯍꯣꯠꯅꯧ.",
+            "tryAgain": "ꯑꯃꯨꯛ ꯑꯃꯨꯛ ꯃꯤ ꯍꯣꯠꯅꯧ"
+        },
+        "emptyState": {
+            "title": "ꯍꯧꯖꯤꯛꯐꯥꯑꯣꯕ ꯄꯦꯟꯅꯃꯁꯤꯡ ꯇ꯭ꯔꯦꯛ ꯇꯧꯗꯨꯅ ꯂꯩꯇ꯭ꯔꯦ",
+            "description": "ꯑꯦꯛꯇꯤꯚ ꯁꯦꯗ꯭ꯌꯨꯜ, ꯁꯦꯐꯇꯤ ꯑꯄꯗꯦꯠ ꯑꯃꯁꯨꯡ ꯑꯦꯛꯁꯄꯥꯏꯔꯤ ꯄꯨꯡ ꯑꯗꯨ ꯑꯃꯁꯨꯡꯃꯗꯤ ꯇ꯭ꯔꯦꯛ ꯇꯧꯅꯕꯒꯤꯗꯃꯛ ꯅꯪꯒꯤ ꯍꯧꯖꯤꯛꯀꯤ ꯄꯦꯟꯅꯃꯁꯤꯡ ꯍꯥꯞꯆꯤꯜꯂꯣ.",
+            "addFirst": "ꯅꯪꯒꯤ ꯑꯍꯥꯅꯕ ꯄꯦꯟꯅꯃ ꯍꯥꯞꯆꯤꯜꯂꯣ"
+        },
+        "table": {
+            "name": "ꯃꯃꯤꯡ",
+            "expiry": "ꯑꯦꯛꯁꯄꯥꯏꯔꯤ",
+            "status": "ꯃꯍꯨꯛ",
+            "daysLeft": "{count} ꯅꯨꯃꯤꯠ ꯂꯩꯔꯤ"
+        },
+        "badges": {
+            "verified": "ꯌꯥꯊꯪꯈ꯭ꯔꯦ",
+            "unverified": "ꯌꯥꯊꯪꯗꯦ",
+            "requestVerificationTitle": "ꯌꯥꯊꯪꯅꯕꯒꯤ ꯑꯍꯥꯟꯕ ꯇꯧꯅꯕꯒꯤꯗꯃꯛ ꯀ꯭ꯂꯤꯛ ꯇꯧꯕꯤꯌꯨ"
+        },
+        "bookmarks": {
+            "savedAlternatives": "ꯁꯦꯚ ꯇꯧꯔꯕ ꯑꯦꯜꯇꯔꯅꯦꯠꯁꯤꯡ",
+            "noBookmarks": "ꯍꯧꯖꯤꯛꯐꯥꯑꯣꯕ ꯕꯨꯛꯃꯥꯔꯛ ꯑꯃꯠꯇ ꯂꯩꯇ꯭ꯔꯦ.",
+            "brand": "ꯕ꯭ꯔꯦꯟꯗ: {brand}"
+        },
+        "removeDialog": {
+            "title": "ꯕꯨꯛꯃꯥꯔꯛ ꯁꯦꯝꯗꯣꯛꯀꯗ꯭ꯔꯥ?",
+            "description": "ꯃꯁꯤꯅ \"{name}\" ꯅꯪꯒꯤ ꯁꯦꯚ ꯇꯧꯔꯕ ꯑꯦꯜꯇꯔꯅꯦꯠꯁꯤꯡꯗꯒꯤ ꯁꯦꯝꯗꯣꯛꯀꯅꯤ. ꯑꯆꯧꯕ ꯇꯥꯕ ꯃꯇꯝꯗ ꯅꯪꯅ ꯃꯁꯤ ꯃꯇꯨꯡꯗ ꯑꯃꯨꯛ ꯍꯥꯞꯆꯤꯜꯕ ꯉꯝꯒꯅꯤ.",
+            "confirm": "ꯁꯦꯝꯗꯣꯛꯎ",
+            "cancel": "ꯀꯛꯊꯠꯄꯤꯌꯨ"
+        }
+    },
+    "NotFound": {
+        "badge": "Error 404",
+        "title": "Page Not Found",
+        "description": "We couldn't find the medicine or page you were looking for. It might have been moved, or the URL might be incorrect.",
+        "backHome": "Back to Home",
+        "scanMedicine": "Scan Medicine"
+    },
+    "AbhaRecords": {
+        "backToProfile": "ꯄ꯭抄ꯣꯐꯥꯏꯜꯗꯥ ꯍꯜꯂꯨ",
+        "title": "ABHA ꯔꯦꯀꯣꯔ꯭ꯗꯁꯤꯡ",
+        "loading": "ꯔꯦꯀꯣꯔ꯭ꯗꯁꯤꯡ ꯂꯣꯗ ꯇꯧꯔꯤ...",
+        "noPrescriptions": "ꯀꯔꯤꯒꯨꯝꯕꯥ ꯄ꯭ꯔꯦꯁ꯭ꯀ꯭ꯔꯤꯄ꯭ꯁꯟ ꯑꯃꯠꯇꯥ ꯐꯪꯗꯦ꯫",
+        "failedToLoad": "ꯔꯦꯀꯣꯔ꯭ꯗꯁꯤꯡ ꯂꯣꯗ ꯇꯧꯕꯥ ꯉꯃꯈꯤꯗꯦ"
     }
 }

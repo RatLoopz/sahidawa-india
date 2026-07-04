@@ -26,7 +26,15 @@ function getInitials(name: string): string {
         .slice(0, 2);
 }
 
-export function Avatar({ src, alt = "", fallback, size = "md", showStatus, status = "online", className }: AvatarProps) {
+export function Avatar({
+    src,
+    alt = "",
+    fallback,
+    size = "md",
+    showStatus,
+    status = "online",
+    className,
+}: AvatarProps) {
     const [imgError, setImgError] = React.useState(false);
     const initials = fallback ? getInitials(fallback) : "?";
 
@@ -43,7 +51,7 @@ export function Avatar({ src, alt = "", fallback, size = "md", showStatus, statu
                 <span
                     className={clsx(
                         "inline-flex items-center justify-center rounded-full bg-slate-200 font-medium text-slate-600 dark:bg-slate-700 dark:text-slate-300",
-                        sizes[size],
+                        sizes[size]
                     )}
                     aria-hidden="true"
                 >
@@ -53,10 +61,10 @@ export function Avatar({ src, alt = "", fallback, size = "md", showStatus, statu
             {showStatus && (
                 <span
                     className={clsx(
-                        "absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-white dark:ring-slate-900",
+                        "absolute right-0 bottom-0 block h-2.5 w-2.5 rounded-full ring-2 ring-white dark:ring-slate-900",
                         status === "online" && "bg-emerald-500",
                         status === "away" && "bg-amber-500",
-                        status === "offline" && "bg-slate-400",
+                        status === "offline" && "bg-slate-400"
                     )}
                     aria-label={`${status}`}
                 />

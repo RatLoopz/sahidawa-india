@@ -1,0 +1,17 @@
+name: Keep Render Services Awake
+
+on:
+  schedule:
+    # Runs every 14 minutes
+    - cron: '*/14 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping-services:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Node API
+        run: curl -s https://sahidawa-api.onrender.com/health || echo "Failed to ping Node API"
+
+      - name: Ping ML Service
+        run: curl -s https://sahidawa-ml.onrender.com/health || echo "Failed to ping ML Service"

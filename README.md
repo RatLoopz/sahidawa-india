@@ -276,6 +276,10 @@ For detailed setup instructions, see: [ML Setup Guide](./docs/getting-started/ml
 
 For local setup instructions, see: [Local Setup Guide](./docs/getting-started/local-setup.md)
 
+For Docker setup instructions, see: [Docker Setup Guide](./docs/getting-started/docker-setup.md)
+
+For production deployment and environment variables, see: [Deployment Setup Guide](./docs/getting-started/deployment-setup.md)
+
 Quick start:
 
 ```bash

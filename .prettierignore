@@ -13,3 +13,11 @@ data/seeds/
 
 # Ignore Supabase config
 supabase/
+
+# Ignore Python, YAML and MD files
+*.py
+*.pyc
+*.yml
+*.yaml
+*.md
+package-lock.json

@@ -1,0 +1,80 @@
+name: PR Spam Guard
+
+on:
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  check-pr-limit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR Limit
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const author = context.payload.pull_request.user.login;
+            const prNumber = context.payload.pull_request.number;
+
+            // Skip bots
+            if (context.payload.pull_request.user.type === 'Bot') {
+              core.info('PR authored by a bot, skipping check.');
+              return;
+            }
+
+            // Skip maintainers
+            try {
+              const { data: perm } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                username: author
+              });
+              if (perm.permission === 'admin' || perm.permission === 'write') {
+                core.info('PR authored by Maintainer/Owner, skipping limit check.');
+                return;
+              }
+            } catch (err) {
+              core.warning('Could not fetch permissions for ' + author);
+            }
+
+            // Fetch all open PRs by the user
+            const prs = await github.paginate(github.rest.pulls.list, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+
+            const userPRs = prs.filter(pr => pr.user && pr.user.login === author);
+
+            // Limit is 5 active PRs. If this new PR makes it 6 or more, close it.
+            if (userPRs.length > 5) {
+              core.info(`User @${author} has ${userPRs.length} open PRs. Limit exceeded.`);
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: [
+                  '🚨 **PR Limit Exceeded** 🚨',
+                  '',
+                  `@${author}, thank you for your contribution!`,
+                  `However, you currently have **${userPRs.length} open Pull Requests** pending review.`,
+                  'To ensure maintainers can review efficiently and to provide fair opportunities to all contributors, we enforce a maximum limit of **5 open PRs** per contributor at any given time.',
+                  '',
+                  'This PR has been automatically closed. Please wait for your existing PRs to be merged or closed before submitting new ones.'
+                ].join('\n')
+              });
+
+              await github.rest.pulls.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                state: 'closed'
+              });
+            } else {
+              core.info(`User @${author} has ${userPRs.length} open PRs. Within limit.`);
+            }

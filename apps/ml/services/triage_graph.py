@@ -46,7 +46,7 @@ class TriageAnalysis(BaseModel):
 
 # ── Node Implementations ──────────────────────────────────────────────────────
 
-def get_llm(model: str = "gemini-2.5-flash"):
+def get_llm(model: str = "gemini-3.5-flash"):
     api_key = os.getenv("GOOGLE_API_KEY")
     return ChatGoogleGenerativeAI(model=model, temperature=0, google_api_key=api_key)
 

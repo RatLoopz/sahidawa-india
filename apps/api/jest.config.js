@@ -5,6 +5,7 @@ module.exports = {
         "**/tests/**/*.test.ts",
         "**/src/services/lasa.service.test.ts",
         "**/src/services/drugLookup.test.ts",
+        "**/src/services/cache.test.ts",
     ],
     clearMocks: true,
     setupFiles: ["<rootDir>/tests/setup.ts"],

@@ -390,3 +390,33 @@
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.4);
 }
+
+/*
+ * Text selection highlight — override the browser default bright blue with
+ * the brand emerald so highlighted text matches the rest of the UI.
+ * --color-text-primary works for the light-mode foreground (dark slate,
+ * 5.77:1 against the emerald background), but it flips to a near-white
+ * value in dark mode that would only hit 2.42:1 against the same
+ * background — short of WCAG AA's 4.5:1 minimum for normal text — so dark
+ * mode gets its own override using --color-dark-surface (near-black) as the
+ * foreground instead, which verifies at 7.04:1.
+ */
+::selection {
+    background-color: var(--color-brand-primary);
+    color: var(--color-text-primary);
+}
+
+::-moz-selection {
+    background-color: var(--color-brand-primary);
+    color: var(--color-text-primary);
+}
+
+.dark ::selection {
+    background-color: var(--color-brand-primary);
+    color: var(--color-dark-surface);
+}
+
+.dark ::-moz-selection {
+    background-color: var(--color-brand-primary);
+    color: var(--color-dark-surface);
+}

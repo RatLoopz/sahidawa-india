@@ -10,14 +10,15 @@ interface ContainerProps {
     children: React.ReactNode;
 }
 
-export function Container({ as: Component = "div", narrow = false, className, children }: ContainerProps) {
+export function Container({
+    as: Component = "div",
+    narrow = false,
+    className,
+    children,
+}: ContainerProps) {
     return (
         <Component
-            className={clsx(
-                "mx-auto w-full px-4",
-                narrow ? "max-w-3xl" : "max-w-6xl",
-                className,
-            )}
+            className={clsx("mx-auto w-full px-4", narrow ? "max-w-3xl" : "max-w-6xl", className)}
         >
             {children}
         </Component>

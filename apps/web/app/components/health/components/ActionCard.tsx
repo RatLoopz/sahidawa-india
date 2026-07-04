@@ -43,7 +43,8 @@ export function ActionCard({
     const accent = accentMap[accentColor];
 
     return (
-        <button type="button"
+        <button
+            type="button"
             onClick={onClick}
             className={`w-full rounded-2xl border border-white/40 bg-white/40 p-4 text-left shadow-sm backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 active:scale-[0.98] dark:border-white/10 dark:bg-slate-900/40 ${accent.hover} focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none`}
             aria-label={label}

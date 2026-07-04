@@ -12,6 +12,7 @@ import {
     BookOpen,
     RefreshCw,
     CheckCircle2,
+    WifiOff,
 } from "lucide-react";
 import { fuzzyMatchBrand } from "@/lib/api";
 import { checkInteractions, type InteractionResult } from "@/lib/api/interactions";
@@ -86,6 +87,7 @@ export default function InteractionCheckerPage() {
     const [interactions, setInteractions] = useState<InteractionResult[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [hasChecked, setHasChecked] = useState(false);
+    const [isOfflineResult, setIsOfflineResult] = useState(false);
 
     const inputRef = useRef<HTMLInputElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -193,6 +195,7 @@ export default function InteractionCheckerPage() {
             });
 
             setInteractions(sorted);
+            setIsOfflineResult(response.verified === false);
             setHasChecked(true);
         } catch (err: any) {
             setError(err.message || t("errorMessage"));
@@ -373,6 +376,22 @@ export default function InteractionCheckerPage() {
                         <h2 className="border-b border-(--color-border-muted) pb-2 text-xl font-black text-(--color-text-primary)">
                             {t("resultsHeading")}
                         </h2>
+
+                        {isOfflineResult && (
+                            <div
+                                role="alert"
+                                aria-live="polite"
+                                className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/30 dark:bg-amber-950/20"
+                            >
+                                <WifiOff
+                                    size={18}
+                                    className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400"
+                                />
+                                <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                                    {t("offlineBadge")}
+                                </p>
+                            </div>
+                        )}
 
                         {interactions.length === 0 ? (
                             <div className="flex flex-col items-center gap-4 rounded-3xl border border-emerald-200 bg-emerald-50/30 px-6 py-12 text-center shadow-sm dark:border-emerald-900/30 dark:bg-emerald-950/10">

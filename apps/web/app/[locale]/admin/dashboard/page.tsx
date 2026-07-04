@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useId } from "react";
+import React, { useState, useEffect, useCallback, useId, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import {
@@ -20,6 +20,7 @@ import {
     Activity,
     Store,
 } from "lucide-react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 import { canMutateAdminData, getAdminRoleFromSession, type AdminRole } from "@/lib/adminAuth";
 import { ADMIN_API_BASE } from "@/lib/adminApi";
@@ -654,6 +655,14 @@ function ReportsTable({
     t: ReturnType<typeof useTranslations>;
 }>) {
     const authErrorMessageId = useId();
+    const listContainerRef = useRef<HTMLDivElement>(null);
+
+    const rowVirtualizer = useVirtualizer({
+        count: reports.length,
+        getScrollElement: () => listContainerRef.current,
+        estimateSize: () => 80,
+        overscan: 5,
+    });
 
     return (
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -698,61 +707,129 @@ function ReportsTable({
             )}
 
             {!loading && !authError && reports.length > 0 && (
-                <table className="w-full text-left">
+                <table className="w-full text-left" style={{ tableLayout: "fixed" }}>
                     <thead>
                         <tr className="bg-slate-50 text-xs font-semibold tracking-wider text-slate-400 uppercase">
-                            <th className="px-6 py-3">{t("reports.columns.medicine")}</th>
-                            <th className="px-6 py-3">{t("reports.columns.district")}</th>
-                            <th className="px-6 py-3">{t("reports.columns.barcode")}</th>
-                            <th className="px-6 py-3">{t("reports.columns.reported")}</th>
+                            <th className="px-6 py-3" style={{ width: "28%" }}>
+                                {t("reports.columns.medicine")}
+                            </th>
+                            <th className="px-6 py-3" style={{ width: "20%" }}>
+                                {t("reports.columns.district")}
+                            </th>
+                            <th className="px-6 py-3" style={{ width: "20%" }}>
+                                {t("reports.columns.barcode")}
+                            </th>
+                            <th className="px-6 py-3" style={{ width: "12%" }}>
+                                {t("reports.columns.reported")}
+                            </th>
                             {canMutate && (
-                                <th className="px-6 py-3">{t("reports.columns.actions")}</th>
+                                <th className="px-6 py-3" style={{ width: "20%" }}>
+                                    {t("reports.columns.actions")}
+                                </th>
                             )}
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
-                        {reports.map((r) => (
-                            <tr key={r.id} className="transition-colors hover:bg-slate-50/60">
-                                <td className="px-6 py-3 font-medium text-slate-800">
-                                    {r.reported_brand_name ?? r.medicines?.brand_name ?? "—"}
-                                </td>
-                                <td className="px-6 py-3 text-sm text-slate-600">
-                                    {r.district ?? "—"}
-                                </td>
-                                <td className="px-6 py-3">
-                                    <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs">
-                                        {r.scanned_barcode ?? "N/A"}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-3 text-sm text-slate-400">
-                                    {timeAgo(r.created_at)}
-                                </td>
-                                {canMutate && (
-                                    <td className="px-6 py-3">
-                                        <div className="flex gap-2">
-                                            <ActionBtn
-                                                label={t("actions.markFake")}
-                                                icon={XCircle}
-                                                color="red"
-                                                loading={acting === r.id + "verified_fake"}
-                                                disabled={!!acting?.startsWith(r.id)}
-                                                onClick={() => onAction(r.id, "verified_fake")}
-                                            />
-                                            <ActionBtn
-                                                label={t("actions.falseAlarm")}
-                                                icon={CheckCircle}
-                                                color="green"
-                                                loading={acting === r.id + "false_alarm"}
-                                                disabled={!!acting?.startsWith(r.id)}
-                                                onClick={() => onAction(r.id, "false_alarm")}
-                                            />
-                                        </div>
-                                    </td>
-                                )}
-                            </tr>
-                        ))}
-                    </tbody>
                 </table>
+            )}
+
+            {!loading && !authError && reports.length > 0 && (
+                <div ref={listContainerRef} className="overflow-auto" style={{ height: "600px" }}>
+                    <div
+                        style={{
+                            height: `${rowVirtualizer.getTotalSize()}px`,
+                            position: "relative",
+                        }}
+                    >
+                        {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                            const r = reports[virtualRow.index];
+                            return (
+                                <div
+                                    key={r.id}
+                                    style={{
+                                        position: "absolute",
+                                        top: 0,
+                                        left: 0,
+                                        width: "100%",
+                                        transform: `translateY(${virtualRow.start}px)`,
+                                    }}
+                                >
+                                    <table
+                                        className="w-full text-left"
+                                        style={{ tableLayout: "fixed" }}
+                                    >
+                                        <tbody>
+                                            <tr className="border-b border-slate-100 transition-colors hover:bg-slate-50/60">
+                                                <td
+                                                    className="px-6 py-3 font-medium text-slate-800"
+                                                    style={{ width: "28%" }}
+                                                >
+                                                    {r.reported_brand_name ??
+                                                        r.medicines?.brand_name ??
+                                                        "—"}
+                                                </td>
+                                                <td
+                                                    className="px-6 py-3 text-sm text-slate-600"
+                                                    style={{ width: "20%" }}
+                                                >
+                                                    {r.district ?? "—"}
+                                                </td>
+                                                <td className="px-6 py-3" style={{ width: "20%" }}>
+                                                    <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs">
+                                                        {r.scanned_barcode ?? "N/A"}
+                                                    </span>
+                                                </td>
+                                                <td
+                                                    className="px-6 py-3 text-sm text-slate-400"
+                                                    style={{ width: "12%" }}
+                                                >
+                                                    {timeAgo(r.created_at)}
+                                                </td>
+                                                {canMutate && (
+                                                    <td
+                                                        className="px-6 py-3"
+                                                        style={{ width: "20%" }}
+                                                    >
+                                                        <div className="flex gap-2">
+                                                            <ActionBtn
+                                                                label={t("actions.markFake")}
+                                                                icon={XCircle}
+                                                                color="red"
+                                                                loading={
+                                                                    acting ===
+                                                                    r.id + "verified_fake"
+                                                                }
+                                                                disabled={
+                                                                    !!acting?.startsWith(r.id)
+                                                                }
+                                                                onClick={() =>
+                                                                    onAction(r.id, "verified_fake")
+                                                                }
+                                                            />
+                                                            <ActionBtn
+                                                                label={t("actions.falseAlarm")}
+                                                                icon={CheckCircle}
+                                                                color="green"
+                                                                loading={
+                                                                    acting === r.id + "false_alarm"
+                                                                }
+                                                                disabled={
+                                                                    !!acting?.startsWith(r.id)
+                                                                }
+                                                                onClick={() =>
+                                                                    onAction(r.id, "false_alarm")
+                                                                }
+                                                            />
+                                                        </div>
+                                                    </td>
+                                                )}
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
             )}
         </div>
     );

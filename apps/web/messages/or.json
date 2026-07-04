@@ -33,7 +33,14 @@
         "heroTitle": {
             "prefix": "ଆପଣଙ୍କ ସ୍ୱାସ୍ଥ୍ୟ, ",
             "highlight": "ସତ୍ୟାପିତ ଏବଂ ସୁରକ୍ଷିତ ।"
-        }
+        },
+        "scan_section_title": "ଔଷଧ ସ୍କାନ ଏବଂ ଯାଞ୍ଚ କରନ୍ତୁ",
+        "scan_section_subtitle": "ବାରକୋଡ କିମ୍ବା ପ୍ୟାକେଜ ସ୍କାନିଂ ବ୍ୟବହାର କରି ଔଷଧର ସତ୍ୟତା ଯାଞ୍ଚ କରନ୍ତୁ।",
+        "powerful_capabilities": "ଶକ୍ତିଶାଳୀ କ୍ଷମତା",
+        "features_description": "ଆପଣଙ୍କ ଔଷଧ ଯାଞ୍ଚ କରିବାରେ ଏବଂ ସୁରକ୍ଷିତ ରହିବାରେ ସହିଦାୱା (SahiDawa) କିପରି ସାହାଯ୍ୟ କରିପାରିବ ସେହି ସମସ୍ତ ଉପାୟ ଆବିଷ୍କାର କରନ୍ତୁ।",
+        "trusted_by_citizens": "ନାଗରିକଙ୍କ ଦ୍ୱାରା ବିଶ୍ୱସ୍ତ",
+        "voices_title": "ସହିଦାୱା ସମ୍ପ୍ରଦାୟର ସ୍ୱର",
+        "voices_description": "ଔଷଧ ସୁରକ୍ଷାକୁ ସହଜ କରିବା ପାଇଁ ସହିଦାୱା ବ୍ୟବହାର କରୁଥିବା ପରିବାର, ଫାର୍ମାସିଷ୍ଟ, ଡାକ୍ତର ଏବଂ ସହଯୋଗୀମାନେ।"
     },
     "Navigation": {
         "how_it_works": "ଏହା କିପରି କାର୍ଯ୍ୟ କରେ",
@@ -368,7 +375,8 @@
         "placeholder": "Ask me about a medicine...",
         "status": "Online",
         "title": "SahiDawa AI",
-        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"
+        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?",
+        "tooltipLabel": "AI Health Assistant"
     },
     "Alerts": {
         "backHome": "ମୁଖ୍ୟ ପୃଷ୍ଠାକୁ ଫେରନ୍ତୁ",
@@ -488,7 +496,9 @@
         "errors": {
             "databaseNotConfigured": "ଏହି ପରିବେଶ ପାଇଁ ପ୍ରମାଣୀକରଣ ବିନ୍ୟାସିତ ହୋଇନାହିଁ।",
             "generic": "ସାଇନ୍ ଇନ୍ କରିବାରେ ବିଫଳ। ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।"
-        }
+        },
+        "signUpPrompt": "Don't have an account?",
+        "signUpLink": "Sign up"
     },
     "AdminLayout": {
         "accessDeniedTitle": "ପ୍ରବେଶ ଅସ୍ୱୀକୃତ",
@@ -650,6 +660,75 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
+    "howItWorks": {
+        "badge": "Safe Healthcare � AI Powered",
+        "heroTitle": "How <highlight>SahiDawa</highlight> Works",
+        "heroSubtitle": "Learn how SahiDawa helps users verify medicines, discover trusted pharmacies, receive official alerts, and stay protected from counterfeit drugs using AI-powered healthcare tools.",
+        "ctaButtons": {
+            "scan": "Start Scanning",
+            "map": "Explore Pharmacy Map"
+        },
+        "steps": {
+            "scan": {
+                "title": "Scan Medicine",
+                "description": "Point your device camera at the barcode or QR code on any medicine packaging."
+            },
+            "verify": {
+                "title": "Verify Instantly",
+                "description": "AI cross-references scanned details with CDSCO records to check authenticity."
+            },
+            "alerts": {
+                "title": "Check Alerts",
+                "description": "Get real-time safety alerts if the batch is recalled, banned, or substandard."
+            },
+            "pharmacies": {
+                "title": "Find Pharmacies",
+                "description": "Locate Jan Aushadhi stores and verified nearby pharmacies stocking real medicines."
+            },
+            "protect": {
+                "title": "Stay Protected",
+                "description": "Keep records of your scans, report fakes, and safeguard your family's health."
+            }
+        },
+        "features": {
+            "title": "Platform Features",
+            "subtitle": "Everything you need for safer healthcare decisions.",
+            "cards": {
+                "verifyMedicines": {
+                    "title": "Verify Medicines",
+                    "description": "Instantly verify medicine authenticity using barcode, batch number, or medicine details."
+                },
+                "scanOrSearch": {
+                    "title": "Scan or Search",
+                    "description": "Scan packaging or manually search medicines for trusted healthcare information."
+                },
+                "aiAssistant": {
+                    "title": "AI Health Assistant",
+                    "description": "Get AI-powered guidance for symptoms, side effects, precautions, and medicine usage."
+                },
+                "trustedPharmacies": {
+                    "title": "Trusted Pharmacies",
+                    "description": "Find verified pharmacies nearby with reliable medicine availability and ratings."
+                },
+                "cdscoAlerts": {
+                    "title": "CDSCO Alerts",
+                    "description": "Stay updated with official CDSCO medicine recalls, warnings, and health alerts."
+                },
+                "reportMedicines": {
+                    "title": "Report Suspicious Medicines",
+                    "description": "Help the community by reporting counterfeit or suspicious medicines instantly."
+                }
+            }
+        },
+        "ctaBanner": {
+            "title": "Safer Healthcare Starts Here",
+            "subtitle": "Verify medicines, access trusted healthcare information, and stay protected from counterfeit drugs with AI-powered assistance.",
+            "buttons": {
+                "scan": "Scan Medicine",
+                "alerts": "View Alerts"
+            }
+        }
+    },
     "medicineSafety": {
         "guideTitle": "ବ୍ୟବହାର ଓ ସୁରକ୍ଷା ମାର୍ଗଦର୍ଶିକା",
         "noDosageInfo": "ଏହି ବୟସ ଗୋଷ୍ଠୀ ପାଇଁ ଡୋଜ୍ ସୂଚନା ଉପଲବ୍ଧ ନାହିଁ।",
@@ -685,7 +764,59 @@
     },
     "SchemeEligibility": {
         "validationAgeError": "ଦୟାକରି ଏକ ବୈଧ ବୟସ ଲେଖନ୍ତୁ।",
-        "validationStateError": "ଦୟାକରି ଗୋଟିଏ ରାଜ୍ୟ ଚୟନ କରନ୍ତୁ।"
+        "validationStateError": "ଦୟାକରି ଗୋଟିଏ ରାଜ୍ୟ ଚୟନ କରନ୍ତୁ।",
+        "validationIncomeError": "ଦୟାକରି ଏକ ବୈଧ ବାର୍ଷିକ ଆୟ ପ୍ରବେଶ କରନ୍ତୁ।",
+        "validationFamilySizeError": "ଦୟାକରି ପରିବାର ସଦସ୍ୟଙ୍କ ଏକ ବୈଧ ସଂଖ୍ୟା ପ୍ରବେଶ କରନ୍ତୁ।",
+        "eligibilityCheckedSuccess": "ଯୋଗ୍ୟତା ସଫଳତାର ସହ ଯାଞ୍ଚ କରାଗଲା!",
+        "eligibilityCheckFailed": "ଯୋଗ୍ୟତା ଯାଞ୍ଚ କରିବାରେ ବିଫଳ। ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତು।",
+        "title": "ଆପଣଙ୍କ <highlight>ଯୋଜନା ଯୋଗ୍ୟତା</highlight> ଯାଞ୍ଚ କରନ୍ତୁ",
+        "description": "୩ଟି ସରଳ ପଦକ୍ଷେପରେ ଜାଣନ୍ତୁ ଆପଣ ଏବଂ ଆପଣଙ୍କ ପରିବାର କେଉଁ ସରକାରୀ ସ୍ୱାସ୍ଥ୍ୟ ଯୋଜନା ପାଇଁ ଯୋଗ୍ୟ।",
+        "stepDemographics": "ଜନସଂଖ୍ୟା ସୂଚନା",
+        "stepIncomeFamily": "ଆୟ ଏବଂ ପରିବାର",
+        "stepIdentification": "ପରିଚୟ",
+        "ageLabel": "ଆପଣଙ୍କ ବୟସ କେତେ?",
+        "ageDescription": "ବୟସ ବରିଷ୍ଠ ନାଗରିକ ସ୍ୱାସ୍ଥ୍ୟ ସୁରକ୍ଷା ଯାଞ୍ଚ କରିବାରେ ସାହାଯ୍ୟ କରେ।",
+        "agePlaceholder": "ଯେପରିକି: ୪୫",
+        "stateLabel": "ଆପଣ କେଉଁ ରାଜ୍ୟରେ ବାସ କରନ୍ତି?",
+        "stateDescription": "ସରକାରୀ ସ୍ୱାସ୍ଥ୍ୟ ବୀମା କାର୍ଯ୍ୟକ୍ରମ ରାଜ୍ୟ ଅନୁସାରେ ଭିନ୍ନ ହୋଇଥାଏ।",
+        "incomeLabel": "ଆପଣଙ୍କ ପରିବାରର ମୋଟ ବାର୍ଷିକ ଆୟ କେତେ?",
+        "incomeDescription": "ପ୍ରତି ବର୍ଷ ଟଙ୍କାରେ ଆପଣଙ୍କ ପରିବାରର ମୋଟ ବାର୍ଷିକ ଆୟ।",
+        "incomePlaceholder": "ଯେପରିକି: ୧୨००००",
+        "familySizeLabel": "ଆପଣଙ୍କ ପରିବାରରେ କେତେଜଣ ସଦସ୍ୟ ଅଛନ୍ତି?",
+        "familySizeDescription": "ଘରେ ଏକାଠି ରହୁଥିବା ପରିବାରର ମୋଟ ସଦସ୍ୟ।",
+        "familySizePlaceholder": "ଯେପରିକି: ୫",
+        "bplQuestion": "ଆପଣଙ୍କ ପାଖରେ BPL କାର୍ଡ ଅଛି କି?",
+        "abhaQuestion": "ଆପଣଙ୍କ ପାଖରେ ABHA ID ଅଛି କି?",
+        "yesOption": "ହଁ, ଅଛି",
+        "noOption": "ନାହିଁ, ନାହିଁ",
+        "backButton": "ପଛକୁ",
+        "nextButton": "ପରବର୍ତ୍ତୀ ପଦକ୍ଷେପ",
+        "findSchemesButton": "ଯୋଜନା ଖୋଜନ୍ତୁ",
+        "checkingButton": "ଯାଞ୍ଚ ଚାଲିଛି...",
+        "resultsTitle": "ଆପଣଙ୍କ ଯୋଗ୍ୟ ଯୋଜନାସମୂହ",
+        "resultsDescription": "ଆମେ <countTag>{count}ଟି ଯୋଜନା</countTag> ପାଇଛୁ ଯାହା ପାଇଁ ଆପଣ ଯୋଗ୍ୟ।",
+        "eligibleBadge": "ଯୋଗ୍ୟ",
+        "benefitsCoverage": "ଲାଭ / କଭਰੇଜ",
+        "howToApply": "କିପରି ଆବେදନ କରିବେ",
+        "visitOfficialPortal": "ଅଫିସିଆଲ୍ ପୋର୍ଟାଲ୍ ପରିଦର୍ଶନ କରନ୍ତு",
+        "noSchemesTitle": "କୌଣସି ଯୋଜନା ମିଳିଲା ନାହିଁ।",
+        "noSchemesDescription": "ଦୟାକରି ଗ୍ରାମ ଅଧିକାରୀଙ୍କ ସହ ଯୋଗାଯୋଗ କରନ୍ତୁ କିମ୍ବା ଆପଣଙ୍କ ସ୍ଥାନୀୟ ସରକାରୀ କେନ୍ଦ୍ର ଯାଞ୍ଚ କରନ୍ତୁ।",
+        "printPdfButton": "ପ୍ରିଣ୍ଟ୍ କରନ୍ତୁ / ପିଡିଏଫ୍ ଭାବରେ ସଂରକ୍ଷଣ କରନ୍ତୁ",
+        "checkAgainButton": "ପୁଣิ ଯାଞ୍ଚ କରନ୍ତୁ",
+        "printBrandTitle": "SahiDawa — ଗ୍ରାମୀଣ ସ୍ୱାସ୍ଥ୍ୟ ସେତୁ",
+        "printReportTitle": "ସରକାରୀ ସ୍ୱାସ୍ଥ୍ୟ ଯୋଜନା ଯୋଗ୍ୟତା ରିପୋର୍ଟ",
+        "dateGenerated": "ରିପୋର୍ଟ ତାରିଖ",
+        "website": "ୱେବସାଇଟ୍",
+        "age": "ବୟସ",
+        "years": "ବର୍ଷ",
+        "stateOfResidence": "ବାସସ୍ଥାନ ରାଜ୍ୟ",
+        "annualFamilyIncome": "ବାର୍ଷିକ ପାରିବਾਰିକ ଆୟ",
+        "familySize": "ପରିବାର ଆକାର",
+        "members": "ସଦସ୍ୟ",
+        "bplRationCardHolder": "BPL ରାସନ କାର୍ଡ ଧାରୀ",
+        "abhaHealthIdHolder": "ABHA ସ୍ୱାସ୍ଥ୍ୟ ID ଧାରୀ",
+        "yes": "ହଁ",
+        "no": "ନାହିଁ"
     },
     "Health": {
         "quickActions": "Quick actions",
@@ -709,5 +840,117 @@
         "placeholder": "Type your health concern...",
         "sendMessage": "Send message",
         "footer": "For informational use only • Consult a doctor"
+    },
+    "SignUp": {
+        "brandSubtitle": "Medicine safety platform",
+        "heading": "Create your account",
+        "description": "Join SahiDawa to track medicine safety reports and verification results.",
+        "missingConfig": {
+            "title": "Authentication is not configured",
+            "description": "Supabase URL or anon key is missing. Add the environment variables before signing up."
+        },
+        "googleButton": "Continue with Google",
+        "githubButton": "Continue with Github",
+        "emailSeparator": "or continue with email",
+        "fullNameLabel": "Full name",
+        "fullNamePlaceholder": "Your full name",
+        "emailLabel": "Email address",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Create a password",
+        "confirmPasswordLabel": "Confirm password",
+        "confirmPasswordPlaceholder": "Re-enter your password",
+        "showPassword": "Show password",
+        "hidePassword": "Hide password",
+        "showConfirmPassword": "Show confirm password",
+        "hideConfirmPassword": "Hide confirm password",
+        "signingUp": "Creating account...",
+        "signUp": "Sign Up",
+        "footerPrompt": "Already have an account?",
+        "signInLink": "Sign in",
+        "bottomText": "Protected access for SahiDawa community tools.",
+        "success": "Account created successfully! Redirecting...",
+        "successConfirmEmail": "Account created! Check your email to confirm your account before signing in.",
+        "errors": {
+            "databaseNotConfigured": "Authentication is not configured for this environment.",
+            "generic": "Unable to create account. Please try again.",
+            "fullNameRequired": "Full name is required.",
+            "emailRequired": "Email address is required.",
+            "emailInvalid": "Please enter a valid email address.",
+            "passwordRequired": "Password is required.",
+            "passwordWeak": "Password must be at least 8 characters and include uppercase, lowercase, and a number.",
+            "confirmPasswordRequired": "Please confirm your password.",
+            "passwordMismatch": "Passwords do not match."
+        }
+    },
+    "MyMedicines": {
+        "page": {
+            "title": "ମୋର ଟ୍ରାକ୍ କରାଯାଇଥିବା ଔଷଧ",
+            "loading": "ଆପଣଙ୍କ ଟ୍ରାକ୍ କରାଯାଇଥିବା ଔଷଧ ଲୋଡ୍ ହେଉଛି..."
+        },
+        "errors": {
+            "title": "ଆପଣଙ୍କ ଔଷଧ ଲୋଡ୍ କରାଯାଇପାରିଲା ନାହିଁ",
+            "generic": "ଆପଣଙ୍କ ଟ୍ରାକ୍ କରାଯାଇଥିବା ଔଷଧ ଆଣିବା ସମୟରେ କିଛି ଭୁଲ ହେଲା।",
+            "fetchFailed": "ଟ୍ରାକ୍ କରାଯାଇଥିବା ଔଷଧ ଲୋଡ୍ କରିବାରେ ବିଫଳ। ଦୟାକରି ଆପଣଙ୍କ ସଂଯୋଗ ଯାଞ୍ଚ କରନ୍ତୁ ଏବଂ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।",
+            "tryAgain": "ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ"
+        },
+        "emptyState": {
+            "title": "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ଔଷଧ ଟ୍ରାକ୍ କରାଯାଇନାହିଁ",
+            "description": "ସକ୍ରିୟ ସୂଚୀ, ସୁରକ୍ଷା ଅପଡେଟ୍ ଏବଂ ମିଆଦ ଉତ୍ତୀର୍ଣ୍ଣ ସମୟକୁ ସ୍ୱୟଂଚାଳିତ ଭାବରେ ଟ୍ରାକ୍ କରିବାକୁ ଆପଣଙ୍କ ବର୍ତ୍ତମାନର ଔଷଧ ଯୋଡନ୍ତୁ।",
+            "addFirst": "ଆପଣଙ୍କ ପ୍ରଥମ ଔଷଧ ଯୋଡନ୍ତୁ"
+        },
+        "table": {
+            "name": "ନାମ",
+            "expiry": "ମିଆଦ",
+            "status": "ସ୍ଥିତି",
+            "daysLeft": "{count} ଦିନ ବାକି"
+        },
+        "badges": {
+            "verified": "ଯାଞ୍ଚିତ",
+            "unverified": "ଅଯାଞ୍ଚିତ",
+            "requestVerificationTitle": "ଯାଞ୍ଚ ଅନୁରୋଧ କରିବାକୁ କ୍ଲିକ୍ କରନ୍ତୁ"
+        },
+        "bookmarks": {
+            "savedAlternatives": "ସାଇତି ରଖାଯାଇଥିବା ବିକଳ୍ପ",
+            "noBookmarks": "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ବୁକମାର୍କ ନାହିଁ।",
+            "brand": "ବ୍ରାଣ୍ଡ: {brand}"
+        },
+        "removeDialog": {
+            "title": "ବୁକମାର୍କ ହଟାଇବେ?",
+            "description": "ଏହା \"{name}\" କୁ ଆପଣଙ୍କ ସାଇତି ରଖାଯାଇଥିବା ବିକଳ୍ପରୁ ହଟାଇଦେବ। ଆବଶ୍ୟକ ହେଲେ ଆପଣ ଏହାକୁ ପରେ ପୁଣି ଯୋଡିପାରିବେ।",
+            "confirm": "ହଟାନ୍ତୁ",
+            "cancel": "ବାତିଲ୍ କରନ୍ତୁ"
+        }
+    },
+    "NotFound": {
+        "badge": "404 ତ୍ରୁଟି",
+        "title": "ପୃଷ୍ଠା ମିଳିଲା ନାହିଁ",
+        "description": "ଆପଣ ଖୋଜୁଥିବା ପୃଷ୍ଠାଟି ନାହିଁ କିମ୍ବା ଘୁଞ୍ଚାଯାଇଥାଇପାରେ।",
+        "backHome": "ହୋମ୍ କୁ ଫେରିଯାଆନ୍ତୁ",
+        "scanMedicine": "ଔଷଧ ସ୍କାନ କରନ୍ତୁ"
+    },
+    "Settings": {
+        "channelRequired": "Kam se kam gotie jogajog madhyam (SMS kimba WhatsApp) sakriya heba abasyak.",
+        "optOutConfirm": "Apana nischita ki opt out kari samasta SMS ebam WhatsApp satarkata band karibaku chahanti?",
+        "loadingPreferences": "Apananka pasandagudika load heuchhi...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
+    },
+    "AbhaRecords": {
+        "backToProfile": "ପ୍ରୋଫାଇଲ୍‌କୁ ଫେରନ୍ତୁ",
+        "title": "ABHA ରେକର୍ଡ",
+        "loading": "ରେକର୍ଡ ଲୋଡ୍ ହେଉଛି...",
+        "noPrescriptions": "କୌଣସି ପ୍ରେସକ୍ରିପସନ୍ ମିଳିଲା ନାହିଁ।",
+        "failedToLoad": "ରେକର୍ଡ ଲୋଡ୍ କରିବାରେ ବିଫଳ"
     }
 }

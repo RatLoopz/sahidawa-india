@@ -48,6 +48,7 @@ jest.mock("@/lib/supabase", () => ({
 }));
 
 jest.mock("next-intl", () => ({
+    useLocale: () => "en",
     useTranslations: () => {
         const messages: Record<string, string> = {
             addMedicine: "Add medicine",

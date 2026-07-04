@@ -50,7 +50,7 @@ describe("compare pricing", () => {
     });
 
     it("preserves the empty state when no medicines are selected", () => {
-        const markup = renderToStaticMarkup(<ComparisonGrid medicine1={null} medicine2={null} />);
+        const markup = renderToStaticMarkup(<ComparisonGrid medicines={[null, null]} />);
 
         expect(markup).toContain("Select two medicines above to see the comparison.");
     });
@@ -58,17 +58,19 @@ describe("compare pricing", () => {
     it("renders both pricing rows and savings for medicines with lower Jan Aushadhi prices", () => {
         const markup = renderToStaticMarkup(
             <ComparisonGrid
-                medicine1={buildMedicine({
-                    mrp: 30,
-                    jan_aushadhi_price: 15,
-                })}
-                medicine2={buildMedicine({
-                    id: "med-2",
-                    brand_name: "Azithral 500",
-                    generic_name: "Azithromycin",
-                    mrp: 119.5,
-                    jan_aushadhi_price: 42,
-                })}
+                medicines={[
+                    buildMedicine({
+                        mrp: 30,
+                        jan_aushadhi_price: 15,
+                    }),
+                    buildMedicine({
+                        id: "med-2",
+                        brand_name: "Azithral 500",
+                        generic_name: "Azithromycin",
+                        mrp: 119.5,
+                        jan_aushadhi_price: 42,
+                    }),
+                ]}
             />
         );
 
@@ -84,17 +86,19 @@ describe("compare pricing", () => {
     it("uses per-cell fallback text when individual prices are missing", () => {
         const markup = renderToStaticMarkup(
             <ComparisonGrid
-                medicine1={buildMedicine({
-                    mrp: null,
-                    jan_aushadhi_price: 14,
-                })}
-                medicine2={buildMedicine({
-                    id: "med-2",
-                    brand_name: "Pantocid 40",
-                    generic_name: "Pantoprazole",
-                    mrp: 168,
-                    jan_aushadhi_price: null,
-                })}
+                medicines={[
+                    buildMedicine({
+                        mrp: null,
+                        jan_aushadhi_price: 14,
+                    }),
+                    buildMedicine({
+                        id: "med-2",
+                        brand_name: "Pantocid 40",
+                        generic_name: "Pantoprazole",
+                        mrp: 168,
+                        jan_aushadhi_price: null,
+                    }),
+                ]}
             />
         );
 
@@ -106,11 +110,13 @@ describe("compare pricing", () => {
     it("treats zero Jan Aushadhi price as valid data and still renders savings", () => {
         const markup = renderToStaticMarkup(
             <ComparisonGrid
-                medicine1={buildMedicine({
-                    mrp: 10,
-                    jan_aushadhi_price: 0,
-                })}
-                medicine2={null}
+                medicines={[
+                    buildMedicine({
+                        mrp: 10,
+                        jan_aushadhi_price: 0,
+                    }),
+                    null,
+                ]}
             />
         );
 
@@ -123,11 +129,13 @@ describe("compare pricing", () => {
     it("shows no savings when mrp is not higher than Jan Aushadhi price", () => {
         const markup = renderToStaticMarkup(
             <ComparisonGrid
-                medicine1={buildMedicine({
-                    mrp: 14,
-                    jan_aushadhi_price: 14,
-                })}
-                medicine2={null}
+                medicines={[
+                    buildMedicine({
+                        mrp: 14,
+                        jan_aushadhi_price: 14,
+                    }),
+                    null,
+                ]}
             />
         );
 
@@ -136,16 +144,18 @@ describe("compare pricing", () => {
     it("shows direct savings comparison between two medicines", () => {
         const markup = renderToStaticMarkup(
             <ComparisonGrid
-                medicine1={buildMedicine({
-                    brand_name: "Brand Medicine",
-                    mrp: 120,
-                })}
-                medicine2={buildMedicine({
-                    id: "med-2",
-                    brand_name: "Generic Medicine",
-                    generic_name: "Paracetamol",
-                    mrp: 30,
-                })}
+                medicines={[
+                    buildMedicine({
+                        brand_name: "Brand Medicine",
+                        mrp: 120,
+                    }),
+                    buildMedicine({
+                        id: "med-2",
+                        brand_name: "Generic Medicine",
+                        generic_name: "Paracetamol",
+                        mrp: 30,
+                    }),
+                ]}
             />
         );
 
@@ -155,13 +165,15 @@ describe("compare pricing", () => {
     it("shows equal price message when both medicines have the same price", () => {
         const markup = renderToStaticMarkup(
             <ComparisonGrid
-                medicine1={buildMedicine({
-                    mrp: 100,
-                })}
-                medicine2={buildMedicine({
-                    id: "med-2",
-                    mrp: 100,
-                })}
+                medicines={[
+                    buildMedicine({
+                        mrp: 100,
+                    }),
+                    buildMedicine({
+                        id: "med-2",
+                        mrp: 100,
+                    }),
+                ]}
             />
         );
 

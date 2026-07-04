@@ -1,6 +1,5 @@
 name: "SahiDawa DevTrack — PR Knowledge Engine"
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 
 on:
   pull_request_target:
@@ -31,8 +30,9 @@ jobs:
     steps:
       # ── 1. Checkout ───────────────────────────────────────────────────────────
       - name: "⬇️ Checkout full history"
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
+          ref: ${{ github.event.pull_request.base.ref }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -147,7 +147,13 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # ── 7. Generate knowledge docs via Gemini ─────────────────────────────────
-      - name: "🤖 Generate knowledge doc (Gemini 2.5 Flash)"
+      - name: "🐛 Debug: Test Gemini Models"
+        run: node .github/scripts/test_gemini.mjs
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        if: steps.score.outputs.verdict != 'SKIP'
+
+      - name: "🤖 Generate knowledge doc (Gemini 3.5 Flash)"
         id: generate
         if: steps.score.outputs.verdict != 'SKIP'
         env:
@@ -228,6 +234,10 @@ jobs:
             const treeItems = [];
             for (const { rel, full } of filesToCommit) {
               const content = fs.readFileSync(full, "utf8");
+              
+              // Add a 1s delay to prevent triggering GitHub's secondary rate limits on API mutations
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              
               const { data: blob } = await github.rest.git.createBlob({
                 owner, repo, content, encoding: "utf-8"
               });

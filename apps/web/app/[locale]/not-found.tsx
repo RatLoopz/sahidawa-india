@@ -3,8 +3,10 @@
 import React from "react";
 import { Link } from "@/i18n/routing";
 import { Home, Camera, AlertCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function NotFound() {
+    const t = useTranslations("NotFound");
     return (
         <div className="relative flex flex-grow flex-col items-center justify-center px-4 py-16 text-center">
             {/* ── Background Soft Glows ── */}
@@ -25,16 +27,15 @@ export default function NotFound() {
 
                 {/* 404 Large Badge */}
                 <span className="inline-block rounded-full bg-emerald-500/10 px-4 py-1 text-xs font-extrabold tracking-widest text-emerald-600 uppercase dark:text-emerald-400">
-                    Error 404
+                    {t("badge")}
                 </span>
 
                 <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl dark:text-white">
-                    Page Not Found
+                    {t("title")}
                 </h1>
 
                 <p className="mt-3 text-sm leading-relaxed font-semibold text-slate-500 dark:text-slate-400">
-                    We couldn't find the medicine or page you were looking for. It might have been
-                    moved, or the URL might be incorrect.
+                    {t("description")}
                 </p>
 
                 {/* ── Contextual Actions ── */}
@@ -45,7 +46,7 @@ export default function NotFound() {
                         className="group flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-6 py-4 font-bold text-white shadow-lg shadow-slate-900/20 transition-all hover:-translate-y-0.5 hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
                     >
                         <Home size={18} className="transition-transform group-hover:scale-110" />
-                        <span>Back to Home</span>
+                        <span>{t("backHome")}</span>
                     </Link>
 
                     {/* Secondary: Go to Scanner */}
@@ -54,7 +55,7 @@ export default function NotFound() {
                         className="group flex items-center justify-center gap-2 rounded-2xl border border-(--color-border-muted) bg-white/50 px-6 py-4 font-semibold text-slate-700 backdrop-blur-xs transition-all hover:-translate-y-0.5 hover:bg-white dark:bg-slate-900/50 dark:text-slate-300 dark:hover:bg-slate-900"
                     >
                         <Camera size={18} className="transition-transform group-hover:scale-110" />
-                        <span>Scan Medicine</span>
+                        <span>{t("scanMedicine")}</span>
                     </Link>
                 </div>
             </div>

@@ -20,7 +20,13 @@ interface ProgressProps {
     className?: string;
 }
 
-export function Progress({ value, variant = "default", size = "md", label, className }: ProgressProps) {
+export function Progress({
+    value,
+    variant = "default",
+    size = "md",
+    label,
+    className,
+}: ProgressProps) {
     const clamped = Math.max(0, Math.min(100, value));
 
     return (
@@ -30,12 +36,16 @@ export function Progress({ value, variant = "default", size = "md", label, class
             aria-valuemin={0}
             aria-valuemax={100}
             aria-label={label || `Progress: ${clamped}%`}
-            className={clsx("w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800", sizes[size], className)}
+            className={clsx(
+                "w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800",
+                sizes[size],
+                className
+            )}
         >
             <div
                 className={clsx(
                     "h-full rounded-full transition-all duration-500 ease-out",
-                    variants[variant],
+                    variants[variant]
                 )}
                 style={{ width: `${clamped}%` }}
             />

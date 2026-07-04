@@ -368,7 +368,8 @@
         "placeholder": "Ask me about a medicine...",
         "status": "Online",
         "title": "SahiDawa AI",
-        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"
+        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?",
+        "tooltipLabel": "AI Health Assistant"
     },
     "Alerts": {
         "backHome": "ہوم پیج پر واپس جائیں",
@@ -488,7 +489,9 @@
         "errors": {
             "databaseNotConfigured": "اس ماحول کے لیے توثیق ترتیب نہیں دی گئی۔",
             "generic": "سائن ان نہیں ہو سکا۔ دوبارہ کوشش کریں۔"
-        }
+        },
+        "signUpPrompt": "Don't have an account?",
+        "signUpLink": "Sign up"
     },
     "AdminLayout": {
         "accessDeniedTitle": "رسائی مسترد",
@@ -650,6 +653,75 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
+    "howItWorks": {
+        "badge": "Safe Healthcare � AI Powered",
+        "heroTitle": "How <highlight>SahiDawa</highlight> Works",
+        "heroSubtitle": "Learn how SahiDawa helps users verify medicines, discover trusted pharmacies, receive official alerts, and stay protected from counterfeit drugs using AI-powered healthcare tools.",
+        "ctaButtons": {
+            "scan": "Start Scanning",
+            "map": "Explore Pharmacy Map"
+        },
+        "steps": {
+            "scan": {
+                "title": "Scan Medicine",
+                "description": "Point your device camera at the barcode or QR code on any medicine packaging."
+            },
+            "verify": {
+                "title": "Verify Instantly",
+                "description": "AI cross-references scanned details with CDSCO records to check authenticity."
+            },
+            "alerts": {
+                "title": "Check Alerts",
+                "description": "Get real-time safety alerts if the batch is recalled, banned, or substandard."
+            },
+            "pharmacies": {
+                "title": "Find Pharmacies",
+                "description": "Locate Jan Aushadhi stores and verified nearby pharmacies stocking real medicines."
+            },
+            "protect": {
+                "title": "Stay Protected",
+                "description": "Keep records of your scans, report fakes, and safeguard your family's health."
+            }
+        },
+        "features": {
+            "title": "Platform Features",
+            "subtitle": "Everything you need for safer healthcare decisions.",
+            "cards": {
+                "verifyMedicines": {
+                    "title": "Verify Medicines",
+                    "description": "Instantly verify medicine authenticity using barcode, batch number, or medicine details."
+                },
+                "scanOrSearch": {
+                    "title": "Scan or Search",
+                    "description": "Scan packaging or manually search medicines for trusted healthcare information."
+                },
+                "aiAssistant": {
+                    "title": "AI Health Assistant",
+                    "description": "Get AI-powered guidance for symptoms, side effects, precautions, and medicine usage."
+                },
+                "trustedPharmacies": {
+                    "title": "Trusted Pharmacies",
+                    "description": "Find verified pharmacies nearby with reliable medicine availability and ratings."
+                },
+                "cdscoAlerts": {
+                    "title": "CDSCO Alerts",
+                    "description": "Stay updated with official CDSCO medicine recalls, warnings, and health alerts."
+                },
+                "reportMedicines": {
+                    "title": "Report Suspicious Medicines",
+                    "description": "Help the community by reporting counterfeit or suspicious medicines instantly."
+                }
+            }
+        },
+        "ctaBanner": {
+            "title": "Safer Healthcare Starts Here",
+            "subtitle": "Verify medicines, access trusted healthcare information, and stay protected from counterfeit drugs with AI-powered assistance.",
+            "buttons": {
+                "scan": "Scan Medicine",
+                "alerts": "View Alerts"
+            }
+        }
+    },
     "medicineSafety": {
         "guideTitle": "استعمال اور حفاظتی رہنمائی",
         "noDosageInfo": "اس عمر کے گروپ کے لیے خوراک کی معلومات دستیاب نہیں ہیں۔",
@@ -705,5 +777,117 @@
         "placeholder": "Type your health concern...",
         "sendMessage": "Send message",
         "footer": "For informational use only • Consult a doctor"
+    },
+    "SignUp": {
+        "brandSubtitle": "Medicine safety platform",
+        "heading": "Create your account",
+        "description": "Join SahiDawa to track medicine safety reports and verification results.",
+        "missingConfig": {
+            "title": "Authentication is not configured",
+            "description": "Supabase URL or anon key is missing. Add the environment variables before signing up."
+        },
+        "googleButton": "Continue with Google",
+        "githubButton": "Continue with Github",
+        "emailSeparator": "or continue with email",
+        "fullNameLabel": "Full name",
+        "fullNamePlaceholder": "Your full name",
+        "emailLabel": "Email address",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Create a password",
+        "confirmPasswordLabel": "Confirm password",
+        "confirmPasswordPlaceholder": "Re-enter your password",
+        "showPassword": "Show password",
+        "hidePassword": "Hide password",
+        "showConfirmPassword": "Show confirm password",
+        "hideConfirmPassword": "Hide confirm password",
+        "signingUp": "Creating account...",
+        "signUp": "Sign Up",
+        "footerPrompt": "Already have an account?",
+        "signInLink": "Sign in",
+        "bottomText": "Protected access for SahiDawa community tools.",
+        "success": "Account created successfully! Redirecting...",
+        "successConfirmEmail": "Account created! Check your email to confirm your account before signing in.",
+        "errors": {
+            "databaseNotConfigured": "Authentication is not configured for this environment.",
+            "generic": "Unable to create account. Please try again.",
+            "fullNameRequired": "Full name is required.",
+            "emailRequired": "Email address is required.",
+            "emailInvalid": "Please enter a valid email address.",
+            "passwordRequired": "Password is required.",
+            "passwordWeak": "Password must be at least 8 characters and include uppercase, lowercase, and a number.",
+            "confirmPasswordRequired": "Please confirm your password.",
+            "passwordMismatch": "Passwords do not match."
+        }
+    },
+    "MyMedicines": {
+        "page": {
+            "title": "میری ٹریک کردہ ادویات",
+            "loading": "آپ کی ٹریک کردہ ادویات لوڈ ہو رہی ہیں..."
+        },
+        "errors": {
+            "title": "آپ کی ادویات لوڈ نہیں ہو سکیں",
+            "generic": "آپ کی ٹریک کردہ ادویات لاتے وقت کچھ غلط ہو گیا۔",
+            "fetchFailed": "ٹریک کردہ ادویات لوڈ کرنے میں ناکام۔ براہ کرم اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔",
+            "tryAgain": "دوبارہ کوشش کریں"
+        },
+        "emptyState": {
+            "title": "ابھی تک کوئی دوا ٹریک نہیں کی گئی",
+            "description": "فعال شیڈول، حفاظتی اپ ڈیٹس اور میعاد ختم ہونے کی مدت کو خود بخود ٹریک کرنے کے لیے اپنی موجودہ ادویات شامل کریں۔",
+            "addFirst": "اپنی پہلی دوا شامل کریں"
+        },
+        "table": {
+            "name": "نام",
+            "expiry": "میعاد",
+            "status": "حیثیت",
+            "daysLeft": "{count} دن باقی"
+        },
+        "badges": {
+            "verified": "تصدیق شدہ",
+            "unverified": "غیر تصدیق شدہ",
+            "requestVerificationTitle": "تصدیق کی درخواست کے لیے کلک کریں"
+        },
+        "bookmarks": {
+            "savedAlternatives": "محفوظ کردہ متبادل",
+            "noBookmarks": "ابھی تک کوئی بک مارک نہیں۔",
+            "brand": "برانڈ: {brand}"
+        },
+        "removeDialog": {
+            "title": "بک مارک ہٹائیں؟",
+            "description": "یہ \"{name}\" کو آپ کے محفوظ کردہ متبادل سے ہٹا دے گا۔ اگر ضرورت ہو تو آپ اسے بعد میں دوبارہ شامل کر سکتے ہیں۔",
+            "confirm": "ہٹائیں",
+            "cancel": "منسوخ کریں"
+        }
+    },
+    "NotFound": {
+        "badge": "404 خرابی",
+        "title": "صفحہ نہیں ملا",
+        "description": "آپ جو صفحہ تلاش کر رہے ہیں وہ موجود نہیں ہے یا منتقل کر دیا گیا ہے۔",
+        "backHome": "ہوم پر واپس جائیں",
+        "scanMedicine": "دوا اسکین کریں"
+    },
+    "Settings": {
+        "channelRequired": "Kam az kam aik rabta channel (SMS ya WhatsApp) faal hona zaroori hai.",
+        "optOutConfirm": "Kya aap waqai opt out kar ke tamam SMS aur WhatsApp alerts band karna chahte hain?",
+        "loadingPreferences": "Aap ki tarjeehat load ho rahi hain...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
+    },
+    "AbhaRecords": {
+        "backToProfile": "پروفائل پر واپس جائیں",
+        "title": "ABHA ریکارڈز",
+        "loading": "ریکارڈ لوڈ ہو رہے ہیں...",
+        "noPrescriptions": "کوئی نسخہ نہیں ملا۔",
+        "failedToLoad": "ریکارڈ لوڈ کرنے میں ناکامی"
     }
 }

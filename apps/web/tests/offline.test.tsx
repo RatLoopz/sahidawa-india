@@ -18,6 +18,7 @@ import { OfflineErrorBoundary } from "@/components/OfflineErrorBoundary";
 
 // Mock next-intl for OfflineBanner translations
 jest.mock("next-intl", () => ({
+    useLocale: () => "en",
     useTranslations: () => (key: string) => key,
 }));
 
@@ -97,8 +98,9 @@ describe("Offline Support", () => {
         });
 
         it("should handle timeout correctly", async () => {
+            let timeoutId: NodeJS.Timeout;
             const slowResponse = new Promise((resolve) => {
-                setTimeout(
+                timeoutId = setTimeout(
                     () =>
                         resolve({
                             ok: true,
@@ -119,6 +121,7 @@ describe("Offline Support", () => {
             );
 
             expect(response).toBeDefined();
+            clearTimeout(timeoutId!);
         }, 10000);
 
         it("should apply exponential backoff", async () => {

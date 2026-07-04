@@ -7,6 +7,7 @@ import InteractionCheckerPage from "../app/[locale]/interaction-checker/page";
 import { checkInteractions } from "@/lib/api/interactions";
 
 jest.mock("next-intl", () => ({
+    useLocale: () => "en",
     useTranslations: () => {
         const messages: Record<string, string> = {
             addButton: "Add",

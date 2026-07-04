@@ -12,19 +12,18 @@ import { Medicine } from "@/src/components/ComparisonGrid";
 import { COMPARE_SELECT_FIELDS } from "@/src/lib/compareSelectFields";
 import { supabase } from "@/lib/supabase";
 import { mapMedicineRow } from "@/src/lib/mapMedicineRow";
+import { buildMedicineNameSearchFilter } from "@/lib/supabase/medicineSearch";
 
 const DEFAULT_TIMES = ["08:00", "20:00"];
 
 async function searchMedicines(query: string): Promise<Medicine[]> {
-    // Strip double quotes to prevent breaking the PostgREST filter structure in the .or() builder
-    const q = query.replace(/"/g, "").trim();
-    if (q.length < 2) return [];
+    const filter = buildMedicineNameSearchFilter(query);
+    if (!filter) return [];
 
-    const pattern = `%${q.replace(/[%_\\]/g, "\\$&")}%`;
     const { data, error } = await supabase
         .from("medicines")
         .select(COMPARE_SELECT_FIELDS)
-        .or(`brand_name.ilike."${pattern}",generic_name.ilike."${pattern}"`)
+        .or(filter)
         .limit(25);
 
     if (error) {

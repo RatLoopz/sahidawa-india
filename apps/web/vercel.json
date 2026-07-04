@@ -1,0 +1,4 @@
+{
+    "installCommand": "cd ../.. && npm install --legacy-peer-deps",
+    "buildCommand": "cd ../.. && npx turbo run build --filter=web..."
+}

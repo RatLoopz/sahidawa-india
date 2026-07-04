@@ -11,6 +11,35 @@ const MAX_MEDICINE_NAME_LENGTH = 200;
 
 const router = Router();
 
+/**
+ * @openapi
+ * /api/v1/lasa/check:
+ *   post:
+ *     tags:
+ *       - LASA
+ *     summary: Check Look-Alike Sound-Alike medicine conflicts
+ *     description: Detects medicines with similar names that may lead to medication errors.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - medicineName
+ *             properties:
+ *               medicineName:
+ *                 type: string
+ *                 example: Dopamine
+ *     responses:
+ *       200:
+ *         description: LASA conflicts checked successfully
+ *       400:
+ *         description: Invalid medicine name
+ *       500:
+ *         description: Failed to perform LASA check
+ */
+
 router.post("/check", lasaLimiter, async (req: Request, res: Response): Promise<void> => {
     try {
         const { medicineName } = req.body;
