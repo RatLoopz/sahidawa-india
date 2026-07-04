@@ -25,6 +25,12 @@ export function ExpiryModal({
 
     if (!isOpen) return null;
 
+    const handleEscape = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === "Escape") {
+            onClose();
+        }
+    };
+
     return (
         <div
             ref={containerRef}
@@ -32,6 +38,8 @@ export function ExpiryModal({
             role="dialog"
             aria-modal="true"
             aria-labelledby="expiry-tracker-scanner-title"
+            onKeyDown={handleEscape}
+            tabIndex={-1}
         >
             <div className="relative flex h-[80vh] w-full max-w-2xl flex-col rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 shadow-2xl dark:bg-slate-900">
                 <div className="mb-4 flex items-center justify-between">

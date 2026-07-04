@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { API_BASE } from "@/lib/api";
 import { useSession } from "@/src/components/AuthProvider";
+import { MAX_BULK_UPLOAD_ITEMS } from "@sahidawa/shared";
 
 interface UploadResult {
     totalRows: number;
@@ -98,8 +99,8 @@ export default function BulkUploadPage() {
                     Bulk Medicine Upload
                 </h1>
                 <p className="mt-1 text-sm text-gray-500">
-                    Upload up to 500 medicine line items to your inventory using a structured CSV
-                    file.
+                    Upload up to {MAX_BULK_UPLOAD_ITEMS} medicine line items to your inventory using
+                    a structured CSV file.
                 </p>
             </div>
 

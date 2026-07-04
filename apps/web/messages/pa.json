@@ -216,6 +216,33 @@
         },
         "footer": "SahiDawa ਮੁਫ਼ਤ, ਓਪਨ-ਸੋਰਸ ਅਤੇ 1.4 ਬਿਲੀਅਨ ਭਾਰਤੀਆਂ ਲਈ ਬਣਾਇਆ ਗਿਆ ਹੈ। ਕੋਈ ਵਿਗਿਆਪਨ ਨਹੀਂ। ਕੋਈ ਪ੍ਰੀਮੀਅਮ ਨਹੀਂ। ਕੋਈ ਡਾਟਾ ਵੇਚਿਆ ਨਹੀਂ ਜਾਂਦਾ।"
     },
+    "Footer": {
+        "brandSubtitle": "ਭਾਰਤ ਦਾ ਪਹਿਲਾ ਓਪਨ-ਸੋਰਸ ਦਵਾਈ ਤਸਦੀਕ ਪਲੇਟਫਾਰਮ। ਭਾਈਚਾਰਕ-ਸੰਚਾਲਿਤ ਪਾਰਦਰਸ਼ਤਾ ਨਾਲ ਆਪਣੀਆਂ ਦਵਾਈਆਂ ਨੂੰ ਸਕੈਨ, ਤਸਦੀਕ ਅਤੇ ਭਰੋਸਾ ਕਰੋ।",
+        "madeForGssoc": "GSSoC 2026 ਲਈ ਬਣਾਇਆ ਗਿਆ",
+        "quickLinks": {
+            "title": "ਤੁਰੰਤ ਲਿੰਕ",
+            "expiry_tracker": "ਐਕਸਪਾਇਰੀ ਟ੍ਰੈਕਰ",
+            "faq": "ਅਕਸਰ ਪੁੱਛੇ ਜਾਣ ਵਾਲੇ ਸਵਾਲ",
+            "about": "ਸਾਡੇ ਬਾਰੇ",
+            "privacy": "ਪਰਦੇਦਾਰੀ ਨੀਤੀ",
+            "contact": "ਸੰਪਰਕ ਕਰੋ"
+        },
+        "resources": {
+            "title": "ਸਰੋਤ",
+            "github": "GitHub",
+            "contributing": "ਯੋਗਦាន ਪਾਉਣਾ"
+        },
+        "connectWithUs": "ਸਾਡੇ ਨਾਲ ਜੁੜੋ",
+        "social": {
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "twitter": "Twitter"
+        },
+        "contactEmail": "contact@sahidawa.in",
+        "copyright": "© 2026 SahiDawa. MIT ਲਾਇਸੰਸ ਦੇ ਅਧੀਨ ਓਪਨ ਸੋਰਸ।",
+        "builtWith": "ਓਪਨ-ਸੋਰਸ ਭਾਈਚਾਰੇ ਲਈ",
+        "builtWithSuffix": "ਨਾਲ ਬਣਾਇਆ ਗਿਆ"
+    },
     "about": {
         "badge": "GSSoC 2026 Open Source Project",
         "heroTitle": "<highlight>SahiDawa</highlight> ਬਾਰੇ",
@@ -956,5 +983,26 @@
     "errorBatchRequired": "Batch number is required.",
     "errorExpiryRequired": "Expiry date is required.",
     "errorExpiryInvalid": "Invalid date format.",
-    "errorExpiryPast": "Expiry date cannot be in the past."
+    "errorExpiryPast": "Expiry date cannot be in the past.",
+    "Profile": {
+        "backToHome": "ਹੋਮ 'ਤੇ ਵਾਪਸ ਜਾਓ",
+        "title": "ਤੁਹਾਡੀ ਪ੍ਰੋਫਾਈਲ",
+        "subtitle": "ਆਪਣੇ ਖਾਤੇ ਅਤੇ ਦਵਾਈ ਗਤੀਵਿਧੀ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ।",
+        "checkingStatus": "ਖਾਤੇ ਦੀ ਸਥਿਤੀ ਦੀ ਜਾਂਚ ਹੋ ਰਹੀ ਹੈ",
+        "guestUser": "ਮਹਿਮਾਨ ਉਪਭੋਗਤਾ",
+        "signedInUser": "ਸਾਈਨ-ਇਨ ਉਪਭੋਗਤਾ",
+        "authenticatedAccount": "ਪ੍ਰਮਾਣਿਤ ਖਾਤਾ",
+        "readingSession": "ਤੁਹਾਡਾ ਸਥਾਨਕ ਸੈਸ਼ਨ ਪੜ੍ਹਿਆ ਜਾ ਰਿਹਾ ਹੈ",
+        "noAccountConnected": "ਕੋਈ ਖਾਤਾ ਜੁੜਿਆ ਨਹੀਂ ਹੈ",
+        "errorTitle": "ਪ੍ਰੋਫਾਈਲ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+        "errorDescription": "ਅਸੀਂ ਤੁਹਾਡਾ ਸੈਸ਼ਨ ਨਹੀਂ ਪੜ੍ਹ ਸਕੇ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ ਜਾਂ ਸਾਈਨ ਇਨ ਕਰੋ।",
+        "retry": "ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ",
+        "signIn": "ਸਾਈਨ ਇਨ ਕਰੋ",
+        "signInRegister": "ਸਾਈਨ ਇਨ / ਰਜਿਸਟਰ ਕਰੋ",
+        "signOut": "ਸਾਈਨ ਆਊਟ ਕਰੋ",
+        "abhaSetup": "ABHA ਸੈੱਟਅੱਪ",
+        "abhaRecords": "ABHA ਰਿਕਾਰਡ",
+        "notificationSettings": "ਸੂਚਨਾ ਸੈਟਿੰਗਾਂ",
+        "privacySecurity": "ਗੋਪਨੀਯਤਾ ਅਤੇ ਸੁਰੱਖਿਆ"
+    }
 }

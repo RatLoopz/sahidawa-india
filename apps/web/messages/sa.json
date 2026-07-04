@@ -209,6 +209,33 @@
         },
         "footer": "सहीदवा निःशुल्का, मुक्तस्रोता, १.४ अब्ज-भारतीयानां कृते निर्मिता च अस्ति। विज्ञापनानि न सन्ति। प्रिमियम् नास्ति। दत्तांशः कदापि न क्रीयते।"
     },
+    "Footer": {
+        "brandSubtitle": "भारतस्य प्रथमं मुक्त-स्रोतः औषध-सत्यापन-मञ्चम्। स्वकीयम् औषधं स्कैन् कुर्वन्तु, सत्यापयन्तु, विश्वसन्तु च।",
+        "madeForGssoc": "GSSoC 2026 कृते निर्मितम्",
+        "quickLinks": {
+            "title": "सत्वर-सम्पर्काः",
+            "expiry_tracker": "समाप्ति-अन्वेषकः",
+            "faq": "प्रायः पृष्टाः प्रश्नाः",
+            "about": "अस्माकं विषयः",
+            "privacy": "गोपनीयता-नीतिः",
+            "contact": "सम्पर्कः"
+        },
+        "resources": {
+            "title": "संसाधनानि",
+            "github": "GitHub",
+            "contributing": "योगदानम्"
+        },
+        "connectWithUs": "अस्মাभिः सह सम्बद्धता",
+        "social": {
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "twitter": "Twitter"
+        },
+        "contactEmail": "contact@sahidawa.in",
+        "copyright": "© 2026 SahiDawa. MIT अनुज्ञप्ति-अन्तर्गतं मुक्त-स्रोतः।",
+        "builtWith": "मुक्त-स्रोतः समुदायस्य कृते",
+        "builtWithSuffix": "सह निर्मितम्"
+    },
     "about": {
         "badge": "GSSoC 2026 मुक्त स्रोत परियोजना",
         "heroTitle": "<highlight>SahiDawa</highlight> विषये",
@@ -893,5 +920,26 @@
     "errorBatchRequired": "Batch number is required.",
     "errorExpiryRequired": "Expiry date is required.",
     "errorExpiryInvalid": "Invalid date format.",
-    "errorExpiryPast": "Expiry date cannot be in the past."
+    "errorExpiryPast": "Expiry date cannot be in the past.",
+    "Profile": {
+        "backToHome": "गृहं प्रति प्रत्यागच्छतु",
+        "title": "भवतः विवरणम्",
+        "subtitle": "भवतः लेखां औषध-गतिविधिं च व्यवस्थापयतु।",
+        "checkingStatus": "लेखा-स्थितिः परीक्ष्यते",
+        "guestUser": "अतिथि-उपयोक्ता",
+        "signedInUser": "प्रविष्ट-उपयोक्ता",
+        "authenticatedAccount": "प्रमाणित लेखा",
+        "readingSession": "भवतः स्थानीय सत्रं पठ्यते",
+        "noAccountConnected": "कोऽपि लेखा न सम्बद्धः",
+        "errorTitle": "विवरणं लोड् कर्तुं असफलम्",
+        "errorDescription": "वयं भवतः सत्रं पठितुं न शक्नुमः। कृपया पुनः प्रयतताम् अथवा प्रविशतु।",
+        "retry": "पुनः प्रयत्नः",
+        "signIn": "प्रविशतु",
+        "signInRegister": "प्रवेशः / पञ्जीकरणम्",
+        "signOut": "निर्गमः",
+        "abhaSetup": "ABHA सज्जीकरणम्",
+        "abhaRecords": "ABHA अभिलेखाः",
+        "notificationSettings": "सूचना विन्यासाः",
+        "privacySecurity": "गोपनीयता सुरक्षा च"
+    }
 }

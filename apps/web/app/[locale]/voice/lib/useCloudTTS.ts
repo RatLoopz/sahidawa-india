@@ -1,5 +1,6 @@
 import { handleApiError } from "@/lib/apiErrorHandler";
-import { useRef, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useAudioStore } from "@/stores/useAudioStore";
 
 export interface UseCloudTTSOptions {
     onStart?: () => void;
@@ -11,35 +12,51 @@ export interface TTSError extends Error {
     code?: "TTS_UNAVAILABLE" | "TTS_FAILED" | "TIMEOUT" | "INVALID_LANGUAGE" | "UNKNOWN";
 }
 
+let trackIdCounter = 0;
+function generateTrackId(): string {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+        return crypto.randomUUID();
+    }
+    trackIdCounter += 1;
+    return `tts-track-${trackIdCounter}`;
+}
+
 /**
- * Hook for playing cloud-generated TTS audio
- * Falls back to native SpeechSynthesis if cloud TTS fails
+ * Hook for playing cloud-generated TTS audio.
+ * Falls back to native SpeechSynthesis if cloud TTS fails.
+ *
+ * Playback is coordinated through a global Zustand store (useAudioStore) so
+ * only one audio track can ever play across the whole app — starting a new
+ * track automatically pauses and revokes whatever was playing before.
  */
 export function useCloudTTS() {
+    // Stable per-instance id so this hook can tell whether IT is the
+    // currently-playing track in the global store.
+    const trackIdRef = useRef<string>(generateTrackId());
     const audioRef = useRef<HTMLAudioElement | null>(null);
-    const activeObjectUrlRef = useRef<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    const cleanupObjectUrl = useCallback((url = activeObjectUrlRef.current) => {
-        if (!url) return;
-        if (activeObjectUrlRef.current !== url) return;
-
-        URL.revokeObjectURL(url);
-        activeObjectUrlRef.current = null;
-    }, []);
+    const isPlaying = useAudioStore((state) => state.currentTrackId === trackIdRef.current);
+    const play = useAudioStore((state) => state.play);
 
     useEffect(() => {
+        const trackId = trackIdRef.current;
         return () => {
+            // If this instance's track is still the globally active one,
+            // fully tear it down (pause + revoke blob + clear store).
+            useAudioStore.getState().stopIfCurrent(trackId);
+
+            // Always detach local listeners defensively, even if another
+            // track already superseded this one.
             if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current.src = "";
                 audioRef.current.onplay = null;
                 audioRef.current.onended = null;
                 audioRef.current.onerror = null;
+                audioRef.current.pause();
+                audioRef.current.src = "";
             }
-            cleanupObjectUrl();
         };
-    }, [cleanupObjectUrl]);
+    }, []);
 
     const playTTS = useCallback(
         async (text: string, languageCode: string, options?: UseCloudTTSOptions): Promise<void> => {
@@ -47,12 +64,12 @@ export function useCloudTTS() {
                 throw new Error("Cloud TTS can only be used in browser");
             }
 
+            const trackId = trackIdRef.current;
             let createdAudioUrl: string | null = null;
 
             try {
                 setIsLoading(true);
 
-                // Request TTS audio from backend
                 const response = await fetch("/api/voice/tts", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -75,7 +92,6 @@ export function useCloudTTS() {
                         error.code = "TTS_UNAVAILABLE";
                         throw error;
                     }
-
                     if (response.status === 400) {
                         const error = new Error(
                             (errorData.error as string) || "Invalid TTS request"
@@ -83,7 +99,6 @@ export function useCloudTTS() {
                         error.code = "INVALID_LANGUAGE";
                         throw error;
                     }
-
                     if (response.status === 504) {
                         const error = new Error("TTS request timed out") as TTSError;
                         error.code = "TIMEOUT";
@@ -103,7 +118,6 @@ export function useCloudTTS() {
                     character_count: number;
                 };
 
-                // Decode base64 MP3 payload into a browser-native byte array
                 const binaryString = atob(data.audio_base64);
                 const bytes = new Uint8Array(binaryString.length);
                 for (let i = 0; i < binaryString.length; i++) {
@@ -113,17 +127,13 @@ export function useCloudTTS() {
                 const audioUrl = URL.createObjectURL(audioBlob);
                 createdAudioUrl = audioUrl;
 
-                // Create or reuse audio element
-                if (!audioRef.current) {
-                    audioRef.current = new Audio();
-                }
-
-                const audio = audioRef.current;
-                cleanupObjectUrl();
-                activeObjectUrlRef.current = audioUrl;
+                // Fresh Audio element per playback (rather than reusing one
+                // long-lived ref) so a previous call's event listeners can
+                // never fire against a track that's since been replaced.
+                const audio = new Audio();
+                audioRef.current = audio;
                 audio.src = audioUrl;
 
-                // Set up event listeners
                 const handlePlay = () => {
                     setIsLoading(false);
                     options?.onStart?.();
@@ -132,7 +142,7 @@ export function useCloudTTS() {
                 const handleEnded = () => {
                     setIsLoading(false);
                     options?.onEnd?.();
-                    cleanupObjectUrl(audioUrl);
+                    useAudioStore.getState().stopIfCurrent(trackId);
                 };
 
                 const handleError = async (event: Event | string) => {
@@ -142,7 +152,7 @@ export function useCloudTTS() {
                     options?.onEnd?.();
                     options?.onError?.(audioError);
 
-                    cleanupObjectUrl(audioUrl);
+                    useAudioStore.getState().stopIfCurrent(trackId);
                     await handleApiError(audioError, "Failed to play audio");
 
                     console.error("Audio playback error:", event);
@@ -152,43 +162,51 @@ export function useCloudTTS() {
                 audio.onended = handleEnded;
                 audio.onerror = handleError;
 
-                // Log cache hit for analytics
                 if (data.cached) {
                     console.debug(
                         `[TTS] Served from cache: ${languageCode}, ${data.character_count} chars`
                     );
                 }
 
+                // Hand off to the global store BEFORE playing, so whatever
+                // was previously playing (in this or any other component)
+                // gets paused and its blob URL revoked first.
+                play(audio, trackId, audioUrl);
+
                 await audio.play();
             } catch (error) {
                 setIsLoading(false);
+
                 if (createdAudioUrl) {
-                    cleanupObjectUrl(createdAudioUrl);
+                    // By this point play() has already handed the URL to the
+                    // store (it's called before audio.play()), so let the
+                    // store do the teardown rather than revoking twice.
+                    useAudioStore.getState().stopIfCurrent(trackId);
                 }
 
                 const err = error instanceof Error ? error : new Error(String(error));
                 options?.onEnd?.();
                 options?.onError?.(err);
 
-                // Re-throw for caller to handle fallback logic
                 throw err;
             }
         },
-        [cleanupObjectUrl]
+        [play]
     );
 
     const stopTTS = useCallback(() => {
+        useAudioStore.getState().stopIfCurrent(trackIdRef.current);
         if (audioRef.current) {
             audioRef.current.pause();
             audioRef.current.currentTime = 0;
         }
-        cleanupObjectUrl();
         setIsLoading(false);
-    }, [cleanupObjectUrl]);
+    }, []);
 
     return {
         playTTS,
         stopTTS,
         isLoading,
+        isPlaying,
     };
 }

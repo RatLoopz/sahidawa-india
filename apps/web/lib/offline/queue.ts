@@ -114,3 +114,19 @@ export function initOnlineListener() {
         }
     }
 }
+
+export async function enqueueReport(input: {
+  reportData: Record<string, any>;
+  imageBlob?: Blob;
+}) {
+  const db = await getSyncDB();
+  const idempotencyKey = uuidv4();
+  
+  await db.put("pendingReports", {
+    idempotencyKey,
+    deviceId: getDeviceId(),
+    createdAt: Date.now(),
+    reportData: input.reportData,
+    imageBlob: input.imageBlob,
+  });
+}

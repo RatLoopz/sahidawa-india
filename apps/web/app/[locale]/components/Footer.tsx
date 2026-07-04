@@ -4,52 +4,54 @@ import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
 import { Sparkles, Heart, Mail, ExternalLink, CalendarRange } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 export default function Footer() {
     const pathname = usePathname();
     const isHome = pathname ? /^\/[a-z]{2}$|^\/$/.test(pathname) : false;
+    const t = useTranslations("Footer");
 
     const quickLinks = [
-        { href: "/expiry-tracker", label: "Expiry Tracker", icon: CalendarRange, highlight: true },
-        { href: "/faq", label: "FAQ" },
-        { href: "/about", label: "About" },
-        { href: "/privacy", label: "Privacy" },
-        { href: "/contact", label: "Contact" },
+        { href: "/expiry-tracker", key: "quickLinks.expiry_tracker", icon: CalendarRange, highlight: true },
+        { href: "/faq", key: "quickLinks.faq" },
+        { href: "/about", key: "quickLinks.about" },
+        { href: "/privacy", key: "quickLinks.privacy" },
+        { href: "/contact", key: "quickLinks.contact" },
     ];
 
     const resourceLinks = [
         {
             href: "https://github.com/RatLoopz/sahidawa-india",
-            label: "GitHub",
+            key: "resources.github",
             external: true,
         },
         {
             href: "https://github.com/RatLoopz/sahidawa-india/blob/main/CONTRIBUTING.md",
-            label: "Contributing",
+            key: "resources.contributing",
             external: true,
         },
-    ];
+    ] as const;
 
     const socialLinks = [
         {
             href: "https://github.com/RatLoopz/sahidawa-india",
             icon: FaGithub,
-            label: "GitHub",
+            key: "social.github",
             hoverColor: "hover:text-slate-800 dark:hover:text-white hover:border-slate-600",
         },
         {
             href: "https://linkedin.com/",
             icon: FaLinkedin,
-            label: "LinkedIn",
+            key: "social.linkedin",
             hoverColor: "hover:text-slate-800 dark:hover:text-white hover:border-slate-600",
         },
         {
             href: "https://twitter.com/",
             icon: FaXTwitter,
-            label: "Twitter",
+            key: "social.twitter",
             hoverColor: "hover:text-slate-800 dark:hover:text-white hover:border-slate-600",
         },
-    ];
+    ] as const;
 
     return (
         <footer
@@ -70,19 +72,18 @@ export default function Footer() {
                             SahiDawa
                         </h2>
                         <p className="mb-4 max-w-sm text-sm leading-relaxed text-slate-700 dark:text-slate-400">
-                            India's first open-source medicine verification platform. Scan, verify,
-                            and trust your medicines with community-powered transparency.
+                            {t("brandSubtitle")}
                         </p>
                         <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-600 dark:border-emerald-400/20 dark:text-emerald-400">
                             <Sparkles className="h-3 w-3" />
-                            Made for GSSoC 2026
+                            {t("madeForGssoc")}
                         </div>
                     </div>
 
                     {/* Quick Links */}
                     <nav className="md:col-span-2">
                         <h3 className="mb-3 text-xs font-bold tracking-wider text-slate-900 uppercase dark:text-white">
-                            Quick Links
+                            {t("quickLinks.title")}
                         </h3>
                         <ul className="space-y-2">
                             {quickLinks.map((link) => (
@@ -102,7 +103,7 @@ export default function Footer() {
                                         }`}
                                     >
                                         {link.icon && <link.icon className="h-3.5 w-3.5" />}
-                                        {link.label}
+                                        {t(link.key)}
                                     </Link>
                                 </li>
                             ))}
@@ -112,7 +113,7 @@ export default function Footer() {
                     {/* Resources */}
                     <nav className="md:col-span-2">
                         <h3 className="mb-3 text-xs font-bold tracking-wider text-slate-900 uppercase dark:text-white">
-                            Resources
+                            {t("resources.title")}
                         </h3>
                         <ul className="space-y-2">
                             {resourceLinks.map((link) => (
@@ -123,7 +124,7 @@ export default function Footer() {
                                         rel="noopener noreferrer"
                                         className="inline-flex items-center gap-1 text-sm text-slate-700 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400"
                                     >
-                                        {link.label}
+                                        {t(link.key)}
                                         <ExternalLink className="h-3 w-3" />
                                     </a>
                                 </li>
@@ -134,18 +135,18 @@ export default function Footer() {
                     {/* Connect Section */}
                     <div className="md:col-span-3">
                         <h3 className="mb-3 text-xs font-bold tracking-wider text-slate-900 uppercase dark:text-white">
-                            Connect With Us
+                            {t("connectWithUs")}
                         </h3>
                         <div className="mb-4 flex items-center gap-2">
                             {socialLinks.map((social) => {
                                 const IconComponent = social.icon;
                                 return (
                                     <a
-                                        key={social.label}
+                                        key={social.key}
                                         href={social.href}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        aria-label={social.label}
+                                        aria-label={t(social.key)}
                                         className={`group flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 bg-white/50 text-slate-600 transition-all hover:scale-105 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-400 ${social.hoverColor}`}
                                     >
                                         <IconComponent size={16} />
@@ -158,18 +159,18 @@ export default function Footer() {
                             className="inline-flex items-center gap-2 text-sm text-slate-700 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400"
                         >
                             <Mail className="h-4 w-4" />
-                            contact@sahidawa.in
+                            {t("contactEmail")}
                         </a>
                     </div>
                 </div>
 
                 {/* Bottom Bar */}
                 <div className="mt-8 flex flex-col items-center justify-between gap-3 border-t border-slate-200/50 pt-6 text-xs text-slate-700 md:flex-row dark:border-slate-800/50 dark:text-slate-400">
-                    <p>© 2026 SahiDawa. Open Source under MIT License.</p>
+                    <p>{t("copyright")}</p>
                     <p className="flex items-center gap-1.5">
-                        Built with
+                        {t("builtWith")}
                         <Heart className="h-3 w-3 text-red-500" fill="currentColor" />
-                        for the open-source community
+                        {t("builtWithSuffix")}
                     </p>
                 </div>
             </div>

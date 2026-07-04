@@ -219,6 +219,33 @@
         },
         "footer": "SahiDawa ಉಚಿತ, ಮುಕ್ತ-ಮೂಲ, ಮತ್ತು 1.4 ಬಿಲಿಯನ್ ಭಾರತೀಯರಿಗಾಗಿ ನಿರ್ಮಿಸಲಾಗಿದೆ. ಜಾಹೀರಾತಿಲ್ಲ. ಪ್ರೀಮಿಯಂ ಇಲ್ಲ. ಡೇಟಾ ಮಾರಾಟವಿಲ್ಲ. ಎಂದಿಗೂ ಇಲ್ಲ."
     },
+    "Footer": {
+        "brandSubtitle": "ಭಾರತದ ಮೊದಲ ಮುಕ್ತ-ಮೂಲ ಔಷಧ ಪರಿಶೀಲನಾ ವೇದಿಕೆ. ಸಮುದಾಯ ಪ್ರೇರಿತ ಪಾರದರ್ಶಕತೆಯೊಂದಿಗೆ ನಿಮ್ಮ ಔಷಧಗಳನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ, ಪರಿಶೀಲಿಸಿ ಮತ್ತು ನಂಬಿರಿ.",
+        "madeForGssoc": "GSSoC 2026 ಗಾಗಿ ತಯಾರಿಸಲಾಗಿದೆ",
+        "quickLinks": {
+            "title": "ತ್ವರಿತ ಲಿಂಕ್‌ಗಳು",
+            "expiry_tracker": "ಎಕ್ಸ್‌ಪೈರಿ ಟ್ರ್ಯಾಕರ್",
+            "faq": "ಪದೇ ಪದೇ ಕೇಳಲಾಗುವ ಪ್ರಶ್ನೆಗಳು",
+            "about": "ನಮ್ಮ ಬಗ್ಗೆ",
+            "privacy": "ಗೌಪ್ಯತಾ ನೀತಿ",
+            "contact": "ಸಂಪರ್ಕಿಸಿ"
+        },
+        "resources": {
+            "title": "ಸಂಪನ್ಮೂಲಗಳು",
+            "github": "GitHub",
+            "contributing": "ಕೊಡುಗೆ ನೀಡುವುದು"
+        },
+        "connectWithUs": "ನಮ್ಮೊಂದಿಗೆ ಸಂಪರ್ಕ ಸಾಧಿಸಿ",
+        "social": {
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "twitter": "Twitter"
+        },
+        "contactEmail": "contact@sahidawa.in",
+        "copyright": "© 2026 SahiDawa. MIT ಪರವಾನಗಿ ಅಡಿಯಲ್ಲಿ ಮುಕ್ತ ಮೂಲ.",
+        "builtWith": "ಮುಕ್ತ-ಮೂಲ ಸಮುದಾಯಕ್ಕಾಗಿ",
+        "builtWithSuffix": "ನೊಂದಿಗೆ ತಯಾರಿಸಲಾಗಿದೆ"
+    },
     "about": {
         "badge": "GSSoC 2026 ಮುಕ್ತ ಆಕರ ಯೋಜನೆ",
         "heroTitle": "<highlight>SahiDawa</highlight> ಬಗ್ಗೆ",
@@ -956,5 +983,26 @@
     "errorBatchRequired": "Batch number is required.",
     "errorExpiryRequired": "Expiry date is required.",
     "errorExpiryInvalid": "Invalid date format.",
-    "errorExpiryPast": "Expiry date cannot be in the past."
+    "errorExpiryPast": "Expiry date cannot be in the past.",
+    "Profile": {
+        "backToHome": "ಮುಖಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ",
+        "title": "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್",
+        "subtitle": "ನಿಮ್ಮ ಖಾತೆ ಮತ್ತು ಔಷಧಿ ಚಟುವಟಿಕೆಯನ್ನು ನಿರ್ವಹಿಸಿ.",
+        "checkingStatus": "ಖಾತೆ ಸ್ಥಿತಿಯನ್ನು ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ",
+        "guestUser": "ಅತಿಥಿ ಬಳಕೆದಾರ",
+        "signedInUser": "ಸೈನ್-ಇನ್ ಬಳಕೆದಾರ",
+        "authenticatedAccount": "ದೃಢೀಕರಿಸಿದ ಖಾತೆ",
+        "readingSession": "ನಿಮ್ಮ ಸ್ಥಳೀಯ ಅಧಿವೇಶನವನ್ನು ಓದಲಾಗುತ್ತಿದೆ",
+        "noAccountConnected": "ಯಾವುದೇ ಖಾತೆ ಸಂಪರ್ಕಗೊಂಡಿಲ್ಲ",
+        "errorTitle": "ಪ್ರೊಫೈಲ್ ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ",
+        "errorDescription": "ನಿಮ್ಮ ಅಧಿವೇಶನವನ್ನು ಓದಲು ನಮಗೆ ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ಸೈನ್ ಇನ್ ಮಾಡಿ.",
+        "retry": "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
+        "signIn": "ಸೈನ್ ಇನ್ ಮಾಡಿ",
+        "signInRegister": "ಸೈನ್ ಇನ್ / ನೋಂದಣಿ ಮಾಡಿ",
+        "signOut": "ಸೈನ್ ಔಟ್ ಮಾಡಿ",
+        "abhaSetup": "ABHA ಸೆಟಪ್",
+        "abhaRecords": "ABHA ದಾಖಲೆಗಳು",
+        "notificationSettings": "ಅಧಿಸೂಚನೆ ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+        "privacySecurity": "ಗೌಪ್ಯತೆ ಮತ್ತು ಭದ್ರತೆ"
+    }
 }

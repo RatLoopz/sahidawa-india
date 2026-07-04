@@ -109,14 +109,30 @@ export default function ExportModal({ isOpen, onClose, history, t }: ExportModal
         }
     };
 
+    const handleEscape = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === "Escape") {
+            onClose();
+        }
+    };
+
     return (
-        <div className="animate-in fade-in fixed inset-0 z-[150] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm duration-200">
+        <div
+            className="animate-in fade-in fixed inset-0 z-[150] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm duration-200"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="export-history-title"
+            onKeyDown={handleEscape}
+            tabIndex={-1}
+        >
             <div
                 ref={modalRef}
                 className="w-full max-w-md overflow-hidden rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) shadow-2xl"
             >
                 <div className="flex items-center justify-between border-b border-(--color-border-muted) px-6 py-4">
-                    <h3 className="text-lg font-bold text-(--color-text-primary)">
+                    <h3
+                        id="export-history-title"
+                        className="text-lg font-bold text-(--color-text-primary)"
+                    >
                         {t("export_modal_title")}
                     </h3>
 

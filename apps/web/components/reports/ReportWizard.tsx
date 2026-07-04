@@ -6,6 +6,7 @@
  * Tech: React Hook Form · Zod · @hookform/resolvers · Framer Motion · Tailwind CSS
  * Design: SahiDawa modern aesthetic — emerald accents, deep navy header, rounded corners
  */
+import { enqueueReport } from "@/lib/offline/queue";
 import { handleApiError } from "@/lib/apiErrorHandler";
 import React, { useState, useEffect, useId, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
@@ -832,6 +833,7 @@ export default function ReportWizard() {
     const [step, setStep] = useState(1);
     const [dir, setDir] = useState(1);
     const [images, setImages] = useState<ImageEntry[]>([]);
+    const stepContentRef = useRef<HTMLDivElement | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [submitErr, setSubmitErr] = useState<string | null>(null);
     const [done, setDone] = useState(false);
@@ -920,6 +922,19 @@ export default function ReportWizard() {
         return () => clearTimeout(timer);
     }, [JSON.stringify(watchedValues), step, images, restoredDraft, done]);
 
+    useEffect(() => {
+        const target = stepContentRef.current;
+        if (!target) return;
+
+        const focusable = target.querySelector<HTMLElement>(
+            'input:not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+
+        if (focusable) {
+            requestAnimationFrame(() => focusable.focus());
+        }
+    }, [step]);
+
     // Navigation
     const next = async () => {
         if (!(await trigger(STEP_KEYS[step]))) return;
@@ -946,76 +961,20 @@ export default function ReportWizard() {
             } catch {
                 // ignore if supabase is not configured
             }
-        }
 
-        // If already offline, skip the network attempt entirely
-        if (typeof navigator !== "undefined" && !navigator.onLine) {
+        if (typeof navigator !== "undefined" && (!navigator.onLine || isNetworkError)) {
             try {
                 const geo = await geocodePincode(data.pincode).catch(() => null);
-                await queueReport({ ...data, ...(geo ?? {}) });
-                await clearDraft();
-                setPendingCount((c) => c + 1);
-                setReportId(null);
-                setQueuedOffline(true);
-                setDone(true);
-                toast.info(
-                    "You're offline. Your report has been saved locally and will auto-submit once connection improves."
-                );
+                await enqueueReport({ reportData: data });
+                alert("Report saved locally and will sync when back online!");
             } catch (queueErr) {
                 console.error("Failed to queue report offline:", queueErr);
-                setSubmitErr(
-                    "You're offline and the report could not be saved locally. Please try again."
-                );
-
-                await handleApiError(queueErr, "Failed to save report locally.");
+                setSubmitErr("You're offline and the report could not be saved locally.");
             } finally {
                 setSubmitting(false);
             }
             return;
         }
-
-        try {
-            const geo = await geocodePincode(data.pincode);
-            const { report } = await submitReport({ ...data, ...(geo ?? {}) }, token);
-            setReportId(report.id);
-            setQueuedOffline(false);
-            await clearDraft();
-            setDone(true);
-        } catch (e) {
-            const isNetworkError =
-                e instanceof TypeError ||
-                (e instanceof Error && /network|fetch|timeout|failed/i.test(e.message));
-
-            if (isNetworkError) {
-                try {
-                    const geo = await geocodePincode(data.pincode).catch(() => null);
-                    await queueReport({ ...data, ...(geo ?? {}) });
-                    await clearDraft();
-                    setPendingCount((c) => c + 1);
-                    setReportId(null);
-                    setQueuedOffline(true);
-                    setDone(true);
-                    toast.info(
-                        "Network slow. Your report has been saved locally and will auto-submit once connection improves."
-                    );
-                    return;
-                } catch (queueErr) {
-                    console.error("Failed to queue report offline:", queueErr);
-                }
-            }
-
-            const errorMsg =
-                e instanceof Error
-                    ? e.message
-                    : "Submission failed. Please check your connection and try again.";
-            setSubmitErr(errorMsg);
-            toast.error(errorMsg);
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    // Full reset
     const handleReset = () => {
         images.forEach((i) => URL.revokeObjectURL(i.preview));
         setImages([]);
@@ -1166,15 +1125,10 @@ export default function ReportWizard() {
                                                 <>
                                                     Submit Report <Icon.Send />
                                                 </>
-                                            )}
-                                        </button>
-                                    )}
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </div>
-            </form>
-        </FormProvider>
+)}
+            </button>
+        </div>
+    </form>
+</FormProvider>
     );
 }

@@ -331,7 +331,7 @@
         "brandSubtitle": "India's first open-source medicine verification platform. Scan, verify, and trust your medicines with community-powered transparency.",
         "madeForGssoc": "Made for GSSoC 2026",
         "quickLinks": {
-            "title": "Helpful Links",
+            "title": "Quick Links",
             "expiry_tracker": "Expiry Tracker",
             "faq": "FAQ",
             "about": "About",
@@ -1333,5 +1333,26 @@
     "errorBatchRequired": "Batch number is required.",
     "errorExpiryRequired": "Expiry date is required.",
     "errorExpiryInvalid": "Invalid date format.",
-    "errorExpiryPast": "Expiry date cannot be in the past."
+    "errorExpiryPast": "Expiry date cannot be in the past.",
+    "Profile": {
+        "backToHome": "Back to Home",
+        "title": "Your Profile",
+        "subtitle": "Manage your account and medicine activity.",
+        "checkingStatus": "Checking account status",
+        "guestUser": "Guest User",
+        "signedInUser": "Signed-in User",
+        "authenticatedAccount": "Authenticated account",
+        "readingSession": "Reading your local session",
+        "noAccountConnected": "No account connected",
+        "errorTitle": "Failed to load profile",
+        "errorDescription": "We couldn't read your session. Please try again or sign in.",
+        "retry": "Retry",
+        "signIn": "Sign In",
+        "signInRegister": "Sign In / Register",
+        "signOut": "Sign Out",
+        "abhaSetup": "ABHA Setup",
+        "abhaRecords": "ABHA Records",
+        "notificationSettings": "Notification Settings",
+        "privacySecurity": "Privacy & Security"
+    }
 }

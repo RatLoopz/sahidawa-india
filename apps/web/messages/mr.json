@@ -219,6 +219,33 @@
         },
         "footer": "SahiDawa विनामूल्य, ओपन-सोर्स आहे आणि 1.4 अब्ज भारतीयांसाठी बनवले आहे. जाहिराती नाहीत. प्रीमियम नाही. डेटा कधीही विकला जाणार नाही."
     },
+    "Footer": {
+        "brandSubtitle": "भारतातील पहिले ओपन-सोर्स औषध पडताळणी प्लॅटफॉर्म. समुदाय-चालित पारदर्शकतेसह आपली औषधे स्कॅन करा, पडताळा आणि विश्वास ठेवा.",
+        "madeForGssoc": "GSSoC 2026 साठी बनवलेले",
+        "quickLinks": {
+            "title": "त्वरित लिंक्स",
+            "expiry_tracker": "एक्सपायरी ट्रॅकर",
+            "faq": "सतत विचारले जाणारे प्रश्न",
+            "about": "आमच्याबद्दल",
+            "privacy": "गोपनीयता धोरण",
+            "contact": "संपर्क"
+        },
+        "resources": {
+            "title": "संसाधने",
+            "github": "GitHub",
+            "contributing": "योगदान"
+        },
+        "connectWithUs": "आमच्याशी जोडा",
+        "social": {
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "twitter": "Twitter"
+        },
+        "contactEmail": "contact@sahidawa.in",
+        "copyright": "© 2026 SahiDawa. MIT परवान्याअंतर्गत ओपन सोर्स.",
+        "builtWith": "ओपन-सोर्स समुदायासाठी",
+        "builtWithSuffix": "सह तयार केले"
+    },
     "about": {
         "badge": "GSSoC 2026 ओपन सोर्स प्रोजेक्ट",
         "heroTitle": "<highlight>SahiDawa</highlight> बद्दल",
@@ -956,5 +983,26 @@
     "errorBatchRequired": "Batch number is required.",
     "errorExpiryRequired": "Expiry date is required.",
     "errorExpiryInvalid": "Invalid date format.",
-    "errorExpiryPast": "Expiry date cannot be in the past."
+    "errorExpiryPast": "Expiry date cannot be in the past.",
+    "Profile": {
+        "backToHome": "मुख्यपृष्ठावर परत जा",
+        "title": "तुमची प्रोफाइल",
+        "subtitle": "तुमचे खाते आणि औषध क्रियाकलाप व्यवस्थापित करा.",
+        "checkingStatus": "खात्याची स्थिती तपासली जात आहे",
+        "guestUser": "अतिथी वापरकर्ता",
+        "signedInUser": "साइन-इन वापरकर्ता",
+        "authenticatedAccount": "प्रमाणित खाते",
+        "readingSession": "तुमचे स्थानिक सत्र वाचले जात आहे",
+        "noAccountConnected": "कोणतेही खाते जोडलेले नाही",
+        "errorTitle": "प्रोफाइल लोड करण्यात अयशस्वी",
+        "errorDescription": "आम्ही तुमचे सत्र वाचू शकलो नाही. कृपया पुन्हा प्रयत्न करा किंवा साइन इन करा.",
+        "retry": "पुन्हा प्रयत्न करा",
+        "signIn": "साइन इन करा",
+        "signInRegister": "साइन इन / नोंदणी करा",
+        "signOut": "साइन आउट करा",
+        "abhaSetup": "ABHA सेटअप",
+        "abhaRecords": "ABHA नोंदी",
+        "notificationSettings": "सूचना सेटिंग्ज",
+        "privacySecurity": "गोपनीयता आणि सुरक्षा"
+    }
 }

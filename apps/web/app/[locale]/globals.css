@@ -66,6 +66,32 @@
     --color-text-neutral: #cbd5e1;
 }
 @layer base {
+    button,
+    [role="button"],
+    a[href],
+    input,
+    select,
+    textarea,
+    summary {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    button:focus-visible,
+    [role="button"]:focus-visible,
+    a[href]:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    summary:focus-visible {
+        outline: 3px solid var(--color-brand-primary);
+        outline-offset: 2px;
+    }
+
+    main {
+        scroll-margin-top: 5rem;
+    }
+
     /* Scanner sweep animation */
     @keyframes scan {
         0%,

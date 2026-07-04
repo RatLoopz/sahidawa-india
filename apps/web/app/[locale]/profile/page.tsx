@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/routing";
 import { User, ShieldCheck, Bell, ChevronRight, ArrowLeft, LogIn, LogOut } from "lucide-react";
 import ABHABadge from "@/components/ABHABadge";
@@ -14,7 +15,7 @@ type ProfileSession =
     | { status: "error" }
     | {
           status: "authenticated";
-          displayName: string;
+          displayName: string | null;
       };
 
 type AccessTokenPayload = {
@@ -63,7 +64,7 @@ function readSessionFromToken(token: string | null): {
             getString(payload.user_metadata?.name) ??
             getString(payload.email) ??
             getString(payload.sub) ??
-            "Signed-in User";
+            null;
 
         return {
             session: {
@@ -78,23 +79,24 @@ function readSessionFromToken(token: string | null): {
 }
 
 export default function ProfilePage() {
+    const t = useTranslations("Profile");
     const router = useRouter();
     const { token, isLoading: authLoading } = useSession();
     const [session, setSession] = useState<ProfileSession>({ status: "checking" });
 
     const accountTitle =
         session.status === "authenticated"
-            ? session.displayName
+            ? (session.displayName ?? t("signedInUser"))
             : session.status === "checking"
-              ? "Checking account status"
-              : "Guest User";
+              ? t("checkingStatus")
+              : t("guestUser");
 
     const accountSubtitle =
         session.status === "authenticated"
-            ? "Authenticated account"
+            ? t("authenticatedAccount")
             : session.status === "checking"
-              ? "Reading your local session"
-              : "No account connected";
+              ? t("readingSession")
+              : t("noAccountConnected");
 
     useEffect(() => {
         if (authLoading) return;
@@ -138,7 +140,7 @@ export default function ProfilePage() {
                     className="mb-6 inline-flex items-center gap-2 rounded-xl px-3 py-2 font-medium text-(--color-text-secondary) transition-all hover:bg-(--color-surface-page) hover:text-emerald-600 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none dark:hover:text-emerald-400"
                 >
                     <ArrowLeft size={18} />
-                    <span className="font-medium">Back to Home</span>
+                    <span className="font-medium">{t("backToHome")}</span>
                 </Link>
 
                 {/* Header */}
@@ -149,12 +151,10 @@ export default function ProfilePage() {
 
                     <div>
                         <h1 className="text-2xl font-black text-(--color-text-primary) sm:text-3xl">
-                            Your Profile
+                            {t("title")}
                         </h1>
 
-                        <p className="mt-1 text-(--color-text-secondary)">
-                            Manage your account and medicine activity.
-                        </p>
+                        <p className="mt-1 text-(--color-text-secondary)">{t("subtitle")}</p>
                     </div>
                 </div>
 
@@ -166,10 +166,10 @@ export default function ProfilePage() {
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-red-700 dark:text-red-400">
-                                Failed to load profile
+                                {t("errorTitle")}
                             </h2>
                             <p className="mt-1 text-sm text-red-600/80 dark:text-red-400/70">
-                                We couldn&apos;t read your session. Please try again or sign in.
+                                {t("errorDescription")}
                             </p>
                         </div>
                         <div className="flex gap-3">
@@ -178,13 +178,13 @@ export default function ProfilePage() {
                                 onClick={handleRetry}
                                 className="rounded-2xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
                             >
-                                Retry
+                                {t("retry")}
                             </button>
                             <Link
                                 href="/login"
                                 className="rounded-2xl border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 dark:border-red-700 dark:text-red-400"
                             >
-                                Sign In
+                                {t("signIn")}
                             </Link>
                         </div>
                     </div>
@@ -225,7 +225,7 @@ export default function ProfilePage() {
                                 className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
                             >
                                 <LogIn size={18} />
-                                Sign In / Register
+                                {t("signInRegister")}
                             </Link>
                         )}
                     </div>
@@ -241,7 +241,7 @@ export default function ProfilePage() {
                                 <div className="flex items-center gap-3">
                                     <LogOut size={20} className="text-red-500" />
                                     <span className="font-semibold text-(--color-text-primary)">
-                                        Sign Out
+                                        {t("signOut")}
                                     </span>
                                 </div>
                                 <ChevronRight size={18} className="text-(--color-text-muted)" />
@@ -258,7 +258,7 @@ export default function ProfilePage() {
                                     className="text-emerald-600 dark:text-emerald-400"
                                 />
                                 <span className="font-semibold text-(--color-text-primary)">
-                                    ABHA Setup
+                                    {t("abhaSetup")}
                                 </span>
                             </div>
                             <ChevronRight size={18} className="text-(--color-text-muted)" />
@@ -274,7 +274,7 @@ export default function ProfilePage() {
                                     className="text-emerald-600 dark:text-emerald-400"
                                 />
                                 <span className="font-semibold text-(--color-text-primary)">
-                                    ABHA Records
+                                    {t("abhaRecords")}
                                 </span>
                             </div>
                             <ChevronRight size={18} className="text-(--color-text-muted)" />
@@ -287,7 +287,7 @@ export default function ProfilePage() {
                             <div className="flex items-center gap-3">
                                 <Bell size={20} className="text-red-500" />
                                 <span className="font-semibold text-(--color-text-primary)">
-                                    Notification Settings
+                                    {t("notificationSettings")}
                                 </span>
                             </div>
                             <ChevronRight size={18} className="text-(--color-text-muted)" />
@@ -303,7 +303,7 @@ export default function ProfilePage() {
                                     className="text-emerald-600 dark:text-emerald-400"
                                 />
                                 <span className="font-semibold text-(--color-text-primary)">
-                                    Privacy & Security
+                                    {t("privacySecurity")}
                                 </span>
                             </div>
                             <ChevronRight size={18} className="text-(--color-text-muted)" />

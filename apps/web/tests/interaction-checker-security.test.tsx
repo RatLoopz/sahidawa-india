@@ -4,7 +4,6 @@ import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
 
 import InteractionCheckerPage from "../app/[locale]/interaction-checker/page";
-import { fuzzyMatchBrand } from "@/lib/api";
 
 jest.mock("next-intl", () => ({
     useLocale: () => "en",

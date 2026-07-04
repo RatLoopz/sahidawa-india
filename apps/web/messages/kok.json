@@ -249,6 +249,33 @@
         },
         "footer": "सहीदवा फुकट, ओपन-सोर्स आनी १.४ अब्ज भारतीयांसाठी उबारलां. जाहिराती नात. प्रीमियम ना. खंयचीच माहिती विकनात. केन्नाच ना."
     },
+    "Footer": {
+        "brandSubtitle": "भारताचें पयलें मुक्त-स्रोता औषध प्रमाणीकरण मंच. तुमच्या औषधांचे स्कॅन, प्रमाणीकरण आनी विस्वास दवरात.",
+        "madeForGssoc": "GSSoC 2026 खातीर तयार केल्लें",
+        "quickLinks": {
+            "title": "खळबळ लिंक्स",
+            "expiry_tracker": "एक्सपायरी ट्रॅकर",
+            "faq": "FAQ",
+            "about": "आमचेविशीं",
+            "privacy": "गोपनीयता धोरण",
+            "contact": "संपर्क"
+        },
+        "resources": {
+            "title": "साधनां",
+            "github": "GitHub",
+            "contributing": "योगदान दिवप"
+        },
+        "connectWithUs": "आमचेकडेन जुळात",
+        "social": {
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "twitter": "Twitter"
+        },
+        "contactEmail": "contact@sahidawa.in",
+        "copyright": "© 2026 SahiDawa. MIT लायसन्स अंतर्गत मुक्त स्त्रोत.",
+        "builtWith": "मुक्त-स्रोत समुदायाखातीर",
+        "builtWithSuffix": "सयत तयार केलां"
+    },
     "about": {
         "badge": "GSSoC 2026 ओपन सोर्स प्रोजेक्ट",
         "heroTitle": "<highlight>सहीदवा</highlight> विशीं",
@@ -1008,5 +1035,26 @@
     "errorBatchRequired": "Batch number is required.",
     "errorExpiryRequired": "Expiry date is required.",
     "errorExpiryInvalid": "Invalid date format.",
-    "errorExpiryPast": "Expiry date cannot be in the past."
+    "errorExpiryPast": "Expiry date cannot be in the past.",
+    "Profile": {
+        "backToHome": "घरा परत वचात",
+        "title": "तुमचो प्रोफायल",
+        "subtitle": "तुमचें खातें आनी वखदा हालचालीचें संचालन करात.",
+        "checkingStatus": "खात्याची स्थिती तपासली वता",
+        "guestUser": "पावणो वापरपी",
+        "signedInUser": "साइन-इन वापरपी",
+        "authenticatedAccount": "प्रमाणित खातें",
+        "readingSession": "तुमचें स्थानीय सत्र वाचला वता",
+        "noAccountConnected": "कोणेंच खातें जोडूंक ना",
+        "errorTitle": "प्रोफायल लोड करपाक अपेस",
+        "errorDescription": "आमकां तुमचें सत्र वाचूंक जालें ना. उपरांत परत यत्न करात वा साइन इन करात.",
+        "retry": "परत यत्न करात",
+        "signIn": "साइन इन करात",
+        "signInRegister": "साइन इन / नोंदणी करात",
+        "signOut": "साइन आवुट करात",
+        "abhaSetup": "ABHA सेटअप",
+        "abhaRecords": "ABHA नोंदी",
+        "notificationSettings": "सूचोवणी सेटिंग्ज",
+        "privacySecurity": "खासगीपण आनी सुरक्षा"
+    }
 }

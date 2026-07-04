@@ -356,13 +356,22 @@ reportsRouter.patch(
             return;
         }
 
-        const { status } = req.body as { status?: string };
-        const allowedStatuses = ["pending", "verified_fake", "false_alarm"];
+        const updateReportStatusSchema = z
+            .object({
+                status: z.enum(["pending", "verified_fake", "false_alarm"]),
+            })
+            .strict();
 
-        if (!status || !allowedStatuses.includes(status)) {
-            res.status(400).json({ error: "Invalid report status" });
+        const parsedBody = updateReportStatusSchema.safeParse(req.body);
+        if (!parsedBody.success) {
+            res.status(400).json({
+                error: "Invalid report status or unknown fields",
+                details: parsedBody.error,
+            });
             return;
         }
+
+        const { status } = parsedBody.data;
 
         try {
             // Verify the report exists before updating. Without this check a

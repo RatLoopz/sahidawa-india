@@ -6,26 +6,37 @@ import { AuthenticatedRequest } from "../middleware/auth";
 import { triggerRecallAlert } from "../services/notifications";
 import logger from "../utils/logger";
 
-const reportStatusSchema = z.object({
-    status: z.enum(["pending", "verified_fake", "false_alarm"]),
-});
+const reportStatusSchema = z
+    .object({
+        status: z.enum(["pending", "verified_fake", "false_alarm"]),
+    })
+    .strict();
 
-const medicineStatusSchema = z.object({
-    status: z.enum(["safe", "suspicious", "recalled", "pending_review"]),
-});
+const medicineStatusSchema = z
+    .object({
+        status: z.enum(["safe", "suspicious", "recalled", "pending_review"]),
+    })
+    .strict();
 
-const pharmacyStatusSchema = z.object({
-    status: z.enum(["approved", "rejected"]),
-});
+const pharmacyStatusSchema = z
+    .object({
+        status: z.enum(["approved", "rejected"]),
+    })
+    .strict();
 
-const medicineSchema = z.object({
-    brand_name: z.string().min(1),
-    generic_name: z.string().min(1),
-    manufacturer: z.string().min(1),
-    barcode_id: z.string().optional(),
-    cdsco_approval_status: z.enum(["approved", "recalled", "banned"]).default("approved"),
-    status: z.enum(["safe", "suspicious", "recalled", "pending_review"]).default("safe").optional(),
-});
+const medicineSchema = z
+    .object({
+        brand_name: z.string().min(1),
+        generic_name: z.string().min(1),
+        manufacturer: z.string().min(1),
+        barcode_id: z.string().optional(),
+        cdsco_approval_status: z.enum(["approved", "recalled", "banned"]).default("approved"),
+        status: z
+            .enum(["safe", "suspicious", "recalled", "pending_review"])
+            .default("safe")
+            .optional(),
+    })
+    .strict();
 
 const paginationSchema = z.object({
     page: z.coerce.number().int().min(1).default(1),
@@ -537,10 +548,12 @@ export const restorePharmacy = async (req: AuthenticatedRequest, res: Response):
     }
 };
 
-const verificationReviewSchema = z.object({
-    status: z.enum(["approved", "rejected"]),
-    rejection_reason: z.string().max(500).optional(),
-});
+const verificationReviewSchema = z
+    .object({
+        status: z.enum(["approved", "rejected"]),
+        rejection_reason: z.string().max(500).optional(),
+    })
+    .strict();
 
 export const getPendingVerificationRequests = async (
     req: AuthenticatedRequest,

@@ -17,6 +17,7 @@ import {
 import { fuzzyMatchBrand } from "@/lib/api";
 import { checkInteractions, type InteractionResult } from "@/lib/api/interactions";
 import { PageHeader } from "../components/PageHeader";
+import { MAX_INTERACTION_MEDICINES } from "@sahidawa/shared";
 
 const STORAGE_KEY = "sahidawa-my-medicines";
 
@@ -103,7 +104,7 @@ export default function InteractionCheckerPage() {
                         .filter((item): item is string => typeof item === "string")
                         .map((item) => item.trim().replace(/[\x00-\x1F\x7F-\x9F<>]/g, ""))
                         .filter((item) => item.length > 0 && item.length <= 100)
-                        .slice(0, 50);
+                        .slice(0, MAX_INTERACTION_MEDICINES);
 
                     setSelectedMedicines(validated);
 
@@ -180,8 +181,8 @@ export default function InteractionCheckerPage() {
         const sanitized = medName.trim().replace(/[\x00-\x1F\x7F-\x9F<>]/g, "");
         if (!sanitized || sanitized.length > 100) return;
 
-        if (selectedMedicines.length >= 50) {
-            setError("Maximum of 50 medicines can be selected.");
+        if (selectedMedicines.length >= MAX_INTERACTION_MEDICINES) {
+            setError(`Maximum of ${MAX_INTERACTION_MEDICINES} medicines can be selected.`);
             return;
         }
 

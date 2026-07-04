@@ -260,6 +260,33 @@
         },
         "footer": "SahiDawa مفت، اوپن سورس ۽ 1.4 ارب هندستانين لاءِ ٺاهيو ويو آهي. نه اشتهار. نه پريميئم. نه ئي ڊيٽا وڪرو ٿيندي. ڪڏهن به نه."
     },
+    "Footer": {
+        "brandSubtitle": "ڀارت جو پهريون اوپن سورس دوا جي تصديق جو پليٽ فارم. پنهنجي دوائن کي اسڪين, تصديق ۽ اعتماد ڪريو.",
+        "madeForGssoc": "GSSoC 2026 لاءِ ٺهيل",
+        "quickLinks": {
+            "title": "جلدي لنڪس",
+            "expiry_tracker": "ايڪسپائري ٽريڪر",
+            "faq": "سوال جواب (FAQ)",
+            "about": "اسան بابت",
+            "privacy": "رازداري واري پاليسي",
+            "contact": "رابطو"
+        },
+        "resources": {
+            "title": "وسيلا",
+            "github": "GitHub",
+            "contributing": "حصو وٺڻ"
+        },
+        "connectWithUs": "اسان سان جوڙيو",
+        "social": {
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "twitter": "Twitter"
+        },
+        "contactEmail": "contact@sahidawa.in",
+        "copyright": "© 2026 SahiDawa. MIT لائسنس تحت اوپن سورس.",
+        "builtWith": "اوپن سورس ڪميونيٽي لاءِ",
+        "builtWithSuffix": "سان ٺهيل"
+    },
     "about": {
         "badge": "GSSoC 2026 اوپن سورس پروجيڪٽ",
         "heroTitle": "<highlight>SahiDawa</highlight> بابت",
@@ -1097,5 +1124,26 @@
     "errorBatchRequired": "Batch number is required.",
     "errorExpiryRequired": "Expiry date is required.",
     "errorExpiryInvalid": "Invalid date format.",
-    "errorExpiryPast": "Expiry date cannot be in the past."
+    "errorExpiryPast": "Expiry date cannot be in the past.",
+    "Profile": {
+        "backToHome": "گھر ڏانهن واپس وڃو",
+        "title": "توهان جو پروفائيل",
+        "subtitle": "پنهنجي اڪائونٽ ۽ دوا جي سرگرمي کي منظم ڪريو.",
+        "checkingStatus": "اڪائونٽ جي حيثيت جانچي پئي وڃي",
+        "guestUser": "مهمان استعمال ڪندڙ",
+        "signedInUser": "سائن ان استعمال ڪندڙ",
+        "authenticatedAccount": "تصديق ٿيل اڪائونٽ",
+        "readingSession": "توهان جو مقامي سيشن پڙهيو پيو وڃي",
+        "noAccountConnected": "ڪوبه اڪائونٽ ڳنڍيل ناهي",
+        "errorTitle": "پروفائيل لوڊ ڪرڻ ۾ ناڪامي",
+        "errorDescription": "اسان توهان جو سيشن پڙهي نه سگهياسين. مهرباني ڪري ٻيهر ڪوشش ڪريو يا سائن ان ڪريو.",
+        "retry": "ٻيهر ڪوشش ڪريو",
+        "signIn": "سائن ان ڪريو",
+        "signInRegister": "سائن ان / رجسٽر ڪريو",
+        "signOut": "سائن آئوٽ ڪريو",
+        "abhaSetup": "ABHA سيٽ اپ",
+        "abhaRecords": "ABHA رڪارڊ",
+        "notificationSettings": "اطلاعي سيٽنگون",
+        "privacySecurity": "رازداري ۽ سلامتي"
+    }
 }

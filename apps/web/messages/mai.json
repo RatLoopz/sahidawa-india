@@ -299,6 +299,33 @@
         },
         "footer": "SahiDawa मुफ्त, मुक्त-स्रोत, आ १४० करोड़ भारतीयक लेल बनल अछि। कोनो विज्ञापन नहि। कोनो प्रीमियम नहि। डेटा बेचल नहि। कखनो नहि।"
     },
+    "Footer": {
+        "brandSubtitle": "भारतक पहिल ओपन-सोर्स औषधि सत्यापन प्लेटफॉर्म। समुदाय-संचालित पारदर्शिताक संग अपन औषधिक स्कैन, सत्यापित आ विश्वास करू।",
+        "madeForGssoc": "GSSoC 2026 लेल निर्मित",
+        "quickLinks": {
+            "title": "त्वरित लिंक",
+            "expiry_tracker": "एक्सपायरी ट्रैकर",
+            "faq": "अक्सर पूछल जाए बला प्रश्न",
+            "about": "अपन सबहक बारे में",
+            "privacy": "गोपनीयता नीति",
+            "contact": "संपर्क करू"
+        },
+        "resources": {
+            "title": "संसाधन",
+            "github": "GitHub",
+            "contributing": "योगदान देब"
+        },
+        "connectWithUs": "अपन सबहक संग जुड़ू",
+        "social": {
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "twitter": "Twitter"
+        },
+        "contactEmail": "contact@sahidawa.in",
+        "copyright": "© 2026 SahiDawa. MIT लाइसेंसक अंतर्गत ओपन सोर्स।",
+        "builtWith": "ओपन-सोर्स समुदायक लेल",
+        "builtWithSuffix": "क संग निर्मित"
+    },
     "about": {
         "badge": "GSSoC 2026 मुक्त-स्रोत परियोजना",
         "heroTitle": "SahiDawa क <highlight>बारेमे</highlight>",
@@ -1196,5 +1223,26 @@
     "errorBatchRequired": "Batch number is required.",
     "errorExpiryRequired": "Expiry date is required.",
     "errorExpiryInvalid": "Invalid date format.",
-    "errorExpiryPast": "Expiry date cannot be in the past."
+    "errorExpiryPast": "Expiry date cannot be in the past.",
+    "Profile": {
+        "backToHome": "घर पर वापस जाउ",
+        "title": "अहाँक प्रोफाइल",
+        "subtitle": "अपन खाता आ दवाइ गतिविधि प्रबंधित करू।",
+        "checkingStatus": "खाताक स्थिति जाँचल जा रहल अछि",
+        "guestUser": "अतिथि उपयोगकर्ता",
+        "signedInUser": "साइन-इन उपयोगकर्ता",
+        "authenticatedAccount": "प्रमाणित खाता",
+        "readingSession": "अहाँक स्थानीय सत्र पढ़ल जा रहल अछि",
+        "noAccountConnected": "कोनो खाता जुड़ल नहि अछि",
+        "errorTitle": "प्रोफाइल लोड करबामे विफल",
+        "errorDescription": "हम अहाँक सत्र नहि पढ़ि सकलहुँ। कृपया फेर प्रयास करू वा साइन इन करू।",
+        "retry": "फेर प्रयास करू",
+        "signIn": "साइन इन करू",
+        "signInRegister": "साइन इन / रजिस्टर करू",
+        "signOut": "साइन आउट करू",
+        "abhaSetup": "ABHA सेटअप",
+        "abhaRecords": "ABHA रिकॉर्ड",
+        "notificationSettings": "सूचना सेटिंग्स",
+        "privacySecurity": "गोपनीयता आ सुरक्षा"
+    }
 }

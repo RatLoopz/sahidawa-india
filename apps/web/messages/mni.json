@@ -260,6 +260,33 @@
         },
         "footer": "ꯁꯍꯤꯗꯋꯥ ꯑꯁꯤ ꯇꯣꯜꯂꯗꯕꯥ, ꯑꯣꯄꯟ-ꯁꯣꯔꯁꯅꯤ ꯑꯃꯁꯨꯡ ꯏꯟꯗꯤꯌꯥꯒꯤ ꯃꯤꯑꯣꯏ ꯕꯤꯂꯤꯌꯥꯟ ꯱.꯴ ꯒꯤꯗꯃꯛ ꯁꯦꯝꯕꯅꯤ꯫ ꯑꯦꯗꯚꯔꯇꯥꯏꯖꯃꯦꯟ꯭ꯠ ꯂꯩꯇꯦ꯫ ꯄ꯭ꯔꯤꯃꯤꯌꯝ ꯂꯩꯇꯦ꯫ ꯗꯥꯇꯥ ꯌꯣꯜꯂꯣꯏ꯫ ꯀꯩꯗꯧꯅꯨꯡꯗꯥ꯫"
     },
+    "Footer": {
+        "brandSubtitle": "ভারতকী অহানবা ওপন-সোর্স হিদাক খঙদোকপা প্লেটফোর্ম। কম্যুনিটি-পাৱার্দ ওইবা অশেংবা মওংদা হিদাক স্কেন তৌবিয়ু, খঙদোকপিয়ু অমসুং থাজবিয়ু।",
+        "madeForGssoc": "GSSoC 2026 গীদমক শেমজবা",
+        "quickLinks": {
+            "title": "অথুবা লিঙ্কশিং",
+            "expiry_tracker": "এক্সপায়রী ত্রেকর",
+            "faq": "FAQ",
+            "about": "ঐখোয়গী মতাংদা",
+            "privacy": "প্রাইভেসি পোলিসী",
+            "contact": "কন্টাক্ট তৌবিয়ু"
+        },
+        "resources": {
+            "title": "রিসোর্সশিং",
+            "github": "GitHub",
+            "contributing": "শরুক য়াবা"
+        },
+        "connectWithUs": "ঐখোয়গা শম্নবিয়ু",
+        "social": {
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "twitter": "Twitter"
+        },
+        "contactEmail": "contact@sahidawa.in",
+        "copyright": "© 2026 SahiDawa. MIT লাইসেন্স মখাদা ওপন সোর্স।",
+        "builtWith": "ওপন সোর্স কম্যুনিটিগীদমক",
+        "builtWithSuffix": "গা লোয়ননা শেমজবা"
+    },
     "about": {
         "badge": "GSSoC 2026 ওপꯟ ꯁꯣꯔꯁ ꯄ꯭ꯔꯣꯖꯦꯛꯠ",
         "heroTitle": "ꯑꯦꯕꯥꯎꯠ <highlight>ꯁꯍꯤꯗꯋꯥ</highlight>",
@@ -1097,5 +1124,26 @@
     "errorBatchRequired": "Batch number is required.",
     "errorExpiryRequired": "Expiry date is required.",
     "errorExpiryInvalid": "Invalid date format.",
-    "errorExpiryPast": "Expiry date cannot be in the past."
+    "errorExpiryPast": "Expiry date cannot be in the past.",
+    "Profile": {
+        "backToHome": "য়ুমদা হন্না চৎলু",
+        "title": "নহাক্কী প্রোফাইল",
+        "subtitle": "নহাক্কী একাউন্ট অমসুং শীবা য়াওবা থবক মথৌ পাংথোকউ।",
+        "checkingStatus": "একাউন্টকী মওং য়েংলি",
+        "guestUser": "লাল্লবা শিজিন্নবা মী",
+        "signedInUser": "সাইন-ইন তৌবা শিজিন্নবা মী",
+        "authenticatedAccount": "অচুম্বা একাউন্ট",
+        "readingSession": "নহাক্কী মফমগী সেসন পারি",
+        "noAccountConnected": "একাউন্ট অমত্তা মরি য়াওদে",
+        "errorTitle": "প্রোফাইল লোড তৌবা মাংখ্রে",
+        "errorDescription": "ঐখোয়না নহাক্কী সেসন পারবা ঙমদ্রে। চানবিয়ু নত্রগা সাইন ইন তৌবিয়ু।",
+        "retry": "আমুক হন্না হোৎনবিয়ু",
+        "signIn": "সাইন ইন তৌবিয়ু",
+        "signInRegister": "সাইন ইন / রেজিস্টার তৌবিয়ু",
+        "signOut": "সাইন আউট তৌবিয়ু",
+        "abhaSetup": "ABHA সেটআপ",
+        "abhaRecords": "ABHA রেকর্ড",
+        "notificationSettings": "নোটিফিকেসন সেটিং",
+        "privacySecurity": "ৱাফম অমসুং সেকురిति"
+    }
 }

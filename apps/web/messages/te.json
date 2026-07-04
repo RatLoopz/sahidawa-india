@@ -219,6 +219,33 @@
         },
         "footer": "SahiDawa ఉచితం, ఓపెన్-సోర్స్, మరియు 1.4 బిలియన్ భారతీయుల కోసం నిర్మించబడింది. ప్రకటనలు లేవు. ప్రీమియం లేదు. డేటా ఎప్పటికీ అమ్మబడదు."
     },
+    "Footer": {
+        "brandSubtitle": "భారతదేశపు మొట్టమొదటి ఓపెన్-సోర్స్ ఔషధ ధృవీకరణ వేదిక. కమ్యూనిటీ ఆధారిత పారదర్శకతతో మీ మందులను స్కాన్ చేయండి, ధృవీకరించండి మరియు నమ్మండి.",
+        "madeForGssoc": "GSSoC 2026 కోసం తయారు చేయబడింది",
+        "quickLinks": {
+            "title": "త్వరిత లింకులు",
+            "expiry_tracker": "ఎక్స్‌పైరీ ట్రాకర్",
+            "faq": "తరచుగా అడిగే ప్రశ్నలు",
+            "about": "మా గురించి",
+            "privacy": "గోప్యతా విధానం",
+            "contact": "సంప్రదించండి"
+        },
+        "resources": {
+            "title": "వనరులు",
+            "github": "GitHub",
+            "contributing": "సహకారం"
+        },
+        "connectWithUs": "మమ్మల్ని సంప్రదించండి",
+        "social": {
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "twitter": "Twitter"
+        },
+        "contactEmail": "contact@sahidawa.in",
+        "copyright": "© 2026 SahiDawa. MIT లైసెన్స్ కింద ఓపెన్ సోర్స్.",
+        "builtWith": "ఓపెన్ సోర్స్ కమ్యూనిటీ కోసం",
+        "builtWithSuffix": "తో తయారుచేయబడింది"
+    },
     "about": {
         "badge": "GSSoC 2026 ఓపెన్ సోర్స్ ప్రాజెక్ట్",
         "heroTitle": "<highlight>SahiDawa</highlight> గురించి",
@@ -956,5 +983,26 @@
     "errorBatchRequired": "Batch number is required.",
     "errorExpiryRequired": "Expiry date is required.",
     "errorExpiryInvalid": "Invalid date format.",
-    "errorExpiryPast": "Expiry date cannot be in the past."
+    "errorExpiryPast": "Expiry date cannot be in the past.",
+    "Profile": {
+        "backToHome": "హోమ్‌కు తిరిగి వెళ్లండి",
+        "title": "మీ ప్రొఫైల్",
+        "subtitle": "మీ ఖాతా మరియు మందుల కార్యకలాపాలను నిర్వహించండి.",
+        "checkingStatus": "ఖాతా స్థితిని తనిఖీ చేస్తోంది",
+        "guestUser": "అతిథి వినియోగదారు",
+        "signedInUser": "సైన్-ఇన్ వినియోగదారు",
+        "authenticatedAccount": "ప్రామాణీకరించిన ఖాతా",
+        "readingSession": "మీ స్థానిక సెషన్ చదవబడుతోంది",
+        "noAccountConnected": "ఏ ఖాతా అనుసంధానించబడలేదు",
+        "errorTitle": "ప్రొఫైల్ లోడ్ చేయడంలో విఫలమైంది",
+        "errorDescription": "మేము మీ సెషన్‌ను చదవలేకపోయాము. దయచేసి మళ్లీ ప్రయత్నించండి లేదా సైన్ ఇన్ చేయండి.",
+        "retry": "మళ్లీ ప్రయత్నించండి",
+        "signIn": "సైన్ ఇన్ చేయండి",
+        "signInRegister": "సైన్ ఇన్ / నమోదు చేయండి",
+        "signOut": "సైన్ అవుట్ చేయండి",
+        "abhaSetup": "ABHA సెటప్",
+        "abhaRecords": "ABHA రికార్డులు",
+        "notificationSettings": "నోటిఫికేషన్ సెట్టింగ్‌లు",
+        "privacySecurity": "గోప్యత మరియు భద్రత"
+    }
 }

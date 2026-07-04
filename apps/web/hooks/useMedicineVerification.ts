@@ -83,7 +83,7 @@ export function useMedicineVerification(
 
                 setShowResult(true);
             }
-        },
+    },
         [setShowResult]
     );
 
@@ -114,7 +114,7 @@ export function useMedicineVerification(
             setVerifyResult(null);
             setVerifyError(null);
 
-            try {
+          try {
                 const result = await verifyMedicine(normalizedBatch, controller.signal);
                 if (!isMountedRef.current || controller.signal.aborted) return;
                 await processVerificationResult(result, undefined);

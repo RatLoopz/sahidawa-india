@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 
@@ -18,6 +18,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 const ExportModal = dynamic(() => import("./ExportModal"));
 
 export default function HistoryPage() {
+    const exportButtonRef = useRef<HTMLButtonElement | null>(null);
     const [history, setHistory] = useState<ScanHistoryEntry[]>([]);
     const [isSyncing, setIsSyncing] = useState(false);
     const [syncMessage, setSyncMessage] = useState<string | null>(null);
@@ -98,8 +99,14 @@ export default function HistoryPage() {
 
     const fakeCount = history.filter((item) => item.status?.toLowerCase() === "fake").length;
 
-    const openExportModal = () => setIsExportModalOpen(true);
-    const closeExportModal = () => setIsExportModalOpen(false);
+    const openExportModal = () => {
+        exportButtonRef.current?.focus();
+        setIsExportModalOpen(true);
+    };
+    const closeExportModal = () => {
+        setIsExportModalOpen(false);
+        requestAnimationFrame(() => exportButtonRef.current?.focus());
+    };
 
     if (isLoading) {
         return (
@@ -139,8 +146,9 @@ export default function HistoryPage() {
                     {/* Export to CSV button */}
                     {history.length > 0 && (
                         <button
+                            ref={exportButtonRef}
                             onClick={openExportModal}
-                            className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg transition hover:bg-emerald-700 active:scale-95"
+                            className="flex min-h-11 items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg transition hover:bg-emerald-700 active:scale-95"
                         >
                             <Download size={16} /> {t("export_csv_button")}
                         </button>

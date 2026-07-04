@@ -18,16 +18,31 @@ interface SyncDB extends DBSchema {
             attemptCount: number;
         };
     };
+    pendingReports: {
+        key: string; // idempotencyKey
+        value: {
+            idempotencyKey: string;
+            deviceId: string;
+            createdAt: number;
+            reportData: Record<string, any>;
+            imageBlob?: Blob;
+        };
+    };
 }
 
 let dbPromise: Promise<IDBPDatabase<SyncDB>> | null = null;
 
 export function getSyncDB() {
     if (!dbPromise) {
-        dbPromise = openDB<SyncDB>("sahidawa-sync", 1, {
+        // Changed version from 1 to 2 to trigger the upgrade
+        dbPromise = openDB<SyncDB>("sahidawa-sync", 2, {
             upgrade(db) {
                 if (!db.objectStoreNames.contains("pendingScans")) {
                     db.createObjectStore("pendingScans", { keyPath: "idempotencyKey" });
+                }
+                // Add our new pendingReports store
+                if (!db.objectStoreNames.contains("pendingReports")) {
+                    db.createObjectStore("pendingReports", { keyPath: "idempotencyKey" });
                 }
             },
         });
