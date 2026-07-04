@@ -189,14 +189,24 @@ export default function FullAlertsLogPage() {
             alert.reported_brand_name || alert.brand_name || alert.brand || "SYSTEM_UPDATE";
         const shareText = `⚠️ SahiDawa CDSCO Drug Safety Alert:\n\nBrand: ${brand}\nBatch: ${alert.batch_number || "N/A"}\n\nPlease check safety logs.`;
 
+        const writeToClipboard = () => {
+            navigator.clipboard
+                .writeText(shareText)
+                .then(() => {
+                    toast.success("Alert details copied to clipboard!");
+                })
+                .catch((err) => {
+                    console.error("Clipboard copy failed:", err);
+                    toast.error("Failed to copy alert details to clipboard.");
+                });
+        };
+
         if (navigator.share) {
             navigator.share({ title: `Safety Alert: ${brand}`, text: shareText }).catch(() => {
-                navigator.clipboard.writeText(shareText);
-                toast.success("Alert details copied to clipboard!");
+                writeToClipboard();
             });
         } else {
-            navigator.clipboard.writeText(shareText);
-            toast.success("Alert details copied to clipboard!");
+            writeToClipboard();
         }
     };
 
