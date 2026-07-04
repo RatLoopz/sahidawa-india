@@ -858,3 +858,4 @@
 | [#3065](https://github.com/RatLoopz/sahidawa-india/pull/3065) | 2026-07-04 | Backend | 9 | @aayushiii18 | [View Doc](devtrack/2026-07/PR-3065-fix-api-add-zod-schema-validation-to-abha-link-ver.md) |
 | [#3044](https://github.com/RatLoopz/sahidawa-india/pull/3044) | 2026-07-04 | Backend | 13 | @aayushiii18 | [View Doc](devtrack/2026-07/PR-3044-fix-api-validate-pharmacy-update-payload-with-zod-.md) |
 | [#3029](https://github.com/RatLoopz/sahidawa-india/pull/3029) | 2026-07-04 | Frontend | 45 | @Khanvilkarshravani27 | [View Doc](devtrack/2026-07/PR-3029-feat-admin-add-ocr-verification-approval-queue-das.md) / [ADR](devtrack/adr/ADR-043-feat-admin-add-ocr-verification-approval-queue-das.md) |
+| [#2998](https://github.com/RatLoopz/sahidawa-india/pull/2998) | 2026-07-04 | ML/AI | 42 | @arushiranjan | [View Doc](devtrack/2026-07/PR-2998-feat-langgraph-rag-retrieval-clean.md) / [ADR](devtrack/adr/ADR-044-feat-langgraph-rag-retrieval-clean.md) |
