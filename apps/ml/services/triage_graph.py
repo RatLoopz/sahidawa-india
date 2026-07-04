@@ -1,7 +1,11 @@
 import os
 import logging
-from typing import List, Dict, Any, TypedDict, Literal
+from typing import List, Dict, Any, TypedDict
 from pydantic import BaseModel, Field
+from dotenv import load_dotenv
+from services.retrieval import retrieve_relevant_medicines
+
+load_dotenv()
 
 # Check if LangChain and LangGraph are available
 try:
@@ -21,6 +25,7 @@ class TriageState(TypedDict):
     emergency_detected: bool
     collected_info: Dict[str, Any]    # onset, severity, location, associated_symptoms
     clarifying_question: str
+    retrieved_medicines: List[Dict[str, Any]]  # store the retrieved medicines
     final_summary: str
     recommendations: List[str]
     disclaimer: str
@@ -46,8 +51,8 @@ class TriageAnalysis(BaseModel):
 
 # ── Node Implementations ──────────────────────────────────────────────────────
 
-def get_llm(model: str = "gemini-3.5-flash"):
-    api_key = os.getenv("GOOGLE_API_KEY")
+def get_llm(model: str = "gemini-2.5-flash"):
+    api_key = os.getenv("GEMINI_API_KEY")
     return ChatGoogleGenerativeAI(model=model, temperature=0, google_api_key=api_key)
 
 def input_guardrail_node(state: TriageState) -> Dict[str, Any]:
@@ -200,42 +205,164 @@ def emergency_response_node(state: TriageState) -> Dict[str, Any]:
             "disclaimer": "EMERGENCY: Urgent care required."
         }
 
+def retrieval_node(state: TriageState) -> Dict[str, Any]:
+    """
+    Retrieves medicine context from the pgvector index
+    for use during final synthesis.
+    """
+
+    logging.info("Running retrieval_node...")
+
+    messages = state.get("messages", [])
+
+    # Get latest user message
+    user_query = ""
+
+    for message in reversed(messages):
+        if message.get("role") == "user":
+            user_query = message.get("content", "").strip()
+            break
+
+    if not user_query:
+        logging.info("No user query found for retrieval.")
+        return {"retrieved_medicines": []}
+    
+    # Build a richer retrieval query from the structured symptom information extracted during triage.
+    # If structured fields are unavailable, fall back
+    # to the latest user message so retrieval still works.
+    details = state.get("collected_info", {})
+
+    query_parts = [
+        details.get("location"),
+        details.get("severity"),
+        details.get("onset"),
+    ]
+
+    query_parts.extend(details.get("associated_symptoms") or [])
+
+    structured_query = " ".join(str(part) for part in query_parts if part and part != "unknown")
+
+    if not structured_query:
+        structured_query = user_query
+
+    medicines = retrieve_relevant_medicines(structured_query)
+
+    logging.info(
+        "Retrieved %d medicine(s) from retrieval service.",
+        len(medicines),
+    )
+
+    return {
+        "retrieved_medicines": medicines
+    }
+
+
+def format_medicine_context(medicines: List[Dict[str, Any]]) -> str:
+    """
+    Convert retrieved medicines into a compact text block
+    for grounding the LLM.
+    """
+
+    if not medicines:
+        return "No medicine context available."
+
+    sections = []
+
+    for medicine in medicines:
+        section = [
+            f"Brand: {medicine.get('brand_name', 'Unknown')}",
+            f"Generic: {medicine.get('generic_name', 'Unknown')}",
+            f"Composition: {medicine.get('composition', 'Unknown')}",
+        ]
+        manufacturer = medicine.get("manufacturer")
+        if manufacturer:
+            section.append(f"Manufacturer: {manufacturer}")
+
+        sections.append("\n".join(section))
+    return "\n\n".join(sections)
+    
 def final_synthesis_node(state: TriageState) -> Dict[str, Any]:
     """
     Formulates the final non-emergency triage recommendations.
     """
     logging.info("Running final_synthesis_node...")
+
     lang = state.get("language", "English")
-    history_text = "\n".join([f"{m['role'].upper()}: {m['content']}" for m in state.get("messages", [])])
-    
+
+    history_text = "\n".join(
+        [
+            f"{m['role'].upper()}: {m['content']}"
+            for m in state.get("messages", [])
+        ]
+    )
+
+    medicine_context = format_medicine_context(
+        state.get("retrieved_medicines", [])
+    )
+
     try:
         llm = get_llm()
         structured_llm = llm.with_structured_output(TriageAnalysis)
-        
+
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are synthesizing a symptom triage report. Based on the user's symptoms, provide a short summary, 3 action items, and a standard disclaimer. Write everything in {language}."),
-            ("human", "{history}")
+            (
+                "system",
+                """
+You are a medical triage assistant.
+Use the retrieved medicine information only as supporting clinical context.
+Do not invent medicine names.
+Do not recommend medicines that are not present in the retrieved context.
+If no medicine context is available, rely only on the user's symptoms.
+
+Provide:
+- A short summary
+- Three recommendations
+- A medical disclaimer
+
+Write everything in {language}.
+                """
+            ),
+            (
+                "human",
+                "Conversation:\n{history}\n\nRetrieved Medicine Context:\n{medicine_context}"
+            )
         ])
-        
-        analysis = (prompt | structured_llm).invoke({"language": lang, "history": history_text})
-        
-        response_text = f"{analysis.summary}\n\nRecommendations:\n" + "\n".join([f"- {r}" for r in analysis.recommendations]) + f"\n\nDisclaimer: {analysis.disclaimer}"
-        
+
+        analysis = (prompt | structured_llm).invoke(
+            {
+                "language": lang,
+                "history": history_text,
+                "medicine_context": medicine_context,
+            }
+        )
+
+        response_text = (
+            f"{analysis.summary}\n\n"
+            "Recommendations:\n"
+            + "\n".join(f"- {r}" for r in analysis.recommendations)
+            + f"\n\nDisclaimer: {analysis.disclaimer}"
+        )
+
         return {
             "final_summary": analysis.summary,
             "recommendations": analysis.recommendations,
             "disclaimer": analysis.disclaimer,
-            "response": response_text
+            "response": response_text,
         }
-    except Exception as e:
-        logging.error(f"Error in final_synthesis_node: {e}")
+
+    except Exception:
+        logging.exception("Error in final_synthesis_node.")
+
         return {
             "response": "Based on your symptoms, we recommend checking in with a doctor. Rest and monitor your condition.",
             "final_summary": "Non-urgent symptoms analyzed.",
-            "recommendations": ["Consult a doctor", "Rest and hydrate"],
-            "disclaimer": "This information is for guidance only."
+            "recommendations": [
+                "Consult a doctor",
+                "Rest and hydrate",
+            ],
+            "disclaimer": "This information is for guidance only.",
         }
-
+    
 # ── Routing Functions ─────────────────────────────────────────────────────────
 
 def route_after_guardrail(state: TriageState) -> str:
@@ -261,6 +388,7 @@ def build_triage_graph():
     workflow.add_node("language_detector", language_detector_node)
     workflow.add_node("symptom_triage", symptom_triage_node)
     workflow.add_node("emergency_response", emergency_response_node)
+    workflow.add_node("retrieval", retrieval_node)
     workflow.add_node("final_synthesis", final_synthesis_node)
     
     # Define Flow
@@ -283,11 +411,12 @@ def build_triage_graph():
         route_after_triage,
         {
             END: END,
-            "final_synthesis": "final_synthesis"
+            "final_synthesis": "retrieval"
         }
     )
     
     workflow.add_edge("emergency_response", END)
+    workflow.add_edge("retrieval", "final_synthesis")
     workflow.add_edge("final_synthesis", END)
     
     return workflow.compile()
@@ -314,6 +443,7 @@ def run_triage_flow(messages: List[Dict[str, str]], locale: str = "en") -> Dict[
         "language": "English",
         "emergency_detected": False,
         "collected_info": {},
+        "retrieved_medicines": [],
         "clarifying_question": "",
         "final_summary": "",
         "recommendations": [],
@@ -332,8 +462,8 @@ def run_triage_flow(messages: List[Dict[str, str]], locale: str = "en") -> Dict[
             "disclaimer": final_state.get("disclaimer", ""),
             "details": final_state.get("collected_info", {})
         }
-    except Exception as e:
-        logging.error(f"Error executing triage graph flow: {e}")
+    except Exception:
+        logging.exception("Error executing triage graph flow.")
         return {
             "response": "An error occurred during symptom triage assessment. Please try again.",
             "emergency": False,
