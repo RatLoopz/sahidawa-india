@@ -6,6 +6,7 @@
  * Tech: React Hook Form · Zod · @hookform/resolvers · Framer Motion · Tailwind CSS
  * Design: SahiDawa modern aesthetic — emerald accents, deep navy header, rounded corners
  */
+import { enqueueReport } from "@/lib/offline/queue";
 import { handleApiError } from "@/lib/apiErrorHandler";
 import React, { useState, useEffect, useId, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
@@ -947,20 +948,19 @@ export default function ReportWizard() {
                 // ignore if supabase is not configured
             }
         }
-
-        // If already offline, skip the network attempt entirely
-        if (typeof navigator !== "undefined" && !navigator.onLine) {
-            try {
-                const geo = await geocodePincode(data.pincode).catch(() => null);
-                await queueReport({ ...data, ...(geo ?? {}) });
-                await clearDraft();
-                setPendingCount((c) => c + 1);
-                setReportId(null);
-                setQueuedOffline(true);
-                setDone(true);
-                toast.info(
-                    "You're offline. Your report has been saved locally and will auto-submit once connection improves."
-                );
+        
+if (typeof navigator !== "undefined" && !navigator.onLine) {
+  try {
+    const geo = await geocodePincode(data.pincode).catch(() => null);
+    await enqueueReport({ reportData: data });
+    
+    alert("You are offline. Report saved locally and will sync when back online!");
+    setSubmitting(false); 
+    return;
+  } catch (err) {
+    console.error("Failed to save offline", err);
+  }
+}
             } catch (queueErr) {
                 console.error("Failed to queue report offline:", queueErr);
                 setSubmitErr(
