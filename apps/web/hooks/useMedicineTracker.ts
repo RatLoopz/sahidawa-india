@@ -22,6 +22,7 @@ export interface Medicine {
     expiryDate: string;
     batchNumber?: string;
     notes?: string;
+    snoozedUntil?: string;
 }
 
 export interface AddMedicineFields {
@@ -40,6 +41,7 @@ export interface UseMedicineTrackerReturn {
     deleteMedicine: (id: string) => Promise<void>;
     bulkDeleteMedicines: (ids: string[]) => Promise<void>;
     importMedicines: (newItems: Medicine[]) => Promise<void>;
+    snoozeMedicine: (id: string, days?: number) => Promise<void>;
 }
 
 // ─── Local-storage helpers ────────────────────────────────────────────────────
@@ -102,6 +104,9 @@ export function useMedicineTracker(): UseMedicineTrackerReturn {
                             expiryDate: item.expiry_date as string,
                             batchNumber: (item.batch_number as string) ?? "",
                             notes: (item.notes as string) ?? "",
+                            snoozedUntil: item.snoozed_until
+                                ? (item.snoozed_until as string)
+                                : undefined,
                         }));
                     }
                 } else {
@@ -176,7 +181,15 @@ export function useMedicineTracker(): UseMedicineTrackerReturn {
     // ── Edit ──────────────────────────────────────────────────────────────────
     const editMedicine = useCallback(
         async (id: string, { name, expiryDate, batchNumber, notes }: AddMedicineFields) => {
-            const updatedMed = { id, name, expiryDate, batchNumber, notes };
+            const existing = medicines.find((m) => m.id === id);
+            const updatedMed: Medicine = {
+                id,
+                name,
+                expiryDate,
+                batchNumber,
+                notes,
+                snoozedUntil: existing?.snoozedUntil,
+            };
 
             if (userId) {
                 const { error } = await supabase
@@ -204,6 +217,37 @@ export function useMedicineTracker(): UseMedicineTrackerReturn {
                 });
                 await cancelNotificationsForMedicine(id);
                 scheduleNotificationsForMedicine(updatedMed);
+            }
+        },
+        [userId, medicines]
+    );
+
+    // ── Snooze ────────────────────────────────────────────────────────────────
+    const snoozeMedicine = useCallback(
+        async (id: string, days: number = 3) => {
+            const snoozeDate = new Date();
+            snoozeDate.setDate(snoozeDate.getDate() + days);
+            const snoozedUntil = snoozeDate.toISOString();
+
+            if (userId) {
+                const { error } = await supabase
+                    .from("expiry_tracker_items")
+                    .update({ snoozed_until: snoozedUntil })
+                    .eq("id", id);
+
+                if (!error) {
+                    setMedicines((prev) =>
+                        prev.map((m) => (m.id === id ? { ...m, snoozedUntil } : m))
+                    );
+                    await cancelNotificationsForMedicine(id);
+                }
+            } else {
+                setMedicines((prev) => {
+                    const updated = prev.map((m) => (m.id === id ? { ...m, snoozedUntil } : m));
+                    lsWrite(updated);
+                    return updated;
+                });
+                await cancelNotificationsForMedicine(id);
             }
         },
         [userId]
@@ -335,5 +379,6 @@ export function useMedicineTracker(): UseMedicineTrackerReturn {
         deleteMedicine,
         bulkDeleteMedicines,
         importMedicines,
+        snoozeMedicine,
     };
 }

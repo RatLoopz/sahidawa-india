@@ -1,4 +1,4 @@
-import { Calendar, Package, Pencil, Trash2 } from "lucide-react";
+import { Calendar, Package, Pencil, Trash2, BellOff } from "lucide-react";
 
 import { parseLocalDate } from "./dateUtils";
 import type { ExpiryStatus, Medicine } from "./types";
@@ -8,10 +8,11 @@ interface ExpiryTableProps {
     medicines: Medicine[];
     isLoaded: boolean;
     selectedIds: Set<string>;
-    getExpiryStatus: (dateStr: string) => ExpiryStatus;
+    getExpiryStatus: (medicine: Medicine) => ExpiryStatus;
     onToggleSelect: (id: string) => void;
     onStartEdit: (medicine: Medicine) => void;
     onDelete: (id: string) => void;
+    onSnooze: (id: string) => void;
 }
 
 export function ExpiryTable({
@@ -23,6 +24,7 @@ export function ExpiryTable({
     onToggleSelect,
     onStartEdit,
     onDelete,
+    onSnooze,
 }: ExpiryTableProps) {
     if (!isLoaded) {
         return (
@@ -44,7 +46,7 @@ export function ExpiryTable({
     return (
         <div className="grid grid-cols-1 gap-4">
             {medicines.map((medicine) => {
-                const status = getExpiryStatus(medicine.expiryDate);
+                const status = getExpiryStatus(medicine);
                 return (
                     <div
                         key={medicine.id}
@@ -86,6 +88,15 @@ export function ExpiryTable({
                             >
                                 {status.icon} {status.text}
                             </span>
+                            {(status.key === "expired" || status.key === "expiringSoon") && (
+                                <button
+                                    onClick={() => onSnooze(medicine.id)}
+                                    className="rounded-full p-2 transition-colors hover:bg-amber-500/10"
+                                    title={t("snoozeAlert") || "Snooze alert"}
+                                >
+                                    <BellOff size={18} className="text-amber-500" />
+                                </button>
+                            )}
                             <button
                                 onClick={() => onStartEdit(medicine)}
                                 className="rounded-full p-2 transition-colors hover:bg-emerald-500/10"
