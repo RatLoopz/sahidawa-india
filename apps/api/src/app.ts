@@ -123,12 +123,9 @@ const { doubleCsrfProtection, generateCsrfToken: generateToken } = doubleCsrf({
 
 // Skip CSRF in test and development environments to support cross-port local testing
 const isTestOrDev = process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development";
-app.use((req: Request, res: Response, next: NextFunction) => {
-    if (isTestOrDev) {
-        return next();
-    }
-    doubleCsrfProtection(req, res, next);
-});
+if (!isTestOrDev) {
+    app.use(doubleCsrfProtection);
+}
 
 // ── CSRF token endpoint — frontend fetches this once on load ───────────────
 app.get("/api/csrf-token", (req: Request, res: Response) => {

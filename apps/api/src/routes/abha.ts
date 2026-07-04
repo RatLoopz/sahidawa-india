@@ -100,6 +100,7 @@ router.post(
 // Checks if the user has an active ABHA link
 router.get(
     "/status",
+    limiter,
     requireAuth,
     async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         try {
@@ -123,6 +124,7 @@ router.get(
 // Fetches prescriptions for the current user from abha_records
 router.get(
     "/prescriptions",
+    limiter,
     requireAuth,
     async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         try {
@@ -146,6 +148,7 @@ router.get(
 // Uploads a medicine verification result to abha_records for the current user
 router.post(
     "/upload-verification",
+    limiter,
     requireAuth,
     async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         try {
@@ -179,6 +182,7 @@ router.post(
 // Soft-deletes the ABHA link for the current user by setting is_active to false
 router.delete(
     "/unlink",
+    limiter,
     requireAuth,
     async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         try {
