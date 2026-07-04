@@ -2,6 +2,19 @@ import { renderToStaticMarkup } from "react-dom/server";
 import React from "react";
 import SearchSuggestions, { HistoryItem } from "../components/SearchSuggestions";
 
+jest.mock("@tanstack/react-virtual", () => ({
+    useVirtualizer: ({ count }: { count: number }) => ({
+        getTotalSize: () => count * 48,
+        getVirtualItems: () =>
+            Array.from({ length: count }).map((_, i) => ({
+                index: i,
+                start: i * 48,
+                measureElement: jest.fn(),
+            })),
+        scrollToIndex: jest.fn(),
+        measureElement: jest.fn(),
+    }),
+}));
 describe("SearchSuggestions", () => {
     const defaultProps = {
         suggestions: ["Crocin", "Dolo 650"],

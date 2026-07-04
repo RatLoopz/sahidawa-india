@@ -23,6 +23,8 @@ export function ExpandableDetails({ medicine }: { medicine: VerifiedMedicine }) 
         <div className="w-full">
             <button
                 onClick={() => setExpanded(!expanded)}
+                aria-expanded={expanded}
+                aria-controls="medicine-details-panel"
                 className="flex items-center gap-1 text-sm text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
             >
                 {expanded ? tScan("showLess") : tScan("showMoreDetails")}
@@ -33,7 +35,7 @@ export function ExpandableDetails({ medicine }: { medicine: VerifiedMedicine }) 
             </button>
 
             {expanded && (
-                <div className="mt-3 space-y-3">
+                <div id="medicine-details-panel" className="mt-3 space-y-3">
                     <div className="flex items-center justify-between rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-3 py-2">
                         <span className="text-[10px] font-bold tracking-wider text-(--color-text-muted) uppercase">
                             Medicine Info

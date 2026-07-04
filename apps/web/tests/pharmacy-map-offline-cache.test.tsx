@@ -2,16 +2,27 @@
  * @jest-environment jsdom
  */
 
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor, within, fireEvent } from "@testing-library/react";
 
 import PharmacyMapPage from "../app/[locale]/map/page";
 import type { Pharmacy } from "../app/[locale]/map/PharmacyMap";
-import { buildCacheKey, loadFromCache, saveToCache } from "../app/[locale]/map/usePharmacyCache";
-import { fetchNearbyAshaWorkers, fetchVerifiedPharmacies } from "../lib/api";
-import { fetchPharmacies } from "../app/[locale]/map/overpassApi";
+import {
+    buildNearbyCacheKey,
+    loadFromCache,
+    saveToCache,
+} from "../app/[locale]/map/usePharmacyCache";
+import {
+    fetchNearbyAshaWorkers,
+    fetchVerifiedPharmacies,
+    fetchVerifiedPharmaciesInBounds,
+} from "../lib/api";
+import { fetchPharmacies, fetchPharmaciesInBounds } from "../app/[locale]/map/overpassApi";
+import { getCachedPharmacies, getLastSyncTimestamp } from "../lib/offline/pharmacy-sync";
 
+const mockT = (key: string) => key;
 jest.mock("next-intl", () => ({
-    useTranslations: () => (key: string) => key,
+    useLocale: () => "en",
+    useTranslations: () => mockT,
 }));
 
 jest.mock("next-intl/server", () => ({
@@ -26,8 +37,43 @@ jest.mock("../app/[locale]/components/PageHeader", () => ({
 
 jest.mock("../app/[locale]/map/PharmacyMap", () => ({
     __esModule: true,
-    default: ({ pharmacies }: { pharmacies: Pharmacy[] }) => (
+    default: ({
+        pharmacies,
+        onMapMoveEnd,
+        onMapReady,
+    }: {
+        pharmacies: Pharmacy[];
+        onMapMoveEnd?: (bounds: {
+            south: number;
+            west: number;
+            north: number;
+            east: number;
+            center: { lat: number; lng: number };
+        }) => void;
+        onMapReady?: () => void;
+    }) => (
         <div data-testid="mock-pharmacy-map">
+            <button type="button" onClick={onMapReady}>
+                Mock map ready
+            </button>
+            <button
+                type="button"
+                onClick={() => {
+                    console.log("Mock map moved clicked, onMapMoveEnd present?", !!onMapMoveEnd);
+                    onMapMoveEnd?.(
+                        {
+                            south: 28.5,
+                            west: 77.1,
+                            north: 28.7,
+                            east: 77.3,
+                            center: { lat: 28.6139, lng: 77.209 },
+                        } as any,
+                        14
+                    );
+                }}
+            >
+                Mock map moved
+            </button>
             {pharmacies.map((pharmacy) => (
                 <span key={pharmacy.id}>{pharmacy.name}</span>
             ))}
@@ -51,17 +97,32 @@ jest.mock("../app/[locale]/map/overpassApi", () => ({
 }));
 
 jest.mock("../app/[locale]/map/usePharmacyCache", () => ({
-    buildCacheKey: jest.fn((lat: number, lng: number) => `${lat.toFixed(2)}_${lng.toFixed(2)}`),
+    buildNearbyCacheKey: jest.fn(
+        (lat: number, lng: number) => `${lat.toFixed(2)}_${lng.toFixed(2)}`
+    ),
+    buildBoundsCacheKey: jest.fn(() => "mock-bounds-key"),
     loadFromCache: jest.fn(),
     saveToCache: jest.fn(),
 }));
 
+jest.mock("../lib/offline/pharmacy-sync", () => ({
+    getCachedPharmacies: jest.fn(),
+    getLastSyncTimestamp: jest.fn(),
+    mergePharmacyDelta: jest.fn((existing, delta) => [...existing, ...delta]),
+    setCachedPharmacies: jest.fn(),
+    setLastSyncTimestamp: jest.fn(),
+}));
+
 const fetchVerifiedPharmaciesMock = jest.mocked(fetchVerifiedPharmacies);
+const fetchVerifiedPharmaciesInBoundsMock = jest.mocked(fetchVerifiedPharmaciesInBounds);
 const fetchNearbyAshaWorkersMock = jest.mocked(fetchNearbyAshaWorkers);
 const fetchPharmaciesMock = jest.mocked(fetchPharmacies);
+const fetchPharmaciesInBoundsMock = jest.mocked(fetchPharmaciesInBounds);
+const getCachedPharmaciesMock = jest.mocked(getCachedPharmacies);
+const getLastSyncTimestampMock = jest.mocked(getLastSyncTimestamp);
 const loadFromCacheMock = jest.mocked(loadFromCache);
 const saveToCacheMock = jest.mocked(saveToCache);
-const buildCacheKeyMock = jest.mocked(buildCacheKey);
+const buildNearbyCacheKeyMock = jest.mocked(buildNearbyCacheKey);
 
 const cachedPharmacy: Pharmacy = {
     id: 301,
@@ -85,6 +146,15 @@ describe("PharmacyMapPage offline pharmacy cache", () => {
         fetchNearbyAshaWorkersMock.mockResolvedValue([]);
         saveToCacheMock.mockResolvedValue(undefined);
         loadFromCacheMock.mockResolvedValue(null);
+        getCachedPharmaciesMock.mockResolvedValue([]);
+        getLastSyncTimestampMock.mockResolvedValue(null);
+        fetchVerifiedPharmaciesInBoundsMock.mockResolvedValue({
+            pharmacies: [],
+            syncedAt: "2026-06-22T12:00:00.000Z",
+            delta: false,
+            fromNetwork: true,
+        });
+        fetchPharmaciesInBoundsMock.mockResolvedValue([]);
     });
 
     it("caches successful API pharmacy results after the initial nearby search", async () => {
@@ -141,8 +211,43 @@ describe("PharmacyMapPage offline pharmacy cache", () => {
         expect(
             within(screen.getByTestId("mock-pharmacy-map")).getByText("Last Online Pharmacy")
         ).toBeTruthy();
-        expect(buildCacheKeyMock).toHaveBeenCalledWith(28.6139, 77.209);
+        expect(buildNearbyCacheKeyMock).toHaveBeenCalledWith(28.6139, 77.209, expect.any(Number));
         expect(loadFromCacheMock).toHaveBeenCalledWith("28.61_77.21");
         expect(screen.queryByText("Could not load pharmacies. Try again.")).toBeNull();
+    });
+
+    it("does not send a stale delta timestamp when no synced pharmacies are cached", async () => {
+        getCachedPharmaciesMock.mockResolvedValue([]);
+        getLastSyncTimestampMock.mockResolvedValue("2026-06-22T11:00:00.000Z");
+        fetchVerifiedPharmaciesMock.mockResolvedValue([]);
+        fetchPharmaciesMock.mockResolvedValue([]);
+
+        render(<PharmacyMapPage />);
+
+        await screen.findByTestId("mock-pharmacy-map");
+        fireEvent.click(screen.getByRole("button", { name: "Mock map ready" }));
+        await waitFor(() => {
+            expect(saveToCacheMock).toHaveBeenCalled();
+        });
+        await waitFor(
+            () => {
+                expect(screen.queryByText(/Fetching pharmacies/i)).toBeNull();
+            },
+            { timeout: 2000 }
+        );
+        fireEvent.click(screen.getByRole("button", { name: "Mock map moved" }));
+        const searchAreaBtn = await screen.findByTestId("search-area-btn");
+        fireEvent.click(searchAreaBtn);
+
+        await waitFor(() => {
+            expect(fetchVerifiedPharmaciesInBoundsMock).toHaveBeenCalledWith(
+                expect.any(Number),
+                expect.any(Number),
+                expect.any(Number),
+                expect.any(Number),
+                undefined
+            );
+        });
+        expect(getLastSyncTimestampMock).not.toHaveBeenCalled();
     });
 });

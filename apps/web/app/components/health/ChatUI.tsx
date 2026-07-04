@@ -119,6 +119,7 @@ const createInitialMessage = (locale: string): Message => ({
 
 export default function ChatUI() {
     const t = useTranslations("Health");
+    const tVoiceError = useTranslations("VoicePage.errors");
 
     // Quick actions configuration
     const ACTIONS = [
@@ -304,13 +305,17 @@ export default function ChatUI() {
             alert(t("voiceBrowserRequired"));
             return;
         }
+
         if (isListening) {
             recRef.current?.stop();
             setIsListening(false);
             return;
         }
-        const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        const r = new SR();
+
+        const SpeechRecognition =
+            (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+
         const speechLocales = {
             en: "en-IN",
             hi: "hi-IN",
@@ -324,22 +329,75 @@ export default function ChatUI() {
             pa: "pa-IN",
             or: "or-IN",
         };
-        r.lang = speechLocales[locale as keyof typeof speechLocales] || "en-IN";
-        r.interimResults = false;
-        r.onresult = (e: any) => {
-            if (!isMountedRef.current) return;
-            setInput(e.results[0][0].transcript);
-            setIsListening(false);
+
+        recognition.lang = speechLocales[locale as keyof typeof speechLocales] || "en-IN";
+        recognition.interimResults = true;
+        recognition.continuous = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = () => {
+            if (isMountedRef.current) {
+                setIsListening(true);
+            }
         };
-        r.onerror = r.onend = () => {
+
+        const initialInput = input.trim();
+
+        recognition.onresult = (event: any) => {
+            if (!isMountedRef.current) return;
+
+            const transcript = Array.from(event.results)
+                .map((result: any) => result[0].transcript)
+                .join(" ");
+
+            const space = initialInput.length > 0 ? " " : "";
+            setInput(initialInput + space + transcript);
+        };
+
+        recognition.onerror = (event: any) => {
+            console.error("Speech recognition error:", event.error);
+            if (isMountedRef.current) {
+                setIsListening(false);
+            }
+            if (event.error === "not-allowed") {
+                alert(
+                    tVoiceError("permission_message") ||
+                        "Please allow microphone permission in your browser settings and try again."
+                );
+            } else if (event.error === "network") {
+                alert(
+                    tVoiceError("network_message") ||
+                        "Your browser could not finish the voice capture. Please check your connection and try again."
+                );
+            } else if (event.error === "no-speech") {
+                // Ignore no-speech, it just means they didn't say anything
+            } else {
+                alert(
+                    tVoiceError("generic_message") ||
+                        "We could not process your voice input this time. Please try again."
+                );
+            }
+        };
+
+        recognition.onend = () => {
             if (isMountedRef.current) {
                 setIsListening(false);
             }
         };
-        recRef.current = r;
-        r.start();
-        setIsListening(true);
-    }, [isListening, t]);
+
+        recRef.current = recognition;
+
+        try {
+            recognition.start();
+        } catch (e) {
+            console.error("Failed to start speech recognition:", e);
+            alert(
+                t("voiceBrowserRequired") ||
+                    "Voice recognition is not supported or failed to start."
+            );
+            setIsListening(false);
+        }
+    }, [isListening, locale, t, input]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {

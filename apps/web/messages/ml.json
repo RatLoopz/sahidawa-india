@@ -308,7 +308,8 @@
         "placeholder": "Ask me about a medicine...",
         "status": "Online",
         "title": "SahiDawa AI",
-        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"
+        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?",
+        "tooltipLabel": "AI Health Assistant"
     },
     "about": {
         "badge": "GSSoC 2026 Open Source Project",
@@ -494,7 +495,9 @@
         "errors": {
             "databaseNotConfigured": "ഈ പരിതസ്ഥിതിക്ക് ഓതന്റിക്കേഷൻ കോൺഫിഗർ ചെയ്തിട്ടില്ല.",
             "generic": "സൈൻ ഇൻ ചെയ്യാൻ കഴിഞ്ഞില്ല. ദയവായി വീണ്ടും ശ്രമിക്കുക."
-        }
+        },
+        "signUpPrompt": "Don't have an account?",
+        "signUpLink": "Sign up"
     },
     "AdminLayout": {
         "accessDeniedTitle": "പ്രവേശനം നിഷേധിച്ചു",
@@ -656,6 +659,75 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
+    "howItWorks": {
+        "badge": "Safe Healthcare � AI Powered",
+        "heroTitle": "How <highlight>SahiDawa</highlight> Works",
+        "heroSubtitle": "Learn how SahiDawa helps users verify medicines, discover trusted pharmacies, receive official alerts, and stay protected from counterfeit drugs using AI-powered healthcare tools.",
+        "ctaButtons": {
+            "scan": "Start Scanning",
+            "map": "Explore Pharmacy Map"
+        },
+        "steps": {
+            "scan": {
+                "title": "Scan Medicine",
+                "description": "Point your device camera at the barcode or QR code on any medicine packaging."
+            },
+            "verify": {
+                "title": "Verify Instantly",
+                "description": "AI cross-references scanned details with CDSCO records to check authenticity."
+            },
+            "alerts": {
+                "title": "Check Alerts",
+                "description": "Get real-time safety alerts if the batch is recalled, banned, or substandard."
+            },
+            "pharmacies": {
+                "title": "Find Pharmacies",
+                "description": "Locate Jan Aushadhi stores and verified nearby pharmacies stocking real medicines."
+            },
+            "protect": {
+                "title": "Stay Protected",
+                "description": "Keep records of your scans, report fakes, and safeguard your family's health."
+            }
+        },
+        "features": {
+            "title": "Platform Features",
+            "subtitle": "Everything you need for safer healthcare decisions.",
+            "cards": {
+                "verifyMedicines": {
+                    "title": "Verify Medicines",
+                    "description": "Instantly verify medicine authenticity using barcode, batch number, or medicine details."
+                },
+                "scanOrSearch": {
+                    "title": "Scan or Search",
+                    "description": "Scan packaging or manually search medicines for trusted healthcare information."
+                },
+                "aiAssistant": {
+                    "title": "AI Health Assistant",
+                    "description": "Get AI-powered guidance for symptoms, side effects, precautions, and medicine usage."
+                },
+                "trustedPharmacies": {
+                    "title": "Trusted Pharmacies",
+                    "description": "Find verified pharmacies nearby with reliable medicine availability and ratings."
+                },
+                "cdscoAlerts": {
+                    "title": "CDSCO Alerts",
+                    "description": "Stay updated with official CDSCO medicine recalls, warnings, and health alerts."
+                },
+                "reportMedicines": {
+                    "title": "Report Suspicious Medicines",
+                    "description": "Help the community by reporting counterfeit or suspicious medicines instantly."
+                }
+            }
+        },
+        "ctaBanner": {
+            "title": "Safer Healthcare Starts Here",
+            "subtitle": "Verify medicines, access trusted healthcare information, and stay protected from counterfeit drugs with AI-powered assistance.",
+            "buttons": {
+                "scan": "Scan Medicine",
+                "alerts": "View Alerts"
+            }
+        }
+    },
     "medicineSafety": {
         "guideTitle": "ഉപയോഗവും സുരക്ഷാ മാർഗ്ഗനിർദ്ദേശവും",
         "noDosageInfo": "ഈ പ്രായവിഭാഗത്തിനായുള്ള ഡോസ് വിവരങ്ങൾ ലഭ്യമല്ല.",
@@ -711,5 +783,117 @@
         "placeholder": "Type your health concern...",
         "sendMessage": "Send message",
         "footer": "For informational use only • Consult a doctor"
+    },
+    "SignUp": {
+        "brandSubtitle": "Medicine safety platform",
+        "heading": "Create your account",
+        "description": "Join SahiDawa to track medicine safety reports and verification results.",
+        "missingConfig": {
+            "title": "Authentication is not configured",
+            "description": "Supabase URL or anon key is missing. Add the environment variables before signing up."
+        },
+        "googleButton": "Continue with Google",
+        "githubButton": "Continue with Github",
+        "emailSeparator": "or continue with email",
+        "fullNameLabel": "Full name",
+        "fullNamePlaceholder": "Your full name",
+        "emailLabel": "Email address",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Create a password",
+        "confirmPasswordLabel": "Confirm password",
+        "confirmPasswordPlaceholder": "Re-enter your password",
+        "showPassword": "Show password",
+        "hidePassword": "Hide password",
+        "showConfirmPassword": "Show confirm password",
+        "hideConfirmPassword": "Hide confirm password",
+        "signingUp": "Creating account...",
+        "signUp": "Sign Up",
+        "footerPrompt": "Already have an account?",
+        "signInLink": "Sign in",
+        "bottomText": "Protected access for SahiDawa community tools.",
+        "success": "Account created successfully! Redirecting...",
+        "successConfirmEmail": "Account created! Check your email to confirm your account before signing in.",
+        "errors": {
+            "databaseNotConfigured": "Authentication is not configured for this environment.",
+            "generic": "Unable to create account. Please try again.",
+            "fullNameRequired": "Full name is required.",
+            "emailRequired": "Email address is required.",
+            "emailInvalid": "Please enter a valid email address.",
+            "passwordRequired": "Password is required.",
+            "passwordWeak": "Password must be at least 8 characters and include uppercase, lowercase, and a number.",
+            "confirmPasswordRequired": "Please confirm your password.",
+            "passwordMismatch": "Passwords do not match."
+        }
+    },
+    "MyMedicines": {
+        "page": {
+            "title": "എന്റെ ട്രാക്ക് ചെയ്ത മരുന്നുകൾ",
+            "loading": "നിങ്ങളുടെ ട്രാക്ക് ചെയ്ത മരുന്നുകൾ ലോഡ് ചെയ്യുന്നു..."
+        },
+        "errors": {
+            "title": "നിങ്ങളുടെ മരുന്നുകൾ ലോഡ് ചെയ്യാൻ കഴിഞ്ഞില്ല",
+            "generic": "നിങ്ങളുടെ ട്രാക്ക് ചെയ്ത മരുന്നുകൾ കൊണ്ടുവരുന്നതിനിടെ എന്തോ കുഴപ്പം സംഭവിച്ചു.",
+            "fetchFailed": "ട്രാക്ക് ചെയ്ത മരുന്നുകൾ ലോഡ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു. ദയവായി നിങ്ങളുടെ കണക്ഷൻ പരിശോധിച്ച് വീണ്ടും ശ്രമിക്കുക.",
+            "tryAgain": "വീണ്ടും ശ്രമിക്കുക"
+        },
+        "emptyState": {
+            "title": "ഇതുവരെ മരുന്നുകളൊന്നും ട്രാക്ക് ചെയ്തിട്ടില്ല",
+            "description": "സജീവ ഷെഡ്യൂളുകൾ, സുരക്ഷാ അപ്‌ഡേറ്റുകൾ, കാലഹരണ കാലയളവുകൾ എന്നിവ സ്വയമേവ ട്രാക്ക് ചെയ്യാൻ നിങ്ങളുടെ നിലവിലെ മരുന്നുകൾ ചേർക്കുക.",
+            "addFirst": "നിങ്ങളുടെ ആദ്യ മരുന്ന് ചേർക്കുക"
+        },
+        "table": {
+            "name": "പേര്",
+            "expiry": "കാലഹരണം",
+            "status": "നില",
+            "daysLeft": "{count} ദിവസങ്ങൾ ബാക്കി"
+        },
+        "badges": {
+            "verified": "സ്ഥിരീകരിച്ചു",
+            "unverified": "സ്ഥിരീകരിച്ചിട്ടില്ല",
+            "requestVerificationTitle": "സ്ഥിരീകരണം അഭ്യർത്ഥിക്കാൻ ക്ലിക്ക് ചെയ്യുക"
+        },
+        "bookmarks": {
+            "savedAlternatives": "സംരക്ഷിച്ച ബദലുകൾ",
+            "noBookmarks": "ഇതുവരെ ബുക്ക്മാർക്കുകളൊന്നുമില്ല.",
+            "brand": "ബ്രാൻഡ്: {brand}"
+        },
+        "removeDialog": {
+            "title": "ബുക്ക്മാർക്ക് നീക്കം ചെയ്യണോ?",
+            "description": "ഇത് \"{name}\" നിങ്ങളുടെ സംരക്ഷിച്ച ബദലുകളിൽ നിന്ന് നീക്കം ചെയ്യും. ആവശ്യമെങ്കിൽ നിങ്ങൾക്ക് ഇത് പിന്നീട് വീണ്ടും ചേർക്കാം.",
+            "confirm": "നീക്കം ചെയ്യുക",
+            "cancel": "റദ്ദാക്കുക"
+        }
+    },
+    "NotFound": {
+        "badge": "Error 404",
+        "title": "Page Not Found",
+        "description": "We couldn't find the medicine or page you were looking for. It might have been moved, or the URL might be incorrect.",
+        "backHome": "Back to Home",
+        "scanMedicine": "Scan Medicine"
+    },
+    "Settings": {
+        "channelRequired": "Kurannathu oru aashayavinimaya channel (SMS allenkil WhatsApp) sakriyamaayirikkanam.",
+        "optOutConfirm": "Ningal opt out cheythu ella SMS, WhatsApp alertukalum niruthanamennu urappano?",
+        "loadingPreferences": "Ningalude munganangal load cheyyunnu...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
+    },
+    "AbhaRecords": {
+        "backToProfile": "പ്രൊഫൈലിലേക്ക് മടങ്ങുക",
+        "title": "ABHA റെക്കോർഡുകൾ",
+        "loading": "റെക്കോർഡുകൾ ലോഡ് ചെയ്യുന്നു...",
+        "noPrescriptions": "പ്രിസ്ക്രിപ്ഷനുകളൊന്നും കണ്ടെത്തിയില്ല.",
+        "failedToLoad": "റെക്കോർഡുകൾ ലോഡ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു"
     }
 }

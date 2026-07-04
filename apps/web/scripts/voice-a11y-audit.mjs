@@ -32,11 +32,12 @@ async function waitForUrl(url) {
 
 function startDevServer() {
     const server = spawn(
-        "npm",
+        process.platform === "win32" ? "npm.cmd" : "npm",
         ["run", "dev", "-w", "web", "--", "--hostname", auditUrl.hostname, "--port", auditUrl.port],
         {
             cwd: repoRoot,
             stdio: "inherit",
+            shell: process.platform === "win32",
         }
     );
 

@@ -12,20 +12,22 @@ The decision was to directly add the missing translation keys (`vaccine_title`, 
 
 ## Alternatives Considered
 
-| Alternative | Why Rejected |
-|---|---|
-| Implement a fallback mechanism for missing keys | While a fallback to a default language (e.g., English) could prevent raw keys from being displayed, it would result in an inconsistent user experience for non-default language users, requiring them to see content in a language they might not understand. It would also not fully address the requirement for the "Vaccine section" to be fully localized from the outset. |
-| Hardcode the vaccine section text in a default language directly into the UI components | This would violate the principle of internationalization (i18n) and make future localization efforts significantly harder, requiring code changes for every language addition or update. It would also lead to a poor user experience for non-English speakers. |
-| Defer the launch or visibility of the "Vaccine section" until all translations are complete | This would delay the availability of a potentially critical feature for users. The immediate need was to fix the existing display issue, not to block the feature entirely. This was also considered a project management decision rather than a technical resolution for the missing keys. |
+| Alternative                                                                                 | Why Rejected                                                                                                                                                                                                                                                                                                                                                                   |
+| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Implement a fallback mechanism for missing keys                                             | While a fallback to a default language (e.g., English) could prevent raw keys from being displayed, it would result in an inconsistent user experience for non-default language users, requiring them to see content in a language they might not understand. It would also not fully address the requirement for the "Vaccine section" to be fully localized from the outset. |
+| Hardcode the vaccine section text in a default language directly into the UI components     | This would violate the principle of internationalization (i18n) and make future localization efforts significantly harder, requiring code changes for every language addition or update. It would also lead to a poor user experience for non-English speakers.                                                                                                                |
+| Defer the launch or visibility of the "Vaccine section" until all translations are complete | This would delay the availability of a potentially critical feature for users. The immediate need was to fix the existing display issue, not to block the feature entirely. This was also considered a project management decision rather than a technical resolution for the missing keys.                                                                                    |
 
 ## Consequences
 
 **Positive:**
+
 - Resolved a critical UI bug where raw translation keys were displayed, improving user experience.
 - Ensured consistent and localized content for the "Vaccine section" across all supported Indian languages.
 - Maintained the platform's commitment to multi-language support and accessibility for its diverse user base.
 
 **Trade-offs:**
+
 - Increased the number of locale files requiring manual updates for new UI text.
 - Introduced a manual process for adding new translation keys, which is prone to human error (e.g., forgetting a language, typos) and requires careful review.
 - Slightly increased the application's bundle size due to additional translation strings in each locale file.

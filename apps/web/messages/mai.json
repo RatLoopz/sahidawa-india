@@ -41,7 +41,14 @@
         "heroTitle": {
             "prefix": "अहाँक स्वास्थ्य, ",
             "highlight": "सत्यापित आ सुरक्षित।"
-        }
+        },
+        "scan_section_title": "औषधि स्कैन आ सत्यापित करू",
+        "scan_section_subtitle": "बारकोड या पैकेज स्कैनिंगक उपयोग कऽ औषधि क प्रामाणिकता सत्यापित करू।",
+        "powerful_capabilities": "शक्तिशाली क्षमता",
+        "features_description": "ओहि सभ तरीकाक खोज करू जाहि सँ SahiDawa अहाँक औषधिक सत्यापित करैत आ सुरक्षित रहऽ में मदद कऽ सकैत अछि।",
+        "trusted_by_citizens": "नागरिकक द्वारा विश्वसनीय",
+        "voices_title": "SahiDawa समुदायक आवाज",
+        "voices_description": "औषधिक सुरक्षाक आसान बनेबाक लेल SahiDawa क उपयोग करयवला परिवार, फार्मासिस्ट, डॉक्टर आ योगदानकर्ता लोकनि।"
     },
     "Navigation": {
         "how_it_works": "कोना काज करैत अछि",
@@ -428,7 +435,8 @@
         "title": "SahiDawa AI",
         "status": "ऑनलाइन",
         "welcome": "नमस्ते! हम SahiDawa AI सहायक छी। आइ अहाँक दवाइक बारेमे कोना सहायता करू?",
-        "placeholder": "दवाइक बारेमे पूछू..."
+        "placeholder": "दवाइक बारेमे पूछू...",
+        "tooltipLabel": "AI Health Assistant"
     },
     "Alerts": {
         "backHome": "होम पेज पर वापस जाऊ",
@@ -620,7 +628,9 @@
         "errors": {
             "databaseNotConfigured": "एहि वातावरणक लेल प्रमाणीकरण कॉन्फ़िगर नहि अछि।",
             "generic": "साइन इन नहि कयल जा सकल। कृपया फेर प्रयास करू।"
-        }
+        },
+        "signUpPrompt": "Don't have an account?",
+        "signUpLink": "Sign up"
     },
     "AdminLayout": {
         "accessDeniedTitle": "पहुँच अस्वीकृत",
@@ -907,7 +917,22 @@
         "optOutSuccess": "सब सूचनासँ सफलतापूर्वक बाहर भेलहुँ।",
         "errorMessage": "सेटिंग अपडेट करबामे विफल। कृपया फेर प्रयास करू।",
         "phoneInvalid": "कृपया एकटा वैध १०-अंकीय भारतीय फोन नंबर दर्ज करू।",
-        "districtRequired": "स्थानीयकृत चेतावनी प्राप्त करबाक लेल कृपया एकटा जिला निर्दिष्ट करू।"
+        "districtRequired": "स्थानीयकृत चेतावनी प्राप्त करबाक लेल कृपया एकटा जिला निर्दिष्ट करू।",
+        "channelRequired": "Kam sa kam ekta sanchar madhyam (SMS wa WhatsApp) saksham hoybak chahi.",
+        "optOutConfirm": "Ki ahan nishchit chhi je opt out ka sab SMS aa WhatsApp alert band karay chahait chhi?",
+        "loadingPreferences": "Ahank prathamikta load bha rahal achhi...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
     },
     "Interactions": {
         "title": "दवाइ अंतःक्रिया जाँचकर्ता",
@@ -959,6 +984,8 @@
         "stat_fake": "नकली",
         "empty_title": "अखन तक कोनो स्कैन इतिहास नहि",
         "empty_description": "अहाँक सत्यापित दवाइ एतय देखाएत।",
+        "search_placeholder": "दवाइ खोजू...",
+        "no_search_results": "अहाँक खोजसँ मेल खायवला कोनो दवाइ नहि भेटल।",
         "item_status_label": "स्थिति: ",
         "item_delete_button": "मेटाऊ",
         "item_copy_success": "दवाइक नाम कॉपी भेल!"
@@ -1017,6 +1044,153 @@
     },
     "SchemeEligibility": {
         "validationAgeError": "कृपया एकटा वैध उमेर दर्ज करू।",
-        "validationStateError": "कृपया एकटा राज्य चुनू।"
+        "validationStateError": "कृपया एकटा राज्य चुनू।",
+        "validationIncomeError": "कृपा क' क' एकटा वैध वार्षिक आय दर्ज करू।",
+        "validationFamilySizeError": "कृपा क' क' परिवारक सदस्यक वैध संख्या दर्ज करू।",
+        "eligibilityCheckedSuccess": "पात्रता सफलतापूर्वक जांचल गेल!",
+        "eligibilityCheckFailed": "पात्रता जांचबामे असफल। कृपा क' क' पुनः प्रयास करू।",
+        "title": "अपन <highlight>योजनाक पात्रता</highlight> जांचू",
+        "description": "३ सरल चरणमे जानू जे अपन आ अपन परिवार कोन कोन सरकारी स्वास्थ्य योजनाक लेल पात्र छी।",
+        "stepDemographics": "जनसांख्यिकी",
+        "stepIncomeFamily": "आय आ परिवार",
+        "stepIdentification": "पहचान",
+        "ageLabel": "अहांक उम्र कते छी?",
+        "ageDescription": "उम्र वृद्ध नागरिक स्वास्थ्य कवरेज सत्यापित करबामे मदद करैत अछि।",
+        "agePlaceholder": "जैसे: 45",
+        "stateLabel": "अहाँ कोन राज्यमे रहैत छी?",
+        "stateDescription": "सरकारी स्वास्थ्य बीमा कार्यक्रम राज्यक अनुसार अलग-अलग होइत अछि।",
+        "incomeLabel": "अहाँक परिवारक कुल वार्षिक आय कते अछि?",
+        "incomeDescription": "प्रति वर्ष रुपैयामे अहाँक कुल संयुक्त पारिवारिक आय।",
+        "incomePlaceholder": "जैसे: 120000",
+        "familySizeLabel": "अहाँक परिवारमे कते सदस्य छथि?",
+        "familySizeDescription": "घरमे एक संग रहय वला कुल सदस्य।",
+        "familySizePlaceholder": "जैसे: 5",
+        "bplQuestion": "की अहाँक लग BPL कार्ड अछि?",
+        "abhaQuestion": "की अहाँक लग ABHA ID अछि?",
+        "yesOption": "हँ, अछि",
+        "noOption": "नहि, नहि अछि",
+        "backButton": "पाछाँ",
+        "nextButton": "अगिला चरण",
+        "findSchemesButton": "योजना खोजू",
+        "checkingButton": "जांच भ' रहल अछि...",
+        "resultsTitle": "अहाँक पात्र योजना सभ",
+        "resultsDescription": "हमरा सभकेँ <countTag>{count} योजना सभ</countTag> भेटल अछि जकरा लेल अहाँ पात्र छी।",
+        "eligibleBadge": "पात्र",
+        "benefitsCoverage": "लाभ / कवरेज",
+        "howToApply": "आवेदन कोना करू",
+        "visitOfficialPortal": "आधिकारिक पोर्टल पर जाऊ",
+        "noSchemesTitle": "कोनो योजना नहि भेटल।",
+        "noSchemesDescription": "कृपा क' क' गामक अधिकारीसँ संपर्क करू या अपन स्थानीय सरकारी केंद्र पर जांचू।",
+        "printPdfButton": "प्रिंट करू / पीडीएफक रूपमे सुरक्षित करू",
+        "checkAgainButton": "पुनः जांचू",
+        "printBrandTitle": "SahiDawa — ग्रामीण स्वास्थ्य सेतु",
+        "printReportTitle": "सरकारी स्वास्थ्य योजना पात्रता रिपोर्ट",
+        "dateGenerated": "बनाएल गेल तिथि",
+        "website": "वेबसाइट",
+        "age": "उम्र",
+        "years": "वर्ष",
+        "stateOfResidence": "निवासक राज्य",
+        "annualFamilyIncome": "वार्षिक पारिवारिक आय",
+        "familySize": "परिवारक सदस्य",
+        "members": "सदस्य",
+        "bplRationCardHolder": "BPL राशन कार्ड धारक",
+        "abhaHealthIdHolder": "ABHA स्वास्थ्य आईडी धारक",
+        "yes": "हँ",
+        "no": "नहि"
+    },
+    "SignUp": {
+        "brandSubtitle": "Medicine safety platform",
+        "heading": "Create your account",
+        "description": "Join SahiDawa to track medicine safety reports and verification results.",
+        "missingConfig": {
+            "title": "Authentication is not configured",
+            "description": "Supabase URL or anon key is missing. Add the environment variables before signing up."
+        },
+        "googleButton": "Continue with Google",
+        "githubButton": "Continue with Github",
+        "emailSeparator": "or continue with email",
+        "fullNameLabel": "Full name",
+        "fullNamePlaceholder": "Your full name",
+        "emailLabel": "Email address",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Create a password",
+        "confirmPasswordLabel": "Confirm password",
+        "confirmPasswordPlaceholder": "Re-enter your password",
+        "showPassword": "Show password",
+        "hidePassword": "Hide password",
+        "showConfirmPassword": "Show confirm password",
+        "hideConfirmPassword": "Hide confirm password",
+        "signingUp": "Creating account...",
+        "signUp": "Sign Up",
+        "footerPrompt": "Already have an account?",
+        "signInLink": "Sign in",
+        "bottomText": "Protected access for SahiDawa community tools.",
+        "success": "Account created successfully! Redirecting...",
+        "successConfirmEmail": "Account created! Check your email to confirm your account before signing in.",
+        "errors": {
+            "databaseNotConfigured": "Authentication is not configured for this environment.",
+            "generic": "Unable to create account. Please try again.",
+            "fullNameRequired": "Full name is required.",
+            "emailRequired": "Email address is required.",
+            "emailInvalid": "Please enter a valid email address.",
+            "passwordRequired": "Password is required.",
+            "passwordWeak": "Password must be at least 8 characters and include uppercase, lowercase, and a number.",
+            "confirmPasswordRequired": "Please confirm your password.",
+            "passwordMismatch": "Passwords do not match."
+        }
+    },
+    "MyMedicines": {
+        "page": {
+            "title": "हमर ट्रैक कयल दवाइ",
+            "loading": "अहाँक ट्रैक कयल दवाइ लोड भऽ रहल अछि..."
+        },
+        "errors": {
+            "title": "अहाँक दवाइ लोड नहि भऽ सकल",
+            "generic": "अहाँक ट्रैक कयल दवाइ अनबामे किछु गड़बड़ भऽ गेल.",
+            "fetchFailed": "ट्रैक कयल दवाइ लोड करबामे विफल. कृपया अपन कनेक्शन जाँचू आ फेर सँ प्रयास करू.",
+            "tryAgain": "फेर सँ प्रयास करू"
+        },
+        "emptyState": {
+            "title": "अखन धरि कोनो दवाइ ट्रैक नहि कएल गेल अछि",
+            "description": "सक्रिय समय-सारणी, सुरक्षा अपडेट आ मीयाद समाप्त होयबाक समयकेँ स्वतः ट्रैक करबाक लेल अपन वर्तमान दवाइ जोड़ू.",
+            "addFirst": "अपन पहिल दवाइ जोड़ू"
+        },
+        "table": {
+            "name": "नाम",
+            "expiry": "मीयाद",
+            "status": "स्थिति",
+            "daysLeft": "{count} दिन बाकी"
+        },
+        "badges": {
+            "verified": "सत्यापित",
+            "unverified": "असत्यापित",
+            "requestVerificationTitle": "सत्यापनक अनुरोध करबाक लेल क्लिक करू"
+        },
+        "bookmarks": {
+            "savedAlternatives": "सहेजल विकल्प",
+            "noBookmarks": "अखन धरि कोनो बुकमार्क नहि अछि.",
+            "brand": "ब्रांड: {brand}"
+        },
+        "removeDialog": {
+            "title": "बुकमार्क हटाबू?",
+            "description": "ई \"{name}\" केँ अहाँक सहेजल विकल्पसँ हटा देत. आवश्यकता भेला पर अहाँ एकरा बाद मे फेर सँ जोड़ि सकैत छी.",
+            "confirm": "हटाउ",
+            "cancel": "रद्द करू"
+        }
+    },
+    "NotFound": {
+        "badge": "Error 404",
+        "title": "Page Not Found",
+        "description": "We couldn't find the medicine or page you were looking for. It might have been moved, or the URL might be incorrect.",
+        "backHome": "Back to Home",
+        "scanMedicine": "Scan Medicine"
+    },
+    "AbhaRecords": {
+        "backToProfile": "प्रोफाइल पर वापस जाओ",
+        "title": "ABHA रेकॉर्ड",
+        "loading": "रेकॉर्ड लोड भ रहल अछि...",
+        "noPrescriptions": "कोनो नुस्खा नहि भेटल।",
+        "failedToLoad": "रेकॉर्ड लोड करबामे असफल"
     }
 }

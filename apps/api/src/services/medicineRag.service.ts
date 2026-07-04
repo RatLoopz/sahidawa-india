@@ -283,14 +283,15 @@ export async function retrieveRelevantMedicines(
     });
 
     // Tier 3 — in-memory ILIKE filter over the table.
-    const pattern = `%${escapeIlike(query)}%`;
+    const safe = escapePostgrest(escapeIlike(query));
+    const pattern = `%${safe}%`;
     const { data: tableData, error: tableError } = await anonSupabase
         .from("medicines")
         .select(
             "id, brand_name, generic_name, manufacturer, composition, strength, dosage_form, schedule, mrp, jan_aushadhi_price"
         )
         .or(
-            `generic_name.ilike."${escapePostgrest(pattern)}",brand_name.ilike."${escapePostgrest(pattern)}",composition.ilike."${escapePostgrest(pattern)}"`
+            `generic_name.ilike."${pattern}",brand_name.ilike."${pattern}",composition.ilike."${pattern}"`
         )
         .limit(limit);
 

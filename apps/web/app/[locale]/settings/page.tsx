@@ -82,9 +82,7 @@ export default function SettingsPage() {
             return false;
         }
         if (!form.sms && !form.whatsapp) {
-            setValidationError(
-                "At least one communication channel (SMS or WhatsApp) must be enabled."
-            );
+            setValidationError(t("channelRequired"));
             return false;
         }
         if (!form.district.trim()) {
@@ -153,11 +151,7 @@ export default function SettingsPage() {
         const guestPhone = localStorage.getItem(GUEST_PHONE_KEY);
         if (!guestPhone && !isAuthenticated) return;
 
-        if (
-            !confirm(
-                "Are you sure you want to opt out and stop receiving all SMS & WhatsApp alerts?"
-            )
-        ) {
+        if (!confirm(t("optOutConfirm"))) {
             return;
         }
 
@@ -199,7 +193,7 @@ export default function SettingsPage() {
                         className="animate-spin text-emerald-600 dark:text-emerald-400"
                         size={36}
                     />
-                    <p className="font-semibold">Loading your preferences...</p>
+                    <p className="font-semibold">{t("loadingPreferences")}</p>
                 </div>
             </div>
         );
@@ -312,18 +306,18 @@ export default function SettingsPage() {
                                 onChange={(e) => setForm({ ...form, language: e.target.value })}
                                 className="w-full rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 font-semibold text-(--color-text-primary) shadow-inner focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                             >
-                                <option value="en">English</option>
-                                <option value="hi">हिन्दी (Hindi)</option>
-                                <option value="ta">தமிழ் (Tamil)</option>
-                                <option value="te">తెలుగు (Telugu)</option>
-                                <option value="bn">বাংলা (Bengali)</option>
-                                <option value="mr">मराठी (Marathi)</option>
-                                <option value="gu">ગુજરાતી (Gujarati)</option>
-                                <option value="kn">ಕನ್ನಡ (Kannada)</option>
-                                <option value="ml">മലയാളം (Malayalam)</option>
-                                <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
-                                <option value="ur">اردو (Urdu)</option>
-                                <option value="as">অসমীয়া (Assamese)</option>
+                                <option value="en">{t("languageOptionEn")}</option>
+                                <option value="hi">{t("languageOptionHi")}</option>
+                                <option value="ta">{t("languageOptionTa")}</option>
+                                <option value="te">{t("languageOptionTe")}</option>
+                                <option value="bn">{t("languageOptionBn")}</option>
+                                <option value="mr">{t("languageOptionMr")}</option>
+                                <option value="gu">{t("languageOptionGu")}</option>
+                                <option value="kn">{t("languageOptionKn")}</option>
+                                <option value="ml">{t("languageOptionMl")}</option>
+                                <option value="pa">{t("languageOptionPa")}</option>
+                                <option value="ur">{t("languageOptionUr")}</option>
+                                <option value="as">{t("languageOptionAs")}</option>
                             </select>
                             <p className="mt-1 text-xs text-(--color-text-secondary)">
                                 {t("langDesc")}

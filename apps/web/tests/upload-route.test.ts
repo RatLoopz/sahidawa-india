@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import crypto from "crypto";
 
 const CLOUD_NAME = "test-cloud";
@@ -32,15 +35,22 @@ function buildRequest(
     fileType = "image/jpeg"
 ) {
     const formData = new FormData();
-    formData.append("file", new Blob(["fake-image-bytes"], { type: fileType }), "photo.jpg");
+    const fakeImageBytes = new Uint8Array([0xff, 0xd8, 0xff, 0x00]);
+    formData.append("file", new Blob([fakeImageBytes], { type: fileType }), "photo.jpg");
     for (const [key, value] of Object.entries(fields)) {
         formData.append(key, value);
     }
-    return new Request("http://localhost/api/upload", {
+    const req = new Request("http://localhost/api/upload", {
         method: "POST",
-        headers,
         body: formData,
     });
+    if (headers) {
+        const h = new Headers(headers);
+        h.forEach((value, key) => {
+            req.headers.set(key, value);
+        });
+    }
+    return req;
 }
 
 function captureCloudinaryFormData(fetchMock: jest.Mock): FormData {

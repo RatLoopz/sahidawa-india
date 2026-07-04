@@ -7,13 +7,17 @@ interface VisuallyHiddenProps {
     className?: string;
 }
 
-export function VisuallyHidden({ as: Component = "span", children, className }: VisuallyHiddenProps) {
+export function VisuallyHidden({
+    as: Component = "span",
+    children,
+    className,
+}: VisuallyHiddenProps) {
     return (
         <Component
             className={clsx(
                 "absolute -m-px h-px w-px overflow-hidden border-0 p-0 whitespace-nowrap",
                 "clip-[rect(0,0,0,0)]",
-                className,
+                className
             )}
             style={{ clip: "rect(0,0,0,0)" }}
         >

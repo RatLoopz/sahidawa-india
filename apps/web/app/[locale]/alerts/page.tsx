@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { PageHeader } from "../components/PageHeader";
 import {
     Activity,
@@ -12,12 +12,13 @@ import {
     ChevronDown,
     ShieldAlert,
     BellOff,
-    RefreshCw,
     Download,
+    Building2,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import RecallPushSubscriber from "@/components/alerts/RecallPushSubscriber";
 import { CopyButton } from "@/components/ui/CopyButton";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 import { API_BASE } from "@/lib/api";
 import BackToTopButton from "@/app/[locale]/components/BackToTopButton";
@@ -109,32 +110,36 @@ export default function FullAlertsLogPage() {
         }
     }, [inView, loadingMore, hasMore, loading]);
 
-    const fetchAlerts = async (pageNum: number, append = false) => {
-        try {
-            let url = `${API_BASE}/api/v1/alerts?page=${pageNum}&limit=50`;
-            if (debouncedBrandSearch) url += `&brand=${encodeURIComponent(debouncedBrandSearch)}`;
-            if (debouncedRegionSearch)
-                url += `&region=${encodeURIComponent(debouncedRegionSearch)}`;
+    const fetchAlerts = useCallback(
+        async (pageNum: number, append = false) => {
+            try {
+                let url = `${API_BASE}/api/v1/alerts?page=${pageNum}&limit=50`;
+                if (debouncedBrandSearch)
+                    url += `&brand=${encodeURIComponent(debouncedBrandSearch)}`;
+                if (debouncedRegionSearch)
+                    url += `&region=${encodeURIComponent(debouncedRegionSearch)}`;
 
-            const res = await fetch(url);
-            if (!res.ok) {
+                const res = await fetch(url);
+                if (!res.ok) {
+                    setError(true);
+                    return;
+                }
+                const data = await res.json();
+
+                if (append) {
+                    setAllAlerts((prev) => [...prev, ...(data.data || [])]);
+                } else {
+                    setAllAlerts(data.data || []);
+                }
+
+                setTotalCount(data.totalCount || 0);
+                setHasMore(pageNum * 50 < (data.totalCount || 0));
+            } catch {
                 setError(true);
-                return;
             }
-            const data = await res.json();
-
-            if (append) {
-                setAllAlerts((prev) => [...prev, ...(data.data || [])]);
-            } else {
-                setAllAlerts(data.data || []);
-            }
-
-            setTotalCount(data.totalCount || 0);
-            setHasMore(pageNum * 50 < (data.totalCount || 0));
-        } catch {
-            setError(true);
-        }
-    };
+        },
+        [debouncedBrandSearch, debouncedRegionSearch]
+    );
 
     // Initial load and when debounced filters change
     useEffect(() => {
@@ -148,7 +153,7 @@ export default function FullAlertsLogPage() {
 
         const timer = setTimeout(loadData, 400);
         return () => clearTimeout(timer);
-    }, [debouncedBrandSearch, debouncedRegionSearch, refreshTrigger]);
+    }, [fetchAlerts, refreshTrigger]);
 
     // Load more when page changes (triggered by intersection observer)
     useEffect(() => {
@@ -177,6 +182,7 @@ export default function FullAlertsLogPage() {
         setExpandedAlertId((prev) => (prev === id ? null : id));
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleShareAlert = (e: React.MouseEvent, alert: Alert) => {
         e.stopPropagation();
         const brand =
@@ -237,6 +243,7 @@ export default function FullAlertsLogPage() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        URL.revokeObjectURL(url);
         toast.success("Alerts exported successfully!");
     };
 
@@ -402,31 +409,26 @@ export default function FullAlertsLogPage() {
                         {t("loading")}
                     </div>
                 ) : allAlerts.length === 0 ? (
-                    <div className="group my-6 flex flex-col items-center justify-center rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) px-6 py-16 text-center shadow-xs transition-all duration-300 hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
-                        <div className="rounded-full bg-amber-50 p-4 text-amber-600 shadow-inner transition-transform duration-300 group-hover:scale-105 dark:bg-amber-950/30 dark:text-amber-400">
-                            <BellOff className="h-8 w-8" />
-                        </div>
-                        <div className="mt-4 max-w-sm space-y-2">
-                            <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-                                No Active Health Alerts
-                            </h3>
-                            <p className="text-sm leading-relaxed font-medium text-slate-500 dark:text-slate-400">
-                                {error
-                                    ? "Database synchronization error encountered while fetching active logs. Please try checking for sync updates."
-                                    : "The safety registry is clear. No active drug recalls, counterfeit warnings, or banned formulations match your filters."}
-                            </p>
-                        </div>
-                        <div className="pt-6">
-                            <button
-                                type="button"
-                                onClick={() => setRefreshTrigger((prev) => prev + 1)}
-                                className="group/btn inline-flex cursor-pointer items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all duration-200 hover:bg-slate-800 hover:shadow-md active:scale-95 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
-                            >
-                                <RefreshCw className="h-4 w-4 transition-transform duration-500 group-hover/btn:rotate-180" />
-                                Check For Sync Updates
-                            </button>
-                        </div>
-                    </div>
+                    <EmptyState
+                        icon={<BellOff className="h-8 w-8" />}
+                        title={
+                            error
+                                ? "We couldn't load alerts right now"
+                                : brandSearch.trim() || regionSearch.trim()
+                                  ? "No alerts match your filters"
+                                  : "No active health alerts"
+                        }
+                        description={
+                            error
+                                ? "The safety registry is temporarily unavailable. Try refreshing to sync the latest reports."
+                                : brandSearch.trim() || regionSearch.trim()
+                                  ? "Try clearing one of your filters or refreshing the feed to see the latest safety updates."
+                                  : "The safety registry is clear right now. No active drug recalls, counterfeit warnings, or banned formulations match your search."
+                        }
+                        actionLabel="Refresh alerts"
+                        onAction={() => setRefreshTrigger((prev) => prev + 1)}
+                        className="my-6 border border-(--color-border-muted) bg-(--color-surface-page) px-6 py-16 shadow-xs"
+                    />
                 ) : (
                     /* --- Alerts List View --- */
                     <div role="feed" className="space-y-4">
@@ -441,6 +443,10 @@ export default function FullAlertsLogPage() {
                                         alert.cdsco_approval_status === "banned" ||
                                         alert.is_counterfeit_alert ||
                                         alert.alert_type === "Banned";
+                                    // System updates have no detail metadata, so only
+                                    // medicine alerts expose a collapsible detail pane.
+                                    const isCollapsible = !isSystem;
+                                    const isExpanded = expandedAlertId === alert.id;
 
                                     return (
                                         <motion.div
@@ -450,18 +456,33 @@ export default function FullAlertsLogPage() {
                                             exit={{ opacity: 0, y: -15 }}
                                             transition={{ duration: 0.3 }}
                                             key={alert.id}
-                                            onClick={() => toggleExpand(alert.id)}
-                                            tabIndex={0}
-                                            role="button"
-                                            aria-expanded={expandedAlertId === alert.id}
-                                            onKeyDown={(e) => {
-                                            if (e.key === "Enter" || e.key === " ") {
-                                                e.preventDefault();
-                                                toggleExpand(alert.id);
+                                            onClick={
+                                                isCollapsible
+                                                    ? () => toggleExpand(alert.id)
+                                                    : undefined
                                             }
-                                        }}
-                                            className={`group relative flex cursor-pointer flex-col overflow-hidden rounded-3xl border bg-(--color-surface-page) p-6 shadow-xs transition-all focus:ring-2 focus:ring-emerald-500/20 focus:outline-hidden ${
-                                                expandedAlertId === alert.id
+                                            tabIndex={isCollapsible ? 0 : undefined}
+                                            role={isCollapsible ? "button" : undefined}
+                                            aria-expanded={isCollapsible ? isExpanded : undefined}
+                                            aria-controls={
+                                                isCollapsible
+                                                    ? `alert-details-${alert.id}`
+                                                    : undefined
+                                            }
+                                            onKeyDown={
+                                                isCollapsible
+                                                    ? (e) => {
+                                                          if (e.key === "Enter" || e.key === " ") {
+                                                              e.preventDefault();
+                                                              toggleExpand(alert.id);
+                                                          }
+                                                      }
+                                                    : undefined
+                                            }
+                                            className={`group relative flex flex-col overflow-hidden rounded-3xl border bg-(--color-surface-page) p-6 shadow-xs transition-all focus:ring-2 focus:ring-emerald-500/20 focus:outline-hidden ${
+                                                isCollapsible ? "cursor-pointer" : ""
+                                            } ${
+                                                isExpanded
                                                     ? "border-emerald-500/30 ring-2 ring-emerald-500/5"
                                                     : "border-(--color-border-muted)"
                                             }`}
@@ -506,80 +527,115 @@ export default function FullAlertsLogPage() {
                                                             : alert.composition || t("noDetails")}
                                                     </p>
 
-                                                    {/* Key-Value Metadata Grid */}
-                                                    {!isSystem && (
-                                                        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-bold text-(--color-text-muted)">
-                                                            <div
-                                                                className="flex items-center gap-1.5"
-                                                                onClick={(e) => e.stopPropagation()}
+                                                    {/* Key-Value Metadata Grid (collapsible detail pane) */}
+                                                    <AnimatePresence initial={false}>
+                                                        {isCollapsible && isExpanded && (
+                                                            <motion.div
+                                                                key="details"
+                                                                id={`alert-details-${alert.id}`}
+                                                                initial={{ height: 0, opacity: 0 }}
+                                                                animate={{
+                                                                    height: "auto",
+                                                                    opacity: 1,
+                                                                }}
+                                                                exit={{ height: 0, opacity: 0 }}
+                                                                transition={{
+                                                                    duration: 0.25,
+                                                                    ease: "easeInOut",
+                                                                }}
+                                                                className="overflow-hidden"
                                                             >
-                                                                <span>
-                                                                    {t("batchLabel")}{" "}
-                                                                    <span className="font-extrabold text-(--color-text-primary)">
-                                                                        {alert.batch_number}
-                                                                    </span>
-                                                                </span>
-                                                                <CopyButton
-                                                                    text={alert.batch_number || ""}
-                                                                />
-                                                            </div>
-                                                            {alert.manufacturer && (
-                                                                <>
-                                                                    <span className="text-(--color-border-muted)">
-                                                                        •
-                                                                    </span>
-                                                                    <div className="flex items-center gap-1">
-                                                                        <Building2
-                                                                            size={12}
-                                                                            className="opacity-80"
-                                                                        />
+                                                                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-bold text-(--color-text-muted)">
+                                                                    <div
+                                                                        className="flex items-center gap-1.5"
+                                                                        onClick={(e) =>
+                                                                            e.stopPropagation()
+                                                                        }
+                                                                    >
                                                                         <span>
-                                                                            {t("manufacturerLabel")}{" "}
-                                                                            <span className="inline-block max-w-[150px] truncate align-bottom font-extrabold text-(--color-text-primary) sm:max-w-[250px]">
-                                                                                {alert.manufacturer}
-                                                                            </span>
-                                                                        </span>
-                                                                    </div>
-                                                                </>
-                                                            )}
-                                                            {(alert.state || alert.district) && (
-                                                                <>
-                                                                    <span className="text-(--color-border-muted)">
-                                                                        •
-                                                                    </span>
-                                                                    <div className="flex items-center gap-1">
-                                                                        <MapPin
-                                                                            size={12}
-                                                                            className="opacity-80"
-                                                                        />
-                                                                        <span>
-                                                                            {t("regionLabel")}{" "}
+                                                                            {t("batchLabel")}{" "}
                                                                             <span className="font-extrabold text-(--color-text-primary)">
-                                                                                {[
-                                                                                    alert.state,
-                                                                                    alert.district,
-                                                                                ]
-                                                                                    .filter(Boolean)
-                                                                                    .join(", ")}
+                                                                                {alert.batch_number}
                                                                             </span>
                                                                         </span>
+                                                                        <CopyButton
+                                                                            text={
+                                                                                alert.batch_number ||
+                                                                                ""
+                                                                            }
+                                                                        />
                                                                     </div>
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                    )}
+                                                                    {alert.manufacturer && (
+                                                                        <>
+                                                                            <span className="text-(--color-border-muted)">
+                                                                                •
+                                                                            </span>
+                                                                            <div className="flex items-center gap-1">
+                                                                                <Building2
+                                                                                    size={12}
+                                                                                    className="opacity-80"
+                                                                                />
+                                                                                <span>
+                                                                                    {t(
+                                                                                        "manufacturerLabel"
+                                                                                    )}{" "}
+                                                                                    <span className="inline-block max-w-[150px] truncate align-bottom font-extrabold text-(--color-text-primary) sm:max-w-[250px]">
+                                                                                        {
+                                                                                            alert.manufacturer
+                                                                                        }
+                                                                                    </span>
+                                                                                </span>
+                                                                            </div>
+                                                                        </>
+                                                                    )}
+                                                                    {(alert.state ||
+                                                                        alert.district) && (
+                                                                        <>
+                                                                            <span className="text-(--color-border-muted)">
+                                                                                •
+                                                                            </span>
+                                                                            <div className="flex items-center gap-1">
+                                                                                <MapPin
+                                                                                    size={12}
+                                                                                    className="opacity-80"
+                                                                                />
+                                                                                <span>
+                                                                                    {t(
+                                                                                        "regionLabel"
+                                                                                    )}{" "}
+                                                                                    <span className="font-extrabold text-(--color-text-primary)">
+                                                                                        {[
+                                                                                            alert.state,
+                                                                                            alert.district,
+                                                                                        ]
+                                                                                            .filter(
+                                                                                                Boolean
+                                                                                            )
+                                                                                            .join(
+                                                                                                ", "
+                                                                                            )}
+                                                                                    </span>
+                                                                                </span>
+                                                                            </div>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
                                                 </div>
 
-                                                <div className="group-hover:text-slate-650 shrink-0 text-slate-400 transition-colors">
-                                                    <ChevronDown
-                                                        size={18}
-                                                        className={`transition-transform duration-300 ${
-                                                            expandedAlertId === alert.id
-                                                                ? "rotate-180"
-                                                                : ""
-                                                        }`}
-                                                    />
-
+                                                {isCollapsible && (
+                                                    <div className="group-hover:text-slate-650 shrink-0 text-slate-400 transition-colors">
+                                                        <ChevronDown
+                                                            size={18}
+                                                            className={`transition-transform duration-300 ${
+                                                                isExpanded ? "rotate-180" : ""
+                                                            }`}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
                                         </motion.div>
                                     );
                                 })}
@@ -610,7 +666,7 @@ export default function FullAlertsLogPage() {
                                 </span>
                             </div>
                         )}
-                    
+
                         {!hasMore && totalCount > 0 && (
                             <div className="text-center text-sm font-semibold text-(--color-text-muted)">
                                 ✅ You've seen all {totalCount} safety alerts

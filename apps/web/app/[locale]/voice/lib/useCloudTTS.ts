@@ -1,5 +1,5 @@
 import { handleApiError } from "@/lib/apiErrorHandler";
-import { useRef, useCallback, useState } from "react";
+import { useRef, useCallback, useEffect, useState } from "react";
 
 export interface UseCloudTTSOptions {
     onStart?: () => void;
@@ -17,13 +17,37 @@ export interface TTSError extends Error {
  */
 export function useCloudTTS() {
     const audioRef = useRef<HTMLAudioElement | null>(null);
+    const activeObjectUrlRef = useRef<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+
+    const cleanupObjectUrl = useCallback((url = activeObjectUrlRef.current) => {
+        if (!url) return;
+        if (activeObjectUrlRef.current !== url) return;
+
+        URL.revokeObjectURL(url);
+        activeObjectUrlRef.current = null;
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.src = "";
+                audioRef.current.onplay = null;
+                audioRef.current.onended = null;
+                audioRef.current.onerror = null;
+            }
+            cleanupObjectUrl();
+        };
+    }, [cleanupObjectUrl]);
 
     const playTTS = useCallback(
         async (text: string, languageCode: string, options?: UseCloudTTSOptions): Promise<void> => {
             if (typeof window === "undefined") {
                 throw new Error("Cloud TTS can only be used in browser");
             }
+
+            let createdAudioUrl: string | null = null;
 
             try {
                 setIsLoading(true);
@@ -87,6 +111,7 @@ export function useCloudTTS() {
                 }
                 const audioBlob = new Blob([bytes], { type: "audio/mp3" });
                 const audioUrl = URL.createObjectURL(audioBlob);
+                createdAudioUrl = audioUrl;
 
                 // Create or reuse audio element
                 if (!audioRef.current) {
@@ -94,6 +119,8 @@ export function useCloudTTS() {
                 }
 
                 const audio = audioRef.current;
+                cleanupObjectUrl();
+                activeObjectUrlRef.current = audioUrl;
                 audio.src = audioUrl;
 
                 // Set up event listeners
@@ -105,8 +132,7 @@ export function useCloudTTS() {
                 const handleEnded = () => {
                     setIsLoading(false);
                     options?.onEnd?.();
-                    // Clean up object URL
-                    URL.revokeObjectURL(audioUrl);
+                    cleanupObjectUrl(audioUrl);
                 };
 
                 const handleError = async (event: Event | string) => {
@@ -116,6 +142,7 @@ export function useCloudTTS() {
                     options?.onEnd?.();
                     options?.onError?.(audioError);
 
+                    cleanupObjectUrl(audioUrl);
                     await handleApiError(audioError, "Failed to play audio");
 
                     console.error("Audio playback error:", event);
@@ -135,6 +162,9 @@ export function useCloudTTS() {
                 await audio.play();
             } catch (error) {
                 setIsLoading(false);
+                if (createdAudioUrl) {
+                    cleanupObjectUrl(createdAudioUrl);
+                }
 
                 const err = error instanceof Error ? error : new Error(String(error));
                 options?.onEnd?.();
@@ -144,7 +174,7 @@ export function useCloudTTS() {
                 throw err;
             }
         },
-        []
+        [cleanupObjectUrl]
     );
 
     const stopTTS = useCallback(() => {
@@ -152,8 +182,9 @@ export function useCloudTTS() {
             audioRef.current.pause();
             audioRef.current.currentTime = 0;
         }
+        cleanupObjectUrl();
         setIsLoading(false);
-    }, []);
+    }, [cleanupObjectUrl]);
 
     return {
         playTTS,

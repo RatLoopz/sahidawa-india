@@ -37,6 +37,7 @@ Within each JSON file, we located the top-level `Home` object, which groups tran
 3.  `"vaccine_open"`: This key was populated with the translated string for "Open Vaccine Hub".
 
 For example, in `apps/web/messages/hi.json`, the additions appear as:
+
 ```json
         "alerts_empty_title": "सब ठीक है!",
         "alerts_empty_description": "अभी कोई सक्रिय नियामक अलर्ट नहीं है। सुरक्षित रहें और अपनी दवाएं सत्यापित करें।",
@@ -49,6 +50,7 @@ For example, in `apps/web/messages/hi.json`, the additions appear as:
             "highlight": "सत्यापित और सुरक्षित।"
         }
 ```
+
 Our `apps/web` application, built with Next.js, leverages an i18n library (likely `next-intl`) that automatically loads these JSON files based on the user's selected locale. When a React component in the Vaccine section attempts to render text using a translation hook or function (e.g., `t('Home.vaccine_title')`), the system now successfully retrieves the corresponding localized string from the updated JSON files, ensuring correct display. No changes were required in the application's core i18n logic or component-level code, as the issue was purely data-related.
 
 ## Technical Decisions
@@ -63,20 +65,20 @@ To re-implement or add new translation keys following this pattern, a contributo
 2.  **Locate the relevant locale files:** For the `apps/web` application, all static message files are located in the `apps/web/messages/` directory.
 3.  **Determine the appropriate JSON object:** Based on the key's prefix (e.g., `Home.`), identify the top-level JSON object where the new key should reside. In this PR, it was the `Home` object.
 4.  **Add the key-value pair(s) to each affected locale file:**
-    *   Open `apps/web/messages/<lang_code>.json` for every language that needs the translation.
-    *   Navigate to the correct JSON object (e.g., `Home`).
-    *   Insert the new key and its corresponding translated string. For example, to add `Home.new_feature_title` for Hindi:
+    - Open `apps/web/messages/<lang_code>.json` for every language that needs the translation.
+    - Navigate to the correct JSON object (e.g., `Home`).
+    - Insert the new key and its corresponding translated string. For example, to add `Home.new_feature_title` for Hindi:
         ```json
         // apps/web/messages/hi.json
         {
-          "Home": {
-            // ... existing keys
-            "vaccine_title": "वैक्सीन हब और टीकाकरण ट्रैकर", // Existing key
-            "new_feature_title": "नई सुविधा का शीर्षक" // New key addition
-          }
+            "Home": {
+                // ... existing keys
+                "vaccine_title": "वैक्सीन हब और टीकाकरण ट्रैकर", // Existing key
+                "new_feature_title": "नई सुविधा का शीर्षक" // New key addition
+            }
         }
         ```
-    *   Ensure the translated string is accurate and culturally appropriate for each language.
+    - Ensure the translated string is accurate and culturally appropriate for each language.
 5.  **Verify consistency:** Confirm that the translation key used in the UI component code (e.g., `t('Home.new_feature_title')`) exactly matches the key added to the JSON files.
 6.  **Test the changes:** Run the `apps/web` application locally. Switch the application's locale to each modified language and visually confirm that the new text is displayed correctly and that no raw keys are visible.
 7.  **Dependencies:** This process relies solely on the existing `apps/web` Next.js application's internationalization setup, which is configured to load these JSON files. No external APIs or database updates are involved for these static UI string translations.

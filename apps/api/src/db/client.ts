@@ -6,6 +6,27 @@ import { MAX_RETRIES, RETRY_DELAY_MS, fetchWithRetry } from "./fetchUtils";
 
 export const dbConfig = {
     isSupabaseOffline: false,
+    offlineSince: null as Date | null,
+    setOffline() {
+        if (!this.isSupabaseOffline) {
+            this.isSupabaseOffline = true;
+            this.offlineSince = new Date();
+            logger.warn("Supabase marked offline. Auto-recovery probe will reset this every 30s.");
+        }
+    },
+    setOnline() {
+        if (this.isSupabaseOffline) {
+            logger.info(
+                `Supabase connection recovered after ${
+                    this.offlineSince
+                        ? Math.round((Date.now() - this.offlineSince.getTime()) / 1000)
+                        : "?"
+                }s offline.`
+            );
+        }
+        this.isSupabaseOffline = false;
+        this.offlineSince = null;
+    },
 };
 
 dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
@@ -158,24 +179,31 @@ if (process.env.NODE_ENV !== "test") {
     }, 5_000);
 }
 
-// Quick check on startup to see if Supabase is offline
-if (process.env.NODE_ENV !== "test") {
+// Periodic Supabase health probe.
+// The offline flag can be set by transient network failures during runtime.
+// Re-check connectivity periodically so the application can automatically
+// recover from fallback mode without requiring a server restart.
+
+async function probeSupabase(): Promise<void> {
     const checkTimeout = AbortSignal.timeout ? AbortSignal.timeout(1500) : undefined;
-    fetch(`${supabaseUrl}/auth/v1/health`, { signal: checkTimeout })
-        .then((res) => {
-            if (!res.ok) {
-                dbConfig.isSupabaseOffline = true;
-                logger.warn(
-                    "Supabase database health check failed. Setting database state to offline fallback mode."
-                );
-            } else {
-                logger.info("Supabase database health check passed. Supabase is online.");
-            }
-        })
-        .catch(() => {
-            dbConfig.isSupabaseOffline = true;
-            logger.warn(
-                "Supabase database is offline. Setting database state to offline fallback mode."
-            );
-        });
+
+    try {
+        const res = await fetch(`${supabaseUrl}/auth/v1/health`, { signal: checkTimeout });
+
+        if (!res.ok) {
+            dbConfig.setOffline();
+        } else {
+            dbConfig.setOnline();
+        }
+    } catch {
+        dbConfig.setOffline();
+    }
+}
+
+if (process.env.NODE_ENV !== "test") {
+    void probeSupabase();
+
+    setInterval(() => {
+        void probeSupabase();
+    }, 30_000);
 }

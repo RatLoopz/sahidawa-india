@@ -27,6 +27,7 @@ thefuzz==0.22.1
 
 # ASR (Speech-to-Text)
 faster-whisper>=1.1.0
+openai-whisper>=20240930
 soundfile>=0.12.1
 noisereduce>=3.0.0
 numpy>=1.26.0

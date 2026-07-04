@@ -9,6 +9,7 @@ import userEvent from "@testing-library/user-event";
 import { ExpandableDetails } from "../components/ExpandableDetails";
 
 jest.mock("next-intl", () => ({
+    useLocale: () => "en",
     useTranslations: () => (key: string) => key,
 }));
 

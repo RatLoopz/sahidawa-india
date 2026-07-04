@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { anonSupabase } from "../db/supabase";
 import logger from "../utils/logger";
+import { triageLimiter } from "../middleware/rateLimit";
 import {
     assessUrgency,
     medicineQuerySchema,
@@ -91,29 +92,33 @@ async function findNearestPharmacies(
  *       500:
  *         description: Server or database error
  */
-router.post("/medicine-query", async (req: Request, res: Response, next: NextFunction) => {
-    const parsed = medicineQuerySchema.safeParse(req.body);
-    if (!parsed.success) {
-        res.status(400).json({
-            error: "Invalid medicine query",
-            details: parsed.error.flatten().fieldErrors,
-        });
-        return;
-    }
+router.post(
+    "/medicine-query",
+    triageLimiter,
+    async (req: Request, res: Response, next: NextFunction) => {
+        const parsed = medicineQuerySchema.safeParse(req.body);
+        if (!parsed.success) {
+            res.status(400).json({
+                error: "Invalid medicine query",
+                details: parsed.error.flatten().fieldErrors,
+            });
+            return;
+        }
 
-    try {
-        const { query, limit } = parsed.data;
-        const medicines = await retrieveRelevantMedicines(query, limit);
+        try {
+            const { query, limit } = parsed.data;
+            const medicines = await retrieveRelevantMedicines(query, limit);
 
-        res.json({
-            query,
-            medicines,
-            disclaimer: MEDICINE_RAG_DISCLAIMER,
-        });
-    } catch (err) {
-        next(err);
+            res.json({
+                query,
+                medicines,
+                disclaimer: MEDICINE_RAG_DISCLAIMER,
+            });
+        } catch (err) {
+            next(err);
+        }
     }
-});
+);
 
 /**
  * @openapi
@@ -159,41 +164,45 @@ router.post("/medicine-query", async (req: Request, res: Response, next: NextFun
  *       500:
  *         description: Server or database error
  */
-router.post("/recommend", async (req: Request, res: Response, next: NextFunction) => {
-    const parsed = recommendSchema.safeParse(req.body);
-    if (!parsed.success) {
-        res.status(400).json({
-            error: "Invalid recommendation request",
-            details: parsed.error.flatten().fieldErrors,
-        });
-        return;
+router.post(
+    "/recommend",
+    triageLimiter,
+    async (req: Request, res: Response, next: NextFunction) => {
+        const parsed = recommendSchema.safeParse(req.body);
+        if (!parsed.success) {
+            res.status(400).json({
+                error: "Invalid recommendation request",
+                details: parsed.error.flatten().fieldErrors,
+            });
+            return;
+        }
+
+        try {
+            const { symptoms, lat, lng, radius, limit } = parsed.data;
+
+            const urgency = assessUrgency(symptoms);
+            const medicines: MedicineMatch[] = await retrieveRelevantMedicines(symptoms, limit);
+
+            const pharmacies =
+                lat !== undefined && lng !== undefined
+                    ? await findNearestPharmacies(lat, lng, radius)
+                    : [];
+
+            res.json({
+                symptoms,
+                emergency: urgency.emergency,
+                urgentKeywords: urgency.matched,
+                medicines,
+                pharmacies,
+                disclaimer: urgency.emergency
+                    ? "These symptoms may need urgent medical attention. Please contact a doctor or emergency services immediately. " +
+                      MEDICINE_RAG_DISCLAIMER
+                    : MEDICINE_RAG_DISCLAIMER,
+            });
+        } catch (err) {
+            next(err);
+        }
     }
-
-    try {
-        const { symptoms, lat, lng, radius, limit } = parsed.data;
-
-        const urgency = assessUrgency(symptoms);
-        const medicines: MedicineMatch[] = await retrieveRelevantMedicines(symptoms, limit);
-
-        const pharmacies =
-            lat !== undefined && lng !== undefined
-                ? await findNearestPharmacies(lat, lng, radius)
-                : [];
-
-        res.json({
-            symptoms,
-            emergency: urgency.emergency,
-            urgentKeywords: urgency.matched,
-            medicines,
-            pharmacies,
-            disclaimer: urgency.emergency
-                ? "These symptoms may need urgent medical attention. Please contact a doctor or emergency services immediately. " +
-                  MEDICINE_RAG_DISCLAIMER
-                : MEDICINE_RAG_DISCLAIMER,
-        });
-    } catch (err) {
-        next(err);
-    }
-});
+);
 
 export default router;

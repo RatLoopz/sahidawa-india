@@ -2,7 +2,7 @@ import {
     extractExpiryDate,
     extractBatchNumber,
     extractMedicineName,
-} from "../src/utils/medicineParser";
+} from "../lib/sync/medicineParser";
 
 describe("extractExpiryDate", () => {
     it("parses EXPIRY DATE style formats", () => {

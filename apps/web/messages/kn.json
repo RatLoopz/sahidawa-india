@@ -33,7 +33,14 @@
         "heroTitle": {
             "prefix": "ನಿಮ್ಮ ಆರೋಗ್ಯ, ",
             "highlight": "ಪರಿಶೀಲಿಸಲಾಗಿದೆ ಮತ್ತು ರಕ್ಷಿಸಲಾಗಿದೆ."
-        }
+        },
+        "scan_section_title": "ಔಷಧವನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಮತ್ತು ಪರಿಶೀಲಿಸಿ",
+        "scan_section_subtitle": "ಬಾರ್‌ಕೋಡ್ ಅಥವಾ ಪ್ಯಾಕೇಜ್ ಸ್ಕ್ಯಾನಿಂಗ್ ಬಳಸಿ ಔಷಧದ ದೃಢೀಕರಣವನ್ನು ಪರಿಶೀಲಿಸಿ.",
+        "powerful_capabilities": "ಶಕ್ತಿಯುತ ಸಾಮರ್ಥ್ಯಗಳು",
+        "features_description": "ನಿಮ್ಮ ಔಷಧಗಳನ್ನು ಪರಿಶೀಲಿಸಲು ಮತ್ತು ಸುರಕ್ಷಿತವಾಗಿರಲು ಸಹೀದಾವಾ (SahiDawa) ನಿಮಗೆ ಸಹಾಯ ಮಾಡುವ ಎಲ್ಲಾ ವಿಧಾನಗಳನ್ನು ಅನ್ವೇಷಿಸಿ.",
+        "trusted_by_citizens": "ನಾಗರಿಕರಿಂದ ವಿಶ್ವಾಸಾರ್ಹ",
+        "voices_title": "ಸಹೀದಾವಾ ಸಮುದಾಯದ ಧ್ವನಿಗಳು",
+        "voices_description": "ಔಷಧ ಸುರಕ್ಷತೆಯನ್ನು ಸುಲಭಗೊಳಿಸಲು ಸಹೀದಾವಾ ಬಳಸುತ್ತಿರುವ ಕುಟುಂಬಗಳು, ಔಷಧ ವ್ಯಾಪಾರಿಗಳು, ವೈದ್ಯರು ಮತ್ತು ಸಹಯೋಗಿಗಳು."
     },
     "Navigation": {
         "how_it_works": "ಹೇಗೆ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ",
@@ -368,7 +375,8 @@
         "placeholder": "Ask me about a medicine...",
         "status": "Online",
         "title": "SahiDawa AI",
-        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?"
+        "welcome": "Hi! I am the SahiDawa AI Assistant. How can I help you with your medicines today?",
+        "tooltipLabel": "AI Health Assistant"
     },
     "Alerts": {
         "backHome": "ಮುಖಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ",
@@ -488,7 +496,9 @@
         "errors": {
             "databaseNotConfigured": "ಈ ಪರಿಸರಕ್ಕಾಗಿ ದೃಢೀಕರಣವನ್ನು ಸಂರಚಿಸಲಾಗಿಲ್ಲ.",
             "generic": "ಸೈನ್ ಇನ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."
-        }
+        },
+        "signUpPrompt": "Don't have an account?",
+        "signUpLink": "Sign up"
     },
     "AdminLayout": {
         "accessDeniedTitle": "ಪ್ರವೇಶ ನಿರಾಕರಿಸಲಾಗಿದೆ",
@@ -650,6 +660,75 @@
         "nav_reports": "My Reports",
         "nav_profile": "My Profile"
     },
+    "howItWorks": {
+        "badge": "Safe Healthcare � AI Powered",
+        "heroTitle": "How <highlight>SahiDawa</highlight> Works",
+        "heroSubtitle": "Learn how SahiDawa helps users verify medicines, discover trusted pharmacies, receive official alerts, and stay protected from counterfeit drugs using AI-powered healthcare tools.",
+        "ctaButtons": {
+            "scan": "Start Scanning",
+            "map": "Explore Pharmacy Map"
+        },
+        "steps": {
+            "scan": {
+                "title": "Scan Medicine",
+                "description": "Point your device camera at the barcode or QR code on any medicine packaging."
+            },
+            "verify": {
+                "title": "Verify Instantly",
+                "description": "AI cross-references scanned details with CDSCO records to check authenticity."
+            },
+            "alerts": {
+                "title": "Check Alerts",
+                "description": "Get real-time safety alerts if the batch is recalled, banned, or substandard."
+            },
+            "pharmacies": {
+                "title": "Find Pharmacies",
+                "description": "Locate Jan Aushadhi stores and verified nearby pharmacies stocking real medicines."
+            },
+            "protect": {
+                "title": "Stay Protected",
+                "description": "Keep records of your scans, report fakes, and safeguard your family's health."
+            }
+        },
+        "features": {
+            "title": "Platform Features",
+            "subtitle": "Everything you need for safer healthcare decisions.",
+            "cards": {
+                "verifyMedicines": {
+                    "title": "Verify Medicines",
+                    "description": "Instantly verify medicine authenticity using barcode, batch number, or medicine details."
+                },
+                "scanOrSearch": {
+                    "title": "Scan or Search",
+                    "description": "Scan packaging or manually search medicines for trusted healthcare information."
+                },
+                "aiAssistant": {
+                    "title": "AI Health Assistant",
+                    "description": "Get AI-powered guidance for symptoms, side effects, precautions, and medicine usage."
+                },
+                "trustedPharmacies": {
+                    "title": "Trusted Pharmacies",
+                    "description": "Find verified pharmacies nearby with reliable medicine availability and ratings."
+                },
+                "cdscoAlerts": {
+                    "title": "CDSCO Alerts",
+                    "description": "Stay updated with official CDSCO medicine recalls, warnings, and health alerts."
+                },
+                "reportMedicines": {
+                    "title": "Report Suspicious Medicines",
+                    "description": "Help the community by reporting counterfeit or suspicious medicines instantly."
+                }
+            }
+        },
+        "ctaBanner": {
+            "title": "Safer Healthcare Starts Here",
+            "subtitle": "Verify medicines, access trusted healthcare information, and stay protected from counterfeit drugs with AI-powered assistance.",
+            "buttons": {
+                "scan": "Scan Medicine",
+                "alerts": "View Alerts"
+            }
+        }
+    },
     "medicineSafety": {
         "guideTitle": "ಬಳಕೆ ಮತ್ತು ಸುರಕ್ಷತಾ ಮಾರ್ಗದರ್ಶಿ",
         "noDosageInfo": "ಈ ವಯೋಮಾನದವರಿಗೆ ಡೋಸ್ ಮಾಹಿತಿ ಲಭ್ಯವಿಲ್ಲ.",
@@ -685,7 +764,59 @@
     },
     "SchemeEligibility": {
         "validationAgeError": "ದಯವಿಟ್ಟು ಮಾನ್ಯವಾದ ವಯಸ್ಸನ್ನು ನಮೂದಿಸಿ.",
-        "validationStateError": "ದಯವಿಟ್ಟು ಒಂದು ರಾಜ್ಯವನ್ನು ಆಯ್ಕೆಮಾಡಿ."
+        "validationStateError": "ದಯವಿಟ್ಟು ಒಂದು ರಾಜ್ಯವನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+        "validationIncomeError": "ದಯವಿಟ್ಟು ಮಾನ್ಯವಾದ ವಾರ್ಷಿಕ ಆದಾಯವನ್ನು ನಮೂದಿಸಿ.",
+        "validationFamilySizeError": "ದಯವಿಟ್ಟು ಕುಟುಂಬದ ಸದಸ್ಯರ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ.",
+        "eligibilityCheckedSuccess": "ಅರ್ಹತೆಯನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ!",
+        "eligibilityCheckFailed": "ಅರ್ಹತೆಯನ್ನು ಪರಿಶೀಲಿಸಲು ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+        "title": "ನಿಮ್ಮ <highlight>ಯೋಜನೆಯ ಅರ್ಹತೆಯನ್ನು</highlight> ಪರಿಶೀಲಿಸಿ",
+        "description": "೩ ಸರಳ ಹಂತಗಳಲ್ಲಿ ನೀವು ಮತ್ತು ನಿಮ್ಮ ಕುಟುಂಬ ಯಾವ ಸರ್ಕಾರಿ ಆರೋಗ್ಯ ಯೋಜನೆಗಳಿಗೆ ಅರ್ಹರಾಗಿದ್ದೀರಿ ಎಂಬುದನ್ನು ಕಂಡುಕೊಳ್ಳಿ.",
+        "stepDemographics": "ಜನಸंಖ್ಯಾ ವಿವರಗಳು",
+        "stepIncomeFamily": "ಆದಾಯ ಮತ್ತು ಕುಟುಂಬ",
+        "stepIdentification": "ಗುರುತಿಸುವಿಕೆ",
+        "ageLabel": "ನಿಮ್ಮ ವಯಸ್ಸು ಎಷ್ಟು?",
+        "ageDescription": "ವಯಸ್ಸು ಹಿರಿಯ ನಾಗರಿಕರ ಆರೋಗ್ಯ ರಕ್ಷಣೆಯನ್ನು ಪರಿಶೀಲಿಸಲು ಸಹಾಯ ಮಾಡುತ್ತದೆ.",
+        "agePlaceholder": "ಉದಾ. 45",
+        "stateLabel": "ನೀವು ಯಾವ ರಾಜ್ಯದಲ್ಲಿ ವಾಸಿಸುತ್ತೀರಿ?",
+        "stateDescription": "ಸರ್ಕಾರಿ ಆರೋಗ್ಯ ವಿಮಾ ಕಾರ್ಯಕ್ರಮಗಳು ರಾಜ್ಯದಿಂದ ರಾಜ್ಯಕ್ಕೆ ಬದಲಾಗುತ್ತವೆ.",
+        "incomeLabel": "ನಿಮ್ಮ ಕುಟುಂಬದ ಒಟ್ಟು ವಾರ್ಷಿಕ ಆದಾಯ ಎಷ್ಟು?",
+        "incomeDescription": "ಪ್ರತಿ ವರ್ಷ ರೂಪಾಯಿಗಳಲ್ಲಿ ನಿಮ್ಮ ಒಟ್ಟು ಮನೆಯ ಆದಾಯ.",
+        "incomePlaceholder": "ಉದಾ. 120000",
+        "familySizeLabel": "ನಿಮ್ಮ ಕುಟುಂಬದಲ್ಲಿ ಎಷ್ಟು ಸದಸ್ಯರಿದ್ದಾರೆ?",
+        "familySizeDescription": "ಮನೆಯಲ್ಲಿ ಒಟ್ಟಿಗೆ ವಾಸಿಸುವ ಒಟ್ಟು ಕುಟುಂಬ ಸದಸ್ಯರು.",
+        "familySizePlaceholder": "ಉದಾ. 5",
+        "bplQuestion": "ನಿಮ್ಮ ಬಳಿ ಬಿಪಿಎಲ್ (BPL) ಕಾರ್ಡ್ ಇದೆಯೇ?",
+        "abhaQuestion": "ನಿಮ್ಮ ಬಳಿ ಎಬಿಎಚ್‌ಎ (ABHA) ಐಡಿ ಇದೆಯೇ?",
+        "yesOption": "ಹೌದು, ನನ್ನ ಬಳಿ ಇದೆ",
+        "noOption": "ಇಲ್ಲ, ನನ್ನ ಬಳಿ ಇಲ್ಲ",
+        "backButton": "ಹಿಂದಕ್ಕೆ",
+        "nextButton": "ಮುಂದಿನ ಹಂತ",
+        "findSchemesButton": "ಯೋಜನೆಗಳನ್ನು ಹುಡುಕಿ",
+        "checkingButton": "ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...",
+        "resultsTitle": "ನಿಮ್ಮ ಅರ್ಹ ಯೋಜನೆಗಳು",
+        "resultsDescription": "ನೀವು ಅರ್ಹರಾಗಿರುವ <countTag>{count} ಯೋಜನೆಗಳು</countTag> ಕಂಡುಬಂದಿವೆ.",
+        "eligibleBadge": "ಅರ್ಹರು",
+        "benefitsCoverage": "ಪ್ರಯೋಜನಗಳು / ವ್ಯಾಪ್ತಿ",
+        "howToApply": "ಅರ್ಜಿ ಸಲ್ಲಿಸುವುದು ಹೇಗೆ",
+        "visitOfficialPortal": "ಅಧಿಕೃತ ಪೋರ್ಟಲ್‌ಗೆ ಭೇಟಿ ನೀಡಿ",
+        "noSchemesTitle": "ಯಾವುದೇ ಯೋಜನೆಗಳು ಕಂಡುಬಂದಿಲ್ಲ.",
+        "noSchemesDescription": "ದಯವಿಟ್ಟು ಗ್ರಾಮ ಪಂಚಾಯತಿ ಅಧಿಕಾರಿಯನ್ನು ಅಥವಾ ಸ್ಥಳೀಯ ಸರ್ಕಾರಿ ಸೇವಾ ಕೇಂದ್ರವನ್ನು ಸಂಪರ್ಕಿಸಿ.",
+        "printPdfButton": "ಪ್ರಿಂಟ್ ಮಾಡಿ / ಪಿಡಿಎಫ್ ಆಗಿ ಉಳಿಸಿ",
+        "checkAgainButton": "ಮತ್ತೆ ಪರಿಶೀಲಿಸಿ",
+        "printBrandTitle": "SahiDawa — ಗ್ರಾಮೀಣ ಆರೋಗ್ಯ ಸೇತು",
+        "printReportTitle": "ಸರ್ಕಾರಿ ಆರೋಗ್ಯ ಯೋಜನೆಗಳ ಅರ್ಹತಾ ವರದಿ",
+        "dateGenerated": "ರಚಿಸಲಾದ ದಿನಾಂక",
+        "website": "ವೆಬ್ಸೈಟ್",
+        "age": "ವಯಸ್ಸು",
+        "years": "ವರ್ಷಗಳು",
+        "stateOfResidence": "ವಾಸಸ್ಥಳದ ರಾಜ್ಯ",
+        "annualFamilyIncome": "ವಾರ್ಷಿಕ ಕೌಟುಂಬಿಕ ಆದಾಯ",
+        "familySize": "ಕುಟುಂಬದ ಗಾತ್ರ",
+        "members": "ಸದಸ್ಯರು",
+        "bplRationCardHolder": "ಬಿಪಿಎಲ್ ರೇಷನ್ ಕಾರ್ಡ್ ಹೊಂದಿರುವವರು",
+        "abhaHealthIdHolder": "ಎಬಿಎಚ್‌ಎ ಹೆಲ್ತ್ ಐಡಿ ಹೊಂದಿರುವವರು",
+        "yes": "ಹೌದು",
+        "no": "ಇಲ್ಲ"
     },
     "Health": {
         "quickActions": "Quick actions",
@@ -709,5 +840,117 @@
         "placeholder": "Type your health concern...",
         "sendMessage": "Send message",
         "footer": "For informational use only • Consult a doctor"
+    },
+    "SignUp": {
+        "brandSubtitle": "Medicine safety platform",
+        "heading": "Create your account",
+        "description": "Join SahiDawa to track medicine safety reports and verification results.",
+        "missingConfig": {
+            "title": "Authentication is not configured",
+            "description": "Supabase URL or anon key is missing. Add the environment variables before signing up."
+        },
+        "googleButton": "Continue with Google",
+        "githubButton": "Continue with Github",
+        "emailSeparator": "or continue with email",
+        "fullNameLabel": "Full name",
+        "fullNamePlaceholder": "Your full name",
+        "emailLabel": "Email address",
+        "emailPlaceholder": "you@example.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Create a password",
+        "confirmPasswordLabel": "Confirm password",
+        "confirmPasswordPlaceholder": "Re-enter your password",
+        "showPassword": "Show password",
+        "hidePassword": "Hide password",
+        "showConfirmPassword": "Show confirm password",
+        "hideConfirmPassword": "Hide confirm password",
+        "signingUp": "Creating account...",
+        "signUp": "Sign Up",
+        "footerPrompt": "Already have an account?",
+        "signInLink": "Sign in",
+        "bottomText": "Protected access for SahiDawa community tools.",
+        "success": "Account created successfully! Redirecting...",
+        "successConfirmEmail": "Account created! Check your email to confirm your account before signing in.",
+        "errors": {
+            "databaseNotConfigured": "Authentication is not configured for this environment.",
+            "generic": "Unable to create account. Please try again.",
+            "fullNameRequired": "Full name is required.",
+            "emailRequired": "Email address is required.",
+            "emailInvalid": "Please enter a valid email address.",
+            "passwordRequired": "Password is required.",
+            "passwordWeak": "Password must be at least 8 characters and include uppercase, lowercase, and a number.",
+            "confirmPasswordRequired": "Please confirm your password.",
+            "passwordMismatch": "Passwords do not match."
+        }
+    },
+    "MyMedicines": {
+        "page": {
+            "title": "ನನ್ನ ಟ್ರ್ಯಾಕ್ ಮಾಡಿದ ಔಷಧಿಗಳು",
+            "loading": "ನಿಮ್ಮ ಟ್ರ್ಯಾಕ್ ಮಾಡಿದ ಔಷಧಿಗಳು ಲೋಡ್ ಆಗುತ್ತಿವೆ..."
+        },
+        "errors": {
+            "title": "ನಿಮ್ಮ ಔಷಧಿಗಳನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ",
+            "generic": "ನಿಮ್ಮ ಟ್ರ್ಯಾಕ್ ಮಾಡಿದ ಔಷಧಿಗಳನ್ನು ತರುವಾಗ ಏನೋ ತಪ್ಪಾಗಿದೆ.",
+            "fetchFailed": "ಟ್ರ್ಯಾಕ್ ಮಾಡಿದ ಔಷಧಿಗಳನ್ನು ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಸಂಪರ್ಕವನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+            "tryAgain": "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ"
+        },
+        "emptyState": {
+            "title": "ಇನ್ನೂ ಯಾವುದೇ ಔಷಧಿಗಳನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಿಲ್ಲ",
+            "description": "ಸಕ್ರಿಯ ವೇಳಾಪಟ್ಟಿಗಳು, ಸುರಕ್ಷತಾ ನವೀಕರಣಗಳು ಮತ್ತು ಅವಧಿ ಮುಗಿಯುವಿಕೆಯನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಟ್ರ್ಯಾಕ್ ಮಾಡಲು ನಿಮ್ಮ ಪ್ರಸ್ತುತ ಔಷಧಿಗಳನ್ನು ಸೇರಿಸಿ.",
+            "addFirst": "ನಿಮ್ಮ ಮೊದಲ ಔಷಧಿಯನ್ನು ಸೇರಿಸಿ"
+        },
+        "table": {
+            "name": "ಹೆಸರು",
+            "expiry": "ಅವಧಿ",
+            "status": "ಸ್ಥಿತಿ",
+            "daysLeft": "{count} ದಿನಗಳು ಉಳಿದಿವೆ"
+        },
+        "badges": {
+            "verified": "ಪರಿಶೀಲಿಸಲಾಗಿದೆ",
+            "unverified": "ಪರಿಶೀಲಿಸಲಾಗಿಲ್ಲ",
+            "requestVerificationTitle": "ಪರಿಶೀಲನೆಗಾಗಿ ವಿನಂತಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ"
+        },
+        "bookmarks": {
+            "savedAlternatives": "ಉಳಿಸಿದ ಪರ್ಯಾಯಗಳು",
+            "noBookmarks": "ಇನ್ನೂ ಯಾವುದೇ ಬುಕ್‌ಮಾರ್ಕ್‌ಗಳಿಲ್ಲ.",
+            "brand": "ಬ್ರಾಂಡ್: {brand}"
+        },
+        "removeDialog": {
+            "title": "ಬುಕ್‌ಮಾರ್ಕ್ ತೆಗೆದುಹಾಕುವುದೇ?",
+            "description": "ಇದು \"{name}\" ಅನ್ನು ನಿಮ್ಮ ಉಳಿಸಿದ ಪರ್ಯಾಯಗಳಿಂದ ತೆಗೆದುಹಾಕುತ್ತದೆ. ಅಗತ್ಯವಿದ್ದರೆ ನೀವು ಅದನ್ನು ನಂತರ ಮತ್ತೆ ಸೇರಿಸಬಹುದು.",
+            "confirm": "ತೆಗೆದುಹಾಕಿ",
+            "cancel": "ರದ್ದುಗೊಳಿಸಿ"
+        }
+    },
+    "NotFound": {
+        "badge": "404 ದೋಷ",
+        "title": "ಪುಟ ಕಂಡುಬಂದಿಲ್ಲ",
+        "description": "ನೀವು ಹುಡುಕುತ್ತಿರುವ ಪುಟ ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ ಅಥವಾ ಸ್ಥಳಾಂತರಿಸಿರಬಹುದು.",
+        "backHome": "ಮುಖಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ",
+        "scanMedicine": "ಔಷಧಿಯನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ"
+    },
+    "Settings": {
+        "channelRequired": "Kanishta ondu samvahana channel (SMS athava WhatsApp) sakriyavagirabeku.",
+        "optOutConfirm": "Nivu khachitavagi opt out madi ella SMS mattu WhatsApp eccharikegalannu nillisalu bayasuvira?",
+        "loadingPreferences": "Nimma adyategalu load aguttive...",
+        "languageOptionEn": "English",
+        "languageOptionHi": "हिन्दी",
+        "languageOptionTa": "தமிழ்",
+        "languageOptionTe": "తెలుగు",
+        "languageOptionBn": "বাংলা",
+        "languageOptionMr": "मराठी",
+        "languageOptionGu": "ગુજરાતી",
+        "languageOptionKn": "ಕನ್ನಡ",
+        "languageOptionMl": "മലയാളം",
+        "languageOptionPa": "ਪੰਜਾਬੀ",
+        "languageOptionUr": "اردو",
+        "languageOptionAs": "অসমীয়া"
+    },
+    "AbhaRecords": {
+        "backToProfile": "ಪ್ರೊಫೈಲ್‌ಗೆ ಹಿಂತಿರುಗಿ",
+        "title": "ABHA ದಾಖಲೆಗಳು",
+        "loading": "ದಾಖಲೆಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
+        "noPrescriptions": "ಯಾವುದೇ ಪ್ರಿಸ್ಕ್ರಿಪ್ಷನ್ ಕಂಡುಬಂದಿಲ್ಲ.",
+        "failedToLoad": "ದಾಖಲೆಗಳನ್ನು ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ"
     }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import {
     AlertTriangle,
     ChevronLeft,
@@ -37,20 +37,41 @@ export function LocalScanHistoryList() {
     const [isClearing, setIsClearing] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Keeps track of most recent request version.
+    const pageRequestVersionRef = useRef(0);
+
     const loadPage = useCallback(async (nextPage: number) => {
         setIsLoading(true);
         setError(null);
+
+        pageRequestVersionRef.current += 1;
+        const pageRequestId = pageRequestVersionRef.current;
+
         try {
             const result = await getLocalScanHistoryPage(
                 nextPage,
                 DEFAULT_LOCAL_SCAN_HISTORY_PAGE_SIZE
             );
+
+            // Ignore results from older requests that completed after a newer one.
+            if (pageRequestId !== pageRequestVersionRef.current) {
+                return;
+            }
+
             setHistoryPage(result);
             setPage(result.page);
         } catch {
+            // Ignore failure from older requests.
+            if (pageRequestId !== pageRequestVersionRef.current) {
+                return;
+            }
+
             setError("Unable to load local scan history.");
         } finally {
-            setIsLoading(false);
+            // Ignore clean-up from older requests.
+            if (pageRequestId === pageRequestVersionRef.current) {
+                setIsLoading(false);
+            }
         }
     }, []);
 

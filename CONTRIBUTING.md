@@ -54,14 +54,19 @@ git remote add upstream https://github.com/ORIGINAL_OWNER/sahidawa-india.git
 
 ### Step 3 — Create a branch
 
+> [!IMPORTANT]
+> **Branch Naming Convention:** You MUST name your branch according to the work you are doing. Use prefixes like `feat/`, `fix/`, `docs/`, or `i18n/`.
+
 ```bash
 # Always branch from main
 git checkout main
 git pull upstream main
-git checkout -b feat/your-feature-name
-# or: fix/your-bugfix-name
-# or: i18n/tamil-translation
-# or: docs/setup-guide
+
+# Example branch names:
+git checkout -b feat/barcode-scanner
+git checkout -b fix/ui-bug
+git checkout -b i18n/tamil-translation
+git checkout -b docs/setup-guide
 ```
 
 ### Step 4 — Make your changes
@@ -415,6 +420,9 @@ def decode_barcode(image_bytes: bytes) -> BarcodeResult | None:
 
 ## Commit Message Format
 
+> [!IMPORTANT]
+> **You MUST follow the Conventional Commits format.** PRs with messy commit messages (like "fixed bug" or "update file") will not be accepted.
+
 We follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```
@@ -475,7 +483,8 @@ feat(scanner): add ZXing barcode scanner component
 
 ### PR Description
 
-Use the PR template (`.github/PULL_REQUEST_TEMPLATE.md`). Do not skip sections.
+> [!IMPORTANT]
+> **You MUST use the provided PR template (`.github/PULL_REQUEST_TEMPLATE.md`).** Do not delete or skip any sections. PRs that do not follow the template will be automatically rejected.
 
 Always include:
 

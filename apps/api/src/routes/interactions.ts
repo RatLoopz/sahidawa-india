@@ -2,8 +2,8 @@ import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { supabase, dbConfig } from "../db/client";
 import logger from "../utils/logger";
-import { escapeIlike } from "../utils/db";
 import { escapePostgrest } from "../utils/db";
+import { interactionCheckLimiter } from "../middleware/rateLimit";
 
 const router = Router();
 
@@ -15,13 +15,29 @@ interface MedicineLookup {
     generic_name: string;
 }
 
-type InteractionRecord = LocalInteraction & { id?: string };
+type InteractionRecord = LocalInteraction & {
+    id?: string;
+    last_updated_at?: string;
+    data_version?: string;
+};
 
 const checkSchema = z.object({
     medicines: z
         .array(z.string())
-        .min(2, "At least two medicines are required to check interactions"),
+        .min(2, "At least two medicines are required to check interactions")
+        .max(20, "A maximum of 20 medicines can be checked at once"),
 });
+
+export function buildMedicineResolutionFilter(input: string): string {
+    const escaped = escapePostgrest(input);
+    return `id.eq."${escaped}",brand_name.ilike."%${escaped}%",generic_name.ilike."%${escaped}%"`;
+}
+
+export function buildInteractionPairFilter(a: string, b: string): string {
+    const drugA = escapePostgrest(a);
+    const drugB = escapePostgrest(b);
+    return `and(drug_a_id.eq."${drugA}",drug_b_id.eq."${drugB}"),and(drug_a_id.eq."${drugB}",drug_b_id.eq."${drugA}")`;
+}
 
 // Brand name to generic name static mapping for local offline fallback
 const localBrandMap: Record<string, string> = {
@@ -66,6 +82,9 @@ interface MatchedInteraction {
     description: string;
     clinical_recommendation: string;
     source: string;
+    verified: boolean;
+    last_updated_at?: string;
+    disclaimer?: string;
 }
 
 const localInteractions: LocalInteraction[] = [
@@ -116,6 +135,39 @@ const localInteractions: LocalInteraction[] = [
         source: "DrugBank",
     },
 ];
+
+// Runtime interaction cache (seeded from static fallback)
+let cachedInteractions: LocalInteraction[] = [...localInteractions];
+
+async function warmInteractionCache() {
+    try {
+        const { data, error } = await supabase.from("drug_interactions").select("*");
+
+        if (error) {
+            logger.warn("Interaction cache warm failed — using static fallback", {
+                error: error.message,
+            });
+            return;
+        }
+
+        if (data && data.length > 0) {
+            cachedInteractions = data as unknown as LocalInteraction[];
+        }
+    } catch (err) {
+        logger.warn("Interaction cache warm failed — using static fallback", {
+            error: err instanceof Error ? err.message : String(err),
+        });
+    }
+}
+
+warmInteractionCache();
+
+setInterval(
+    () => {
+        void warmInteractionCache();
+    },
+    24 * 60 * 60 * 1000
+);
 
 function displayMedicineName(medicine: MedicineLookup): string {
     return medicine.brand_name?.trim() || medicine.generic_name;
@@ -183,8 +235,14 @@ function indexInteractions(interactions: InteractionRecord[]): Map<string, Inter
 }
 
 function getLocalInteractionsForGenerics(genericNames: string[]): InteractionRecord[] {
-    const selectedGenerics = new Set(genericNames);
-    return localInteractions.filter(
+    const selectedGenerics = new Set(
+        genericNames.map((name) => {
+            const normalized = normalizeGenericName(name);
+            return localBrandMap[normalized] ?? normalized;
+        })
+    );
+
+    return cachedInteractions.filter(
         (interaction) =>
             selectedGenerics.has(interaction.drug_a_id) &&
             selectedGenerics.has(interaction.drug_b_id)
@@ -238,11 +296,16 @@ async function loadInteractionsForGenerics(genericNames: string[]): Promise<Inte
  *           type: string
  *         example: med-a,med-b,med-c
  */
-router.get("/", async (req: Request, res: Response) => {
+router.get("/", interactionCheckLimiter, async (req: Request, res: Response) => {
     const ids = parseIdsParam(req.query.ids);
 
     if (ids.length < 2) {
         res.status(400).json({ error: "At least two medicine ids are required" });
+        return;
+    }
+
+    if (ids.length > 20) {
+        res.status(400).json({ error: "At most 20 medicine ids are allowed" });
         return;
     }
 
@@ -276,6 +339,7 @@ router.get("/", async (req: Request, res: Response) => {
         const interactionByPair = indexInteractions(
             await loadInteractionsForGenerics(selectedGenerics)
         );
+        const isFallback = dbConfig?.isSupabaseOffline ?? true;
         const interactions = [];
 
         for (let i = 0; i < medicines.length; i++) {
@@ -306,6 +370,11 @@ router.get("/", async (req: Request, res: Response) => {
                         "Follow the prescribed dosage and consult a clinician if symptoms change.",
                     mechanism: match?.mechanism || "No interaction mechanism is documented.",
                     source: match?.source || "SahiDawa interaction checker",
+                    verified: !isFallback,
+                    disclaimer: isFallback
+                        ? "⚠️ Using offline interaction database. Data may be outdated. Consult a pharmacist."
+                        : undefined,
+                    last_updated_at: match?.last_updated_at,
                 });
             }
         }
@@ -319,26 +388,38 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 /**
- * Resolves a medicine input string (brand name, generic name, or ID) to its generic name.
+ * Normalizes brand names for offline fallback by removing dosages, units, and punctuation.
  */
-async function resolveToGeneric(input: string): Promise<{ input: string; generic: string }> {
-    const cleanInput = input.trim();
-    const lowerInput = cleanInput.toLowerCase();
+function normalizeOfflineBrandName(input: string): string {
+    return input
+        .toLowerCase()
+        .replace(/\b(500|650|500mg|650mg|mg)\b/g, "")
+        .replace(/[\s\-_,.]+/g, "");
+}
 
+/**
+ * Resolves a list of medicine input strings to their generic names in a single batched query.
+ */
+async function resolveMedicinesToGenerics(
+    inputs: string[]
+): Promise<Array<{ input: string; generic: string }>> {
+    const cleanInputs = inputs.map((i) => i.trim()).filter(Boolean);
     let dbFailed = dbConfig?.isSupabaseOffline;
-    let genericName = cleanInput;
 
-    if (!dbFailed) {
+    // Default each input to itself
+    const resultsMap = new Map<string, string>();
+    for (const input of cleanInputs) {
+        resultsMap.set(input.toLowerCase(), input);
+    }
+
+    if (!dbFailed && cleanInputs.length > 0) {
         try {
-            const escaped = escapeIlike(cleanInput);
+            // Build a single massive OR query combining all the resolution filters
+            const orQuery = cleanInputs.map(buildMedicineResolutionFilter).join(",");
             const { data, error } = await supabase
                 .from("medicines")
                 .select("brand_name, generic_name")
-                .or(
-                    `id.eq.${escaped},brand_name.ilike."%${escapePostgrest(escaped)}%",generic_name.ilike."%${escapePostgrest(escaped)}%"`
-                )
-                .limit(1)
-                .maybeSingle();
+                .or(orQuery);
 
             if (error) {
                 dbFailed = true;
@@ -349,8 +430,19 @@ async function resolveToGeneric(input: string): Promise<{ input: string; generic
                 ) {
                     if (dbConfig) dbConfig.isSupabaseOffline = true;
                 }
-            } else if (data && data.generic_name) {
-                genericName = data.generic_name;
+            } else if (data) {
+                // Match the returned DB rows back to the inputs
+                for (const input of cleanInputs) {
+                    const lowerInput = input.toLowerCase();
+                    const match = data.find(
+                        (d) =>
+                            d.brand_name?.toLowerCase().includes(lowerInput) ||
+                            d.generic_name?.toLowerCase().includes(lowerInput)
+                    );
+                    if (match && match.generic_name) {
+                        resultsMap.set(lowerInput, match.generic_name);
+                    }
+                }
             }
         } catch (dbErr: unknown) {
             dbFailed = true;
@@ -366,14 +458,20 @@ async function resolveToGeneric(input: string): Promise<{ input: string; generic
     }
 
     if (dbFailed) {
-        // Fallback to local static map
-        const mapped = localBrandMap[lowerInput.replace(/\s+/g, "")];
-        if (mapped) {
-            genericName = mapped;
+        // Fallback to local static map for all inputs
+        for (const input of cleanInputs) {
+            const normalizedForOffline = normalizeOfflineBrandName(input);
+            const mapped = localBrandMap[normalizedForOffline];
+            if (mapped) {
+                resultsMap.set(input.toLowerCase(), mapped);
+            }
         }
     }
 
-    return { input: cleanInput, generic: genericName };
+    return cleanInputs.map((input) => ({
+        input,
+        generic: resultsMap.get(input.toLowerCase()) || input,
+    }));
 }
 
 /**
@@ -432,7 +530,7 @@ async function resolveToGeneric(input: string): Promise<{ input: string; generic
  *                       source:
  *                         type: string
  */
-router.post("/check", async (req: Request, res: Response) => {
+router.post("/check", interactionCheckLimiter, async (req: Request, res: Response) => {
     const parsed = checkSchema.safeParse(req.body);
 
     if (!parsed.success) {
@@ -446,82 +544,35 @@ router.post("/check", async (req: Request, res: Response) => {
     const { medicines } = parsed.data;
 
     try {
-        // 1. Resolve all inputs to generic names in parallel
-        const resolvedList: Array<{ input: string; generic: string }> = await Promise.all(
-            medicines.map((medicine) => resolveToGeneric(medicine))
-        );
+        // 1. Resolve all inputs to generic names in a single batched query
+        const resolvedList: Array<{ input: string; generic: string }> =
+            await resolveMedicinesToGenerics(medicines);
 
         const genericToOriginalMap = new Map<string, string>();
         resolvedList.forEach((r) => {
-            genericToOriginalMap.set(r.generic.toLowerCase(), r.input);
+            if (!genericToOriginalMap.has(r.generic.toLowerCase())) {
+                genericToOriginalMap.set(r.generic.toLowerCase(), r.input);
+            }
         });
 
         const resolvedGenerics = Array.from(
             new Set(resolvedList.map((r) => r.generic.toLowerCase()))
         );
 
-        // 2. Generate all unique pairs
-        const pairs: [string, string][] = [];
-        for (let i = 0; i < resolvedGenerics.length; i++) {
-            for (let j = i + 1; j < resolvedGenerics.length; j++) {
-                pairs.push([resolvedGenerics[i], resolvedGenerics[j]]);
-            }
-        }
+        // 2. Fetch all potential interactions in one batched query
+        const allInteractions = await loadInteractionsForGenerics(resolvedGenerics);
+        const interactionByPair = indexInteractions(allInteractions);
+        const isFallback = dbConfig?.isSupabaseOffline ?? true;
 
         const matchedInteractions: MatchedInteraction[] = [];
-        let dbFailed = dbConfig?.isSupabaseOffline;
 
-        // 3. Query interactions for each pair
-        await Promise.all(
-            pairs.map(async ([a, b]) => {
-                let match = null;
+        // 3. Generate all unique pairs and check against the batched results in-memory
+        for (let i = 0; i < resolvedGenerics.length; i++) {
+            for (let j = i + 1; j < resolvedGenerics.length; j++) {
+                const a = resolvedGenerics[i];
+                const b = resolvedGenerics[j];
 
-                if (!dbFailed) {
-                    try {
-                        const { data, error } = await supabase
-                            .from("drug_interactions")
-                            .select("*")
-                            .or(
-                                `and(drug_a_id.eq.${a},drug_b_id.eq.${b}),and(drug_a_id.eq.${b},drug_b_id.eq.${a})`
-                            )
-                            .maybeSingle();
-
-                        if (error) {
-                            dbFailed = true;
-                            if (
-                                error.message?.includes("fetch failed") ||
-                                error.message?.includes("refused") ||
-                                error.message?.includes("timeout")
-                            ) {
-                                if (dbConfig) dbConfig.isSupabaseOffline = true;
-                            }
-                        } else if (data) {
-                            match = data;
-                        }
-                    } catch (dbErr: unknown) {
-                        dbFailed = true;
-                        const msg = dbErr instanceof Error ? dbErr.message : String(dbErr);
-                        if (
-                            msg.includes("fetch failed") ||
-                            msg.includes("refused") ||
-                            msg.includes("timeout")
-                        ) {
-                            if (dbConfig) dbConfig.isSupabaseOffline = true;
-                        }
-                    }
-                }
-
-                if (dbFailed || !match) {
-                    // Fallback to local static check
-                    const found = localInteractions.find(
-                        (li) =>
-                            (li.drug_a_id === a && li.drug_b_id === b) ||
-                            (li.drug_a_id === b && li.drug_b_id === a)
-                    );
-                    if (found) {
-                        match = found;
-                    }
-                }
+                const match = interactionByPair.get(getInteractionPairKey(a, b));
 
                 if (match) {
                     // Map back generic names to the original user input strings for display
@@ -540,10 +591,15 @@ router.post("/check", async (req: Request, res: Response) => {
                             match.clinical_recommendation ||
                             "Consult a physician before combining.",
                         source: match.source || "Clinical Literature",
+                        verified: !isFallback,
+                        disclaimer: isFallback
+                            ? "⚠️ Using offline interaction database. Data may be outdated. Consult a pharmacist."
+                            : undefined,
+                        last_updated_at: (match as any).last_updated_at,
                     });
                 }
-            })
-        );
+            }
+        }
 
         res.status(200).json({ interactions: matchedInteractions });
     } catch (err) {

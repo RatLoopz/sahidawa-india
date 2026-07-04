@@ -2,7 +2,7 @@ name: 🔄 Sync Labels Between PR and Linked Issue
 
 on:
   pull_request_target:
-    types: [opened, edited, labeled, unlabeled]
+    types: [opened, edited, labeled, unlabeled, closed]
   issues:
     types: [labeled, unlabeled]
 
@@ -88,6 +88,61 @@ jobs:
               const pr = context.payload.pull_request;
               const linkedIssues = await getLinkedIssues(pr.number, pr.body);
               console.log(`PR #${pr.number} parsed. Linked issues: ${Array.from(linkedIssues).join(', ')}`);
+
+              if (action === 'closed' && pr.merged) {
+                const prLabels = (pr.labels || []).map(l => l.name);
+                console.log(`PR is MERGED! Syncing labels to linked issues: ${prLabels.join(', ')}`);
+                
+                for (const issueNumber of linkedIssues) {
+                  try {
+                    const issueLabels = await getTargetLabels(issueNumber);
+                    const missingLabels = prLabels.filter(l => !issueLabels.includes(l));
+                    if (missingLabels.length > 0) {
+                      console.log(`Adding missing labels to Issue #${issueNumber}: ${missingLabels.join(', ')}`);
+                      await github.rest.issues.addLabels({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        issue_number: issueNumber,
+                        labels: missingLabels
+                      });
+                    } else {
+                      console.log(`Issue #${issueNumber} already has all PR labels.`);
+                    }
+                  } catch (e) {
+                    console.error(`Failed to sync labels to Issue #${issueNumber}:`, e);
+                  }
+                }
+                return;
+              }
+
+              if (action === 'labeled' || action === 'unlabeled') {
+                const labelName = context.payload.label.name;
+                for (const issueNumber of linkedIssues) {
+                  try {
+                    const issueLabels = await getTargetLabels(issueNumber);
+                    if (action === 'labeled' && !issueLabels.includes(labelName)) {
+                      console.log(`Adding label ${labelName} to Issue #${issueNumber}`);
+                      await github.rest.issues.addLabels({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        issue_number: issueNumber,
+                        labels: [labelName]
+                      });
+                    } else if (action === 'unlabeled' && issueLabels.includes(labelName)) {
+                      console.log(`Removing label ${labelName} from Issue #${issueNumber}`);
+                      await github.rest.issues.removeLabel({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        issue_number: issueNumber,
+                        name: labelName
+                      });
+                    }
+                  } catch (e) {
+                    console.error(`Failed to sync label ${labelName} for Issue #${issueNumber}:`, e);
+                  }
+                }
+                return;
+              }
 
               if (action === 'opened' || action === 'edited') {
                 const prLabels = (pr.labels || []).map(l => l.name);

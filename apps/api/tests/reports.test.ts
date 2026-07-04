@@ -7,7 +7,7 @@ jest.mock("../src/db/client", () => ({
     supabase: {
         from: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
-        insert: jest.fn().mockReturnThis(),
+        upsert: jest.fn().mockReturnThis(),
         update: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         gte: jest.fn().mockReturnThis(),
@@ -75,7 +75,7 @@ import request from "supertest";
 import app from "../src/app";
 import { supabase } from "../src/db/client";
 
-const mockedSupabase = supabase as jest.Mocked<typeof supabase>;
+const mockedSupabase = supabase as any;
 
 describe("Reports API Routes", () => {
     beforeEach(() => {
@@ -83,7 +83,7 @@ describe("Reports API Routes", () => {
         Object.assign(mockedSupabase, {
             from: jest.fn().mockReturnThis(),
             select: jest.fn().mockReturnThis(),
-            insert: jest.fn().mockReturnThis(),
+            upsert: jest.fn().mockReturnThis(),
             update: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
             gte: jest.fn().mockReturnThis(),
@@ -145,7 +145,7 @@ describe("Reports API Routes", () => {
                 longitude: 77.5946,
             };
 
-            mockedSupabase.insert = jest.fn().mockReturnValue({
+            mockedSupabase.upsert = jest.fn().mockReturnValue({
                 select: jest.fn().mockReturnValue({
                     single: jest.fn().mockResolvedValueOnce({
                         data: {
@@ -181,7 +181,7 @@ describe("Reports API Routes", () => {
                 longitude: 72.8777,
             };
 
-            mockedSupabase.insert = jest.fn().mockReturnValue({
+            mockedSupabase.upsert = jest.fn().mockReturnValue({
                 select: jest.fn().mockReturnValue({
                     single: jest.fn().mockResolvedValueOnce({
                         data: {
@@ -228,7 +228,7 @@ describe("Reports API Routes", () => {
                 pincode: "110001",
             };
 
-            mockedSupabase.insert = jest.fn().mockReturnValue({
+            mockedSupabase.upsert = jest.fn().mockReturnValue({
                 select: jest.fn().mockReturnValue({
                     single: jest.fn().mockResolvedValueOnce({
                         data: {
@@ -283,7 +283,7 @@ describe("Reports API Routes", () => {
             };
 
             let insertedPayload: Record<string, unknown> = {};
-            mockedSupabase.insert = jest.fn().mockImplementation((vals) => {
+            mockedSupabase.upsert = jest.fn().mockImplementation((vals) => {
                 insertedPayload = vals;
                 return {
                     select: jest.fn().mockReturnValue({
@@ -304,6 +304,257 @@ describe("Reports API Routes", () => {
             expect(insertedPayload.is_escalated).toBe(true);
             expect(insertedPayload.risk_score).toBe(0.9);
             expect(insertedPayload.duplicate_group_id).toBe("original-report-id");
+        });
+
+        it("falls back to city as district when no district field is provided (backward compatibility)", async () => {
+            const payload = {
+                medicineName: "Aspirin 500mg",
+                manufacturer: "TestCo",
+                description: "This is a detailed description of the issue",
+                images: ["https://example.com/image1.jpg"],
+                pharmacyName: "Test Pharmacy",
+                address: "123 Main St",
+                city: "Pune",
+                state: "Maharashtra",
+                pincode: "411001",
+            };
+
+            let insertedPayload: Record<string, unknown> = {};
+            mockedSupabase.upsert = jest.fn().mockImplementation((vals) => {
+                insertedPayload = vals;
+                return {
+                    select: jest.fn().mockReturnValue({
+                        single: jest.fn().mockResolvedValueOnce({
+                            data: {
+                                id: "report-id-fallback",
+                                ...vals,
+                                created_at: "2026-06-03T23:31:00Z",
+                            },
+                            error: null,
+                        }),
+                    }),
+                };
+            });
+
+            const response = await request(app)
+                .post("/api/reports")
+                .set("X-Forwarded-For", "1.2.3.7")
+                .send(payload);
+
+            expect(response.status).toBe(201);
+            expect(insertedPayload.city).toBe("Pune");
+            expect(insertedPayload.district).toBe("Pune");
+        });
+
+        it("uses the explicit district field instead of city when both are provided", async () => {
+            const payload = {
+                medicineName: "Aspirin 500mg",
+                manufacturer: "TestCo",
+                description: "This is a detailed description of the issue",
+                images: ["https://example.com/image1.jpg"],
+                pharmacyName: "Test Pharmacy",
+                address: "123 Main St",
+                city: "Pune",
+                district: "Pune District",
+                state: "Maharashtra",
+                pincode: "411001",
+            };
+
+            let insertedPayload: Record<string, unknown> = {};
+            mockedSupabase.upsert = jest.fn().mockImplementation((vals) => {
+                insertedPayload = vals;
+                return {
+                    select: jest.fn().mockReturnValue({
+                        single: jest.fn().mockResolvedValueOnce({
+                            data: {
+                                id: "report-id-explicit-district",
+                                ...vals,
+                                created_at: "2026-06-03T23:31:00Z",
+                            },
+                            error: null,
+                        }),
+                    }),
+                };
+            });
+
+            const response = await request(app)
+                .post("/api/reports")
+                .set("X-Forwarded-For", "1.2.3.8")
+                .send(payload);
+
+            expect(response.status).toBe(201);
+            // city and district are stored as distinct values, not aliased.
+            expect(insertedPayload.city).toBe("Pune");
+            expect(insertedPayload.district).toBe("Pune District");
+        });
+
+        it("passes the explicit district (not city) to validateReport's burst/sybil detection", async () => {
+            const validateReport = jest.requireMock(
+                "../src/services/reportValidation.service"
+            ).validateReport;
+
+            const payload = {
+                medicineName: "Aspirin 500mg",
+                manufacturer: "TestCo",
+                description: "This is a detailed description of the issue",
+                images: ["https://example.com/image1.jpg"],
+                pharmacyName: "Test Pharmacy",
+                address: "123 Main St",
+                city: "Pune",
+                district: "Pune District",
+                state: "Maharashtra",
+                pincode: "411001",
+            };
+
+            mockedSupabase.upsert = jest.fn().mockReturnValue({
+                select: jest.fn().mockReturnValue({
+                    single: jest.fn().mockResolvedValueOnce({
+                        data: {
+                            id: "report-id-validate-district",
+                            ...payload,
+                            created_at: "2026-06-03T23:31:00Z",
+                        },
+                        error: null,
+                    }),
+                }),
+            });
+
+            await request(app).post("/api/reports").set("X-Forwarded-For", "1.2.3.9").send(payload);
+
+            const [validationPayloadArg] =
+                validateReport.mock.calls[validateReport.mock.calls.length - 1];
+            expect(validationPayloadArg.city).toBe("Pune");
+            expect(validationPayloadArg.district).toBe("Pune District");
+        });
+
+        it("rejects a district shorter than the minimum length when explicitly provided", async () => {
+            const payload = {
+                medicineName: "Aspirin 500mg",
+                manufacturer: "TestCo",
+                description: "This is a detailed description of the issue",
+                images: ["https://example.com/image1.jpg"],
+                pharmacyName: "Test Pharmacy",
+                address: "123 Main St",
+                city: "Pune",
+                district: "P",
+                state: "Maharashtra",
+                pincode: "411001",
+            };
+
+            const response = await request(app)
+                .post("/api/reports")
+                .set("X-Forwarded-For", "1.2.3.10")
+                .send(payload);
+
+            expect(response.status).toBe(400);
+            expect(response.body.error).toBe("Invalid report payload");
+        });
+
+        it("does not leak stack trace or internal error details when validateReport throws", async () => {
+            const originalEnv = process.env.NODE_ENV;
+            process.env.NODE_ENV = "production";
+
+            const { validateReport } = require("../src/services/reportValidation.service");
+            validateReport.mockRejectedValueOnce(new Error("DB connection failed: ECONNREFUSED"));
+
+            const payload = {
+                medicineName: "Aspirin 500mg",
+                manufacturer: "TestCo",
+                description: "This is a detailed description of the issue",
+                images: ["https://example.com/image1.jpg"],
+                pharmacyName: "Test Pharmacy",
+                address: "123 Main St",
+                city: "Delhi",
+                state: "Delhi",
+                pincode: "110001",
+            };
+
+            const response = await request(app)
+                .post("/api/reports")
+                .set("X-Forwarded-For", "9.9.9.9")
+                .set("X-Forwarded-Proto", "https")
+                .send(payload);
+
+            process.env.NODE_ENV = originalEnv;
+
+            expect(response.status).toBe(500);
+            expect(response.body).not.toHaveProperty("stack");
+            expect(response.body).not.toHaveProperty("details");
+            expect(response.body.error).not.toHaveProperty("stack");
+            expect(JSON.stringify(response.body)).not.toContain("ECONNREFUSED");
+            expect(JSON.stringify(response.body)).not.toContain(".ts");
+        });
+
+        it("delegates errors to the global error handler instead of the inline catch block", async () => {
+            const { validateReport } = require("../src/services/reportValidation.service");
+            validateReport.mockRejectedValueOnce(new Error("Simulated internal failure"));
+
+            const payload = {
+                medicineName: "Aspirin 500mg",
+                manufacturer: "TestCo",
+                description: "This is a detailed description of the issue",
+                images: ["https://example.com/image1.jpg"],
+                pharmacyName: "Test Pharmacy",
+                address: "123 Main St",
+                city: "Delhi",
+                state: "Delhi",
+                pincode: "110001",
+            };
+
+            const response = await request(app)
+                .post("/api/reports")
+                .set("X-Forwarded-For", "9.9.9.8")
+                .send(payload);
+
+            // Shape matches errorHandler's { success, error: { message, ... } }
+            // contract, not the old inline { error, details, stack } shape.
+            expect(response.status).toBe(500);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body.error).toHaveProperty("message");
+            expect(response.body).not.toHaveProperty("details");
+        });
+
+        it("returns 400 when an invalid state is provided", async () => {
+            const payload = {
+                medicineName: "Aspirin 500mg",
+                manufacturer: "TestCo",
+                description: "This is a detailed description of the issue",
+                images: ["https://example.com/image1.jpg"],
+                pharmacyName: "Test Pharmacy",
+                address: "123 Main St",
+                city: "Pune",
+                state: "Maharastra", // Typo in state
+                pincode: "411001",
+            };
+
+            const response = await request(app).post("/api/reports").send(payload);
+
+            expect(response.status).toBe(400);
+            expect(response.body.error).toBe("Invalid report payload");
+            expect(response.body.issues[0].message).toBe("Invalid state: Maharastra");
+        });
+
+        it("returns 400 when an invalid district is provided for a valid state", async () => {
+            const payload = {
+                medicineName: "Aspirin 500mg",
+                manufacturer: "TestCo",
+                description: "This is a detailed description of the issue",
+                images: ["https://example.com/image1.jpg"],
+                pharmacyName: "Test Pharmacy",
+                address: "123 Main St",
+                city: "Pune",
+                district: "pune dist", // Typo in district
+                state: "Maharashtra",
+                pincode: "411001",
+            };
+
+            const response = await request(app).post("/api/reports").send(payload);
+
+            expect(response.status).toBe(400);
+            expect(response.body.error).toBe("Invalid report payload");
+            expect(response.body.issues[0].message).toBe(
+                "Invalid district 'pune dist' for state 'Maharashtra'"
+            );
         });
     });
 
@@ -337,9 +588,11 @@ describe("Reports API Routes", () => {
 
             mockedSupabase.select = jest.fn().mockReturnValue({
                 eq: jest.fn().mockReturnValue({
-                    order: jest.fn().mockResolvedValueOnce({
-                        data: mockReports,
-                        error: null,
+                    order: jest.fn().mockReturnValue({
+                        limit: jest.fn().mockResolvedValueOnce({
+                            data: mockReports,
+                            error: null,
+                        }),
                     }),
                 }),
             });
@@ -357,9 +610,11 @@ describe("Reports API Routes", () => {
         it("returns empty array when user has no reports", async () => {
             mockedSupabase.select = jest.fn().mockReturnValue({
                 eq: jest.fn().mockReturnValue({
-                    order: jest.fn().mockResolvedValueOnce({
-                        data: [],
-                        error: null,
+                    order: jest.fn().mockReturnValue({
+                        limit: jest.fn().mockResolvedValueOnce({
+                            data: [],
+                            error: null,
+                        }),
                     }),
                 }),
             });
@@ -374,9 +629,12 @@ describe("Reports API Routes", () => {
     });
 
     describe("PATCH /api/reports/:id/status", () => {
+        const REPORT_UUID = "00000000-0000-4000-8000-000000000004";
+        const NONEXISTENT_UUID = "00000000-0000-4000-8000-000000000099";
+
         it("returns 403 when non-admin user tries to update status", async () => {
             const response = await request(app)
-                .patch("/api/reports/report-id-123/status")
+                .patch(`/api/reports/${REPORT_UUID}/status`)
                 .set("Authorization", "Bearer test-token")
                 .send({ status: "verified_fake" });
 
@@ -386,7 +644,7 @@ describe("Reports API Routes", () => {
 
         it("returns 400 when invalid status is provided", async () => {
             const response = await request(app)
-                .patch("/api/reports/report-id-123/status")
+                .patch(`/api/reports/${REPORT_UUID}/status`)
                 .set("Authorization", "Bearer admin-token")
                 .set("X-Admin", "true")
                 .send({ status: "invalid_status" });
@@ -402,7 +660,7 @@ describe("Reports API Routes", () => {
                 .mockResolvedValueOnce({ data: null, error: null });
 
             const response = await request(app)
-                .patch("/api/reports/non-existent-id/status")
+                .patch(`/api/reports/${NONEXISTENT_UUID}/status`)
                 .set("Authorization", "Bearer admin-token")
                 .set("X-Admin", "true")
                 .send({ status: "verified_fake" });
@@ -425,7 +683,7 @@ describe("Reports API Routes", () => {
                 .mockResolvedValueOnce({ data: updatedReport, error: null });
 
             const response = await request(app)
-                .patch("/api/reports/report-id-123/status")
+                .patch(`/api/reports/${REPORT_UUID}/status`)
                 .set("Authorization", "Bearer admin-token")
                 .set("X-Admin", "true")
                 .send({ status: "verified_fake" });
@@ -450,7 +708,7 @@ describe("Reports API Routes", () => {
                 .mockResolvedValueOnce({ data: updatedReport, error: null });
 
             const response = await request(app)
-                .patch("/api/reports/report-id-123/status")
+                .patch(`/api/reports/${REPORT_UUID}/status`)
                 .set("Authorization", "Bearer admin-token")
                 .set("X-Admin", "true")
                 .send({ status: "verified_fake" });
@@ -465,17 +723,212 @@ describe("Reports API Routes", () => {
             for (const status of validStatuses) {
                 mockedSupabase.single = jest
                     .fn()
-                    .mockResolvedValueOnce({ data: { id: "report-id" }, error: null })
-                    .mockResolvedValueOnce({ data: { id: "report-id", status }, error: null });
+                    .mockResolvedValueOnce({ data: { id: REPORT_UUID }, error: null })
+                    .mockResolvedValueOnce({ data: { id: REPORT_UUID, status }, error: null });
 
                 const response = await request(app)
-                    .patch(`/api/reports/report-id-${status}/status`)
+                    .patch(`/api/reports/${REPORT_UUID}/status`)
                     .set("Authorization", "Bearer admin-token")
                     .set("X-Admin", "true")
                     .send({ status });
 
                 expect(response.status).toBe(200);
             }
+        });
+
+        it("resets broadcasted=false on the district_alerts upsert when threshold is crossed", async () => {
+            const updatedReport = {
+                id: "report-id-123",
+                district: "Delhi",
+                reported_brand_name: "Fake Medicine",
+                status: "verified_fake",
+                created_at: "2026-06-01T00:00:00Z",
+            };
+
+            let upsertPayload: Record<string, unknown> | null = null;
+            const originalFrom = mockedSupabase.from;
+
+            (mockedSupabase.from as jest.Mock) = jest.fn().mockImplementation((table: string) => {
+                if (table === "counterfeit_reports") {
+                    return {
+                        select: jest.fn().mockImplementation((_cols?: string, opts?: any) => {
+                            if (opts && opts.head) {
+                                // Threshold count query chain: .eq().eq().eq()
+                                return {
+                                    eq: jest.fn().mockReturnValue({
+                                        eq: jest.fn().mockReturnValue({
+                                            eq: jest
+                                                .fn()
+                                                .mockResolvedValue({ count: 5, error: null }),
+                                        }),
+                                    }),
+                                };
+                            }
+                            // Existence-check chain: .eq().single()
+                            return {
+                                eq: jest.fn().mockReturnValue({
+                                    single: jest.fn().mockResolvedValue({
+                                        data: { id: "report-id-123" },
+                                        error: null,
+                                    }),
+                                }),
+                            };
+                        }),
+                        update: jest.fn().mockReturnValue({
+                            eq: jest.fn().mockReturnValue({
+                                select: jest.fn().mockReturnValue({
+                                    single: jest
+                                        .fn()
+                                        .mockResolvedValue({ data: updatedReport, error: null }),
+                                }),
+                            }),
+                        }),
+                    };
+                }
+                if (table === "district_alerts") {
+                    return {
+                        select: jest.fn().mockReturnValue({
+                            eq: jest.fn().mockReturnValue({
+                                eq: jest.fn().mockReturnValue({
+                                    maybeSingle: jest.fn().mockResolvedValue({
+                                        data: { alert_level: "low" },
+                                        error: null,
+                                    }),
+                                }),
+                            }),
+                        }),
+                        upsert: jest.fn().mockImplementation((payload: Record<string, unknown>) => {
+                            upsertPayload = payload;
+                            return {
+                                select: jest.fn().mockReturnValue({
+                                    single: jest.fn().mockResolvedValue({
+                                        data: payload,
+                                        error: null,
+                                    }),
+                                }),
+                            };
+                        }),
+                    };
+                }
+                return {};
+            });
+
+            const response = await request(app)
+                .patch(`/api/reports/${REPORT_UUID}/status`)
+                .set("Authorization", "Bearer admin-token")
+                .set("X-Admin", "true")
+                .send({ status: "verified_fake" });
+
+            mockedSupabase.from = originalFrom;
+
+            expect(response.status).toBe(200);
+            expect(upsertPayload).not.toBeNull();
+            expect(upsertPayload).toHaveProperty("broadcasted", false);
+        });
+
+        it("escalated reports that are approved as verified_fake increment the district's verified counterfeit count", async () => {
+            const updatedReport = {
+                id: "report-id-123",
+                district: "Delhi",
+                reported_brand_name: "Fake Medicine",
+                status: "verified_fake",
+                is_escalated: false, // Updated state
+                created_at: "2026-06-01T00:00:00Z",
+            };
+
+            let updatePayload: Record<string, unknown> | null = null;
+            let countQueryExecuted = false;
+            const originalFrom = mockedSupabase.from;
+
+            (mockedSupabase.from as jest.Mock) = jest.fn().mockImplementation((table: string) => {
+                if (table === "counterfeit_reports") {
+                    return {
+                        select: jest.fn().mockImplementation((_cols?: string, opts?: any) => {
+                            if (opts && opts.head) {
+                                return {
+                                    eq: jest.fn().mockReturnValue({
+                                        eq: jest.fn().mockReturnValue({
+                                            eq: jest.fn().mockImplementation((col, val) => {
+                                                if (col === "is_escalated" && val === false) {
+                                                    countQueryExecuted = true;
+                                                    return Promise.resolve({
+                                                        count: 5,
+                                                        error: null,
+                                                    });
+                                                }
+                                                return Promise.resolve({ count: 5, error: null });
+                                            }),
+                                        }),
+                                    }),
+                                };
+                            }
+                            return {
+                                eq: jest.fn().mockReturnValue({
+                                    single: jest.fn().mockResolvedValue({
+                                        data: {
+                                            id: "report-id-123",
+                                            is_escalated: true,
+                                            district: "Delhi",
+                                            reported_brand_name: "Fake Medicine",
+                                        },
+                                        error: null,
+                                    }),
+                                }),
+                            };
+                        }),
+                        update: jest.fn().mockImplementation((payload) => {
+                            updatePayload = payload;
+                            return {
+                                eq: jest.fn().mockReturnValue({
+                                    select: jest.fn().mockReturnValue({
+                                        single: jest.fn().mockResolvedValue({
+                                            data: updatedReport,
+                                            error: null,
+                                        }),
+                                    }),
+                                }),
+                            };
+                        }),
+                    };
+                }
+                if (table === "district_alerts") {
+                    return {
+                        select: jest.fn().mockReturnValue({
+                            eq: jest.fn().mockReturnValue({
+                                eq: jest.fn().mockReturnValue({
+                                    maybeSingle: jest.fn().mockResolvedValue({
+                                        data: { alert_level: "low" },
+                                        error: null,
+                                    }),
+                                }),
+                            }),
+                        }),
+                        upsert: jest.fn().mockImplementation((payload: Record<string, unknown>) => {
+                            return {
+                                select: jest.fn().mockReturnValue({
+                                    single: jest.fn().mockResolvedValue({
+                                        data: payload,
+                                        error: null,
+                                    }),
+                                }),
+                            };
+                        }),
+                    };
+                }
+                return {};
+            });
+
+            const response = await request(app)
+                .patch(`/api/reports/${REPORT_UUID}/status`)
+                .set("Authorization", "Bearer admin-token")
+                .set("X-Admin", "true")
+                .send({ status: "verified_fake" });
+
+            mockedSupabase.from = originalFrom;
+
+            expect(response.status).toBe(200);
+            expect(updatePayload).toHaveProperty("is_escalated", false);
+            expect(countQueryExecuted).toBe(true);
         });
     });
 });

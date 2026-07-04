@@ -25,9 +25,11 @@ export function Pagination({ current, total, onChange, className }: PaginationPr
     if (total <= 1) return null;
     const pages = getPages(current, total);
 
-    const btnBase = "inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium transition";
+    const btnBase =
+        "inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium transition";
     const btnActive = "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-100";
-    const btnInactive = "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800";
+    const btnInactive =
+        "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800";
     const btnDisabled = "cursor-not-allowed opacity-40";
 
     return (
@@ -42,7 +44,9 @@ export function Pagination({ current, total, onChange, className }: PaginationPr
             </button>
             {pages.map((page, i) =>
                 page === "..." ? (
-                    <span key={`ellipsis-${i}`} className="px-2 text-slate-400">...</span>
+                    <span key={`ellipsis-${i}`} className="px-2 text-slate-400">
+                        ...
+                    </span>
                 ) : (
                     <button
                         key={page}
@@ -52,7 +56,7 @@ export function Pagination({ current, total, onChange, className }: PaginationPr
                     >
                         {page}
                     </button>
-                ),
+                )
             )}
             <button
                 onClick={() => onChange(current + 1)}
