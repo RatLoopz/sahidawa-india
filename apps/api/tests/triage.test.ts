@@ -168,6 +168,7 @@ describe("POST /api/triage/recommend", () => {
                 return Promise.resolve({
                     data: [
                         {
+                            id: "pharm-1",
                             name: "PMBJAK - AIIMS",
                             address: "Ansari Nagar, New Delhi",
                             district: "South Delhi",
@@ -194,5 +195,6 @@ describe("POST /api/triage/recommend", () => {
         expect(response.body.medicines).toHaveLength(1);
         expect(response.body.pharmacies).toHaveLength(1);
         expect(response.body.pharmacies[0].distance).toBe("2.3 km");
+        expect(response.body.pharmacies[0].id).toBe("pharm-1");
     });
 });

@@ -18,6 +18,7 @@ const MAX_PHARMACY_RESULTS = 5;
 
 function formatPharmacy(p: PharmacyRpcResult): FormattedPharmacy {
     return {
+        id: p.id,
         name: p.name || "Unknown Pharmacy",
         address: p.address || "Unknown Address",
         lat: p.lat,
