@@ -219,6 +219,33 @@
         },
         "footer": "SahiDawa ମାଗଣା, ଓପେନ୍-ସୋର୍ସ ଏବଂ ୧୪୦ କୋଟି ଭାରତୀୟଙ୍କ ପାଇଁ ନିର୍ମିତ । କୌଣସି ବିଜ୍ଞାପନ ନାହିଁ । କୌଣସି ପ୍ରିମିୟମ୍ ଚାର୍ଜ ନାହିଁ । ଡାଟା ବିକ୍ରି ହୁଏ ନାହିଁ । କେବେବି ନୁହେଁ ।"
     },
+    "Footer": {
+        "brandSubtitle": "ଭାରତର ପ୍ରଥମ ଓପନ-ସୋର୍ସ ମେଡିସିନ ଯାଞ୍ଚ ପ୍ଲାଟଫର୍ମ | ସମୁଦାୟ-ସଂଚାଳିତ ସ୍ୱଚ୍ଛତା ସହିତ ଆପଣଙ୍କର ଔଷଧ ସ୍କାନ, ଯାଞ୍ଚ ଏବଂ ବିଶ୍ୱାସ କରନ୍ତୁ |",
+        "madeForGssoc": "GSSoC 2026 ପାଇଁ ନିର୍ମିତ",
+        "quickLinks": {
+            "title": "ଶୀଘ୍ର ଲିଙ୍କ୍",
+            "expiry_tracker": "ଏକ୍ସପାୟରୀ ଟ୍ରାକର୍",
+            "faq": "ବାରମ୍ବਾਰ ପଚରାଯାଉଥିବା ପ୍ରଶ୍ନ",
+            "about": "ଆମ ବିଷಯରେ",
+            "privacy": "ଗୋପନୀୟତା ନୀତି",
+            "contact": "ଯୋଗାଯୋਗ କରନ୍ତು"
+        },
+        "resources": {
+            "title": "ସମ୍ବଳ",
+            "github": "GitHub",
+            "contributing": "ଯୋਗଦାନ ଦେବା"
+        },
+        "connectWithUs": "ଆମ ସହ ଯୋଡି ହୁଅନ୍ତು",
+        "social": {
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "twitter": "Twitter"
+        },
+        "contactEmail": "contact@sahidawa.in",
+        "copyright": "© 2026 SahiDawa. MIT ଲାଇସେନ୍ସ ଅଧୀନରେ ଓପନ୍ ସୋର୍ସ |",
+        "builtWith": "ଓପନ-ସୋର୍ସ ସମୁଦାୟ ପାଇଁ",
+        "builtWithSuffix": "ସହିତ ନିର୍ಮିତ"
+    },
     "about": {
         "badge": "GSSoC 2026 ଓପନ୍ ସୋର୍ସ ପ୍ରୋଜେକ୍ଟ",
         "heroTitle": "<highlight>SahiDawa</highlight> ବିଷୟରେ",

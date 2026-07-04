@@ -212,6 +212,33 @@
         },
         "footer": "SahiDawa مکمل طور پر مفت، اوپن سورس، اور 1.4 ارب ہندوستانیوں کے لیے بنائی گئی ہے۔ کوئی اشتہار نہیں، کوئی پریمیم پلان نہیں، کوئی ڈیٹا فروخت نہیں۔ کبھی نہیں۔"
     },
+    "Footer": {
+        "brandSubtitle": "بھارت کا پہلا اوپن سورس ادویات کی تصدیق کا پلیٹ فارم۔ کمیونٹی پر مبنی شفافیت کے ساتھ اپنی ادویات کو اسکین، تصدیق اور بھروسہ کریں۔",
+        "madeForGssoc": "GSSoC 2026 کے لیے تیار کردہ",
+        "quickLinks": {
+            "title": "فوری لنکس",
+            "expiry_tracker": "ایکسپائری ٹریکر",
+            "faq": "اکثر پوچھے گئے سوالات",
+            "about": "ہمارے بارے میں",
+            "privacy": "رازداری کی پالیسی",
+            "contact": "رابطہ کریں"
+        },
+        "resources": {
+            "title": "وسائل",
+            "github": "GitHub",
+            "contributing": "تعاون کرنا"
+        },
+        "connectWithUs": "ہم سے جڑیں",
+        "social": {
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "twitter": "Twitter"
+        },
+        "contactEmail": "contact@sahidawa.in",
+        "copyright": "© 2026 SahiDawa. اوپن سورس تحت MIT لائسنس۔",
+        "builtWith": "اوپن سورس کمیونٹی کے لیے",
+        "builtWithSuffix": "کے ساتھ بنایا گیا"
+    },
     "about": {
         "badge": "جی ایس ایس او سی 2026 اوپن سورس پروجیکٹ",
         "heroTitle": "<highlight>SahiDawa</highlight> کے بارے میں",

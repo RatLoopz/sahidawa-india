@@ -219,6 +219,33 @@
         },
         "footer": "SahiDawa இலவசம், திறந்த மூலம், மற்றும் 1.4 பில்லியன் இந்தியர்களுக்காக கட்டப்பட்டது. விளம்பரங்கள் இல்லை. பிரீமியம் இல்லை. தரவு எப்போதும் விற்கப்படாது."
     },
+    "Footer": {
+        "brandSubtitle": "இந்தியாவின் முதல் திறந்த மூல மருந்து சரிபார்ப்பு தளம். சமூகம் சார்ந்த வெளிப்படைத்தன்மையுடன் உங்கள் மருந்துகளை ஸ்கேன் செய்து, சரிபார்த்து, நம்புங்கள்.",
+        "madeForGssoc": "GSSoC 2026 க்காக உருவாக்கப்பட்டது",
+        "quickLinks": {
+            "title": "விரைவு இணைப்புகள்",
+            "expiry_tracker": "காலாவதி கண்காணிப்பாளர்",
+            "faq": "அடிக்கடி கேட்கப்படும் கேள்விகள்",
+            "about": "எங்களைப் பற்றி",
+            "privacy": "தனியுரிமைக் கொள்கை",
+            "contact": "தொடர்பு கொள்ள"
+        },
+        "resources": {
+            "title": "வளங்கள்",
+            "github": "GitHub",
+            "contributing": "பங்களிப்பு"
+        },
+        "connectWithUs": "எங்களுடன் இணையுங்கள்",
+        "social": {
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "twitter": "Twitter"
+        },
+        "contactEmail": "contact@sahidawa.in",
+        "copyright": "© 2026 SahiDawa. MIT உரிமத்தின் கீழ் திறந்த மூலம்.",
+        "builtWith": "திறந்த மூல சமூகத்திற்காக",
+        "builtWithSuffix": "உடன் உருவாக்கப்பட்டது"
+    },
     "about": {
         "badge": "GSSoC 2026 திறந்த மூலத் திட்டம்",
         "heroTitle": "<highlight>SahiDawa</highlight> பற்றி",

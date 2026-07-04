@@ -245,6 +245,33 @@
         },
         "footer": "SahiDawa বিনামূলীয়া, মুক্ত-উৎস, আৰু ১৪০ কোটি ভাৰতীয়ৰ বাবে নিৰ্মিত। কোনো বিজ্ঞাপন নাই। কোনো প্ৰিমিয়াম নাই। তথ্য বিক্ৰী নহয়। কেতিয়াও নহয়।"
     },
+    "Footer": {
+        "brandSubtitle": "ভাৰতৰ প্ৰথম মুকলি উৎসৰ ঔষধ সত্যাপন প্লেটফৰ্ম। সম্প্ৰদায়-চালিত স্বচ্ছতাৰে আপোনাৰ ঔষধ স্কেন কৰক, সত্যাপন কৰক আৰু বিশ্বাস কৰক।",
+        "madeForGssoc": "GSSoC 2026 ৰ বাবে নিৰ্মিত",
+        "quickLinks": {
+            "title": "ক্ষিপ্ৰ সংযোগ",
+            "expiry_tracker": "ম্যাদ উকলি যোৱা ট্ৰেকাৰ",
+            "faq": "সঘনাই সোধা প্ৰশ্ন",
+            "about": "আমাৰ বিষয়ে",
+            "privacy": "গোপনীয়তা নীতি",
+            "contact": "যোগাযোগ"
+        },
+        "resources": {
+            "title": "সম্পদ",
+            "github": "GitHub",
+            "contributing": "বৰঙণি যোগোৱা"
+        },
+        "connectWithUs": "আমাৰ সৈতে সংযোগ কৰক",
+        "social": {
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "twitter": "Twitter"
+        },
+        "contactEmail": "contact@sahidawa.in",
+        "copyright": "© 2026 SahiDawa. MIT অনুজ্ঞাপত্ৰৰ অধীনত মুকলি উৎস।",
+        "builtWith": "মুকলি উৎস সম্প্ৰদায়ৰ বাবে",
+        "builtWithSuffix": "ৰে তৈয়াৰী"
+    },
     "about": {
         "badge": "GSSoC 2026 মুক্ত-উৎস প্ৰকল্প",
         "heroTitle": "SahiDawa-ৰ <highlight>বিষয়ে</highlight>",

@@ -235,6 +235,33 @@
         },
         "footer": "صحیح دَوا چُھ مُفت، اوپَن سورس تہِ ۱.۴ بِلِیَن ہِندوستانِیَن خٲطرِ بَناوَن آمت۔ کاہ اِیڈ نَہ، کاہ پِریمِیَم نَہ۔"
     },
+    "Footer": {
+        "brandSubtitle": "ہِندوستانُک گۄڈنُک اوپن سورس دواہن ہُنٛد تصدیق کار پلیٹ فارم۔ پننہ دواہ کٔریو اسکین، تصدیق تہِ بھروسہٕ۔",
+        "madeForGssoc": "GSSoC 2026 خٲطرٕ بناومُت",
+        "quickLinks": {
+            "title": "جلدی لنکس",
+            "expiry_tracker": "ایکسپائری ٹریکر",
+            "faq": "FAQ",
+            "about": "بابت",
+            "privacy": "رازداری پالیسی",
+            "contact": "رابطہٕ"
+        },
+        "resources": {
+            "title": "وسائل",
+            "github": "GitHub",
+            "contributing": "تعاون"
+        },
+        "connectWithUs": "رابطہٕ کٔریو",
+        "social": {
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "twitter": "Twitter"
+        },
+        "contactEmail": "contact@sahidawa.in",
+        "copyright": "© 2026 SahiDawa. اوپن سورس تحت MIT لائسنس۔",
+        "builtWith": "اوپن سورس برادری خٲطرٕ",
+        "builtWithSuffix": "بناومُت"
+    },
     "about": {
         "badge": "GSSoC 2026 اوپَن سورس پَروجیکٹ",
         "heroTitle": "مُتلِق <highlight>صحیح دَوا</highlight>",

@@ -229,6 +229,33 @@
         },
         "footer": "SahiDawa મફત છે, ઓપન-સોર્સ છે, અને 140 કરોડ ભારતીયો માટે બનાવવામાં આવ્યું છે. કોઈ જાહેરાતો નથી. કોઈ પ્રીમિયમ નથી. કોઈ ડેટા વેચાતો નથી. ક્યારેય."
     },
+    "Footer": {
+        "brandSubtitle": "ભારતનું પ્રથમ ઓપન-સોર્સ દવા ચકાસણી પ્લેટફોર્મ. સમુદાય સંચાલિત પારદર્શિતા સાથે તમારી દવાઓ સ્કેન કરો, ચકાસો અને વિશ્વાસ કરો.",
+        "madeForGssoc": "GSSoC 2026 માટે બનાવેલ",
+        "quickLinks": {
+            "title": "ઝડપી લિંક્સ",
+            "expiry_tracker": "એક્સપાયરી ટ્રેકર",
+            "faq": "વારંવાર પૂછાતા પ્રશ્નો",
+            "about": "અમારા વિશે",
+            "privacy": "ગોપનીયતા નીતિ",
+            "contact": "સંપર્ક કરો"
+        },
+        "resources": {
+            "title": "સંસાધનો",
+            "github": "GitHub",
+            "contributing": "યોગદાન આપવું"
+        },
+        "connectWithUs": "અમારી સાથે જોડાઓ",
+        "social": {
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "twitter": "Twitter"
+        },
+        "contactEmail": "contact@sahidawa.in",
+        "copyright": "© 2026 SahiDawa. MIT લાયસન્સ હેઠળ ઓપન સોર્સ.",
+        "builtWith": "ઓપન-સોર્સ સમુદાય માટે",
+        "builtWithSuffix": "સાથે બનાવેલ"
+    },
     "about": {
         "badge": "GSSoC 2026 ઓપન સોર્સ પ્રોજેક્ટ",
         "heroTitle": "<highlight>SahiDawa</highlight> વિશે",

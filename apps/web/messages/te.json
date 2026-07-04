@@ -219,6 +219,33 @@
         },
         "footer": "SahiDawa ఉచితం, ఓపెన్-సోర్స్, మరియు 1.4 బిలియన్ భారతీయుల కోసం నిర్మించబడింది. ప్రకటనలు లేవు. ప్రీమియం లేదు. డేటా ఎప్పటికీ అమ్మబడదు."
     },
+    "Footer": {
+        "brandSubtitle": "భారతదేశపు మొట్టమొదటి ఓపెన్-సోర్స్ ఔషధ ధృవీకరణ వేదిక. కమ్యూనిటీ ఆధారిత పారదర్శకతతో మీ మందులను స్కాన్ చేయండి, ధృవీకరించండి మరియు నమ్మండి.",
+        "madeForGssoc": "GSSoC 2026 కోసం తయారు చేయబడింది",
+        "quickLinks": {
+            "title": "త్వరిత లింకులు",
+            "expiry_tracker": "ఎక్స్‌పైరీ ట్రాకర్",
+            "faq": "తరచుగా అడిగే ప్రశ్నలు",
+            "about": "మా గురించి",
+            "privacy": "గోప్యతా విధానం",
+            "contact": "సంప్రదించండి"
+        },
+        "resources": {
+            "title": "వనరులు",
+            "github": "GitHub",
+            "contributing": "సహకారం"
+        },
+        "connectWithUs": "మమ్మల్ని సంప్రదించండి",
+        "social": {
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "twitter": "Twitter"
+        },
+        "contactEmail": "contact@sahidawa.in",
+        "copyright": "© 2026 SahiDawa. MIT లైసెన్స్ కింద ఓపెన్ సోర్స్.",
+        "builtWith": "ఓపెన్ సోర్స్ కమ్యూనిటీ కోసం",
+        "builtWithSuffix": "తో తయారుచేయబడింది"
+    },
     "about": {
         "badge": "GSSoC 2026 ఓపెన్ సోర్స్ ప్రాజెక్ట్",
         "heroTitle": "<highlight>SahiDawa</highlight> గురించి",

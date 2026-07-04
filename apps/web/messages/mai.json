@@ -299,6 +299,33 @@
         },
         "footer": "SahiDawa मुफ्त, मुक्त-स्रोत, आ १४० करोड़ भारतीयक लेल बनल अछि। कोनो विज्ञापन नहि। कोनो प्रीमियम नहि। डेटा बेचल नहि। कखनो नहि।"
     },
+    "Footer": {
+        "brandSubtitle": "भारतक पहिल ओपन-सोर्स औषधि सत्यापन प्लेटफॉर्म। समुदाय-संचालित पारदर्शिताक संग अपन औषधिक स्कैन, सत्यापित आ विश्वास करू।",
+        "madeForGssoc": "GSSoC 2026 लेल निर्मित",
+        "quickLinks": {
+            "title": "त्वरित लिंक",
+            "expiry_tracker": "एक्सपायरी ट्रैकर",
+            "faq": "अक्सर पूछल जाए बला प्रश्न",
+            "about": "अपन सबहक बारे में",
+            "privacy": "गोपनीयता नीति",
+            "contact": "संपर्क करू"
+        },
+        "resources": {
+            "title": "संसाधन",
+            "github": "GitHub",
+            "contributing": "योगदान देब"
+        },
+        "connectWithUs": "अपन सबहक संग जुड़ू",
+        "social": {
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "twitter": "Twitter"
+        },
+        "contactEmail": "contact@sahidawa.in",
+        "copyright": "© 2026 SahiDawa. MIT लाइसेंसक अंतर्गत ओपन सोर्स।",
+        "builtWith": "ओपन-सोर्स समुदायक लेल",
+        "builtWithSuffix": "क संग निर्मित"
+    },
     "about": {
         "badge": "GSSoC 2026 मुक्त-स्रोत परियोजना",
         "heroTitle": "SahiDawa क <highlight>बारेमे</highlight>",

@@ -216,6 +216,33 @@
         },
         "footer": "SahiDawa ਮੁਫ਼ਤ, ਓਪਨ-ਸੋਰਸ ਅਤੇ 1.4 ਬਿਲੀਅਨ ਭਾਰਤੀਆਂ ਲਈ ਬਣਾਇਆ ਗਿਆ ਹੈ। ਕੋਈ ਵਿਗਿਆਪਨ ਨਹੀਂ। ਕੋਈ ਪ੍ਰੀਮੀਅਮ ਨਹੀਂ। ਕੋਈ ਡਾਟਾ ਵੇਚਿਆ ਨਹੀਂ ਜਾਂਦਾ।"
     },
+    "Footer": {
+        "brandSubtitle": "ਭਾਰਤ ਦਾ ਪਹਿਲਾ ਓਪਨ-ਸੋਰਸ ਦਵਾਈ ਤਸਦੀਕ ਪਲੇਟਫਾਰਮ। ਭਾਈਚਾਰਕ-ਸੰਚਾਲਿਤ ਪਾਰਦਰਸ਼ਤਾ ਨਾਲ ਆਪਣੀਆਂ ਦਵਾਈਆਂ ਨੂੰ ਸਕੈਨ, ਤਸਦੀਕ ਅਤੇ ਭਰੋਸਾ ਕਰੋ।",
+        "madeForGssoc": "GSSoC 2026 ਲਈ ਬਣਾਇਆ ਗਿਆ",
+        "quickLinks": {
+            "title": "ਤੁਰੰਤ ਲਿੰਕ",
+            "expiry_tracker": "ਐਕਸਪਾਇਰੀ ਟ੍ਰੈਕਰ",
+            "faq": "ਅਕਸਰ ਪੁੱਛੇ ਜਾਣ ਵਾਲੇ ਸਵਾਲ",
+            "about": "ਸਾਡੇ ਬਾਰੇ",
+            "privacy": "ਪਰਦੇਦਾਰੀ ਨੀਤੀ",
+            "contact": "ਸੰਪਰਕ ਕਰੋ"
+        },
+        "resources": {
+            "title": "ਸਰੋਤ",
+            "github": "GitHub",
+            "contributing": "ਯੋਗਦាន ਪਾਉਣਾ"
+        },
+        "connectWithUs": "ਸਾਡੇ ਨਾਲ ਜੁੜੋ",
+        "social": {
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "twitter": "Twitter"
+        },
+        "contactEmail": "contact@sahidawa.in",
+        "copyright": "© 2026 SahiDawa. MIT ਲਾਇਸੰਸ ਦੇ ਅਧੀਨ ਓਪਨ ਸੋਰਸ।",
+        "builtWith": "ਓਪਨ-ਸੋਰਸ ਭਾਈਚਾਰੇ ਲਈ",
+        "builtWithSuffix": "ਨਾਲ ਬਣਾਇਆ ਗਿਆ"
+    },
     "about": {
         "badge": "GSSoC 2026 Open Source Project",
         "heroTitle": "<highlight>SahiDawa</highlight> ਬਾਰੇ",

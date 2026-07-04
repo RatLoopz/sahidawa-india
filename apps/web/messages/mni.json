@@ -260,6 +260,33 @@
         },
         "footer": "ꯁꯍꯤꯗꯋꯥ ꯑꯁꯤ ꯇꯣꯜꯂꯗꯕꯥ, ꯑꯣꯄꯟ-ꯁꯣꯔꯁꯅꯤ ꯑꯃꯁꯨꯡ ꯏꯟꯗꯤꯌꯥꯒꯤ ꯃꯤꯑꯣꯏ ꯕꯤꯂꯤꯌꯥꯟ ꯱.꯴ ꯒꯤꯗꯃꯛ ꯁꯦꯝꯕꯅꯤ꯫ ꯑꯦꯗꯚꯔꯇꯥꯏꯖꯃꯦꯟ꯭ꯠ ꯂꯩꯇꯦ꯫ ꯄ꯭ꯔꯤꯃꯤꯌꯝ ꯂꯩꯇꯦ꯫ ꯗꯥꯇꯥ ꯌꯣꯜꯂꯣꯏ꯫ ꯀꯩꯗꯧꯅꯨꯡꯗꯥ꯫"
     },
+    "Footer": {
+        "brandSubtitle": "ভারতকী অহানবা ওপন-সোর্স হিদাক খঙদোকপা প্লেটফোর্ম। কম্যুনিটি-পাৱার্দ ওইবা অশেংবা মওংদা হিদাক স্কেন তৌবিয়ু, খঙদোকপিয়ু অমসুং থাজবিয়ু।",
+        "madeForGssoc": "GSSoC 2026 গীদমক শেমজবা",
+        "quickLinks": {
+            "title": "অথুবা লিঙ্কশিং",
+            "expiry_tracker": "এক্সপায়রী ত্রেকর",
+            "faq": "FAQ",
+            "about": "ঐখোয়গী মতাংদা",
+            "privacy": "প্রাইভেসি পোলিসী",
+            "contact": "কন্টাক্ট তৌবিয়ু"
+        },
+        "resources": {
+            "title": "রিসোর্সশিং",
+            "github": "GitHub",
+            "contributing": "শরুক য়াবা"
+        },
+        "connectWithUs": "ঐখোয়গা শম্নবিয়ু",
+        "social": {
+            "github": "GitHub",
+            "linkedin": "LinkedIn",
+            "twitter": "Twitter"
+        },
+        "contactEmail": "contact@sahidawa.in",
+        "copyright": "© 2026 SahiDawa. MIT লাইসেন্স মখাদা ওপন সোর্স।",
+        "builtWith": "ওপন সোর্স কম্যুনিটিগীদমক",
+        "builtWithSuffix": "গা লোয়ননা শেমজবা"
+    },
     "about": {
         "badge": "GSSoC 2026 ওপꯟ ꯁꯣꯔꯁ ꯄ꯭ꯔꯣꯖꯦꯛꯠ",
         "heroTitle": "ꯑꯦꯕꯥꯎꯠ <highlight>ꯁꯍꯤꯗꯋꯥ</highlight>",
