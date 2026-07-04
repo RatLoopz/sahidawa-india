@@ -952,5 +952,9 @@
         "loading": "ରେକର୍ଡ ଲୋଡ୍ ହେଉଛି...",
         "noPrescriptions": "କୌଣସି ପ୍ରେସକ୍ରିପସନ୍ ମିଳିଲା ନାହିଁ।",
         "failedToLoad": "ରେକର୍ଡ ଲୋଡ୍ କରିବାରେ ବିଫଳ"
-    }
+    },
+    "errorBatchRequired": "Batch number is required.",
+    "errorExpiryRequired": "Expiry date is required.",
+    "errorExpiryInvalid": "Invalid date format.",
+    "errorExpiryPast": "Expiry date cannot be in the past."
 }

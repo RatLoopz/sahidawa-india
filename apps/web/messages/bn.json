@@ -952,5 +952,9 @@
         "loading": "রেকর্ড লোড হচ্ছে...",
         "noPrescriptions": "কোনো প্রেসক্রিপশন পাওয়া যায়নি।",
         "failedToLoad": "রেকর্ড লোড করতে ব্যর্থ হয়েছে"
-    }
+    },
+    "errorBatchRequired": "Batch number is required.",
+    "errorExpiryRequired": "Expiry date is required.",
+    "errorExpiryInvalid": "Invalid date format.",
+    "errorExpiryPast": "Expiry date cannot be in the past."
 }

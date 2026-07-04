@@ -28,14 +28,18 @@ export const requireApiKey = async (req: ApiKeyRequest, res: Response, next: Nex
     // pbkdf2Sync with 100k iterations can stall the server for 200-500ms per
     // request, creating a CPU-based DoS vector. The async version offloads the
     // computation to libuv's thread pool, keeping the event loop responsive.
-    const keyHashBuffer = await pbkdf2Async(apiKey, "sahidawa-api-key-v1", 100000, 64, "sha512");
-    const keyHash = keyHashBuffer.toString("hex");
+    const [keyId, secret] = apiKey.split(".");
+
+    if (!keyId || !secret) {
+        res.status(401).json({ error: "Invalid API key format" });
+        return;
+    }
 
     try {
         const { data, error } = await supabase
             .from("api_keys")
-            .select("id, caller_name, scopes, is_active")
-            .eq("key_hash", keyHash)
+            .select("id, caller_name, scopes, is_active, key_hash, key_salt")
+            .eq("id", keyId)
             .maybeSingle();
 
         if (error) {
@@ -44,7 +48,23 @@ export const requireApiKey = async (req: ApiKeyRequest, res: Response, next: Nex
             return;
         }
 
-        if (!data || !data.is_active) {
+        if (!data || !data.is_active || !data.key_salt) {
+            res.status(401).json({ error: "Invalid or inactive API key" });
+            return;
+        }
+
+        const computedHashBuffer = await pbkdf2Async(secret, data.key_salt, 100000, 64, "sha512");
+        const computedHash = computedHashBuffer.toString("hex");
+        const storedHash = data.key_hash;
+
+        const computedBuffer = Buffer.from(computedHash, "hex");
+        const storedBuffer = Buffer.from(storedHash, "hex");
+
+        const isValid =
+            computedBuffer.length === storedBuffer.length &&
+            crypto.timingSafeEqual(computedBuffer, storedBuffer);
+
+        if (!isValid) {
             res.status(401).json({ error: "Invalid or inactive API key" });
             return;
         }

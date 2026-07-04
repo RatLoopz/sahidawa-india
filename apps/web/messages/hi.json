@@ -1240,5 +1240,9 @@
         "loading": "रिकॉर्ड लोड हो रहे हैं...",
         "noPrescriptions": "कोई नुस्खा नहीं मिला।",
         "failedToLoad": "रिकॉर्ड लोड करने में विफल"
-    }
+    },
+    "errorBatchRequired": "Batch number is required.",
+    "errorExpiryRequired": "Expiry date is required.",
+    "errorExpiryInvalid": "Invalid date format.",
+    "errorExpiryPast": "Expiry date cannot be in the past."
 }

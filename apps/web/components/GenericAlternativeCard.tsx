@@ -47,9 +47,18 @@ export default function GenericAlternativeCard({ alternative }: GenericAlternati
     const genericPrice = alternative.jan_aushadhi_price;
     const savingsAmount = brandPrice - genericPrice;
     const savingsPct = alternative.savings_percentage;
-
     const handleNavigateToMap = () => {
-        router.push(`/${locale}/map?filter=govt`);
+        // Navigate to the map page with pre-filtered settings,
+        // centering on the nearest store if we have its coordinates
+        const nearestStore = alternative.nearest_store;
+
+        if (nearestStore) {
+            router.push(
+                `/${locale}/map?filter=govt&lat=${nearestStore.lat}&lng=${nearestStore.lng}&query=${encodeURIComponent(nearestStore.name)}`
+            );
+        } else {
+            router.push(`/${locale}/map?filter=govt`);
+        }
     };
 
     return (

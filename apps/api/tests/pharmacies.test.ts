@@ -586,3 +586,173 @@ describe("POST /api/pharmacies/bulk-upload — BOM stripping", () => {
         expect(response.body.failedCount).toBe(0);
     });
 });
+
+describe("POST /api/pharmacies/bulk-upload — Robust CSV Parsing", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        const selectMock = jest.fn().mockReturnThis();
+        const eqMock = jest.fn().mockReturnThis();
+        const maybeSingleMock = jest.fn().mockResolvedValue({
+            data: { id: "pharmacy-uuid-123" },
+            error: null,
+        });
+        const insertMock = jest.fn().mockResolvedValue({ error: null });
+
+        (mockedSupabase.from as jest.Mock).mockImplementation((table: string) => {
+            if (table === "pharmacies") {
+                return { select: selectMock, eq: eqMock, maybeSingle: maybeSingleMock };
+            }
+            if (table === "pharmacy_inventory") {
+                return { insert: insertMock };
+            }
+            return {};
+        });
+    });
+
+    it("handles quoted commas, escaped quotes, and embedded newlines", async () => {
+        const csv =
+            "medicine_name,batch_number,expiry_date,quantity,mrp\n" +
+            '"Complex ""Name"", with comma",BATCH001,2027-01-01,100,50\n' +
+            '"Multiline\nMedicine",BATCH002,2027-02-01,200,60';
+
+        const response = await request(app)
+            .post("/api/pharmacies/bulk-upload")
+            .send({ fileContent: csv });
+
+        expect(response.status).toBe(200);
+        expect(response.body.successCount).toBe(2);
+        expect(response.body.failedCount).toBe(0);
+        expect(response.body.totalRows).toBe(2);
+    });
+
+    it("maintains correct row numbering with empty records and captures validation failures", async () => {
+        const csv =
+            "medicine_name,batch_number,expiry_date,quantity,mrp\n" +
+            "Valid Med,BATCH001,2027-01-01,100,50\n" +
+            "\n" + // Empty row (logical row 3)
+            "Invalid Med,,2027-01-01,100,50\n"; // Missing batch (logical row 4)
+
+        const response = await request(app)
+            .post("/api/pharmacies/bulk-upload")
+            .send({ fileContent: csv });
+
+        expect(response.status).toBe(200);
+        expect(response.body.successCount).toBe(1); // Valid Med
+        expect(response.body.failedCount).toBe(1); // Invalid Med
+        expect(response.body.errors[0].row).toBe(4); // Physical logical row
+        expect(response.body.errors[0].reason).toContain("expected string");
+    });
+
+    it("catches parser-level malformed records", async () => {
+        const csv =
+            "medicine_name,batch_number,expiry_date,quantity,mrp\n" +
+            "Normal Med,BATCH1,2027-01-01,10,10\n" +
+            '"Unclosed quote Med,BATCH2,2027-01-01,20,20\n';
+
+        const response = await request(app)
+            .post("/api/pharmacies/bulk-upload")
+            .send({ fileContent: csv });
+
+        expect(response.status).toBe(200);
+        expect(response.body.failedCount).toBeGreaterThan(0);
+        expect(response.body.errors).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    row: 3,
+                    reason: expect.stringMatching(/quote/i),
+                }),
+            ])
+        );
+    });
+});
+
+// ── HTTP-level regression test: POST /:id/inventory/upload (Multer path) ─────
+
+describe("POST /api/pharmacies/:id/inventory/upload — Multer file-buffer path", () => {
+    const PHARMACY_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+
+        // Mock auth middleware already injects req.user = { id: "test-user-uuid", role: "user" }
+        // Pharmacy ownership: created_by matches test-user-uuid
+        const selectMock = jest.fn().mockReturnThis();
+        const eqMock = jest.fn().mockReturnThis();
+        const maybeSingleMock = jest.fn().mockResolvedValue({
+            data: { id: PHARMACY_ID, created_by: "test-user-uuid", status: "active" },
+            error: null,
+        });
+        const insertMock = jest.fn().mockResolvedValue({ error: null });
+
+        (mockedSupabase.from as jest.Mock).mockImplementation((table: string) => {
+            if (table === "pharmacies") {
+                return { select: selectMock, eq: eqMock, maybeSingle: maybeSingleMock };
+            }
+            if (table === "pharmacy_inventory") {
+                return { insert: insertMock };
+            }
+            return {};
+        });
+    });
+
+    it("parses a valid CSV uploaded as a multipart file and returns correct counts", async () => {
+        const csv =
+            "medicine_name,batch_number,expiry_date,quantity,mrp\n" +
+            "Paracetamol 500mg,BATCH001,2027-12-01,200,15\n" +
+            "Ibuprofen 400mg,BATCH002,2027-06-01,100,25\n";
+
+        const response = await request(app)
+            .post(`/api/pharmacies/${PHARMACY_ID}/inventory/upload`)
+            .attach("file", Buffer.from(csv, "utf-8"), {
+                filename: "inventory.csv",
+                contentType: "text/csv",
+            });
+
+        expect(response.status).toBe(200);
+        expect(response.body.totalRows).toBe(2);
+        expect(response.body.successCount).toBe(2);
+        expect(response.body.failedCount).toBe(0);
+        expect(response.body.errors).toHaveLength(0);
+    });
+
+    it("correctly excludes empty rows from totalRows and the 500-row limit", async () => {
+        const csv =
+            "medicine_name,batch_number,expiry_date,quantity,mrp\n" +
+            "Paracetamol 500mg,BATCH001,2027-12-01,200,15\n" +
+            "\n" + // empty row — must not count toward totalRows
+            "Ibuprofen 400mg,BATCH002,2027-06-01,100,25\n";
+
+        const response = await request(app)
+            .post(`/api/pharmacies/${PHARMACY_ID}/inventory/upload`)
+            .attach("file", Buffer.from(csv, "utf-8"), {
+                filename: "inventory.csv",
+                contentType: "text/csv",
+            });
+
+        expect(response.status).toBe(200);
+        expect(response.body.totalRows).toBe(2); // empty row excluded
+        expect(response.body.successCount).toBe(2);
+        expect(response.body.failedCount).toBe(0);
+    });
+
+    it("reports validation failures with correct logical row numbers via Multer path", async () => {
+        const csv =
+            "medicine_name,batch_number,expiry_date,quantity,mrp\n" +
+            "Valid Med,BATCH001,2027-01-01,100,50\n" +
+            "\n" + // empty row — logical row 3, skipped
+            "Bad Med,,2027-01-01,100,50\n"; // missing batch_number — logical row 4
+
+        const response = await request(app)
+            .post(`/api/pharmacies/${PHARMACY_ID}/inventory/upload`)
+            .attach("file", Buffer.from(csv, "utf-8"), {
+                filename: "inventory.csv",
+                contentType: "text/csv",
+            });
+
+        expect(response.status).toBe(200);
+        expect(response.body.totalRows).toBe(2); // 2 non-empty rows
+        expect(response.body.successCount).toBe(1);
+        expect(response.body.failedCount).toBe(1);
+        expect(response.body.errors[0].row).toBe(4); // logical row 4 (header=1, valid=2, empty=3, bad=4)
+    });
+});

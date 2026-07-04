@@ -1329,5 +1329,9 @@
         "description": "The page you are looking for doesn't exist or may have been moved.",
         "backHome": "Go back home",
         "scanMedicine": "Scan Medicine"
-    }
+    },
+    "errorBatchRequired": "Batch number is required.",
+    "errorExpiryRequired": "Expiry date is required.",
+    "errorExpiryInvalid": "Invalid date format.",
+    "errorExpiryPast": "Expiry date cannot be in the past."
 }

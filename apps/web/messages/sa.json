@@ -889,5 +889,9 @@
         "loading": "लेखाः लोड् क्रियते...",
         "noPrescriptions": "किञ्चिदपि व्यवस्थापत्रं न प्राप्तम्।",
         "failedToLoad": "लेखाः लोड् कर्तुं असफलम्"
-    }
+    },
+    "errorBatchRequired": "Batch number is required.",
+    "errorExpiryRequired": "Expiry date is required.",
+    "errorExpiryInvalid": "Invalid date format.",
+    "errorExpiryPast": "Expiry date cannot be in the past."
 }

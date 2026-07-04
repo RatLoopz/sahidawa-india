@@ -1004,5 +1004,9 @@
         "loading": "रेकॉड लोड जाता...",
         "noPrescriptions": "खंयचेंय प्रिस्क्रिप्शन मेळ्ळें ना.",
         "failedToLoad": "रेकॉड लोड करपाक अपेशी आयलें"
-    }
+    },
+    "errorBatchRequired": "Batch number is required.",
+    "errorExpiryRequired": "Expiry date is required.",
+    "errorExpiryInvalid": "Invalid date format.",
+    "errorExpiryPast": "Expiry date cannot be in the past."
 }

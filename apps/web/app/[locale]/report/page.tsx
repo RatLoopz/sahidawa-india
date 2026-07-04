@@ -6,7 +6,7 @@ import ReportInfoPanel from "./ReportInfoPanel";
 
 export default function ReportPage() {
     return (
-        <div className="flex min-h-screen flex-col overflow-x-hidden bg-(--color-surface-muted) font-sans text-(--color-text-primary) selection:bg-emerald-200">
+        <div className="flex min-h-[100dvh] flex-col overflow-x-hidden bg-(--color-surface-muted) font-sans text-(--color-text-primary) selection:bg-emerald-200">
             {/* Header component */}
             <PageHeader
                 title="Report Incident"
@@ -15,7 +15,7 @@ export default function ReportPage() {
                 variant="light"
             />
 
-            <main className="relative z-10 container mx-auto flex-1 px-4 pt-8 pb-20 md:px-6">
+            <main className="relative z-10 container mx-auto flex-1 min-h-0 px-4 pt-8 pb-[calc(env(safe-area-inset-bottom)+5rem)] md:px-6">
                 {/* Decorative elements */}
                 <div className="pointer-events-none absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-emerald-100/40 blur-3xl dark:bg-emerald-950/10"></div>
                 <div className="pointer-events-none absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-teal-100/40 blur-3xl dark:bg-teal-950/10"></div>

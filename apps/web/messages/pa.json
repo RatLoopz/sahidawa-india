@@ -952,5 +952,9 @@
         "loading": "ਰਿਕਾਰਡ ਲੋਡ ਕੀਤੇ ਜਾ ਰਹੇ ਹਨ...",
         "noPrescriptions": "ਕੋਈ ਪਰਚੀ ਨਹੀਂ ਮਿਲੀ।",
         "failedToLoad": "ਰਿਕਾਰਡ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ"
-    }
+    },
+    "errorBatchRequired": "Batch number is required.",
+    "errorExpiryRequired": "Expiry date is required.",
+    "errorExpiryInvalid": "Invalid date format.",
+    "errorExpiryPast": "Expiry date cannot be in the past."
 }

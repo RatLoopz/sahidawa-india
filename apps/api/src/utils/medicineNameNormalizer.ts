@@ -174,15 +174,22 @@ class MedicineNameNormalizer {
      */
     private fixOcrMisreads(text: string): string {
         let result = text;
+        const numericKeys = new Set(["0", "1", "5", "8"]);
 
-        // Apply substitutions carefully to avoid over-correction
-        // Check each character pair for likely OCR errors
         for (const [from, to] of this.commonOcrMisreads) {
-            // Only replace if it looks like an OCR error (e.g., standalone "0" as word, not in numbers)
-            if (from === "0" || from === "1" || from === "5" || from === "8") {
-                // Skip numeric-looking patterns
+            if (numericKeys.has(from)) {
+                // Only replace standalone digits used as words, not digits inside numbers
                 result = result.replace(new RegExp(`\\b${from}\\b`, "g"), to);
+            } else if (from.length > 1) {
+                // Multi-character OCR confusions (e.g. "rn" -> "m") are safe to apply
+                // directly: they're unlikely to appear as a false-positive substring.
+                result = result.split(from).join(to);
             }
+            // NOTE: single-character non-numeric keys (e.g. "l" -> "I", "O" -> "0")
+            // are intentionally NOT applied here. A blind replace corrupts extremely
+            // common, legitimate letters in real medicine names (e.g. "paracetamol"
+            // -> "paracetamoI", "lisinopril" -> "IisinopriI"). Enabling these safely
+            // would need a smarter, context-aware check, which is out of scope here.
         }
 
         return result;

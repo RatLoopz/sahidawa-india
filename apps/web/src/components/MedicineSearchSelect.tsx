@@ -206,7 +206,15 @@ export default function MedicineSearchSelect({
                                 setQuery(e.target.value);
                                 setOpen(true);
                             }}
-                            onFocus={() => setOpen(true)}
+                            onFocus={() => {
+                                setOpen(true);
+                                window.setTimeout(() => {
+                                    inputRef.current?.scrollIntoView({
+                                        block: "nearest",
+                                        inline: "nearest",
+                                    });
+                                }, 150);
+                            }}
                             onKeyDown={(e) => {
                                 if (e.key === "Escape") {
                                     // Stop the key from bubbling up and
@@ -314,7 +322,7 @@ export default function MedicineSearchSelect({
                 <ul
                     id={listId}
                     role="listbox"
-                    className="absolute z-50 mt-1 max-h-52 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-900/50"
+                    className="absolute z-50 mt-1 max-h-[40vh] w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-900/50"
                 >
                     {loading && (
                         <li

@@ -952,5 +952,9 @@
         "loading": "பதிவுகள் ஏற்றப்படுகின்றன...",
         "noPrescriptions": "மருந்துச்சீட்டுகள் எதுவும் காணப்படவில்லை.",
         "failedToLoad": "பதிவுகளை ஏற்ற முடியவில்லை"
-    }
+    },
+    "errorBatchRequired": "Batch number is required.",
+    "errorExpiryRequired": "Expiry date is required.",
+    "errorExpiryInvalid": "Invalid date format.",
+    "errorExpiryPast": "Expiry date cannot be in the past."
 }

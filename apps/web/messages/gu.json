@@ -967,5 +967,9 @@
         "loading": "રેકોર્ડ્સ લોડ થઈ રહ્યા છે...",
         "noPrescriptions": "કોઈ પ્રિસ્ક્રિપ્શન મળ્યા નથી.",
         "failedToLoad": "રેકોર્ડ્સ લોડ કરવામાં નિષ્ફળ"
-    }
+    },
+    "errorBatchRequired": "Batch number is required.",
+    "errorExpiryRequired": "Expiry date is required.",
+    "errorExpiryInvalid": "Invalid date format.",
+    "errorExpiryPast": "Expiry date cannot be in the past."
 }

@@ -889,5 +889,9 @@
         "loading": "ریکارڈ لوڈ ہو رہے ہیں...",
         "noPrescriptions": "کوئی نسخہ نہیں ملا۔",
         "failedToLoad": "ریکارڈ لوڈ کرنے میں ناکامی"
-    }
+    },
+    "errorBatchRequired": "Batch number is required.",
+    "errorExpiryRequired": "Expiry date is required.",
+    "errorExpiryInvalid": "Invalid date format.",
+    "errorExpiryPast": "Expiry date cannot be in the past."
 }

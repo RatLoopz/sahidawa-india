@@ -227,14 +227,14 @@ function CalculatorPageContent() {
     const yearlySavings = monthlySavings * 12;
 
     return (
-        <div className="min-h-screen bg-(--color-surface-muted) text-(--color-text-primary)">
+        <div className="min-h-[100dvh] bg-(--color-surface-muted) text-(--color-text-primary)">
             <PageHeader
                 title={translate("pageTitle")}
                 subtitle={translate("pageSubtitle")}
                 backHref="/"
                 variant="light"
             />
-            <main className="container mx-auto max-w-2xl space-y-6 px-4 py-8">
+            <main className="container mx-auto max-w-2xl space-y-6 px-4 py-8 pb-[calc(env(safe-area-inset-bottom)+3rem)]">
                 {/* Search Panel */}
                 <section className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-6 shadow-sm">
                     <MedicineSearchSelect

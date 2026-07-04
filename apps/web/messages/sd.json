@@ -1093,5 +1093,9 @@
         "loading": "رڪارڊ لوڊ ٿي رهيا آهن...",
         "noPrescriptions": "ڪو به نسخو نه مليو.",
         "failedToLoad": "رڪارڊ لوڊ ڪرڻ ۾ ناڪام"
-    }
+    },
+    "errorBatchRequired": "Batch number is required.",
+    "errorExpiryRequired": "Expiry date is required.",
+    "errorExpiryInvalid": "Invalid date format.",
+    "errorExpiryPast": "Expiry date cannot be in the past."
 }

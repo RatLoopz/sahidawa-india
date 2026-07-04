@@ -1093,5 +1093,9 @@
         "loading": "ꯔꯦꯀꯣꯔ꯭ꯗꯁꯤꯡ ꯂꯣꯗ ꯇꯧꯔꯤ...",
         "noPrescriptions": "ꯀꯔꯤꯒꯨꯝꯕꯥ ꯄ꯭ꯔꯦꯁ꯭ꯀ꯭ꯔꯤꯄ꯭ꯁꯟ ꯑꯃꯠꯇꯥ ꯐꯪꯗꯦ꯫",
         "failedToLoad": "ꯔꯦꯀꯣꯔ꯭ꯗꯁꯤꯡ ꯂꯣꯗ ꯇꯧꯕꯥ ꯉꯃꯈꯤꯗꯦ"
-    }
+    },
+    "errorBatchRequired": "Batch number is required.",
+    "errorExpiryRequired": "Expiry date is required.",
+    "errorExpiryInvalid": "Invalid date format.",
+    "errorExpiryPast": "Expiry date cannot be in the past."
 }

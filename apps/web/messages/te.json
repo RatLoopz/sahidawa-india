@@ -952,5 +952,9 @@
         "loading": "రికార్డులు లోడ్ అవుతున్నాయి...",
         "noPrescriptions": "ప్రిస్క్రిప్షన్లు ఏవీ కనుగొనబడలేదు.",
         "failedToLoad": "రికార్డులను లోడ్ చేయడం విఫలమైంది"
-    }
+    },
+    "errorBatchRequired": "Batch number is required.",
+    "errorExpiryRequired": "Expiry date is required.",
+    "errorExpiryInvalid": "Invalid date format.",
+    "errorExpiryPast": "Expiry date cannot be in the past."
 }

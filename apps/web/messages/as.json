@@ -958,5 +958,9 @@
         "loading": "ৰেকৰ্ডসমূহ লোড হৈ আছে...",
         "noPrescriptions": "কোনো প্ৰেছক্ৰিপচন পোৱা নগ’ল।",
         "failedToLoad": "ৰেকৰ্ডসমূহ লোড কৰিবলৈ ব্যৰ্থ হৈছে"
-    }
+    },
+    "errorBatchRequired": "Batch number is required.",
+    "errorExpiryRequired": "Expiry date is required.",
+    "errorExpiryInvalid": "Invalid date format.",
+    "errorExpiryPast": "Expiry date cannot be in the past."
 }

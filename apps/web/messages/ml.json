@@ -895,5 +895,9 @@
         "loading": "റെക്കോർഡുകൾ ലോഡ് ചെയ്യുന്നു...",
         "noPrescriptions": "പ്രിസ്ക്രിപ്ഷനുകളൊന്നും കണ്ടെത്തിയില്ല.",
         "failedToLoad": "റെക്കോർഡുകൾ ലോഡ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു"
-    }
+    },
+    "errorBatchRequired": "Batch number is required.",
+    "errorExpiryRequired": "Expiry date is required.",
+    "errorExpiryInvalid": "Invalid date format.",
+    "errorExpiryPast": "Expiry date cannot be in the past."
 }

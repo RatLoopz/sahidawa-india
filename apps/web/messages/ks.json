@@ -892,5 +892,9 @@
         "loading": "ریکارڈ لوڈ گژھان...",
         "noPrescriptions": "کانہہ نسخہ آو نہ لبھنہ۔",
         "failedToLoad": "ریکارڈ لوڈ کرنے میں ناکام"
-    }
+    },
+    "errorBatchRequired": "Batch number is required.",
+    "errorExpiryRequired": "Expiry date is required.",
+    "errorExpiryInvalid": "Invalid date format.",
+    "errorExpiryPast": "Expiry date cannot be in the past."
 }
