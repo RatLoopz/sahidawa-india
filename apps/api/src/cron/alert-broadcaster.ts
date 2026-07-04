@@ -321,6 +321,22 @@ export async function broadcastDrugAlerts(): Promise<void> {
         for (const alert of alerts) {
             logger.info(`Broadcasting CDSCO drug recall: ${alert.reported_brand_name}`);
 
+            // MARK AS BROADCASTED BEFORE SENDING
+            const { error: markError } = await supabase
+                .from("drug_alerts")
+                .update({ broadcasted: true })
+                .eq("id", alert.id);
+
+            if (markError) {
+                logger.error({
+                    message:
+                        "Failed to mark drug alert as broadcasted, skipping send to avoid duplicate delivery on next tick",
+                    error: markError,
+                    alertId: alert.id,
+                });
+                continue;
+            }
+
             let from = 0;
             let to = PAGE_SIZE - 1;
             let hasMore = true;
@@ -367,8 +383,6 @@ export async function broadcastDrugAlerts(): Promise<void> {
                     to += PAGE_SIZE;
                 }
             }
-
-            await supabase.from("drug_alerts").update({ broadcasted: true }).eq("id", alert.id);
         }
     } catch (err) {
         logger.error({ message: "Error in broadcastDrugAlerts", error: err });
