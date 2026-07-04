@@ -61,6 +61,7 @@ export async function linkABHA(
 
 export async function verifyABHAOtp(
     payload: {
+        abhaAddress: string;
         txnId: string;
         otp: string;
     },
@@ -88,6 +89,35 @@ export async function verifyABHAOtp(
     }
 
     return res.json() as Promise<ABHAVerifyResponse>;
+}
+
+// ─── Status ───────────────────────────────────────────────────────────────────
+
+export interface ABHAStatusResponse {
+    isLinked: boolean;
+    abhaAddress?: string;
+}
+
+export async function getABHAStatus(
+    accessToken?: string,
+    signal?: AbortSignal
+): Promise<ABHAStatusResponse> {
+    const res = await fetchWithRetry(`${API_BASE}/api/v1/abha/status`, {
+        method: "GET",
+        headers: {
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        credentials: "include",
+        timeout: 10000,
+        signal,
+    });
+
+    if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? "Failed to get ABHA status");
+    }
+
+    return res.json() as Promise<ABHAStatusResponse>;
 }
 
 // ─── Get Prescriptions ────────────────────────────────────────────────────────
