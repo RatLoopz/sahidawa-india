@@ -962,5 +962,26 @@
     "errorBatchRequired": "Batch number is required.",
     "errorExpiryRequired": "Expiry date is required.",
     "errorExpiryInvalid": "Invalid date format.",
-    "errorExpiryPast": "Expiry date cannot be in the past."
+    "errorExpiryPast": "Expiry date cannot be in the past.",
+    "Profile": {
+        "backToHome": "ঘৰলৈ উভতি যাওক",
+        "title": "আপোনাৰ প্ৰ'ফাইল",
+        "subtitle": "আপোনাৰ একাউণ্ট আৰু ঔষধ কাৰ্যকলাপ পৰিচালনা কৰক।",
+        "checkingStatus": "একাউণ্টৰ অৱস্থা পৰীক্ষা কৰা হৈছে",
+        "guestUser": "অতিথি ব্যৱহাৰকাৰী",
+        "signedInUser": "ছাইন-ইন ব্যৱহাৰকাৰী",
+        "authenticatedAccount": "প্ৰমাণীকৃত একাউণ্ট",
+        "readingSession": "আপোনাৰ স্থানীয় ছেশ্বন পঢ়া হৈছে",
+        "noAccountConnected": "কোনো একাউণ্ট সংযুক্ত নাই",
+        "errorTitle": "প্ৰ'ফাইল ল'ড কৰাত విఫলহল",
+        "errorDescription": "আমি আপোনাৰ ছেশ্বন পঢ়িব পৰা নাই। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক বা ছাইন ইন কৰক।",
+        "retry": "পুনৰ চেষ্টা কৰক",
+        "signIn": "ছাইন ইন কৰক",
+        "signInRegister": "ছাইন ইন / পঞ্জীয়ন কৰক",
+        "signOut": "ছাইন আউট কৰক",
+        "abhaSetup": "ABHA ছেটআপ",
+        "abhaRecords": "ABHA ৰেকৰ্ড",
+        "notificationSettings": "জাননী ছেটিংছ",
+        "privacySecurity": "গোপনীয়তা আৰু সুৰক্ষা"
+    }
 }

@@ -971,5 +971,26 @@
     "errorBatchRequired": "Batch number is required.",
     "errorExpiryRequired": "Expiry date is required.",
     "errorExpiryInvalid": "Invalid date format.",
-    "errorExpiryPast": "Expiry date cannot be in the past."
+    "errorExpiryPast": "Expiry date cannot be in the past.",
+    "Profile": {
+        "backToHome": "હોમ પર પાછા જાઓ",
+        "title": "તમારી પ્રોફાઇલ",
+        "subtitle": "તમારા ખાતા અને દવા પ્રવૃત્તિનું સંચાલન કરો.",
+        "checkingStatus": "ખાતાની સ્થિતિ તપાસાઈ રહી છે",
+        "guestUser": "અતિથિ વપરાશકર્તા",
+        "signedInUser": "સાઇન-ઇન વપરાશકર્તા",
+        "authenticatedAccount": "પ્રમાણિત ખાતું",
+        "readingSession": "તમારું સ્થાનિક સત્ર વાંચવામાં આવી રહ્યું છે",
+        "noAccountConnected": "કોઈ ખાતું જોડાયેલું નથી",
+        "errorTitle": "પ્રોફાઇલ લોડ કરવામાં નિષ્ફળ",
+        "errorDescription": "અમે તમારું સત્ર વાંચી શક્યા નહીં. કૃપા કરીને ફરી પ્રયાસ કરો અથવા સાઇન ઇન કરો.",
+        "retry": "ફરી પ્રયાસ કરો",
+        "signIn": "સાઇન ઇન કરો",
+        "signInRegister": "સાઇન ઇન / નોંધણી કરો",
+        "signOut": "સાઇન આઉટ કરો",
+        "abhaSetup": "ABHA સેટઅપ",
+        "abhaRecords": "ABHA રેકોર્ડ્સ",
+        "notificationSettings": "સૂચના સેટિંગ્સ",
+        "privacySecurity": "ગોપનીયતા અને સુરક્ષા"
+    }
 }

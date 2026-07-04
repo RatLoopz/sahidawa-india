@@ -1008,5 +1008,26 @@
     "errorBatchRequired": "Batch number is required.",
     "errorExpiryRequired": "Expiry date is required.",
     "errorExpiryInvalid": "Invalid date format.",
-    "errorExpiryPast": "Expiry date cannot be in the past."
+    "errorExpiryPast": "Expiry date cannot be in the past.",
+    "Profile": {
+        "backToHome": "घरा परत वचात",
+        "title": "तुमचो प्रोफायल",
+        "subtitle": "तुमचें खातें आनी वखदा हालचालीचें संचालन करात.",
+        "checkingStatus": "खात्याची स्थिती तपासली वता",
+        "guestUser": "पावणो वापरपी",
+        "signedInUser": "साइन-इन वापरपी",
+        "authenticatedAccount": "प्रमाणित खातें",
+        "readingSession": "तुमचें स्थानीय सत्र वाचला वता",
+        "noAccountConnected": "कोणेंच खातें जोडूंक ना",
+        "errorTitle": "प्रोफायल लोड करपाक अपेस",
+        "errorDescription": "आमकां तुमचें सत्र वाचूंक जालें ना. उपरांत परत यत्न करात वा साइन इन करात.",
+        "retry": "परत यत्न करात",
+        "signIn": "साइन इन करात",
+        "signInRegister": "साइन इन / नोंदणी करात",
+        "signOut": "साइन आवुट करात",
+        "abhaSetup": "ABHA सेटअप",
+        "abhaRecords": "ABHA नोंदी",
+        "notificationSettings": "सूचोवणी सेटिंग्ज",
+        "privacySecurity": "खासगीपण आनी सुरक्षा"
+    }
 }

@@ -893,5 +893,26 @@
     "errorBatchRequired": "Batch number is required.",
     "errorExpiryRequired": "Expiry date is required.",
     "errorExpiryInvalid": "Invalid date format.",
-    "errorExpiryPast": "Expiry date cannot be in the past."
+    "errorExpiryPast": "Expiry date cannot be in the past.",
+    "Profile": {
+        "backToHome": "ہوم پر واپس جائیں",
+        "title": "آپ کا پروفائل",
+        "subtitle": "اپنے اکاؤنٹ اور دوا کی سرگرمی کا نظم کریں۔",
+        "checkingStatus": "اکاؤنٹ کی صورتحال چیک کی جا رہی ہے",
+        "guestUser": "مہمان صارف",
+        "signedInUser": "سائن ان صارف",
+        "authenticatedAccount": "تصدیق شدہ اکاؤنٹ",
+        "readingSession": "آپ کا مقامی سیشن پڑھا جا رہا ہے",
+        "noAccountConnected": "کوئی اکاؤنٹ منسلک نہیں ہے",
+        "errorTitle": "پروفائل لوڈ کرنے میں ناکامی",
+        "errorDescription": "ہم آپ کا سیشن نہیں پڑھ سکے۔ براہ کرم دوبارہ کوشش کریں یا سائن ان کریں۔",
+        "retry": "دوبارہ کوشش کریں",
+        "signIn": "سائن ان کریں",
+        "signInRegister": "سائن ان / رجسٹر کریں",
+        "signOut": "سائن آؤٹ کریں",
+        "abhaSetup": "ABHA سیٹ اپ",
+        "abhaRecords": "ABHA ریکارڈز",
+        "notificationSettings": "اطلاعی ترتیبات",
+        "privacySecurity": "رازداری اور تحفظ"
+    }
 }

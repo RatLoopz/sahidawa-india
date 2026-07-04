@@ -956,5 +956,26 @@
     "errorBatchRequired": "Batch number is required.",
     "errorExpiryRequired": "Expiry date is required.",
     "errorExpiryInvalid": "Invalid date format.",
-    "errorExpiryPast": "Expiry date cannot be in the past."
+    "errorExpiryPast": "Expiry date cannot be in the past.",
+    "Profile": {
+        "backToHome": "ಮುಖಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ",
+        "title": "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್",
+        "subtitle": "ನಿಮ್ಮ ಖಾತೆ ಮತ್ತು ಔಷಧಿ ಚಟುವಟಿಕೆಯನ್ನು ನಿರ್ವಹಿಸಿ.",
+        "checkingStatus": "ಖಾತೆ ಸ್ಥಿತಿಯನ್ನು ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ",
+        "guestUser": "ಅತಿಥಿ ಬಳಕೆದಾರ",
+        "signedInUser": "ಸೈನ್-ಇನ್ ಬಳಕೆದಾರ",
+        "authenticatedAccount": "ದೃಢೀಕರಿಸಿದ ಖಾತೆ",
+        "readingSession": "ನಿಮ್ಮ ಸ್ಥಳೀಯ ಅಧಿವೇಶನವನ್ನು ಓದಲಾಗುತ್ತಿದೆ",
+        "noAccountConnected": "ಯಾವುದೇ ಖಾತೆ ಸಂಪರ್ಕಗೊಂಡಿಲ್ಲ",
+        "errorTitle": "ಪ್ರೊಫೈಲ್ ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ",
+        "errorDescription": "ನಿಮ್ಮ ಅಧಿವೇಶನವನ್ನು ಓದಲು ನಮಗೆ ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ಸೈನ್ ಇನ್ ಮಾಡಿ.",
+        "retry": "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
+        "signIn": "ಸೈನ್ ಇನ್ ಮಾಡಿ",
+        "signInRegister": "ಸೈನ್ ಇನ್ / ನೋಂದಣಿ ಮಾಡಿ",
+        "signOut": "ಸೈನ್ ಔಟ್ ಮಾಡಿ",
+        "abhaSetup": "ABHA ಸೆಟಪ್",
+        "abhaRecords": "ABHA ದಾಖಲೆಗಳು",
+        "notificationSettings": "ಅಧಿಸೂಚನೆ ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+        "privacySecurity": "ಗೌಪ್ಯತೆ ಮತ್ತು ಭದ್ರತೆ"
+    }
 }

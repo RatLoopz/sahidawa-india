@@ -956,5 +956,26 @@
     "errorBatchRequired": "Batch number is required.",
     "errorExpiryRequired": "Expiry date is required.",
     "errorExpiryInvalid": "Invalid date format.",
-    "errorExpiryPast": "Expiry date cannot be in the past."
+    "errorExpiryPast": "Expiry date cannot be in the past.",
+    "Profile": {
+        "backToHome": "হোমে ফিরে যান",
+        "title": "আপনার প্রোফাইল",
+        "subtitle": "আপনার অ্যাকাউন্ট এবং ওষুধ কার্যকলাপ পরিচালনা করুন।",
+        "checkingStatus": "অ্যাকাউন্টের অবস্থা যাচাই করা হচ্ছে",
+        "guestUser": "অতিথি ব্যবহারকারী",
+        "signedInUser": "সাইন-ইন ব্যবহারকারী",
+        "authenticatedAccount": "প্রমাণিত অ্যাকাউন্ট",
+        "readingSession": "আপনার স্থানীয় সেশন পড়া হচ্ছে",
+        "noAccountConnected": "কোনো অ্যাকাউন্ট সংযুক্ত নেই",
+        "errorTitle": "প্রোফাইল লোড করতে ব্যর্থ",
+        "errorDescription": "আমরা আপনার সেশন পড়তে পারিনি। অনুগ্রহ করে আবার চেষ্টা করুন বা সাইন ইন করুন।",
+        "retry": "আবার চেষ্টা করুন",
+        "signIn": "সাইন ইন করুন",
+        "signInRegister": "সাইন ইন / নিবন্ধন করুন",
+        "signOut": "সাইন আউট করুন",
+        "abhaSetup": "ABHA সেটআপ",
+        "abhaRecords": "ABHA রেকর্ড",
+        "notificationSettings": "বিজ্ঞপ্তি সেটিংস",
+        "privacySecurity": "গোপনীয়তা ও নিরাপত্তা"
+    }
 }

@@ -1097,5 +1097,26 @@
     "errorBatchRequired": "Batch number is required.",
     "errorExpiryRequired": "Expiry date is required.",
     "errorExpiryInvalid": "Invalid date format.",
-    "errorExpiryPast": "Expiry date cannot be in the past."
+    "errorExpiryPast": "Expiry date cannot be in the past.",
+    "Profile": {
+        "backToHome": "য়ুমদা হন্না চৎলু",
+        "title": "নহাক্কী প্রোফাইল",
+        "subtitle": "নহাক্কী একাউন্ট অমসুং শীবা য়াওবা থবক মথৌ পাংথোকউ।",
+        "checkingStatus": "একাউন্টকী মওং য়েংলি",
+        "guestUser": "লাল্লবা শিজিন্নবা মী",
+        "signedInUser": "সাইন-ইন তৌবা শিজিন্নবা মী",
+        "authenticatedAccount": "অচুম্বা একাউন্ট",
+        "readingSession": "নহাক্কী মফমগী সেসন পারি",
+        "noAccountConnected": "একাউন্ট অমত্তা মরি য়াওদে",
+        "errorTitle": "প্রোফাইল লোড তৌবা মাংখ্রে",
+        "errorDescription": "ঐখোয়না নহাক্কী সেসন পারবা ঙমদ্রে। চানবিয়ু নত্রগা সাইন ইন তৌবিয়ু।",
+        "retry": "আমুক হন্না হোৎনবিয়ু",
+        "signIn": "সাইন ইন তৌবিয়ু",
+        "signInRegister": "সাইন ইন / রেজিস্টার তৌবিয়ু",
+        "signOut": "সাইন আউট তৌবিয়ু",
+        "abhaSetup": "ABHA সেটআপ",
+        "abhaRecords": "ABHA রেকর্ড",
+        "notificationSettings": "নোটিফিকেসন সেটিং",
+        "privacySecurity": "ৱাফম অমসুং সেকురిति"
+    }
 }

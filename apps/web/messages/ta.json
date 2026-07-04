@@ -956,5 +956,26 @@
     "errorBatchRequired": "Batch number is required.",
     "errorExpiryRequired": "Expiry date is required.",
     "errorExpiryInvalid": "Invalid date format.",
-    "errorExpiryPast": "Expiry date cannot be in the past."
+    "errorExpiryPast": "Expiry date cannot be in the past.",
+    "Profile": {
+        "backToHome": "முகப்புக்குத் திரும்பு",
+        "title": "உங்கள் சுயவிவரம்",
+        "subtitle": "உங்கள் கணக்கு மற்றும் மருந்து செயல்பாட்டை நிர்வகிக்கவும்.",
+        "checkingStatus": "கணக்கு நிலை சரிபார்க்கப்படுகிறது",
+        "guestUser": "விருந்தினர் பயனர்",
+        "signedInUser": "உள்நுழைந்த பயனர்",
+        "authenticatedAccount": "அங்கீகரிக்கப்பட்ட கணக்கு",
+        "readingSession": "உங்கள் உள்ளூர் அமர்வு படிக்கப்படுகிறது",
+        "noAccountConnected": "எந்த கணக்கும் இணைக்கப்படவில்லை",
+        "errorTitle": "சுயவிவரத்தை ஏற்ற முடியவில்லை",
+        "errorDescription": "உங்கள் அமர்வைப் படிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும் அல்லது உள்நுழையவும்.",
+        "retry": "மீண்டும் முயற்சிக்கவும்",
+        "signIn": "உள்நுழைக",
+        "signInRegister": "உள்நுழைக / பதிவு செய்க",
+        "signOut": "வெளியேறு",
+        "abhaSetup": "ABHA அமைப்பு",
+        "abhaRecords": "ABHA பதிவுகள்",
+        "notificationSettings": "அறிவிப்பு அமைப்புகள்",
+        "privacySecurity": "தனியுரிமை மற்றும் பாதுகாப்பு"
+    }
 }

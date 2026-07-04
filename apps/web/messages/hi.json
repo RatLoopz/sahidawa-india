@@ -1244,5 +1244,26 @@
     "errorBatchRequired": "Batch number is required.",
     "errorExpiryRequired": "Expiry date is required.",
     "errorExpiryInvalid": "Invalid date format.",
-    "errorExpiryPast": "Expiry date cannot be in the past."
+    "errorExpiryPast": "Expiry date cannot be in the past.",
+    "Profile": {
+        "backToHome": "होम पर वापस जाएं",
+        "title": "आपकी प्रोफ़ाइल",
+        "subtitle": "अपने खाते और दवा गतिविधि को प्रबंधित करें।",
+        "checkingStatus": "खाते की स्थिति जाँची जा रही है",
+        "guestUser": "अतिथि उपयोगकर्ता",
+        "signedInUser": "साइन-इन उपयोगकर्ता",
+        "authenticatedAccount": "प्रमाणित खाता",
+        "readingSession": "आपका स्थानीय सत्र पढ़ा जा रहा है",
+        "noAccountConnected": "कोई खाता जुड़ा नहीं है",
+        "errorTitle": "प्रोफ़ाइल लोड करने में विफल",
+        "errorDescription": "हम आपका सत्र नहीं पढ़ पाए। कृपया पुनः प्रयास करें या साइन इन करें।",
+        "retry": "पुनः प्रयास करें",
+        "signIn": "साइन इन करें",
+        "signInRegister": "साइन इन / रजिस्टर करें",
+        "signOut": "साइन आउट करें",
+        "abhaSetup": "ABHA सेटअप",
+        "abhaRecords": "ABHA रिकॉर्ड्स",
+        "notificationSettings": "सूचना सेटिंग्स",
+        "privacySecurity": "गोपनीयता और सुरक्षा"
+    }
 }

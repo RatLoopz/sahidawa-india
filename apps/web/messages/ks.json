@@ -896,5 +896,26 @@
     "errorBatchRequired": "Batch number is required.",
     "errorExpiryRequired": "Expiry date is required.",
     "errorExpiryInvalid": "Invalid date format.",
-    "errorExpiryPast": "Expiry date cannot be in the past."
+    "errorExpiryPast": "Expiry date cannot be in the past.",
+    "Profile": {
+        "backToHome": "گَرِس واپس گَژھِو",
+        "title": "توٚہند پروفائل",
+        "subtitle": "پننہٕ اکاؤنٹ تہٕ دوہٕ سرگرمی منظم کریو۔",
+        "checkingStatus": "اکاؤنٹ حیثیت چیک کرنہٕ گژھان",
+        "guestUser": "مہمان استعمال کار",
+        "signedInUser": "سائن اِن استعمال کار",
+        "authenticatedAccount": "تصدیق شُدہ اکاؤنٹ",
+        "readingSession": "توٚہند مقامی سیشن پرنہٕ گژھان",
+        "noAccountConnected": "کہین اکاؤنٹ نہٕ منسلک",
+        "errorTitle": "پروفائل لوڈ کرنس منز ناکام",
+        "errorDescription": "اسہٕ نہٕ ہیک توٚہند سیشن پرِتھ۔ مہربانی کرِتھ دوبارہ کوشش کریو یا سائن اِن کریو۔",
+        "retry": "دوبارہ کوشش کریو",
+        "signIn": "سائن اِن کریو",
+        "signInRegister": "سائن اِن / رجسٹر کریو",
+        "signOut": "سائن آؤٹ کریو",
+        "abhaSetup": "ABHA سیٹ اپ",
+        "abhaRecords": "ABHA ریکارڈ",
+        "notificationSettings": "اطلاعی ترتیٖباں",
+        "privacySecurity": "رازداری تہٕ حفاظت"
+    }
 }
