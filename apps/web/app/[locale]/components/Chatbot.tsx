@@ -182,7 +182,7 @@ export default function Chatbot() {
     return (
         <div className={getChatbotPositionClasses({ pathname, isOpen })}>
             <div
-            ref={chatbotRef}
+                ref={chatbotRef}
                 className={`${getChatbotPanelClasses({ pathname })} ${
                     isOpen
                         ? "pointer-events-auto scale-100 opacity-100"
@@ -298,9 +298,9 @@ export default function Chatbot() {
 
                 <button
                     onClick={(e) => {
-    e.stopPropagation();
-    setIsOpen(!isOpen);
-}}
+                        e.stopPropagation();
+                        setIsOpen(!isOpen);
+                    }}
                     className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full bg-green-600 text-white shadow-[0_8px_20px_rgba(22,163,74,0.3)] transition-all hover:scale-105 hover:shadow-[0_8px_25px_rgba(22,163,74,0.4)] active:scale-95 dark:bg-green-700 dark:hover:bg-green-800"
                     aria-label={isOpen ? tA11y("closeAiChat") : tA11y("openAiChat")}
                 >
