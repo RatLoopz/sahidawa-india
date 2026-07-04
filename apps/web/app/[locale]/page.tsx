@@ -1,5 +1,7 @@
 "use client";
 
+// TODO: Add offline queue logic
+
 import { MedicineSafetyPanel } from "@/components/medicine";
 import React, { useEffect, useState } from "react";
 import {
