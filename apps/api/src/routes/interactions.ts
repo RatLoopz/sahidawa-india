@@ -5,6 +5,7 @@ import logger from "../utils/logger";
 import { escapePostgrest } from "../utils/db";
 import { interactionCheckLimiter } from "../middleware/rateLimit";
 import zlib from "zlib";
+import { MAX_INTERACTION_MEDICINES } from "@sahidawa/shared";
 
 const router = Router();
 
@@ -26,7 +27,10 @@ const checkSchema = z.object({
     medicines: z
         .array(z.string())
         .min(2, "At least two medicines are required to check interactions")
-        .max(20, "A maximum of 20 medicines can be checked at once"),
+        .max(
+            MAX_INTERACTION_MEDICINES,
+            `A maximum of ${MAX_INTERACTION_MEDICINES} medicines can be checked at once`
+        ),
 });
 
 export function buildMedicineResolutionFilter(input: string): string {
@@ -299,8 +303,10 @@ router.get("/", interactionCheckLimiter, async (req: Request, res: Response) => 
         return;
     }
 
-    if (ids.length > 20) {
-        res.status(400).json({ error: "At most 20 medicine ids are allowed" });
+    if (ids.length > MAX_INTERACTION_MEDICINES) {
+        res.status(400).json({
+            error: `At most ${MAX_INTERACTION_MEDICINES} medicine ids are allowed`,
+        });
         return;
     }
 

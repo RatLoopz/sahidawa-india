@@ -12,6 +12,7 @@ import { cacheMiddleware } from "../middleware/cache";
 import multer from "multer";
 import { buildOrConditions } from "../utils/db";
 import Papa from "papaparse";
+import { MAX_BULK_UPLOAD_ITEMS } from "@sahidawa/shared";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -1132,9 +1133,9 @@ router.post(
                 return;
             }
 
-            if (totalRows > 500) {
+            if (totalRows > MAX_BULK_UPLOAD_ITEMS) {
                 res.status(400).json({
-                    error: "Bulk upload exceeds the maximum limit of 500 items per request.",
+                    error: `Bulk upload exceeds the maximum limit of ${MAX_BULK_UPLOAD_ITEMS} items per request.`,
                 });
                 return;
             }
@@ -1361,9 +1362,9 @@ router.post(
                 return;
             }
 
-            if (totalRows > 500) {
+            if (totalRows > MAX_BULK_UPLOAD_ITEMS) {
                 res.status(400).json({
-                    error: "Bulk upload exceeds the maximum limit of 500 items per request.",
+                    error: `Bulk upload exceeds the maximum limit of ${MAX_BULK_UPLOAD_ITEMS} items per request.`,
                 });
                 return;
             }

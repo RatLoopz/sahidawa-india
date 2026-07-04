@@ -1,0 +1,14 @@
+{
+    "name": "@sahidawa/shared",
+    "version": "1.0.0",
+    "private": true,
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "dev": "tsc -p tsconfig.json --watch"
+    },
+    "devDependencies": {
+        "typescript": "^6.0.3"
+    }
+}
