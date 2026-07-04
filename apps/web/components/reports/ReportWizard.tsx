@@ -1166,15 +1166,10 @@ export default function ReportWizard() {
                                                 <>
                                                     Submit Report <Icon.Send />
                                                 </>
-                                            )}
-                                        </button>
-                                    )}
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </div>
-            </form>
-        </FormProvider>
+)}
+            </button>
+        </div>
+    </form>
+</FormProvider>
     );
 }
