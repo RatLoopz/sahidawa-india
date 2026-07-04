@@ -853,3 +853,4 @@
 | [#2980](https://github.com/RatLoopz/sahidawa-india/pull/2980) | 2026-07-02 | Frontend | 8 | @Shreya-nipunge | [View Doc](devtrack/2026-07/PR-2980-fix-2974-handle-child-vaccine-sync-failures.md) |
 | [#2986](https://github.com/RatLoopz/sahidawa-india/pull/2986) | 2026-07-02 | Backend | 9 | @PremSahith | [View Doc](devtrack/2026-07/PR-2986-fix-performance-batch-generic-name-resolution-in-i.md) |
 | [#2991](https://github.com/RatLoopz/sahidawa-india/pull/2991) | 2026-07-02 | i18n | 62 | @naborajs | [View Doc](devtrack/2026-07/PR-2991-feat-i18n-localize-abha-records-fix-regional-trans.md) / [ADR](devtrack/adr/ADR-041-feat-i18n-localize-abha-records-fix-regional-trans.md) |
+| [#3060](https://github.com/RatLoopz/sahidawa-india/pull/3060) | 2026-07-04 | Backend | 17 | @panditshubham766-dotcom | [View Doc](devtrack/2026-07/PR-3060-fix-security-replace-static-pbkdf2-salt-with-per-k.md) / [ADR](devtrack/adr/ADR-042-fix-security-replace-static-pbkdf2-salt-with-per-k.md) |
