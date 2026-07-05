@@ -49,74 +49,79 @@ export async function syncDistrictAlertTallies(): Promise<void> {
             }
         }
 
-        // 3. Upsert into district_alerts
-        let synced = 0;
-        let errors = 0;
+        // 3. Bulk Upsert into district_alerts
+
+        // Fetch all existing active alerts upfront to map previous_alert_level
+        const { data: allAlerts } = await supabase
+            .from("district_alerts")
+            .select("id, district, medicine_name, alert_level")
+            .eq("is_active", true);
+
+        const existingAlertsMap = new Map<string, any>();
+        if (allAlerts) {
+            for (const alert of allAlerts) {
+                existingAlertsMap.set(`${alert.district}::${alert.medicine_name}`, alert);
+            }
+        }
+
+        const upsertPayload = [];
+        const timestamp = new Date().toISOString();
 
         for (const { district, medicine_name, count } of tally.values()) {
             const alert_level = computeAlertLevel(count);
+            const key = `${district}::${medicine_name}`;
+            const previous_alert_level = existingAlertsMap.get(key)?.alert_level ?? null;
 
-            // Fetch existing alert level for audit trail
-            const { data: existing } = await supabase
-                .from("district_alerts")
-                .select("alert_level")
-                .eq("district", district)
-                .eq("medicine_name", medicine_name)
-                .maybeSingle();
+            upsertPayload.push({
+                district,
+                medicine_name,
+                alert_level,
+                previous_alert_level,
+                is_active: true,
+                updated_at: timestamp,
+            });
+        }
 
-            const previous_alert_level = existing?.alert_level ?? null;
+        let synced = 0;
+        let errors = 0;
 
+        if (upsertPayload.length > 0) {
             const { error: upsertError } = await supabase
                 .from("district_alerts")
-                .upsert(
-                    {
-                        district,
-                        medicine_name,
-                        alert_level,
-                        previous_alert_level,
-                        is_active: true,
-                        updated_at: new Date().toISOString(),
-                    },
-                    { onConflict: "district,medicine_name" }
-                );
+                .upsert(upsertPayload, { onConflict: "district,medicine_name" });
 
             if (upsertError) {
-                logger.error("District alert sync: upsert failed", {
-                    district,
-                    medicine_name,
+                logger.error("District alert sync: bulk upsert failed", {
                     error: upsertError.message,
                 });
-                errors += 1;
+                errors += upsertPayload.length;
             } else {
-                synced += 1;
+                synced += upsertPayload.length;
             }
         }
 
         // 4. Deactivate stale district_alerts with no remaining verified reports
-        const activeKeys = Array.from(tally.keys()).map((key) => {
-            const [district, medicine_name] = key.split("::");
-            return { district, medicine_name };
-        });
-
-        const { data: allAlerts } = await supabase
-            .from("district_alerts")
-            .select("id, district, medicine_name")
-            .eq("is_active", true);
+        const staleIds = [];
 
         if (allAlerts) {
             for (const alert of allAlerts) {
-                const stillActive = activeKeys.some(
-                    (k) =>
-                        k.district === alert.district &&
-                        k.medicine_name === alert.medicine_name
-                );
-
+                const stillActive = tally.has(`${alert.district}::${alert.medicine_name}`);
                 if (!stillActive) {
-                    await supabase
-                        .from("district_alerts")
-                        .update({ is_active: false, updated_at: new Date().toISOString() })
-                        .eq("id", alert.id);
+                    staleIds.push(alert.id);
                 }
+            }
+        }
+
+        if (staleIds.length > 0) {
+            const { error: updateError } = await supabase
+                .from("district_alerts")
+                .update({ is_active: false, updated_at: timestamp })
+                .in("id", staleIds);
+
+            if (updateError) {
+                logger.error("District alert sync: bulk deactivate failed", {
+                    error: updateError.message,
+                });
             }
         }
 

@@ -12,7 +12,10 @@ import multer from "multer";
 import { buildOrConditions } from "../utils/db";
 import Papa from "papaparse";
 
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB limit
+});
 
 const router = Router();
 
