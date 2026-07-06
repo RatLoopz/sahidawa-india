@@ -864,3 +864,4 @@
 | [#3186](https://github.com/RatLoopz/sahidawa-india/pull/3186) | 2026-07-04 | Frontend | 69 | @ANISHA-RAWAT | [View Doc](devtrack/2026-07/PR-3186-refactor-unify-shared-constants.md) / [ADR](devtrack/adr/ADR-045-refactor-unify-shared-constants.md) |
 | [#3204](https://github.com/RatLoopz/sahidawa-india/pull/3204) | 2026-07-04 | Backend | 9 | @jamunatg2006-sys | [View Doc](devtrack/2026-07/PR-3204-feat-webhook-add-real-time-medicine-cache-invalida.md) |
 | [#3006](https://github.com/RatLoopz/sahidawa-india/pull/3006) | 2026-07-04 | Frontend | 25 | @CopperFlame14 | [View Doc](devtrack/2026-07/PR-3006-adding-snooze-functionality-to-tracker.md) / [ADR](devtrack/adr/ADR-046-adding-snooze-functionality-to-tracker.md) |
+| [#3222](https://github.com/RatLoopz/sahidawa-india/pull/3222) | 2026-07-06 | Frontend | 6 | @harshitavaishnav7878 | [View Doc](devtrack/2026-07/PR-3222-feat-cache-next-js-rsc-payloads-for-locale-switche.md) |
