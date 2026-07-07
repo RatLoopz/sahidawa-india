@@ -548,7 +548,7 @@ export default function ExpiryTrackerPage() {
                 isOpen={confirmDialog.isOpen && confirmDialog.type === "single"}
                 title={t("deleteConfirmTitle") || "Delete Medicine?"}
                 description={
-                    t("deleteConfirmMessage") ||
+                    t("deleteConfirmMessage", { medicine: confirmDialog.medicineName ?? "" }) ||
                     `This will permanently remove "${confirmDialog.medicineName}" from your tracked medicines. This action cannot be undone.`
                 }
                 confirmText={t("deleteMedicine") || "Delete"}
@@ -564,7 +564,7 @@ export default function ExpiryTrackerPage() {
                 isOpen={confirmDialog.isOpen && confirmDialog.type === "bulk"}
                 title={t("bulkDeleteConfirmTitle") || "Delete Multiple Medicines?"}
                 description={
-                    t("bulkDeleteConfirmMessage") ||
+                    t("bulkDeleteConfirmMessage", { count: confirmDialog.count ?? 0 }) ||
                     `This will permanently remove ${confirmDialog.count} medicine(s) from your tracked list. This action cannot be undone.`
                 }
                 confirmText={t("deleteMedicine") || "Delete All"}

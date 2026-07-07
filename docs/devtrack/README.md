@@ -866,3 +866,4 @@
 | [#3006](https://github.com/RatLoopz/sahidawa-india/pull/3006) | 2026-07-04 | Frontend | 25 | @CopperFlame14 | [View Doc](devtrack/2026-07/PR-3006-adding-snooze-functionality-to-tracker.md) / [ADR](devtrack/adr/ADR-046-adding-snooze-functionality-to-tracker.md) |
 | [#3297](https://github.com/RatLoopz/sahidawa-india/pull/3297) | 2026-07-07 | ML/AI | 8 | @hrx01-dev | [View Doc](devtrack/2026-07/PR-3297-feat-implemented-idempotent-alert-queue-for-cdsco-.md) |
 | [#3254](https://github.com/RatLoopz/sahidawa-india/pull/3254) | 2026-07-07 | Frontend | 5 | @pushtikadia | [View Doc](devtrack/2026-07/PR-3254-feat-predictive-map-loading.md) |
+| [#3317](https://github.com/RatLoopz/sahidawa-india/pull/3317) | 2026-07-07 | Backend | 9 | @Avinash-sdbegin | [View Doc](devtrack/2026-07/PR-3317-fix-api-implement-proper-query-bypass-on-voice-ver.md) |

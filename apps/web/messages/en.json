@@ -181,7 +181,10 @@
         "features_description": "Discover all the ways SahiDawa can help you verify your medicines and stay safe.",
         "trusted_by_citizens": "Trusted by citizens",
         "voices_title": "Voices from the SahiDawa community",
-        "voices_description": "Families, pharmacists, doctors, and contributors using SahiDawa to make medicine safety easier to act on."
+        "voices_description": "Families, pharmacists, doctors, and contributors using SahiDawa to make medicine safety easier to act on.",
+        "search_input_aria": "Search for medicines, brands, or batch numbers",
+        "submit_search": "Search",
+        "clear_search": "Clear search"
     },
     "A11y": {
         "confirmClearConversation": "Confirm clear conversation",
@@ -1487,5 +1490,8 @@
         "abhaRecords": "ABHA Records",
         "notificationSettings": "Notification Settings",
         "privacySecurity": "Privacy & Security"
+    },
+    "Navbar": {
+        "logo_alt": "SahiDawa Logo"
     }
 }

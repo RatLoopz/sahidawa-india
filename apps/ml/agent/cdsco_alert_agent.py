@@ -7,6 +7,7 @@ import sys
 import sqlite3
 import hashlib
 import json
+import redis
 from io import BytesIO
 from urllib.parse import urljoin
 
@@ -24,21 +25,10 @@ API_SECRET_KEY = os.getenv("API_SECRET_KEY")
 INGEST_API_URL = API_BASE_URL + "/api/v1/alerts/ingest" if API_BASE_URL else ""
 ALERTS_API_URL = API_BASE_URL + "/api/v1/alerts" if API_BASE_URL else ""
 
-QUEUE_DB_PATH = os.path.join(os.path.dirname(__file__), 'alert_queue.db')
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+redis_client = redis.Redis.from_url(REDIS_URL, decode_responses=True)
 
-def init_db():
-    with sqlite3.connect(QUEUE_DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS pending_alerts (
-                idempotency_key TEXT PRIMARY KEY,
-                pdf_url TEXT,
-                alert_data TEXT,
-                status TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        conn.commit()
+PENDING_ALERTS_KEY = "cdsco_pending_alerts"
 
 def generate_idempotency_key(pdf_url: str, alert: dict) -> str:
     batch_number = alert.get('batch_number', 'unknown')
@@ -46,38 +36,28 @@ def generate_idempotency_key(pdf_url: str, alert: dict) -> str:
     return hashlib.sha256(raw_str.encode('utf-8')).hexdigest()
 
 def enqueue_alerts(pdf_url: str, alerts: list):
-    with sqlite3.connect(QUEUE_DB_PATH) as conn:
-        cursor = conn.cursor()
-        for alert in alerts:
-            key = generate_idempotency_key(pdf_url, alert)
-            alert_json = json.dumps(alert)
-            cursor.execute('''
-                INSERT OR IGNORE INTO pending_alerts (idempotency_key, pdf_url, alert_data, status)
-                VALUES (?, ?, ?, 'pending')
-            ''', (key, pdf_url, alert_json))
-        conn.commit()
+    mapping = {}
+    for alert in alerts:
+        key = generate_idempotency_key(pdf_url, alert)
+        mapping[key] = json.dumps(alert)
+    if mapping:
+        redis_client.hset(PENDING_ALERTS_KEY, mapping=mapping)
 
 def process_pending_queue():
-    with sqlite3.connect(QUEUE_DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT idempotency_key, alert_data FROM pending_alerts WHERE status = 'pending'")
-        rows = cursor.fetchall()
-        
+    rows = redis_client.hgetall(PENDING_ALERTS_KEY)
+    
     if not rows:
-        logging.info("No pending alerts in local queue.")
+        logging.info("No pending alerts in Redis queue.")
         return
         
-    logging.info(f"Found {len(rows)} pending alerts in local queue. Processing...")
+    logging.info(f"Found {len(rows)} pending alerts in Redis queue. Processing...")
     
-    pending_alerts_map = {row[0]: json.loads(row[1]) for row in rows}
+    pending_alerts_map = {k: json.loads(v) for k, v in rows.items()}
     
     new_alerts_map, skipped_keys = deduplicate_alerts_with_keys(pending_alerts_map)
     
     if skipped_keys:
-        with sqlite3.connect(QUEUE_DB_PATH) as conn:
-            cursor = conn.cursor()
-            cursor.executemany("UPDATE pending_alerts SET status = 'processed' WHERE idempotency_key = ?", [(k,) for k in skipped_keys])
-            conn.commit()
+        redis_client.hdel(PENDING_ALERTS_KEY, *skipped_keys)
             
     if not new_alerts_map:
         logging.info("All pending alerts were duplicates. Queue cleared.")
@@ -89,13 +69,11 @@ def process_pending_queue():
     
     if success:
         keys_to_mark = list(new_alerts_map.keys())
-        with sqlite3.connect(QUEUE_DB_PATH) as conn:
-            cursor = conn.cursor()
-            cursor.executemany("UPDATE pending_alerts SET status = 'processed' WHERE idempotency_key = ?", [(k,) for k in keys_to_mark])
-            conn.commit()
-        logging.info("Successfully marked ingested alerts as processed in local queue.")
+        if keys_to_mark:
+            redis_client.hdel(PENDING_ALERTS_KEY, *keys_to_mark)
+        logging.info("Successfully removed ingested alerts from Redis queue.")
     else:
-        logging.warning("Failed to ingest alerts. They will remain pending in the local queue for the next run.")
+        logging.warning("Failed to ingest alerts. They will remain pending in the Redis queue for the next run.")
 
 def scrape_cdsco_alerts():
     logging.info(f"Checking {CDSCO_ALERTS_URL} for new alerts...")
@@ -159,7 +137,7 @@ def process_alert_pdf(pdf_url: str):
         logging.warning("No alerts extracted from the text by LangChain.")
         return
         
-    logging.info(f"Extracted {len(alerts)} alerts. Enqueuing to local database...")
+    logging.info(f"Extracted {len(alerts)} alerts. Enqueuing to Redis database...")
     enqueue_alerts(pdf_url, alerts)
 
 def deduplicate_alerts_with_keys(pending_alerts_map: dict):
@@ -222,7 +200,6 @@ if __name__ == "__main__":
         logging.error("API_SECRET_KEY is not set in environment. Exiting.")
         sys.exit(1)
         
-    init_db()
     logging.info("Starting up. Attempting to clear pending queue before scraping new PDFs...")
     process_pending_queue()
     scrape_cdsco_alerts()
