@@ -1,5 +1,6 @@
 import { VerifyResult } from "@/lib/api";
 import { saveScanHistory } from "@/lib/db/scanHistory";
+import { syncScanHistoryWithCloud } from "@/lib/scanHistoryCloudSync";
 
 export function getScanHistoryStatus(result: VerifyResult): string {
     if (!result.verified) return "SUSPICIOUS";
@@ -22,5 +23,9 @@ export async function recordScanHistory(result: VerifyResult, fallbackBrandName?
         timestamp: Date.now(),
         medicineName: getScanHistoryMedicineName(result, fallbackBrandName),
         status: getScanHistoryStatus(result),
+    });
+
+    void syncScanHistoryWithCloud().catch(() => {
+        // Cloud sync is best-effort and must not block scan results.
     });
 }
