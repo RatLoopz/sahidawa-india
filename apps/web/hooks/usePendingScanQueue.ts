@@ -31,9 +31,26 @@ export function usePendingScanQueue() {
         const handleOnline = () => setIsSyncing(true);
         window.addEventListener("online", handleOnline);
 
+        const handleMessage = (event: MessageEvent) => {
+            if (event.data && (event.data.type === "SYNC_QUEUE_UPDATED" || event.data.type === "FLUSH_SYNC_QUEUE")) {
+                void refresh();
+                setIsSyncing(false);
+                if (event.data.type === "SYNC_QUEUE_UPDATED" && event.data.count > 0) {
+                    toast.success(t("synced", { count: event.data.count }));
+                }
+            }
+        };
+
+        if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+            navigator.serviceWorker.addEventListener("message", handleMessage);
+        }
+
         return () => {
             cleanup();
             window.removeEventListener("online", handleOnline);
+            if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+                navigator.serviceWorker.removeEventListener("message", handleMessage);
+            }
         };
     }, [refresh, t]);
 

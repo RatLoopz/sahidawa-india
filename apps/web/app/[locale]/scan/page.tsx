@@ -66,6 +66,27 @@ export default function ScanPage() {
     const [copied, setCopied] = useState(false);
     const [batchInput, setBatchInput] = useState("");
     const [isCameraActive, setIsCameraActive] = useState(false);
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const saved = window.localStorage.getItem("sahidawa_scan_camera_active");
+            if (saved !== null) {
+                setIsCameraActive(saved === "true");
+            }
+        }
+    }, []);
+
+    const isFirstCameraRender = useRef(true);
+    useEffect(() => {
+        if (isFirstCameraRender.current) {
+            isFirstCameraRender.current = false;
+            return;
+        }
+        if (typeof window !== "undefined") {
+            window.localStorage.setItem("sahidawa_scan_camera_active", String(isCameraActive));
+        }
+    }, [isCameraActive]);
+
     const [showResult, setShowResult] = useState(false);
 
     const {
