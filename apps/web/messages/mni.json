@@ -1,4 +1,137 @@
 {
+    "Report": {
+        "pageHeader": {
+            "title": "ꯍꯧꯔꯛꯄꯤ ꯀꯥꯡꯂꯣꯟ ꯔꯤꯄꯣꯔꯇ ꯇꯧꯕ",
+            "subtitle": "ꯄꯣꯕ꯭ꯂꯤꯛ ꯁꯦꯐꯇꯤ ꯐꯥꯏꯑꯦꯠ"
+        },
+        "hero": {
+            "badge": "ꯑꯦꯀꯇꯤꯚ ꯅꯤꯔꯤꯀꯁꯅ",
+            "titleLine1": "ꯁꯦꯡꯂꯨꯕ",
+            "titleLine2": "ꯃꯦꯗꯤꯁꯤꯟ ꯔꯤꯄꯣꯔꯇ ꯇꯧꯕ",
+            "description": "ꯅꯪꯒꯤ ꯆꯧꯛꯄꯤꯅꯥ ꯄꯣꯕ꯭ꯂꯤꯛ ꯍꯦꯜꯊ ꯁꯤꯟꯗꯣꯛꯅꯔꯤ꯫ ꯀꯦꯟꯅꯅꯥ, ꯀꯦꯂꯤꯌꯥꯏꯔ ꯑꯃꯁꯨꯡ ꯅꯤꯆꯠ ꯀꯨꯛꯇꯤ ꯃꯦꯗꯤꯁꯤꯟꯒꯤ ꯔꯤꯄꯣꯔꯇ ꯇꯧꯕ꯫ ꯑꯔꯤꯛ ꯔꯤꯄꯣꯔꯇꯁꯤꯡ ꯏꯟꯗꯤꯌꯥꯒꯤ ꯐꯥꯔꯃꯥꯀꯣꯚꯤꯖꯤꯂꯦꯟꯁ ꯑꯥꯐꯤꯁꯤꯔꯥꯝꯅꯥ ꯌꯦꯡꯄꯥ ꯂꯩꯔꯤ꯫"
+        },
+        "infoPanel": {
+            "quickVerify": {
+                "title": "ꯄꯨꯡꯂꯤꯟꯗꯥ ꯌꯦꯡꯕ",
+                "subtitle": "ꯑꯅꯧꯔꯕꯗꯥ ꯔꯤꯄꯣꯔꯇ ꯇꯧꯈ꯭ꯔꯥ ꯂꯩꯔꯤ꯫",
+                "placeholder": "ꯕꯦꯆ ꯅꯝꯕꯔ ꯇꯥꯟꯕ..."
+            },
+            "trustSafety": {
+                "title": "ꯂꯝꯅ ꯑꯃꯁꯨꯡ ꯁꯦꯐꯇꯤ",
+                "anonymity": {
+                    "title": "ꯑꯅꯥꯃꯤꯆꯥ ꯀꯨꯛꯆꯥꯢ",
+                    "description": "ꯅꯪꯒꯤ ꯄꯦꯔꯁꯅꯥꯜ ꯑꯩꯕꯥꯛ ꯑꯦꯟꯀ꯭ꯔꯤꯞꯇꯦꯗ ꯇꯥꯠꯂꯤ꯫"
+                },
+                "verified": {
+                    "title": "ꯐꯥꯔꯃꯥꯀꯣꯚꯤꯖꯤꯂꯦꯟꯁ ꯌꯥꯊꯪꯈ꯭ꯔꯕ",
+                    "description": "ꯑꯦꯂꯔ꯭ꯇ ꯐꯣꯟꯄꯥꯛꯄꯥ ꯆꯣꯡꯗꯥ ꯔꯤꯄꯣꯔꯇꯁꯤꯡ ꯑꯣꯐꯤꯁꯤꯑꯜ ꯗꯦꯇꯥꯕꯦꯖꯤꯁ ꯂꯣꯟ ꯌꯦꯡꯁꯤꯟꯂꯤ꯫"
+                },
+                "reviewCycle": {
+                    "title": "48-ꯊꯥꯡ ꯍꯧꯅꯥ ꯌꯥꯌꯕ",
+                    "description": "ꯒꯨꯔꯨꯠꯄꯥ ꯔꯤꯄꯣꯔꯇꯁꯤꯡ ꯈꯨꯠꯅꯔꯤ ꯑꯃꯁꯨꯡ 48 ꯊꯥꯡꯗꯥ ꯍꯧꯅꯥ ꯌꯥꯔꯤ꯫"
+                }
+            }
+        },
+        "wizard": {
+            "steps": {
+                "step1": {
+                    "title": "ꯃꯦꯗꯤꯁꯤꯟ ꯑꯔꯤꯕꯒꯤ ꯄꯔꯤꯀꯔꯥ",
+                    "description": "ꯁꯦꯡꯂꯨꯕ ꯄ꯭ꯔꯣꯗꯨꯛꯇ ꯑꯣꯏꯅꯕ"
+                },
+                "step2": {
+                    "title": "ꯐꯣꯇꯣ ꯄ꯭ꯔꯣꯚ",
+                    "description": "ꯄ꯭ꯔꯣꯚ ꯀꯥꯡꯂꯣꯟꯇ ꯁ꯭ꯄꯦꯁꯟ ꯐꯣꯇꯣ ꯑꯄꯂꯣꯗ ꯇꯧꯕ"
+                },
+                "step3": {
+                    "title": "ꯂꯩꯄꯥꯛ ꯑꯃꯁꯨꯡ ꯁꯦꯕꯃꯤꯠ",
+                    "description": "ꯄ꯭ꯔꯣꯗꯨꯛꯇ ꯀꯧꯕꯥ ꯑꯣꯏꯔꯤ?"
+                }
+            },
+            "step1": {
+                "medicineName": {
+                    "label": "ꯃꯦꯗꯤꯁꯤꯟꯒꯤ ꯅꯥꯝ",
+                    "placeholder": "ꯑꯦꯗꯥ: Augmentin 625 Duo"
+                },
+                "manufacturer": {
+                    "label": "ꯅꯤꯔꯃꯥꯇꯥ",
+                    "placeholder": "ꯑꯦꯗꯥ: Cipla Ltd."
+                },
+                "description": {
+                    "label": "ꯆꯤꯡꯊꯥꯣꯛꯀꯤ ꯄꯔꯤꯀꯔꯥ",
+                    "placeholder": "ꯑꯅꯥꯁꯥꯃꯥꯅꯕ ꯔꯦꯟꯒ, ꯒꯨꯟꯗ, ꯐꯣꯔꯃ, ꯄꯦꯀꯦꯖꯤꯡ, ꯅꯇ꯭ꯔꯒ ꯔꯤꯄꯣꯔꯇ ꯇꯧꯈ꯭ꯔꯕ ꯁꯤꯗ-ꯏꯐꯦꯛꯇꯁ ꯀꯧꯔꯣ…"
+                }
+            },
+            "step2": {
+                "uploadLabel": "ꯃꯦꯗꯤꯁꯤꯟꯒꯤ ꯐꯣꯇꯣ ꯑꯄꯂꯣꯗ ꯇꯧꯕ",
+                "uploadAnotherLabel": "ꯑꯅꯧꯕ ꯃꯦꯗꯤꯁꯤꯟꯒꯤ ꯐꯣꯇꯣ ꯑꯄꯂꯣꯗ ꯇꯧꯕ",
+                "minImageRequired": "ꯀꯃꯥꯏꯟ 1 ꯐꯣꯇꯣ ꯑꯔꯤꯕ",
+                "removeAriaLabel": "ꯇꯧꯔꯣ",
+                "confidence": "{percent}% ꯀꯨꯡꯁꯤꯟ",
+                "analysis": {
+                    "likelyGenuine": "ꯃꯣꯇ꯭ꯔꯣꯏꯕ ꯑꯣꯏ꯫",
+                    "suspicious": "ꯁꯦꯡꯂꯨꯕ",
+                    "likelyFake": "ꯃꯣꯇ꯭ꯔꯣꯏꯕ ꯀꯦꯟꯅꯥ ꯇꯥꯔꯣꯏꯕ",
+                    "unavailable": "ꯑꯦꯅꯥꯂꯤꯁꯤꯁ ꯂꯩꯇꯦ"
+                },
+                "analysisUnavailableDetails": "চিত্র বিশ্লেষণ সম্পূর্ণ করা অক্ষম। নীংরাক অমসুং অসুবিধা নে’ঙাই ফমবদা অমসুং থরসা."
+            },
+            "step3": {
+                "pharmacyName": {
+                    "label": "ꯐꯥꯔꯃꯦꯁꯤ / ꯗꯣꯀꯥꯟꯒꯤ ꯅꯥꯝ",
+                    "placeholder": "ꯑꯦꯗꯥ: Apollo Pharmacy, MG Road"
+                },
+                "address": {
+                    "label": "ꯔꯦꯁꯇꯤꯛ ꯑꯦꯗ꯭ꯔꯦꯁ",
+                    "placeholder": "ꯑꯦꯗꯥ: 45, Park Street, Near Bus Stand"
+                },
+                "city": {
+                    "label": "ꯁꯍꯔ",
+                    "placeholder": "ꯃꯨꯝꯕꯥꯏ"
+                },
+                "state": {
+                    "label": "ꯁ꯭ꯇꯦꯠ",
+                    "placeholder": "ꯃꯍꯥꯔꯥꯁꯇ꯭ꯔ"
+                },
+                "pincode": {
+                    "label": "ꯄꯤꯟꯀꯣꯗ",
+                    "placeholder": "400001"
+                }
+            },
+            "success": {
+                "savedTitle": "ꯔꯤꯄꯣꯔꯇ ꯂꯣꯀꯦꯂꯤ ꯁꯦꯚ ꯇꯧꯈ꯭ꯔꯤ",
+                "submittedTitle": "ꯔꯤꯄꯣꯔꯇ ꯁꯦꯕꯃꯤꯠ ꯇꯧꯈ꯭ꯔꯤ",
+                "offlineDescription": "ꯅꯦꯇꯋꯔꯛ ꯂꯩꯇꯦ. ꯅꯪꯒꯤ ꯔꯤꯄꯣꯔꯇ ꯑꯁꯤ ꯑꯤꯕꯨ ꯗꯦꯚꯤꯁꯗ ꯁꯦꯚ ꯇꯧꯈ꯭ꯔꯤ꯫",
+                "onlineDescription": "ꯅꯪꯒꯤ ꯔꯤꯄꯣꯔꯇ ꯁꯦꯐꯇꯤ ꯚꯥꯍꯤ ꯐꯪꯂꯤ ꯑꯃꯁꯨꯡ ꯑꯩꯒꯤ ꯐꯥꯔꯃꯥꯀꯣꯚꯤꯖꯤꯂꯦꯟꯁ ꯇꯤꯝ 48 ꯊꯥꯡꯗꯥ ꯌꯥꯂꯤ꯫",
+                "referenceIdLabel": "ꯔꯤꯐꯦꯔꯦꯟꯁ ID",
+                "submitAnother": "ꯑꯅꯧꯕ ꯔꯤꯄꯣꯔꯇ ꯁꯦꯕꯃꯤꯠ ꯇꯧꯕ"
+            },
+            "header": {
+                "badge": "ꯃꯦꯗꯋꯥꯆ ꯔꯤꯄꯣꯔꯇ",
+                "pendingSync": "{count} ꯄꯦꯟꯗꯤꯡ ꯁꯤꯟꯀ",
+                "receivedTitle": "ꯔꯤꯄꯣꯔꯇ ꯐꯪꯂꯤ"
+            },
+            "nav": {
+                "back": "ꯍꯤꯡꯕ",
+                "continue": "ꯆꯠꯂꯨ",
+                "submit": "ꯔꯤꯄꯣꯔꯇ ꯁꯦꯕꯃꯤꯠ ꯇꯧꯕ",
+                "submitting": "ꯁꯦꯕꯃꯤꯠ ꯇꯧꯔꯤ..."
+            },
+            "toasts": {
+                "restoredDraft": "ꯅꯪꯒꯤ ꯁꯦꯚ ꯇꯧꯈ꯭ꯔꯤꯠꯂꯕ ꯔꯤꯄꯣꯔꯇ ꯗ꯭ꯔꯥꯐ꯭ꯇ ꯍꯦꯟꯅꯔꯤ꯫",
+                "offlineSaved": "ꯅꯪꯅꯥ ꯑꯣꯐꯂꯦꯏꯟ ꯂꯩꯔꯤ. ꯅꯪꯒꯤ ꯔꯤꯄꯣꯔꯇ ꯑꯁꯤ ꯂꯣꯀꯦꯂꯤ ꯁꯦꯚ ꯇꯧꯈ꯭ꯔꯤ꯫",
+                "networkSlowSaved": "ꯅꯦꯇꯋꯔꯛ ꯍꯦꯂꯇꯥꯒꯤ ꯂꯩꯔꯤ. ꯅꯪꯒꯤ ꯔꯤꯄꯣꯔꯇ ꯑꯁꯤ ꯂꯣꯀꯦꯂꯤ ꯁꯦꯚ ꯇꯧꯈ꯭ꯔꯤ꯫",
+                "offlineQueueFailed": "ꯅꯪꯅꯥ ꯑꯣꯐꯂꯦꯏꯟ ꯂꯩꯔꯤ ꯑꯃꯁꯨꯡ ꯔꯤꯄꯣꯔꯇ ꯂꯣꯀꯦꯂꯤ ꯁꯦꯚ ꯇꯧꯈ꯭ꯔꯤ꯫",
+                "submissionFailedGeneric": "ꯁꯦꯕꯃꯤꯠ ꯇꯨꯟꯍꯟꯔꯤ. ꯗꯥꯏꯚ ꯌꯦꯡꯕ ꯑꯃꯁꯨꯡ ꯍꯧꯖꯤꯛ ꯇꯧꯔꯣ."
+            },
+            "validation": {
+                "minChars": "ꯀꯃꯥꯏꯟ 2 ꯑꯦꯛꯁꯔ ꯑꯔꯤꯕ",
+                "descriptionMin": "ꯀꯔꯨꯄꯥ ꯀꯃꯥꯏꯟ 20 ꯑꯦꯛꯁꯔ ꯐꯤꯟꯕ",
+                "imagesRequired": "ꯀꯃꯥꯏꯟ 1 ꯐꯣꯇꯣ ꯑꯔꯤꯕ",
+                "required": "ꯑꯔꯤꯕ",
+                "pincodeInvalid": "ꯌꯥꯊꯪꯈ꯭ꯔꯕ 6-ꯑꯦꯛꯁꯔ ꯏꯟꯗꯤꯌꯥꯟ ꯄꯤꯟꯀꯣꯗ ꯇꯥꯟꯕ (0 ꯅꯥ ꯁꯧꯔꯨꯡꯇ ꯂꯩꯇꯦ)"
+            }
+        }
+    },
     "Home": {
         "title": "ꯅꯪꯒꯤ ꯍꯦꯜꯊ, ꯌꯥꯊꯪꯈ꯭ꯔꯕ ꯑꯃꯁꯨꯡ ꯁꯤꯟꯗꯣꯛꯈ꯭ꯔꯕ꯫",
         "subtitle": "ꯃꯦꯗꯤꯁꯤꯟꯒꯤ ꯑꯆꯨꯝꯕ ꯈꯨꯗꯝ ꯌꯥꯔꯨꯁꯤꯟꯅꯕ, ꯁꯦꯡꯗꯣꯛꯂꯕ ꯐꯥꯔꯃꯦꯁꯤ ꯊꯤꯅꯕ, ꯑꯃꯁꯨꯡ ꯃꯔꯨꯑꯣꯏꯕ ꯍꯦꯜꯊ ꯑꯦꯂꯔ꯭ꯇ ꯐꯪꯅꯕ ꯏꯟꯗꯤꯌꯥꯒꯤ ꯑꯣꯄꯟ-ꯁꯣꯔ꯭ꯁ ꯁꯤꯇꯤꯖꯦꯟ ꯄ꯭ꯂꯦꯇꯐꯣꯔ꯭ꯃ꯫",

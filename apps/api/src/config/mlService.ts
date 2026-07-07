@@ -24,6 +24,9 @@ const BLOCKED_HOSTNAME_PATTERNS = [
  * private, loopback, or link-local hostname.
  */
 function isAllowedHostname(hostname: string): boolean {
+    if (process.env.NODE_ENV !== "production" && /^localhost$/i.test(hostname)) {
+        return true;
+    }
     return !BLOCKED_HOSTNAME_PATTERNS.some((pattern) => pattern.test(hostname));
 }
 

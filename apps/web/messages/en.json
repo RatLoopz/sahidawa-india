@@ -1,4 +1,137 @@
 {
+    "Report": {
+        "wizard": {
+            "steps": {
+                "step1": {
+                    "title": "Medicine Details",
+                    "description": "Identify the suspicious product"
+                },
+                "step2": {
+                    "title": "Photo Evidence",
+                    "description": "Upload clear photos as evidence"
+                },
+                "step3": {
+                    "title": "Location & Submit",
+                    "description": "Where was the product purchased?"
+                }
+            },
+            "step1": {
+                "medicineName": {
+                    "label": "Medicine Name",
+                    "placeholder": "e.g. Augmentin 625 Duo"
+                },
+                "manufacturer": {
+                    "label": "Manufacturer",
+                    "placeholder": "e.g. Cipla Ltd."
+                },
+                "description": {
+                    "label": "Description of Concern",
+                    "placeholder": "Describe unusual colour, smell, texture, packaging, reported side-effects…"
+                }
+            },
+            "step2": {
+                "uploadLabel": "Upload medicine photo",
+                "uploadAnotherLabel": "Upload another medicine photo",
+                "minImageRequired": "Minimum 1 image required",
+                "removeAriaLabel": "Remove",
+                "confidence": "{percent}% confidence",
+                "analysis": {
+                    "likelyGenuine": "Likely genuine",
+                    "suspicious": "Suspicious",
+                    "likelyFake": "Likely fake",
+                    "unavailable": "Analysis unavailable"
+                },
+                "analysisUnavailableDetails": "Image analysis could not be completed. Your report can still be submitted."
+            },
+            "step3": {
+                "pharmacyName": {
+                    "label": "Pharmacy / Store Name",
+                    "placeholder": "e.g. Apollo Pharmacy, MG Road"
+                },
+                "address": {
+                    "label": "Street Address",
+                    "placeholder": "e.g. 45, Park Street, Near Bus Stand"
+                },
+                "city": {
+                    "label": "City",
+                    "placeholder": "Mumbai"
+                },
+                "state": {
+                    "label": "State",
+                    "placeholder": "Maharashtra"
+                },
+                "pincode": {
+                    "label": "Pincode",
+                    "placeholder": "400001"
+                }
+            },
+            "success": {
+                "savedTitle": "Report Saved Locally",
+                "submittedTitle": "Report Submitted",
+                "offlineDescription": "Network unavailable. Your report has been saved on this device and will auto-submit once your connection improves.",
+                "onlineDescription": "Your report has been securely received and will be reviewed by our pharmacovigilance team within 48 hours.",
+                "referenceIdLabel": "Reference ID",
+                "submitAnother": "Submit another report"
+            },
+            "header": {
+                "badge": "MedWatch Report",
+                "pendingSync": "{count} pending sync",
+                "receivedTitle": "Report Received"
+            },
+            "nav": {
+                "back": "Back",
+                "continue": "Continue",
+                "submit": "Submit Report",
+                "submitting": "Submitting…"
+            },
+            "toasts": {
+                "restoredDraft": "Restored your unsaved report draft.",
+                "offlineSaved": "You're offline. Your report has been saved locally and will auto-submit once connection improves.",
+                "networkSlowSaved": "Network slow. Your report has been saved locally and will auto-submit once connection improves.",
+                "offlineQueueFailed": "You're offline and the report could not be saved locally. Please try again.",
+                "submissionFailedGeneric": "Submission failed. Please check your connection and try again."
+            },
+            "validation": {
+                "minChars": "At least 2 characters required",
+                "descriptionMin": "Please provide at least 20 characters",
+                "imagesRequired": "At least one photo is required",
+                "required": "Required",
+                "pincodeInvalid": "Enter a valid 6-digit Indian Pincode (cannot start with 0)"
+            }
+        },
+        "pageHeader": {
+            "title": "Report Incident",
+            "subtitle": "Public Safety Initiative"
+        },
+        "hero": {
+            "badge": "Active Surveillance",
+            "titleLine1": "Report a",
+            "titleLine2": "Suspicious Medicine",
+            "description": "Your vigilance protects public health. Report suspected counterfeit, expired, or substandard medicines. All reports are investigated by India's Pharmacovigilance authorities."
+        },
+        "infoPanel": {
+            "quickVerify": {
+                "title": "Quick Verify",
+                "subtitle": "Check if already reported",
+                "placeholder": "Enter batch number..."
+            },
+            "trustSafety": {
+                "title": "Trust & Safety",
+                "anonymity": {
+                    "title": "Anonymity Guaranteed",
+                    "description": "Your personal details are encrypted and never shared publicly."
+                },
+                "verified": {
+                    "title": "Verified by Pharmacovigilance",
+                    "description": "Reports are cross-checked with official databases before alerts are issued."
+                },
+                "reviewCycle": {
+                    "title": "48h Review Cycle",
+                    "description": "Critical reports are prioritized and reviewed within 48 hours."
+                }
+            }
+        }
+    },
     "Home": {
         "title": "Your Health, Verified & Protected.",
         "subtitle": "India's open-source citizen platform to instantly verify medicine authenticity, find safe pharmacies, and receive critical health alerts.",

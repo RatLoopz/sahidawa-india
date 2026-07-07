@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { API_BASE } from "@/lib/api";
 import { useSession } from "@/src/components/AuthProvider";
-import { MAX_BULK_UPLOAD_ITEMS } from "@sahidawa/shared";
+import { MAX_BULK_UPLOAD_ITEMS, MAX_BULK_UPLOAD_FILE_SIZE_BYTES } from "@sahidawa/shared";
 
 interface UploadResult {
     totalRows: number;
@@ -33,7 +33,17 @@ export default function BulkUploadPage() {
         e.preventDefault();
         setIsDragging(false);
         const droppedFile = e.dataTransfer.files[0];
+
         if (droppedFile && droppedFile.type === "text/csv") {
+            if (droppedFile.size > MAX_BULK_UPLOAD_FILE_SIZE_BYTES) {
+                setApiError(
+                    `File exceeds the maximum limit of ${
+                        MAX_BULK_UPLOAD_FILE_SIZE_BYTES / (1024 * 1024)
+                    }MB.`
+                );
+                return;
+            }
+
             setFile(droppedFile);
             setApiError(null);
         } else {
@@ -43,7 +53,17 @@ export default function BulkUploadPage() {
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];
+
         if (selectedFile) {
+            if (selectedFile.size > MAX_BULK_UPLOAD_FILE_SIZE_BYTES) {
+                setApiError(
+                    `File exceeds the maximum limit of ${
+                        MAX_BULK_UPLOAD_FILE_SIZE_BYTES / (1024 * 1024)
+                    }MB.`
+                );
+                return;
+            }
+
             setFile(selectedFile);
             setApiError(null);
         }

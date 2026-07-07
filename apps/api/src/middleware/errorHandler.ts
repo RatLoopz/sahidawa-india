@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import logger from '../utils/logger';
 import { getDbErrorStatus } from '../utils/dbErrors';
+import { getRequestId } from './requestId';
 
 const SENSITIVE_FIELDS = ['password', 'apiKey', 'api_key', 'token', 'secret', 'authorization', 'cookie'];
 
@@ -35,6 +36,8 @@ export function errorHandler(
 
   const level = statusCode >= 500 ? 'error' : 'warn';
 
+  const requestId = getRequestId();
+
   logger.log({
     level,
     message: `${req.method} ${req.originalUrl} - ${err.message}`,
@@ -43,6 +46,7 @@ export function errorHandler(
     body: req.body ? sanitize(req.body as Record<string, unknown>) : undefined,
     query: req.query,
     params: req.params,
+    ...(requestId && { requestId }),
   });
 
   const isProduction = process.env.NODE_ENV === 'production';
@@ -54,5 +58,6 @@ export function errorHandler(
       message: clientMessage,
       ...(!isProduction && { stack: err.stack }),
     },
+    ...(requestId && { requestId }),
   });
 }

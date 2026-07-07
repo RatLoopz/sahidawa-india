@@ -49,7 +49,9 @@ router.post(
         const userId = req.user!.id;
         const { data, error } = await supabase
             .from("tracked_medicines")
-            .insert([{ ...result.data, user_id: userId, is_verified: isVerified }]);
+            .insert([{ ...result.data, user_id: userId, is_verified: isVerified }])
+            .select()
+            .single();
 
         if (error) return res.status(500).json({ error: error.message });
         res.status(201).json({ message: "Medicine tracked successfully", data });

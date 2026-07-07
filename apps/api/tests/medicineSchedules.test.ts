@@ -1,14 +1,13 @@
 process.env.SUPABASE_URL = process.env.SUPABASE_URL || "http://localhost:54321";
 process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "test-anon-key";
 
-(global as any).WebSocket = (global as any).WebSocket || class {};
-
-jest.mock("csrf-csrf", () => ({
-    doubleCsrf: () => ({
-        doubleCsrfProtection: (_req: any, _res: any, next: any) => next(),
-        generateToken: () => "mocked-csrf-token",
+jest.mock(
+    "rate-limit-redis",
+    () => ({
+        RedisStore: jest.fn(),
     }),
-}));
+    { virtual: true }
+);
 
 const mockSupabaseChain = {
     from: jest.fn().mockReturnThis(),
@@ -47,7 +46,12 @@ jest.mock("../src/middleware/auth", () => ({
 }));
 
 import request from "supertest";
-import app from "../src/app";
+import express from "express";
+import medicineSchedulesRouter from "../src/routes/medicineSchedules";
+
+const app = express();
+app.use(express.json());
+app.use("/api/schedules", medicineSchedulesRouter);
 
 const mockedSupabase = mockSupabaseChain as jest.Mocked<typeof mockSupabaseChain>;
 
@@ -237,7 +241,10 @@ describe("DELETE /api/schedules/:id", () => {
         (mockedSupabase.from as jest.Mock).mockReturnValue(mockedSupabase);
         (mockedSupabase.delete as jest.Mock).mockReturnValue(mockedSupabase);
         (mockedSupabase.eq as jest.Mock).mockReturnValue(mockedSupabase);
-        mockedSupabase.error = null;
+        (mockedSupabase.select as jest.Mock).mockResolvedValue({
+            data: [{ id: "00000000-0000-4000-8000-000000000001" }],
+            error: null,
+        });
 
         const res = await request(app)
             .delete("/api/schedules/00000000-0000-4000-8000-000000000001")
@@ -245,6 +252,42 @@ describe("DELETE /api/schedules/:id", () => {
 
         expect(res.status).toBe(200);
         expect(res.body.success).toBe(true);
+        expect(mockedSupabase.select).toHaveBeenCalledWith("id");
+    });
+
+    it("returns 404 when no matching schedule is deleted", async () => {
+        (mockedSupabase.from as jest.Mock).mockReturnValue(mockedSupabase);
+        (mockedSupabase.delete as jest.Mock).mockReturnValue(mockedSupabase);
+        (mockedSupabase.eq as jest.Mock).mockReturnValue(mockedSupabase);
+        (mockedSupabase.select as jest.Mock).mockResolvedValue({
+            data: [],
+            error: null,
+        });
+
+        const res = await request(app)
+            .delete("/api/schedules/00000000-0000-4000-8000-000000000999")
+            .set("Authorization", "Bearer test-token");
+
+        expect(res.status).toBe(404);
+        expect(res.body.error).toBe("Schedule not found");
+    });
+
+    it("returns 404 when a schedule is not owned by the user", async () => {
+        (mockedSupabase.from as jest.Mock).mockReturnValue(mockedSupabase);
+        (mockedSupabase.delete as jest.Mock).mockReturnValue(mockedSupabase);
+        (mockedSupabase.eq as jest.Mock).mockReturnValue(mockedSupabase);
+        (mockedSupabase.select as jest.Mock).mockResolvedValue({
+            data: [],
+            error: null,
+        });
+
+        const res = await request(app)
+            .delete("/api/schedules/00000000-0000-4000-8000-000000000002")
+            .set("Authorization", "Bearer test-token");
+
+        expect(res.status).toBe(404);
+        expect(res.body.error).toBe("Schedule not found");
+        expect(mockedSupabase.eq).toHaveBeenCalledWith("user_id", "test-user-id");
     });
 });
 

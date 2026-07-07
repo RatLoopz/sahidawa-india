@@ -12,3 +12,6 @@ export const MAX_INTERACTION_MEDICINES = 50;
 
 /** Max number of line items accepted per bulk pharmacy inventory upload request. */
 export const MAX_BULK_UPLOAD_ITEMS = 500;
+
+/** Max file size (in bytes) for bulk upload files. */
+export const MAX_BULK_UPLOAD_FILE_SIZE_BYTES = 1 * 1024 * 1024; // 1MB

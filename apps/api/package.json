@@ -6,7 +6,7 @@
     "scripts": {
         "start": "node dist/index.js",
         "dev": "ts-node-dev --respawn --transpile-only -r ./ws-setup.js src/index.ts",
-        "build": "tsc",
+        "build": "tsc && cp -r assets dist/",
         "test": "jest"
     },
     "dependencies": {

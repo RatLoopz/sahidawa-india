@@ -214,3 +214,16 @@ CREATE INDEX IF NOT EXISTS idx_etl_failed_rows_status ON etl_failed_rows(status)
 CREATE INDEX IF NOT EXISTS idx_etl_failed_rows_pipeline_name ON etl_failed_rows(pipeline_name);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_etl_failed_rows_unique_logical_row
     ON etl_failed_rows(pipeline_name, source_table, row_fingerprint);
+
+-- 9. API Keys
+CREATE TABLE IF NOT EXISTS public.api_keys (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    key_hash TEXT NOT NULL,
+    key_salt TEXT NOT NULL,
+    scopes TEXT[] DEFAULT '{}',
+    expires_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_api_keys_user_id ON public.api_keys(user_id);

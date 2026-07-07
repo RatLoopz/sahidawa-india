@@ -28,6 +28,9 @@ const ASSETS_CACHE_NAME = `sahidawa-assets-${CACHE_VERSION}`;
 /** OpenStreetMap raster tiles */
 const TILES_CACHE_NAME = `sahidawa-tiles-${CACHE_VERSION}`;
 
+/** Next.js RSC payloads (client-side locale switches / soft navigations) */
+const RSC_CACHE_NAME = `sahidawa-rsc-${CACHE_VERSION}`;
+
 /** Pages to pre-cache on install so they are available offline immediately */
 const PRECACHE_PAGES = [
     "/",
@@ -76,6 +79,7 @@ self.addEventListener("activate", (event) => {
         STATIC_CACHE_NAME,
         ASSETS_CACHE_NAME,
         TILES_CACHE_NAME,
+        RSC_CACHE_NAME,
     ]);
 
     event.waitUntil(
@@ -160,6 +164,23 @@ self.addEventListener("fetch", (event) => {
         url.pathname.startsWith("/api/v1/lasa/")
     ) {
         event.respondWith(staleWhileRevalidate(request, MEDICINE_CACHE_NAME));
+        return;
+    }
+
+    // -------------------------------------------------------------------------
+    // Strategy 2.5 — Next.js RSC payloads: Network-first, cache fallback
+    // (client-side locale switches / soft navigations fetch a translated RSC
+    // payload for the same route instead of a full page reload. These were
+    // previously uncached and failed outright when the network dropped
+    // mid-switch, leaving the UI stuck on the old locale or showing broken
+    // translation keys.)
+    // -------------------------------------------------------------------------
+    if (
+        url.searchParams.has("_rsc") ||
+        request.headers.get("RSC") === "1" ||
+        request.headers.get("Next-Router-State-Tree")
+    ) {
+        event.respondWith(networkFirstWithCache(request, RSC_CACHE_NAME));
         return;
     }
 

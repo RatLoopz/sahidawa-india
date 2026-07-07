@@ -45,7 +45,7 @@ router.post("/check", lasaLimiter, async (req: Request, res: Response): Promise<
     try {
         const checkSchema = z
             .object({
-                medicineName: z.string().max(MAX_MEDICINE_NAME_LENGTH),
+                medicineName: z.string().trim().min(1).max(MAX_MEDICINE_NAME_LENGTH),
             })
             .strict();
 

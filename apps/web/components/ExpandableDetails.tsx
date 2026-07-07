@@ -42,7 +42,7 @@ export function ExpandableDetails({ medicine }: { medicine: VerifiedMedicine }) 
                         </span>
                         <CopyButton text={copyText} toastMessage="Medicine info copied!" />
                     </div>
-                    <div className="grid w-full grid-cols-2 gap-3">
+                    <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
                         <div className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) p-3">
                             <span className="block text-[10px] font-bold tracking-wider text-(--color-text-muted) uppercase">
                                 {tScan("genericName")}

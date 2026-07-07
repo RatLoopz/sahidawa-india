@@ -15,14 +15,14 @@ The following versions of SahiDawa currently receive security updates:
 
 ## Reporting a Vulnerability
 
-We take security seriously — especially given that SahiDawa handles **sensitive health and medicine data** for millions of citizens.
+We take security seriously — especially given that SahiDawa handles **sensitive health and medicine data** for many citizens.
 
-**Please do NOT report security vulnerabilities via public GitHub Issues.**
+**Public disclosure before a fix is available may put users at unnecessary risk.**
 
 ### How to Report
 
 1. **Preferred method:** Use [GitHub's Private Security Disclosure](https://github.com/RatLoopz/sahidawa-india/security/advisories/new) to submit a confidential report.
-2. **Alternative:** Email the maintainers directly at the contact listed in the repository profile or Discord.
+2. **Alternative:**  If GitHub Private Security Advisories are unavailable, contact the project maintainers through the official contact methods listed in the repository.
 
 ### What to Include in Your Report
 
@@ -33,6 +33,8 @@ Please provide as much of the following as possible to help us understand and re
 - The potential impact (data exposure, authentication bypass, etc.)
 - Affected component (frontend, API, ML service, database, etc.)
 - Any suggested mitigation or fix
+- The affected version or commit (if known)
+- Any relevant logs, screenshots, or supporting evidence
 
 ### What to Expect
 
@@ -88,14 +90,14 @@ We follow **Coordinated Disclosure**:
 3. We release the fix and notify the reporter
 4. A public disclosure (GitHub Security Advisory) is published after the patch is live
 
-We kindly ask reporters to allow us a reasonable time to patch before any public disclosure.
+We kindly ask reporters to follow coordinated disclosure by allowing maintainers a reasonable amount of time to investigate, validate, and release a fix before publicly disclosing the vulnerability.
 
 ---
 
 ## Contact
 
-For non-urgent security questions, you can also reach us on the [SahiDawa Discord](https://discord.gg/sahidawa) in the `#security` channel.
+For general security-related questions, you may also contact the maintainers through [SahiDawa Discord](https://discord.gg/sahidawa) in the `#security` channel.
 
 ---
 
-*Thank you for helping keep SahiDawa safe for 1.4 billion Indians. 🇮🇳*
+*Thank you for helping keep SahiDawa secure🇮🇳.*

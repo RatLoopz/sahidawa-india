@@ -389,6 +389,8 @@ router.post("/report", batchLimiter, async (req: Request, res: Response) => {
         state: state ?? "",
         pincode: pincode ?? "",
         district: city ?? "",
+        batchNumber,
+        scannedBarcode: barcodeId,
     };
 
     const validation = await validateReport(reportPayload, hashedIp, null);

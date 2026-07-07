@@ -174,4 +174,123 @@ router.post(
     }
 );
 
+/**
+ * Helper to execute cache invalidation out-of-band/non-blocking
+ */
+function handleAsyncInvalidation(table: string, pattern: string, res: Response) {
+    // Non-blocking asynchronous execution context
+    (async () => {
+        try {
+            if (!redisClient.isOpen) {
+                logger.warn(`Redis not connected — skipping ${table} cache invalidation`);
+                return;
+            }
+            
+            let cursor: any = 0;
+            const keysToDelete: string[] = [];
+            
+            do {
+                const result = await redisClient.scan(cursor, {
+                    MATCH: pattern,
+                    COUNT: 100,
+                });
+                cursor = result.cursor;
+                keysToDelete.push(...result.keys);
+            } while (cursor !== 0);
+
+            if (keysToDelete.length > 0) {
+                await redisClient.del(keysToDelete);
+                logger.info(`Cache invalidated for ${table} — deleted ${keysToDelete.length} key(s)`, { keys: keysToDelete });
+            } else {
+                logger.info(`${table} webhook fired — no cache keys found to invalidate`);
+            }
+        } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            logger.error(`Failed to execute async cache invalidation for ${table}`, { error: message });
+        }
+    })();
+
+    // Immediate acknowledgement response without blocking primary context
+    res.status(200).json({ success: true, message: `Invalidation event dispatched for ${table}` });
+}
+
+/**
+ * POST /api/webhooks/supabase/pharmacies
+ */
+router.post(
+    "/supabase/pharmacies",
+    webhookLimiter,
+    async (req: Request, res: Response): Promise<void> => {
+        const secret = process.env.SUPABASE_WEBHOOK_SECRET;
+        const authHeader = req.headers["authorization"];
+        const isValid = typeof secret === "string" && typeof authHeader === "string" && safeCompare(authHeader, `Bearer ${secret}`);
+
+        if (!isValid) {
+            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/pharmacies", { ip: req.ip });
+            res.status(401).json({ error: "Unauthorized" });
+            return;
+        }
+
+        const payload = req.body;
+        const record = payload.record || payload.old_record || {};
+        const id = record.id;
+        
+        // Single entity or collection clear pattern mapping
+        const pattern = id ? `pharmacy:${id}*` : "pharmacy:*";
+        handleAsyncInvalidation("pharmacies", pattern, res);
+    }
+);
+
+/**
+ * POST /api/webhooks/supabase/reports
+ */
+router.post(
+    "/supabase/reports",
+    webhookLimiter,
+    async (req: Request, res: Response): Promise<void> => {
+        const secret = process.env.SUPABASE_WEBHOOK_SECRET;
+        const authHeader = req.headers["authorization"];
+        const isValid = typeof secret === "string" && typeof authHeader === "string" && safeCompare(authHeader, `Bearer ${secret}`);
+
+        if (!isValid) {
+            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/reports", { ip: req.ip });
+            res.status(401).json({ error: "Unauthorized" });
+            return;
+        }
+
+        const payload = req.body;
+        const record = payload.record || payload.old_record || {};
+        const id = record.id;
+
+        const pattern = id ? `report:${id}*` : "report:*";
+        handleAsyncInvalidation("reports", pattern, res);
+    }
+);
+
+/**
+ * POST /api/webhooks/supabase/users
+ */
+router.post(
+    "/supabase/users",
+    webhookLimiter,
+    async (req: Request, res: Response): Promise<void> => {
+        const secret = process.env.SUPABASE_WEBHOOK_SECRET;
+        const authHeader = req.headers["authorization"];
+        const isValid = typeof secret === "string" && typeof authHeader === "string" && safeCompare(authHeader, `Bearer ${secret}`);
+
+        if (!isValid) {
+            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/users", { ip: req.ip });
+            res.status(401).json({ error: "Unauthorized" });
+            return;
+        }
+
+        const payload = req.body;
+        const record = payload.record || payload.old_record || {};
+        const id = record.id;
+
+        const pattern = id ? `user:${id}*` : "user:*";
+        handleAsyncInvalidation("users", pattern, res);
+    }
+);
+
 export default router;

@@ -9,6 +9,8 @@ import logger from "../utils/logger";
 import { redisClient } from "../utils/redis";
 import { KEY_PREFIXES } from "../services/cache.service";
 import { limiter, alertsReadLimiter } from "../middleware/rateLimit";
+import { requireAuth, requireRole } from "../middleware/auth";
+import { uuidSchema } from "../utils/validation";
 
 const AlertSchema = z
     .object({
@@ -56,7 +58,10 @@ alertsRouter.get("/", alertsReadLimiter, async (req: Request, res: Response) => 
 
     const offset = (page - 1) * limit;
 
-    let query = supabase.from("drug_alerts").select("*", { count: "exact" });
+    let query = supabase
+        .from("drug_alerts")
+        .select("*", { count: "exact" })
+        .or(`snoozed_until.is.null,snoozed_until.lte.${new Date().toISOString()}`);
 
     if (brand) {
         query = query.ilike("reported_brand_name", `%${escapeIlike(brand)}%`);
@@ -232,7 +237,7 @@ alertsRouter.post("/ingest", requireApiKey, limiter, async (req: ApiKeyRequest, 
         }
 
         logger.info("Alerts ingested successfully", {
-            caller: req.apiKey?.callerName,
+            caller: req.apiKey?.userId,
             count: insertedAlerts?.length,
         });
 
@@ -242,9 +247,53 @@ alertsRouter.post("/ingest", requireApiKey, limiter, async (req: ApiKeyRequest, 
             inserted: insertedAlerts?.length,
         });
     } catch (error) {
-        logger.error("Unexpected error in /ingest", { error, caller: req.apiKey?.callerName });
+        logger.error("Unexpected error in /ingest", { error, caller: req.apiKey?.userId });
         res.status(500).json({ error: "Internal server error" });
     }
 });
+
+/**
+ * PATCH /api/v1/alerts/:id/snooze
+ * Snoozes a drug alert for a given number of days.
+ */
+alertsRouter.patch(
+    "/:id/snooze",
+    limiter,
+    requireAuth,
+    requireRole("admin", "moderator"),
+    async (req, res: Response) => {
+        const parsedId = uuidSchema.safeParse(req.params.id);
+        if (!parsedId.success) {
+            res.status(400).json({ error: "Invalid UUID format" });
+            return;
+        }
+
+        const snoozeSchema = z.object({
+            days: z.number().min(1).max(365).default(7),
+        });
+
+        const parsedBody = snoozeSchema.safeParse(req.body);
+        if (!parsedBody.success) {
+            res.status(400).json({ error: "Invalid snooze payload", details: parsedBody.error });
+            return;
+        }
+
+        const snoozedUntil = new Date();
+        snoozedUntil.setDate(snoozedUntil.getDate() + parsedBody.data.days);
+
+        const { error } = await supabase
+            .from("drug_alerts")
+            .update({ snoozed_until: snoozedUntil.toISOString() })
+            .eq("id", req.params.id);
+
+        if (error) {
+            logger.error("Failed to snooze alert", { error, id: req.params.id });
+            res.status(500).json({ error: "Failed to snooze alert" });
+            return;
+        }
+
+        res.json({ success: true, snoozed_until: snoozedUntil.toISOString() });
+    }
+);
 
 export default alertsRouter;

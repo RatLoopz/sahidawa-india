@@ -185,6 +185,11 @@ export async function listPushSubscriptions() {
     return [...memorySubscriptions.values()];
 }
 
+export async function listPushSubscriptionsForUser(userId: string) {
+    const all = await listPushSubscriptions();
+    return all.filter((sub) => sub.userId === userId);
+}
+
 export function buildRecallPayload(alert: RecallAlert) {
     return {
         title: `${alert.medicineName} recalled`,
@@ -197,6 +202,35 @@ export function buildRecallPayload(alert: RecallAlert) {
         source: alert.source,
         url: "/alerts",
         recalledAt: alert.recalledAt ?? new Date().toISOString(),
+    };
+}
+
+export type VerificationReviewPayload = {
+    title: string;
+    body: string;
+    medicineName: string;
+    status: "approved" | "rejected";
+    rejectionReason: string | null;
+    url: string;
+};
+
+export function buildVerificationReviewPayload(
+    medicineName: string,
+    status: "approved" | "rejected",
+    rejectionReason?: string | null
+): VerificationReviewPayload {
+    const approved = status === "approved";
+    return {
+        title: approved ? "Verification Approved" : "Verification Rejected",
+        body: approved
+            ? `Your medicine verification for ${medicineName} was approved.`
+            : `Your medicine verification for ${medicineName} was rejected.${
+                  rejectionReason ? ` Reason: ${rejectionReason}` : ""
+              }`,
+        medicineName,
+        status,
+        rejectionReason: rejectionReason ?? null,
+        url: "/verifications",
     };
 }
 
@@ -413,6 +447,52 @@ export async function triggerRecallAlert(alert: RecallAlert) {
         attempted: subscriptions.length,
         sent: results.filter((result) => result.status === "fulfilled").length,
         failed: results.filter((result) => result.status === "rejected").length,
+        payload,
+    };
+    
+}
+
+export async function sendNotificationToUser(
+    userId: string,
+    payload: Record<string, unknown>
+) {
+    const configured = configureWebPush();
+
+    if (!configured) {
+        return { configured: false, attempted: 0, sent: 0, failed: 0, payload };
+    }
+
+    const subscriptions = await listPushSubscriptionsForUser(userId);
+
+    if (subscriptions.length === 0) {
+        return { configured: true, attempted: 0, sent: 0, failed: 0, payload };
+    }
+
+    const results = await Promise.allSettled(
+        subscriptions.map((item) =>
+            webPush.sendNotification(item.subscription, JSON.stringify(payload))
+        )
+    );
+
+    const expiredEndpoints: string[] = [];
+    results.forEach((result, index) => {
+        if (result.status === "rejected") {
+            const endpoint = subscriptions[index].endpoint;
+            if (shouldRemovePushSubscription(result.reason)) {
+                expiredEndpoints.push(endpoint);
+            } else {
+                logRetainedPushFailure(endpoint, result.reason);
+            }
+        }
+    });
+
+    await Promise.all(expiredEndpoints.map(removePushSubscription));
+
+    return {
+        configured: true,
+        attempted: subscriptions.length,
+        sent: results.filter((r) => r.status === "fulfilled").length,
+        failed: results.filter((r) => r.status === "rejected").length,
         payload,
     };
 }

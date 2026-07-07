@@ -15,6 +15,13 @@ const mockSubscriber = {
     is_active: true,
 };
 
+let mockAuthenticatedUser: any = {
+    id: "test-user-uuid",
+    role: "user",
+    email: "user@example.com",
+};
+let mockQueryResult = [mockSubscriber];
+
 // Generic Supabase mock query builder that supports all chaining operations
 const mockQueryBuilder = {
     select: jest.fn().mockReturnThis(),
@@ -32,7 +39,7 @@ const mockQueryBuilder = {
         .fn()
         .mockImplementation(() => Promise.resolve({ data: mockSubscriber, error: null })),
     then: jest.fn().mockImplementation((onfulfilled) => {
-        return Promise.resolve({ data: [mockSubscriber], error: null }).then(onfulfilled);
+        return Promise.resolve({ data: mockQueryResult, error: null }).then(onfulfilled);
     }),
 };
 
@@ -48,11 +55,17 @@ jest.mock("../src/db/client", () => {
 jest.mock("../src/middleware/auth", () => {
     return {
         requireAuth: (req: any, res: any, next: any) => {
-            req.user = { id: "test-admin-uuid", role: "admin", email: "admin@example.com" };
+            if (!mockAuthenticatedUser) {
+                res.status(401).json({ error: "Authentication required" });
+                return;
+            }
+            req.user = mockAuthenticatedUser;
             next();
         },
         optionalAuth: (req: any, res: any, next: any) => {
-            req.user = { id: "test-user-uuid", role: "user", email: "user@example.com" };
+            if (mockAuthenticatedUser) {
+                req.user = mockAuthenticatedUser;
+            }
             next();
         },
         requireRole: () => (req: any, res: any, next: any) => {
@@ -60,6 +73,18 @@ jest.mock("../src/middleware/auth", () => {
         },
     };
 });
+
+jest.mock("../src/middleware/rateLimit", () => ({
+    notificationRegisterLimiter: (_req: any, _res: any, next: any) => next(),
+}));
+
+jest.mock("../src/utils/phone", () => ({
+    formatPhoneNumber: (phone: string) => {
+        if (/^\d{10}$/.test(phone)) return `+91${phone}`;
+        if (/^\+91\d{10}$/.test(phone)) return phone;
+        return null;
+    },
+}));
 
 // Mock sms + whatsapp services to prevent BullMQ/Redis connection attempts in CI
 jest.mock("../src/services/sms-service", () => ({
@@ -92,6 +117,12 @@ describe("notifications routes", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockAuthenticatedUser = {
+            id: "test-user-uuid",
+            role: "user",
+            email: "user@example.com",
+        };
+        mockQueryResult = [mockSubscriber];
     });
 
     it("returns vapid public key payload", async () => {
@@ -153,6 +184,57 @@ describe("notifications routes", () => {
 
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
+        expect(mockQueryBuilder.update).toHaveBeenCalledWith({
+            channels: ["whatsapp"],
+            district: "South Delhi",
+        });
+        expect(mockQueryBuilder.eq).toHaveBeenCalledWith("user_id", "test-user-uuid");
+        expect(mockQueryBuilder.eq).not.toHaveBeenCalledWith("phone", "+919876543210");
+    });
+
+    it("returns 401 for unauthenticated subscriber updates without updating by phone", async () => {
+        mockAuthenticatedUser = null;
+
+        const response = await request(app).patch("/api/notifications/phone").send({
+            phone: "9876543210",
+            district: "South Delhi",
+        });
+
+        expect(response.status).toBe(401);
+        expect(response.body.error).toBe("Authentication required");
+        expect(mockQueryBuilder.update).not.toHaveBeenCalled();
+        expect(mockQueryBuilder.eq).not.toHaveBeenCalledWith("phone", "+919876543210");
+    });
+
+    it("returns 404 when an authenticated user submits another subscriber's phone number", async () => {
+        mockAuthenticatedUser = {
+            id: "different-user-uuid",
+            role: "user",
+            email: "other@example.com",
+        };
+        mockQueryResult = [];
+
+        const response = await request(app)
+            .patch("/api/notifications/phone")
+            .send({
+                phone: "9876543210",
+                channels: ["sms"],
+            });
+
+        expect(response.status).toBe(404);
+        expect(response.body.error).toBe("Subscriber not found");
+        expect(mockQueryBuilder.eq).toHaveBeenCalledWith("user_id", "different-user-uuid");
+        expect(mockQueryBuilder.eq).not.toHaveBeenCalledWith("phone", "+919876543210");
+    });
+
+    it("keeps PATCH /phone updates partial", async () => {
+        const response = await request(app).patch("/api/notifications/phone").send({
+            phone: "9876543210",
+            language: "hi",
+        });
+
+        expect(response.status).toBe(200);
+        expect(mockQueryBuilder.update).toHaveBeenCalledWith({ language: "hi" });
     });
 
     it("opts out subscriber successfully", async () => {

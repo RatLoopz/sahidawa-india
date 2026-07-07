@@ -538,110 +538,112 @@ router.post("/verify-otp", async (req, res) => {
     }
 });
 
-router.patch("/phone", optionalAuth, async (req: AuthenticatedRequest, res) => {
-    const parsed = updatePhoneSchema.safeParse(req.body);
-    if (!parsed.success) {
-        res.status(400).json({ error: "Invalid patch payload", issues: parsed.error.issues });
-        return;
-    }
-
-    const { phone, newPhone, channels, language, district, is_active } = parsed.data;
-    const formattedPhone = formatPhoneNumber(phone);
-    if (!formattedPhone) {
-        res.status(400).json({ error: "Invalid phone number format" });
-        return;
-    }
-    let formattedNewPhone: string | undefined = undefined;
-    if (newPhone) {
-        const fNew = formatPhoneNumber(newPhone);
-        if (!fNew) {
-            res.status(400).json({ error: "Invalid new phone number format" });
+router.patch(
+    "/phone",
+    notificationRegisterLimiter,
+    requireAuth,
+    async (req: AuthenticatedRequest, res) => {
+        const parsed = updatePhoneSchema.safeParse(req.body);
+        if (!parsed.success) {
+            res.status(400).json({ error: "Invalid patch payload", issues: parsed.error.issues });
             return;
         }
-        formattedNewPhone = fNew;
-    }
 
-    try {
-        let data = null;
-        let dbFailed = dbConfig?.isSupabaseOffline;
+        const { phone, newPhone, channels, language, district, is_active } = parsed.data;
+        const formattedPhone = formatPhoneNumber(phone);
+        if (!formattedPhone) {
+            res.status(400).json({ error: "Invalid phone number format" });
+            return;
+        }
+        let formattedNewPhone: string | undefined = undefined;
+        if (newPhone) {
+            const fNew = formatPhoneNumber(newPhone);
+            if (!fNew) {
+                res.status(400).json({ error: "Invalid new phone number format" });
+                return;
+            }
+            formattedNewPhone = fNew;
+        }
 
-        if (!dbFailed) {
-            try {
-                const updateData: Record<string, unknown> = {};
-                if (formattedNewPhone !== undefined) updateData.phone = formattedNewPhone;
-                if (channels !== undefined) updateData.channels = channels;
-                if (language !== undefined) updateData.language = language;
-                if (district !== undefined) updateData.district = district;
-                if (is_active !== undefined) updateData.is_active = is_active;
+        try {
+            let data = null;
+            let dbFailed = dbConfig?.isSupabaseOffline;
 
-                let query = supabase.from("notification_subscribers").update(updateData);
+            if (!dbFailed) {
+                try {
+                    const updateData: Record<string, unknown> = {};
+                    if (formattedNewPhone !== undefined) updateData.phone = formattedNewPhone;
+                    if (channels !== undefined) updateData.channels = channels;
+                    if (language !== undefined) updateData.language = language;
+                    if (district !== undefined) updateData.district = district;
+                    if (is_active !== undefined) updateData.is_active = is_active;
 
-                if (req.user) {
-                    query = query.eq("user_id", req.user.id);
-                } else {
-                    query = query.eq("phone", formattedPhone);
-                }
+                    const query = supabase
+                        .from("notification_subscribers")
+                        .update(updateData)
+                        .eq("user_id", req.user!.id);
 
-                const { data: dbData, error } = await query.select();
-                if (error) {
+                    const { data: dbData, error } = await query.select();
+                    if (error) {
+                        dbFailed = true;
+                        if (
+                            error.message?.includes("fetch failed") ||
+                            error.message?.includes("refused") ||
+                            error.message?.includes("timeout")
+                        ) {
+                            if (dbConfig) dbConfig.setOffline();
+                        }
+                    } else {
+                        data = dbData;
+                    }
+                } catch (dbError: any) {
                     dbFailed = true;
+                    const msg = dbError?.message || String(dbError);
                     if (
-                        error.message?.includes("fetch failed") ||
-                        error.message?.includes("refused") ||
-                        error.message?.includes("timeout")
+                        msg.includes("fetch failed") ||
+                        msg.includes("refused") ||
+                        msg.includes("timeout")
                     ) {
                         if (dbConfig) dbConfig.setOffline();
                     }
+                }
+            }
+
+            if (dbFailed) {
+                logger.warn("Supabase database is offline. Updating subscriber in-memory.");
+                let sub = Array.from(memorySubscribers.values()).find(
+                    (s) => s.user_id === req.user!.id
+                );
+
+                if (sub) {
+                    if (formattedNewPhone) {
+                        memorySubscribers.delete(sub.phone);
+                        sub.phone = formattedNewPhone;
+                        memorySubscribers.set(formattedNewPhone, sub);
+                    }
+                    if (channels) sub.channels = channels;
+                    if (language) sub.language = language;
+                    if (district) sub.district = district;
+                    if (is_active !== undefined) sub.is_active = is_active;
+                    sub.updated_at = new Date().toISOString();
+                    data = [sub];
                 } else {
-                    data = dbData;
-                }
-            } catch (dbError: any) {
-                dbFailed = true;
-                const msg = dbError?.message || String(dbError);
-                if (
-                    msg.includes("fetch failed") ||
-                    msg.includes("refused") ||
-                    msg.includes("timeout")
-                ) {
-                    if (dbConfig) dbConfig.setOffline();
+                    data = [];
                 }
             }
-        }
 
-        if (dbFailed) {
-            logger.warn("Supabase database is offline. Updating subscriber in-memory.");
-            let sub = req.user
-                ? Array.from(memorySubscribers.values()).find((s) => s.user_id === req.user!.id)
-                : memorySubscribers.get(formattedPhone);
-
-            if (sub) {
-                if (formattedNewPhone) {
-                    memorySubscribers.delete(sub.phone);
-                    sub.phone = formattedNewPhone;
-                    memorySubscribers.set(formattedNewPhone, sub);
-                }
-                if (channels) sub.channels = channels;
-                if (language) sub.language = language;
-                if (district) sub.district = district;
-                if (is_active !== undefined) sub.is_active = is_active;
-                sub.updated_at = new Date().toISOString();
-                data = [sub];
-            } else {
-                data = [];
+            if (!data || data.length === 0) {
+                res.status(404).json({ error: "Subscriber not found" });
+                return;
             }
-        }
 
-        if (!data || data.length === 0) {
-            res.status(404).json({ error: "Subscriber not found" });
-            return;
+            res.json({ success: true, subscriber: data[0] });
+        } catch (err) {
+            logger.error({ message: "Error in /phone update endpoint", error: err });
+            res.status(500).json({ error: "Internal server error" });
         }
-
-        res.json({ success: true, subscriber: data[0] });
-    } catch (err) {
-        logger.error({ message: "Error in /phone update endpoint", error: err });
-        res.status(500).json({ error: "Internal server error" });
     }
-});
+);
 
 router.delete("/phone", optionalAuth, async (req: AuthenticatedRequest, res) => {
     const parsed = deletePhoneSchema.safeParse(req.body);

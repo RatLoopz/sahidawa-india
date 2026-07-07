@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import dynamic from "next/dynamic";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -9,16 +10,15 @@ import { ThemeProvider } from "./components/ThemeProvider";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { OfflineErrorBoundary } from "@/components/OfflineErrorBoundary";
 import { ServiceWorkerProvider } from "@/components/ServiceWorkerProvider";
-import BackToTopButton from "./components/BackToTopButton";
-import Chatbot from "./components/Chatbot";
 import Navbar from "./components/Navbar";
 import "./globals.css";
 import "../../src/styles/print.css";
 import { Toaster } from "sonner";
 import Footer from "./components/Footer";
 import { AuthProvider } from "@/src/components/AuthProvider";
-import CommandPalette from "./components/CommandPalette";
 import { TracingInitializer } from "@/components/TracingInitializer";
+
+import { InteractiveOverlays } from "./components/InteractiveOverlays";
 
 export async function generateMetadata({
     params,
@@ -104,11 +104,7 @@ export default async function LocaleLayout({
                                     <OfflineErrorBoundary>{children}</OfflineErrorBoundary>
                                 </main>
                                 <Footer />
-                                <div className="no-print">
-                                    <BackToTopButton />
-                                    <Chatbot />
-                                    <CommandPalette />
-                                </div>
+                                <InteractiveOverlays />
                             </AuthProvider>
                         </NextIntlClientProvider>
                         <div className="no-print">

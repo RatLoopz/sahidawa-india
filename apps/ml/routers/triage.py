@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends  
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 import logging
@@ -7,37 +7,60 @@ import asyncio
 
 from starlette.concurrency import run_in_threadpool
 from services.triage_graph import run_triage_flow
+from utils.rate_limiter import RateLimiter  
 
 router = APIRouter(prefix="/triage", tags=["Triage"])
 MAX_CONCURRENT_TRIAGE_REQUESTS = 10  
 _triage_semaphore = asyncio.Semaphore(MAX_CONCURRENT_TRIAGE_REQUESTS)
 
+# Define the limit: 5 requests per 60 seconds per IP
+triage_limiter = RateLimiter(requests=5, window_seconds=60)
+
+
 class ChatMessage(BaseModel):
     role: str = Field(..., description="The role of the sender: 'user' or 'assistant'/'model'.")
     content: str = Field(..., max_length=2000, description="The text content of the message.")
+
 
 class TriageRequest(BaseModel):
     messages: List[ChatMessage] = Field(..., max_length=50, description="The history of chat messages in the session.")
     locale: Optional[str] = Field("en", description="The preferred language/locale code.")
 
 class TriageResponse(BaseModel):
-    response: str = Field(..., description="The generated triage message (clarifying question or final response).")
-    emergency: bool = Field(..., description="True if symptoms indicate a potential medical emergency.")
-    language: str = Field(..., description="The language detected/used for response.")
-    summary: Optional[str] = Field("", description="One sentence summary of symptoms/situation.")
-    recommendations: Optional[List[str]] = Field([], description="List of recommended actions.")
+    response: str = Field(
+        ...,
+        description="The generated triage message (clarifying question or final response).",
+    )
+    emergency: bool = Field(
+        ...,
+        description="True if symptoms indicate a potential medical emergency.",
+    )
+    language: str = Field(
+        ..., description="The language detected/used for response."
+    )
+    summary: Optional[str] = Field(
+        "", description="One sentence summary of symptoms/situation."
+    )
+    recommendations: Optional[List[str]] = Field(
+        [], description="List of recommended actions."
+    )
     disclaimer: Optional[str] = Field("", description="Safety disclaimer.")
-    details: Optional[Dict[str, Any]] = Field({}, description="Extracted symptom details (onset, severity, location, etc.).")
+    details: Optional[Dict[str, Any]] = Field(
+        {},
+        description="Extracted symptom details (onset, severity, location, etc.).",
+    )
 
-@router.post("/chat", response_model=TriageResponse)
+
+# Attach the rate limiter here via the dependencies parameter
+@router.post(
+    "/chat", response_model=TriageResponse, dependencies=[Depends(triage_limiter)]
+)
 async def triage_chat(payload: TriageRequest):
-    """
-    Exposes the stateful multi-turn symptom triage graph via a POST request.
-    """
+    """Exposes the stateful multi-turn symptom triage graph via a POST request."""
     if not payload.messages:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Messages history cannot be empty."
+            detail="Messages history cannot be empty.",
         )
 
     # Standardize roles to 'user' and 'assistant' for the graph

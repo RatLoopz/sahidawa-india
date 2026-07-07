@@ -81,8 +81,22 @@ router.post(
                 return res.status(mlResponse.status).json({ success: false, error: errText });
             }
 
-            const result = (await mlResponse.json()) as Record<string, any>;
-            const transcribedText = String(result.transcribed || "").trim();
+            // Define schema to ensure 'transcribed' exists
+const mlResponseSchema = z.object({
+    transcribed: z.string().optional().nullable(),
+});
+
+// Parse the ML result
+const result = (await mlResponse.json()) as Record<string, any>;
+const validation = mlResponseSchema.safeParse(result);
+
+// Validate
+if (!validation.success) {
+    logger.error("ML response validation failed", validation.error);
+    return res.status(500).json({ success: false, error: "Invalid response from ML service." });
+}
+
+const transcribedText = String(validation.data.transcribed || "").trim();
 
             // Verify against Supabase CDSCO DB
             let verificationResult = {

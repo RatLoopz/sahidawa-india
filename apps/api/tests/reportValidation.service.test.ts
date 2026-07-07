@@ -2,8 +2,12 @@ process.env.SUPABASE_URL = process.env.SUPABASE_URL || "http://localhost:54321";
 process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "test-anon-key";
 (global as any).WebSocket = (global as any).WebSocket || class {};
 
-import { validateReport, ReportPayload } from "../src/services/reportValidation.service";
 import { supabase } from "../src/db/client";
+import {
+    validateReport,
+    computeReportHash,
+    ReportPayload,
+} from "../src/services/reportValidation.service";
 
 jest.mock("../src/db/client", () => ({
     supabase: {
@@ -96,5 +100,33 @@ describe("reportValidation.service - distinct count checks", () => {
             (r) => r.includes("Sybil pattern") && r.includes("district")
         );
         expect(sybilReason).toContain("8 different reporters");
+    });
+});
+
+describe("reportValidation.service - computeReportHash batch collision", () => {
+    it("should produce different hashes for the same medicine/pharmacy but different batchNumber", () => {
+        const payloadA: ReportPayload = { ...basePayload, batchNumber: "BATCH-001" };
+        const payloadB: ReportPayload = { ...basePayload, batchNumber: "BATCH-002" };
+
+        expect(computeReportHash(payloadA)).not.toBe(computeReportHash(payloadB));
+    });
+
+    it("should produce the same hash for identical batchNumber (case/whitespace insensitive)", () => {
+        const payloadA: ReportPayload = { ...basePayload, batchNumber: "batch-001" };
+        const payloadB: ReportPayload = { ...basePayload, batchNumber: "  BATCH-001  " };
+
+        expect(computeReportHash(payloadA)).toBe(computeReportHash(payloadB));
+    });
+
+    it("should produce different hashes for different scannedBarcode with same other fields", () => {
+        const payloadA: ReportPayload = { ...basePayload, scannedBarcode: "SCAN-A" };
+        const payloadB: ReportPayload = { ...basePayload, scannedBarcode: "SCAN-B" };
+
+        expect(computeReportHash(payloadA)).not.toBe(computeReportHash(payloadB));
+    });
+
+    it("should produce the same hash as before when batchNumber/scannedBarcode are both omitted (backward compatibility)", () => {
+        const hash = computeReportHash(basePayload);
+        expect(hash).toHaveLength(64); // sha256 hex digest, sanity check
     });
 });

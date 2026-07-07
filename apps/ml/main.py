@@ -3,13 +3,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 import logging
+from contextlib import asynccontextmanager
+from utils.database import redis_client
 
 from tracing import setup_tracing
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
-load_dotenv()
 
+load_dotenv()
 setup_tracing()
 RequestsInstrumentor().instrument()
 
@@ -19,10 +21,23 @@ from services.router_loader import include_router_if_available
 configure_telemetry_logging()
 logger = logging.getLogger(__name__)
 
+
+# Define the Lifespan to clean up Redis connections on shutdown
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup phase (App boots up)
+    logger.info("SahiDawa ML Service starting up...")
+    yield
+    # Shutdown phase (App stops/reloads)
+    logger.info("Closing Redis connection pool...")
+    await redis_client.close()
+
+
 app = FastAPI(
     title="SahiDawa ML Service",
     description="Machine Learning API for medicine verification and voice assistance.",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan  # <-- Hooked lifespan here
 )
 
 FastAPIInstrumentor.instrument_app(app)
@@ -56,12 +71,16 @@ if not ocr_loaded:
     logger.warning("OCR routes are disabled in this runtime.")
 tts_loaded = include_router_if_available(app, "routers.tts", required=False)
 if not tts_loaded:
-    logger.warning("TTS routes are disabled. Install google-cloud-texttospeech or configure Azure TTS.")
+    logger.warning(
+        "TTS routes are disabled. Install google-cloud-texttospeech or configure Azure TTS."
+    )
 include_router_if_available(app, "routers.voice_verify", required=True)
+
 
 @app.get("/")
 def read_root():
     return {"message": "Welcome to SahiDawa ML API"}
+
 
 @app.get("/health")
 def health_check():

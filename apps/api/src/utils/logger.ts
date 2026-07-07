@@ -2,6 +2,7 @@ import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import fs from 'fs';
 import path from 'path';
+import { getRequestId } from '../middleware/requestId';
 
 const logDir = path.join(process.cwd(), 'logs');
 if (!fs.existsSync(logDir)) {
@@ -10,11 +11,23 @@ if (!fs.existsSync(logDir)) {
 
 const { combine, timestamp, printf, colorize, json, errors } = winston.format;
 
-const logFormat = printf(({ level, message, timestamp, stack }) => {
-  if (stack) {
-    return `${timestamp} ${level}: ${message}\n${stack}`;
+// ── Custom format: inject the current request's correlation ID ─────────────
+// Uses AsyncLocalStorage under the hood so existing `logger.info(…)` calls
+// automatically include `requestId` — no caller changes required.
+const injectRequestId = winston.format((info) => {
+  const requestId = getRequestId();
+  if (requestId) {
+    info.requestId = requestId;
   }
-  return `${timestamp} ${level}: ${message}`;
+  return info;
+});
+
+const logFormat = printf(({ level, message, timestamp, stack, requestId }) => {
+  const reqIdTag = requestId ? ` [${requestId}]` : '';
+  if (stack) {
+    return `${timestamp} ${level}:${reqIdTag} ${message}\n${stack}`;
+  }
+  return `${timestamp} ${level}:${reqIdTag} ${message}`;
 });
 
 const errorTransport = new DailyRotateFile({
@@ -39,6 +52,7 @@ const logger = winston.createLogger({
   format: combine(
     errors({ stack: true }),
     timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    injectRequestId(),
     process.env.NODE_ENV === 'production' ? json() : combine(colorize(), logFormat)
   ),
   transports: [

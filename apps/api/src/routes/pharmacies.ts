@@ -12,9 +12,12 @@ import { cacheMiddleware } from "../middleware/cache";
 import multer from "multer";
 import { buildOrConditions } from "../utils/db";
 import Papa from "papaparse";
-import { MAX_BULK_UPLOAD_ITEMS } from "@sahidawa/shared";
+import { MAX_BULK_UPLOAD_ITEMS, MAX_BULK_UPLOAD_FILE_SIZE_BYTES } from "@sahidawa/shared";
 
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: MAX_BULK_UPLOAD_FILE_SIZE_BYTES },
+});
 
 const router = Router();
 
@@ -1130,14 +1133,44 @@ router.post(
 
             const pharmacy = pharmacies[0];
 
-            // Parse CSV with papaparse — handles quoted fields, embedded commas,
-            // escaped/nested quotes, and inconsistent line endings correctly
-            const parseResult = Papa.parse<Record<string, string>>(fileContent, {
-                header: true,
-                skipEmptyLines: true,
-                transformHeader: (h) => h.trim().toLowerCase(),
-                transform: (v) => v.trim(),
-            });
+            // Incremental parsing using the reusable helper (pharmacyId is already known)
+            const { rowsToInsert, failedRows, totalRows } = await parseCsvIncremental(
+                fileContent,
+                pharmacy.id
+            );
+
+            const { data: parsedRows } = parseResult;
+            const rowsToInsert: any[] = [];
+            const failedRows: Array<{ row: number; reason: string }> = [];
+
+            for (let i = 0; i < parsedRows.length; i++) {
+                const rowData = parsedRows[i];
+                const logicalRow = i + 2;
+
+                const normalised: Record<string, any> = {};
+                for (const key of Object.keys(rowData)) {
+                    const val = rowData[key];
+                    normalised[key] = val === "" ? undefined : val;
+                }
+
+                const validationResult = inventoryRowSchema.safeParse(normalised);
+                if (!validationResult.success) {
+                    const reason = validationResult.error.issues.map((i) => i.message).join(", ");
+                    failedRows.push({ row: logicalRow, reason });
+                    continue;
+                }
+
+                rowsToInsert.push({
+                    pharmacy_id: pharmacy.id,
+                    medicine_name: validationResult.data.medicine_name,
+                    batch_number: validationResult.data.batch_number,
+                    expiry_date: validationResult.data.expiry_date,
+                    quantity: validationResult.data.quantity,
+                    mrp: validationResult.data.mrp,
+                });
+            }
+
+            const totalRows = parsedRows.length;
 
             if (totalRows === 0) {
                 res.status(400).json({ error: "The file appears empty or is missing rows." });

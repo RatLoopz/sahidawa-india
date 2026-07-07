@@ -55,7 +55,8 @@
         "tesseract.js": "^7.0.0",
         "uuid": "^14.0.1",
         "zod": "^4.4.3",
-        "zustand": "^5.0.14"
+        "zustand": "^5.0.14",
+        "@sahidawa/shared": "*"
     },
     "devDependencies": {
         "@playwright/test": "^1.61.1",

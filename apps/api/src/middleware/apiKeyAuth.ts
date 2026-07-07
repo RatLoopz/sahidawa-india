@@ -8,7 +8,7 @@ const pbkdf2Async = promisify(pbkdf2);
 
 export interface ApiKeyInfo {
     keyId: string;
-    callerName: string;
+    userId: string;
     scopes: string[];
 }
 
@@ -38,7 +38,7 @@ export const requireApiKey = async (req: ApiKeyRequest, res: Response, next: Nex
     try {
         const { data, error } = await supabase
             .from("api_keys")
-            .select("id, caller_name, scopes, is_active, key_hash, key_salt")
+            .select("id, user_id, scopes, expires_at, key_hash, key_salt")
             .eq("id", keyId)
             .maybeSingle();
 
@@ -48,8 +48,13 @@ export const requireApiKey = async (req: ApiKeyRequest, res: Response, next: Nex
             return;
         }
 
-        if (!data || !data.is_active || !data.key_salt) {
-            res.status(401).json({ error: "Invalid or inactive API key" });
+        if (!data || !data.key_salt) {
+            res.status(401).json({ error: "Invalid API key" });
+            return;
+        }
+
+        if (data.expires_at && new Date(data.expires_at) < new Date()) {
+            res.status(401).json({ error: "API key has expired" });
             return;
         }
 
@@ -84,11 +89,11 @@ export const requireApiKey = async (req: ApiKeyRequest, res: Response, next: Nex
 
         req.apiKey = {
             keyId: data.id,
-            callerName: data.caller_name,
+            userId: data.user_id,
             scopes: data.scopes,
         };
 
-        logger.info("Authenticated API request", { caller: data.caller_name });
+        logger.info("Authenticated API request", { userId: data.user_id });
 
         next();
     } catch (err) {

@@ -20,7 +20,8 @@ export async function syncDistrictAlertTallies(): Promise<void> {
             .select("district, reported_brand_name")
             .eq("status", "verified_fake")
             .eq("is_escalated", false)
-            .not("district", "is", null);
+            .not("district", "is", null)
+            .or(`snoozed_until.is.null,snoozed_until.lte.${new Date().toISOString()}`);
 
         if (countError) {
             logger.error("District alert sync: failed to fetch report counts", {

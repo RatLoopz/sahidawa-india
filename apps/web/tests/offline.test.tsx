@@ -463,6 +463,14 @@ describe("Offline Support", () => {
             expect(swContent).toContain("SKIP_WAITING");
         });
 
+        it("caches Next.js RSC payloads for locale switches with NetworkFirst", () => {
+            const swContent = fs.readFileSync(join(process.cwd(), "public/sw.js"), "utf8");
+            expect(swContent).toContain("RSC_CACHE_NAME");
+            expect(swContent).toContain("sahidawa-rsc-");
+            expect(swContent).toContain("_rsc");
+            expect(swContent).toContain("Next-Router-State-Tree");
+        });
+
         it("registers service worker via ServiceWorkerProvider", () => {
             const swProviderPath = join(process.cwd(), "components/ServiceWorkerProvider.tsx");
             const providerContent = fs.readFileSync(swProviderPath, "utf8");

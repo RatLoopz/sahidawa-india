@@ -3,7 +3,7 @@ import { z } from "zod";
 import { supabase } from "../db/client";
 import { logAdminAction } from "../services/audit.service";
 import { AuthenticatedRequest } from "../middleware/auth";
-import { triggerRecallAlert } from "../services/notifications";
+import { triggerRecallAlert, sendNotificationToUser, buildVerificationReviewPayload } from "../services/notifications";
 import logger from "../utils/logger";
 
 const reportStatusSchema = z
@@ -618,7 +618,7 @@ export const reviewVerificationRequest = async (
         // Fetch the request first to get medicine_id
         const { data: request, error: fetchError } = await supabase
             .from("medicine_verification_requests")
-            .select("id, medicine_id, medicine_name")
+            .select("id, medicine_id, medicine_name, submitted_by")
             .eq("id", id)
             .single();
 
@@ -677,6 +677,25 @@ export const reviewVerificationRequest = async (
                 rejection_reason: rejection_reason ?? null,
             }
         );
+
+        // Notify the submitting user (fire-and-log, non-blocking).
+        // A failed push send should NOT turn a successful review into a 500.
+        if (request.submitted_by) {
+            try {
+                const notifyPayload = buildVerificationReviewPayload(
+                    request.medicine_name,
+                    status,
+                    rejection_reason ?? null
+                );
+                await sendNotificationToUser(request.submitted_by, notifyPayload);
+            } catch (notifyErr) {
+                logger.error({
+                    message: "Failed to send verification review notification",
+                    error: notifyErr,
+                    submitted_by: request.submitted_by,
+                });
+            }
+        }
 
         res.json({ message: `Verification request ${status}`, request: updated });
     } catch (err) {

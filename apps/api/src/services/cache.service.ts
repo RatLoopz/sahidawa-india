@@ -22,6 +22,9 @@ export const KEY_PREFIXES = {
     DRUG_HITS: "hits:drug:",
     VOICE_CACHE: "medicine:voice:",
     VOICE_AUDIO_CACHE: "medicine:voice:audio:",
+    PHARMACY_CACHE: "pharmacy:",
+    REPORT_CACHE: "report:",
+    USER_CACHE: "user:",
 };
 
 const CACHE_INVALIDATION_CHUNK_SIZE = 100;
@@ -443,5 +446,33 @@ export async function setCachedVoiceByAudioHash(audioHash: string, result: any):
         logger.info(`Voice audio cache SET for hash: ${audioHash} (TTL: ${TTL_TIERS.COLD}s)`);
     } catch (err) {
         logger.error(`Error writing voice audio cache for hash: ${audioHash}`, err);
+    }
+}
+
+/**
+ * Dynamic table pattern invalidation using SCAN to prevent blocking the event loop.
+ */
+export async function invalidateCacheByPattern(pattern: string): Promise<string[]> {
+    if (!redisClient.isOpen) return [];
+    const keysToDelete: string[] = [];
+    let cursor: any = 0;
+
+    try {
+        do {
+            const result = await redisClient.scan(cursor, {
+                MATCH: pattern,
+                COUNT: 100,
+            });
+            cursor = result.cursor;
+            keysToDelete.push(...result.keys);
+        } while (cursor !== 0);
+
+        if (keysToDelete.length > 0) {
+            await redisClient.del(keysToDelete);
+        }
+        return keysToDelete;
+    } catch (err) {
+        logger.error(`Error scanning/deleting Redis pattern: ${pattern}`, err);
+        return [];
     }
 }

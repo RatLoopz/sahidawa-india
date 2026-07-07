@@ -1,4 +1,5 @@
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Download, FileSpreadsheet } from "lucide-react";
+import { exportComparisonToCSV, exportComparisonToPDF } from "@/src/lib/comparisonExport";
 
 export interface Medicine {
     id: string;
@@ -207,6 +208,20 @@ function shareComparison(medicine1: Medicine | null, medicine2: Medicine | null)
     navigator.clipboard.writeText(url);
 }
 
+function handleExportCSV(
+    medicines: Medicine[],
+    rows: { label: string; getValue: (m: Medicine) => string }[]
+) {
+    exportComparisonToCSV(medicines, rows);
+}
+
+function handleExportPDF(
+    medicines: Medicine[],
+    rows: { label: string; getValue: (m: Medicine) => string }[]
+) {
+    exportComparisonToPDF(medicines, rows);
+}
+
 export default function ComparisonGrid({
     medicines,
     labels = defaultLabels,
@@ -330,7 +345,25 @@ export default function ComparisonGrid({
                     </tbody>
                 </table>
                 {validMedicines.length >= 2 && (
-                    <div className="flex justify-end border-t border-slate-200 p-4">
+                    <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 p-4 print:hidden">
+                        <button
+                            type="button"
+                            onClick={() => handleExportCSV(validMedicines, rows)}
+                            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                            aria-label="Export comparison as CSV"
+                        >
+                            <FileSpreadsheet size={16} />
+                            Export CSV
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleExportPDF(validMedicines, rows)}
+                            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                            aria-label="Export comparison as PDF"
+                        >
+                            <Download size={16} />
+                            Export PDF
+                        </button>
                         <button
                             type="button"
                             onClick={() => shareComparison(validMedicines[0], validMedicines[1])}

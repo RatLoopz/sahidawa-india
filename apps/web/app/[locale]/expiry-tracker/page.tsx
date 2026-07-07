@@ -25,6 +25,7 @@ export default function ExpiryTrackerPage() {
         isLoaded,
         addMedicine,
         editMedicine,
+        deleteMedicine,
         bulkDeleteMedicines,
         importMedicines,
         snoozeMedicine,

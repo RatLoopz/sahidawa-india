@@ -3,7 +3,7 @@ import { z } from "zod";
 import { supabase } from "../db/client";
 import { uuidSchema } from "../utils/validation";
 import { AuthenticatedRequest, optionalAuth, requireAuth, requireRole } from "../middleware/auth";
-import { reportLimiter } from "../middleware/rateLimit";
+import { reportLimiter, limiter } from "../middleware/rateLimit";
 import {
     validateReport,
     computeReportHash,
@@ -310,6 +310,7 @@ reportsRouter.get("/", requireAuth, requireRole("admin"), async (req, res: Respo
         let query = supabase
             .from("counterfeit_reports")
             .select("*")
+            .or(`snoozed_until.is.null,snoozed_until.lte.${new Date().toISOString()}`)
             .order("created_at", { ascending: false })
             .limit(limit + 1);
 
@@ -418,7 +419,8 @@ reportsRouter.patch(
                     .eq("district", data.district)
                     .eq("reported_brand_name", data.reported_brand_name)
                     .eq("status", "verified_fake")
-                    .eq("is_escalated", false);
+                    .eq("is_escalated", false)
+                    .or(`snoozed_until.is.null,snoozed_until.lte.${new Date().toISOString()}`);
 
                 if (count && count >= 5) {
                     const alertLevel = count >= 15 ? "high" : "medium";
@@ -491,6 +493,50 @@ reportsRouter.patch(
             console.error("Unexpected error in PATCH /api/reports/:id/status:", err);
             res.status(500).json({ error: "An unexpected error occurred" });
         }
+    }
+);
+
+/**
+ * PATCH /api/reports/:id/snooze
+ * Snoozes a report for a given number of days.
+ */
+reportsRouter.patch(
+    "/:id/snooze",
+    limiter,
+    requireAuth,
+    requireRole("admin", "moderator"),
+    async (req, res: Response) => {
+        const parsedId = uuidSchema.safeParse(req.params.id);
+        if (!parsedId.success) {
+            res.status(400).json({ error: "Invalid UUID format" });
+            return;
+        }
+
+        const snoozeSchema = z.object({
+            days: z.number().min(1).max(365).default(7),
+        });
+
+        const parsedBody = snoozeSchema.safeParse(req.body);
+        if (!parsedBody.success) {
+            res.status(400).json({ error: "Invalid snooze payload", details: parsedBody.error });
+            return;
+        }
+
+        const snoozedUntil = new Date();
+        snoozedUntil.setDate(snoozedUntil.getDate() + parsedBody.data.days);
+
+        const { error } = await supabase
+            .from("counterfeit_reports")
+            .update({ snoozed_until: snoozedUntil.toISOString() })
+            .eq("id", req.params.id);
+
+        if (error) {
+            logger.error("Failed to snooze report", { error, id: req.params.id });
+            res.status(500).json({ error: "Failed to snooze report" });
+            return;
+        }
+
+        res.json({ success: true, snoozed_until: snoozedUntil.toISOString() });
     }
 );
 

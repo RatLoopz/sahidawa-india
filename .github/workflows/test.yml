@@ -13,18 +13,21 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: ⬇️ Checkout Code
-              uses: actions/checkout@v7
+              uses: actions/checkout@v4
               with:
                   fetch-depth: 2
 
             - name: ⚙️ Setup Node.js 24
-              uses: actions/setup-node@v6
+              uses: actions/setup-node@v4
               with:
                   node-version: 24
                   cache: "npm"
 
+            - name: 📦 Upgrade npm
+              run: npm install -g npm@10
+
             - name: 📦 Install Dependencies (Monorepo)
-              run: npm ci
+              run: npm install --legacy-peer-deps
 
             - name: ⚡ Cache Turborepo
               uses: actions/cache@v6
@@ -71,7 +74,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: ⬇️ Checkout Code
-              uses: actions/checkout@v7
+              uses: actions/checkout@v4
 
             - name: ⚙️ Setup Python 3.12
               uses: actions/setup-python@v6
@@ -95,7 +98,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: ⬇️ Checkout Code
-              uses: actions/checkout@v7
+              uses: actions/checkout@v4
 
             - name: 🐳 Build Docker Images
               run: docker compose build
@@ -105,7 +108,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: ⬇️ Checkout Code
-              uses: actions/checkout@v7
+              uses: actions/checkout@v4
 
             - name: 🔍 Get Changed Files
               id: changed-files

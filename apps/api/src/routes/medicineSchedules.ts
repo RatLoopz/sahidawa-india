@@ -232,14 +232,19 @@ router.delete("/:id", requireAuth, async (req: AuthenticatedRequest, res: Respon
         return;
     }
     try {
-        const { error } = await supabase
+        const { data, error } = await supabase
             .from("medicine_schedules")
             .delete()
             .eq("id", req.params.id)
-            .eq("user_id", req.user!.id);
+            .eq("user_id", req.user!.id)
+            .select("id");
 
         if (error) {
             res.status(500).json({ error: "Failed to delete schedule" });
+            return;
+        }
+        if (!data || data.length === 0) {
+            res.status(404).json({ error: "Schedule not found" });
             return;
         }
         await invalidateUserSummaryCaches(req.user!.id);

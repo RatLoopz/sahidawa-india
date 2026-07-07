@@ -25,6 +25,8 @@ import BackToTopButton from "@/app/[locale]/components/BackToTopButton";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useInView } from "react-intersection-observer";
+import { useAlerts } from "@/hooks/useAlerts";
+import { AlertItem } from "@/components/alerts/AlertItem";
 
 // Debounce hook for search inputs - prevents API calls on every keystroke
 function useDebounce(value: string, delay: number = 300) {
@@ -77,22 +79,27 @@ export interface Alert {
 
 export default function FullAlertsLogPage() {
     const t = useTranslations("Alerts");
-    const [allAlerts, setAllAlerts] = useState<Alert[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [loadingMore, setLoadingMore] = useState(false);
-    const [error, setError] = useState(false);
 
     // Filters
     const [brandSearch, setBrandSearch] = useState("");
     const [regionSearch, setRegionSearch] = useState("");
-    const [page, setPage] = useState(1);
-    const [totalCount, setTotalCount] = useState(0);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
-    const [hasMore, setHasMore] = useState(true);
 
     // Debounced search values - prevents API calls on every keystroke
     const debouncedBrandSearch = useDebounce(brandSearch, 300);
     const debouncedRegionSearch = useDebounce(regionSearch, 300);
+
+    const {
+        allAlerts,
+        loading,
+        loadingMore,
+        error,
+        page,
+        setPage,
+        totalCount,
+        hasMore,
+        snoozeAlert,
+    } = useAlerts({ debouncedBrandSearch, debouncedRegionSearch, refreshTrigger });
 
     // Accordion active expanded state
     const [expandedAlertId, setExpandedAlertId] = useState<string | null>(null);
@@ -108,64 +115,7 @@ export default function FullAlertsLogPage() {
         if (inView && !loadingMore && hasMore && !loading) {
             setPage((prev) => prev + 1);
         }
-    }, [inView, loadingMore, hasMore, loading]);
-
-    const fetchAlerts = useCallback(
-        async (pageNum: number, append = false) => {
-            try {
-                let url = `${API_BASE}/api/v1/alerts?page=${pageNum}&limit=50`;
-                if (debouncedBrandSearch)
-                    url += `&brand=${encodeURIComponent(debouncedBrandSearch)}`;
-                if (debouncedRegionSearch)
-                    url += `&region=${encodeURIComponent(debouncedRegionSearch)}`;
-
-                const res = await fetch(url);
-                if (!res.ok) {
-                    setError(true);
-                    return;
-                }
-                const data = await res.json();
-
-                if (append) {
-                    setAllAlerts((prev) => [...prev, ...(data.data || [])]);
-                } else {
-                    setAllAlerts(data.data || []);
-                }
-
-                setTotalCount(data.totalCount || 0);
-                setHasMore(pageNum * 50 < (data.totalCount || 0));
-            } catch {
-                setError(true);
-            }
-        },
-        [debouncedBrandSearch, debouncedRegionSearch]
-    );
-
-    // Initial load and when debounced filters change
-    useEffect(() => {
-        const loadData = async () => {
-            setLoading(true);
-            setPage(1);
-            setHasMore(true);
-            await fetchAlerts(1, false);
-            setLoading(false);
-        };
-
-        const timer = setTimeout(loadData, 400);
-        return () => clearTimeout(timer);
-    }, [fetchAlerts, refreshTrigger]);
-
-    // Load more when page changes (triggered by intersection observer)
-    useEffect(() => {
-        if (page > 1 && !loading) {
-            const loadMore = async () => {
-                setLoadingMore(true);
-                await fetchAlerts(page, true);
-                setLoadingMore(false);
-            };
-            loadMore();
-        }
-    }, [page]);
+    }, [inView, loadingMore, hasMore, loading, setPage]);
 
     const criticalCount = allAlerts.filter(
         (alert) =>
@@ -379,7 +329,6 @@ export default function FullAlertsLogPage() {
                                 onChange={(e) => {
                                     setBrandSearch(e.target.value);
                                     setPage(1);
-                                    setHasMore(true);
                                 }}
                                 className="block w-full rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted)/40 p-3 pl-11 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) shadow-inner transition-all focus:border-emerald-500/80 focus:bg-white focus:outline-hidden dark:focus:bg-slate-900/50"
                             />
@@ -395,7 +344,6 @@ export default function FullAlertsLogPage() {
                                 onChange={(e) => {
                                     setRegionSearch(e.target.value);
                                     setPage(1);
-                                    setHasMore(true);
                                 }}
                                 className="block w-full rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted)/40 p-3 pl-11 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) shadow-inner transition-all focus:border-emerald-500/80 focus:bg-white focus:outline-hidden dark:focus:bg-slate-900/50"
                             />
@@ -444,211 +392,16 @@ export default function FullAlertsLogPage() {
                     <div role="feed" className="space-y-4">
                         <motion.div layout className="space-y-4">
                             <AnimatePresence mode="popLayout">
-                                {allAlerts.map((alert) => {
-                                    const isSystem =
-                                        alert.reported_brand_name === "SYSTEM_UPDATE" ||
-                                        alert.brand_name === "SYSTEM_UPDATE" ||
-                                        alert.brand === "SYSTEM_UPDATE";
-                                    const isCritical =
-                                        alert.cdsco_approval_status === "banned" ||
-                                        alert.is_counterfeit_alert ||
-                                        alert.alert_type === "Banned";
-                                    // System updates have no detail metadata, so only
-                                    // medicine alerts expose a collapsible detail pane.
-                                    const isCollapsible = !isSystem;
-                                    const isExpanded = expandedAlertId === alert.id;
-
-                                    return (
-                                        <motion.div
-                                            layout
-                                            initial={{ opacity: 0, y: 15 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: -15 }}
-                                            transition={{ duration: 0.3 }}
-                                            key={alert.id}
-                                            onClick={
-                                                isCollapsible
-                                                    ? () => toggleExpand(alert.id)
-                                                    : undefined
-                                            }
-                                            tabIndex={isCollapsible ? 0 : undefined}
-                                            role={isCollapsible ? "button" : undefined}
-                                            aria-expanded={isCollapsible ? isExpanded : undefined}
-                                            aria-controls={
-                                                isCollapsible
-                                                    ? `alert-details-${alert.id}`
-                                                    : undefined
-                                            }
-                                            onKeyDown={
-                                                isCollapsible
-                                                    ? (e) => {
-                                                          if (e.key === "Enter" || e.key === " ") {
-                                                              e.preventDefault();
-                                                              toggleExpand(alert.id);
-                                                          }
-                                                      }
-                                                    : undefined
-                                            }
-                                            className={`group relative flex flex-col overflow-hidden rounded-3xl border bg-(--color-surface-page) p-6 shadow-xs transition-all focus:ring-2 focus:ring-emerald-500/20 focus:outline-hidden ${
-                                                isCollapsible ? "cursor-pointer" : ""
-                                            } ${
-                                                isExpanded
-                                                    ? "border-emerald-500/30 ring-2 ring-emerald-500/5"
-                                                    : "border-(--color-border-muted)"
-                                            }`}
-                                        >
-                                            <div
-                                                className={`absolute top-0 bottom-0 left-0 w-1.5 ${isSystem ? "bg-blue-500" : isCritical ? "bg-red-500" : "bg-amber-500"}`}
-                                            ></div>
-                                            <div className="flex items-start gap-4">
-                                                <div
-                                                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${isSystem ? "bg-blue-500/10 text-blue-500" : isCritical ? "bg-red-500/10 text-red-500" : "bg-amber-500/10 text-amber-600"}`}
-                                                >
-                                                    {isSystem ? (
-                                                        <Globe size={20} />
-                                                    ) : isCritical ? (
-                                                        <ShieldAlert size={20} />
-                                                    ) : (
-                                                        <AlertTriangle size={20} />
-                                                    )}
-                                                </div>
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="flex items-start justify-between gap-3">
-                                                        <h4 className="text-base font-bold">
-                                                            {isSystem
-                                                                ? t("systemUpdate")
-                                                                : alert.reported_brand_name ||
-                                                                  alert.brand_name ||
-                                                                  alert.brand}
-                                                        </h4>
-                                                        <span className="shrink-0 text-[11px] font-bold text-(--color-text-muted)">
-                                                            {formatRelativeTime(
-                                                                alert.reported_at ||
-                                                                    alert.created_at ||
-                                                                    null
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                    <p className="mt-2 text-sm text-(--color-text-secondary)">
-                                                        {alert.alert_type
-                                                            ? t("alertType", {
-                                                                  type: alert.alert_type,
-                                                              })
-                                                            : alert.composition || t("noDetails")}
-                                                    </p>
-
-                                                    {/* Key-Value Metadata Grid (collapsible detail pane) */}
-                                                    <AnimatePresence initial={false}>
-                                                        {isCollapsible && isExpanded && (
-                                                            <motion.div
-                                                                key="details"
-                                                                id={`alert-details-${alert.id}`}
-                                                                initial={{ height: 0, opacity: 0 }}
-                                                                animate={{
-                                                                    height: "auto",
-                                                                    opacity: 1,
-                                                                }}
-                                                                exit={{ height: 0, opacity: 0 }}
-                                                                transition={{
-                                                                    duration: 0.25,
-                                                                    ease: "easeInOut",
-                                                                }}
-                                                                className="overflow-hidden"
-                                                            >
-                                                                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-bold text-(--color-text-muted)">
-                                                                    <div
-                                                                        className="flex items-center gap-1.5"
-                                                                        onClick={(e) =>
-                                                                            e.stopPropagation()
-                                                                        }
-                                                                    >
-                                                                        <span>
-                                                                            {t("batchLabel")}{" "}
-                                                                            <span className="font-extrabold text-(--color-text-primary)">
-                                                                                {alert.batch_number}
-                                                                            </span>
-                                                                        </span>
-                                                                        <CopyButton
-                                                                            text={
-                                                                                alert.batch_number ||
-                                                                                ""
-                                                                            }
-                                                                        />
-                                                                    </div>
-                                                                    {alert.manufacturer && (
-                                                                        <>
-                                                                            <span className="text-(--color-border-muted)">
-                                                                                •
-                                                                            </span>
-                                                                            <div className="flex items-center gap-1">
-                                                                                <Building2
-                                                                                    size={12}
-                                                                                    className="opacity-80"
-                                                                                />
-                                                                                <span>
-                                                                                    {t(
-                                                                                        "manufacturerLabel"
-                                                                                    )}{" "}
-                                                                                    <span className="inline-block max-w-[150px] truncate align-bottom font-extrabold text-(--color-text-primary) sm:max-w-[250px]">
-                                                                                        {
-                                                                                            alert.manufacturer
-                                                                                        }
-                                                                                    </span>
-                                                                                </span>
-                                                                            </div>
-                                                                        </>
-                                                                    )}
-                                                                    {(alert.state ||
-                                                                        alert.district) && (
-                                                                        <>
-                                                                            <span className="text-(--color-border-muted)">
-                                                                                •
-                                                                            </span>
-                                                                            <div className="flex items-center gap-1">
-                                                                                <MapPin
-                                                                                    size={12}
-                                                                                    className="opacity-80"
-                                                                                />
-                                                                                <span>
-                                                                                    {t(
-                                                                                        "regionLabel"
-                                                                                    )}{" "}
-                                                                                    <span className="font-extrabold text-(--color-text-primary)">
-                                                                                        {[
-                                                                                            alert.state,
-                                                                                            alert.district,
-                                                                                        ]
-                                                                                            .filter(
-                                                                                                Boolean
-                                                                                            )
-                                                                                            .join(
-                                                                                                ", "
-                                                                                            )}
-                                                                                    </span>
-                                                                                </span>
-                                                                            </div>
-                                                                        </>
-                                                                    )}
-                                                                </div>
-                                                            </motion.div>
-                                                        )}
-                                                    </AnimatePresence>
-                                                </div>
-
-                                                {isCollapsible && (
-                                                    <div className="group-hover:text-slate-650 shrink-0 text-slate-400 transition-colors">
-                                                        <ChevronDown
-                                                            size={18}
-                                                            className={`transition-transform duration-300 ${
-                                                                isExpanded ? "rotate-180" : ""
-                                                            }`}
-                                                        />
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </motion.div>
-                                    );
-                                })}
+                                {allAlerts.map((alert) => (
+                                    <AlertItem
+                                        key={alert.id}
+                                        alert={alert}
+                                        expandedAlertId={expandedAlertId}
+                                        toggleExpand={toggleExpand}
+                                        snoozeAlert={snoozeAlert}
+                                        t={t}
+                                    />
+                                ))}
                             </AnimatePresence>
                         </motion.div>
                     </div>

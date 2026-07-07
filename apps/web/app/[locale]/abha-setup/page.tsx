@@ -58,6 +58,7 @@ export default function ABHASetupPage() {
             setLoading(true);
 
             await verifyABHAOtp({
+                abhaAddress,
                 txnId,
                 otp,
             });

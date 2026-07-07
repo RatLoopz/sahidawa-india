@@ -20,6 +20,8 @@ export const routing = defineRouting({
         "mai",
         "ml",
         "sa",
+        "mni",
+        "sd",
     ],
     defaultLocale: "en",
 });

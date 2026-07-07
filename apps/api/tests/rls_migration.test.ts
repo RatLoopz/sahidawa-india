@@ -39,6 +39,27 @@ describe("RLS Migration — tracked_medicines", () => {
     });
 });
 
+describe("RLS Migration - user_scan_history owner policy", () => {
+    const migrationPath = join(MIGRATIONS_DIR, "20260704150905_add_rls_to_scan_history.sql");
+    const sql = readFileSync(migrationPath, "utf8");
+
+    it("targets user_scan_history, which has user_id ownership", () => {
+        expect(sql).toContain("ALTER TABLE public.user_scan_history ENABLE ROW LEVEL SECURITY");
+        expect(sql).toContain("ON public.user_scan_history");
+        expect(sql).not.toContain("ON public.scan_history");
+    });
+
+    it("creates an idempotent authenticated owner policy", () => {
+        expect(sql).toContain(
+            'DROP POLICY IF EXISTS "Users can manage their own scan history" ON public.user_scan_history'
+        );
+        expect(sql).toContain('CREATE POLICY "Users can manage their own scan history"');
+        expect(sql).toContain("TO authenticated");
+        expect(sql).toContain("USING (auth.uid() = user_id)");
+        expect(sql).toContain("WITH CHECK (auth.uid() = user_id)");
+    });
+});
+
 describe("RLS Migration — tracked_medicines guest policy", () => {
     const migrationPath = join(
         MIGRATIONS_DIR,
