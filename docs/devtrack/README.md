@@ -865,3 +865,4 @@
 | [#3204](https://github.com/RatLoopz/sahidawa-india/pull/3204) | 2026-07-04 | Backend | 9 | @jamunatg2006-sys | [View Doc](devtrack/2026-07/PR-3204-feat-webhook-add-real-time-medicine-cache-invalida.md) |
 | [#3006](https://github.com/RatLoopz/sahidawa-india/pull/3006) | 2026-07-04 | Frontend | 25 | @CopperFlame14 | [View Doc](devtrack/2026-07/PR-3006-adding-snooze-functionality-to-tracker.md) / [ADR](devtrack/adr/ADR-046-adding-snooze-functionality-to-tracker.md) |
 | [#3297](https://github.com/RatLoopz/sahidawa-india/pull/3297) | 2026-07-07 | ML/AI | 8 | @hrx01-dev | [View Doc](devtrack/2026-07/PR-3297-feat-implemented-idempotent-alert-queue-for-cdsco-.md) |
+| [#3298](https://github.com/RatLoopz/sahidawa-india/pull/3298) | 2026-07-07 | Backend | 9 | @Avinash-sdbegin | [View Doc](devtrack/2026-07/PR-3298-feat-api-add-geohash-binning-for-analytics-heatmap.md) |
