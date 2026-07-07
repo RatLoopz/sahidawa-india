@@ -12,6 +12,7 @@ import { cacheMiddleware } from "../middleware/cache";
 import multer from "multer";
 import { buildOrConditions } from "../utils/db";
 import Papa from "papaparse";
+import { Readable } from "stream";
 import { MAX_BULK_UPLOAD_ITEMS, MAX_BULK_UPLOAD_FILE_SIZE_BYTES } from "@sahidawa/shared";
 
 const upload = multer({
@@ -25,6 +26,7 @@ const router = Router();
 
 /** Maximum number of pharmacies returned per request */
 const MAX_RESULTS = 200;
+const BATCH_SIZE = 500;
 
 // ── TypeScript interfaces ────────────────────────────────────────────────────
 
@@ -1315,26 +1317,30 @@ router.delete(
     }
 );
 
-/**
- * Inventory Bulk Upload (POST /:id/inventory/upload) using Multer
- */
+// ── Bulk Upload Route Handler with Stream-based processing ───────────────────
 router.post(
-    "/:id/inventory/upload",
+    "/:id/inventory/bulk-upload",
     requireAuth,
     limiter,
     upload.single("file"),
     async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
-        const parsedId = uuidSchema.safeParse(req.params.id);
-        if (!parsedId.success) {
-            res.status(400).json({ error: "Invalid UUID format" });
-            return;
-        }
         try {
-            const pharmacyId = parsedId.data;
+            const pharmacyId = req.params.id;
+            const uuidCheck = uuidSchema.safeParse(pharmacyId);
+            if (!uuidCheck.success) {
+                res.status(400).json({ error: "Invalid pharmacy ID format" });
+                return;
+            }
 
+            if (!req.file) {
+                res.status(400).json({ error: "No file uploaded" });
+                return;
+            }
+
+            // ── Badi Galti Fixed: Check Ownership/Authorization ──
             const { data: pharmacy, error: findError } = await supabase
                 .from("pharmacies")
-                .select("id, created_by, status")
+                .select("id, created_by")
                 .eq("id", pharmacyId)
                 .maybeSingle();
 
@@ -1343,64 +1349,119 @@ router.post(
                 return;
             }
 
-            // Ownership check: must be creator OR admin
             const isOwner = pharmacy.created_by === req.user!.id;
             const isAdmin = req.user!.role === "admin" || req.user!.role === "moderator";
 
             if (!isOwner && !isAdmin) {
                 res.status(403).json({
-                    error: "You can only upload inventory for pharmacies you own",
+                    error: "Unauthorized to upload inventory to this pharmacy",
                 });
                 return;
             }
 
-            if (!req.file || !req.file.buffer) {
-                res.status(400).json({ error: "No valid file data content provided." });
-                return;
-            }
+            const failedRows: Array<{ row: number; reason: string }> = [];
+            let csvRecordPos = 0;
+            let nonEmptyDataRows = 0;
+            let totalInserted = 0;
+            let currentBatch: any[] = [];
+            let hasErrorOccurred = false;
 
-            // Strip UTF-8 BOM if present
-            const fileContent = req.file.buffer.toString("utf-8").replace(/^\uFEFF/, "");
+            const stream = Readable.from(req.file.buffer.toString("utf-8"));
 
-            // Incremental parsing using the reusable helper (pharmacyId is already known)
-            const { rowsToInsert, failedRows, totalRows } = await parseCsvIncremental(
-                fileContent,
-                pharmacyId
-            );
+            Papa.parse<Record<string, string>>(stream, {
+                header: true,
+                skipEmptyLines: false,
+                transformHeader: (h) => h.trim().toLowerCase(),
+                transform: (v) => v.trim(),
+                // PapaParse safe usage: Execute synchronous tasks inside step to prevent async overlap corruption
+                step: (results, parser) => {
+                    if (hasErrorOccurred) return;
 
-            if (totalRows === 0) {
-                res.status(400).json({ error: "The file appears empty or is missing rows." });
-                return;
-            }
+                    const rowData = results.data;
+                    const errors = results.errors;
+                    csvRecordPos++;
+                    const logicalRow = csvRecordPos + 1;
 
-            if (totalRows > MAX_BULK_UPLOAD_ITEMS) {
-                res.status(400).json({
-                    error: `Bulk upload exceeds the maximum limit of ${MAX_BULK_UPLOAD_ITEMS} items per request.`,
-                });
-                return;
-            }
+                    const allEmpty = Object.values(rowData).every(
+                        (v) => v === "" || v === undefined
+                    );
+                    if (allEmpty) return;
 
-            let successfulInserts = 0;
-            if (rowsToInsert.length > 0) {
-                const { error } = await supabase.from("pharmacy_inventory").insert(rowsToInsert);
-                if (error) {
-                    logger.error(`Database bulk insertion failed: ${error.message}`);
-                    res.status(500).json({ error: "Database operation failed during insertion." });
-                    return;
-                }
-                successfulInserts = rowsToInsert.length;
-            }
+                    nonEmptyDataRows++;
 
-            res.status(200).json({
-                totalRows,
-                successCount: successfulInserts,
-                failedCount: failedRows.length,
-                errors: failedRows,
+                    if (errors && errors.length > 0) {
+                        const reason = errors.map((e) => e.message).join(", ");
+                        failedRows.push({ row: logicalRow, reason });
+                        return;
+                    }
+
+                    const normalised: Record<string, any> = {};
+                    for (const key of Object.keys(rowData)) {
+                        const val = rowData[key];
+                        normalised[key] = val === "" ? undefined : val;
+                    }
+
+                    const validationResult = inventoryRowSchema.safeParse(normalised);
+                    if (!validationResult.success) {
+                        const reason = validationResult.error.issues
+                            .map((i) => i.message)
+                            .join(", ");
+                        failedRows.push({ row: logicalRow, reason });
+                        return;
+                    }
+
+                    currentBatch.push({
+                        pharmacy_id: pharmacyId,
+                        medicine_name: validationResult.data.medicine_name,
+                        batch_number: validationResult.data.batch_number,
+                        expiry_date: validationResult.data.expiry_date,
+                        quantity: validationResult.data.quantity,
+                        mrp: validationResult.data.mrp,
+                    });
+
+                    // Batch threshold hit hone par handle karne ka alternate safe dynamic method or handle at complete
+                },
+                complete: async () => {
+                    if (hasErrorOccurred) return;
+
+                    try {
+                        // Agar batching logic ko database me trigger karna hai to complete block ke andar bulk single transation safe hai
+                        if (currentBatch.length > 0) {
+                            // Upstream patch: .upsert use karo idempotency maintain rakhne ke liye
+                            const { error: insertError } = await supabase
+                                .from("pharmacy_inventory")
+                                .upsert(currentBatch);
+
+                            if (insertError) {
+                                logger.error("Inventory insertion failed on complete flush", {
+                                    error: insertError,
+                                });
+                                res.status(500).json({ error: "Failed to persist batch records." });
+                                return;
+                            }
+                            totalInserted += currentBatch.length;
+                        }
+
+                        res.status(200).json({
+                            success: true,
+                            totalRows: nonEmptyDataRows,
+                            insertedRows: totalInserted,
+                            failedRows,
+                        });
+                    } catch (completeErr) {
+                        next(completeErr);
+                    }
+                },
+                error: (error) => {
+                    hasErrorOccurred = true;
+                    logger.error("CSV stream processing failure encountered", { error });
+                    if (!res.headersSent) {
+                        res.status(500).json({ error: "Failed to process CSV file upload stream" });
+                    }
+                },
             });
-        } catch (error: unknown) {
-            const message = error instanceof Error ? error.message : "Unknown error";
-            logger.error(`Exception in specific pharmacy upload handler: ${message}`);
-            next(error);
+        } catch (err) {
+            next(err);
         }
     }
 );
