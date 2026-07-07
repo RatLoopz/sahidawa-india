@@ -1,15 +1,10 @@
 import { Router, Request, Response } from "express";
-import crypto from "crypto";
+import { safeCompare } from "../utils/cryptoUtils";
 import { redisClient } from "../utils/redis";
 import logger from "../utils/logger";
 import { webhookLimiter } from "../middleware/rateLimit";
 
 const router = Router();
-function safeCompare(a: string, b: string): boolean {
-    const hashA = crypto.createHash("sha256").update(a).digest();
-    const hashB = crypto.createHash("sha256").update(b).digest();
-    return crypto.timingSafeEqual(hashA, hashB);
-}
 
 /**
  * POST /api/webhooks/supabase/health-schemes
@@ -185,10 +180,10 @@ function handleAsyncInvalidation(table: string, pattern: string, res: Response) 
                 logger.warn(`Redis not connected — skipping ${table} cache invalidation`);
                 return;
             }
-            
+
             let cursor: any = 0;
             const keysToDelete: string[] = [];
-            
+
             do {
                 const result = await redisClient.scan(cursor, {
                     MATCH: pattern,
@@ -200,13 +195,18 @@ function handleAsyncInvalidation(table: string, pattern: string, res: Response) 
 
             if (keysToDelete.length > 0) {
                 await redisClient.del(keysToDelete);
-                logger.info(`Cache invalidated for ${table} — deleted ${keysToDelete.length} key(s)`, { keys: keysToDelete });
+                logger.info(
+                    `Cache invalidated for ${table} — deleted ${keysToDelete.length} key(s)`,
+                    { keys: keysToDelete }
+                );
             } else {
                 logger.info(`${table} webhook fired — no cache keys found to invalidate`);
             }
         } catch (err) {
             const message = err instanceof Error ? err.message : String(err);
-            logger.error(`Failed to execute async cache invalidation for ${table}`, { error: message });
+            logger.error(`Failed to execute async cache invalidation for ${table}`, {
+                error: message,
+            });
         }
     })();
 
@@ -223,10 +223,15 @@ router.post(
     async (req: Request, res: Response): Promise<void> => {
         const secret = process.env.SUPABASE_WEBHOOK_SECRET;
         const authHeader = req.headers["authorization"];
-        const isValid = typeof secret === "string" && typeof authHeader === "string" && safeCompare(authHeader, `Bearer ${secret}`);
+        const isValid =
+            typeof secret === "string" &&
+            typeof authHeader === "string" &&
+            safeCompare(authHeader, `Bearer ${secret}`);
 
         if (!isValid) {
-            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/pharmacies", { ip: req.ip });
+            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/pharmacies", {
+                ip: req.ip,
+            });
             res.status(401).json({ error: "Unauthorized" });
             return;
         }
@@ -234,7 +239,7 @@ router.post(
         const payload = req.body;
         const record = payload.record || payload.old_record || {};
         const id = record.id;
-        
+
         // Single entity or collection clear pattern mapping
         const pattern = id ? `pharmacy:${id}*` : "pharmacy:*";
         handleAsyncInvalidation("pharmacies", pattern, res);
@@ -250,10 +255,15 @@ router.post(
     async (req: Request, res: Response): Promise<void> => {
         const secret = process.env.SUPABASE_WEBHOOK_SECRET;
         const authHeader = req.headers["authorization"];
-        const isValid = typeof secret === "string" && typeof authHeader === "string" && safeCompare(authHeader, `Bearer ${secret}`);
+        const isValid =
+            typeof secret === "string" &&
+            typeof authHeader === "string" &&
+            safeCompare(authHeader, `Bearer ${secret}`);
 
         if (!isValid) {
-            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/reports", { ip: req.ip });
+            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/reports", {
+                ip: req.ip,
+            });
             res.status(401).json({ error: "Unauthorized" });
             return;
         }
@@ -276,10 +286,15 @@ router.post(
     async (req: Request, res: Response): Promise<void> => {
         const secret = process.env.SUPABASE_WEBHOOK_SECRET;
         const authHeader = req.headers["authorization"];
-        const isValid = typeof secret === "string" && typeof authHeader === "string" && safeCompare(authHeader, `Bearer ${secret}`);
+        const isValid =
+            typeof secret === "string" &&
+            typeof authHeader === "string" &&
+            safeCompare(authHeader, `Bearer ${secret}`);
 
         if (!isValid) {
-            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/users", { ip: req.ip });
+            logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/users", {
+                ip: req.ip,
+            });
             res.status(401).json({ error: "Unauthorized" });
             return;
         }
