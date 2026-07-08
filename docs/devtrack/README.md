@@ -869,3 +869,4 @@
 | [#3317](https://github.com/RatLoopz/sahidawa-india/pull/3317) | 2026-07-07 | Backend | 9 | @Avinash-sdbegin | [View Doc](devtrack/2026-07/PR-3317-fix-api-implement-proper-query-bypass-on-voice-ver.md) |
 | [#3316](https://github.com/RatLoopz/sahidawa-india/pull/3316) | 2026-07-07 | Backend | 6 | @Avinash-sdbegin | [View Doc](devtrack/2026-07/PR-3316-feat-api-inject-x-request-id-into-global-winston-l.md) |
 | [#3318](https://github.com/RatLoopz/sahidawa-india/pull/3318) | 2026-07-07 | ML/AI | 8 | @hrx01-dev | [View Doc](devtrack/2026-07/PR-3318-ref-migrated-cdsco-alert-agent-idempotency-queue-t.md) |
+| [#3359](https://github.com/RatLoopz/sahidawa-india/pull/3359) | 2026-07-08 | Frontend | 23 | @hrx01-dev | [View Doc](devtrack/2026-07/PR-3359-ref-migrated-alerts-pagination-fetching-to-tanstac.md) / [ADR](devtrack/adr/ADR-047-ref-migrated-alerts-pagination-fetching-to-tanstac.md) |
