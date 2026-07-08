@@ -5,6 +5,7 @@ import logger from "./utils/logger";
 import { jobScheduler } from "./services/jobScheduler.service";
 import { connectRedis } from "./utils/redis";
 import { warmCache } from "./services/cache.service";
+import compareRouter from "./routes/compare";
 
 const port = process.env.PORT || 4000;
 
@@ -48,6 +49,9 @@ if (process.env.BYPASS_AUTH_FOR_TESTING === "true") {
         "SECURITY WARNING: BYPASS_AUTH_FOR_TESTING is active. Authentication is disabled for local testing."
     );
 }
+
+// Register ML medicine comparison and similarity caching routes
+app.use("/api/compare", compareRouter);
 
 if (process.env.NODE_ENV !== "test") {
     const server = app.listen(port, async () => {
