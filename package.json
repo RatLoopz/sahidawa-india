@@ -27,7 +27,7 @@
     "license": "MIT",
     "packageManager": "npm@11.12.1",
     "dependencies": {
-        "@supabase/supabase-js": "^2.110.0",
+        "@supabase/supabase-js": "^2.110.1",
         "cors": "^2.8.6",
         "dotenv": "^17.4.2",
         "express": "^5.2.1",
@@ -43,18 +43,18 @@
     },
     "devDependencies": {
         "@parcel/watcher": "^2.5.6",
-        "@types/node": "^26.1.0",
+        "@types/node": "^26.1.1",
         "@types/winston": "^2.4.4",
         "eslint": "^10.6.0",
         "fake-indexeddb": "^6.2.5",
         "husky": "^9.1.7",
         "lint-staged": "^17.0.8",
-        "next": "^16.2.9",
+        "next": "^16.2.10",
         "prettier": "^3.9.4",
         "prettier-plugin-tailwindcss": "^0.8.0",
-        "react-hook-form": "^7.80.0",
+        "react-hook-form": "^7.81.0",
         "react-is": "^19.2.7",
-        "turbo": "^2.10.2"
+        "turbo": "^2.10.4"
     },
     "overrides": {
         "@zxing/library": "0.23.0",
