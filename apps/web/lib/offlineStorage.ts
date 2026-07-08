@@ -14,6 +14,9 @@ interface SahiDawaDB extends DBSchema {
             };
             createdAt: number;
             retries: number;
+            syncStatus: "pending" | "syncing" | "failed" | "synced";
+            lastSyncAttempt?: number;
+            errorMessage?: string;
         };
     };
     draft_form: {
@@ -23,13 +26,12 @@ interface SahiDawaDB extends DBSchema {
 }
 
 const DB_NAME = "sahidawa-offline-db";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbPromise: Promise<IDBPDatabase<SahiDawaDB>> | null = null;
 
 function getDB() {
     if (typeof window === "undefined") {
-        // SSR guard — never call on server
         throw new Error("offlineStorage can only be used in the browser");
     }
     if (!dbPromise) {
@@ -86,6 +88,7 @@ export async function queueReport(payload: SahiDawaDB["pending_reports"]["value"
         payload,
         createdAt: Date.now(),
         retries: 0,
+        syncStatus: "pending" as const,
     });
 }
 
@@ -95,6 +98,20 @@ export async function getPendingReports() {
         return db.getAll("pending_reports");
     } catch (err) {
         console.error("getPendingReports failed:", err);
+        return [];
+    }
+}
+
+export async function getPendingReportsWithStatus() {
+    try {
+        const db = await getDB();
+        const all = await db.getAll("pending_reports");
+        return all.map((r) => ({
+            ...r,
+            syncStatus: (r.syncStatus || "pending") as "pending" | "syncing" | "failed" | "synced",
+        }));
+    } catch (err) {
+        console.error("getPendingReportsWithStatus failed:", err);
         return [];
     }
 }
@@ -110,6 +127,25 @@ export async function incrementRetry(id: number) {
     if (record) {
         record.retries += 1;
         await db.put("pending_reports", record);
+    }
+}
+
+export async function updateReportSyncStatus(
+    id: number,
+    status: "pending" | "syncing" | "failed" | "synced",
+    errorMessage?: string
+) {
+    try {
+        const db = await getDB();
+        const record = await db.get("pending_reports", id);
+        if (record) {
+            record.syncStatus = status;
+            record.lastSyncAttempt = Date.now();
+            if (errorMessage) record.errorMessage = errorMessage;
+            await db.put("pending_reports", record);
+        }
+    } catch (err) {
+        console.error("updateReportSyncStatus failed:", err);
     }
 }
 
