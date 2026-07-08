@@ -9,6 +9,7 @@ import { requireAuth, AuthenticatedRequest } from "../middleware/auth";
 import { FormattedPharmacy, PharmacyRpcResult } from "../types/pharmacy.types";
 import { redisCache } from "../middleware/redisCache";
 import multer from "multer";
+import { validateUploadSize } from "../middleware/uploadSizeValidator";
 import { buildOrConditions } from "../utils/db";
 import Papa from "papaparse";
 
@@ -1233,6 +1234,7 @@ router.post(
     "/:id/inventory/upload",
     requireAuth,
     limiter,
+    validateUploadSize,
     upload.single("file"),
     async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
         const parsedId = uuidSchema.safeParse(req.params.id);
