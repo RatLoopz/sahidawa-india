@@ -1,4 +1,4 @@
-import { getPendingReports, removePendingReport, incrementRetry } from "@/lib/offlineStorage";
+import { getPendingReports, removePendingReport, incrementRetry, updateReportSyncStatus } from "@/lib/offlineStorage";
 import { submitReport } from "@/lib/api";
 import { createBrowserClient } from "@supabase/ssr";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
@@ -30,11 +30,23 @@ export async function syncPendingReports(onSynced?: (count: number) => void) {
         if (record.retries >= MAX_RETRIES) continue;
 
         try {
+            // Update status to "syncing"
+            if (record.id != null) {
+                await updateReportSyncStatus(record.id, "syncing");
+            }
+
             await submitReport(record.payload, token);
-            if (record.id != null) await removePendingReport(record.id);
+            if (record.id != null) {
+                await updateReportSyncStatus(record.id, "synced");
+                await removePendingReport(record.id);
+            }
             synced++;
-        } catch {
-            if (record.id != null) await incrementRetry(record.id);
+        } catch (error) {
+            if (record.id != null) {
+                await incrementRetry(record.id);
+                const errorMsg = error instanceof Error ? error.message : "Sync failed";
+                await updateReportSyncStatus(record.id, "failed", errorMsg);
+            }
             // If we're offline mid-loop, bail out rather than burn retries
             if (!navigator.onLine) break;
         }
