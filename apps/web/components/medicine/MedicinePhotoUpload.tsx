@@ -168,7 +168,7 @@ function ImagePreview({ src, onRemove }: ImagePreviewProps) {
         <div className="space-y-3">
             <img
                 src={src}
-                alt="Uploaded medicine packaging"
+                alt="Uploaded medicine preview"
                 className="max-h-64 w-full rounded-xl border border-slate-200 object-contain"
             />
             <button
