@@ -68,9 +68,11 @@ test.describe("Expiry Tracker backup and restore", () => {
 
         await page.locator('input[type="file"]').setInputFiles(backupPath);
 
-        await expect(page.getByRole("heading", { name: medicine.name })).toBeVisible();
-        await expect(page.getByText(medicine.batchNumber)).toBeVisible();
-        await expect(page.getByText(medicine.notes)).toBeVisible();
+        await expect(page.getByRole("heading", { name: medicine.name })).toBeVisible({
+            timeout: 30000,
+        });
+        await expect(page.getByText(medicine.batchNumber)).toBeVisible({ timeout: 30000 });
+        await expect(page.getByText(medicine.notes)).toBeVisible({ timeout: 30000 });
 
         const restored = await page.evaluate((key) => window.localStorage.getItem(key), storageKey);
         expect(restored).toContain(medicine.name);

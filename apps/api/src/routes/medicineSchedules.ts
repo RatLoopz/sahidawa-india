@@ -10,6 +10,9 @@ import { scheduleLimiter } from "../middleware/rateLimit";
 
 const router = Router();
 router.use(scheduleLimiter);
+const SUMMARY_CACHE_BUCKET_MINUTES = 5;
+const SUMMARY_CACHE_TTL_SECONDS = SUMMARY_CACHE_BUCKET_MINUTES * 60;
+
 const invalidateUserSummaryCaches = async (userId: string) => {
     if (!redisClient.isOpen) return;
 
@@ -26,6 +29,13 @@ const invalidateUserSummaryCaches = async (userId: string) => {
         });
     }
 };
+
+const getSummaryCacheBucket = (time: string) => {
+    const [hours, minutes] = time.split(":").map(Number);
+    const totalMinutes = hours * 60 + minutes;
+    return Math.floor(totalMinutes / SUMMARY_CACHE_BUCKET_MINUTES);
+};
+
 const createScheduleSchema = z
     .object({
         medicine_name: z.string().min(1, "Medicine name is required"),
@@ -308,14 +318,7 @@ router.post("/:id/doses", requireAuth, async (req: AuthenticatedRequest, res: Re
             return;
         }
 
-        if (redisClient.isOpen) {
-            const cacheKey = `schedules:summary:${req.user!.id}:${parsed.data.log_date}`;
-            try {
-                await redisClient.del(cacheKey);
-            } catch (redisErr) {
-                logger.error("Failed to invalidate cache", { error: redisErr, cacheKey });
-            }
-        }
+        await invalidateUserSummaryCaches(req.user!.id);
 
         res.json({ dose: data });
     } catch (err) {
@@ -450,7 +453,8 @@ router.get("/today/summary", requireAuth, async (req: AuthenticatedRequest, res:
         const today = queryResult.data.date || istToday;
         const nowTime = queryResult.data.time || istNowTime;
 
-        const cacheKey = `schedules:summary:${req.user!.id}:${today}`;
+        const cacheBucket = getSummaryCacheBucket(nowTime);
+        const cacheKey = `schedules:summary:${req.user!.id}:${today}:${cacheBucket}`;
         if (redisClient.isOpen) {
             try {
                 const cached = await redisClient.get(cacheKey);
@@ -534,7 +538,9 @@ router.get("/today/summary", requireAuth, async (req: AuthenticatedRequest, res:
 
         if (redisClient.isOpen) {
             try {
-                await redisClient.set(cacheKey, JSON.stringify(responseData), { EX: 86400 });
+                await redisClient.set(cacheKey, JSON.stringify(responseData), {
+                    EX: SUMMARY_CACHE_TTL_SECONDS,
+                });
             } catch (redisErr) {
                 logger.error("Redis set error for today/summary", { error: redisErr, cacheKey });
             }

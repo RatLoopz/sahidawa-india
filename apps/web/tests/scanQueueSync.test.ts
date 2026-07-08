@@ -22,6 +22,14 @@ jest.mock("idb", () => ({
     })),
 }));
 
+jest.mock("sonner", () => ({
+    toast: {
+        success: jest.fn(),
+        error: jest.fn(),
+        info: jest.fn(),
+    },
+}));
+
 jest.mock("../lib/api", () => ({
     verifyMedicine: jest.fn(),
 }));

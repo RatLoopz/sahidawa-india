@@ -28,6 +28,9 @@ jobs:
 
             - name: 📦 Install Dependencies (Monorepo)
               run: npm install --legacy-peer-deps
+            
+            - name: 🔒 Run npm audit
+              run: npm audit --audit-level=high
 
             - name: ⚡ Cache Turborepo
               uses: actions/cache@v6

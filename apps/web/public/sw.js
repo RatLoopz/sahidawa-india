@@ -587,7 +587,191 @@ self.addEventListener("sync", (event) => {
     }
 });
 
+function openIndexedDB(dbName, version, upgradeCallback) {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(dbName, version);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result);
+        request.onupgradeneeded = (event) => {
+            if (upgradeCallback) upgradeCallback(request.result);
+        };
+    });
+}
+
+async function getQueuedScans() {
+    try {
+        const db = await openIndexedDB("sahidawa-offline-sync", 1);
+        if (!db.objectStoreNames.contains("sync-queue")) {
+            db.close();
+            return [];
+        }
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction("sync-queue", "readonly");
+            const store = transaction.objectStore("sync-queue");
+            const request = store.getAll();
+            request.onsuccess = () => {
+                db.close();
+                resolve(request.result || []);
+            };
+            request.onerror = () => {
+                db.close();
+                reject(request.error);
+            };
+        });
+    } catch (e) {
+        console.error("[SW] Failed to get queued scans", e);
+        return [];
+    }
+}
+
+async function deleteQueuedScan(id) {
+    try {
+        const db = await openIndexedDB("sahidawa-offline-sync", 1);
+        if (!db.objectStoreNames.contains("sync-queue")) {
+            db.close();
+            return;
+        }
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction("sync-queue", "readwrite");
+            const store = transaction.objectStore("sync-queue");
+            const request = store.delete(id);
+            request.onsuccess = () => {
+                db.close();
+                resolve();
+            };
+            request.onerror = () => {
+                db.close();
+                reject(request.error);
+            };
+        });
+    } catch (e) {
+        console.error("[SW] Failed to delete queued scan", e);
+    }
+}
+
+async function saveToScanHistory(entry) {
+    try {
+        const db = await openIndexedDB("sahidawa-history", 1, (db) => {
+            if (!db.objectStoreNames.contains("scan-history")) {
+                db.createObjectStore("scan-history", { keyPath: "id" });
+            }
+        });
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction("scan-history", "readwrite");
+            const store = transaction.objectStore("scan-history");
+            const request = store.put(entry);
+            request.onsuccess = () => {
+                db.close();
+                resolve();
+            };
+            request.onerror = () => {
+                db.close();
+                reject(request.error);
+            };
+        });
+    } catch (e) {
+        console.error("[SW] Failed to save scan history", e);
+    }
+}
+
 async function flushQueueFromServiceWorker() {
+    const queue = await getQueuedScans();
+    if (queue.length === 0) return;
+
+    let syncedCount = 0;
+
+    for (const item of queue) {
+        try {
+            // Determine if the URL is ML service or regular API
+            const apiUrl = item.apiUrl || "/api/verify";
+            const isMl = apiUrl.includes("/verify/batch");
+            const body = isMl
+                ? JSON.stringify({ batch_number: item.barcode })
+                : JSON.stringify({ batchNumber: item.barcode });
+
+            const res = await fetch(apiUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body,
+            });
+
+            if (!res.ok) {
+                // If it is a 5xx or server/network error, we retry later by throwing
+                if (res.status >= 500) {
+                    throw new Error(`Server returned status ${res.status}`);
+                }
+
+                // Discard from queue for other client/unresolvable errors (like 400 or 404)
+                await deleteQueuedScan(item.id);
+                continue;
+            }
+
+            const data = await res.json();
+
+            // Format result
+            let title = "Medicine Verification";
+            let bodyText = "";
+            let historyStatus = "SUSPICIOUS";
+            let medicineName = item.barcode;
+
+            if (data.verified) {
+                const med = data.medicine;
+                medicineName = med.brand_name || item.barcode;
+                if (med.is_counterfeit_alert) {
+                    title = "⚠️ Counterfeit Alert!";
+                    bodyText = `Warning: Medicine "${medicineName}" (Batch: ${med.batch_number}) is flagged as counterfeit.`;
+                    historyStatus = "FAKE";
+                } else {
+                    title = "✅ Medicine Verified Genuine";
+                    bodyText = `Medicine "${medicineName}" (Batch: ${med.batch_number}) has been verified.`;
+                    historyStatus = "VERIFIED";
+                }
+            } else {
+                title = "❌ Verification Failed";
+                bodyText = `Medicine batch ${item.barcode} could not be verified in the CDSCO database.`;
+                historyStatus = "SUSPICIOUS";
+            }
+
+            // Save to scan history
+            const uuid =
+                self.crypto && self.crypto.randomUUID
+                    ? self.crypto.randomUUID()
+                    : Date.now().toString(36) + Math.random().toString(36).substr(2);
+            await saveToScanHistory({
+                id: uuid,
+                timestamp: Date.now(),
+                medicineName,
+                status: historyStatus,
+            });
+
+            // Remove from queue
+            await deleteQueuedScan(item.id);
+            syncedCount++;
+
+            // Trigger notification
+            if (self.registration && "showNotification" in self.registration) {
+                await self.registration.showNotification(title, {
+                    body: bodyText,
+                    icon: "/icons/icon-192.png",
+                    badge: "/icons/icon-192.png",
+                    data: { url: `/${item.locale || "en"}/history` },
+                });
+            }
+        } catch (error) {
+            console.error("[SW] Failed to sync scan: ", error);
+            // Re-throw so Background Sync retries later
+            throw error;
+        }
+    }
+
+    // Notify clients that sync finished
     const clientsList = await self.clients.matchAll();
-    clientsList.forEach((client) => client.postMessage({ type: "FLUSH_SYNC_QUEUE" }));
+    clientsList.forEach((client) => {
+        client.postMessage({
+            type: "SYNC_QUEUE_UPDATED",
+            count: syncedCount,
+        });
+    });
 }

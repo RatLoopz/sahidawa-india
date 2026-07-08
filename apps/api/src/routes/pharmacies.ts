@@ -12,6 +12,7 @@ import { cacheMiddleware } from "../middleware/cache";
 import multer from "multer";
 import { buildOrConditions } from "../utils/db";
 import Papa from "papaparse";
+import { Readable } from "stream";
 import { MAX_BULK_UPLOAD_ITEMS, MAX_BULK_UPLOAD_FILE_SIZE_BYTES } from "@sahidawa/shared";
 
 const upload = multer({
@@ -25,6 +26,7 @@ const router = Router();
 
 /** Maximum number of pharmacies returned per request */
 const MAX_RESULTS = 200;
+const BATCH_SIZE = 500;
 
 // ── TypeScript interfaces ────────────────────────────────────────────────────
 
@@ -1311,96 +1313,6 @@ router.delete(
 
             res.status(200).json({ message: "Pharmacy deleted successfully" });
         } catch (error: unknown) {
-            next(error);
-        }
-    }
-);
-
-/**
- * Inventory Bulk Upload (POST /:id/inventory/upload) using Multer
- */
-router.post(
-    "/:id/inventory/upload",
-    requireAuth,
-    limiter,
-    upload.single("file"),
-    async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
-        const parsedId = uuidSchema.safeParse(req.params.id);
-        if (!parsedId.success) {
-            res.status(400).json({ error: "Invalid UUID format" });
-            return;
-        }
-        try {
-            const pharmacyId = parsedId.data;
-
-            const { data: pharmacy, error: findError } = await supabase
-                .from("pharmacies")
-                .select("id, created_by, status")
-                .eq("id", pharmacyId)
-                .maybeSingle();
-
-            if (findError || !pharmacy) {
-                res.status(404).json({ error: "Pharmacy not found" });
-                return;
-            }
-
-            // Ownership check: must be creator OR admin
-            const isOwner = pharmacy.created_by === req.user!.id;
-            const isAdmin = req.user!.role === "admin" || req.user!.role === "moderator";
-
-            if (!isOwner && !isAdmin) {
-                res.status(403).json({
-                    error: "You can only upload inventory for pharmacies you own",
-                });
-                return;
-            }
-
-            if (!req.file || !req.file.buffer) {
-                res.status(400).json({ error: "No valid file data content provided." });
-                return;
-            }
-
-            // Strip UTF-8 BOM if present
-            const fileContent = req.file.buffer.toString("utf-8").replace(/^\uFEFF/, "");
-
-            // Incremental parsing using the reusable helper (pharmacyId is already known)
-            const { rowsToInsert, failedRows, totalRows } = await parseCsvIncremental(
-                fileContent,
-                pharmacyId
-            );
-
-            if (totalRows === 0) {
-                res.status(400).json({ error: "The file appears empty or is missing rows." });
-                return;
-            }
-
-            if (totalRows > MAX_BULK_UPLOAD_ITEMS) {
-                res.status(400).json({
-                    error: `Bulk upload exceeds the maximum limit of ${MAX_BULK_UPLOAD_ITEMS} items per request.`,
-                });
-                return;
-            }
-
-            let successfulInserts = 0;
-            if (rowsToInsert.length > 0) {
-                const { error } = await supabase.from("pharmacy_inventory").insert(rowsToInsert);
-                if (error) {
-                    logger.error(`Database bulk insertion failed: ${error.message}`);
-                    res.status(500).json({ error: "Database operation failed during insertion." });
-                    return;
-                }
-                successfulInserts = rowsToInsert.length;
-            }
-
-            res.status(200).json({
-                totalRows,
-                successCount: successfulInserts,
-                failedCount: failedRows.length,
-                errors: failedRows,
-            });
-        } catch (error: unknown) {
-            const message = error instanceof Error ? error.message : "Unknown error";
-            logger.error(`Exception in specific pharmacy upload handler: ${message}`);
             next(error);
         }
     }

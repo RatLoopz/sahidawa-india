@@ -8,6 +8,8 @@ export const TTL_TIERS = {
     HOT: 86400, // 24 hours
     WARM: 21600, // 6 hours
     COLD: 3600, // 1 hour
+    // VOICE cache TTL in seconds. Default 30 days. Configurable via VOICE_CACHE_TTL_SECONDS
+    VOICE: parseInt(process.env.VOICE_CACHE_TTL_SECONDS ?? "2592000", 10), // 30 days
 };
 
 // Hit Thresholds
@@ -392,7 +394,9 @@ export async function getCachedVoiceResult(transcribedText: string): Promise<any
 }
 
 /**
- * Stores a voice verification result in Redis using TTL_TIERS.COLD (1 hour).
+ * Stores a voice verification result in Redis using TTL_TIERS.VOICE (default 30 days).
+ * This is configurable via `VOICE_CACHE_TTL_SECONDS` and is intended for
+ * stable medicine verification results that change infrequently.
  * Increments the global miss counter to track cache misses from DB lookups.
  */
 export async function setCachedVoiceResult(transcribedText: string, result: any): Promise<void> {
@@ -401,10 +405,10 @@ export async function setCachedVoiceResult(transcribedText: string, result: any)
     const cacheKey = `${KEY_PREFIXES.VOICE_CACHE}${normalizedKey}`;
     try {
         await redisClient.set(cacheKey, JSON.stringify(result), {
-            EX: TTL_TIERS.COLD,
+            EX: TTL_TIERS.VOICE,
         });
         await redisClient.incr("stats:misses");
-        logger.info(`Voice cache SET for: ${normalizedKey} (TTL: ${TTL_TIERS.COLD}s)`);
+        logger.info(`Voice cache SET for: ${normalizedKey} (TTL: ${TTL_TIERS.VOICE}s)`);
     } catch (err) {
         logger.error(`Error writing voice cache for key: ${normalizedKey}`, err);
     }
@@ -433,17 +437,20 @@ export async function getCachedVoiceByAudioHash(audioHash: string): Promise<any 
 
 /**
  * Stores a voice verification result keyed by a SHA-256 hash of the raw audio buffer.
- * Uses TTL_TIERS.COLD (1 hour). Increments the global miss counter.
+ * Uses TTL_TIERS.VOICE (default 30 days). This TTL is configurable via
+ * `VOICE_CACHE_TTL_SECONDS` and keeps medicine verification results cached
+ * longer than the generic COLD tier which is intended for mutable batch data.
+ * Increments the global miss counter.
  */
 export async function setCachedVoiceByAudioHash(audioHash: string, result: any): Promise<void> {
     if (!redisClient.isOpen) return;
     const cacheKey = `${KEY_PREFIXES.VOICE_AUDIO_CACHE}${audioHash}`;
     try {
         await redisClient.set(cacheKey, JSON.stringify(result), {
-            EX: TTL_TIERS.COLD,
+            EX: TTL_TIERS.VOICE,
         });
         await redisClient.incr("stats:misses");
-        logger.info(`Voice audio cache SET for hash: ${audioHash} (TTL: ${TTL_TIERS.COLD}s)`);
+        logger.info(`Voice audio cache SET for hash: ${audioHash} (TTL: ${TTL_TIERS.VOICE}s)`);
     } catch (err) {
         logger.error(`Error writing voice audio cache for hash: ${audioHash}`, err);
     }

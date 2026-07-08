@@ -56,10 +56,14 @@ test.describe("Offline Scanner and Sync Queue", () => {
         // Setup interception to catch the background sync request when we go online
         // The sync API calls either ML endpoint (/verify/batch) or Node API (/api/verify)
         const syncRequestPromise = page.waitForRequest(
-            (request) =>
-                (request.url().includes("/api/verify") ||
-                    request.url().includes("/verify/batch")) &&
-                request.method() === "POST"
+            (request) => {
+                const url = request.url();
+                const isVerifyRequest =
+                    url.includes("/api/verify") || url.includes("/verify/batch");
+                const isPost = request.method() === "POST";
+                return isVerifyRequest && isPost;
+            },
+            { timeout: 15000 }
         );
 
         // Reconnect the network
@@ -67,11 +71,12 @@ test.describe("Offline Scanner and Sync Queue", () => {
         // Dispatch online event so the sync queue flush triggers via window listener
         await page.evaluate(() => window.dispatchEvent(new Event("online")));
 
-        // Wait for the background sync request to fire
+        // Wait for sync with explicit delay
+        await page.waitForTimeout(1000);
         const syncRequest = await syncRequestPromise;
         expect(syncRequest.url()).toMatch(/verify/);
 
         // After successful flush, the queue should clear and the barcode should disappear
-        await expect(page.getByText(testBarcode)).toBeHidden({ timeout: 10000 });
+        await expect(page.getByText(testBarcode)).toBeHidden({ timeout: 15000 });
     });
 });

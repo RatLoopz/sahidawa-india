@@ -17,6 +17,7 @@ RequestsInstrumentor().instrument()
 
 from services.telemetry import configure_telemetry_logging
 from services.router_loader import include_router_if_available
+from routers.verify import router as verify_router
 
 configure_telemetry_logging()
 logger = logging.getLogger(__name__)
@@ -76,6 +77,29 @@ if not tts_loaded:
     )
 include_router_if_available(app, "routers.voice_verify", required=True)
 
+# Directly attach the ML comparison computation layer to structural router
+@verify_router.post("/compare")
+async def compare_medicines(payload: dict):
+    medicine_a = payload.get("medicine_a", "")
+    medicine_b = payload.get("medicine_b", "")
+    
+    if not medicine_a or not medicine_b:
+        return {"error": "Both medicine names are required"}, 400
+        
+    from services.embedding import embed_query
+    from services.similarity import cosine_similarity
+    
+    emb_a = embed_query(medicine_a)
+    emb_b = embed_query(medicine_b)
+    
+    score = cosine_similarity(emb_a, emb_b)
+    
+    return {
+        "medicine_a": medicine_a,
+        "medicine_b": medicine_b,
+        "similarity_score": score,
+        "verdict": "highly_similar" if score >= 0.92 else "different"
+    }
 
 @app.get("/")
 def read_root():

@@ -5,6 +5,12 @@ export interface QueuedScan {
     barcode: string;
     timestamp: number;
     locale: string;
+    apiUrl: string;
+    deviceMetadata?: {
+        userAgent: string;
+        platform: string;
+        language: string;
+    };
 }
 
 const DB_NAME = "sahidawa-offline-sync";
@@ -22,14 +28,30 @@ if (typeof window !== "undefined") {
     });
 }
 
-export async function addToSyncQueue(barcode: string, locale: string): Promise<QueuedScan> {
+export async function addToSyncQueue(
+    barcode: string,
+    locale: string,
+    apiUrl?: string,
+    deviceMetadata?: QueuedScan["deviceMetadata"]
+): Promise<QueuedScan> {
     if (!dbPromise) throw new Error("IndexedDB not available");
     const db = await dbPromise;
+
+    const finalApiUrl = apiUrl || (() => {
+        const mlUrl = typeof process !== "undefined" ? process.env.NEXT_PUBLIC_ML_URL : undefined;
+        const apiBase = (typeof process !== "undefined" ? process.env.NEXT_PUBLIC_API_URL : undefined) || "http://localhost:4000";
+        return mlUrl 
+            ? `${mlUrl.replace(/\/+$/, "")}/verify/batch` 
+            : `${apiBase.replace(/\/+$/, "")}/api/verify`;
+    })();
+
     const item: QueuedScan = {
         id: crypto.randomUUID(),
         barcode,
         timestamp: Date.now(),
         locale,
+        apiUrl: finalApiUrl,
+        deviceMetadata,
     };
     await db.put(STORE_NAME, item);
     return item;
