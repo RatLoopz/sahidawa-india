@@ -19,9 +19,11 @@
         "@opentelemetry/context-zone": "^2.8.0",
         "@opentelemetry/sdk-trace-web": "^2.8.0",
         "@radix-ui/react-tooltip": "^1.2.11",
+        "@sahidawa/shared": "*",
         "@supabase/auth-helpers-nextjs": "^0.15.0",
         "@supabase/ssr": "^0.12.0",
         "@supabase/supabase-js": "^2.110.0",
+        "@tanstack/react-query": "^5.101.2",
         "@tanstack/react-virtual": "^3.14.5",
         "@upstash/ratelimit": "^2.0.8",
         "@upstash/redis": "^1.38.0",
@@ -55,8 +57,7 @@
         "tesseract.js": "^7.0.0",
         "uuid": "^14.0.1",
         "zod": "^4.4.3",
-        "zustand": "^5.0.14",
-        "@sahidawa/shared": "*"
+        "zustand": "^5.0.14"
     },
     "devDependencies": {
         "@playwright/test": "^1.61.1",

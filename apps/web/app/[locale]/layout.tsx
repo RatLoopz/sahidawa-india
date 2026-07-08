@@ -18,6 +18,7 @@ import { AuthProvider } from "@/src/components/AuthProvider";
 import { TracingInitializer } from "@/components/TracingInitializer";
 
 import { InteractiveOverlays } from "./components/InteractiveOverlays";
+import { ReactQueryProvider } from "./components/ReactQueryProvider";
 
 export async function generateMetadata({
     params,
@@ -88,23 +89,25 @@ export default async function LocaleLayout({
             <body className="flex min-h-screen flex-col bg-(--color-surface-page) text-(--color-text-primary) transition-colors duration-300">
                 <ServiceWorkerProvider>
                     <ThemeProvider>
-                        <NextIntlClientProvider messages={messages}>
-                            <AuthProvider>
-                                <a
-                                    href="#main-content"
-                                    className="sr-only absolute top-4 left-4 z-[60] rounded-full bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-lg focus:not-sr-only focus-visible:ring-[3px] focus-visible:ring-emerald-600 focus-visible:ring-offset-2 focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
-                                >
-                                    {t("skip_to_main_content")}
-                                </a>
-                                <OfflineBanner />
-                                <Navbar />
-                                <main id="main-content" className="flex flex-grow flex-col">
-                                    <OfflineErrorBoundary>{children}</OfflineErrorBoundary>
-                                </main>
-                                <Footer />
-                                <InteractiveOverlays />
-                            </AuthProvider>
-                        </NextIntlClientProvider>
+                        <ReactQueryProvider>
+                            <NextIntlClientProvider messages={messages}>
+                                <AuthProvider>
+                                    <a
+                                        href="#main-content"
+                                        className="sr-only absolute top-4 left-4 z-[60] rounded-full bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-lg focus:not-sr-only focus-visible:ring-[3px] focus-visible:ring-emerald-600 focus-visible:ring-offset-2 focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                                    >
+                                        {t("skip_to_main_content")}
+                                    </a>
+                                    <OfflineBanner />
+                                    <Navbar />
+                                    <main id="main-content" className="flex flex-grow flex-col">
+                                        <OfflineErrorBoundary>{children}</OfflineErrorBoundary>
+                                    </main>
+                                    <Footer />
+                                    <InteractiveOverlays />
+                                </AuthProvider>
+                            </NextIntlClientProvider>
+                        </ReactQueryProvider>
                         <div className="no-print">
                             <Toaster richColors position="top-center" />
                         </div>

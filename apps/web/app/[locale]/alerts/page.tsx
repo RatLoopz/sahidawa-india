@@ -63,30 +63,37 @@ export default function FullAlertsLogPage() {
     // Filters
     const [brandSearch, setBrandSearch] = useState("");
     const [regionSearch, setRegionSearch] = useState("");
-    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     // Debounced search values - prevents API calls on every keystroke
     const debouncedBrandSearch = useDebounce(brandSearch, 300);
     const debouncedRegionSearch = useDebounce(regionSearch, 300);
 
-    const { allAlerts, loading, loadingMore, error, setPage, totalCount, hasMore, snoozeAlert } =
-        useAlerts({ debouncedBrandSearch, debouncedRegionSearch, refreshTrigger });
+    const {
+        allAlerts,
+        loading,
+        loadingMore,
+        error,
+        fetchNextPage,
+        hasNextPage,
+        totalCount,
+        snoozeAlert,
+        refetch,
+    } = useAlerts({ debouncedBrandSearch, debouncedRegionSearch });
 
     // Accordion active expanded state
     const [expandedAlertId, setExpandedAlertId] = useState<string | null>(null);
 
     // Intersection Observer for infinite scroll
-    const [inViewRef, inView] = useInView({
+    const { ref: inViewRef } = useInView({
         triggerOnce: false,
         threshold: 0.1,
         rootMargin: "0px 0px 100px 0px",
+        onChange: (inView) => {
+            if (inView && !loadingMore && hasNextPage && !loading) {
+                fetchNextPage();
+            }
+        },
     });
-
-    useEffect(() => {
-        if (inView && !loadingMore && hasMore && !loading) {
-            setPage((prev) => prev + 1);
-        }
-    }, [inView, loadingMore, hasMore, loading, setPage]);
 
     const criticalCount = allAlerts.filter(
         (alert) =>
@@ -299,7 +306,6 @@ export default function FullAlertsLogPage() {
                                 value={brandSearch}
                                 onChange={(e) => {
                                     setBrandSearch(e.target.value);
-                                    setPage(1);
                                 }}
                                 className="block w-full rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted)/40 p-3 pl-11 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) shadow-inner transition-all focus:border-emerald-500/80 focus:bg-white focus:outline-hidden dark:focus:bg-slate-900/50"
                             />
@@ -314,7 +320,6 @@ export default function FullAlertsLogPage() {
                                 value={regionSearch}
                                 onChange={(e) => {
                                     setRegionSearch(e.target.value);
-                                    setPage(1);
                                 }}
                                 className="block w-full rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted)/40 p-3 pl-11 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) shadow-inner transition-all focus:border-emerald-500/80 focus:bg-white focus:outline-hidden dark:focus:bg-slate-900/50"
                             />
@@ -355,7 +360,7 @@ export default function FullAlertsLogPage() {
                                   : "The safety registry is clear right now. No active drug recalls, counterfeit warnings, or banned formulations match your search."
                         }
                         actionLabel="Refresh alerts"
-                        onAction={() => setRefreshTrigger((prev) => prev + 1)}
+                        onAction={() => refetch()}
                         className="my-6 border border-(--color-border-muted) bg-(--color-surface-page) px-6 py-16 shadow-xs"
                     />
                 ) : (
@@ -389,7 +394,7 @@ export default function FullAlertsLogPage() {
                                 </div>
                             </div>
                         )}
-                        {hasMore && !loadingMore && (
+                        {hasNextPage && !loadingMore && (
                             <div
                                 ref={inViewRef}
                                 className="w-full rounded-2xl border border-dashed border-(--color-border-muted) bg-(--color-surface-muted)/30 py-4 text-center text-sm font-semibold text-(--color-text-muted) transition-all hover:bg-(--color-surface-muted)"
@@ -401,7 +406,7 @@ export default function FullAlertsLogPage() {
                             </div>
                         )}
 
-                        {!hasMore && totalCount > 0 && (
+                        {!hasNextPage && totalCount > 0 && (
                             <div className="text-center text-sm font-semibold text-(--color-text-muted)">
                                 ✅ You've seen all {totalCount} safety alerts
                             </div>

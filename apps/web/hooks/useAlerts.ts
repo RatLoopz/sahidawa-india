@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_BASE, getCsrfToken } from "@/lib/api";
 import { toast } from "sonner";
 import { Alert } from "@/app/[locale]/alerts/page";
@@ -6,85 +6,39 @@ import { Alert } from "@/app/[locale]/alerts/page";
 export interface UseAlertsParams {
     debouncedBrandSearch: string;
     debouncedRegionSearch: string;
-    refreshTrigger: number;
 }
 
-export function useAlerts({
-    debouncedBrandSearch,
-    debouncedRegionSearch,
-    refreshTrigger,
-}: UseAlertsParams) {
-    const [allAlerts, setAllAlerts] = useState<Alert[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [loadingMore, setLoadingMore] = useState(false);
-    const [error, setError] = useState(false);
+export function useAlerts({ debouncedBrandSearch, debouncedRegionSearch }: UseAlertsParams) {
+    const queryClient = useQueryClient();
 
-    const [page, setPage] = useState(1);
-    const [totalCount, setTotalCount] = useState(0);
-    const [hasMore, setHasMore] = useState(true);
+    const fetchAlertsPage = async ({ pageParam = 1 }) => {
+        let url = `${API_BASE}/api/v1/alerts?page=${pageParam}&limit=50`;
+        if (debouncedBrandSearch) url += `&brand=${encodeURIComponent(debouncedBrandSearch)}`;
+        if (debouncedRegionSearch) url += `&region=${encodeURIComponent(debouncedRegionSearch)}`;
 
-    const fetchAlerts = useCallback(
-        async (pageNum: number, append = false) => {
-            try {
-                let url = `${API_BASE}/api/v1/alerts?page=${pageNum}&limit=50`;
-                if (debouncedBrandSearch)
-                    url += `&brand=${encodeURIComponent(debouncedBrandSearch)}`;
-                if (debouncedRegionSearch)
-                    url += `&region=${encodeURIComponent(debouncedRegionSearch)}`;
-
-                const res = await fetch(url);
-                if (!res.ok) {
-                    setError(true);
-                    return;
-                }
-                const data = await res.json();
-
-                if (append) {
-                    setAllAlerts((prev) => [...prev, ...(data.data || [])]);
-                } else {
-                    setAllAlerts(data.data || []);
-                }
-
-                setTotalCount(data.totalCount || 0);
-                setHasMore(pageNum * 50 < (data.totalCount || 0));
-            } catch {
-                setError(true);
-            }
-        },
-        [debouncedBrandSearch, debouncedRegionSearch]
-    );
-
-    useEffect(() => {
-        const loadData = async () => {
-            setLoading(true);
-            setPage(1);
-            setHasMore(true);
-            setError(false);
-            await fetchAlerts(1, false);
-            setLoading(false);
-        };
-
-        const timer = setTimeout(loadData, 400);
-        return () => clearTimeout(timer);
-    }, [fetchAlerts, refreshTrigger]);
-
-    useEffect(() => {
-        if (page > 1 && !loading) {
-            const loadMore = async () => {
-                setLoadingMore(true);
-                await fetchAlerts(page, true);
-                setLoadingMore(false);
-            };
-            loadMore();
+        const res = await fetch(url);
+        if (!res.ok) {
+            throw new Error("Failed to fetch alerts");
         }
-    }, [page, fetchAlerts, loading]);
+        return res.json();
+    };
 
-    const snoozeAlert = async (id: string, days: number = 7) => {
-        try {
-            // Optimistic update
-            setAllAlerts((prev) => prev.filter((alert) => alert.id !== id));
-            setTotalCount((prev) => Math.max(0, prev - 1));
+    const queryKey = ["alerts", debouncedBrandSearch, debouncedRegionSearch];
 
+    const { data, error, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, refetch } =
+        useInfiniteQuery({
+            queryKey,
+            queryFn: fetchAlertsPage,
+            getNextPageParam: (lastPage, allPages) => {
+                const totalCount = lastPage?.totalCount || 0;
+                const fetchedCount = allPages.length * 50;
+                return fetchedCount < totalCount ? allPages.length + 1 : undefined;
+            },
+            initialPageParam: 1,
+        });
+
+    const snoozeAlertMutation = useMutation({
+        mutationFn: async ({ id, days }: { id: string; days: number }) => {
             const csrfToken = await getCsrfToken();
             const res = await fetch(`${API_BASE}/api/v1/alerts/${id}/snooze`, {
                 method: "PATCH",
@@ -97,28 +51,56 @@ export function useAlerts({
             });
 
             if (!res.ok) {
-                // If it fails, we might want to revert the optimistic update, but keeping it simple for now
                 throw new Error("Failed to snooze alert");
             }
+            return res.json();
+        },
+        onMutate: async ({ id }) => {
+            await queryClient.cancelQueries({ queryKey });
 
-            toast.success(`Alert snoozed for ${days} days`);
-        } catch (err) {
+            const previousData = queryClient.getQueryData(queryKey);
+
+            // Optimistically update
+            queryClient.setQueryData(queryKey, (old: any) => {
+                if (!old) return old;
+                return {
+                    ...old,
+                    pages: old.pages.map((page: any) => ({
+                        ...page,
+                        data: page.data ? page.data.filter((alert: Alert) => alert.id !== id) : [],
+                        totalCount: Math.max(0, (page.totalCount || 1) - 1),
+                    })),
+                };
+            });
+
+            return { previousData };
+        },
+        onError: (err, newTodo, context) => {
+            queryClient.setQueryData(queryKey, context?.previousData);
             console.error(err);
             toast.error("Failed to snooze alert. Please try again.");
-            // Re-fetch to revert optimistic update
-            fetchAlerts(1, false);
-        }
+        },
+        onSuccess: (data, variables) => {
+            toast.success(`Alert snoozed for ${variables.days} days`);
+        },
+    });
+
+    const snoozeAlert = (id: string, days: number = 7) => {
+        snoozeAlertMutation.mutate({ id, days });
     };
+
+    const allAlerts = data?.pages.flatMap((page) => page.data || []) || [];
+    const totalCount = data?.pages[0]?.totalCount || 0;
 
     return {
         allAlerts,
-        loading,
-        loadingMore,
-        error,
-        page,
-        setPage,
+        loading: isLoading,
+        loadingMore: isFetchingNextPage,
+        error: !!error,
+        fetchNextPage,
+        hasNextPage,
         totalCount,
-        hasMore,
         snoozeAlert,
+        refetch,
     };
 }
