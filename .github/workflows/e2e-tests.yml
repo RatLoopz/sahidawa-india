@@ -23,6 +23,9 @@ jobs:
       run: npx playwright install --with-deps
       working-directory: apps/web
       
+    - name: Build Shared Packages
+      run: npm run build -w @sahidawa/shared
+      
     - name: Run Playwright tests
       run: npx playwright test
       working-directory: apps/web

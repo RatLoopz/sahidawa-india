@@ -17,20 +17,6 @@ import {
 
 type PharmacyStatus = "pending" | "approved" | "rejected";
 
-type Pharmacy = {
-    id: string;
-    name: string;
-    license_id: string | null;
-    address: string;
-    district: string | null;
-    state: string | null;
-    phone_number: string | null;
-    status: PharmacyStatus;
-    created_at: string;
-    is_active: boolean;
-    deleted_at: string | null;
-};
-
 function getToken(): string {
     if (typeof window === "undefined") return "";
     return localStorage.getItem("sb-access-token") ?? "";
