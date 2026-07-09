@@ -1,9 +1,28 @@
+import { execSync } from "node:child_process";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin();
 
+/**
+ * Deterministic build ID derived from the Git commit SHA.
+ * Falls back to a timestamp if git is unavailable (e.g. Docker without .git).
+ */
+function getBuildId() {
+    try {
+        return execSync("git rev-parse --short HEAD", { encoding: "utf-8" }).trim();
+    } catch {
+        return Date.now().toString(36);
+    }
+}
+
+const buildId = getBuildId();
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    generateBuildId: () => buildId,
+    env: {
+        NEXT_PUBLIC_BUILD_ID: buildId,
+    },
     transpilePackages: ["@sahidawa/validators", "@sahidawa/types", "@sahidawa/shared"],
     serverExternalPackages: ["lightningcss", "@tailwindcss/postcss", "@tailwindcss/node", "@tailwindcss/oxide"],
     images: {
