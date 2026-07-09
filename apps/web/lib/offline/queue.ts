@@ -136,3 +136,8 @@ export async function enqueueReport(input: {
     imageBlob: input.imageBlob,
   });
 }
+
+export async function flushReports() {
+    console.log("Syncing reports...");
+    // Your sync logic here
+}
