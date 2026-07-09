@@ -121,7 +121,7 @@ export async function enqueueReport(input: {
 }) {
   const db = await getSyncDB();
   const idempotencyKey = uuidv4();
-  
+
   await db.put("pendingReports", {
     idempotencyKey,
     deviceId: getDeviceId(),
@@ -129,4 +129,14 @@ export async function enqueueReport(input: {
     reportData: input.reportData,
     imageBlob: input.imageBlob,
   });
-}
+
+  // --- ADD THIS LOGIC ---
+  if (navigator.onLine) {
+    // You might need a flushReports() function similar to flushQueue()
+    void flushReports(); 
+  } else if ("serviceWorker" in navigator && "SyncManager" in window) {
+    const reg = await navigator.serviceWorker.ready;
+    await (reg as any).sync.register("sahidawa-sync-reports");
+  }
+  return idempotencyKey;
+}    
