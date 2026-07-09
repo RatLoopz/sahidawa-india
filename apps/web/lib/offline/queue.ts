@@ -135,6 +135,19 @@ export async function enqueueReport(input: {
     reportData: input.reportData,
     imageBlob: input.imageBlob,
   });
+
+  // --- PASTE STEP 3 CODE HERE ---
+  if (navigator.onLine) {
+    void flushReports();
+  } else if ("serviceWorker" in navigator) { // Check if serviceWorker exists
+    const reg = await navigator.serviceWorker.ready;
+    // Check if the sync API is supported in this browser
+    if ("sync" in reg) { 
+      await (reg as any).sync.register("sahidawa-sync-reports");
+    }
+  }
+  
+  return idempotencyKey;
 }
 
 export async function flushReports() {
