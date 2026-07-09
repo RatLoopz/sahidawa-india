@@ -426,14 +426,16 @@ async function navigateWithOfflineFallback(request) {
 // ---------------------------------------------------------------------------
 // PUSH NOTIFICATIONS — medicine recall alerts
 // ---------------------------------------------------------------------------
-self.addEventListener("push", (event) => {
-    const payload = event.data
-        ? event.data.json()
-        : {
-              title: "Medicine Recall Alert",
-              body: "A medicine recall alert was issued.",
-              url: "/en/alerts",
-          };
+// --- BACKGROUND SYNC — offline submissions ---
+self.addEventListener("sync", (event) => {
+    if (event.tag === "sahidawa-sync-scans") {
+        event.waitUntil(flushQueueFromServiceWorker());
+    }
+    // ADD THIS BLOCK
+    if (event.tag === "sahidawa-sync-reports") {
+        event.waitUntil(flushReportsFromServiceWorker());
+    }
+});
 
     event.waitUntil(
         self.registration.showNotification(payload.title || "Medicine Recall Alert", {
@@ -774,4 +776,57 @@ async function flushQueueFromServiceWorker() {
             count: syncedCount,
         });
     });
+}
+
+async function flushReportsFromServiceWorker() {
+    try {
+        const db = await openIndexedDB("sahidawa-offline-sync", 1);
+        if (!db.objectStoreNames.contains("pendingReports")) {
+            db.close();
+            return;
+        }
+
+        const transaction = db.transaction("pendingReports", "readwrite");
+        const store = transaction.objectStore("pendingReports");
+        const reports = await new Promise((resolve) => {
+            const req = store.getAll();
+            req.onsuccess = () => resolve(req.result || []);
+        });
+
+        for (const report of reports) {
+            const form = new FormData();
+            // Append your report data
+            Object.entries(report.reportData).forEach(([key, value]) => {
+                form.append(key, value);
+            });
+            if (report.imageBlob) {
+                form.append("image", report.imageBlob, "report-image.png");
+            }
+
+            const res = await fetch("/api/v1/report/submit", {
+                method: "POST",
+                body: form,
+            });
+
+            if (res.ok) {
+                // Remove from DB only if successfully sent
+                await new Promise((resolve) => {
+                    const del = store.delete(report.idempotencyKey);
+                    del.onsuccess = () => resolve();
+                });
+            } else if (res.status >= 500) {
+                throw new Error("Server error, retrying later");
+            } else {
+                // If 4xx error, delete to prevent infinite loop
+                await new Promise((resolve) => {
+                    const del = store.delete(report.idempotencyKey);
+                    del.onsuccess = () => resolve();
+                });
+            }
+        }
+        db.close();
+    } catch (e) {
+        console.error("[SW] Failed to flush reports", e);
+        throw e; // Ensures Background Sync retries
+    }
 }
