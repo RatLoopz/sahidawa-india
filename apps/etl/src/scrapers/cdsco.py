@@ -23,7 +23,28 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+from pydantic import BaseModel, field_validator, ValidationError
+from typing import Optional
+
 from src.utils.logger import logger
+
+
+# ── Schema ─────────────────────────────────────────────────────────────────────
+
+class CDSCORecord(BaseModel):
+    firm_name: Optional[str] = None
+    license_number: Optional[str] = None
+    generic_name: Optional[str] = None
+    brand_name: Optional[str] = None
+
+    @field_validator("*", mode="before")
+    @classmethod
+    def strip_and_coerce(cls, v):
+        if isinstance(v, str):
+            return v.strip()
+        if isinstance(v, (int, float)):
+            return str(v).strip()
+        return v
 
 
 # ── Constants ──────────────────────────────────────────────────────────────────
@@ -110,8 +131,16 @@ class CDSCOScraper:
                 logger.info(f"[CDSCO] Empty page reached at page {page_num}. Ending pagination.")
                 break
 
-            all_records.extend(records)
-            logger.info(f"[CDSCO] Page {page_num} fetched successfully: Retrieved {len(records)} records.")
+            valid_records = []
+            for row in records:
+                try:
+                    record = CDSCORecord(**row)
+                    valid_records.append(record.model_dump())
+                except ValidationError as e:
+                    logger.warning(f"[CDSCO] Skipping invalid row on page {page_num}: {row} | Error: {e}")
+
+            all_records.extend(valid_records)
+            logger.info(f"[CDSCO] Page {page_num} fetched successfully: Retrieved {len(records)} records (Valid: {len(valid_records)}).")
 
             # Agar records page_size se kam hain, iska matlab yeh aakhiri page hai
             if len(records) < page_size:
@@ -126,7 +155,7 @@ class CDSCOScraper:
         logger.info(f"[CDSCO] Pagination completed. Total cumulative records fetched: {len(all_records)}")
         
         SEEDS_DIR.mkdir(parents=True, exist_ok=True)
-        df = pd.DataFrame(records)
+        df = pd.DataFrame(all_records)
         df.to_csv(REFERENCE_CSV, index=False)
         logger.info(f"[CDSCO] Saved to {REFERENCE_CSV}")
         return REFERENCE_CSV
