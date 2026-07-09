@@ -84,25 +84,24 @@ describe("preprocessMedicineImage", () => {
         const workerInstances: Array<{ postMessage: jest.Mock }> = [];
 
         globalThis.window = {} as Window & typeof globalThis;
-        globalThis.document = {
-            createElement: jest.fn((tagName: string) => {
-                if (tagName !== "canvas") {
-                    throw new Error(`Unexpected element request: ${tagName}`);
-                }
 
-                const canvas = createCanvas(imagePixels, toBlobCalls);
-                canvas.context.drawImage = jest.fn(() => {
-                    canvas.drawFilters.push(canvas.context.filter);
-                });
-                canvases.push(canvas);
-                return {
-                    width: canvas.width,
-                    height: canvas.height,
-                    getContext: jest.fn(() => canvas.context),
-                    toBlob: canvas.toBlob,
-                };
-            }),
-        } as unknown as Document;
+        jest.spyOn(document, "createElement").mockImplementation((tagName: string) => {
+            if (tagName !== "canvas") {
+                return realDocument.createElement(tagName);
+            }
+
+            const canvas = createCanvas(imagePixels, toBlobCalls);
+            canvas.context.drawImage = jest.fn(() => {
+                canvas.drawFilters.push(canvas.context.filter);
+            });
+            canvases.push(canvas);
+            return {
+                width: canvas.width,
+                height: canvas.height,
+                getContext: jest.fn(() => canvas.context),
+                toBlob: canvas.toBlob,
+            } as any;
+        });
 
         URL.createObjectURL = jest.fn(() => "blob:mock-url");
         URL.revokeObjectURL = jest.fn();
@@ -120,17 +119,34 @@ describe("preprocessMedicineImage", () => {
         }
 
         class MockWorker {
-            onmessage:
-                | null
-                | ((event: { data: { id: string; pixels: Uint8ClampedArray } }) => void) = null;
+            listeners: Record<string, Function[]> = { message: [], error: [] };
+
+            addEventListener = jest.fn((type: string, listener: Function) => {
+                if (!this.listeners[type]) this.listeners[type] = [];
+                this.listeners[type].push(listener);
+            });
+
+            removeEventListener = jest.fn((type: string, listener: Function) => {
+                if (this.listeners[type]) {
+                    this.listeners[type] = this.listeners[type].filter((l) => l !== listener);
+                }
+            });
+
+            onmessage: null | ((event: { data: any }) => void) = null;
             onerror: null | ((error: unknown) => void) = null;
-            postMessage = jest.fn((message: { id: string; pixels: Uint8ClampedArray }) => {
-                this.onmessage?.({
-                    data: {
-                        id: message.id,
-                        pixels: message.pixels,
-                    },
-                });
+
+            postMessage = jest.fn((message: any) => {
+                const trigger = (data: any) => {
+                    const event = { data };
+                    this.onmessage?.(event);
+                    this.listeners.message?.forEach((l) => l(event));
+                };
+
+                if (message.file) {
+                    trigger({ id: message.id, fallback: true });
+                } else if (message.pixels) {
+                    trigger({ id: message.id, pixels: message.pixels });
+                }
             });
             terminate = jest.fn();
 
@@ -149,7 +165,7 @@ describe("preprocessMedicineImage", () => {
         expect(result).toBeInstanceOf(Blob);
         expect((result as Blob).type).toBe("image/webp");
         expect(workerInstances).toHaveLength(1);
-        expect(workerInstances[0].postMessage).toHaveBeenCalledTimes(1);
+        expect(workerInstances[0].postMessage).toHaveBeenCalledTimes(2);
         expect(drawFilters).toContain("contrast(1.06) brightness(1.08)");
         expect(toBlobCalls).toEqual([["image/webp", 0.8]]);
     });
@@ -162,22 +178,20 @@ describe("preprocessMedicineImage", () => {
         const canvases: CanvasMock[] = [];
 
         globalThis.window = {} as Window & typeof globalThis;
-        globalThis.document = {
-            createElement: jest.fn((tagName: string) => {
-                if (tagName !== "canvas") {
-                    throw new Error(`Unexpected element request: ${tagName}`);
-                }
+        jest.spyOn(document, "createElement").mockImplementation((tagName: string) => {
+            if (tagName !== "canvas") {
+                return realDocument.createElement(tagName);
+            }
 
-                const canvas = createCanvas(imagePixels, toBlobCalls);
-                canvases.push(canvas);
-                return {
-                    width: canvas.width,
-                    height: canvas.height,
-                    getContext: jest.fn(() => canvas.context),
-                    toBlob: canvas.toBlob,
-                };
-            }),
-        } as unknown as Document;
+            const canvas = createCanvas(imagePixels, toBlobCalls);
+            canvases.push(canvas);
+            return {
+                width: canvas.width,
+                height: canvas.height,
+                getContext: jest.fn(() => canvas.context),
+                toBlob: canvas.toBlob,
+            } as any;
+        });
 
         URL.createObjectURL = jest.fn(() => "blob:mock-url");
         URL.revokeObjectURL = jest.fn();

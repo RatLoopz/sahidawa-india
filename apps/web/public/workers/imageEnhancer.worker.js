@@ -119,12 +119,129 @@ function applyUnsharpMask(pixels, width, height) {
     return sharpened;
 }
 
-self.onmessage = (event) => {
-    const { id, pixels, width, height } = event.data;
+const SAMPLE_STRIDE = 16;
+const PHOTO_CONTRAST_FILTER = 1.06;
+const DARK_IMAGE_BRIGHTNESS_FILTER = 1.08;
+const BRIGHT_IMAGE_BRIGHTNESS_FILTER = 0.94;
+
+function createImageEnhancementPlan(pixels) {
+    let extremeCount = 0;
+    let sampleCount = 0;
+    let sumLuminance = 0;
+
+    for (let index = 0; index < pixels.length; index += SAMPLE_STRIDE) {
+        const luminance =
+            0.299 * pixels[index] + 0.587 * pixels[index + 1] + 0.114 * pixels[index + 2];
+
+        sumLuminance += luminance;
+        if (luminance < 15 || luminance > 240) {
+            extremeCount++;
+        }
+        sampleCount++;
+    }
+
+    if (!sampleCount) {
+        return {
+            filter: "none",
+            shouldRunWorker: false,
+        };
+    }
+
+    const isDigitalGraphic = extremeCount / sampleCount > 0.1;
+    if (isDigitalGraphic) {
+        return {
+            filter: "none",
+            shouldRunWorker: false,
+        };
+    }
+
+    const avgLuminance = sumLuminance / sampleCount;
+    const filters = [`contrast(${PHOTO_CONTRAST_FILTER})`];
+
+    if (avgLuminance < 100) {
+        filters.push(`brightness(${DARK_IMAGE_BRIGHTNESS_FILTER})`);
+    } else if (avgLuminance > 180) {
+        filters.push(`brightness(${BRIGHT_IMAGE_BRIGHTNESS_FILTER})`);
+    }
+
+    return {
+        filter: filters.join(" "),
+        shouldRunWorker: true,
+    };
+}
+
+self.onmessage = async (event) => {
+    const { id, pixels, width, height, file } = event.data;
 
     try {
-        const enhancedPixels = applyUnsharpMask(applySelectiveSaturation(pixels), width, height);
-        self.postMessage({ id, pixels: enhancedPixels }, [enhancedPixels.buffer]);
+        if (file) {
+            if (
+                typeof OffscreenCanvas === "undefined" ||
+                typeof createImageBitmap === "undefined"
+            ) {
+                self.postMessage({ id, fallback: true });
+                return;
+            }
+
+            const img = await createImageBitmap(file);
+            let targetWidth = img.width;
+            let targetHeight = img.height;
+            const maxLongEdge = 1200;
+
+            if (Math.max(targetWidth, targetHeight) > maxLongEdge) {
+                if (targetWidth > targetHeight) {
+                    targetHeight = Math.round((targetHeight * maxLongEdge) / targetWidth);
+                    targetWidth = maxLongEdge;
+                } else {
+                    targetWidth = Math.round((targetWidth * maxLongEdge) / targetHeight);
+                    targetHeight = maxLongEdge;
+                }
+            }
+
+            const canvas = new OffscreenCanvas(targetWidth, targetHeight);
+            const ctx = canvas.getContext("2d");
+            if (!ctx) throw new Error("OffscreenCanvas 2D context initialization failed.");
+
+            ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+            let sampledImageData;
+            try {
+                sampledImageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
+            } catch (error) {
+                const blob = await canvas.convertToBlob({ type: "image/webp", quality: 0.8 });
+                self.postMessage({ id, file: blob });
+                return;
+            }
+
+            const plan = createImageEnhancementPlan(sampledImageData.data);
+
+            if (plan.filter !== "none") {
+                ctx.filter = plan.filter;
+                ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+                ctx.filter = "none";
+            }
+
+            if (plan.shouldRunWorker) {
+                const filteredImageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
+                const enhancedPixels = applyUnsharpMask(
+                    applySelectiveSaturation(filteredImageData.data),
+                    targetWidth,
+                    targetHeight
+                );
+                filteredImageData.data.set(enhancedPixels);
+                ctx.putImageData(filteredImageData, 0, 0);
+            }
+
+            const outBlob = await canvas.convertToBlob({ type: "image/webp", quality: 0.8 });
+            self.postMessage({ id, file: outBlob });
+        } else if (pixels) {
+            const enhancedPixels = applyUnsharpMask(
+                applySelectiveSaturation(pixels),
+                width,
+                height
+            );
+            self.postMessage({ id, pixels: enhancedPixels }, [enhancedPixels.buffer]);
+        }
     } catch (error) {
         self.postMessage({
             id,

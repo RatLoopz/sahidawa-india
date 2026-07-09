@@ -15,7 +15,18 @@ import {
     ChevronRight,
 } from "lucide-react";
 
-type PharmacyStatus = "pending" | "approved" | "rejected";
+type Pharmacy = {
+    id: string;
+    name: string;
+    address: string;
+    district: string | null;
+    state: string | null;
+    license_id: string | null;
+    phone_number: string | null;
+    status: "pending" | "approved" | "rejected";
+    is_active: boolean;
+    deleted_at: string | null;
+};
 
 function getToken(): string {
     if (typeof window === "undefined") return "";
@@ -66,7 +77,7 @@ export default function PharmaciesRegistryPage() {
         },
     });
 
-    const pharmacies = data?.pharmacies ?? [];
+    const pharmacies: Pharmacy[] = data?.pharmacies ?? [];
     const totalPages = data?.meta?.totalPages || 1;
     const totalItems = data?.meta?.total || 0;
 

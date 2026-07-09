@@ -6,14 +6,7 @@ import {
     type ImageEnhancementResponse,
 } from "./imageEnhancer.shared";
 
-type PendingWorkerRequest = {
-    resolve: (pixels: Uint8ClampedArray) => void;
-    reject: (error: Error) => void;
-};
-
-let enhancementWorker: Worker | null = null;
 let workerRequestSequence = 0;
-const pendingWorkerRequests = new Map<string, PendingWorkerRequest>();
 
 function hasCanvasSupport(): boolean {
     if (typeof window === "undefined") {
@@ -21,71 +14,59 @@ function hasCanvasSupport(): boolean {
     }
 
     try {
-        return !!document.createElement("canvas");
+        const doc =
+            typeof globalThis !== "undefined" && globalThis.document
+                ? globalThis.document
+                : document;
+        return !!doc.createElement("canvas");
     } catch {
         return false;
     }
 }
 
-function resetWorker() {
-    enhancementWorker?.terminate();
-    enhancementWorker = null;
-    pendingWorkerRequests.clear();
-}
+async function processFullPipelineInWorker(
+    file: File | Blob,
+    worker: Worker
+): Promise<Blob | File> {
+    const requestId = `preprocess-${workerRequestSequence++}`;
+    return new Promise((resolve, reject) => {
+        const handler = (event: MessageEvent) => {
+            const data = event.data;
+            if (data.id === requestId) {
+                worker.removeEventListener("message", handler);
+                if (data.error) {
+                    reject(new Error(data.error));
+                } else if (data.fallback) {
+                    reject(new Error("FALLBACK"));
+                } else if (data.file) {
+                    resolve(data.file);
+                } else {
+                    reject(new Error("Unknown worker response"));
+                }
+            }
+        };
+        worker.addEventListener("message", handler);
 
-function ensureEnhancementWorker(): Worker | null {
-    if (typeof Worker === "undefined") {
-        return null;
-    }
+        const errHandler = (err: ErrorEvent) => {
+            worker.removeEventListener("error", errHandler);
+            worker.removeEventListener("message", handler);
+            reject(err);
+        };
+        worker.addEventListener("error", errHandler);
 
-    if (enhancementWorker) {
-        return enhancementWorker;
-    }
-
-    const worker = new Worker("/workers/imageEnhancer.worker.js");
-
-    worker.onmessage = (event: MessageEvent<ImageEnhancementResponse>) => {
-        const { id, pixels, error } = event.data;
-        const pendingRequest = pendingWorkerRequests.get(id);
-        if (!pendingRequest) {
-            return;
-        }
-
-        pendingWorkerRequests.delete(id);
-
-        if (error) {
-            pendingRequest.reject(new Error(error));
-            return;
-        }
-
-        if (!pixels) {
-            pendingRequest.reject(new Error("Image enhancement worker returned no pixel buffer."));
-            return;
-        }
-
-        pendingRequest.resolve(new Uint8ClampedArray(pixels));
-    };
-
-    worker.onerror = () => {
-        for (const pendingRequest of pendingWorkerRequests.values()) {
-            pendingRequest.reject(new Error("Image enhancement worker crashed."));
-        }
-        resetWorker();
-    };
-
-    enhancementWorker = worker;
-    return worker;
+        worker.postMessage({ id: requestId, file });
+    });
 }
 
 async function enhancePixelsOffThread(
     pixels: Uint8ClampedArray,
     width: number,
-    height: number
+    height: number,
+    worker?: Worker | null
 ): Promise<Uint8ClampedArray> {
     const fallbackPixels = new Uint8ClampedArray(pixels);
 
     try {
-        const worker = ensureEnhancementWorker();
         if (!worker) {
             return enhanceImagePixels(fallbackPixels, width, height);
         }
@@ -94,7 +75,18 @@ async function enhancePixelsOffThread(
         const requestId = `image-enhancement-${workerRequestSequence++}`;
 
         return await new Promise<Uint8ClampedArray>((resolve, reject) => {
-            pendingWorkerRequests.set(requestId, { resolve, reject });
+            const handler = (event: MessageEvent) => {
+                const data = event.data;
+                if (data.id === requestId) {
+                    worker.removeEventListener("message", handler);
+                    if (data.error) {
+                        reject(new Error(data.error));
+                    } else if (data.pixels) {
+                        resolve(new Uint8ClampedArray(data.pixels));
+                    }
+                }
+            };
+            worker.addEventListener("message", handler);
 
             worker.postMessage(
                 {
@@ -116,7 +108,8 @@ async function enhancePixelsOffThread(
 }
 
 export async function preprocessMedicineImage(
-    input: File | Blob | string
+    input: File | Blob | string,
+    providedWorker?: Worker | null
 ): Promise<Blob | File | string> {
     if (!hasCanvasSupport()) {
         return input;
@@ -127,125 +120,165 @@ export async function preprocessMedicineImage(
         return input;
     }
 
-    return new Promise((resolve, reject) => {
+    let workerToUse = providedWorker;
+    let isTempWorker = false;
+
+    if (typeof input !== "string" && typeof Worker !== "undefined") {
         try {
-            const img = new Image();
-            img.crossOrigin = "Anonymous";
+            if (!workerToUse) {
+                workerToUse = new Worker("/workers/imageEnhancer.worker.js");
+                isTempWorker = true;
+            }
+            const result = await processFullPipelineInWorker(input, workerToUse);
+            if (isTempWorker) workerToUse.terminate();
+            return result;
+        } catch (err) {
+            if (isTempWorker && workerToUse) workerToUse.terminate();
+            if (err instanceof Error && err.message !== "FALLBACK") {
+                console.warn("Full pipeline worker failed, falling back to main thread:", err);
+            }
+        }
+    }
 
-            const isString = typeof input === "string";
-            const url = isString ? input : URL.createObjectURL(input);
-            const executionTimeoutTracker = setTimeout(() => {
-                img.onload = null;
-                img.onerror = null;
-                if (!isString) {
-                    URL.revokeObjectURL(url);
-                }
-                console.warn(
-                    "Image payload ingestion timed out. Falling back to original resource stream."
-                );
-                resolve(input);
-            }, 15000);
+    const cleanup = () => {
+        if (isTempWorker && workerToUse) {
+            workerToUse.terminate();
+        }
+    };
 
-            img.onload = async () => {
-                clearTimeout(executionTimeoutTracker);
+    try {
+        const result = await new Promise<Blob | File | string>((resolve, reject) => {
+            try {
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
 
-                let width = img.width;
-                let height = img.height;
-                const maxLongEdge = 1200;
-
-                if (Math.max(width, height) > maxLongEdge) {
-                    if (width > height) {
-                        height = Math.round((height * maxLongEdge) / width);
-                        width = maxLongEdge;
-                    } else {
-                        width = Math.round((width * maxLongEdge) / height);
-                        height = maxLongEdge;
-                    }
-                }
-
-                const canvas = document.createElement("canvas");
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext("2d");
-
-                if (!ctx) {
+                const isString = typeof input === "string";
+                const url = isString ? input : URL.createObjectURL(input);
+                const executionTimeoutTracker = setTimeout(() => {
+                    img.onload = null;
+                    img.onerror = null;
                     if (!isString) {
                         URL.revokeObjectURL(url);
                     }
-                    reject(new Error("Canvas 2D context initialization dropped."));
-                    return;
-                }
-
-                ctx.drawImage(img, 0, 0, width, height);
-                if (!isString) {
-                    URL.revokeObjectURL(url);
-                }
-
-                let sampledImageData: ImageData;
-                try {
-                    sampledImageData = ctx.getImageData(0, 0, width, height);
-                } catch (error) {
                     console.warn(
-                        "Canvas getImageData locked via cross-origin parameters. Gracefully bypassing manipulation step tracks.",
-                        error
+                        "Image payload ingestion timed out. Falling back to original resource stream."
                     );
                     resolve(input);
-                    return;
-                }
+                }, 15000);
 
-                const plan = createImageEnhancementPlan(sampledImageData.data);
+                img.onload = async () => {
+                    clearTimeout(executionTimeoutTracker);
 
-                if (plan.filter !== "none") {
-                    ctx.filter = plan.filter;
+                    let width = img.width;
+                    let height = img.height;
+                    const maxLongEdge = 1200;
+
+                    if (Math.max(width, height) > maxLongEdge) {
+                        if (width > height) {
+                            height = Math.round((height * maxLongEdge) / width);
+                            width = maxLongEdge;
+                        } else {
+                            width = Math.round((width * maxLongEdge) / height);
+                            height = maxLongEdge;
+                        }
+                    }
+
+                    const doc =
+                        typeof globalThis !== "undefined" && globalThis.document
+                            ? globalThis.document
+                            : document;
+                    const canvas = doc.createElement("canvas");
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext("2d");
+
+                    if (!ctx) {
+                        if (!isString) {
+                            URL.revokeObjectURL(url);
+                        }
+                        reject(new Error("Canvas 2D context initialization dropped."));
+                        return;
+                    }
+
                     ctx.drawImage(img, 0, 0, width, height);
-                    ctx.filter = "none";
-                }
+                    if (!isString) {
+                        URL.revokeObjectURL(url);
+                    }
 
-                if (plan.shouldRunWorker) {
+                    let sampledImageData: ImageData;
                     try {
-                        const filteredImageData = ctx.getImageData(0, 0, width, height);
-                        const enhancedPixels = await enhancePixelsOffThread(
-                            filteredImageData.data,
-                            width,
-                            height
-                        );
-
-                        filteredImageData.data.set(enhancedPixels);
-                        ctx.putImageData(filteredImageData, 0, 0);
+                        sampledImageData = ctx.getImageData(0, 0, width, height);
                     } catch (error) {
                         console.warn(
-                            "Image enhancement worker pipeline failed. Continuing with filtered canvas output.",
+                            "Canvas getImageData locked via cross-origin parameters. Gracefully bypassing manipulation step tracks.",
                             error
                         );
+                        resolve(input);
+                        return;
                     }
-                }
 
-                canvas.toBlob(
-                    (blob) => {
-                        if (blob) {
-                            resolve(blob);
-                        } else {
-                            resolve(input);
+                    const plan = createImageEnhancementPlan(sampledImageData.data);
+
+                    if (plan.filter !== "none") {
+                        ctx.filter = plan.filter;
+                        ctx.drawImage(img, 0, 0, width, height);
+                        ctx.filter = "none";
+                    }
+
+                    if (plan.shouldRunWorker) {
+                        try {
+                            const filteredImageData = ctx.getImageData(0, 0, width, height);
+                            const enhancedPixels = await enhancePixelsOffThread(
+                                filteredImageData.data,
+                                width,
+                                height,
+                                workerToUse
+                            );
+
+                            filteredImageData.data.set(enhancedPixels);
+                            ctx.putImageData(filteredImageData, 0, 0);
+                        } catch (error) {
+                            console.warn(
+                                "Image enhancement worker pipeline failed. Continuing with filtered canvas output.",
+                                error
+                            );
                         }
-                    },
-                    WEBP_OUTPUT_TYPE,
-                    WEBP_OUTPUT_QUALITY
-                );
-            };
+                    }
 
-            img.onerror = () => {
-                clearTimeout(executionTimeoutTracker);
-                if (!isString) {
-                    URL.revokeObjectURL(url);
-                }
-                console.warn("Source resource parsing failed. Dropping compression parameters.");
+                    canvas.toBlob(
+                        (blob) => {
+                            if (blob) {
+                                resolve(blob);
+                            } else {
+                                resolve(input);
+                            }
+                        },
+                        WEBP_OUTPUT_TYPE,
+                        WEBP_OUTPUT_QUALITY
+                    );
+                };
+
+                img.onerror = () => {
+                    clearTimeout(executionTimeoutTracker);
+                    if (!isString) {
+                        URL.revokeObjectURL(url);
+                    }
+                    console.warn(
+                        "Source resource parsing failed. Dropping compression parameters."
+                    );
+                    resolve(input);
+                };
+
+                img.src = url;
+            } catch (error) {
+                console.error("Execution boundary loop exception caught:", error);
                 resolve(input);
-            };
-
-            img.src = url;
-        } catch (error) {
-            console.error("Execution boundary loop exception caught:", error);
-            resolve(input);
-        }
-    });
+            }
+        });
+        cleanup();
+        return result;
+    } catch (e) {
+        cleanup();
+        return input;
+    }
 }

@@ -12,6 +12,8 @@ import {
 import { triggerRecallAlert } from "../services/notifications";
 import logger from "../utils/logger";
 import { validateOutboundUrl } from "../utils/security/urlValidator";
+import { smsService } from "../services/sms-service";
+import { formatPhoneNumber } from "../utils/phone";
 
 const reportsRouter = Router();
 const DEFAULT_ADMIN_REPORTS_LIMIT = 20;
@@ -44,6 +46,7 @@ const createReportSchema = getBaseReportSchema()
             .max(180, "Longitude must be between -180 and 180")
             .optional(),
         medicineId: uuidSchema.optional(),
+        phone: z.string().optional(),
     })
     .superRefine((data, ctx) => {
         const validDistricts =
@@ -91,6 +94,7 @@ reportsRouter.post(
 
         const data = parsed.data;
         const district = data.district ?? data.city;
+        const phone = data.phone ? formatPhoneNumber(data.phone) : null;
 
         try {
             const ipAddress = anonymizeIp(req.ip);
@@ -137,6 +141,7 @@ reportsRouter.post(
                         duplicate_group_id: validation.duplicateGroupId ?? null,
                         status: "pending",
                         scanned_barcode: data.scannedBarcode ?? null,
+                        reporter_phone: phone,
                         medicine_id: data.medicineId ?? null,
                     },
                     { onConflict: "report_hash", ignoreDuplicates: true }
@@ -194,6 +199,16 @@ reportsRouter.post(
             }
 
             res.status(statusCode).json(response);
+
+            if (phone) {
+                const message = `Your counterfeit report for ${data.medicineName} has been submitted successfully. Reference ID: ${report.id}. - SahiDawa`;
+                smsService.send(phone, message, "en").catch((err) => {
+                    logger.error("Failed to send confirmation SMS", {
+                        error: err,
+                        reportId: report.id,
+                    });
+                });
+            }
         } catch (err) {
             next(err);
         }
