@@ -1,3 +1,9 @@
+// Add these imports to fix "Module not found"
+import { getSyncDB } from "./db"; 
+import { v4 as uuidv4 } from "uuid";
+// You need to export these from their respective files first if they are missing!
+import { flushReports } from "./sync"; 
+import { getDeviceId } from "./device";
 import { getSyncDB } from "./db";
 import { v4 as uuidv4 } from "uuid";
 
