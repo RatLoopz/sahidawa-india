@@ -589,14 +589,13 @@ export default function ScanPage() {
                     <h3 className="mb-4 text-center text-lg font-bold text-white">Scan Controls</h3>
 
                     <div className="flex justify-center gap-4">
-                        <button
-                            onClick={() => setIsCameraActive((prev) => !prev)}
-                            disabled={isOffline}
-                            className={`flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-colors focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
-                                isCameraActive
-                                    ? "bg-red-500 text-white hover:bg-red-400"
-                                    : "bg-emerald-500 text-white hover:bg-emerald-400"
-                            }`}
+                     <button
+    onClick={() => setIsCameraActive((prev) => !prev)}
+    className={`flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-colors focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none ${
+        isCameraActive
+            ? "bg-red-500 text-white hover:bg-red-400"
+            : "bg-emerald-500 text-white hover:bg-emerald-400"
+    }`}
                             aria-label={
                                 isCameraActive
                                     ? "Stop barcode scanner camera"
