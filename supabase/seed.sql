@@ -7,7 +7,8 @@ INSERT INTO public.pharmacies (id, name, address, district, state, phone_number,
 VALUES
   ('11111111-1111-1111-1111-111111111111', 'Pradhan Mantri Bhartiya Jan Aushadhi Kendra - Delhi', 'Connaught Place, New Delhi', 'New Delhi', 'Delhi', '9876543210', true, ST_SetSRID(ST_MakePoint(77.2177, 28.6304), 4326)),
   ('22222222-2222-2222-2222-222222222222', 'Jan Aushadhi Kendra - Mumbai', 'Andheri West, Mumbai', 'Mumbai Suburban', 'Maharashtra', '9876543211', true, ST_SetSRID(ST_MakePoint(72.8277, 19.1363), 4326)),
-  ('33333333-3333-3333-3333-333333333333', 'Jan Aushadhi Kendra - Bangalore', 'Indiranagar, Bangalore', 'Bengaluru Urban', 'Karnataka', '9876543212', true, ST_SetSRID(ST_MakePoint(77.6408, 12.9784), 4326))
+  ('33333333-3333-3333-3333-333333333333', 'Jan Aushadhi Kendra - Bangalore', 'Indiranagar, Bangalore', 'Bengaluru Urban', 'Karnataka', '9876543212', true, ST_SetSRID(ST_MakePoint(77.6408, 12.9784), 4326)),
+  ('44444444-4444-4444-4444-444444444444','Jan Aushadhi Kendra - Nagpur','Dharampeth, Nagpur','Nagpur','Maharashtra','9876543213',false,ST_SetSRID(ST_MakePoint(79.0882, 21.1458), 4326))
 ON CONFLICT (id) DO NOTHING;
 
 -- 2. Insert Dummy Medicines
@@ -45,3 +46,19 @@ INSERT INTO public.medicines (
 ('8903333333333', 'Paracetamol 500mg', 'Paracetamol', 'Cipla Ltd', 'HR4410', 'approved', false, 'Common fever and pain relief tablet for routine price comparison checks.', 20.00, 8.00),
 ('8904444444444', 'Cetirizine 10mg', 'Cetirizine', 'Sun Pharmaceutical Industries Ltd', 'CT1010', 'approved', false, 'Common antihistamine stocked for local compare testing.', 25.00, 5.00)
 ON CONFLICT (barcode_id) DO NOTHING;
+-- 3. Insert Dummy Counterfeit Reports
+INSERT INTO public.counterfeit_reports (
+    id,
+    medicine_id,
+    scanned_barcode,
+    reported_brand_name,
+    manufacturer,
+    pharmacy_name,
+    district,
+    state,
+    status
+)
+VALUES
+('dddddddd-dddd-dddd-dddd-dddddddddddd', 'cccccccc-cccc-cccc-cccc-cccccccccccc','8901234567892','Fake-O-Cin','Unknown','Jan Aushadhi Kendra - Delhi','New Delhi','Delhi','verified_fake'),
+('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','8901234567890','Dolo 650','Micro Labs','Jan Aushadhi Kendra - Mumbai','Mumbai Suburban','Maharashtra','pending')
+ON CONFLICT (id) DO NOTHING;

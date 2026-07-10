@@ -23,6 +23,51 @@ function getToken(): string {
     return localStorage.getItem("sb-access-token") ?? "";
 }
 
+/**
+ * Parses a single CSV line into fields, respecting double-quoted values.
+ * Handles:
+ *  - Commas inside quoted fields, e.g. "Paracetamol, 500mg" stays one field
+ *  - Escaped quotes inside quoted fields, e.g. "She said ""hi""" -> She said "hi"
+ *  - Unquoted fields (no special handling needed)
+ * Note: does not handle newlines embedded inside a quoted field, since the
+ * caller splits the file into lines first — out of scope for this fix.
+ */
+function parseCsvLine(line: string): string[] {
+    const result: string[] = [];
+    let current = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+
+        if (inQuotes) {
+            if (char === '"') {
+                if (line[i + 1] === '"') {
+                    // Escaped quote inside a quoted field
+                    current += '"';
+                    i++;
+                } else {
+                    inQuotes = false;
+                }
+            } else {
+                current += char;
+            }
+        } else {
+            if (char === '"') {
+                inQuotes = true;
+            } else if (char === ",") {
+                result.push(current.trim());
+                current = "";
+            } else {
+                current += char;
+            }
+        }
+    }
+
+    result.push(current.trim());
+    return result;
+}
+
 export default function AdminSynonymsPage() {
     const t = useTranslations("AdminSynonyms");
     const [synonyms, setSynonyms] = useState<OcrSynonym[]>([]);
@@ -135,18 +180,18 @@ export default function AdminSynonymsPage() {
                 .filter(Boolean);
             if (lines.length < 2) throw new Error(t("invalidCsv"));
 
-            const headerLine = lines[0].toLowerCase();
+            const headerCols = parseCsvLine(lines[0]).map((c) => c.toLowerCase());
             if (
-                !headerLine.includes("original_term") ||
-                !headerLine.includes("normalized_term") ||
-                !headerLine.includes("type")
+                !headerCols.includes("original_term") ||
+                !headerCols.includes("normalized_term") ||
+                !headerCols.includes("type")
             ) {
                 throw new Error(t("invalidCsv"));
             }
 
             const payload = [];
             for (let i = 1; i < lines.length; i++) {
-                const cols = lines[i].split(",").map((c) => c.trim().replace(/^"|"$/g, ""));
+                const cols = parseCsvLine(lines[i]);
                 if (cols.length >= 3) {
                     payload.push({
                         original_term: cols[0],

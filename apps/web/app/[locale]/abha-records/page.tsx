@@ -32,7 +32,6 @@ export default function ABHARecordsPage() {
 
     useEffect(() => {
         checkStatus();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const checkStatus = async () => {
@@ -46,11 +45,7 @@ export default function ABHARecordsPage() {
                 await loadRecords();
             }
         } catch (err) {
-            setError(
-                err instanceof Error
-                    ? err.message
-                    : t("failedToLoadStatus", { defaultMessage: "Failed to check ABHA status" })
-            );
+            setError(err instanceof Error ? err.message : t("failedToLoadStatus"));
         } finally {
             setLoading(false);
         }
@@ -61,11 +56,7 @@ export default function ABHARecordsPage() {
             const data = await getABHAPrescriptions();
             setRecords(data);
         } catch (err) {
-            setError(
-                err instanceof Error
-                    ? err.message
-                    : t("failedToLoad", { defaultMessage: "Failed to load records" })
-            );
+            setError(err instanceof Error ? err.message : t("failedToLoad"));
         }
     };
 
@@ -80,11 +71,7 @@ export default function ABHARecordsPage() {
             setTxnId(res.txnId);
             setLinkingStep("OTP_SENT");
         } catch (err) {
-            setError(
-                err instanceof Error
-                    ? err.message
-                    : t("failedToLink", { defaultMessage: "Failed to initiate linking" })
-            );
+            setError(err instanceof Error ? err.message : t("failedToLink"));
         } finally {
             setLinkLoading(false);
         }
@@ -103,11 +90,7 @@ export default function ABHARecordsPage() {
             setLinkingStep("IDLE");
             await loadRecords();
         } catch (err) {
-            setError(
-                err instanceof Error
-                    ? err.message
-                    : t("failedToVerify", { defaultMessage: "Failed to verify OTP" })
-            );
+            setError(err instanceof Error ? err.message : t("failedToVerify"));
         } finally {
             setLinkLoading(false);
         }
@@ -121,7 +104,7 @@ export default function ABHARecordsPage() {
                     className="mb-6 inline-flex items-center gap-2 font-medium text-(--color-text-muted) transition-colors hover:text-(--color-text-default)"
                 >
                     <ArrowLeft size={18} />
-                    {t("backToProfile", { defaultMessage: "Back to Profile" })}
+                    {t("backToProfile")}
                 </Link>
 
                 <div className="rounded-3xl border border-(--color-border-muted) bg-(--color-surface-page) p-8 shadow-sm">
@@ -131,13 +114,9 @@ export default function ABHARecordsPage() {
                         </div>
                         <div>
                             <h1 className="text-2xl font-bold text-(--color-text-default)">
-                                {t("title", { defaultMessage: "ABHA Records" })}
+                                {t("title")}
                             </h1>
-                            <p className="text-sm text-(--color-text-muted)">
-                                {t("subtitle", {
-                                    defaultMessage: "Manage your Ayushman Bharat Health Account",
-                                })}
-                            </p>
+                            <p className="text-sm text-(--color-text-muted)">{t("subtitle")}</p>
                         </div>
                     </div>
 
@@ -154,14 +133,9 @@ export default function ABHARecordsPage() {
                         </div>
                     ) : isLinked === false ? (
                         <div className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) p-6">
-                            <h2 className="mb-2 text-lg font-semibold">
-                                {t("linkAccount", { defaultMessage: "Link Your ABHA Account" })}
-                            </h2>
+                            <h2 className="mb-2 text-lg font-semibold">{t("linkAccount")}</h2>
                             <p className="mb-6 text-sm text-(--color-text-muted)">
-                                {t("linkDescription", {
-                                    defaultMessage:
-                                        "Connect your ABHA account to securely fetch and manage your health records.",
-                                })}
+                                {t("linkDescription")}
                             </p>
 
                             {linkingStep === "IDLE" ? (
@@ -171,16 +145,14 @@ export default function ABHARecordsPage() {
                                             htmlFor="abhaAddress"
                                             className="mb-1 block text-sm font-medium"
                                         >
-                                            {t("abhaAddressLabel", {
-                                                defaultMessage: "ABHA Address",
-                                            })}
+                                            {t("abhaAddressLabel")}
                                         </label>
                                         <input
                                             id="abhaAddress"
                                             type="text"
                                             value={abhaAddress}
                                             onChange={(e) => setAbhaAddress(e.target.value)}
-                                            placeholder="e.g. name@abdm"
+                                            placeholder={t("abhaAddressPlaceholder")}
                                             className="w-full rounded-xl border border-(--color-border-default) px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                                             disabled={linkLoading}
                                             required
@@ -194,7 +166,7 @@ export default function ABHARecordsPage() {
                                         {linkLoading ? (
                                             <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
                                         ) : null}
-                                        {t("requestOtp", { defaultMessage: "Request OTP" })}
+                                        {t("requestOtp")}
                                     </button>
                                 </form>
                             ) : (
@@ -204,14 +176,14 @@ export default function ABHARecordsPage() {
                                             htmlFor="otp"
                                             className="mb-1 block text-sm font-medium"
                                         >
-                                            {t("otpLabel", { defaultMessage: "Enter OTP" })}
+                                            {t("otpLabel")}
                                         </label>
                                         <input
                                             id="otp"
                                             type="text"
                                             value={otp}
                                             onChange={(e) => setOtp(e.target.value)}
-                                            placeholder="XXXXXX"
+                                            placeholder={t("otpPlaceholder")}
                                             className="w-full rounded-xl border border-(--color-border-default) px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                                             disabled={linkLoading}
                                             required
@@ -227,7 +199,7 @@ export default function ABHARecordsPage() {
                                             disabled={linkLoading}
                                             className="w-1/3 rounded-xl border border-(--color-border-default) px-4 py-3 font-semibold hover:bg-(--color-surface-hover) disabled:opacity-50"
                                         >
-                                            {t("cancel", { defaultMessage: "Cancel" })}
+                                            {t("cancel")}
                                         </button>
                                         <button
                                             type="submit"
@@ -237,7 +209,7 @@ export default function ABHARecordsPage() {
                                             {linkLoading ? (
                                                 <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
                                             ) : null}
-                                            {t("verifyOtp", { defaultMessage: "Verify OTP" })}
+                                            {t("verifyOtp")}
                                         </button>
                                     </div>
                                 </form>
@@ -247,27 +219,16 @@ export default function ABHARecordsPage() {
                         <div className="space-y-6">
                             <div className="flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-emerald-600">
                                 <CheckCircle2 size={18} />
-                                <span className="font-medium">
-                                    {t("accountLinked", {
-                                        defaultMessage: "Your ABHA account is linked securely.",
-                                    })}
-                                </span>
+                                <span className="font-medium">{t("accountLinked")}</span>
                             </div>
 
                             {records.length === 0 ? (
                                 <div className="rounded-2xl border border-dashed border-(--color-border-default) p-12 text-center">
                                     <FileText className="mx-auto mb-4 h-12 w-12 text-gray-300" />
                                     <h3 className="text-lg font-medium text-gray-900">
-                                        {t("noPrescriptions", {
-                                            defaultMessage: "No health records found",
-                                        })}
+                                        {t("noPrescriptions")}
                                     </h3>
-                                    <p className="mt-1 text-gray-500">
-                                        {t("noPrescriptionsDesc", {
-                                            defaultMessage:
-                                                "You don't have any prescriptions associated with this ABHA account yet.",
-                                        })}
-                                    </p>
+                                    <p className="mt-1 text-gray-500">{t("noPrescriptionsDesc")}</p>
                                 </div>
                             ) : (
                                 <div className="grid gap-4 md:grid-cols-2">

@@ -24,6 +24,17 @@ _Built for Bharat. Not just India._
 
 ---
 
+## 🔗 Quick Links
+
+- 📖 [Documentation](./docs/)
+- 🚀 [Getting Started](#-getting-started)
+- 🤝 [Contributing Guide](./CONTRIBUTING.md)
+- 🌏 [Supported Languages](#-supported-languages)
+- 📜 [License](#-license)
+- 🐛 [Report a Bug](https://github.com/RatLoopz/sahidawa-india/issues/new?template=bug_report.md)
+- 💡 [Request a Feature](https://github.com/RatLoopz/sahidawa-india/issues/new?template=feature_request.md)
+
+
 ## Table of Contents
 
 - [🩺 SahiDawa — सही दवा](#-sahidawa--सही-दवा)
@@ -188,35 +199,58 @@ flowchart TD
 
 ---
 
+
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-```bash
-node >= 20.0.0
-python >= 3.10
-docker >= 24.0 (optional, for full stack)
-```
+| Software | Minimum Version |
+|----------|-----------------|
+| Node.js | 20+ |
+| Python | 3.10+ |
+| Docker *(optional)* | 24+ |
 
-### Quick Start (Frontend only)
+
+### Clone the Repository
 
 ```bash
-# 1. Clone the repository
 git clone https://github.com/RatLoopz/sahidawa-india.git
 cd sahidawa-india
+```
 
-# 2. Copy environment variables
+### Configure Environment
+
+```bash
 cp .env.example apps/web/.env.local
-# Fill in your Supabase URL + anon key (free at supabase.com)
+```
 
-# 3. Install frontend dependencies
+Update the environment variables before running the project.
+
+### Install Dependencies
+
+```bash
 cd apps/web
 npm install
-
-# 4. Run development server
-npm run dev
-# Open http://localhost:3000
 ```
+
+### Run the Development Server
+
+```bash
+npm run dev
+```
+
+Open **http://localhost:3000** in your browser.
+
+```
+
+
+| Command | Description |
+|---------|-------------|
+| `npm install` | Install project dependencies |
+| `npm run dev` | Start the development server |
+| `npm run build` | Build the project for production |
+| `npm run lint` | Run lint checks |
+
 
 ### ⚠️ Troubleshooting npm install Failures
 
@@ -294,6 +328,10 @@ uvicorn main:app --reload --port 8000
 
 ## 📁 Project Structure
 
+
+The repository is organized as a monorepo with separate applications for the frontend, backend, and machine learning services.
+
+
 ```
 sahidawa-india/
 ├── apps/
@@ -340,6 +378,15 @@ sahidawa-india/
 We love contributions! SahiDawa is built entirely by the community.
 
 👉 **Read the [CONTRIBUTING.md](./CONTRIBUTING.md) before submitting your first PR.**
+
+## 🤝 Before Opening a Pull Request
+
+- Sync your fork with the latest `main` branch.
+- Create a new feature branch for your changes.
+- Follow the project's coding conventions.
+- Run linting and tests before submitting.
+- Update documentation if your changes affect usage
+
 
 ### Quick contribution guide
 
@@ -418,6 +465,32 @@ We are also a **Cloudinary Bounty Partner project** — contributors who build f
 - **GitHub Discussions:** [Discuss ideas & questions](https://github.com/RatLoopz/sahidawa-india/discussions)
 
 ---
+
+## ❓ FAQ
+
+### Is SahiDawa free?
+
+Yes. SahiDawa is completely free and open source.
+
+### Can I contribute without writing code?
+
+Absolutely! You can contribute by improving documentation, translating content, testing features, reporting bugs, or suggesting enhancements.
+
+### How do I report a bug?
+
+Open a new issue using the Bug Report template available in this repository.
+
+
+## ⭐ Support the Project
+
+If you find SahiDawa useful, consider supporting the project by:
+
+- ⭐ Starring the repository
+- 🍴 Forking the project
+- 🐞 Reporting bugs
+- 💡 Suggesting new features
+- 🤝 Contributing code or documentation
+
 
 ## 📜 License
 

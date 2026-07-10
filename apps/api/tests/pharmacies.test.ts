@@ -9,8 +9,8 @@ jest.mock("../src/db/client", () => ({
         select: jest.fn().mockReturnThis(),
         ilike: jest.fn().mockReturnThis(),
         limit: jest.fn().mockReturnThis(),
-        maybeSingle: jest.fn(),
-        rpc: jest.fn(),
+        maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
+        rpc: jest.fn().mockResolvedValue({ data: [], error: null }),
     },
 }));
 
@@ -673,6 +673,13 @@ describe("POST /api/pharmacies/bulk-upload — Robust CSV Parsing", () => {
         jest.clearAllMocks();
         const selectMock = jest.fn().mockReturnThis();
         const eqMock = jest.fn().mockReturnThis();
+        const orderMock = jest.fn().mockReturnThis();
+        const thenMock = jest.fn().mockImplementation((resolve) => {
+            return resolve({
+                data: [{ id: "pharmacy-uuid-123" }],
+                error: null,
+            });
+        });
         const maybeSingleMock = jest.fn().mockResolvedValue({
             data: { id: "pharmacy-uuid-123" },
             error: null,
@@ -681,7 +688,13 @@ describe("POST /api/pharmacies/bulk-upload — Robust CSV Parsing", () => {
 
         (mockedSupabase.from as jest.Mock).mockImplementation((table: string) => {
             if (table === "pharmacies") {
-                return { select: selectMock, eq: eqMock, maybeSingle: maybeSingleMock };
+                return {
+                    select: selectMock,
+                    eq: eqMock,
+                    order: orderMock,
+                    maybeSingle: maybeSingleMock,
+                    then: thenMock,
+                };
             }
             if (table === "pharmacy_inventory") {
                 return { insert: insertMock };

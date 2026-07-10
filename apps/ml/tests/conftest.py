@@ -12,10 +12,18 @@ from routers import asr
 
 @pytest.fixture(autouse=True)
 def mock_ffmpeg_deps(monkeypatch):
+    original_run = asr.subprocess.run
+    def dummy_run(*args, **kwargs):
+        cmd = args[0] if args else kwargs.get("args", "")
+        cmd_str = str(cmd)
+        if "ffmpeg" in cmd_str:
+            is_text = kwargs.get("text") or kwargs.get("universal_newlines")
+            return SimpleNamespace(returncode=0, stderr="" if is_text else b"", stdout="" if is_text else b"")
+        return original_run(*args, **kwargs)
     monkeypatch.setattr(
         asr.subprocess,
         "run",
-        lambda *args, **kwargs: SimpleNamespace(returncode=0, stderr=b"", stdout=b""),
+        dummy_run,
     )
     monkeypatch.setattr(
         asr.sf,

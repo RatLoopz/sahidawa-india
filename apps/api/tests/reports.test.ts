@@ -15,7 +15,8 @@ jest.mock("../src/db/client", () => ({
         gte: jest.fn().mockReturnThis(),
         order: jest.fn().mockReturnThis(),
         limit: jest.fn().mockReturnThis(),
-        single: jest.fn(),
+        single: jest.fn().mockResolvedValue({ data: null, error: null }),
+        maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
     },
 }));
 
@@ -95,7 +96,8 @@ describe("Reports API Routes", () => {
             gte: jest.fn().mockReturnThis(),
             order: jest.fn().mockReturnThis(),
             limit: jest.fn().mockReturnThis(),
-            single: jest.fn(),
+            single: jest.fn().mockResolvedValue({ data: null, error: null }),
+            maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
         });
     });
 

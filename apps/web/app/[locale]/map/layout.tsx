@@ -1,22 +1,26 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
+const title = "Find Pharmacy — SahiDawa";
+const description =
+    "Locate verified Jan Aushadhi and trusted pharmacies near you on SahiDawa's live pharmacy map.";
+const image = "/icons/sahidawa-logo.png";
+
 export const metadata: Metadata = {
-    title: "Find Pharmacy — SahiDawa",
-    description:
-        "Locate verified Jan Aushadhi and trusted pharmacies near you on SahiDawa's live pharmacy map.",
+    title,
+    description,
     openGraph: {
-        title: "Find Pharmacy — SahiDawa",
-        description:
-            "Locate verified Jan Aushadhi and trusted pharmacies near you on SahiDawa's live pharmacy map.",
+        title,
+        description,
         url: "https://sahidawa.in/map",
         siteName: "SahiDawa",
+        images: [{ url: image, width: 1200, height: 630, alt: title }],
     },
     twitter: {
         card: "summary_large_image",
-        title: "Find Pharmacy — SahiDawa",
-        description:
-            "Locate verified Jan Aushadhi and trusted pharmacies near you on SahiDawa's live pharmacy map.",
+        title,
+        description,
+        images: [image],
     },
 };
 

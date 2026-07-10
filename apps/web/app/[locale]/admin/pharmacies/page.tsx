@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@/i18n/routing";
 import { ADMIN_API_BASE } from "@/lib/adminApi";
 import {
@@ -14,18 +15,15 @@ import {
     ChevronRight,
 } from "lucide-react";
 
-type PharmacyStatus = "pending" | "approved" | "rejected";
-
 type Pharmacy = {
     id: string;
     name: string;
-    license_id: string | null;
     address: string;
     district: string | null;
     state: string | null;
+    license_id: string | null;
     phone_number: string | null;
-    status: PharmacyStatus;
-    created_at: string;
+    status: "pending" | "approved" | "rejected";
     is_active: boolean;
     deleted_at: string | null;
 };
@@ -45,14 +43,9 @@ function timeAgo(dateStr: string): string {
 }
 
 export default function PharmaciesRegistryPage() {
-    const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [acting, setActing] = useState<string | null>(null);
+    const queryClient = useQueryClient();
     const [searchQuery, setSearchQuery] = useState("");
     const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const [totalItems, setTotalItems] = useState(0);
     const limit = 10;
 
     const authHeaders = () => ({
@@ -60,112 +53,57 @@ export default function PharmaciesRegistryPage() {
         Authorization: `Bearer ${getToken()}`,
     });
 
-    const fetchPharmacies = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-
-        try {
+    // 1. Fetch Query
+    const {
+        data,
+        isLoading,
+        error: queryError,
+        refetch,
+    } = useQuery({
+        queryKey: ["admin", "pharmacies", page],
+        queryFn: async () => {
             const res = await fetch(`${ADMIN_API_BASE}/pharmacies?page=${page}&limit=${limit}`, {
                 cache: "no-store",
                 headers: authHeaders(),
             });
-
-            if (res.status === 401) {
-                setError(
+            if (res.status === 401)
+                throw new Error(
                     "Sign in with an admin or moderator account to view the pharmacy registry."
                 );
-                return;
-            }
+            if (res.status === 403)
+                throw new Error("Your account does not have access to pharmacy management.");
+            if (!res.ok) throw new Error("Failed to fetch pharmacy registry");
+            return res.json();
+        },
+    });
 
-            if (res.status === 403) {
-                setError("Your account does not have access to pharmacy management.");
-                return;
-            }
+    const pharmacies: Pharmacy[] = data?.pharmacies ?? [];
+    const totalPages = data?.meta?.totalPages || 1;
+    const totalItems = data?.meta?.total || 0;
 
-            if (!res.ok) {
-                throw new Error("Failed to fetch pharmacy registry");
-            }
-
-            const data = await res.json();
-            setPharmacies(data.pharmacies ?? []);
-            if (data.meta) {
-                setTotalPages(data.meta.totalPages || 1);
-                setTotalItems(data.meta.total || 0);
-            }
-        } catch {
-            setError("Pharmacy registry is currently unavailable. Please try again.");
-        } finally {
-            setLoading(false);
-        }
-    }, [page]);
-
-    useEffect(() => {
-        fetchPharmacies();
-    }, [fetchPharmacies]);
-
-    const handleDeactivate = async (pharmacyId: string) => {
-        if (
-            !confirm(
-                "Are you sure you want to deactivate/delete this pharmacy? It will be hidden from all public searches and the map."
-            )
-        ) {
-            return;
-        }
-
-        setActing(`${pharmacyId}:deactivate`);
-        setError(null);
-
-        try {
+    // 2. Deactivate Mutation
+    const deactivateMutation = useMutation({
+        mutationFn: async (pharmacyId: string) => {
             const res = await fetch(`${ADMIN_API_BASE}/pharmacies/${pharmacyId}/deactivate`, {
                 method: "POST",
                 headers: authHeaders(),
             });
+            if (!res.ok) throw new Error("Failed to deactivate pharmacy");
+        },
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "pharmacies"] }),
+    });
 
-            if (!res.ok) {
-                throw new Error("Failed to deactivate pharmacy");
-            }
-
-            // Update state locally
-            setPharmacies((current) =>
-                current.map((p) =>
-                    p.id === pharmacyId
-                        ? { ...p, is_active: false, deleted_at: new Date().toISOString() }
-                        : p
-                )
-            );
-        } catch {
-            setError("Could not deactivate this pharmacy. Please try again.");
-        } finally {
-            setActing(null);
-        }
-    };
-
-    const handleRestore = async (pharmacyId: string) => {
-        setActing(`${pharmacyId}:restore`);
-        setError(null);
-
-        try {
+    // 3. Restore Mutation
+    const restoreMutation = useMutation({
+        mutationFn: async (pharmacyId: string) => {
             const res = await fetch(`${ADMIN_API_BASE}/pharmacies/${pharmacyId}/restore`, {
                 method: "POST",
                 headers: authHeaders(),
             });
-
-            if (!res.ok) {
-                throw new Error("Failed to restore pharmacy");
-            }
-
-            // Update state locally
-            setPharmacies((current) =>
-                current.map((p) =>
-                    p.id === pharmacyId ? { ...p, is_active: true, deleted_at: null } : p
-                )
-            );
-        } catch {
-            setError("Could not restore this pharmacy. Please try again.");
-        } finally {
-            setActing(null);
-        }
-    };
+            if (!res.ok) throw new Error("Failed to restore pharmacy");
+        },
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "pharmacies"] }),
+    });
 
     // Client-side search filtering (fallback / interactive)
     const filteredPharmacies = pharmacies.filter((p) => {
@@ -177,6 +115,9 @@ export default function PharmaciesRegistryPage() {
             (p.license_id && p.license_id.toLowerCase().includes(query))
         );
     });
+
+    const error = queryError ? (queryError as Error).message : null;
+    const loading = isLoading;
 
     return (
         <div className="flex min-h-screen bg-slate-50 font-sans">
@@ -226,7 +167,7 @@ export default function PharmaciesRegistryPage() {
                             />
                         </div>
                         <button
-                            onClick={fetchPharmacies}
+                            onClick={() => refetch()}
                             className="rounded-full bg-slate-100 p-2 text-slate-500 transition hover:bg-slate-200"
                             title="Refresh"
                         >
@@ -358,14 +299,26 @@ export default function PharmaciesRegistryPage() {
                                                 <div className="flex gap-2">
                                                     {pharmacy.is_active ? (
                                                         <button
-                                                            disabled={Boolean(acting)}
-                                                            onClick={() =>
-                                                                handleDeactivate(pharmacy.id)
+                                                            disabled={
+                                                                deactivateMutation.isPending ||
+                                                                restoreMutation.isPending
                                                             }
+                                                            onClick={() => {
+                                                                if (
+                                                                    confirm(
+                                                                        "Are you sure you want to deactivate/delete this pharmacy? It will be hidden from all public searches and the map."
+                                                                    )
+                                                                ) {
+                                                                    deactivateMutation.mutate(
+                                                                        pharmacy.id
+                                                                    );
+                                                                }
+                                                            }}
                                                             className="flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-100 disabled:opacity-40"
                                                         >
-                                                            {acting ===
-                                                            `${pharmacy.id}:deactivate` ? (
+                                                            {deactivateMutation.isPending &&
+                                                            deactivateMutation.variables ===
+                                                                pharmacy.id ? (
                                                                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                                             ) : (
                                                                 <Trash2 className="h-3.5 w-3.5" />
@@ -374,13 +327,19 @@ export default function PharmaciesRegistryPage() {
                                                         </button>
                                                     ) : (
                                                         <button
-                                                            disabled={Boolean(acting)}
+                                                            disabled={
+                                                                restoreMutation.isPending &&
+                                                                restoreMutation.variables ===
+                                                                    pharmacy.id
+                                                            }
                                                             onClick={() =>
-                                                                handleRestore(pharmacy.id)
+                                                                restoreMutation.mutate(pharmacy.id)
                                                             }
                                                             className="flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-600 transition-colors hover:bg-emerald-100 disabled:opacity-40"
                                                         >
-                                                            {acting === `${pharmacy.id}:restore` ? (
+                                                            {restoreMutation.isPending &&
+                                                            restoreMutation.variables ===
+                                                                pharmacy.id ? (
                                                                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                                             ) : (
                                                                 <RefreshCw className="h-3.5 w-3.5" />

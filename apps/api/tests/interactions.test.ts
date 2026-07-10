@@ -220,6 +220,35 @@ describe("POST /api/v1/interactions/check", () => {
         expect(res.body.error).toBe("Invalid request body");
     });
 
+    it("rejects medicine names that exceed the 200-character limit", async () => {
+        const tooLong = "A".repeat(201);
+        const res = await request(app)
+            .post("/api/v1/interactions/check")
+            .send({ medicines: [tooLong, "Warfarin"] });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("Invalid request body");
+    });
+
+    it("rejects empty medicine name strings in the POST body", async () => {
+        const res = await request(app)
+            .post("/api/v1/interactions/check")
+            .send({ medicines: ["", "Warfarin"] });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("Invalid request body");
+    });
+
+    it("rejects oversized medicine arrays in the POST body", async () => {
+        const oversized = Array.from({ length: 51 }, (_, i) => `Medicine${i}`);
+        const res = await request(app)
+            .post("/api/v1/interactions/check")
+            .send({ medicines: oversized });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("Invalid request body");
+    });
+
     it("should successfully check interactions when Supabase is online", async () => {
         // Mock name resolutions (batched in .or())
         (supabase.or as jest.Mock).mockResolvedValueOnce({

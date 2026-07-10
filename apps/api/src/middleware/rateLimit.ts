@@ -107,6 +107,17 @@ export const interactionCheckLimiter = createLimiter({
     message: "Too many interaction check requests. Please try again later.",
     prefix: "interactions",
 });
+
+// ── Interaction IDs (GET) limiter ─────────────────────────────────────────────
+// GET /interactions?ids=... resolves UUIDs to medicine rows and performs DB
+// lookups on each request. Stricter than the POST limiter because id-based
+// probing (brute-force UUID enumeration, timing attacks) is cheaper to mount.
+export const interactionIdsLimiter = createLimiter({
+    windowMs: 60 * 1000,
+    max: 5,
+    message: "Too many interaction lookup requests. Please try again later.",
+    prefix: "interactions_ids",
+});
 /** Scheme eligibility check limiter — prevent DB spam on state query. */
 export const eligibilityLimiter = createLimiter({
     windowMs: 15 * 60 * 1000,

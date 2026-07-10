@@ -1,4 +1,10 @@
 {
     "installCommand": "cd ../.. && npm install --legacy-peer-deps",
-    "buildCommand": "cd ../.. && npx turbo run build --filter=web..."
+    "buildCommand": "cd ../.. && npx turbo run build --filter=web...",
+    "crons": [
+        {
+            "path": "/api/cron/rate-limit-metrics",
+            "schedule": "0 * * * *"
+        }
+    ]
 }

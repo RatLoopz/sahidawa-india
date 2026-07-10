@@ -3,65 +3,29 @@ import { createServerClient } from "@supabase/ssr";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
 import { cookies } from "next/headers";
 import { getAdminRoleFromSession } from "@/lib/adminAuth";
-import { Redis } from "@upstash/redis";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/getClientIp";
+import {
+    RATE_LIMIT_METRICS_MAX_SCAN_KEYS,
+    RATE_LIMIT_WINDOW_SECONDS,
+} from "@/lib/rateLimitMetrics";
 
 /**
  * GET /api/admin/rate-limit-metrics
  *
- * Secure admin-only endpoint that exposes rate limit analytics from Upstash.
+ * Secure admin-only endpoint that exposes persisted rate limit analytics.
  * Returns blocked IPs, rejection counts, and metrics window information.
  *
  * Security: Admin/Moderator only (verified via Supabase session)
  * Related: Issue #2699 — Unified Rate Limiter Monitoring & Metrics Dashboard
  */
 
-const hasRedisCredentials =
-    Boolean(process.env.UPSTASH_REDIS_REST_URL) && Boolean(process.env.UPSTASH_REDIS_REST_TOKEN);
-
-const redis = hasRedisCredentials ? Redis.fromEnv() : null;
-const RATE_LIMIT_KEY_PATTERN = "upstash_ratelimit_*";
-const SCAN_COUNT = 100;
-const MAX_SCAN_KEYS = 5000;
-
-async function scanRateLimitKeys(redisClient: Redis): Promise<{
-    keys: string[];
-    scannedKeys: number;
-    truncated: boolean;
-}> {
-    const keys: string[] = [];
-    let cursor = "0";
-
-    do {
-        const [nextCursor, batch] = await redisClient.scan(cursor, {
-            match: RATE_LIMIT_KEY_PATTERN,
-            count: SCAN_COUNT,
-        });
-
-        cursor = String(nextCursor);
-        const remainingCapacity = MAX_SCAN_KEYS - keys.length;
-        const batchExceedsCapacity = batch.length > remainingCapacity;
-
-        if (remainingCapacity > 0) {
-            keys.push(...batch.slice(0, remainingCapacity));
-        }
-
-        if (keys.length >= MAX_SCAN_KEYS && (cursor !== "0" || batchExceedsCapacity)) {
-            return {
-                keys,
-                scannedKeys: keys.length,
-                truncated: true,
-            };
-        }
-    } while (cursor !== "0");
-
-    return {
-        keys,
-        scannedKeys: keys.length,
-        truncated: false,
-    };
-}
+type RateLimitMetricRow = {
+    ip_address: string;
+    request_count: number;
+    captured_at: string;
+    is_otp_metric: boolean;
+};
 
 export async function GET(req: NextRequest) {
     try {
@@ -106,8 +70,18 @@ export async function GET(req: NextRequest) {
             );
         }
 
-        // If Redis is not configured, return mock data
-        if (!redis) {
+        const { data: latestSnapshot, error: latestSnapshotError } = await supabase
+            .from("rate_limit_metrics")
+            .select("snapshot_id,captured_at")
+            .order("captured_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        if (latestSnapshotError) {
+            throw latestSnapshotError;
+        }
+
+        if (!latestSnapshot) {
             return NextResponse.json({
                 blockedIps: [
                     {
@@ -126,96 +100,48 @@ export async function GET(req: NextRequest) {
                     totalHits: 12,
                     blocked: 3,
                 },
-                windowSeconds: 60,
+                windowSeconds: RATE_LIMIT_WINDOW_SECONDS,
                 fetchedAt: new Date().toISOString(),
                 isDemo: true,
                 truncated: false,
                 scannedKeys: 0,
-                maxScanKeys: MAX_SCAN_KEYS,
+                maxScanKeys: RATE_LIMIT_METRICS_MAX_SCAN_KEYS,
             });
         }
 
-        // Query Redis for rate limit keys
-        // Pattern: upstash_ratelimit_* (Upstash stores rate limit data with this prefix)
-        const { keys, scannedKeys, truncated } = await scanRateLimitKeys(redis);
+        const { data: rows, error: rowsError } = await supabase
+            .from("rate_limit_metrics")
+            .select("ip_address,request_count,captured_at,is_otp_metric")
+            .eq("snapshot_id", latestSnapshot.snapshot_id)
+            .order("request_count", { ascending: false });
 
-        interface BlockedIP {
-            ip: string;
-            count: number;
-            lastBlocked: string;
-        }
-        interface OtpMetrics {
-            totalHits: number;
-            blocked: number;
+        if (rowsError) {
+            throw rowsError;
         }
 
-        const blockedIps: BlockedIP[] = [];
-        let totalRejections = 0;
-        const otpMetrics: OtpMetrics = {
-            totalHits: 0,
-            blocked: 0,
+        const metricRows = (rows ?? []) as RateLimitMetricRow[];
+        const totalRejections = metricRows.reduce((total, row) => total + row.request_count, 0);
+        const otpRows = metricRows.filter((row) => row.is_otp_metric);
+        const otpMetrics = {
+            totalHits: otpRows.reduce((total, row) => total + row.request_count, 0),
+            blocked: otpRows.length,
         };
-        // Aggregate rejection data per IP
-        const ipMap = new Map<string, { count: number; lastBlocked: string }>();
-
-        for (const key of keys) {
-            try {
-                // Key format: upstash_ratelimit_<identifier>
-                // Extract IP or identifier from key
-                const identifier = key.replace("upstash_ratelimit_", "");
-                const isOtpKey = key.includes("notification_register");
-                // Fetch the value (contains rejection count and timestamp)
-                const data = await redis.get(key);
-
-                if (data) {
-                    // Data structure from Upstash: { limit, remaining, reset, pending, success }
-                    const count = typeof data === "number" ? data : 1;
-                    const now = new Date().toISOString();
-
-                    if (!ipMap.has(identifier)) {
-                        ipMap.set(identifier, { count: 0, lastBlocked: now });
-                    }
-
-                    const current = ipMap.get(identifier)!;
-
-                    current.count += count;
-                    current.lastBlocked = now;
-
-                    totalRejections += count;
-
-                    if (isOtpKey) {
-                        otpMetrics.totalHits += count;
-                        otpMetrics.blocked += 1;
-                    }
-                }
-            } catch (err) {
-                // Skip malformed keys
-                console.error(`Failed to process rate limit key ${key}:`, err);
-            }
-        }
-
-        // Convert map to sorted array
-        blockedIps.push(
-            ...Array.from(ipMap.entries()).map(([ip, data]) => ({
-                ip,
-                count: data.count,
-                lastBlocked: data.lastBlocked,
-            }))
-        );
-
-        // Sort by rejection count descending
-        blockedIps.sort((a, b) => b.count - a.count);
+        const blockedIps = metricRows.map((row) => ({
+            ip: row.ip_address,
+            count: row.request_count,
+            lastBlocked: row.captured_at,
+        }));
 
         return NextResponse.json({
-            blockedIps: blockedIps.slice(0, 100), // Limit to top 100 IPs
+            blockedIps: blockedIps.slice(0, 100),
             totalRejections,
             otpMetrics,
-            windowSeconds: 60,
-            fetchedAt: new Date().toISOString(),
+            windowSeconds: RATE_LIMIT_WINDOW_SECONDS,
+            fetchedAt: latestSnapshot.captured_at,
             isDemo: false,
-            truncated,
-            scannedKeys,
-            maxScanKeys: MAX_SCAN_KEYS,
+            truncated: false,
+            scannedKeys: 0,
+            maxScanKeys: RATE_LIMIT_METRICS_MAX_SCAN_KEYS,
         });
     } catch (err) {
         console.error("Failed to fetch rate limit metrics:", err);

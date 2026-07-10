@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: ⬇️ Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: ⚙️ Setup Python 3.12
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -30,7 +30,15 @@ jobs:
           timeout 60 bash -c 'until curl -f http://localhost:8000/docs >/dev/null 2>&1; do sleep 2; done' || (docker compose logs ml && exit 1)
 
       - name: 🚀 Run Locust Load Tests
-        run: locust -f apps/ml/tests/locustfile.py --headless -u 10 -r 2 -t 1m --host=http://localhost:8000
+        run: locust -f apps/ml/tests/locustfile.py --headless -u 10 -r 2 -t 1m --host=http://localhost:8000 --html report.html
+
+      - name: 📊 Upload Locust HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: locust-nightly-report
+          path: report.html
+          retention-days: 7
 
       - name: 🛑 Stop ML Service
         if: always()

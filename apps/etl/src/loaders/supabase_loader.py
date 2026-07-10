@@ -434,12 +434,8 @@ class SupabaseLoader:
         if not records or table not in CONFLICT_COLUMNS:
             return {}
 
-        columns = sorted(
-            set(CONFLICT_COLUMNS[table]).union(
-                *[set(item["write_payload"].keys()) for item in records]
-            )
-        )
-        selected_columns = ",".join(columns)
+        conflict_cols = CONFLICT_COLUMNS[table]
+        selected_columns = ",".join([*conflict_cols, "fingerprint"])
         existing_by_key: dict[str, dict] = {}
         page_size = 1000
         offset = 0

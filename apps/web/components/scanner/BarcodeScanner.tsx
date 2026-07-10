@@ -51,6 +51,20 @@ function playFeedback(): void {
             oscillator.connect(gainNode);
             gainNode.connect(ctx.destination);
 
+            // Close the context once the beep finishes so we don't leak an
+            // AudioContext (and its underlying OS audio resources) on every scan.
+            let closed = false;
+            const closeCtx = () => {
+                if (closed) return;
+                closed = true;
+                ctx.close().catch(() => {
+                    // Ignore errors from closing an already-closed/unsupported context
+                });
+            };
+            oscillator.onended = closeCtx;
+            // Fallback in case 'onended' doesn't fire in some browsers/environments
+            setTimeout(closeCtx, 200);
+
             oscillator.start();
             oscillator.stop(ctx.currentTime + 0.1);
         }

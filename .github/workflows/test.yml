@@ -13,14 +13,14 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: ⬇️ Checkout Code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 2
 
-            - name: ⚙️ Setup Node.js 24
-              uses: actions/setup-node@v4
+            - name: ⚙️ Setup Node.js from .nvmrc
+              uses: actions/setup-node@v6
               with:
-                  node-version: 24
+                  node-version-file: .nvmrc
                   cache: "npm"
 
             - name: 📦 Upgrade npm
@@ -77,7 +77,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: ⬇️ Checkout Code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
 
             - name: ⚙️ Setup Python 3.12
               uses: actions/setup-python@v6
@@ -95,13 +95,14 @@ jobs:
               run: python -m pytest tests/ -v --timeout=60
               env:
                   WHISPER_MODEL_SIZE: base
+                  PYTHONPATH: ${{ github.workspace }}
 
     test-docker-builds:
         name: 🐳 Test Docker Builds
         runs-on: ubuntu-latest
         steps:
             - name: ⬇️ Checkout Code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
 
             - name: 🐳 Build Docker Images
               run: docker compose build
@@ -111,7 +112,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: ⬇️ Checkout Code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
 
             - name: 🔍 Get Changed Files
               id: changed-files
@@ -131,19 +132,35 @@ jobs:
                   fi
 
     test-supabase-migrations:
-        name: 🗄️ Test Supabase Migrations
+        name: 🗄️ Test Supabase Migrations & Database Webhooks
         runs-on: ubuntu-latest
         steps:
             - name: ⬇️ Checkout Code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
+
+            - name: ⚙️ Setup Node.js from .nvmrc
+              uses: actions/setup-node@v6
+              with:
+                  node-version-file: .nvmrc
+                  cache: "npm"
+
+            - name: 📦 Install Dependencies (Monorepo)
+              run: npm install --legacy-peer-deps
 
             - name: ⚙️ Setup Supabase CLI
-              uses: supabase/setup-cli@v1
+              uses: supabase/setup-cli@v3
               with:
                   version: latest
 
             - name: 🚀 Verify Supabase Migrations
               run: supabase start
+
+            - name: 🧪 Run Webhook E2E Tests
+              run: npx jest --config apps/api/jest.config.js apps/api/tests/e2e/webhook-delivery.test.ts
+              env:
+                  SUPABASE_URL: http://127.0.0.1:54321
+                  SUPABASE_ANON_KEY: test-anon-key
+                  SUPABASE_SERVICE_ROLE_KEY: test-service-role-key
 
             - name: 🛑 Shutdown Supabase Stack
               if: always()

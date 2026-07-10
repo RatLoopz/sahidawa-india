@@ -1,6 +1,37 @@
 import { supabase } from "../db/client";
 
 /**
+ * Thrown when clientUpdatedAt is missing, non-numeric, or otherwise cannot be
+ * parsed into a valid timestamp. Route handlers should catch this and return
+ * 400, rather than letting resolveConflict silently treat the write as stale.
+ */
+export class InvalidClientTimestampError extends Error {
+    public readonly code: string;
+
+    constructor(
+        message = "clientUpdatedAt must be a valid numeric timestamp string (milliseconds since epoch)"
+    ) {
+        super(message);
+        this.name = "InvalidClientTimestampError";
+        this.code = "errors.invalidClientTimestamp";
+    }
+}
+
+/**
+ * Parses a client-supplied timestamp string into epoch milliseconds.
+ * Throws InvalidClientTimestampError for missing, empty, or non-numeric
+ * values instead of letting `new Date(NaN)` silently make every downstream
+ * "is this newer" comparison evaluate to false.
+ */
+function parseClientUpdatedAt(raw: string): number {
+    const ms = Number(raw);
+    if (!raw || !Number.isFinite(ms)) {
+        throw new InvalidClientTimestampError();
+    }
+    return ms;
+}
+
+/**
  * Last-write-wins by client_updated_at, with the losing write preserved in
  * scan_conflict_log for auditability instead of being silently discarded.
  */
@@ -11,6 +42,8 @@ export async function resolveConflict(input: {
     clientUpdatedAt: string;
     userId: string;
 }) {
+    const clientUpdatedAtMs = parseClientUpdatedAt(input.clientUpdatedAt);
+
     const safeMetadata = {
         medicine_name: input.metadata?.medicine_name,
         timestamp: input.metadata?.timestamp,
@@ -45,7 +78,7 @@ export async function resolveConflict(input: {
                 id: input.scanId,
                 user_id: input.userId,
                 device_id: input.deviceId,
-                client_updated_at: new Date(Number(input.clientUpdatedAt)).toISOString(),
+                client_updated_at: new Date(clientUpdatedAtMs).toISOString(),
             })
             .select("id")
             .single();
@@ -57,7 +90,7 @@ export async function resolveConflict(input: {
     }
 
     const incomingIsNewer =
-        new Date(Number(input.clientUpdatedAt)) > new Date(existing.client_updated_at || 0);
+        new Date(clientUpdatedAtMs) > new Date(existing.client_updated_at || 0);
 
     if (incomingIsNewer) {
         const { error: updateError } = await supabase
@@ -65,7 +98,7 @@ export async function resolveConflict(input: {
             .update({
                 ...safeMetadata,
                 device_id: input.deviceId,
-                client_updated_at: new Date(Number(input.clientUpdatedAt)).toISOString(),
+                client_updated_at: new Date(clientUpdatedAtMs).toISOString(),
             })
             .eq("id", input.scanId);
 

@@ -159,7 +159,10 @@ def extract_alerts_from_text(text: str) -> List[Dict[str, Any]]:
             logging.warning("GOOGLE_API_KEY not set. Cannot extract alerts using Gemini.")
             return []
 
-        llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", temperature=0, google_api_key=api_key)
+        # gemini-1.5-pro is retired, so extraction on this text path fails. Use
+        # gemini-3.5-flash, matching extract_alerts_from_pdf_images() below.
+        # Ref: https://ai.google.dev/gemini-api/docs/deprecations
+        llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0, google_api_key=api_key)
         structured_llm = llm.with_structured_output(AlertList)
         
         prompt = ChatPromptTemplate.from_messages([
@@ -242,7 +245,7 @@ def extract_alerts_from_text(text: str) -> List[Dict[str, Any]]:
 def extract_alerts_from_pdf_images(pdf_bytes: bytes) -> List[Dict[str, Any]]:
     """
     Extracts structured alert information from scanned/image-based PDFs
-    by rendering pages to PNG images and analyzing them with Gemini-1.5-Flash.
+    by rendering pages to PNG images and analyzing them with Gemini 3.5 Flash.
     Also uploads the page screenshots to Cloudinary to serve as audit proof.
     """
     if not LANGCHAIN_AVAILABLE:

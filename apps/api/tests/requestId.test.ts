@@ -138,7 +138,7 @@ describe("serviceFetch x-request-id propagation", () => {
     const originalFetch = global.fetch;
 
     beforeEach(() => {
-        global.fetch = jest.fn().mockResolvedValue(new Response("ok", { status: 200 }));
+        global.fetch = jest.fn().mockResolvedValue(new globalThis.Response("ok", { status: 200 }));
     });
 
     afterEach(() => {

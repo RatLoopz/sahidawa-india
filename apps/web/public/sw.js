@@ -8,7 +8,7 @@
  * @version 2.0.0
  */
 
-const CACHE_VERSION = "v3";
+const CACHE_VERSION = "55c3340e";
 
 /** Navigation / shell pages */
 const OFFLINE_CACHE_NAME = `sahidawa-offline-${CACHE_VERSION}`;
@@ -592,7 +592,7 @@ function openIndexedDB(dbName, version, upgradeCallback) {
         const request = indexedDB.open(dbName, version);
         request.onerror = () => reject(request.error);
         request.onsuccess = () => resolve(request.result);
-        request.onupgradeneeded = (event) => {
+        request.onupgradeneeded = () => {
             if (upgradeCallback) upgradeCallback(request.result);
         };
     });

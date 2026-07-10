@@ -24,7 +24,7 @@ describe("ABHA service ABDM sandbox integration", () => {
     const originalEnv = process.env;
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        fetchMock.mockReset();
         process.env = {
             ...originalEnv,
             ABDM_SANDBOX_BASE_URL: "https://abha-sandbox.test/abha/api",

@@ -1285,9 +1285,24 @@
     "AbhaRecords": {
         "backToProfile": "Back to Profile",
         "title": "ABHA Records",
+        "subtitle": "Manage your Ayushman Bharat Health Account",
         "loading": "Loading records...",
-        "noPrescriptions": "No prescriptions found.",
-        "failedToLoad": "Failed to load records"
+        "failedToLoadStatus": "Failed to check ABHA status",
+        "failedToLoad": "Failed to load records",
+        "failedToLink": "Failed to initiate linking",
+        "failedToVerify": "Failed to verify OTP",
+        "linkAccount": "Link Your ABHA Account",
+        "linkDescription": "Connect your ABHA account to securely fetch and manage your health records.",
+        "abhaAddressLabel": "ABHA Address",
+        "abhaAddressPlaceholder": "e.g. name@abdm",
+        "requestOtp": "Request OTP",
+        "otpLabel": "Enter OTP",
+        "otpPlaceholder": "XXXXXX",
+        "cancel": "Cancel",
+        "verifyOtp": "Verify OTP",
+        "accountLinked": "Your ABHA account is linked securely.",
+        "noPrescriptions": "No health records found",
+        "noPrescriptionsDesc": "You don't have any prescriptions associated with this ABHA account yet."
     },
     "Tracking": {
         "success": "Medicine tracked successfully!",
@@ -1412,7 +1427,8 @@
             "title": "Couldn't Load Your Medicines",
             "generic": "Something went wrong while fetching your tracked medicines.",
             "fetchFailed": "Failed to load tracked medicines. Please check your connection and try again.",
-            "tryAgain": "Try Again"
+            "tryAgain": "Try Again",
+            "statusError": "Request failed with status {status}. Please try again."
         },
         "emptyState": {
             "title": "No Medicines Tracked Yet",
@@ -1428,7 +1444,8 @@
         "badges": {
             "verified": "Verified",
             "unverified": "Unverified",
-            "requestVerificationTitle": "Click to request verification"
+            "requestVerificationTitle": "Click to request verification",
+            "verificationStatus": "Verification status"
         },
         "bookmarks": {
             "savedAlternatives": "Saved Alternatives",
@@ -1495,5 +1512,69 @@
     },
     "Navbar": {
         "logo_alt": "SahiDawa Logo"
+    },
+    "Privacy": {
+        "hero": {
+            "badge": "GSSoC 2026 Open Source Project",
+            "title": "Privacy",
+            "titleHighlight": "Policy",
+            "subtitle": "We believe in transparency. Here is exactly what we collect, why we collect it, and what we never do with it.",
+            "noDataSold": "No Data Sold. Ever.",
+            "noTrackingCookies": "No Tracking Cookies",
+            "openSource": "Open Source MIT License"
+        },
+        "sections": {
+            "section1": {
+                "title": "1. Information We Collect",
+                "description": "SahiDawa collects only what is absolutely necessary to verify medicines and keep you safe.",
+                "items": {
+                    "0": "Medicine barcode or image scans — used only for verification",
+                    "1": "Location data — only if you use pharmacy finder, never stored",
+                    "2": "Voice input — processed locally, never uploaded without consent",
+                    "3": "We do <strongTag>not</strongTag> collect your name, phone number, or Aadhaar"
+                }
+            },
+            "section2": {
+                "title": "2. How We Use Your Data",
+                "items": {
+                    "0": "Medicine scans are verified against the CDSCO database only",
+                    "1": "Anonymous scan reports may build our counterfeit heatmap",
+                    "2": "No personal data is shared with advertisers or third parties"
+                }
+            },
+            "section3": {
+                "title": "3. Cookies",
+                "description": "SahiDawa uses only <strongTag>essential cookies</strongTag> such as your language preference. We do not use tracking, advertising, or analytics cookies of any kind."
+            },
+            "section4": {
+                "title": "4. Third-Party Services",
+                "description": "We use the following trusted services, each with their own privacy policy:",
+                "services": {
+                    "cloudinary": "Cloudinary",
+                    "supabase": "Supabase",
+                    "openstreetmap": "OpenStreetMap",
+                    "sarvamai": "Sarvam AI"
+                }
+            },
+            "section5": {
+                "title": "5. Data Security",
+                "description": "SahiDawa is fully open source — our code is publicly auditable on GitHub. We follow secure coding practices and never store sensitive health data beyond what is needed for verification."
+            },
+            "section6": {
+                "title": "6. Children's Privacy",
+                "description": "SahiDawa is built for all citizens of India, including families. We do not knowingly collect personal data from children under 13."
+            },
+            "section7": {
+                "title": "7. Contact Us",
+                "description": "For privacy-related queries, reach us at:",
+                "email": "contact@sahidawa.in",
+                "discordText": "Or join our community on <discordLink>Discord</discordLink>"
+            },
+            "section8": {
+                "title": "8. Changes to This Policy",
+                "description": "We may update this policy as SahiDawa grows. Any changes will be posted on this page with a revised date."
+            }
+        },
+        "footer": "SahiDawa is free, open-source, and built for 1.4 billion Indians. No ads. No premium. No data sold. Ever."
     }
 }

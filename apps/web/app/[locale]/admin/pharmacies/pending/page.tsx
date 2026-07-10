@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@/i18n/routing";
 import { ADMIN_API_BASE } from "@/lib/adminApi";
 import {
@@ -43,58 +44,51 @@ function timeAgo(dateStr: string): string {
 }
 
 export default function PendingPharmaciesPage() {
-    const [pharmacies, setPharmacies] = useState<PendingPharmacy[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [acting, setActing] = useState<string | null>(null);
+    const queryClient = useQueryClient();
 
     const authHeaders = () => ({
         "Content-Type": "application/json",
         Authorization: `Bearer ${getToken()}`,
     });
 
-    const fetchPendingPharmacies = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-
-        try {
+    // React Query Fetch
+    const {
+        data: pharmacies = [],
+        isLoading: loading,
+        error: fetchError,
+        refetch,
+    } = useQuery<PendingPharmacy[], Error>({
+        queryKey: ["pharmacies", "pending"],
+        queryFn: async () => {
             const res = await fetch(`${ADMIN_API_BASE}/pharmacies/pending`, {
                 cache: "no-store",
                 headers: authHeaders(),
             });
 
             if (res.status === 401) {
-                setError("Sign in with an admin or moderator account to review pharmacies.");
-                return;
+                throw new Error("Sign in with an admin or moderator account to review pharmacies.");
             }
-
             if (res.status === 403) {
-                setError("Your account does not have access to pharmacy moderation.");
-                return;
+                throw new Error("Your account does not have access to pharmacy moderation.");
             }
-
             if (!res.ok) {
-                throw new Error("Failed to fetch pending pharmacies");
+                throw new Error("Pending pharmacies are unavailable. Please try again.");
             }
 
             const data = await res.json();
-            setPharmacies(data.pharmacies ?? []);
-        } catch {
-            setError("Pending pharmacies are unavailable. Please try again.");
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+            return data.pharmacies ?? [];
+        },
+    });
 
-    useEffect(() => {
-        fetchPendingPharmacies();
-    }, [fetchPendingPharmacies]);
-
-    const updateStatus = async (pharmacyId: string, status: Exclude<PharmacyStatus, "pending">) => {
-        setActing(`${pharmacyId}:${status}`);
-        setError(null);
-
-        try {
+    // React Query Mutation
+    const updateStatusMutation = useMutation({
+        mutationFn: async ({
+            pharmacyId,
+            status,
+        }: {
+            pharmacyId: string;
+            status: Exclude<PharmacyStatus, "pending">;
+        }) => {
             const res = await fetch(`${ADMIN_API_BASE}/pharmacies/${pharmacyId}/status`, {
                 method: "PATCH",
                 headers: authHeaders(),
@@ -102,17 +96,15 @@ export default function PendingPharmaciesPage() {
             });
 
             if (!res.ok) {
-                throw new Error("Failed to update pharmacy status");
+                throw new Error("Could not update this pharmacy. Please try again.");
             }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["pharmacies", "pending"] });
+        },
+    });
 
-            setPharmacies((current) => current.filter((pharmacy) => pharmacy.id !== pharmacyId));
-        } catch {
-            setError("Could not update this pharmacy. Please try again.");
-        } finally {
-            setActing(null);
-        }
-    };
-
+    const error = fetchError?.message || updateStatusMutation.error?.message || null;
     return (
         <div className="flex min-h-screen bg-slate-50 font-sans">
             <aside className="flex w-60 shrink-0 flex-col gap-6 border-r border-slate-200 bg-white p-5">
@@ -153,7 +145,7 @@ export default function PendingPharmaciesPage() {
                         </p>
                     </div>
                     <button
-                        onClick={fetchPendingPharmacies}
+                        onClick={() => refetch()}
                         className="rounded-full bg-slate-100 p-2 text-slate-500 transition hover:bg-slate-200"
                         title="Refresh"
                     >
@@ -277,11 +269,18 @@ export default function PendingPharmaciesPage() {
                                                         icon={CheckCircle}
                                                         color="green"
                                                         loading={
-                                                            acting === `${pharmacy.id}:approved`
+                                                            updateStatusMutation.isPending &&
+                                                            updateStatusMutation.variables
+                                                                ?.pharmacyId === pharmacy.id &&
+                                                            updateStatusMutation.variables
+                                                                ?.status === "approved"
                                                         }
-                                                        disabled={Boolean(acting)}
+                                                        disabled={updateStatusMutation.isPending}
                                                         onClick={() =>
-                                                            updateStatus(pharmacy.id, "approved")
+                                                            updateStatusMutation.mutate({
+                                                                pharmacyId: pharmacy.id,
+                                                                status: "approved",
+                                                            })
                                                         }
                                                     />
                                                     <ActionButton
@@ -289,11 +288,18 @@ export default function PendingPharmaciesPage() {
                                                         icon={XCircle}
                                                         color="red"
                                                         loading={
-                                                            acting === `${pharmacy.id}:rejected`
+                                                            updateStatusMutation.isPending &&
+                                                            updateStatusMutation.variables
+                                                                ?.pharmacyId === pharmacy.id &&
+                                                            updateStatusMutation.variables
+                                                                ?.status === "rejected"
                                                         }
-                                                        disabled={Boolean(acting)}
+                                                        disabled={updateStatusMutation.isPending}
                                                         onClick={() =>
-                                                            updateStatus(pharmacy.id, "rejected")
+                                                            updateStatusMutation.mutate({
+                                                                pharmacyId: pharmacy.id,
+                                                                status: "rejected",
+                                                            })
                                                         }
                                                     />
                                                 </div>

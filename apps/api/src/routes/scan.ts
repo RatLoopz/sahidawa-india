@@ -873,7 +873,7 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
     }
 });
 import { idempotencyMiddleware } from "../middleware/idempotency";
-import { resolveConflict } from "../utils/conflictResolution";
+import { resolveConflict, InvalidClientTimestampError } from "../utils/conflictResolution";
 
 router.post(
     "/submit",
@@ -886,7 +886,14 @@ router.post(
         const submitSchema = z
             .object({
                 deviceId: z.string().optional(),
-                clientUpdatedAt: z.string().optional(),
+                clientUpdatedAt: z
+                    .string()
+                    .trim()
+                    .min(1, "clientUpdatedAt is required")
+                    .regex(
+                        /^\d+$/,
+                        "clientUpdatedAt must be a numeric timestamp string (milliseconds since epoch)"
+                    ),
                 metadata: z.string().optional(),
             })
             .strict();
@@ -927,7 +934,7 @@ router.post(
                 scanId,
                 metadata,
                 deviceId: deviceId ?? "",
-                clientUpdatedAt: clientUpdatedAt ?? "",
+                clientUpdatedAt,
                 userId,
             });
 
@@ -980,15 +987,40 @@ router.post(
                 });
             }
 
-            await supabase
+            const { error: idemUpdateError } = await supabase
                 .from("submission_idempotency")
-                .insert({ idempotency_key: idempotencyKey, scan_id: resolvedScanId });
+                .update({ scan_id: resolvedScanId })
+                .eq("idempotency_key", idempotencyKey);
+
+            if (idemUpdateError) {
+                logger.error("Failed to persist idempotency record", {
+                    error: idemUpdateError,
+                    idempotencyKey,
+                    scanId: resolvedScanId,
+                });
+            }
 
             res.status(200).json(result);
         } catch (err) {
+            if (err instanceof InvalidClientTimestampError) {
+                res.status(400).json({ error: err.message });
+                return;
+            }
             logger.error(
                 `Error during offline scan submit: ${err instanceof Error ? err.message : err}`
             );
+
+            if (idempotencyKey) {
+                try {
+                    await supabase
+                        .from("submission_idempotency")
+                        .delete()
+                        .eq("idempotency_key", idempotencyKey);
+                } catch {
+                    /* best-effort cleanup; ignore secondary failures */
+                }
+            }
+
             res.status(500).json({ error: "Server error during scan submission" });
         }
     }

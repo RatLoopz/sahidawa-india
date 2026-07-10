@@ -1,10 +1,13 @@
 import { Router, Response } from "express";
 import { z } from "zod";
+import { createHash } from "node:crypto";
 import { promises as dns } from "node:dns";
 import { getMlServiceUrl, MISSING_ML_SERVICE_URL_MESSAGE } from "../config/mlService";
 import { requireAuth, AuthenticatedRequest } from "../middleware/auth";
 import logger from "../utils/logger";
 import { limiter } from "../middleware/rateLimit";
+import { redisClient } from "../utils/redis";
+
 const router = Router();
 
 const analyzeRequestSchema = z.object({
@@ -26,6 +29,14 @@ const LINK_LOCAL_HOSTNAMES = [".local", ".internal", ".nip.io", ".localtest.me"]
 const PRIVATE_HOSTNAME_RE =
     /^(localhost|127\.\d{1,3}\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|169\.254\.\d{1,3}\.\d{1,3}|::1|::ffff:127\.\d{1,3}\.\d{1,3}\.\d{1,3}|0\.0\.0\.0)$/;
 
+const ML_ANALYSIS_CACHE_TTL_SECONDS = 3600; // 1 hour
+const ML_ANALYSIS_TIMEOUT_MS = 8000;
+
+function buildCacheKey(imageUrl: string): string {
+    const hash = createHash("sha256").update(imageUrl).digest("hex");
+    return `ml:analyze:${hash}`;
+}
+
 function isPrivateIp(ip: string): boolean {
     return PRIVATE_IP_RE.test(ip);
 }
@@ -42,8 +53,6 @@ async function isPrivateHostname(urlStr: string): Promise<boolean> {
         return true;
     }
 }
-
-const ML_ANALYSIS_TIMEOUT_MS = 8000;
 
 router.post("/analyze", limiter, requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     const parsed = analyzeRequestSchema.safeParse(req.body);
@@ -66,6 +75,22 @@ router.post("/analyze", limiter, requireAuth, async (req: AuthenticatedRequest, 
             details: [{ message: "imageUrl must point to a public HTTPS resource" }],
         });
         return;
+    }
+
+    const cacheKey = buildCacheKey(parsed.data.imageUrl);
+
+    // Check Redis cache before hitting the ML service
+    if (redisClient.isOpen) {
+        try {
+            const cached = await redisClient.get(cacheKey);
+            if (cached) {
+                logger.info("Cache hit for ML analysis", { cacheKey });
+                res.status(200).json(JSON.parse(cached));
+                return;
+            }
+        } catch (err) {
+            logger.warn("Redis cache read failed, falling through to ML service", { err });
+        }
     }
 
     const mlServiceUrl = getMlServiceUrl();
@@ -106,6 +131,18 @@ router.post("/analyze", limiter, requireAuth, async (req: AuthenticatedRequest, 
         if (!analysis.success) {
             res.status(502).json({ error: "Image analysis service returned an invalid response" });
             return;
+        }
+
+        // Store result in Redis with 1-hour TTL
+        if (redisClient.isOpen) {
+            try {
+                await redisClient.set(cacheKey, JSON.stringify(analysis.data), {
+                    EX: ML_ANALYSIS_CACHE_TTL_SECONDS,
+                });
+                logger.info("ML analysis result cached", { cacheKey });
+            } catch (err) {
+                logger.warn("Redis cache write failed", { err });
+            }
         }
 
         res.status(200).json(analysis.data);

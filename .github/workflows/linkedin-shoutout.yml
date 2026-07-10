@@ -71,7 +71,7 @@ jobs:
             #   (google-genai SDK not needed — we use requests for Gemini REST)
             # ─────────────────────────────────────────────────────────────────
             - name: "📥 Install Dependencies"
-              run: pip install requests pillow
+              run: pip install requests pillow supabase
 
             # ─────────────────────────────────────────────────────────────────
             # Step 4: Collect ALL PR metadata and expose as environment vars.
@@ -135,12 +135,15 @@ jobs:
               id: shoutout
               env:
                   # LinkedIn Direct API Credentials
-                  # MAKE_WEBHOOK_URL: ${{ secrets.MAKE_WEBHOOK_URL }} # Deprecated
                   LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
                   LINKEDIN_ORG_ID: ${{ secrets.LINKEDIN_ORG_ID }}
 
                   # Gemini AI Key (already in repo secrets)
                   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+                  # Supabase Credentials for state management/queue
+                  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+                  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
                   # PR Metadata from previous step
                   PR_TITLE: ${{ steps.pr_meta.outputs.pr_title }}

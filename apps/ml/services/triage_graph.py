@@ -108,7 +108,10 @@ class TriageAnalysis(BaseModel):
 
 # ── Node Implementations ──────────────────────────────────────────────────────
 
-def get_llm(model: str = "gemini-2.5-flash"):
+# gemini-2.5-flash is deprecated with a Google shutdown date of 2026-10-16, so
+# default to its recommended replacement to keep triage working past that date.
+# Ref: https://ai.google.dev/gemini-api/docs/deprecations
+def get_llm(model: str = "gemini-3.5-flash"):
     api_key = os.getenv("GEMINI_API_KEY")
     return ChatGoogleGenerativeAI(model=model, temperature=0, google_api_key=api_key)
 

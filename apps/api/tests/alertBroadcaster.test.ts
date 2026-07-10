@@ -6,6 +6,17 @@ jest.mock("../src/services/whatsapp-service", () => ({
     whatsappService: { send: jest.fn().mockResolvedValue(true) },
 }));
 
+// Prevent real Redis connection attempts in CI (no Redis server available)
+jest.mock("../src/utils/redis", () => ({
+    redisClient: {
+        isOpen: false,
+        connect: jest.fn().mockResolvedValue(undefined),
+        set: jest.fn().mockResolvedValue(null),
+        eval: jest.fn().mockResolvedValue(0),
+        on: jest.fn(),
+    },
+}));
+
 // Self-contained mock chain — jest.mock factories are hoisted, so nothing
 // outside the factory can be referenced here.
 jest.mock("../src/db/client", () => {

@@ -7,6 +7,7 @@ module.exports = {
         "**/src/services/drugLookup.test.ts",
         "**/src/services/cache.test.ts",
     ],
+    testPathIgnorePatterns: ["/node_modules/", "/tests/e2e/"],
     clearMocks: true,
     setupFiles: ["<rootDir>/tests/setup.ts"],
     moduleNameMapper: {

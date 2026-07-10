@@ -32,7 +32,6 @@ export async function syncPendingScans(onSynced?: (count: number) => void): Prom
 
             // Notify user of result
             const medicineName = (result.verified && result.medicine.brand_name) || item.barcode;
-            let title = "Medicine Verification";
             let body = "";
             let isCounterfeit = false;
 
@@ -51,11 +50,19 @@ export async function syncPendingScans(onSynced?: (count: number) => void): Prom
             }
 
             // Web Notification if tab is hidden
-            if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted" && document.hidden) {
-                new Notification(isCounterfeit ? "⚠️ Counterfeit Alert!" : "✅ SahiDawa Verification", {
-                    body,
-                    icon: "/icons/icon-192.png",
-                });
+            if (
+                typeof window !== "undefined" &&
+                "Notification" in window &&
+                Notification.permission === "granted" &&
+                document.hidden
+            ) {
+                new Notification(
+                    isCounterfeit ? "⚠️ Counterfeit Alert!" : "✅ SahiDawa Verification",
+                    {
+                        body,
+                        icon: "/icons/icon-192.png",
+                    }
+                );
             }
         } catch (error) {
             if (!navigator.onLine || isNetworkFailure(error)) {

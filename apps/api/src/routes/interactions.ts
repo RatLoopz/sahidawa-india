@@ -4,8 +4,8 @@ import { supabase, dbConfig } from "../db/client";
 import logger from "../utils/logger";
 import { escapePostgrest } from "../utils/db";
 import { uuidSchema } from "../utils/validation";
-import { interactionCheckLimiter } from "../middleware/rateLimit";
-import { cacheMiddleware } from "../middleware/cache";
+import { interactionCheckLimiter, interactionIdsLimiter } from "../middleware/rateLimit";
+import { redisCache } from "../middleware/redisCache";
 import zlib from "zlib";
 import { MAX_INTERACTION_MEDICINES } from "@sahidawa/shared";
 import { promises as fs } from "fs";
@@ -29,9 +29,19 @@ type InteractionRecord = LocalInteraction & {
     data_version?: string;
 };
 
+const MAX_MEDICINE_NAME_LENGTH = 200;
+
 const checkSchema = z.object({
     medicines: z
-        .array(z.string())
+        .array(
+            z
+                .string()
+                .min(1, "Medicine name cannot be empty")
+                .max(
+                    MAX_MEDICINE_NAME_LENGTH,
+                    `Medicine name must not exceed ${MAX_MEDICINE_NAME_LENGTH} characters`
+                )
+        )
         .min(2, "At least two medicines are required to check interactions")
         .max(
             MAX_INTERACTION_MEDICINES,
@@ -326,8 +336,8 @@ async function loadInteractionsForGenerics(genericNames: string[]): Promise<Inte
  */
 router.get(
     "/",
-    interactionCheckLimiter,
-    cacheMiddleware(120, 300),
+    interactionIdsLimiter,
+    redisCache(60, (req) => `interactions:ids:${(req.query.ids as string) ?? ""}`),
     async (req: Request, res: Response) => {
         const parsedIds = parseIdsParam(req.query.ids);
 
@@ -358,6 +368,7 @@ router.get(
                 .filter((medicine): medicine is MedicineLookup => medicine != null);
 
             if (medicines.length < 2) {
+                res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
                 res.status(200).json({ interactions: [] });
                 return;
             }
@@ -408,6 +419,7 @@ router.get(
                 }
             }
 
+            res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
             res.status(200).json({ interactions });
         } catch (err) {
             const msg = err instanceof Error ? err.message : "Unknown error";

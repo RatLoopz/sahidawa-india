@@ -67,7 +67,7 @@ export default function MyMedicinesPage() {
                 const res = await fetch(`${API_BASE}/api/v1/medicines/tracked`);
 
                 if (!res.ok) {
-                    throw new Error(`Request failed with status ${res.status}. Please try again.`);
+                    throw new Error(t("errors.statusError", { status: res.status }));
                 }
 
                 const data = await res.json();
@@ -208,7 +208,9 @@ export default function MyMedicinesPage() {
                                                     {med.is_verified === true && (
                                                         <Badge
                                                             variant="success"
-                                                            aria-label="Verification status"
+                                                            aria-label={t(
+                                                                "badges.verificationStatus"
+                                                            )}
                                                         >
                                                             ✓ {t("badges.verified")}
                                                         </Badge>
@@ -227,7 +229,9 @@ export default function MyMedicinesPage() {
                                                         >
                                                             <Badge
                                                                 variant="warning"
-                                                                aria-label="Verification status"
+                                                                aria-label={t(
+                                                                    "badges.verificationStatus"
+                                                                )}
                                                             >
                                                                 ⚠ {t("badges.unverified")}
                                                             </Badge>

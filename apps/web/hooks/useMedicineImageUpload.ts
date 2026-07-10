@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Tesseract from "tesseract.js";
 import { toast } from "sonner";
 import imageCompression from "browser-image-compression";
@@ -46,6 +46,16 @@ export function useMedicineImageUpload({
     const isMountedRef = useRef(true);
     const ocrWorkerRef = useRef<Tesseract.Worker | null>(null);
     const ocrCancelledRef = useRef(false);
+    const preprocessWorkerRef = useRef<Worker | null>(null);
+
+    useEffect(() => {
+        const worker = new Worker("/workers/imageEnhancer.worker.js");
+        preprocessWorkerRef.current = worker;
+        return () => {
+            worker.terminate();
+            preprocessWorkerRef.current = null;
+        };
+    }, []);
 
     const reset = () => {
         setUploadedImage(null);
@@ -87,7 +97,10 @@ export function useMedicineImageUpload({
         }
 
         try {
-            const enhancedResult = await preprocessMedicineImage(processedFile);
+            const enhancedResult = await preprocessMedicineImage(
+                processedFile,
+                preprocessWorkerRef.current
+            );
             if (typeof enhancedResult !== "string") {
                 processedFile = enhancedResult as File; // maintaining type compatibility
             }
