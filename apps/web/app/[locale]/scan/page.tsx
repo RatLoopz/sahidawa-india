@@ -13,7 +13,7 @@ import { formatExpiryForBadge } from "@/lib/medicineDateUtils";
 import { useMedicineImageUpload } from "@/hooks/useMedicineImageUpload";
 import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { verifyMedicineByBrand, type VerifiedMedicine } from "@/lib/api";
 import LasaConfirmation from "@/components/scanner/LasaConfirmation";
 import { BarcodeScanner } from "@/components/scanner/BarcodeScanner";
