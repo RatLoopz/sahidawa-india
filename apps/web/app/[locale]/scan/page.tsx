@@ -325,10 +325,11 @@ onQueued: (barcode) => {
         }
     };
 
-    const handleBatchSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        handleVerify(batchInput);
-    };
+const handleBatchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!batchInput.trim()) return; // Stop here if the text box is empty
+    handleVerify(batchInput);
+};
 
     return (
         <div className="relative flex min-h-[calc(100vh-4rem)] flex-col overflow-x-clip bg-(--color-surface-page) font-sans text-(--color-text-primary)">
