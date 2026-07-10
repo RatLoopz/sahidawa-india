@@ -102,11 +102,12 @@ export default function ScanPage() {
         handleVerify,
         processVerificationResult,
     } = useMedicineVerification(abortControllerRef, isMountedRef, setIsScanning, setShowResult, {
-        queueBarcode,
-        onQueued: (barcode) => {
-            setBatchInput(barcode);
-            void refresh();
-        },
+      queueBarcode,
+onQueued: (barcode) => {
+    setBatchInput(""); // Clear the box for the next scan
+    void refresh();    // Show it immediately in the pending list at the bottom
+    toast.success("Scan captured offline! It will be verified automatically once you are back online.");
+},
     });
     const {
         uploadedImage,
