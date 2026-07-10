@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { routing } from "../../i18n/routing";
 import { getSiteUrl } from "@/lib/env";
 
@@ -91,21 +92,23 @@ export default async function LocaleLayout({
                     <ThemeProvider>
                         <ReactQueryProvider>
                             <NextIntlClientProvider messages={messages}>
-                                <AuthProvider>
-                                    <a
-                                        href="#main-content"
-                                        className="sr-only absolute top-4 left-4 z-[60] rounded-full bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-lg focus:not-sr-only focus-visible:ring-[3px] focus-visible:ring-emerald-600 focus-visible:ring-offset-2 focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
-                                    >
-                                        {t("skip_to_main_content")}
-                                    </a>
-                                    <OfflineBanner />
-                                    <Navbar />
-                                    <main id="main-content" className="flex flex-grow flex-col">
-                                        <OfflineErrorBoundary>{children}</OfflineErrorBoundary>
-                                    </main>
-                                    <Footer />
-                                    <InteractiveOverlays />
-                                </AuthProvider>
+                                <NuqsAdapter>
+                                    <AuthProvider>
+                                        <a
+                                            href="#main-content"
+                                            className="sr-only absolute top-4 left-4 z-[60] rounded-full bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-lg focus:not-sr-only focus-visible:ring-[3px] focus-visible:ring-emerald-600 focus-visible:ring-offset-2 focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                                        >
+                                            {t("skip_to_main_content")}
+                                        </a>
+                                        <OfflineBanner />
+                                        <Navbar />
+                                        <main id="main-content" className="flex flex-grow flex-col">
+                                            <OfflineErrorBoundary>{children}</OfflineErrorBoundary>
+                                        </main>
+                                        <Footer />
+                                        <InteractiveOverlays />
+                                    </AuthProvider>
+                                </NuqsAdapter>
                             </NextIntlClientProvider>
                         </ReactQueryProvider>
                         <div className="no-print">

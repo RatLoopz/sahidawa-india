@@ -284,8 +284,35 @@ def upsert_shoutout_record(db, record: dict):
 # ─────────────────────────────────────────────────────────────────────────────
 def _static_fallback(pr: dict, tier_display: str) -> str:
     contributor_name = get_contributor_name(pr['author'])
+    pr_url = pr.get('url', 'N/A')
+    
     templates = [
-        "A huge shoutout to {name} for landing an outstanding {tier_display} contribution! 🚀\n\nThey just merged PR #{number}: \"{title}\".\n\nConnect with {name}: {linkedin_url}\n\nExplore the repository: {github_url}",
+        # Template 1: Direct Technical
+        "PR #{number} (\"{title}\") has been successfully merged into SahiDawa. ⚙️\n\n"
+        "This update resolves a key engineering requirement by improving our core infrastructure for medicine tracking. {name} successfully executed this {tier_display} task, delivering clean and functional code.\n\n"
+        "Good work, {name}. We appreciate the contribution.\n\n"
+        "Connect with {name}: {linkedin_url}\n\n"
+        "Want to contribute to India's open-source stack? Join the GSSoC 2026 wave on our repo:\n\n"
+        "Codebase: {github_url}\n"
+        "Merged PR: {pr_url}",
+        
+        # Template 2: Direct Impact
+        "We have rolled out a new update via PR #{number}: \"{title}\". 🛡️\n\n"
+        "{name} handled this {tier_display} issue, optimizing our platform's reliability. The changes directly impact how we scale our open-source health-tech stack for users across India.\n\n"
+        "Solid execution by {name}.\n\n"
+        "Connect with {name}: {linkedin_url}\n\n"
+        "Want to contribute to India's open-source stack? Join the GSSoC 2026 wave on our repo:\n\n"
+        "Codebase: {github_url}\n"
+        "Merged PR: {pr_url}",
+        
+        # Template 3: Direct Community
+        "New code shipped to SahiDawa production. 🚀\n\n"
+        "Credit to {name} for resolving PR #{number} (\"{title}\"). Tackling a {tier_display} problem requires solid technical context, and this PR delivers exactly that. It's an important addition to our codebase.\n\n"
+        "Thanks for the effort, {name}.\n\n"
+        "Connect with {name}: {linkedin_url}\n\n"
+        "Want to contribute to India's open-source stack? Join the GSSoC 2026 wave on our repo:\n\n"
+        "Codebase: {github_url}\n"
+        "Merged PR: {pr_url}"
     ]
     try:
         pr_idx = int(pr.get("number", "0")) % len(templates)
@@ -299,19 +326,79 @@ def _static_fallback(pr: dict, tier_display: str) -> str:
         tier_display=tier_display,
         number=pr['number'],
         title=pr['title'],
-        github_url=PROJECT_GITHUB_URL
+        github_url=PROJECT_GITHUB_URL,
+        pr_url=pr_url
     )
+
+def generate_post_with_groq(pr: dict, tier_display: str, tier_desc: str, system_prompt: str, user_prompt: str) -> str:
+    groq_api_key = os.environ.get("GROQ_API_KEY")
+    if not groq_api_key:
+        return ""
+    
+    print("🔄 Attempting Groq API (Llama 3) fallback...")
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {groq_api_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "llama3-70b-8192",
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ],
+        "temperature": 0.5,
+        "max_tokens": 800
+    }
+    
+    try:
+        resp = requests.post(url, headers=headers, json=payload, timeout=30)
+        resp.raise_for_status()
+        text = resp.json().get("choices", [])[0].get("message", {}).get("content", "").strip()
+        if len(text) > 100:
+            print("✅ Successfully generated post using Groq fallback!")
+            return text
+    except Exception as e:
+        print(f"⚠️ Groq API fallback failed: {e}")
+    return ""
+
 
 def generate_post_with_gemini(pr: dict, tier_display: str, tier_desc: str) -> str:
     gemini_api_key = get_env_or_exit("GEMINI_API_KEY")
     contributor_name = get_contributor_name(pr['author'])
-    system_prompt = "Write a heartfelt LinkedIn post thanking a contributor. Do not use @github handles. Use their first name."
-    user_prompt = f"Contributor: {contributor_name}\nPR Title: {pr['title']}\nLinkedIn: {pr['linkedin_url']}\n\nDiff: {pr.get('diff', '')[:10000]}"
+    system_prompt = (
+        "You are the Open-Source Maintainer for SahiDawa, India's medicine safety platform. "
+        "Write a clean, professional, and direct LinkedIn post acknowledging a contributor's merged PR. Keep it within 3 short paragraphs.\n\n"
+        "CRITICAL RULES FOR TONE AND VARIABILITY (NO BS POLICY):\n"
+        "- NO SUGAR-COATING. Do not use overly enthusiastic, exaggerated, or fluffy language (e.g., avoid 'massive shoutout', 'incredible', 'mind-blowing').\n"
+        "- Keep it raw, technical, and high-signal. Focus purely on the engineering facts and the direct impact of the code.\n"
+        "- Do not use robotic templates. Weave the facts naturally.\n"
+        "- Use minimal, professional emojis (e.g., 🚀, 🛡️, ⚙️) if needed, but do not overuse them.\n\n"
+        "FRAMEWORK TO FOLLOW:\n"
+        "1. The Core Update: State exactly what was merged and its direct technical or product impact.\n"
+        "2. The Contributor: Acknowledge the contributor by name (no @github handles) for tackling the specified Task Tier.\n"
+        "3. The Mechanism: Briefly explain how the code works (based on the git diff).\n"
+        "4. The Connection: Include 'Connect with [Name]: [LinkedIn URL]'.\n"
+        "5. The Call to Action: End EXACTLY with this text (do not modify this footer):\n\n"
+        "Want to contribute to India's open-source stack? Join the GSSoC 2026 wave on our repo:\n\n"
+        "Codebase: [Insert Codebase URL]\n"
+        "Merged PR: [Insert PR URL]"
+    )
+    user_prompt = (
+        f"Contributor: {contributor_name}\n"
+        f"PR Title: {pr['title']}\n"
+        f"PR Number: #{pr.get('number', 'N/A')}\n"
+        f"PR URL: {pr.get('url', 'N/A')}\n"
+        f"LinkedIn URL: {pr.get('linkedin_url', '')}\n"
+        f"Task Tier: {tier_display} ({tier_desc})\n"
+        f"Codebase URL: {PROJECT_GITHUB_URL}\n\n"
+        f"Git Diff Context:\n{pr.get('diff', '')[:5000]}"
+    )
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={gemini_api_key}"
     payload = {
         "systemInstruction": {"parts": [{"text": system_prompt}]},
         "contents": [{"parts": [{"text": user_prompt}]}],
-        "generationConfig": {"temperature": 0.8, "maxOutputTokens": 800},
+        "generationConfig": {"temperature": 0.7, "maxOutputTokens": 800},
     }
 
     import time
@@ -319,14 +406,23 @@ def generate_post_with_gemini(pr: dict, tier_display: str, tier_desc: str) -> st
         try:
             resp = requests.post(url, headers={"Content-Type": "application/json"}, json=payload, timeout=30)
             if resp.status_code == 429:
+                print(f"⚠️ Gemini Rate Limit Exceeded (Attempt {attempt}). Waiting 20s...")
                 time.sleep(20)
                 continue
             resp.raise_for_status()
             text = resp.json().get("candidates", [])[0].get("content", {}).get("parts", [])[0].get("text", "").strip()
             if len(text) > 100:
                 return text
-        except Exception:
+        except Exception as e:
+            print(f"⚠️ Gemini API attempt {attempt} failed: {e}")
             time.sleep(10)
+            
+    # Try Groq API if Gemini completely fails
+    groq_content = generate_post_with_groq(pr, tier_display, tier_desc, system_prompt, user_prompt)
+    if groq_content:
+        return groq_content
+        
+    print("🔄 AI generation completely failed. Falling back to static template.")
     return _static_fallback(pr, tier_display)
 
 def assemble_final_post(ai_content: str, pr: dict) -> str:

@@ -14,6 +14,7 @@ PIPELINE ROLE:
 import os
 import sys
 import time
+import threading
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -35,6 +36,29 @@ SEEDS_DIR = Path(__file__).resolve().parents[4] / "data" / "seeds"
 REFERENCE_CSV = SEEDS_DIR / "cdsco_reference.csv"
 
 
+# ── Rate Limiter ───────────────────────────────────────────────────────────────
+
+class RateLimiter:
+    """Thread-safe rate limiter to enforce max N requests per period."""
+    def __init__(self, max_requests: int, period: float):
+        self.max_requests = max_requests
+        self.period = period
+        self.requests = []
+        self.lock = threading.Lock()
+
+    def wait(self):
+        while True:
+            with self.lock:
+                now = time.time()
+                # Remove requests older than the period
+                self.requests = [t for t in self.requests if now - t < self.period]
+                if len(self.requests) < self.max_requests:
+                    self.requests.append(now)
+                    return
+                # Calculate time to wait until the oldest request in the window expires
+                sleep_time = self.period - (now - self.requests[0])
+            time.sleep(sleep_time)
+
 # ── Scraper ────────────────────────────────────────────────────────────────────
 
 class CDSCOScraper:
@@ -48,12 +72,14 @@ class CDSCOScraper:
         retries = Retry(
             total=5,
             backoff_factor=1,
-            status_forcelist=[500, 502, 503, 504],
+            status_forcelist=[429, 500, 502, 503, 504],
             allowed_methods=["GET"]
         )
         adapter = HTTPAdapter(max_retries=retries)
         self.session.mount("http://", adapter)
         self.session.mount("https://", adapter)
+        # Limit to 5 requests per second to avoid being blocked by CDSCO
+        self.rate_limiter = RateLimiter(max_requests=5, period=1.0)
 
     def _fetch_single_page(self, page_num: int, display_start: int, page_size: int) -> list:
         paginated_url = f"{CDSCO_URL}&iDisplayStart={display_start}&iDisplayLength={page_size}"
@@ -62,6 +88,7 @@ class CDSCOScraper:
         page_response = None
         for attempt in range(1, 4):
             try:
+                self.rate_limiter.wait()
                 page_response = self.session.get(paginated_url, timeout=30)
                 if page_response.status_code == 200:
                     break
