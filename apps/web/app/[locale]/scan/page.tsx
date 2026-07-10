@@ -26,7 +26,6 @@ import { useTranslations } from "next-intl";
 import { buildVerificationShareText, type VerificationShareCopy } from "@/lib/verificationShare";
 import { saveScanHistory } from "@/lib/db/scanHistory";
 import { recordScanHistory } from "@/lib/scanHistoryUtils";
-import { toast } from "sonner"; // Or "react-hot-toast" depending on the project setup
 
 function formatMedicineDetails(medicine: VerifiedMedicine) {
     return [
