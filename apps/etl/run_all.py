@@ -34,10 +34,7 @@ import argparse
 import asyncio
 import sys
 from pathlib import Path
-import os
-import sys
 import requests
-from src.utils.logger import logger
 
 # Allow running as `python run_all.py` from apps/etl/
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -47,6 +44,7 @@ from src.scrapers.commercial_medicine import CommercialMedicineScraper, Commerci
 from src.scrapers.cdsco import CDSCOScraper
 from src.validators.cdsco_validator import CDSCOValidator
 from src.loaders.supabase_loader import SupabaseLoader
+from src.utils.alert_dispatcher import dispatch_alerts, format_slack_summary
 from src.utils.logger import logger
 import pandas as pd
 
@@ -239,55 +237,6 @@ async def run(
     _summary(stats)
     return stats
 
-# ── NEW NOTIFICATION HELPERS ──────────────────────────────────────────────────
-def send_slack_notification(summary_text: str):
-    """
-    Configurable webhook ke through notification dispatch karta hai.
-    """
-    webhook_url = os.getenv("SLACK_WEBHOOK_URL")
-    if not webhook_url:
-        logger.warning("[Notifier] SLACK_WEBHOOK_URL nahi mila. Notification skip ho rahi hai.")
-        return
-
-    payload = {"text": summary_text}
-    try:
-        response = requests.post(
-            webhook_url, 
-            json=payload,
-            headers={"Content-Type": "application/json"},
-            timeout=10
-        )
-        if response.status_code not in (200, 204):
-            logger.error(f"[Notifier] Webhook returned status {response.status_code}: {response.text}")
-        else:
-            logger.info("[Notifier] ETL summary notification successfully send ho gayi.")
-    except Exception as e:
-        logger.error(f"[Notifier] Webhook notification bhejte waqt error aaya: {e}")
-
-
-def format_slack_summary(pipeline_name: str, stats: dict, status_type: str = "COMPLETED") -> str:
-    """
-    ETL stats ko clear markdown notification message me format karta hai.
-    """
-    emoji = "⚠️" if stats.get("failed", 0) > 0 else "✅"
-    if status_type == "CRASHED":
-        emoji = "🚨"
-
-    msg = (
-        f"{emoji} *SahiDawa ETL Run Summary* [{pipeline_name.upper()}]\n"
-        f"• *Status:* {status_type}\n"
-        f"• *Total Rows Processed:* {stats.get('total', 0)}\n"
-        f"• *Successfully Loaded:* {stats.get('inserted', 0)}\n"
-        f"• *Failed Rows:* {stats.get('failed', 0)}\n"
-        f"• *Success Rate:* {stats.get('success_rate', 100.0)}%\n"
-    )
-    
-    if stats.get("error_counts"):
-        msg += f"• *Error Summary:* `{stats['error_counts']}`\n"
-        
-    return msg
-
-
 def _banner(title: str) -> None:
     line = "=" * 60
     logger.info(f"\n{line}\n  {title}\n{line}")
@@ -354,7 +303,7 @@ if __name__ == "__main__":
         if isinstance(result, dict) and result.get("failed", 0) > 0:
             status = "RETRY_PARTIAL_FAILURE" if args.retry_failed else "PARTIAL_FAILURE"
             summary_msg = format_slack_summary(PIPELINE_NAME, result, status_type=status)
-            send_slack_notification(summary_msg)
+            dispatch_alerts(summary_msg)
 
         if result is False:
             sys.exit(1)
@@ -370,5 +319,5 @@ if __name__ == "__main__":
         summary_msg = format_slack_summary(PIPELINE_NAME, crash_stats, status_type="CRASHED")
         summary_msg += f"\n*Fatal Exception details:* `{str(fatal_error)[:200]}`"
         
-        send_slack_notification(summary_msg)
+        dispatch_alerts(summary_msg)
         sys.exit(1)
