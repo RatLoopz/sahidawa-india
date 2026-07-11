@@ -1,7 +1,19 @@
 import { execSync } from "node:child_process";
 import createNextIntlPlugin from "next-intl/plugin";
+import withPWAInit from "@ducanh2912/next-pwa";
 
 const withNextIntl = createNextIntlPlugin();
+
+const withPWA = withPWAInit({
+    dest: "public",
+    cacheOnFrontEndNav: true,
+    aggressiveFrontEndNavCaching: true,
+    reloadOnOnline: true,
+    swcMinify: true,
+    workboxOptions: {
+        disableDevLogs: true,
+    },
+});
 
 /**
  * Deterministic build ID derived from the Git commit SHA.
@@ -55,4 +67,4 @@ const nextConfig = {
     },
 };
 
-export default withNextIntl(nextConfig);
+export default withPWA(withNextIntl(nextConfig));
