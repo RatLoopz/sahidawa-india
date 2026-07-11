@@ -3,13 +3,14 @@ import { hotDrugs } from "../db/seeds/hot_drugs_seed";
 import { redisClient } from "../utils/redis";
 import logger from "../utils/logger";
 
+const parsedVoiceTtl = parseInt(process.env.VOICE_CACHE_TTL_SECONDS ?? "2592000", 10);
 // TTL Tiers in seconds
 export const TTL_TIERS = {
     HOT: 86400, // 24 hours
     WARM: 21600, // 6 hours
     COLD: 3600, // 1 hour
-    // VOICE cache TTL in seconds. Default 30 days. Configurable via VOICE_CACHE_TTL_SECONDS
-    VOICE: parseInt(process.env.VOICE_CACHE_TTL_SECONDS ?? "2592000", 10), // 30 days
+    // VOICE cache TTL in seconds. Default 30 days.
+    VOICE: isNaN(parsedVoiceTtl) ? 2592000 : parsedVoiceTtl,
 };
 
 // Hit Thresholds
@@ -41,42 +42,36 @@ export async function warmCache(): Promise<void> {
     }
     logger.info("Starting Redis cache warming...");
     try {
-        const genericNames = hotDrugs.map((d) => d.genericName);
-        const brandNames = hotDrugs.flatMap((d) => d.brandNames);
+        const genericNames = hotDrugs.map((d) => d.genericName).filter(Boolean);
+        const brandNames = hotDrugs.flatMap((d) => d.brandNames).filter(Boolean);
 
-        const { data: genericMeds, error: error1 } = await supabase
+        // Names me commas ya quotes ko safely handle karne ke liye formatting
+        const genericInStr = genericNames.map((name) => `"${name.replace(/"/g, '\\"')}"`).join(",");
+        const brandInStr = brandNames.map((name) => `"${name.replace(/"/g, '\\"')}"`).join(",");
+
+        const orFilter = `generic_name.in.(${genericInStr}),brand_name.in.(${brandInStr})`;
+
+        const { data: medicinesData, error } = await supabase
             .from("medicines")
             .select(
                 "id, barcode_id, brand_name, generic_name, manufacturer, batch_number, manufacturing_date, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score, manufacturer_id"
             )
-            .in("generic_name", genericNames);
-
-        const { data: brandMeds, error: error2 } = await supabase
-            .from("medicines")
-            .select(
-                "id, barcode_id, brand_name, generic_name, manufacturer, batch_number, manufacturing_date, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score, manufacturer_id"
-            )
-            .in("brand_name", brandNames);
-
-        const error = error1 || error2;
-
-        let medicines: any[] = [];
-        if (!error) {
-            const allMeds = [...(genericMeds || []), ...(brandMeds || [])];
-            const uniqueMeds = new Map();
-            allMeds.forEach((m) => uniqueMeds.set(m.id, m));
-            medicines = Array.from(uniqueMeds.values());
-        }
+            .or(orFilter);
 
         if (error) {
             logger.error("Failed to fetch medicines for cache warming", error);
             return;
         }
 
-        if (!medicines || medicines.length === 0) {
+        if (!medicinesData || medicinesData.length === 0) {
             logger.info("No medicines found in database matching the hot seed list.");
             return;
         }
+
+        // Deduplicate medicines safely by 'id'
+        const uniqueMeds = new Map<string, any>();
+        medicinesData.forEach((m) => uniqueMeds.set(m.id, m));
+        const medicines = Array.from(uniqueMeds.values());
 
         logger.info(`Found ${medicines.length} medicine records to warm cache.`);
 
@@ -279,7 +274,6 @@ export async function invalidateDrugCache(drugIds: string[]): Promise<string[]> 
 export async function flushInteractionCache(): Promise<number> {
     if (!redisClient.isOpen) return 0;
     try {
-        let cursor = 0;
         let totalDeleted = 0;
         const scanIterator = redisClient.scanIterator({
             MATCH: "interactions:*",
@@ -288,13 +282,9 @@ export async function flushInteractionCache(): Promise<number> {
 
         let chunk: string[] = [];
         for await (const key of scanIterator) {
-            if (Array.isArray(key)) {
-                chunk.push(...key);
-            } else {
-                chunk.push(key as any);
-            }
+            chunk.push(key);
             if (chunk.length >= CACHE_INVALIDATION_CHUNK_SIZE) {
-                await redisClient.del(chunk as any);
+                await redisClient.del(chunk);
                 totalDeleted += chunk.length;
                 chunk = [];
             }
@@ -334,19 +324,24 @@ export async function getCacheStats(): Promise<{
         };
     }
     try {
-        const hits = parseInt((await redisClient.get("stats:hits")) ?? "0", 10);
-        const misses = parseInt((await redisClient.get("stats:misses")) ?? "0", 10);
+        const [rawHits, rawMisses, hotHitsStr, warmHitsStr, coldHitsStr, rawTopDrugs] =
+            await Promise.all([
+                redisClient.get("stats:hits"),
+                redisClient.get("stats:misses"),
+                redisClient.get("stats:tier:hot"),
+                redisClient.get("stats:tier:warm"),
+                redisClient.get("stats:tier:cold"),
+                redisClient.zRangeWithScores("stats:top_drugs", 0, 9, { REV: true }),
+            ]);
+
+        const hits = parseInt(rawHits ?? "0", 10);
+        const misses = parseInt(rawMisses ?? "0", 10);
         const total = hits + misses;
         const hitRate = total > 0 ? Math.round((hits / total) * 100) : 0;
 
-        const hotHits = parseInt((await redisClient.get("stats:tier:hot")) ?? "0", 10);
-        const warmHits = parseInt((await redisClient.get("stats:tier:warm")) ?? "0", 10);
-        const coldHits = parseInt((await redisClient.get("stats:tier:cold")) ?? "0", 10);
-
-        // Fetch top 10 drugs from the sorted set
-        const rawTopDrugs = await redisClient.zRangeWithScores("stats:top_drugs", 0, 9, {
-            REV: true,
-        });
+        const hotHits = parseInt(hotHitsStr ?? "0", 10);
+        const warmHits = parseInt(warmHitsStr ?? "0", 10);
+        const coldHits = parseInt(coldHitsStr ?? "0", 10);
 
         const topDrugs = rawTopDrugs.map((item) => ({
             name: item.value,
@@ -407,7 +402,6 @@ export async function setCachedVoiceResult(transcribedText: string, result: any)
         await redisClient.set(cacheKey, JSON.stringify(result), {
             EX: TTL_TIERS.VOICE,
         });
-        await redisClient.incr("stats:misses");
         logger.info(`Voice cache SET for: ${normalizedKey} (TTL: ${TTL_TIERS.VOICE}s)`);
     } catch (err) {
         logger.error(`Error writing voice cache for key: ${normalizedKey}`, err);
@@ -449,7 +443,6 @@ export async function setCachedVoiceByAudioHash(audioHash: string, result: any):
         await redisClient.set(cacheKey, JSON.stringify(result), {
             EX: TTL_TIERS.VOICE,
         });
-        await redisClient.incr("stats:misses");
         logger.info(`Voice audio cache SET for hash: ${audioHash} (TTL: ${TTL_TIERS.VOICE}s)`);
     } catch (err) {
         logger.error(`Error writing voice audio cache for hash: ${audioHash}`, err);
@@ -462,20 +455,32 @@ export async function setCachedVoiceByAudioHash(audioHash: string, result: any):
 export async function invalidateCacheByPattern(pattern: string): Promise<string[]> {
     if (!redisClient.isOpen) return [];
     const keysToDelete: string[] = [];
-    let cursor: any = 0;
 
     try {
-        do {
-            const result = await redisClient.scan(cursor, {
-                MATCH: pattern,
-                COUNT: 100,
-            });
-            cursor = result.cursor;
-            keysToDelete.push(...result.keys);
-        } while (cursor !== 0);
+        const scanIterator = redisClient.scanIterator({
+            MATCH: pattern,
+            COUNT: 100,
+        });
+
+        let chunk: string[] = [];
+        for await (const key of scanIterator) {
+            chunk.push(key);
+            keysToDelete.push(key);
+
+            if (chunk.length >= CACHE_INVALIDATION_CHUNK_SIZE) {
+                await redisClient.del(chunk);
+                chunk = [];
+            }
+        }
+
+        if (chunk.length > 0) {
+            await redisClient.del(chunk);
+        }
 
         if (keysToDelete.length > 0) {
-            await redisClient.del(keysToDelete);
+            logger.info(
+                `Successfully invalidated ${keysToDelete.length} keys matching pattern: ${pattern}`
+            );
         }
         return keysToDelete;
     } catch (err) {
