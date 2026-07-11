@@ -356,6 +356,9 @@ const handleBatchSubmit = (e: React.FormEvent) => {
                             debounceMs={2500}
                             isVerifying={isVerifying}
                             apiError={apiError}
+                            onPermissionDenied={() => {
+                                setIsCameraActive(false);
+                            }}
                             onRetry={() => {
                                 setApiError(null);
                                 setIsCameraActive(false);

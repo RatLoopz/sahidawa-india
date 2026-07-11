@@ -158,6 +158,7 @@ jobs:
         if: steps.score.outputs.verdict != 'SKIP'
         env:
           GEMINI_API_KEY:   ${{ secrets.GEMINI_API_KEY }}
+          GROQ_API_KEY:     ${{ secrets.GROQ_API_KEY }}
           PR_NUMBER:        ${{ steps.pr_meta.outputs.pr_number }}
           PR_TITLE:         ${{ steps.pr_meta.outputs.pr_title }}
           PR_BODY:          ${{ steps.pr_meta.outputs.pr_body }}

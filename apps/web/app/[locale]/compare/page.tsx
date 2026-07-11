@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { AlertTriangle, Copy, Loader2, Plus, ShieldCheck, X } from "lucide-react";
+import { parseAsString, useQueryStates } from "nuqs";
 import { toast } from "sonner";
 import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
@@ -38,6 +39,15 @@ const INTERACTIONS_REQUEST_DEBOUNCE_MS = 150;
 // m1..MAX_COMPARE_SLOTS are used to persist/restore the full selection.
 const MAX_COMPARE_SLOTS = 6;
 
+const compareMedicineQueryParsers = {
+    m1: parseAsString,
+    m2: parseAsString,
+    m3: parseAsString,
+    m4: parseAsString,
+    m5: parseAsString,
+    m6: parseAsString,
+};
+
 const interactionsCache = new Map<
     string,
     { expiresAt: number; interactions: InteractionWarning[] }
@@ -52,6 +62,48 @@ const severityOrder: Record<InteractionSeverity, number> = {
 
 function sortInteractionWarnings(interactions: InteractionWarning[]) {
     return [...interactions].sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
+}
+
+function uniqueIds(ids: Array<string | null>) {
+    const seen = new Set<string>();
+    const unique: string[] = [];
+
+    for (const id of ids) {
+        if (!id || seen.has(id)) continue;
+        seen.add(id);
+        unique.push(id);
+    }
+
+    return unique.slice(0, MAX_COMPARE_SLOTS);
+}
+
+function normalizeMedicineSlots(medicines: Array<Medicine | null>) {
+    const seen = new Set<string>();
+    const selected: Medicine[] = [];
+
+    for (const medicine of medicines) {
+        if (!medicine || seen.has(medicine.id)) continue;
+        seen.add(medicine.id);
+        selected.push(medicine);
+    }
+
+    const limited = selected.slice(0, MAX_COMPARE_SLOTS);
+    return limited.length >= 2 ? limited : [limited[0] ?? null, null];
+}
+
+function buildMedicineQuery(ids: string[]) {
+    return {
+        m1: ids[0] ?? null,
+        m2: ids[1] ?? null,
+        m3: ids[2] ?? null,
+        m4: ids[3] ?? null,
+        m5: ids[4] ?? null,
+        m6: ids[5] ?? null,
+    };
+}
+
+function buildMedicineQueryFromSlots(medicines: Array<Medicine | null>) {
+    return buildMedicineQuery(uniqueIds(medicines.map((medicine) => medicine?.id ?? null)));
 }
 
 async function fetchInteractionWarnings(
@@ -122,7 +174,31 @@ export default function ComparePage() {
     const [interactions, setInteractions] = useState<InteractionWarning[]>([]);
     const [interactionsLoading, setInteractionsLoading] = useState(false);
     const [interactionsError, setInteractionsError] = useState<string | null>(null);
+    const [medicineQuery, setMedicineQuery] = useQueryStates(compareMedicineQueryParsers, {
+        history: "replace",
+        shallow: true,
+    });
     const latestInteractionRequest = useRef(0);
+
+    const medicineIdsFromQuery = useMemo(
+        () =>
+            uniqueIds([
+                medicineQuery.m1,
+                medicineQuery.m2,
+                medicineQuery.m3,
+                medicineQuery.m4,
+                medicineQuery.m5,
+                medicineQuery.m6,
+            ]),
+        [
+            medicineQuery.m1,
+            medicineQuery.m2,
+            medicineQuery.m3,
+            medicineQuery.m4,
+            medicineQuery.m5,
+            medicineQuery.m6,
+        ]
+    );
 
     const medicine1 = selectedMedicines[0] ?? null;
     const medicine2 = selectedMedicines[1] ?? null;
@@ -131,21 +207,15 @@ export default function ComparePage() {
         .map((medicine) => medicine.id);
     const selectedIdsKey = selectedIds.join(",");
 
-    // Positional key (keeps empty slots as "") so the URL-sync effect can tell
-    // when a specific slot's medicine actually changed, not just the set of ids.
-    const positionalIdsKey = selectedMedicines.map((medicine) => medicine?.id ?? "").join("|");
-
     useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
+        const ids = medicineIdsFromQuery;
 
-        const ids = Array.from(
-            new Set(
-                Array.from({ length: MAX_COMPARE_SLOTS }, (_, i) => params.get(`m${i + 1}`))
-                    .filter((id): id is string => Boolean(id))
-            )
-        ).slice(0, MAX_COMPARE_SLOTS);
+        if (ids.length === 0) {
+            setSelectedMedicines([null, null]);
+            return;
+        }
 
-        if (ids.length < 2) return;
+        let cancelled = false;
 
         const loadMedicines = async () => {
             const { data, error } = await supabase
@@ -153,7 +223,7 @@ export default function ComparePage() {
                 .select(COMPARE_SELECT_FIELDS)
                 .in("id", ids);
 
-            if (error || !data) return;
+            if (cancelled || error || !data) return;
 
             const medicines: Medicine[] = (data as Record<string, unknown>[]).map((row) =>
                 mapMedicineRow(row)
@@ -167,44 +237,11 @@ export default function ComparePage() {
         };
 
         loadMedicines();
-    }, []);
 
-    // Keep URL in sync with ALL currently selected medicines (up to
-    // MAX_COMPARE_SLOTS) so refreshing or sharing the link restores every
-    // slot, not just the first two.
-    useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-
-        const ids = selectedMedicines.map((medicine) => medicine?.id ?? "");
-        const filledCount = ids.filter(Boolean).length;
-
-        let changed = false;
-        for (let i = 0; i < MAX_COMPARE_SLOTS; i++) {
-            const key = `m${i + 1}`;
-            const value = ids[i] ?? "";
-            const shouldHaveValue = filledCount >= 2 && Boolean(value);
-
-            if (!shouldHaveValue) {
-                if (params.has(key)) {
-                    params.delete(key);
-                    changed = true;
-                }
-                continue;
-            }
-
-            if (params.get(key) !== value) {
-                params.set(key, value);
-                changed = true;
-            }
-        }
-
-        // Only update when something actually changes to avoid extra history churn.
-        if (!changed) return;
-
-        const qs = params.toString();
-        const newUrl = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
-        window.history.replaceState({}, "", newUrl);
-    }, [positionalIdsKey]);
+        return () => {
+            cancelled = true;
+        };
+    }, [medicineIdsFromQuery]);
 
     useEffect(() => {
         if (selectedIds.length < 2) {
@@ -252,11 +289,12 @@ export default function ComparePage() {
     const handleSearch = useCallback((q: string) => searchMedicines(q), []);
 
     const updateSelectedMedicine = (index: number, medicine: Medicine | null) => {
-        setSelectedMedicines((current) => {
-            const next = [...current];
-            next[index] = medicine;
-            return next;
-        });
+        const next = [...selectedMedicines];
+        next[index] = medicine;
+        const normalized = normalizeMedicineSlots(next);
+
+        setSelectedMedicines(normalized);
+        void setMedicineQuery(buildMedicineQueryFromSlots(normalized));
     };
 
     const addMedicineSlot = () => {
@@ -264,9 +302,12 @@ export default function ComparePage() {
     };
 
     const removeMedicineSlot = (index: number) => {
-        setSelectedMedicines((current) =>
-            current.filter((_, currentIndex) => currentIndex !== index)
+        const next = normalizeMedicineSlots(
+            selectedMedicines.filter((_, currentIndex) => currentIndex !== index)
         );
+
+        setSelectedMedicines(next);
+        void setMedicineQuery(buildMedicineQueryFromSlots(next));
     };
 
     const comparisonLabels: ComparisonGridLabels = {

@@ -3,6 +3,7 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ComponentProps } from "react";
+import { NuqsTestingAdapter, type UrlUpdateEvent } from "nuqs/adapters/testing";
 
 import ComparePage from "../app/[locale]/compare/page";
 import type { Medicine } from "../src/components/ComparisonGrid";
@@ -32,12 +33,48 @@ const medicines: Record<string, Medicine> = {
         manufacturer: "Pain Relief Labs",
         cdsco_approval_status: "approved",
     },
+    "Search Medicine 4": {
+        id: "med-d",
+        brand_name: "Allegra",
+        generic_name: "Fexofenadine",
+        composition: "Fexofenadine 120mg",
+        manufacturer: "Allergy Care",
+        cdsco_approval_status: "approved",
+    },
+    "Search Medicine 5": {
+        id: "med-e",
+        brand_name: "Augmentin",
+        generic_name: "Amoxicillin",
+        composition: "Amoxicillin 625mg",
+        manufacturer: "Antibiotic Labs",
+        cdsco_approval_status: "approved",
+    },
+    "Search Medicine 6": {
+        id: "med-f",
+        brand_name: "Cetrizine",
+        generic_name: "Cetirizine",
+        composition: "Cetirizine 10mg",
+        manufacturer: "Allergy Relief",
+        cdsco_approval_status: "approved",
+    },
 };
 
 function setMedicineIds(first: string, second: string, third: string) {
     medicines["First medicine"].id = first;
     medicines["Second medicine"].id = second;
     medicines["Search Medicine 3"].id = third;
+    medicines["Search Medicine 4"].id = "med-d";
+    medicines["Search Medicine 5"].id = "med-e";
+    medicines["Search Medicine 6"].id = "med-f";
+}
+
+function medicineRowsForIds(ids: readonly string[]) {
+    const medicinesById = new Map(
+        Object.values(medicines).map((medicine) => [medicine.id, medicine])
+    );
+    return ids
+        .map((id) => medicinesById.get(id))
+        .filter((medicine): medicine is Medicine => Boolean(medicine));
 }
 
 function createDeferredResponse(body: unknown) {
@@ -124,11 +161,20 @@ jest.mock("../src/components/MedicineSearchSelect", () => ({
     __esModule: true,
     default: ({
         label,
+        value,
         onChange,
     }: ComponentProps<typeof import("../src/components/MedicineSearchSelect").default>) => (
-        <button type="button" onClick={() => onChange(medicines[label])}>
-            Select {label}
-        </button>
+        <>
+            {value ? (
+                <button type="button" onClick={() => onChange(null)}>
+                    Clear {label}
+                </button>
+            ) : (
+                <button type="button" onClick={() => onChange(medicines[label])}>
+                    Select {label}
+                </button>
+            )}
+        </>
     ),
 }));
 
@@ -140,15 +186,30 @@ function jsonResponse(body: unknown, status = 200) {
     } as Response;
 }
 
+function renderComparePage({
+    searchParams = "",
+    onUrlUpdate,
+}: {
+    searchParams?: string;
+    onUrlUpdate?: (event: UrlUpdateEvent) => void;
+} = {}) {
+    return render(
+        <NuqsTestingAdapter searchParams={searchParams} onUrlUpdate={onUrlUpdate} hasMemory>
+            <ComparePage />
+        </NuqsTestingAdapter>
+    );
+}
+
 describe("ComparePage interaction warnings", () => {
     beforeEach(() => {
         setMedicineIds("med-a", "med-b", "med-c");
-        window.history.replaceState({}, "", "/en/compare");
 
         queryBuilder.select.mockReturnValue(queryBuilder);
         queryBuilder.or.mockReturnValue(queryBuilder);
         queryBuilder.limit.mockResolvedValue({ data: [], error: null });
-        queryBuilder.in.mockResolvedValue({ data: [], error: null });
+        queryBuilder.in.mockImplementation((_: string, ids: string[]) =>
+            Promise.resolve({ data: medicineRowsForIds(ids), error: null })
+        );
 
         Object.defineProperty(global, "fetch", {
             configurable: true,
@@ -194,7 +255,7 @@ describe("ComparePage interaction warnings", () => {
     });
 
     it("checks interactions for more than two selected medicines and renders severity tags", async () => {
-        render(<ComparePage />);
+        renderComparePage();
 
         fireEvent.click(screen.getByRole("button", { name: "Select First medicine" }));
         fireEvent.click(screen.getByRole("button", { name: "Select Second medicine" }));
@@ -251,7 +312,7 @@ describe("ComparePage interaction warnings", () => {
             .mockReturnValueOnce(firstResponse.promise)
             .mockReturnValueOnce(latestResponse.promise);
 
-        render(<ComparePage />);
+        renderComparePage();
 
         fireEvent.click(screen.getByRole("button", { name: "Select First medicine" }));
         fireEvent.click(screen.getByRole("button", { name: "Select Second medicine" }));
@@ -291,7 +352,7 @@ describe("ComparePage interaction warnings", () => {
 
         (global.fetch as jest.Mock).mockReturnValueOnce(response.promise);
 
-        const { unmount } = render(<ComparePage />);
+        const { unmount } = renderComparePage();
 
         fireEvent.click(screen.getByRole("button", { name: "Select First medicine" }));
         fireEvent.click(screen.getByRole("button", { name: "Select Second medicine" }));
@@ -302,13 +363,107 @@ describe("ComparePage interaction warnings", () => {
         expect(await screen.findByText("Cached warning.")).toBeInTheDocument();
 
         unmount();
-        window.history.replaceState({}, "", "/en/compare");
-        render(<ComparePage />);
+        renderComparePage();
 
         fireEvent.click(screen.getByRole("button", { name: "Select First medicine" }));
         fireEvent.click(screen.getByRole("button", { name: "Select Second medicine" }));
 
         expect(await screen.findByText("Cached warning.")).toBeInTheDocument();
         expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("restores selected medicines from m1 through m6 query parameters", async () => {
+        renderComparePage({
+            searchParams: "?m1=med-a&m2=med-b&m3=med-c&m4=med-d&m5=med-e&m6=med-f&unrelated=keep",
+        });
+
+        expect(await screen.findByText("Crocin")).toBeInTheDocument();
+        expect(screen.getByText("Warfarin")).toBeInTheDocument();
+        expect(screen.getByText("Brufen")).toBeInTheDocument();
+        expect(screen.getByText("Allegra")).toBeInTheDocument();
+        expect(screen.getByText("Augmentin")).toBeInTheDocument();
+        expect(screen.getByText("Cetrizine")).toBeInTheDocument();
+        expect(queryBuilder.in).toHaveBeenCalledWith("id", [
+            "med-a",
+            "med-b",
+            "med-c",
+            "med-d",
+            "med-e",
+            "med-f",
+        ]);
+    });
+
+    it("updates the nuqs URL state when medicines are added", async () => {
+        const onUrlUpdate = jest.fn<void, [UrlUpdateEvent]>();
+
+        renderComparePage({
+            searchParams: "?m1=med-a&m2=med-b&unrelated=keep",
+            onUrlUpdate,
+        });
+
+        expect(await screen.findByText("Crocin")).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: "Add medicine" }));
+        fireEvent.click(screen.getByRole("button", { name: "Select Search Medicine 3" }));
+
+        await waitFor(() => {
+            const update = onUrlUpdate.mock.calls.at(-1)?.[0];
+            expect(update?.searchParams.get("m1")).toBe("med-a");
+            expect(update?.searchParams.get("m2")).toBe("med-b");
+            expect(update?.searchParams.get("m3")).toBe("med-c");
+            expect(update?.searchParams.get("unrelated")).toBe("keep");
+            expect(update?.options.history).toBe("replace");
+        });
+    });
+
+    it("compacts query params and clears unused medicine keys when a middle slot is removed", async () => {
+        const onUrlUpdate = jest.fn<void, [UrlUpdateEvent]>();
+
+        renderComparePage({
+            searchParams: "?m1=med-a&m2=med-b&m3=med-c&m4=med-d&unrelated=keep",
+            onUrlUpdate,
+        });
+
+        expect(await screen.findByText("Brufen")).toBeInTheDocument();
+        expect(screen.getByText("Allegra")).toBeInTheDocument();
+
+        fireEvent.click(screen.getByLabelText("clearAll: Search Medicine 3"));
+
+        await waitFor(() => {
+            const update = onUrlUpdate.mock.calls.at(-1)?.[0];
+            expect(update?.searchParams.get("m1")).toBe("med-a");
+            expect(update?.searchParams.get("m2")).toBe("med-b");
+            expect(update?.searchParams.get("m3")).toBe("med-d");
+            expect(update?.searchParams.get("m4")).toBeNull();
+            expect(update?.searchParams.get("m5")).toBeNull();
+            expect(update?.searchParams.get("m6")).toBeNull();
+            expect(update?.searchParams.get("unrelated")).toBe("keep");
+            expect(update?.options.history).toBe("replace");
+        });
+    });
+
+    it("clears all medicine query params when the final selected medicine is cleared", async () => {
+        const onUrlUpdate = jest.fn<void, [UrlUpdateEvent]>();
+
+        renderComparePage({
+            searchParams: "?m1=med-a&unrelated=keep",
+            onUrlUpdate,
+        });
+
+        expect(await screen.findByText("Crocin")).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: "Clear First medicine" }));
+
+        await waitFor(() => {
+            const update = onUrlUpdate.mock.calls.at(-1)?.[0];
+            expect(update?.searchParams.get("m1")).toBeNull();
+            expect(update?.searchParams.get("m2")).toBeNull();
+            expect(update?.searchParams.get("m3")).toBeNull();
+            expect(update?.searchParams.get("m4")).toBeNull();
+            expect(update?.searchParams.get("m5")).toBeNull();
+            expect(update?.searchParams.get("m6")).toBeNull();
+            expect(update?.searchParams.get("unrelated")).toBe("keep");
+            expect(update?.options.history).toBe("replace");
+        });
     });
 });

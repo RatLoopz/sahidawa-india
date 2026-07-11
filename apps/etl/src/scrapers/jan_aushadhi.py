@@ -21,7 +21,7 @@ from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
-from playwright.async_api import Download, async_playwright
+from playwright.async_api import Download, Error, async_playwright
 
 from src.utils.logger import logger
 
@@ -132,47 +132,72 @@ class JanAushadhiScraper:
         Raises:
             TimeoutError: If the page doesn't load or CSV button isn't found.
         """
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
-            try:
-                context = await browser.new_context(
-                    accept_downloads=True,
-                    user_agent=(
-                        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-                        "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-                    ),
-                )
-                page = await context.new_page()
+        max_attempts = 4
+        backoff_seconds = [2, 4, 8]
 
-                logger.info(f"[JanAushadhi] Navigating to: {TARGET_URL}")
-                await page.goto(TARGET_URL, wait_until="domcontentloaded", timeout=60_000)
-
-                logger.info("[JanAushadhi] Waiting for medicine table...")
+        for attempt in range(1, max_attempts + 1):
+            async with async_playwright() as p:
+                browser = await p.chromium.launch(headless=True)
                 try:
-                    await page.wait_for_selector(".rdt_TableRow", timeout=45_000)
-                except Exception:
-                    await page.wait_for_selector("[role='row']", timeout=15_000)
+                    context = await browser.new_context(
+                        accept_downloads=True,
+                        user_agent=(
+                            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                            "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                        ),
+                    )
+                    page = await context.new_page()
 
-                row_count = await page.locator(".rdt_TableRow").count()
-                logger.info(f"[JanAushadhi] Visible rows: {row_count} (total ~2439 in memory)")
+                    logger.info(f"[JanAushadhi] Navigating to: {TARGET_URL} (Attempt {attempt}/{max_attempts})")
+                    response = await page.goto(TARGET_URL, wait_until="domcontentloaded", timeout=60_000)
 
-                # Wait for React to hydrate full dataset before exporting
-                await page.wait_for_timeout(5000)
+                    if response is None:
+                        raise RuntimeError("No response received from server")
 
-                async with page.expect_download(timeout=30_000) as download_info:
-                    await page.get_by_text("Download Files").click()
-                    await page.get_by_text("Download CSV").click()
+                    if 400 <= response.status < 500:
+                        raise ValueError(f"HTTP {response.status} Client Error")
+                    elif response.status >= 500:
+                        raise RuntimeError(f"HTTP {response.status} Server Error")
 
-                download: Download = await download_info.value
+                    logger.info("[JanAushadhi] Waiting for medicine table...")
+                    try:
+                        await page.wait_for_selector(".rdt_TableRow", timeout=45_000)
+                    except Exception:
+                        await page.wait_for_selector("[role='row']", timeout=15_000)
 
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                save_path = RAW_DATA_DIR / f"janaushadhi_raw_{timestamp}.csv"
-                await download.save_as(save_path)
+                    row_count = await page.locator(".rdt_TableRow").count()
+                    logger.info(f"[JanAushadhi] Visible rows: {row_count} (total ~2439 in memory)")
 
-                logger.info(f"[JanAushadhi] CSV saved: {save_path} ({save_path.stat().st_size / 1024:.1f} KB)")
-                return save_path
-            finally:
-                await browser.close()
+                    # Wait for React to hydrate full dataset before exporting
+                    await page.wait_for_timeout(5000)
+
+                    async with page.expect_download(timeout=30_000) as download_info:
+                        await page.get_by_text("Download Files").click()
+                        await page.get_by_text("Download CSV").click()
+
+                    download: Download = await download_info.value
+
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    save_path = RAW_DATA_DIR / f"janaushadhi_raw_{timestamp}.csv"
+                    await download.save_as(save_path)
+
+                    logger.info(f"[JanAushadhi] CSV saved: {save_path} ({save_path.stat().st_size / 1024:.1f} KB)")
+                    return save_path
+                except (Error, TimeoutError, RuntimeError) as e:
+                    if attempt == max_attempts:
+                        logger.error(
+                            f"[JanAushadhi] All {max_attempts} attempts exhausted. Final failure reason: {e}"
+                        )
+                        raise
+
+                    backoff_time = backoff_seconds[attempt - 1]
+                    logger.warning(
+                        f"[JanAushadhi] Attempt {attempt} failed: {e}. "
+                        f"Retrying in {backoff_time}s... (Attempt {attempt + 1}/{max_attempts})"
+                    )
+                    await asyncio.sleep(backoff_time)
+                finally:
+                    await browser.close()
 
 
 # ── Normalizer ─────────────────────────────────────────────────────────────────

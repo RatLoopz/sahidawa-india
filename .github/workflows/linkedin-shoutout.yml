@@ -71,7 +71,7 @@ jobs:
             #   (google-genai SDK not needed — we use requests for Gemini REST)
             # ─────────────────────────────────────────────────────────────────
             - name: "📥 Install Dependencies"
-              run: pip install requests pillow supabase
+              run: pip install requests pillow
 
             # ─────────────────────────────────────────────────────────────────
             # Step 4: Collect ALL PR metadata and expose as environment vars.
@@ -105,6 +105,10 @@ jobs:
                       core.setOutput('pr_repo', context.repo.owner + '/' + context.repo.repo);
                       core.setOutput('pr_lines_changed', linesChanged.toString());
                       core.setOutput('pr_author_avatar', pr.user.avatar_url);
+                      core.setOutput('pr_additions', pullRequest.additions.toString());
+                      core.setOutput('pr_deletions', pullRequest.deletions.toString());
+                      core.setOutput('pr_files_count', pullRequest.changed_files.toString());
+                      core.setOutput('pr_commits_count', pullRequest.commits.toString());
 
                       console.log(`PR: #${pr.number} "${pr.title}" by @${pr.user.login}`);
                       console.log(`Labels: ${labels}`);
@@ -138,12 +142,9 @@ jobs:
                   LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
                   LINKEDIN_ORG_ID: ${{ secrets.LINKEDIN_ORG_ID }}
 
-                  # Gemini AI Key (already in repo secrets)
+                  # AI Keys
                   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-
-                  # Supabase Credentials for state management/queue
-                  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-                  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+                  GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
                   # PR Metadata from previous step
                   PR_TITLE: ${{ steps.pr_meta.outputs.pr_title }}
@@ -155,6 +156,10 @@ jobs:
                   PR_BODY: ${{ steps.pr_meta.outputs.pr_body }}
                   PR_REPO: ${{ steps.pr_meta.outputs.pr_repo }}
                   PR_LINES_CHANGED: ${{ steps.pr_meta.outputs.pr_lines_changed }}
+                  PR_ADDITIONS: ${{ steps.pr_meta.outputs.pr_additions }}
+                  PR_DELETIONS: ${{ steps.pr_meta.outputs.pr_deletions }}
+                  PR_FILES_COUNT: ${{ steps.pr_meta.outputs.pr_files_count }}
+                  PR_COMMITS_COUNT: ${{ steps.pr_meta.outputs.pr_commits_count }}
                   PR_GIT_DIFF: ${{ steps.diff.outputs.git_diff }}
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: python scripts/linkedin_shoutout.py
