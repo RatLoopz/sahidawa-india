@@ -26,8 +26,28 @@ import pandas as pd
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from pydantic import BaseModel, field_validator, ValidationError
+from typing import Optional
 
 from src.utils.logger import logger
+
+
+# ── Schema ─────────────────────────────────────────────────────────────────────
+
+class CDSCORecord(BaseModel):
+    firm_name: Optional[str] = None
+    license_number: Optional[str] = None
+    generic_name: Optional[str] = None
+    brand_name: Optional[str] = None
+
+    @field_validator("*", mode="before")
+    @classmethod
+    def strip_and_coerce(cls, v):
+        if isinstance(v, str):
+            return v.strip()
+        if isinstance(v, (int, float)):
+            return str(v).strip()
+        return v
 
 
 # ── Constants ──────────────────────────────────────────────────────────────────
@@ -82,6 +102,16 @@ class CDSCOScraper:
         # Limit to 5 requests per second to avoid being blocked by CDSCO
         self.rate_limiter = RateLimiter(max_requests=5, period=1.0)
 
+    def _validate_records(self, records: list, page_num: int) -> list:
+        valid_records = []
+        for row in records:
+            try:
+                record = CDSCORecord(**row)
+                valid_records.append(record.model_dump())
+            except ValidationError as e:
+                logger.warning(f"[CDSCO] Skipping invalid row on page {page_num}: {row} | Error: {e}")
+        return valid_records
+
     def _fetch_single_page(self, page_num: int, display_start: int, page_size: int) -> list:
         paginated_url = f"{CDSCO_URL}&iDisplayStart={display_start}&iDisplayLength={page_size}"
         logger.info(f"[CDSCO] Fetching page {page_num} (Offset: {display_start})...")
@@ -109,7 +139,7 @@ class CDSCOScraper:
             logger.error(f"[CDSCO] JSON parsing failed on page {page_num}: {parse_err}")
             raise parse_err
 
-        return data.get("aaData", [])
+        return self._validate_records(data.get("aaData", []), page_num)
 
     def fetch_and_save(self, force: bool = False) -> Path:
         """
@@ -153,7 +183,7 @@ class CDSCOScraper:
             logger.info(f"[CDSCO] Catalog Metadata Detected — Total Records: {total_records}, Dynamic Ceiling: {max_pages} pages.")
             
             # Store first page records to avoid duplicate network overhead
-            all_records_map[1] = probe_data.get("aaData", [])
+            all_records_map[1] = self._validate_records(probe_data.get("aaData", []), 1)
             
         except Exception as probe_err:
             logger.critical(f"[CDSCO] Failed to initiate probe or calculate dynamic pagination bounds: {probe_err}")
