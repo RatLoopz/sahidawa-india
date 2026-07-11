@@ -18,6 +18,23 @@ jest.mock("@/src/components/AuthProvider", () => ({
     }),
 }));
 
+jest.mock("next-intl", () => ({
+    useLocale: () => "en",
+    useTranslations: () => (key: string) => {
+        const translations: Record<string, string> = {
+            backToHome: "Back to Home",
+            checkingStatus: "Checking account status",
+            guestUser: "Guest User",
+            authenticatedAccount: "Authenticated account",
+            readingSession: "Reading your local session",
+            noAccountConnected: "No account connected",
+            signInRegister: "Sign In / Register",
+            signOut: "Sign Out",
+        };
+        return translations[key] ?? key;
+    },
+}));
+
 jest.mock("@/i18n/routing", () => ({
     Link: ({
         children,
