@@ -185,9 +185,46 @@ export async function listPushSubscriptions() {
     return [...memorySubscriptions.values()];
 }
 
-export async function listPushSubscriptionsForUser(userId: string) {
-    const all = await listPushSubscriptions();
-    return all.filter((sub) => sub.userId === userId);
+//  ISE ADD KARO:
+export async function listPushSubscriptionsForUser(userId: string): Promise<StoredSubscription[]> {
+    const results: StoredSubscription[] = [];
+
+    // Pehle local memory-cache se matches check karte hain safely
+    const localMatches = [...memorySubscriptions.values()].filter((sub) => sub.userId === userId);
+
+    // Agar local memory me context store nahi hai ya hum direct db check karna chahte hain
+    try {
+        const { data, error } = await supabase
+            .from("push_subscriptions")
+            .select("endpoint, subscription, created_at, user_id")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false });
+
+        if (error || !data || data.length === 0) {
+            // Safe fallback agar database empty hai but memory me stored subscription ho
+            return localMatches;
+        }
+
+        for (const row of data) {
+            const parsed = pushSubscriptionSchema.safeParse(row.subscription);
+            if (!parsed.success) continue;
+
+            results.push({
+                endpoint: row.endpoint as string,
+                subscription: parsed.data as PushSubscription,
+                createdAt: (row.created_at as string | null) ?? new Date().toISOString(),
+                userId: row.user_id as string,
+            });
+        }
+
+        return results;
+    } catch (err) {
+        logger.warn({
+            message: `Database check failed for user ${userId}, falling back to memory`,
+            err,
+        });
+        return localMatches;
+    }
 }
 
 export function buildRecallPayload(alert: RecallAlert) {
@@ -449,13 +486,9 @@ export async function triggerRecallAlert(alert: RecallAlert) {
         failed: results.filter((result) => result.status === "rejected").length,
         payload,
     };
-    
 }
 
-export async function sendNotificationToUser(
-    userId: string,
-    payload: Record<string, unknown>
-) {
+export async function sendNotificationToUser(userId: string, payload: Record<string, unknown>) {
     const configured = configureWebPush();
 
     if (!configured) {

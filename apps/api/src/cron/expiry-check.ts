@@ -5,7 +5,7 @@ import logger from "../utils/logger";
 import { redisClient } from "../utils/redis";
 import { smsService } from "../services/sms-service";
 import {
-    listPushSubscriptions,
+    listPushSubscriptionsForUser,
     isWebPushConfigured,
     buildPushDeliveryEvent,
     recordPushDeliveryEvents,
@@ -78,9 +78,7 @@ export const initExpiryCron = (): { stop: () => void } => {
         const acquired = await acquireLock();
 
         if (!acquired) {
-            logger.info(
-                "Expiry cron lock held by another instance — skipping this scheduled run."
-            );
+            logger.info("Expiry cron lock held by another instance — skipping this scheduled run.");
             return;
         }
 
@@ -134,23 +132,14 @@ export const initExpiryCron = (): { stop: () => void } => {
 
                         const daysLeft = Math.max(
                             0,
-                            Math.ceil(
-                                (expiry.getTime() - today.getTime()) /
-                                    (1000 * 60 * 60 * 24)
-                            )
+                            Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
                         );
 
-                        const payload = buildExpiryPayload(
-                            medicine.name,
-                            daysLeft
-                        );
+                        const payload = buildExpiryPayload(medicine.name, daysLeft);
 
                         // --- Web Push ---
                         if (isWebPushConfigured()) {
-                            const allSubs = await listPushSubscriptions();
-                            const userSubs = allSubs.filter(
-                                (s) => s.userId === medicine.user_id
-                            );
+                            const userSubs = await listPushSubscriptionsForUser(medicine.user_id);
 
                             if (userSubs.length > 0) {
                                 const results = await Promise.allSettled(
@@ -171,11 +160,7 @@ export const initExpiryCron = (): { stop: () => void } => {
                                 };
 
                                 const events = results.map((result, i) =>
-                                    buildPushDeliveryEvent(
-                                        fakeAlert,
-                                        userSubs[i].endpoint,
-                                        result
-                                    )
+                                    buildPushDeliveryEvent(fakeAlert, userSubs[i].endpoint, result)
                                 );
 
                                 await recordPushDeliveryEvents(events);
@@ -191,15 +176,11 @@ export const initExpiryCron = (): { stop: () => void } => {
                                             )?.statusCode ?? -1
                                         )
                                     ) {
-                                        removePushSubscription(
-                                            userSubs[i].endpoint
-                                        );
+                                        removePushSubscription(userSubs[i].endpoint);
                                     }
                                 });
 
-                                const sent = results.filter(
-                                    (r) => r.status === "fulfilled"
-                                ).length;
+                                const sent = results.filter((r) => r.status === "fulfilled").length;
 
                                 if (sent > 0) delivered = true;
                             }
@@ -261,10 +242,7 @@ export const initExpiryCron = (): { stop: () => void } => {
                 );
             }
         } catch (err) {
-            logger.error(
-                "Expiry check cron: unhandled error during scheduled run",
-                { error: err }
-            );
+            logger.error("Expiry check cron: unhandled error during scheduled run", { error: err });
         } finally {
             await releaseLock();
         }
