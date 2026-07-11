@@ -51,16 +51,32 @@ export async function POST(req: NextRequest) {
         try {
             const cached = await redis.get(cacheKey);
             if (cached) {
-                return NextResponse.json(cached, {
-                    headers: { "X-Cache": "HIT" },
-                });
+                try {
+                    const parsed =
+                        typeof cached === "string" ? JSON.parse(cached) : cached;
+
+                    if (parsed && Array.isArray(parsed.elements)) {
+                        return NextResponse.json(parsed, {
+                            headers: { "X-Cache": "HIT" },
+                        });
+                    }
+
+                    console.warn(
+                        "[overpass] Cached value missing valid elements array, ignoring cache"
+                    );
+                } catch (parseErr) {
+                    console.warn(
+                        "[overpass] Failed to parse cached Redis value, ignoring cache:",
+                        parseErr
+                    );
+                }
             }
         } catch (redisErr) {
             // Redis unavailable — log and fall through to upstream fetch
             console.warn("[overpass] Redis GET failed:", redisErr);
         }
 
-        // Cache miss: query all mirrors in parallel
+        // Cache miss (or invalid cache): query all mirrors in parallel
         const controllers: AbortController[] = [];
         const fetchPromises = OVERPASS_MIRRORS.map(async (mirror) => {
             const controller = new AbortController();

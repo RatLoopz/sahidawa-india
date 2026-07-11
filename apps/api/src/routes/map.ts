@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { supabase } from "../db/client";
 import { rateLimit } from "express-rate-limit";
 import { cacheMiddleware } from "../middleware/cache";
+import logger from "../utils/logger";
 
 const router = Router();
 
@@ -104,7 +105,7 @@ router.get(
                 asha_workers: ashaWorkers,
             });
         } catch (err) {
-            console.error(err);
+            logger.error({ message: "Error fetching nearby facilities", error: err });
             res.status(500).json({ error: "Internal server error" });
         }
     }

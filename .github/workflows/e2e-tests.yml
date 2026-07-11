@@ -9,28 +9,39 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v7
-    
-    - uses: actions/setup-node@v6
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-node@v4
       with:
         node-version-file: .nvmrc
         cache: 'npm'
-        
+
     - name: Install dependencies
       run: npm ci
-      
+
     - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
+      run: npx playwright install --with-deps chromium
       working-directory: apps/web
-      
+
     - name: Build Shared Packages
       run: npm run build -w @sahidawa/shared
-      
+
+    - name: Build Web App (production)
+      run: npm run build -w web
+      env:
+        NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: e2e-local-anon-key
+
     - name: Run Playwright tests
       run: npx playwright test
       working-directory: apps/web
-      
-    - uses: actions/upload-artifact@v7
+      env:
+        # Use the production build via `next start` (set via playwright.config.ts)
+        PLAYWRIGHT_CI: true
+        NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: e2e-local-anon-key
+
+    - uses: actions/upload-artifact@v4
       if: always()
       with:
         name: playwright-report

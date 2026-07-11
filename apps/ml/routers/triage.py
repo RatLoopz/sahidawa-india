@@ -7,7 +7,7 @@ import uuid
 
 
 from starlette.concurrency import run_in_threadpool
-from services.triage_graph import run_triage_flow
+from services.triage_graph import run_triage_flow, clear_session
 from utils.rate_limiter import RateLimiter  
 
 router = APIRouter(prefix="/triage", tags=["Triage"])
@@ -60,6 +60,23 @@ class TriageResponse(BaseModel):
         ...,
         description="Session ID for this triage conversation. Pass this back in "
         "subsequent requests to preserve context across turns.",
+    )
+
+
+class ClearSessionRequest(BaseModel):
+    session_id: str = Field(
+        ...,
+        min_length=1,
+        description="The session ID whose persisted triage state should be deleted.",
+    )
+
+
+class ClearSessionResponse(BaseModel):
+    session_id: str = Field(..., description="The session ID that was requested to clear.")
+    cleared: bool = Field(
+        ...,
+        description="True if a stored session was found and removed; False if there "
+        "was nothing to clear (unknown or already-expired session).",
     )
 
 
@@ -119,3 +136,34 @@ async def triage_chat(payload: TriageRequest):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Triage service temporarily unavailable. Please try again."
             )
+
+
+# The limiter keys on request path + IP, so /clear gets its own quota bucket
+# and doesn't eat into a client's /chat allowance.
+@router.post(
+    "/clear",
+    response_model=ClearSessionResponse,
+    dependencies=[Depends(triage_limiter)],
+)
+async def triage_clear(payload: ClearSessionRequest):
+    """Deletes a triage session's persisted state from Redis so the user can
+    start fresh without waiting for the 30-minute TTL to expire.
+
+    Clearing an unknown or already-expired session is not an error; the
+    response simply reports cleared=False.
+    """
+    try:
+        cleared = await run_in_threadpool(clear_session, payload.session_id)
+    except Exception as e:
+        logging.error(f"Error clearing triage session '{payload.session_id}': {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not clear the triage session. Please try again.",
+        )
+
+    logging.info(
+        "Clear requested for triage session '%s' (existed=%s)",
+        payload.session_id,
+        cleared,
+    )
+    return ClearSessionResponse(session_id=payload.session_id, cleared=cleared)

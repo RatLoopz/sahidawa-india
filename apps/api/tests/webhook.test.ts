@@ -1,10 +1,10 @@
 import request from "supertest";
 import crypto from "crypto";
 // Import the express app server entry instance using standard mock directory pattern
-import app from "../app";
-import { redisClient } from "../utils/redis";
+import app from "../src/app";
+import { redisClient } from "../src/utils/redis";
 
-jest.mock("../utils/redis", () => ({
+jest.mock("../src/utils/redis", () => ({
     redisClient: {
         isOpen: true,
         scan: jest.fn(),

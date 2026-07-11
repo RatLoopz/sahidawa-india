@@ -1,0 +1,47 @@
+name: "🔄 Retry Failed LinkedIn Shoutouts"
+
+on:
+  schedule:
+    # Run every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    # Allows manual triggering from the GitHub Actions tab
+
+permissions:
+  pull-requests: read
+  contents: read
+
+jobs:
+  retry-shoutouts:
+    name: "Retry Failed Shoutouts via Supabase Queue"
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: "🛎️ Checkout Repository"
+        uses: actions/checkout@v4
+
+      - name: "🐍 Setup Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: "📥 Install Dependencies"
+        run: pip install supabase requests pillow
+
+      - name: "🔄 Run Replay Script"
+        env:
+          # Supabase credentials to read the queue
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          
+          # LinkedIn credentials for posting
+          LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
+          LINKEDIN_ORG_ID: ${{ secrets.LINKEDIN_ORG_ID }}
+          
+          # Gemini AI API Key
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          
+          # GitHub Token to fetch PR metadata dynamically
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python scripts/replay_linkedin_posts.py

@@ -7,7 +7,7 @@
         "start": "node dist/index.js",
         "dev": "ts-node-dev --respawn --transpile-only -r ./ws-setup.js src/index.ts",
         "build": "tsc && cp -r assets dist/",
-        "test": "jest"
+        "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest"
     },
     "dependencies": {
         "@opentelemetry/api": "^1.9.1",

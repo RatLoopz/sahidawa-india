@@ -8,7 +8,7 @@
  * @version 2.0.0
  */
 
-const CACHE_VERSION = "56c6ce6a";
+const CACHE_VERSION = "55c3340e";
 
 /** Navigation / shell pages */
 const OFFLINE_CACHE_NAME = `sahidawa-offline-${CACHE_VERSION}`;

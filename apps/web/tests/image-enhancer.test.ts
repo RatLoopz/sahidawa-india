@@ -119,14 +119,14 @@ describe("preprocessMedicineImage", () => {
         }
 
         class MockWorker {
-            listeners: Record<string, Function[]> = { message: [], error: [] };
+            listeners: Record<string, ((event: unknown) => void)[]> = { message: [], error: [] };
 
-            addEventListener = jest.fn((type: string, listener: Function) => {
+            addEventListener = jest.fn((type: string, listener: (event: unknown) => void) => {
                 if (!this.listeners[type]) this.listeners[type] = [];
                 this.listeners[type].push(listener);
             });
 
-            removeEventListener = jest.fn((type: string, listener: Function) => {
+            removeEventListener = jest.fn((type: string, listener: (event: unknown) => void) => {
                 if (this.listeners[type]) {
                     this.listeners[type] = this.listeners[type].filter((l) => l !== listener);
                 }
