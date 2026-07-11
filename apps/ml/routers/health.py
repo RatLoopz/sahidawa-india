@@ -1,7 +1,8 @@
 import os
 from pathlib import Path
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from routers import asr
+from dependencies import verify_api_key
 from services import medicine_ner
 from services import embedding
 
@@ -20,7 +21,7 @@ except ImportError:
 
 router = APIRouter(tags=["Health"])
 
-@router.get("/models/current")
+@router.get("/models/current", dependencies=[Depends(verify_api_key)])
 def get_current_models():
     # ASR model metadata
     asr_metadata = {

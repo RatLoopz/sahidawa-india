@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 from unittest.mock import MagicMock
 import sys
 import os
+os.environ["ML_API_KEY"]="test-secret-123"
 
 # Mock faster_whisper before importing app
 sys.modules["faster_whisper"] = MagicMock()
@@ -32,7 +33,11 @@ def test_health_endpoint():
 
 
 def test_models_current_endpoint():
-    response = client.get("/models/current")
+    response = client.get(
+        "/models/current",
+        headers={"x-api-key":"test-secret-123"}
+
+    )
 
     assert response.status_code == 200
     data = response.json()
@@ -67,7 +72,11 @@ def test_models_current_endpoint():
     assert tflite_model["filename"] == "mobilenetv3_large_int8.tflite"
     assert tflite_model["exists"] is True
 
+def test_models_current_endpoint_no_api_key():
+    response = client.get("/models/current")
 
+    assert response.status_code in (401, 403)
+    
 def test_transcribe_missing_file():
     response = client.post("/asr/transcribe")
 
