@@ -160,7 +160,7 @@ jobs:
               run: supabase start
 
             - name: 🧪 Run Webhook E2E Tests
-              run: npx jest --config apps/api/jest.config.js apps/api/tests/e2e/webhook-delivery.test.ts
+              run: npx jest --config apps/api/jest.config.js apps/api/tests/e2e/webhook-delivery.test.ts --testPathIgnorePatterns "/node_modules/"
               env:
                   SUPABASE_URL: http://127.0.0.1:54321
                   SUPABASE_ANON_KEY: test-anon-key

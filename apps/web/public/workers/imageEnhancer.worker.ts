@@ -187,7 +187,7 @@ ctx.onmessage = async (event: MessageEvent) => {
                 typeof OffscreenCanvas === "undefined" ||
                 typeof createImageBitmap === "undefined"
             ) {
-                self.postMessage({ id, fallback: true });
+                ctx.postMessage({ id, fallback: true });
                 return;
             }
 
@@ -218,7 +218,7 @@ ctx.onmessage = async (event: MessageEvent) => {
                 sampledImageData = canvasContext.getImageData(0, 0, targetWidth, targetHeight);
             } catch {
                 const blob = await canvas.convertToBlob({ type: "image/webp", quality: 0.8 });
-                self.postMessage({ id, file: blob });
+                ctx.postMessage({ id, file: blob });
                 return;
             }
 
@@ -247,17 +247,17 @@ ctx.onmessage = async (event: MessageEvent) => {
             }
 
             const outBlob = await canvas.convertToBlob({ type: "image/webp", quality: 0.8 });
-            self.postMessage({ id, file: outBlob });
+            ctx.postMessage({ id, file: outBlob });
         } else if (pixels) {
             const enhancedPixels = applyUnsharpMask(
                 applySelectiveSaturation(pixels),
                 width,
                 height
             );
-            self.postMessage({ id, pixels: enhancedPixels }, [enhancedPixels.buffer]);
+            ctx.postMessage({ id, pixels: enhancedPixels }, [enhancedPixels.buffer]);
         }
     } catch (error: any) {
-        self.postMessage({
+        ctx.postMessage({
             id,
             error: error instanceof Error ? error.message : "Image enhancement worker failed.",
         });
