@@ -1,8 +1,8 @@
 {
     "extends": "./tsconfig.json",
     "compilerOptions": {
-        "module": "node16",
-        "moduleResolution": "node16",
+        "module": "ESNext",
+        "moduleResolution": "node",
         "rootDir": ".",
         "types": ["node", "jest", "react", "react-dom"],
         "baseUrl": ".",

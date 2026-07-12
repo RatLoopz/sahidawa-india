@@ -6,6 +6,12 @@
             "rules": {
                 "@typescript-eslint/no-require-imports": "off"
             }
+        },
+        {
+            "files": ["tests/**/*.ts", "tests/**/*.tsx"],
+            "rules": {
+                "@typescript-eslint/no-unused-vars": "off"
+            }
         }
     ]
 }

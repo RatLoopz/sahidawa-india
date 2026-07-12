@@ -3,6 +3,9 @@
     "version": "1.0.0",
     "private": true,
     "description": "India's First Open-Source Citizen Medicine Verifier & Rural Health Bridge",
+    "engines": {
+        "node": ">=22.0.0"
+    },
     "workspaces": [
         "apps/*",
         "packages/*"

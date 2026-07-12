@@ -1,3 +1,13 @@
+import {
+    describe,
+    it,
+    expect,
+    jest,
+    beforeEach,
+    afterEach,
+    beforeAll,
+    afterAll,
+} from "@jest/globals";
 import type { AshaWorker, Pharmacy } from "../app/[locale]/map/PharmacyMap";
 import type * as PharmacyCache from "../app/[locale]/map/usePharmacyCache";
 
@@ -5,7 +15,7 @@ let buildNearbyCacheKey: typeof PharmacyCache.buildNearbyCacheKey;
 let buildBoundsCacheKey: typeof PharmacyCache.buildBoundsCacheKey;
 let loadFromCache: typeof PharmacyCache.loadFromCache;
 let saveToCache: typeof PharmacyCache.saveToCache;
-let openDBMock: jest.Mock;
+const openDBMock = jest.fn();
 
 const samplePharmacies: Pharmacy[] = [
     {
@@ -32,17 +42,14 @@ const sampleAshaWorkers: AshaWorker[] = [
     },
 ];
 
+jest.mock("idb", () => ({
+    openDB: (...args: any[]) => openDBMock(...args),
+}));
+
 describe("usePharmacyCache", () => {
     beforeEach(async () => {
         jest.resetModules();
-        openDBMock = jest.fn();
-        (jest as any).unstable_mockModule(
-            "idb",
-            () => ({
-                openDB: openDBMock,
-            }),
-            { virtual: true }
-        );
+        openDBMock.mockReset();
 
         ({ buildNearbyCacheKey, buildBoundsCacheKey, loadFromCache, saveToCache } =
             await import("../app/[locale]/map/usePharmacyCache"));

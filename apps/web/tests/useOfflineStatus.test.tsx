@@ -1,3 +1,13 @@
+import {
+    describe,
+    it,
+    expect,
+    jest,
+    beforeEach,
+    afterEach,
+    beforeAll,
+    afterAll,
+} from "@jest/globals";
 /**
  * @jest-environment jsdom
  */
@@ -49,6 +59,7 @@ describe("useOfflineStatus", () => {
 
         container.remove();
         jest.clearAllMocks();
+        jest.clearAllTimers();
         jest.useRealTimers();
 
         window.history.pushState({}, "", "/");

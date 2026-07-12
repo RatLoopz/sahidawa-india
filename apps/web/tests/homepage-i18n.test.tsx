@@ -1,3 +1,13 @@
+import {
+    describe,
+    it,
+    expect,
+    jest,
+    beforeEach,
+    afterEach,
+    beforeAll,
+    afterAll,
+} from "@jest/globals";
 import { renderToStaticMarkup } from "react-dom/server";
 import { readdirSync, readFileSync } from "fs";
 import { join } from "path";

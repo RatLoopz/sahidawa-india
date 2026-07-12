@@ -197,7 +197,6 @@ export function useCloudTTS() {
     const stopTTS = useCallback(() => {
         useAudioStore.getState().stopIfCurrent(trackIdRef.current);
         if (audioRef.current) {
-            audioRef.current.pause();
             audioRef.current.currentTime = 0;
         }
         setIsLoading(false);

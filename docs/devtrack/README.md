@@ -875,3 +875,4 @@
 | [#3467](https://github.com/RatLoopz/sahidawa-india/pull/3467) | 2026-07-11 | Frontend | 19 | @hrx01-dev | [View Doc](devtrack/2026-07/PR-3467-feat-wired-homepage-search-into-the-existing-offli.md) / [ADR](devtrack/adr/ADR-048-feat-wired-homepage-search-into-the-existing-offli.md) |
 | [#3448](https://github.com/RatLoopz/sahidawa-india/pull/3448) | 2026-07-11 | Frontend | 5 | @Avinash-sdbegin | [View Doc](devtrack/2026-07/PR-3448-feat-web-add-push-notification-trigger-for-medicin.md) |
 | [#3443](https://github.com/RatLoopz/sahidawa-india/pull/3443) | 2026-07-11 | Backend | 6 | @hrx01-dev | [View Doc](devtrack/2026-07/PR-3443-fix-sequential-per-batch-update-queries-in-medicin.md) |
+| [#3500](https://github.com/RatLoopz/sahidawa-india/pull/3500) | 2026-07-11 | Frontend | 24 | @Shreya-nipunge | [View Doc](devtrack/2026-07/PR-3500-feat-web-preserve-offline-search-history.md) / [ADR](devtrack/adr/ADR-049-feat-web-preserve-offline-search-history.md) |

@@ -96,6 +96,7 @@ describe("Reports API Routes", () => {
             gte: jest.fn().mockReturnThis(),
             order: jest.fn().mockReturnThis(),
             limit: jest.fn().mockReturnThis(),
+            or: jest.fn().mockReturnThis(),
             single: jest.fn().mockResolvedValue({ data: null, error: null }),
             maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
         });
@@ -154,16 +155,16 @@ describe("Reports API Routes", () => {
             };
 
             mockedSupabase.upsert = jest.fn().mockReturnValue({
-                select: jest.fn().mockReturnValue({
-                    single: jest.fn().mockResolvedValueOnce({
-                        data: {
+                select: jest.fn().mockResolvedValueOnce({
+                    data: [
+                        {
                             id: "report-id-123",
                             ...payload,
                             report_location: "POINT(77.5946 12.9716)",
                             created_at: "2026-06-03T23:31:00Z",
                         },
-                        error: null,
-                    }),
+                    ],
+                    error: null,
                 }),
             });
 
@@ -175,11 +176,10 @@ describe("Reports API Routes", () => {
         });
 
         it("blocks a slow/hanging DNS lookup and returns 400", async () => {
-            const dns = require("dns");
-            const originalLookup = dns.promises.lookup;
+            const dnsPromises = require("dns/promises");
 
-            // Mock lookup to never resolve (hang)
-            dns.promises.lookup = jest.fn().mockImplementation(() => new Promise(() => {}));
+            // Override the default mock for this test only to simulate a hang
+            dnsPromises.lookup.mockImplementationOnce(() => new Promise(() => {}));
 
             const payload = {
                 medicineName: "Aspirin 500mg",
@@ -193,13 +193,9 @@ describe("Reports API Routes", () => {
                 pincode: "110001",
             };
 
-            try {
-                const response = await request(app).post("/api/reports").send(payload);
-                expect(response.status).toBe(400);
-                expect(response.body.error).toBe("Invalid report payload");
-            } finally {
-                dns.promises.lookup = originalLookup;
-            }
+            const response = await request(app).post("/api/reports").send(payload);
+            expect(response.status).toBe(400);
+            expect(response.body.error).toBe("Invalid report payload");
         });
 
         it("parses coordinates into POINT format correctly", async () => {
@@ -218,16 +214,16 @@ describe("Reports API Routes", () => {
             };
 
             mockedSupabase.upsert = jest.fn().mockReturnValue({
-                select: jest.fn().mockReturnValue({
-                    single: jest.fn().mockResolvedValueOnce({
-                        data: {
+                select: jest.fn().mockResolvedValueOnce({
+                    data: [
+                        {
                             id: "report-id-456",
                             ...payload,
                             report_location: "POINT(72.8777 19.0760)",
                             created_at: "2026-06-03T23:31:00Z",
                         },
-                        error: null,
-                    }),
+                    ],
+                    error: null,
                 }),
             });
 
@@ -265,17 +261,17 @@ describe("Reports API Routes", () => {
             };
 
             mockedSupabase.upsert = jest.fn().mockReturnValue({
-                select: jest.fn().mockReturnValue({
-                    single: jest.fn().mockResolvedValueOnce({
-                        data: {
+                select: jest.fn().mockResolvedValueOnce({
+                    data: [
+                        {
                             id: "report-id-flagged",
                             ...payload,
                             is_escalated: true,
                             risk_score: 0.85,
                             created_at: "2026-06-03T23:31:00Z",
                         },
-                        error: null,
-                    }),
+                    ],
+                    error: null,
                 }),
             });
 
@@ -322,15 +318,15 @@ describe("Reports API Routes", () => {
             mockedSupabase.upsert = jest.fn().mockImplementation((vals) => {
                 insertedPayload = vals;
                 return {
-                    select: jest.fn().mockReturnValue({
-                        single: jest.fn().mockResolvedValueOnce({
-                            data: {
+                    select: jest.fn().mockResolvedValueOnce({
+                        data: [
+                            {
                                 id: "report-id-dup",
                                 ...vals,
                                 created_at: "2026-06-03T23:31:00Z",
                             },
-                            error: null,
-                        }),
+                        ],
+                        error: null,
                     }),
                 };
             });
@@ -359,15 +355,15 @@ describe("Reports API Routes", () => {
             mockedSupabase.upsert = jest.fn().mockImplementation((vals) => {
                 insertedPayload = vals;
                 return {
-                    select: jest.fn().mockReturnValue({
-                        single: jest.fn().mockResolvedValueOnce({
-                            data: {
+                    select: jest.fn().mockResolvedValueOnce({
+                        data: [
+                            {
                                 id: "report-id-fallback",
                                 ...vals,
                                 created_at: "2026-06-03T23:31:00Z",
                             },
-                            error: null,
-                        }),
+                        ],
+                        error: null,
                     }),
                 };
             });
@@ -400,15 +396,15 @@ describe("Reports API Routes", () => {
             mockedSupabase.upsert = jest.fn().mockImplementation((vals) => {
                 insertedPayload = vals;
                 return {
-                    select: jest.fn().mockReturnValue({
-                        single: jest.fn().mockResolvedValueOnce({
-                            data: {
+                    select: jest.fn().mockResolvedValueOnce({
+                        data: [
+                            {
                                 id: "report-id-explicit-district",
                                 ...vals,
                                 created_at: "2026-06-03T23:31:00Z",
                             },
-                            error: null,
-                        }),
+                        ],
+                        error: null,
                     }),
                 };
             });
@@ -443,15 +439,15 @@ describe("Reports API Routes", () => {
             };
 
             mockedSupabase.upsert = jest.fn().mockReturnValue({
-                select: jest.fn().mockReturnValue({
-                    single: jest.fn().mockResolvedValueOnce({
-                        data: {
+                select: jest.fn().mockResolvedValueOnce({
+                    data: [
+                        {
                             id: "report-id-validate-district",
                             ...payload,
                             created_at: "2026-06-03T23:31:00Z",
                         },
-                        error: null,
-                    }),
+                    ],
+                    error: null,
                 }),
             });
 
@@ -721,10 +717,8 @@ describe("Reports API Routes", () => {
         });
 
         it("returns 404 when report does not exist", async () => {
-            mockedSupabase.single = jest
-                .fn()
-                .mockResolvedValueOnce({ data: null, error: null })
-                .mockResolvedValueOnce({ data: null, error: null });
+            // maybeSingle is used for the existence pre-check; default mock returns null → 404
+            mockedSupabase.maybeSingle = jest.fn().mockResolvedValue({ data: null, error: null });
 
             const response = await request(app)
                 .patch(`/api/reports/${NONEXISTENT_UUID}/status`)
@@ -744,9 +738,13 @@ describe("Reports API Routes", () => {
                 created_at: "2026-06-01T00:00:00Z",
             };
 
+            // maybeSingle: existence pre-check returns the report as found
+            mockedSupabase.maybeSingle = jest
+                .fn()
+                .mockResolvedValueOnce({ data: { id: "report-id-123" }, error: null });
+            // single: used by update().select().single()
             mockedSupabase.single = jest
                 .fn()
-                .mockResolvedValueOnce({ data: { id: "report-id-123" }, error: null })
                 .mockResolvedValueOnce({ data: updatedReport, error: null });
 
             const response = await request(app)
@@ -769,9 +767,13 @@ describe("Reports API Routes", () => {
                 created_at: "2026-06-01T00:00:00Z",
             };
 
+            // maybeSingle: existence pre-check
+            mockedSupabase.maybeSingle = jest
+                .fn()
+                .mockResolvedValueOnce({ data: { id: "report-id-123" }, error: null });
+            // single: update result
             mockedSupabase.single = jest
                 .fn()
-                .mockResolvedValueOnce({ data: { id: "report-id-123" }, error: null })
                 .mockResolvedValueOnce({ data: updatedReport, error: null });
 
             const response = await request(app)
@@ -788,9 +790,13 @@ describe("Reports API Routes", () => {
             const validStatuses = ["pending", "verified_fake", "false_alarm"];
 
             for (const status of validStatuses) {
+                // maybeSingle: existence pre-check
+                mockedSupabase.maybeSingle = jest
+                    .fn()
+                    .mockResolvedValueOnce({ data: { id: REPORT_UUID }, error: null });
+                // single: update result
                 mockedSupabase.single = jest
                     .fn()
-                    .mockResolvedValueOnce({ data: { id: REPORT_UUID }, error: null })
                     .mockResolvedValueOnce({ data: { id: REPORT_UUID, status }, error: null });
 
                 const response = await request(app)
@@ -820,21 +826,26 @@ describe("Reports API Routes", () => {
                     return {
                         select: jest.fn().mockImplementation((_cols?: string, opts?: any) => {
                             if (opts && opts.head) {
-                                // Threshold count query chain: .eq().eq().eq()
+                                // Threshold count query chain: .eq().eq().eq().eq().or()
                                 return {
                                     eq: jest.fn().mockReturnValue({
                                         eq: jest.fn().mockReturnValue({
-                                            eq: jest
-                                                .fn()
-                                                .mockResolvedValue({ count: 5, error: null }),
+                                            eq: jest.fn().mockReturnValue({
+                                                eq: jest.fn().mockReturnValue({
+                                                    or: jest.fn().mockResolvedValue({
+                                                        count: 5,
+                                                        error: null,
+                                                    }),
+                                                }),
+                                            }),
                                         }),
                                     }),
                                 };
                             }
-                            // Existence-check chain: .eq().single()
+                            // Existence-check chain: .eq().maybeSingle()
                             return {
                                 eq: jest.fn().mockReturnValue({
-                                    single: jest.fn().mockResolvedValue({
+                                    maybeSingle: jest.fn().mockResolvedValue({
                                         data: { id: "report-id-123" },
                                         error: null,
                                     }),
@@ -915,23 +926,27 @@ describe("Reports API Routes", () => {
                                 return {
                                     eq: jest.fn().mockReturnValue({
                                         eq: jest.fn().mockReturnValue({
-                                            eq: jest.fn().mockImplementation((col, val) => {
-                                                if (col === "is_escalated" && val === false) {
-                                                    countQueryExecuted = true;
-                                                    return Promise.resolve({
-                                                        count: 5,
-                                                        error: null,
-                                                    });
-                                                }
-                                                return Promise.resolve({ count: 5, error: null });
+                                            eq: jest.fn().mockReturnValue({
+                                                eq: jest.fn().mockImplementation((col, val) => {
+                                                    if (col === "is_escalated" && val === false) {
+                                                        countQueryExecuted = true;
+                                                    }
+                                                    return {
+                                                        or: jest.fn().mockResolvedValue({
+                                                            count: 5,
+                                                            error: null,
+                                                        }),
+                                                    };
+                                                }),
                                             }),
                                         }),
                                     }),
                                 };
                             }
+                            // Existence-check: .eq().maybeSingle()
                             return {
                                 eq: jest.fn().mockReturnValue({
-                                    single: jest.fn().mockResolvedValue({
+                                    maybeSingle: jest.fn().mockResolvedValue({
                                         data: {
                                             id: "report-id-123",
                                             is_escalated: true,
