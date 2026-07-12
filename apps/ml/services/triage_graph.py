@@ -1,6 +1,5 @@
 import os
 import json
-import asyncio
 import logging
 from typing import List, Dict, Any, Optional, TypedDict
 from pydantic import BaseModel, Field
@@ -80,14 +79,9 @@ async def _clear_session_state(session_id: str) -> bool:
     return bool(removed)
 
 
-def clear_session(session_id: str) -> bool:
-    """Synchronous wrapper around _clear_session_state for the API layer.
-
-    Mirrors how run_triage_flow drives the async session helpers via
-    asyncio.run, so callers running in a threadpool don't need their own
-    event loop plumbing.
-    """
-    return asyncio.run(_clear_session_state(session_id))
+async def clear_session(session_id: str) -> bool:
+    """Clear persisted session state from the API's existing event loop."""
+    return await _clear_session_state(session_id)
 
 
 # Check if LangChain and LangGraph are available
@@ -510,7 +504,7 @@ def build_triage_graph():
 # Instantiated compiled graph
 triage_app = build_triage_graph() if LANGGRAPH_AVAILABLE else None
 
-def run_triage_flow(
+async def run_triage_flow(
     messages: List[Dict[str, str]],
     locale: str = "en",
     session_id: Optional[str] = None,
@@ -537,7 +531,7 @@ def run_triage_flow(
     persisted_state = None
     if session_id:
         try:
-            persisted_state = asyncio.run(_load_session_state(session_id))
+            persisted_state = await _load_session_state(session_id)
         except Exception:
             logging.exception("Unexpected error loading session '%s'; starting fresh.", session_id)
             persisted_state = None
@@ -560,11 +554,11 @@ def run_triage_flow(
         initial_state["messages"] = messages  # always use this request's messages
 
     try:
-        final_state = triage_app.invoke(initial_state)
+        final_state = await triage_app.ainvoke(initial_state)
 
         if session_id:
             try:
-                asyncio.run(_save_session_state(session_id, final_state))
+                await _save_session_state(session_id, final_state)
             except Exception:
                 logging.exception("Unexpected error saving session '%s'.", session_id)
 

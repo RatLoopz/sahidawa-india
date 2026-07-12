@@ -80,8 +80,8 @@ function buildRequest(
     return req;
 }
 
-function captureCloudinaryFormData(fetchMock: jest.Mock): FormData {
-    const [, init] = fetchMock.mock.calls[0];
+function captureCloudinaryFormData(fetchMock: jest.Mock, callIndex = 0): FormData {
+    const [, init] = fetchMock.mock.calls[callIndex];
     return init.body as FormData;
 }
 
@@ -117,26 +117,44 @@ describe("POST /api/upload", () => {
         jest.restoreAllMocks();
     });
 
-    it("stores the image under sahidawa/reports with a {batch_number}_{timestamp} public_id", async () => {
-        const response = await post(buildRequest({ batch_number: "BATCH123" }));
+    it("generates unique public IDs for concurrent uploads with the same batch number", async () => {
+        const responses = await Promise.all([
+            post(buildRequest({ batch_number: "BATCH123" })),
+            post(buildRequest({ batch_number: "BATCH123" })),
+        ]);
 
-        expect(response.status).toBe(200);
-        expect(fetchMock).toHaveBeenCalledTimes(1);
+        expect(responses.map((response) => response.status)).toEqual([200, 200]);
+        expect(fetchMock).toHaveBeenCalledTimes(2);
 
-        const sent = captureCloudinaryFormData(fetchMock);
-        const timestamp = sent.get("timestamp") as string;
+        const first = captureCloudinaryFormData(fetchMock, 0);
+        const second = captureCloudinaryFormData(fetchMock, 1);
+        const firstPublicId = first.get("public_id") as string;
+        const secondPublicId = second.get("public_id") as string;
 
-        expect(sent.get("folder")).toBe("sahidawa/reports");
-        expect(sent.get("public_id")).toBe(`BATCH123_${timestamp}`);
+        expect(first.get("folder")).toBe("sahidawa/reports");
+        expect(firstPublicId).toMatch(/^BATCH123_\d+_[a-f0-9]{16}$/);
+        expect(secondPublicId).toMatch(/^BATCH123_\d+_[a-f0-9]{16}$/);
+        expect(firstPublicId).not.toBe(secondPublicId);
     });
 
-    it("falls back to a 'report' prefix when no batch number is supplied", async () => {
-        await post(buildRequest());
+    it("generates unique public IDs with a 'report' prefix when no batch number is supplied", async () => {
+        const responses = await Promise.all([post(buildRequest()), post(buildRequest())]);
 
-        const sent = captureCloudinaryFormData(fetchMock);
-        const timestamp = sent.get("timestamp") as string;
+        const firstPublicId = captureCloudinaryFormData(fetchMock, 0).get("public_id") as string;
+        const secondPublicId = captureCloudinaryFormData(fetchMock, 1).get("public_id") as string;
 
-        expect(sent.get("public_id")).toBe(`report_${timestamp}`);
+        expect(responses.map((response) => response.status)).toEqual([200, 200]);
+        expect(firstPublicId).toMatch(/^report_\d+_[a-f0-9]{16}$/);
+        expect(secondPublicId).toMatch(/^report_\d+_[a-f0-9]{16}$/);
+        expect(firstPublicId).not.toBe(secondPublicId);
+    });
+
+    it("removes unsafe characters from the batch number prefix", async () => {
+        await post(buildRequest({ batch_number: "BATCH / 123?!" }));
+
+        const publicId = captureCloudinaryFormData(fetchMock).get("public_id") as string;
+
+        expect(publicId).toMatch(/^BATCH123_\d+_[a-f0-9]{16}$/);
     });
 
     it("signs the request over the sorted params including public_id", async () => {

@@ -195,6 +195,123 @@ describe("POST /api/schedules", () => {
         expect(res.body.schedule.medicine_name).toBe("Amoxicillin");
         expect(res.body.schedule.frequency).toBe(3);
     });
+
+    it("rejects an impossible time like 99:99", async () => {
+        const res = await request(app)
+            .post("/api/schedules")
+            .set("Authorization", "Bearer test-token")
+            .send({
+                medicine_name: "Amoxicillin",
+                dosage: "1 capsule",
+                frequency: 1,
+                times: ["99:99"],
+                start_date: "2026-06-10",
+            });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("Invalid request body");
+        expect(res.body.details.times).toBeDefined();
+    });
+
+    it("rejects an out-of-range time like 24:00", async () => {
+        const res = await request(app)
+            .post("/api/schedules")
+            .set("Authorization", "Bearer test-token")
+            .send({
+                medicine_name: "Amoxicillin",
+                dosage: "1 capsule",
+                frequency: 1,
+                times: ["24:00"],
+                start_date: "2026-06-10",
+            });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("Invalid request body");
+    });
+
+    it("rejects an impossible calendar date like 2026-02-31 for start_date", async () => {
+        const res = await request(app)
+            .post("/api/schedules")
+            .set("Authorization", "Bearer test-token")
+            .send({
+                medicine_name: "Amoxicillin",
+                dosage: "1 capsule",
+                frequency: 1,
+                times: ["08:00"],
+                start_date: "2026-02-31",
+            });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("Invalid request body");
+        expect(res.body.details.start_date).toBeDefined();
+    });
+
+    it("rejects an impossible calendar date for end_date", async () => {
+        const res = await request(app)
+            .post("/api/schedules")
+            .set("Authorization", "Bearer test-token")
+            .send({
+                medicine_name: "Amoxicillin",
+                dosage: "1 capsule",
+                frequency: 1,
+                times: ["08:00"],
+                start_date: "2026-06-01",
+                end_date: "2026-04-31",
+            });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("Invalid request body");
+        expect(res.body.details.end_date).toBeDefined();
+    });
+
+    it("rejects an end_date that is before start_date", async () => {
+        const res = await request(app)
+            .post("/api/schedules")
+            .set("Authorization", "Bearer test-token")
+            .send({
+                medicine_name: "Amoxicillin",
+                dosage: "1 capsule",
+                frequency: 1,
+                times: ["08:00"],
+                start_date: "2026-06-10",
+                end_date: "2026-06-01",
+            });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("Invalid request body");
+        expect(res.body.details.end_date).toBeDefined();
+    });
+
+    it("accepts an end_date equal to start_date", async () => {
+        const newSchedule = {
+            medicine_name: "Amoxicillin",
+            dosage: "1 capsule",
+            frequency: 1,
+            times: ["08:00"],
+            start_date: "2026-06-10",
+            end_date: "2026-06-10",
+        };
+        const createdSchedule = {
+            id: "sched-new",
+            user_id: "test-user-id",
+            ...newSchedule,
+            is_active: true,
+            created_at: "2026-06-10T00:00:00Z",
+            updated_at: "2026-06-10T00:00:00Z",
+        };
+
+        (mockedSupabase.from as jest.Mock).mockReturnValue(mockedSupabase);
+        (mockedSupabase.select as jest.Mock).mockReturnValue(mockedSupabase);
+        (mockedSupabase.insert as jest.Mock).mockReturnValue(mockedSupabase);
+        mockedSupabase.single.mockResolvedValue({ data: createdSchedule, error: null });
+
+        const res = await request(app)
+            .post("/api/schedules")
+            .set("Authorization", "Bearer test-token")
+            .send(newSchedule);
+
+        expect(res.status).toBe(201);
+    });
 });
 
 describe("GET /api/schedules/:id", () => {
@@ -270,6 +387,82 @@ describe("PUT /api/schedules/:id", () => {
 
         expect(res.status).toBe(200);
         expect(res.body.schedule.medicine_name).toBe("Ibuprofen (Updated)");
+    });
+
+    it("rejects an impossible time when updating times", async () => {
+        const res = await request(app)
+            .put("/api/schedules/00000000-0000-4000-8000-000000000001")
+            .set("Authorization", "Bearer test-token")
+            .send({ times: ["12:60"] });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("Invalid request body");
+    });
+
+    it("rejects when both start_date and end_date are provided with end before start", async () => {
+        const res = await request(app)
+            .put("/api/schedules/00000000-0000-4000-8000-000000000001")
+            .set("Authorization", "Bearer test-token")
+            .send({ start_date: "2026-06-10", end_date: "2026-06-01" });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("Invalid request body");
+        expect(res.body.details.end_date).toBeDefined();
+    });
+
+    it("rejects updating end_date to before the existing start_date already stored", async () => {
+        (mockedSupabase.from as jest.Mock).mockReturnValue(mockedSupabase);
+        (mockedSupabase.select as jest.Mock).mockReturnValue(mockedSupabase);
+        (mockedSupabase.eq as jest.Mock).mockReturnValue(mockedSupabase);
+        mockedSupabase.maybeSingle.mockResolvedValueOnce({
+            data: { start_date: "2026-06-05", end_date: null },
+            error: null,
+        });
+
+        const res = await request(app)
+            .put("/api/schedules/00000000-0000-4000-8000-000000000001")
+            .set("Authorization", "Bearer test-token")
+            .send({ end_date: "2026-06-01" });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("end_date must not be before start_date");
+    });
+
+    it("returns 404 when updating end_date but schedule does not exist", async () => {
+        (mockedSupabase.from as jest.Mock).mockReturnValue(mockedSupabase);
+        (mockedSupabase.select as jest.Mock).mockReturnValue(mockedSupabase);
+        (mockedSupabase.eq as jest.Mock).mockReturnValue(mockedSupabase);
+        mockedSupabase.maybeSingle.mockResolvedValueOnce({ data: null, error: null });
+
+        const res = await request(app)
+            .put("/api/schedules/00000000-0000-4000-8000-000000000001")
+            .set("Authorization", "Bearer test-token")
+            .send({ end_date: "2026-06-01" });
+
+        expect(res.status).toBe(404);
+    });
+
+    it("allows updating end_date when it is after the existing start_date", async () => {
+        (mockedSupabase.from as jest.Mock).mockReturnValue(mockedSupabase);
+        (mockedSupabase.select as jest.Mock).mockReturnValue(mockedSupabase);
+        (mockedSupabase.eq as jest.Mock).mockReturnValue(mockedSupabase);
+        (mockedSupabase.update as jest.Mock).mockReturnValue(mockedSupabase);
+        mockedSupabase.maybeSingle.mockResolvedValueOnce({
+            data: { start_date: "2026-06-05", end_date: null },
+            error: null,
+        });
+        mockedSupabase.single.mockResolvedValue({
+            data: { ...mockUpdatedSchedule, start_date: "2026-06-05", end_date: "2026-06-20" },
+            error: null,
+        });
+
+        const res = await request(app)
+            .put("/api/schedules/00000000-0000-4000-8000-000000000001")
+            .set("Authorization", "Bearer test-token")
+            .send({ end_date: "2026-06-20" });
+
+        expect(res.status).toBe(200);
+        expect(res.body.schedule.end_date).toBe("2026-06-20");
     });
 });
 
@@ -365,6 +558,36 @@ describe("POST /api/schedules/:id/doses", () => {
         expect(res.body.dose.status).toBe("taken");
     });
 
+    it("rejects logging a dose with an impossible log_date", async () => {
+        const res = await request(app)
+            .post("/api/schedules/00000000-0000-4000-8000-000000000001/doses")
+            .set("Authorization", "Bearer test-token")
+            .send({
+                log_date: "2026-02-31",
+                log_time: "08:00",
+                status: "taken",
+            });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("Invalid request body");
+        expect(res.body.details.log_date).toBeDefined();
+    });
+
+    it("rejects logging a dose with an impossible log_time", async () => {
+        const res = await request(app)
+            .post("/api/schedules/00000000-0000-4000-8000-000000000001/doses")
+            .set("Authorization", "Bearer test-token")
+            .send({
+                log_date: "2026-06-10",
+                log_time: "99:99",
+                status: "taken",
+            });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("Invalid request body");
+        expect(res.body.details.log_time).toBeDefined();
+    });
+
     it("invalidates all bucketed summary caches after logging a dose", async () => {
         (redisClient as any).isOpen = true;
         (redisClient.scanIterator as jest.Mock).mockReturnValue(
@@ -414,6 +637,24 @@ describe("POST /api/schedules/:id/doses", () => {
         expect(redisClient.del).toHaveBeenCalledWith(
             "schedules:summary:test-user-id:2026-06-10:97"
         );
+    });
+});
+
+describe("GET /api/schedules/:id/stats", () => {
+    it("rejects an impossible calendar date in the from query param", async () => {
+        const res = await request(app)
+            .get("/api/schedules/00000000-0000-4000-8000-000000000001/stats?from=2026-02-31&to=2026-03-01")
+            .set("Authorization", "Bearer test-token");
+
+        expect(res.status).toBe(400);
+    });
+
+    it("rejects an impossible calendar date in the to query param", async () => {
+        const res = await request(app)
+            .get("/api/schedules/00000000-0000-4000-8000-000000000001/stats?from=2026-03-01&to=2026-04-31")
+            .set("Authorization", "Bearer test-token");
+
+        expect(res.status).toBe(400);
     });
 });
 
@@ -585,6 +826,24 @@ describe("GET /api/schedules/today/summary", () => {
             expect.any(String),
             { EX: 300 }
         );
+    });
+
+    it("rejects an impossible calendar date passed as the date query parameter", async () => {
+        const res = await request(app)
+            .get("/api/schedules/today/summary?date=2026-02-31")
+            .set("Authorization", "Bearer test-token");
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("Invalid query parameters");
+    });
+
+    it("rejects an impossible time passed as the time query parameter", async () => {
+        const res = await request(app)
+            .get("/api/schedules/today/summary?time=99:99")
+            .set("Authorization", "Bearer test-token");
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("Invalid query parameters");
     });
 });
 

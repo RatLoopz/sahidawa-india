@@ -1,12 +1,12 @@
 from fastapi.testclient import TestClient
-from unittest.mock import patch, MagicMock
+from unittest.mock import AsyncMock, patch
 import pytest
 
 from main import app
 
 client = TestClient(app)
 
-@patch("routers.triage.run_triage_flow")
+@patch("routers.triage.run_triage_flow", new_callable=AsyncMock)
 def test_triage_chat_endpoint_success(mock_run_triage):
     # Mock triage result
     mock_run_triage.return_value = {
@@ -34,3 +34,4 @@ def test_triage_chat_endpoint_success(mock_run_triage):
     assert data["emergency"] is False
     assert data["language"] == "English"
     assert "onset" in data["details"]
+    mock_run_triage.assert_awaited_once()

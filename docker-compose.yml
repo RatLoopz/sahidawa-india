@@ -52,8 +52,10 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
-      - redis
-      - ml
+      redis:
+        condition: service_started
+      ml:
+        condition: service_healthy
 
 
   ml:
@@ -76,6 +78,12 @@ services:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   redis:
     image: redis:7-alpine

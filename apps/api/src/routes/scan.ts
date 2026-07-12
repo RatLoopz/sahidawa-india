@@ -273,8 +273,8 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
 
         try {
             const formData = new FormData();
-            const fileBuffer = fs.readFileSync(tempFilePath);
-            const blob = new Blob([new Uint8Array(fileBuffer)], {
+            const fileBuffer = await fs.promises.readFile(tempFilePath);
+            const blob = new Blob([fileBuffer], {
                 type: file.mimetype,
             });
             formData.append("file", blob, file.originalname);

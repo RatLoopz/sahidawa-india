@@ -18,6 +18,85 @@
  */
 
 import logger from "../utils/logger";
+import { z } from "zod";
+
+// Custom error classes for PM-JAY API integration
+export class PmjayError extends Error {
+    constructor(
+        message: string,
+        public status?: number
+    ) {
+        super(message);
+        this.name = "PmjayError";
+    }
+}
+
+export class PmjayConfigurationError extends PmjayError {
+    constructor(message: string) {
+        super(message, 500);
+        this.name = "PmjayConfigurationError";
+    }
+}
+
+export class PmjayAuthError extends PmjayError {
+    constructor(message: string) {
+        super(message, 401);
+        this.name = "PmjayAuthError";
+    }
+}
+
+export class PmjayTimeoutError extends PmjayError {
+    constructor(message: string) {
+        super(message, 504);
+        this.name = "PmjayTimeoutError";
+    }
+}
+
+export class PmjayValidationError extends PmjayError {
+    constructor(message: string) {
+        super(message, 502);
+        this.name = "PmjayValidationError";
+    }
+}
+
+export class PmjayUpstreamError extends PmjayError {
+    constructor(message: string, status: number) {
+        super(message, status);
+        this.name = "PmjayUpstreamError";
+    }
+}
+
+export class PmjayNetworkError extends PmjayError {
+    constructor(message: string) {
+        super(message, 502);
+        this.name = "PmjayNetworkError";
+    }
+}
+
+// Validation schemas for PM-JAY response structure
+const pmjaySchemeSchema = z.object({
+    scheme_name: z.string().min(1, "scheme_name must be a non-empty string"),
+    description: z
+        .string()
+        .nullish()
+        .transform((val) => val ?? ""),
+    coverage: z
+        .string()
+        .nullish()
+        .transform((val) => val ?? ""),
+    how_to_apply: z
+        .string()
+        .nullish()
+        .transform((val) => val ?? ""),
+    link: z
+        .string()
+        .nullish()
+        .transform((val) => val ?? "https://beneficiary.nha.gov.in/"),
+});
+
+const pmjayResponseSchema = z.object({
+    schemes: z.array(pmjaySchemeSchema),
+});
 
 /**
  * Kept in sync with the shape already used in routes/eligibility.ts.
@@ -112,72 +191,117 @@ async function fetchWithRetries(
 
 /**
  * Calls the PM-JAY eligibility endpoint, if configured.
- * Returns null if not configured, or if the call fails / is malformed.
+ * Throws structured errors if configured but the call fails.
  */
-async function fetchPmjayEligibility(
+export async function fetchPmjayEligibility(
     input: GovernmentEligibilityInput
-): Promise<EligibleScheme[] | null> {
+): Promise<EligibleScheme[]> {
     const baseUrl = process.env.PMJAY_BASE_URL;
     const apiKey = process.env.PMJAY_API_KEY;
 
     if (!baseUrl || !apiKey) {
-        // Not configured, this is expected until official access is granted.
-        return null;
+        throw new PmjayConfigurationError("PM-JAY API is not configured");
     }
 
-    try {
-        const res = await fetchWithRetries(
-            `${baseUrl.replace(/\/$/, "")}/eligibility`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${apiKey}`,
-                },
-                body: JSON.stringify({
-                    age: input.age,
-                    annual_income: input.annual_income,
-                    family_size: input.family_size,
-                    state: input.state,
-                    has_bpl_card: input.has_bpl_card,
-                    has_abha_id: input.has_abha_id,
-                }),
-            },
-            DEFAULT_TIMEOUT_MS,
-            MAX_RETRIES
-        );
+    const url = `${baseUrl.replace(/\/$/, "")}/eligibility`;
+    const init: RequestInit = {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+            age: input.age,
+            annual_income: input.annual_income,
+            family_size: input.family_size,
+            state: input.state,
+            has_bpl_card: input.has_bpl_card,
+            has_abha_id: input.has_abha_id,
+        }),
+    };
 
-        if (!res || !res.ok) {
-            logger.warn("PM-JAY eligibility call did not succeed", {
-                status: res?.status,
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+        try {
+            const res = await fetchWithTimeout(url, init, DEFAULT_TIMEOUT_MS);
+
+            if (res.status === 401 || res.status === 403) {
+                throw new PmjayAuthError(`Authentication failed with status ${res.status}`);
+            }
+
+            if (res.status >= 400 && res.status < 500 && res.status !== 408 && res.status !== 429) {
+                throw new PmjayUpstreamError(
+                    `Upstream API client error: ${res.statusText}`,
+                    res.status
+                );
+            }
+
+            if (res.status >= 500 || res.status === 408 || res.status === 429) {
+                if (attempt < MAX_RETRIES) {
+                    logger.warn("PM-JAY API returned transient error, retrying", {
+                        url,
+                        status: res.status,
+                        attempt,
+                    });
+                    continue;
+                }
+                throw new PmjayUpstreamError(
+                    `Upstream API returned status ${res.status}`,
+                    res.status
+                );
+            }
+
+            const data = await res.json().catch((jsonErr) => {
+                throw new PmjayValidationError(`Failed to parse response JSON: ${String(jsonErr)}`);
             });
-            return null;
+
+            const parsed = pmjayResponseSchema.safeParse(data);
+            if (!parsed.success) {
+                throw new PmjayValidationError(
+                    `Invalid API response format: ${parsed.error.message}`
+                );
+            }
+
+            return parsed.data.schemes.map((s) => ({
+                name: s.scheme_name,
+                description: s.description,
+                coverage: s.coverage,
+                how_to_apply: s.how_to_apply,
+                link: s.link,
+            }));
+        } catch (err: any) {
+            if (
+                err instanceof PmjayAuthError ||
+                err instanceof PmjayUpstreamError ||
+                err instanceof PmjayValidationError
+            ) {
+                throw err;
+            }
+
+            const isTimeout =
+                err.name === "AbortError" ||
+                (err instanceof DOMException && err.name === "AbortError");
+
+            if (isTimeout) {
+                if (attempt < MAX_RETRIES) {
+                    logger.warn("PM-JAY API call timed out, retrying", { url, attempt });
+                    continue;
+                }
+                throw new PmjayTimeoutError("PM-JAY API request timed out");
+            }
+
+            if (attempt < MAX_RETRIES) {
+                logger.warn("PM-JAY API call network error, retrying", {
+                    url,
+                    attempt,
+                    error: String(err),
+                });
+                continue;
+            }
+            throw new PmjayNetworkError(`Network request failed: ${err.message || String(err)}`);
         }
-
-        const data = await res.json().catch(() => null);
-        if (!data) {
-            logger.warn("PM-JAY eligibility response was not valid JSON");
-            return null;
-        }
-
-        // NOTE: this mapping is a best-effort guess at a plausible response
-        // shape. It must be revisited once real PM-JAY API docs are available;
-        // the field names below (schemes, scheme_name, etc.) are placeholders.
-        const rawSchemes = Array.isArray(data.schemes) ? data.schemes : [];
-
-        return rawSchemes.map((s: any) => ({
-            name: s.scheme_name ?? "Ayushman Bharat - PM-JAY",
-            description: s.description ?? "",
-            coverage: s.coverage ?? "",
-            how_to_apply: s.how_to_apply ?? "",
-            link: s.link ?? "https://beneficiary.nha.gov.in/",
-        }));
-    } catch (err) {
-        logger.error("Unexpected error calling PM-JAY eligibility API", {
-            error: String(err),
-        });
-        return null;
     }
+
+    throw new PmjayNetworkError("PM-JAY API call failed after all retries");
 }
 
 /**

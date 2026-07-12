@@ -6,7 +6,6 @@ import asyncio
 import uuid
 
 
-from starlette.concurrency import run_in_threadpool
 from services.triage_graph import run_triage_flow, clear_session
 from utils.rate_limiter import RateLimiter  
 
@@ -117,8 +116,8 @@ async def triage_chat(payload: TriageRequest):
                 f"Invoking triage flow for chat of length {len(messages_list)} "
                 f"(session_id={session_id})"
             )
-            result = await run_in_threadpool(
-                run_triage_flow, messages_list, locale=payload.locale, session_id=session_id
+            result = await run_triage_flow(
+                messages_list, locale=payload.locale, session_id=session_id
             )
             return TriageResponse(
                 response=result.get("response", ""),
@@ -153,7 +152,7 @@ async def triage_clear(payload: ClearSessionRequest):
     response simply reports cleared=False.
     """
     try:
-        cleared = await run_in_threadpool(clear_session, payload.session_id)
+        cleared = await clear_session(payload.session_id)
     except Exception as e:
         logging.error(f"Error clearing triage session '{payload.session_id}': {e}")
         raise HTTPException(

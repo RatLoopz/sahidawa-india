@@ -11,6 +11,11 @@ import services.triage_graph as triage_graph
 client = TestClient(app)
 
 
+@pytest.fixture
+def anyio_backend():
+    return "asyncio"
+
+
 class FakeRedis:
     """Minimal in-memory stand-in for the async Redis client used in tests."""
 
@@ -127,47 +132,45 @@ def test_clear_session_state_redis_error_returns_false(monkeypatch):
     assert asyncio.run(triage_graph._clear_session_state("session-y")) is False
 
 
-def test_clear_session_wrapper_runs_async_helper(monkeypatch):
+@pytest.mark.anyio
+async def test_clear_session_runs_async_helper(monkeypatch):
     fake_redis = FakeRedis()
     monkeypatch.setattr(triage_graph, "redis_client", fake_redis)
 
-    asyncio.run(
-        triage_graph._save_session_state(
-            "wrapper-session",
-            {
-                "language": "English",
-                "emergency_detected": False,
-                "collected_info": {},
-                "retrieved_medicines": [],
-            },
-        )
+    await triage_graph._save_session_state(
+        "wrapper-session",
+        {
+            "language": "English",
+            "emergency_detected": False,
+            "collected_info": {},
+            "retrieved_medicines": [],
+        },
     )
 
-    assert triage_graph.clear_session("wrapper-session") is True
-    assert triage_graph.clear_session("wrapper-session") is False
+    assert await triage_graph.clear_session("wrapper-session") is True
+    assert await triage_graph.clear_session("wrapper-session") is False
 
 
-def test_run_triage_flow_reuses_persisted_state(monkeypatch):
+@pytest.mark.anyio
+async def test_run_triage_flow_reuses_persisted_state(monkeypatch):
     fake_redis = FakeRedis()
     monkeypatch.setattr(triage_graph, "redis_client", fake_redis)
     monkeypatch.setattr(triage_graph, "LANGGRAPH_AVAILABLE", True)
 
     # Pre-populate a session with prior collected_info, as if turn 1 already ran.
-    asyncio.run(
-        triage_graph._save_session_state(
-            "session-continue",
-            {
-                "language": "English",
-                "emergency_detected": False,
-                "collected_info": {"onset": "yesterday", "severity": "unknown"},
-                "retrieved_medicines": [],
-            },
-        )
+    await triage_graph._save_session_state(
+        "session-continue",
+        {
+            "language": "English",
+            "emergency_detected": False,
+            "collected_info": {"onset": "yesterday", "severity": "unknown"},
+            "retrieved_medicines": [],
+        },
     )
 
     captured_initial_state = {}
 
-    def fake_invoke(initial_state):
+    async def fake_invoke(initial_state):
         captured_initial_state.update(initial_state)
         return {
             "response": "Got it, thanks.",
@@ -180,11 +183,11 @@ def test_run_triage_flow_reuses_persisted_state(monkeypatch):
         }
 
     fake_app = MagicMock()
-    fake_app.invoke.side_effect = fake_invoke
+    fake_app.ainvoke.side_effect = fake_invoke
     monkeypatch.setattr(triage_graph, "triage_app", fake_app)
 
     new_messages = [{"role": "user", "content": "it's also severe now"}]
-    result = triage_graph.run_triage_flow(new_messages, session_id="session-continue")
+    result = await triage_graph.run_triage_flow(new_messages, session_id="session-continue")
 
     # Prior turn's collected_info should have been rehydrated into the graph's
     # starting state instead of being lost.
@@ -194,14 +197,15 @@ def test_run_triage_flow_reuses_persisted_state(monkeypatch):
     assert result["response"] == "Got it, thanks."
 
 
-def test_run_triage_flow_missing_session_starts_fresh(monkeypatch):
+@pytest.mark.anyio
+async def test_run_triage_flow_missing_session_starts_fresh(monkeypatch):
     fake_redis = FakeRedis()
     monkeypatch.setattr(triage_graph, "redis_client", fake_redis)
     monkeypatch.setattr(triage_graph, "LANGGRAPH_AVAILABLE", True)
 
     captured_initial_state = {}
 
-    def fake_invoke(initial_state):
+    async def fake_invoke(initial_state):
         captured_initial_state.update(initial_state)
         return {
             "response": "Hello, how can I help?",
@@ -214,10 +218,10 @@ def test_run_triage_flow_missing_session_starts_fresh(monkeypatch):
         }
 
     fake_app = MagicMock()
-    fake_app.invoke.side_effect = fake_invoke
+    fake_app.ainvoke.side_effect = fake_invoke
     monkeypatch.setattr(triage_graph, "triage_app", fake_app)
 
-    result = triage_graph.run_triage_flow(
+    result = await triage_graph.run_triage_flow(
         [{"role": "user", "content": "hi"}], session_id="brand-new-or-expired-session"
     )
 
@@ -226,11 +230,48 @@ def test_run_triage_flow_missing_session_starts_fresh(monkeypatch):
     assert result["response"] == "Hello, how can I help?"
 
 
+@pytest.mark.anyio
+async def test_run_triage_flow_without_session_skips_persistence(monkeypatch):
+    monkeypatch.setattr(triage_graph, "LANGGRAPH_AVAILABLE", True)
+    load_session = AsyncMock()
+    save_session = AsyncMock()
+    monkeypatch.setattr(triage_graph, "_load_session_state", load_session)
+    monkeypatch.setattr(triage_graph, "_save_session_state", save_session)
+
+    final_state = {
+        "response": "How can I help?",
+        "emergency_detected": False,
+        "language": "English",
+        "final_summary": "",
+        "recommendations": [],
+        "disclaimer": "",
+        "collected_info": {},
+    }
+    fake_app = MagicMock()
+    fake_app.ainvoke = AsyncMock(return_value=final_state)
+    monkeypatch.setattr(triage_graph, "triage_app", fake_app)
+
+    result = await triage_graph.run_triage_flow([{"role": "user", "content": "hi"}])
+
+    load_session.assert_not_awaited()
+    save_session.assert_not_awaited()
+    fake_app.ainvoke.assert_awaited_once()
+    assert result == {
+        "response": "How can I help?",
+        "emergency": False,
+        "language": "English",
+        "summary": "",
+        "recommendations": [],
+        "disclaimer": "",
+        "details": {},
+    }
+
+
 # ---------------------------------------------------------------------------
 # routers.triage — endpoint-level tests
 # ---------------------------------------------------------------------------
 
-@patch("routers.triage.run_triage_flow")
+@patch("routers.triage.run_triage_flow", new_callable=AsyncMock)
 def test_triage_chat_generates_session_id_when_omitted(mock_run_triage):
     mock_run_triage.return_value = {
         "response": "How long have you had this pain?",
@@ -252,9 +293,10 @@ def test_triage_chat_generates_session_id_when_omitted(mock_run_triage):
     # The generated session_id should have been forwarded to run_triage_flow.
     _, kwargs = mock_run_triage.call_args
     assert kwargs["session_id"] == data["session_id"]
+    mock_run_triage.assert_awaited_once()
 
 
-@patch("routers.triage.run_triage_flow")
+@patch("routers.triage.run_triage_flow", new_callable=AsyncMock)
 def test_triage_chat_reuses_supplied_session_id(mock_run_triage):
     mock_run_triage.return_value = {
         "response": "Thanks, noted.",
@@ -278,9 +320,10 @@ def test_triage_chat_reuses_supplied_session_id(mock_run_triage):
 
     _, kwargs = mock_run_triage.call_args
     assert kwargs["session_id"] == "existing-session-123"
+    mock_run_triage.assert_awaited_once()
 
 
-@patch("routers.triage.clear_session")
+@patch("routers.triage.clear_session", new_callable=AsyncMock)
 def test_triage_clear_removes_existing_session(mock_clear):
     mock_clear.return_value = True
 
@@ -289,10 +332,10 @@ def test_triage_clear_removes_existing_session(mock_clear):
     assert response.status_code == 200
     data = response.json()
     assert data == {"session_id": "existing-session-123", "cleared": True}
-    mock_clear.assert_called_once_with("existing-session-123")
+    mock_clear.assert_awaited_once_with("existing-session-123")
 
 
-@patch("routers.triage.clear_session")
+@patch("routers.triage.clear_session", new_callable=AsyncMock)
 def test_triage_clear_unknown_session_reports_not_cleared(mock_clear):
     mock_clear.return_value = False
 
@@ -301,6 +344,7 @@ def test_triage_clear_unknown_session_reports_not_cleared(mock_clear):
     assert response.status_code == 200
     data = response.json()
     assert data == {"session_id": "never-existed", "cleared": False}
+    mock_clear.assert_awaited_once_with("never-existed")
 
 
 def test_triage_clear_requires_session_id():

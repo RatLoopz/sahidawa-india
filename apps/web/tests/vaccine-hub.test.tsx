@@ -240,6 +240,69 @@ describe("VaccineHubPage Integration Tests", () => {
         });
     });
 
+    it("rejects an impossible typed date like 31/02/2026 and does not use it for the schedule", async () => {
+        render(<VaccineHubPage />);
+
+        // Select vaccine
+        const selector = screen.getByRole("button", { name: /Select a vaccine/i });
+        await user.click(selector);
+
+        await waitFor(() => {
+            expect(screen.getAllByText(/Poliomyelitis/i)[0]).toBeInTheDocument();
+        });
+
+        const polioOption = screen.getAllByText(/Poliomyelitis/i)[0];
+        await user.click(polioOption);
+
+        // Type an impossible date: 31/02/2026 (February never has 31 days)
+        const dateInput = screen.getByLabelText(/birth date/i) as HTMLInputElement;
+        await user.type(dateInput, "31022026");
+
+        // The raw typed text is still shown to the user...
+        await waitFor(() => {
+            expect(dateInput.value).toBe("31/02/2026");
+        });
+
+        // ...but an inline validation error appears...
+        expect(screen.getByText("Please enter a valid date.")).toBeInTheDocument();
+        expect(dateInput).toHaveAttribute("aria-invalid", "true");
+
+        // ...and it must never be silently normalized (e.g. rolled over to March)
+        // or used to compute a dose schedule.
+        expect(screen.queryByText(/31 Feb 2026/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/3 Mar 2026/)).not.toBeInTheDocument();
+        expect(localStorage.getItem("vaccine-hub-initial-date")).toBeNull();
+    });
+
+    it("clears the invalid-date error once a real date is typed", async () => {
+        render(<VaccineHubPage />);
+
+        const selector = screen.getByRole("button", { name: /Select a vaccine/i });
+        await user.click(selector);
+
+        await waitFor(() => {
+            expect(screen.getAllByText(/Poliomyelitis/i)[0]).toBeInTheDocument();
+        });
+
+        const polioOption = screen.getAllByText(/Poliomyelitis/i)[0];
+        await user.click(polioOption);
+
+        const dateInput = screen.getByLabelText(/birth date/i) as HTMLInputElement;
+
+        // First, an impossible date
+        await user.type(dateInput, "31022026");
+        expect(screen.getByText("Please enter a valid date.")).toBeInTheDocument();
+
+        // Clear and type a real one
+        await user.type(dateInput, "");
+        await user.type(dateInput, "28022026");
+
+        await waitFor(() => {
+            expect(screen.queryByText("Please enter a valid date.")).not.toBeInTheDocument();
+            expect(screen.getByText(/28 Feb 2026/)).toBeInTheDocument();
+        });
+    });
+
     it("displays safety information", async () => {
         render(<VaccineHubPage />);
 

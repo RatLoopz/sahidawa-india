@@ -4,6 +4,23 @@ import { render, screen } from "@testing-library/react";
 
 import ProfilePage from "../app/[locale]/profile/page";
 
+jest.mock("next-intl", () => ({
+    useLocale: () => "en",
+    useTranslations: () => (key: string) => {
+        const translations: Record<string, string> = {
+            backToHome: "Back to Home",
+            checkingStatus: "Checking account status",
+            guestUser: "Guest User",
+            authenticatedAccount: "Authenticated account",
+            readingSession: "Reading your local session",
+            noAccountConnected: "No account connected",
+            signInRegister: "Sign In / Register",
+            signOut: "Sign Out",
+        };
+        return translations[key] ?? key;
+    },
+}));
+
 jest.mock("@/src/components/AuthProvider", () => ({
     useSession: () => ({
         session: null,

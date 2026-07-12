@@ -155,12 +155,12 @@ const inventoryRowSchema = z.object({
 });
 
 // Reusable incremental CSV parsing helper using PapaParse step mode
-async function parseCsvIncremental(fileContent: string, pharmacyId: string) {
+async function parseCsvIncremental(fileInput: string | NodeJS.ReadableStream, pharmacyId: string) {
     return new Promise<{
         rowsToInsert: any[];
         failedRows: Array<{ row: number; reason: string }>;
         totalRows: number;
-    }>((resolve) => {
+    }>((resolve, reject) => {
         const rowsToInsert: any[] = [];
         const failedRows: Array<{ row: number; reason: string }> = [];
         // csvRecordPos: increments for every row (including empty) — used for logical row numbering
@@ -168,7 +168,7 @@ async function parseCsvIncremental(fileContent: string, pharmacyId: string) {
         // nonEmptyDataRows: increments only for non-empty rows — used for totalRows and the row limit
         let nonEmptyDataRows = 0;
 
-        Papa.parse<Record<string, string>>(fileContent, {
+        Papa.parse<Record<string, string>>(fileInput as any, {
             header: true,
             // Do NOT skip empty lines so we can count them for correct row numbers
             skipEmptyLines: false,
@@ -221,6 +221,9 @@ async function parseCsvIncremental(fileContent: string, pharmacyId: string) {
             },
             complete: () => {
                 resolve({ rowsToInsert, failedRows, totalRows: nonEmptyDataRows });
+            },
+            error: (err) => {
+                reject(err);
             },
         });
     });
@@ -1230,7 +1233,10 @@ router.post(
 
         upload.single("file")(req, res, async (multerErr: unknown) => {
             if (multerErr) {
-                if (multerErr instanceof multer.MulterError && multerErr.code === "LIMIT_FILE_SIZE") {
+                if (
+                    multerErr instanceof multer.MulterError &&
+                    multerErr.code === "LIMIT_FILE_SIZE"
+                ) {
                     res.status(413).json({
                         error: `File size exceeds maximum allowed size of ${MAX_BULK_UPLOAD_FILE_SIZE_BYTES / 1024 / 1024}MB`,
                         maxSize: MAX_BULK_UPLOAD_FILE_SIZE_BYTES,
@@ -1274,9 +1280,33 @@ router.post(
                     return;
                 }
 
-                const fileContent = req.file.buffer.toString("utf-8").replace(/^\uFEFF/, "");
+                let buffer = req.file.buffer;
+                // Strip UTF-8 BOM if present (EF BB BF)
+                if (
+                    buffer.length >= 3 &&
+                    buffer[0] === 0xef &&
+                    buffer[1] === 0xbb &&
+                    buffer[2] === 0xbf
+                ) {
+                    buffer = buffer.subarray(3);
+                }
+
+                // Create a readable stream that chunks the buffer into 64KB pieces
+                // to prevent blocking the Node.js event loop during CSV parsing
+                const fileStream = new Readable({
+                    read(size) {
+                        const chunkSize = size || 64 * 1024;
+                        if (buffer.length === 0) {
+                            this.push(null);
+                        } else {
+                            this.push(buffer.subarray(0, chunkSize));
+                            buffer = buffer.subarray(chunkSize);
+                        }
+                    },
+                });
+
                 const { rowsToInsert, failedRows, totalRows } = await parseCsvIncremental(
-                    fileContent,
+                    fileStream,
                     pharmacyId
                 );
 
@@ -1294,7 +1324,9 @@ router.post(
 
                 let successfulInserts = 0;
                 if (rowsToInsert.length > 0) {
-                    const { error } = await supabase.from("pharmacy_inventory").insert(rowsToInsert);
+                    const { error } = await supabase
+                        .from("pharmacy_inventory")
+                        .insert(rowsToInsert);
                     if (error) {
                         logger.error(`Database bulk insertion failed: ${error.message}`);
                         res.status(500).json({
