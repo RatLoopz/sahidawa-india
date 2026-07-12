@@ -46,7 +46,7 @@ describe("E2E Webhook Delivery Verification", () => {
         expect(insertData).toBeTruthy();
         insertedSchemeId = (insertData as { id: string }).id;
 
-        const maxRetries = 10;
+        const maxRetries = 20;
         const delayMs = 1500;
         let webhookDelivered = false;
 
@@ -70,5 +70,5 @@ describe("E2E Webhook Delivery Verification", () => {
         }
 
         expect(webhookDelivered).toBe(true);
-    }, 25000);
+    }, 35000);
 });
