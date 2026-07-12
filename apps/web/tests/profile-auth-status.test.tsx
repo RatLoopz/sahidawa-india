@@ -1,5 +1,4 @@
-/** @jest-environment jsdom */
-
+import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -20,18 +19,29 @@ jest.mock("@/src/components/AuthProvider", () => ({
 
 jest.mock("next-intl", () => ({
     useLocale: () => "en",
-    useTranslations: () => (key: string) => {
-        const translations: Record<string, string> = {
+    useTranslations: () => {
+        const messages: Record<string, string> = {
             backToHome: "Back to Home",
+            title: "Your Profile",
+            subtitle: "Manage your account and medicine activity.",
             checkingStatus: "Checking account status",
             guestUser: "Guest User",
+            signedInUser: "Signed-in User",
             authenticatedAccount: "Authenticated account",
             readingSession: "Reading your local session",
             noAccountConnected: "No account connected",
+            errorTitle: "Failed to load profile",
+            errorDescription: "We couldn't read your session. Please try again or sign in.",
+            retry: "Retry",
+            signIn: "Sign In",
             signInRegister: "Sign In / Register",
             signOut: "Sign Out",
+            abhaSetup: "ABHA Setup",
+            abhaRecords: "ABHA Records",
+            notificationSettings: "Notification Settings",
+            privacySecurity: "Privacy & Security",
         };
-        return translations[key] ?? key;
+        return (key: string) => messages[key] ?? key;
     },
 }));
 

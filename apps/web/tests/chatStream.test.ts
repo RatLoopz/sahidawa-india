@@ -1,3 +1,13 @@
+import {
+    describe,
+    it,
+    expect,
+    jest,
+    beforeEach,
+    afterEach,
+    beforeAll,
+    afterAll,
+} from "@jest/globals";
 import { readChatErrorMessage, readTextResponseStream } from "../lib/chatStream";
 
 function streamFrom(chunks: string[]) {

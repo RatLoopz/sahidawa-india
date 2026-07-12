@@ -11,6 +11,16 @@ jobs:
     test-node-apps:
         name: 🧪 Build & Test Node.js Apps (Web & API)
         runs-on: ubuntu-latest
+        services:
+            redis:
+                image: redis:alpine
+                ports:
+                    - 6379:6379
+                options: >-
+                    --health-cmd "redis-cli ping"
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
         steps:
             - name: ⬇️ Checkout Code
               uses: actions/checkout@v7
@@ -157,14 +167,15 @@ jobs:
                   version: latest
 
             - name: 🚀 Verify Supabase Migrations
-              run: supabase start
+              run: |
+                  supabase start
+                  echo "SUPABASE_ANON_KEY=$(supabase status -o json | jq -r '.anon_key')" >> $GITHUB_ENV
+                  echo "SUPABASE_SERVICE_ROLE_KEY=$(supabase status -o json | jq -r '.service_role_key')" >> $GITHUB_ENV
 
             - name: 🧪 Run Webhook E2E Tests
               run: npx jest --config apps/api/jest.config.js apps/api/tests/e2e/webhook-delivery.test.ts --testPathIgnorePatterns "/node_modules/"
               env:
                   SUPABASE_URL: http://127.0.0.1:54321
-                  SUPABASE_ANON_KEY: test-anon-key
-                  SUPABASE_SERVICE_ROLE_KEY: test-service-role-key
 
             - name: 🛑 Shutdown Supabase Stack
               if: always()
