@@ -99,17 +99,16 @@ export default function ScanPage() {
         setVerifyError,
         setPendingVerifyResult,
         setShowLasaConfirmation,
-     handleVerify,
+    const {
+    handleVerify,
     processVerificationResult,
-} = useMedicineVerification(abortControllerRef, isMountedRef, setIsScanning, setShowResult, {
+  } = useMedicineVerification(abortControllerRef, isMountedRef, setIsScanning, setShowResult, {
+    queueBarcode,
     onQueued: (barcode: string) => {
-        const inputElement = document.getElementById("batch-input") as HTMLInputElement;
-        if (inputElement) {
-            inputElement.value = "";
-        }
-        toast.success("Scan captured offline! It will sync automatically when online.");
+      setBatchInput(barcode);
+      void refresh();
     },
-});
+  });
     const {
         uploadedImage,
         ocrText,
