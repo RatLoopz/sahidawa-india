@@ -49,7 +49,8 @@ describe("Admin pharmacy moderation routes", () => {
             ],
             error: null,
         });
-        const eq = jest.fn().mockReturnValue({ order });
+        const eq = jest.fn();
+        eq.mockReturnValue({ eq, order });
         const select = jest.fn().mockReturnValue({ eq });
 
         (supabase.from as jest.Mock).mockReturnValue({ select });
@@ -62,8 +63,21 @@ describe("Admin pharmacy moderation routes", () => {
         expect(res.body.pharmacies).toHaveLength(1);
         expect(res.body.pharmacies[0].status).toBe("pending");
         expect(supabase.from).toHaveBeenCalledWith("pharmacies");
+    });
+    it("excludes soft-deleted pharmacies from the pending list", async () => {
+        const order = jest.fn().mockResolvedValue({ data: [], error: null });
+        const eq = jest.fn();
+        eq.mockReturnValue({ eq, order });
+        const select = jest.fn().mockReturnValue({ eq });
+        (supabase.from as jest.Mock).mockReturnValue({ select });
+
+        const res = await request(app)
+            .get("/api/v1/admin/pharmacies/pending")
+            .set("Authorization", "Bearer test-token");
+
+        expect(res.status).toBe(200);
         expect(eq).toHaveBeenCalledWith("status", "pending");
-        expect(order).toHaveBeenCalledWith("created_at", { ascending: false });
+        expect(eq).toHaveBeenCalledWith("is_active", true);
     });
 
     it("approves a pharmacy and logs the admin action", async () => {

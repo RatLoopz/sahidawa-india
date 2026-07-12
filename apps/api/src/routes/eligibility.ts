@@ -7,7 +7,14 @@ const router = Router();
 import { z } from "zod";
 import { redisClient } from "../utils/redis";
 import { eligibilityLimiter } from "../middleware/rateLimit";
-import { fetchGovernmentEligibility } from "../services/governmentEligibility";
+import {
+    fetchPmjayEligibility,
+    PmjayAuthError,
+    PmjayTimeoutError,
+    PmjayValidationError,
+    PmjayUpstreamError,
+    PmjayNetworkError,
+} from "../services/governmentEligibility";
 
 const eligibilitySchema = z.object({
     age: z.number().int().min(0, "Age cannot be negative").optional().default(30),
@@ -91,37 +98,71 @@ router.post("/", eligibilityLimiter, async (req: Request, res: Response): Promis
         // isn't configured, or times out, we silently continue with the
         // existing Redis/Supabase + rule-based logic, so this is safe to
         // ship without breaking anything today.
-        try {
-            const govResults = await fetchGovernmentEligibility({
-                age,
-                annual_income: income,
-                family_size,
-                state: userState,
-                has_bpl_card,
-                has_abha_id,
-            });
+        const isPmjayConfigured = !!(process.env.PMJAY_BASE_URL && process.env.PMJAY_API_KEY);
+        if (isPmjayConfigured) {
+            try {
+                const eligible_schemes = await fetchPmjayEligibility({
+                    age,
+                    annual_income: income,
+                    family_size,
+                    state: userState,
+                    has_bpl_card,
+                    has_abha_id,
+                });
 
-            if (govResults && govResults.length > 0) {
-                const eligible_schemes = govResults.flatMap((r) => r.schemes);
-                logger.info("Returned eligibility from government API", {
-                    sources: govResults.map((r) => r.source),
+                logger.info("Returned eligibility from PM-JAY API", {
                     count: eligible_schemes.length,
                 });
                 res.status(200).json({ eligible_schemes });
                 return;
-            }
+            } catch (err: any) {
+                logger.error("Error calling PM-JAY eligibility service", {
+                    error: err.message || String(err),
+                    name: err.name,
+                });
 
-            logger.info(
-                "Government API returned no data or is not configured, falling back to rule engine"
-            );
-        } catch (govError) {
-            // Defensive: fetchGovernmentEligibility already catches its own
-            // errors and returns null, but if something unexpected still
-            // throws here, do not let it break the response. Just log and
-            // continue with the rule engine below.
-            logger.error("Unexpected error while calling government eligibility service", {
-                error: String(govError),
-            });
+                if (err instanceof PmjayAuthError) {
+                    res.status(401).json({
+                        error: "Authentication failed with PM-JAY API",
+                        details: err.message,
+                    });
+                    return;
+                }
+                if (err instanceof PmjayTimeoutError) {
+                    res.status(504).json({
+                        error: "PM-JAY API request timed out",
+                        details: err.message,
+                    });
+                    return;
+                }
+                if (err instanceof PmjayValidationError) {
+                    res.status(502).json({
+                        error: "Invalid response format from PM-JAY API",
+                        details: err.message,
+                    });
+                    return;
+                }
+                if (err instanceof PmjayUpstreamError) {
+                    res.status(502).json({
+                        error: `PM-JAY upstream error: ${err.message}`,
+                        details: err.message,
+                    });
+                    return;
+                }
+                if (err instanceof PmjayNetworkError) {
+                    res.status(502).json({
+                        error: "Network communication error with PM-JAY API",
+                        details: err.message,
+                    });
+                    return;
+                }
+
+                res.status(500).json({
+                    error: "Internal server error during eligibility check",
+                    details: err.message || String(err),
+                });
+                return;
+            }
         }
 
         const eligibleSchemes = [];

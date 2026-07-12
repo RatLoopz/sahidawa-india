@@ -413,15 +413,22 @@ router.post(
             }
 
             if (!isOwner && otp) {
+                const sends: Promise<unknown>[] = [];
                 if (channels.includes("sms")) {
-                    await smsService
-                        .sendOtp(formattedPhone, otp, language)
-                        .catch((e) => logger.error("SMS failed", e));
-                } else if (channels.includes("whatsapp")) {
-                    await whatsappService
-                        .sendOtp(formattedPhone, otp, language)
-                        .catch((e) => logger.error("WhatsApp failed", e));
+                    sends.push(
+                        smsService
+                            .sendOtp(formattedPhone, otp, language)
+                            .catch((e) => logger.error("SMS failed", e))
+                    );
                 }
+                if (channels.includes("whatsapp")) {
+                    sends.push(
+                        whatsappService
+                            .sendOtp(formattedPhone, otp, language)
+                            .catch((e) => logger.error("WhatsApp failed", e))
+                    );
+                }
+                await Promise.allSettled(sends);
             }
 
             res.status(201).json({ success: true, subscriber: result });
