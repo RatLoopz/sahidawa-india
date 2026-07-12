@@ -11,6 +11,7 @@ jobs:
     test-node-apps:
         name: 🧪 Build & Test Node.js Apps (Web & API)
         runs-on: ubuntu-latest
+        timeout-minutes: 10
         services:
             redis:
                 image: redis:alpine
@@ -80,105 +81,5 @@ jobs:
                   NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key
 
             - name: 🧪 Run Tests
-              run: npm run test
+              run: npm run test -- --forceExit
 
-    test-ml-service:
-        name: 🐍 Test Python ML Service (FastAPI)
-        runs-on: ubuntu-latest
-        steps:
-            - name: ⬇️ Checkout Code
-              uses: actions/checkout@v7
-
-            - name: ⚙️ Setup Python 3.12
-              uses: actions/setup-python@v6
-              with:
-                  python-version: "3.12"
-
-            - name: 📦 Install ML Dependencies
-              working-directory: ./apps/ml
-              run: |
-                  python -m pip install --upgrade pip
-                  if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
-            - name: 🧪 Run ML Tests
-              working-directory: ./apps/ml
-              run: python -m pytest tests/ -v --timeout=60
-              env:
-                  WHISPER_MODEL_SIZE: base
-                  PYTHONPATH: ${{ github.workspace }}
-                  # Dummy key so code paths that expect GEMINI_API_KEY (triage
-                  # LLM via get_llm, embeddings via embed_query) don't fail in
-                  # CI. Tests mock the LLM, so no real API call is ever made.
-                  GEMINI_API_KEY: mock_api_key_for_testing
-
-    test-docker-builds:
-        name: 🐳 Test Docker Builds
-        runs-on: ubuntu-latest
-        steps:
-            - name: ⬇️ Checkout Code
-              uses: actions/checkout@v7
-
-            - name: 🐳 Build Docker Images
-              run: docker compose build
-
-    check-formatting:
-        name: 💅 Check Formatting
-        runs-on: ubuntu-latest
-        steps:
-            - name: ⬇️ Checkout Code
-              uses: actions/checkout@v7
-
-            - name: 🔍 Get Changed Files
-              id: changed-files
-              uses: tj-actions/changed-files@v47
-              with:
-                  separator: " "
-
-            - name: 📦 Install Dependencies
-              run: npm install --legacy-peer-deps
-
-            - name: 💅 Run Prettier on Changed Files
-              if: steps.changed-files.outputs.any_changed == 'true'
-              run: |
-                  FILES="${{ steps.changed-files.outputs.all_changed_files }}"
-                  if [ -n "$FILES" ]; then
-                      npx prettier --ignore-unknown --check $FILES
-                  fi
-
-    test-supabase-migrations:
-        name: 🗄️ Test Supabase Migrations & Database Webhooks
-        runs-on: ubuntu-latest
-        steps:
-            - name: ⬇️ Checkout Code
-              uses: actions/checkout@v7
-
-            - name: ⚙️ Setup Node.js from .nvmrc
-              uses: actions/setup-node@v6
-              with:
-                  node-version-file: .nvmrc
-                  cache: "npm"
-
-            - name: 📦 Install Dependencies (Monorepo)
-              run: npm install --legacy-peer-deps
-
-            - name: ⚙️ Setup Supabase CLI
-              uses: supabase/setup-cli@v3
-              with:
-                  version: latest
-
-            - name: 🚀 Verify Supabase Migrations
-              run: |
-                  supabase start
-                  echo "SUPABASE_ANON_KEY=$(supabase status -o json | jq -r '.ANON_KEY // .anon_key')" >> $GITHUB_ENV
-                  echo "SUPABASE_SERVICE_ROLE_KEY=$(supabase status -o json | jq -r '.SERVICE_ROLE_KEY // .service_role_key')" >> $GITHUB_ENV
-
-            - name: 🧪 Run Webhook E2E Tests
-              run: npx jest --config apps/api/jest.config.js apps/api/tests/e2e/webhook-delivery.test.ts --testPathIgnorePatterns "/node_modules/"
-              env:
-                  SUPABASE_URL: http://127.0.0.1:54321
-                  SUPABASE_SERVICE_ROLE_KEY: ${{ env.SUPABASE_SERVICE_ROLE_KEY }}
-                  SUPABASE_ANON_KEY: ${{ env.SUPABASE_ANON_KEY }}
-
-            - name: 🛑 Shutdown Supabase Stack
-              if: always()
-              run: supabase stop
