@@ -34,6 +34,12 @@ describe("E2E Webhook Delivery Verification", () => {
 
         if (insertError) {
             console.error("Insert error:", insertError);
+            console.error("Error code:", insertError.code);
+            console.error("Error details:", {
+                message: insertError.message,
+                hint: (insertError as any).hint,
+                details: (insertError as any).details,
+            });
         }
 
         expect(insertError).toBeNull();
