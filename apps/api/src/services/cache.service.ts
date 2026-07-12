@@ -70,7 +70,7 @@ export async function warmCache(): Promise<void> {
 
         // Deduplicate medicines safely by 'id'
         const uniqueMeds = new Map<string, any>();
-        medicinesData.forEach((m) => uniqueMeds.set(m.id, m));
+        medicinesData.forEach((m: any) => uniqueMeds.set(m.id, m));
         const medicines = Array.from(uniqueMeds.values());
 
         logger.info(`Found ${medicines.length} medicine records to warm cache.`);
@@ -243,9 +243,9 @@ export async function invalidateDrugCache(drugIds: string[]): Promise<string[]> 
 
         if (data && data.length > 0) {
             const keysToDelete = data
-                .map((row) => row.batch_number)
+                .map((row: any) => row.batch_number)
                 .filter(Boolean)
-                .map((batch) => `${KEY_PREFIXES.DRUG_CACHE}${batch}`);
+                .map((batch: string) => `${KEY_PREFIXES.DRUG_CACHE}${batch}`);
 
             if (keysToDelete.length > 0) {
                 // Chunk DEL to avoid blocking the Redis event loop
@@ -347,7 +347,7 @@ export async function getCacheStats(): Promise<{
         const warmHits = parseInt(warmHitsStr ?? "0", 10);
         const coldHits = parseInt(coldHitsStr ?? "0", 10);
 
-        const topDrugs = rawTopDrugs.map((item) => ({
+        const topDrugs = rawTopDrugs.map((item: { value: string; score: number }) => ({
             name: item.value,
             count: item.score,
         }));
