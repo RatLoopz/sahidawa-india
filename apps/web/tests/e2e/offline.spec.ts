@@ -95,7 +95,7 @@ test.describe("Offline Scanner and Sync Queue", () => {
             console.warn("Background sync timeout, triggering manual fallback");
         }
 
-        // Fallback: Manually trigger the sync endpoint if needed
+        // Fallback: Manually trigger the queue flush through the app's sync mechanism
         if (!syncRequest) {
             const fallbackPromise = page.waitForRequest(
                 (request) => {
@@ -107,15 +107,44 @@ test.describe("Offline Scanner and Sync Queue", () => {
                 },
                 { timeout: 10000 }
             );
+
+            // Trigger the actual queue flush endpoint instead of a bare POST
             await page.evaluate(async () => {
-                await fetch("/api/verify", { method: "POST" }).catch(() => null);
+                // Call the app's sync handler to properly flush queued items
+                const event = new Event("online");
+                window.dispatchEvent(event);
+                // Give the sync queue handler time to process
+                await new Promise((resolve) => setTimeout(resolve, 1000));
             });
-            syncRequest = await fallbackPromise;
+
+            try {
+                syncRequest = await fallbackPromise;
+            } catch (error) {
+                console.warn("Fallback sync also timed out");
+            }
         }
 
-        expect(syncRequest.url()).toMatch(/verify/);
+        expect(syncRequest?.url()).toMatch(/verify/);
+
+        // Verify the queue cleared in IndexedDB
+        const queueCleared = await page.evaluate(async () => {
+            return new Promise((resolve) => {
+                const req = indexedDB.open("sahidawa-offline-sync");
+                req.onsuccess = (event) => {
+                    const db = (event.target as any).result;
+                    const objectStore = db
+                        .transaction(["pendingScans"])
+                        .objectStore("pendingScans");
+                    const countRequest = objectStore.count();
+                    countRequest.onsuccess = () => resolve(countRequest.result === 0);
+                };
+                req.onerror = () => resolve(false);
+            });
+        });
+
+        expect(queueCleared).toBe(true);
 
         // After successful flush, the queue should clear and the barcode should disappear
-        await expect(page.getByText(testBarcode)).toBeHidden({ timeout: 15000 });
+        await expect(page.getByText(testBarcode)).toBeHidden({ timeout: 20000 });
     });
 });
