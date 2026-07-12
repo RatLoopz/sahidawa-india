@@ -46,6 +46,7 @@ describe("MedicineSearchSelect", () => {
     });
 
     afterEach(() => {
+        jest.clearAllTimers();
         jest.useRealTimers();
     });
 

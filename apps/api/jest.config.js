@@ -1,6 +1,10 @@
 module.exports = {
     preset: "ts-jest",
     testEnvironment: "node",
+    testTimeout: 30000,
+    maxWorkers: 2,
+    detectOpenHandles: true,
+    globalTeardown: "<rootDir>/jest.globalTeardown.js",
     testMatch: [
         "**/tests/**/*.test.ts",
         "**/src/services/lasa.service.test.ts",

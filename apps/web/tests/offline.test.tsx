@@ -308,6 +308,7 @@ describe("Offline Support", () => {
             });
             expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 
+            jest.clearAllTimers();
             jest.useRealTimers();
         });
 

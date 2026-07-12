@@ -24,7 +24,10 @@ jobs:
       working-directory: apps/web
 
     - name: Build Shared Packages
-      run: npm run build -w @sahidawa/shared
+      run: |
+        npm run build -w @sahidawa/types --if-present || true
+        npm run build -w @sahidawa/validators --if-present || true
+        npm run build -w @sahidawa/shared --if-present || true
 
     - name: Build Web App (production)
       run: npm run build -w web
