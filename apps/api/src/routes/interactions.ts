@@ -6,6 +6,7 @@ import { escapePostgrest } from "../utils/db";
 import { uuidSchema } from "../utils/validation";
 import { interactionCheckLimiter, interactionIdsLimiter } from "../middleware/rateLimit";
 import { redisCache } from "../middleware/redisCache";
+import { cacheMiddleware } from "../middleware/cache";
 import zlib from "zlib";
 import { MAX_INTERACTION_MEDICINES } from "@sahidawa/shared";
 import { promises as fs } from "fs";
@@ -192,12 +193,16 @@ async function warmInteractionCache() {
 
 warmInteractionCache();
 
-setInterval(
+const cacheInterval = setInterval(
     () => {
         void warmInteractionCache();
     },
     24 * 60 * 60 * 1000
 );
+
+if (cacheInterval.unref) {
+    cacheInterval.unref();
+}
 
 function displayMedicineName(medicine: MedicineLookup): string {
     return medicine.brand_name?.trim() || medicine.generic_name;
@@ -368,7 +373,7 @@ router.get(
                 .filter((medicine): medicine is MedicineLookup => medicine != null);
 
             if (medicines.length < 2) {
-                res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+                cacheMiddleware(120, 300)({} as Request, res, () => {});
                 res.status(200).json({ interactions: [] });
                 return;
             }
@@ -419,7 +424,7 @@ router.get(
                 }
             }
 
-            res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+            cacheMiddleware(120, 300)({} as Request, res, () => {});
             res.status(200).json({ interactions });
         } catch (err) {
             const msg = err instanceof Error ? err.message : "Unknown error";

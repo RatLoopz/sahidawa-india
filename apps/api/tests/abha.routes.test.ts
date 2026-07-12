@@ -114,12 +114,14 @@ describe("POST /api/v1/abha/verify-otp", () => {
     it("rejects a malformed otp", async () => {
         const response = await request(app)
             .post("/api/v1/abha/verify-otp")
-            .send({ txnId: "txn-1", otp: "abc" });
+            .send({ txnId: "txn-1", otp: "abc", abhaAddress: "test@abdm" });
         expect(response.status).toBe(400);
     });
 
     it("rejects a missing txnId", async () => {
-        const response = await request(app).post("/api/v1/abha/verify-otp").send({ otp: "123456" });
+        const response = await request(app)
+            .post("/api/v1/abha/verify-otp")
+            .send({ otp: "123456", abhaAddress: "test@abdm" });
         expect(response.status).toBe(400);
     });
 
