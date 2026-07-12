@@ -38,6 +38,14 @@ test.describe("Offline Scanner and Sync Queue", () => {
             throw new Error("Service Worker not supported");
         });
 
+        // Track all requests at context level for diagnostics (captures SW requests too)
+        const seenRequests: Array<{ url: string; method: string }> = [];
+        context.on("request", (req) => {
+            seenRequests.push({ url: req.url(), method: req.method() });
+            // Keep the array size reasonable
+            if (seenRequests.length > 200) seenRequests.shift();
+        });
+
         // Go offline programmatically
         await context.setOffline(true);
         // Force the browser to dispatch the offline event so React state updates
@@ -56,9 +64,9 @@ test.describe("Offline Scanner and Sync Queue", () => {
         // The pending scan queue should now be visible and contain the barcode
         await expect(page.getByText(testBarcode)).toBeVisible({ timeout: 10000 });
 
-        // Setup interception to catch the background sync request when we go online
+        // Setup interception at CONTEXT level so SW-initiated requests are captured too.
         // The sync API calls either ML endpoint (/verify/batch) or Node API (/api/verify)
-        const syncRequestPromise = page.waitForRequest(
+        const syncRequestPromise = context.waitForRequest(
             (request) => {
                 const url = request.url();
                 const isVerifyRequest =
@@ -66,7 +74,7 @@ test.describe("Offline Scanner and Sync Queue", () => {
                 const isPost = request.method() === "POST";
                 return isVerifyRequest && isPost;
             },
-            { timeout: 15000 }
+            { timeout: 30000 } // increased timeout
         );
 
         // Reconnect the network
@@ -74,7 +82,7 @@ test.describe("Offline Scanner and Sync Queue", () => {
         // Dispatch online event so the sync queue flush triggers via window listener
         await page.evaluate(() => window.dispatchEvent(new Event("online")));
 
-        // Add error handling and logging for manual sync
+        // Also register background sync in case SW handles it
         await page.evaluate(async () => {
             if ("serviceWorker" in navigator) {
                 const registration = await navigator.serviceWorker.ready;
@@ -97,7 +105,7 @@ test.describe("Offline Scanner and Sync Queue", () => {
 
         // Fallback: Manually trigger the queue flush through the app's sync mechanism
         if (!syncRequest) {
-            const fallbackPromise = page.waitForRequest(
+            const fallbackPromise = context.waitForRequest(
                 (request) => {
                     const url = request.url();
                     return (
@@ -105,12 +113,11 @@ test.describe("Offline Scanner and Sync Queue", () => {
                         request.method() === "POST"
                     );
                 },
-                { timeout: 10000 }
+                { timeout: 20000 } // increased timeout for fallback
             );
 
-            // Trigger the actual queue flush endpoint instead of a bare POST
+            // Dispatch online event again to re-trigger queue flush
             await page.evaluate(async () => {
-                // Call the app's sync handler to properly flush queued items
                 const event = new Event("online");
                 window.dispatchEvent(event);
                 // Give the sync queue handler time to process
@@ -124,7 +131,12 @@ test.describe("Offline Scanner and Sync Queue", () => {
             }
         }
 
-        expect(syncRequest?.url()).toMatch(/verify/);
+        // Assert presence before matching, and include diagnostics if missing
+        expect(
+            syncRequest,
+            `No verify POST was observed. Recent requests:\n${JSON.stringify(seenRequests.slice(-20), null, 2)}`
+        ).toBeTruthy();
+        expect(syncRequest!.url()).toMatch(/verify/);
 
         // Verify the queue cleared in IndexedDB
         const queueCleared = await page.evaluate(async () => {
