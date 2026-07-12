@@ -1,9 +1,11 @@
 "use client";
 
-// TODO: Add offline queue logic
-
 import { MedicineSafetyPanel } from "@/components/medicine";
 import React, { useEffect, useState } from "react";
+import { useOfflineStatus } from "@/hooks/useOfflineStatus";
+import { usePendingSearchQueue } from "@/hooks/usePendingSearchQueue";
+import { addToSearchQueue } from "@/lib/db/searchQueue";
+import { PendingSearchQueue } from "@/components/SearchBar/PendingSearchQueue";
 import {
     Camera,
     Mic,
@@ -91,6 +93,32 @@ export default function SahiDawaHome() {
     const [loading, setLoading] = useState<boolean>(true);
     const [activeSearchQuery, setActiveSearchQuery] = useState<string>("");
 
+    const { isOffline } = useOfflineStatus();
+    const {
+        pendingSearches,
+        isSyncing,
+        isLoading: isSearchQueueLoading,
+        executingId,
+        execute: executeQueuedSearch,
+        refresh: refreshSearchQueue,
+    } = usePendingSearchQueue((query) => {
+        setActiveSearchQuery(query);
+    });
+
+    const handleSearchSubmit = async (query: string) => {
+        if (!query) {
+            setActiveSearchQuery("");
+            return;
+        }
+
+        if (isOffline) {
+            await addToSearchQueue(query);
+            await refreshSearchQueue();
+        } else {
+            setActiveSearchQuery(query);
+        }
+    };
+
     // 1. Define the predictive query layer
     const prefetchAlertsData = async () => {
         try {
@@ -169,7 +197,14 @@ export default function SahiDawaHome() {
 
                     {/* Search Bar */}
                     <div className="mx-auto w-full max-w-2xl pt-2">
-                        <SearchBar onSearchChange={(query) => setActiveSearchQuery(query)} />
+                        <PendingSearchQueue
+                            pending={pendingSearches}
+                            isSyncing={isSyncing}
+                            isLoading={isSearchQueueLoading}
+                            executingId={executingId}
+                            onExecute={executeQueuedSearch}
+                        />
+                        <SearchBar onSearchChange={handleSearchSubmit} />
                     </div>
 
                     {/* Medicine Safety Panel — shown inline on home page, NO redirect */}

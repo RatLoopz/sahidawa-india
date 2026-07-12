@@ -17,11 +17,13 @@ describe("E2E Webhook Delivery Verification", () => {
             .from("health_schemes")
             .insert([
                 {
-                    name: schemeName,
+                    state_name: "Test State",
+                    scheme_name: schemeName,
                     description:
                         "Temporary scheme created for CI/Staging E2E webhook delivery test verification.",
-                    coverage_details: { testId: testUUID },
-                    is_active: true,
+                    coverage: "Test coverage details",
+                    how_to_apply: "Test process",
+                    link: "http://example.com",
                 },
             ])
             .select()
@@ -39,7 +41,7 @@ describe("E2E Webhook Delivery Verification", () => {
             const { data: auditData, error: auditError } = await supabase
                 .from("webhook_logs")
                 .select("*")
-                .contains("payload", { coverage_details: { testId: testUUID } })
+                .contains("payload", { scheme_name: schemeName })
                 .maybeSingle();
 
             if (!auditError && auditData) {

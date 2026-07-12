@@ -71,7 +71,7 @@ jobs:
             #   (google-genai SDK not needed — we use requests for Gemini REST)
             # ─────────────────────────────────────────────────────────────────
             - name: "📥 Install Dependencies"
-              run: pip install requests pillow
+              run: pip install requests pillow google-genai
 
             # ─────────────────────────────────────────────────────────────────
             # Step 4: Collect ALL PR metadata and expose as environment vars.

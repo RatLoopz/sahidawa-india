@@ -29,10 +29,15 @@ async function processFullPipelineInWorker(
 ): Promise<Blob | File> {
     const requestId = `preprocess-${workerRequestSequence++}`;
     return new Promise((resolve, reject) => {
+        const cleanUp = () => {
+            worker.removeEventListener("message", handler);
+            worker.removeEventListener("error", errHandler);
+        };
+
         const handler = (event: MessageEvent) => {
             const data = event.data;
             if (data.id === requestId) {
-                worker.removeEventListener("message", handler);
+                cleanUp();
                 if (data.error) {
                     reject(new Error(data.error));
                 } else if (data.fallback) {
@@ -44,13 +49,12 @@ async function processFullPipelineInWorker(
                 }
             }
         };
-        worker.addEventListener("message", handler);
 
         const errHandler = (err: ErrorEvent) => {
-            worker.removeEventListener("error", errHandler);
-            worker.removeEventListener("message", handler);
+            cleanUp();
             reject(err);
         };
+        worker.addEventListener("message", handler);
         worker.addEventListener("error", errHandler);
 
         worker.postMessage({ id: requestId, file });
@@ -74,19 +78,31 @@ async function enhancePixelsOffThread(
         const requestId = `image-enhancement-${workerRequestSequence++}`;
 
         return await new Promise<Uint8ClampedArray>((resolve, reject) => {
+            const cleanUp = () => {
+                worker.removeEventListener("message", handler);
+                worker.removeEventListener("error", errHandler);
+            };
+
             const handler = (event: MessageEvent) => {
                 const data = event.data;
                 if (data.id === requestId) {
-                    worker.removeEventListener("message", handler);
+                    cleanUp();
                     if (data.error) {
                         reject(new Error(data.error));
                     } else if (data.pixels) {
                         resolve(new Uint8ClampedArray(data.pixels));
+                    } else {
+                        reject(new Error("Empty pixels returned"));
                     }
                 }
             };
-            worker.addEventListener("message", handler);
 
+            const errHandler = (err: ErrorEvent) => {
+                cleanUp();
+                reject(err);
+            };
+            worker.addEventListener("message", handler);
+            worker.addEventListener("error", errHandler);
             worker.postMessage(
                 {
                     id: requestId,
@@ -125,7 +141,9 @@ export async function preprocessMedicineImage(
     if (typeof input !== "string" && typeof Worker !== "undefined") {
         try {
             if (!workerToUse) {
-                workerToUse = new Worker("/workers/imageEnhancer.worker.js");
+                workerToUse = new Worker(
+                    new URL("./workers/imageEnhancer.worker.ts", import.meta.url)
+                );
                 isTempWorker = true;
             }
             const result = await processFullPipelineInWorker(input, workerToUse);
@@ -156,6 +174,7 @@ export async function preprocessMedicineImage(
                 const executionTimeoutTracker = setTimeout(() => {
                     img.onload = null;
                     img.onerror = null;
+                    img.src = "";
                     if (!isString) {
                         URL.revokeObjectURL(url);
                     }
@@ -274,10 +293,11 @@ export async function preprocessMedicineImage(
                 resolve(input);
             }
         });
-        cleanup();
         return result;
-    } catch {
-        cleanup();
+    } catch (err) {
+        console.error("Pipeline breakdown:", err);
         return input;
+    } finally {
+        cleanup();
     }
 }

@@ -12,8 +12,11 @@ load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
 
+PGVECTOR_MATCH_COUNT = int(os.getenv("PGVECTOR_MATCH_COUNT", "5"))
+PGVECTOR_DISTANCE_THRESHOLD = float(os.getenv("PGVECTOR_DISTANCE_THRESHOLD", "0.5"))
 
-def retrieve_relevant_medicines(query: str, limit: int = 5,) -> list[dict[str, Any]]:
+
+def retrieve_relevant_medicines(query: str, limit: int = PGVECTOR_MATCH_COUNT,) -> list[dict[str, Any]]:
     """
     Retrieve medicines from the existing pgvector index using
     the match_medicines RPC.
@@ -53,9 +56,12 @@ def retrieve_relevant_medicines(query: str, limit: int = 5,) -> list[dict[str, A
         "Content-Type": "application/json",
     }
 
+    similarity_threshold = 1.0 - PGVECTOR_DISTANCE_THRESHOLD
+
     payload = {
         "query_embedding": embedding,
         "match_count": limit,
+        "similarity_threshold": similarity_threshold,
     }
 
     try:
@@ -85,7 +91,21 @@ def retrieve_relevant_medicines(query: str, limit: int = 5,) -> list[dict[str, A
             len(medicines),
         )
 
-        return medicines
+        # Filter out results exceeding the distance threshold (safety net
+        # in case the RPC's similarity_threshold was not applied / differs).
+        filtered = [
+            m for m in medicines
+            if (1.0 - m.get("similarity", 0.0)) <= PGVECTOR_DISTANCE_THRESHOLD
+        ]
+
+        if len(filtered) < len(medicines):
+            logging.info(
+                "Filtered out %d result(s) exceeding PGVECTOR_DISTANCE_THRESHOLD=%.2f.",
+                len(medicines) - len(filtered),
+                PGVECTOR_DISTANCE_THRESHOLD,
+            )
+
+        return filtered
 
     except requests.RequestException:
         logging.exception("Network error while calling match_medicines RPC.")

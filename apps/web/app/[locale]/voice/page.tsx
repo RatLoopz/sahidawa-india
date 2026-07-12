@@ -639,13 +639,12 @@ export default function VoiceTriagePage() {
         setError(null);
 
         try {
-            const response = await fetch("/api/chat", {
+            const response = await fetch("/api/triage", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    mode: "voice-triage",
-                    responseLanguage: activeLanguageOption.responseLanguage,
-                    messages: [{ text: nextTranscript }],
+                    transcript: nextTranscript,
+                    language: activeLanguageOption.responseLanguage,
                 }),
             });
 

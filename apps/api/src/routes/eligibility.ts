@@ -13,7 +13,13 @@ const eligibilitySchema = z.object({
     age: z.number().int().min(0, "Age cannot be negative").optional().default(30),
     annual_income: z.number().min(0, "Income cannot be negative").optional().default(150000),
     family_size: z.number().int().min(1, "Family size must be at least 1").optional().default(4),
-    state: z.string().trim().optional().default(""),
+    state: z
+        .string()
+        .trim()
+        .max(80, "State name is too long")
+        .regex(/^[a-zA-Z\s'&-]*$/, "State name contains invalid characters")
+        .optional()
+        .default(""),
     has_bpl_card: z.boolean().optional().default(false),
     has_abha_id: z.boolean().optional().default(false),
 });

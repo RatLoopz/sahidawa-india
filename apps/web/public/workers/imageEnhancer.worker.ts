@@ -1,8 +1,8 @@
-function clampChannel(value) {
+function clampChannel(value: number): number {
     return Math.min(255, Math.max(0, value));
 }
 
-function rgbToHsl(red, green, blue) {
+function rgbToHsl(red: number, green: number, blue: number): [number, number, number] {
     const normalizedRed = red / 255;
     const normalizedGreen = green / 255;
     const normalizedBlue = blue / 255;
@@ -35,7 +35,7 @@ function rgbToHsl(red, green, blue) {
     return [hue / 6, saturation, lightness];
 }
 
-function hslToRgb(hue, saturation, lightness) {
+function hslToRgb(hue: number, saturation: number, lightness: number): [number, number, number] {
     if (saturation === 0) {
         const channel = lightness * 255;
         return [channel, channel, channel];
@@ -46,7 +46,7 @@ function hslToRgb(hue, saturation, lightness) {
             ? lightness * (1 + saturation)
             : lightness + saturation - lightness * saturation;
     const p = 2 * lightness - q;
-    const hueToChannel = (offset) => {
+    const hueToChannel = (offset: number) => {
         let channelHue = offset;
         if (channelHue < 0) channelHue += 1;
         if (channelHue > 1) channelHue -= 1;
@@ -63,7 +63,7 @@ function hslToRgb(hue, saturation, lightness) {
     ];
 }
 
-function applySelectiveSaturation(pixels) {
+function applySelectiveSaturation(pixels: Uint8ClampedArray): Uint8ClampedArray {
     const enhanced = new Uint8ClampedArray(pixels);
 
     for (let index = 0; index < enhanced.length; index += 4) {
@@ -92,7 +92,11 @@ function applySelectiveSaturation(pixels) {
     return enhanced;
 }
 
-function applyUnsharpMask(pixels, width, height) {
+function applyUnsharpMask(
+    pixels: Uint8ClampedArray,
+    width: number,
+    height: number
+): Uint8ClampedArray {
     if (width < 3 || height < 3) {
         return pixels;
     }
@@ -124,7 +128,10 @@ const PHOTO_CONTRAST_FILTER = 1.06;
 const DARK_IMAGE_BRIGHTNESS_FILTER = 1.08;
 const BRIGHT_IMAGE_BRIGHTNESS_FILTER = 0.94;
 
-function createImageEnhancementPlan(pixels) {
+function createImageEnhancementPlan(pixels: Uint8ClampedArray): {
+    filter: string;
+    shouldRunWorker: boolean;
+} {
     let extremeCount = 0;
     let sampleCount = 0;
     let sumLuminance = 0;
@@ -170,7 +177,8 @@ function createImageEnhancementPlan(pixels) {
     };
 }
 
-self.onmessage = async (event) => {
+const ctx: Worker = self as any;
+ctx.onmessage = async (event: MessageEvent) => {
     const { id, pixels, width, height, file } = event.data;
 
     try {
@@ -179,7 +187,7 @@ self.onmessage = async (event) => {
                 typeof OffscreenCanvas === "undefined" ||
                 typeof createImageBitmap === "undefined"
             ) {
-                self.postMessage({ id, fallback: true });
+                ctx.postMessage({ id, fallback: true });
                 return;
             }
 
@@ -199,51 +207,57 @@ self.onmessage = async (event) => {
             }
 
             const canvas = new OffscreenCanvas(targetWidth, targetHeight);
-            const ctx = canvas.getContext("2d");
-            if (!ctx) throw new Error("OffscreenCanvas 2D context initialization failed.");
+            const canvasContext = canvas.getContext("2d");
+            if (!canvasContext)
+                throw new Error("OffscreenCanvas 2D context initialization failed.");
 
-            ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+            canvasContext.drawImage(img, 0, 0, targetWidth, targetHeight);
 
-            let sampledImageData;
+            let sampledImageData: ImageData;
             try {
-                sampledImageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
+                sampledImageData = canvasContext.getImageData(0, 0, targetWidth, targetHeight);
             } catch {
                 const blob = await canvas.convertToBlob({ type: "image/webp", quality: 0.8 });
-                self.postMessage({ id, file: blob });
+                ctx.postMessage({ id, file: blob });
                 return;
             }
 
             const plan = createImageEnhancementPlan(sampledImageData.data);
 
             if (plan.filter !== "none") {
-                ctx.filter = plan.filter;
-                ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-                ctx.filter = "none";
+                canvasContext.filter = plan.filter;
+                canvasContext.drawImage(img, 0, 0, targetWidth, targetHeight);
+                canvasContext.filter = "none";
             }
 
             if (plan.shouldRunWorker) {
-                const filteredImageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
+                const filteredImageData = canvasContext.getImageData(
+                    0,
+                    0,
+                    targetWidth,
+                    targetHeight
+                );
                 const enhancedPixels = applyUnsharpMask(
                     applySelectiveSaturation(filteredImageData.data),
                     targetWidth,
                     targetHeight
                 );
                 filteredImageData.data.set(enhancedPixels);
-                ctx.putImageData(filteredImageData, 0, 0);
+                canvasContext.putImageData(filteredImageData, 0, 0);
             }
 
             const outBlob = await canvas.convertToBlob({ type: "image/webp", quality: 0.8 });
-            self.postMessage({ id, file: outBlob });
+            ctx.postMessage({ id, file: outBlob });
         } else if (pixels) {
             const enhancedPixels = applyUnsharpMask(
                 applySelectiveSaturation(pixels),
                 width,
                 height
             );
-            self.postMessage({ id, pixels: enhancedPixels }, [enhancedPixels.buffer]);
+            ctx.postMessage({ id, pixels: enhancedPixels }, [enhancedPixels.buffer]);
         }
-    } catch (error) {
-        self.postMessage({
+    } catch (error: any) {
+        ctx.postMessage({
             id,
             error: error instanceof Error ? error.message : "Image enhancement worker failed.",
         });

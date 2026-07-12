@@ -12,6 +12,35 @@ export const ExpiryTracker = ({ medicineId, medicineName }: ExpiryTrackerProps) 
     const [batchNumber, setBatchNumber] = useState("");
     const [expiryDate, setExpiryDate] = useState("");
     const [error, setError] = useState<string | null>(null);
+    const [remindMe, setRemindMe] = useState(false);
+
+    // Checks if the expiry date is within 30 days
+    const isExpiringWithin30Days = (dateStr: string): boolean => {
+        const selected = new Date(dateStr);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        selected.setHours(0, 0, 0, 0);
+
+        const diffTime = selected.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        return diffDays >= 0 && diffDays <= 30;
+    };
+
+    // Helper to trigger standard browser push notification
+    const triggerNotification = () => {
+        if (!("Notification" in window)) return;
+
+        if (Notification.permission === "granted") {
+            new Notification(t("notificationTitle", { defaultValue: "Medicine Expiry Reminder" }), {
+                body: t("notificationBody", {
+                    defaultValue: `${medicineName} is expiring within 30 days! Please check.`,
+                    name: medicineName,
+                }),
+                icon: "/icon.png",
+            });
+        }
+    };
 
     // Returns null when valid, or an error message key/string when invalid.
     const validate = (): string | null => {
@@ -65,6 +94,17 @@ export const ExpiryTracker = ({ medicineId, medicineName }: ExpiryTrackerProps) 
 
             if (response.ok) {
                 alert(t("success"));
+
+                if (remindMe && isExpiringWithin30Days(expiryDate)) {
+                    if (Notification.permission === "default") {
+                        const permission = await Notification.requestPermission();
+                        if (permission === "granted") {
+                            triggerNotification();
+                        }
+                    } else if (Notification.permission === "granted") {
+                        triggerNotification();
+                    }
+                }
             } else {
                 setError(t("error"));
             }
@@ -90,6 +130,32 @@ export const ExpiryTracker = ({ medicineId, medicineName }: ExpiryTrackerProps) 
                 className="w-full border p-2"
                 aria-invalid={!!error}
             />
+            <div className="my-2 flex items-center gap-2">
+                <input
+                    type="checkbox"
+                    id={`remind-${medicineId}`}
+                    checked={remindMe}
+                    onChange={async (e) => {
+                        const checked = e.target.checked;
+                        setRemindMe(checked);
+                        if (
+                            checked &&
+                            "Notification" in window &&
+                            Notification.permission === "default"
+                        ) {
+                            await Notification.requestPermission();
+                        }
+                    }}
+                />
+                <label
+                    htmlFor={`remind-${medicineId}`}
+                    className="cursor-pointer text-sm select-none"
+                >
+                    {t("remindMeLabel", {
+                        defaultValue: "Remind me when this expires (within 30 days)",
+                    })}
+                </label>
+            </div>
             <button onClick={handleTrack} className="mt-2 w-full bg-green-600 p-2 text-white">
                 {t("trackButton")}
             </button>

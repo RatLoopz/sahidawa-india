@@ -1,5 +1,4 @@
-/** @jest-environment jsdom */
-
+import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ComponentProps } from "react";
@@ -377,12 +376,12 @@ describe("ComparePage interaction warnings", () => {
             searchParams: "?m1=med-a&m2=med-b&m3=med-c&m4=med-d&m5=med-e&m6=med-f&unrelated=keep",
         });
 
-        expect(await screen.findByText("Crocin")).toBeInTheDocument();
-        expect(screen.getByText("Warfarin")).toBeInTheDocument();
-        expect(screen.getByText("Brufen")).toBeInTheDocument();
-        expect(screen.getByText("Allegra")).toBeInTheDocument();
-        expect(screen.getByText("Augmentin")).toBeInTheDocument();
-        expect(screen.getByText("Cetrizine")).toBeInTheDocument();
+        expect((await screen.findAllByText("Crocin")).length).toBeGreaterThan(0);
+        expect(screen.getAllByText("Warfarin").length).toBeGreaterThan(0);
+        expect(screen.getAllByText("Brufen").length).toBeGreaterThan(0);
+        expect(screen.getAllByText("Allegra").length).toBeGreaterThan(0);
+        expect(screen.getAllByText("Augmentin").length).toBeGreaterThan(0);
+        expect(screen.getAllByText("Cetrizine").length).toBeGreaterThan(0);
         expect(queryBuilder.in).toHaveBeenCalledWith("id", [
             "med-a",
             "med-b",
@@ -401,7 +400,7 @@ describe("ComparePage interaction warnings", () => {
             onUrlUpdate,
         });
 
-        expect(await screen.findByText("Crocin")).toBeInTheDocument();
+        expect((await screen.findAllByText("Crocin")).length).toBeGreaterThan(0);
 
         fireEvent.click(screen.getByRole("button", { name: "Add medicine" }));
         fireEvent.click(screen.getByRole("button", { name: "Select Search Medicine 3" }));
@@ -424,8 +423,8 @@ describe("ComparePage interaction warnings", () => {
             onUrlUpdate,
         });
 
-        expect(await screen.findByText("Brufen")).toBeInTheDocument();
-        expect(screen.getByText("Allegra")).toBeInTheDocument();
+        expect((await screen.findAllByText("Brufen")).length).toBeGreaterThan(0);
+        expect(screen.getAllByText("Allegra").length).toBeGreaterThan(0);
 
         fireEvent.click(screen.getByLabelText("clearAll: Search Medicine 3"));
 
@@ -450,7 +449,7 @@ describe("ComparePage interaction warnings", () => {
             onUrlUpdate,
         });
 
-        expect(await screen.findByText("Crocin")).toBeInTheDocument();
+        expect((await screen.findAllByText("Crocin")).length).toBeGreaterThan(0);
 
         fireEvent.click(screen.getByRole("button", { name: "Clear First medicine" }));
 

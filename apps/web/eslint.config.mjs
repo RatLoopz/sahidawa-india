@@ -24,6 +24,18 @@ const config = [
     {
         ignores: [".next/**", "out/**", "build/**", "next-env.d.ts"],
     },
+    {
+        files: ["tests/**/*.ts", "tests/**/*.tsx"],
+        rules: {
+            "@typescript-eslint/no-unused-vars": "off"
+        }
+    },
+    {
+        files: ["jest.env.cjs", "jest-transformer.cjs"],
+        rules: {
+            "@typescript-eslint/no-require-imports": "off"
+        }
+    }
 ];
 
 export default config;

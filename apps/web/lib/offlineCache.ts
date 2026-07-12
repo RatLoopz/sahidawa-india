@@ -21,5 +21,17 @@ export const getVerificationResults = (): ScanResult[] => {
     if (typeof window === "undefined") return [];
 
     const data = localStorage.getItem(CACHE_KEY);
-    return data ? JSON.parse(data) : [];
+    if (!data) return [];
+
+    try {
+        const parsed = JSON.parse(data);
+        if (!Array.isArray(parsed)) {
+            throw new Error("Cached scan history is not an array");
+        }
+        return parsed;
+    } catch (err) {
+        console.warn("[offlineCache] Corrupted scan history detected, clearing cache:", err);
+        localStorage.removeItem(CACHE_KEY);
+        return [];
+    }
 };

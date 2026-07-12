@@ -64,6 +64,32 @@ async def _save_session_state(session_id: str, state: Dict[str, Any]) -> None:
     except Exception:
         logging.exception("Failed to save triage session '%s' to Redis.", session_id)
 
+
+async def _clear_session_state(session_id: str) -> bool:
+    """Delete a session's persisted triage state from Redis.
+
+    Returns True if a stored session was removed, False if there was nothing
+    to clear (unknown/expired session_id) or the delete failed.
+    """
+    try:
+        removed = await redis_client.delete(_session_key(session_id))
+    except Exception:
+        logging.exception("Failed to clear triage session '%s' from Redis.", session_id)
+        return False
+
+    return bool(removed)
+
+
+def clear_session(session_id: str) -> bool:
+    """Synchronous wrapper around _clear_session_state for the API layer.
+
+    Mirrors how run_triage_flow drives the async session helpers via
+    asyncio.run, so callers running in a threadpool don't need their own
+    event loop plumbing.
+    """
+    return asyncio.run(_clear_session_state(session_id))
+
+
 # Check if LangChain and LangGraph are available
 try:
     from langchain_google_genai import ChatGoogleGenerativeAI

@@ -318,8 +318,32 @@ Quick start:
 
 ```bash
 cd apps/ml
+```
+
+### Unix/Linux/macOS
+
+```bash
 python -m venv venv
 source venv/bin/activate
+```
+
+### Windows PowerShell
+
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+```
+
+### Windows Command Prompt
+
+```bat
+python -m venv venv
+venv\Scripts\activate.bat
+```
+
+After activating the virtual environment, install the dependencies and start the service:
+
+```bash
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
@@ -367,7 +391,7 @@ sahidawa-india/
 │   ├── ISSUE_TEMPLATE/         # Bug report, feature request templates
 │   └── PULL_REQUEST_TEMPLATE.md
 ├── docker-compose.yml
-├── docker-compose.dev.yml
+├── docker-compose.prod.yml
 └── README.md
 ```
 

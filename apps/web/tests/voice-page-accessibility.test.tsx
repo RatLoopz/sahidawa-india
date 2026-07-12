@@ -1,6 +1,7 @@
 /**
  * @jest-environment jsdom
  */
+import { describe, it, expect, jest } from "@jest/globals";
 import { renderToStaticMarkup } from "react-dom/server";
 import LocaleLayout from "../app/[locale]/layout";
 import VoiceLayout from "../app/[locale]/voice/layout";

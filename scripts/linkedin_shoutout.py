@@ -342,13 +342,13 @@ def generate_post_with_gemini(pr: dict, tier_display: str, tier_desc: str) -> st
     contributor_name = get_contributor_name(pr['author'])
     system_prompt = (
         "You are the Open-Source Maintainer for SahiDawa, India's medicine safety platform. "
-        "Write a highly engaging, concise LinkedIn post that mixes a 'Technical Deep Dive' with a 'Community Spotlight'.\n\n"
+        "Write a highly engaging LinkedIn post that mixes a 'Technical Deep Dive' with a 'Community Spotlight'.\n\n"
         "CRITICAL RULES FOR TONE AND VARIABILITY:\n"
         "- Hook the reader immediately! Start with a bold statement or a question about the technical challenge.\n"
-        "- Tell a story: What was the problem? How did the contributor architect the solution? Why does it matter for 1.4 billion Indians relying on SahiDawa?\n"
+        "- Tell a story: What was the problem? How did the contributor architect the solution? Why does it matter for Indians relying on SahiDawa? Do not put it as it is, put your own words based on the context and git diff provided.\n"
         "- Be warm, appreciative, and celebrate the open-source community spirit (GSSoC).\n"
         "- Use short paragraphs (1-2 sentences) and professional emojis (🚀, 🛡️, ⚙️, 👏, 🔥) to make it highly readable and scroll-stopping.\n"
-        "- STRICT LENGTH LIMIT: Keep the entire post under 200 words. Do NOT write long essays.\n"
+        "- LENGTH & COMPLETENESS: Aim for around 150-200 words. You MUST finish your thoughts completely. Do not leave trailing sentences.\n"
         "- Do not use robotic templates. Weave the facts naturally.\n\n"
         "FRAMEWORK TO FOLLOW:\n"
         "1. The Scroll-Stopping Hook: E.g., 'Ever wondered how we handle X at scale? @Contributor just solved it for us...'\n"
@@ -410,98 +410,9 @@ def assemble_final_post(ai_content: str, pr: dict) -> str:
 # ─────────────────────────────────────────────────────────────────────────────
 # IMAGE GENERATION + LINKEDIN NATIVE IMAGE UPLOAD
 # ─────────────────────────────────────────────────────────────────────────────
-def generate_comic_prompt_with_gemini(pr: dict, api_key: str) -> str:
-    print("🧠 Generating dynamic visual prompt for the PR comic...")
-    system_prompt = (
-        "You are an expert technical illustrator creating prompts for an AI image generator (Imagen 3). "
-        "Your task is to take a GitHub Pull Request and design a whiteboard-style stickman comic prompt that explains the technical change with developer humor.\n\n"
-        "RULES FOR THE PROMPT YOU GENERATE:\n"
-        "1. Visual Style: Minimalist hand-drawn stickmen on a clean off-white whiteboard with subtle gray dot grid. No 3D, no neon, no gradients.\n"
-        "2. Characters: Create two stickmen representing concepts in the PR (e.g., 'Main Thread' vs 'Web Worker', 'Frontend' vs 'Database', 'Dev' vs 'Bug', 'Old API' vs 'New Cache'). Label them clearly.\n"
-        "3. Action: Show a funny interaction metaphor for the PR. For example, one struggling with heavy boxes while the other helps, or one throwing something away.\n"
-        "4. Speech Bubbles: Include short, witty developer humor in speech bubbles.\n"
-        "5. PR Card: The prompt MUST instruct the image generator to draw a GitHub PR card at the bottom containing exactly:\n"
-        f"   - {pr.get('repo', 'RatLoopz/sahidawa-india')}\n"
-        f"   - PR #{pr.get('number', '???')}\n"
-        f"   - Title: {pr.get('title', 'Unknown')}\n"
-        f"   - @{pr.get('author', 'contributor')}\n"
-        f"   - +{pr.get('additions', '?')} additions, −{pr.get('deletions', '?')} deletions, {pr.get('files_count', '?')} files\n"
-        "   - An arrow pointing to the contributor avatar saying 'this guy cooked 👨‍🍳'.\n"
-        "6. Format: Do NOT use markdown code blocks. Output ONLY the raw image generation prompt string."
-    )
-    user_prompt = f"PR Title: {pr.get('title', '')}\nPR Body: {pr.get('body', '')[:500]}\nGenerate the detailed image prompt."
-    
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={api_key}"
-    payload = {
-        "systemInstruction": {"parts": [{"text": system_prompt}]},
-        "contents": [{"parts": [{"text": user_prompt}]}],
-        "generationConfig": {"temperature": 0.7, "maxOutputTokens": 800},
-    }
-    
-    try:
-        resp = requests.post(url, headers={"Content-Type": "application/json"}, json=payload, timeout=30)
-        resp.raise_for_status()
-        text = resp.json().get("candidates", [])[0].get("content", {}).get("parts", [])[0].get("text", "").strip()
-        if len(text) > 50:
-            # Clean up potential markdown formatting
-            text = text.replace("```text", "").replace("```prompt", "").replace("```", "").strip()
-            return text
-    except Exception as e:
-        print(f"⚠️ Dynamic prompt generation failed: {e}")
-    
-    # Generic fallback prompt
-    return f"""A clean, minimal, professional LinkedIn engineering micro-comic on a whiteboard background.
-Two simple stickmen developers interacting. One is struggling with heavy technical debt, the other provides a solution.
-Include speech bubbles with developer humor.
-At the bottom, draw a GitHub PR card exactly like this:
-RatLoopz/sahidawa-india
-PR #{pr.get('number', '???')}
-{pr.get('title', 'Unknown')}
-@{pr.get('author', 'contributor')}
-+{pr.get('additions', '?')} additions, −{pr.get('deletions', '?')} deletions
-Draw an arrow pointing to the contributor's avatar that says "this guy cooked 👨‍🍳".
-"""
 
-def generate_and_upload_image(pr: dict, access_token: str, org_urn: str) -> str | None:
-    """
-    1. Call Gemini API (Imagen 3) to generate the comic PNG.
-    2. Upload it natively to LinkedIn via Assets API.
-    Returns the image asset URN on success, or None on any failure.
-    """
-    comic_path = "/tmp/pr_comic.png"
-    api_key = get_env_or_exit("GEMINI_API_KEY")
-    
-    prompt = generate_comic_prompt_with_gemini(pr, api_key)
-
-    # Step 1 — Generate comic via Gemini Imagen API
-    print("🎨 Requesting engineering comic from Gemini API...")
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key={api_key}"
-    payload = {
-        "instances": [{"prompt": prompt}],
-        "parameters": {
-            "sampleCount": 1,
-            "aspectRatio": "16:9"
-        }
-    }
-    try:
-        resp = requests.post(url, headers={"Content-Type": "application/json"}, json=payload, timeout=60)
-        resp.raise_for_status()
-        data = resp.json()
-        
-        # Write binary image to /tmp
-        import base64
-        b64_img = data["predictions"][0]["bytesBase64Encoded"]
-        with open(comic_path, "wb") as f:
-            f.write(base64.b64decode(b64_img))
-        print("✅ Imagen generated comic successfully.")
-    except Exception as e:
-        print(f"⚠️ Imagen API generation failed: {e}")
-        if 'resp' in locals():
-            print(f"Response: {resp.text[:500]}")
-        return None
-
-    # Step 2 — Register upload with LinkedIn
-    print("📤 Registering image upload with LinkedIn...")
+def _upload_asset_to_linkedin(file_path: str, access_token: str, org_urn: str) -> str | None:
+    print(f"📤 Registering image upload for {file_path}...")
     register_url = "https://api.linkedin.com/v2/assets?action=registerUpload"
     register_payload = {
         "registerUploadRequest": {
@@ -524,15 +435,13 @@ def generate_and_upload_image(pr: dict, access_token: str, org_urn: str) -> str 
         reg_data = reg_resp.json()
         upload_url = reg_data["value"]["uploadMechanism"]["com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"]["uploadUrl"]
         asset_urn  = reg_data["value"]["asset"]
-        print(f"✅ Upload URL acquired. Asset URN: {asset_urn}")
     except Exception as e:
-        print(f"⚠️  LinkedIn asset registration failed: {e}")
+        print(f"⚠️ LinkedIn asset registration failed for {file_path}: {e}")
         return None
 
-    # Step 3 — Upload the PNG binary
-    print("📤 Uploading comic PNG to LinkedIn...")
+    print(f"📤 Uploading binary {file_path} to LinkedIn...")
     try:
-        with open(comic_path, "rb") as f:
+        with open(file_path, "rb") as f:
             upload_resp = requests.put(
                 upload_url,
                 data=f,
@@ -544,11 +453,49 @@ def generate_and_upload_image(pr: dict, access_token: str, org_urn: str) -> str 
             )
         if upload_resp.status_code not in (200, 201):
             raise RuntimeError(f"Upload returned {upload_resp.status_code}: {upload_resp.text[:200]}")
-        print("✅ Comic image uploaded successfully.")
+        print(f"✅ Image {file_path} uploaded successfully.")
         return asset_urn
     except Exception as e:
-        print(f"⚠️  Image binary upload failed: {e}")
+        print(f"⚠️ Image binary upload failed for {file_path}: {e}")
         return None
+
+def generate_and_upload_image(pr: dict, access_token: str, org_urn: str) -> str | None:
+    """
+    1. Fetches the clean GitHub PR OpenGraph image.
+    2. Crops the bottom language bar.
+    Returns the single URN for the LinkedIn post.
+    """
+    from PIL import Image
+    import io
+    
+    final_path = "/tmp/pr_final.png"
+    
+    # Step 1 — Fetch GitHub PR Image
+    print("📥 Fetching real GitHub PR Image...")
+    repo = os.environ.get('GITHUB_REPOSITORY', 'RatLoopz/sahidawa-india')
+    pr_number = pr.get('number')
+    og_url = f"https://opengraph.githubassets.com/1/{repo}/pull/{pr_number}"
+    
+    import time
+    for attempt in range(3):
+        try:
+            og_resp = requests.get(og_url, timeout=30)
+            if og_resp.status_code == 429:
+                print(f"⚠️ GitHub 429 Rate Limit. Waiting 2s...")
+                time.sleep(2)
+                continue
+            og_resp.raise_for_status()
+            pr_img = Image.open(io.BytesIO(og_resp.content)).convert("RGB")
+            # Crop the bottom 25px language bar
+            pr_card_img = pr_img.crop((0, 0, pr_img.width, pr_img.height - 25))
+            pr_card_img.save(final_path, format="PNG")
+            print("✅ GitHub PR Image downloaded and cropped successfully.")
+            return _upload_asset_to_linkedin(final_path, access_token, org_urn)
+        except Exception as e:
+            print(f"⚠️ GitHub fetch attempt {attempt} failed: {e}")
+            time.sleep(2)
+            
+    return None
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -559,11 +506,11 @@ def post_to_linkedin(post_text: str, pr: dict) -> None:
     org_id       = get_env_or_exit("LINKEDIN_ORG_ID")
     org_urn      = f"urn:li:organization:{org_id}"
 
-    # Try to generate + upload the comic image
+    # Try to generate + upload the stitched image
     image_urn = generate_and_upload_image(pr, access_token, org_urn)
 
     if image_urn:
-        # Post with native uploaded image (looks like the whiteboard comic)
+        # Post with native uploaded image
         share_content = {
             "shareCommentary":   {"text": post_text},
             "shareMediaCategory": "IMAGE",
@@ -574,7 +521,7 @@ def post_to_linkedin(post_text: str, pr: dict) -> None:
                 "title": {"text": f"PR #{pr.get('number','?')} — {pr.get('title','')}"}
             }]
         }
-        print("📸 Posting with native comic image...")
+        print("📸 Posting with native stitched image...")
     else:
         # Fallback: use real PR URL so LinkedIn scrapes the GitHub OpenGraph card
         print("↩️  Falling back to GitHub OpenGraph link preview...")

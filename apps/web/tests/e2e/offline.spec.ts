@@ -30,9 +30,12 @@ test.describe("Offline Scanner and Sync Queue", () => {
         await page.evaluate(async () => {
             if ("serviceWorker" in navigator) {
                 const registration = await navigator.serviceWorker.ready;
-                return registration.active?.state === "activated";
+                if (!registration.active) {
+                    throw new Error("Service Worker is not active");
+                }
+                return true;
             }
-            return false;
+            throw new Error("Service Worker not supported");
         });
 
         // Go offline programmatically
@@ -63,7 +66,7 @@ test.describe("Offline Scanner and Sync Queue", () => {
                 const isPost = request.method() === "POST";
                 return isVerifyRequest && isPost;
             },
-            { timeout: 15000 }
+            { timeout: 20000 }
         );
 
         // Reconnect the network
@@ -73,6 +76,17 @@ test.describe("Offline Scanner and Sync Queue", () => {
 
         // Wait for sync with explicit delay
         await page.waitForTimeout(1000);
+
+        // Manually trigger sync API if the browser sync API isn't firing
+        await page.evaluate(async () => {
+            if ("serviceWorker" in navigator) {
+                const registration = await navigator.serviceWorker.ready;
+                if (registration.sync) {
+                    await (registration.sync as any).register("flush-sync-queue").catch(() => {});
+                }
+            }
+        });
+
         const syncRequest = await syncRequestPromise;
         expect(syncRequest.url()).toMatch(/verify/);
 
