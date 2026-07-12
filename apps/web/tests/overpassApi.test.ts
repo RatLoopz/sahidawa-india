@@ -20,6 +20,7 @@ function createJsonResponse(body: unknown, ok = true, status = 200) {
 
 describe("overpassApi", () => {
     afterEach(() => {
+        jest.clearAllTimers();
         jest.useRealTimers();
         jest.restoreAllMocks();
     });

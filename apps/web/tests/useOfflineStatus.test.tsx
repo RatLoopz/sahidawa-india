@@ -59,6 +59,7 @@ describe("useOfflineStatus", () => {
 
         container.remove();
         jest.clearAllMocks();
+        jest.clearAllTimers();
         jest.useRealTimers();
 
         window.history.pushState({}, "", "/");

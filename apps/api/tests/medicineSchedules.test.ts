@@ -95,6 +95,8 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
     jest.restoreAllMocks();
 });
 

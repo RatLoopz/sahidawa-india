@@ -45,7 +45,8 @@ describe("GET /api/v1/interactions", () => {
     });
 
     it("should return Cache-Control header", async () => {
-        const response = await request(app).get("/api/v1/interactions?ids=med-1");
+        (supabase.in as jest.Mock).mockResolvedValueOnce({ data: [], error: null });
+        const response = await request(app).get(`/api/v1/interactions?ids=${MED_A_ID},${MED_B_ID}`);
 
         expect(response.headers["cache-control"]).toContain("public");
     });

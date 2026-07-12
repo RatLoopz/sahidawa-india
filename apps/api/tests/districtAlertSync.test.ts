@@ -82,6 +82,7 @@ describe("syncDistrictAlertTallies", () => {
     });
 
     afterEach(() => {
+        jest.clearAllTimers();
         jest.useRealTimers();
     });
 

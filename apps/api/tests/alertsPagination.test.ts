@@ -12,6 +12,7 @@ jest.mock("../src/db/client", () => {
         maybeSingle: jest.fn(),
         insert: jest.fn().mockReturnThis(),
         update: jest.fn().mockReturnThis(),
+        or: jest.fn().mockReturnThis(),
     };
     // Thenable for fire-and-forget updates
     chain.then = function (this: any, callback: Function) {
@@ -32,6 +33,11 @@ jest.mock("csrf-csrf", () => ({
         generateToken: () => "mocked-csrf-token",
     }),
 }));
+
+import crypto from "crypto";
+const testSecret = "key";
+const testSalt = "testsalt";
+const testHash = crypto.pbkdf2Sync(testSecret, testSalt, 100000, 64, "sha512").toString("hex");
 
 import { supabase } from "../src/db/client";
 
@@ -60,7 +66,13 @@ function mockSupabase(alerts: object[], totalCount: number, error: object | null
 
 function mockApiKeyValid() {
     getChain().maybeSingle.mockResolvedValue({
-        data: { id: "key-1", caller_name: "ML Agent", scopes: ["alerts:ingest"], is_active: true },
+        data: {
+            id: "valid",
+            user_id: "user-1",
+            scopes: ["alerts:ingest"],
+            key_salt: testSalt,
+            key_hash: testHash,
+        },
         error: null,
     });
 }
@@ -227,7 +239,7 @@ describe("POST /api/v1/alerts/ingest — API key authentication", () => {
 
         const res = await request(app)
             .post("/api/v1/alerts/ingest")
-            .set("x-api-secret", "invalid-key")
+            .set("x-api-secret", "invalid.key")
             .send({ alerts: [] });
 
         expect(res.status).toBe(401);
@@ -239,7 +251,7 @@ describe("POST /api/v1/alerts/ingest — API key authentication", () => {
 
         const res = await request(app)
             .post("/api/v1/alerts/ingest")
-            .set("x-api-secret", "some-key")
+            .set("x-api-secret", "some.key")
             .send({ alerts: [] });
 
         expect(res.status).toBe(500);
@@ -250,7 +262,7 @@ describe("POST /api/v1/alerts/ingest — API key authentication", () => {
 
         const res = await request(app)
             .post("/api/v1/alerts/ingest")
-            .set("x-api-secret", "valid-key")
+            .set("x-api-secret", "valid.key")
             .send({ alerts: "not-an-array" });
 
         expect(res.status).toBe(400);

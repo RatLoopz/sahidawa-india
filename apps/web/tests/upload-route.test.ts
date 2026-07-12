@@ -59,7 +59,7 @@ function buildRequest(
     const formData = new FormData();
     const fakeImageBytes = new Uint8Array([0xff, 0xd8, 0xff, 0x00]);
     const fileBlob = new Blob([fakeImageBytes], { type: fileType });
-    // @ts-ignore - JSDOM Blob might not have arrayBuffer
+    // @ts-expect-error - JSDOM Blob might not have arrayBuffer
     fileBlob.arrayBuffer = async () => fakeImageBytes.buffer;
     formData.append("file", fileBlob, "photo.jpg");
     for (const [key, value] of Object.entries(fields)) {
@@ -69,7 +69,7 @@ function buildRequest(
         method: "POST",
         body: formData,
     });
-    // @ts-ignore - bypass undici/JSDOM boundary header issue
+    // @ts-expect-error - bypass undici/JSDOM boundary header issue
     req.formData = async () => formData;
     if (headers) {
         const h = new Headers(headers);
