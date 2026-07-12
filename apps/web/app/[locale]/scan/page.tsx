@@ -99,17 +99,14 @@ export default function ScanPage() {
         setVerifyError,
         setPendingVerifyResult,
         setShowLasaConfirmation,
-       handleVerify,
+     handleVerify,
     processVerificationResult,
 } = useMedicineVerification(abortControllerRef, isMountedRef, setIsScanning, setShowResult, {
     onQueued: (barcode: string) => {
-        // Clear the input box
         const inputElement = document.getElementById("batch-input") as HTMLInputElement;
         if (inputElement) {
             inputElement.value = "";
         }
-        
-        // Use the react-hot-toast library that is already imported on Line 16
         toast.success("Scan captured offline! It will sync automatically when online.");
     },
 });
