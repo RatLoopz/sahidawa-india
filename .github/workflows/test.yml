@@ -53,4 +53,7 @@ jobs:
 
             - name: 🧪 Run Tests
               run: npm run test -- --forceExit
-
+              env:
+                  REDIS_URL: redis://localhost:6379
+                  NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+                  NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key
