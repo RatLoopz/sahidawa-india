@@ -877,3 +877,4 @@
 | [#3443](https://github.com/RatLoopz/sahidawa-india/pull/3443) | 2026-07-11 | Backend | 6 | @hrx01-dev | [View Doc](devtrack/2026-07/PR-3443-fix-sequential-per-batch-update-queries-in-medicin.md) |
 | [#3500](https://github.com/RatLoopz/sahidawa-india/pull/3500) | 2026-07-11 | Frontend | 24 | @Shreya-nipunge | [View Doc](devtrack/2026-07/PR-3500-feat-web-preserve-offline-search-history.md) / [ADR](devtrack/adr/ADR-049-feat-web-preserve-offline-search-history.md) |
 | [#3534](https://github.com/RatLoopz/sahidawa-india/pull/3534) | 2026-07-12 | Backend | 17 | @sureshsuriya | [View Doc](devtrack/2026-07/PR-3534-feat-api-implement-pm-jay-eligibility-api-integrat.md) / [ADR](devtrack/adr/ADR-050-feat-api-implement-pm-jay-eligibility-api-integrat.md) |
+| [#3524](https://github.com/RatLoopz/sahidawa-india/pull/3524) | 2026-07-12 | Backend | 9 | @mayurigade-hub | [View Doc](devtrack/2026-07/PR-3524-fix-validate-medicine-schedule-dates-and-times.md) |
