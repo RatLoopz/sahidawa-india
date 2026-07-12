@@ -106,7 +106,7 @@ export default function PharmaciesRegistryPage() {
     });
 
     // Client-side search filtering (fallback / interactive)
-    const filteredPharmacies = pharmacies.filter((p) => {
+    const filteredPharmacies = pharmacies.filter((p: Pharmacy) => {
         const query = searchQuery.toLowerCase();
         return (
             p.name.toLowerCase().includes(query) ||
