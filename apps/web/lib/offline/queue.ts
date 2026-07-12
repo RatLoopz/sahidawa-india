@@ -1,4 +1,4 @@
-import { getDB, type PendingScan } from "../../src/utils/offlineDb";
+import { getDB, type PendingScan } from "@/utils/offlineDb";
 
 export async function flushReports(): Promise<void> {
   const db = await getDB();
