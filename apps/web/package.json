@@ -9,7 +9,7 @@
         "build": "next build",
         "start": "next start",
         "lint": "eslint .",
-        "test": "cross-env NODE_OPTIONS=\"--experimental-vm-modules\" jest --config jest.config.cjs",
+        "test": "jest --config jest.config.cjs",
         "test:a11y:voice": "node scripts/voice-a11y-audit.mjs",
         "format": "prettier --write .",
         "format:check": "prettier --check ."

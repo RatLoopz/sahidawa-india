@@ -14,6 +14,7 @@
  *  8. Handles a non-ok API response without throwing (graceful failure).
  */
 
+import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -116,7 +117,7 @@ describe("ExpiryTracker component", () => {
         const trackBtn = screen.getByRole("button", { name: /track expiry/i });
 
         await user.type(batchInput, "B12345");
-        fireEvent.change(dateInput, { target: { value: "2025-12-31" } });
+        fireEvent.change(dateInput, { target: { value: "2099-12-31" } });
         await user.click(trackBtn);
 
         await waitFor(() => {
@@ -132,13 +133,18 @@ describe("ExpiryTracker component", () => {
             medicine_id: "med-001",
             medicine_name: "Paracetamol 500mg",
             batch_number: "B12345",
-            expiry_date: "2025-12-31",
+            expiry_date: "2099-12-31",
         });
     });
 
     it("sends the correct Content-Type header", async () => {
         const fetchMock = global.fetch as jest.Mock;
         const { user } = setup();
+
+        const batchInput = screen.getByPlaceholderText("Batch Number");
+        const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+        await user.type(batchInput, "B12345");
+        fireEvent.change(dateInput, { target: { value: "2099-12-31" } });
 
         await user.click(screen.getByRole("button", { name: /track expiry/i }));
 
@@ -156,6 +162,11 @@ describe("ExpiryTracker component", () => {
         );
         const { user } = setup();
 
+        const batchInput = screen.getByPlaceholderText("Batch Number");
+        const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+        await user.type(batchInput, "B12345");
+        fireEvent.change(dateInput, { target: { value: "2099-12-31" } });
+
         await user.click(screen.getByRole("button", { name: /track expiry/i }));
 
         await waitFor(() => {
@@ -168,6 +179,11 @@ describe("ExpiryTracker component", () => {
             makeJsonResponse({ error: "Bad request" }, false, 400)
         );
         const { user } = setup();
+
+        const batchInput = screen.getByPlaceholderText("Batch Number");
+        const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+        await user.type(batchInput, "B12345");
+        fireEvent.change(dateInput, { target: { value: "2099-12-31" } });
 
         await user.click(screen.getByRole("button", { name: /track expiry/i }));
 

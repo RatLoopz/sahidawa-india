@@ -1,3 +1,13 @@
+import {
+    describe,
+    it,
+    expect,
+    jest,
+    beforeEach,
+    afterEach,
+    beforeAll,
+    afterAll,
+} from "@jest/globals";
 import { fetchPharmacies } from "../app/[locale]/map/overpassApi";
 
 function createJsonResponse(body: unknown, ok = true, status = 200) {

@@ -13,6 +13,10 @@ const LOCK_KEY = "alert-broadcaster:lock";
 const LOCK_TTL_MS = 25_000; // slightly under the 30-second interval
 const LOCK_VALUE = `${process.env.HOSTNAME ?? "api"}:${process.pid}`;
 
+export const broadcastConfig = {
+    MARK_BROADCASTED_CHUNK_SIZE: 500,
+};
+
 export type AlertFrequency = "immediate" | "daily" | "weekly" | "monthly";
 
 /**
@@ -442,15 +446,14 @@ export async function broadcastExpiryAlerts(now: Date = new Date()): Promise<voi
             return;
         }
 
-        // Mark batches as broadcasted with chunked bulk updates instead of one
-        // UPDATE per batch. A single .in() request per chunk keeps this at
-        // O(N / CHUNK_SIZE) round-trips to Supabase instead of O(N), which
-        // matters once inventory grows into the thousands of expiring batches.
-        const MARK_BROADCASTED_CHUNK_SIZE = 500;
         const successfullyMarkedIds = new Set<string>();
 
-        for (let i = 0; i < expiringBatches.length; i += MARK_BROADCASTED_CHUNK_SIZE) {
-            const chunk = expiringBatches.slice(i, i + MARK_BROADCASTED_CHUNK_SIZE);
+        for (
+            let i = 0;
+            i < expiringBatches.length;
+            i += broadcastConfig.MARK_BROADCASTED_CHUNK_SIZE
+        ) {
+            const chunk = expiringBatches.slice(i, i + broadcastConfig.MARK_BROADCASTED_CHUNK_SIZE);
             const chunkIds = chunk.map((batch) => batch.id);
 
             const { error: markError } = await supabase

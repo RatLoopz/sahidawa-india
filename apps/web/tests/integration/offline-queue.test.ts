@@ -1,3 +1,13 @@
+import {
+    describe,
+    it,
+    expect,
+    jest,
+    beforeEach,
+    afterEach,
+    beforeAll,
+    afterAll,
+} from "@jest/globals";
 /**
  * @jest-environment jsdom
  */
@@ -120,7 +130,10 @@ describe("Offline Queue Integration", () => {
         window.dispatchEvent(new Event("online"));
 
         // Allow async event handlers to complete.
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        for (let i = 0; i < 10; i++) {
+            await new Promise((resolve) => setTimeout(resolve, 10));
+            if (fetchMock.mock.calls.length > 0) break;
+        }
 
         expect(fetchMock).toHaveBeenCalled();
 
