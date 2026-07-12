@@ -33,7 +33,7 @@ export async function queueBarcode(barcode: string): Promise<void> {
     
     getAllRequest.onsuccess = () => {
       const scans = getAllRequest.result as PendingScan[];
-      const existingScan = scans.find(s => s.barcode === barcode);
+      const existingScan = scans.find((s) => s.barcode === barcode);
 
       if (existingScan && existingScan.id !== undefined) {
         existingScan.timestamp = Date.now();
@@ -45,7 +45,7 @@ export async function queueBarcode(barcode: string): Promise<void> {
         const newScan: PendingScan = {
           barcode,
           timestamp: Date.now(),
-          scanCount: 1
+          scanCount: 1,
         };
         const addRequest = store.add(newScan);
         addRequest.onsuccess = () => resolve();
