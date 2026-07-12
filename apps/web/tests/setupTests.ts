@@ -99,3 +99,8 @@ if (typeof HTMLCanvasElement !== "undefined" && !HTMLCanvasElement.prototype.toB
         }
     };
 }
+
+// Polyfill scrollIntoView for JSDOM
+if (typeof window !== "undefined" && window.Element) {
+    window.Element.prototype.scrollIntoView = () => {};
+}

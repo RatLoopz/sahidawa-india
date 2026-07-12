@@ -17,11 +17,9 @@ import re
 import json
 import requests
 import traceback
+import subprocess
 from datetime import datetime, timedelta, timezone
-try:
-    from supabase import create_client, Client
-except ImportError:
-    pass # Will be handled by requirements/setup
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PROJECT CONFIG — Edit these to change branding
@@ -49,16 +47,20 @@ def get_env_or_exit(key: str) -> str:
 
 def get_pr_metadata() -> dict:
     return {
-        "title": get_env_or_exit("PR_TITLE"),
-        "author": get_env_or_exit("PR_AUTHOR"),
-        "author_avatar": os.environ.get("PR_AUTHOR_AVATAR", ""),
-        "url": get_env_or_exit("PR_URL"),
-        "number": os.environ.get("PR_NUMBER", "N/A"),
-        "labels": os.environ.get("PR_LABELS", ""),
-        "body": os.environ.get("PR_BODY", "").strip()[:500],
-        "repo": os.environ.get("PR_REPO", "RatLoopz/sahidawa-india"),
-        "lines_changed": os.environ.get("PR_LINES_CHANGED", "0"),
-        "diff": os.environ.get("PR_GIT_DIFF", ""),
+        "title":          get_env_or_exit("PR_TITLE"),
+        "author":         get_env_or_exit("PR_AUTHOR"),
+        "author_avatar":  os.environ.get("PR_AUTHOR_AVATAR", ""),
+        "url":            get_env_or_exit("PR_URL"),
+        "number":         os.environ.get("PR_NUMBER", "N/A"),
+        "labels":         os.environ.get("PR_LABELS", ""),
+        "body":           os.environ.get("PR_BODY", "").strip()[:500],
+        "repo":           os.environ.get("PR_REPO", "RatLoopz/sahidawa-india"),
+        "lines_changed":  os.environ.get("PR_LINES_CHANGED", "0"),
+        "diff":           os.environ.get("PR_GIT_DIFF", ""),
+        "additions":      os.environ.get("PR_ADDITIONS", "?"),
+        "deletions":      os.environ.get("PR_DELETIONS", "?"),
+        "files_count":    os.environ.get("PR_FILES_COUNT", "?"),
+        "commits_count":  os.environ.get("PR_COMMITS_COUNT", "?"),
     }
 
 
@@ -249,43 +251,42 @@ def get_contributor_name(github_username: str) -> str:
     return github_username
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# SUPABASE INITIALIZATION & STATE MANAGEMENT
-# ─────────────────────────────────────────────────────────────────────────────
-def get_supabase_client():
-    url = os.environ.get("SUPABASE_URL")
-    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-    if not url or not key:
-        print("⚠️ Missing Supabase credentials. Continuing without state persistence.")
-        return None
-    return create_client(url, key)
 
-def get_shoutout_record(db, pr_number: int):
-    if not db:
-        return None
-    try:
-        response = db.table('linkedin_shoutouts').select('*').eq('pr_number', pr_number).execute()
-        if response.data:
-            return response.data[0]
-    except Exception as e:
-        print(f"⚠️ DB Error fetching record: {e}")
-    return None
-
-def upsert_shoutout_record(db, record: dict):
-    if not db:
-        return
-    try:
-        db.table('linkedin_shoutouts').upsert(record).execute()
-    except Exception as e:
-        print(f"⚠️ DB Error upserting record: {e}")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # CONTENT GENERATION
 # ─────────────────────────────────────────────────────────────────────────────
 def _static_fallback(pr: dict, tier_display: str) -> str:
     contributor_name = get_contributor_name(pr['author'])
+    pr_url = pr.get('url', 'N/A')
+    
     templates = [
-        "A huge shoutout to {name} for landing an outstanding {tier_display} contribution! 🚀\n\nThey just merged PR #{number}: \"{title}\".\n\nConnect with {name}: {linkedin_url}\n\nExplore the repository: {github_url}",
+        # Template 1: Direct Technical
+        "PR #{number} (\"{title}\") has been successfully merged into SahiDawa. ⚙️\n\n"
+        "This update resolves a key engineering requirement by improving our core infrastructure for medicine tracking. {name} successfully executed this {tier_display} task, delivering clean and functional code.\n\n"
+        "Good work, {name}. We appreciate the contribution.\n\n"
+        "Connect with {name}: {linkedin_url}\n\n"
+        "Want to contribute to India's open-source stack? Join the GSSoC 2026 wave on our repo:\n\n"
+        "Codebase: {github_url}\n"
+        "Merged PR: {pr_url}",
+        
+        # Template 2: Direct Impact
+        "We have rolled out a new update via PR #{number}: \"{title}\". 🛡️\n\n"
+        "{name} handled this {tier_display} issue, optimizing our platform's reliability. The changes directly impact how we scale our open-source health-tech stack for users across India.\n\n"
+        "Solid execution by {name}.\n\n"
+        "Connect with {name}: {linkedin_url}\n\n"
+        "Want to contribute to India's open-source stack? Join the GSSoC 2026 wave on our repo:\n\n"
+        "Codebase: {github_url}\n"
+        "Merged PR: {pr_url}",
+        
+        # Template 3: Direct Community
+        "New code shipped to SahiDawa production. 🚀\n\n"
+        "Credit to {name} for resolving PR #{number} (\"{title}\"). Tackling a {tier_display} problem requires solid technical context, and this PR delivers exactly that. It's an important addition to our codebase.\n\n"
+        "Thanks for the effort, {name}.\n\n"
+        "Connect with {name}: {linkedin_url}\n\n"
+        "Want to contribute to India's open-source stack? Join the GSSoC 2026 wave on our repo:\n\n"
+        "Codebase: {github_url}\n"
+        "Merged PR: {pr_url}"
     ]
     try:
         pr_idx = int(pr.get("number", "0")) % len(templates)
@@ -299,19 +300,82 @@ def _static_fallback(pr: dict, tier_display: str) -> str:
         tier_display=tier_display,
         number=pr['number'],
         title=pr['title'],
-        github_url=PROJECT_GITHUB_URL
+        github_url=PROJECT_GITHUB_URL,
+        pr_url=pr_url
     )
+
+def generate_post_with_groq(pr: dict, tier_display: str, tier_desc: str, system_prompt: str, user_prompt: str) -> str:
+    groq_api_key = os.environ.get("GROQ_API_KEY")
+    if not groq_api_key:
+        return ""
+    
+    print("🔄 Attempting Groq API (Llama 3) fallback...")
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {groq_api_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "llama3-70b-8192",
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ],
+        "temperature": 0.5,
+        "max_tokens": 1500
+    }
+    
+    try:
+        resp = requests.post(url, headers=headers, json=payload, timeout=30)
+        resp.raise_for_status()
+        text = resp.json().get("choices", [])[0].get("message", {}).get("content", "").strip()
+        if len(text) > 100:
+            print("✅ Successfully generated post using Groq fallback!")
+            return text
+    except Exception as e:
+        print(f"⚠️ Groq API fallback failed: {e}")
+    return ""
+
 
 def generate_post_with_gemini(pr: dict, tier_display: str, tier_desc: str) -> str:
     gemini_api_key = get_env_or_exit("GEMINI_API_KEY")
     contributor_name = get_contributor_name(pr['author'])
-    system_prompt = "Write a heartfelt LinkedIn post thanking a contributor. Do not use @github handles. Use their first name."
-    user_prompt = f"Contributor: {contributor_name}\nPR Title: {pr['title']}\nLinkedIn: {pr['linkedin_url']}\n\nDiff: {pr.get('diff', '')[:10000]}"
+    system_prompt = (
+        "You are the Open-Source Maintainer for SahiDawa, India's medicine safety platform. "
+        "Write a highly engaging LinkedIn post that mixes a 'Technical Deep Dive' with a 'Community Spotlight'.\n\n"
+        "CRITICAL RULES FOR TONE AND VARIABILITY:\n"
+        "- Hook the reader immediately! Start with a bold statement or a question about the technical challenge.\n"
+        "- Tell a story: What was the problem? How did the contributor architect the solution? Why does it matter for Indians relying on SahiDawa? Do not put it as it is, put your own words based on the context and git diff provided.\n"
+        "- Be warm, appreciative, and celebrate the open-source community spirit (GSSoC).\n"
+        "- Use short paragraphs (1-2 sentences) and professional emojis (🚀, 🛡️, ⚙️, 👏, 🔥) to make it highly readable and scroll-stopping.\n"
+        "- LENGTH & COMPLETENESS: Aim for around 150-200 words. You MUST finish your thoughts completely. Do not leave trailing sentences.\n"
+        "- Do not use robotic templates. Weave the facts naturally.\n\n"
+        "FRAMEWORK TO FOLLOW:\n"
+        "1. The Scroll-Stopping Hook: E.g., 'Ever wondered how we handle X at scale? @Contributor just solved it for us...'\n"
+        "2. The Problem & Impact: What was broken or missing, and how does it affect SahiDawa's mission?\n"
+        "3. The Technical Deep Dive: Briefly explain the engineering mechanism and code changes.\n"
+        "4. The Community Spotlight: Celebrate the contributor's open-source journey and effort.\n"
+        "5. The Connection: Include 'Connect with [Name]: [LinkedIn URL]'.\n"
+        "6. The Call to Action: End EXACTLY with this text (do not modify this footer):\n\n"
+        "Want to contribute to India's open-source stack? Join the GSSoC 2026 wave on our repo:\n\n"
+        "Codebase: [Insert Codebase URL]\n"
+        "Merged PR: [Insert PR URL]"
+    )
+    user_prompt = (
+        f"Contributor: {contributor_name}\n"
+        f"PR Title: {pr['title']}\n"
+        f"PR Number: #{pr.get('number', 'N/A')}\n"
+        f"PR URL: {pr.get('url', 'N/A')}\n"
+        f"LinkedIn URL: {pr.get('linkedin_url', '')}\n"
+        f"Task Tier: {tier_display} ({tier_desc})\n"
+        f"Codebase URL: {PROJECT_GITHUB_URL}\n\n"
+        f"Git Diff Context:\n{pr.get('diff', '')[:3000]}"
+    )
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={gemini_api_key}"
     payload = {
         "systemInstruction": {"parts": [{"text": system_prompt}]},
         "contents": [{"parts": [{"text": user_prompt}]}],
-        "generationConfig": {"temperature": 0.8, "maxOutputTokens": 800},
+        "generationConfig": {"temperature": 0.7, "maxOutputTokens": 1500},
     }
 
     import time
@@ -319,14 +383,23 @@ def generate_post_with_gemini(pr: dict, tier_display: str, tier_desc: str) -> st
         try:
             resp = requests.post(url, headers={"Content-Type": "application/json"}, json=payload, timeout=30)
             if resp.status_code == 429:
+                print(f"⚠️ Gemini Rate Limit Exceeded (Attempt {attempt}). Waiting 20s...")
                 time.sleep(20)
                 continue
             resp.raise_for_status()
             text = resp.json().get("candidates", [])[0].get("content", {}).get("parts", [])[0].get("text", "").strip()
             if len(text) > 100:
                 return text
-        except Exception:
+        except Exception as e:
+            print(f"⚠️ Gemini API attempt {attempt} failed: {e}")
             time.sleep(10)
+            
+    # Try Groq API if Gemini completely fails
+    groq_content = generate_post_with_groq(pr, tier_display, tier_desc, system_prompt, user_prompt)
+    if groq_content:
+        return groq_content
+        
+    print("🔄 AI generation completely failed. Falling back to static template.")
     return _static_fallback(pr, tier_display)
 
 def assemble_final_post(ai_content: str, pr: dict) -> str:
@@ -335,38 +408,146 @@ def assemble_final_post(ai_content: str, pr: dict) -> str:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# LINKEDIN POSTING
+# IMAGE GENERATION + LINKEDIN NATIVE IMAGE UPLOAD
 # ─────────────────────────────────────────────────────────────────────────────
-def post_to_linkedin(post_text: str, pr: dict) -> None:
-    access_token = get_env_or_exit("LINKEDIN_ACCESS_TOKEN")
-    org_id = get_env_or_exit("LINKEDIN_ORG_ID")
-    
-    # We simplified the image upload for brevity here, but fall back to ARTICLE
-    fallback_url = f"https://opengraph.githubassets.com/1/{pr['repo']}/pull/{pr['number']}"
-    author_urn = f"urn:li:organization:{org_id}"
-    
-    payload = {
-        "author": author_urn,
-        "lifecycleState": "PUBLISHED",
-        "specificContent": {
-            "com.linkedin.ugc.ShareContent": {
-                "shareCommentary": {"text": post_text},
-                "shareMediaCategory": "ARTICLE",
-                "media": [{"status": "READY", "originalUrl": fallback_url}]
-            }
-        },
-        "visibility": {"com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"}
+
+def _upload_asset_to_linkedin(file_path: str, access_token: str, org_urn: str) -> str | None:
+    print(f"📤 Registering image upload for {file_path}...")
+    register_url = "https://api.linkedin.com/v2/assets?action=registerUpload"
+    register_payload = {
+        "registerUploadRequest": {
+            "recipes": ["urn:li:digitalmediaRecipe:feedshare-image"],
+            "owner": org_urn,
+            "serviceRelationships": [{
+                "relationshipType": "OWNER",
+                "identifier": "urn:li:userGeneratedContent"
+            }]
+        }
     }
-    
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json",
         "X-Restli-Protocol-Version": "2.0.0"
     }
+    try:
+        reg_resp = requests.post(register_url, headers=headers, json=register_payload, timeout=30)
+        reg_resp.raise_for_status()
+        reg_data = reg_resp.json()
+        upload_url = reg_data["value"]["uploadMechanism"]["com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"]["uploadUrl"]
+        asset_urn  = reg_data["value"]["asset"]
+    except Exception as e:
+        print(f"⚠️ LinkedIn asset registration failed for {file_path}: {e}")
+        return None
+
+    print(f"📤 Uploading binary {file_path} to LinkedIn...")
+    try:
+        with open(file_path, "rb") as f:
+            upload_resp = requests.put(
+                upload_url,
+                data=f,
+                headers={
+                    "Authorization": f"Bearer {access_token}",
+                    "Content-Type": "image/png"
+                },
+                timeout=60
+            )
+        if upload_resp.status_code not in (200, 201):
+            raise RuntimeError(f"Upload returned {upload_resp.status_code}: {upload_resp.text[:200]}")
+        print(f"✅ Image {file_path} uploaded successfully.")
+        return asset_urn
+    except Exception as e:
+        print(f"⚠️ Image binary upload failed for {file_path}: {e}")
+        return None
+
+def generate_and_upload_image(pr: dict, access_token: str, org_urn: str) -> str | None:
+    """
+    1. Fetches the clean GitHub PR OpenGraph image.
+    2. Crops the bottom language bar.
+    Returns the single URN for the LinkedIn post.
+    """
+    from PIL import Image
+    import io
     
+    final_path = "/tmp/pr_final.png"
+    
+    # Step 1 — Fetch GitHub PR Image
+    print("📥 Fetching real GitHub PR Image...")
+    repo = os.environ.get('GITHUB_REPOSITORY', 'RatLoopz/sahidawa-india')
+    pr_number = pr.get('number')
+    og_url = f"https://opengraph.githubassets.com/1/{repo}/pull/{pr_number}"
+    
+    import time
+    for attempt in range(3):
+        try:
+            og_resp = requests.get(og_url, timeout=30)
+            if og_resp.status_code == 429:
+                print(f"⚠️ GitHub 429 Rate Limit. Waiting 2s...")
+                time.sleep(2)
+                continue
+            og_resp.raise_for_status()
+            pr_img = Image.open(io.BytesIO(og_resp.content)).convert("RGB")
+            # Crop the bottom 25px language bar
+            pr_card_img = pr_img.crop((0, 0, pr_img.width, pr_img.height - 25))
+            pr_card_img.save(final_path, format="PNG")
+            print("✅ GitHub PR Image downloaded and cropped successfully.")
+            return _upload_asset_to_linkedin(final_path, access_token, org_urn)
+        except Exception as e:
+            print(f"⚠️ GitHub fetch attempt {attempt} failed: {e}")
+            time.sleep(2)
+            
+    return None
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# LINKEDIN POSTING
+# ─────────────────────────────────────────────────────────────────────────────
+def post_to_linkedin(post_text: str, pr: dict) -> None:
+    access_token = get_env_or_exit("LINKEDIN_ACCESS_TOKEN")
+    org_id       = get_env_or_exit("LINKEDIN_ORG_ID")
+    org_urn      = f"urn:li:organization:{org_id}"
+
+    # Try to generate + upload the stitched image
+    image_urn = generate_and_upload_image(pr, access_token, org_urn)
+
+    if image_urn:
+        # Post with native uploaded image
+        share_content = {
+            "shareCommentary":   {"text": post_text},
+            "shareMediaCategory": "IMAGE",
+            "media": [{
+                "status": "READY",
+                "description": {"text": pr.get("title", "")},
+                "media": image_urn,
+                "title": {"text": f"PR #{pr.get('number','?')} — {pr.get('title','')}"}
+            }]
+        }
+        print("📸 Posting with native stitched image...")
+    else:
+        # Fallback: use real PR URL so LinkedIn scrapes the GitHub OpenGraph card
+        print("↩️  Falling back to GitHub OpenGraph link preview...")
+        share_content = {
+            "shareCommentary":   {"text": post_text},
+            "shareMediaCategory": "ARTICLE",
+            "media": [{"status": "READY", "originalUrl": pr["url"]}]
+        }
+
+    payload = {
+        "author":         org_urn,
+        "lifecycleState": "PUBLISHED",
+        "specificContent": {"com.linkedin.ugc.ShareContent": share_content},
+        "visibility":     {"com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"}
+    }
+    headers = {
+        "Authorization":              f"Bearer {access_token}",
+        "Content-Type":               "application/json",
+        "X-Restli-Protocol-Version":  "2.0.0"
+    }
+
     print("📤 Sending UGC Post to LinkedIn...")
-    resp = requests.post("https://api.linkedin.com/v2/ugcPosts", headers=headers, json=payload, timeout=30)
+    resp = requests.post("https://api.linkedin.com/v2/ugcPosts",
+                         headers=headers, json=payload, timeout=30)
     resp.raise_for_status()
+    print("✅ LinkedIn post sent.")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -378,19 +559,6 @@ def main():
     print("=" * 60)
 
     pr = get_pr_metadata()
-    try:
-        pr_number_int = int(pr['number'])
-    except:
-        pr_number_int = 0
-
-    db = get_supabase_client()
-    
-    # Idempotency Check
-    if db and pr_number_int > 0:
-        record = get_shoutout_record(db, pr_number_int)
-        if record and record.get('status') == 'POSTED':
-            print("✅ This PR has already been successfully posted to LinkedIn. Exiting.")
-            sys.exit(0)
 
     tier_display, tier_desc = determine_tier(pr["labels"])
     pr["linkedin_url"] = validate_linkedin_url(pr)
@@ -400,29 +568,10 @@ def main():
     ai_content = generate_post_with_gemini(pr, tier_display, tier_desc)
     final_post = assemble_final_post(ai_content, pr)
 
-    # Initialize Record
-    if db and pr_number_int > 0:
-        record = get_shoutout_record(db, pr_number_int) or {}
-        record.update({
-            "pr_number": pr_number_int,
-            "pr_url": pr['url'],
-            "author": pr['author'],
-            "labels": pr['labels'],
-            "status": "PENDING",
-            "updated_at": datetime.now(timezone.utc).isoformat()
-        })
-        upsert_shoutout_record(db, record)
-
     # Try Posting
     try:
         post_to_linkedin(final_post, pr)
         
-        # Success
-        if db and pr_number_int > 0:
-            record["status"] = "POSTED"
-            record["error_log"] = None
-            upsert_shoutout_record(db, record)
-
         # Notify Github Actions to post comment
         github_output = os.environ.get("GITHUB_OUTPUT")
         if github_output:
@@ -433,21 +582,6 @@ def main():
     except Exception as e:
         print(f"❌ Failed to post to LinkedIn: {e}")
         traceback.print_exc()
-        
-        if db and pr_number_int > 0:
-            retry_count = record.get("retry_count", 0) + 1
-            # Exponential backoff: 2, 4, 8, 16 hours
-            backoff_hours = min(2 ** retry_count, 72)
-            next_retry = datetime.now(timezone.utc) + timedelta(hours=backoff_hours)
-            
-            record.update({
-                "status": "FAILED",
-                "error_log": str(e),
-                "retry_count": retry_count,
-                "next_retry_at": next_retry.isoformat()
-            })
-            upsert_shoutout_record(db, record)
-            print(f"Scheduled for retry at {next_retry.isoformat()}")
         
         # Exit with error code 0 so github action succeeds but skips commenting
         sys.exit(0)

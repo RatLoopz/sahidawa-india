@@ -7,12 +7,19 @@ const router = Router();
 import { z } from "zod";
 import { redisClient } from "../utils/redis";
 import { eligibilityLimiter } from "../middleware/rateLimit";
+import { fetchGovernmentEligibility } from "../services/governmentEligibility";
 
 const eligibilitySchema = z.object({
     age: z.number().int().min(0, "Age cannot be negative").optional().default(30),
     annual_income: z.number().min(0, "Income cannot be negative").optional().default(150000),
     family_size: z.number().int().min(1, "Family size must be at least 1").optional().default(4),
-    state: z.string().trim().optional().default(""),
+    state: z
+        .string()
+        .trim()
+        .max(80, "State name is too long")
+        .regex(/^[a-zA-Z\s'&-]*$/, "State name contains invalid characters")
+        .optional()
+        .default(""),
     has_bpl_card: z.boolean().optional().default(false),
     has_abha_id: z.boolean().optional().default(false),
 });
@@ -74,6 +81,48 @@ router.post("/", eligibilityLimiter, async (req: Request, res: Response): Promis
 
         const income = Number(annual_income);
         const userState = (state || "").trim();
+
+        // Author note: we first attempt a real government API call
+        // (PM-JAY / ESIC). Those integrations are not official yet, so
+        // fetchGovernmentEligibility() will simply return null until the
+        // required env vars (PMJAY_API_KEY, PMJAY_BASE_URL, ESIC_API_KEY,
+        // ESIC_BASE_URL) are configured with real, approved credentials.
+        // Nothing below this block changes: if the government call fails,
+        // isn't configured, or times out, we silently continue with the
+        // existing Redis/Supabase + rule-based logic, so this is safe to
+        // ship without breaking anything today.
+        try {
+            const govResults = await fetchGovernmentEligibility({
+                age,
+                annual_income: income,
+                family_size,
+                state: userState,
+                has_bpl_card,
+                has_abha_id,
+            });
+
+            if (govResults && govResults.length > 0) {
+                const eligible_schemes = govResults.flatMap((r) => r.schemes);
+                logger.info("Returned eligibility from government API", {
+                    sources: govResults.map((r) => r.source),
+                    count: eligible_schemes.length,
+                });
+                res.status(200).json({ eligible_schemes });
+                return;
+            }
+
+            logger.info(
+                "Government API returned no data or is not configured, falling back to rule engine"
+            );
+        } catch (govError) {
+            // Defensive: fetchGovernmentEligibility already catches its own
+            // errors and returns null, but if something unexpected still
+            // throws here, do not let it break the response. Just log and
+            // continue with the rule engine below.
+            logger.error("Unexpected error while calling government eligibility service", {
+                error: String(govError),
+            });
+        }
 
         const eligibleSchemes = [];
 

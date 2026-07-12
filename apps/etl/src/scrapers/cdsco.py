@@ -14,6 +14,8 @@ PIPELINE ROLE:
 import os
 import sys
 import time
+import math
+import threading
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -35,6 +37,29 @@ SEEDS_DIR = Path(__file__).resolve().parents[4] / "data" / "seeds"
 REFERENCE_CSV = SEEDS_DIR / "cdsco_reference.csv"
 
 
+# ── Rate Limiter ───────────────────────────────────────────────────────────────
+
+class RateLimiter:
+    """Thread-safe rate limiter to enforce max N requests per period."""
+    def __init__(self, max_requests: int, period: float):
+        self.max_requests = max_requests
+        self.period = period
+        self.requests = []
+        self.lock = threading.Lock()
+
+    def wait(self):
+        while True:
+            with self.lock:
+                now = time.time()
+                # Remove requests older than the period
+                self.requests = [t for t in self.requests if now - t < self.period]
+                if len(self.requests) < self.max_requests:
+                    self.requests.append(now)
+                    return
+                # Calculate time to wait until the oldest request in the window expires
+                sleep_time = self.period - (now - self.requests[0])
+            time.sleep(sleep_time)
+
 # ── Scraper ────────────────────────────────────────────────────────────────────
 
 class CDSCOScraper:
@@ -48,12 +73,14 @@ class CDSCOScraper:
         retries = Retry(
             total=5,
             backoff_factor=1,
-            status_forcelist=[500, 502, 503, 504],
+            status_forcelist=[429, 500, 502, 503, 504],
             allowed_methods=["GET"]
         )
         adapter = HTTPAdapter(max_retries=retries)
         self.session.mount("http://", adapter)
         self.session.mount("https://", adapter)
+        # Limit to 5 requests per second to avoid being blocked by CDSCO
+        self.rate_limiter = RateLimiter(max_requests=5, period=1.0)
 
     def _fetch_single_page(self, page_num: int, display_start: int, page_size: int) -> list:
         paginated_url = f"{CDSCO_URL}&iDisplayStart={display_start}&iDisplayLength={page_size}"
@@ -62,6 +89,7 @@ class CDSCOScraper:
         page_response = None
         for attempt in range(1, 4):
             try:
+                self.rate_limiter.wait()
                 page_response = self.session.get(paginated_url, timeout=30)
                 if page_response.status_code == 200:
                     break
@@ -97,15 +125,44 @@ class CDSCOScraper:
             logger.info(f"[CDSCO] Reference CSV already exists at {REFERENCE_CSV} — skipping fetch.")
             return REFERENCE_CSV
 
-        logger.info("[CDSCO] Fetching data from portal using parallel threads...")
+        logger.info("[CDSCO] Initializing probe query to determine catalog ceiling dynamically...")
         
-        page_size = 100
-        max_pages = 500  
-        max_workers = 10 
-
+        page_size = 100 
+        max_workers = 10
         all_records_map = {}
-        tasks = [(page_num, (page_num - 1) * page_size, page_size) for page_num in range(1, max_pages + 1)]
+       
+        # Step 1: Probe query to Page 1 to fetch total records metadata
+        try:
+            paginated_url = f"{CDSCO_URL}&iDisplayStart=0&iDisplayLength={page_size}"
+            self.rate_limiter.wait()
+            probe_response = self.session.get(paginated_url, timeout=30)
+            
+            if probe_response.status_code != 200:
+                raise RuntimeError(f"Probe request failed with status code {probe_response.status_code}")
+                
+            probe_data = probe_response.json()
+            
+            # Extract total records from metadata fields (fallback to 0 if not present)
+            total_records = probe_data.get("iTotalDisplayRecords") or probe_data.get("iTotalRecords") or 0
+            
+            if total_records == 0:
+                raise ValueError("Could not extract a valid total record count from CDSCO API metadata metadata fields.")
 
+            # Step 2: Dynamically calculate exact max pages needed
+            max_pages = math.ceil(total_records / page_size)
+            logger.info(f"[CDSCO] Catalog Metadata Detected — Total Records: {total_records}, Dynamic Ceiling: {max_pages} pages.")
+            
+            # Store first page records to avoid duplicate network overhead
+            all_records_map[1] = probe_data.get("aaData", [])
+            
+        except Exception as probe_err:
+            logger.critical(f"[CDSCO] Failed to initiate probe or calculate dynamic pagination bounds: {probe_err}")
+            raise probe_err
+
+        # Step 3: Schedule remaining pages from page 2 onwards
+        logger.info(f"[CDSCO] Fetching remaining {max_pages - 1} pages using parallel threads...")
+        tasks = [(page_num, (page_num - 1) * page_size, page_size) for page_num in range(2, max_pages + 1)]
+        
         try:
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
                 future_to_page = {

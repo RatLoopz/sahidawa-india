@@ -1,3 +1,13 @@
+import {
+    describe,
+    it,
+    expect,
+    jest,
+    beforeEach,
+    afterEach,
+    beforeAll,
+    afterAll,
+} from "@jest/globals";
 import { getConfidenceMeta } from "../app/[locale]/voice/lib/confidence";
 import { resolveSpeechSynthesisVoice } from "../app/[locale]/voice/lib/browser";
 import { detectEmergencyKeywords } from "../app/[locale]/voice/lib/emergency";

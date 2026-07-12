@@ -312,9 +312,24 @@ export default function PharmacyMap({
                 popupAnchor: [0, -36],
             });
 
+            const ashaLabel = worker.district
+                ? `ASHA Worker: ${worker.name}, ${worker.district}`
+                : `ASHA Worker: ${worker.name}`;
+
             const marker = L.marker([worker.coordinates.lat, worker.coordinates.lng], {
                 icon: customIcon,
+                keyboard: true,
+                title: ashaLabel,
             }).addTo(ashaLayerGroup.current);
+
+            // Expose the marker to assistive tech: the pin opens a popup on
+            // click/Enter, so role="button" + an accessible name lets screen
+            // readers announce it as actionable instead of an unlabelled graphic.
+            const ashaEl = marker.getElement();
+            if (ashaEl) {
+                ashaEl.setAttribute("role", "button");
+                ashaEl.setAttribute("aria-label", ashaLabel);
+            }
 
             const popupContent = `
         <div style="
@@ -493,9 +508,27 @@ export default function PharmacyMap({
                 });
             }
 
+            const pharmacyKind = isVerified
+                ? "Verified pharmacy"
+                : isGovt
+                  ? "Government pharmacy"
+                  : "Pharmacy";
+            const pharmacyLabel = `${pharmacyKind}: ${pharmacy.name}`;
+
             const marker = L.marker([pharmacy.coordinates.lat, pharmacy.coordinates.lng], {
                 icon: customMarker,
+                keyboard: true,
+                title: pharmacyLabel,
             }).addTo(layerGroup.current);
+
+            // Announce the pin to screen readers with the pharmacy name and its
+            // verification status, mirroring what a sighted user sees from the
+            // marker colour/badge. role="button" because the pin opens a popup.
+            const pharmacyEl = marker.getElement();
+            if (pharmacyEl) {
+                pharmacyEl.setAttribute("role", "button");
+                pharmacyEl.setAttribute("aria-label", pharmacyLabel);
+            }
 
             // Store reference for programmatic access
             markersRef.current.set(pharmacy.id, marker);
@@ -727,7 +760,15 @@ export default function PharmacyMap({
         userMarker.current = L.marker([userLocation.lat, userLocation.lng], {
             icon: userIcon,
             zIndexOffset: 1000,
+            keyboard: true,
+            title: "Your location",
         }).addTo(map.current);
+
+        const userEl = userMarker.current.getElement();
+        if (userEl) {
+            userEl.setAttribute("role", "img");
+            userEl.setAttribute("aria-label", "Your location");
+        }
 
         map.current.flyTo([userLocation.lat, userLocation.lng], 14, {
             duration: 1,

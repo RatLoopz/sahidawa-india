@@ -34,6 +34,8 @@ if (!GEMINI_API_KEY) {
   process.exit(1);
 }
 
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
+
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 const MAX_DIFF_CHARS = 12000; // Stay well within context limits
 
@@ -136,6 +138,52 @@ async function callGemini(prompt, retries = 3) {
     }
   }
   throw new Error(`Failed after ${retries} attempts. Last error: ${lastErr}`);
+}
+
+async function callGroq(prompt) {
+  if (!GROQ_API_KEY) {
+    throw new Error("GROQ_API_KEY is not set.");
+  }
+  const url = "https://api.groq.com/openai/v1/chat/completions";
+  const body = {
+    model: "llama-3.3-70b-versatile",
+    messages: [
+      { role: "system", content: "You are an expert technical writer and software architect." },
+      { role: "user", content: prompt }
+    ],
+    temperature: 0.3
+  };
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${GROQ_API_KEY}`
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`Groq API error ${response.status}: ${err}`);
+  }
+
+  const data = await response.json();
+  const text = data.choices?.[0]?.message?.content || "";
+  if (!text.trim()) {
+    console.error("Groq API returned empty text. Full response:", JSON.stringify(data, null, 2));
+  }
+  return text;
+}
+
+async function callAI(prompt) {
+  try {
+    return await callGemini(prompt);
+  } catch (err) {
+    console.warn(`⚠️ Gemini failed: ${err.message}`);
+    console.log("⏳ Falling back to Groq API...");
+    return await callGroq(prompt);
+  }
 }
 
 // ─── Prompt Templates ─────────────────────────────────────────────────────────
@@ -331,17 +379,17 @@ async function main() {
   console.log(`   Area: ${ctx.area} | Score: ${ctx.score} | Verdict: ${ctx.verdict}\n`);
 
   // Generate PR summary doc
-  console.log("⏳ Calling Gemini for PR summary...");
-  const prDocContent = await callGemini(buildPRDocPrompt());
+  console.log("⏳ Calling AI for PR summary...");
+  const prDocContent = await callAI(buildPRDocPrompt());
   const prDocPath = `docs/devtrack/${yearMonth}/PR-${ctx.prNumber}-${prSlug}.md`;
   writeDoc(prDocContent, prDocPath);
 
   // Generate ADR if applicable
   let adrPath = null;
   if (ctx.verdict === "GENERATE+ADR") {
-    console.log("⏳ Calling Gemini for ADR (high-impact PR)...");
+    console.log("⏳ Calling AI for ADR (high-impact PR)...");
     const adrNumber = getNextADRNumber();
-    const adrContent = await callGemini(buildADRPrompt());
+    const adrContent = await callAI(buildADRPrompt());
     adrPath = `docs/devtrack/adr/ADR-${adrNumber}-${prSlug}.md`;
     writeDoc(adrContent, adrPath);
   }

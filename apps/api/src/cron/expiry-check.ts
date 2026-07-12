@@ -72,9 +72,9 @@ function buildExpiryPayload(medicineName: string, daysLeft: number) {
     };
 }
 
-export const initExpiryCron = () => {
+export const initExpiryCron = (): { stop: () => void } => {
     // Runs every day at 00:00 (midnight)
-    cron.schedule("0 0 * * *", async () => {
+    return cron.schedule("0 0 * * *", async () => {
         const acquired = await acquireLock();
 
         if (!acquired) {

@@ -1,9 +1,31 @@
+import {
+    describe,
+    it,
+    expect,
+    jest,
+    beforeEach,
+    afterEach,
+    beforeAll,
+    afterAll,
+} from "@jest/globals";
 /**
  * @jest-environment node
  */
 import crypto from "crypto";
 
 const CLOUD_NAME = "test-cloud";
+if (typeof Blob !== "undefined" && !Blob.prototype.arrayBuffer) {
+    Blob.prototype.arrayBuffer = async function () {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as ArrayBuffer);
+            reader.readAsArrayBuffer(this);
+        });
+    };
+}
+if (typeof File !== "undefined" && !File.prototype.arrayBuffer) {
+    File.prototype.arrayBuffer = Blob.prototype.arrayBuffer;
+}
 const API_KEY = "test-key";
 const API_SECRET = "test-secret";
 type UploadPost = typeof import("../app/api/upload/route").POST;
@@ -36,7 +58,10 @@ function buildRequest(
 ) {
     const formData = new FormData();
     const fakeImageBytes = new Uint8Array([0xff, 0xd8, 0xff, 0x00]);
-    formData.append("file", new Blob([fakeImageBytes], { type: fileType }), "photo.jpg");
+    const fileBlob = new Blob([fakeImageBytes], { type: fileType });
+    // @ts-ignore - JSDOM Blob might not have arrayBuffer
+    fileBlob.arrayBuffer = async () => fakeImageBytes.buffer;
+    formData.append("file", fileBlob, "photo.jpg");
     for (const [key, value] of Object.entries(fields)) {
         formData.append(key, value);
     }
@@ -44,6 +69,8 @@ function buildRequest(
         method: "POST",
         body: formData,
     });
+    // @ts-ignore - bypass undici/JSDOM boundary header issue
+    req.formData = async () => formData;
     if (headers) {
         const h = new Headers(headers);
         h.forEach((value, key) => {

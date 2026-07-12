@@ -7,6 +7,13 @@ import numpy as np
 import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+# Guarantee a GEMINI_API_KEY before the app modules load, so any code path
+# that expects the variable (triage get_llm, embedding embed_query) works in
+# environments without the real secret (CI, fresh local checkouts). Tests mock
+# the LLM, so the placeholder value is never used for a real API call.
+os.environ.setdefault("GEMINI_API_KEY", "mock_api_key_for_testing")
+
 from routers import asr
 
 

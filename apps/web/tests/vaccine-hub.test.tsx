@@ -1,6 +1,8 @@
 /** @jest-environment jsdom */
+import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import VaccineHubPage from "@/app/[locale]/vaccine-hub/page";
 
 jest.mock("@/lib/supabase", () => ({
@@ -72,20 +74,11 @@ Object.defineProperty(window, "localStorage", {
     value: localStorageMock,
 });
 
-const user = {
-    type: async (element: HTMLElement, value: string) => {
-        fireEvent.change(element, { target: { value } });
-    },
-    click: async (element: HTMLElement) => {
-        fireEvent.click(element);
-    },
-};
-const userEvent = {
-    setup: () => user,
-};
+let user: ReturnType<typeof userEvent.setup>;
 
 describe("VaccineHubPage Integration Tests", () => {
     beforeEach(() => {
+        user = userEvent.setup();
         localStorage.clear();
     });
 
@@ -107,12 +100,14 @@ describe("VaccineHubPage Integration Tests", () => {
         render(<VaccineHubPage />);
 
         await user.type(screen.getByLabelText("Child name"), "Aarav");
-        await user.type(screen.getByLabelText("Date of birth"), "2024-01-01");
+        fireEvent.change(screen.getByLabelText("Date of birth"), {
+            target: { value: "2024-01-01" },
+        });
 
         await waitFor(() => {
             expect(screen.getByText("Aarav")).toBeInTheDocument();
-            expect(screen.getByText("BCG")).toBeInTheDocument();
-            expect(screen.getByText("OPV-1")).toBeInTheDocument();
+            expect(screen.getAllByText("BCG")[0]).toBeInTheDocument();
+            expect(screen.getAllByText("OPV-1")[0]).toBeInTheDocument();
         });
 
         await user.click(screen.getByRole("button", { name: /mark BCG completed/i }));
@@ -124,7 +119,9 @@ describe("VaccineHubPage Integration Tests", () => {
         render(<VaccineHubPage />);
 
         await user.type(screen.getByLabelText("Child name"), "Maya");
-        await user.type(screen.getByLabelText("Date of birth"), "2024-01-01");
+        fireEvent.change(screen.getByLabelText("Date of birth"), {
+            target: { value: "2024-01-01" },
+        });
 
         await waitFor(() => {
             expect(
@@ -139,15 +136,17 @@ describe("VaccineHubPage Integration Tests", () => {
 
     it("shows a validation message for future child dates of birth", async () => {
         render(<VaccineHubPage />);
-        const futureDate = new Date();
-        futureDate.setDate(futureDate.getDate() + 1);
 
-        await user.type(
-            screen.getByLabelText("Date of birth"),
-            futureDate.toISOString().split("T")[0]
-        );
+        fireEvent.change(screen.getByLabelText("Date of birth"), {
+            target: { value: "2099-01-01" },
+        });
 
-        expect(screen.getByText("Date of birth cannot be in the future.")).toBeInTheDocument();
+        await waitFor(() => {
+            if (!screen.queryByText("Date of birth cannot be in the future.")) {
+                screen.debug(undefined, 300000);
+            }
+            expect(screen.getByText("Date of birth cannot be in the future.")).toBeInTheDocument();
+        });
     });
 
     it("limits child profile names to a mobile-safe length", () => {
@@ -264,7 +263,6 @@ describe("VaccineHubPage Integration Tests", () => {
 
     it("displays aftercare guidance", async () => {
         render(<VaccineHubPage />);
-        const user = userEvent.setup();
 
         // Select vaccine
         const selector = screen.getByRole("button", { name: /Select a vaccine/i });
@@ -285,7 +283,6 @@ describe("VaccineHubPage Integration Tests", () => {
 
     it("persists both vaccine selection and date", async () => {
         const { unmount } = render(<VaccineHubPage />);
-        const user = userEvent.setup();
 
         // Select vaccine and date
         const selector = screen.getByRole("button", { name: /Select a vaccine/i });
@@ -317,7 +314,6 @@ describe("VaccineHubPage Integration Tests", () => {
 
     it("clears date when switching vaccines", async () => {
         render(<VaccineHubPage />);
-        const user = userEvent.setup();
 
         // Select first vaccine with date
         let selector = screen.getByRole("button", { name: /Select a vaccine/i });

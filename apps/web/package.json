@@ -9,7 +9,7 @@
         "build": "next build",
         "start": "next start",
         "lint": "eslint .",
-        "test": "cross-env NODE_OPTIONS=\"--experimental-vm-modules\" jest --config jest.config.cjs",
+        "test": "jest --config jest.config.cjs",
         "test:a11y:voice": "node scripts/voice-a11y-audit.mjs",
         "format": "prettier --write .",
         "format:check": "prettier --check ."
@@ -47,6 +47,7 @@
         "next": "^16.2.9",
         "next-intl": "^4.13.1",
         "next-themes": "^0.4.6",
+        "nuqs": "^2.9.0",
         "p-retry": "^8.0.0",
         "react": "^19.2.6",
         "react-dom": "^19.2.6",

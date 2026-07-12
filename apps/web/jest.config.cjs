@@ -11,22 +11,20 @@ module.exports = {
     setupFilesAfterEnv: ["<rootDir>/tests/setupTests.ts"],
     roots: ["<rootDir>/tests"],
     testPathIgnorePatterns: ["<rootDir>/tests/e2e/"],
+    transformIgnorePatterns: ["/node_modules/(?!(nuqs|next-intl|@next/third-parties|uncrypto|@upstash/redis)/)"],
     moduleNameMapper: {
         "\\.css$": "<rootDir>/tests/mocks/styleMock.ts",
         "^leaflet$": "<rootDir>/tests/mocks/leaflet.ts",
         "^react-leaflet$": "<rootDir>/tests/mocks/react-leaflet.ts",
         "^leaflet/dist/leaflet.css$": "<rootDir>/tests/mocks/leaflet.ts",
-        "^@/i18n/routing$": "<rootDir>/tests/mocks/i18n-routing.tsx",
+        "^@/i18n/routing(\\.js)?$": "<rootDir>/tests/mocks/i18n-routing.tsx",
+        "^.*/PharmacyMap$": "<rootDir>/tests/mocks/PharmacyMap.tsx",
         "^@/(.*)$": "<rootDir>/$1",
-        "^next-intl/routing$": "<rootDir>/tests/mocks/next-intl-routing.ts",
-        "^next-intl/navigation$": "<rootDir>/tests/mocks/next-intl-navigation.tsx",
+        "^next-intl/routing(\\.js)?$": "<rootDir>/tests/mocks/next-intl-routing.ts",
+        "^next-intl/navigation(\\.js)?$": "<rootDir>/tests/mocks/next-intl-navigation.tsx",
+        "^next/navigation(\\.js)?$": "<rootDir>/tests/mocks/next-navigation.tsx",
     },
     transform: {
-        "^.+\\.tsx?$": [
-            "ts-jest",
-            {
-                tsconfig: "<rootDir>/tsconfig.test.json",
-            },
-        ],
+        "^.+\\.(t|j)sx?$|^.+\\.mjs$": "<rootDir>/jest-transformer.cjs"
     },
 };

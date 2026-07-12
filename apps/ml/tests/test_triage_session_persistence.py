@@ -24,6 +24,13 @@ class FakeRedis:
         self.store[key] = value
         return True
 
+    async def delete(self, *keys):
+        removed = 0
+        for key in keys:
+            if self.store.pop(key, None) is not None:
+                removed += 1
+        return removed
+
 
 # ---------------------------------------------------------------------------
 # services.triage_graph — unit-level tests
@@ -75,6 +82,69 @@ def test_load_session_state_redis_error_returns_none(monkeypatch):
 
     # Should not raise — gracefully falls back to a fresh session.
     assert asyncio.run(triage_graph._load_session_state("session-x")) is None
+
+
+def test_clear_session_state_removes_stored_session(monkeypatch):
+    fake_redis = FakeRedis()
+    monkeypatch.setattr(triage_graph, "redis_client", fake_redis)
+
+    asyncio.run(
+        triage_graph._save_session_state(
+            "session-to-clear",
+            {
+                "language": "Tamil",
+                "emergency_detected": False,
+                "collected_info": {"onset": "today"},
+                "retrieved_medicines": [],
+            },
+        )
+    )
+    assert asyncio.run(triage_graph._load_session_state("session-to-clear")) is not None
+
+    removed = asyncio.run(triage_graph._clear_session_state("session-to-clear"))
+
+    assert removed is True
+    # The state should be gone, so a subsequent load starts fresh.
+    assert asyncio.run(triage_graph._load_session_state("session-to-clear")) is None
+
+
+def test_clear_session_state_unknown_session_is_noop(monkeypatch):
+    fake_redis = FakeRedis()
+    monkeypatch.setattr(triage_graph, "redis_client", fake_redis)
+
+    # Clearing a session that was never stored (or already expired) is harmless.
+    assert asyncio.run(triage_graph._clear_session_state("never-existed")) is False
+
+
+def test_clear_session_state_redis_error_returns_false(monkeypatch):
+    class BrokenRedis:
+        async def delete(self, *keys):
+            raise ConnectionError("redis unavailable")
+
+    monkeypatch.setattr(triage_graph, "redis_client", BrokenRedis())
+
+    # A Redis failure must not surface as an exception to the caller.
+    assert asyncio.run(triage_graph._clear_session_state("session-y")) is False
+
+
+def test_clear_session_wrapper_runs_async_helper(monkeypatch):
+    fake_redis = FakeRedis()
+    monkeypatch.setattr(triage_graph, "redis_client", fake_redis)
+
+    asyncio.run(
+        triage_graph._save_session_state(
+            "wrapper-session",
+            {
+                "language": "English",
+                "emergency_detected": False,
+                "collected_info": {},
+                "retrieved_medicines": [],
+            },
+        )
+    )
+
+    assert triage_graph.clear_session("wrapper-session") is True
+    assert triage_graph.clear_session("wrapper-session") is False
 
 
 def test_run_triage_flow_reuses_persisted_state(monkeypatch):
@@ -208,3 +278,76 @@ def test_triage_chat_reuses_supplied_session_id(mock_run_triage):
 
     _, kwargs = mock_run_triage.call_args
     assert kwargs["session_id"] == "existing-session-123"
+
+
+@patch("routers.triage.clear_session")
+def test_triage_clear_removes_existing_session(mock_clear):
+    mock_clear.return_value = True
+
+    response = client.post("/triage/clear", json={"session_id": "existing-session-123"})
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data == {"session_id": "existing-session-123", "cleared": True}
+    mock_clear.assert_called_once_with("existing-session-123")
+
+
+@patch("routers.triage.clear_session")
+def test_triage_clear_unknown_session_reports_not_cleared(mock_clear):
+    mock_clear.return_value = False
+
+    response = client.post("/triage/clear", json={"session_id": "never-existed"})
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data == {"session_id": "never-existed", "cleared": False}
+
+
+def test_triage_clear_requires_session_id():
+    # Missing session_id fails request validation before touching Redis.
+    response = client.post("/triage/clear", json={})
+    assert response.status_code == 422
+
+    # An empty session_id is likewise rejected by the min_length constraint.
+    response = client.post("/triage/clear", json={"session_id": ""})
+    assert response.status_code == 422
+
+
+def test_triage_clear_is_rate_limited():
+    """/clear sits behind the same per-IP limiter as /chat (5 req/60s)."""
+    from utils.database import get_redis
+
+    class OverLimitPipeline:
+        async def incr(self, key):
+            pass
+
+        async def ttl(self, key):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc_val, exc_tb):
+            pass
+
+        async def execute(self):
+            # Simulate a client already past the 5-requests-per-window limit.
+            return [6, 30]
+
+    class OverLimitRedis:
+        def pipeline(self, transaction=True):
+            return OverLimitPipeline()
+
+        async def expire(self, key, seconds):
+            return True
+
+    async def over_limit_redis():
+        return OverLimitRedis()
+
+    app.dependency_overrides[get_redis] = over_limit_redis
+    try:
+        response = client.post("/triage/clear", json={"session_id": "abc"})
+    finally:
+        app.dependency_overrides.pop(get_redis, None)
+
+    assert response.status_code == 429

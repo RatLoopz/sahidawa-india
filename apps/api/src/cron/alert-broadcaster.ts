@@ -13,6 +13,10 @@ const LOCK_KEY = "alert-broadcaster:lock";
 const LOCK_TTL_MS = 25_000; // slightly under the 30-second interval
 const LOCK_VALUE = `${process.env.HOSTNAME ?? "api"}:${process.pid}`;
 
+export const broadcastConfig = {
+    MARK_BROADCASTED_CHUNK_SIZE: 500,
+};
+
 export type AlertFrequency = "immediate" | "daily" | "weekly" | "monthly";
 
 /**
@@ -442,29 +446,44 @@ export async function broadcastExpiryAlerts(now: Date = new Date()): Promise<voi
             return;
         }
 
-        const batchSummaries: ExpiringBatchSummary[] = [];
+        const successfullyMarkedIds = new Set<string>();
 
-        for (const batch of expiringBatches) {
+        for (
+            let i = 0;
+            i < expiringBatches.length;
+            i += broadcastConfig.MARK_BROADCASTED_CHUNK_SIZE
+        ) {
+            const chunk = expiringBatches.slice(i, i + broadcastConfig.MARK_BROADCASTED_CHUNK_SIZE);
+            const chunkIds = chunk.map((batch) => batch.id);
+
             const { error: markError } = await supabase
                 .from("batches")
                 .update({ expiry_broadcasted: true })
-                .eq("id", batch.id);
+                .in("id", chunkIds);
 
             if (markError) {
+                // Only this chunk is skipped for the current tick — the batches
+                // in it remain expiry_broadcasted = false and will be retried
+                // on the next scheduled run.
                 logger.error({
-                    message: "Failed to mark batch as expiry_broadcasted, skipping for this tick",
+                    message:
+                        "Failed to mark batch chunk as expiry_broadcasted, skipping chunk for this tick",
                     error: markError,
-                    batchId: batch.id,
+                    batchIds: chunkIds,
                 });
                 continue;
             }
 
-            batchSummaries.push({
+            for (const id of chunkIds) successfullyMarkedIds.add(id);
+        }
+
+        const batchSummaries: ExpiringBatchSummary[] = expiringBatches
+            .filter((batch) => successfullyMarkedIds.has(batch.id))
+            .map((batch) => ({
                 medicineName: batch.medicine?.brand_name || "Unknown Medicine",
                 batchNumber: batch.batch_number,
                 expiryDate: batch.expiry_date,
-            });
-        }
+            }));
 
         if (batchSummaries.length === 0) return;
 

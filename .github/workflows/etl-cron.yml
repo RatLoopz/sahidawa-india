@@ -1,0 +1,36 @@
+name: Daily ETL Pipeline
+
+on:
+  schedule:
+    # Runs at 02:00 UTC (7:30 AM IST) every day
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    # Allows manual triggering from the GitHub Actions tab
+
+jobs:
+  run-etl:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip' # Caches dependencies to speed up future runs
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install ETL dependencies
+        working-directory: apps/etl
+        run: uv sync
+
+      - name: Run ETL pipeline
+        working-directory: apps/etl
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: uv run python run_all.py

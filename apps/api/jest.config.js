@@ -17,13 +17,13 @@ module.exports = {
         "^.+\\.tsx?$": [
             "ts-jest",
             {
-                tsconfig: "tsconfig.test.json",
+                tsconfig: "<rootDir>/tsconfig.test.json",
             },
         ],
         "^.+\\.jsx?$": [
             "ts-jest",
             {
-                tsconfig: "tsconfig.test.json",
+                tsconfig: "<rootDir>/tsconfig.test.json",
             },
         ],
     },

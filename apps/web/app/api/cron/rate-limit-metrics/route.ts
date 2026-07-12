@@ -9,7 +9,7 @@ function isAuthorizedCronRequest(req: NextRequest): boolean {
     const cronSecret = process.env.CRON_SECRET;
 
     if (!cronSecret) {
-        return process.env.NODE_ENV !== "production";
+        return false;
     }
 
     return req.headers.get("authorization") === `Bearer ${cronSecret}`;

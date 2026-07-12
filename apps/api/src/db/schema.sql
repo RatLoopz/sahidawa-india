@@ -227,3 +227,15 @@ CREATE TABLE IF NOT EXISTS public.api_keys (
 );
 
 CREATE INDEX IF NOT EXISTS idx_api_keys_user_id ON public.api_keys(user_id);
+
+-- 10. Wishlists Table
+CREATE TABLE IF NOT EXISTS public.wishlists (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    product_id UUID REFERENCES public.medicines(id) ON DELETE CASCADE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    CONSTRAINT unique_user_product UNIQUE(user_id, product_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_wishlists_user_id ON public.wishlists(user_id);
+CREATE INDEX IF NOT EXISTS idx_wishlists_product_id ON public.wishlists(product_id);

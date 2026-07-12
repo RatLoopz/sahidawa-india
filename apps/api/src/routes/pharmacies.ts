@@ -34,6 +34,33 @@ const router = Router();
 const MAX_RESULTS = 200;
 const BATCH_SIZE = 500;
 
+const validateInventoryUploadSize = (req: Request, res: Response, next: NextFunction) => {
+    const contentLengthHeader = req.headers["content-length"];
+    const contentLength = Array.isArray(contentLengthHeader)
+        ? contentLengthHeader[0]
+        : contentLengthHeader;
+
+    if (!contentLength) {
+        res.status(411).json({
+            error: "Content-Length header required",
+        });
+        return;
+    }
+
+    const size = Number.parseInt(contentLength, 10);
+
+    if (Number.isNaN(size) || size > MAX_BULK_UPLOAD_FILE_SIZE_BYTES) {
+        res.status(413).json({
+            error: `File size exceeds maximum allowed size of ${MAX_BULK_UPLOAD_FILE_SIZE_BYTES / 1024 / 1024}MB`,
+            maxSize: MAX_BULK_UPLOAD_FILE_SIZE_BYTES,
+            providedSize: size,
+        });
+        return;
+    }
+
+    next();
+};
+
 // ── TypeScript interfaces ────────────────────────────────────────────────────
 
 /** Raw pharmacy row returned by Supabase table queries (fallback path) */
@@ -1186,6 +1213,108 @@ router.post(
             logger.error(`Exception in bulk operations handler: ${message}`);
             next(error);
         }
+    }
+);
+
+router.post(
+    "/:id/inventory/upload",
+    requireAuth,
+    limiter,
+    validateInventoryUploadSize,
+    (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+        const parsedId = uuidSchema.safeParse(req.params.id);
+        if (!parsedId.success) {
+            res.status(400).json({ error: "Invalid UUID format" });
+            return;
+        }
+
+        upload.single("file")(req, res, async (multerErr: unknown) => {
+            if (multerErr) {
+                if (multerErr instanceof multer.MulterError && multerErr.code === "LIMIT_FILE_SIZE") {
+                    res.status(413).json({
+                        error: `File size exceeds maximum allowed size of ${MAX_BULK_UPLOAD_FILE_SIZE_BYTES / 1024 / 1024}MB`,
+                        maxSize: MAX_BULK_UPLOAD_FILE_SIZE_BYTES,
+                    });
+                    return;
+                }
+
+                next(multerErr);
+                return;
+            }
+
+            try {
+                if (!req.user) {
+                    res.status(401).json({ error: "Unauthorized access" });
+                    return;
+                }
+
+                if (!req.file) {
+                    res.status(400).json({ error: "No file uploaded." });
+                    return;
+                }
+
+                const pharmacyId = parsedId.data;
+
+                const { data: pharmacy, error: findError } = await supabase
+                    .from("pharmacies")
+                    .select("id, created_by, status")
+                    .eq("id", pharmacyId)
+                    .maybeSingle();
+
+                if (findError || !pharmacy) {
+                    res.status(404).json({ error: "Pharmacy not found" });
+                    return;
+                }
+
+                const isOwner = pharmacy.created_by === req.user.id;
+                const isAdmin = req.user.role === "admin" || req.user.role === "moderator";
+
+                if (!isOwner && !isAdmin) {
+                    res.status(403).json({ error: "You can only update pharmacies you own" });
+                    return;
+                }
+
+                const fileContent = req.file.buffer.toString("utf-8").replace(/^\uFEFF/, "");
+                const { rowsToInsert, failedRows, totalRows } = await parseCsvIncremental(
+                    fileContent,
+                    pharmacyId
+                );
+
+                if (totalRows === 0) {
+                    res.status(400).json({ error: "The file appears empty or is missing rows." });
+                    return;
+                }
+
+                if (totalRows > MAX_BULK_UPLOAD_ITEMS) {
+                    res.status(400).json({
+                        error: `Bulk upload exceeds the maximum limit of ${MAX_BULK_UPLOAD_ITEMS} items per request.`,
+                    });
+                    return;
+                }
+
+                let successfulInserts = 0;
+                if (rowsToInsert.length > 0) {
+                    const { error } = await supabase.from("pharmacy_inventory").insert(rowsToInsert);
+                    if (error) {
+                        logger.error(`Database bulk insertion failed: ${error.message}`);
+                        res.status(500).json({
+                            error: "Database operation failed during insertion.",
+                        });
+                        return;
+                    }
+                    successfulInserts = rowsToInsert.length;
+                }
+
+                res.status(200).json({
+                    totalRows,
+                    successCount: successfulInserts,
+                    failedCount: failedRows.length,
+                    errors: failedRows,
+                });
+            } catch (error: unknown) {
+                next(error);
+            }
+        });
     }
 );
 
