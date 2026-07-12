@@ -18,6 +18,11 @@ FOR SELECT
 TO public
 USING (true);
 
+-- Ensure service_role has full access (fixes CI 42501 permission error)
+GRANT ALL ON TABLE public.health_schemes TO service_role;
+GRANT ALL ON TABLE public.health_schemes TO postgres;
+GRANT SELECT ON TABLE public.health_schemes TO anon, authenticated;
+
 -- Seed initial data
 INSERT INTO public.health_schemes (state_name, scheme_name, description, coverage, how_to_apply, link)
 VALUES

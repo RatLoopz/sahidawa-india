@@ -1,0 +1,129 @@
+name: PR Security & Quality Guards
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, labeled]
+
+permissions:
+  pull-requests: write
+  issues: write
+  contents: read
+
+jobs:
+  run-all-guards:
+    runs-on: ubuntu-latest
+    steps:
+      - name: PR Size Checker
+        if: github.event.action != 'labeled'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { owner, repo, number } = context.issue;
+            
+            const files = await github.rest.pulls.listFiles({
+              owner, repo, pull_number: number, per_page: 100
+            });
+            
+            const changedFilesCount = files.data.length;
+            if (changedFilesCount > 15) {
+              const warningMessage = `**Warning: Large Pull Request Detected**\nThis PR modifies **${changedFilesCount} files**.\nPlease review the "Files changed" tab. Did you accidentally run \`git add .\` or commit files from other branches?\n*(If this is a legitimate large feature like a major refactor or i18n update, you can ignore this warning).*`;
+              
+              const comments = await github.rest.issues.listComments({ owner, repo, issue_number: number });
+              const hasWarningComment = comments.data.some(c => c.body.includes('Warning: Large Pull Request Detected'));
+              
+              if (!hasWarningComment) {
+                await github.rest.issues.createComment({ owner, repo, issue_number: number, body: warningMessage });
+              }
+            }
+
+      - name: PR Spam Guard
+        if: github.event.action == 'opened'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const author = context.payload.pull_request.user.login;
+            const prNumber = context.payload.pull_request.number;
+
+            if (context.payload.pull_request.user.type === 'Bot') return;
+
+            try {
+              const { data: perm } = await github.rest.repos.getCollaboratorPermissionLevel({ owner: context.repo.owner, repo: context.repo.repo, username: author });
+              if (perm.permission === 'admin' || perm.permission === 'write') return;
+            } catch (err) { }
+
+            const prs = await github.paginate(github.rest.pulls.list, { owner: context.repo.owner, repo: context.repo.repo, state: 'open', per_page: 100 });
+            const userPRs = prs.filter(pr => pr.user && pr.user.login === author);
+
+            if (userPRs.length > 5) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo, issue_number: prNumber,
+                body: `🚨 **PR Limit Exceeded** 🚨\n\n@${author}, you currently have **${userPRs.length} open Pull Requests**. We enforce a maximum limit of **5 open PRs** per contributor.\nThis PR has been automatically closed.`
+              });
+              await github.rest.pulls.update({ owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber, state: 'closed' });
+            }
+
+      - name: Strict File Checker
+        if: github.event.action != 'labeled'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { owner, repo, number } = context.issue;
+            const username = context.payload.pull_request.user.login;
+            
+            try {
+              const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({ owner, repo, username });
+              if (["admin", "maintain", "write"].includes(permission.permission) || username.includes('[bot]')) return;
+            } catch(e) {}
+
+            const files = await github.rest.pulls.listFiles({ owner, repo, pull_number: number, per_page: 100 });
+            const changedFiles = files.data.map(f => f.filename);
+            let violations = [];
+
+            const forbiddenPatterns = [ /(^|\/)node_modules\//, /(^|\/)\.env/, /(^|\/)\.vscode\//, /(^|\/)\.idea\//, /(^|\/)\.DS_Store/, /(^|\/)\.next\//, /(^|\/)dist\//, /(^|\/)build\// ];
+            const foundForbidden = changedFiles.filter(file => forbiddenPatterns.some(pattern => pattern.test(file)));
+
+            if (foundForbidden.length > 0) {
+              violations.push(`**Forbidden Files Detected:**\nYou have committed build artifacts, local configs, or secrets:\n${foundForbidden.map(f => `- \`${f}\``).join('\n')}`);
+            }
+
+            const modifiedLockfile = changedFiles.find(file => file.endsWith('package-lock.json') || file.endsWith('yarn.lock'));
+            const modifiedPackageJson = changedFiles.some(file => file.endsWith('package.json'));
+
+            if (modifiedLockfile && !modifiedPackageJson) {
+              violations.push(`**Invalid Lockfile Regeneration Detected:**\nYou modified \`${modifiedLockfile}\` but did not change \`package.json\`. You must only commit lockfile changes if you explicitly added a new library.`);
+            }
+
+            if (violations.length > 0) {
+              await github.rest.issues.createComment({ owner, repo, issue_number: number, body: `Pull Request Denied.\n\n@${username}, your PR violates repository rules and is being automatically closed.\n\n${violations.join('\n\n')}` });
+              await github.rest.pulls.update({ owner, repo, pull_number: number, state: 'closed' });
+              core.setFailed("PR closed due to forbidden files.");
+            }
+
+      - name: Label Guard
+        if: github.event.action == 'labeled'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const actor = context.actor;
+            // The label might be coming from issue or pull_request payload
+            const labelObj = context.payload.label;
+            if (!labelObj) return;
+            const label = labelObj.name;
+            const issueNumber = context.issue.number;
+            const repoOwner = context.repo.owner;
+            const repoName = context.repo.repo;
+
+            const restrictedLabels = ['level:beginner', 'level:intermediate', 'level:advanced','level:critical', 'gssoc:approved'];
+
+            if (!restrictedLabels.includes(label)) return;
+            if (actor === 'github-actions[bot]' || actor === repoOwner) return;
+
+            try {
+              const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({ owner: repoOwner, repo: repoName, username: actor });
+              if (!['admin', 'write'].includes(permission.permission)) {
+                await github.rest.issues.removeLabel({ owner: repoOwner, repo: repoName, issue_number: issueNumber, name: label });
+                await github.rest.issues.createComment({ owner: repoOwner, repo: repoName, issue_number: issueNumber, body: `⚠️ Label \`${label}\` was removed. Only repository maintainers can add restricted labels.` });
+              }
+            } catch (error) {
+              console.error(error.message);
+            }

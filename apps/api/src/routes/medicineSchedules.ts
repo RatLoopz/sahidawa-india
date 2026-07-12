@@ -36,50 +36,97 @@ const getSummaryCacheBucket = (time: string) => {
     return Math.floor(totalMinutes / SUMMARY_CACHE_BUCKET_MINUTES);
 };
 
-const createScheduleSchema = z
+/**
+ * Checks that a "YYYY-MM-DD" string is a real calendar date
+ * (rejects things like 2026-02-31, 2026-00-10, 2026-13-01, etc.)
+ * Regex format is assumed to have already been validated.
+ */
+const isRealDateString = (value: string): boolean => {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+    if (!match) return false;
+
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+
+    if (month < 1 || month > 12) return false;
+    if (day < 1 || day > 31) return false;
+
+    // Building the date in UTC and reading the parts back out catches rollover
+    // (e.g. Date.UTC(2026, 1, 31) becomes March 3, which won't match day === 31).
+    const date = new Date(Date.UTC(year, month - 1, day));
+    return (
+        date.getUTCFullYear() === year &&
+        date.getUTCMonth() === month - 1 &&
+        date.getUTCDate() === day
+    );
+};
+
+/**
+ * Checks that an "HH:MM" string is a real 24-hour time
+ * (rejects things like 99:99, 24:00, 12:60, etc.)
+ * Regex format is assumed to have already been validated.
+ */
+const isRealTimeString = (value: string): boolean => {
+    const match = /^(\d{2}):(\d{2})$/.exec(value);
+    if (!match) return false;
+
+    const hours = Number(match[1]);
+    const minutes = Number(match[2]);
+
+    return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59;
+};
+
+const dateStringSchema = z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD")
+    .refine(isRealDateString, { message: "Date must be a real calendar date" });
+
+const timeStringSchema = z
+    .string()
+    .regex(/^\d{2}:\d{2}$/, "Time must be in HH:MM format")
+    .refine(isRealTimeString, { message: "Time must be a real 24-hour time (00:00-23:59)" });
+
+const createScheduleObjectSchema = z
     .object({
         medicine_name: z.string().min(1, "Medicine name is required"),
         dosage: z.string().min(1, "Dosage is required").default("1 tablet"),
         frequency: z.number().int().positive("Frequency must be at least 1"),
-        times: z
-            .array(z.string().regex(/^\d{2}:\d{2}$/, "Time must be in HH:MM format"))
-            .min(1, "At least one time is required"),
-        start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD"),
-        end_date: z
-            .string()
-            .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD")
-            .nullable()
-            .optional(),
+        times: z.array(timeStringSchema).min(1, "At least one time is required"),
+        start_date: dateStringSchema,
+        end_date: dateStringSchema.nullable().optional(),
         notes: z.string().optional(),
         medicine_id: uuidSchema.nullable().optional(),
     })
     .strict();
 
-const updateScheduleSchema = createScheduleSchema.partial();
+const createScheduleSchema = createScheduleObjectSchema.refine(
+    (data) => !data.end_date || data.end_date >= data.start_date,
+    { message: "end_date must not be before start_date", path: ["end_date"] }
+);
+
+const updateScheduleSchema = createScheduleObjectSchema.partial().refine(
+    (data) => !data.end_date || !data.start_date || data.end_date >= data.start_date,
+    { message: "end_date must not be before start_date", path: ["end_date"] }
+);
 
 const doseSchema = z
     .object({
-        log_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD"),
-        log_time: z.string().regex(/^\d{2}:\d{2}$/, "Time must be in HH:MM format"),
+        log_date: dateStringSchema,
+        log_time: timeStringSchema,
         status: z.enum(["taken", "skipped"]),
         taken_at: z.string().datetime().nullable().optional(),
     })
     .strict();
 
 const statsSchema = z.object({
-    from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD"),
-    to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD"),
+    from: dateStringSchema,
+    to: dateStringSchema,
 });
 
 const summaryQuerySchema = z.object({
-    date: z
-        .string()
-        .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD")
-        .optional(),
-    time: z
-        .string()
-        .regex(/^\d{2}:\d{2}$/, "Time must be HH:MM")
-        .optional(),
+    date: dateStringSchema.optional(),
+    time: timeStringSchema.optional(),
 });
 
 /**
@@ -209,6 +256,39 @@ router.put("/:id", requireAuth, async (req: AuthenticatedRequest, res: Response)
     }
 
     try {
+        // If this update touches start_date or end_date, make sure the resulting
+        // pair is never inverted — even when only one of the two is being changed,
+        // in which case we need the current value of the other from the DB.
+        if (parsed.data.start_date !== undefined || parsed.data.end_date !== undefined) {
+            let effectiveStartDate = parsed.data.start_date;
+            let effectiveEndDate = parsed.data.end_date;
+
+            if (effectiveStartDate === undefined || effectiveEndDate === undefined) {
+                const { data: existing, error: fetchError } = await supabase
+                    .from("medicine_schedules")
+                    .select("start_date, end_date")
+                    .eq("id", req.params.id)
+                    .eq("user_id", req.user!.id)
+                    .maybeSingle();
+
+                if (fetchError) {
+                    res.status(500).json({ error: "Failed to update schedule" });
+                    return;
+                }
+                if (!existing) {
+                    res.status(404).json({ error: "Schedule not found" });
+                    return;
+                }
+                if (effectiveStartDate === undefined) effectiveStartDate = existing.start_date;
+                if (effectiveEndDate === undefined) effectiveEndDate = existing.end_date ?? undefined;
+            }
+
+            if (effectiveEndDate && effectiveStartDate && effectiveEndDate < effectiveStartDate) {
+                res.status(400).json({ error: "end_date must not be before start_date" });
+                return;
+            }
+        }
+
         const { data, error } = await supabase
             .from("medicine_schedules")
             .update({ ...parsed.data, updated_at: new Date().toISOString() })

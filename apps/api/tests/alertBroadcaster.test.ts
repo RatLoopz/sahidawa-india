@@ -40,6 +40,7 @@ import {
     broadcastDistrictAlerts,
     broadcastExpiryAlerts,
     shouldSendForFrequency,
+    broadcastConfig,
 } from "../src/cron/alert-broadcaster";
 
 const mockedSupabase = supabase as jest.Mocked<typeof supabase>;
@@ -358,7 +359,7 @@ describe("broadcastExpiryAlerts", () => {
                 return {
                     ...mockBatchesQuery(batches),
                     update: jest.fn().mockReturnValue({
-                        eq: jest.fn().mockResolvedValue({ data: null, error: null }),
+                        in: jest.fn().mockResolvedValue({ data: null, error: null }),
                     }),
                 };
             }
@@ -498,8 +499,8 @@ describe("broadcastExpiryAlerts", () => {
                 return {
                     ...mockBatchesQuery(batches),
                     update: jest.fn().mockImplementation((payload: Record<string, unknown>) => ({
-                        eq: jest.fn().mockImplementation((_col: string, id: string) => {
-                            if (id === "batch-1") {
+                        in: jest.fn().mockImplementation((_col: string, ids: string[]) => {
+                            if (ids.includes("batch-1")) {
                                 return Promise.resolve({
                                     data: null,
                                     error: { message: "DB write failed" },
@@ -525,7 +526,12 @@ describe("broadcastExpiryAlerts", () => {
             return {};
         });
 
-        await broadcastExpiryAlerts();
+        broadcastConfig.MARK_BROADCASTED_CHUNK_SIZE = 1;
+        try {
+            await broadcastExpiryAlerts();
+        } finally {
+            broadcastConfig.MARK_BROADCASTED_CHUNK_SIZE = 500;
+        }
 
         expect(smsService.send).toHaveBeenCalledTimes(1);
         const [, fullMessage] = (smsService.send as jest.Mock).mock.calls[0];

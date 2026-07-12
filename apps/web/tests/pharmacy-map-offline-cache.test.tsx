@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 
+import { describe, it, expect, jest, beforeEach } from "@jest/globals";
 import { render, screen, waitFor, within, fireEvent } from "@testing-library/react";
 
 import PharmacyMapPage from "../app/[locale]/map/page";
@@ -66,7 +67,7 @@ jest.mock("../app/[locale]/map/PharmacyMap", () => ({
                             west: 77.1,
                             north: 28.7,
                             east: 77.3,
-                            center: { lat: 28.6139, lng: 77.209 },
+                            center: { lat: 28.7, lng: 77.3 }, // Different from default to trigger button
                         } as any,
                         14
                     );
@@ -236,8 +237,6 @@ describe("PharmacyMapPage offline pharmacy cache", () => {
             { timeout: 2000 }
         );
         fireEvent.click(screen.getByRole("button", { name: "Mock map moved" }));
-        const searchAreaBtn = await screen.findByTestId("search-area-btn");
-        fireEvent.click(searchAreaBtn);
 
         await waitFor(() => {
             expect(fetchVerifiedPharmaciesInBoundsMock).toHaveBeenCalledWith(

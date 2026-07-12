@@ -1,3 +1,4 @@
+import { describe, it, expect, jest } from "@jest/globals";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import MapHeaderLoadingIndicator from "../app/[locale]/map/MapHeaderLoadingIndicator";

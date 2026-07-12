@@ -1,3 +1,4 @@
+import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
 let activeLocale = "en";
 
 jest.mock("next-intl/middleware", () => jest.fn(() => () => undefined));

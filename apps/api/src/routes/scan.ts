@@ -229,10 +229,14 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
             }
         };
 
+        // Guarantees cleanup on every response outcome — success, thrown error,
+        // or the client disconnecting before a response is ever sent.
+        res.on("finish", cleanupTempFile);
+        res.on("close", cleanupTempFile);
+
         if (multerErr) {
             const msg = multerErr instanceof Error ? multerErr.message : "File upload error";
             logger.warn(`File upload rejected: ${msg}`);
-            cleanupTempFile();
             res.status(400).json({ error: msg });
             return;
         }
@@ -254,8 +258,6 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
         if (!mlServiceUrl) {
             logger.error(MISSING_ML_SERVICE_URL_MESSAGE, { route: "/api/v1/scan/extract" });
 
-            cleanupTempFile();
-
             res.status(500).json({
                 error: "OCR service is not configured.",
                 code: "ML_SERVICE_URL_MISSING",
@@ -271,8 +273,8 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
 
         try {
             const formData = new FormData();
-            const fileBuffer = fs.readFileSync(tempFilePath);
-            const blob = new Blob([new Uint8Array(fileBuffer)], {
+            const fileBuffer = await fs.promises.readFile(tempFilePath);
+            const blob = new Blob([fileBuffer], {
                 type: file.mimetype,
             });
             formData.append("file", blob, file.originalname);
@@ -614,8 +616,6 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
                 error: "OCR service is currently unavailable. Please verify manually.",
                 details: msg,
             });
-        } finally {
-            cleanupTempFile();
         }
     });
 });

@@ -115,8 +115,10 @@ export default function SettingsPage() {
             const guestPhone = localStorage.getItem(GUEST_PHONE_KEY);
             let response;
 
-            if (guestPhone || isAuthenticated) {
-                // If already registered in local storage or logged in, update it
+            if (isAuthenticated) {
+                // Logged-in users are identified by their session token, so the
+                // authenticated update endpoint is the right one regardless of
+                // whether they also happen to have a guest phone on file.
                 response = await updateSubscription(
                     {
                         phone: guestPhone || payload.phone,
@@ -128,8 +130,12 @@ export default function SettingsPage() {
                     token || undefined
                 );
             } else {
-                // Register a new subscription
-                response = await registerSubscription(payload, token || undefined);
+                // Guest users — whether this is their first save or they're
+                // returning to change their district, phone, or channels later —
+                // always go through the guest-friendly registration flow. That
+                // endpoint upserts by phone number and never requires login, so
+                // it also handles updates for guests who already registered once.
+                response = await registerSubscription(payload, undefined);
             }
 
             if (response.success) {

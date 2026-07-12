@@ -3,6 +3,7 @@ import { startAlertBroadcaster } from "../cron/alert-broadcaster";
 import { startTempCleanupJob } from "../cron/tempCleanup";
 import { initExpiryCron } from "../cron/expiry-check";
 import { initDistrictAlertSyncCron } from "../cron/districtAlertSync";
+import { startPgCronMonitor } from "../cron/pgCronMonitor";
 
 interface StoppableJob {
     stop: () => void;
@@ -21,6 +22,7 @@ class JobScheduler {
         this.jobs.push(startTempCleanupJob());
         this.jobs.push(initExpiryCron());
         this.jobs.push(initDistrictAlertSyncCron());
+        this.jobs.push(startPgCronMonitor());
         logger.info("All background jobs have been started.");
     }
 

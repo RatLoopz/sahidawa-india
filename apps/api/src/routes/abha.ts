@@ -15,9 +15,7 @@ import {
     exchangeAuthCode,
     downloadHealthRecords,
 } from "../services/abha.service";
-
-// In-memory token storage tracker mapping short lived state criteria
-const pkceSessionStore = new Map<string, { codeVerifier: string; userId: string }>();
+import { consumeAbhaPkceSession, storeAbhaPkceSession } from "../services/abhaPkceSession.service";
 
 // Zod schemas for validating ABHA route request bodies.
 // abhaAddress format is ultimately validated by ABDM itself (see
@@ -212,31 +210,35 @@ router.delete(
 
 // GET /api/v1/abha/authorize
 // Generates authorization target payload URL
-router.get("/authorize", limiter, requireAuth, async (req: any, res: Response): Promise<void> => {
-    try {
-        const userId = req.user?.id;
-        if (!userId) {
-            res.status(401).json({ error: "Unauthorized" });
-            return;
+router.get(
+    "/authorize",
+    limiter,
+    requireAuth,
+    async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+        try {
+            const userId = req.user?.id;
+            if (!userId) {
+                res.status(401).json({ error: "Unauthorized" });
+                return;
+            }
+
+            const { codeVerifier, codeChallenge } = generatePkcePair();
+            const state = crypto.randomBytes(16).toString("hex");
+
+            await storeAbhaPkceSession(state, { codeVerifier, userId });
+
+            const authUrl = await getAuthorizationUrl(codeChallenge, state);
+            res.status(200).json({ url: authUrl, state });
+        } catch (error: unknown) {
+            res.status(500).json({
+                error:
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to configure authentication link parameters",
+            });
         }
-
-        const { codeVerifier, codeChallenge } = generatePkcePair();
-        const state = crypto.randomBytes(16).toString("hex");
-
-        // Save session data for verification within callback boundary
-        pkceSessionStore.set(state, { codeVerifier, userId });
-
-        // Auto flush trace tokens after 5 mins safely
-        setTimeout(() => pkceSessionStore.delete(state), 5 * 60 * 1000);
-
-        const authUrl = await getAuthorizationUrl(codeChallenge, state);
-        res.status(200).json({ url: authUrl, state });
-    } catch (error: any) {
-        res.status(500).json({
-            error: error.message || "Failed to configure authentication link parameters",
-        });
     }
-});
+);
 
 // GET /api/v1/abha/callback
 // Handles ABDM redirect execution flow
@@ -250,7 +252,7 @@ router.get("/callback", limiter, async (req: Request, res: Response): Promise<vo
             return;
         }
 
-        const cachedSession = pkceSessionStore.get(state as string);
+        const cachedSession = await consumeAbhaPkceSession(state as string);
         if (!cachedSession) {
             res.status(400).json({
                 error: "Stale state transaction configuration or session timeout error",
@@ -258,14 +260,14 @@ router.get("/callback", limiter, async (req: Request, res: Response): Promise<vo
             return;
         }
 
-        pkceSessionStore.delete(state as string); // Explicit single use assertion logic
-
         await exchangeAuthCode(cachedSession.userId, code as string, cachedSession.codeVerifier);
         res.status(200).json({
             message: "ABHA profiles bound via secure PKCE handshake successfully",
         });
-    } catch (error: any) {
-        res.status(500).json({ error: error.message || "PKCE exchange process failed" });
+    } catch (error: unknown) {
+        res.status(500).json({
+            error: error instanceof Error ? error.message : "PKCE exchange process failed",
+        });
     }
 });
 

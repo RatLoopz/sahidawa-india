@@ -1,3 +1,13 @@
+import {
+    describe,
+    it,
+    expect,
+    jest,
+    beforeEach,
+    afterEach,
+    beforeAll,
+    afterAll,
+} from "@jest/globals";
 /**
  * @jest-environment jsdom
  */
@@ -61,21 +71,28 @@ describe("Expiry Tracker Notifications Library", () => {
             value: jest.fn(),
         });
         (global.Notification as any).permission = "granted";
-        (global.Notification as any).requestPermission = jest.fn().mockResolvedValue("granted");
+        (global.Notification as any).requestPermission = jest
+            .fn()
+            .mockImplementation(async () => "granted");
 
         // Mock Service Worker registration
         mockShowNotification = jest.fn();
-        mockGetNotifications = jest.fn().mockResolvedValue([]);
+        mockGetNotifications = jest.fn().mockImplementation(async () => []);
 
         Object.defineProperty(global.navigator, "serviceWorker", {
             writable: true,
             value: {
-                getRegistration: jest.fn().mockResolvedValue({
+                getRegistration: jest.fn().mockImplementation(async () => ({
                     showNotification: mockShowNotification,
                     getNotifications: mockGetNotifications,
-                }),
+                })),
             },
         });
+    });
+
+    afterEach(() => {
+        jest.clearAllTimers();
+        jest.useRealTimers();
     });
 
     describe("getNotificationTargets", () => {
