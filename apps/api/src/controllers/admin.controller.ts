@@ -32,6 +32,13 @@ const paginationSchema = z.object({
     limit: z.coerce.number().int().min(1).max(100).default(50),
 });
 
+const pharmacyListSchema = paginationSchema.extend({
+    includeInactive: z
+        .enum(["true", "false"])
+        .default("false")
+        .transform((val) => val === "true"),
+});
+
 interface AdminAuditLog {
     id: string;
     admin_id: string | null;
@@ -292,6 +299,7 @@ export const getPendingPharmacies = async (
                 "id, name, license_id, address, district, state, phone_number, is_verified, status, created_at"
             )
             .eq("status", "pending")
+            .eq("is_active", true)
             .order("created_at", { ascending: false });
 
         if (error) {
@@ -451,7 +459,7 @@ export const getAuditLogs = async (req: AuthenticatedRequest, res: Response): Pr
 
 export const getAllPharmacies = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        const parsed = paginationSchema.safeParse(req.query);
+        const parsed = pharmacyListSchema.safeParse(req.query);
 
         if (!parsed.success) {
             res.status(400).json({
@@ -461,10 +469,10 @@ export const getAllPharmacies = async (req: AuthenticatedRequest, res: Response)
             return;
         }
 
-        const { page, limit } = parsed.data;
+        const { page, limit, includeInactive } = parsed.data;
         const offset = (page - 1) * limit;
 
-        const { data, error, count } = await supabase
+        let query = supabase
             .from("pharmacies")
             .select(
                 "id, name, license_id, address, district, state, phone_number, is_verified, status, created_at, is_active, deleted_at",
@@ -472,6 +480,12 @@ export const getAllPharmacies = async (req: AuthenticatedRequest, res: Response)
             )
             .order("created_at", { ascending: false })
             .range(offset, offset + limit - 1);
+
+        if (!includeInactive) {
+            query = query.eq("is_active", true);
+        }
+
+        const { data, error, count } = await query;
 
         if (error) {
             res.status(500).json({ error: "Failed to fetch pharmacies" });
