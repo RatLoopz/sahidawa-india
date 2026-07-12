@@ -1,51 +1,58 @@
-import { openDB, DBSchema, IDBPDatabase } from "idb";
-
-interface SyncDB extends DBSchema {
-    pendingScans: {
-        key: string; // idempotencyKey
-        value: {
-            idempotencyKey: string;
-            deviceId: string;
-            createdAt: number;
-            metadata: Record<string, unknown>;
-            imageBlob?: Blob;
-            voiceBlob?: Blob;
-            parts: {
-                metadata: "pending" | "synced" | "failed";
-                image: "pending" | "synced" | "failed" | "skipped";
-                voice: "pending" | "synced" | "failed" | "skipped";
-            };
-            attemptCount: number;
-        };
-    };
-    pendingReports: {
-        key: string; // idempotencyKey
-        value: {
-            idempotencyKey: string;
-            deviceId: string;
-            createdAt: number;
-            reportData: Record<string, any>;
-            imageBlob?: Blob;
-        };
-    };
+export interface PendingScan {
+  id?: number;
+  barcode: string;
+  timestamp: number;
+  scanCount: number;
 }
 
-let dbPromise: Promise<IDBPDatabase<SyncDB>> | null = null;
+const DB_NAME = "SahiDawaOfflineDB";
+const STORE_NAME = "pendingScans";
 
-export function getSyncDB() {
-    if (!dbPromise) {
-        // Changed version from 1 to 2 to trigger the upgrade
-        dbPromise = openDB<SyncDB>("sahidawa-sync", 2, {
-            upgrade(db) {
-                if (!db.objectStoreNames.contains("pendingScans")) {
-                    db.createObjectStore("pendingScans", { keyPath: "idempotencyKey" });
-                }
-                // Add our new pendingReports store
-                if (!db.objectStoreNames.contains("pendingReports")) {
-                    db.createObjectStore("pendingReports", { keyPath: "idempotencyKey" });
-                }
-            },
-        });
-    }
-    return dbPromise;
+export function getDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
+      }
+    };
+    
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+export async function queueBarcode(barcode: string): Promise<void> {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+    const getAllRequest = store.getAll();
+    
+    getAllRequest.onsuccess = () => {
+      const scans = getAllRequest.result as PendingScan[];
+      const existingScan = scans.find(s => s.barcode === barcode);
+
+      if (existingScan && existingScan.id !== undefined) {
+        existingScan.timestamp = Date.now();
+        existingScan.scanCount = (existingScan.scanCount || 1) + 1;
+        const updateRequest = store.put(existingScan);
+        updateRequest.onsuccess = () => resolve();
+        updateRequest.onerror = () => reject(updateRequest.error);
+      } else {
+        const newScan: PendingScan = {
+          barcode,
+          timestamp: Date.now(),
+          scanCount: 1
+        };
+        const addRequest = store.add(newScan);
+        addRequest.onsuccess = () => resolve();
+        addRequest.onerror = () => reject(addRequest.error);
+      }
+    };
+    
+    getAllRequest.onerror = () => reject(getAllRequest.error);
+  });
 }
