@@ -13,6 +13,9 @@ describe("E2E Webhook Delivery Verification", () => {
     });
 
     it("should successfully trigger and deliver a webhook upon record insertion in health_schemes", async () => {
+        console.log("Supabase URL:", process.env.SUPABASE_URL);
+        console.log("Service Key:", process.env.SUPABASE_SERVICE_ROLE_KEY ? "EXISTS" : "MISSING");
+
         const { data: insertData, error: insertError } = await supabase
             .from("health_schemes")
             .insert([
@@ -29,9 +32,13 @@ describe("E2E Webhook Delivery Verification", () => {
             .select()
             .single();
 
+        if (insertError) {
+            console.error("Insert error:", insertError);
+        }
+
         expect(insertError).toBeNull();
         expect(insertData).toBeTruthy();
-        insertedSchemeId = insertData.id as string;
+        insertedSchemeId = (insertData as { id: string }).id;
 
         const maxRetries = 10;
         const delayMs = 1500;
@@ -43,6 +50,10 @@ describe("E2E Webhook Delivery Verification", () => {
                 .select("*")
                 .contains("payload", { scheme_name: schemeName })
                 .maybeSingle();
+
+            if (auditError) {
+                console.error(`Audit query error on attempt ${i + 1}:`, auditError);
+            }
 
             if (!auditError && auditData) {
                 webhookDelivered = true;
