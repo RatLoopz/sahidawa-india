@@ -312,6 +312,48 @@ export async function flushInteractionCache(): Promise<number> {
     }
 }
 
+let lastDiscordAlertTime = 0;
+const DISCORD_ALERT_DEBOUNCE_MS = 15 * 60 * 1000; // 15 minutes
+
+async function sendCacheAlertDiscord(): Promise<void> {
+    const WEBHOOK_URL = process.env.PG_CRON_MONITOR_WEBHOOK_URL;
+    if (!WEBHOOK_URL) return;
+
+    const now = Date.now();
+    if (now - lastDiscordAlertTime < DISCORD_ALERT_DEBOUNCE_MS) return;
+
+    try {
+        const payload = {
+            embeds: [
+                {
+                    title: `🚨 Redis Cache Stats Failure`,
+                    color: 16711680,
+                    description:
+                        "All Redis stat fetches failed or Redis is unreachable. Returning stale/zero data.",
+                    timestamp: new Date().toISOString(),
+                },
+            ],
+        };
+
+        const response = await fetch(WEBHOOK_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+
+        if (response.ok) {
+            lastDiscordAlertTime = now;
+            logger.info("Discord alert sent successfully for Redis cache stats failure.");
+        } else {
+            logger.error(
+                `Failed to send Discord alert for cache stats. Status: ${response.status}`
+            );
+        }
+    } catch (err) {
+        logger.error("Error sending Discord alert for cache stats", err);
+    }
+}
+
 /**
  * Returns cache performance stats: hit/miss counts, tier breakdown, top drugs.
  */
@@ -322,17 +364,21 @@ export async function getCacheStats(): Promise<{
     tierBreakdown: { hot: number; warm: number; cold: number };
     topDrugs: { name: string; count: number }[];
 }> {
+    const defaultStats = {
+        hits: 0,
+        misses: 0,
+        hitRate: 0,
+        tierBreakdown: { hot: 0, warm: 0, cold: 0 },
+        topDrugs: [],
+    };
+
     if (!redisClient.isOpen) {
-        return {
-            hits: 0,
-            misses: 0,
-            hitRate: 0,
-            tierBreakdown: { hot: 0, warm: 0, cold: 0 },
-            topDrugs: [],
-        };
+        sendCacheAlertDiscord().catch(() => {});
+        return defaultStats;
     }
     try {
         const results = await Promise.allSettled([
+            redisClient.get("stats:snapshot:last_known"),
             redisClient.get("stats:hits"),
             redisClient.get("stats:misses"),
             redisClient.get("stats:tier:hot"),
@@ -340,6 +386,32 @@ export async function getCacheStats(): Promise<{
             redisClient.get("stats:tier:cold"),
             redisClient.zRangeWithScores("stats:top_drugs", 0, 9, { REV: true }),
         ]);
+
+        const snapshotResult = results[0];
+        let snapshot: any = null;
+
+        if (snapshotResult.status === "fulfilled" && snapshotResult.value) {
+            try {
+                snapshot = JSON.parse(snapshotResult.value);
+            } catch (e) {
+                // Ignore parse errors
+            }
+        }
+
+        const allFailed =
+            results[1].status === "rejected" &&
+            results[2].status === "rejected" &&
+            results[3].status === "rejected" &&
+            results[4].status === "rejected" &&
+            results[5].status === "rejected" &&
+            results[6].status === "rejected";
+
+        if (allFailed) {
+            sendCacheAlertDiscord().catch(() => {});
+            return snapshot || defaultStats;
+        }
+
+        let anyFailed = false;
 
         const extractValue = <T>(
             result: PromiseSettledResult<T>,
@@ -349,16 +421,22 @@ export async function getCacheStats(): Promise<{
             if (result.status === "fulfilled") {
                 return result.value;
             }
+            anyFailed = true;
             logger.warn(`Failed to fetch cache stat for ${name}`, result.reason);
             return defaultVal;
         };
 
-        const rawHits = extractValue(results[0], "stats:hits", null);
-        const rawMisses = extractValue(results[1], "stats:misses", null);
-        const hotHitsStr = extractValue(results[2], "stats:tier:hot", null);
-        const warmHitsStr = extractValue(results[3], "stats:tier:warm", null);
-        const coldHitsStr = extractValue(results[4], "stats:tier:cold", null);
-        const rawTopDrugs = extractValue(results[5], "stats:top_drugs", []);
+        const rawHits = extractValue(results[1], "stats:hits", null);
+        const rawMisses = extractValue(results[2], "stats:misses", null);
+        const hotHitsStr = extractValue(results[3], "stats:tier:hot", null);
+        const warmHitsStr = extractValue(results[4], "stats:tier:warm", null);
+        const coldHitsStr = extractValue(results[5], "stats:tier:cold", null);
+        const rawTopDrugs = extractValue(results[6], "stats:top_drugs", []);
+
+        if (anyFailed && snapshot) {
+            logger.warn("Partial cache stat fetch failure. Returning stale snapshot.");
+            return snapshot;
+        }
 
         const hits = parseInt(rawHits ?? "0", 10);
         const misses = parseInt(rawMisses ?? "0", 10);
@@ -374,22 +452,27 @@ export async function getCacheStats(): Promise<{
             count: item.score,
         }));
 
-        return {
+        const finalStats = {
             hits,
             misses,
             hitRate,
             tierBreakdown: { hot: hotHits, warm: warmHits, cold: coldHits },
             topDrugs,
         };
+
+        if (!anyFailed) {
+            redisClient
+                .set("stats:snapshot:last_known", JSON.stringify(finalStats), {
+                    EX: 300, // 5 minutes
+                })
+                .catch((err: any) => logger.warn("Failed to write cache stats snapshot", err));
+        }
+
+        return finalStats;
     } catch (err) {
         logger.error("Error fetching cache stats", err);
-        return {
-            hits: 0,
-            misses: 0,
-            hitRate: 0,
-            tierBreakdown: { hot: 0, warm: 0, cold: 0 },
-            topDrugs: [],
-        };
+        sendCacheAlertDiscord().catch(() => {});
+        return defaultStats;
     }
 }
 
