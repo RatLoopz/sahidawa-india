@@ -1,4 +1,9 @@
-import { getCachedDrug, incrementHitCount, incrementMissCount } from "./cache.service";
+import {
+    getCachedDrug,
+    incrementHitCount,
+    incrementMissCount,
+    getCacheStats,
+} from "./cache.service";
 
 import { redisClient } from "../utils/redis";
 
@@ -7,9 +12,10 @@ jest.mock("../utils/redis", () => ({
     redisClient: {
         isOpen: true,
         get: jest.fn(),
-        set: jest.fn(),
+        set: jest.fn().mockResolvedValue("OK"),
         incr: jest.fn(),
         zIncrBy: jest.fn(),
+        zRangeWithScores: jest.fn(),
     },
 }));
 
@@ -137,6 +143,91 @@ describe("cache.service", () => {
             const result = await incrementMissCount();
 
             expect(result).toBe(0);
+        });
+    });
+
+    describe("getCacheStats", () => {
+        const mockFetch = jest.fn();
+        global.fetch = mockFetch;
+
+        beforeEach(() => {
+            mockFetch.mockClear();
+            process.env.PG_CRON_MONITOR_WEBHOOK_URL = "http://mock-webhook";
+        });
+
+        it("should return live stats and save snapshot on success", async () => {
+            (redisClient.get as jest.Mock).mockImplementation((key) => {
+                if (key === "stats:snapshot:last_known") return Promise.resolve(null);
+                if (key === "stats:hits") return Promise.resolve("10");
+                if (key === "stats:misses") return Promise.resolve("5");
+                if (key === "stats:tier:hot") return Promise.resolve("2");
+                if (key === "stats:tier:warm") return Promise.resolve("3");
+                if (key === "stats:tier:cold") return Promise.resolve("5");
+                return Promise.resolve(null);
+            });
+            (redisClient.zRangeWithScores as jest.Mock).mockResolvedValue([
+                { value: "Dolo", score: 10 },
+            ]);
+
+            const stats = await getCacheStats();
+
+            expect(stats.hits).toBe(10);
+            expect(stats.misses).toBe(5);
+            expect(stats.hitRate).toBe(67);
+            expect(redisClient.set).toHaveBeenCalledWith(
+                "stats:snapshot:last_known",
+                expect.any(String),
+                { EX: 300 }
+            );
+            expect(mockFetch).not.toHaveBeenCalled();
+        });
+
+        it("should return snapshot if live stats partially fail", async () => {
+            const staleSnapshot = {
+                hits: 100,
+                misses: 50,
+                hitRate: 67,
+                tierBreakdown: { hot: 10, warm: 20, cold: 30 },
+                topDrugs: [{ name: "Crocin", count: 100 }],
+            };
+
+            (redisClient.get as jest.Mock).mockImplementation((key) => {
+                if (key === "stats:snapshot:last_known")
+                    return Promise.resolve(JSON.stringify(staleSnapshot));
+                if (key === "stats:hits") return Promise.resolve("10");
+                if (key === "stats:misses") return Promise.reject(new Error("Redis error"));
+                return Promise.resolve("0");
+            });
+            (redisClient.zRangeWithScores as jest.Mock).mockResolvedValue([]);
+
+            const stats = await getCacheStats();
+
+            expect(stats).toEqual(staleSnapshot);
+            expect(mockFetch).not.toHaveBeenCalled();
+        });
+
+        it("should fire discord alert and return default stats if all fail and no snapshot", async () => {
+            // Fast forward time to avoid debounce
+            jest.spyOn(Date, "now").mockImplementation(() => 9999999999999);
+            mockFetch.mockResolvedValue({ ok: true });
+
+            (redisClient.get as jest.Mock).mockRejectedValue(new Error("Redis is down completely"));
+            (redisClient.zRangeWithScores as jest.Mock).mockRejectedValue(
+                new Error("Redis is down completely")
+            );
+
+            const stats = await getCacheStats();
+
+            expect(stats.hits).toBe(0);
+            expect(stats.misses).toBe(0);
+            expect(mockFetch).toHaveBeenCalledWith(
+                "http://mock-webhook",
+                expect.objectContaining({
+                    method: "POST",
+                })
+            );
+
+            jest.restoreAllMocks();
         });
     });
 });
