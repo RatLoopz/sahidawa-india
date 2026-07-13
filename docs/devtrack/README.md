@@ -882,3 +882,4 @@
 | [#3524](https://github.com/RatLoopz/sahidawa-india/pull/3524) | 2026-07-12 | Backend | 9 | @mayurigade-hub | [View Doc](devtrack/2026-07/PR-3524-fix-validate-medicine-schedule-dates-and-times.md) |
 | [#3503](https://github.com/RatLoopz/sahidawa-india/pull/3503) | 2026-07-12 | Backend | 8 | @Avinash-sdbegin | [View Doc](devtrack/2026-07/PR-3503-perf-cache-optimize-cache-warming-queries-and-alig.md) |
 | [#3542](https://github.com/RatLoopz/sahidawa-india/pull/3542) | 2026-07-12 | Backend | 6 | @HarshiVarshney | [View Doc](devtrack/2026-07/PR-3542-bug-create-missing-migration-for-medicine-schedule.md) |
+| [#3563](https://github.com/RatLoopz/sahidawa-india/pull/3563) | 2026-07-13 | Backend | 9 | @hrx01-dev | [View Doc](devtrack/2026-07/PR-3563-perf-papaparse-accumulates-massive-arrays-in-memor.md) |
