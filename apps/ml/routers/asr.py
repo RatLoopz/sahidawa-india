@@ -623,6 +623,11 @@ class StreamingAudioDecoder:
         return self.take_audio(timeout_seconds)
 
     def close(self) -> None:
+        if self._process.stdin is not None and not self._process.stdin.closed:
+            try:
+                self._process.stdin.close()
+            except (BrokenPipeError, OSError):
+                pass
         if self._process.poll() is None:
             self._wait_for_process_exit(0.2)
 
