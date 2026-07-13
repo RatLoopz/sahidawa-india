@@ -46,8 +46,12 @@ export async function warmCache(): Promise<void> {
         const brandNames = hotDrugs.flatMap((d) => d.brandNames).filter(Boolean);
 
         // Names me commas ya quotes ko safely handle karne ke liye formatting
-        const genericInStr = genericNames.map((name) => `"${name.replace(/"/g, '\\"')}"`).join(",");
-        const brandInStr = brandNames.map((name) => `"${name.replace(/"/g, '\\"')}"`).join(",");
+        const genericInStr = genericNames
+            .map((name) => `"${name.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`)
+            .join(",");
+        const brandInStr = brandNames
+            .map((name) => `"${name.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`)
+            .join(",");
 
         const orFilter = `generic_name.in.(${genericInStr}),brand_name.in.(${brandInStr})`;
 
