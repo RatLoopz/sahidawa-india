@@ -575,8 +575,12 @@ describe("POST /api/pharmacies/bulk-upload — BOM stripping", () => {
             .send({ fileContent: csvWithBOM });
 
         expect(response.status).toBe(200);
-        expect(response.body.successCount).toBe(1);
-        expect(response.body.failedCount).toBe(0);
+        const lines = response.text.split("\n\n");
+        const doneLine = lines.find((l) => l.startsWith("data: ") && l.includes('"done":true'));
+        const body = doneLine ? JSON.parse(doneLine.substring(6)) : {};
+
+        expect(body.successCount).toBe(1);
+        expect(body.failedCount).toBe(0);
     });
 
     it("parses CSV without BOM marker correctly", async () => {
@@ -615,8 +619,12 @@ describe("POST /api/pharmacies/bulk-upload — BOM stripping", () => {
             .send({ fileContent: csvWithoutBOM });
 
         expect(response.status).toBe(200);
-        expect(response.body.successCount).toBe(1);
-        expect(response.body.failedCount).toBe(0);
+        const lines = response.text.split("\n\n");
+        const doneLine = lines.find((l) => l.startsWith("data: ") && l.includes('"done":true'));
+        const body = doneLine ? JSON.parse(doneLine.substring(6)) : {};
+
+        expect(body.successCount).toBe(1);
+        expect(body.failedCount).toBe(0);
     });
 
     it("uses specified pharmacyId from body/query and falls back to most recently created", async () => {
@@ -714,9 +722,13 @@ describe("POST /api/pharmacies/bulk-upload — Robust CSV Parsing", () => {
             .send({ fileContent: csv });
 
         expect(response.status).toBe(200);
-        expect(response.body.successCount).toBe(2);
-        expect(response.body.failedCount).toBe(0);
-        expect(response.body.totalRows).toBe(2);
+        const lines = response.text.split("\n\n");
+        const doneLine = lines.find((l) => l.startsWith("data: ") && l.includes('"done":true'));
+        const body = doneLine ? JSON.parse(doneLine.substring(6)) : {};
+
+        expect(body.successCount).toBe(2);
+        expect(body.failedCount).toBe(0);
+        expect(body.totalRows).toBe(2);
     });
 
     it("maintains correct row numbering with empty records and captures validation failures", async () => {
@@ -731,10 +743,14 @@ describe("POST /api/pharmacies/bulk-upload — Robust CSV Parsing", () => {
             .send({ fileContent: csv });
 
         expect(response.status).toBe(200);
-        expect(response.body.successCount).toBe(1); // Valid Med
-        expect(response.body.failedCount).toBe(1); // Invalid Med
-        expect(response.body.errors[0].row).toBe(4); // Physical logical row
-        expect(response.body.errors[0].reason).toContain("expected string");
+        const lines = response.text.split("\n\n");
+        const doneLine = lines.find((l) => l.startsWith("data: ") && l.includes('"done":true'));
+        const body = doneLine ? JSON.parse(doneLine.substring(6)) : {};
+
+        expect(body.successCount).toBe(1); // Valid Med
+        expect(body.failedCount).toBe(1); // Invalid Med
+        expect(body.errors[0].row).toBe(4); // Physical logical row
+        expect(body.errors[0].reason).toContain("expected string");
     });
 
     it("catches parser-level malformed records", async () => {
@@ -748,8 +764,12 @@ describe("POST /api/pharmacies/bulk-upload — Robust CSV Parsing", () => {
             .send({ fileContent: csv });
 
         expect(response.status).toBe(200);
-        expect(response.body.failedCount).toBeGreaterThan(0);
-        expect(response.body.errors).toEqual(
+        const lines = response.text.split("\n\n");
+        const doneLine = lines.find((l) => l.startsWith("data: ") && l.includes('"done":true'));
+        const body = doneLine ? JSON.parse(doneLine.substring(6)) : {};
+
+        expect(body.failedCount).toBeGreaterThan(0);
+        expect(body.errors).toEqual(
             expect.arrayContaining([
                 expect.objectContaining({
                     row: 3,

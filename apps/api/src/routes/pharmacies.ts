@@ -155,7 +155,15 @@ const inventoryRowSchema = z.object({
 });
 
 // Reusable incremental CSV parsing helper using PapaParse step mode
-async function parseCsvIncremental(fileInput: string | NodeJS.ReadableStream, pharmacyId: string) {
+async function parseCsvIncremental(
+    fileInput: string | NodeJS.ReadableStream,
+    pharmacyId: string,
+    onProgress?: (stats: {
+        successfulInserts: number;
+        totalRows: number;
+        failedRows: number;
+    }) => void
+) {
     return new Promise<{
         successfulInserts: number;
         failedRows: Array<{ row: number; reason: string }>;
@@ -244,9 +252,7 @@ async function parseCsvIncremental(fileInput: string | NodeJS.ReadableStream, ph
                     const batch = [...rowsToInsert];
                     rowsToInsert = []; // Free up heap memory
 
-                    supabase
-                        .from("pharmacy_inventory")
-                        .insert(batch)
+                    Promise.resolve(supabase.from("pharmacy_inventory").insert(batch))
                         .then(({ error }) => {
                             if (error) {
                                 logger.error(`Database bulk insertion failed: ${error.message}`);
@@ -256,10 +262,17 @@ async function parseCsvIncremental(fileInput: string | NodeJS.ReadableStream, ph
                                 );
                             } else {
                                 successfulInserts += batch.length;
+                                if (onProgress) {
+                                    onProgress({
+                                        successfulInserts,
+                                        totalRows: nonEmptyDataRows,
+                                        failedRows: failedRows.length,
+                                    });
+                                }
                                 if (!isDone) parser.resume();
                             }
                         })
-                        .catch((err) => {
+                        .catch((err: any) => {
                             logger.error(
                                 `Database bulk insertion error: ${err instanceof Error ? err.message : String(err)}`
                             );
@@ -271,9 +284,7 @@ async function parseCsvIncremental(fileInput: string | NodeJS.ReadableStream, ph
                 if (isDone) return;
 
                 if (rowsToInsert.length > 0) {
-                    supabase
-                        .from("pharmacy_inventory")
-                        .insert(rowsToInsert)
+                    Promise.resolve(supabase.from("pharmacy_inventory").insert(rowsToInsert))
                         .then(({ error }) => {
                             if (isDone) return;
                             isDone = true;
@@ -294,7 +305,7 @@ async function parseCsvIncremental(fileInput: string | NodeJS.ReadableStream, ph
                                 });
                             }
                         })
-                        .catch((err) => {
+                        .catch((err: any) => {
                             if (isDone) return;
                             isDone = true;
                             logger.error(
@@ -1267,33 +1278,70 @@ router.post(
 
             const pharmacy = pharmacies[0];
 
+            res.setHeader("Content-Type", "text/event-stream");
+            res.setHeader("Cache-Control", "no-cache");
+            res.setHeader("Connection", "keep-alive");
+            res.flushHeaders();
+
+            let clientDisconnected = false;
+            req.on("close", () => {
+                clientDisconnected = true;
+            });
+
             // Incremental parsing using the reusable helper (pharmacyId is already known)
             const { successfulInserts, failedRows, totalRows, error } = await parseCsvIncremental(
                 fileContent,
-                pharmacy.id
+                pharmacy.id,
+                (stats) => {
+                    if (!clientDisconnected) {
+                        res.write(
+                            `data: ${JSON.stringify({ processed: stats.successfulInserts, total: stats.totalRows, errors: stats.failedRows })}\n\n`
+                        );
+                    }
+                }
             );
 
             if (error) {
-                const isLimit = error.includes("maximum limit");
-                res.status(isLimit ? 400 : 500).json({ error });
+                if (!clientDisconnected) {
+                    res.write(`data: ${JSON.stringify({ error })}\n\n`);
+                    res.end();
+                }
                 return;
             }
 
             if (totalRows === 0) {
-                res.status(400).json({ error: "The file appears empty or is missing rows." });
+                if (!clientDisconnected) {
+                    res.write(
+                        `data: ${JSON.stringify({ error: "The file appears empty or is missing rows." })}\n\n`
+                    );
+                    res.end();
+                }
                 return;
             }
 
-            res.status(200).json({
-                totalRows,
-                successCount: successfulInserts,
-                failedCount: failedRows.length,
-                errors: failedRows,
-            });
+            if (!clientDisconnected) {
+                res.write(
+                    `data: ${JSON.stringify({
+                        done: true,
+                        totalRows,
+                        successCount: successfulInserts,
+                        failedCount: failedRows.length,
+                        errors: failedRows,
+                    })}\n\n`
+                );
+                res.end();
+            }
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : "Unknown error";
             logger.error(`Exception in bulk operations handler: ${message}`);
-            next(error);
+            if (!res.headersSent) {
+                res.status(500).json({ error: message });
+            } else {
+                res.write(
+                    `data: ${JSON.stringify({ error: "Server error during processing." })}\n\n`
+                );
+                res.end();
+            }
         }
     }
 );

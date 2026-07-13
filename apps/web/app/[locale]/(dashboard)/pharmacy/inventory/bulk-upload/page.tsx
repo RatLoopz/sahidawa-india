@@ -19,6 +19,11 @@ export default function BulkUploadPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [result, setResult] = useState<UploadResult | null>(null);
     const [apiError, setApiError] = useState<string | null>(null);
+    const [progressStats, setProgressStats] = useState<{
+        processed: number;
+        total: number;
+        errors: number;
+    } | null>(null);
 
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
@@ -75,6 +80,7 @@ export default function BulkUploadPage() {
         setIsLoading(true);
         setApiError(null);
         setResult(null);
+        setProgressStats({ processed: 0, total: 0, errors: 0 });
 
         const reader = new FileReader();
         reader.onload = async (e) => {
@@ -95,17 +101,69 @@ export default function BulkUploadPage() {
                     body: JSON.stringify({ fileContent: textContent }),
                 });
 
-                const data = await response.json();
-
                 if (!response.ok) {
+                    const data = await response.json();
                     throw new Error(data.error || "Something went wrong during data ingestion.");
                 }
 
-                setResult(data);
+                const streamReader = response.body?.getReader();
+                if (!streamReader) {
+                    throw new Error("Response body is not readable.");
+                }
+
+                const decoder = new TextDecoder();
+                let doneReading = false;
+                let buffer = "";
+
+                while (!doneReading) {
+                    const { done, value } = await streamReader.read();
+                    if (done) {
+                        doneReading = true;
+                        break;
+                    }
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split("\n\n");
+                    buffer = lines.pop() || "";
+
+                    for (const line of lines) {
+                        if (line.startsWith("data: ")) {
+                            const dataStr = line.substring(6);
+                            try {
+                                const data = JSON.parse(dataStr);
+                                if (data.error) {
+                                    throw new Error(data.error);
+                                }
+                                if (data.done) {
+                                    setResult({
+                                        totalRows: data.totalRows,
+                                        successCount: data.successCount,
+                                        failedCount: data.failedCount,
+                                        errors: data.errors,
+                                    });
+                                } else if (data.processed !== undefined) {
+                                    setProgressStats({
+                                        processed: data.processed,
+                                        total: data.total,
+                                        errors: data.errors,
+                                    });
+                                }
+                            } catch (parseErr: any) {
+                                if (
+                                    parseErr.message !== "Unexpected end of JSON input" &&
+                                    !parseErr.message.includes("JSON")
+                                ) {
+                                    throw parseErr;
+                                }
+                            }
+                        }
+                    }
+                }
             } catch (err: any) {
                 setApiError(err.message || "An unexpected error occurred.");
             } finally {
                 setIsLoading(false);
+                setProgressStats(null);
             }
         };
 
@@ -153,6 +211,33 @@ export default function BulkUploadPage() {
                     </div>
                 </label>
             </div>
+
+            {/* Progress Bar */}
+            {isLoading && progressStats && (
+                <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+                    <h3 className="mb-2 text-sm font-semibold text-gray-900">
+                        Processing Upload...
+                    </h3>
+                    <div className="mb-2 flex items-center justify-between text-sm">
+                        <span className="text-gray-600">
+                            Processed {progressStats.processed} / {progressStats.total} rows
+                        </span>
+                        {progressStats.errors > 0 && (
+                            <span className="font-medium text-red-600">
+                                {progressStats.errors} errors
+                            </span>
+                        )}
+                    </div>
+                    <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-200">
+                        <div
+                            className="h-2.5 rounded-full bg-emerald-600 transition-all duration-300"
+                            style={{
+                                width: `${progressStats.total > 0 ? Math.min(100, (progressStats.processed / progressStats.total) * 100) : 0}%`,
+                            }}
+                        ></div>
+                    </div>
+                </div>
+            )}
 
             {/* Control Actions */}
             <div className="flex items-center justify-end gap-3">
