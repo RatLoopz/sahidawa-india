@@ -1,4 +1,4 @@
-import { Router, Response, NextFunction } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import crypto from "crypto";
 import axios from "axios";
@@ -26,7 +26,7 @@ router.post(
     "/",
     requireAuth,
     limiter,
-    async (req: any, res: Response, next: NextFunction): Promise<void> => {
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const parsed = compareRequestSchema.safeParse(req.body);
             if (!parsed.success) {

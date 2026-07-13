@@ -279,7 +279,6 @@ app.get("/health", async (_req: Request, res: Response) => {
 
 // ── Feature API Modules ────────────────────────────────────────────────────
 app.use("/api/reports", reportsRouter);
-app.use("/reports", reportsRouter);
 app.use("/api/pharmacies", pharmaciesRouter);
 app.use("/api/verify/batch", batchRouter);
 app.use("/api/verify", verifyRouter);

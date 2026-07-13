@@ -157,16 +157,26 @@ const inventoryRowSchema = z.object({
 // Reusable incremental CSV parsing helper using PapaParse step mode
 async function parseCsvIncremental(fileInput: string | NodeJS.ReadableStream, pharmacyId: string) {
     return new Promise<{
-        rowsToInsert: any[];
+        successfulInserts: number;
         failedRows: Array<{ row: number; reason: string }>;
         totalRows: number;
-    }>((resolve, reject) => {
-        const rowsToInsert: any[] = [];
+        error?: string;
+    }>((resolve) => {
+        let rowsToInsert: any[] = [];
         const failedRows: Array<{ row: number; reason: string }> = [];
         // csvRecordPos: increments for every row (including empty) — used for logical row numbering
         let csvRecordPos = 0;
         // nonEmptyDataRows: increments only for non-empty rows — used for totalRows and the row limit
         let nonEmptyDataRows = 0;
+        let successfulInserts = 0;
+        let isDone = false;
+
+        const finishWithError = (errMsg: string, parser: any) => {
+            if (isDone) return;
+            isDone = true;
+            if (parser) parser.abort();
+            resolve({ successfulInserts, failedRows, totalRows: nonEmptyDataRows, error: errMsg });
+        };
 
         Papa.parse<Record<string, string>>(fileInput as any, {
             header: true,
@@ -174,7 +184,9 @@ async function parseCsvIncremental(fileInput: string | NodeJS.ReadableStream, ph
             skipEmptyLines: false,
             transformHeader: (h) => h.trim().toLowerCase(),
             transform: (v) => v.trim(),
-            step: (results) => {
+            step: (results, parser) => {
+                if (isDone) return;
+
                 const rowData = results.data;
                 const errors = results.errors;
                 csvRecordPos++;
@@ -189,6 +201,14 @@ async function parseCsvIncremental(fileInput: string | NodeJS.ReadableStream, ph
 
                 // Non-empty row: count it regardless of validity
                 nonEmptyDataRows++;
+
+                if (nonEmptyDataRows > MAX_BULK_UPLOAD_ITEMS) {
+                    finishWithError(
+                        `Bulk upload exceeds the maximum limit of ${MAX_BULK_UPLOAD_ITEMS} items per request.`,
+                        parser
+                    );
+                    return;
+                }
 
                 if (errors && errors.length > 0) {
                     const reason = errors.map((e) => e.message).join(", ");
@@ -218,12 +238,83 @@ async function parseCsvIncremental(fileInput: string | NodeJS.ReadableStream, ph
                     quantity: validationResult.data.quantity,
                     mrp: validationResult.data.mrp,
                 });
+
+                if (rowsToInsert.length >= BATCH_SIZE) {
+                    parser.pause();
+                    const batch = [...rowsToInsert];
+                    rowsToInsert = []; // Free up heap memory
+
+                    supabase
+                        .from("pharmacy_inventory")
+                        .insert(batch)
+                        .then(({ error }) => {
+                            if (error) {
+                                logger.error(`Database bulk insertion failed: ${error.message}`);
+                                finishWithError(
+                                    "Database operation failed during insertion.",
+                                    parser
+                                );
+                            } else {
+                                successfulInserts += batch.length;
+                                if (!isDone) parser.resume();
+                            }
+                        })
+                        .catch((err) => {
+                            logger.error(
+                                `Database bulk insertion error: ${err instanceof Error ? err.message : String(err)}`
+                            );
+                            finishWithError("Database operation failed during insertion.", parser);
+                        });
+                }
             },
             complete: () => {
-                resolve({ rowsToInsert, failedRows, totalRows: nonEmptyDataRows });
+                if (isDone) return;
+
+                if (rowsToInsert.length > 0) {
+                    supabase
+                        .from("pharmacy_inventory")
+                        .insert(rowsToInsert)
+                        .then(({ error }) => {
+                            if (isDone) return;
+                            isDone = true;
+                            if (error) {
+                                logger.error(`Database bulk insertion failed: ${error.message}`);
+                                resolve({
+                                    successfulInserts,
+                                    failedRows,
+                                    totalRows: nonEmptyDataRows,
+                                    error: "Database operation failed during insertion.",
+                                });
+                            } else {
+                                successfulInserts += rowsToInsert.length;
+                                resolve({
+                                    successfulInserts,
+                                    failedRows,
+                                    totalRows: nonEmptyDataRows,
+                                });
+                            }
+                        })
+                        .catch((err) => {
+                            if (isDone) return;
+                            isDone = true;
+                            logger.error(
+                                `Database bulk insertion error: ${err instanceof Error ? err.message : String(err)}`
+                            );
+                            resolve({
+                                successfulInserts,
+                                failedRows,
+                                totalRows: nonEmptyDataRows,
+                                error: "Database operation failed during insertion.",
+                            });
+                        });
+                } else {
+                    isDone = true;
+                    resolve({ successfulInserts, failedRows, totalRows: nonEmptyDataRows });
+                }
             },
-            error: (err) => {
-                reject(err);
+            error: (err, parser) => {
+                const errMsg = err instanceof Error ? err.message : String(err);
+                finishWithError(errMsg || "CSV Parsing error", parser);
             },
         });
     });
@@ -1177,32 +1268,20 @@ router.post(
             const pharmacy = pharmacies[0];
 
             // Incremental parsing using the reusable helper (pharmacyId is already known)
-            const { rowsToInsert, failedRows, totalRows } = await parseCsvIncremental(
+            const { successfulInserts, failedRows, totalRows, error } = await parseCsvIncremental(
                 fileContent,
                 pharmacy.id
             );
 
+            if (error) {
+                const isLimit = error.includes("maximum limit");
+                res.status(isLimit ? 400 : 500).json({ error });
+                return;
+            }
+
             if (totalRows === 0) {
                 res.status(400).json({ error: "The file appears empty or is missing rows." });
                 return;
-            }
-
-            if (totalRows > MAX_BULK_UPLOAD_ITEMS) {
-                res.status(400).json({
-                    error: `Bulk upload exceeds the maximum limit of ${MAX_BULK_UPLOAD_ITEMS} items per request.`,
-                });
-                return;
-            }
-
-            let successfulInserts = 0;
-            if (rowsToInsert.length > 0) {
-                const { error } = await supabase.from("pharmacy_inventory").insert(rowsToInsert);
-                if (error) {
-                    logger.error(`Database bulk insertion failed: ${error.message}`);
-                    res.status(500).json({ error: "Database operation failed during insertion." });
-                    return;
-                }
-                successfulInserts = rowsToInsert.length;
             }
 
             res.status(200).json({
@@ -1305,36 +1384,18 @@ router.post(
                     },
                 });
 
-                const { rowsToInsert, failedRows, totalRows } = await parseCsvIncremental(
-                    fileStream,
-                    pharmacyId
-                );
+                const { successfulInserts, failedRows, totalRows, error } =
+                    await parseCsvIncremental(fileStream, pharmacyId);
+
+                if (error) {
+                    const isLimit = error.includes("maximum limit");
+                    res.status(isLimit ? 400 : 500).json({ error });
+                    return;
+                }
 
                 if (totalRows === 0) {
                     res.status(400).json({ error: "The file appears empty or is missing rows." });
                     return;
-                }
-
-                if (totalRows > MAX_BULK_UPLOAD_ITEMS) {
-                    res.status(400).json({
-                        error: `Bulk upload exceeds the maximum limit of ${MAX_BULK_UPLOAD_ITEMS} items per request.`,
-                    });
-                    return;
-                }
-
-                let successfulInserts = 0;
-                if (rowsToInsert.length > 0) {
-                    const { error } = await supabase
-                        .from("pharmacy_inventory")
-                        .insert(rowsToInsert);
-                    if (error) {
-                        logger.error(`Database bulk insertion failed: ${error.message}`);
-                        res.status(500).json({
-                            error: "Database operation failed during insertion.",
-                        });
-                        return;
-                    }
-                    successfulInserts = rowsToInsert.length;
                 }
 
                 res.status(200).json({

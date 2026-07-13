@@ -46,8 +46,12 @@ export async function warmCache(): Promise<void> {
         const brandNames = hotDrugs.flatMap((d) => d.brandNames).filter(Boolean);
 
         // Names me commas ya quotes ko safely handle karne ke liye formatting
-        const genericInStr = genericNames.map((name) => `"${name.replace(/"/g, '\\"')}"`).join(",");
-        const brandInStr = brandNames.map((name) => `"${name.replace(/"/g, '\\"')}"`).join(",");
+        const genericInStr = genericNames
+            .map((name) => `"${name.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`)
+            .join(",");
+        const brandInStr = brandNames
+            .map((name) => `"${name.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`)
+            .join(",");
 
         const orFilter = `generic_name.in.(${genericInStr}),brand_name.in.(${brandInStr})`;
 
@@ -328,15 +332,33 @@ export async function getCacheStats(): Promise<{
         };
     }
     try {
-        const [rawHits, rawMisses, hotHitsStr, warmHitsStr, coldHitsStr, rawTopDrugs] =
-            await Promise.all([
-                redisClient.get("stats:hits"),
-                redisClient.get("stats:misses"),
-                redisClient.get("stats:tier:hot"),
-                redisClient.get("stats:tier:warm"),
-                redisClient.get("stats:tier:cold"),
-                redisClient.zRangeWithScores("stats:top_drugs", 0, 9, { REV: true }),
-            ]);
+        const results = await Promise.allSettled([
+            redisClient.get("stats:hits"),
+            redisClient.get("stats:misses"),
+            redisClient.get("stats:tier:hot"),
+            redisClient.get("stats:tier:warm"),
+            redisClient.get("stats:tier:cold"),
+            redisClient.zRangeWithScores("stats:top_drugs", 0, 9, { REV: true }),
+        ]);
+
+        const extractValue = <T>(
+            result: PromiseSettledResult<T>,
+            name: string,
+            defaultVal: T
+        ): T => {
+            if (result.status === "fulfilled") {
+                return result.value;
+            }
+            logger.warn(`Failed to fetch cache stat for ${name}`, result.reason);
+            return defaultVal;
+        };
+
+        const rawHits = extractValue(results[0], "stats:hits", null);
+        const rawMisses = extractValue(results[1], "stats:misses", null);
+        const hotHitsStr = extractValue(results[2], "stats:tier:hot", null);
+        const warmHitsStr = extractValue(results[3], "stats:tier:warm", null);
+        const coldHitsStr = extractValue(results[4], "stats:tier:cold", null);
+        const rawTopDrugs = extractValue(results[5], "stats:top_drugs", []);
 
         const hits = parseInt(rawHits ?? "0", 10);
         const misses = parseInt(rawMisses ?? "0", 10);

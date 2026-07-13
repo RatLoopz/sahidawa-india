@@ -277,7 +277,7 @@ router.get(
     "/health-records",
     limiter,
     requireAuth,
-    async (req: any, res: Response): Promise<void> => {
+    async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         try {
             const userId = req.user?.id;
             if (!userId) {
