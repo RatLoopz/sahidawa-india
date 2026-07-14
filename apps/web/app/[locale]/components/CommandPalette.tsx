@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import {
     Search,
     X,
@@ -111,6 +112,10 @@ export default function CommandPalette() {
         cmd.label.toLowerCase().includes(query.toLowerCase())
     );
 
+    const optionId = (cmd: Command) => `command-palette-option-${cmd.id}`;
+    const activeCommand = filtered[activeIndex];
+    const activeOptionId = activeCommand ? optionId(activeCommand) : undefined;
+
     // Open/close with Ctrl+K
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -126,14 +131,36 @@ export default function CommandPalette() {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, []);
 
-    // Focus input when opened
+    // Moves focus into the palette (the search input is its first focusable child), keeps Tab
+    // inside it, and restores focus to whatever was focused before it opened.
+    useFocusTrap(containerRef, isOpen);
+
+    // Reset the search when opened
     useEffect(() => {
         if (isOpen) {
-            setTimeout(() => inputRef.current?.focus(), 50);
             setQuery("");
             setActiveIndex(0);
         }
     }, [isOpen]);
+
+    // Keep the background page from scrolling behind the modal
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        return () => {
+            document.body.style.overflow = previousOverflow;
+        };
+    }, [isOpen]);
+
+    // Keep the arrow-key selection visible in the scrollable results list
+    useEffect(() => {
+        if (!isOpen || !activeOptionId) return;
+
+        document.getElementById(activeOptionId)?.scrollIntoView({ block: "nearest" });
+    }, [isOpen, activeOptionId]);
 
     // Close on outside click
     useEffect(() => {
@@ -173,11 +200,18 @@ export default function CommandPalette() {
         <div className="fixed inset-0 z-[9999] flex items-start justify-center bg-black/50 pt-[15vh] backdrop-blur-sm">
             <div
                 ref={containerRef}
+                role="dialog"
+                aria-modal="true"
+                aria-label={t("title")}
                 className="w-full max-w-lg rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) shadow-2xl"
             >
+                <p className="sr-only" role="status" aria-live="polite">
+                    {t("resultsCount", { count: filtered.length })}
+                </p>
+
                 {/* Search input */}
                 <div className="flex items-center gap-3 border-b border-(--color-border-muted) px-4 py-3">
-                    <Search size={18} className="shrink-0 opacity-50" />
+                    <Search size={18} className="shrink-0 opacity-50" aria-hidden="true" />
                     <input
                         ref={inputRef}
                         type="text"
@@ -188,42 +222,73 @@ export default function CommandPalette() {
                         }}
                         onKeyDown={handleKeyDown}
                         placeholder={t("placeholder")}
+                        aria-label={t("placeholder")}
+                        role="combobox"
+                        aria-expanded={filtered.length > 0}
+                        aria-controls="command-palette-listbox"
+                        aria-activedescendant={activeOptionId}
+                        aria-autocomplete="list"
                         className="flex-1 bg-transparent text-sm text-(--color-text-primary) outline-none placeholder:opacity-50"
                     />
                     <button
+                        type="button"
                         onClick={() => setIsOpen(false)}
+                        aria-label={t("close")}
                         className="shrink-0 opacity-50 hover:opacity-100"
                     >
-                        <X size={16} />
+                        <X size={16} aria-hidden="true" />
                     </button>
                 </div>
 
                 {/* Results */}
-                <div className="max-h-80 overflow-y-auto p-2">
+                <div
+                    id="command-palette-listbox"
+                    role="listbox"
+                    aria-label={t("title")}
+                    className="max-h-80 overflow-y-auto p-2"
+                >
                     {filtered.length === 0 ? (
                         <p className="py-8 text-center text-sm opacity-50">{t("noResults")}</p>
                     ) : (
-                        groups.map((group) => (
-                            <div key={group} className="mb-2">
-                                <p className="mb-1 px-2 text-[10px] font-bold tracking-wider uppercase opacity-40">
+                        groups.map((group, groupIndex) => (
+                            <div
+                                key={group}
+                                role="group"
+                                aria-labelledby={`command-palette-group-${groupIndex}`}
+                                className="mb-2"
+                            >
+                                <p
+                                    id={`command-palette-group-${groupIndex}`}
+                                    className="mb-1 px-2 text-[10px] font-bold tracking-wider uppercase opacity-40"
+                                >
                                     {group}
                                 </p>
                                 {filtered
                                     .filter((c) => c.group === group)
                                     .map((cmd) => {
                                         const globalIndex = filtered.indexOf(cmd);
+                                        const isActive = activeIndex === globalIndex;
                                         return (
                                             <button
                                                 key={cmd.id}
+                                                id={optionId(cmd)}
+                                                type="button"
+                                                role="option"
+                                                aria-selected={isActive}
+                                                // Selection is driven by aria-activedescendant from
+                                                // the input, so options stay out of the tab order.
+                                                tabIndex={-1}
                                                 onClick={() => execute(cmd)}
                                                 onMouseEnter={() => setActiveIndex(globalIndex)}
                                                 className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors ${
-                                                    activeIndex === globalIndex
+                                                    isActive
                                                         ? "bg-emerald-500/10 text-emerald-600"
                                                         : "text-(--color-text-primary) hover:bg-(--color-surface-muted)"
                                                 }`}
                                             >
-                                                <span className="opacity-60">{cmd.icon}</span>
+                                                <span className="opacity-60" aria-hidden="true">
+                                                    {cmd.icon}
+                                                </span>
                                                 {cmd.label}
                                             </button>
                                         );

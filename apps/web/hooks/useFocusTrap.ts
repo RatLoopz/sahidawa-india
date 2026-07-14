@@ -27,10 +27,14 @@ export function useFocusTrap<T extends HTMLElement>(
         const FOCUSABLE_SELECTOR =
             'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex="0"], [contenteditable], [tabindex]:not([tabindex="-1"])';
 
-        // Find focusable elements
+        // Find focusable elements. Elements opted out of the tab order (tabindex="-1") are
+        // programmatically focusable but never reachable via Tab, so they must not act as the
+        // trap's boundaries — e.g. aria-activedescendant listbox options.
         const getFocusableElements = (): HTMLElement[] => {
             if (!ref.current) return [];
-            return Array.from(ref.current.querySelectorAll(FOCUSABLE_SELECTOR)) as HTMLElement[];
+            return Array.from(ref.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+                (element) => element.getAttribute("tabindex") !== "-1"
+            );
         };
 
         // Focus the first focusable element initially

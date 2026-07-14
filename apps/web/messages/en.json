@@ -194,6 +194,7 @@
         "sendMessage": "Send message",
         "openAiChat": "Open AI chat",
         "closeAiChat": "Close AI chat",
+        "assistantThinking": "SahiDawa AI is thinking",
         "mainNavigation": "Main navigation",
         "mobileNavigation": "Mobile navigation",
         "toggleSystemParameters": "Toggle system parameters"
@@ -1021,6 +1022,9 @@
         "placeholder": "Search pages or actions...",
         "noResults": "No results found.",
         "hint": "Press Esc to close",
+        "title": "Command palette",
+        "close": "Close command palette",
+        "resultsCount": "{count, plural, =0 {No results available} one {# result available} other {# results available}}",
         "pages": "Pages",
         "actions": "Actions",
         "open": "Open command palette",

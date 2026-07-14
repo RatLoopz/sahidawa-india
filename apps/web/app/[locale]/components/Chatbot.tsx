@@ -8,6 +8,7 @@ import { Link } from "@/i18n/routing";
 import { getChatbotPanelClasses, getChatbotPositionClasses } from "./chatbotPosition";
 import { ChatMarkdown } from "@/app/components/ChatMarkdown";
 import { isAbortError, readChatErrorMessage, readTextResponseStream } from "@/lib/chatStream";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 type Message = {
     text: string;
@@ -70,7 +71,29 @@ export default function Chatbot() {
     const [isConfirmingClear, setIsConfirmingClear] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const chatbotRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
     const activeRequestRef = useRef<AbortController | null>(null);
+
+    // Traps Tab inside the panel while it is open and restores focus to the launcher on close.
+    useFocusTrap(chatbotRef, isOpen);
+
+    // The trap lands on the first control in the header; the message input is where a keyboard
+    // user actually wants to start, so claim focus after the trap has run.
+    useEffect(() => {
+        if (isOpen) {
+            inputRef.current?.focus();
+        }
+    }, [isOpen]);
+
+    const lastMessage = messages[messages.length - 1];
+    const assistantAnnouncement =
+        !isOpen || !lastMessage?.isBot
+            ? ""
+            : lastMessage.isTyping
+              ? tA11y("assistantThinking")
+              : lastMessage.isTranslationKey
+                ? safeT(t, lastMessage.text, lastMessage.text)
+                : lastMessage.text;
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -195,8 +218,27 @@ export default function Chatbot() {
 
     return (
         <div className={getChatbotPositionClasses({ pathname, isOpen })}>
+            {/* Lives outside the panel so it stays in the accessibility tree while the panel is
+                inert, letting screen readers announce replies as they land. */}
+            <p className="sr-only" role="status" aria-live="polite">
+                {assistantAnnouncement}
+            </p>
+
             <div
                 ref={chatbotRef}
+                id="chatbot-panel"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="chatbot-title"
+                // The panel stays mounted so it can animate, so it must be pulled out of the tab
+                // order and the accessibility tree while it is visually hidden.
+                inert={!isOpen}
+                aria-hidden={!isOpen}
+                onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                        setIsOpen(false);
+                    }
+                }}
                 className={`${getChatbotPanelClasses({ pathname })} ${
                     isOpen
                         ? "pointer-events-auto scale-100 opacity-100"
@@ -210,7 +252,9 @@ export default function Chatbot() {
                             <Bot size={20} />
                         </div>
                         <div>
-                            <h3 className="text-sm font-bold">{titleLabel}</h3>
+                            <h3 id="chatbot-title" className="text-sm font-bold">
+                                {titleLabel}
+                            </h3>
                             <p className="text-xs text-white/95">{statusLabel}</p>
                         </div>
                     </div>
@@ -285,11 +329,13 @@ export default function Chatbot() {
                 {/* Input Area */}
                 <div className="flex items-center gap-2 border-t border-(--color-border-muted) bg-(--color-surface-page) p-3">
                     <input
+                        ref={inputRef}
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && handleSend()}
                         placeholder={placeholderLabel}
+                        aria-label={placeholderLabel}
                         className="flex-1 rounded-full bg-(--color-surface-muted) px-4 py-3 text-sm text-(--color-text-primary) transition-all placeholder:text-(--color-text-muted) focus:ring-2 focus:ring-green-500/50 focus:outline-none"
                     />
                     <button
@@ -317,6 +363,8 @@ export default function Chatbot() {
                     }}
                     className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full bg-green-600 text-white shadow-[0_8px_20px_rgba(22,163,74,0.3)] transition-all hover:scale-105 hover:shadow-[0_8px_25px_rgba(22,163,74,0.4)] active:scale-95 dark:bg-green-700 dark:hover:bg-green-800"
                     aria-label={isOpen ? tA11y("closeAiChat") : tA11y("openAiChat")}
+                    aria-expanded={isOpen}
+                    aria-controls="chatbot-panel"
                 >
                     {isOpen ? <X size={28} /> : <MessageSquare size={28} />}
                 </button>
