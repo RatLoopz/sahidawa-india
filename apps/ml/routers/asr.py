@@ -336,6 +336,7 @@ def _transcribe_audio_bytes(
                 ],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
+                timeout=30,
             )
         except FileNotFoundError:
             logger.error(
@@ -345,6 +346,14 @@ def _transcribe_audio_bytes(
             raise HTTPException(
                 status_code=503,
                 detail="Voice transcription is temporarily unavailable. Please try again later.",
+            )
+        except subprocess.TimeoutExpired:
+            logger.error(
+                "FFmpeg transcoding timed out after 30s for file %s", original_name
+            )
+            raise HTTPException(
+                status_code=408,
+                detail="Audio transcoding process timed out.",
             )
 
         if ffmpeg_result.returncode != 0:
