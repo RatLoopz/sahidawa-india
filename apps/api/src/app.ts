@@ -98,14 +98,28 @@ app.use(cors(createCorsOptions()));
 // csrf-csrf is recognized by CodeQL as a valid CSRF defense unlike custom header checks.
 const ANON_SESSION_COOKIE = "csrf_anon_id";
 
+// Decided once at startup so it stays stable even if a test mutates NODE_ENV.
+const SKIP_CSRF_VALIDATION = process.env.NODE_ENV === "test";
+
+// Ephemeral fallback secret for local dev when CSRF_SECRET is unset (see getSecret).
+let devCsrfSecret: string | undefined;
+
 const { doubleCsrfProtection, generateCsrfToken: generateToken } = doubleCsrf({
     getSecret: () => {
         const secret = process.env.CSRF_SECRET;
-        if (!secret) {
-            logger.error("CSRF_SECRET environment variable is not set");
-            throw new Error("CSRF_SECRET environment variable is required");
+        if (secret) return secret;
+        // Production never reaches here: startup exits when CSRF_SECRET is missing
+        // outside dev/test. Now that the middleware runs in development too, mint a
+        // random per-process secret so local dev works without extra setup instead
+        // of 500-ing every request. Generated (not hardcoded) so it is never a
+        // predictable credential; it simply won't survive a restart.
+        if (!devCsrfSecret) {
+            devCsrfSecret = crypto.randomBytes(32).toString("hex");
+            logger.warn(
+                "CSRF_SECRET is not set — using an ephemeral per-process dev secret. Set CSRF_SECRET (see .env.example) outside local development."
+            );
         }
-        return secret;
+        return devCsrfSecret;
     },
     getSessionIdentifier: (req: Request) => {
         if (req.cookies?.access_token) {
@@ -122,13 +136,17 @@ const { doubleCsrfProtection, generateCsrfToken: generateToken } = doubleCsrf({
         path: "/",
     },
     size: 64,
+    // Let the automated test suites bypass token validation without stripping the
+    // middleware from the app. The supertest suites don't run the token handshake.
+    // Captured once at load (like the previous env gate) so tests that flip
+    // NODE_ENV mid-run to exercise prod branches don't suddenly hit CSRF.
+    skipCsrfProtection: () => SKIP_CSRF_VALIDATION,
 });
 
-// Skip CSRF in test and development environments to support cross-port local testing
-const isTestOrDev = process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development";
-if (!isTestOrDev) {
-    app.use(doubleCsrfProtection);
-}
+// Registered in every environment so CodeQL sees CSRF middleware on every route
+// (resolves Alert 136) and development mirrors production, surfacing CSRF
+// integration issues locally instead of only after deploy.
+app.use(doubleCsrfProtection);
 
 // ── CSRF token endpoint — frontend fetches this once on load ───────────────
 app.get("/api/csrf-token", (req: Request, res: Response) => {
