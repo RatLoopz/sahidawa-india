@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
 import { Link } from "@/i18n/routing";
 import {
     Ban,
@@ -200,29 +199,23 @@ export default function SafetyStatsBanner() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        async function fetchAlerts() {
-            const { data, error } = await supabase.from("drug_alerts").select("alert_type");
-
-            if (!error && data) {
-                let b = 0,
-                    r = 0,
-                    c = 0,
-                    n = 0;
-                data.forEach((alert) => {
-                    const type = alert.alert_type?.toLowerCase();
-                    if (type === "banned") b++;
-                    else if (type === "recalled") r++;
-                    else if (type === "counterfeit") c++;
-                    else if (type === "nsq") n++;
-                });
-                setBanned(b);
-                setRecalled(r);
-                setCounterfeit(c);
-                setNsq(n);
+        async function fetchStats() {
+            try {
+                const res = await fetch("/api/stats");
+                if (res.ok) {
+                    const data = await res.json();
+                    setBanned(data.banned ?? 0);
+                    setRecalled(data.recalled ?? 0);
+                    setCounterfeit(data.counterfeit ?? 0);
+                    setNsq(data.nsq ?? 0);
+                }
+            } catch (error) {
+                console.error("Failed to fetch safety stats:", error);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         }
-        fetchAlerts();
+        fetchStats();
     }, []);
 
     // const now = new Date();

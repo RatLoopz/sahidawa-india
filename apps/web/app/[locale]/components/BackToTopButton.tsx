@@ -171,8 +171,8 @@ export default function BackToTopButton() {
                     background: "linear-gradient(180deg, #22C55E 0%, #16A34A 100%)",
                     /* Spec shadow: 0 8px 24px rgba(34,197,94,0.25) */
                     boxShadow: isScrollingBack
-                        ? "0 4px 12px rgba(34,197,94,0.18)"
-                        : "0 8px 24px rgba(34,197,94,0.25), 0 2px 8px rgba(0,0,0,0.10)",
+                        ? "0 4px 12px rgba(34,197,94,0.18), 0 0 0 1px rgba(0,0,0,0.08)"
+                        : "0 8px 24px rgba(34,197,94,0.25), 0 2px 8px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.08)",
                 }}
             >
                 {/* Scroll progress ring */}
