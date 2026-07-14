@@ -116,7 +116,7 @@ const { doubleCsrfProtection, generateCsrfToken: generateToken } = doubleCsrf({
         if (!devCsrfSecret) {
             devCsrfSecret = crypto.randomBytes(32).toString("hex");
             logger.warn(
-                "CSRF_SECRET is not set — using an ephemeral per-process dev secret. Set CSRF_SECRET (see .env.example) outside local development."
+                "CSRF_SECRET is not set — using an ephemeral per-process dev secret. Set the CSRF_SECRET environment variable outside local development."
             );
         }
         return devCsrfSecret;
