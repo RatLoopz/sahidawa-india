@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+﻿import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_BASE, getCsrfToken } from "@/lib/api";
 import { toast } from "sonner";
 import { Alert } from "@/app/[locale]/alerts/page";
@@ -91,6 +91,11 @@ export function useAlerts({ debouncedBrandSearch, debouncedRegionSearch }: UseAl
 
     const allAlerts = data?.pages.flatMap((page) => page.data || []) || [];
     const totalCount = data?.pages[0]?.totalCount || 0;
+    // These are system-wide aggregates computed server-side over the full
+    // filtered table — NOT derived from `allAlerts`, which only holds the
+    // pages fetched so far. See issue #3001.
+    const totalCriticalCount = data?.pages[0]?.totalCriticalCount || 0;
+    const totalImpactedRegionsCount = data?.pages[0]?.totalImpactedRegionsCount || 0;
 
     return {
         allAlerts,
@@ -100,6 +105,8 @@ export function useAlerts({ debouncedBrandSearch, debouncedRegionSearch }: UseAl
         fetchNextPage,
         hasNextPage,
         totalCount,
+        totalCriticalCount,
+        totalImpactedRegionsCount,
         snoozeAlert,
         refetch,
     };

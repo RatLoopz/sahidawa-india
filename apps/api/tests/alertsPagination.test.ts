@@ -1,4 +1,4 @@
-import request from "supertest";
+﻿import request from "supertest";
 import app from "../src/app";
 
 // jest.mock is hoisted — everything must be self-contained inside the factory
@@ -22,6 +22,10 @@ jest.mock("../src/db/client", () => {
     return {
         supabase: {
             from: jest.fn().mockReturnValue(chain),
+            rpc: jest.fn().mockResolvedValue({
+                data: { totalCriticalCount: 0, totalImpactedRegionsCount: 0 },
+                error: null,
+            }),
         },
     };
 });
@@ -61,6 +65,17 @@ function mockSupabase(alerts: object[], totalCount: number, error: object | null
         data: error ? null : alerts,
         error,
         count: error ? null : totalCount,
+    });
+}
+
+function mockStats(
+    totalCriticalCount: number,
+    totalImpactedRegionsCount: number,
+    error: object | null = null
+) {
+    (supabase.rpc as jest.Mock).mockResolvedValue({
+        data: error ? null : { totalCriticalCount, totalImpactedRegionsCount },
+        error,
     });
 }
 
@@ -221,6 +236,52 @@ describe("GET /api/v1/alerts — pagination", () => {
 
         expect(res.status).toBe(500);
         expect(res.body).toHaveProperty("error");
+    });
+
+    it("returns system-wide totalCriticalCount/totalImpactedRegionsCount from the stats RPC, not just the current page", async () => {
+        // Only 10 rows are returned for this page, but the stats RPC reflects
+        // the full (unpaginated) table — the whole point of the fix for #3001.
+        mockSupabase(buildAlerts(10), 250);
+        mockStats(42, 17);
+
+        const res = await request(app).get("/api/v1/alerts?page=1&limit=10");
+
+        expect(res.status).toBe(200);
+        expect(supabase.rpc).toHaveBeenCalledWith("get_alerts_aggregate_stats", {
+            p_brand: null,
+            p_region: null,
+            p_batch_number: null,
+        });
+        expect(res.body.totalCriticalCount).toBe(42);
+        expect(res.body.totalImpactedRegionsCount).toBe(17);
+    });
+
+    it("passes brand/region/batch filters through to the stats RPC", async () => {
+        mockSupabase(buildAlerts(5), 5);
+        mockStats(3, 2);
+
+        const res = await request(app).get(
+            "/api/v1/alerts?page=1&limit=10&brand=Paracetamol&region=Punjab&batch_number=B123"
+        );
+
+        expect(res.status).toBe(200);
+        expect(supabase.rpc).toHaveBeenCalledWith("get_alerts_aggregate_stats", {
+            p_brand: "Paracetamol",
+            p_region: "Punjab",
+            p_batch_number: "B123",
+        });
+    });
+
+    it("degrades gracefully to zero counts when the stats RPC fails, without failing the whole request", async () => {
+        mockSupabase(buildAlerts(10), 35);
+        mockStats(0, 0, { message: "RPC failed" });
+
+        const res = await request(app).get("/api/v1/alerts?page=1&limit=10");
+
+        expect(res.status).toBe(200);
+        expect(res.body.data).toHaveLength(10);
+        expect(res.body.totalCriticalCount).toBe(0);
+        expect(res.body.totalImpactedRegionsCount).toBe(0);
     });
 });
 

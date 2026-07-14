@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, { useEffect, useState } from "react";
 import { PageHeader } from "../components/PageHeader";
 import {
@@ -76,6 +76,8 @@ export default function FullAlertsLogPage() {
         fetchNextPage,
         hasNextPage,
         totalCount,
+        totalCriticalCount,
+        totalImpactedRegionsCount,
         snoozeAlert,
         refetch,
     } = useAlerts({ debouncedBrandSearch, debouncedRegionSearch });
@@ -94,17 +96,6 @@ export default function FullAlertsLogPage() {
             }
         },
     });
-
-    const criticalCount = allAlerts.filter(
-        (alert) =>
-            alert.cdsco_approval_status === "banned" ||
-            alert.is_counterfeit_alert ||
-            alert.alert_type === "Banned"
-    ).length;
-
-    const uniqueRegionsCount = Array.from(
-        new Set(allAlerts.map((alert) => alert.state).filter(Boolean))
-    ).length;
 
     const toggleExpand = (id: string) => {
         setExpandedAlertId((prev) => (prev === id ? null : id));
@@ -267,7 +258,7 @@ export default function FullAlertsLogPage() {
                         </div>
                         <div className="mt-4 flex items-baseline gap-2">
                             <span className="text-3xl font-black tracking-tight text-(--color-text-primary)">
-                                {loading ? "..." : criticalCount}
+                                {loading ? "..." : totalCriticalCount}
                             </span>
                         </div>
                     </div>
@@ -283,7 +274,7 @@ export default function FullAlertsLogPage() {
                         </div>
                         <div className="mt-4 flex items-baseline gap-2">
                             <span className="text-3xl font-black tracking-tight text-(--color-text-primary)">
-                                {loading ? "..." : uniqueRegionsCount}
+                                {loading ? "..." : totalImpactedRegionsCount}
                             </span>
                         </div>
                     </div>

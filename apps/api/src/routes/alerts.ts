@@ -1,4 +1,4 @@
-import { Router, Request, Response } from "express";
+﻿import { Router, Request, Response } from "express";
 import { supabase } from "../db/client";
 import { z } from "zod";
 import { triggerRecallAlert } from "../services/notifications";
@@ -39,11 +39,13 @@ const alertsRouter = Router();
  *
  * Response schema:
  *   {
- *     data:           Alert[],
- *     pageIndex:      number,   // current page (1-based)
- *     pageSize:       number,   // items returned on this page
- *     totalCount:     number,   // total rows in the table
- *     totalPageCount: number,   // ceil(totalCount / limit)
+ *     data:                      Alert[],
+ *     pageIndex:                 number,   // current page (1-based)
+ *     pageSize:                  number,   // items returned on this page
+ *     totalCount:                number,   // total rows matching the filters
+ *     totalPageCount:            number,   // ceil(totalCount / limit)
+ *     totalCriticalCount:        number,   // system-wide count of banned/counterfeit alerts (not just this page)
+ *     totalImpactedRegionsCount: number,   // system-wide count of distinct impacted states (not just this page)
  *   }
  */
 alertsRouter.get("/", alertsReadLimiter, async (req: Request, res: Response) => {
@@ -74,14 +76,35 @@ alertsRouter.get("/", alertsReadLimiter, async (req: Request, res: Response) => 
     }
 
     try {
-        const { data, error, count } = await query
-            .order("created_at", { ascending: false })
-            .range(offset, offset + limit - 1);
+        // Run the paginated page fetch and the system-wide stats aggregation
+        // concurrently — the stats RPC scans the whole (filtered) table, so it
+        // must NOT be derived from the paginated `data` below.
+        const [pageResult, statsResult] = await Promise.all([
+            query.order("created_at", { ascending: false }).range(offset, offset + limit - 1),
+            supabase.rpc("get_alerts_aggregate_stats", {
+                p_brand: brand || null,
+                p_region: region || null,
+                p_batch_number: batchNumber || null,
+            }),
+        ]);
+
+        const { data, error, count } = pageResult;
 
         if (error) {
             res.status(500).json({ error: "Failed to fetch alerts" });
             return;
         }
+
+        if (statsResult.error) {
+            // Don't fail the whole request over the stats panel — log and degrade
+            // gracefully so the alert list itself still loads.
+            logger.error("Failed to fetch alert aggregate stats", { error: statsResult.error });
+        }
+
+        const stats = (statsResult.data ?? {}) as {
+            totalCriticalCount?: number;
+            totalImpactedRegionsCount?: number;
+        };
 
         const totalCount = count ?? 0;
         const totalPageCount = Math.ceil(totalCount / limit);
@@ -92,6 +115,8 @@ alertsRouter.get("/", alertsReadLimiter, async (req: Request, res: Response) => 
             pageSize: (data ?? []).length,
             totalCount,
             totalPageCount,
+            totalCriticalCount: stats.totalCriticalCount ?? 0,
+            totalImpactedRegionsCount: stats.totalImpactedRegionsCount ?? 0,
         });
     } catch (err) {
         logger.error("Unexpected error in GET /api/alerts", { error: err });
@@ -215,7 +240,10 @@ alertsRouter.post("/ingest", requireApiKey, limiter, async (req: ApiKeyRequest, 
                 );
                 await redisClient.del(keys);
             } catch (err) {
-                logger.error({ message: "Failed to invalidate cache for alert batches", error: err });
+                logger.error({
+                    message: "Failed to invalidate cache for alert batches",
+                    error: err,
+                });
             }
         }
 
