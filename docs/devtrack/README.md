@@ -11,6 +11,7 @@ Every entry represents a merged PR that met the minimum architectural impact thr
 |---|---|---|---|---|---|
 | [#3595](https://github.com/RatLoopz/sahidawa-india/pull/3595) | 2026-07-14 | Frontend | 5 | @Avinash-sdbegin | [View Doc](2026-07/PR-3595-feat-map-implement-geohash-clustering-logic-and-pr.md) |
 | [#3592](https://github.com/RatLoopz/sahidawa-india/pull/3592) | 2026-07-14 | Frontend | 34 | @yogita-mehta | [View Doc](2026-07/PR-3592-fix-paginated-calculations-on-live-alerts-log-stat.md) / [ADR](adr/ADR-052-fix-paginated-calculations-on-live-alerts-log-stat.md) |
+| [#3583](https://github.com/RatLoopz/sahidawa-india/pull/3583) | 2026-07-14 | Backend | 14 | @hrx01-dev | [View Doc](2026-07/PR-3583-feat-pharmacy-add-sse-based-real-time-progress-tra.md) |
 | [#3542](https://github.com/RatLoopz/sahidawa-india/pull/3542) | 2026-07-12 | Backend | 6 | @HarshiVarshney | [View Doc](2026-07/PR-3542-bug-create-missing-migration-for-medicine-schedule.md) |
 | [#3537](https://github.com/RatLoopz/sahidawa-india/pull/3537) | 2026-07-12 | Backend | 6 | @aayushiii18 | [View Doc](2026-07/PR-3537-fix-api-exclude-soft-deleted-pharmacies-from-admin.md) |
 | [#3534](https://github.com/RatLoopz/sahidawa-india/pull/3534) | 2026-07-12 | Backend | 17 | @sureshsuriya | [View Doc](2026-07/PR-3534-feat-api-implement-pm-jay-eligibility-api-integrat.md) / [ADR](adr/ADR-050-feat-api-implement-pm-jay-eligibility-api-integrat.md) |
