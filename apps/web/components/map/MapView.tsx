@@ -4,6 +4,14 @@ import { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import { usePredictivePrefetch } from "@/src/hooks/usePredictivePrefetch";
 
+interface GeohashCluster {
+    geohash: string;
+    lat: number;
+    lng: number;
+    intensity: number; // Cluster aggregation weight
+    type: "Jan Aushadhi" | "private" | "asha";
+}
+
 interface Pharmacy {
     id: number;
     name: string;
@@ -68,25 +76,13 @@ export default function MapView() {
             }
             const data = await res.json();
 
-            // Normalize and decode incoming data once to avoid per-render DOM decoding
-            const normalizedPharmacies: Pharmacy[] = Array.isArray(data.pharmacies)
-                ? data.pharmacies.map((p: Pharmacy) => ({
-                      ...p,
-                      name: decodeHtmlEntities(p.name),
-                      address: decodeHtmlEntities(p.address),
-                  }))
-                : [];
-
-            const normalizedAsha: AshaWorker[] = Array.isArray(data.asha_workers)
-                ? data.asha_workers.map((a: AshaWorker) => ({
-                      ...a,
-                      name: decodeHtmlEntities(a.name),
-                  }))
+            // Backend pre-calculated groupings array pick kiya
+            const fetchedClusters: GeohashCluster[] = Array.isArray(data.geohash_clusters)
+                ? data.geohash_clusters
                 : [];
 
             if (abortControllerRef.current === controller) {
-                setPharmacies(normalizedPharmacies);
-                setAshaWorkers(normalizedAsha);
+                setClusters(fetchedClusters);
             }
         } catch (err) {
             if (!(err instanceof DOMException && err.name === "AbortError")) {
@@ -127,21 +123,6 @@ export default function MapView() {
             abortControllerRef.current?.abort();
         };
     }, []);
-
-    // decode simple HTML entities to reduce broken encoding artifacts in popups
-    // Uses textContent instead of innerHTML to prevent XSS via malicious entity payloads
-    function decodeHtmlEntities(input: string | null | undefined) {
-        if (!input) return "";
-        try {
-            if (!decodeTextareaRef.current) {
-                decodeTextareaRef.current = document.createElement("textarea");
-            }
-            decodeTextareaRef.current.textContent = input;
-            return decodeTextareaRef.current.value;
-        } catch {
-            return input;
-        }
-    }
 
     if (!userLocation || loading || error)
         return (
@@ -189,7 +170,7 @@ export default function MapView() {
 
                 <div className="mt-1 flex items-center gap-2">
                     <span className="h-3 w-3 rounded-full bg-blue-600"></span>
-                    <span>ASHA Worker</span>
+                    <span>ASHA Worker Cluster</span>
                 </div>
             </div>
 
@@ -205,47 +186,44 @@ export default function MapView() {
                         attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
                     />
 
-                    {showPharmacies &&
-                        pharmacies.map((p) => (
-                            <Marker
-                                key={`ph-${p.id}`}
-                                position={[p.lat, p.lng]}
-                                icon={p.type === "Jan Aushadhi" ? greenIcon : orangeIcon}
-                            >
-                                <Popup>
-                                    <strong>{p.name}</strong>
-                                    <br />
-                                    <strong>Type:</strong> {p.type}
-                                    <br />
-                                    <div className="flex items-center gap-1">
-                                        <span>Address: {p.address}</span>
-                                        <CopyButton text={p.address} className="h-4 w-4" />
-                                    </div>
-                                    Distance: {p.distance_km} km
-                                    <br />
-                                    {p.verified && (
-                                        <span className="text-green-600">✅ Verified</span>
-                                    )}
-                                </Popup>
-                            </Marker>
-                        ))}
+                    {/* Highly optimized backend geohash loop rendering pre-calculated centroids */}
+                    {clusters
+                        .filter((c) => {
+                            if (c.type === "asha") return showAsha;
+                            return showPharmacies;
+                        })
+                        .map((cluster) => {
+                            const dynamicIcon =
+                                cluster.type === "asha"
+                                    ? blueIcon
+                                    : cluster.type === "Jan Aushadhi"
+                                      ? greenIcon
+                                      : orangeIcon;
 
-                    {showAsha &&
-                        ashaWorkers.map((a) => (
-                            <Marker key={`asha-${a.id}`} position={[a.lat, a.lng]} icon={blueIcon}>
-                                <Popup>
-                                    <strong>{a.name}</strong>
-                                    <br />
-                                    District: {a.district}
-                                    <br />
-                                    <div className="flex items-center gap-1">
-                                        <span>Contact: {a.contact}</span>
-                                        <CopyButton text={a.contact} className="h-4 w-4" />
-                                    </div>
-                                    Distance: {a.distance_km} km
-                                </Popup>
-                            </Marker>
-                        ))}
+                            return (
+                                <Marker
+                                    key={cluster.geohash}
+                                    position={[cluster.lat, cluster.lng]}
+                                    icon={dynamicIcon}
+                                >
+                                    <Popup>
+                                        <div className="p-1">
+                                            <strong className="mb-1 block text-sm font-bold">
+                                                {cluster.type === "asha"
+                                                    ? "ASHA Worker Cluster"
+                                                    : `${cluster.type} Pharmacy Cluster`}
+                                            </strong>
+                                            <div className="text-xs text-gray-500">
+                                                Geohash: {cluster.geohash}
+                                            </div>
+                                            <div className="mt-2 inline-block rounded bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-600">
+                                                📊 Total Intensity: {cluster.intensity} units
+                                            </div>
+                                        </div>
+                                    </Popup>
+                                </Marker>
+                            );
+                        })}
                 </MapContainer>
             </div>
         </div>
