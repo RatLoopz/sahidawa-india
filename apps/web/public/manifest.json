@@ -1,7 +1,7 @@
 {
     "name": "SahiDawa — Medicine Verifier",
     "short_name": "SahiDawa",
-    "description": "India's First Open-Source Citizen Medicine Verifier & Rural Health Bridge. Scan, verify, and trust your medicines.",
+    "description": "Open-source medicine safety infrastructure. Scan, verify, and report.",
     "theme_color": "#10b981",
     "background_color": "#000000",
     "display": "standalone",

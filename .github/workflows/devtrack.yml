@@ -14,7 +14,7 @@ on:
 
 # Only one run at a time to prevent race conditions on index commits
 concurrency:
-  group: devtrack-${{ github.ref }}
+  group: devtrack-main
   cancel-in-progress: false
 
 jobs:
@@ -90,7 +90,7 @@ jobs:
             echo "pr_labels=$PR_LABELS"
             echo "linked_issue=$LINKED_ISSUE"
             echo "lines_changed=$LINES_CHANGED"
-          } >> $GITHUB_OUTPUT
+            } >> $GITHUB_OUTPUT
 
           # Multiline values need delimiter syntax
           echo "pr_body<<ENDBODY" >> $GITHUB_OUTPUT
@@ -119,7 +119,7 @@ jobs:
           PR_AUTHOR:      ${{ steps.pr_meta.outputs.pr_author }}
         run: |
           node .github/scripts/score-impact.mjs
-          echo "Scoring complete. Verdict: $verdict"
+          echo "Scoring complete."
 
       # ── 5. Early exit if SKIP ─────────────────────────────────────────────────
       - name: "🚦 Check if docs should be generated"
@@ -219,25 +219,12 @@ jobs:
             const owner = context.repo.owner;
             const repo  = context.repo.repo;
 
-            // Get the current HEAD SHA for the main branch
-            const { data: ref } = await github.rest.git.getRef({
-              owner, repo, ref: "heads/main"
-            });
-            const parentSha = ref.object.sha;
-
-            // Get the current tree
-            const { data: parentCommit } = await github.rest.git.getCommit({
-              owner, repo, commit_sha: parentSha
-            });
-            const baseTreeSha = parentCommit.tree.sha;
-
-            // Build blobs for each file
             const treeItems = [];
             for (const { rel, full } of filesToCommit) {
               const content = fs.readFileSync(full, "utf8");
               
               // Add a 1s delay to prevent triggering GitHub's secondary rate limits on API mutations
-              await new Promise(resolve => setTimeout(resolve, 1000));
+              await new Promise(resolve => setTimeout(resolve, 500));
               
               const { data: blob } = await github.rest.git.createBlob({
                 owner, repo, content, encoding: "utf-8"
@@ -250,24 +237,39 @@ jobs:
               });
             }
 
-            // Create new tree
-            const { data: newTree } = await github.rest.git.createTree({
-              owner, repo, base_tree: baseTreeSha, tree: treeItems
-            });
+            // Retry loop for API race conditions
+            const MAX_RETRIES = 5;
+            let success = false;
 
-            // Create commit
-            const { data: newCommit } = await github.rest.git.createCommit({
-              owner, repo,
-              message: commitMsg,
-              tree: newTree.sha,
-              parents: [parentSha],
-              author: {
-                name: "sahidawa-devtrack[bot]",
-                email: "devtrack@sahidawa.noreply",
-              }
-            });
+            for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+              try {
+                console.log(`Commit attempt ${attempt}/${MAX_RETRIES}...`);
+              
+              const { data: ref } = await github.rest.git.getRef({
+                owner, repo, ref: "heads/main"
+              });
+              const parentSha = ref.object.sha;
 
-            // Update main branch ref or create a PR if protected
+              const { data: parentCommit } = await github.rest.git.getCommit({
+                owner, repo, commit_sha: parentSha
+              });
+              const baseTreeSha = parentCommit.tree.sha;
+
+              const { data: newTree } = await github.rest.git.createTree({
+                owner, repo, base_tree: baseTreeSha, tree: treeItems
+              });
+
+              const { data: newCommit } = await github.rest.git.createCommit({
+                owner, repo,
+                message: commitMsg,
+                tree: newTree.sha,
+                parents: [parentSha],
+                author: {
+                  name: "sahidawa-devtrack[bot]",
+                  email: "devtrack@sahidawa.noreply",
+                }
+             });
+           
             try {
               await github.rest.git.updateRef({
                 owner, repo,
@@ -275,10 +277,11 @@ jobs:
                 sha: newCommit.sha,
               });
               console.log(`✅ DevTrack docs committed via GitHub API: ${newCommit.sha}`);
-              console.log(`   Files committed: ${filesToCommit.map(f => f.rel).join(", ")}`);
+              success = true;
+              break;
             } catch (err) {
               if (err.status === 422 || err.status === 403) {
-                console.log("⛔ Branch is protected. Creating a PR instead...");
+                console.log("⛔ Branch protected or out of sync. Creating a PR fallback...");
                 const branchName = `devtrack/docs-pr-${PR_NUM}-${Date.now()}`;
                 
                 await github.rest.git.createRef({
@@ -292,15 +295,23 @@ jobs:
                   title: commitMsg,
                   head: branchName,
                   base: "main",
-                  body: "DevTrack automatically generated documentation for PR #" + PR_NUM + ".\\n\\nSince `main` is a protected branch, this PR was automatically created to merge the documentation."
+                  body: "DevTrack automatically generated documentation for PR #${PR_NUM}.\\n\\nSince `main` is a protected branch, this PR was automatically created to merge the documentation."
                 });
                 console.log(`✅ Pull request opened: #${pr.data.number}`);
+                success = true;
+                break;
               } else {
                 throw err;
               }
             }
-
-
+            } catch (retryErr) {
+              console.error(`Attempt ${attempt} failed: ${retryErr.message}`);
+              if (attempt === MAX_RETRIES) throw retryErr;
+              const delay = attempt * 2000;
+              console.log(`Waiting ${delay}ms before next retry...`);
+              await new Promise(res => setTimeout(res, delay));
+            }
+            }
       # ── 9. Summary ────────────────────────────────────────────────────────────
       - name: "📊 DevTrack Summary"
         if: always()

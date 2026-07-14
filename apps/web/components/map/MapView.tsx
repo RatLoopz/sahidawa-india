@@ -129,13 +129,14 @@ export default function MapView() {
     }, []);
 
     // decode simple HTML entities to reduce broken encoding artifacts in popups
+    // Uses textContent instead of innerHTML to prevent XSS via malicious entity payloads
     function decodeHtmlEntities(input: string | null | undefined) {
         if (!input) return "";
         try {
             if (!decodeTextareaRef.current) {
                 decodeTextareaRef.current = document.createElement("textarea");
             }
-            decodeTextareaRef.current.innerHTML = input;
+            decodeTextareaRef.current.textContent = input;
             return decodeTextareaRef.current.value;
         } catch {
             return input;

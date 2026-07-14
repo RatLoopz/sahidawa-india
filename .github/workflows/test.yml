@@ -52,7 +52,7 @@ jobs:
                       ${{ runner.os }}-turbo-
 
             - name: 🧪 Run Tests
-              run: npm run test -- --forceExit
+              run: npm run test
               env:
                   REDIS_URL: redis://localhost:6379
                   NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321

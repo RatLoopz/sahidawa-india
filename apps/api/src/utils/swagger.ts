@@ -7,7 +7,7 @@ const options: swaggerJsdoc.Options = {
             title: "SahiDawa API",
             version: "1.0.0",
             description:
-                "India's First Open-Source Citizen Medicine Verifier & Rural Health Bridge — REST API Documentation",
+                "SahiDawa Open Health — Medicine Safety Infrastructure REST API Documentation",
             contact: {
                 name: "SahiDawa Contributors",
                 url: "https://github.com/RatLoopz/sahidawa-india",

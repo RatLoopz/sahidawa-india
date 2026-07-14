@@ -172,8 +172,8 @@
         "vaccine_subtitle": "Explore vaccine schedules, safety info, and aftercare guidance for better public health awareness.",
         "vaccine_open": "Open Vaccine Hub",
         "heroTitle": {
-            "prefix": "Your Health, ",
-            "highlight": "Verified & Protected."
+            "prefix": "Scan a medicine. Detect safety risks. ",
+            "highlight": "Stay ahead of recalls."
         },
         "scan_section_title": "Scan & Verify Medicine",
         "scan_section_subtitle": "Verify medicine authenticity using barcode or package scanning.",
@@ -464,7 +464,7 @@
         "footer": "SahiDawa is free, open-source, and built for 1.4 billion Indians. No ads. No premium. No data sold. Ever."
     },
     "Footer": {
-        "brandSubtitle": "India's first open-source medicine verification platform. Scan, verify, and trust your medicines with community-powered transparency.",
+        "brandSubtitle": "Open-source medicine safety infrastructure. Scan, verify, and report risks with community-powered transparency.",
         "madeForGssoc": "Made for GSSoC 2026",
         "quickLinks": {
             "title": "Quick Links",
@@ -493,7 +493,7 @@
     "about": {
         "badge": "GSSoC 2026 Open Source Project",
         "heroTitle": "About <highlight>SahiDawa</highlight>",
-        "heroSubtitle": "India's first open-source citizen medicine verifier & rural health bridge. Built for Bharat. Not just India.",
+        "heroSubtitle": "Open-source medicine safety infrastructure. Built for Bharat. Not just India.",
         "features": {
             "free": "100% Free. Forever.",
             "languages": "22 Indian Languages",
@@ -569,7 +569,7 @@
         "items": {
             "0": {
                 "question": "What is SahiDawa?",
-                "answer": "SahiDawa is India's first open-source citizen medicine verification platform. It helps you verify if your medicine is real or fake, find safe pharmacies nearby, and get health guidance in your language."
+                "answer": "SahiDawa is an open-source medicine safety infrastructure. It helps you verify if your medicine is real or fake, report counterfeits, and stay ahead of regulatory recalls."
             },
             "1": {
                 "question": "Is SahiDawa free to use?",
@@ -1038,7 +1038,7 @@
     "howItWorks": {
         "badge": "Safe Healthcare • AI Powered",
         "heroTitle": "How <highlight>SahiDawa</highlight> Works",
-        "heroSubtitle": "Learn how SahiDawa helps users verify medicines, discover trusted pharmacies, receive official alerts, and stay protected from counterfeit drugs using AI-powered healthcare tools.",
+        "heroSubtitle": "Learn how SahiDawa helps users scan and verify medicines, track regulatory recalls, report counterfeits to public heatmaps, and stay protected with AI-powered safety intelligence.",
         "ctaButtons": {
             "scan": "Start Scanning",
             "map": "Explore Pharmacy Map"

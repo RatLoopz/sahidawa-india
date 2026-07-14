@@ -7,9 +7,9 @@
 
 ## 1. Vision & Core Value Proposition
 
-**SahiDawa** ("Sahi Dawa" = _Correct Medicine_ in Hindi) is **India's first open-source citizen medicine verification platform**. It is designed to solve three critical, intersecting healthcare challenges in India simultaneously:
+**SahiDawa Open Health** ("Sahi Dawa" = _Correct Medicine_ in Hindi) is an open-source **medicine safety infrastructure**. It is designed to solve critical healthcare challenges in India by providing counterfeit intelligence and safety verification:
 
-1. **Fake & Counterfeit Medicines** — Studies estimate that 12% to 25% of medicines distributed in India are counterfeit. Currently, no public, citizen-facing verification system exists for checking drug authenticity.
+1. **Fake & Counterfeit Medicines** — Studies estimate that 12% to 25% of medicines distributed in India are counterfeit. SahiDawa provides a citizen-facing verification and reporting system for drug authenticity.
 2. **Rural Healthcare Gaps** — Over 65% of India's population resides in rural areas, where professional doctors and diagnostic resources are severely limited or entirely absent.
 3. **Language Barriers** — India has 22 official regional languages, yet almost all healthcare applications and packaging information are available exclusively in English.
 

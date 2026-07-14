@@ -4,6 +4,18 @@
 // Helpful matchers
 import "fake-indexeddb/auto";
 import "@testing-library/jest-dom";
+import { cleanup } from "@testing-library/react";
+import { afterEach, afterAll } from "@jest/globals";
+
+// Ensure cleanup is explicitly called after each test
+afterEach(() => {
+    cleanup();
+});
+
+// Help JSDOM/React scheduler clear out pending MessagePort timers
+afterAll(() => {
+    return new Promise((resolve) => setTimeout(resolve, 0));
+});
 
 const clonePolyfill = (value: any) => JSON.parse(JSON.stringify(value));
 if (!(globalThis as any).structuredClone) {

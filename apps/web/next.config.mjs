@@ -35,7 +35,7 @@ const nextConfig = {
     env: {
         NEXT_PUBLIC_BUILD_ID: buildId,
     },
-    transpilePackages: ["@sahidawa/validators", "@sahidawa/types", "@sahidawa/shared"],
+    transpilePackages: ["@sahidawa/validators", "@sahidawa/types", "@sahidawa/shared", "@zxing/library", "@zxing/browser"],
     serverExternalPackages: ["lightningcss", "@tailwindcss/postcss", "@tailwindcss/node", "@tailwindcss/oxide"],
     images: {
         formats: ["image/avif", "image/webp"],

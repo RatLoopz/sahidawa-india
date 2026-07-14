@@ -332,21 +332,69 @@ function writeDoc(content, relativePath) {
   return relativePath;
 }
 
-function updateIndex(docPath, adrPath) {
+function updateIndex() {
   const indexPath = join(process.cwd(), "docs/devtrack/README.md");
-  const prUrl = `https://github.com/${ctx.repoSlug}/pull/${ctx.prNumber}`;
-  const docUrl = docPath.replace(/^docs\//, "");
-  const newEntry = `| [#${ctx.prNumber}](${prUrl}) | ${dateStr} | ${ctx.area} | ${ctx.score} | @${ctx.prAuthor} | [View Doc](${docUrl})${adrPath ? ` / [ADR](${adrPath.replace(/^docs\//, "")})` : ""} |`;
-
-  let current = "";
-  if (existsSync(indexPath)) {
-    current = readFileSync(indexPath, "utf8");
+  const baseDir = join(process.cwd(), "docs/devtrack");
+  const prUrlBase = `https://github.com/${ctx.repoSlug}/pull`;
+  
+  let entries = [];
+  if (existsSync(baseDir)) {
+    const yearsMonths = readdirSync(baseDir).filter(f => /^\d{4}-\d{2}$/.test(f));
+    
+    for (const ym of yearsMonths) {
+      const ymPath = join(baseDir, ym);
+      const files = readdirSync(ymPath).filter(f => f.startsWith("PR-") && f.endsWith(".md"));
+      
+      for (const file of files) {
+        const filePath = join(ymPath, file);
+        const content = readFileSync(filePath, "utf8");
+        
+        // Frontmatter ya first lines se metadata nikal lo
+        // Tumhare buildPRDocPrompt ke mutabik format hai: 
+        // > **Merged:** date | **Author:** @user | **Area:** area | **Impact Score:** score
+        const metaLine = content.split("\n").find(line => line.startsWith("> **Merged:**"));
+        
+        if (metaLine) {
+          const prMatch = file.match(/^PR-(\d+)-/);
+          const prNum = prMatch ? prMatch[1] : "0";
+          
+          const dateMatch = metaLine.match(/\*\*Merged:\*\* ([^\s\|]+)/);
+          const authorMatch = metaLine.match(/\*\*Author:\*\* @([^\s\|]+)/);
+          const areaMatch = metaLine.match(/\*\*Area:\*\* ([^\|]+)/);
+          const scoreMatch = metaLine.match(/\*\*Impact Score:\*\* ([^\s\|]+)/);
+          
+          const date = dateMatch ? dateMatch[1] : "N/A";
+          const author = authorMatch ? authorMatch[1] : "unknown";
+          const area = areaMatch ? areaMatch[1].trim() : "General";
+          const score = scoreMatch ? scoreMatch[1] : "0";
+          
+          // Check karo agar iska koi corresponding ADR hai kya adr folder mein
+          const slug = file.replace(/^PR-\d+-/, "").replace(/\.md$/, "");
+          const adrDir = join(baseDir, "adr");
+          let adrLinkStr = `[View Doc](${ym}/${file})`;
+          
+          if (existsSync(adrDir)) {
+            const adrFiles = readdirSync(adrDir);
+            const matchingAdr = adrFiles.find(f => f.endsWith(`${slug}.md`));
+            if (matchingAdr) {
+              adrLinkStr += ` / [ADR](adr/${matchingAdr})`;
+            }
+          }
+          
+          entries.push({
+            prNum: parseInt(prNum, 10),
+            line: `| [#${prNum}](${prUrlBase}/${prNum}) | ${date} | ${area} | ${score} | @${author} | ${adrLinkStr} |`
+          });
+        }
+      }
+    }
   }
 
-  if (/\|\s*PR\s*\|/.test(current)) {
-    writeFileSync(indexPath, current.trimEnd() + "\n" + newEntry + "\n", "utf8");
-  } else {
-    const header = `# SahiDawa DevTrack — Knowledge Index
+  // 2. PR Numbers ke basis par Sort karo (Descending Order - naye PRs upar)
+  entries.sort((a, b) => b.prNum - a.prNum);
+
+  // 3. Pura README structure fresh build karo
+  const header = `# SahiDawa DevTrack — Knowledge Index
 
 This index is automatically maintained by the DevTrack system.
 Every entry represents a merged PR that met the minimum architectural impact threshold.
@@ -357,11 +405,12 @@ Every entry represents a merged PR that met the minimum architectural impact thr
 
 | PR | Date | Area | Score | Author | Docs |
 |---|---|---|---|---|---|
-${newEntry}
+${entries.map(e => e.line).join("\n")}
 `;
-    writeFileSync(indexPath, header, "utf8");
-  }
-  console.log("✅ Index updated: docs/devtrack/README.md");
+
+  mkdirSync(dirname(indexPath), { recursive: true });
+  writeFileSync(indexPath, header, "utf8");
+  console.log("✅ Index dynamically regenerated: docs/devtrack/README.md");
 }
 
 function getNextADRNumber() {

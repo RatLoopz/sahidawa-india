@@ -2,7 +2,7 @@
     "name": "sahidawa-india",
     "version": "1.0.0",
     "private": true,
-    "description": "India's First Open-Source Citizen Medicine Verifier & Rural Health Bridge",
+    "description": "SahiDawa Open Health — Medicine safety infrastructure for Bharat",
     "engines": {
         "node": ">=22.0.0"
     },
@@ -14,7 +14,7 @@
         "dev": "turbo run dev",
         "build": "turbo run build",
         "clean": "npx rimraf .turbo node_modules apps/*/node_modules apps/*/.next packages/*/node_modules",
-        "test": "npm run test --workspaces --if-present",
+        "test": "turbo run test",
         "lint": "npm run lint --workspaces --if-present",
         "test:a11y:voice": "npm run test:a11y:voice -w web",
         "prepare": "node -e \"if(!process.env.CI) { require('child_process').execSync('npx --yes husky', {stdio: 'inherit'}) }\" || true",
@@ -35,6 +35,7 @@
     "packageManager": "npm@11.12.1",
     "dependencies": {
         "@supabase/supabase-js": "^2.110.0",
+        "@zxing/library": "0.21.3",
         "cors": "^2.8.6",
         "dotenv": "^17.4.2",
         "express": "^5.2.1",
@@ -69,6 +70,7 @@
         "form-data": "^4.0.6",
         "protobufjs": "^7.6.3",
         "js-yaml": "^4.1.2",
+        "serialize-javascript": "^7.0.5",
         "node-cron": {
             "uuid": "^9.0.1"
         }

@@ -265,7 +265,10 @@ export default function SettingsPage() {
                     <div className="flex flex-col gap-6">
                         {/* Phone Number */}
                         <div>
-                            <label className="mb-2 block text-sm font-bold text-(--color-text-primary)">
+                            <label
+                                htmlFor="phone"
+                                className="mb-2 block text-sm font-bold text-(--color-text-primary)"
+                            >
                                 {t("phoneLabel")}
                             </label>
                             <div className="flex rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 shadow-inner">
@@ -273,6 +276,7 @@ export default function SettingsPage() {
                                     +91
                                 </span>
                                 <input
+                                    id="phone"
                                     type="text"
                                     value={form.phone}
                                     onChange={(e) => {
@@ -287,10 +291,14 @@ export default function SettingsPage() {
 
                         {/* District Selector */}
                         <div>
-                            <label className="mb-2 block text-sm font-bold text-(--color-text-primary)">
+                            <label
+                                htmlFor="district"
+                                className="mb-2 block text-sm font-bold text-(--color-text-primary)"
+                            >
                                 {t("districtLabel")}
                             </label>
                             <input
+                                id="district"
                                 type="text"
                                 value={form.district}
                                 onChange={(e) => setForm({ ...form, district: e.target.value })}
@@ -304,10 +312,14 @@ export default function SettingsPage() {
 
                         {/* Preferred Alert Language */}
                         <div>
-                            <label className="mb-2 block text-sm font-bold text-(--color-text-primary)">
+                            <label
+                                htmlFor="language"
+                                className="mb-2 block text-sm font-bold text-(--color-text-primary)"
+                            >
                                 {t("langLabel")}
                             </label>
                             <select
+                                id="language"
                                 value={form.language}
                                 onChange={(e) => setForm({ ...form, language: e.target.value })}
                                 className="w-full rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 font-semibold text-(--color-text-primary) shadow-inner focus:ring-2 focus:ring-emerald-500 focus:outline-none"

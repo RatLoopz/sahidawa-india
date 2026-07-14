@@ -10,9 +10,9 @@
 
 # 🩺 SahiDawa — सही दवा
 
-### India's First Open-Source Citizen Medicine Verifier & Rural Health Bridge
+### Open-Source Medicine Safety Infrastructure for Bharat
 
-**Scan any medicine. Verify it's real. Find safe pharmacies near you. Talk to an AI doctor in your language.**
+**Scan a medicine. Detect safety risks. Stay ahead of recalls.**
 
 _Built for Bharat. Not just India._
 
@@ -59,7 +59,7 @@ _Built for Bharat. Not just India._
 
 ## 🚨 The Problem We're Solving
 
-India has a three-layer healthcare crisis that **no existing platform solves simultaneously**:
+India has a three-layer healthcare crisis that requires dedicated safety infrastructure:
 
 | Problem                                                             | Scale                      | Current Solution                                             |
 | ------------------------------------------------------------------- | -------------------------- | ------------------------------------------------------------ |
@@ -75,11 +75,15 @@ India has a three-layer healthcare crisis that **no existing platform solves sim
 
 ## ✨ What SahiDawa Does
 
-### 💡 The Core Workflow
+SahiDawa operates as a flagship counterfeit intelligence network, prioritizing safety and awareness over generic price discovery.
 
-- **📱 Scan Medicine** ➔ 🔍 **AI Verifies (CDSCO)** ➔ ✅ **Real** / ⚠️ **Suspicious** / ❌ **Fake**
-- **🗣️ Speak Symptoms** ➔ 🤖 **AI Triage (22 Languages)** ➔ 🏥 **Find Nearest Pharmacy**
-- **📸 Report Fakes** ➔ 🗺️ **Community Heatmap** ➔ 📢 **District-Level Alerts**
+### 💡 The Core Workflow (Counterfeit Intelligence)
+
+- **📱 Scan & Verify** ➔ Check batch data against CDSCO database.
+- **🚨 Recall & LASA Risk** ➔ Identify active regulatory alerts or look-alike/sound-alike risks.
+- **📸 Report Fakes** ➔ Citizen reporting of suspicious medicines.
+- **🗺️ District Heatmap** ➔ Aggregate counterfeit reports to build public awareness.
+- **📢 Alert** ➔ Autonomous district-level safety notifications.
 
 ### Core Features _(Currently in active development)_
 
