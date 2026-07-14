@@ -14,7 +14,8 @@ import app from "../src/app";
 // the file multer wrote to temp-uploads is actually deleted:
 //   1. fetch rejects          -> handler catch sends 503 -> "finish"
 //   2. ML returns !ok         -> handler sends the ML status -> "finish"
-//   3. client aborts mid-call -> no response is ever sent -> "close"
+//   3. ML succeeds            -> handler sends 200 -> "finish"
+//   4. client aborts mid-call -> no response is ever sent -> "close"
 
 const EXTRACT_URL = "/api/v1/scan/extract";
 const UPLOAD_DIR = path.join(__dirname, "../temp-uploads");
@@ -91,6 +92,25 @@ describe("POST /api/v1/scan/extract — temp file cleanup (#3548)", () => {
         expect(response.status).toBe(502);
         await waitFor(() => cleanedTempPath(unlinkSpy) !== undefined);
         expect(fs.existsSync(cleanedTempPath(unlinkSpy)!)).toBe(false);
+    });
+
+    it("deletes the temp file after a successful extraction (200, finish)", async () => {
+        // OCR text of only short/filler words keeps searchWords empty, so the
+        // handler never queries Supabase and the test stays fully in-memory:
+        // mocked ML success -> unmatched 200 -> "finish" -> cleanup.
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: true,
+            status: 200,
+            json: async () => ({ text: "rs 12 mrp", confidence: 0.9 }),
+        }) as never;
+
+        const response = await attachAudio(request(server).post(EXTRACT_URL));
+
+        expect(response.status).toBe(200);
+        await waitFor(() => cleanedTempPath(unlinkSpy) !== undefined);
+        const tempPath = cleanedTempPath(unlinkSpy)!;
+        expect(tempPath.endsWith(".webm")).toBe(true);
+        expect(fs.existsSync(tempPath)).toBe(false);
     });
 
     it("deletes the temp file when the client disconnects before a response (close)", async () => {
