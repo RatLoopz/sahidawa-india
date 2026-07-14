@@ -14,7 +14,7 @@ if not API_KEY:
 # URL that could be echoed back in an error message or CI log.
 url = "https://generativelanguage.googleapis.com/v1beta/models"
 
-response = requests.get(url, headers={"x-goog-api-key": API_KEY})
+response = requests.get(url, headers={"x-goog-api-key": API_KEY}, timeout=30)
 
 if response.status_code == 200:
     models = response.json().get("models", [])
