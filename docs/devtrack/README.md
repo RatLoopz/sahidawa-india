@@ -9,6 +9,7 @@ Every entry represents a merged PR that met the minimum architectural impact thr
 
 | PR | Date | Area | Score | Author | Docs |
 |---|---|---|---|---|---|
+| [#3614](https://github.com/RatLoopz/sahidawa-india/pull/3614) | 2026-07-15 | Frontend | 11 | @shauryavardhan1307 | [View Doc](2026-07/PR-3614-fix-web-revert-optimistic-ui-update-on-dose-log-er.md) |
 | [#3595](https://github.com/RatLoopz/sahidawa-india/pull/3595) | 2026-07-14 | Frontend | 5 | @Avinash-sdbegin | [View Doc](2026-07/PR-3595-feat-map-implement-geohash-clustering-logic-and-pr.md) |
 | [#3592](https://github.com/RatLoopz/sahidawa-india/pull/3592) | 2026-07-14 | Frontend | 34 | @yogita-mehta | [View Doc](2026-07/PR-3592-fix-paginated-calculations-on-live-alerts-log-stat.md) / [ADR](adr/ADR-052-fix-paginated-calculations-on-live-alerts-log-stat.md) |
 | [#3587](https://github.com/RatLoopz/sahidawa-india/pull/3587) | 2026-07-14 | Backend | 6 | @shashank03-dev | [View Doc](2026-07/PR-3587-fix-api-apply-csrf-middleware-consistently-across-.md) |
