@@ -1,10 +1,8 @@
 import { Router, Request, Response } from "express";
+import { z } from "zod";
 import logger from "../utils/logger";
 import { anonSupabase } from "../db/supabase";
-
-const router = Router();
-
-import { z } from "zod";
+import { dbConfig } from "../db/client";
 import { redisClient } from "../utils/redis";
 import { eligibilityLimiter } from "../middleware/rateLimit";
 import {
@@ -15,6 +13,92 @@ import {
     PmjayUpstreamError,
     PmjayNetworkError,
 } from "../services/governmentEligibility";
+
+const router = Router();
+
+// Static offline fallback — served when Supabase is unreachable.
+interface StaticScheme {
+    scheme_name: string;
+    description: string;
+    coverage: string;
+    how_to_apply: string;
+    link: string;
+}
+
+const OFFLINE_STATE_SCHEMES: Record<string, StaticScheme[]> = {
+    maharashtra: [
+        {
+            scheme_name: "Mahatma Jyotiba Phule Jan Arogya Yojana (MJPJAY)",
+            description:
+                "State-funded cashless health insurance scheme for Below Poverty Line and other vulnerable families in Maharashtra, covering major surgeries and critical illnesses.",
+            coverage:
+                "Cashless treatment up to ₹1.5 Lakh per family per year (₹2.5 Lakh for defined critical illnesses) at empaneled hospitals.",
+            how_to_apply:
+                "Visit any empaneled network hospital with your Aadhar card, yellow/orange/antyodaya ration card. The hospital facilitates enrolment on the spot.",
+            link: "https://www.jeevandayee.gov.in/",
+        },
+    ],
+    delhi: [
+        {
+            scheme_name: "Delhi Arogya Kosh (DAK)",
+            description:
+                "Financial assistance scheme by the Delhi Government for BPL families requiring treatment for serious illnesses at empaneled government hospitals in Delhi.",
+            coverage:
+                "Up to ₹5 Lakh per annum for serious illnesses at Delhi government hospitals.",
+            how_to_apply:
+                "Apply through the CMO (Chief Medical Officer) at any empaneled government hospital in Delhi with a BPL ration card and income certificate.",
+            link: "https://health.delhi.gov.in/",
+        },
+    ],
+    kerala: [
+        {
+            scheme_name: "Karunya Arogya Suraksha Padhathi (KASP)",
+            description:
+                "Kerala's flagship health insurance program replacing Rashtriya Swasthya Bima Yojana (RSBY), providing cashless in-patient care to BPL and vulnerable families.",
+            coverage:
+                "Cashless secondary and tertiary care up to ₹5 Lakh per family per year at empaneled government and private hospitals.",
+            how_to_apply:
+                "Enrol through your nearest Akshaya Centre or Primary Health Centre (PHC) with your Aadhaar card and BPL/priority household ration card.",
+            link: "https://kasp.kerala.gov.in/",
+        },
+    ],
+    karnataka: [
+        {
+            scheme_name: "Ayushman Bharat - Arogya Karnataka (AB-ArK)",
+            description:
+                "Karnataka's integrated health protection scheme combining Ayushman Bharat PM-JAY with state-specific top-ups, covering all residents regardless of income.",
+            coverage:
+                "Universal coverage up to ₹5 Lakh for BPL families; general (APL) families covered for secondary care up to ₹1.5 Lakh per year.",
+            how_to_apply:
+                "Visit any empaneled government or private hospital with your Aadhaar card. For APL families, a SSLC certificate or voter ID may be required.",
+            link: "https://arogyakarnataka.gov.in/",
+        },
+    ],
+    "uttar pradesh": [
+        {
+            scheme_name: "Ayushman Bharat - Mukhyamantri Jan Arogya Yojana (AB-MJAY UP)",
+            description:
+                "Uttar Pradesh's state-extended version of Ayushman Bharat PM-JAY, expanding coverage to additional families not covered under the central scheme.",
+            coverage:
+                "Cashless hospitalization up to ₹5 Lakh per family per year at empaneled hospitals across Uttar Pradesh.",
+            how_to_apply:
+                "Check eligibility at the PM-JAY portal or your nearest Common Service Center (CSC) / government hospital with your Aadhaar card and ration card.",
+            link: "https://shasya.sects.up.gov.in/",
+        },
+    ],
+    "tamil nadu": [
+        {
+            scheme_name: "Chief Minister's Comprehensive Health Insurance Scheme (CMCHIS)",
+            description:
+                "Tamil Nadu's flagship health insurance scheme providing free cashless medical treatment for serious and life-threatening illnesses to BPL and low-income families.",
+            coverage:
+                "Cashless treatment up to ₹5 Lakh per family per year (₹4 Lakh base + ₹1 Lakh top-up) for 1,027+ procedures at empaneled hospitals.",
+            how_to_apply:
+                "Register at your nearest Government Hospital or Primary Health Centre with your Aadhaar card and family ration card (any colour).",
+            link: "https://www.cmchistn.com/",
+        },
+    ],
+};
 
 const eligibilitySchema = z.object({
     age: z.number().int().min(0, "Age cannot be negative").optional().default(30),
@@ -89,15 +173,7 @@ router.post("/", eligibilityLimiter, async (req: Request, res: Response): Promis
         const income = Number(annual_income);
         const userState = (state || "").trim();
 
-        // Author note: we first attempt a real government API call
-        // (PM-JAY / ESIC). Those integrations are not official yet, so
-        // fetchGovernmentEligibility() will simply return null until the
-        // required env vars (PMJAY_API_KEY, PMJAY_BASE_URL, ESIC_API_KEY,
-        // ESIC_BASE_URL) are configured with real, approved credentials.
-        // Nothing below this block changes: if the government call fails,
-        // isn't configured, or times out, we silently continue with the
-        // existing Redis/Supabase + rule-based logic, so this is safe to
-        // ship without breaking anything today.
+        // Try PM-JAY government API if credentials are configured.
         const isPmjayConfigured = !!(process.env.PMJAY_BASE_URL && process.env.PMJAY_API_KEY);
         if (isPmjayConfigured) {
             try {
@@ -168,7 +244,6 @@ router.post("/", eligibilityLimiter, async (req: Request, res: Response): Promis
         const eligibleSchemes = [];
 
         // 1. Ayushman Bharat - PM-JAY (National Scheme)
-        // Eligibility: BPL Card OR Annual Income <= 2,50,000 OR ABHA ID (rural integration)
         if (has_bpl_card || income <= 250000 || has_abha_id) {
             eligibleSchemes.push({
                 name: "Ayushman Bharat - PM-JAY",
@@ -201,25 +276,48 @@ router.post("/", eligibilityLimiter, async (req: Request, res: Response): Promis
             }
 
             if (!data) {
-                const { data: dbData, error } = await anonSupabase
-                    .from("health_schemes")
-                    .select("*")
-                    .ilike("state_name", `%${userState}%`);
-
-                if (error) {
-                    logger.error("Failed to query health_schemes", { error });
-                }
-
-                data = dbData as any[] | null;
-
-                if (data && redisClient.isOpen) {
+                // Use static fallback if Supabase is offline, otherwise query DB.
+                if (dbConfig.isSupabaseOffline) {
+                    logger.warn(
+                        "Supabase is offline — using static offline fallback for state health schemes",
+                        { state: userState }
+                    );
+                    data = OFFLINE_STATE_SCHEMES[userState.toLowerCase()] ?? null;
+                } else {
                     try {
-                        await redisClient.setEx(cacheKey, 604800, JSON.stringify(data));
-                    } catch (err) {
-                        logger.warn({
-                            message: "Redis set error in eligibility",
-                            error: String(err),
-                        });
+                        const { data: dbData, error } = await anonSupabase
+                            .from("health_schemes")
+                            .select("*")
+                            .ilike("state_name", `%${userState}%`);
+
+                        if (error) {
+                            // DB error — fall back to static data.
+                            logger.error(
+                                "Failed to query health_schemes — falling back to offline static data",
+                                { error }
+                            );
+                            data = OFFLINE_STATE_SCHEMES[userState.toLowerCase()] ?? null;
+                        } else {
+                            data = dbData as any[] | null;
+
+                            if (data && redisClient.isOpen) {
+                                try {
+                                    await redisClient.setEx(cacheKey, 604800, JSON.stringify(data));
+                                } catch (err) {
+                                    logger.warn({
+                                        message: "Redis set error in eligibility",
+                                        error: String(err),
+                                    });
+                                }
+                            }
+                        }
+                    } catch (dbErr) {
+                        // Unexpected DB exception — fall back to static data.
+                        logger.error(
+                            "Unexpected error querying health_schemes — falling back to offline static data",
+                            { error: String(dbErr) }
+                        );
+                        data = OFFLINE_STATE_SCHEMES[userState.toLowerCase()] ?? null;
                     }
                 }
             }
@@ -238,24 +336,20 @@ router.post("/", eligibilityLimiter, async (req: Request, res: Response): Promis
             }
         }
 
-        if (!foundStateScheme) {
-            // General state insurance schemes fallback for other states
-            if (income <= 300000 || has_bpl_card) {
-                eligibleSchemes.push({
-                    name: "State Government Health Insurance (SGHIS)",
-                    description:
-                        "Cashless state-sponsored healthcare scheme integrated with Central National Health Authority guidelines.",
-                    coverage:
-                        "Cashless hospitalization benefits up to ₹3 Lakh to ₹5 Lakh per family per year at empaneled government/private hospitals.",
-                    how_to_apply:
-                        "Visit your local Block Development Office (BDO) or Chief Medical Officer's (CMO) helpdesk with Aadhaar card, income details, and BPL card.",
-                    link: "https://nha.gov.in/",
-                });
-            }
+        if (!foundStateScheme && (income <= 300000 || has_bpl_card)) {
+            eligibleSchemes.push({
+                name: "State Government Health Insurance (SGHIS)",
+                description:
+                    "Cashless state-sponsored healthcare scheme integrated with Central National Health Authority guidelines.",
+                coverage:
+                    "Cashless hospitalization benefits up to ₹3 Lakh to ₹5 Lakh per family per year at empaneled government/private hospitals.",
+                how_to_apply:
+                    "Visit your local Block Development Office (BDO) or Chief Medical Officer's (CMO) helpdesk with Aadhaar card, income details, and BPL card.",
+                link: "https://nha.gov.in/",
+            });
         }
 
-        // 3. PM Jan Aushadhi Scheme (Generic Medicines Support)
-        // Eligible for everyone (universal)
+        // 3. PM Jan Aushadhi Scheme (universal)
         eligibleSchemes.push({
             name: "Pradhan Mantri Bhartiya Janaushadhi Pariyojana (PMBJP)",
             description:
@@ -267,7 +361,7 @@ router.post("/", eligibilityLimiter, async (req: Request, res: Response): Promis
             link: "http://janaushadhi.gov.in/",
         });
 
-        // 4. Senior Citizen Health Insurance Scheme (SCHIS)
+        // 4. Senior Citizen Health Coverage
         if (age >= 60 && (income <= 300000 || has_bpl_card)) {
             eligibleSchemes.push({
                 name: "Rashtriya Vayoshri Yojana & Senior Citizen Health Coverage",

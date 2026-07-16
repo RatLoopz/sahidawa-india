@@ -52,7 +52,11 @@ export function DateInitializer({ vaccine, value, onChange }: DateInitializerPro
                             : "Select first dose date"
                     }
                     aria-describedby={inputDescriptionId}
-                    title={vaccine.is_relative_to_birth ? "Select child's birth date" : "Select first dose date"}
+                    title={
+                        vaccine.is_relative_to_birth
+                            ? "Select child's birth date"
+                            : "Select first dose date"
+                    }
                     className="w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-4 py-3 pr-11 font-medium text-(--color-text-primary) shadow-sm transition-all outline-none hover:bg-(--color-surface-muted) focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
                 />
 
@@ -64,7 +68,8 @@ export function DateInitializer({ vaccine, value, onChange }: DateInitializerPro
             </div>
 
             <p id={inputDescriptionId} className="text-xs text-(--color-text-muted)">
-                Use the native date picker. If your browser shows a plain field, enter the date as yyyy-mm-dd.
+                Use the native date picker. If your browser shows a plain field, enter the date as
+                yyyy-mm-dd.
             </p>
 
             {parsedDate && (

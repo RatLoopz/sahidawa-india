@@ -39,10 +39,25 @@ from src.utils.logger import logger
 
 load_dotenv(Path(__file__).resolve().parents[4] / ".env")
 
+REPO_ROOT = Path(__file__).resolve().parents[4]
+NPPA_CEILING_PRICES_CSV = REPO_ROOT / "data" / "seeds" / "nppa_ceiling_prices.csv"
+
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
 BATCH_SIZE = 100
+
+
+def _resolve_nppa_csv_path(nppa_csv: "Path | str | None" = None) -> Path:
+    """Resolve the NPPA seed CSV independent of the process cwd."""
+    if nppa_csv is None:
+        return NPPA_CEILING_PRICES_CSV
+
+    csv_path = Path(nppa_csv)
+    if csv_path.is_absolute():
+        return csv_path
+
+    return REPO_ROOT / csv_path
 DELAY_SEC = 0.5
 
 # Postgres RPC (supabase/migrations) for atomic Jan Aushadhi price back-fill.
@@ -724,7 +739,7 @@ class SupabaseLoader:
         ----------
         nppa_csv:
             Path to NPPA ceiling price CSV. Defaults to
-            data/seeds/nppa_ceiling_prices.csv relative to this file.
+            data/seeds/nppa_ceiling_prices.csv at the repository root.
         table:
             Target Supabase table (default ``"medicines"``).
         page_size:
@@ -736,13 +751,12 @@ class SupabaseLoader:
         """
         import csv as _csv
 
-        _default_csv = Path(__file__).resolve().parents[4] / "data" / "seeds" / "nppa_ceiling_prices.csv"
-        csv_path = Path(nppa_csv) if nppa_csv else _default_csv
+        csv_path = _resolve_nppa_csv_path(nppa_csv)
 
         if not csv_path.exists():
             logger.error(
                 f"[Loader] merge_jan_aushadhi_price: NPPA CSV not found at {csv_path}. "
-                "Run: cp data/seeds/nppa_ceiling_price.csv data/seeds/nppa_ceiling_prices.csv"
+                "Ensure data/seeds/nppa_ceiling_prices.csv is committed or pass nppa_csv explicitly."
             )
             return {"checked": 0, "updated": 0, "skipped": 0, "failed": 0}
 
@@ -928,16 +942,27 @@ class SupabaseLoader:
         """Read the integer row count returned by the bulk RPC.
 
         PostgREST returns a scalar function result as the raw value, but tolerate
-        a single-element list too. Returns ``None`` when the shape is unrecognized
-        so the caller can decide how to account for it rather than guessing here.
+        a single-element list containing either the count or a single-key mapping
+        to it. Returns ``None`` when the shape is unrecognized so the caller can
+        decide how to account for it rather than guessing here.
         """
         data = getattr(response, "data", None)
         if isinstance(data, bool):  # bool is an int subclass — exclude it
             return None
         if isinstance(data, int):
             return data
-        if isinstance(data, list) and len(data) == 1 and isinstance(data[0], int):
-            return data[0]
+        if isinstance(data, list) and len(data) == 1:
+            item = data[0]
+            if isinstance(item, bool):
+                return None
+            if isinstance(item, int):
+                return item
+            if isinstance(item, dict) and len(item) == 1:
+                value = next(iter(item.values()))
+                if isinstance(value, bool):
+                    return None
+                if isinstance(value, int):
+                    return value
         return None
 
     def _update_ja_price_rows_one_by_one(

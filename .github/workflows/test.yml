@@ -24,12 +24,12 @@ jobs:
                     --health-retries 5
         steps:
             - name: ⬇️ Checkout Code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 2
 
             - name: ⚙️ Setup Node.js from .nvmrc
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v7
               with:
                   node-version-file: .nvmrc
                   cache: "npm"
@@ -41,7 +41,7 @@ jobs:
               run: npm install --legacy-peer-deps
             
             - name: ⚡ Cache Turborepo
-              uses: actions/cache@v4
+              uses: actions/cache@v6
               id: turbo-cache
               with:
                   path: .turbo

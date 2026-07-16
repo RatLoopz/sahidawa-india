@@ -9,6 +9,10 @@ Every entry represents a merged PR that met the minimum architectural impact thr
 
 | PR | Date | Area | Score | Author | Docs |
 |---|---|---|---|---|---|
+| [#3640](https://github.com/RatLoopz/sahidawa-india/pull/3640) | 2026-07-16 | Frontend | 10 | @Soquixx | [View Doc](2026-07/PR-3640-feat-add-frontend-integration-for-triage-reset.md) |
+| [#3629](https://github.com/RatLoopz/sahidawa-india/pull/3629) | 2026-07-16 | Backend | 25 | @hrx01-dev | [View Doc](2026-07/PR-3629-sec-enhanced-rate-limitingto-use-keys-alongside-ip.md) / [ADR](adr/ADR-055-sec-enhanced-rate-limitingto-use-keys-alongside-ip.md) |
+| [#3626](https://github.com/RatLoopz/sahidawa-india/pull/3626) | 2026-07-16 | Frontend | 12 | @Kirtan-pc | [View Doc](2026-07/PR-3626-fix-fix-broken-background-sync-for-offline-scan-qu.md) |
+| [#3623](https://github.com/RatLoopz/sahidawa-india/pull/3623) | 2026-07-16 | Backend | 9 | @Kirtan-pc | [View Doc](2026-07/PR-3623-fix-static-hardcoded-salt-in-abha-token-encryption.md) |
 | [#3613](https://github.com/RatLoopz/sahidawa-india/pull/3613) | 2026-07-15 | Frontend | 17 | @shauryavardhan1307 | [View Doc](2026-07/PR-3613-fix-web-robust-formattime-helper-to-prevent-schedu.md) / [ADR](adr/ADR-054-fix-web-robust-formattime-helper-to-prevent-schedu.md) |
 | [#3595](https://github.com/RatLoopz/sahidawa-india/pull/3595) | 2026-07-14 | Frontend | 5 | @Avinash-sdbegin | [View Doc](2026-07/PR-3595-feat-map-implement-geohash-clustering-logic-and-pr.md) |
 | [#3592](https://github.com/RatLoopz/sahidawa-india/pull/3592) | 2026-07-14 | Frontend | 34 | @yogita-mehta | [View Doc](2026-07/PR-3592-fix-paginated-calculations-on-live-alerts-log-stat.md) / [ADR](adr/ADR-052-fix-paginated-calculations-on-live-alerts-log-stat.md) |

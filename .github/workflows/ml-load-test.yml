@@ -34,7 +34,7 @@ jobs:
 
       - name: 📊 Upload Locust HTML Report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: locust-nightly-report
           path: report.html

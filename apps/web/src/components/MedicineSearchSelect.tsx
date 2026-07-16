@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Clock, Loader2, Search, X } from "lucide-react";
 import type { Medicine } from "./ComparisonGrid";
 
 // ─── constants ────────────────────────────────────────────────────────────────
 const HISTORY_KEY = "sahidawa_search_history";
 const MAX_HISTORY = 5;
+const SEARCH_ERROR_MESSAGE = "Search failed. Please try again.";
 
 // ─── types ────────────────────────────────────────────────────────────────────
 interface HistoryEntry {
@@ -85,42 +86,77 @@ export default function MedicineSearchSelect({
     const [query, setQuery] = useState("");
     const [results, setResults] = useState<Medicine[]>([]);
     const [loading, setLoading] = useState(false);
+    const [searchError, setSearchError] = useState<string | null>(null);
     const [history, setHistory] = useState<HistoryEntry[]>([]);
     const [activeIndex, setActiveIndex] = useState(-1);
-    const latestQueryRef = useRef("");
+    const requestIdRef = useRef(0);
 
     // Load history once on mount
     useEffect(() => {
         setHistory(loadHistory());
     }, []);
 
-    // Debounced search
-    useEffect(() => {
-        if (!open) return;
-        const q = query.trim();
-        if (q.length < 2) {
+    const runSearch = useCallback(
+        async (normalizedQuery: string, requestId: number) => {
+            setLoading(true);
+            setSearchError(null);
             setResults([]);
             setActiveIndex(-1);
+
+            try {
+                const nextResults = await onSearch(normalizedQuery);
+                if (requestIdRef.current !== requestId) return;
+
+                setResults(nextResults);
+                setSearchError(null);
+                setActiveIndex(nextResults.length ? 0 : -1);
+                // Only persist successful searches that returned results.
+                if (nextResults.length > 0) {
+                    setHistory((previous) => pushToHistory(normalizedQuery, previous));
+                }
+            } catch {
+                if (requestIdRef.current !== requestId) return;
+
+                setResults([]);
+                setActiveIndex(-1);
+                setSearchError(SEARCH_ERROR_MESSAGE);
+            } finally {
+                if (requestIdRef.current === requestId) {
+                    setLoading(false);
+                }
+            }
+        },
+        [onSearch]
+    );
+
+    // Debounced search. Incrementing the request id immediately invalidates any
+    // in-flight request before the next debounce timer starts.
+    useEffect(() => {
+        const requestId = ++requestIdRef.current;
+        const q = query.trim();
+
+        setLoading(false);
+        setSearchError(null);
+        setResults([]);
+        setActiveIndex(-1);
+
+        if (!open) return;
+        if (q.length < 2) {
             return;
         }
-        latestQueryRef.current = q;
-        const t = setTimeout(async () => {
-            setLoading(true);
-            try {
-                const res = await onSearch(q);
-                if (latestQueryRef.current !== q) return;
-                setResults(res);
-                setActiveIndex(res.length ? 0 : -1);
-                // Only persist to history when we actually got results back
-                if (res.length > 0) {
-                    setHistory((prev) => pushToHistory(q, prev));
-                }
-            } finally {
-                setLoading(false);
-            }
+
+        const t = setTimeout(() => {
+            void runSearch(q, requestId);
         }, 300);
         return () => clearTimeout(t);
-    }, [query, open, onSearch]);
+    }, [query, open, runSearch]);
+
+    useEffect(
+        () => () => {
+            requestIdRef.current += 1;
+        },
+        []
+    );
 
     // Close dropdown on outside click
     useEffect(() => {
@@ -147,8 +183,17 @@ export default function MedicineSearchSelect({
     function handleClearQuery() {
         setQuery("");
         setResults([]);
+        setSearchError(null);
         setActiveIndex(-1);
         inputRef.current?.focus();
+    }
+
+    function handleRetry() {
+        const normalizedQuery = query.trim();
+        if (normalizedQuery.length < 2) return;
+
+        const requestId = ++requestIdRef.current;
+        void runSearch(normalizedQuery, requestId);
     }
 
     const showHistory = !value && history.length > 0;
@@ -174,6 +219,7 @@ export default function MedicineSearchSelect({
                         type="button"
                         onClick={() => {
                             onChange(null);
+                            setSearchError(null);
                             setOpen(true);
                             inputRef.current?.focus();
                         }}
@@ -204,6 +250,7 @@ export default function MedicineSearchSelect({
                             value={query}
                             onChange={(e) => {
                                 setQuery(e.target.value);
+                                setSearchError(null);
                                 setOpen(true);
                             }}
                             onFocus={() => {
@@ -224,6 +271,7 @@ export default function MedicineSearchSelect({
 
                                     setQuery("");
                                     setResults([]);
+                                    setSearchError(null);
                                     setActiveIndex(-1);
                                     setOpen(false);
                                     e.currentTarget.blur();
@@ -338,11 +386,29 @@ export default function MedicineSearchSelect({
                             Enter at least 2 characters
                         </li>
                     )}
-                    {!loading && query.trim().length >= 2 && results.length === 0 && (
-                        <li className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">
-                            No results
+                    {!loading && searchError && (
+                        <li
+                            role="alert"
+                            className="flex items-center justify-between gap-3 px-3 py-2 text-sm text-rose-700 dark:text-rose-400"
+                        >
+                            <span>{searchError}</span>
+                            <button
+                                type="button"
+                                onClick={handleRetry}
+                                className="shrink-0 rounded-md border border-rose-300 px-2.5 py-1 font-medium hover:bg-rose-50 focus:ring-2 focus:ring-rose-500 focus:ring-offset-1 focus:outline-none dark:border-rose-700 dark:hover:bg-rose-950/40 dark:focus:ring-offset-slate-900"
+                            >
+                                Retry
+                            </button>
                         </li>
                     )}
+                    {!loading &&
+                        !searchError &&
+                        query.trim().length >= 2 &&
+                        results.length === 0 && (
+                            <li className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">
+                                No results
+                            </li>
+                        )}
                     {!loading &&
                         results.map((m, index) => (
                             <li
@@ -362,6 +428,7 @@ export default function MedicineSearchSelect({
                                     onClick={() => {
                                         onChange(m);
                                         setQuery("");
+                                        setSearchError(null);
                                         setOpen(false);
                                         setActiveIndex(-1);
                                     }}
