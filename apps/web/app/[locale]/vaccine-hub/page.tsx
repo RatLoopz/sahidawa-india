@@ -21,6 +21,48 @@ const STORAGE_KEYS = {
     initialDate: "vaccine-hub-initial-date",
 };
 
+/** Internal stage keys used for grouping — never displayed directly. */
+const STAGE_GROUP_KEYS = ["birth", "infant", "child", "adolescent"] as const;
+
+/**
+ * Structural data for the National Immunization Schedule.
+ * All display text (name, dose, timing, protection) is resolved via
+ * translation keys: t(`nis.${item.id}.name`), etc.
+ */
+const NIS_ITEMS: ReadonlyArray<{
+    readonly id: string;
+    readonly stage: (typeof STAGE_GROUP_KEYS)[number];
+    readonly area?: boolean;
+}> = [
+    { id: "bcg", stage: "birth" },
+    { id: "hepb-birth", stage: "birth" },
+    { id: "opv-0", stage: "birth" },
+    { id: "opv-1", stage: "infant" },
+    { id: "pentavalent-1", stage: "infant" },
+    { id: "fipv-1", stage: "infant" },
+    { id: "rotavirus-1", stage: "infant", area: true },
+    { id: "pcv-1", stage: "infant", area: true },
+    { id: "opv-2", stage: "infant" },
+    { id: "pentavalent-2", stage: "infant" },
+    { id: "rotavirus-2", stage: "infant", area: true },
+    { id: "opv-3", stage: "infant" },
+    { id: "pentavalent-3", stage: "infant" },
+    { id: "fipv-2", stage: "infant" },
+    { id: "rotavirus-3", stage: "infant", area: true },
+    { id: "pcv-2", stage: "infant", area: true },
+    { id: "mr-1", stage: "infant" },
+    { id: "fipv-3", stage: "infant" },
+    { id: "pcv-booster", stage: "infant", area: true },
+    { id: "je-1", stage: "infant", area: true },
+    { id: "dpt-booster-1", stage: "child" },
+    { id: "mr-2", stage: "child" },
+    { id: "opv-booster", stage: "child" },
+    { id: "je-2", stage: "child", area: true },
+    { id: "dpt-booster-2", stage: "child" },
+    { id: "td-10", stage: "adolescent" },
+    { id: "td-16", stage: "adolescent" },
+];
+
 export default function VaccineHubPage() {
     const t = useTranslations("vaccineHub");
     const [selectedVaccine, setSelectedVaccine] = useState<VaccineKey | "">("");
@@ -187,251 +229,31 @@ export default function VaccineHubPage() {
                             <div className="flex items-center space-x-2">
                                 <Calendar className="h-6 w-6 text-emerald-600" />
                                 <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                                    National Immunization Schedule
+                                    {t("nisTitle")}
                                 </h2>
                             </div>
                             <span className="mt-2 inline-block max-w-md text-xs text-slate-400 italic sm:mt-0 sm:text-right dark:text-slate-500">
-                                Source: India National Immunization Schedule, MoHFW.
+                                {t("nisSource")}
                             </span>
                         </div>
 
                         {/* Responsive Stage Wise Accordion/List Grid */}
                         <div className="space-y-8">
-                            {["Birth", "Infant", "Child", "Adolescent"].map((stageGroupName) => {
-                                // Dynamic inline filtering based on structural file stages
-                                const stageItems = [
-                                    {
-                                        id: "bcg",
-                                        name: "BCG",
-                                        dose: "Single dose",
-                                        timing: "At birth",
-                                        protection: "Severe childhood tuberculosis",
-                                    },
-                                    {
-                                        id: "hepb-birth",
-                                        name: "Hepatitis B Birth Dose",
-                                        dose: "Birth dose",
-                                        timing: "At birth, within 24 hours",
-                                        protection: "Hepatitis B",
-                                    },
-                                    {
-                                        id: "opv-0",
-                                        name: "OPV-0",
-                                        dose: "Birth dose",
-                                        timing: "At birth, within first 15 days",
-                                        protection: "Polio",
-                                    },
-                                    {
-                                        id: "opv-1",
-                                        name: "OPV-1",
-                                        dose: "Dose 1",
-                                        timing: "At 6 weeks",
-                                        protection: "Polio",
-                                        stage: "Infant",
-                                    },
-                                    {
-                                        id: "pentavalent-1",
-                                        name: "Pentavalent-1",
-                                        dose: "Dose 1",
-                                        timing: "At 6 weeks",
-                                        protection:
-                                            "Diphtheria, pertussis, tetanus, hepatitis B and Hib",
-                                        stage: "Infant",
-                                    },
-                                    {
-                                        id: "fipv-1",
-                                        name: "fIPV-1",
-                                        dose: "Fractional dose 1",
-                                        timing: "At 6 weeks",
-                                        protection: "Polio",
-                                        stage: "Infant",
-                                    },
-                                    {
-                                        id: "rotavirus-1",
-                                        name: "Rotavirus-1",
-                                        dose: "Dose 1",
-                                        timing: "At 6 weeks",
-                                        protection: "Rotavirus diarrhoea",
-                                        stage: "Infant",
-                                        area: true,
-                                    },
-                                    {
-                                        id: "pcv-1",
-                                        name: "PCV-1",
-                                        dose: "Dose 1",
-                                        timing: "At 6 weeks",
-                                        protection: "Pneumococcal disease",
-                                        stage: "Infant",
-                                        area: true,
-                                    },
-                                    {
-                                        id: "opv-2",
-                                        name: "OPV-2",
-                                        dose: "Dose 2",
-                                        timing: "At 10 weeks",
-                                        protection: "Polio",
-                                        stage: "Infant",
-                                    },
-                                    {
-                                        id: "pentavalent-2",
-                                        name: "Pentavalent-2",
-                                        dose: "Dose 2",
-                                        timing: "At 10 weeks",
-                                        protection:
-                                            "Diphtheria, pertussis, tetanus, hepatitis B and Hib",
-                                        stage: "Infant",
-                                    },
-                                    {
-                                        id: "rotavirus-2",
-                                        name: "Rotavirus-2",
-                                        dose: "Dose 2",
-                                        timing: "At 10 weeks",
-                                        protection: "Rotavirus diarrhoea",
-                                        stage: "Infant",
-                                        area: true,
-                                    },
-                                    {
-                                        id: "opv-3",
-                                        name: "OPV-3",
-                                        dose: "Dose 3",
-                                        timing: "At 14 weeks",
-                                        protection: "Polio",
-                                        stage: "Infant",
-                                    },
-                                    {
-                                        id: "pentavalent-3",
-                                        name: "Pentavalent-3",
-                                        dose: "Dose 3",
-                                        timing: "At 14 weeks",
-                                        protection:
-                                            "Diphtheria, pertussis, tetanus, hepatitis B and Hib",
-                                        stage: "Infant",
-                                    },
-                                    {
-                                        id: "fipv-2",
-                                        name: "fIPV-2",
-                                        dose: "Fractional dose 2",
-                                        timing: "At 14 weeks",
-                                        protection: "Polio",
-                                        stage: "Infant",
-                                    },
-                                    {
-                                        id: "rotavirus-3",
-                                        name: "Rotavirus-3",
-                                        dose: "Dose 3",
-                                        timing: "At 14 weeks",
-                                        protection: "Rotavirus diarrhoea",
-                                        stage: "Infant",
-                                        area: true,
-                                    },
-                                    {
-                                        id: "pcv-2",
-                                        name: "PCV-2",
-                                        dose: "Dose 2",
-                                        timing: "At 14 weeks",
-                                        protection: "Pneumococcal disease",
-                                        stage: "Infant",
-                                        area: true,
-                                    },
-                                    {
-                                        id: "mr-1",
-                                        name: "MR-1",
-                                        dose: "Dose 1",
-                                        timing: "At 9 to 12 months",
-                                        protection: "Measles and rubella",
-                                        stage: "Infant",
-                                    },
-                                    {
-                                        id: "fipv-3",
-                                        name: "fIPV-3",
-                                        dose: "Fractional dose 3",
-                                        timing: "At 9 completed months",
-                                        protection: "Polio",
-                                        stage: "Infant",
-                                    },
-                                    {
-                                        id: "pcv-booster",
-                                        name: "PCV Booster",
-                                        dose: "Booster",
-                                        timing: "At 9 to 12 months",
-                                        protection: "Pneumococcal disease",
-                                        stage: "Infant",
-                                        area: true,
-                                    },
-                                    {
-                                        id: "je-1",
-                                        name: "JE-1",
-                                        dose: "Dose 1",
-                                        timing: "At 9 to 12 months",
-                                        protection: "Japanese encephalitis",
-                                        stage: "Infant",
-                                        area: true,
-                                    },
-                                    {
-                                        id: "dpt-booster-1",
-                                        name: "DPT Booster-1",
-                                        dose: "Booster 1",
-                                        timing: "At 16 to 24 months",
-                                        protection: "Diphtheria, pertussis and tetanus",
-                                        stage: "Child",
-                                    },
-                                    {
-                                        id: "mr-2",
-                                        name: "MR-2",
-                                        dose: "Dose 2",
-                                        timing: "At 16 to 24 months",
-                                        protection: "Measles and rubella",
-                                        stage: "Child",
-                                    },
-                                    {
-                                        id: "opv-booster",
-                                        name: "OPV Booster",
-                                        dose: "Booster",
-                                        timing: "At 16 to 24 months",
-                                        protection: "Polio",
-                                        stage: "Child",
-                                    },
-                                    {
-                                        id: "je-2",
-                                        name: "JE-2",
-                                        dose: "Dose 2",
-                                        timing: "At 16 to 24 months",
-                                        protection: "Japanese encephalitis",
-                                        stage: "Child",
-                                        area: true,
-                                    },
-                                    {
-                                        id: "dpt-booster-2",
-                                        name: "DPT Booster-2",
-                                        dose: "Booster 2",
-                                        timing: "At 5 to 6 years",
-                                        protection: "Diphtheria, pertussis and tetanus",
-                                        stage: "Child",
-                                    },
-                                    {
-                                        id: "td-10",
-                                        name: "Td",
-                                        dose: "10 year dose",
-                                        timing: "At 10 years",
-                                        protection: "Tetanus and diphtheria",
-                                        stage: "Adolescent",
-                                    },
-                                    {
-                                        id: "td-16",
-                                        name: "Td",
-                                        dose: "16 year dose",
-                                        timing: "At 16 years",
-                                        protection: "Tetanus and diphtheria",
-                                        stage: "Adolescent",
-                                    },
-                                ].filter((v) => (v.stage || "Birth") === stageGroupName);
+                            {STAGE_GROUP_KEYS.map((stageKey) => {
+                                const stageItems = NIS_ITEMS.filter(
+                                    (v) => v.stage === stageKey
+                                );
 
                                 if (stageItems.length === 0) return null;
 
                                 return (
-                                    <div key={stageGroupName} className="space-y-4">
+                                    <div key={stageKey} className="space-y-4">
                                         <h3 className="border-l-4 border-emerald-500 pl-2 text-lg font-semibold text-slate-800 dark:text-slate-200">
-                                            {stageGroupName} Stage
+                                            {t("stageLabel", {
+                                                stage: t(
+                                                    `stages.${stageKey}.label`
+                                                ),
+                                            })}
                                         </h3>
                                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                             {stageItems.map((item) => (
@@ -442,26 +264,38 @@ export default function VaccineHubPage() {
                                                     <div>
                                                         <div className="flex items-start justify-between gap-2">
                                                             <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                                                                {item.name}
+                                                                {t(
+                                                                    `nis.${item.id}.name`
+                                                                )}
                                                             </h4>
                                                             <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
-                                                                {item.dose}
+                                                                {t(
+                                                                    `nis.${item.id}.dose`
+                                                                )}
                                                             </span>
                                                         </div>
                                                         <p className="mt-1 line-clamp-2 text-xs text-slate-500 dark:text-slate-400">
                                                             <span className="font-medium text-slate-600 dark:text-slate-300">
-                                                                Protects:
+                                                                {t(
+                                                                    "protectsLabel"
+                                                                )}
                                                             </span>{" "}
-                                                            {item.protection}
+                                                            {t(
+                                                                `nis.${item.id}.protection`
+                                                            )}
                                                         </p>
                                                     </div>
                                                     <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2 dark:border-slate-800">
                                                         <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                                                            {item.timing}
+                                                            {t(
+                                                                `nis.${item.id}.timing`
+                                                            )}
                                                         </span>
                                                         {item.area && (
                                                             <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-600 dark:bg-amber-950/30 dark:text-amber-400">
-                                                                Area Specific
+                                                                {t(
+                                                                    "areaSpecific"
+                                                                )}
                                                             </span>
                                                         )}
                                                     </div>
@@ -554,7 +388,7 @@ export default function VaccineHubPage() {
                                             disabled={!initialDate}
                                             className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
                                         >
-                                            Export to Calendar
+                                            {t("exportToCalendar")}
                                         </button>
                                     </div>
 
