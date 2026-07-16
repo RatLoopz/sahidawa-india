@@ -70,14 +70,14 @@ export async function validateReport(
     });
 
     if (error) {
-        logger.error("RPC validate_report_submission failed", { error });
-        // Fail open on database error so legitimate reports aren't blocked entirely
-        return {
-            passed: true,
-            riskScore: 0,
-            reasons: ["Validation failed due to database error (fallback pass)"],
-            isDuplicate: false,
-        };
+        logger.error("RPC validate_report_submission failed — rejecting report to fail closed", {
+            error,
+        });
+        const serviceError = new Error(
+            "Report validation is temporarily unavailable. Please try again later."
+        ) as Error & { statusCode: number };
+        serviceError.statusCode = 503;
+        throw serviceError;
     }
 
     const res = rpcResult as any;

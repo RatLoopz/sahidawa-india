@@ -86,12 +86,8 @@ export const verifyOTP = async (
         throw new Error("ABDM sandbox returned an invalid OTP verification response");
     }
 
-    // Encrypt token for storage
-    const iv = crypto.randomBytes(16);
-    const key = crypto.scryptSync(getRequiredEnv("ABDM_SANDBOX_CLIENT_SECRET"), "salt", 32);
-    const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
-    let encryptedToken = cipher.update(token, "utf8", "hex");
-    encryptedToken += cipher.final("hex");
+    // Encrypt token for storage with per-record random salt
+    const { encryptedToken, iv, salt } = encryptToken(token);
 
     // Upsert into abha_links
     const { error } = await supabase.from("abha_links").upsert(
@@ -100,7 +96,8 @@ export const verifyOTP = async (
             abha_address: abhaAddress,
             abha_number: "dummy-abha-number", // ABDM Sandbox might not return this here
             encrypted_token: encryptedToken,
-            encryption_iv: iv.toString("hex"),
+            encryption_iv: iv,
+            encryption_salt: salt,
             is_active: true,
             linked_at: new Date().toISOString(),
         },
@@ -237,6 +234,16 @@ const encryptWithAbdmPublicKey = (value: string, publicKey: string): string => {
         );
     }
 };
+
+function encryptToken(token: string): { encryptedToken: string; iv: string; salt: string } {
+    const iv = crypto.randomBytes(16);
+    const salt = crypto.randomBytes(16);
+    const key = crypto.scryptSync(getRequiredEnv("ABDM_SANDBOX_CLIENT_SECRET"), salt, 32);
+    const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
+    let encryptedToken = cipher.update(token, "utf8", "hex");
+    encryptedToken += cipher.final("hex");
+    return { encryptedToken, iv: iv.toString("hex"), salt: salt.toString("hex") };
+}
 
 const isMappedAbdmError = (message: string): boolean =>
     message.startsWith("Invalid ABHA address:") || message.startsWith("ABDM ");
@@ -425,11 +432,7 @@ export const exchangeAuthCode = async (
         throw new Error("ABDM proxy token negotiation dropped valid tokens");
     }
 
-    const iv = crypto.randomBytes(16);
-    const key = crypto.scryptSync(getRequiredEnv("ABDM_SANDBOX_CLIENT_SECRET"), "salt", 32);
-    const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
-    let encryptedToken = cipher.update(token, "utf8", "hex");
-    encryptedToken += cipher.final("hex");
+    const { encryptedToken, iv, salt } = encryptToken(token);
 
     const { error } = await supabase.from("abha_links").upsert(
         {
@@ -437,7 +440,8 @@ export const exchangeAuthCode = async (
             abha_address: tokenResponse.abhaAddress || "oauth-linked-account",
             abha_number: tokenResponse.abhaNumber || "oauth-dummy-number",
             encrypted_token: encryptedToken,
-            encryption_iv: iv.toString("hex"),
+            encryption_iv: iv,
+            encryption_salt: salt,
             is_active: true,
             linked_at: new Date().toISOString(),
         },

@@ -1,6 +1,7 @@
 import json
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pandas as pd
 
@@ -735,7 +736,57 @@ def test_ja_backfill_counts_short_rpc_result_as_failed(tmp_path):
     assert client.update_calls == []  # no row-by-row fallback was triggered
 
 
-def test_ja_backfill_assumes_full_batch_on_unrecognized_rpc_shape(tmp_path):
+def test_coerce_rpc_updated_count():
+    valid_cases = [
+        (45, 45),
+        ([45], 45),
+        ([{"bulk_update_jan_aushadhi_price": 45}], 45),
+        ([{"value": 45}], 45),
+    ]
+    invalid_cases = [
+        True,
+        [True],
+        [{"value": True}],
+        [{}],
+        [{"value": "45"}],
+        [{"value": 45, "other": 1}],
+        [],
+        [1, 2],
+        None,
+    ]
+
+    for data, expected in valid_cases:
+        response = SimpleNamespace(data=data)
+        assert SupabaseLoader._coerce_rpc_updated_count(response) == expected
+
+    for data in invalid_cases:
+        response = SimpleNamespace(data=data)
+        assert SupabaseLoader._coerce_rpc_updated_count(response) is None
+
+
+def test_ja_backfill_does_not_warn_for_single_key_rpc_count(tmp_path, monkeypatch):
+    medicines = [
+        {"id": "m1", "generic_name": "Paracetamol", "jan_aushadhi_price": None},
+    ]
+    client = MergeFakeSupabaseClient(medicines=medicines)
+    client.rpc_override_set = True
+    client.rpc_data_override = [{"bulk_update_jan_aushadhi_price": 1}]
+    loader = make_merge_loader(client, tmp_path)
+    error_messages = []
+    monkeypatch.setattr(
+        "src.loaders.supabase_loader.logger.error",
+        lambda message: error_messages.append(message),
+    )
+
+    batch = [{"id": "m1", "jan_aushadhi_price": 18.50}]
+    updated, failed = loader._upsert_ja_price_update_batches(batch, "medicines")
+
+    assert updated == 1
+    assert failed == 0
+    assert not any("unrecognized count shape" in message for message in error_messages)
+
+
+def test_ja_backfill_assumes_full_batch_on_unrecognized_rpc_shape(tmp_path, monkeypatch):
     """An unrecognized RPC count shape is assumed to be a full success (the RPC
     committed without raising) rather than miscounted as failed."""
     medicines = [
@@ -745,6 +796,11 @@ def test_ja_backfill_assumes_full_batch_on_unrecognized_rpc_shape(tmp_path):
     client.rpc_override_set = True
     client.rpc_data_override = {"unexpected": "shape"}
     loader = make_merge_loader(client, tmp_path)
+    error_messages = []
+    monkeypatch.setattr(
+        "src.loaders.supabase_loader.logger.error",
+        lambda message: error_messages.append(message),
+    )
 
     batch = [{"id": "m1", "jan_aushadhi_price": 18.50}]
     updated, failed = loader._upsert_ja_price_update_batches(batch, "medicines")
@@ -752,6 +808,7 @@ def test_ja_backfill_assumes_full_batch_on_unrecognized_rpc_shape(tmp_path):
     assert updated == 1
     assert failed == 0
     assert client.update_calls == []
+    assert any("unrecognized count shape" in message for message in error_messages)
 
 
 def test_ja_backfill_retries_transient_batch_rpc_before_fallback(tmp_path, monkeypatch):

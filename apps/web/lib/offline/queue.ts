@@ -99,34 +99,46 @@ async function syncOneEntry(entry: any) {
     }
 }
 
-// Call once on app init
-export function initOnlineListener() {
-    if (typeof window !== "undefined") {
-        window.addEventListener("online", () => void flushQueue());
+// Call once on app init. Returns a cleanup function.
+export function initOnlineListener(): () => void {
+    if (typeof window === "undefined") return () => {};
 
-        // Also listen for Service Worker messages
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.addEventListener("message", (event) => {
-                if (event.data && event.data.type === "FLUSH_SYNC_QUEUE") {
-                    void flushQueue();
-                }
-            });
-        }
+    const cleanupFns: (() => void)[] = [];
+
+    const onOnline = () => void flushQueue();
+    window.addEventListener("online", onOnline);
+    cleanupFns.push(() => window.removeEventListener("online", onOnline));
+
+    if ("serviceWorker" in navigator) {
+        const onMessage = (event: MessageEvent) => {
+            if (event.data && event.data.type === "FLUSH_SYNC_QUEUE") {
+                void flushQueue();
+            }
+        };
+        navigator.serviceWorker.addEventListener("message", onMessage);
+        cleanupFns.push(() => navigator.serviceWorker.removeEventListener("message", onMessage));
     }
+
+    // Periodic retry: flush pending scans every 30s while the page is open
+    const periodicFlush = setInterval(() => {
+        if (navigator.onLine) {
+            void flushQueue();
+        }
+    }, 30000);
+    cleanupFns.push(() => clearInterval(periodicFlush));
+
+    return () => cleanupFns.forEach((fn) => fn());
 }
 
-export async function enqueueReport(input: {
-  reportData: Record<string, any>;
-  imageBlob?: Blob;
-}) {
-  const db = await getSyncDB();
-  const idempotencyKey = uuidv4();
-  
-  await db.put("pendingReports", {
-    idempotencyKey,
-    deviceId: getDeviceId(),
-    createdAt: Date.now(),
-    reportData: input.reportData,
-    imageBlob: input.imageBlob,
-  });
+export async function enqueueReport(input: { reportData: Record<string, any>; imageBlob?: Blob }) {
+    const db = await getSyncDB();
+    const idempotencyKey = uuidv4();
+
+    await db.put("pendingReports", {
+        idempotencyKey,
+        deviceId: getDeviceId(),
+        createdAt: Date.now(),
+        reportData: input.reportData,
+        imageBlob: input.imageBlob,
+    });
 }

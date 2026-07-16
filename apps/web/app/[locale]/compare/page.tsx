@@ -159,7 +159,7 @@ async function searchMedicines(query: string): Promise<Medicine[]> {
 
     if (error) {
         console.error(error.message);
-        return [];
+        throw error;
     }
     return ((data ?? []) as Record<string, unknown>[]).map((row) => mapMedicineRow(row));
 }

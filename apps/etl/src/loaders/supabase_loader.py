@@ -928,16 +928,27 @@ class SupabaseLoader:
         """Read the integer row count returned by the bulk RPC.
 
         PostgREST returns a scalar function result as the raw value, but tolerate
-        a single-element list too. Returns ``None`` when the shape is unrecognized
-        so the caller can decide how to account for it rather than guessing here.
+        a single-element list containing either the count or a single-key mapping
+        to it. Returns ``None`` when the shape is unrecognized so the caller can
+        decide how to account for it rather than guessing here.
         """
         data = getattr(response, "data", None)
         if isinstance(data, bool):  # bool is an int subclass — exclude it
             return None
         if isinstance(data, int):
             return data
-        if isinstance(data, list) and len(data) == 1 and isinstance(data[0], int):
-            return data[0]
+        if isinstance(data, list) and len(data) == 1:
+            item = data[0]
+            if isinstance(item, bool):
+                return None
+            if isinstance(item, int):
+                return item
+            if isinstance(item, dict) and len(item) == 1:
+                value = next(iter(item.values()))
+                if isinstance(value, bool):
+                    return None
+                if isinstance(value, int):
+                    return value
         return None
 
     def _update_ja_price_rows_one_by_one(
