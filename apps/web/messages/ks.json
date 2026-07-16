@@ -800,7 +800,191 @@
         "selectDateWarning": "ٹائم لائن پروجیکٹ کرنے خٲطرٕ ہیر کانہہ دوہ چنیو",
         "commonEffects": "عام سائیڈ ایفیکٹس",
         "severeReactions": "شدید ردعمل",
-        "aftercareHeading": "فوری دیکھ بھال ہنز ہدایات"
+        "aftercareHeading": "فوری دیکھ بھال ہنز ہدایات",
+        "nisTitle": "National Immunization Schedule",
+        "nisSource": "Source: India National Immunization Schedule, MoHFW.",
+        "stageLabel": "{stage} Stage",
+        "protectsLabel": "Protects:",
+        "areaSpecific": "Area Specific",
+        "exportToCalendar": "Export to Calendar",
+        "stages": {
+            "birth": {
+                "label": "Birth"
+            },
+            "infant": {
+                "label": "Infant"
+            },
+            "child": {
+                "label": "Child"
+            },
+            "adolescent": {
+                "label": "Adolescent"
+            }
+        },
+        "nis": {
+            "bcg": {
+                "name": "BCG",
+                "dose": "Single dose",
+                "timing": "At birth",
+                "protection": "Severe childhood tuberculosis"
+            },
+            "hepb-birth": {
+                "name": "Hepatitis B Birth Dose",
+                "dose": "Birth dose",
+                "timing": "At birth, within 24 hours",
+                "protection": "Hepatitis B"
+            },
+            "opv-0": {
+                "name": "OPV-0",
+                "dose": "Birth dose",
+                "timing": "At birth, within first 15 days",
+                "protection": "Polio"
+            },
+            "opv-1": {
+                "name": "OPV-1",
+                "dose": "Dose 1",
+                "timing": "At 6 weeks",
+                "protection": "Polio"
+            },
+            "pentavalent-1": {
+                "name": "Pentavalent-1",
+                "dose": "Dose 1",
+                "timing": "At 6 weeks",
+                "protection": "Diphtheria, pertussis, tetanus, hepatitis B and Hib"
+            },
+            "fipv-1": {
+                "name": "fIPV-1",
+                "dose": "Fractional dose 1",
+                "timing": "At 6 weeks",
+                "protection": "Polio"
+            },
+            "rotavirus-1": {
+                "name": "Rotavirus-1",
+                "dose": "Dose 1",
+                "timing": "At 6 weeks",
+                "protection": "Rotavirus diarrhoea"
+            },
+            "pcv-1": {
+                "name": "PCV-1",
+                "dose": "Dose 1",
+                "timing": "At 6 weeks",
+                "protection": "Pneumococcal disease"
+            },
+            "opv-2": {
+                "name": "OPV-2",
+                "dose": "Dose 2",
+                "timing": "At 10 weeks",
+                "protection": "Polio"
+            },
+            "pentavalent-2": {
+                "name": "Pentavalent-2",
+                "dose": "Dose 2",
+                "timing": "At 10 weeks",
+                "protection": "Diphtheria, pertussis, tetanus, hepatitis B and Hib"
+            },
+            "rotavirus-2": {
+                "name": "Rotavirus-2",
+                "dose": "Dose 2",
+                "timing": "At 10 weeks",
+                "protection": "Rotavirus diarrhoea"
+            },
+            "opv-3": {
+                "name": "OPV-3",
+                "dose": "Dose 3",
+                "timing": "At 14 weeks",
+                "protection": "Polio"
+            },
+            "pentavalent-3": {
+                "name": "Pentavalent-3",
+                "dose": "Dose 3",
+                "timing": "At 14 weeks",
+                "protection": "Diphtheria, pertussis, tetanus, hepatitis B and Hib"
+            },
+            "fipv-2": {
+                "name": "fIPV-2",
+                "dose": "Fractional dose 2",
+                "timing": "At 14 weeks",
+                "protection": "Polio"
+            },
+            "rotavirus-3": {
+                "name": "Rotavirus-3",
+                "dose": "Dose 3",
+                "timing": "At 14 weeks",
+                "protection": "Rotavirus diarrhoea"
+            },
+            "pcv-2": {
+                "name": "PCV-2",
+                "dose": "Dose 2",
+                "timing": "At 14 weeks",
+                "protection": "Pneumococcal disease"
+            },
+            "mr-1": {
+                "name": "MR-1",
+                "dose": "Dose 1",
+                "timing": "At 9 to 12 months",
+                "protection": "Measles and rubella"
+            },
+            "fipv-3": {
+                "name": "fIPV-3",
+                "dose": "Fractional dose 3",
+                "timing": "At 9 completed months",
+                "protection": "Polio"
+            },
+            "pcv-booster": {
+                "name": "PCV Booster",
+                "dose": "Booster",
+                "timing": "At 9 to 12 months",
+                "protection": "Pneumococcal disease"
+            },
+            "je-1": {
+                "name": "JE-1",
+                "dose": "Dose 1",
+                "timing": "At 9 to 12 months",
+                "protection": "Japanese encephalitis"
+            },
+            "dpt-booster-1": {
+                "name": "DPT Booster-1",
+                "dose": "Booster 1",
+                "timing": "At 16 to 24 months",
+                "protection": "Diphtheria, pertussis and tetanus"
+            },
+            "mr-2": {
+                "name": "MR-2",
+                "dose": "Dose 2",
+                "timing": "At 16 to 24 months",
+                "protection": "Measles and rubella"
+            },
+            "opv-booster": {
+                "name": "OPV Booster",
+                "dose": "Booster",
+                "timing": "At 16 to 24 months",
+                "protection": "Polio"
+            },
+            "je-2": {
+                "name": "JE-2",
+                "dose": "Dose 2",
+                "timing": "At 16 to 24 months",
+                "protection": "Japanese encephalitis"
+            },
+            "dpt-booster-2": {
+                "name": "DPT Booster-2",
+                "dose": "Booster 2",
+                "timing": "At 5 to 6 years",
+                "protection": "Diphtheria, pertussis and tetanus"
+            },
+            "td-10": {
+                "name": "Td",
+                "dose": "10 year dose",
+                "timing": "At 10 years",
+                "protection": "Tetanus and diphtheria"
+            },
+            "td-16": {
+                "name": "Td",
+                "dose": "16 year dose",
+                "timing": "At 16 years",
+                "protection": "Tetanus and diphtheria"
+            }
+        }
     },
     "CommandPalette": {
         "placeholder": "Search pages or actions...",
