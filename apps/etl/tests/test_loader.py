@@ -8,7 +8,12 @@ import pandas as pd
 # Ensure src.* imports resolve when running pytest from apps/etl/
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from src.loaders.supabase_loader import SupabaseLoader
+from src.loaders.supabase_loader import (
+    NPPA_CEILING_PRICES_CSV,
+    REPO_ROOT,
+    SupabaseLoader,
+    _resolve_nppa_csv_path,
+)
 
 
 class FakeExecuteResponse:
@@ -658,6 +663,23 @@ def make_merge_loader(client, tmp_path):
     loader.failed_rows_dir = tmp_path
     loader.pipeline_name = "ja_backfill"
     return loader
+
+
+def test_resolve_nppa_csv_path_is_cwd_independent(tmp_path, monkeypatch):
+    """Default and relative NPPA paths resolve from the repo root, not cwd."""
+    monkeypatch.chdir(tmp_path)
+
+    assert _resolve_nppa_csv_path() == NPPA_CEILING_PRICES_CSV
+    assert _resolve_nppa_csv_path("data/seeds/nppa_ceiling_prices.csv") == NPPA_CEILING_PRICES_CSV
+    assert _resolve_nppa_csv_path("apps/etl/data/seeds/nppa_ceiling_prices.csv") == (
+        REPO_ROOT / "apps" / "etl" / "data" / "seeds" / "nppa_ceiling_prices.csv"
+    )
+
+
+def test_resolve_nppa_csv_path_preserves_absolute_paths(tmp_path):
+    csv_path = tmp_path / "nppa_ceiling_prices.csv"
+
+    assert _resolve_nppa_csv_path(csv_path) == csv_path
 
 
 def test_ja_backfill_updates_null_jan_aushadhi_price_rows(tmp_path):
