@@ -198,14 +198,18 @@ function getDirectComparison(medicine1: Medicine | null, medicine2: Medicine | n
     };
 }
 
-function shareComparison(medicine1: Medicine | null, medicine2: Medicine | null) {
+async function shareComparison(medicine1: Medicine | null, medicine2: Medicine | null) {
     if (!medicine1 || !medicine2) return;
 
     const url =
         `${window.location.origin}${window.location.pathname}` +
         `?m1=${medicine1.id}&m2=${medicine2.id}`;
 
-    navigator.clipboard.writeText(url);
+    try {
+        await navigator.clipboard.writeText(url);
+    } catch {
+        // Clipboard write failed — non-critical UX feature, fail silently
+    }
 }
 
 function handleExportCSV(
