@@ -185,14 +185,13 @@ export async function listPushSubscriptions() {
     return [...memorySubscriptions.values()];
 }
 
-//  ISE ADD KARO:
 export async function listPushSubscriptionsForUser(userId: string): Promise<StoredSubscription[]> {
     const results: StoredSubscription[] = [];
 
-    // Pehle local memory-cache se matches check karte hain safely
+    // Check local memory-cache matches first (fast path)
     const localMatches = [...memorySubscriptions.values()].filter((sub) => sub.userId === userId);
 
-    // Agar local memory me context store nahi hai ya hum direct db check karna chahte hain
+    // Query Supabase for persisted subscriptions
     try {
         const { data, error } = await supabase
             .from("push_subscriptions")
@@ -201,7 +200,7 @@ export async function listPushSubscriptionsForUser(userId: string): Promise<Stor
             .order("created_at", { ascending: false });
 
         if (error || !data || data.length === 0) {
-            // Safe fallback agar database empty hai but memory me stored subscription ho
+            // DB empty or error — fall back to memory-cache subscriptions
             return localMatches;
         }
 
