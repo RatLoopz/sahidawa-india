@@ -240,9 +240,7 @@ export default function VaccineHubPage() {
                         {/* Responsive Stage Wise Accordion/List Grid */}
                         <div className="space-y-8">
                             {STAGE_GROUP_KEYS.map((stageKey) => {
-                                const stageItems = NIS_ITEMS.filter(
-                                    (v) => v.stage === stageKey
-                                );
+                                const stageItems = NIS_ITEMS.filter((v) => v.stage === stageKey);
 
                                 if (stageItems.length === 0) return null;
 
@@ -250,57 +248,69 @@ export default function VaccineHubPage() {
                                     <div key={stageKey} className="space-y-4">
                                         <h3 className="border-l-4 border-emerald-500 pl-2 text-lg font-semibold text-slate-800 dark:text-slate-200">
                                             {t("stageLabel", {
-                                                stage: t(
-                                                    `stages.${stageKey}.label`
-                                                ),
+                                                stage: t(`stages.${stageKey}.label`),
                                             })}
                                         </h3>
-                                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                            {stageItems.map((item) => (
-                                                <div
-                                                    key={item.id}
-                                                    className="relative flex flex-col justify-between rounded-xl border border-slate-100 bg-slate-50/50 p-4 transition-all hover:shadow-sm dark:border-slate-700/50 dark:bg-slate-900/30"
-                                                >
-                                                    <div>
-                                                        <div className="flex items-start justify-between gap-2">
-                                                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                                                                {t(
-                                                                    `nis.${item.id}.name`
-                                                                )}
-                                                            </h4>
-                                                            <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
-                                                                {t(
-                                                                    `nis.${item.id}.dose`
-                                                                )}
-                                                            </span>
+                                        <div
+                                            role="list"
+                                            aria-label={t("stageLabel", {
+                                                stage: t(`stages.${stageKey}.label`),
+                                            })}
+                                            className="grid grid-cols-1 gap-4 sm:grid-cols-2"
+                                        >
+                                            {stageItems.map((item) => {
+                                                const name = t(`nis.${item.id}.name`);
+                                                const dose = t(`nis.${item.id}.dose`);
+                                                const timing = t(`nis.${item.id}.timing`);
+                                                const protection = t(`nis.${item.id}.protection`);
+                                                // Single, coherent announcement for
+                                                // screen readers instead of fragmented
+                                                // text nodes.
+                                                const cardLabel = `${name}, ${dose}, ${timing}. ${t(
+                                                    "protectsLabel"
+                                                )} ${protection}.${
+                                                    item.area ? ` ${t("areaSpecific")}.` : ""
+                                                }`;
+
+                                                return (
+                                                    <div
+                                                        key={item.id}
+                                                        role="listitem"
+                                                        aria-label={cardLabel}
+                                                        className="relative flex flex-col justify-between rounded-xl border border-slate-100 bg-slate-50/50 p-4 transition-all hover:shadow-sm dark:border-slate-700/50 dark:bg-slate-900/30"
+                                                    >
+                                                        <div aria-hidden="true">
+                                                            <div className="flex items-start justify-between gap-2">
+                                                                <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                                                                    {name}
+                                                                </h4>
+                                                                <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+                                                                    {dose}
+                                                                </span>
+                                                            </div>
+                                                            <p className="mt-1 line-clamp-2 text-xs text-slate-500 dark:text-slate-400">
+                                                                <span className="font-medium text-slate-600 dark:text-slate-300">
+                                                                    {t("protectsLabel")}
+                                                                </span>{" "}
+                                                                {protection}
+                                                            </p>
                                                         </div>
-                                                        <p className="mt-1 line-clamp-2 text-xs text-slate-500 dark:text-slate-400">
-                                                            <span className="font-medium text-slate-600 dark:text-slate-300">
-                                                                {t(
-                                                                    "protectsLabel"
-                                                                )}
-                                                            </span>{" "}
-                                                            {t(
-                                                                `nis.${item.id}.protection`
-                                                            )}
-                                                        </p>
-                                                    </div>
-                                                    <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2 dark:border-slate-800">
-                                                        <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                                                            {t(
-                                                                `nis.${item.id}.timing`
-                                                            )}
-                                                        </span>
-                                                        {item.area && (
-                                                            <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-600 dark:bg-amber-950/30 dark:text-amber-400">
-                                                                {t(
-                                                                    "areaSpecific"
-                                                                )}
+                                                        <div
+                                                            aria-hidden="true"
+                                                            className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2 dark:border-slate-800"
+                                                        >
+                                                            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                                                                {timing}
                                                             </span>
-                                                        )}
+                                                            {item.area && (
+                                                                <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-950/30 dark:text-amber-400">
+                                                                    {t("areaSpecific")}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 );
