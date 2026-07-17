@@ -229,6 +229,42 @@ describe("POST /api/schedules", () => {
         expect(res.body.error).toBe("Invalid request body");
     });
 
+    it("rejects frequency that does not match the number of dose times", async () => {
+        const res = await request(app)
+            .post("/api/schedules")
+            .set("Authorization", "Bearer test-token")
+            .send({
+                medicine_name: "Amoxicillin",
+                dosage: "1 capsule",
+                frequency: 1,
+                times: ["08:00", "20:00"],
+                start_date: "2026-06-10",
+            });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("Invalid request body");
+        expect(res.body.details.frequency).toContain(
+            "Frequency must match the number of unique dose times"
+        );
+    });
+
+    it("rejects duplicate dose times", async () => {
+        const res = await request(app)
+            .post("/api/schedules")
+            .set("Authorization", "Bearer test-token")
+            .send({
+                medicine_name: "Amoxicillin",
+                dosage: "1 capsule",
+                frequency: 1,
+                times: ["08:00", "08:00"],
+                start_date: "2026-06-10",
+            });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("Invalid request body");
+        expect(res.body.details.times).toContain("Dose times must be unique");
+    });
+
     it("rejects an impossible calendar date like 2026-02-31 for start_date", async () => {
         const res = await request(app)
             .post("/api/schedules")
@@ -397,6 +433,63 @@ describe("PUT /api/schedules/:id", () => {
 
         expect(res.status).toBe(400);
         expect(res.body.error).toBe("Invalid request body");
+    });
+
+    it("rejects inconsistent frequency and times in the same update", async () => {
+        const res = await request(app)
+            .put("/api/schedules/00000000-0000-4000-8000-000000000001")
+            .set("Authorization", "Bearer test-token")
+            .send({ frequency: 1, times: ["08:00", "20:00"] });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("Invalid request body");
+        expect(res.body.details.frequency).toBeDefined();
+    });
+
+    it("rejects a partial frequency update inconsistent with stored times", async () => {
+        mockedSupabase.maybeSingle.mockResolvedValueOnce({
+            data: {
+                start_date: "2026-06-01",
+                end_date: null,
+                frequency: 2,
+                times: ["08:00", "20:00"],
+            },
+            error: null,
+        });
+
+        const res = await request(app)
+            .put("/api/schedules/00000000-0000-4000-8000-000000000001")
+            .set("Authorization", "Bearer test-token")
+            .send({ frequency: 1 });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("Invalid request body");
+        expect(res.body.details.frequency).toBeDefined();
+        expect(mockedSupabase.update).not.toHaveBeenCalled();
+    });
+
+    it("accepts a partial times update consistent with stored frequency", async () => {
+        mockedSupabase.maybeSingle.mockResolvedValueOnce({
+            data: {
+                start_date: "2026-06-01",
+                end_date: null,
+                frequency: 2,
+                times: ["08:00", "20:00"],
+            },
+            error: null,
+        });
+        mockedSupabase.single.mockResolvedValueOnce({
+            data: { ...mockUpdatedSchedule, times: ["09:00", "21:00"] },
+            error: null,
+        });
+
+        const res = await request(app)
+            .put("/api/schedules/00000000-0000-4000-8000-000000000001")
+            .set("Authorization", "Bearer test-token")
+            .send({ times: ["09:00", "21:00"] });
+
+        expect(res.status).toBe(200);
+        expect(res.body.schedule.times).toEqual(["09:00", "21:00"]);
     });
 
     it("rejects when both start_date and end_date are provided with end before start", async () => {
@@ -643,7 +736,9 @@ describe("POST /api/schedules/:id/doses", () => {
 describe("GET /api/schedules/:id/stats", () => {
     it("rejects an impossible calendar date in the from query param", async () => {
         const res = await request(app)
-            .get("/api/schedules/00000000-0000-4000-8000-000000000001/stats?from=2026-02-31&to=2026-03-01")
+            .get(
+                "/api/schedules/00000000-0000-4000-8000-000000000001/stats?from=2026-02-31&to=2026-03-01"
+            )
             .set("Authorization", "Bearer test-token");
 
         expect(res.status).toBe(400);
@@ -651,7 +746,9 @@ describe("GET /api/schedules/:id/stats", () => {
 
     it("rejects an impossible calendar date in the to query param", async () => {
         const res = await request(app)
-            .get("/api/schedules/00000000-0000-4000-8000-000000000001/stats?from=2026-03-01&to=2026-04-31")
+            .get(
+                "/api/schedules/00000000-0000-4000-8000-000000000001/stats?from=2026-03-01&to=2026-04-31"
+            )
             .set("Authorization", "Bearer test-token");
 
         expect(res.status).toBe(400);

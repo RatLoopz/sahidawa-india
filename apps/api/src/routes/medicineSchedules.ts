@@ -87,12 +87,45 @@ const timeStringSchema = z
     .regex(/^\d{2}:\d{2}$/, "Time must be in HH:MM format")
     .refine(isRealTimeString, { message: "Time must be a real 24-hour time (00:00-23:59)" });
 
+const frequencySchema = z.number().int().positive("Frequency must be at least 1");
+const timesSchema = z.array(timeStringSchema).min(1, "At least one time is required");
+
+const validateFrequencyAndTimes = (
+    data: { frequency: number; times: string[] },
+    ctx: z.RefinementCtx
+) => {
+    const uniqueTimeCount = new Set(data.times).size;
+
+    if (uniqueTimeCount !== data.times.length) {
+        ctx.addIssue({
+            code: "custom",
+            path: ["times"],
+            message: "Dose times must be unique",
+        });
+    }
+
+    if (data.frequency !== uniqueTimeCount) {
+        ctx.addIssue({
+            code: "custom",
+            path: ["frequency"],
+            message: "Frequency must match the number of unique dose times",
+        });
+    }
+};
+
+const frequencyTimesSchema = z
+    .object({
+        frequency: frequencySchema,
+        times: timesSchema,
+    })
+    .superRefine(validateFrequencyAndTimes);
+
 const createScheduleObjectSchema = z
     .object({
         medicine_name: z.string().min(1, "Medicine name is required"),
         dosage: z.string().min(1, "Dosage is required").default("1 tablet"),
-        frequency: z.number().int().positive("Frequency must be at least 1"),
-        times: z.array(timeStringSchema).min(1, "At least one time is required"),
+        frequency: frequencySchema,
+        times: timesSchema,
         start_date: dateStringSchema,
         end_date: dateStringSchema.nullable().optional(),
         notes: z.string().optional(),
@@ -100,15 +133,24 @@ const createScheduleObjectSchema = z
     })
     .strict();
 
-const createScheduleSchema = createScheduleObjectSchema.refine(
-    (data) => !data.end_date || data.end_date >= data.start_date,
-    { message: "end_date must not be before start_date", path: ["end_date"] }
-);
+const createScheduleSchema = createScheduleObjectSchema
+    .superRefine(validateFrequencyAndTimes)
+    .refine((data) => !data.end_date || data.end_date >= data.start_date, {
+        message: "end_date must not be before start_date",
+        path: ["end_date"],
+    });
 
-const updateScheduleSchema = createScheduleObjectSchema.partial().refine(
-    (data) => !data.end_date || !data.start_date || data.end_date >= data.start_date,
-    { message: "end_date must not be before start_date", path: ["end_date"] }
-);
+const updateScheduleSchema = createScheduleObjectSchema
+    .partial()
+    .superRefine((data, ctx) => {
+        if (data.frequency !== undefined && data.times !== undefined) {
+            validateFrequencyAndTimes({ frequency: data.frequency, times: data.times }, ctx);
+        }
+    })
+    .refine((data) => !data.end_date || !data.start_date || data.end_date >= data.start_date, {
+        message: "end_date must not be before start_date",
+        path: ["end_date"],
+    });
 
 const doseSchema = z
     .object({
@@ -256,35 +298,73 @@ router.put("/:id", requireAuth, async (req: AuthenticatedRequest, res: Response)
     }
 
     try {
+        const touchesDates =
+            parsed.data.start_date !== undefined || parsed.data.end_date !== undefined;
+        const touchesDoseTiming =
+            parsed.data.frequency !== undefined || parsed.data.times !== undefined;
+        const needsStoredDates =
+            touchesDates &&
+            (parsed.data.start_date === undefined || parsed.data.end_date === undefined);
+        const needsStoredDoseTiming =
+            touchesDoseTiming &&
+            (parsed.data.frequency === undefined || parsed.data.times === undefined);
+
+        let existing:
+            | {
+                  start_date: string;
+                  end_date: string | null;
+                  frequency: number;
+                  times: string[];
+              }
+            | null
+            | undefined;
+
+        if (needsStoredDates || needsStoredDoseTiming) {
+            const { data, error: fetchError } = await supabase
+                .from("medicine_schedules")
+                .select("start_date, end_date, frequency, times")
+                .eq("id", req.params.id)
+                .eq("user_id", req.user!.id)
+                .maybeSingle();
+
+            if (fetchError) {
+                res.status(500).json({ error: "Failed to update schedule" });
+                return;
+            }
+            if (!data) {
+                res.status(404).json({ error: "Schedule not found" });
+                return;
+            }
+            existing = data;
+        }
+
         // If this update touches start_date or end_date, make sure the resulting
         // pair is never inverted — even when only one of the two is being changed,
         // in which case we need the current value of the other from the DB.
-        if (parsed.data.start_date !== undefined || parsed.data.end_date !== undefined) {
-            let effectiveStartDate = parsed.data.start_date;
-            let effectiveEndDate = parsed.data.end_date;
-
-            if (effectiveStartDate === undefined || effectiveEndDate === undefined) {
-                const { data: existing, error: fetchError } = await supabase
-                    .from("medicine_schedules")
-                    .select("start_date, end_date")
-                    .eq("id", req.params.id)
-                    .eq("user_id", req.user!.id)
-                    .maybeSingle();
-
-                if (fetchError) {
-                    res.status(500).json({ error: "Failed to update schedule" });
-                    return;
-                }
-                if (!existing) {
-                    res.status(404).json({ error: "Schedule not found" });
-                    return;
-                }
-                if (effectiveStartDate === undefined) effectiveStartDate = existing.start_date;
-                if (effectiveEndDate === undefined) effectiveEndDate = existing.end_date ?? undefined;
-            }
+        if (touchesDates) {
+            const effectiveStartDate = parsed.data.start_date ?? existing?.start_date;
+            const effectiveEndDate =
+                parsed.data.end_date !== undefined
+                    ? parsed.data.end_date
+                    : (existing?.end_date ?? undefined);
 
             if (effectiveEndDate && effectiveStartDate && effectiveEndDate < effectiveStartDate) {
                 res.status(400).json({ error: "end_date must not be before start_date" });
+                return;
+            }
+        }
+
+        if (touchesDoseTiming) {
+            const consistencyResult = frequencyTimesSchema.safeParse({
+                frequency: parsed.data.frequency ?? existing?.frequency,
+                times: parsed.data.times ?? existing?.times,
+            });
+
+            if (!consistencyResult.success) {
+                res.status(400).json({
+                    error: "Invalid request body",
+                    details: consistencyResult.error.flatten().fieldErrors,
+                });
                 return;
             }
         }
