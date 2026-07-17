@@ -105,10 +105,12 @@ const createScheduleSchema = createScheduleObjectSchema.refine(
     { message: "end_date must not be before start_date", path: ["end_date"] }
 );
 
-const updateScheduleSchema = createScheduleObjectSchema.partial().refine(
-    (data) => !data.end_date || !data.start_date || data.end_date >= data.start_date,
-    { message: "end_date must not be before start_date", path: ["end_date"] }
-);
+const updateScheduleSchema = createScheduleObjectSchema
+    .partial()
+    .refine((data) => !data.end_date || !data.start_date || data.end_date >= data.start_date, {
+        message: "end_date must not be before start_date",
+        path: ["end_date"],
+    });
 
 const doseSchema = z
     .object({
@@ -280,7 +282,8 @@ router.put("/:id", requireAuth, async (req: AuthenticatedRequest, res: Response)
                     return;
                 }
                 if (effectiveStartDate === undefined) effectiveStartDate = existing.start_date;
-                if (effectiveEndDate === undefined) effectiveEndDate = existing.end_date ?? undefined;
+                if (effectiveEndDate === undefined)
+                    effectiveEndDate = existing.end_date ?? undefined;
             }
 
             if (effectiveEndDate && effectiveStartDate && effectiveEndDate < effectiveStartDate) {
@@ -472,31 +475,46 @@ router.get("/:id/stats", requireAuth, async (req: AuthenticatedRequest, res: Res
             return;
         }
 
-        const dayCount = Math.round((toDate.getTime() - fromDate.getTime()) / 86400000) + 1;
+        const requestedDayCount =
+            Math.round((toDate.getTime() - fromDate.getTime()) / 86400000) + 1;
 
-        if (dayCount > 365) {
+        if (requestedDayCount > 365) {
             res.status(400).json({ error: "Date range cannot exceed 365 days" });
             return;
         }
 
-        const expectedDoses = dayCount * schedule.frequency;
+        const activeFrom = from > schedule.start_date ? from : schedule.start_date;
+        const activeTo = schedule.end_date && schedule.end_date < to ? schedule.end_date : to;
+        const hasActiveDays = activeFrom <= activeTo;
+        const activeDayCount = hasActiveDays
+            ? Math.round(
+                  (new Date(activeTo).getTime() - new Date(activeFrom).getTime()) / 86400000
+              ) + 1
+            : 0;
+        const expectedDoses = activeDayCount * schedule.frequency;
 
-        const { data: doseLogs, error: doseError } = await supabase
-            .from("dose_logs")
-            .select("*")
-            .eq("schedule_id", req.params.id)
-            .eq("user_id", req.user!.id)
-            .gte("log_date", from)
-            .lte("log_date", to)
-            .limit(500);
+        let doseLogs: any[] = [];
 
-        if (doseError) {
-            res.status(500).json({ error: "Failed to fetch adherence data" });
-            return;
+        if (hasActiveDays) {
+            const { data, error: doseError } = await supabase
+                .from("dose_logs")
+                .select("*")
+                .eq("schedule_id", req.params.id)
+                .eq("user_id", req.user!.id)
+                .gte("log_date", activeFrom)
+                .lte("log_date", activeTo)
+                .limit(500);
+
+            if (doseError) {
+                res.status(500).json({ error: "Failed to fetch adherence data" });
+                return;
+            }
+
+            doseLogs = data ?? [];
         }
 
-        const takenCount = (doseLogs ?? []).filter((d) => d.status === "taken").length;
-        const skippedCount = (doseLogs ?? []).filter((d) => d.status === "skipped").length;
+        const takenCount = doseLogs.filter((d) => d.status === "taken").length;
+        const skippedCount = doseLogs.filter((d) => d.status === "skipped").length;
         const adherencePercent =
             expectedDoses > 0 ? Math.round((takenCount / expectedDoses) * 100) : 100;
 
@@ -508,7 +526,7 @@ router.get("/:id/stats", requireAuth, async (req: AuthenticatedRequest, res: Res
                 adherence_percent: adherencePercent,
                 period: { from, to },
             },
-            doses: doseLogs ?? [],
+            doses: doseLogs,
         });
     } catch (err) {
         logger.error("Error fetching adherence stats", { error: err, scheduleId: req.params.id });
