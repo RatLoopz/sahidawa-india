@@ -238,10 +238,10 @@ app.get("/health", async (_req: Request, res: Response) => {
         }
 
         // Overall status
+        // ML service is optional — "not-configured" does not degrade overallStatus.
         const overallStatus =
             redisStatus === "connected" &&
-            mlStatus !== "not-configured" &&
-            mlStatus !== "unreachable"
+            (mlUrl === null || mlStatus === "healthy")
                 ? "healthy"
                 : "degraded";
 
