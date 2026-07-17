@@ -21,6 +21,7 @@ const mockSupabaseChain = {
     gte: jest.fn().mockReturnThis(),
     lte: jest.fn().mockReturnThis(),
     limit: jest.fn().mockReturnThis(),
+    range: jest.fn().mockReturnThis(),
     single: jest.fn(),
     maybeSingle: jest.fn(),
     or: jest.fn().mockReturnThis(),
@@ -87,6 +88,7 @@ beforeEach(() => {
     mockedSupabase.gte.mockReturnValue(mockedSupabase);
     mockedSupabase.lte.mockReturnValue(mockedSupabase);
     mockedSupabase.limit.mockReturnValue(mockedSupabase);
+    mockedSupabase.range.mockReturnValue(mockedSupabase);
     mockedSupabase.or.mockReturnValue(mockedSupabase);
     mockedSupabase.in.mockReturnValue(mockedSupabase);
     (redisClient as any).isOpen = false;
@@ -659,7 +661,9 @@ describe("GET /api/schedules/:id/stats", () => {
             },
             error: null,
         });
-        mockedSupabase.limit.mockResolvedValueOnce({ data: doseLogs, error: null });
+        mockedSupabase.range
+            .mockResolvedValueOnce({ data: doseLogs, error: null })
+            .mockResolvedValueOnce({ data: [], error: null });
 
         const res = await request(app)
             .get(

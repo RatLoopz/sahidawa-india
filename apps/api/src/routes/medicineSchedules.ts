@@ -496,21 +496,31 @@ router.get("/:id/stats", requireAuth, async (req: AuthenticatedRequest, res: Res
         let doseLogs: any[] = [];
 
         if (hasActiveDays) {
-            const { data, error: doseError } = await supabase
-                .from("dose_logs")
-                .select("*")
-                .eq("schedule_id", req.params.id)
-                .eq("user_id", req.user!.id)
-                .gte("log_date", activeFrom)
-                .lte("log_date", activeTo)
-                .limit(500);
+            let offset = 0;
+            const DOSE_LOG_PAGE_SIZE = 500;
 
-            if (doseError) {
-                res.status(500).json({ error: "Failed to fetch adherence data" });
-                return;
+            while (true) {
+                const { data: page, error: doseError } = await supabase
+                    .from("dose_logs")
+                    .select("*")
+                    .eq("schedule_id", req.params.id)
+                    .eq("user_id", req.user!.id)
+                    .gte("log_date", activeFrom)
+                    .lte("log_date", activeTo)
+                    .order("id", { ascending: true })
+                    .range(offset, offset + DOSE_LOG_PAGE_SIZE - 1);
+
+                if (doseError) {
+                    res.status(500).json({ error: "Failed to fetch adherence data" });
+                    return;
+                }
+
+                const currentPage = page ?? [];
+                doseLogs.push(...currentPage);
+
+                if (currentPage.length < DOSE_LOG_PAGE_SIZE) break;
+                offset += DOSE_LOG_PAGE_SIZE;
             }
-
-            doseLogs = data ?? [];
         }
 
         const takenCount = doseLogs.filter((d) => d.status === "taken").length;
