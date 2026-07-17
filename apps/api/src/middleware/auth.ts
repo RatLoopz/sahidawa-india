@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import crypto from "crypto";
 import { SupabaseClient, User } from "@supabase/supabase-js";
 import { supabase, dbConfig } from "../db/client";
 import logger from "../utils/logger";
@@ -118,7 +119,7 @@ export const createAuthMiddleware =
             return;
         }
 
-        const cacheKey = `auth:user:${token.slice(-16)}`;
+        const cacheKey = `auth:user:${crypto.createHash("sha256").update(token).digest("hex")}`;
         try {
             if (redisClient.isOpen) {
                 const cached = await redisClient.get(cacheKey);
@@ -230,7 +231,7 @@ export const createOptionalAuthMiddleware =
             return next();
         }
 
-        const cacheKey = `auth:user:${token.slice(-16)}`;
+        const cacheKey = `auth:user:${crypto.createHash("sha256").update(token).digest("hex")}`;
         try {
             if (redisClient.isOpen) {
                 const cached = await redisClient.get(cacheKey);
