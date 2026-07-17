@@ -9,6 +9,7 @@ Every entry represents a merged PR that met the minimum architectural impact thr
 
 | PR | Date | Area | Score | Author | Docs |
 |---|---|---|---|---|---|
+| [#3661](https://github.com/RatLoopz/sahidawa-india/pull/3661) | 2026-07-17 | Backend | 9 | @Shreya-nipunge | [View Doc](2026-07/PR-3661-fix-adherence-dose-log-pagination.md) |
 | [#3640](https://github.com/RatLoopz/sahidawa-india/pull/3640) | 2026-07-16 | Frontend | 10 | @Soquixx | [View Doc](2026-07/PR-3640-feat-add-frontend-integration-for-triage-reset.md) |
 | [#3629](https://github.com/RatLoopz/sahidawa-india/pull/3629) | 2026-07-16 | Backend | 25 | @hrx01-dev | [View Doc](2026-07/PR-3629-sec-enhanced-rate-limitingto-use-keys-alongside-ip.md) / [ADR](adr/ADR-055-sec-enhanced-rate-limitingto-use-keys-alongside-ip.md) |
 | [#3626](https://github.com/RatLoopz/sahidawa-india/pull/3626) | 2026-07-16 | Frontend | 12 | @Kirtan-pc | [View Doc](2026-07/PR-3626-fix-fix-broken-background-sync-for-offline-scan-qu.md) |

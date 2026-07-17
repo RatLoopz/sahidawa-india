@@ -76,6 +76,7 @@ jest.mock("../src/middleware/auth", () => {
 
 jest.mock("../src/middleware/rateLimit", () => ({
     notificationRegisterLimiter: (_req: any, _res: any, next: any) => next(),
+    authTargetLimiter: (_req: any, _res: any, next: any) => next(),
 }));
 
 jest.mock("../src/utils/phone", () => ({

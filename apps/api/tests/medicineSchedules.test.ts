@@ -20,6 +20,8 @@ const mockSupabaseChain = {
     order: jest.fn().mockReturnThis(),
     gte: jest.fn().mockReturnThis(),
     lte: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    range: jest.fn().mockReturnThis(),
     single: jest.fn(),
     maybeSingle: jest.fn(),
     or: jest.fn().mockReturnThis(),
@@ -85,6 +87,8 @@ beforeEach(() => {
     mockedSupabase.order.mockReturnValue(mockedSupabase);
     mockedSupabase.gte.mockReturnValue(mockedSupabase);
     mockedSupabase.lte.mockReturnValue(mockedSupabase);
+    mockedSupabase.limit.mockReturnValue(mockedSupabase);
+    mockedSupabase.range.mockReturnValue(mockedSupabase);
     mockedSupabase.or.mockReturnValue(mockedSupabase);
     mockedSupabase.in.mockReturnValue(mockedSupabase);
     (redisClient as any).isOpen = false;
@@ -734,6 +738,67 @@ describe("POST /api/schedules/:id/doses", () => {
 });
 
 describe("GET /api/schedules/:id/stats", () => {
+    it("counts expected doses only within the schedule active period", async () => {
+        const doseLogs = Array.from({ length: 31 }, (_, index) => ({
+            id: `dose-${index + 1}`,
+            status: "taken",
+        }));
+
+        mockedSupabase.maybeSingle.mockResolvedValueOnce({
+            data: {
+                id: "sched-1",
+                user_id: "test-user-id",
+                frequency: 1,
+                start_date: "2026-07-01",
+                end_date: "2026-07-31",
+            },
+            error: null,
+        });
+        mockedSupabase.range
+            .mockResolvedValueOnce({ data: doseLogs, error: null })
+            .mockResolvedValueOnce({ data: [], error: null });
+
+        const res = await request(app)
+            .get(
+                "/api/schedules/00000000-0000-4000-8000-000000000001/stats?from=2026-01-01&to=2026-12-31"
+            )
+            .set("Authorization", "Bearer test-token");
+
+        expect(res.status).toBe(200);
+        expect(res.body.stats.expected_doses).toBe(31);
+        expect(res.body.stats.taken).toBe(31);
+        expect(res.body.stats.adherence_percent).toBe(100);
+        expect(mockedSupabase.gte).toHaveBeenCalledWith("log_date", "2026-07-01");
+        expect(mockedSupabase.lte).toHaveBeenCalledWith("log_date", "2026-07-31");
+    });
+
+    it("returns zero expected doses when the requested range is fully inactive", async () => {
+        mockedSupabase.maybeSingle.mockResolvedValueOnce({
+            data: {
+                id: "sched-1",
+                user_id: "test-user-id",
+                frequency: 2,
+                start_date: "2026-07-01",
+                end_date: "2026-07-31",
+            },
+            error: null,
+        });
+
+        const res = await request(app)
+            .get(
+                "/api/schedules/00000000-0000-4000-8000-000000000001/stats?from=2026-01-01&to=2026-01-31"
+            )
+            .set("Authorization", "Bearer test-token");
+
+        expect(res.status).toBe(200);
+        expect(res.body.stats.expected_doses).toBe(0);
+        expect(res.body.stats.taken).toBe(0);
+        expect(res.body.stats.skipped).toBe(0);
+        expect(res.body.stats.adherence_percent).toBe(100);
+        expect(res.body.doses).toEqual([]);
+        expect(mockedSupabase.from).toHaveBeenCalledTimes(1);
+    });
+
     it("rejects an impossible calendar date in the from query param", async () => {
         const res = await request(app)
             .get(
