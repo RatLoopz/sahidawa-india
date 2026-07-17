@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { SkeletonLoader } from "@/components/scanner/SkeletonLoader";
 import { uploadABHAVerification } from "@/lib/api/abha";
-import { Camera, Layers, Search, X, ScanLine, History } from "lucide-react";
+import { AlertCircle, Camera, Layers, Search, X, ScanLine, History } from "lucide-react";
 import { useMedicineVerification } from "@/hooks/useMedicineVerification";
 import { VerifiedSafeResult } from "@/components/scanner/results/VerifiedSafeResult";
 import { CounterfeitAlertResult } from "@/components/scanner/results/CounterfeitAlertResult";
@@ -66,6 +66,7 @@ export default function ScanPage() {
     const [copied, setCopied] = useState(false);
     const [batchInput, setBatchInput] = useState("");
     const [isCameraActive, setIsCameraActive] = useState(false);
+    const [cameraPermissionDenied, setCameraPermissionDenied] = useState(false);
 
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -283,6 +284,7 @@ export default function ScanPage() {
         setVerifyResult(null);
         setVerifyError(null);
         setBatchInput("");
+        setCameraPermissionDenied(false);
         setIsCameraActive(false);
     };
 
@@ -329,6 +331,26 @@ export default function ScanPage() {
         handleVerify(batchInput);
     };
 
+    const handleRetryCameraPermission = () => {
+        setApiError(null);
+        setCameraPermissionDenied(false);
+        setIsCameraActive(true);
+    };
+
+    const handleUseManualEntry = () => {
+        setCameraPermissionDenied(false);
+        setIsCameraActive(false);
+        requestAnimationFrame(() => {
+            document.getElementById("batch-input")?.focus();
+        });
+    };
+
+    const handleUploadAfterPermissionDenied = () => {
+        setCameraPermissionDenied(false);
+        setIsCameraActive(false);
+        document.getElementById("medicine-upload")?.click();
+    };
+
     return (
         <div className="relative flex min-h-[calc(100vh-4rem)] flex-col overflow-x-clip bg-(--color-surface-page) font-sans text-(--color-text-primary)">
             <input
@@ -355,10 +377,12 @@ export default function ScanPage() {
                             isVerifying={isVerifying}
                             apiError={apiError}
                             onPermissionDenied={() => {
+                                setCameraPermissionDenied(true);
                                 setIsCameraActive(false);
                             }}
                             onRetry={() => {
                                 setApiError(null);
+                                setCameraPermissionDenied(false);
                                 setIsCameraActive(false);
                             }}
                         />
@@ -395,6 +419,68 @@ export default function ScanPage() {
                 </div>
 
                 {isScanning && <SkeletonLoader />}
+
+                {cameraPermissionDenied && !showResult && (
+                    <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm">
+                        <section
+                            className="w-full max-w-sm rounded-3xl border border-red-400/30 bg-slate-950/95 p-6 text-center text-white shadow-2xl"
+                            role="alert"
+                            aria-live="assertive"
+                            aria-labelledby="camera-permission-title"
+                            aria-describedby="camera-permission-description camera-permission-steps"
+                        >
+                            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-500/20 text-red-300">
+                                <AlertCircle size={30} aria-hidden="true" />
+                            </div>
+                            <h2 id="camera-permission-title" className="text-xl font-bold">
+                                Camera permission blocked
+                            </h2>
+                            <p
+                                id="camera-permission-description"
+                                className="mt-3 text-sm leading-6 text-slate-300"
+                            >
+                                SahiDawa needs camera access to scan medicine barcodes. Please allow
+                                camera permission in your browser settings, then retry the scanner.
+                            </p>
+                            <div
+                                id="camera-permission-steps"
+                                className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-left text-xs leading-5 text-slate-300"
+                            >
+                                <p className="font-semibold text-white">How to re-enable camera:</p>
+                                <p>Chrome or Edge: open site settings, set Camera to Allow.</p>
+                                <p>
+                                    Firefox or Safari: clear the blocked camera permission and
+                                    reload.
+                                </p>
+                            </div>
+                            <div className="mt-5 grid gap-3">
+                                <button
+                                    type="button"
+                                    onClick={handleRetryCameraPermission}
+                                    className="rounded-full bg-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-400 focus:ring-2 focus:ring-emerald-300 focus:outline-none"
+                                >
+                                    Retry camera
+                                </button>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={handleUploadAfterPermissionDenied}
+                                        className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-xs font-semibold text-white transition-colors hover:bg-white/15 focus:ring-2 focus:ring-white/40 focus:outline-none"
+                                    >
+                                        {tScan("uploadPhoto")}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleUseManualEntry}
+                                        className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-xs font-semibold text-white transition-colors hover:bg-white/15 focus:ring-2 focus:ring-white/40 focus:outline-none"
+                                    >
+                                        {tScan("enterBatchNumber")}
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                )}
 
                 {showResult && (
                     <div className="animate-in fade-in zoom-in absolute inset-0 z-30 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm duration-300">
@@ -593,7 +679,10 @@ export default function ScanPage() {
 
                     <div className="flex justify-center gap-4">
                         <button
-                            onClick={() => setIsCameraActive((prev) => !prev)}
+                            onClick={() => {
+                                setCameraPermissionDenied(false);
+                                setIsCameraActive((prev) => !prev);
+                            }}
                             disabled={isOffline}
                             className={`flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-colors focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-black focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
                                 isCameraActive
