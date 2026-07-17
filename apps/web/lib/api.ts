@@ -1,68 +1,20 @@
 import { fetchWithRetry } from "./apiWithRetry";
 import { createSWRCache } from "./cacheUtils";
+import { API_BASE } from "./apiConfig";
+import { getCsrfToken, refreshCsrfToken } from "./csrf";
 
 import type { VerifiedPharmacy, LasaMatch, LasaMatchType } from "@sahidawa/types";
 export type { VerifiedPharmacy, LasaMatch, LasaMatchType };
 
 import { PHARMACY_SEARCH_RADIUS_DEFAULT_KM } from "@sahidawa/shared";
 
-const DEFAULT_API_ORIGIN = "http://localhost:4000";
-const configuredApiUrl = (process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_API_ORIGIN).trim();
-export const API_BASE = configuredApiUrl.replace(/\/+$/, "");
+// Re-exported so existing importers of these from "@/lib/api" keep working;
+// the definitions now live in ./apiConfig and ./csrf to avoid a circular import
+// between this module and ./apiWithRetry.
+export { API_BASE, getCsrfToken, refreshCsrfToken };
 
 const fuzzyMatchCache = createSWRCache<FuzzyMatch[]>(60_000); // 60s TTL
 const verifyBrandCache = createSWRCache<VerifyResult>(300_000); // 5min TTL
-
-let csrfTokenCache: string | null = null;
-let isRefreshingCsrf = false;
-let refreshSubscribers: { resolve: (token: string) => void; reject: (err: any) => void }[] = [];
-
-function onCsrfRefreshed(token: string) {
-    refreshSubscribers.forEach(({ resolve }) => resolve(token));
-    refreshSubscribers = [];
-}
-
-function onCsrfRefreshFailed(err: any) {
-    refreshSubscribers.forEach(({ reject }) => reject(err));
-    refreshSubscribers = [];
-}
-
-export async function getCsrfToken(): Promise<string> {
-    if (csrfTokenCache) return csrfTokenCache;
-    return refreshCsrfToken();
-}
-
-export async function refreshCsrfToken(): Promise<string> {
-    if (isRefreshingCsrf) {
-        return new Promise((resolve, reject) => {
-            refreshSubscribers.push({ resolve, reject });
-        });
-    }
-
-    isRefreshingCsrf = true;
-    csrfTokenCache = null;
-
-    try {
-        const res = await fetch(`${API_BASE}/api/csrf-token`, {
-            credentials: "include",
-        });
-        if (!res.ok) {
-            throw new Error(`Failed to fetch CSRF token: ${res.status} ${res.statusText}`);
-        }
-        const data = await res.json();
-        if (!data.csrfToken) {
-            throw new Error("CSRF token not found in response body");
-        }
-        csrfTokenCache = data.csrfToken;
-        onCsrfRefreshed(data.csrfToken);
-        return data.csrfToken;
-    } catch (error) {
-        onCsrfRefreshFailed(error);
-        throw error;
-    } finally {
-        isRefreshingCsrf = false;
-    }
-}
 
 async function fetchWithCsrf<T>(
     url: string,

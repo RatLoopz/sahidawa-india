@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import { refreshCsrfToken } from "./csrf";
 
 export interface RetryConfig {
     maxRetries?: number;
@@ -109,7 +110,6 @@ export async function fetchWithRetry(
 
                     if (isCsrfError) {
                         try {
-                            const { refreshCsrfToken } = await import("./api");
                             const newToken = await refreshCsrfToken();
 
                             const newOptions = { ...fetchOptions };
