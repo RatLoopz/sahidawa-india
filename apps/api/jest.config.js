@@ -16,6 +16,7 @@ module.exports = {
     setupFiles: ["<rootDir>/tests/setup.ts"],
     moduleNameMapper: {
         "^@sahidawa/shared$": "<rootDir>/../../packages/shared/src",
+        "^@sahidawa/validators$": "<rootDir>/../../packages/validators/src",
     },
     transform: {
         "^.+\\.tsx?$": [
