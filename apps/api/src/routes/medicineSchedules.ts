@@ -12,6 +12,7 @@ const router = Router();
 router.use(scheduleLimiter);
 const SUMMARY_CACHE_BUCKET_MINUTES = 5;
 const SUMMARY_CACHE_TTL_SECONDS = SUMMARY_CACHE_BUCKET_MINUTES * 60;
+const DOSE_LOG_PAGE_SIZE = 500;
 
 const invalidateUserSummaryCaches = async (userId: string) => {
     if (!redisClient.isOpen) return;
@@ -105,10 +106,12 @@ const createScheduleSchema = createScheduleObjectSchema.refine(
     { message: "end_date must not be before start_date", path: ["end_date"] }
 );
 
-const updateScheduleSchema = createScheduleObjectSchema.partial().refine(
-    (data) => !data.end_date || !data.start_date || data.end_date >= data.start_date,
-    { message: "end_date must not be before start_date", path: ["end_date"] }
-);
+const updateScheduleSchema = createScheduleObjectSchema
+    .partial()
+    .refine((data) => !data.end_date || !data.start_date || data.end_date >= data.start_date, {
+        message: "end_date must not be before start_date",
+        path: ["end_date"],
+    });
 
 const doseSchema = z
     .object({
@@ -280,7 +283,8 @@ router.put("/:id", requireAuth, async (req: AuthenticatedRequest, res: Response)
                     return;
                 }
                 if (effectiveStartDate === undefined) effectiveStartDate = existing.start_date;
-                if (effectiveEndDate === undefined) effectiveEndDate = existing.end_date ?? undefined;
+                if (effectiveEndDate === undefined)
+                    effectiveEndDate = existing.end_date ?? undefined;
             }
 
             if (effectiveEndDate && effectiveStartDate && effectiveEndDate < effectiveStartDate) {
@@ -481,22 +485,34 @@ router.get("/:id/stats", requireAuth, async (req: AuthenticatedRequest, res: Res
 
         const expectedDoses = dayCount * schedule.frequency;
 
-        const { data: doseLogs, error: doseError } = await supabase
-            .from("dose_logs")
-            .select("*")
-            .eq("schedule_id", req.params.id)
-            .eq("user_id", req.user!.id)
-            .gte("log_date", from)
-            .lte("log_date", to)
-            .limit(500);
+        const doseLogs: any[] = [];
+        let offset = 0;
 
-        if (doseError) {
-            res.status(500).json({ error: "Failed to fetch adherence data" });
-            return;
+        while (true) {
+            const { data: page, error: doseError } = await supabase
+                .from("dose_logs")
+                .select("*")
+                .eq("schedule_id", req.params.id)
+                .eq("user_id", req.user!.id)
+                .gte("log_date", from)
+                .lte("log_date", to)
+                .order("id", { ascending: true })
+                .range(offset, offset + DOSE_LOG_PAGE_SIZE - 1);
+
+            if (doseError) {
+                res.status(500).json({ error: "Failed to fetch adherence data" });
+                return;
+            }
+
+            const currentPage = page ?? [];
+            doseLogs.push(...currentPage);
+
+            if (currentPage.length < DOSE_LOG_PAGE_SIZE) break;
+            offset += DOSE_LOG_PAGE_SIZE;
         }
 
-        const takenCount = (doseLogs ?? []).filter((d) => d.status === "taken").length;
-        const skippedCount = (doseLogs ?? []).filter((d) => d.status === "skipped").length;
+        const takenCount = doseLogs.filter((d) => d.status === "taken").length;
+        const skippedCount = doseLogs.filter((d) => d.status === "skipped").length;
         const adherencePercent =
             expectedDoses > 0 ? Math.round((takenCount / expectedDoses) * 100) : 100;
 
@@ -508,7 +524,7 @@ router.get("/:id/stats", requireAuth, async (req: AuthenticatedRequest, res: Res
                 adherence_percent: adherencePercent,
                 period: { from, to },
             },
-            doses: doseLogs ?? [],
+            doses: doseLogs,
         });
     } catch (err) {
         logger.error("Error fetching adherence stats", { error: err, scheduleId: req.params.id });
