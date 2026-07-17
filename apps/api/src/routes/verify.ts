@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { z } from "zod";
+import { getVerifySchema } from "@sahidawa/validators";
 import { supabase } from "../db/client";
 import { verifyLimiter } from "../middleware/rateLimit";
 import { optionalAuth } from "../middleware/auth";
@@ -41,28 +41,7 @@ function maskClientIp(ip: string | undefined): string | null {
 
 const router = Router();
 
-const verifySchema = z
-    .object({
-        batchNumber: z
-            .string({ message: "batchNumber is required and must be a string" })
-            .min(3, "batchNumber must be at least 3 characters long"),
-        brandName: z.string().optional(),
-        barcodeId: z.string().optional(),
-        latitude: z
-            .number()
-            .min(-90, "Latitude must be between -90 and 90")
-            .max(90, "Latitude must be between -90 and 90")
-            .optional(),
-        longitude: z
-            .number()
-            .min(-180, "Longitude must be between -180 and 180")
-            .max(180, "Longitude must be between -180 and 180")
-            .optional(),
-    })
-    .refine((data) => data.brandName || data.barcodeId, {
-        message: "Either brandName or barcodeId must be provided",
-        path: ["brandName", "barcodeId"],
-    });
+const verifySchema = getVerifySchema();
 
 /**
  * @openapi
