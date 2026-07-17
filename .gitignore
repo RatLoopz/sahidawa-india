@@ -58,6 +58,9 @@ Thumbs.db
 coverage/
 .nyc_output/
 
+# Vercel CLI output (`vercel pull` writes project.json with org/project IDs here)
+.vercel/
+
 # Temporary files
 .tmp/
 .cache/
