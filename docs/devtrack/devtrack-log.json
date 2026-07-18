@@ -1,5 +1,28 @@
 [
   {
+    "prNumber": 3740,
+    "title": "feat(ml): add LangGraph-native Redis checkpointer for triage session",
+    "author": "Khanvilkarshravani27",
+    "mergedAt": "2026-07-18",
+    "area": "Frontend",
+    "score": 49,
+    "docPath": "docs/devtrack/2026-07/PR-3740-feat-ml-add-langgraph-native-redis-checkpointer-fo.md",
+    "linkedIssue": "#3686",
+    "labels": "level:advanced,gssoc:approved,type:devops",
+    "filesChanged": [
+      "apps/ml/main.py",
+      "apps/ml/requirements.txt",
+      "apps/ml/services/triage_graph.py",
+      "apps/ml/tests/test_triage_graph.py",
+      "apps/web/components/map/MapView.tsx",
+      "apps/web/jest.env.cjs",
+      "apps/web/tests/interaction-checker-security.test.tsx",
+      "apps/web/tests/lasa-cache.test.tsx",
+      "apps/web/tests/pharmacy-map-layout.test.tsx"
+    ],
+    "adr": "docs/devtrack/adr/ADR-056-feat-ml-add-langgraph-native-redis-checkpointer-fo.md"
+  },
+  {
     "prNumber": 3736,
     "title": "feat(map): render anonymized scan-activity heatmap from /analytics/heatmap",
     "author": "skypank-coder",
