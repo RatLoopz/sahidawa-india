@@ -47,14 +47,14 @@ export interface MapBounds {
     center: { lat: number; lng: number };
 }
 
-export type HeatmapMode = "none" | "density" | "counterfeit" | "combined";
+export type HeatmapMode = "none" | "density" | "counterfeit" | "combined" | "scans";
 
 export interface RiskHotspot {
     id: string;
     label: string;
     coordinates: { lat: number; lng: number };
     intensity: number;
-    category: "density" | "counterfeit";
+    category: "density" | "counterfeit" | "scans";
     details?: string;
 }
 
@@ -234,24 +234,35 @@ export default function PharmacyMap({
             .filter((hotspot) => heatmapMode === "combined" || hotspot.category === heatmapMode)
             .forEach((hotspot) => {
                 const normalizedIntensity = Math.max(0.15, Math.min(1, hotspot.intensity));
-                const isCounterfeit = hotspot.category === "counterfeit";
-                const color = isCounterfeit
-                    ? "var(--color-accent-danger)"
-                    : "var(--color-accent-cyan)";
-                const fillColor = isCounterfeit
-                    ? "var(--color-accent-danger-bright)"
-                    : "var(--color-accent-cyan-soft)";
-                const radius = isCounterfeit
-                    ? 1800 + normalizedIntensity * 4200
-                    : 900 + normalizedIntensity * 2600;
+                const style =
+                    hotspot.category === "counterfeit"
+                        ? {
+                              color: "var(--color-accent-danger)",
+                              fillColor: "var(--color-accent-danger-bright)",
+                              fillOpacity: 0.2,
+                              radius: 1800 + normalizedIntensity * 4200,
+                          }
+                        : hotspot.category === "scans"
+                          ? {
+                                color: "var(--color-brand-secondary)",
+                                fillColor: "var(--color-brand-secondary-bright)",
+                                fillOpacity: 0.16,
+                                radius: 900 + normalizedIntensity * 2600,
+                            }
+                          : {
+                                color: "var(--color-accent-cyan)",
+                                fillColor: "var(--color-accent-cyan-soft)",
+                                fillOpacity: 0.16,
+                                radius: 900 + normalizedIntensity * 2600,
+                            };
 
                 const circle = L.circle([hotspot.coordinates.lat, hotspot.coordinates.lng], {
-                    radius,
-                    color,
+                    radius: style.radius,
+                    color: style.color,
                     weight: 1,
                     opacity: 0.42,
-                    fillColor,
-                    fillOpacity: isCounterfeit ? 0.2 : 0.16,
+                    fillColor: style.fillColor,
+                    fillOpacity: style.fillOpacity,
                     interactive: true,
                 }).addTo(heatLayerGroup.current);
 

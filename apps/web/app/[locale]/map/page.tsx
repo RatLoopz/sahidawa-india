@@ -33,6 +33,7 @@ import {
     fetchVerifiedPharmacies,
     fetchVerifiedPharmaciesInBounds,
     fetchNearbyAshaWorkers,
+    API_BASE,
     type VerifiedPharmacy,
     type ApiAshaWorker,
 } from "../../../lib/api";
@@ -132,6 +133,55 @@ function buildDensityHotspots(pharmacies: Pharmacy[]): RiskHotspot[] {
             category: "density" as const,
             details: `${bucket.named} named stores in this local density cluster.`,
         }));
+}
+
+// ── Anonymized scan-activity heatmap (privacy-safe, server-binned) ────────────
+// The /api/analytics/heatmap endpoint never returns raw coordinates: points are
+// bucketed into geohash cells server-side and returned as centroids with an
+// aggregated `intensity` count. We only consume that binned GeoJSON here.
+// `precision` is the geohash length (6 ≈ ~1 km cells); `days` is the lookback.
+const SCAN_HEATMAP_PRECISION = 6;
+const SCAN_HEATMAP_DAYS = 90;
+
+type HeatmapFeature = {
+    geometry: { coordinates: [number, number] };
+    properties: { intensity: number; geohash?: string };
+};
+type HeatmapFeatureCollection = { type: "FeatureCollection"; features: HeatmapFeature[] };
+
+async function fetchScanActivityHotspots(signal?: AbortSignal): Promise<RiskHotspot[]> {
+    try {
+        const res = await fetch(
+            `${API_BASE}/api/analytics/heatmap?precision=${SCAN_HEATMAP_PRECISION}&days=${SCAN_HEATMAP_DAYS}`,
+            { credentials: "include", signal }
+        );
+        // The endpoint is admin/moderator only — anyone else (401/403) or any
+        // transient failure just yields no extra layer, leaving the map unchanged.
+        if (!res.ok) return [];
+
+        const data = (await res.json()) as HeatmapFeatureCollection;
+        const features = (data?.features ?? []).filter((f) =>
+            Array.isArray(f.geometry?.coordinates)
+        );
+        const maxIntensity = Math.max(1, ...features.map((f) => f.properties?.intensity ?? 0));
+
+        return features.map((f) => {
+            const [lng, lat] = f.geometry.coordinates;
+            const count = f.properties?.intensity ?? 0;
+            return {
+                id: `scan-${f.properties?.geohash ?? `${lat}:${lng}`}`,
+                label: `${count} anonymized scan${count === 1 ? "" : "s"} in this area`,
+                coordinates: { lat, lng },
+                // Normalize the raw count into the 0–1 range the heatmap layer
+                // expects, matching buildDensityHotspots' convention.
+                intensity: count / maxIntensity,
+                category: "scans" as const,
+                details: "Location-binned scan activity — exact coordinates are not exposed.",
+            };
+        });
+    } catch {
+        return [];
+    }
 }
 
 // ── Data adapter ─────────────────────────────────────────────────────────────
@@ -338,6 +388,7 @@ export default function PharmacyMapPage() {
     const [pharmacyCount, setPharmacyCount] = useState(0);
     const [radiusKm, setRadiusKm] = useState<number>(10);
     const [heatmapMode, setHeatmapMode] = useState<HeatmapMode>("none");
+    const [scanHotspots, setScanHotspots] = useState<RiskHotspot[]>([]);
 
     // ── Offline cache state ───────────────────────────────────────────────────
     const { isOffline } = useOfflineStatus();
@@ -345,6 +396,18 @@ export default function PharmacyMapPage() {
 
     const pendingBoundsRef = useRef<MapBounds | null>(null);
     const initialFetchDone = useRef(false);
+
+    // Load the privacy-safe (server-binned) scan-activity heatmap once on mount.
+    // Silently no-ops for users without access, keeping the map unchanged.
+    useEffect(() => {
+        const controller = new AbortController();
+        fetchScanActivityHotspots(controller.signal).then((hotspots) => {
+            if (!controller.signal.aborted) {
+                setScanHotspots(hotspots);
+            }
+        });
+        return () => controller.abort();
+    }, []);
 
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -714,8 +777,8 @@ export default function PharmacyMapPage() {
         [filteredPharmacies]
     );
     const riskHotspots = useMemo(
-        () => [...densityHotspots, ...COUNTERFEIT_REPORT_HOTSPOTS],
-        [densityHotspots]
+        () => [...densityHotspots, ...COUNTERFEIT_REPORT_HOTSPOTS, ...scanHotspots],
+        [densityHotspots, scanHotspots]
     );
 
     const updateAdvancedFilter = (key: keyof AdvancedFilters) => {
@@ -767,6 +830,17 @@ export default function PharmacyMapPage() {
         { id: "none", label: "Markers", description: "Show pharmacy markers only" },
         { id: "density", label: "Density", description: "Highlight pharmacy-dense areas" },
         { id: "counterfeit", label: "Counterfeit", description: "Show report-risk clusters" },
+        // Only surfaced when the privacy-safe endpoint returns data (i.e. the
+        // viewer is authorized), so unauthorized users don't see an empty layer.
+        ...(scanHotspots.length > 0
+            ? [
+                  {
+                      id: "scans" as const,
+                      label: "Scan Activity",
+                      description: "Anonymized, location-binned scan density",
+                  },
+              ]
+            : []),
         { id: "combined", label: "Combined", description: "Show density and report risk together" },
     ];
 
@@ -775,9 +849,11 @@ export default function PharmacyMapPage() {
             ? `${COUNTERFEIT_REPORT_HOTSPOTS.length} report clusters`
             : heatmapMode === "density"
               ? `${densityHotspots.length} density clusters`
-              : heatmapMode === "combined"
-                ? `${riskHotspots.length} total clusters`
-                : "Markers only. Turn on a layer to inspect density or counterfeit-report signals.";
+              : heatmapMode === "scans"
+                ? `${scanHotspots.length} anonymized scan clusters`
+                : heatmapMode === "combined"
+                  ? `${riskHotspots.length} total clusters`
+                  : "Markers only. Turn on a layer to inspect density or counterfeit-report signals.";
 
     const handleSelectPharmacy = useCallback((pharmacyId: number) => {
         setSelectedPharmacyId(pharmacyId);
