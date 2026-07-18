@@ -12,14 +12,29 @@ import {
 } from "@jest/globals";
 import {
     createSchedule,
+    deleteSchedule,
     fetchSchedules,
     fetchTodaySummary,
     logDose,
+    updateSchedule,
     type Schedule,
     type TodaySchedule,
 } from "@/lib/scheduleApi";
+import { getCsrfToken } from "@/lib/api";
+import { fetchWithRetry } from "@/lib/apiWithRetry";
 
 const mockFetch = jest.fn();
+const mockGetCsrfToken = jest.mocked(getCsrfToken);
+const mockFetchWithRetry = jest.mocked(fetchWithRetry);
+
+jest.mock("@/lib/api", () => ({
+    API_BASE: "http://localhost:4000",
+    getCsrfToken: jest.fn(),
+}));
+
+jest.mock("@/lib/apiWithRetry", () => ({
+    fetchWithRetry: jest.fn(),
+}));
 
 describe("scheduleApi", () => {
     beforeEach(() => {
@@ -29,6 +44,9 @@ describe("scheduleApi", () => {
             writable: true,
         });
         localStorage.clear();
+        mockGetCsrfToken.mockReset();
+        mockGetCsrfToken.mockResolvedValue("csrf-token-123");
+        mockFetchWithRetry.mockReset();
     });
 
     it("returns parsed schedules from fetchSchedules on a 200 response", async () => {
@@ -58,6 +76,8 @@ describe("scheduleApi", () => {
         expect(mockFetch).toHaveBeenCalledWith("http://localhost:4000/api/schedules", {
             headers: {},
         });
+        expect(mockGetCsrfToken).not.toHaveBeenCalled();
+        expect(mockFetchWithRetry).not.toHaveBeenCalled();
     });
 
     it("throws when fetchSchedules receives a non-OK response", async () => {
@@ -79,20 +99,63 @@ describe("scheduleApi", () => {
             medicine_id: null,
         };
         const created = { id: "schedule-1", ...payload };
-        mockFetch.mockResolvedValueOnce({
+        mockFetchWithRetry.mockResolvedValueOnce({
             ok: true,
             json: async () => ({ schedule: created }),
-        });
+        } as Response);
 
         await expect(createSchedule(payload)).resolves.toEqual(created);
-        expect(mockFetch).toHaveBeenCalledWith("http://localhost:4000/api/schedules", {
+        expect(mockGetCsrfToken).toHaveBeenCalledTimes(1);
+        expect(mockFetchWithRetry).toHaveBeenCalledWith("http://localhost:4000/api/schedules", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: "Bearer token-123",
+                "x-csrf-token": "csrf-token-123",
             },
             body: JSON.stringify(payload),
+            credentials: "include",
         });
+    });
+
+    it("adds CSRF protection to schedule updates and deletions", async () => {
+        localStorage.setItem("sb-access-token", "token-123");
+        mockFetchWithRetry
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({ schedule: { id: "schedule-1", dosage: "250mg" } }),
+            } as Response)
+            .mockResolvedValueOnce({ ok: true } as Response);
+
+        await updateSchedule("schedule-1", { dosage: "250mg" });
+        await deleteSchedule("schedule-1");
+
+        expect(mockFetchWithRetry).toHaveBeenNthCalledWith(
+            1,
+            "http://localhost:4000/api/schedules/schedule-1",
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer token-123",
+                    "x-csrf-token": "csrf-token-123",
+                },
+                body: JSON.stringify({ dosage: "250mg" }),
+                credentials: "include",
+            }
+        );
+        expect(mockFetchWithRetry).toHaveBeenNthCalledWith(
+            2,
+            "http://localhost:4000/api/schedules/schedule-1",
+            {
+                method: "DELETE",
+                headers: {
+                    Authorization: "Bearer token-123",
+                    "x-csrf-token": "csrf-token-123",
+                },
+                credentials: "include",
+            }
+        );
     });
 
     it("sends logDose as a JSON POST to the schedule doses endpoint", async () => {
@@ -109,18 +172,24 @@ describe("scheduleApi", () => {
             created_at: "2027-01-01T09:00:00Z",
             ...dosePayload,
         };
-        mockFetch.mockResolvedValueOnce({
+        localStorage.setItem("sb-access-token", "token-123");
+        mockFetchWithRetry.mockResolvedValueOnce({
             ok: true,
             json: async () => ({ dose: createdDose }),
-        });
+        } as Response);
 
         await expect(logDose("schedule-1", dosePayload)).resolves.toEqual(createdDose);
-        expect(mockFetch).toHaveBeenCalledWith(
+        expect(mockFetchWithRetry).toHaveBeenCalledWith(
             "http://localhost:4000/api/schedules/schedule-1/doses",
             {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer token-123",
+                    "x-csrf-token": "csrf-token-123",
+                },
                 body: JSON.stringify(dosePayload),
+                credentials: "include",
             }
         );
     });
@@ -147,5 +216,7 @@ describe("scheduleApi", () => {
             "http://localhost:4000/api/schedules/today/summary",
             { headers: {} }
         );
+        expect(mockGetCsrfToken).not.toHaveBeenCalled();
+        expect(mockFetchWithRetry).not.toHaveBeenCalled();
     });
 });
