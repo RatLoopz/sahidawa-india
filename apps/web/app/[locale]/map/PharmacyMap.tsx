@@ -104,6 +104,7 @@ export default function PharmacyMap({
     const heatLayerGroup = useRef<any>(null);
     const userMarker = useRef<any>(null);
     const markersRef = useRef<Map<number, any>>(new Map());
+    const moveEndDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [mapError, setMapError] = useState(false);
     const [isMapReady, setIsMapReady] = useState(false);
 
@@ -195,7 +196,12 @@ export default function PharmacyMap({
                     };
 
                     map.current.on("moveend", () => {
-                        if (onMapMoveEnd) onMapMoveEnd(getBounds());
+                        if (moveEndDebounceRef.current) {
+                            clearTimeout(moveEndDebounceRef.current);
+                        }
+                        moveEndDebounceRef.current = setTimeout(() => {
+                            if (onMapMoveEnd) onMapMoveEnd(getBounds());
+                        }, 400);
                     });
 
                     // Notify parent that map is ready
@@ -217,6 +223,9 @@ export default function PharmacyMap({
 
         return () => {
             mounted = false;
+            if (moveEndDebounceRef.current) {
+                clearTimeout(moveEndDebounceRef.current);
+            }
         };
     }, [initialCenter, initialZoom, onMapMoveEnd, onMapReady]);
 
