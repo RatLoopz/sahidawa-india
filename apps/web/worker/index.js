@@ -242,7 +242,11 @@ async function cacheFirstWithExpiry(request, cacheName, maxAgeMs) {
         if (networkResponse && networkResponse.ok) {
             const headers = new Headers(networkResponse.headers);
             headers.set("sw-cached-at", new Date().toISOString());
-            const cloned = new Response(await networkResponse.clone().text(), {
+            // Use blob() (not text()) so binary bodies — map tiles, PNG icons —
+            // are preserved byte-for-byte. text() decodes as UTF-8, replacing
+            // invalid byte sequences with U+FFFD, which corrupts the cached
+            // image and leaves offline reloads blank even with a cache hit.
+            const cloned = new Response(await networkResponse.clone().blob(), {
                 status: networkResponse.status,
                 statusText: networkResponse.statusText,
                 headers,
