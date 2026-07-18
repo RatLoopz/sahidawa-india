@@ -198,7 +198,17 @@ flowchart TD
 ### Phase 4 — Polish, Security & Launch _(Final Evaluations - July)_
 
 - [ ] WCAG 2.1 accessibility audit
-- [ ] Lighthouse CI (target 90+ score)
+- [x] Lighthouse CI (target 90+ score)
+
+### Running Lighthouse CI Locally
+
+To test performance audits on your local machine before pushing:
+
+1. Install the CLI globally: `npm install -g @lhci/cli`
+2. Build the web app: `cd apps/web && npm run build`
+3. Run the audit: `lhci autorun` (inside `apps/web`)
+
+This will start a local server, run Lighthouse tests against it, and report the scores directly in your terminal.
 - [ ] Docker Compose for self-hosting
 - [ ] OpenAPI/Swagger documentation
 - [ ] ABHA health card integration (optional)

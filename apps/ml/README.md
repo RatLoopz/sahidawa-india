@@ -111,8 +111,16 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-## Model Download Test
+## TensorFlow Lite Inference
 
+The ML service integrates an optional TensorFlow Lite model for analyzing and verifying medicine packaging in tandem with OpenCV-based similarity methods (pHash/ORB).
+The required `tflite-runtime` is listed in `requirements.txt`.
+If `tflite-runtime` cannot be installed on your platform (e.g. some native Apple Silicon environments without specific wheels), the API will gracefully fall back to relying entirely on traditional computer vision checks without crashing. 
+
+Ensure the model file exists at:
+`apps/ml/models/mobilenetv3_large_int8.tflite`
+
+## Model Download Test
 Start the FastAPI server from `apps/ml` to verify the service imports correctly and the Whisper model can download and load into memory:
 
 ```bash

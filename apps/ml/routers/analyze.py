@@ -18,6 +18,11 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+try:
+    from services.tflite_inference import tflite_runner
+except ImportError:
+    tflite_runner = None
+
 router = APIRouter(prefix="/analyze", tags=["Image Analysis"])
 
 # Configurations & Limits
@@ -56,6 +61,7 @@ class AnalyzeImageResponse(BaseModel):
     details: str
     hashSimilarity: float
     featureSimilarity: float | None = None
+    tfliteConfidence: float | None = None
 
 
 def _canonical_cloudinary_image_url(url: str) -> str:
@@ -227,6 +233,24 @@ def _score_packaging(
     else:
         combined = hash_similarity
 
+    tflite_confidence = None
+    if tflite_runner is not None and tflite_runner.is_loaded:
+        try:
+            with Image.open(io.BytesIO(uploaded_bytes)) as image:
+                uploaded_image_rgb = image.convert("RGB")
+                tflite_res = tflite_runner.predict(uploaded_image_rgb)
+                if tflite_res:
+                    tflite_confidence, _ = tflite_res
+        except Exception as e:
+            logger.error(f"Failed to run TFLite inference: {e}")
+
+    # Incorporate TFLite confidence into the combined score if available
+    # TFLite predicts counterfeit probability, so 1.0 - tflite_confidence is genuine probability
+    if tflite_confidence is not None:
+        tflite_genuine_prob = 1.0 - tflite_confidence
+        # Give TFLite 30% weight, CV 70% weight (adjustable)
+        combined = combined * 0.7 + tflite_genuine_prob * 0.3
+
     if combined < FAKE_THRESHOLD:
         return AnalyzeImageResponse(
             isFake=True,
@@ -235,6 +259,7 @@ def _score_packaging(
             details="Packaging does not structurally match the verified reference image.",
             hashSimilarity=hash_similarity,
             featureSimilarity=feature_similarity,
+            tfliteConfidence=tflite_confidence,
         )
 
     if combined < SUSPICIOUS_THRESHOLD:
@@ -245,6 +270,7 @@ def _score_packaging(
             details="Packaging shows partial similarity to reference; pharmacist review recommended.",
             hashSimilarity=hash_similarity,
             featureSimilarity=feature_similarity,
+            tfliteConfidence=tflite_confidence,
         )
 
     return AnalyzeImageResponse(
@@ -254,6 +280,7 @@ def _score_packaging(
         details="Packaging closely matches the verified reference image.",
         hashSimilarity=hash_similarity,
         featureSimilarity=feature_similarity,
+        tfliteConfidence=tflite_confidence,
     )
 
 

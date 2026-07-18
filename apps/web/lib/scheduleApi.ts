@@ -1,4 +1,5 @@
-import { API_BASE } from "./api";
+import { API_BASE, getCsrfToken } from "./api";
+import { fetchWithRetry } from "./apiWithRetry";
 
 export interface Schedule {
     id: string;
@@ -52,6 +53,18 @@ function getToken(): string {
 function authHeaders(): Record<string, string> {
     const token = getToken();
     return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+async function scheduleMutationFetch(url: string, options: RequestInit): Promise<Response> {
+    const csrfToken = await getCsrfToken();
+    return fetchWithRetry(url, {
+        ...options,
+        headers: {
+            ...(options.headers as Record<string, string> | undefined),
+            "x-csrf-token": csrfToken,
+        },
+        credentials: "include",
+    });
 }
 
 /**
@@ -112,7 +125,7 @@ export async function createSchedule(data: {
     notes?: string;
     medicine_id?: string | null;
 }): Promise<Schedule> {
-    const res = await fetch(`${API_BASE}/api/schedules`, {
+    const res = await scheduleMutationFetch(`${API_BASE}/api/schedules`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify(data),
@@ -155,7 +168,7 @@ export async function updateSchedule(
         is_active: boolean;
     }>
 ): Promise<Schedule> {
-    const res = await fetch(`${API_BASE}/api/schedules/${id}`, {
+    const res = await scheduleMutationFetch(`${API_BASE}/api/schedules/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify(data),
@@ -176,7 +189,7 @@ export async function updateSchedule(
  * @throws {Error} Throws "Failed to delete schedule" if the API returns a non-2xx response.
  */
 export async function deleteSchedule(id: string): Promise<void> {
-    const res = await fetch(`${API_BASE}/api/schedules/${id}`, {
+    const res = await scheduleMutationFetch(`${API_BASE}/api/schedules/${id}`, {
         method: "DELETE",
         headers: authHeaders(),
     });
@@ -199,7 +212,7 @@ export async function logDose(
     scheduleId: string,
     data: { log_date: string; log_time: string; status: "taken" | "skipped" }
 ): Promise<DoseLog> {
-    const res = await fetch(`${API_BASE}/api/schedules/${scheduleId}/doses`, {
+    const res = await scheduleMutationFetch(`${API_BASE}/api/schedules/${scheduleId}/doses`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify(data),

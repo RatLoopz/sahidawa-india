@@ -3,6 +3,7 @@
 import { useRouter } from "@/i18n/routing";
 import { useCallback, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { PageHeader } from "../../components/PageHeader";
 import Card from "@/components/Card";
@@ -34,6 +35,7 @@ async function searchMedicines(query: string): Promise<Medicine[]> {
 }
 
 export default function NewSchedulePage() {
+    const t = useTranslations("scheduleNew");
     const router = useRouter();
     const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(null);
     const [dosage, setDosage] = useState("1 tablet");
@@ -73,7 +75,7 @@ export default function NewSchedulePage() {
         setError("");
 
         if (!selectedMedicine) {
-            setError("Medicine is required");
+            setError(t("errorMedicineRequired"));
             return;
         }
 
@@ -91,7 +93,7 @@ export default function NewSchedulePage() {
             });
             router.push("/schedule");
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to create schedule");
+            setError(err instanceof Error ? err.message : t("errorCreateFailed"));
         } finally {
             setSaving(false);
         }
@@ -100,8 +102,8 @@ export default function NewSchedulePage() {
     return (
         <div className="flex min-h-screen flex-col bg-(--color-surface-muted) font-sans text-(--color-text-primary)">
             <PageHeader
-                title="Add Medicine"
-                subtitle="Set up a new medicine schedule"
+                title={t("pageTitle")}
+                subtitle={t("pageSubtitle")}
                 backHref="/schedule"
                 variant="light"
             />
@@ -117,11 +119,11 @@ export default function NewSchedulePage() {
 
                         <div className="flex flex-col gap-1.5">
                             <MedicineSearchSelect
-                                label="Medicine Name"
+                                label={t("medicineNameLabel")}
                                 value={selectedMedicine}
                                 onChange={setSelectedMedicine}
                                 onSearch={handleSearch}
-                                placeholder="e.g. Paracetamol, Amoxicillin"
+                                placeholder={t("medicineNamePlaceholder")}
                             />
                         </div>
 
@@ -130,24 +132,24 @@ export default function NewSchedulePage() {
                                 htmlFor="dosage"
                                 className="text-sm font-bold text-(--color-text-primary)"
                             >
-                                Dosage
+                                {t("dosageLabel")}
                             </label>
                             <input
                                 id="dosage"
                                 type="text"
                                 value={dosage}
                                 onChange={(e) => setDosage(e.target.value)}
-                                placeholder="e.g. 1 tablet, 5ml"
+                                placeholder={t("dosagePlaceholder")}
                                 className="rounded-lg border border-(--color-border-muted) bg-(--color-surface-muted) px-3 py-2.5 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
                             />
                         </div>
 
                         <div className="flex flex-col gap-1.5">
                             <label className="text-sm font-bold text-(--color-text-primary)">
-                                Dose Times
+                                {t("doseTimesLabel")}
                             </label>
                             <p className="mb-1 text-xs text-(--color-text-secondary)">
-                                When do you need to take this medicine?
+                                {t("doseTimesHelper")}
                             </p>
                             <div className="flex flex-col gap-2">
                                 {times.map((time, index) => (
@@ -165,7 +167,7 @@ export default function NewSchedulePage() {
                                                 type="button"
                                                 onClick={() => removeTime(index)}
                                                 className="rounded-full p-1.5 text-rose-500 transition hover:bg-rose-50 dark:hover:bg-rose-950/30"
-                                                aria-label="Remove time"
+                                                aria-label={t("removeTimeAriaLabel")}
                                             >
                                                 <Trash2 size={16} />
                                             </button>
@@ -179,7 +181,7 @@ export default function NewSchedulePage() {
                                 className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-emerald-600 transition hover:text-emerald-700 dark:text-emerald-400"
                             >
                                 <Plus size={14} />
-                                Add another time
+                                {t("addAnotherTime")}
                             </button>
                         </div>
 
@@ -188,7 +190,7 @@ export default function NewSchedulePage() {
                                 htmlFor="start_date"
                                 className="text-sm font-bold text-(--color-text-primary)"
                             >
-                                Start Date
+                                {t("startDateLabel")}
                             </label>
                             <input
                                 id="start_date"
@@ -204,9 +206,9 @@ export default function NewSchedulePage() {
                                 htmlFor="end_date"
                                 className="text-sm font-bold text-(--color-text-primary)"
                             >
-                                End Date{" "}
+                                {t("endDateLabel")}{" "}
                                 <span className="font-normal text-(--color-text-muted)">
-                                    (optional)
+                                    {t("optional")}
                                 </span>
                             </label>
                             <input
@@ -223,16 +225,16 @@ export default function NewSchedulePage() {
                                 htmlFor="notes"
                                 className="text-sm font-bold text-(--color-text-primary)"
                             >
-                                Notes{" "}
+                                {t("notesLabel")}{" "}
                                 <span className="font-normal text-(--color-text-muted)">
-                                    (optional)
+                                    {t("optional")}
                                 </span>
                             </label>
                             <textarea
                                 id="notes"
                                 value={notes}
                                 onChange={(e) => setNotes(e.target.value)}
-                                placeholder="e.g. Take after food"
+                                placeholder={t("notesPlaceholder")}
                                 rows={3}
                                 className="rounded-lg border border-(--color-border-muted) bg-(--color-surface-muted) px-3 py-2.5 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
                             />
@@ -244,7 +246,7 @@ export default function NewSchedulePage() {
                                 disabled={saving}
                                 className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
                             >
-                                {saving ? "Saving..." : "Save Schedule"}
+                                {saving ? t("saving") : t("saveSchedule")}
                             </button>
                         </div>
                     </form>

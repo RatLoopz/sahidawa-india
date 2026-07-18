@@ -361,4 +361,22 @@ Authorization: Bearer <token>
 
 ---
 
+## Administrative Scripts
+
+### Rotate ABDM Sandbox Client Secret
+
+If the `ABDM_SANDBOX_CLIENT_SECRET` is compromised or needs regular rotation, you can use the CLI script to decrypt and re-encrypt all active ABHA sessions.
+
+**Usage:**
+
+```bash
+cd apps/api
+OLD_ABDM_SECRET="<your-old-secret>" NEW_ABDM_SECRET="<your-new-secret>" npx ts-node scripts/rotate-abha-secret.ts
+```
+
+After running the script successfully, update your `.env` or deployment variables to use the new secret:
+`ABDM_SANDBOX_CLIENT_SECRET="<your-new-secret>"`
+
+---
+
 _Last updated: May 2025 — GSSoC Issue #301_

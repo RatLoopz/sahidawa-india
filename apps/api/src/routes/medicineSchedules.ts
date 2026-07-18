@@ -87,12 +87,45 @@ const timeStringSchema = z
     .regex(/^\d{2}:\d{2}$/, "Time must be in HH:MM format")
     .refine(isRealTimeString, { message: "Time must be a real 24-hour time (00:00-23:59)" });
 
+const frequencySchema = z.number().int().positive("Frequency must be at least 1");
+const timesSchema = z.array(timeStringSchema).min(1, "At least one time is required");
+
+const validateFrequencyAndTimes = (
+    data: { frequency: number; times: string[] },
+    ctx: z.RefinementCtx
+) => {
+    const uniqueTimeCount = new Set(data.times).size;
+
+    if (uniqueTimeCount !== data.times.length) {
+        ctx.addIssue({
+            code: "custom",
+            path: ["times"],
+            message: "Dose times must be unique",
+        });
+    }
+
+    if (data.frequency !== uniqueTimeCount) {
+        ctx.addIssue({
+            code: "custom",
+            path: ["frequency"],
+            message: "Frequency must match the number of unique dose times",
+        });
+    }
+};
+
+const frequencyTimesSchema = z
+    .object({
+        frequency: frequencySchema,
+        times: timesSchema,
+    })
+    .superRefine(validateFrequencyAndTimes);
+
 const createScheduleObjectSchema = z
     .object({
         medicine_name: z.string().min(1, "Medicine name is required"),
         dosage: z.string().min(1, "Dosage is required").default("1 tablet"),
-        frequency: z.number().int().positive("Frequency must be at least 1"),
-        times: z.array(timeStringSchema).min(1, "At least one time is required"),
+        frequency: frequencySchema,
+        times: timesSchema,
         start_date: dateStringSchema,
         end_date: dateStringSchema.nullable().optional(),
         notes: z.string().optional(),
@@ -100,15 +133,24 @@ const createScheduleObjectSchema = z
     })
     .strict();
 
-const createScheduleSchema = createScheduleObjectSchema.refine(
-    (data) => !data.end_date || data.end_date >= data.start_date,
-    { message: "end_date must not be before start_date", path: ["end_date"] }
-);
+const createScheduleSchema = createScheduleObjectSchema
+    .superRefine(validateFrequencyAndTimes)
+    .refine((data) => !data.end_date || data.end_date >= data.start_date, {
+        message: "end_date must not be before start_date",
+        path: ["end_date"],
+    });
 
-const updateScheduleSchema = createScheduleObjectSchema.partial().refine(
-    (data) => !data.end_date || !data.start_date || data.end_date >= data.start_date,
-    { message: "end_date must not be before start_date", path: ["end_date"] }
-);
+const updateScheduleSchema = createScheduleObjectSchema
+    .partial()
+    .superRefine((data, ctx) => {
+        if (data.frequency !== undefined && data.times !== undefined) {
+            validateFrequencyAndTimes({ frequency: data.frequency, times: data.times }, ctx);
+        }
+    })
+    .refine((data) => !data.end_date || !data.start_date || data.end_date >= data.start_date, {
+        message: "end_date must not be before start_date",
+        path: ["end_date"],
+    });
 
 const doseSchema = z
     .object({
@@ -256,35 +298,73 @@ router.put("/:id", requireAuth, async (req: AuthenticatedRequest, res: Response)
     }
 
     try {
+        const touchesDates =
+            parsed.data.start_date !== undefined || parsed.data.end_date !== undefined;
+        const touchesDoseTiming =
+            parsed.data.frequency !== undefined || parsed.data.times !== undefined;
+        const needsStoredDates =
+            touchesDates &&
+            (parsed.data.start_date === undefined || parsed.data.end_date === undefined);
+        const needsStoredDoseTiming =
+            touchesDoseTiming &&
+            (parsed.data.frequency === undefined || parsed.data.times === undefined);
+
+        let existing:
+            | {
+                  start_date: string;
+                  end_date: string | null;
+                  frequency: number;
+                  times: string[];
+              }
+            | null
+            | undefined;
+
+        if (needsStoredDates || needsStoredDoseTiming) {
+            const { data, error: fetchError } = await supabase
+                .from("medicine_schedules")
+                .select("start_date, end_date, frequency, times")
+                .eq("id", req.params.id)
+                .eq("user_id", req.user!.id)
+                .maybeSingle();
+
+            if (fetchError) {
+                res.status(500).json({ error: "Failed to update schedule" });
+                return;
+            }
+            if (!data) {
+                res.status(404).json({ error: "Schedule not found" });
+                return;
+            }
+            existing = data;
+        }
+
         // If this update touches start_date or end_date, make sure the resulting
         // pair is never inverted — even when only one of the two is being changed,
         // in which case we need the current value of the other from the DB.
-        if (parsed.data.start_date !== undefined || parsed.data.end_date !== undefined) {
-            let effectiveStartDate = parsed.data.start_date;
-            let effectiveEndDate = parsed.data.end_date;
-
-            if (effectiveStartDate === undefined || effectiveEndDate === undefined) {
-                const { data: existing, error: fetchError } = await supabase
-                    .from("medicine_schedules")
-                    .select("start_date, end_date")
-                    .eq("id", req.params.id)
-                    .eq("user_id", req.user!.id)
-                    .maybeSingle();
-
-                if (fetchError) {
-                    res.status(500).json({ error: "Failed to update schedule" });
-                    return;
-                }
-                if (!existing) {
-                    res.status(404).json({ error: "Schedule not found" });
-                    return;
-                }
-                if (effectiveStartDate === undefined) effectiveStartDate = existing.start_date;
-                if (effectiveEndDate === undefined) effectiveEndDate = existing.end_date ?? undefined;
-            }
+        if (touchesDates) {
+            const effectiveStartDate = parsed.data.start_date ?? existing?.start_date;
+            const effectiveEndDate =
+                parsed.data.end_date !== undefined
+                    ? parsed.data.end_date
+                    : (existing?.end_date ?? undefined);
 
             if (effectiveEndDate && effectiveStartDate && effectiveEndDate < effectiveStartDate) {
                 res.status(400).json({ error: "end_date must not be before start_date" });
+                return;
+            }
+        }
+
+        if (touchesDoseTiming) {
+            const consistencyResult = frequencyTimesSchema.safeParse({
+                frequency: parsed.data.frequency ?? existing?.frequency,
+                times: parsed.data.times ?? existing?.times,
+            });
+
+            if (!consistencyResult.success) {
+                res.status(400).json({
+                    error: "Invalid request body",
+                    details: consistencyResult.error.flatten().fieldErrors,
+                });
                 return;
             }
         }
@@ -472,31 +552,56 @@ router.get("/:id/stats", requireAuth, async (req: AuthenticatedRequest, res: Res
             return;
         }
 
-        const dayCount = Math.round((toDate.getTime() - fromDate.getTime()) / 86400000) + 1;
+        const requestedDayCount =
+            Math.round((toDate.getTime() - fromDate.getTime()) / 86400000) + 1;
 
-        if (dayCount > 365) {
+        if (requestedDayCount > 365) {
             res.status(400).json({ error: "Date range cannot exceed 365 days" });
             return;
         }
 
-        const expectedDoses = dayCount * schedule.frequency;
+        const activeFrom = from > schedule.start_date ? from : schedule.start_date;
+        const activeTo = schedule.end_date && schedule.end_date < to ? schedule.end_date : to;
+        const hasActiveDays = activeFrom <= activeTo;
+        const activeDayCount = hasActiveDays
+            ? Math.round(
+                  (new Date(activeTo).getTime() - new Date(activeFrom).getTime()) / 86400000
+              ) + 1
+            : 0;
+        const expectedDoses = activeDayCount * schedule.frequency;
 
-        const { data: doseLogs, error: doseError } = await supabase
-            .from("dose_logs")
-            .select("*")
-            .eq("schedule_id", req.params.id)
-            .eq("user_id", req.user!.id)
-            .gte("log_date", from)
-            .lte("log_date", to)
-            .limit(500);
+        let doseLogs: any[] = [];
 
-        if (doseError) {
-            res.status(500).json({ error: "Failed to fetch adherence data" });
-            return;
+        if (hasActiveDays) {
+            let offset = 0;
+            const DOSE_LOG_PAGE_SIZE = 500;
+
+            while (true) {
+                const { data: page, error: doseError } = await supabase
+                    .from("dose_logs")
+                    .select("*")
+                    .eq("schedule_id", req.params.id)
+                    .eq("user_id", req.user!.id)
+                    .gte("log_date", activeFrom)
+                    .lte("log_date", activeTo)
+                    .order("id", { ascending: true })
+                    .range(offset, offset + DOSE_LOG_PAGE_SIZE - 1);
+
+                if (doseError) {
+                    res.status(500).json({ error: "Failed to fetch adherence data" });
+                    return;
+                }
+
+                const currentPage = page ?? [];
+                doseLogs.push(...currentPage);
+
+                if (currentPage.length < DOSE_LOG_PAGE_SIZE) break;
+                offset += DOSE_LOG_PAGE_SIZE;
+            }
         }
 
-        const takenCount = (doseLogs ?? []).filter((d) => d.status === "taken").length;
-        const skippedCount = (doseLogs ?? []).filter((d) => d.status === "skipped").length;
+        const takenCount = doseLogs.filter((d) => d.status === "taken").length;
+        const skippedCount = doseLogs.filter((d) => d.status === "skipped").length;
         const adherencePercent =
             expectedDoses > 0 ? Math.round((takenCount / expectedDoses) * 100) : 100;
 
@@ -508,7 +613,7 @@ router.get("/:id/stats", requireAuth, async (req: AuthenticatedRequest, res: Res
                 adherence_percent: adherencePercent,
                 period: { from, to },
             },
-            doses: doseLogs ?? [],
+            doses: doseLogs,
         });
     } catch (err) {
         logger.error("Error fetching adherence stats", { error: err, scheduleId: req.params.id });

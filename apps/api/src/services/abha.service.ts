@@ -235,14 +235,32 @@ const encryptWithAbdmPublicKey = (value: string, publicKey: string): string => {
     }
 };
 
-function encryptToken(token: string): { encryptedToken: string; iv: string; salt: string } {
+export function encryptToken(
+    token: string,
+    secret?: string
+): { encryptedToken: string; iv: string; salt: string } {
     const iv = crypto.randomBytes(16);
     const salt = crypto.randomBytes(16);
-    const key = crypto.scryptSync(getRequiredEnv("ABDM_SANDBOX_CLIENT_SECRET"), salt, 32);
+    const key = crypto.scryptSync(secret || getRequiredEnv("ABDM_SANDBOX_CLIENT_SECRET"), salt, 32);
     const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
     let encryptedToken = cipher.update(token, "utf8", "hex");
     encryptedToken += cipher.final("hex");
     return { encryptedToken, iv: iv.toString("hex"), salt: salt.toString("hex") };
+}
+
+export function decryptToken(
+    encryptedToken: string,
+    ivHex: string,
+    saltHex: string,
+    secret?: string
+): string {
+    const iv = Buffer.from(ivHex, "hex");
+    const salt = Buffer.from(saltHex, "hex");
+    const key = crypto.scryptSync(secret || getRequiredEnv("ABDM_SANDBOX_CLIENT_SECRET"), salt, 32);
+    const decipher = crypto.createDecipheriv("aes-256-cbc", key, iv);
+    let decrypted = decipher.update(encryptedToken, "hex", "utf8");
+    decrypted += decipher.final("utf8");
+    return decrypted;
 }
 
 const isMappedAbdmError = (message: string): boolean =>

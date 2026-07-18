@@ -269,7 +269,7 @@ export async function fetchPmjayEligibility(
                 link: s.link,
             }));
         } catch (err: any) {
-            console.log("CATCH ERR: ", err);
+            logger.error("Error evaluating eligibility: ", err);
             const errName = err?.name;
             if (
                 err instanceof PmjayAuthError ||

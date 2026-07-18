@@ -31,7 +31,7 @@ router.post(
         if (!isValid) {
             logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/health-schemes", {
                 ip: req.ip,
-                headers: req.headers,
+                headers: { ...req.headers, authorization: undefined },
             });
             res.status(401).json({ error: "Unauthorized" });
             return;
@@ -103,7 +103,7 @@ router.post(
         if (!isValid) {
             logger.warn("Unauthorized webhook attempt on /api/webhooks/supabase/medicines", {
                 ip: req.ip,
-                headers: req.headers,
+                headers: { ...req.headers, authorization: undefined },
             });
             res.status(401).json({ error: "Unauthorized" });
             return;

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useRouter } from "@/i18n/routing";
 import { AlertTriangle, LogIn, Pill, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "../../components/PageHeader";
 import Card from "@/components/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -27,6 +28,7 @@ type LoadState =
     | { kind: "ready"; schedule: Schedule; stats: AdherenceStats | null };
 
 export default function ScheduleDetailPage() {
+    const t = useTranslations("scheduleDetail");
     const params = useParams<{ id: string }>();
     const router = useRouter();
     const { token, isLoading: authLoading } = useSession();
@@ -58,7 +60,7 @@ export default function ScheduleDetailPage() {
             } else {
                 setState({
                     kind: "networkError",
-                    message: "Cannot reach the API. Is the backend server running on port 4000?",
+                    message: t("networkErrorMessage"),
                 });
             }
         }
@@ -83,7 +85,7 @@ export default function ScheduleDetailPage() {
     };
 
     const handleDelete = async () => {
-        if (!confirm("Delete this schedule? This action cannot be undone.")) return;
+        if (!confirm(t("deleteConfirm"))) return;
         setDeleting(true);
         try {
             await deleteSchedule(state.kind === "ready" ? state.schedule.id : params.id);
@@ -105,8 +107,8 @@ export default function ScheduleDetailPage() {
     return (
         <div className="flex min-h-screen flex-col bg-(--color-surface-muted) font-sans text-(--color-text-primary)">
             <PageHeader
-                title="Schedule Details"
-                subtitle="View and manage your medicine schedule"
+                title={t("pageTitle")}
+                subtitle={t("pageSubtitle")}
                 backHref="/schedule"
                 variant="light"
             />
@@ -125,9 +127,9 @@ export default function ScheduleDetailPage() {
                 {state.kind === "authError" && (
                     <EmptyState
                         icon={<LogIn size={26} className="text-amber-600" />}
-                        title="Sign in required"
-                        description="Please sign in to manage your schedules."
-                        actionLabel="Go to Login"
+                        title={t("authErrorTitle")}
+                        description={t("authErrorDescription")}
+                        actionLabel={t("authErrorAction")}
                         actionHref="/login"
                         className="border-(--color-border-muted) bg-(--color-surface-page)!"
                     />
@@ -136,9 +138,9 @@ export default function ScheduleDetailPage() {
                 {state.kind === "networkError" && (
                     <EmptyState
                         icon={<AlertTriangle size={26} className="text-rose-600" />}
-                        title="Connection Error"
+                        title={t("networkErrorTitle")}
                         description={state.message}
-                        actionLabel="Try again"
+                        actionLabel={t("networkErrorAction")}
                         onAction={fetchData}
                         className="border-rose-200 bg-(--color-surface-page)! dark:border-rose-950/40"
                     />
@@ -147,9 +149,9 @@ export default function ScheduleDetailPage() {
                 {state.kind === "notFound" && (
                     <EmptyState
                         icon={<Pill size={26} className="text-slate-400" />}
-                        title="Schedule not found"
-                        description="This medicine schedule may have been deleted."
-                        actionLabel="Back to Schedules"
+                        title={t("notFoundTitle")}
+                        description={t("notFoundDescription")}
+                        actionLabel={t("notFoundAction")}
                         actionHref="/schedule"
                         className="border-(--color-border-muted) bg-(--color-surface-page)!"
                     />
@@ -175,22 +177,26 @@ export default function ScheduleDetailPage() {
                                                 : "bg-slate-100 text-slate-600 dark:bg-slate-900/30 dark:text-slate-400"
                                         }`}
                                     >
-                                        {state.schedule.is_active ? "Active" : "Paused"}
+                                        {state.schedule.is_active
+                                            ? t("statusActive")
+                                            : t("statusPaused")}
                                     </span>
                                 </div>
 
                                 <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
                                     <div>
                                         <span className="font-medium text-(--color-text-muted)">
-                                            Frequency
+                                            {t("frequencyLabel")}
                                         </span>
                                         <p className="mt-0.5 font-semibold text-(--color-text-primary)">
-                                            {state.schedule.frequency}x per day
+                                            {t("frequencyValue", {
+                                                count: state.schedule.frequency,
+                                            })}
                                         </p>
                                     </div>
                                     <div>
                                         <span className="font-medium text-(--color-text-muted)">
-                                            Times
+                                            {t("timesLabel")}
                                         </span>
                                         <p className="mt-0.5 font-semibold text-(--color-text-primary)">
                                             {(state.schedule.times as string[])
@@ -200,7 +206,7 @@ export default function ScheduleDetailPage() {
                                     </div>
                                     <div>
                                         <span className="font-medium text-(--color-text-muted)">
-                                            Start Date
+                                            {t("startDateLabel")}
                                         </span>
                                         <p className="mt-0.5 font-semibold text-(--color-text-primary)">
                                             {formatDate(state.schedule.start_date)}
@@ -208,18 +214,18 @@ export default function ScheduleDetailPage() {
                                     </div>
                                     <div>
                                         <span className="font-medium text-(--color-text-muted)">
-                                            End Date
+                                            {t("endDateLabel")}
                                         </span>
                                         <p className="mt-0.5 font-semibold text-(--color-text-primary)">
                                             {state.schedule.end_date
                                                 ? formatDate(state.schedule.end_date)
-                                                : "Ongoing"}
+                                                : t("ongoing")}
                                         </p>
                                     </div>
                                     {state.schedule.notes && (
                                         <div className="col-span-2">
                                             <span className="font-medium text-(--color-text-muted)">
-                                                Notes
+                                                {t("notesLabel")}
                                             </span>
                                             <p className="mt-0.5 font-semibold text-(--color-text-primary)">
                                                 {state.schedule.notes}
@@ -234,7 +240,7 @@ export default function ScheduleDetailPage() {
                                         onClick={handleToggleActive}
                                         className="inline-flex items-center gap-1.5 rounded-lg border border-(--color-border-muted) px-3 py-2 text-sm font-semibold text-(--color-text-secondary) transition hover:bg-(--color-surface-muted)"
                                     >
-                                        {state.schedule.is_active ? "Pause" : "Resume"}
+                                        {state.schedule.is_active ? t("pause") : t("resume")}
                                     </button>
                                     <button
                                         type="button"
@@ -243,7 +249,7 @@ export default function ScheduleDetailPage() {
                                         className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 disabled:opacity-50 dark:border-rose-900/40 dark:hover:bg-rose-950/30"
                                     >
                                         <Trash2 size={14} />
-                                        {deleting ? "Deleting..." : "Delete"}
+                                        {deleting ? t("deleting") : t("delete")}
                                     </button>
                                 </div>
                             </div>
@@ -253,7 +259,7 @@ export default function ScheduleDetailPage() {
                             <Card className="border-(--color-border-muted) bg-(--color-surface-page)">
                                 <div className="p-6">
                                     <h3 className="mb-4 text-lg font-bold text-(--color-text-primary)">
-                                        Adherence (Past 7 Days)
+                                        {t("adherenceTitle")}
                                     </h3>
 
                                     <div className="mb-4 flex items-center gap-4">
@@ -270,7 +276,7 @@ export default function ScheduleDetailPage() {
                                                 {state.stats.adherence_percent}%
                                             </span>
                                             <span className="text-xs text-(--color-text-muted)">
-                                                adherence
+                                                {t("adherenceLabel")}
                                             </span>
                                         </div>
                                         <div className="flex flex-1 gap-4">
@@ -279,7 +285,7 @@ export default function ScheduleDetailPage() {
                                                     {state.stats.taken}
                                                 </span>
                                                 <span className="text-xs text-(--color-text-muted)">
-                                                    Taken
+                                                    {t("statTaken")}
                                                 </span>
                                             </div>
                                             <div className="flex flex-col items-center rounded-lg bg-(--color-surface-muted) px-3 py-2">
@@ -287,7 +293,7 @@ export default function ScheduleDetailPage() {
                                                     {state.stats.skipped}
                                                 </span>
                                                 <span className="text-xs text-(--color-text-muted)">
-                                                    Skipped
+                                                    {t("statSkipped")}
                                                 </span>
                                             </div>
                                             <div className="flex flex-col items-center rounded-lg bg-(--color-surface-muted) px-3 py-2">
@@ -295,7 +301,7 @@ export default function ScheduleDetailPage() {
                                                     {state.stats.expected_doses}
                                                 </span>
                                                 <span className="text-xs text-(--color-text-muted)">
-                                                    Expected
+                                                    {t("statExpected")}
                                                 </span>
                                             </div>
                                         </div>

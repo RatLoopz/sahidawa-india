@@ -324,20 +324,24 @@ router.post(
             const origin = req.headers.origin ?? null;
 
             setImmediate(async () => {
-                const { error: insertError } = await supabase.from("scan_history").insert([
-                    {
-                        batch_number: data.batch_number,
-                        medicine_id: data.id,
-                        barcode_id: data.barcode_id,
-                        client_ip: clientIp,
-                        origin,
-                        user_agent: userAgent,
-                        latitude: latitude ?? null,
-                        longitude: longitude ?? null,
-                    },
-                ]);
-                if (insertError) {
-                    logger.error("Failed to record scan history", { error: insertError });
+                try {
+                    const { error: insertError } = await supabase.from("scan_history").insert([
+                        {
+                            batch_number: data.batch_number,
+                            medicine_id: data.id,
+                            barcode_id: data.barcode_id,
+                            client_ip: clientIp,
+                            origin,
+                            user_agent: userAgent,
+                            latitude: latitude ?? null,
+                            longitude: longitude ?? null,
+                        },
+                    ]);
+                    if (insertError) {
+                        logger.error("Failed to record scan history", { error: insertError });
+                    }
+                } catch (err) {
+                    logger.error("Scan history insert threw unexpectedly", { error: err });
                 }
             });
 

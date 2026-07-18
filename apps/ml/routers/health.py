@@ -21,6 +21,12 @@ except ImportError:
 
 router = APIRouter(tags=["Health"])
 
+try:
+    from services.tflite_inference import tflite_runner
+    tflite_loaded = getattr(tflite_runner, "is_loaded", False)
+except ImportError:
+    tflite_loaded = False
+
 @router.get("/models/current", dependencies=[Depends(verify_api_key)])
 def get_current_models():
     # ASR model metadata
@@ -79,6 +85,11 @@ def get_current_models():
                 "size_bytes": f.stat().st_size,
                 "exists": True
             })
+            
+    tflite_metadata = {
+        "is_loaded": tflite_loaded,
+        "models": tflite_models
+    }
 
     return {
         "asr": asr_metadata,
@@ -86,5 +97,5 @@ def get_current_models():
         "ner": ner_metadata,
         "embedding": embedding_metadata,
         "triage": triage_metadata,
-        "tflite_models": tflite_models
+        "tflite": tflite_metadata
     }

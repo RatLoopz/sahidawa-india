@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useTranslations } from "next-intl";
-import { API_BASE } from "@/lib/api";
+import { API_BASE, getCsrfToken } from "@/lib/api";
+import { fetchWithRetry } from "@/lib/apiWithRetry";
+import { useSession } from "@/src/components/AuthProvider";
 
 interface ExpiryTrackerProps {
     medicineId: string;
@@ -9,6 +11,7 @@ interface ExpiryTrackerProps {
 
 export const ExpiryTracker = ({ medicineId, medicineName }: ExpiryTrackerProps) => {
     const t = useTranslations("Tracking");
+    const { token } = useSession();
     const [batchNumber, setBatchNumber] = useState("");
     const [expiryDate, setExpiryDate] = useState("");
     const [error, setError] = useState<string | null>(null);
@@ -80,10 +83,21 @@ export const ExpiryTracker = ({ medicineId, medicineName }: ExpiryTrackerProps) 
             return;
         }
 
+        if (!token) {
+            setError(t("error"));
+            return;
+        }
+
         try {
-            const response = await fetch(`${API_BASE}/api/v1/medicines/track`, {
+            const csrfToken = await getCsrfToken();
+            const response = await fetchWithRetry(`${API_BASE}/api/v1/medicines/track`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                    "x-csrf-token": csrfToken,
+                },
+                credentials: "include",
                 body: JSON.stringify({
                     medicine_id: medicineId,
                     medicine_name: medicineName,
