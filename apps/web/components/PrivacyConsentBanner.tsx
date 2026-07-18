@@ -1,36 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useTranslations } from "next-intl";
+import { usePrivacyConsent } from "@/components/PrivacyConsentProvider";
 
 export default function PrivacyConsentBanner() {
     const t = useTranslations("PrivacyConsent");
-    const [isVisible, setIsVisible] = useState(false);
+    const { hasRespondedToConsent, acceptAll, denyAll } = usePrivacyConsent();
 
-    useEffect(() => {
-        // Check agar user ne pehle se consent de rakha hai
-        const locationConsent = localStorage.getItem("consent_location");
-        const scanConsent = localStorage.getItem("consent_scan_history");
-
-        if (!locationConsent || !scanConsent) {
-            setIsVisible(true);
-        }
-    }, []);
-
-    const handleAcceptAll = () => {
-        localStorage.setItem("consent_location", "granted");
-        localStorage.setItem("consent_scan_history", "granted");
-        setIsVisible(false);
-        window.location.reload(); // Refresh to trigger maps/hooks immediately
-    };
-
-    const handleDenyAll = () => {
-        localStorage.setItem("consent_location", "denied");
-        localStorage.setItem("consent_scan_history", "denied");
-        setIsVisible(false);
-    };
-
-    if (!isVisible) return null;
+    if (hasRespondedToConsent) return null;
 
     return (
         <div
@@ -53,13 +31,13 @@ export default function PrivacyConsentBanner() {
                 </div>
                 <div className="flex w-full items-center justify-end gap-3 md:w-auto">
                     <button
-                        onClick={handleDenyAll}
+                        onClick={denyAll}
                         className="hover:bg-accent rounded-md border px-4 py-2 text-sm font-medium transition-colors"
                     >
                         {t("denyAll")}
                     </button>
                     <button
-                        onClick={handleAcceptAll}
+                        onClick={acceptAll}
                         className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium transition-colors"
                     >
                         {t("acceptAll")}
