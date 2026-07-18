@@ -6,10 +6,23 @@ on:
   pull_request:
     branches: [main]
 
-# Org and project IDs are read from the environment by `vercel pull`.
+# Credentials are read from the environment by the Vercel CLI. Passing the token
+# this way rather than as a --token flag keeps it out of command-line arguments,
+# which the CLI docs recommend for CI: https://vercel.com/docs/cli/global-options
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+# Only the checkout needs repository access.
+permissions:
+  contents: read
+
+# A newer commit makes an in-flight preview obsolete, so drop it. Production
+# deploys are left to finish rather than cancelled halfway.
+concurrency:
+  group: deploy-web-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   deploy:
@@ -44,10 +57,10 @@ jobs:
           fi
 
       - name: Pull Vercel environment
-        run: vercel pull --yes --environment=${{ steps.target.outputs.environment }} --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=${{ steps.target.outputs.environment }}
 
       - name: Build project
-        run: vercel build ${{ steps.target.outputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel build ${{ steps.target.outputs.environment == 'production' && '--prod' || '' }}
 
       - name: Deploy to Vercel
-        run: vercel deploy --prebuilt ${{ steps.target.outputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel deploy --prebuilt ${{ steps.target.outputs.environment == 'production' && '--prod' || '' }}
