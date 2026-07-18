@@ -81,14 +81,25 @@ function DoseButton({
         onStatusChange(time, status);
 
         try {
-            await logDose(scheduleId, {
+            const response = await logDose(scheduleId, {
                 log_date: logDate,
                 log_time: time,
                 status,
             });
-            toast.success(status === "taken" ? t("doseLoggedSuccess") : t("doseSkippedSuccess"), {
-                id: `dose-${scheduleId}-${time}`,
-            });
+
+            // 2. Check karo agar api offline mode mein queue hui hai
+            if (response && response.offline) {
+                toast.info(t("doseSavedOffline") || "Saved offline. Will sync when online.", {
+                    id: `dose-${scheduleId}-${time}`,
+                });
+            } else {
+                toast.success(
+                    status === "taken" ? t("doseLoggedSuccess") : t("doseSkippedSuccess"),
+                    {
+                        id: `dose-${scheduleId}-${time}`,
+                    }
+                );
+            }
         } catch {
             // Revert optimistic update
             onStatusChange(time, previousStatus);
