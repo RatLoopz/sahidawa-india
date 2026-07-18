@@ -2,17 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { Bell, BellOff } from "lucide-react";
-import { API_BASE } from "@/lib/api";
+import { API_BASE, getCsrfToken } from "@/lib/api";
+import { fetchWithRetry } from "@/lib/apiWithRetry";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 import { useSession } from "@/src/components/AuthProvider";
 
 type SubscribeState =
-    | "idle"
-    | "subscribing"
-    | "subscribed"
-    | "unsupported"
-    | "error"
-    | "unsubscribing";
+    "idle" | "subscribing" | "subscribed" | "unsupported" | "error" | "unsubscribing";
 
 function urlBase64ToUint8Array(value: string) {
     const padding = "=".repeat((4 - (value.length % 4)) % 4);
@@ -36,6 +32,20 @@ async function getVapidPublicKey() {
     }
 
     return data.publicKey;
+}
+
+async function subscriptionMutationFetch(token: string, options: RequestInit): Promise<Response> {
+    const csrfToken = await getCsrfToken();
+    return fetchWithRetry(`${API_BASE}/api/notifications/subscriptions`, {
+        ...options,
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            ...(options.headers as Record<string, string> | undefined),
+            "x-csrf-token": csrfToken,
+        },
+        credentials: "include",
+    });
 }
 
 export default function RecallPushSubscriber() {
@@ -71,17 +81,16 @@ export default function RecallPushSubscriber() {
             const registration = await navigator.serviceWorker.getRegistration("/sw.js");
             const existing = await registration?.pushManager.getSubscription();
             if (existing) {
-                await existing.unsubscribe();
                 if (token) {
-                    await fetch(`${API_BASE}/api/notifications/subscriptions`, {
+                    const res = await subscriptionMutationFetch(token, {
                         method: "DELETE",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
                         body: JSON.stringify({ endpoint: existing.endpoint }),
                     });
+                    if (!res.ok) {
+                        throw new Error("Unable to disable alerts. Please try again.");
+                    }
                 }
+                await existing.unsubscribe();
             }
             setState("idle");
             setMessage(null);
@@ -122,17 +131,17 @@ export default function RecallPushSubscriber() {
                 return;
             }
 
-            const res = await fetch(`${API_BASE}/api/notifications/subscriptions`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(subscription),
-            });
-
-            if (!res.ok) {
-                throw new Error("Failed to save push subscription");
+            try {
+                const res = await subscriptionMutationFetch(token, {
+                    method: "POST",
+                    body: JSON.stringify(subscription),
+                });
+                if (!res.ok) {
+                    throw new Error("Failed to save push subscription");
+                }
+            } catch (error) {
+                await subscription.unsubscribe().catch(() => false);
+                throw error;
             }
 
             setState("subscribed");
