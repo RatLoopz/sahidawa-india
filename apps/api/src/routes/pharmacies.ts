@@ -10,10 +10,13 @@ import { redisCache } from "../middleware/redisCache";
 import multer from "multer";
 import { buildOrConditions } from "../utils/db";
 
+import { PharmacyService } from "../services/pharmacy.service";
+
 const upload = multer({ storage: multer.memoryStorage() });
 
 const router = Router();
-
+// Instantiate service layer to use across route controllers
+const pharmacyService = new PharmacyService();
 // ── Constants ────────────────────────────────────────────────────────────────
 
 /** Maximum number of pharmacies returned per request */
@@ -110,60 +113,18 @@ router.post(
             return;
         }
 
-        const data = {
-            ...parsed.data,
-            created_by: req.user.id,
-        };
         try {
-            // Check for an existing pharmacy with the same licenseId before inserting.
-            // Without this check concurrent or repeated requests can create duplicate
-            // records for the same physical location, corrupting search results and
-            // user-facing data.
-            const { data: existing, error: lookupError } = await supabase
-                .from("pharmacies")
-                .select("id")
-                .eq("license_id", data.licenseId)
-                .maybeSingle();
+            // Moving all business checks and database creation requests to the service layer
+            const result = await pharmacyService.registerNewPharmacy(parsed.data, req.user.id);
 
-            if (lookupError) {
-                logger.error("Pharmacy duplicate check failed", { error: lookupError });
-                next(lookupError);
-                return;
-            }
-
-            if (existing) {
+            if (result.alreadyExists) {
                 res.status(409).json({
                     error: "A pharmacy with this license ID is already registered",
                 });
                 return;
             }
 
-            const { data: pharmacy, error: insertError } = await supabase
-                .from("pharmacies")
-                .insert({
-                    name: data.name,
-                    license_id: data.licenseId,
-                    address: data.address,
-                    district: data.district,
-                    state: data.state,
-                    phone_number: data.phone_number ?? null,
-                    location:
-                        data.lat !== undefined && data.lng !== undefined
-                            ? `POINT(${data.lng} ${data.lat})`
-                            : null,
-                    is_verified: false,
-                    status: "pending",
-                    created_by: data.created_by,
-                })
-                .select()
-                .single();
-
-            if (insertError) {
-                next(insertError);
-                return;
-            }
-
-            res.status(201).json({ pharmacy });
+            res.status(201).json({ pharmacy: result.pharmacy });
         } catch (err) {
             next(err);
         }
@@ -1178,7 +1139,7 @@ router.delete(
             // Soft delete by updating status
             const { error: deleteError } = await supabase
                 .from("pharmacies")
-                .update({ status: "rejected" }) // or whatever soft delete status is appropriate
+                .update({ status: "archived" }) // or whatever soft delete status is appropriate
                 .eq("id", pharmacyId);
 
             if (deleteError) {
@@ -1234,6 +1195,14 @@ router.post(
                 return;
             }
 
+            // Check if the uploaded file is actually a CSV
+            if (req.file.mimetype !== "text/csv" && !req.file.originalname.endsWith(".csv")) {
+                res.status(400).json({
+                    error: "Invalid file type. Please upload a valid CSV file.",
+                });
+                return;
+            }
+
             const fileContent = req.file.buffer.toString("utf-8");
 
             const lines = fileContent
@@ -1253,6 +1222,24 @@ router.post(
             }
 
             const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+
+            // Verify all required headers exist before parsing rows
+            const requiredHeaders = [
+                "medicine_name",
+                "batch_number",
+                "expiry_date",
+                "quantity",
+                "mrp",
+            ];
+            const missingHeaders = requiredHeaders.filter((h) => !headers.includes(h));
+
+            if (missingHeaders.length > 0) {
+                res.status(400).json({
+                    error: `Missing required CSV headers: ${missingHeaders.join(", ")}`,
+                });
+                return;
+            }
+
             const rowsToInsert: any[] = [];
             const failedRows: Array<{ row: number; reason: string }> = [];
 
@@ -1270,7 +1257,7 @@ router.post(
                 const validationResult = inventoryRowSchema.safeParse(rowData);
                 if (!validationResult.success) {
                     const errorMessage = validationResult.error.issues
-                        .map((e: { message: string }) => e.message)
+                        .map((e) => e.message)
                         .join(", ");
                     failedRows.push({ row: i + 1, reason: errorMessage });
                     continue;

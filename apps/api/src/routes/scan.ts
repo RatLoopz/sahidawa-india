@@ -62,6 +62,28 @@ const upload = multer({
     },
 });
 
+const ADVANCED_MATCH_FILLER = new Set([
+    "acid",
+    "tablets",
+    "tablet",
+    "capsule",
+    "capsules",
+    "mg",
+    "mcg",
+    "g",
+    "ml",
+    "ip",
+    "bp",
+    "usp",
+    "diluted",
+    "anhydrous",
+    "trihydrate",
+    "potassium",
+    "sodium",
+    "and",
+    "plus",
+]);
+
 function calculateAdvancedMatchScore(ocrText: string, candidate: string): number {
     const normalizedOcr = ocrText
         .toLowerCase()
@@ -72,33 +94,11 @@ function calculateAdvancedMatchScore(ocrText: string, candidate: string): number
         .replace(/amoxycillin/g, "amoxicillin")
         .replace(/clavulanic/g, "clavulanate");
 
-    const FILLER_WORDS = new Set([
-        "acid",
-        "tablets",
-        "tablet",
-        "capsule",
-        "capsules",
-        "mg",
-        "mcg",
-        "g",
-        "ml",
-        "ip",
-        "bp",
-        "usp",
-        "diluted",
-        "anhydrous",
-        "trihydrate",
-        "potassium",
-        "sodium",
-        "and",
-        "plus",
-    ]);
-
     // Split candidate by standard delimiters
     const candidateParts = normalizedCandidate
         .split(/[\s,+/&.-]+/)
         .map((t) => t.trim())
-        .filter((t) => t.length > 2 && !FILLER_WORDS.has(t));
+        .filter((t) => t.length > 2 && !ADVANCED_MATCH_FILLER.has(t));
 
     if (candidateParts.length === 0) return 0;
 
@@ -680,41 +680,31 @@ router.post("/match", scanQueryLimiter, async (req: Request, res: Response) => {
                 .filter((w: string) => w.length > 2);
             if (words.length > 1) {
                 const orConditions = buildOrConditions(["brand_name", "generic_name"], words);
-
                 const { data: fallback } = await supabase
                     .from("medicines")
                     .select("brand_name, generic_name")
                     .or(orConditions)
                     .limit(3);
+
                 if (fallback && fallback.length > 0) {
-                    const fallbackResult = fallback.map(
-                        (m: { brand_name: string | null; generic_name: string }) => ({
-                            name: m.brand_name || m.generic_name,
-                            score: 60,
-                        })
-                    );
+                    const fallbackResult = fallback.map((m: any) => ({
+                        name: m.brand_name || m.generic_name,
+                        score: 60,
+                    }));
 
-                    try {
-                        if (redisClient.isOpen)
-                            await redisClient.set(cacheKey, JSON.stringify(fallbackResult), {
-                                EX: 3600,
-                            });
-                    } catch (err) {
-                        /* ignore */
+                    if (redisClient.isOpen) {
+                        await redisClient.set(cacheKey, JSON.stringify(fallbackResult), {
+                            EX: 3600,
+                        });
                     }
-
                     res.status(200).json(fallbackResult);
                     return;
                 }
             }
 
-            try {
-                if (redisClient.isOpen)
-                    await redisClient.set(cacheKey, JSON.stringify([]), { EX: 3600 });
-            } catch (err) {
-                /* ignore */
+            if (redisClient.isOpen) {
+                await redisClient.set(cacheKey, JSON.stringify([]), { EX: 3600 });
             }
-
             res.status(200).json([]);
             return;
         }
