@@ -264,7 +264,7 @@ jobs:
                 const adrLink = log.adr ? ` / [ADR](./${log.adr.replace('docs/devtrack/', '')})` : "";
                 return `| [#${log.prNumber}](${prUrlBase}/${log.prNumber}) | ${log.mergedAt} | ${log.area} | ${log.score} | @${log.author} | ${docLink}${adrLink} |`;
               });
-              const readme = `# SahiDawa DevTrack — Knowledge Index\n\nThis index is automatically maintained by the DevTrack system.\n\nAll PR summaries are now stored in a centralized JSON log.\n\n## All Documented Changes\n\n| PR | Date | Area | Score | Author | Docs |\n|---|---|---|---|---|---|\n${rows.join("\\n")}\n`;
+              const readme = `# SahiDawa DevTrack — Knowledge Index\n\nThis index is automatically maintained by the DevTrack system.\n\nAll PR summaries are now stored in a centralized JSON log.\n\n## All Documented Changes\n\n| PR | Date | Area | Score | Author | Docs |\n|---|---|---|---|---|---|\n${rows.join('\n')}\n`;
 
               const treeItems = [
                 {
