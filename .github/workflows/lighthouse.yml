@@ -38,7 +38,7 @@ jobs:
             ${{ runner.os }}-turbo-
 
       - name: 🏗️ Build Web App
-        run: npm run build --workspace=web
+        run: npx turbo run build --filter=web
         env:
           NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
           NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key
