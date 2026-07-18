@@ -8,6 +8,7 @@ All PR summaries are now stored in a centralized JSON log.
 
 | PR | Date | Area | Score | Author | Docs |
 |---|---|---|---|---|---|
+| [#3736](https://github.com/RatLoopz/sahidawa-india/pull/3736) | 2026-07-18 | Frontend | 10 | @skypank-coder | [View Doc](./2026-07/PR-3736-feat-map-render-anonymized-scan-activity-heatmap-f.md) |
 | [#3728](https://github.com/RatLoopz/sahidawa-india/pull/3728) | 2026-07-18 | Frontend | 8 | @Shreya-nipunge | [View Doc](./2026-07/PR-3728-fix-expiry-authenticate-csrf-protected-tracking-requests.md) |
 | [#3661](https://github.com/RatLoopz/sahidawa-india/pull/3661) | 2026-07-17 | Backend | 9 | @Shreya-nipunge | [View Doc](./2026-07/PR-3661-fix-adherence-dose-log-pagination.md) |
 | [#3653](https://github.com/RatLoopz/sahidawa-india/pull/3653) | 2026-07-17 | DevOps | 7 | @TanCodeX | [View Doc](./2026-07/PR-3653-feat-integrate-lighthouse-ci-for-automated-performance-and-accessibility-auditing.md) |
