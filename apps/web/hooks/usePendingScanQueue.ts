@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { getSyncQueue, type QueuedScan } from "@/lib/db/syncQueue";
-import { initScanQueueSync } from "@/lib/scanQueueSync";
+import { initScanQueueSync, syncPendingScans } from "@/lib/scanQueueSync";
 
 export function usePendingScanQueue() {
     const t = useTranslations("ScanQueue");
@@ -32,10 +32,29 @@ export function usePendingScanQueue() {
         window.addEventListener("online", handleOnline);
 
         const handleMessage = (event: MessageEvent) => {
-            if (event.data && (event.data.type === "SYNC_QUEUE_UPDATED" || event.data.type === "FLUSH_SYNC_QUEUE")) {
+            if (!event.data) return;
+
+            if (event.data.type === "FLUSH_SYNC_QUEUE") {
+                // The service worker's actual Background Sync event fired.
+                // Previously this only called refresh() (re-reading
+                // IndexedDB for display) without ever running the real
+                // verification sync, so Background Sync never did any
+                // actual work unless the window's own 'online' listener
+                // happened to fire too. Run the real sync now.
+                setIsSyncing(true);
+                void syncPendingScans((count) => {
+                    if (count > 0) toast.success(t("synced", { count }));
+                }).finally(() => {
+                    setIsSyncing(false);
+                    void refresh();
+                });
+                return;
+            }
+
+            if (event.data.type === "SYNC_QUEUE_UPDATED") {
                 void refresh();
                 setIsSyncing(false);
-                if (event.data.type === "SYNC_QUEUE_UPDATED" && event.data.count > 0) {
+                if (event.data.count > 0) {
                     toast.success(t("synced", { count: event.data.count }));
                 }
             }
