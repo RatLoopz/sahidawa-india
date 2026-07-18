@@ -332,75 +332,7 @@ function writeDoc(content, relativePath) {
   return relativePath;
 }
 
-function appendToDevtrackLog(entry) {
-  const logPath = join(process.cwd(), "docs/devtrack/devtrack-log.json");
-
-  mkdirSync(dirname(logPath), { recursive: true });
-
-  let logs = [];
-
-  if (existsSync(logPath)) {
-    try {
-      logs = JSON.parse(readFileSync(logPath, "utf8"));
-    } catch {
-      logs = [];
-    }
-  }
-
-  const existingIndex = logs.findIndex(
-    (log) => log.prNumber === entry.prNumber
-  );
-
-  if (existingIndex >= 0) {
-    logs[existingIndex] = entry;
-  } else {
-    logs.push(entry);
-  }
-
-  logs.sort((a, b) => b.prNumber - a.prNumber);
-
-  writeFileSync(logPath, JSON.stringify(logs, null, 2), "utf8");
-
-  console.log("✅ Updated devtrack-log.json");
-}
-
-function updateIndex() {
-  const logPath = join(process.cwd(), "docs/devtrack/devtrack-log.json");
-  const indexPath = join(process.cwd(), "docs/devtrack/README.md");
-  const prUrlBase = `https://github.com/${ctx.repoSlug}/pull`;
-  
-  let logs = [];
-
-  if (existsSync(logPath)) {
-    try {
-      logs = JSON.parse(readFileSync(logPath, "utf8"));
-    } catch {
-      logs = [];
-    }
-  }
-  logs.sort((a, b) => b.prNumber - a.prNumber);
-
-  const rows = logs.map(log => {
-    return `| [#${log.prNumber}](${prUrlBase}/${log.prNumber}) | ${log.mergedAt} | ${log.area} | ${log.score} | @${log.author} | Stored in devtrack-log.json |`;
-  });
- 
-  const readme = `# SahiDawa DevTrack — Knowledge Index
-
-This index is automatically maintained by the DevTrack system.
-
-All PR summaries are now stored in a centralized JSON log.
-
-## All Documented Changes
-
-| PR | Date | Area | Score | Author | Docs |
-|---|---|---|---|---|---|
-${rows.join("\n")}
-`;
-
-  writeFileSync(indexPath, readme, "utf8");
-
-  console.log("✅ README regenerated from devtrack-log.json");
-}
+// ─── Removed appendToDevtrackLog and updateIndex ───
 
 function getNextADRNumber() {
   const adrDir = join(process.cwd(), "docs/devtrack/adr");
@@ -433,7 +365,8 @@ async function main() {
     adr: null
   };
 
-  appendToDevtrackLog(logEntry);
+  writeDoc(JSON.stringify(logEntry, null, 2), "docs/devtrack/new-entry.json");
+  
   // Generate ADR if applicable
   let adrPath = null;
   if (ctx.verdict === "GENERATE+ADR") {
@@ -443,11 +376,9 @@ async function main() {
     adrPath = `docs/devtrack/adr/ADR-${adrNumber}-${prSlug}.md`;
     writeDoc(adrContent, adrPath);
     logEntry.adr = adrPath;
-    appendToDevtrackLog(logEntry);
+    // Re-write to include ADR path
+    writeDoc(JSON.stringify(logEntry, null, 2), "docs/devtrack/new-entry.json");
   }
-
-  // Update the index
-  updateIndex();
 
   // Write output paths for workflow to use in commit message
   if (process.env.GITHUB_OUTPUT) {

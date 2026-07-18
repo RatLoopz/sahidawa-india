@@ -194,7 +194,7 @@ jobs:
               ? `docs(devtrack): add PR-#${PR_NUM} doc + ADR (${AREA}, score ${SCORE}) [skip ci]`
               : `docs(devtrack): add PR-#${PR_NUM} knowledge doc [skip ci]`;
 
-            // Collect all generated files under docs/devtrack/
+            // Collect all generated files under docs/devtrack/ EXCEPT the ones we generate dynamically
             function collectFiles(dir, base = "") {
               const results = [];
               if (!fs.existsSync(dir)) return results;
@@ -204,38 +204,16 @@ jobs:
                 if (entry.isDirectory()) {
                   results.push(...collectFiles(full, rel));
                 } else {
-                  results.push({ rel, full });
+                  if (rel !== "devtrack-log.json" && rel !== "README.md" && rel !== "new-entry.json") {
+                    results.push({ rel, full });
+                  }
                 }
               }
               return results;
             }
 
-            const filesToCommit = collectFiles("docs/devtrack");
-            if (!filesToCommit.length) {
-              console.log("No files to commit.");
-              return;
-            }
-
             const owner = context.repo.owner;
             const repo  = context.repo.repo;
-
-            const treeItems = [];
-            for (const { rel, full } of filesToCommit) {
-              const content = fs.readFileSync(full, "utf8");
-              
-              // Add a 1s delay to prevent triggering GitHub's secondary rate limits on API mutations
-              await new Promise(resolve => setTimeout(resolve, 500));
-              
-              const { data: blob } = await github.rest.git.createBlob({
-                owner, repo, content, encoding: "utf-8"
-              });
-              treeItems.push({
-                path: `docs/devtrack/${rel}`,
-                mode: "100644",
-                type: "blob",
-                sha: blob.sha,
-              });
-            }
 
             // Retry loop for API race conditions
             const MAX_RETRIES = 5;
@@ -254,6 +232,67 @@ jobs:
                 owner, repo, commit_sha: parentSha
               });
               const baseTreeSha = parentCommit.tree.sha;
+
+              // Fetch latest devtrack-log.json directly from main
+              let logs = [];
+              try {
+                const { data: fileData } = await github.rest.repos.getContent({
+                  owner, repo, path: "docs/devtrack/devtrack-log.json", ref: parentSha
+                });
+                const contentStr = Buffer.from(fileData.content, fileData.encoding).toString("utf-8");
+                logs = JSON.parse(contentStr);
+              } catch (e) {
+                console.log("Could not fetch devtrack-log.json from main.");
+              }
+
+              // Append new-entry.json if it exists
+              if (fs.existsSync("docs/devtrack/new-entry.json")) {
+                const newEntry = JSON.parse(fs.readFileSync("docs/devtrack/new-entry.json", "utf8"));
+                const existingIndex = logs.findIndex(log => log.prNumber === newEntry.prNumber);
+                if (existingIndex >= 0) {
+                  logs[existingIndex] = newEntry;
+                } else {
+                  logs.push(newEntry);
+                }
+              }
+              logs.sort((a, b) => b.prNumber - a.prNumber);
+
+              // Generate README
+              const prUrlBase = `https://github.com/${owner}/${repo}/pull`;
+              const rows = logs.map(log => {
+                return `| [#${log.prNumber}](${prUrlBase}/${log.prNumber}) | ${log.mergedAt} | ${log.area} | ${log.score} | @${log.author} | Stored in devtrack-log.json |`;
+              });
+              const readme = `# SahiDawa DevTrack — Knowledge Index\n\nThis index is automatically maintained by the DevTrack system.\n\nAll PR summaries are now stored in a centralized JSON log.\n\n## All Documented Changes\n\n| PR | Date | Area | Score | Author | Docs |\n|---|---|---|---|---|---|\n${rows.join("\\n")}\n`;
+
+              const treeItems = [
+                {
+                  path: "docs/devtrack/devtrack-log.json",
+                  mode: "100644",
+                  type: "blob",
+                  content: JSON.stringify(logs, null, 2)
+                },
+                {
+                  path: "docs/devtrack/README.md",
+                  mode: "100644",
+                  type: "blob",
+                  content: readme
+                }
+              ];
+
+              const filesToCommit = collectFiles("docs/devtrack");
+              for (const { rel, full } of filesToCommit) {
+                const content = fs.readFileSync(full, "utf8");
+                await new Promise(resolve => setTimeout(resolve, 500));
+                const { data: blob } = await github.rest.git.createBlob({
+                  owner, repo, content, encoding: "utf-8"
+                });
+                treeItems.push({
+                  path: `docs/devtrack/${rel}`,
+                  mode: "100644",
+                  type: "blob",
+                  sha: blob.sha,
+                });
+              }
 
               const { data: newTree } = await github.rest.git.createTree({
                 owner, repo, base_tree: baseTreeSha, tree: treeItems
