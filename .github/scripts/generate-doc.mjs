@@ -351,6 +351,14 @@ async function main() {
   // Generate PR summary doc
   console.log("⏳ Calling AI for PR summary...");
   const prDocContent = await callAI(buildPRDocPrompt());
+  
+  const monthYear = dateStr.slice(0, 7);
+  const docDir = join(process.cwd(), `docs/devtrack/${monthYear}`);
+  mkdirSync(docDir, { recursive: true });
+  
+  const docPath = `docs/devtrack/${monthYear}/PR-${ctx.prNumber}-${prSlug}.md`;
+  writeDoc(prDocContent, docPath);
+
   const logEntry = {
     prNumber: Number(ctx.prNumber),
     title: ctx.prTitle,
@@ -358,7 +366,7 @@ async function main() {
     mergedAt: dateStr,
     area: ctx.area,
     score: Number(ctx.score),
-    summary: prDocContent,
+    docPath: docPath,
     linkedIssue: ctx.linkedIssue,
     labels: ctx.labels,
     filesChanged: ctx.filesChanged,
