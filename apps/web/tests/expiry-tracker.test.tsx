@@ -20,7 +20,9 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { ExpiryTracker } from "../components/ExpiryTracker";
-import { API_BASE } from "../lib/api";
+import { API_BASE, getCsrfToken } from "@/lib/api";
+import { fetchWithRetry } from "@/lib/apiWithRetry";
+import { useSession } from "@/src/components/AuthProvider";
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -36,8 +38,24 @@ jest.mock("next-intl", () => ({
     },
 }));
 
+jest.mock("@/lib/api", () => ({
+    API_BASE: "http://localhost:4000",
+    getCsrfToken: jest.fn(),
+}));
+
+jest.mock("@/lib/apiWithRetry", () => ({
+    fetchWithRetry: jest.fn(),
+}));
+
+jest.mock("@/src/components/AuthProvider", () => ({
+    useSession: jest.fn(),
+}));
+
 const mockAlert = jest.fn();
 global.alert = mockAlert;
+const mockGetCsrfToken = jest.mocked(getCsrfToken);
+const mockFetchWithRetry = jest.mocked(fetchWithRetry);
+const mockUseSession = jest.mocked(useSession);
 
 function makeJsonResponse(body: unknown, ok = true, status = 200) {
     return {
@@ -68,12 +86,20 @@ function setup(props = DEFAULT_PROPS) {
 
 describe("ExpiryTracker component", () => {
     beforeEach(() => {
+        jest.clearAllMocks();
         mockAlert.mockClear();
         Object.defineProperty(global, "fetch", {
             configurable: true,
             writable: true,
             value: jest.fn(async () => makeJsonResponse({ tracked: true })),
         });
+        mockUseSession.mockReturnValue({
+            token: "access-token-123",
+            session: null,
+            isLoading: false,
+        });
+        mockGetCsrfToken.mockResolvedValue("csrf-token-123");
+        mockFetchWithRetry.mockResolvedValue(makeJsonResponse({ tracked: true }));
     });
 
     afterEach(() => {
@@ -106,10 +132,10 @@ describe("ExpiryTracker component", () => {
         const fetchMock = global.fetch as jest.Mock;
         setup();
         expect(fetchMock).not.toHaveBeenCalled();
+        expect(mockFetchWithRetry).not.toHaveBeenCalled();
     });
 
     it("calls /api/v1/medicines/track with correct payload on button click", async () => {
-        const fetchMock = global.fetch as jest.Mock;
         const { user } = setup();
 
         const batchInput = screen.getByPlaceholderText("Batch Number");
@@ -121,12 +147,22 @@ describe("ExpiryTracker component", () => {
         await user.click(trackBtn);
 
         await waitFor(() => {
-            expect(fetchMock).toHaveBeenCalledTimes(1);
+            expect(mockFetchWithRetry).toHaveBeenCalledTimes(1);
         });
 
-        const [calledUrl, calledOptions] = fetchMock.mock.calls[0] as [string, RequestInit];
+        const [calledUrl, calledOptions] = mockFetchWithRetry.mock.calls[0] as [
+            string,
+            RequestInit,
+        ];
         expect(calledUrl).toBe(`${API_BASE}/api/v1/medicines/track`);
         expect(calledOptions.method).toBe("POST");
+        expect(mockGetCsrfToken).toHaveBeenCalledTimes(1);
+        expect(calledOptions.credentials).toBe("include");
+        expect(calledOptions.headers).toEqual({
+            "Content-Type": "application/json",
+            Authorization: "Bearer access-token-123",
+            "x-csrf-token": "csrf-token-123",
+        });
 
         const body = JSON.parse(calledOptions.body as string);
         expect(body).toMatchObject({
@@ -138,7 +174,6 @@ describe("ExpiryTracker component", () => {
     });
 
     it("sends the correct Content-Type header", async () => {
-        const fetchMock = global.fetch as jest.Mock;
         const { user } = setup();
 
         const batchInput = screen.getByPlaceholderText("Batch Number");
@@ -148,18 +183,16 @@ describe("ExpiryTracker component", () => {
 
         await user.click(screen.getByRole("button", { name: /track expiry/i }));
 
-        await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(mockFetchWithRetry).toHaveBeenCalledTimes(1));
 
-        const [, calledOptions] = fetchMock.mock.calls[0] as [string, RequestInit];
+        const [, calledOptions] = mockFetchWithRetry.mock.calls[0] as [string, RequestInit];
         expect((calledOptions.headers as Record<string, string>)["Content-Type"]).toBe(
             "application/json"
         );
     });
 
     it("shows the success alert when the API returns ok: true", async () => {
-        (global.fetch as jest.Mock).mockResolvedValueOnce(
-            makeJsonResponse({ tracked: true }, true)
-        );
+        mockFetchWithRetry.mockResolvedValueOnce(makeJsonResponse({ tracked: true }, true));
         const { user } = setup();
 
         const batchInput = screen.getByPlaceholderText("Batch Number");
@@ -175,7 +208,7 @@ describe("ExpiryTracker component", () => {
     });
 
     it("does NOT show a success alert when the API returns ok: false", async () => {
-        (global.fetch as jest.Mock).mockResolvedValueOnce(
+        mockFetchWithRetry.mockResolvedValueOnce(
             makeJsonResponse({ error: "Bad request" }, false, 400)
         );
         const { user } = setup();
@@ -188,8 +221,23 @@ describe("ExpiryTracker component", () => {
         await user.click(screen.getByRole("button", { name: /track expiry/i }));
 
         // Give enough time for async handling
-        await waitFor(() => expect(global.fetch as jest.Mock).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(mockFetchWithRetry).toHaveBeenCalledTimes(1));
         expect(mockAlert).not.toHaveBeenCalled();
+    });
+
+    it("does not submit when authentication is unavailable", async () => {
+        mockUseSession.mockReturnValue({ token: null, session: null, isLoading: false });
+        const { user } = setup();
+
+        await user.type(screen.getByPlaceholderText("Batch Number"), "B12345");
+        fireEvent.change(document.querySelector('input[type="date"]') as HTMLInputElement, {
+            target: { value: "2099-12-31" },
+        });
+        await user.click(screen.getByRole("button", { name: /track expiry/i }));
+
+        expect(mockGetCsrfToken).not.toHaveBeenCalled();
+        expect(mockFetchWithRetry).not.toHaveBeenCalled();
+        expect(screen.getByRole("alert")).toHaveTextContent("error");
     });
 
     it("works correctly with different medicine props", () => {
