@@ -1,2 +1,8 @@
 npx lint-staged
-npm run lint:circular
+
+# The circular-dependency scan walks the whole import graph and takes ~8s, so
+# only pay it when the commit actually touches TypeScript. A commit that is
+# purely docs, JSON or config cannot introduce an import cycle.
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '\.tsx?$'; then
+	npm run lint:circular
+fi
