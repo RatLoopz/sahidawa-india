@@ -16,7 +16,7 @@
         "clean": "npx rimraf .turbo node_modules apps/*/node_modules apps/*/.next packages/*/node_modules",
         "test": "turbo run test",
         "lint": "npm run lint --workspaces --if-present",
-        "lint:circular": "madge --circular apps/api/src apps/web packages/shared/src packages/types/src packages/validators/src",
+        "lint:circular": "npx madge --circular apps/api/src apps/web packages/shared/src packages/types/src packages/validators/src",
         "test:a11y:voice": "npm run test:a11y:voice -w web",
         "prepare": "node -e \"if(!process.env.CI) { require('child_process').execSync('npx --yes husky', {stdio: 'inherit'}) }\" || true",
         "check:migrations": "node scripts/check-migrations.js",

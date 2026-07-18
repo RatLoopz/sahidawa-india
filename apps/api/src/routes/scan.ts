@@ -275,37 +275,66 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
         );
 
         try {
-            const formData = new FormData();
             const fileBuffer = await fs.promises.readFile(tempFilePath);
-            const blob = new Blob([fileBuffer], {
-                type: file.mimetype,
-            });
-            formData.append("file", blob, file.originalname);
+            const fileHash = crypto.createHash("sha256").update(fileBuffer).digest("hex");
+            const cacheKey = `ocr_extract:${fileHash}`;
 
-            const response = await fetch(targetUrl, {
-                method: "POST",
-                body: formData,
-                signal: AbortSignal.timeout(30_000), // 30 s hard timeout
-            });
+            let data: { text?: string; confidence?: number; filename?: string } | null = null;
 
-            if (!response.ok) {
-                let errorDetail = `ML service returned HTTP ${response.status}`;
-                try {
-                    const body = (await response.json()) as { detail?: string };
-                    if (body.detail) errorDetail = body.detail;
-                } catch {
-                    // Non-JSON body — keep generic message
+            try {
+                if (redisClient.isOpen) {
+                    const cached = await redisClient.get(cacheKey);
+                    if (cached) {
+                        data = JSON.parse(cached);
+                        logger.info(`OCR Cache HIT for image hash ${fileHash}`);
+                    }
                 }
-                logger.error(`ML OCR error: ${errorDetail}`);
-                res.status(response.status).json({ error: errorDetail });
-                return;
+            } catch (cacheErr) {
+                logger.error(`Redis cache check error: ${cacheErr}`);
             }
 
-            const data = (await response.json()) as {
-                text?: string;
-                confidence?: number;
-                filename?: string;
-            };
+            if (!data) {
+                const formData = new FormData();
+                const blob = new Blob([fileBuffer], {
+                    type: file.mimetype,
+                });
+                formData.append("file", blob, file.originalname);
+
+                const response = await fetch(targetUrl, {
+                    method: "POST",
+                    body: formData,
+                    signal: AbortSignal.timeout(30_000), // 30 s hard timeout
+                });
+
+                if (!response.ok) {
+                    let errorDetail = `ML service returned HTTP ${response.status}`;
+                    try {
+                        const body = (await response.json()) as { detail?: string };
+                        if (body.detail) errorDetail = body.detail;
+                    } catch {
+                        // Non-JSON body — keep generic message
+                    }
+                    logger.error(`ML OCR error: ${errorDetail}`);
+                    res.status(response.status).json({ error: errorDetail });
+                    return;
+                }
+
+                data = (await response.json()) as {
+                    text?: string;
+                    confidence?: number;
+                    filename?: string;
+                };
+
+                try {
+                    if (redisClient.isOpen) {
+                        // Cache the ML response for 24 hours (86400 seconds)
+                        await redisClient.set(cacheKey, JSON.stringify(data), { EX: 86400 });
+                        logger.info(`OCR Cache SET for image hash ${fileHash}`);
+                    }
+                } catch (cacheErr) {
+                    logger.error(`Redis cache set error: ${cacheErr}`);
+                }
+            }
             logger.info(`OCR extraction successful for "${file.originalname}"`);
 
             const rawText = data.text || "";
