@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
-export const revalidate = 3600; // Cache for 1 hour
+export const revalidate = 60; // Cache for 1 minute (was 3600)
 
 export async function GET() {
     try {
@@ -10,19 +10,19 @@ export async function GET() {
                 supabase
                     .from("drug_alerts")
                     .select("*", { count: "exact", head: true })
-                    .eq("alert_type", "banned"),
+                    .eq("alert_type", "Banned"),
                 supabase
                     .from("drug_alerts")
                     .select("*", { count: "exact", head: true })
-                    .eq("alert_type", "recalled"),
+                    .eq("alert_type", "Recalled"),
                 supabase
                     .from("drug_alerts")
                     .select("*", { count: "exact", head: true })
-                    .eq("alert_type", "counterfeit"),
+                    .eq("alert_type", "Spurious"),
                 supabase
                     .from("drug_alerts")
                     .select("*", { count: "exact", head: true })
-                    .eq("alert_type", "nsq"),
+                    .eq("alert_type", "NSQ"),
                 supabase.from("scan_history").select("*", { count: "exact", head: true }),
                 supabase
                     .from("pharmacies")

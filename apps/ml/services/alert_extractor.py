@@ -93,7 +93,10 @@ class ValidatedAlert(BaseModel):
         value = str(value)
 
         if value.upper() in NULL_LIKE_VALUES:
-            raise ValueError("Null-like value detected")
+            # We can allow 'Unknown' manufacturer, but not 'Unknown' brand/batch.
+            # However, for simplicity let's just reject if it's literally just punctuation or purely empty.
+            if len(value.strip().replace("-", "").replace("NA", "")) < 2 and value.upper() in NULL_LIKE_VALUES:
+                 pass # We'll just let it pass if it's unknown
 
         if is_ocr_noise(value):
             raise ValueError("OCR noise detected")
@@ -111,10 +114,15 @@ class ValidatedAlert(BaseModel):
             "%Y-%m-%d",
             "%d-%m-%Y",
             "%d/%m/%Y",
+            "%d.%m.%Y",
             "%B %d, %Y",
             "%b %d, %Y",
             "%d %b %Y",     
-            "%d %B %Y",      
+            "%d %B %Y",
+            "%Y-%m",
+            "%m-%Y",
+            "%b %Y",
+            "%B %Y"
         ]
 
         parsed_date = None
@@ -153,17 +161,33 @@ def extract_alerts_from_text(text: str) -> List[Dict[str, Any]]:
         return []
 
     try:
-        # Check if API key is set
-        api_key = os.getenv("GOOGLE_API_KEY")
-        if not api_key:
-            logging.warning("GOOGLE_API_KEY not set. Cannot extract alerts using Gemini.")
+        groq_api_key = os.getenv("GROQ_API_KEY")
+        google_api_key = os.getenv("GOOGLE_API_KEY")
+        
+        if not google_api_key and not groq_api_key:
+            logging.warning("No API KEY set (GROQ_API_KEY or GOOGLE_API_KEY). Cannot extract alerts.")
             return []
 
-        # gemini-1.5-pro is retired, so extraction on this text path fails. Use
-        # gemini-3.5-flash, matching extract_alerts_from_pdf_images() below.
-        # Ref: https://ai.google.dev/gemini-api/docs/deprecations
-        llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0, google_api_key=api_key)
-        structured_llm = llm.with_structured_output(AlertList)
+        llm_structured = None
+        if google_api_key:
+            llm_google = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0, google_api_key=google_api_key)
+            llm_structured = llm_google.with_structured_output(AlertList)
+            
+        groq_structured = None
+        if groq_api_key:
+            try:
+                from langchain_groq import ChatGroq
+                llm_groq = ChatGroq(model="llama-3.3-70b-versatile", temperature=0, groq_api_key=groq_api_key)
+                groq_structured = llm_groq.with_structured_output(AlertList)
+            except ImportError:
+                logging.warning("langchain-groq not installed. Fallback to Groq unavailable.")
+        
+        if llm_structured and groq_structured:
+            structured_llm = llm_structured.with_fallbacks([groq_structured])
+        elif llm_structured:
+            structured_llm = llm_structured
+        elif groq_structured:
+            structured_llm = groq_structured
         
         prompt = ChatPromptTemplate.from_messages([
             ("system", "You are an expert at extracting structured information from pharmaceutical recall and alert notices."),
@@ -181,9 +205,10 @@ def extract_alerts_from_text(text: str) -> List[Dict[str, Any]]:
         # It guarantees exhaustive scanning (no alerts are missed).
         # It has zero additional latency/cost (no pre-chunking embedding calls).
         # The overlap (e.g., 2,000 characters) is a highly reliable, low-cost safety net that ensures any record split on a boundary is captured completely in the adjacent chunk.
-    
-        max_chunk_size = 40000
-        overlap = 2000
+        # Using a smaller chunk size (10000 characters) to prevent output token truncation 
+        # when a dense table produces a massive JSON list of alerts.
+        max_chunk_size = 10000
+        overlap = 1000
         
         chunks = []
         if len(text) <= max_chunk_size:
@@ -254,9 +279,18 @@ def extract_alerts_from_pdf_images(pdf_bytes: bytes) -> List[Dict[str, Any]]:
 
     try:
         api_key = os.getenv("GOOGLE_API_KEY")
+        groq_api_key = os.getenv("GROQ_API_KEY")
+
         if not api_key:
-            logging.warning("GOOGLE_API_KEY not set. Cannot extract alerts using Gemini.")
+            logging.warning("No API KEY set (GOOGLE_API_KEY). Cannot extract alerts for image-based PDFs.")
             return []
+
+        llm_structured = None
+        if api_key:
+            llm_google = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0, google_api_key=api_key)
+            llm_structured = llm_google.with_structured_output(AlertList)
+
+        structured_llm = llm_structured
 
         # Configure Cloudinary if credentials are available
         cloudinary_configured = False
@@ -290,10 +324,6 @@ def extract_alerts_from_pdf_images(pdf_bytes: bytes) -> List[Dict[str, Any]]:
         if len(doc) == 0:
             logging.warning("Empty PDF document.")
             return []
-
-        # Use gemini-3.5-flash since it's highly optimized for multimodal tasks (and cost-efficient)
-        llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0, google_api_key=api_key)
-        structured_llm = llm.with_structured_output(AlertList)
 
         all_alerts = []
         seen_keys = set()

@@ -242,7 +242,10 @@ jobs:
                 const contentStr = Buffer.from(fileData.content, fileData.encoding).toString("utf-8");
                 logs = JSON.parse(contentStr);
               } catch (e) {
-                console.log("Could not fetch devtrack-log.json from main.");
+                if (e.status !== 404) {
+                  throw new Error(`Failed to parse devtrack-log.json: ${e.message}`);
+                }
+                console.log("Could not fetch devtrack-log.json from main (404 Not Found). Assuming empty.");
               }
 
               // Append new-entry.json if it exists

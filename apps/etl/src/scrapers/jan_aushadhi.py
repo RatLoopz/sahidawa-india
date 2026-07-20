@@ -139,13 +139,28 @@ class JanAushadhiScraper:
             async with async_playwright() as p:
                 browser = await p.chromium.launch(headless=True)
                 try:
-                    context = await browser.new_context(
-                        accept_downloads=True,
-                        user_agent=(
+                    # Fetch a free proxy for this attempt
+                    proxy_url = None
+                    try:
+                        from fp.fp import FreeProxy
+                        logger.info(f"[JanAushadhi] Fetching a free proxy for Attempt {attempt}...")
+                        # Run FreeProxy in a thread since it's synchronous and can block the asyncio loop
+                        proxy_url = await asyncio.to_thread(FreeProxy(https=True).get)
+                        logger.info(f"[JanAushadhi] Using Proxy: {proxy_url}")
+                    except Exception as pe:
+                        logger.warning(f"[JanAushadhi] Failed to fetch proxy: {pe}. Proceeding without proxy.")
+
+                    context_options = {
+                        "accept_downloads": True,
+                        "user_agent": (
                             "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
                             "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-                        ),
-                    )
+                        )
+                    }
+                    if proxy_url:
+                        context_options["proxy"] = {"server": proxy_url}
+
+                    context = await browser.new_context(**context_options)
                     page = await context.new_page()
 
                     logger.info(f"[JanAushadhi] Navigating to: {TARGET_URL} (Attempt {attempt}/{max_attempts})")

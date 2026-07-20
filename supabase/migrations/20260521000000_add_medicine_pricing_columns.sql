@@ -41,6 +41,14 @@ BEGIN
       AND pg_namespace.nspname = 'public'
       AND pg_class.relname = 'medicines'
   ) THEN
+  
+    -- Fix any existing data that violates the constraint before adding it
+    UPDATE public.medicines 
+    SET mrp = jan_aushadhi_price 
+    WHERE mrp IS NOT NULL 
+      AND jan_aushadhi_price IS NOT NULL 
+      AND mrp < jan_aushadhi_price;
+
     ALTER TABLE public.medicines
       ADD CONSTRAINT medicines_mrp_gte_jan_aushadhi_price
       CHECK (

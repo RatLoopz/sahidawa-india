@@ -105,7 +105,7 @@ export default async function middleware(req: NextRequest) {
 
 export const config = {
     matcher: [
-        // Match all routes except static assets, images, and internals
-        "/((?!_next/static|_next/image|favicon.ico|icons|manifest.json|sw.js).*)",
+        // Match all routes except /api, static assets, images, and internals
+        "/((?!api|_next/static|_next/image|favicon.ico|icons|manifest.json|sw.js).*)",
     ],
 };

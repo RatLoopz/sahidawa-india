@@ -125,16 +125,22 @@ export default function SahiDawaHome() {
             if (homepageAlerts.length > 0) return; // Prevent double fetching
 
             const { data } = await supabase
-                .from("medicines")
+                .from("drug_alerts")
                 .select("*")
-                .or(
-                    "is_counterfeit_alert.eq.true,cdsco_approval_status.eq.recalled,cdsco_approval_status.eq.spurious"
-                )
                 .order("created_at", { ascending: false })
                 .limit(4);
 
             if (data) {
-                setHomepageAlerts(data);
+                // Map drug_alerts format to match expected properties
+                const mappedData = data.map((alert) => ({
+                    ...alert,
+                    brand_name: alert.reported_brand_name || "Unknown Brand",
+                    composition: alert.manufacturer || "Unknown Manufacturer",
+                    cdsco_approval_status: alert.alert_type === "banned" ? "banned" : "recalled",
+                    is_counterfeit_alert:
+                        alert.alert_type === "Spurious" || alert.alert_type === "counterfeit",
+                }));
+                setHomepageAlerts(mappedData);
             }
         } catch (error) {
             console.error("Prefetch error:", error);
@@ -243,15 +249,15 @@ export default function SahiDawaHome() {
                                 <div className="absolute inset-0 z-0 bg-linear-to-br from-emerald-600 via-emerald-500 to-teal-700"></div>
 
                                 {/* Inner Glow / Vignette */}
-                                <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent"></div>
-                                <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-black/10 via-transparent to-transparent"></div>
+                                <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent"></div>
+                                <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_bottom_left,var(--tw-gradient-stops))] from-black/10 via-transparent to-transparent"></div>
 
                                 {/* Floating decorative blobs */}
                                 <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-teal-400/30 mix-blend-overlay blur-3xl transition-transform duration-700 group-hover:translate-x-10 group-hover:scale-110"></div>
                                 <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-emerald-300/20 mix-blend-overlay blur-3xl transition-transform duration-700 group-hover:-translate-x-10 group-hover:scale-110"></div>
 
                                 {/* Premium reflective shine effect */}
-                                <div className="absolute inset-0 z-10 -translate-x-[150%] skew-x-[-30deg] bg-linear-to-r from-transparent via-white/30 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%]"></div>
+                                <div className="absolute inset-0 z-10 translate-x-[-150%] skew-x-[-30deg] bg-linear-to-r from-transparent via-white/30 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%]"></div>
 
                                 <div className="relative z-20 flex flex-col justify-between gap-6 md:flex-row md:items-center">
                                     <div className="flex items-center gap-6 md:gap-8">
@@ -341,7 +347,7 @@ export default function SahiDawaHome() {
 
                     <section className="relative mb-20">
                         {/* Decorative Background for Section */}
-                        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent opacity-50 dark:from-emerald-900/20"></div>
+                        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent opacity-50 dark:from-emerald-900/20"></div>
 
                         <div className="mb-12 flex flex-col items-center justify-center space-y-4">
                             <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/50 bg-white/50 px-4 py-2 text-sm font-bold shadow-sm backdrop-blur-md dark:border-slate-800/50 dark:bg-slate-900/50">
@@ -362,7 +368,7 @@ export default function SahiDawaHome() {
                             {/* Upload Photo */}
                             <button
                                 onClick={() => handleNavigation("scan")}
-                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-200 select-none hover:-translate-y-1 hover:border-emerald-500 hover:shadow-md focus-visible:-translate-y-1 focus-visible:border-emerald-500 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800 dark:bg-slate-900"
+                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-4xl border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-200 select-none hover:-translate-y-1 hover:border-emerald-500 hover:shadow-md focus-visible:-translate-y-1 focus-visible:border-emerald-500 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800 dark:bg-slate-900"
                                 aria-label="Upload photo"
                             >
                                 <div className="absolute inset-0 -z-10 bg-linear-to-br from-emerald-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-emerald-500/20"></div>
@@ -396,7 +402,7 @@ export default function SahiDawaHome() {
                             {/* Voice Triage */}
                             <button
                                 onClick={() => handleNavigation("voice")}
-                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-200 select-none hover:-translate-y-1 hover:border-blue-500 hover:shadow-md focus-visible:-translate-y-1 focus-visible:border-blue-500 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800 dark:bg-slate-900"
+                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-4xl border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-200 select-none hover:-translate-y-1 hover:border-blue-500 hover:shadow-md focus-visible:-translate-y-1 focus-visible:border-blue-500 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800 dark:bg-slate-900"
                                 aria-label="Voice triage"
                             >
                                 <div className="absolute inset-0 -z-10 bg-linear-to-br from-blue-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-blue-500/20"></div>
@@ -437,7 +443,7 @@ export default function SahiDawaHome() {
                             {/* Pharmacy Map */}
                             <button
                                 onClick={() => handleNavigation("map")}
-                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-200 select-none hover:-translate-y-1 hover:border-amber-500 hover:shadow-md focus-visible:-translate-y-1 focus-visible:border-amber-500 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800 dark:bg-slate-900"
+                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-4xl border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-200 select-none hover:-translate-y-1 hover:border-amber-500 hover:shadow-md focus-visible:-translate-y-1 focus-visible:border-amber-500 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800 dark:bg-slate-900"
                                 aria-label="Pharmacy map"
                             >
                                 <div className="absolute inset-0 -z-10 bg-linear-to-br from-amber-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-amber-500/20"></div>
@@ -482,7 +488,7 @@ export default function SahiDawaHome() {
                             {/* Scheme Eligibility */}
                             <button
                                 onClick={() => handleNavigation("scheme-eligibility")}
-                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-200 select-none hover:-translate-y-1 hover:border-emerald-500 hover:shadow-md focus-visible:-translate-y-1 focus-visible:border-emerald-500 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800 dark:bg-slate-900"
+                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-4xl border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-200 select-none hover:-translate-y-1 hover:border-emerald-500 hover:shadow-md focus-visible:-translate-y-1 focus-visible:border-emerald-500 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800 dark:bg-slate-900"
                                 aria-label={tHome("scheme_eligibility")}
                             >
                                 <div className="absolute inset-0 -z-10 bg-linear-to-br from-emerald-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-emerald-500/20"></div>
@@ -516,7 +522,7 @@ export default function SahiDawaHome() {
                             {/* Report Fake Medicine */}
                             <button
                                 onClick={() => handleNavigation("report")}
-                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-200 select-none hover:-translate-y-1 hover:border-red-500 hover:shadow-md focus-visible:-translate-y-1 focus-visible:border-red-500 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800 dark:bg-slate-900"
+                                className="group relative flex h-[220px] w-full transform-gpu cursor-pointer flex-col justify-between overflow-hidden rounded-4xl border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-200 select-none hover:-translate-y-1 hover:border-red-500 hover:shadow-md focus-visible:-translate-y-1 focus-visible:border-red-500 focus-visible:outline-none active:scale-[0.98] dark:border-slate-800 dark:bg-slate-900"
                                 aria-label="Report fake medicine"
                             >
                                 <div className="absolute right-0 bottom-0 h-24 w-24 translate-x-8 translate-y-8 rounded-full bg-red-500/5 transition-all duration-500 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:bg-red-500/10"></div>
