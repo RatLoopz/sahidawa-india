@@ -8,6 +8,7 @@ All PR summaries are now stored in a centralized JSON log.
 
 | PR | Date | Area | Score | Author | Docs |
 |---|---|---|---|---|---|
+| [#3769](https://github.com/RatLoopz/sahidawa-india/pull/3769) | 2026-07-20 | Frontend | 7 | @Avinash-sdbegin | [View Doc](./2026-07/PR-3769-feat-web-serve-stale-cached-get-responses-during-c.md) |
 | [#3755](https://github.com/RatLoopz/sahidawa-india/pull/3755) | 2026-07-20 | Backend | 15 | @TanCodeX | [View Doc](./2026-07/PR-3755-feat-implement-automated-sensitive-data-redaction-.md) / [ADR](./adr/ADR-057-feat-implement-automated-sensitive-data-redaction-.md) |
 | [#3749](https://github.com/RatLoopz/sahidawa-india/pull/3749) | 2026-07-20 | Backend | 13 | @hrx01-dev | [View Doc](./2026-07/PR-3749-perf-add-redis-cache-on-ml-image-analysis-proxies.md) |
 | [#3740](https://github.com/RatLoopz/sahidawa-india/pull/3740) | 2026-07-18 | Frontend | 49 | @Khanvilkarshravani27 | [View Doc](./2026-07/PR-3740-feat-ml-add-langgraph-native-redis-checkpointer-fo.md) / [ADR](./adr/ADR-056-feat-ml-add-langgraph-native-redis-checkpointer-fo.md) |
