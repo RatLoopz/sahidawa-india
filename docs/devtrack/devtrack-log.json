@@ -14,6 +14,20 @@
       "apps/api/src/utils/logger.ts"
     ],
     "adr": "docs/devtrack/adr/ADR-057-feat-implement-automated-sensitive-data-redaction-.md"
+    "prNumber": 3749,
+    "title": "perf : Add Redis Cache on ML Image Analysis Proxies",
+    "author": "hrx01-dev",
+    "mergedAt": "2026-07-20",
+    "area": "Backend",
+    "score": 13,
+    "docPath": "docs/devtrack/2026-07/PR-3749-perf-add-redis-cache-on-ml-image-analysis-proxies.md",
+    "linkedIssue": "#3680",
+    "labels": "level:intermediate,quality:exceptional,gssoc:approved,type:performance,type:devops,shoutout:approved",
+    "filesChanged": [
+      "apps/api/src/routes/scan.ts",
+      "package.json"
+    ],
+    "adr": null
   },
   {
     "prNumber": 3740,
