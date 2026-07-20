@@ -2,11 +2,13 @@ import {
     normalizeVoiceTranscriptionResponse,
     type VoiceTranscriptionPayload,
 } from "./transcription";
+import { API_BASE } from "@/lib/apiConfig";
 
 type VoiceStreamingCallback = (payload: VoiceTranscriptionPayload) => void;
 
 type CreateVoiceStreamingSessionOptions = {
     baseUrl?: string;
+    ticket?: string;
     language?: string;
     mimeType: string;
     onPartial: VoiceStreamingCallback;
@@ -15,7 +17,7 @@ type CreateVoiceStreamingSessionOptions = {
     socketFactory?: () => WebSocket;
 };
 
-export function getVoiceStreamingUrl(baseUrl?: string) {
+export function getVoiceStreamingUrl(baseUrl?: string, ticket?: string) {
     const rawBaseUrl =
         baseUrl?.trim() ||
         process.env.NEXT_PUBLIC_ML_SERVICE_URL?.trim() ||
@@ -26,7 +28,41 @@ export function getVoiceStreamingUrl(baseUrl?: string) {
     url.pathname = "/asr/stream";
     url.search = "";
 
+    // The ML service authenticates the socket with a short-lived ticket. A
+    // WebSocket handshake carries no custom headers, so it travels in the URL.
+    if (ticket) {
+        url.searchParams.set("ticket", ticket);
+    }
+
     return url.toString();
+}
+
+/**
+ * Ask the API for a ticket that authorises one streaming connection.
+ * Returns null when the user has no session or streaming is not configured,
+ * which lets the caller fall back to recorded upload.
+ */
+export async function fetchVoiceStreamTicket(): Promise<string | null> {
+    const token = typeof window === "undefined" ? "" : localStorage.getItem("sb-access-token");
+    if (!token) {
+        return null;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/api/ml/stream-ticket`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!response.ok) {
+            return null;
+        }
+
+        const data = (await response.json()) as { ticket?: unknown };
+        return typeof data.ticket === "string" ? data.ticket : null;
+    } catch {
+        return null;
+    }
 }
 
 function parseStreamingPayload(rawPayload: unknown): VoiceTranscriptionPayload | null {
@@ -46,7 +82,8 @@ function parseStreamingPayload(rawPayload: unknown): VoiceTranscriptionPayload |
 
 export function createVoiceStreamingSession(options: CreateVoiceStreamingSessionOptions) {
     const socket =
-        options.socketFactory?.() ?? new WebSocket(getVoiceStreamingUrl(options.baseUrl), []);
+        options.socketFactory?.() ??
+        new WebSocket(getVoiceStreamingUrl(options.baseUrl, options.ticket), []);
     let closed = false;
     let finalReceived = false;
     let isOpen = false;

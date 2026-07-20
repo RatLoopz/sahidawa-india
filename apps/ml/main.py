@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
@@ -18,6 +18,7 @@ RequestsInstrumentor().instrument()
 
 from services.telemetry import configure_telemetry_logging
 from services.router_loader import include_router_if_available
+from dependencies import verify_api_key
 from routers.verify import router as verify_router
 
 configure_telemetry_logging()
@@ -67,23 +68,34 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Every router below requires a valid x-api-key. This service runs on a public
+# origin (the API rejects private/loopback ML_SERVICE_URL values), so the
+# transcription, OCR, TTS and triage routes must not be reachable anonymously.
+# "/" and "/health" are declared on the app directly and stay open for probes.
+if not os.getenv("ML_API_KEY"):
+    logger.error(
+        "ML_API_KEY is not set. Authenticated routes will return 503 until it is configured."
+    )
+
+auth = [Depends(verify_api_key)]
+
 # Include ASR as a required router and OCR as optional so voice triage can boot
 # even when OCR-only dependencies are not installed in the current environment.
 # TTS is optional - app boots without it but cloud TTS is disabled.
-include_router_if_available(app, "routers.health", required=True)
-include_router_if_available(app, "routers.verify", required=True)
-include_router_if_available(app, "routers.asr", required=True)
-include_router_if_available(app, "routers.analyze", required=True)
-include_router_if_available(app, "routers.triage", required=True)
-ocr_loaded = include_router_if_available(app, "routers.ocr", required=False)
+include_router_if_available(app, "routers.health", required=True, dependencies=auth)
+include_router_if_available(app, "routers.verify", required=True, dependencies=auth)
+include_router_if_available(app, "routers.asr", required=True, dependencies=auth)
+include_router_if_available(app, "routers.analyze", required=True, dependencies=auth)
+include_router_if_available(app, "routers.triage", required=True, dependencies=auth)
+ocr_loaded = include_router_if_available(app, "routers.ocr", required=False, dependencies=auth)
 if not ocr_loaded:
     logger.warning("OCR routes are disabled in this runtime.")
-tts_loaded = include_router_if_available(app, "routers.tts", required=False)
+tts_loaded = include_router_if_available(app, "routers.tts", required=False, dependencies=auth)
 if not tts_loaded:
     logger.warning(
         "TTS routes are disabled. Install google-cloud-texttospeech or configure Azure TTS."
     )
-include_router_if_available(app, "routers.voice_verify", required=True)
+include_router_if_available(app, "routers.voice_verify", required=True, dependencies=auth)
 
 # Directly attach the ML comparison computation layer to structural router
 @verify_router.post("/compare")

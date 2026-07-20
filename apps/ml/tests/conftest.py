@@ -57,6 +57,27 @@ def mock_ner_model(request, monkeypatch):
         pass
 
 
+@pytest.fixture(autouse=True)
+def override_ml_auth(request):
+    """Bypass the x-api-key check for tests that aren't about auth.
+
+    Every ML route now requires a valid key (dependencies.verify_api_key), so
+    feature tests that hit those routes would otherwise all fail with 401. They
+    target route behaviour, not auth, so we override the dependency to a no-op.
+    The dedicated auth tests in test_api.py opt out and exercise the real check.
+    """
+    if "test_api" in request.module.__name__:
+        yield
+        return
+
+    from main import app
+    from dependencies import verify_api_key
+
+    app.dependency_overrides[verify_api_key] = lambda: None
+    yield
+    app.dependency_overrides.pop(verify_api_key, None)
+
+
 class FakeRedis:
     def __init__(self):
         self.store = {}

@@ -10,7 +10,7 @@ import crypto from "crypto";
 
 import { trimHistoryByTokens } from "@/lib/chatUtils";
 import { redis } from "@/lib/redis";
-import { getMlServiceUrl } from "@/lib/mlService";
+import { getMlServiceUrl, getMlAuthHeaders } from "@/lib/mlService";
 
 const ML_TRIAGE_TIMEOUT_MS = 30_000;
 
@@ -313,7 +313,7 @@ export async function POST(req: Request) {
 
                 const mlResponse = await fetch(`${mlServiceUrl}/triage/chat`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", ...getMlAuthHeaders() },
                     body: JSON.stringify({
                         messages: formattedMessages,
                         locale: locale || "en",

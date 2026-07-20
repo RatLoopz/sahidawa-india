@@ -6,6 +6,7 @@ import { redisClient } from "../utils/redis";
 import logger from "../utils/logger"; // Destructured template fixed based on your previous logs
 import { requireAuth } from "../middleware/auth"; // Fixed paths matching your exact structure
 import { limiter } from "../middleware/rateLimit"; // Fixed middleware import token maps
+import { getMlAuthHeaders } from "../config/mlService";
 
 const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://localhost:8000";
 
@@ -57,7 +58,7 @@ router.post(
                 const mlResponse = await axios.post(
                     `${ML_SERVICE_URL}/verify/compare`,
                     { medicine_a, medicine_b },
-                    { signal: controller.signal }
+                    { signal: controller.signal, headers: getMlAuthHeaders() }
                 );
                 clearTimeout(timeoutId);
 

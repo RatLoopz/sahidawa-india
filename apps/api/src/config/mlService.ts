@@ -78,6 +78,21 @@ export function getMlServiceUrl(): string | null {
     return trimmed;
 }
 
+/**
+ * Auth header for outbound calls to the ML service. The ML service requires
+ * x-api-key on every route except "/" and "/health", so any request made
+ * without this will come back 401.
+ */
+export function getMlAuthHeaders(): Record<string, string> {
+    const apiKey = process.env.ML_API_KEY?.trim();
+    if (!apiKey) {
+        logger.warn("ML_API_KEY is not set; ML service calls will be rejected.");
+        return {};
+    }
+
+    return { "x-api-key": apiKey };
+}
+
 export function validateMlServiceConfig(): void {
     if (getMlServiceUrl()) return;
 
