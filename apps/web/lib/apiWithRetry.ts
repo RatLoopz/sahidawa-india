@@ -1,6 +1,34 @@
 import { toast } from "sonner";
 import { refreshCsrfToken } from "./csrf";
 
+// Ensures only one CSRF refresh is in-flight at a time, whether triggered
+// by the client's own 403 handling below or by the Service Worker's
+// "CSRF_REFRESH_NEEDED" message.
+let csrfRefreshInFlight: Promise<string> | null = null;
+
+function silentlyRefreshCsrfToken(): Promise<string> {
+    if (!csrfRefreshInFlight) {
+        csrfRefreshInFlight = refreshCsrfToken().finally(() => {
+            csrfRefreshInFlight = null;
+        });
+    }
+    return csrfRefreshInFlight;
+}
+
+// Listen for the Service Worker telling us it served stale cached data
+// because of a CSRF 403 — refresh the token in the background so the
+// next real request doesn't fail.
+if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+    navigator.serviceWorker.addEventListener("message", (event) => {
+        if (event.data?.type === "CSRF_REFRESH_NEEDED") {
+            silentlyRefreshCsrfToken().catch(() => {
+                // Non-fatal — the next real request will still trigger the
+                // existing refresh-and-retry flow inside fetchWithRetry.
+            });
+        }
+    });
+}
+
 export interface RetryConfig {
     maxRetries?: number;
     initialDelayMs?: number;
@@ -110,7 +138,7 @@ export async function fetchWithRetry(
 
                     if (isCsrfError) {
                         try {
-                            const newToken = await refreshCsrfToken();
+                            const newToken = await silentlyRefreshCsrfToken();
 
                             const newOptions = { ...fetchOptions };
                             if (newOptions.headers) {

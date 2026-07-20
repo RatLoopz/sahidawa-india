@@ -328,6 +328,28 @@ async function networkFirstWithCache(request, cacheName) {
         });
         clearTimeout(timeoutId);
 
+        // ── CSRF 403 optimization ─────────────────────────────────────────
+        // If the API returns a 403 CSRF error for a GET request, don't make
+        // the UI wait for the client's token-refresh-and-retry cycle.
+        // Serve stale cached data immediately (if we have it) and let the
+        // client silently refresh the token in the background.
+        if (request.method === "GET" && networkResponse.status === 403) {
+            const clonedForCheck = networkResponse.clone();
+            const bodyText = await clonedForCheck.text().catch(() => "");
+            const isCsrfError =
+                bodyText.toLowerCase().includes("csrf") || bodyText.toLowerCase().includes("token");
+
+            if (isCsrfError) {
+                const cachedResponse = await cache.match(request);
+                if (cachedResponse) {
+                    notifyClientsCsrfRefresh();
+                    return cachedResponse;
+                }
+                // No cache available — fall through and return the 403 as-is
+                // so the client's existing refresh-and-retry logic handles it.
+            }
+        }
+
         if (networkResponse.ok) {
             cache.put(request, networkResponse.clone()).catch(() => {});
         }
@@ -343,6 +365,17 @@ async function networkFirstWithCache(request, cacheName) {
             }),
             { status: 503, headers: { "Content-Type": "application/json" } }
         );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// CSRF REFRESH NOTIFY — tell open clients to silently refresh the CSRF token
+// after we've served stale cached data for a 403 CSRF response.
+// ---------------------------------------------------------------------------
+async function notifyClientsCsrfRefresh() {
+    const clients = await self.clients.matchAll({ type: "window" });
+    for (const client of clients) {
+        client.postMessage({ type: "CSRF_REFRESH_NEEDED" });
     }
 }
 
