@@ -8,27 +8,6 @@ import { redisClient } from "../utils/redis";
 
 const router = Router();
 
-interface StoreLocation {
-    lat?: string | number;
-    lng?: string | number;
-    location?: {
-        coordinates?: [number, number];
-    };
-}
-
-function extractCoordinates(p: StoreLocation): { lat: number; lng: number } {
-    if (p.lat !== undefined && p.lng !== undefined) {
-        return { lat: Number(p.lat), lng: Number(p.lng) };
-    }
-    if (p.location && typeof p.location === "object" && p.location.coordinates) {
-        return {
-            lat: Number(p.location.coordinates[1]),
-            lng: Number(p.location.coordinates[0]),
-        };
-    }
-    return { lat: 0, lng: 0 };
-}
-
 /**
  * @openapi
  * /api/v1/alternatives/{medicine_id}:
@@ -206,31 +185,14 @@ router.get(
                     }
                 );
 
-                if (!rpcError && rpcData && rpcData.length > 0) {
+                if (rpcError) {
+                    logger.warn("Nearest pharmacy lookup failed", { error: rpcError });
+                } else if (rpcData && rpcData.length > 0) {
                     nearestStore = {
                         name: rpcData[0].name,
                         lat: Number(rpcData[0].lat),
                         lng: Number(rpcData[0].lng),
                         distance: `${Number(rpcData[0].distance).toFixed(1)} km`,
-                    };
-                }
-            }
-
-            // Fallback: Get first pharmacy in database as a default store
-            if (!nearestStore) {
-                const { data: defaultStores } = await supabase
-                    .from("pharmacies")
-                    .select("name, address, location, phone_number, is_verified, district, state")
-                    .limit(1);
-
-                if (defaultStores && defaultStores.length > 0) {
-                    const store = defaultStores[0];
-                    const coords = extractCoordinates(store);
-                    nearestStore = {
-                        name: store.name,
-                        lat: coords.lat,
-                        lng: coords.lng,
-                        distance: "Nearest store",
                     };
                 }
             }

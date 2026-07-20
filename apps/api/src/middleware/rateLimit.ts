@@ -267,3 +267,14 @@ export const alertsReadLimiter = createLimiter({
     message: "Too many alerts requests. Please try again later.",
     prefix: "alerts_read",
 });
+
+// ── API key management limiter ──────────────────────────────────────────────
+// /api/keys list/revoke/delete/rotate are sensitive, low-frequency operations.
+// A stricter cap curbs revoke/delete probing against guessed ids and throttles
+// rotate, which runs a pbkdf2 hash per call.
+export const apiKeyLimiter = createLimiter({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    message: "Too many API key requests. Please try again later.",
+    prefix: "api_keys",
+});
