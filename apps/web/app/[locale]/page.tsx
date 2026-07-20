@@ -556,48 +556,49 @@ export default function SahiDawaHome() {
                     </section>
 
                     {/* ── Health Assistant CTA Banner ── */}
-                    <div
-                        className="group relative mt-4 transform-gpu overflow-hidden rounded-3xl transition-all duration-300 select-none hover:scale-[1.01] hover:shadow-xl hover:shadow-emerald-500/10"
-                        style={{
-                            background:
-                                "linear-gradient(135deg, #059669 0%, #10b981 50%, #14b8a6 100%)",
-                        }}
-                    >
-                        {/* Subtle inner highlight */}
-                        <div className="pointer-events-none absolute inset-0 bg-linear-to-r from-white/10 to-transparent" />
+                    <div className="group relative mt-4 transform-gpu overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 p-8 transition-all duration-500 select-none hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/30 sm:p-10">
+                        {/* Decorative Background Elements */}
+                        <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-white/20 blur-3xl transition-transform duration-700 group-hover:scale-110"></div>
+                        <div className="absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-emerald-900/20 blur-3xl transition-transform duration-700 group-hover:scale-110"></div>
 
-                        <div className="relative z-10 flex flex-col items-start gap-5 p-6 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-8">
-                            <div className="flex items-center gap-4">
+                        <div className="relative z-10 flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+                            <div className="flex items-center gap-5">
                                 {/* Icon */}
-                                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm transition-all duration-300 group-hover:scale-105 group-hover:bg-white/25">
-                                    <MessageCircle size={26} className="text-white" />
+                                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.1)] backdrop-blur-md transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
+                                    <MessageCircle
+                                        size={32}
+                                        className="text-white drop-shadow-md"
+                                    />
                                 </div>
-                                <div className="space-y-1">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <h3 className="text-xl font-extrabold tracking-tight text-white sm:text-2xl">
+                                <div className="space-y-2">
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <h3 className="text-2xl font-black tracking-tight text-white drop-shadow-sm sm:text-3xl">
                                             {tHome("ai_health_assistant")}
                                         </h3>
                                         {/* AI CHAT badge */}
-                                        <span className="inline-flex items-center rounded-md bg-white/20 px-2.5 py-0.5 text-[11px] font-bold tracking-widest text-white uppercase">
+                                        <span className="inline-flex items-center rounded-lg border border-white/30 bg-white/20 px-3 py-1 text-xs font-black tracking-widest text-white uppercase shadow-sm backdrop-blur-sm">
                                             {tHome("ai_chat")}
                                         </span>
                                     </div>
-                                    <p className="text-sm leading-relaxed font-medium text-emerald-100 sm:text-base">
+                                    <p className="text-sm font-medium text-emerald-50 opacity-90 drop-shadow-sm sm:text-lg">
                                         {tHome("ai_health_assistant_description")}
                                     </p>
                                 </div>
                             </div>
 
-                            {/* Chat Now button — white outlined */}
+                            {/* Chat Now button */}
                             <button
                                 onClick={() => handleNavigation("health")}
-                                className="group/btn flex w-full shrink-0 items-center justify-center gap-2.5 rounded-xl border-2 border-white/80 bg-white/15 px-7 py-3 text-base font-bold text-white backdrop-blur-sm transition-all duration-300 hover:bg-white hover:text-emerald-700 sm:w-auto"
+                                className="group/btn flex w-full shrink-0 items-center justify-center gap-3 rounded-2xl bg-white px-8 py-4 text-lg font-extrabold text-emerald-600 shadow-xl transition-all duration-300 hover:scale-105 hover:bg-emerald-50 hover:shadow-emerald-900/20 sm:w-auto"
                             >
-                                <MessageCircle size={18} />
+                                <MessageCircle
+                                    size={22}
+                                    className="transition-transform duration-300 group-hover/btn:scale-110"
+                                />
                                 {tHome("chat_now")}
                                 <ChevronRight
-                                    size={18}
-                                    className="transition-transform duration-200 group-hover/btn:translate-x-1"
+                                    size={22}
+                                    className="transition-transform duration-300 group-hover/btn:translate-x-1"
                                 />
                             </button>
                         </div>
@@ -605,33 +606,42 @@ export default function SahiDawaHome() {
 
                     {/* Global Search moved to Hero */}
 
-                    {/* ── Live Alerts Panel (full-width) ── */}
-                    <div className="mt-10 mb-16">
-                        <div className="flex flex-col overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800/80 dark:bg-slate-900">
-                            <div className="flex items-center justify-between border-b border-slate-200/80 bg-slate-50 px-6 py-5 dark:border-slate-800/80 dark:bg-slate-950">
-                                <div className="flex items-center gap-2">
-                                    <Activity size={20} className="text-red-500" />
-                                    <h3 className="text-lg font-bold text-(--color-text-primary)">
+                    {/* ── Live Alerts Panel (Premium UI) ── */}
+                    <div className="mt-12 mb-20">
+                        <div className="group/alerts relative flex flex-col overflow-hidden rounded-[2.5rem] border border-slate-200/60 bg-white/80 shadow-[0_8px_40px_rgba(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 hover:shadow-[0_8px_40px_rgba(239,68,68,0.08)] dark:border-slate-800/60 dark:bg-slate-900/80">
+                            {/* Decorative Top Glow */}
+                            <div className="absolute top-0 left-1/2 h-1 w-3/4 -translate-x-1/2 bg-gradient-to-r from-transparent via-red-500/50 to-transparent blur-sm transition-all duration-500 group-hover/alerts:via-red-500/80" />
+
+                            <div className="relative z-10 flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-8 py-6 backdrop-blur-md dark:border-slate-800/50 dark:bg-slate-950/50">
+                                <div className="flex items-center gap-4">
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-red-500 shadow-inner dark:bg-red-500/10 dark:text-red-400">
+                                        <Activity size={24} className="animate-pulse" />
+                                    </div>
+                                    <h3 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                                         {tHome("live_cdsco_alerts")}
                                     </h3>
                                 </div>
-                                <span className="hidden rounded-full bg-red-500/10 px-2.5 py-1 text-xs font-bold tracking-wider text-red-500 uppercase sm:block">
+                                <span className="hidden items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-4 py-1.5 text-xs font-bold tracking-widest text-red-600 uppercase shadow-sm sm:flex dark:border-red-900/50 dark:bg-red-500/10 dark:text-red-400">
+                                    <span className="relative flex h-2 w-2">
+                                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+                                        <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
+                                    </span>
                                     {tHome("india_region")}
                                 </span>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto bg-slate-50 p-4 dark:bg-slate-950">
-                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div className="relative z-10 flex-1 bg-slate-50/30 p-6 sm:p-8 dark:bg-slate-950/30">
+                                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:gap-6">
                                     {loading ? (
                                         <>
                                             {[1, 2, 3, 4].map((i) => (
                                                 <div
                                                     key={i}
-                                                    className="relative flex items-start gap-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-800/80 dark:bg-slate-900"
+                                                    className="relative flex items-start gap-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800/80 dark:bg-slate-900"
                                                 >
-                                                    <div className="absolute top-0 bottom-0 left-0 w-1.5 bg-(--color-border-muted)" />
-                                                    <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
-                                                    <div className="flex-1 space-y-2">
+                                                    <div className="absolute top-0 bottom-0 left-0 w-2 bg-slate-200 dark:bg-slate-700" />
+                                                    <Skeleton className="h-12 w-12 shrink-0 rounded-full" />
+                                                    <div className="flex-1 space-y-2 pt-1">
                                                         <div className="flex items-start justify-between">
                                                             <Skeleton className="h-4 w-1/2" />
                                                             <Skeleton className="h-3 w-12" />
@@ -647,69 +657,72 @@ export default function SahiDawaHome() {
                                                 alert.composition,
                                                 alert.batch_number
                                             );
-
                                             return (
                                                 <div
                                                     key={alert.id}
-                                                    className="group relative flex cursor-pointer items-start gap-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md dark:border-slate-800/80 dark:bg-slate-900 dark:hover:border-slate-700"
+                                                    className={`group relative flex cursor-pointer items-start gap-4 rounded-2xl border border-l-4 border-slate-200 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/50 ${
+                                                        alert.brand_name === "SYSTEM_UPDATE"
+                                                            ? "border-l-blue-500 hover:border-l-blue-600"
+                                                            : alert.cdsco_approval_status ===
+                                                                    "banned" ||
+                                                                alert.is_counterfeit_alert
+                                                              ? "border-l-red-500 hover:border-l-red-600"
+                                                              : "border-l-orange-500 hover:border-l-orange-600"
+                                                    }`}
+                                                    onClick={() => handleNavigation("alerts")}
                                                 >
-                                                    {/* Left edge colored strip */}
-                                                    <div
-                                                        className={`absolute top-0 bottom-0 left-0 w-1.5 ${
-                                                            alert.brand_name === "SYSTEM_UPDATE"
-                                                                ? "bg-blue-500"
-                                                                : alert.cdsco_approval_status ===
-                                                                        "banned" ||
-                                                                    alert.is_counterfeit_alert
-                                                                  ? "bg-red-500"
-                                                                  : "bg-orange-500"
-                                                        }`}
-                                                    />
+                                                    <div className="pointer-events-none absolute inset-0 z-0 rounded-r-2xl bg-linear-to-br from-transparent to-slate-50/50 opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:to-slate-800/20" />
 
+                                                    {/* Icon */}
                                                     <div
-                                                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${
+                                                        className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${
                                                             alert.brand_name === "SYSTEM_UPDATE"
-                                                                ? "bg-blue-500/10 text-blue-500 group-hover:bg-blue-500/20"
+                                                                ? "border-blue-100 bg-blue-50 text-blue-600 dark:border-blue-900/50 dark:bg-blue-500/10 dark:text-blue-400"
                                                                 : alert.cdsco_approval_status ===
                                                                         "banned" ||
                                                                     alert.is_counterfeit_alert
-                                                                  ? "bg-red-500/10 text-red-500 group-hover:bg-red-500/20"
-                                                                  : "bg-orange-500/10 text-orange-500 group-hover:bg-orange-500/20"
+                                                                  ? "border-red-100 bg-red-50 text-red-600 dark:border-red-900/50 dark:bg-red-500/10 dark:text-red-400"
+                                                                  : "border-orange-100 bg-orange-50 text-orange-600 dark:border-orange-900/50 dark:bg-orange-500/10 dark:text-orange-400"
                                                         }`}
                                                     >
                                                         {alert.brand_name === "SYSTEM_UPDATE" ? (
-                                                            <Globe size={20} strokeWidth={2.5} />
+                                                            <Globe size={18} strokeWidth={2.5} />
                                                         ) : (
                                                             <AlertTriangle
-                                                                size={20}
+                                                                size={18}
                                                                 strokeWidth={2.5}
                                                             />
                                                         )}
                                                     </div>
 
-                                                    <div className="min-w-0 flex-1">
-                                                        <div className="flex items-start justify-between gap-3">
-                                                            <h4 className="leading-tight font-bold text-(--color-text-primary)">
+                                                    <div className="relative z-10 min-w-0 flex-1 pt-0.5">
+                                                        <div className="flex items-center justify-between gap-3">
+                                                            <h4 className="truncate text-base font-bold tracking-tight text-slate-900 dark:text-white">
                                                                 {alert.brand_name}
                                                             </h4>
-                                                            <span className="shrink-0 text-[11px] font-medium text-(--color-text-muted)">
+                                                            <span className="shrink-0 text-xs font-medium text-slate-400 dark:text-slate-500">
                                                                 {formatRelativeTime(
                                                                     alert.created_at,
                                                                     locale || "en"
                                                                 )}
                                                             </span>
                                                         </div>
-                                                        <p className="mt-1 text-sm leading-snug font-medium text-(--color-text-secondary)">
-                                                            {alert.composition}
+                                                        <div className="mt-1 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                                                            <span className="truncate">
+                                                                {alert.composition}
+                                                            </span>
                                                             {visibleBatchNumber ? (
-                                                                <span className="whitespace-nowrap">
-                                                                    {" · Batch "}
-                                                                    <span className="font-bold text-(--color-text-primary)">
-                                                                        {visibleBatchNumber}
+                                                                <>
+                                                                    <span className="h-1 w-1 shrink-0 rounded-full bg-slate-300 dark:bg-slate-600" />
+                                                                    <span className="shrink-0 font-medium text-slate-600 dark:text-slate-300">
+                                                                        Batch{" "}
+                                                                        <span className="font-bold">
+                                                                            {visibleBatchNumber}
+                                                                        </span>
                                                                     </span>
-                                                                </span>
+                                                                </>
                                                             ) : null}
-                                                        </p>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             );
@@ -734,17 +747,17 @@ export default function SahiDawaHome() {
                             </div>
 
                             {/* ── Alert Log CTA ── */}
-                            <div className="border-t border-(--color-border-muted) bg-(--color-surface-page) p-4">
+                            <div className="relative z-10 border-t border-slate-100 bg-white/50 p-6 backdrop-blur-md dark:border-slate-800/50 dark:bg-slate-900/50">
                                 <Link href="/alerts" className="block w-full">
-                                    <button className="group/log flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) py-3 font-bold text-(--color-text-primary) transition-all duration-200 hover:border-slate-500/30 hover:shadow-sm">
+                                    <button className="group/btn flex w-full cursor-pointer items-center justify-center gap-3 rounded-2xl border-2 border-slate-200 bg-white py-4 text-base font-extrabold text-slate-700 shadow-sm transition-all duration-300 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 focus:ring-4 focus:ring-slate-100 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-700 dark:hover:text-white dark:focus:ring-slate-800">
                                         <Activity
-                                            size={15}
-                                            className="text-(--color-text-muted) transition-colors duration-200 group-hover/log:text-red-500"
+                                            size={20}
+                                            className="transition-transform duration-300 group-hover/btn:scale-110"
                                         />
                                         {tHome("view_full_alert_log")}
                                         <ChevronRight
-                                            size={16}
-                                            className="text-(--color-text-muted) transition-transform duration-200 group-hover/log:translate-x-1"
+                                            size={20}
+                                            className="text-slate-400 transition-transform duration-300 group-hover/btn:translate-x-1"
                                         />
                                     </button>
                                 </Link>

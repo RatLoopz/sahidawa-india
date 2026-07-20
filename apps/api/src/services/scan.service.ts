@@ -211,11 +211,11 @@ export const scanService = {
             }
         }
 
-        type MedicineRecord = Awaited<ReturnType<typeof scanRepository.findMedicineByMatchedName>>;
+        type MedicineRecord = Awaited<ReturnType<typeof scanRepository.findMedicineByBrandName>>;
 
         let medicineData: MedicineRecord = null;
         if (matchedName) {
-            medicineData = await scanRepository.findMedicineByMatchedName(matchedName);
+            medicineData = await scanRepository.findMedicineByBrandName(matchedName);
             if (medicineData && matchSource === "substring_fallback") {
                 const dbBrand = (medicineData.brand_name || "").toLowerCase();
                 const dbGeneric = (medicineData.generic_name || "").toLowerCase();

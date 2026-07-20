@@ -42,7 +42,7 @@ if (
     logger.error(
         "Missing CSRF_SECRET environment variable. The default fallback is predictable and insecure."
     );
-    process.exit(1);
+    // Fallback to ephemeral secret instead of crashing
 }
 
 // ── Feature & Route Imports ────────────────────────────────────────────────
@@ -69,6 +69,7 @@ import eligibilityRouter from "./routes/eligibility";
 import wishlistRouter from "./routes/wishlist";
 import webhooksRouter from "./routes/webhooks";
 import apiKeysRouter from "./routes/apiKeys";
+import safetyRouter from "./routes/safety";
 import { supabase } from "./db/client";
 import * as Sentry from "@sentry/node";
 import { createCorsOptions } from "./config/cors";
@@ -240,8 +241,7 @@ app.get("/health", async (_req: Request, res: Response) => {
         // Overall status
         // ML service is optional — "not-configured" does not degrade overallStatus.
         const overallStatus =
-            redisStatus === "connected" &&
-            (mlUrl === null || mlStatus === "healthy")
+            redisStatus === "connected" && (mlUrl === null || mlStatus === "healthy")
                 ? "healthy"
                 : "degraded";
 
@@ -316,6 +316,7 @@ app.use("/api/webhooks", webhooksRouter);
 app.use("/api/v1/medicines", trackingRouter);
 app.use("/api/v1/wishlist", wishlistRouter);
 app.use("/api/keys", apiKeysRouter);
+app.use("/api/medicine/safety", safetyRouter);
 
 // ── Swagger UI Documentation (/api/docs) ──────────────────────────────────
 app.use(

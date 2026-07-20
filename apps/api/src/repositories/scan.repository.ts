@@ -54,7 +54,7 @@ export const scanRepository = {
         const { data, error } = await supabase
             .from("medicines")
             .select(
-                "id, brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score"
+                "id, brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score, composition, mrp, jan_aushadhi_price"
             )
             .or(
                 `brand_name.ilike."%${escapePostgrest(brandName)}%",generic_name.ilike."%${escapePostgrest(brandName)}%"`
@@ -62,6 +62,6 @@ export const scanRepository = {
             .limit(1)
             .maybeSingle();
         if (error) throw error;
-        return data;
+        return data as any;
     },
 };

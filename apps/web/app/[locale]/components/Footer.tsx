@@ -12,7 +12,12 @@ export default function Footer() {
     const t = useTranslations("Footer");
 
     const quickLinks = [
-        { href: "/expiry-tracker", key: "quickLinks.expiry_tracker", icon: CalendarRange, highlight: true },
+        {
+            href: "/expiry-tracker",
+            key: "quickLinks.expiry_tracker",
+            icon: CalendarRange,
+            highlight: true,
+        },
         { href: "/faq", key: "quickLinks.faq" },
         { href: "/about", key: "quickLinks.about" },
         { href: "/privacy", key: "quickLinks.privacy" },
@@ -40,7 +45,7 @@ export default function Footer() {
             hoverColor: "hover:text-slate-800 dark:hover:text-white hover:border-slate-600",
         },
         {
-            href: "https://linkedin.com/",
+            href: "https://www.linkedin.com/company/ratloopz/?viewAsMember=true",
             icon: FaLinkedin,
             key: "social.linkedin",
             hoverColor: "hover:text-slate-800 dark:hover:text-white hover:border-slate-600",
@@ -74,18 +79,14 @@ export default function Footer() {
                         <p className="mb-4 max-w-sm text-sm leading-relaxed text-slate-700 dark:text-slate-400">
                             {t("brandSubtitle")}
                         </p>
-                        <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-600 dark:border-emerald-400/20 dark:text-emerald-400">
-                            <Sparkles className="h-3 w-3" />
-                            {t("madeForGssoc")}
-                        </div>
                     </div>
 
                     {/* Quick Links */}
                     <nav className="md:col-span-2">
-                        <h3 className="mb-3 text-xs font-bold tracking-wider text-slate-900 uppercase dark:text-white">
+                        <h3 className="mb-2 text-xs font-bold tracking-wider text-slate-900 uppercase dark:text-white">
                             {t("quickLinks.title")}
                         </h3>
-                        <ul className="space-y-2">
+                        <ul className="space-y-1">
                             {quickLinks.map((link) => (
                                 <li key={link.href}>
                                     <Link
@@ -112,10 +113,10 @@ export default function Footer() {
 
                     {/* Resources */}
                     <nav className="md:col-span-2">
-                        <h3 className="mb-3 text-xs font-bold tracking-wider text-slate-900 uppercase dark:text-white">
+                        <h3 className="mb-2 text-xs font-bold tracking-wider text-slate-900 uppercase dark:text-white">
                             {t("resources.title")}
                         </h3>
-                        <ul className="space-y-2">
+                        <ul className="space-y-1">
                             {resourceLinks.map((link) => (
                                 <li key={link.href}>
                                     <a
@@ -134,7 +135,7 @@ export default function Footer() {
 
                     {/* Connect Section */}
                     <div className="md:col-span-3">
-                        <h3 className="mb-3 text-xs font-bold tracking-wider text-slate-900 uppercase dark:text-white">
+                        <h3 className="mb-2 text-xs font-bold tracking-wider text-slate-900 uppercase dark:text-white">
                             {t("connectWithUs")}
                         </h3>
                         <div className="mb-4 flex items-center gap-2">
@@ -155,11 +156,11 @@ export default function Footer() {
                             })}
                         </div>
                         <a
-                            href="mailto:contact@sahidawa.in"
+                            href="mailto:ratloopzcommunity@gmail.com"
                             className="inline-flex items-center gap-2 text-sm text-slate-700 transition-colors hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400"
                         >
                             <Mail className="h-4 w-4" />
-                            {t("contactEmail")}
+                            ratloopzcommunity@gmail.com
                         </a>
                     </div>
                 </div>

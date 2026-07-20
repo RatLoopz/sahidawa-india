@@ -19,6 +19,20 @@
       "apps/api/src/services/scan.service.ts"
     ],
     "adr": "docs/devtrack/adr/ADR-058-refactor-api-extract-business-logic-into-services-.md"
+    "prNumber": 3769,
+    "title": "feat(web): serve stale cached GET responses during CSRF refresh",
+    "author": "Avinash-sdbegin",
+    "mergedAt": "2026-07-20",
+    "area": "Frontend",
+    "score": 7,
+    "docPath": "docs/devtrack/2026-07/PR-3769-feat-web-serve-stale-cached-get-responses-during-c.md",
+    "linkedIssue": "#3648",
+    "labels": "level:advanced,quality:clean,gssoc:approved,type:feature",
+    "filesChanged": [
+      "apps/web/lib/apiWithRetry.ts",
+      "apps/web/worker/index.js"
+    ],
+    "adr": null
   },
   {
     "prNumber": 3755,

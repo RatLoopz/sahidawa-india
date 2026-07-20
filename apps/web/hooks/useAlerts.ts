@@ -1,4 +1,4 @@
-﻿import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_BASE, getCsrfToken } from "@/lib/api";
 import { toast } from "sonner";
 import { Alert } from "@/app/[locale]/alerts/page";
@@ -12,7 +12,7 @@ export function useAlerts({ debouncedBrandSearch, debouncedRegionSearch }: UseAl
     const queryClient = useQueryClient();
 
     const fetchAlertsPage = async ({ pageParam = 1 }) => {
-        let url = `${API_BASE}/api/v1/alerts?page=${pageParam}&limit=50`;
+        let url = `/api/v1/alerts?page=${pageParam}&limit=50`;
         if (debouncedBrandSearch) url += `&brand=${encodeURIComponent(debouncedBrandSearch)}`;
         if (debouncedRegionSearch) url += `&region=${encodeURIComponent(debouncedRegionSearch)}`;
 

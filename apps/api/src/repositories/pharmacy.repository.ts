@@ -1,4 +1,4 @@
-import { supabase } from "../lib/supabaseClient"; // apna actual path check karein
+import { supabase } from "../db/client";
 
 export const pharmacyRepository = {
     async findByLicenseId(licenseId: string) {
@@ -92,7 +92,34 @@ export const pharmacyRepository = {
         north: number;
         east: number;
         limit: number;
+        offset: number;
     }) {
         return supabase.rpc("get_pharmacies_in_bounds", params);
+    },
+
+    async rpcGetPharmaciesInBoundsDelta(params: {
+        south: number;
+        west: number;
+        north: number;
+        east: number;
+        since: string;
+    }) {
+        return supabase.rpc("get_pharmacies_in_bounds_delta", params);
+    },
+
+    async findInBoundsFallback(since?: string) {
+        let query = supabase.from("pharmacies").select("*").limit(3000);
+        if (since) {
+            query = query.gte("updated_at", since);
+        }
+        const { data, error } = await query;
+        if (error) throw error;
+        return data;
+    },
+
+    async insertInventoryRows(rows: any[]) {
+        const { data, error } = await supabase.from("pharmacy_inventory").insert(rows);
+        if (error) throw error;
+        return data;
     },
 };

@@ -1,7 +1,8 @@
 import type { MedicineSafetyProfile } from "@/components/medicine/MedicineSafetyData";
 import { getStaticSafetyProfile } from "@/components/medicine/MedicineSafetyData";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
+// No base URL needed — Next.js proxy at /api/medicine/safety forwards to Render.
+// Using a relative path keeps this working on both Vercel and local dev.
 const CACHE_TTL_MS = 1000 * 60 * 60; // 1 hour
 
 // ── In-memory cache ────────────────────────────────────────────────────────
@@ -54,12 +55,13 @@ export async function fetchSafetyProfile(
     // 3. Attempt API fetch with a 5-second timeout
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        // 30 s — first-ever request for a drug triggers LLM generation (~5-15 s).
+        // Subsequent requests are served from cache and are near-instant.
+        const timeoutId = setTimeout(() => controller.abort(), 30_000);
 
-        const res = await fetch(
-            `${API_BASE}/api/medicine/safety?q=${encodeURIComponent(query.trim())}`,
-            { signal: controller.signal }
-        );
+        const res = await fetch(`/api/medicine/safety?q=${encodeURIComponent(query.trim())}`, {
+            signal: controller.signal,
+        });
 
         clearTimeout(timeoutId);
 

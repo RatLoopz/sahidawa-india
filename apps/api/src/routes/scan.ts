@@ -13,6 +13,7 @@ import {
 import { uploadRateLimiter } from "../middleware/uploadRateLimit";
 import { scanQueryLimiter } from "../middleware/rateLimit";
 import { redisClient } from "../utils/redis";
+import { supabase } from "../db/client";
 
 import { optionalAuth } from "../middleware/auth";
 import { escapeIlike, escapePostgrest, buildOrConditions } from "../utils/db";

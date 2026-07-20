@@ -713,6 +713,83 @@ const safetyProfiles: MedicineSafetyProfile[] = [
         storageNote: "Store below 30°C. Reconstituted suspension stable for 5 days — refrigerate.",
         pregnancyCategory: "Category B — Use only if clearly needed",
     },
+
+    // ── Telmisartan ──────────────────────────────────────────────────────────
+    {
+        activeIngredient: "telmisartan",
+        genericName: "Telmisartan",
+        brandAliases: ["telma", "telma-r", "telmikind", "tazloc", "cresadex"],
+        sideEffects: [
+            { name: "Dizziness or lightheadedness", severity: "common", frequency: "common" },
+            { name: "Back pain", severity: "common", frequency: "common" },
+            { name: "Sinus pain and congestion", severity: "common", frequency: "uncommon" },
+            { name: "Diarrhea", severity: "common", frequency: "uncommon" },
+            { name: "Severely low blood pressure", severity: "severe", frequency: "rare" },
+            { name: "High blood potassium (Hyperkalemia)", severity: "severe", frequency: "rare" },
+            { name: "Kidney impairment", severity: "severe", frequency: "rare" },
+        ],
+        ageBasedDosage: [
+            {
+                group: "children",
+                label: "Children",
+                ageRange: "Under 18 years",
+                dose: "Not recommended",
+                frequency: "N/A",
+                notes: ["Safety and efficacy in children have not been established."],
+                warnings: ["Do not give to children unless strictly directed by a specialist."],
+            },
+            {
+                group: "adults",
+                label: "Adults",
+                ageRange: "18–60 years",
+                dose: "40 mg (can range from 20 mg to 80 mg)",
+                frequency: "Once daily",
+                notes: [
+                    "Can be taken with or without food.",
+                    "Try to take it at the same time every day to maintain even blood levels.",
+                ],
+                warnings: [
+                    "Do not stop abruptly without consulting your doctor.",
+                    "Monitor blood pressure regularly.",
+                ],
+            },
+            {
+                group: "elderly",
+                label: "Senior Citizens",
+                ageRange: "60+ years",
+                dose: "20–40 mg",
+                frequency: "Once daily",
+                notes: ["Seniors may be more sensitive to blood pressure lowering effects."],
+                warnings: [
+                    "Increased risk of dizziness and falls. Rise slowly from a sitting or lying position.",
+                ],
+            },
+        ],
+        dietaryCues: [
+            {
+                icon: "UtensilsCrossed",
+                label: "With or Without Food",
+                instruction: "Can be taken with or without food.",
+                type: "optional",
+            },
+            {
+                icon: "Droplets",
+                label: "With Water",
+                instruction: "Take with a full glass of water.",
+                type: "required",
+            },
+            {
+                icon: "Wine",
+                label: "Limit Alcohol",
+                instruction: "Alcohol can further lower blood pressure and increase dizziness.",
+                type: "avoid",
+            },
+        ],
+        storageNote:
+            "Store at room temperature away from moisture and heat. Keep tablets in their original blister pack until you are ready to take them.",
+        pregnancyCategory:
+            "Category D — Do NOT use during pregnancy. Can cause severe harm or death to the unborn baby.",
+    },
 ];
 
 // ---------------------------------------------------------------------------
@@ -738,6 +815,7 @@ export function resolveIngredientKey(query: string | undefined | null): string {
     if (q.includes("ibuprofen")) return "ibuprofen";
     if (q.includes("cetirizine")) return "cetirizine";
     if (q.includes("azithromycin")) return "azithromycin";
+    if (q.includes("telmisartan") || q.includes("telma")) return "telmisartan";
 
     // ── Brand alias lookup (checks brandAliases on each profile) ─────────────
     for (const profile of safetyProfiles) {
@@ -766,3 +844,5 @@ export function getSafetyProfile(query: string | undefined | null): MedicineSafe
 
 export { safetyProfiles };
 export { getSafetyProfile as getStaticSafetyProfile };
+
+// This is not the correct way to add it since we want to insert it into the safetyProfiles array. I will use a proper replace.

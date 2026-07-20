@@ -6,10 +6,11 @@
     "scripts": {
         "start": "node dist/index.js",
         "dev": "ts-node-dev --respawn --transpile-only -r ./ws-setup.js src/index.ts",
-        "build": "tsc && cp -r assets dist/",
+        "build": "npm run build -w @sahidawa/types -w @sahidawa/validators -w @sahidawa/shared && tsc && cp -r assets dist/",
         "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --forceExit --silent"
     },
     "dependencies": {
+        "@google/generative-ai": "^0.24.1",
         "@opentelemetry/api": "^1.9.1",
         "@opentelemetry/auto-instrumentations-node": "^0.77.0",
         "@opentelemetry/exporter-trace-otlp-http": "^0.219.0",
@@ -29,6 +30,7 @@
         "dotenv": "^17.4.2",
         "express": "^5.0.0",
         "express-rate-limit": "^8.5.2",
+        "groq-sdk": "^1.3.0",
         "helmet": "^8.2.0",
         "ioredis": "^5.11.1",
         "libphonenumber-js": "^1.13.7",
