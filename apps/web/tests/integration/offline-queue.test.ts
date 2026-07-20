@@ -17,11 +17,13 @@ jest.mock("uuid", () => ({
 }));
 import { enqueueScan, flushQueue, initOnlineListener } from "../../lib/offline/queue";
 import { getSyncDB } from "../../lib/offline/db";
+import { logDose } from "../../lib/scheduleApi";
+import { offlineRequestQueue, DoseQueuedOfflineError } from "../../lib/apiWithRetry";
+
+// Mock network requuest made during queue synchronization.
+const fetchMock = jest.fn();
 
 describe("Offline Queue Integration", () => {
-    // Mock network requuest made during queue synchronization.
-    const fetchMock = jest.fn();
-
     beforeEach(async () => {
         // Rset fetch mock before every test.
         globalThis.fetch = fetchMock as any;
@@ -47,6 +49,8 @@ describe("Offline Queue Integration", () => {
     });
 
     it("queues a scan while offline", async () => {
+        globalThis.fetch = fetchMock as any;
+        fetchMock.mockReset();
         await enqueueScan({
             metadata: {
                 barcode: "123456",
@@ -171,5 +175,25 @@ describe("Offline Queue Integration", () => {
 
         // Retry count should increase after a failed sync
         expect(items[0].attemptCount).toBe(1);
+    });
+});
+
+describe("logDose offline queue", () => {
+    it("queues dose log when offline instead of throwing generic error", async () => {
+        globalThis.fetch = fetchMock as any;
+        fetchMock.mockReset();
+        Object.defineProperty(window.navigator, "onLine", {
+            value: false,
+            configurable: true,
+        });
+        await expect(
+            logDose("schedule-1", {
+                log_date: "2026-07-20",
+                log_time: "09:00",
+                status: "taken",
+            })
+        ).rejects.toThrow(DoseQueuedOfflineError);
+        const queued = offlineRequestQueue.getAll();
+        expect(queued.some((r) => r.url.includes("/doses"))).toBe(true);
     });
 });

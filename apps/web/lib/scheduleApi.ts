@@ -1,5 +1,5 @@
 import { API_BASE, getCsrfToken } from "./api";
-import { fetchWithRetry } from "./apiWithRetry";
+import { fetchWithRetry, offlineRequestQueue, DoseQueuedOfflineError } from "./apiWithRetry";
 
 export interface Schedule {
     id: string;
@@ -212,17 +212,47 @@ export async function logDose(
     scheduleId: string,
     data: { log_date: string; log_time: string; status: "taken" | "skipped" }
 ): Promise<DoseLog> {
-    const res = await scheduleMutationFetch(`${API_BASE}/api/schedules/${scheduleId}/doses`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...authHeaders() },
-        body: JSON.stringify(data),
-    });
-    if (!res.ok) {
-        const body = await res.json().catch(() => ({ error: "Unknown error" }));
-        throw new Error(body.error ?? "Failed to log dose");
+    const url = `${API_BASE}/api/schedules/${scheduleId}/doses`;
+    const body = JSON.stringify(data);
+
+    try {
+        const res = await scheduleMutationFetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...authHeaders() },
+            body,
+        });
+        if (!res.ok) {
+            const errBody = await res.json().catch(() => ({ error: "Unknown error" }));
+            throw new Error(errBody.error ?? "Failed to log dose");
+        }
+        const json = await res.json();
+        return json.dose;
+    } catch (err) {
+        const isOffline = typeof window !== "undefined" && !window.navigator.onLine;
+        const isNetworkError =
+            err instanceof Error &&
+            (err.message.toLowerCase().includes("offline") ||
+                err.message.toLowerCase().includes("failed to fetch") ||
+                err.name === "TypeError");
+
+        // Only queue genuine connectivity failures — not validation/auth errors (400/401/403/404)
+        if (isOffline || isNetworkError) {
+            const csrfToken = await getCsrfToken();
+            offlineRequestQueue.add(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...authHeaders(),
+                    "x-csrf-token": csrfToken,
+                },
+                credentials: "include",
+                body,
+            });
+            throw new DoseQueuedOfflineError();
+        }
+
+        throw err;
     }
-    const json = await res.json();
-    return json.dose;
 }
 
 /**

@@ -311,3 +311,10 @@ class OfflineRequestQueue {
 }
 
 export const offlineRequestQueue = new OfflineRequestQueue();
+
+export class DoseQueuedOfflineError extends Error {
+    constructor() {
+        super("Request queued for background sync");
+        this.name = "DoseQueuedOfflineError";
+    }
+}

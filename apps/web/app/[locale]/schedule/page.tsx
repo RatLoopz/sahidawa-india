@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { DoseQueuedOfflineError } from "@/lib/apiWithRetry";
+
 import {
     AlertTriangle,
     CheckCircle2,
@@ -89,11 +91,19 @@ function DoseButton({
             toast.success(status === "taken" ? t("doseLoggedSuccess") : t("doseSkippedSuccess"), {
                 id: `dose-${scheduleId}-${time}`,
             });
-        } catch {
-            // Revert optimistic update
-            onStatusChange(time, previousStatus);
-            setActionError(t("doseErrorMessage"));
-            toast.error(t("doseErrorMessage"), { id: `dose-${scheduleId}-${time}` });
+        } catch (err) {
+            if (err instanceof DoseQueuedOfflineError) {
+                // Don't revert — dose stays "taken"/"skipped" optimistically.
+                // It's safely queued in localStorage and will sync automatically.
+                toast.success(t("doseQueuedOffline"), {
+                    id: `dose-${scheduleId}-${time}`,
+                });
+            } else {
+                // Genuine failure (validation, auth, server error) — revert as before
+                onStatusChange(time, previousStatus);
+                setActionError(t("doseErrorMessage"));
+                toast.error(t("doseErrorMessage"), { id: `dose-${scheduleId}-${time}` });
+            }
         } finally {
             setLoading(false);
         }
