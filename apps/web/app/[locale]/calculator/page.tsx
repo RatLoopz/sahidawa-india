@@ -304,7 +304,10 @@ function CalculatorPageContent() {
                                         value={quantity}
                                         onChange={(e) =>
                                             setQuantity(
-                                                Math.max(1, parseInt(e.target.value, 10) || 1)
+                                                Math.min(
+                                                    100,
+                                                    Math.max(1, parseInt(e.target.value, 10) || 1)
+                                                )
                                             )
                                         }
                                         className="w-16 rounded-lg border border-slate-300 py-1.5 text-center text-sm font-bold focus:border-emerald-600 focus:outline-none dark:border-slate-700 dark:bg-slate-800"
