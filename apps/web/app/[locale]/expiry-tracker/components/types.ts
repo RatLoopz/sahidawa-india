@@ -1,12 +1,7 @@
 import type React from "react";
+import type { TrackedMedicine } from "@sahidawa/types";
 
-export interface Medicine {
-    id: string;
-    name: string;
-    expiryDate: string;
-    batchNumber?: string;
-    notes?: string;
-}
+export type { TrackedMedicine as Medicine };
 
 export type FilterStatus = "all" | "expired" | "expiringSoon" | "safe";
 export type SortOption = "expirySoonest" | "expiryLatest" | "alpha";

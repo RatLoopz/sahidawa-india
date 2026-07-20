@@ -15,6 +15,7 @@ import { uploadRateLimiter } from "../middleware/uploadRateLimit";
 import { scanQueryLimiter } from "../middleware/rateLimit";
 import { redisClient } from "../utils/redis";
 
+import { optionalAuth } from "../middleware/auth";
 import { escapeIlike, escapePostgrest, buildOrConditions } from "../utils/db";
 
 const router = Router();
@@ -909,6 +910,7 @@ import { resolveConflict, InvalidClientTimestampError } from "../utils/conflictR
 
 router.post(
     "/submit",
+    optionalAuth,
     uploadRateLimiter,
     validateUploadSize,
     upload.fields([{ name: "image" }, { name: "voice" }]),
@@ -959,8 +961,11 @@ router.post(
 
         try {
             // Note: we require a user to be authenticated in a real app, assuming auth.uid() is available
-            const userId =
-                (req as any).user?.id || (req as any).session?.user?.id || "anonymous_user";
+            const userId = (req as any).user?.id || (req as any).session?.user?.id;
+            if (!userId && process.env.NODE_ENV === "production") {
+                res.status(401).json({ error: "Authentication is required to submit scan data" });
+                return;
+            }
 
             const resolvedScanId = await resolveConflict({
                 scanId,

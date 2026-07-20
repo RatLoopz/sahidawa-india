@@ -13,17 +13,11 @@ import {
     checkAndTriggerLocalNotifications as checkAndTriggerNotificationsHelper,
     cancelNotificationsForMedicine,
 } from "@/lib/expiry-notifications";
+import type { TrackedMedicine, TrackedMedicine as Medicine } from "@sahidawa/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export interface Medicine {
-    id: string;
-    name: string;
-    expiryDate: string;
-    batchNumber?: string;
-    notes?: string;
-    snoozedUntil?: string;
-}
+export type { TrackedMedicine, TrackedMedicine as Medicine };
 
 export interface AddMedicineFields {
     name: string;

@@ -154,8 +154,8 @@ self.addEventListener("fetch", (event) => {
     }
 
     // -------------------------------------------------------------------------
-    // Strategy 2 — Medicine-lookup API routes: Stale-While-Revalidate
-    // (verify, scan, LASA — show cached result immediately, update in background)
+    // Strategy 2 — Medicine-lookup API routes: Network-first with cache fallback
+    // (verify, scan, LASA — users must always see the latest safety status)
     // -------------------------------------------------------------------------
     if (
         url.pathname.startsWith("/api/medicines/") ||
@@ -163,7 +163,7 @@ self.addEventListener("fetch", (event) => {
         url.pathname.startsWith("/api/v1/scan/") ||
         url.pathname.startsWith("/api/v1/lasa/")
     ) {
-        event.respondWith(staleWhileRevalidate(request, MEDICINE_CACHE_NAME));
+        event.respondWith(networkFirstWithCache(request, MEDICINE_CACHE_NAME));
         return;
     }
 

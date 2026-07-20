@@ -1,18 +1,8 @@
 import { AlertTriangle, Download, FileSpreadsheet } from "lucide-react";
 import { exportComparisonToCSV, exportComparisonToPDF } from "@/src/lib/comparisonExport";
+import type { Medicine } from "@sahidawa/types";
 
-export interface Medicine {
-    id: string;
-    brand_name: string | null;
-    generic_name: string;
-    composition: string | null;
-    manufacturer: string;
-    mrp?: number | null;
-    jan_aushadhi_price?: number | null;
-    expiry_date?: string | null;
-    medicine_type?: "brand" | "generic";
-    cdsco_approval_status: string;
-}
+export type { Medicine };
 
 export interface ComparisonGridLabels {
     emptyComparison: string;

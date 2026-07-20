@@ -22,6 +22,54 @@ const injectRequestId = winston.format((info) => {
     return info;
 });
 
+const SENSITIVE_KEYS = new Set([
+    "authorization",
+    "cookie",
+    "set-cookie",
+    "x-api-key",
+    "password",
+    "token",
+    "secret",
+]);
+
+function redactObj(obj: any, seen: WeakSet<any> = new WeakSet()): any {
+    if (obj === null || typeof obj !== "object") {
+        return obj;
+    }
+
+    if (seen.has(obj)) {
+        return "[CIRCULAR]";
+    }
+    seen.add(obj);
+
+    if (Array.isArray(obj)) {
+        return obj.map((item) => redactObj(item, seen));
+    }
+
+    const redacted: any = {};
+    for (const key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            if (SENSITIVE_KEYS.has(key.toLowerCase())) {
+                redacted[key] = "[REDACTED]";
+            } else {
+                redacted[key] = redactObj(obj[key], seen);
+            }
+        }
+    }
+
+    // Copy symbol keys (like LEVEL, MESSAGE, SPLAT used by winston)
+    const symbols = Object.getOwnPropertySymbols(obj);
+    for (const sym of symbols) {
+        redacted[sym] = obj[sym];
+    }
+
+    return redacted;
+}
+
+const redactSensitiveData = winston.format((info) => {
+    return redactObj(info);
+});
+
 const logFormat = printf(({ level, message, timestamp, stack, requestId }) => {
     const reqIdTag = requestId ? ` [${requestId}]` : "";
     if (stack) {
@@ -53,6 +101,7 @@ const logger = winston.createLogger({
         errors({ stack: true }),
         timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
         injectRequestId(),
+        redactSensitiveData(),
         process.env.NODE_ENV === "production" ? json() : combine(colorize(), logFormat)
     ),
     transports: [new winston.transports.Console(), errorTransport, combinedTransport],

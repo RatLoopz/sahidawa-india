@@ -37,6 +37,11 @@ async function fetchWithCsrf<T>(
 
     let res = await doFetch(await getCsrfToken());
 
+    if (res.status === 403) {
+        const freshToken = await refreshCsrfToken();
+        res = await doFetch(freshToken);
+    }
+
     if (!res.ok && !(ignore404 && res.status === 404)) {
         const body = (await res.json().catch(() => ({}))) as {
             error?: { message?: string } | string;
