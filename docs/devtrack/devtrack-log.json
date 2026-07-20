@@ -1,5 +1,19 @@
 [
   {
+    "prNumber": 3755,
+    "title": "feat: implement automated sensitive data redaction in logger and remove manual header sanitization in webhooks",
+    "author": "TanCodeX",
+    "mergedAt": "2026-07-20",
+    "area": "Backend",
+    "score": 15,
+    "docPath": "docs/devtrack/2026-07/PR-3755-feat-implement-automated-sensitive-data-redaction-.md",
+    "linkedIssue": "#3672",
+    "labels": "level:intermediate,quality:exceptional,gssoc:approved,type:security,shoutout:approved",
+    "filesChanged": [
+      "apps/api/src/routes/webhooks.ts",
+      "apps/api/src/utils/logger.ts"
+    ],
+    "adr": "docs/devtrack/adr/ADR-057-feat-implement-automated-sensitive-data-redaction-.md"
     "prNumber": 3749,
     "title": "perf : Add Redis Cache on ML Image Analysis Proxies",
     "author": "hrx01-dev",
