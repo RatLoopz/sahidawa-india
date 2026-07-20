@@ -16,6 +16,14 @@ def anyio_backend():
     return "asyncio"
 
 
+@pytest.fixture(autouse=True)
+def _reset_redis_breaker():
+    """Keep the module-level Redis circuit breaker isolated between tests."""
+    triage_graph._redis_breaker.record_success()  # force a known, closed state
+    yield
+    triage_graph._redis_breaker.record_success()
+
+
 class FakeRedis:
     """Minimal in-memory stand-in for the async Redis client used in tests."""
 
@@ -35,6 +43,93 @@ class FakeRedis:
             if self.store.pop(key, None) is not None:
                 removed += 1
         return removed
+
+
+# ---------------------------------------------------------------------------
+# services.triage_graph — Redis circuit breaker
+# ---------------------------------------------------------------------------
+
+def test_redis_circuit_breaker_opens_after_threshold():
+    breaker = triage_graph._RedisCircuitBreaker(failure_threshold=3, cooldown_seconds=60)
+
+    breaker.record_failure()
+    breaker.record_failure()
+    assert breaker.is_open() is False  # below threshold
+
+    breaker.record_failure()
+    assert breaker.is_open() is True  # threshold reached — circuit opens
+
+
+def test_redis_circuit_breaker_success_resets_failure_streak():
+    breaker = triage_graph._RedisCircuitBreaker(failure_threshold=3, cooldown_seconds=60)
+
+    breaker.record_failure()
+    breaker.record_failure()
+    breaker.record_success()  # a single success clears the streak
+    breaker.record_failure()
+    breaker.record_failure()
+    assert breaker.is_open() is False  # only 2 consecutive failures since the reset
+
+
+def test_redis_circuit_breaker_half_opens_after_cooldown(monkeypatch):
+    clock = {"now": 1000.0}
+    monkeypatch.setattr(triage_graph.time, "monotonic", lambda: clock["now"])
+    breaker = triage_graph._RedisCircuitBreaker(failure_threshold=1, cooldown_seconds=60)
+
+    breaker.record_failure()
+    assert breaker.is_open() is True  # within cooldown, stays open
+
+    clock["now"] += 61  # advance past the cooldown window
+    assert breaker.is_open() is False  # half-opens to probe recovery
+
+
+def test_open_breaker_short_circuits_load_without_touching_redis(monkeypatch):
+    class ExplodingRedis:
+        async def get(self, key):
+            raise AssertionError("Redis must not be called while the circuit is open")
+
+    monkeypatch.setattr(triage_graph, "redis_client", ExplodingRedis())
+    monkeypatch.setattr(triage_graph._redis_breaker, "is_open", lambda: True)
+
+    # Returns immediately with no session state, without ever hitting Redis.
+    assert asyncio.run(triage_graph._load_session_state("any-session")) is None
+
+
+@pytest.mark.anyio
+async def test_open_breaker_serves_stateless_fallback(monkeypatch):
+    monkeypatch.setattr(triage_graph, "LANGGRAPH_AVAILABLE", True)
+    monkeypatch.setattr(triage_graph._redis_breaker, "is_open", lambda: True)
+
+    class ExplodingRedis:
+        async def get(self, key):
+            raise AssertionError("Redis must not be read while the circuit is open")
+
+        async def set(self, key, value, ex=None):
+            raise AssertionError("Redis must not be written while the circuit is open")
+
+    monkeypatch.setattr(triage_graph, "redis_client", ExplodingRedis())
+
+    fake_app = MagicMock()
+    fake_app.ainvoke = AsyncMock(
+        return_value={
+            "response": "Here is some general guidance.",
+            "emergency_detected": False,
+            "language": "English",
+            "final_summary": "",
+            "recommendations": [],
+            "disclaimer": "",
+            "collected_info": {},
+        }
+    )
+    monkeypatch.setattr(triage_graph, "triage_app", fake_app)
+
+    result = await triage_graph.run_triage_flow(
+        [{"role": "user", "content": "hi"}], session_id="s-open"
+    )
+
+    # With the circuit open, the stateless graph runs and Redis is never touched.
+    fake_app.ainvoke.assert_awaited_once()
+    assert result["response"] == "Here is some general guidance."
 
 
 # ---------------------------------------------------------------------------
