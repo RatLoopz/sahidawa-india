@@ -396,18 +396,40 @@ export default function PharmacyMapPage() {
 
     const pendingBoundsRef = useRef<MapBounds | null>(null);
     const initialFetchDone = useRef(false);
+    const scanHotspotsFetchedRef = useRef(false);
 
-    // Load the privacy-safe (server-binned) scan-activity heatmap once on mount.
+    // Lazily load the privacy-safe (server-binned) scan-activity heatmap the
+    // first time a layer that renders it is selected, rather than on every page
+    // load. Once fetched, the result is cached in `scanHotspots` state and the
+    // ref stops any further network calls when toggling modes back and forth.
     // Silently no-ops for users without access, keeping the map unchanged.
     useEffect(() => {
+        if (heatmapMode !== "scans" && heatmapMode !== "combined") return;
+        if (scanHotspotsFetchedRef.current) return;
+
+        scanHotspotsFetchedRef.current = true;
         const controller = new AbortController();
-        fetchScanActivityHotspots(controller.signal).then((hotspots) => {
-            if (!controller.signal.aborted) {
+
+        fetchScanActivityHotspots(controller.signal)
+            .then((hotspots) => {
+                if (controller.signal.aborted) {
+                    // Cancelled by unmount or a quick mode change before it
+                    // resolved — let a later toggle retry instead of caching
+                    // an incomplete result.
+                    scanHotspotsFetchedRef.current = false;
+                    return;
+                }
                 setScanHotspots(hotspots);
-            }
-        });
+            })
+            .catch(() => {
+                // Defensive: fetchScanActivityHotspots handles its own errors
+                // and resolves with [] today, but an unexpected rejection must
+                // not latch the ref and block every future retry.
+                scanHotspotsFetchedRef.current = false;
+            });
+
         return () => controller.abort();
-    }, []);
+    }, [heatmapMode]);
 
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -830,17 +852,16 @@ export default function PharmacyMapPage() {
         { id: "none", label: "Markers", description: "Show pharmacy markers only" },
         { id: "density", label: "Density", description: "Highlight pharmacy-dense areas" },
         { id: "counterfeit", label: "Counterfeit", description: "Show report-risk clusters" },
-        // Only surfaced when the privacy-safe endpoint returns data (i.e. the
-        // viewer is authorized), so unauthorized users don't see an empty layer.
-        ...(scanHotspots.length > 0
-            ? [
-                  {
-                      id: "scans" as const,
-                      label: "Scan Activity",
-                      description: "Anonymized, location-binned scan density",
-                  },
-              ]
-            : []),
+        // Always offered: the scan layer is now fetched lazily on first
+        // selection, so whether data exists isn't known until the user asks for
+        // it. Gating this option on `scanHotspots.length` would make it
+        // unclickable and the layer unreachable. Viewers without access simply
+        // see an empty layer.
+        {
+            id: "scans",
+            label: "Scan Activity",
+            description: "Anonymized, location-binned scan density",
+        },
         { id: "combined", label: "Combined", description: "Show density and report risk together" },
     ];
 
