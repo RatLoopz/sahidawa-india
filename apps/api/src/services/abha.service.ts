@@ -10,6 +10,13 @@ const ABHA_LOGIN_SCOPE = ["abha-address-login", "mobile-verify"];
 const ABHA_ADDRESS_LOGIN_PATH = "/v3/phr/web/login/abha";
 const ABDM_PUBLIC_CERTIFICATE_PATH = "/v3/profile/public/certificate";
 
+// ── ABDM public key cache ────────────────────────────────────────────────────
+// Cached in-process so we don't hit the NHA certificate endpoint on every
+// single encryption call. Invalidated automatically when encryption fails
+// (see encryptWithAbdmPublicKey), since that's the signal the gateway may
+// have rotated its key.
+let cachedAbdmPublicKey: string | null = null;
+
 interface AbdmSessionResponse {
     accessToken?: string;
 }
@@ -37,7 +44,7 @@ export const generateOTP = async (abhaAddress: string): Promise<ABHALinkResponse
         {
             scope: ABHA_LOGIN_SCOPE,
             loginHint: "abha-address",
-            loginId: encryptWithAbdmPublicKey(abhaAddress, publicKey),
+            loginId: await encryptWithAbdmPublicKey(abhaAddress, publicKey, accessToken),
             otpSystem: "abdm",
         },
         accessToken
@@ -74,7 +81,7 @@ export const verifyOTP = async (
                 authMethods: ["otp"],
                 otp: {
                     txnId,
-                    otpValue: encryptWithAbdmPublicKey(otp, publicKey),
+                    otpValue: await encryptWithAbdmPublicKey(otp, publicKey, accessToken),
                 },
             },
         },
@@ -138,7 +145,14 @@ const getAbdmSessionToken = async (): Promise<string> => {
     return response.accessToken;
 };
 
-const getAbdmPublicKey = async (accessToken: string): Promise<string> => {
+const getAbdmPublicKey = async (
+    accessToken: string,
+    options: { forceRefresh?: boolean } = {}
+): Promise<string> => {
+    if (!options.forceRefresh && cachedAbdmPublicKey) {
+        return cachedAbdmPublicKey;
+    }
+
     const response = await getFromAbdm<AbdmPublicCertificateResponse>(
         `${getAbdmBaseUrl()}${ABDM_PUBLIC_CERTIFICATE_PATH}`,
         accessToken
@@ -146,6 +160,11 @@ const getAbdmPublicKey = async (accessToken: string): Promise<string> => {
 
     if (!response.publicKey) {
         throw new Error("ABDM sandbox returned an invalid public certificate response");
+    }
+    cachedAbdmPublicKey = response.publicKey;
+
+    if (options.forceRefresh) {
+        logger.info("ABDM public key refreshed successfully after rotation was detected");
     }
 
     return response.publicKey;
@@ -210,28 +229,81 @@ const requestAbdm = async <T>(
     }
 };
 
-const encryptWithAbdmPublicKey = (value: string, publicKey: string): string => {
+const normalizePublicKey = (publicKey: string): string =>
+    publicKey.includes("BEGIN PUBLIC KEY")
+        ? publicKey
+        : `-----BEGIN PUBLIC KEY-----\n${publicKey.match(/.{1,64}/g)?.join("\n")}\n-----END PUBLIC KEY-----`;
+
+const rsaEncrypt = (value: string, publicKey: string): string => {
+    return publicEncrypt(
+        {
+            key: normalizePublicKey(publicKey),
+            padding: constants.RSA_PKCS1_OAEP_PADDING,
+            oaepHash: "sha1",
+        },
+        Buffer.from(value, "utf8")
+    ).toString("base64");
+};
+
+/**
+ * Encrypts a value with the cached ABDM public key. If encryption fails
+ * (e.g. because the ABDM Gateway rotated its key and our cached copy is
+ * stale), automatically fetches a fresh public key from the NHA endpoint,
+ * updates the cache, and retries the encryption exactly once.
+ *
+ * @param value - Plaintext value to encrypt (e.g. ABHA address, OTP).
+ * @param publicKey - The currently cached public key to try first.
+ * @param accessToken - ABDM session token, needed to re-fetch the key if a
+ *                       refresh is required.
+ */
+const encryptWithAbdmPublicKey = async (
+    value: string,
+    publicKey: string,
+    accessToken: string
+): Promise<string> => {
     if (!publicKey || typeof publicKey !== "string" || publicKey.trim().length === 0) {
         throw new Error("ABDM public key is empty or invalid");
     }
 
-    const normalizedPublicKey = publicKey.includes("BEGIN PUBLIC KEY")
-        ? publicKey
-        : `-----BEGIN PUBLIC KEY-----\n${publicKey.match(/.{1,64}/g)?.join("\n")}\n-----END PUBLIC KEY-----`;
-
     try {
-        return publicEncrypt(
+        return rsaEncrypt(value, publicKey);
+    } catch (initialError) {
+        logger.warn(
+            "ABDM public key encryption failed — attempting a key refresh in case the " +
+                "gateway rotated its certificate",
             {
-                key: normalizedPublicKey,
-                padding: constants.RSA_PKCS1_OAEP_PADDING,
-                oaepHash: "sha1",
-            },
-            Buffer.from(value, "utf8")
-        ).toString("base64");
-    } catch (error) {
-        throw new Error(
-            `ABDM public key encryption failed: ${error instanceof Error ? error.message : "unknown error"}`
+                error: initialError instanceof Error ? initialError.message : "unknown error",
+            }
         );
+
+        let refreshedKey: string;
+        try {
+            refreshedKey = await getAbdmPublicKey(accessToken, { forceRefresh: true });
+        } catch (refreshError) {
+            logger.error("ABDM public key refresh failed", {
+                error: refreshError instanceof Error ? refreshError.message : "unknown error",
+            });
+            throw new Error(
+                `ABDM public key encryption failed and key refresh was unsuccessful: ${
+                    initialError instanceof Error ? initialError.message : "unknown error"
+                }`
+            );
+        }
+
+        try {
+            const result = rsaEncrypt(value, refreshedKey);
+            logger.info("ABDM encryption succeeded after public key refresh");
+            return result;
+        } catch (retryError) {
+            logger.error("ABDM public key encryption failed again even after key refresh", {
+                error: retryError instanceof Error ? retryError.message : "unknown error",
+            });
+            throw new Error(
+                `ABDM public key encryption failed after refresh: ${
+                    retryError instanceof Error ? retryError.message : "unknown error"
+                }`
+            );
+        }
     }
 };
 
