@@ -5,7 +5,11 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import logger from "../utils/logger";
-import { getMlServiceUrl, MISSING_ML_SERVICE_URL_MESSAGE } from "../config/mlService";
+import {
+    getMlServiceUrl,
+    getMlAuthHeaders,
+    MISSING_ML_SERVICE_URL_MESSAGE,
+} from "../config/mlService";
 import {
     MULTER_SCAN_FILE_SIZE_CUTOFF_BYTES,
     validateUploadSize,
@@ -247,6 +251,7 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
 
                 const response = await fetch(targetUrl, {
                     method: "POST",
+                    headers: getMlAuthHeaders(),
                     body: formData,
                     signal: AbortSignal.timeout(30_000), // 30 s hard timeout
                 });

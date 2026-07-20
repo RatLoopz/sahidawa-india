@@ -75,9 +75,26 @@ def test_models_current_endpoint():
 def test_models_current_endpoint_no_api_key():
     response = client.get("/models/current")
 
-    assert response.status_code in (401, 403)
-    
+    assert response.status_code == 401
+
+
 def test_transcribe_missing_file():
-    response = client.post("/asr/transcribe")
+    # Authenticated, so this exercises request validation rather than auth.
+    response = client.post(
+        "/asr/transcribe",
+        headers={"x-api-key": "test-secret-123"},
+    )
 
     assert response.status_code == 422
+
+
+def test_transcribe_requires_api_key():
+    response = client.post("/asr/transcribe")
+
+    assert response.status_code == 401
+
+
+def test_wrong_api_key_is_rejected():
+    response = client.get("/models/current", headers={"x-api-key": "wrong-key"})
+
+    assert response.status_code == 401

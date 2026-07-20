@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { structuredLog } from "@/lib/structuredLogger";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/getClientIp";
-import { getMlServiceUrl } from "@/lib/mlService";
+import { getMlServiceUrl, getMlAuthHeaders } from "@/lib/mlService";
 
 const ROUTE = "/api/voice/tts";
 const ML_TTS_TIMEOUT_MS = 15_000;
@@ -78,7 +78,7 @@ export async function POST(req: Request) {
     try {
         const upstreamResponse = await fetch(`${mlServiceUrl}/voice/tts/generate`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", ...getMlAuthHeaders() },
             body: JSON.stringify({
                 text,
                 language_code: languageCode,

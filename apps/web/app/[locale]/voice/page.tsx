@@ -38,7 +38,7 @@ import {
     transcribeRecordedAudio,
     type VoiceTranscriptionPayload,
 } from "./lib/transcription";
-import { createVoiceStreamingSession } from "./lib/streaming";
+import { createVoiceStreamingSession, fetchVoiceStreamTicket } from "./lib/streaming";
 import {
     VoiceErrorPanel,
     VoiceIntroPanel,
@@ -1075,9 +1075,15 @@ export default function VoiceTriagePage() {
         setActiveAudioStream(nextAudioStream);
         setStep("listening");
 
-        if (typeof window.WebSocket === "function") {
+        // The ML socket needs a short-lived ticket from the API. Without one we
+        // skip straight to recorded upload rather than opening a socket that
+        // the ML service will just close.
+        const streamTicket = await fetchVoiceStreamTicket();
+
+        if (typeof window.WebSocket === "function" && streamTicket) {
             try {
                 streamingSessionRef.current = createVoiceStreamingSession({
+                    ticket: streamTicket,
                     language: selectedLanguage,
                     mimeType: mediaRecorderInstance.mimeType || "audio/webm",
                     onPartial: (payload) => {

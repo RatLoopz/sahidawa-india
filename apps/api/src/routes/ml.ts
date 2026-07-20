@@ -1,8 +1,12 @@
 import { Router, Response } from "express";
 import { z } from "zod";
-import { createHash } from "node:crypto";
+import { createHash, createHmac, randomBytes } from "node:crypto";
 import { promises as dns } from "node:dns";
-import { getMlServiceUrl, MISSING_ML_SERVICE_URL_MESSAGE } from "../config/mlService";
+import {
+    getMlServiceUrl,
+    getMlAuthHeaders,
+    MISSING_ML_SERVICE_URL_MESSAGE,
+} from "../config/mlService";
 import { requireAuth, AuthenticatedRequest } from "../middleware/auth";
 import logger from "../utils/logger";
 import { limiter } from "../middleware/rateLimit";
@@ -109,7 +113,7 @@ router.post("/analyze", limiter, requireAuth, async (req: AuthenticatedRequest, 
     try {
         const mlResponse = await fetch(`${mlServiceUrl}/analyze`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", ...getMlAuthHeaders() },
             body: JSON.stringify(parsed.data),
             signal: controller.signal,
         });
@@ -154,6 +158,50 @@ router.post("/analyze", limiter, requireAuth, async (req: AuthenticatedRequest, 
     } finally {
         clearTimeout(timeout);
     }
+});
+
+/**
+ * Mint a short-lived ticket so an authenticated user's browser can open the
+ * ML streaming WebSocket. Browsers cannot set headers on a WebSocket
+ * handshake, and the shared ML_API_KEY must never reach the page, so the
+ * browser gets a signed credential that expires in a minute and works once.
+ *
+ * Format must stay in sync with apps/ml/utils/ws_ticket.py.
+ */
+router.post("/stream-ticket", limiter, requireAuth, (req: AuthenticatedRequest, res: Response) => {
+    const apiKey = process.env.ML_API_KEY?.trim();
+    if (!apiKey) {
+        logger.error("ML_API_KEY is not set; cannot mint ML stream tickets.");
+        res.status(503).json({
+            error: "ML streaming is not configured",
+            code: "ML_API_KEY_MISSING",
+        });
+        return;
+    }
+
+    const mlServiceUrl = getMlServiceUrl();
+    if (!mlServiceUrl) {
+        logger.error(MISSING_ML_SERVICE_URL_MESSAGE, { route: "/api/ml/stream-ticket" });
+        res.status(503).json({
+            error: MISSING_ML_SERVICE_URL_MESSAGE,
+            code: "ML_SERVICE_URL_MISSING",
+        });
+        return;
+    }
+
+    const ttlSeconds = 60;
+    const expiry = Math.floor(Date.now() / 1000) + ttlSeconds;
+    const nonce = randomBytes(16).toString("hex");
+    const payload = `v1.${expiry}.${nonce}`;
+    const signature = createHmac("sha256", apiKey).update(payload).digest("hex");
+
+    logger.info("Issued ML stream ticket", { userId: req.user?.id });
+
+    res.json({
+        ticket: `${payload}.${signature}`,
+        expiresAt: expiry,
+        streamUrl: `${mlServiceUrl.replace(/^http/, "ws")}/asr/stream`,
+    });
 });
 
 export default router;

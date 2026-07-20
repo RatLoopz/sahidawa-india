@@ -1,8 +1,9 @@
 import importlib
 import logging
 import re
+from typing import Optional, Sequence
 
-from fastapi import FastAPI
+from fastapi import FastAPI, params
 
 
 logger = logging.getLogger(__name__)
@@ -32,6 +33,7 @@ def include_router_if_available(
     *,
     router_name: str = "router",
     required: bool = False,
+    dependencies: Optional[Sequence[params.Depends]] = None,
 ) -> bool:
     try:
         module = importlib.import_module(module_path)
@@ -42,5 +44,5 @@ def include_router_if_available(
         logger.warning("Skipping optional router %s because its dependencies are unavailable", module_path)
         return False
 
-    app.include_router(getattr(module, router_name))
+    app.include_router(getattr(module, router_name), dependencies=list(dependencies or []))
     return True

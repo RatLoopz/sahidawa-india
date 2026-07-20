@@ -12,7 +12,7 @@ import {
 import { scanQueryLimiter } from "../middleware/rateLimit";
 import { cacheMiddleware } from "../middleware/cache";
 import { escapePostgrest } from "../utils/db";
-import { getMlServiceUrl } from "../config/mlService";
+import { getMlServiceUrl, getMlAuthHeaders } from "../config/mlService";
 import { ServiceUnavailableError } from "../services/drugLookup.service";
 import logger from "../utils/logger";
 
@@ -75,6 +75,7 @@ router.post(
 
             const mlResponse = await fetch(`${ML_SERVICE_URL}/voice/verify`, {
                 method: "POST",
+                headers: getMlAuthHeaders(),
                 body: form,
             });
 
@@ -195,7 +196,9 @@ router.get("/languages", cacheMiddleware(3600, 7200), async (_req: Request, res:
             return res.status(503).json({ error: "ML service not configured" });
         }
 
-        const mlResponse = await fetch(`${ML_SERVICE_URL}/voice/languages`);
+        const mlResponse = await fetch(`${ML_SERVICE_URL}/voice/languages`, {
+            headers: getMlAuthHeaders(),
+        });
         const data = await mlResponse.json();
         res.json(data);
     } catch {

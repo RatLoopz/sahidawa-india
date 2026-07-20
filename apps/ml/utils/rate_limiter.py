@@ -1,7 +1,33 @@
 # apps/ml/utils/rate_limiter.py
+import os
+
 from fastapi import Request, HTTPException, status, Depends
 import redis.asyncio as aioredis
 from utils.database import get_redis
+
+
+def _trust_proxy_headers() -> bool:
+    return os.getenv("TRUST_PROXY_HEADERS", "").strip().lower() in {"1", "true", "yes"}
+
+
+def client_ip(request: Request) -> str:
+    """Resolve the caller's IP for rate limiting.
+
+    Behind a proxy every request carries the proxy's address, which puts all
+    callers in one bucket and lets a single noisy client throttle everyone.
+    X-Forwarded-For fixes that, but it is attacker-controlled and trusting it
+    unconditionally would let anyone dodge the limit by forging a new IP per
+    request, so it is only read when TRUST_PROXY_HEADERS is set.
+    """
+    if _trust_proxy_headers():
+        forwarded = request.headers.get("x-forwarded-for", "")
+        # Left-most entry is the original client; the rest are proxy hops.
+        client = forwarded.split(",")[0].strip()
+        if client:
+            return client
+
+    return request.client.host if request.client else "unknown"
+
 
 class RateLimiter:
     def __init__(self, requests: int, window_seconds: int):
@@ -9,7 +35,7 @@ class RateLimiter:
         self.window_seconds = window_seconds
 
     async def __call__(self, request: Request, redis: aioredis.Redis = Depends(get_redis)):
-        ip = request.client.host if request.client else "unknown"
+        ip = client_ip(request)
         path = request.url.path
         
         redis_key = f"rate_limit:{path}:{ip}"
