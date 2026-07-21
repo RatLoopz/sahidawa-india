@@ -63,7 +63,8 @@ async function getDbCachedProfile(genericName: string) {
     if (!data?.profile_json) return null;
 
     const updatedAtMs = new Date(data.updated_at).getTime();
-    const isFresh = Number.isFinite(updatedAtMs) && Date.now() - updatedAtMs < REDIS_TTL_SEC * 1000;
+    const nowMs = Date.now();
+    const isFresh = Number.isFinite(updatedAtMs) && updatedAtMs <= nowMs && nowMs - updatedAtMs < REDIS_TTL_SEC * 1000;
 
     return isFresh ? data.profile_json : null;
 }
