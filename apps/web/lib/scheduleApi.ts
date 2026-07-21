@@ -1,5 +1,6 @@
 import { API_BASE, getCsrfToken } from "./api";
 import { fetchWithRetry, offlineRequestQueue, DoseQueuedOfflineError } from "./apiWithRetry";
+import { readCacheGet, readCachePut } from "./offline/db";
 
 export interface Schedule {
     id: string;
@@ -70,17 +71,31 @@ async function scheduleMutationFetch(url: string, options: RequestInit): Promise
 /**
  * Fetches all medication schedules for the authenticated user.
  *
+ * On success the response is cached locally so it can be served while offline.
+ *
  * @returns {Promise<Schedule[]>} A promise that resolves to an array of Schedule objects.
  *                                Returns an empty array if the API response contains no schedules.
- * @throws {Error} Throws "Failed to fetch schedules" if the API returns a non-2xx response.
+ * @throws {Error} Throws "Failed to fetch schedules" on a non-2xx response, or the underlying
+ *                 network error when offline and no cached copy is available.
  */
 export async function fetchSchedules(): Promise<Schedule[]> {
-    const res = await fetch(`${API_BASE}/api/schedules`, {
-        headers: authHeaders(),
-    });
+    let res: Response;
+    try {
+        res = await fetch(`${API_BASE}/api/schedules`, {
+            headers: authHeaders(),
+        });
+    } catch (err) {
+        // fetch() itself throwing means a genuine network/offline failure (a
+        // reachable server that returns an HTTP error resolves normally, below).
+        const cached = await readCacheGet<Schedule[]>("schedules");
+        if (cached) return cached;
+        throw err;
+    }
     if (!res.ok) throw new Error("Failed to fetch schedules");
     const json = await res.json();
-    return json.schedules ?? [];
+    const schedules: Schedule[] = json.schedules ?? [];
+    void readCachePut("schedules", schedules);
+    return schedules;
 }
 
 /**
@@ -297,17 +312,34 @@ export async function fetchAdherenceStats(
 /**
  * Fetches today's summary of all scheduled doses for the authenticated user.
  *
- * @returns {Promise<{ date: string; schedules: TodaySchedule[] }>} A promise that resolves to an
- *          object containing today's date and the list of today's scheduled doses with their statuses.
- * @throws {Error} Throws "Failed to fetch today summary" if the API returns a non-2xx response.
+ * On success the response is cached locally. When offline, the last cached copy
+ * is returned instead with `fromCache: true` so the UI can flag stale data.
+ *
+ * @returns {Promise<{ date: string; schedules: TodaySchedule[]; fromCache?: boolean }>} A promise
+ *          that resolves to today's date and scheduled doses. `fromCache` is set only when the
+ *          data was served from the offline cache after a network failure.
+ * @throws {Error} Throws "Failed to fetch today summary" on a non-2xx response, or the underlying
+ *                 network error when offline and no cached copy is available.
  */
 export async function fetchTodaySummary(): Promise<{
     date: string;
     schedules: TodaySchedule[];
+    fromCache?: boolean;
 }> {
-    const res = await fetch(`${API_BASE}/api/schedules/today/summary`, {
-        headers: authHeaders(),
-    });
+    let res: Response;
+    try {
+        res = await fetch(`${API_BASE}/api/schedules/today/summary`, {
+            headers: authHeaders(),
+        });
+    } catch (err) {
+        const cached = await readCacheGet<{ date: string; schedules: TodaySchedule[] }>(
+            "todaySummary"
+        );
+        if (cached) return { ...cached, fromCache: true };
+        throw err;
+    }
     if (!res.ok) throw new Error("Failed to fetch today summary");
-    return res.json() as Promise<{ date: string; schedules: TodaySchedule[] }>;
+    const data = (await res.json()) as { date: string; schedules: TodaySchedule[] };
+    void readCachePut("todaySummary", data);
+    return data;
 }

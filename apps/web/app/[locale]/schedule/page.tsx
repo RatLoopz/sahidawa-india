@@ -11,8 +11,10 @@ import {
     Pill,
     Plus,
     RefreshCw,
+    WifiOff,
     XCircle,
 } from "lucide-react";
+import { useOfflineStatus } from "@/hooks/useOfflineStatus";
 import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
 import Card from "@/components/Card";
@@ -156,11 +158,12 @@ type LoadState =
     | { kind: "loading" }
     | { kind: "authError" }
     | { kind: "networkError"; message: string }
-    | { kind: "ready"; data: TodaySchedule[]; date: string };
+    | { kind: "ready"; data: TodaySchedule[]; date: string; fromCache: boolean };
 
 export default function SchedulePage() {
     const t = useTranslations("schedule");
     const { token, isLoading: authLoading } = useSession();
+    const { registerRetryCallback, unregisterRetryCallback } = useOfflineStatus();
     const [state, setState] = useState<LoadState>({ kind: "loading" });
     const [doseStatus, setDoseStatus] = useState<Record<string, string>>({});
 
@@ -183,7 +186,12 @@ export default function SchedulePage() {
                 }
             }
             setDoseStatus(statusMap);
-            setState({ kind: "ready", data: summary.schedules, date: summary.date });
+            setState({
+                kind: "ready",
+                data: summary.schedules,
+                date: summary.date,
+                fromCache: summary.fromCache ?? false,
+            });
         } catch {
             setState({
                 kind: "networkError",
@@ -197,6 +205,13 @@ export default function SchedulePage() {
             fetchData();
         }
     }, [authLoading, fetchData]);
+
+    // Silently refresh the schedule (and its offline cache) when connectivity
+    // returns, reusing the shared reconnect-retry mechanism.
+    useEffect(() => {
+        registerRetryCallback(fetchData);
+        return () => unregisterRetryCallback(fetchData);
+    }, [registerRetryCallback, unregisterRetryCallback, fetchData]);
 
     const handleDoseChange = (
         scheduleId: string,
@@ -232,6 +247,15 @@ export default function SchedulePage() {
                         <p className="mt-0.5 text-sm text-(--color-text-secondary)">
                             {t("headingDescription")}
                         </p>
+                        {state.kind === "ready" && state.fromCache && (
+                            <span
+                                role="status"
+                                className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                            >
+                                <WifiOff size={12} />
+                                Offline Mode
+                            </span>
+                        )}
                     </div>
                     <div className="flex gap-2">
                         <button
