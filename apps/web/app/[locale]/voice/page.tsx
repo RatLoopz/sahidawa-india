@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Mic } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 import { PageHeader } from "../components/PageHeader";
 import {
     getSpeechRecognitionConstructor,
@@ -160,6 +161,7 @@ export default function VoiceTriagePage() {
     const router = useRouter();
     const locale = useLocale();
     const t = useTranslations("VoicePage");
+    const [, copyToClipboard] = useCopyToClipboard();
     const [mode, setMode] = useState<"triage" | "verify">("triage");
     const [step, setStep] = useState<VoiceStep>("initial");
     const [selectedLanguage, setSelectedLanguage] = useState(getVoiceLanguageForLocale(locale));
@@ -822,19 +824,19 @@ export default function VoiceTriagePage() {
                 return;
             }
 
-            await navigator.clipboard.writeText(`${reportText}\n\n${window.location.href}`);
-            toast.success(t("copy_success"));
+            await copyToClipboard(`${reportText}\n\n${window.location.href}`, {
+                successMessage: t("copy_success"),
+                errorMessage: t("share_failure"),
+            });
         } catch (shareError) {
             if (shareError instanceof Error && shareError.name === "AbortError") {
                 return;
             }
 
-            try {
-                await navigator.clipboard.writeText(`${reportText}\n\n${window.location.href}`);
-                toast.success(t("copy_success"));
-            } catch {
-                toast.error(t("share_failure"));
-            }
+            await copyToClipboard(`${reportText}\n\n${window.location.href}`, {
+                successMessage: t("copy_success"),
+                errorMessage: t("share_failure"),
+            });
         }
     }
 
