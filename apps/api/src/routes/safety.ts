@@ -51,7 +51,7 @@ async function resolveGenericName(query: string): Promise<string> {
 async function getDbCachedProfile(genericName: string) {
     const { data, error } = await supabase
         .from("medicine_safety_profiles")
-        .select("profile_json")
+        .select("profile_json, updated_at")
         .eq("generic_name", genericName)
         .maybeSingle();
 
@@ -60,7 +60,12 @@ async function getDbCachedProfile(genericName: string) {
         return null;
     }
 
-    return data?.profile_json ?? null;
+    if (!data?.profile_json) return null;
+
+    const updatedAtMs = new Date(data.updated_at).getTime();
+    const isFresh = Number.isFinite(updatedAtMs) && Date.now() - updatedAtMs < REDIS_TTL_SEC * 1000;
+
+    return isFresh ? data.profile_json : null;
 }
 
 // ── Helper: persist profile to Supabase DB cache ─────────────────────────────
