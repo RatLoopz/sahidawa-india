@@ -169,6 +169,12 @@ router.post("/analyze", limiter, requireAuth, async (req: AuthenticatedRequest, 
  * Format must stay in sync with apps/ml/utils/ws_ticket.py.
  */
 router.post("/stream-ticket", limiter, requireAuth, (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.user?.id;
+    if (!userId) {
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+    }
+
     const apiKey = process.env.ML_API_KEY?.trim();
     if (!apiKey) {
         logger.error("ML_API_KEY is not set; cannot mint ML stream tickets.");
@@ -192,10 +198,13 @@ router.post("/stream-ticket", limiter, requireAuth, (req: AuthenticatedRequest, 
     const ttlSeconds = 60;
     const expiry = Math.floor(Date.now() / 1000) + ttlSeconds;
     const nonce = randomBytes(16).toString("hex");
-    const payload = `v1.${expiry}.${nonce}`;
+    // v2 embeds the authenticated user_id in the signed payload so the ML
+    // service can force-close this user's live sockets when access is revoked.
+    // Layout must stay in sync with apps/ml/utils/ws_ticket.py.
+    const payload = `v2.${expiry}.${nonce}.${userId}`;
     const signature = createHmac("sha256", apiKey).update(payload).digest("hex");
 
-    logger.info("Issued ML stream ticket", { userId: req.user?.id });
+    logger.info("Issued ML stream ticket", { userId });
 
     res.json({
         ticket: `${payload}.${signature}`,

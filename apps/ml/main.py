@@ -1,10 +1,12 @@
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+import asyncio
 import os
 import logging
 from contextlib import asynccontextmanager
 from utils.database import redis_client
+from utils.ws_registry import listen_for_revocations
 from services import triage_graph as _triage_graph_service
 
 from tracing import setup_tracing
@@ -35,11 +37,23 @@ async def lifespan(app: FastAPI):
     # available (e.g. Upstash free tier).  See services/triage_graph.py for
     # the full fallback strategy and known tradeoffs.
     await _triage_graph_service.init_checkpointer()
-    yield
-    # Shutdown phase (App stops/reloads)
-    logger.info("Closing connections...")
-    await _triage_graph_service.close_checkpointer()  # closes AsyncExitStack
-    await redis_client.close()
+
+    # Background task: force-close a user's active WebSocket streams when their
+    # API key is revoked (signal broadcast over Redis Pub/Sub by the API).
+    revocation_listener = asyncio.create_task(listen_for_revocations(redis_client))
+
+    try:
+        yield
+    finally:
+        # Shutdown phase (App stops/reloads)
+        logger.info("Closing connections...")
+        revocation_listener.cancel()
+        try:
+            await revocation_listener
+        except asyncio.CancelledError:
+            pass
+        await _triage_graph_service.close_checkpointer()  # closes AsyncExitStack
+        await redis_client.close()
 
 
 app = FastAPI(
