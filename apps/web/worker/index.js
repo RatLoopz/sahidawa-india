@@ -64,10 +64,9 @@ const PUBLIC_API_ROUTES = [
 function isPublicCacheableApiRequest(request, url) {
     if (request.method !== "GET" || request.credentials === "include") return false;
 
-    const authenticationHeaders = [
         "authorization",
         "proxy-authorization",
-        "cookie",
+        // "cookie", // Forbidden header; not readable in service workers.
         "x-api-key",
         "x-api-secret",
         "x-csrf-token",
