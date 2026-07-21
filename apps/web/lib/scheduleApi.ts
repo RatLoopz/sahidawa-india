@@ -51,6 +51,30 @@ function getToken(): string {
     return localStorage.getItem("sb-access-token") ?? "";
 }
 
+/**
+ * Extract the authenticated user's id (the JWT `sub` claim) from the Supabase
+ * access token, used only to namespace the offline read cache per user so a
+ * shared device never serves one user's cached PHI to another.
+ *
+ * The token is not verified here — that's the server's job. A forged `sub` can
+ * only ever scope a cache entry to itself, so it cannot expose another user's
+ * cached data. Returns "" when no valid token is present (e.g. after logout),
+ * which disables read caching entirely for that request.
+ */
+function getUserId(): string {
+    const token = getToken();
+    const parts = token.split(".");
+    if (parts.length !== 3) return "";
+    try {
+        const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+        const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+        const payload = JSON.parse(atob(padded));
+        return typeof payload?.sub === "string" ? payload.sub : "";
+    } catch {
+        return "";
+    }
+}
+
 function authHeaders(): Record<string, string> {
     const token = getToken();
     return token ? { Authorization: `Bearer ${token}` } : {};
@@ -87,14 +111,14 @@ export async function fetchSchedules(): Promise<Schedule[]> {
     } catch (err) {
         // fetch() itself throwing means a genuine network/offline failure (a
         // reachable server that returns an HTTP error resolves normally, below).
-        const cached = await readCacheGet<Schedule[]>("schedules");
+        const cached = await readCacheGet<Schedule[]>("schedules", getUserId());
         if (cached) return cached;
         throw err;
     }
     if (!res.ok) throw new Error("Failed to fetch schedules");
     const json = await res.json();
     const schedules: Schedule[] = json.schedules ?? [];
-    void readCachePut("schedules", schedules);
+    void readCachePut("schedules", getUserId(), schedules);
     return schedules;
 }
 
@@ -333,13 +357,14 @@ export async function fetchTodaySummary(): Promise<{
         });
     } catch (err) {
         const cached = await readCacheGet<{ date: string; schedules: TodaySchedule[] }>(
-            "todaySummary"
+            "todaySummary",
+            getUserId()
         );
         if (cached) return { ...cached, fromCache: true };
         throw err;
     }
     if (!res.ok) throw new Error("Failed to fetch today summary");
     const data = (await res.json()) as { date: string; schedules: TodaySchedule[] };
-    void readCachePut("todaySummary", data);
+    void readCachePut("todaySummary", getUserId(), data);
     return data;
 }
