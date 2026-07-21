@@ -1,8 +1,10 @@
 import { execSync } from "node:child_process";
 import createNextIntlPlugin from "next-intl/plugin";
-import withPWAInit from "@ducanh2912/next-pwa";
+import withPWAInit, { runtimeCaching as defaultRuntimeCaching } from "@ducanh2912/next-pwa";
+import { createWorkboxRuntimeCaching } from "./worker/workboxRuntimeCaching.mjs";
 
 const withNextIntl = createNextIntlPlugin();
+const workboxRuntimeCaching = createWorkboxRuntimeCaching(defaultRuntimeCaching);
 
 const withPWA = withPWAInit({
     dest: "public",
@@ -12,6 +14,7 @@ const withPWA = withPWAInit({
     swcMinify: true,
     workboxOptions: {
         disableDevLogs: true,
+        runtimeCaching: workboxRuntimeCaching,
     },
 });
 
@@ -35,8 +38,19 @@ const nextConfig = {
     env: {
         NEXT_PUBLIC_BUILD_ID: buildId,
     },
-    transpilePackages: ["@sahidawa/validators", "@sahidawa/types", "@sahidawa/shared", "@zxing/library", "@zxing/browser"],
-    serverExternalPackages: ["lightningcss", "@tailwindcss/postcss", "@tailwindcss/node", "@tailwindcss/oxide"],
+    transpilePackages: [
+        "@sahidawa/validators",
+        "@sahidawa/types",
+        "@sahidawa/shared",
+        "@zxing/library",
+        "@zxing/browser",
+    ],
+    serverExternalPackages: [
+        "lightningcss",
+        "@tailwindcss/postcss",
+        "@tailwindcss/node",
+        "@tailwindcss/oxide",
+    ],
     images: {
         formats: ["image/avif", "image/webp"],
         deviceSizes: [320, 420, 640, 750, 1080],
@@ -54,8 +68,14 @@ const nextConfig = {
                     { key: "X-Frame-Options", value: "DENY" },
                     { key: "X-Content-Type-Options", value: "nosniff" },
                     { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-                    { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
-                    { key: "Permissions-Policy", value: "camera=(self), microphone=(self), geolocation=(self)" },
+                    {
+                        key: "Strict-Transport-Security",
+                        value: "max-age=63072000; includeSubDomains; preload",
+                    },
+                    {
+                        key: "Permissions-Policy",
+                        value: "camera=(self), microphone=(self), geolocation=(self)",
+                    },
                     // CSP removed — now handled dynamically per-request in middleware.ts
                 ],
             },
