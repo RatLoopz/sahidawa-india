@@ -161,7 +161,10 @@ export default function VoiceTriagePage() {
     const router = useRouter();
     const locale = useLocale();
     const t = useTranslations("VoicePage");
-    const [, copyToClipboard] = useCopyToClipboard();
+    const [, copyToClipboard] = useCopyToClipboard({
+        successMessage: t("copy_success"),
+        errorMessage: t("share_failure"),
+    });
     const [mode, setMode] = useState<"triage" | "verify">("triage");
     const [step, setStep] = useState<VoiceStep>("initial");
     const [selectedLanguage, setSelectedLanguage] = useState(getVoiceLanguageForLocale(locale));
@@ -824,19 +827,13 @@ export default function VoiceTriagePage() {
                 return;
             }
 
-            await copyToClipboard(`${reportText}\n\n${window.location.href}`, {
-                successMessage: t("copy_success"),
-                errorMessage: t("share_failure"),
-            });
+            await copyToClipboard(`${reportText}\n\n${window.location.href}`);
         } catch (shareError) {
             if (shareError instanceof Error && shareError.name === "AbortError") {
                 return;
             }
 
-            await copyToClipboard(`${reportText}\n\n${window.location.href}`, {
-                successMessage: t("copy_success"),
-                errorMessage: t("share_failure"),
-            });
+            await copyToClipboard(`${reportText}\n\n${window.location.href}`);
         }
     }
 

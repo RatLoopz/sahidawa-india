@@ -51,7 +51,10 @@ export default function ScanPage() {
     const abortControllerRef = useRef<AbortController | null>(null);
     const isMountedRef = useRef(true);
     const [isScanning, setIsScanning] = useState(false);
-    const [copied, setCopied] = useCopyToClipboard();
+    const [copied, copyToClipboard] = useCopyToClipboard({
+        successMessage: "Medicine details copied!",
+        errorMessage: "Unable to copy medicine details",
+    });
     const [batchInput, setBatchInput] = useState("");
     const [isCameraActive, setIsCameraActive] = useState(false);
     const [cameraPermissionDenied, setCameraPermissionDenied] = useState(false);
@@ -235,10 +238,7 @@ export default function ScanPage() {
         if (!verifyResult?.verified) return;
 
         const details = formatMedicineDetails(verifyResult.medicine);
-        await copyToClipboard(details, {
-            successMessage: "Medicine details copied!",
-            errorMessage: "Unable to copy medicine details",
-        });
+        await copyToClipboard(details);
     }, [verifyResult, copyToClipboard]);
 
     const handleBarcodeScan = useCallback(
@@ -292,10 +292,7 @@ export default function ScanPage() {
                 await navigator.share(shareData);
                 toast.success(tScan("share.shared_success"));
             } else {
-                const copiedToClipboard = await copyToClipboard(shareText, {
-                    successMessage: tScan("share.copy_success"),
-                    errorMessage: tScan("share.failure"),
-                });
+                const copiedToClipboard = await copyToClipboard(shareText);
                 if (!copiedToClipboard) {
                     return;
                 }
