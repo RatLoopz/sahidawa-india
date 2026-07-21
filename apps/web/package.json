@@ -9,6 +9,7 @@
         "lint": "eslint .",
         "test": "jest --config jest.config.cjs",
         "test:a11y:voice": "node scripts/voice-a11y-audit.mjs",
+        "i18n:check-missing": "node scripts/check-locale-keys.mjs",
         "format": "prettier --write .",
         "format:check": "prettier --check ."
     },

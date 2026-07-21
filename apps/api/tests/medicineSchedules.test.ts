@@ -65,7 +65,6 @@ import medicineSchedulesRouter from "../src/routes/medicineSchedules";
 import { redisClient } from "../src/utils/redis";
 import { Request, Response, NextFunction } from "express";
 
-
 const app = express();
 app.use(express.json());
 app.use("/api/schedules", medicineSchedulesRouter);
@@ -868,20 +867,78 @@ describe("GET /api/schedules/today/summary", () => {
             data: [
                 {
                     id: "dose-1",
+                    schedule_id: "sched-1",
                     log_time: "08:00",
                     status: "taken",
+                },
+                {
+                    id: "dose-2",
+                    schedule_id: "sched-1",
+                    log_time: "20:00",
+                    status: "skipped",
                 },
             ],
             error: null,
         });
 
         const res = await request(app)
-            .get("/api/schedules/today/summary")
+            .get("/api/schedules/today/summary?date=2026-06-14&time=12:00")
             .set("Authorization", "Bearer test-token");
 
         expect(res.status).toBe(200);
         expect(res.body.schedules).toHaveLength(1);
         expect(res.body.schedules[0].medicine_name).toBe("Paracetamol");
+        expect(res.body.schedules[0].doses).toEqual([
+            { time: "08:00", status: "taken" },
+            { time: "20:00", status: "skipped" },
+        ]);
+    });
+
+    it("returns 500 without a partial summary when the dose log query fails", async () => {
+        const activeSchedules = [
+            {
+                id: "sched-1",
+                medicine_name: "Paracetamol",
+                dosage: "1 tablet",
+                times: ["08:00", "20:00"],
+                frequency: 2,
+                user_id: "test-user-id",
+                start_date: "2026-01-01",
+                end_date: null,
+                notes: null,
+                is_active: true,
+                created_at: "2026-01-01T00:00:00Z",
+                updated_at: "2026-01-01T00:00:00Z",
+            },
+        ];
+
+        mockedSupabase.select.mockReturnValueOnce(mockedSupabase);
+        mockedSupabase.eq.mockReturnValueOnce(mockedSupabase);
+        mockedSupabase.eq.mockReturnValueOnce(mockedSupabase);
+        mockedSupabase.lte.mockReturnValueOnce(mockedSupabase);
+        mockedSupabase.or.mockResolvedValueOnce({
+            data: activeSchedules,
+            error: null,
+        });
+
+        mockedSupabase.select.mockReturnValueOnce(mockedSupabase);
+        mockedSupabase.in.mockReturnValueOnce(mockedSupabase);
+        mockedSupabase.eq.mockReturnValueOnce(mockedSupabase);
+        mockedSupabase.eq.mockResolvedValueOnce({
+            data: null,
+            error: { message: "sensitive database details" },
+        });
+
+        const res = await request(app)
+            .get("/api/schedules/today/summary?date=2026-06-14&time=12:00")
+            .set("Authorization", "Bearer test-token");
+
+        expect(res.status).toBe(500);
+        expect(res.body).toEqual({ error: "Failed to fetch dose logs" });
+        expect(res.body).not.toHaveProperty("schedules");
+        expect(res.text).not.toContain("sensitive database details");
+        expect(mockedSupabase.from).toHaveBeenNthCalledWith(1, "medicine_schedules");
+        expect(mockedSupabase.from).toHaveBeenNthCalledWith(2, "dose_logs");
     });
 
     it("uses the IST calendar date before UTC midnight", async () => {

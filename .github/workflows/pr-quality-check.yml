@@ -37,6 +37,9 @@ jobs:
       - name: Run Web Lint
         run: npm run lint -w web
 
+      - name: Check i18n Translation Keys
+        run: npm run i18n:check-missing -w web
+
       - name: Run PR Quality Checker
         uses: peakoss/anti-slop@v0
         with:

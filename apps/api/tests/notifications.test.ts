@@ -3,7 +3,9 @@ process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "test-anon-key"
 process.env.TWILIO_AUTH_TOKEN = "test-auth-token";
 process.env.TWILIO_WEBHOOK_PUBLIC_URL = "http://localhost";
 
-// Mock subscriber data
+// Mock subscriber data. Deliberately includes the sensitive columns
+// (user_id, verification_otp, otp_expires_at) so the tests below can assert the
+// route never leaks them into a response.
 const mockSubscriber = {
     id: "sub-123-uuid",
     user_id: "test-user-uuid",
@@ -13,7 +15,13 @@ const mockSubscriber = {
     language: "en",
     district: "South West Delhi",
     is_active: true,
+    status: "active",
+    verification_otp: "123456",
+    otp_expires_at: "2999-01-01T00:00:00.000Z",
 };
+
+// Fields that must never appear on a subscriber object in any HTTP response.
+const SENSITIVE_SUBSCRIBER_FIELDS = ["user_id", "verification_otp", "otp_expires_at"];
 
 let mockAuthenticatedUser: any = {
     id: "test-user-uuid",
@@ -108,7 +116,6 @@ import notificationsRouter from "../src/routes/notifications";
 import { computeTwilioSignature } from "../src/middleware/twilioSignature";
 import { Request, Response, NextFunction } from "express";
 
-
 describe("notifications routes", () => {
     let app: express.Express;
     beforeAll(() => {
@@ -154,6 +161,33 @@ describe("notifications routes", () => {
         expect(response.body.subscriber.phone).toBe("+919876543210");
     });
 
+    it("never leaks OTP or user_id from /status for an authenticated user", async () => {
+        const response = await request(app)
+            .get("/api/notifications/status")
+            .query({ phone: "9876543210" });
+
+        expect(response.status).toBe(200);
+        expect(response.body.registered).toBe(true);
+        for (const field of SENSITIVE_SUBSCRIBER_FIELDS) {
+            expect(response.body.subscriber).not.toHaveProperty(field);
+        }
+    });
+
+    it("never leaks OTP or user_id from /status for an unauthenticated guest lookup", async () => {
+        mockAuthenticatedUser = null; // force the guest-by-phone branch
+
+        const response = await request(app)
+            .get("/api/notifications/status")
+            .query({ phone: "9876543210" });
+
+        expect(response.status).toBe(200);
+        expect(response.body.registered).toBe(true);
+        expect(response.body.subscriber.phone).toBe("+919876543210");
+        for (const field of SENSITIVE_SUBSCRIBER_FIELDS) {
+            expect(response.body.subscriber).not.toHaveProperty(field);
+        }
+    });
+
     it("registers a subscriber successfully", async () => {
         const payload = {
             phone: "9876543210",
@@ -167,6 +201,9 @@ describe("notifications routes", () => {
         expect(response.status).toBe(201);
         expect(response.body.success).toBe(true);
         expect(response.body.subscriber).toBeDefined();
+        for (const field of SENSITIVE_SUBSCRIBER_FIELDS) {
+            expect(response.body.subscriber).not.toHaveProperty(field);
+        }
     });
 
     it("fails registration with invalid payload", async () => {
@@ -192,6 +229,9 @@ describe("notifications routes", () => {
 
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
+        for (const field of SENSITIVE_SUBSCRIBER_FIELDS) {
+            expect(response.body.subscriber).not.toHaveProperty(field);
+        }
         expect(mockQueryBuilder.update).toHaveBeenCalledWith({
             channels: ["whatsapp"],
             district: "South Delhi",

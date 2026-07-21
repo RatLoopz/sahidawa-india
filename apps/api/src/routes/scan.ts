@@ -423,13 +423,6 @@ router.post("/match", scanQueryLimiter, async (req: Request, res: Response) => {
                 }
             }
 
-            try {
-                if (redisClient.isOpen)
-                    await redisClient.set(cacheKey, JSON.stringify([]), { EX: 3600 });
-            } catch (err) {
-                /* ignore */
-            }
-
             res.status(200).json([]);
             return;
         }

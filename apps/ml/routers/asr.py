@@ -30,6 +30,8 @@ from services.telemetry import (
     start_timer,
 )
 from utils.audio_upload import read_audio_upload_limited
+from utils.ws_ticket import extract_ticket_user_id
+from utils.ws_registry import register_connection, unregister_connection
 
 logger = logging.getLogger(__name__)
 telemetry_logger = get_telemetry_logger()
@@ -924,6 +926,13 @@ async def stream_transcription(websocket: WebSocket):
     await websocket.accept()
     session: StreamingAsrSession | None = None
 
+    # The ticket was already authenticated by the route dependency; recover the
+    # user_id it carries (v2 tickets) so this socket can be force-closed if the
+    # user's access is revoked mid-stream. v1/legacy tickets yield None.
+    user_id = extract_ticket_user_id(websocket.query_params.get("ticket"))
+    if user_id:
+        register_connection(user_id, websocket)
+
     try:
         # ---- handshake ----
         session_start = time.monotonic()
@@ -1051,5 +1060,7 @@ async def stream_transcription(websocket: WebSocket):
     except WebSocketDisconnect:
         return
     finally:
+        if user_id:
+            unregister_connection(user_id, websocket)
         if session is not None:
             await run_in_threadpool(session.close)

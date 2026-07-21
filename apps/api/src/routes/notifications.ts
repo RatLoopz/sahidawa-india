@@ -168,6 +168,27 @@ interface InMemorySubscriber {
 // (Live view of dbConfig.isSupabaseOffline is read directly inside request handlers)
 const memorySubscribers = new Map<string, InMemorySubscriber>();
 
+// The only subscriber fields any client is allowed to receive. Everything else on
+// a row is either a secret (verification_otp, otp_expires_at) or account-linkage
+// PII (user_id) and must never be serialized into a response. Returning the raw
+// row from /status let an unauthenticated caller read another subscriber's OTP and
+// Supabase user_id just by knowing their phone number, so every subscriber we hand
+// back — from the DB or the in-memory fallback — goes through this projection.
+type PublicSubscriber = Pick<
+    InMemorySubscriber,
+    "phone" | "channels" | "language" | "district" | "is_active"
+>;
+
+function toPublicSubscriber(sub: PublicSubscriber): PublicSubscriber {
+    return {
+        phone: sub.phone,
+        channels: sub.channels,
+        language: sub.language,
+        district: sub.district,
+        is_active: sub.is_active,
+    };
+}
+
 router.get("/status", optionalAuth, async (req: AuthenticatedRequest, res) => {
     try {
         let phone: string | undefined = undefined;
@@ -179,7 +200,9 @@ router.get("/status", optionalAuth, async (req: AuthenticatedRequest, res) => {
             }
             phone = formatted;
         }
-        let query = supabase.from("notification_subscribers").select("*");
+        let query = supabase
+            .from("notification_subscribers")
+            .select("phone, channels, language, district, is_active");
 
         if (req.user) {
             query = query.eq("user_id", req.user.id);
@@ -239,7 +262,7 @@ router.get("/status", optionalAuth, async (req: AuthenticatedRequest, res) => {
             return;
         }
 
-        res.json({ registered: true, subscriber });
+        res.json({ registered: true, subscriber: toPublicSubscriber(subscriber) });
     } catch (err) {
         logger.error({ message: "Error in /status endpoint", error: err });
         res.status(500).json({ error: "Internal server error" });
@@ -432,7 +455,7 @@ router.post(
                 await Promise.allSettled(sends);
             }
 
-            res.status(201).json({ success: true, subscriber: result });
+            res.status(201).json({ success: true, subscriber: toPublicSubscriber(result) });
         } catch (err) {
             logger.error({ message: "Error in /register endpoint", error: err });
             res.status(500).json({ error: "Internal server error" });
@@ -646,7 +669,7 @@ router.patch(
                 return;
             }
 
-            res.json({ success: true, subscriber: data[0] });
+            res.json({ success: true, subscriber: toPublicSubscriber(data[0]) });
         } catch (err) {
             logger.error({ message: "Error in /phone update endpoint", error: err });
             res.status(500).json({ error: "Internal server error" });
