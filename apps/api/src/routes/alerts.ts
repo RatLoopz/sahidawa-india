@@ -95,7 +95,42 @@ alertsRouter.get("/", alertsReadLimiter, async (req: Request, res: Response) => 
 
         // Helper to handle the Cache-Aside pattern for aggregate stats
         const getCachedStats = async () => {
-            // ... (yeh function bilkul same rahega, koi change nahi)
+            const cacheKey = `alerts:stats:brand=${brand || "all"}:region=${region || "all"}:batch=${batchNumber || "all"}`;
+            const TTL_SECONDS = 900; // 15 minutes
+
+            // 1. Try to fetch from Redis first
+            if (redisClient.isOpen) {
+                try {
+                    const cachedData = await redisClient.get(cacheKey);
+                    if (cachedData) {
+                        return { data: JSON.parse(cachedData), error: null };
+                    }
+                } catch (cacheError) {
+                    logger.warn(`[Redis Read Failed] Key: ${cacheKey}`, { error: cacheError });
+                }
+            }
+
+            // 2. Cache Miss or Redis down: Execute the heavy DB RPC
+            const result = await supabase.rpc("get_alerts_aggregate_stats", {
+                p_brand: brand || null,
+                p_region: region || null,
+                p_batch_number: batchNumber || null,
+            });
+
+            // 3. Save to Redis (Fire and Forget)
+            if (!result.error && result.data && redisClient.isOpen) {
+                try {
+                    await redisClient.set(cacheKey, JSON.stringify(result.data), {
+                        EX: TTL_SECONDS,
+                    });
+                } catch (cacheWriteError) {
+                    logger.warn(`[Redis Write Failed] Key: ${cacheKey}`, {
+                        error: cacheWriteError,
+                    });
+                }
+            }
+
+            return result;
         };
 
         // Run the paginated page fetch and the system-wide stats aggregation concurrently
@@ -277,7 +312,12 @@ alertsRouter.post("/ingest", requireApiKey, limiter, async (req: ApiKeyRequest, 
         // NEW: Invalidate all paginated list caches since new alerts change page 1 results
         if (redisClient.isOpen) {
             try {
-                const listKeys = await redisClient.keys("alerts:list:*");
+                const listKeys: string[] = [];
+                for await (const key of redisClient.scanIterator({
+                    MATCH: "alerts:list:*",
+                })) {
+                    listKeys.push(key);
+                }
                 if (listKeys.length > 0) {
                     await redisClient.del(listKeys);
                 }
