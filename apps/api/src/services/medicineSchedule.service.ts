@@ -511,9 +511,8 @@ export const medicineScheduleService = {
                     today
                 );
 
-            if (!doseLogsError && doseLogsData) {
-                allDoseLogs = doseLogsData;
-            }
+            if (doseLogsError) throw new HttpError(500, "Failed to fetch dose logs");
+            allDoseLogs = doseLogsData ?? [];
         }
 
         const doseLogsBySchedule = new Map<string, any[]>();
