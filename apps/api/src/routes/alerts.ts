@@ -22,6 +22,7 @@ const AlertSchema = z
         district: z.string().optional(),
         reported_at: z.string().optional(),
         proof_image_url: z.string().optional().nullable(),
+        source_url: z.string().optional().nullable(),
     })
     .passthrough();
 
@@ -186,7 +187,7 @@ alertsRouter.post("/ingest", requireApiKey, limiter, async (req: ApiKeyRequest, 
         const { data: insertedAlerts, error: insertError } = await supabase
             .from("drug_alerts")
             .upsert(validatedAlerts, {
-                onConflict: "batch_number,manufacturer,reported_brand_name",
+                onConflict: "batch_number,source_url",
                 ignoreDuplicates: true,
             })
             .select();
