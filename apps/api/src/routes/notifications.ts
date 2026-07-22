@@ -2,13 +2,14 @@ import express, { Router } from "express";
 import { randomInt } from "node:crypto";
 import { z } from "zod";
 import { requireAuth, requireRole, optionalAuth, AuthenticatedRequest } from "../middleware/auth";
-import { notificationRegisterLimiter, authTargetLimiter } from "../middleware/rateLimit";
+import { notificationRegisterLimiter, authTargetLimiter, limiter } from "../middleware/rateLimit";
 import { cacheMiddleware } from "../middleware/cache";
 import { verifyTwilioSignature } from "../middleware/twilioSignature";
 import { supabase, dbConfig } from "../db/client";
 import { smsService } from "../services/sms-service";
 import { whatsappService } from "../services/whatsapp-service";
 import logger from "../utils/logger";
+import { webhookLimiter } from "../middleware/rateLimit";
 import {
     getMockRecallFeed,
     getVapidPublicKey,
@@ -30,7 +31,7 @@ const unsubscribeSchema = z
     })
     .strict();
 
-router.get("/vapid-public-key", cacheMiddleware(3600, 7200), (_req, res) => {
+router.get("/vapid-public-key", limiter, cacheMiddleware(3600, 7200), (_req, res) => {
     const publicKey = getVapidPublicKey();
     res.json({
         publicKey,
@@ -38,7 +39,7 @@ router.get("/vapid-public-key", cacheMiddleware(3600, 7200), (_req, res) => {
     });
 });
 
-router.post("/subscriptions", requireAuth, async (req: AuthenticatedRequest, res) => {
+router.post("/subscriptions", limiter, requireAuth, async (req: AuthenticatedRequest, res) => {
     const parsed = pushSubscriptionSchema.safeParse(req.body);
 
     if (!parsed.success) {
@@ -60,7 +61,7 @@ router.post("/subscriptions", requireAuth, async (req: AuthenticatedRequest, res
     });
 });
 
-router.delete("/subscriptions", requireAuth, async (req: AuthenticatedRequest, res) => {
+router.delete("/subscriptions", limiter, requireAuth, async (req: AuthenticatedRequest, res) => {
     const parsed = unsubscribeSchema.safeParse(req.body);
 
     if (!parsed.success) {
@@ -79,37 +80,43 @@ router.get("/recalls/mock", (_req, res) => {
     res.json({ recalls: getMockRecallFeed() });
 });
 
-router.post("/recalls/mock/trigger", requireAuth, requireRole("admin"), async (req, res) => {
-    if (process.env.NODE_ENV === "production") {
-        res.status(403).json({ error: "Mock triggers are disabled in production" });
-        return;
-    }
+router.post(
+    "/recalls/mock/trigger",
+    limiter,
+    requireAuth,
+    requireRole("admin"),
+    async (req, res) => {
+        if (process.env.NODE_ENV === "production") {
+            res.status(403).json({ error: "Mock triggers are disabled in production" });
+            return;
+        }
 
-    const feed = getMockRecallFeed();
-    const parsed = recallAlertSchema.partial({ id: true }).safeParse(req.body ?? {});
+        const feed = getMockRecallFeed();
+        const parsed = recallAlertSchema.partial({ id: true }).safeParse(req.body ?? {});
 
-    if (!parsed.success) {
-        res.status(400).json({
-            error: "Invalid recall alert payload",
-            issues: parsed.error.issues,
+        if (!parsed.success) {
+            res.status(400).json({
+                error: "Invalid recall alert payload",
+                issues: parsed.error.issues,
+            });
+            return;
+        }
+
+        const alert = recallAlertSchema.parse({
+            ...feed[0],
+            ...parsed.data,
+            id: parsed.data.id ?? `manual-${Date.now()}`,
+            recalledAt: parsed.data.recalledAt ?? new Date().toISOString(),
         });
-        return;
+
+        const result = await triggerRecallAlert(alert);
+
+        res.json({
+            alert,
+            delivery: result,
+        });
     }
-
-    const alert = recallAlertSchema.parse({
-        ...feed[0],
-        ...parsed.data,
-        id: parsed.data.id ?? `manual-${Date.now()}`,
-        recalledAt: parsed.data.recalledAt ?? new Date().toISOString(),
-    });
-
-    const result = await triggerRecallAlert(alert);
-
-    res.json({
-        alert,
-        delivery: result,
-    });
-});
+);
 
 // ── SMS & WhatsApp Alert Integration (New) ─────────────────────────────────────
 
@@ -189,7 +196,7 @@ function toPublicSubscriber(sub: PublicSubscriber): PublicSubscriber {
     };
 }
 
-router.get("/status", optionalAuth, async (req: AuthenticatedRequest, res) => {
+router.get("/status", limiter, optionalAuth, async (req: AuthenticatedRequest, res) => {
     try {
         let phone: string | undefined = undefined;
         if (req.query.phone) {
@@ -271,6 +278,7 @@ router.get("/status", optionalAuth, async (req: AuthenticatedRequest, res) => {
 
 router.post(
     "/register",
+    limiter,
     notificationRegisterLimiter,
     authTargetLimiter,
     optionalAuth,
@@ -572,6 +580,7 @@ router.post("/verify-otp", authTargetLimiter, async (req, res) => {
 
 router.patch(
     "/phone",
+    limiter,
     notificationRegisterLimiter,
     requireAuth,
     async (req: AuthenticatedRequest, res) => {
@@ -677,7 +686,7 @@ router.patch(
     }
 );
 
-router.delete("/phone", optionalAuth, async (req: AuthenticatedRequest, res) => {
+router.delete("/phone", limiter, optionalAuth, async (req: AuthenticatedRequest, res) => {
     const parsed = deletePhoneSchema.safeParse(req.body);
     let phone: string | undefined = undefined;
     if (parsed.success && parsed.data.phone) {
@@ -760,7 +769,7 @@ router.delete("/phone", optionalAuth, async (req: AuthenticatedRequest, res) => 
     }
 });
 
-router.post("/broadcast", requireAuth, requireRole("admin"), async (req, res) => {
+router.post("/broadcast", limiter, requireAuth, requireRole("admin"), async (req, res) => {
     const broadcastSchema = z
         .object({
             district: z.string().optional(),
