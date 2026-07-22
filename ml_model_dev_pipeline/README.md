@@ -15,5 +15,15 @@ pip install -r requirements.txt
 ### Fine-tuning
 
 - script: [fine_tune_cloud.py](fine_tune_cloud.py)
-- TODO: implement fine-tuning on the custom Cloudinary dataset
+
+To run the fine-tuning on the custom Cloudinary dataset:
+```bash
+# Ensure you have your Cloudinary credentials in a .env file:
+# CLOUDINARY_CLOUD_NAME=...
+# CLOUDINARY_API_KEY=...
+# CLOUDINARY_API_SECRET=...
+
+# Run the fine-tuning script
+python fine_tune_cloud.py --tag-real real-medicine --tag-fake fake-medicine
+```
 

@@ -18,6 +18,15 @@ import { escapePostgrest } from "@/lib/supabase/utils";
 const MAX_SUGGESTIONS = 8;
 /** Debounce delay in milliseconds */
 const DEBOUNCE_MS = 250;
+const SEARCH_UNAVAILABLE_MESSAGE = "Search is temporarily unavailable. Please try again.";
+const SEARCH_OFFLINE_MESSAGE = "Search is unavailable while offline.";
+
+function isAbortError(error: unknown): boolean {
+    return (
+        error instanceof Error &&
+        (error.name === "AbortError" || error.message.toLowerCase().includes("aborted"))
+    );
+}
 
 interface SearchBarProps {
     dark?: boolean;
@@ -196,6 +205,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
     const fetchSuggestions = useCallback(async (trimmed: string) => {
         setError(null);
         setNoResults(false);
+        setSuggestions([]);
 
         if (!trimmed) {
             setSuggestions([]);
@@ -205,8 +215,8 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
         }
 
         if (typeof window !== "undefined" && !window.navigator.onLine) {
-            setSuggestions([]);
-            setIsOpen(false);
+            setError(SEARCH_OFFLINE_MESSAGE);
+            setIsOpen(true);
             setIsLoading(false);
             return;
         }
@@ -219,7 +229,6 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
         setIsLoading(true);
 
         try {
-            let useFallback = false;
             let data: { brand_name: string | null; batch_number: string | null }[] | null = null;
 
             try {
@@ -234,47 +243,19 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
 
                 if (response.error) {
                     if (
-                        response.error.message?.includes("Could not find the table") ||
-                        response.error.code === "42P01"
-                    ) {
-                        console.warn(
-                            "[SearchBar] Table missing. Dropping into local data fallback matrix."
-                        );
-                        useFallback = true;
-                    } else if (
                         response.error.message?.includes("AbortError") ||
                         response.error.message?.includes("aborted")
                     ) {
                         // Request was cancelled by a newer keystroke — safe to ignore
                         return;
                     }
-                    // Network errors — silently fall through to fuzzy matcher
-                    if (
-                        response.error.message?.includes("Failed to fetch") ||
-                        response.error.message?.includes("NetworkError") ||
-                        response.error.message?.includes("fetch")
-                    ) {
-                        console.warn(
-                            "[SearchBar] Network error, trying fuzzy fallback:",
-                            response.error.message
-                        );
-                        useFallback = true;
-                    } else {
-                        console.error("[SearchBar] Supabase error:", response.error.message);
-                        setSuggestions([]);
-                        setIsOpen(false);
-                        return;
-                    }
+                    throw new Error(response.error.message || "Medicine search failed");
                 } else {
                     data = response.data;
                 }
-            } catch (dbErr: any) {
-                if (dbErr?.name === "AbortError" || dbErr?.message?.includes("aborted")) return;
-                if (dbErr?.message?.includes("Could not find the table")) {
-                    useFallback = true;
-                } else {
-                    throw dbErr;
-                }
+            } catch (dbErr: unknown) {
+                if (isAbortError(dbErr)) return;
+                throw dbErr;
             }
 
             if (controller.signal.aborted) return;
@@ -283,7 +264,7 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
             const results: string[] = [];
 
             // ── CASE A: Database Operational ─────────────────────────────────────
-            if (!useFallback && data && data.length > 0) {
+            if (data && data.length > 0) {
                 for (const row of data) {
                     const candidates = [row.brand_name, row.batch_number];
                     for (const c of candidates) {
@@ -296,35 +277,8 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                     if (results.length >= MAX_SUGGESTIONS) break;
                 }
             }
-            // ── CASE B: Failover to UI Validation Testing Pool ────────────────────
-            else if (useFallback) {
-                const mockMedicinesPool = [
-                    { brand_name: "Paracetamol", batch_number: "BATCH-PR750" },
-                    { brand_name: "Peracetamol (Fuzzy Match)", batch_number: "BATCH-PR750" },
-                    { brand_name: "Crocin Advance", batch_number: "BATCH-CR100" },
-                    { brand_name: "Amoxicillin", batch_number: "BATCH-AM250" },
-                    { brand_name: "Calpol 650", batch_number: "BATCH-CP650" },
-                    { brand_name: "Dolo 650", batch_number: "BATCH-DL650" },
-                    { brand_name: "Ibuprofen", batch_number: "BATCH-IB400" },
-                    { brand_name: "Cetirizine", batch_number: "BATCH-CT10" },
-                    { brand_name: "Azithromycin", batch_number: "BATCH-AZ500" },
-                ];
-
-                for (const item of mockMedicinesPool) {
-                    const candidates = [item.brand_name, item.batch_number];
-                    for (const c of candidates) {
-                        if (c && c.toLowerCase().includes(trimmed.toLowerCase()) && !seen.has(c)) {
-                            seen.add(c);
-                            results.push(c);
-                            if (results.length >= MAX_SUGGESTIONS) break;
-                        }
-                    }
-                    if (results.length >= MAX_SUGGESTIONS) break;
-                }
-            }
-
-            // Run local fuzzy matcher if database is working but returns no rows
-            if (!useFallback && results.length < 3) {
+            // Supplement sparse database results with the existing fuzzy search endpoint.
+            if (results.length < 3) {
                 try {
                     const fuzzyResults = await fuzzyMatchBrand(trimmed, controller.signal);
                     for (const match of fuzzyResults) {
@@ -334,20 +288,23 @@ export default function SearchBar({ dark = false, onSearchChange }: SearchBarPro
                             if (results.length >= MAX_SUGGESTIONS) break;
                         }
                     }
-                } catch (fuzzyErr) {
+                } catch (fuzzyErr: unknown) {
+                    if (isAbortError(fuzzyErr)) return;
                     console.warn("[SearchBar] Fuzzy matching fallback error:", fuzzyErr);
                 }
             }
 
+            if (controller.signal.aborted) return;
             setSuggestions(results);
             setNoResults(results.length === 0);
             setIsOpen(true);
             setActiveIndex(-1);
-        } catch (err) {
-            if (err instanceof Error && err.name === "AbortError") return;
+        } catch (err: unknown) {
+            if (isAbortError(err) || controller.signal.aborted) return;
             console.error("[SearchBar] Unexpected error fetching suggestions:", err);
             setSuggestions([]);
-            setError("Unable to fetch medicine suggestions.");
+            setNoResults(false);
+            setError(SEARCH_UNAVAILABLE_MESSAGE);
             setIsOpen(true);
         } finally {
             if (!controller.signal.aborted) {

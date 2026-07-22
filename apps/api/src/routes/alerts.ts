@@ -22,6 +22,7 @@ const AlertSchema = z
         district: z.string().optional(),
         reported_at: z.string().optional(),
         proof_image_url: z.string().optional().nullable(),
+        source_url: z.string().optional().nullable(),
     })
     .passthrough();
 
@@ -60,6 +61,10 @@ alertsRouter.get("/", alertsReadLimiter, async (req: Request, res: Response) => 
 
     const offset = (page - 1) * limit;
 
+    // NEW: Deterministic cache key for this exact paginated query
+    const LIST_TTL_SECONDS = 300; // 5 minutes
+    const listCacheKey = `alerts:list:page=${page}:limit=${limit}:brand=${brand || "all"}:region=${region || "all"}:batch=${batchNumber || "all"}`;
+
     let query = supabase
         .from("drug_alerts")
         .select("*", { count: "exact" })
@@ -76,6 +81,19 @@ alertsRouter.get("/", alertsReadLimiter, async (req: Request, res: Response) => 
     }
 
     try {
+        // NEW: Try Redis first for the full paginated response
+        if (redisClient.isOpen) {
+            try {
+                const cachedList = await redisClient.get(listCacheKey);
+                if (cachedList) {
+                    res.json(JSON.parse(cachedList));
+                    return;
+                }
+            } catch (cacheError) {
+                logger.warn(`[Redis Read Failed] Key: ${listCacheKey}`, { error: cacheError });
+            }
+        }
+
         // Helper to handle the Cache-Aside pattern for aggregate stats
         const getCachedStats = async () => {
             const cacheKey = `alerts:stats:brand=${brand || "all"}:region=${region || "all"}:batch=${batchNumber || "all"}`;
@@ -130,8 +148,6 @@ alertsRouter.get("/", alertsReadLimiter, async (req: Request, res: Response) => 
         }
 
         if (statsResult.error) {
-            // Don't fail the whole request over the stats panel — log and degrade
-            // gracefully so the alert list itself still loads.
             logger.error("Failed to fetch alert aggregate stats", { error: statsResult.error });
         }
 
@@ -143,7 +159,7 @@ alertsRouter.get("/", alertsReadLimiter, async (req: Request, res: Response) => 
         const totalCount = count ?? 0;
         const totalPageCount = Math.ceil(totalCount / limit);
 
-        res.json({
+        const responseBody = {
             data: data ?? [],
             pageIndex: page,
             pageSize: (data ?? []).length,
@@ -151,7 +167,20 @@ alertsRouter.get("/", alertsReadLimiter, async (req: Request, res: Response) => 
             totalPageCount,
             totalCriticalCount: stats.totalCriticalCount ?? 0,
             totalImpactedRegionsCount: stats.totalImpactedRegionsCount ?? 0,
-        });
+        };
+
+        // NEW: Fire-and-forget write to Redis (cache-aside)
+        if (redisClient.isOpen) {
+            redisClient
+                .set(listCacheKey, JSON.stringify(responseBody), { EX: LIST_TTL_SECONDS })
+                .catch((cacheWriteError) => {
+                    logger.warn(`[Redis Write Failed] Key: ${listCacheKey}`, {
+                        error: cacheWriteError,
+                    });
+                });
+        }
+
+        res.json(responseBody);
     } catch (err) {
         logger.error("Unexpected error in GET /api/alerts", { error: err });
         res.status(500).json({ error: "An unexpected error occurred" });
@@ -186,7 +215,7 @@ alertsRouter.post("/ingest", requireApiKey, limiter, async (req: ApiKeyRequest, 
         const { data: insertedAlerts, error: insertError } = await supabase
             .from("drug_alerts")
             .upsert(validatedAlerts, {
-                onConflict: "batch_number,manufacturer,reported_brand_name",
+                onConflict: "batch_number,source_url",
                 ignoreDuplicates: true,
             })
             .select();
@@ -276,6 +305,26 @@ alertsRouter.post("/ingest", requireApiKey, limiter, async (req: ApiKeyRequest, 
             } catch (err) {
                 logger.error({
                     message: "Failed to invalidate cache for alert batches",
+                    error: err,
+                });
+            }
+        }
+
+        // NEW: Invalidate all paginated list caches since new alerts change page 1 results
+        if (redisClient.isOpen) {
+            try {
+                const listKeys: string[] = [];
+                for await (const key of redisClient.scanIterator({
+                    MATCH: "alerts:list:*",
+                })) {
+                    listKeys.push(key);
+                }
+                if (listKeys.length > 0) {
+                    await redisClient.del(listKeys);
+                }
+            } catch (err) {
+                logger.error({
+                    message: "Failed to invalidate alerts:list cache",
                     error: err,
                 });
             }

@@ -8,7 +8,7 @@
  * @version 2.0.0
  */
 
-const CACHE_VERSION = "9de5be83-pwa";
+const CACHE_VERSION = "3816-public-api-only";
 
 /** Navigation / shell pages */
 const OFFLINE_CACHE_NAME = `sahidawa-offline-${CACHE_VERSION}`;
@@ -51,6 +51,43 @@ const PRECACHE_PAGES = [
     "/ta/scan",
 ];
 
+/** Public API reads whose responses are identical for every user. */
+const PUBLIC_API_ROUTES = [
+    (pathname) => pathname === "/api/v1/alerts",
+    (pathname) => pathname === "/api/stats",
+    (pathname) => pathname === "/api/medicines/search",
+    (pathname) => pathname === "/api/medicine/safety",
+    (pathname) => pathname.startsWith("/api/verify/batch/"),
+];
+
+/** Shared service-worker caches may contain public data only. */
+function isPublicCacheableApiRequest(request, url) {
+    if (request.method !== "GET" || request.credentials === "include") return false;
+
+        "authorization",
+        "proxy-authorization",
+        // "cookie", // Forbidden header; not readable in service workers.
+        "x-api-key",
+        "x-api-secret",
+        "x-csrf-token",
+    ];
+    if (authenticationHeaders.some((header) => request.headers.has(header))) return false;
+
+    return PUBLIC_API_ROUTES.some((matches) => matches(url.pathname));
+}
+
+function isPublicCacheableApiResponse(response) {
+    if (!response?.ok || response.redirected || response.headers.has("set-cookie")) return false;
+
+    const cacheControl = response.headers.get("cache-control")?.toLowerCase() ?? "";
+    return !cacheControl.includes("no-store") && !cacheControl.includes("private");
+}
+
+function createPublicApiRequest(request) {
+    // Public reads never need ambient cookies from the browser's default credentials mode.
+    return new Request(request, { credentials: "omit" });
+}
+
 // ---------------------------------------------------------------------------
 // INSTALL — precache core shell pages
 // ---------------------------------------------------------------------------
@@ -81,12 +118,17 @@ self.addEventListener("activate", (event) => {
         TILES_CACHE_NAME,
         RSC_CACHE_NAME,
     ]);
+    const legacyUnsafeApiCaches = new Set(["apis"]);
 
     event.waitUntil(
         caches.keys().then((cacheNames) =>
             Promise.all(
                 cacheNames
-                    .filter((name) => !validCaches.has(name))
+                    .filter(
+                        (name) =>
+                            legacyUnsafeApiCaches.has(name) ||
+                            (name.startsWith("sahidawa-") && !validCaches.has(name))
+                    )
                     .map((name) => {
                         console.log(`[SW] Deleting stale cache: ${name}`);
                         return caches.delete(name);
@@ -163,7 +205,7 @@ self.addEventListener("fetch", (event) => {
         url.pathname.startsWith("/api/v1/scan/") ||
         url.pathname.startsWith("/api/v1/lasa/")
     ) {
-        event.respondWith(networkFirstWithCache(request, MEDICINE_CACHE_NAME));
+        event.respondWith(handleApiRequest(request, url, MEDICINE_CACHE_NAME));
         return;
     }
 
@@ -189,7 +231,7 @@ self.addEventListener("fetch", (event) => {
     // (alerts must be fresh; other API endpoints like reports)
     // -------------------------------------------------------------------------
     if (url.pathname.startsWith("/api/")) {
-        event.respondWith(networkFirstWithCache(request, API_CACHE_NAME));
+        event.respondWith(handleApiRequest(request, url, API_CACHE_NAME));
         return;
     }
 
@@ -315,18 +357,49 @@ async function staleWhileRevalidate(request, cacheName) {
  *   2. On success: update the cache and return.
  *   3. On failure: serve from cache (if available) or return a 503 JSON.
  */
+async function handleApiRequest(request, url, cacheName) {
+    if (!isPublicCacheableApiRequest(request, url)) {
+        return fetchWithoutCache(request);
+    }
+
+    return networkFirstWithCache(createPublicApiRequest(request), cacheName);
+}
+
+async function fetchWithoutCache(request) {
+    try {
+        return await fetchWithTimeout(request);
+    } catch {
+        return createOfflineApiResponse();
+    }
+}
+
+async function fetchWithTimeout(request) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    try {
+        return await fetch(request, { signal: controller.signal });
+    } finally {
+        clearTimeout(timeoutId);
+    }
+}
+
+function createOfflineApiResponse() {
+    return new Response(
+        JSON.stringify({
+            error: "You are offline and this data is not cached.",
+            offline: true,
+        }),
+        { status: 503, headers: { "Content-Type": "application/json" } }
+    );
+}
+
 async function networkFirstWithCache(request, cacheName) {
     const cache = await caches.open(cacheName);
 
     try {
         // 8s timeout for API calls — important for slow networks
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-        const networkResponse = await fetch(request, {
-            signal: controller.signal,
-        });
-        clearTimeout(timeoutId);
+        const networkResponse = await fetchWithTimeout(request);
 
         // ── CSRF 403 optimization ─────────────────────────────────────────
         // If the API returns a 403 CSRF error for a GET request, don't make
@@ -350,7 +423,7 @@ async function networkFirstWithCache(request, cacheName) {
             }
         }
 
-        if (networkResponse.ok) {
+        if (isPublicCacheableApiResponse(networkResponse)) {
             cache.put(request, networkResponse.clone()).catch(() => {});
         }
         return networkResponse;
@@ -358,13 +431,7 @@ async function networkFirstWithCache(request, cacheName) {
         const cachedResponse = await cache.match(request);
         if (cachedResponse) return cachedResponse;
 
-        return new Response(
-            JSON.stringify({
-                error: "You are offline and this data is not cached.",
-                offline: true,
-            }),
-            { status: 503, headers: { "Content-Type": "application/json" } }
-        );
+        return createOfflineApiResponse();
     }
 }
 
