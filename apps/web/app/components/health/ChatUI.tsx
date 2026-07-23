@@ -8,7 +8,7 @@ import { ChatBubble, type Message } from "./components/ChatBubble";
 import { ActionCard } from "./components/ActionCard";
 import { TypingIndicator } from "./components/TypingIndicator";
 import { TrustBar } from "./components/TrustBar";
-import { Camera, Pill, MapPin, Home } from "lucide-react";
+import { Camera, Pill, MapPin, RotateCcw } from "lucide-react";
 import { isAbortError, readChatErrorMessage, readTextResponseStream } from "@/lib/chatStream";
 import { useTranslations } from "next-intl";
 
@@ -417,7 +417,7 @@ export default function ChatUI() {
     const handleAction = (prompt: string) => {
         sendMessage(prompt);
     };
-    const handleHomeClick = () => {
+    const handleResetClick = () => {
         activeRequestRef.current?.abort();
         if (sessionId) {
             fetch("/api/triage/clear", {
@@ -439,47 +439,14 @@ export default function ChatUI() {
         setStreamingAssistantId(null);
     };
     return (
-        <div className="relative flex h-screen w-full flex-col overflow-hidden bg-transparent font-sans">
-            {/* Floating Header */}
-            <header className="absolute top-4 right-4 left-4 z-20 mx-auto max-w-3xl rounded-3xl border border-white/30 bg-white/60 px-5 py-4 shadow-[0_8px_30px_rgb(0,0,0,0.08)] backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/60 dark:shadow-black/50">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={handleHomeClick}
-                            className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
-                            aria-label={t("returnHome")}
-                        >
-                            <Home size={18} />
-                        </button>
-
-                        <div className="flex items-baseline gap-2">
-                            <Link
-                                href={`/${locale}`}
-                                className="text-xl font-semibold text-slate-800 no-underline transition-colors hover:text-emerald-600 dark:text-white dark:hover:text-emerald-400"
-                            >
-                                SahiDawa
-                            </Link>
-
-                            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-600">
-                                CDSCO
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        <TrustBar />
-                        <ThemeToggle />
-                    </div>
-                </div>
-            </header>
-
+        <div className="relative flex h-[calc(100vh-4rem)] w-full flex-col overflow-hidden bg-transparent font-sans">
             {/* Messages */}
             <main
                 ref={messagesContainerRef}
                 role="log"
                 aria-live="polite"
                 aria-label={t("chatConversation")}
-                className="absolute inset-0 z-0 overflow-y-auto px-4 pt-28 pb-36"
+                className="flex-1 overflow-y-auto px-4 py-6"
             >
                 <div className="mx-auto flex max-w-3xl flex-col gap-6">
                     {messages.map((msg) => (
@@ -512,9 +479,9 @@ export default function ChatUI() {
                 </div>
             </main>
 
-            {/* Floating Input Pill */}
-            <footer className="absolute right-4 bottom-6 left-4 z-20 mx-auto max-w-3xl rounded-[2rem] border border-white/30 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/60 dark:shadow-black/50">
-                <div className="px-4 py-3">
+            {/* Input Pill */}
+            <footer className="z-20 mx-auto w-full max-w-3xl px-4 pb-6">
+                <div className="rounded-[2rem] border border-white/30 bg-white/60 px-4 py-3 shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/60 dark:shadow-black/50">
                     {isListening && (
                         <div className="mb-3 flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-400">
                             <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
@@ -523,6 +490,15 @@ export default function ChatUI() {
                     )}
 
                     <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleResetClick}
+                            aria-label="Reset Chat"
+                            title="Reset Chat"
+                            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border border-white/40 bg-white/50 text-slate-600 transition-all hover:bg-white/80 active:scale-95 dark:border-white/10 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-700/50"
+                        >
+                            <RotateCcw size={18} />
+                        </button>
+
                         <button
                             onClick={toggleVoice}
                             aria-label={isListening ? t("stopVoice") : t("startVoice")}

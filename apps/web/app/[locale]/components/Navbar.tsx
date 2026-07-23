@@ -83,7 +83,7 @@ export default function Navbar() {
         setIsMenuOpen(false);
     }, [pathname]);
 
-    if (pathname === "/login" || pathname === "/signup" || pathname === "/health") {
+    if (pathname === "/login" || pathname === "/signup") {
         return null;
     }
 
