@@ -64,6 +64,7 @@ const PUBLIC_API_ROUTES = [
 function isPublicCacheableApiRequest(request, url) {
     if (request.method !== "GET" || request.credentials === "include") return false;
 
+    const authenticationHeaders = [
         "authorization",
         "proxy-authorization",
         // "cookie", // Forbidden header; not readable in service workers.
@@ -525,12 +526,6 @@ async function navigateWithOfflineFallback(request) {
             { status: 503, headers: { "Content-Type": "text/html; charset=utf-8" } }
         );
     }
-}
-
-function generateSecureFallbackUUID() {
-    return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
-        (c ^ (self.crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
-    );
 }
 
 // ---------------------------------------------------------------------------
