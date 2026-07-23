@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// Helper for ILIKE escaping
+// Helper for ILIKE escaping.
+//
+// Postgres LIKE/ILIKE treats "\" as the escape character, so a literal
+// backslash must be escaped to "\\" BEFORE the "%"/"_" wildcards are escaped —
+// otherwise a user-supplied "\" would combine with the escape backslash we
+// insert in front of a "%"/"_" and change the pattern's meaning. The Supabase
+// JS SDK passes the pattern through to PostgREST verbatim (no internal
+// escaping), so this must be done here.
 function escapeIlike(str: string) {
-    return str.replace(/[%_]/g, "\\$&");
+    return str
+        .replace(/\\/g, "\\\\") // escape literal backslashes first
+        .replace(/[%_]/g, "\\$&"); // then escape % and _
 }
 
 export async function GET(request: NextRequest) {
