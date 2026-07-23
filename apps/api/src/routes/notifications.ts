@@ -80,43 +80,37 @@ router.get("/recalls/mock", (_req, res) => {
     res.json({ recalls: getMockRecallFeed() });
 });
 
-router.post(
-    "/recalls/mock/trigger",
-    limiter,
-    requireAuth,
-    requireRole("admin"),
-    async (req, res) => {
-        if (process.env.NODE_ENV === "production") {
-            res.status(403).json({ error: "Mock triggers are disabled in production" });
-            return;
-        }
-
-        const feed = getMockRecallFeed();
-        const parsed = recallAlertSchema.partial({ id: true }).safeParse(req.body ?? {});
-
-        if (!parsed.success) {
-            res.status(400).json({
-                error: "Invalid recall alert payload",
-                issues: parsed.error.issues,
-            });
-            return;
-        }
-
-        const alert = recallAlertSchema.parse({
-            ...feed[0],
-            ...parsed.data,
-            id: parsed.data.id ?? `manual-${Date.now()}`,
-            recalledAt: parsed.data.recalledAt ?? new Date().toISOString(),
-        });
-
-        const result = await triggerRecallAlert(alert);
-
-        res.json({
-            alert,
-            delivery: result,
-        });
+router.post("/recalls/mock/trigger", requireAuth, requireRole("admin"), async (req, res) => {
+    if (process.env.NODE_ENV === "production") {
+        res.status(403).json({ error: "Mock triggers are disabled in production" });
+        return;
     }
-);
+
+    const feed = getMockRecallFeed();
+    const parsed = recallAlertSchema.partial({ id: true }).safeParse(req.body ?? {});
+
+    if (!parsed.success) {
+        res.status(400).json({
+            error: "Invalid recall alert payload",
+            issues: parsed.error.issues,
+        });
+        return;
+    }
+
+    const alert = recallAlertSchema.parse({
+        ...feed[0],
+        ...parsed.data,
+        id: parsed.data.id ?? `manual-${Date.now()}`,
+        recalledAt: parsed.data.recalledAt ?? new Date().toISOString(),
+    });
+
+    const result = await triggerRecallAlert(alert);
+
+    res.json({
+        alert,
+        delivery: result,
+    });
+});
 
 // ── SMS & WhatsApp Alert Integration (New) ─────────────────────────────────────
 
@@ -278,7 +272,6 @@ router.get("/status", limiter, optionalAuth, async (req: AuthenticatedRequest, r
 
 router.post(
     "/register",
-    limiter,
     notificationRegisterLimiter,
     authTargetLimiter,
     optionalAuth,
@@ -580,7 +573,6 @@ router.post("/verify-otp", authTargetLimiter, async (req, res) => {
 
 router.patch(
     "/phone",
-    limiter,
     notificationRegisterLimiter,
     requireAuth,
     async (req: AuthenticatedRequest, res) => {
@@ -769,7 +761,7 @@ router.delete("/phone", limiter, optionalAuth, async (req: AuthenticatedRequest,
     }
 });
 
-router.post("/broadcast", limiter, requireAuth, requireRole("admin"), async (req, res) => {
+router.post("/broadcast", requireAuth, requireRole("admin"), async (req, res) => {
     const broadcastSchema = z
         .object({
             district: z.string().optional(),

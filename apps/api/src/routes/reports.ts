@@ -269,7 +269,7 @@ reportsRouter.get(
     }
 );
 
-reportsRouter.get("/", limiter, requireAuth, requireRole("admin"), async (req, res: Response) => {
+reportsRouter.get("/", requireAuth, requireRole("admin"), async (req, res: Response) => {
     const rawLimit = req.query.limit;
     let limit = DEFAULT_ADMIN_REPORTS_LIMIT;
 
@@ -340,7 +340,6 @@ reportsRouter.get("/", limiter, requireAuth, requireRole("admin"), async (req, r
 
 reportsRouter.patch(
     "/:id/status",
-    limiter,
     requireAuth,
     requireRole("admin"),
     async (req, res: Response) => {
@@ -498,7 +497,6 @@ reportsRouter.patch(
  */
 reportsRouter.patch(
     "/:id/snooze",
-    limiter,
     requireAuth,
     requireRole("admin", "moderator"),
     async (req, res: Response) => {
