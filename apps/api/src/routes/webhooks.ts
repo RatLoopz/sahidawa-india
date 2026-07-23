@@ -62,7 +62,7 @@ router.post(
             } while (cursor !== 0);
 
             if (keysToDelete.length > 0) {
-                await redisClient.del(keysToDelete);
+                await redisClient.del(...keysToDelete);
                 logger.info(
                     `Health schemes cache invalidated — deleted ${keysToDelete.length} key(s)`,
                     { keys: keysToDelete }

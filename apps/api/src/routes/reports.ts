@@ -240,7 +240,7 @@ reportsRouter.get("/mine", requireAuth, async (req: AuthenticatedRequest, res: R
             nextCursor,
         });
     } catch (err) {
-        console.error("Unexpected error in GET /api/reports/mine:", err);
+        logger.error("Unexpected error in GET /api/reports/mine:", err);
         res.status(500).json({ error: "An unexpected error occurred" });
     }
 });
@@ -308,7 +308,7 @@ reportsRouter.get("/", requireAuth, requireRole("admin"), async (req, res: Respo
             },
         });
     } catch (err) {
-        console.error("Unexpected error in GET /api/reports:", err);
+        logger.error("Unexpected error in GET /api/reports:", err);
         res.status(500).json({ error: "An unexpected error occurred" });
     }
 });
@@ -446,7 +446,7 @@ reportsRouter.patch(
 
             res.json({ report: data });
         } catch (err) {
-            console.error("Unexpected error in PATCH /api/reports/:id/status:", err);
+            logger.error("Unexpected error in PATCH /api/reports/:id/status:", err);
             res.status(500).json({ error: "An unexpected error occurred" });
         }
     }

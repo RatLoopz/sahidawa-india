@@ -200,9 +200,9 @@ alertsRouter.post("/ingest", requireApiKey, limiter, async (req: ApiKeyRequest, 
                 const keys = batchNumbersToInvalidate.map(
                     (batch) => `${KEY_PREFIXES.DRUG_CACHE}${batch}`
                 );
-                await redisClient.del(keys);
+                await redisClient.del(...keys);
             } catch (err) {
-                console.error("Failed to invalidate cache for alert batches:", err);
+                logger.error("Failed to invalidate cache for alert batches:", err);
             }
         }
 

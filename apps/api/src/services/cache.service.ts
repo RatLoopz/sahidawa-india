@@ -249,7 +249,7 @@ export async function invalidateDrugCache(drugIds: string[]): Promise<string[]> 
                 // Chunk DEL to avoid blocking the Redis event loop
                 for (let i = 0; i < keysToDelete.length; i += CACHE_INVALIDATION_CHUNK_SIZE) {
                     const chunk = keysToDelete.slice(i, i + CACHE_INVALIDATION_CHUNK_SIZE);
-                    await redisClient.del(chunk);
+                    await redisClient.del(...chunk);
                 }
                 logger.info(
                     `Invalidated cache keys: ${keysToDelete.join(", ").replace(/[\r\n]/g, "")}`

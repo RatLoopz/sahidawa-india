@@ -84,7 +84,7 @@ export const getPendingReports = async (
             },
         });
     } catch (err) {
-        console.error(err);
+        logger.error(err instanceof Error ? err : String(err));
         res.status(500).json({ error: "Internal server error" });
     }
 };
@@ -236,7 +236,7 @@ export const updateReportStatus = async (
 
         res.json({ message: "Status updated", report: data });
     } catch (err) {
-        console.error(err);
+        logger.error(err instanceof Error ? err : String(err));
         res.status(500).json({ error: "Internal server error" });
     }
 };
@@ -276,7 +276,7 @@ export const getAllMedicines = async (req: AuthenticatedRequest, res: Response):
             },
         });
     } catch (err) {
-        console.error("Error in getAllMedicines:", err);
+        logger.error("Error in getAllMedicines:", err);
         res.status(500).json({ error: "Internal server error" });
     }
 };
@@ -301,7 +301,7 @@ export const getPendingPharmacies = async (
 
         res.json({ pharmacies: data ?? [] });
     } catch (err) {
-        console.error("Error in getPendingPharmacies:", err);
+        logger.error("Error in getPendingPharmacies:", err);
         res.status(500).json({ error: "Internal server error" });
     }
 };
@@ -351,7 +351,7 @@ export const updatePharmacyStatus = async (
 
         res.json({ message: "Pharmacy status updated", pharmacy: data });
     } catch (err) {
-        console.error("Error in updatePharmacyStatus:", err);
+        logger.error("Error in updatePharmacyStatus:", err);
         res.status(500).json({ error: "Internal server error" });
     }
 };
@@ -379,7 +379,7 @@ export const createMedicine = async (req: AuthenticatedRequest, res: Response): 
         await logAdminAction(req.user!.id, "CREATE_MEDICINE", "MEDICINE", data.id, parsed.data);
         res.status(201).json(data);
     } catch (err) {
-        console.error(err);
+        logger.error(err instanceof Error ? err : String(err));
         res.status(500).json({ error: "Internal server error" });
     }
 };
@@ -444,7 +444,7 @@ export const getAuditLogs = async (req: AuthenticatedRequest, res: Response): Pr
             },
         });
     } catch (err) {
-        console.error("Error in getAuditLogs:", err);
+        logger.error("Error in getAuditLogs:", err);
         res.status(500).json({ error: "Internal server error" });
     }
 };
@@ -488,7 +488,7 @@ export const getAllPharmacies = async (req: AuthenticatedRequest, res: Response)
             },
         });
     } catch (err) {
-        console.error("Error in getAllPharmacies:", err);
+        logger.error("Error in getAllPharmacies:", err);
         res.status(500).json({ error: "Internal server error" });
     }
 };
@@ -510,7 +510,7 @@ export const deletePharmacy = async (req: AuthenticatedRequest, res: Response): 
 
         res.json({ message: "Pharmacy soft-deleted successfully" });
     } catch (err) {
-        console.error("Error in deletePharmacy:", err);
+        logger.error("Error in deletePharmacy:", err);
         res.status(500).json({ error: "Internal server error" });
     }
 };
@@ -532,7 +532,7 @@ export const restorePharmacy = async (req: AuthenticatedRequest, res: Response):
 
         res.json({ message: "Pharmacy restored successfully" });
     } catch (err) {
-        console.error("Error in restorePharmacy:", err);
+        logger.error("Error in restorePharmacy:", err);
         res.status(500).json({ error: "Internal server error" });
     }
 };

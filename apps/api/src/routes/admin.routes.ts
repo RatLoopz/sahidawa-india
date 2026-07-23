@@ -154,7 +154,7 @@ router.post(
                 // Chunked DEL — never fire one command with 500 keys
                 for (let i = 0; i < keys.length; i += CACHE_INVALIDATION_CHUNK_SIZE) {
                     const chunk = keys.slice(i, i + CACHE_INVALIDATION_CHUNK_SIZE);
-                    await redisClient.del(chunk);
+                    await redisClient.del(...chunk);
                 }
 
                 totalKeysInvalidated += keys.length;
