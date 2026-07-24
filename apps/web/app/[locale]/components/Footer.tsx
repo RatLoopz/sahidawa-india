@@ -9,7 +9,10 @@ import { useTranslations } from "next-intl";
 export default function Footer() {
     const pathname = usePathname();
     const isHome = pathname ? /^\/[a-z]{2}$|^\/$/.test(pathname) : false;
+    const isMap = pathname ? pathname.includes("/map") : false;
     const t = useTranslations("Footer");
+
+    if (isMap) return null;
 
     const quickLinks = [
         {

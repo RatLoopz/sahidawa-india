@@ -13,6 +13,28 @@
       "apps/api/src/config/mlService.ts"
     ],
     "adr": null
+    "prNumber": 3858,
+    "title": "feat(security): gate guest notification endpoints behind a proof-of-ownership token (Closes #3836)",
+    "author": "shashank03-dev",
+    "mergedAt": "2026-07-24",
+    "area": "Frontend",
+    "score": 39,
+    "docPath": "docs/devtrack/2026-07/PR-3858-feat-security-gate-guest-notification-endpoints-be.md",
+    "linkedIssue": "#3836",
+    "labels": "level:advanced,quality:exceptional,gssoc:approved,type:feature,type:testing,type:security,type:refactor,type:devops",
+    "filesChanged": [
+      "apps/api/package.json",
+      "apps/api/src/routes/notifications.ts",
+      "apps/api/src/utils/guestToken.ts",
+      "apps/api/tests/guestToken.test.ts",
+      "apps/api/tests/notifications.test.ts",
+      "apps/web/app/[locale]/settings/page.tsx",
+      "apps/web/lib/api/notifications.ts",
+      "apps/web/messages/en.json",
+      "apps/web/tests/Settings-page.test.tsx",
+      "package-lock.json"
+    ],
+    "adr": "docs/devtrack/adr/ADR-059-feat-security-gate-guest-notification-endpoints-be.md"
   },
   {
     "prNumber": 3769,

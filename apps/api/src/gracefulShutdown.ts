@@ -80,9 +80,15 @@ export function createGracefulShutdown(server: Server, options: ShutdownOptions 
         }
 
         isShuttingDown = true;
-        logger.error(`${reason} detected. Starting graceful shutdown.`, {
+        console.error("Unhandled Rejection Reason (SYNC):", reason);
+        console.error("Unhandled Rejection Error:", error);
+        if (error instanceof Error) {
+            console.error(error.stack);
+        }
+        logger.error(`${reason} detected. Starting graceful shutdown. Reason:`, {
             reason,
-            ...(error !== undefined ? { error: getErrorDetails(error) } : {}),
+            error,
+            ...(error !== undefined ? { details: getErrorDetails(error) } : {}),
         });
 
         const timeout = setTimeout(() => {
