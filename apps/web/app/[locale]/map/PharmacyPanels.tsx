@@ -682,17 +682,17 @@ export default function PharmacyPanels({
                     <AlertCircle size={12} className="text-red-500" />
                     Risk layers
                 </div>
-                <div className="grid gap-1">
+                <div className="no-scrollbar flex gap-1.5 overflow-x-auto p-0.5">
                     {heatmapOptions.map((option) => (
                         <button
                             key={option.id}
                             type="button"
                             onClick={() => onHeatmapModeChange(option.id)}
                             title={option.description}
-                            className={`rounded-xl px-3 py-2 text-left text-[11px] font-bold transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98] ${
+                            className={`rounded-full px-3 py-1.5 text-[10px] font-bold whitespace-nowrap transition-all duration-200 active:scale-95 ${
                                 heatmapMode === option.id
-                                    ? "bg-slate-900 text-white shadow-md dark:bg-slate-100 dark:text-slate-900"
-                                    : "bg-(--color-surface-muted) text-(--color-text-secondary) hover:bg-(--color-border-muted)"
+                                    ? "bg-slate-900 text-white shadow-sm dark:bg-slate-100 dark:text-slate-900"
+                                    : "border border-(--color-border-muted) bg-(--color-surface-muted)/50 text-(--color-text-secondary) hover:bg-(--color-border-muted)/50"
                             }`}
                             aria-pressed={heatmapMode === option.id}
                         >

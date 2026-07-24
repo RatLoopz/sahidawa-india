@@ -16,6 +16,7 @@ import {
     RefreshCw,
     Loader2,
     WifiOff,
+    MapPin,
 } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import PharmacyPanels, { calculateTrustBreakdown } from "./PharmacyPanels";
@@ -379,6 +380,12 @@ export default function PharmacyMapPage() {
     const [isLocating, setIsLocating] = useState(false);
     const [locationError, setLocationError] = useState<string | null>(null);
 
+    // Location search / geocoding states
+    const [locationSuggestions, setLocationSuggestions] = useState<
+        Array<{ lat: number; lng: number; label: string }>
+    >([]);
+    const [isSearchingLocation, setIsSearchingLocation] = useState(false);
+
     // Live data state (PR #147 engine)
     const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
     const [ashaWorkers, setAshaWorkers] = useState<AshaWorker[]>([]);
@@ -404,6 +411,42 @@ export default function PharmacyMapPage() {
     // load. Once fetched, the result is cached in `scanHotspots` state and the
     // ref stops any further network calls when toggling modes back and forth.
     // Silently no-ops for users without access, keeping the map unchanged.
+    // Debounce geocoding lookups for location search
+    useEffect(() => {
+        if (!searchQuery.trim() || searchQuery.length < 3) {
+            setLocationSuggestions([]);
+            return;
+        }
+
+        const delayDebounce = setTimeout(async () => {
+            setIsSearchingLocation(true);
+            try {
+                const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&countrycodes=in&format=json&limit=3`;
+                const res = await fetch(url, {
+                    headers: { "Accept-Language": "en", "User-Agent": "SahiDawaApp/1.0" },
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (Array.isArray(data)) {
+                        setLocationSuggestions(
+                            data.map((item: any) => ({
+                                lat: parseFloat(item.lat),
+                                lng: parseFloat(item.lon),
+                                label: item.display_name,
+                            }))
+                        );
+                    }
+                }
+            } catch (err) {
+                console.error("Geocoding failed:", err);
+            } finally {
+                setIsSearchingLocation(false);
+            }
+        }, 500);
+
+        return () => clearTimeout(delayDebounce);
+    }, [searchQuery]);
+
     useEffect(() => {
         if (heatmapMode !== "scans" && heatmapMode !== "combined") return;
         if (scanHotspotsFetchedRef.current) return;
@@ -915,7 +958,7 @@ export default function PharmacyMapPage() {
                 {/* Search Bar */}
                 <div
                     data-testid="pharmacy-map-command-bar"
-                    className="flex w-full min-w-0 flex-1 items-center md:max-w-md"
+                    className="relative flex w-full min-w-0 flex-1 items-center md:max-w-md"
                 >
                     <div
                         data-testid="pharmacy-map-search"
@@ -945,6 +988,34 @@ export default function PharmacyMapPage() {
                             </button>
                         )}
                     </div>
+                    {locationSuggestions.length > 0 && (
+                        <div className="absolute top-[calc(100%+0.5rem)] right-0 left-0 z-50 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-2 shadow-xl">
+                            <p className="px-3 py-1.5 text-[9px] font-bold tracking-wider text-(--color-text-secondary)/80 uppercase">
+                                Fly map to location
+                            </p>
+                            <div className="space-y-1">
+                                {locationSuggestions.map((suggestion) => (
+                                    <button
+                                        key={suggestion.label}
+                                        onClick={() => {
+                                            const loc = {
+                                                lat: suggestion.lat,
+                                                lng: suggestion.lng,
+                                            };
+                                            setUserLocation(loc);
+                                            fetchNearby(loc.lat, loc.lng, radiusKm * 1000);
+                                            setSearchQuery("");
+                                            setLocationSuggestions([]);
+                                        }}
+                                        className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-(--color-text-primary) hover:bg-(--color-surface-muted)"
+                                    >
+                                        <MapPin size={13} className="shrink-0 text-emerald-600" />
+                                        <span className="truncate">{suggestion.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Filters */}
