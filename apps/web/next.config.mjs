@@ -58,8 +58,8 @@ const nextConfig = {
     compress: false, // Offloaded to Vercel/proxy
     reactStrictMode: true,
     poweredByHeader: false,
-    typescript: {
-        ignoreBuildErrors: true,
+    eslint: {
+        ignoreDuringBuilds: true,
     },
     experimental: {
         memoryBasedWorkersCount: true,
