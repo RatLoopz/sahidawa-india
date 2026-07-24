@@ -5,10 +5,11 @@ import { getClientIp } from "@/lib/getClientIp";
 import { redis } from "@/lib/redis";
 
 const OVERPASS_MIRRORS = [
+    "https://overpass.osm.ch/api/interpreter",
+    "https://lz4.overpass-api.de/api/interpreter",
     "https://overpass.private.coffee/api/interpreter",
     "https://overpass-api.de/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
-    "https://lz4.overpass-api.de/api/interpreter",
     "https://z.overpass-api.de/api/interpreter",
 ];
 
@@ -81,7 +82,8 @@ export async function POST(req: NextRequest) {
         const fetchPromises = OVERPASS_MIRRORS.map(async (mirror) => {
             const controller = new AbortController();
             controllers.push(controller);
-            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            // Overpass queries often take 10-15s, increase timeout to 25s
+            const timeoutId = setTimeout(() => controller.abort(), 25000);
 
             try {
                 const response = await fetch(mirror, {

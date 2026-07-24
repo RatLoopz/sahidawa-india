@@ -7,16 +7,19 @@ import SettingsPage from "@/app/[locale]/settings/page";
 import {
     getSubscriptionStatus,
     registerSubscription,
+    verifyGuestOtp,
     updateSubscription,
     optOutSubscription,
 } from "@/lib/api/notifications";
 import { useSession } from "@/src/components/AuthProvider";
 
 const GUEST_PHONE_KEY = "sahidawa-sms-phone";
+const GUEST_TOKEN_KEY = "sahidawa-guest-token";
 
 jest.mock("@/lib/api/notifications", () => ({
     getSubscriptionStatus: jest.fn(),
     registerSubscription: jest.fn(),
+    verifyGuestOtp: jest.fn(),
     updateSubscription: jest.fn(),
     optOutSubscription: jest.fn(),
 }));
@@ -69,6 +72,15 @@ jest.mock("next-intl", () => ({
             optOutSuccess: "You have been opted out.",
             successMessage: "Settings saved successfully.",
             errorMessage: "Something went wrong. Please try again.",
+            otpSentTitle: "Verify your phone number",
+            otpSentDesc: "We sent a code to your phone.",
+            otpLabel: "Verification code",
+            otpPlaceholder: "6-digit code",
+            otpSentMessage: "We sent a verification code to your phone.",
+            verifyButton: "Verify",
+            verifying: "Verifying...",
+            verifySuccess: "Your number is verified.",
+            otpInvalid: "Please enter the 6-digit code we sent you.",
         };
         return (key: string) => labels[key] ?? key;
     },
@@ -94,17 +106,12 @@ Object.defineProperty(window, "localStorage", { value: localStorageMock });
 
 const mockedGetSubscriptionStatus = getSubscriptionStatus as jest.Mock;
 const mockedRegisterSubscription = registerSubscription as jest.Mock;
+const mockedVerifyGuestOtp = verifyGuestOtp as jest.Mock;
 const mockedUpdateSubscription = updateSubscription as jest.Mock;
 const mockedOptOutSubscription = optOutSubscription as jest.Mock;
 const mockedUseSession = useSession as jest.Mock;
 
-const fillForm = ({
-    phone,
-    district,
-}: {
-    phone?: string;
-    district?: string;
-}) => {
+const fillForm = ({ phone, district }: { phone?: string; district?: string }) => {
     if (phone !== undefined) {
         fireEvent.change(screen.getByLabelText("Phone number"), {
             target: { value: phone },
@@ -128,6 +135,11 @@ describe("SettingsPage", () => {
             success: true,
             subscriber: { phone: "+919876543210" },
         });
+        mockedVerifyGuestOtp.mockResolvedValue({
+            success: true,
+            message: "Phone verified successfully",
+            guestToken: "guest-token-value",
+        });
         mockedUpdateSubscription.mockResolvedValue({
             success: true,
             subscriber: { phone: "+919876543210" },
@@ -144,7 +156,14 @@ describe("SettingsPage", () => {
         });
     });
 
-    it("registers a brand-new guest subscriber via the guest-friendly flow", async () => {
+    it("does not query subscription status for a guest with no token", async () => {
+        render(<SettingsPage />);
+        await waitFor(() => expect(screen.getByLabelText("Phone number")).toBeInTheDocument());
+
+        expect(mockedGetSubscriptionStatus).not.toHaveBeenCalled();
+    });
+
+    it("registers a brand-new guest, shows the OTP step, and stores the token on verify", async () => {
         render(<SettingsPage />);
         await waitFor(() => expect(screen.getByLabelText("Phone number")).toBeInTheDocument());
 
@@ -163,11 +182,26 @@ describe("SettingsPage", () => {
             );
         });
         expect(mockedUpdateSubscription).not.toHaveBeenCalled();
+
+        // Registration triggers the OTP step; verifying stores the guest token.
+        const otpInput = await screen.findByLabelText("Verification code");
+        fireEvent.change(otpInput, { target: { value: "123456" } });
+        fireEvent.click(screen.getByRole("button", { name: "Verify" }));
+
+        await waitFor(() => {
+            expect(mockedVerifyGuestOtp).toHaveBeenCalledWith({
+                phone: "9876543210",
+                otp: "123456",
+            });
+        });
+        await waitFor(() => {
+            expect(localStorage.getItem(GUEST_TOKEN_KEY)).toBe("guest-token-value");
+        });
     });
 
-    it("uses the guest-friendly registration flow (not the authenticated update API) when a returning guest changes their district", async () => {
-        // Simulate a guest who already registered once before.
+    it("lets a verified returning guest update settings with their token instead of re-registering", async () => {
         localStorage.setItem(GUEST_PHONE_KEY, "+919876543210");
+        localStorage.setItem(GUEST_TOKEN_KEY, "guest-token-value");
         mockedGetSubscriptionStatus.mockResolvedValue({
             registered: true,
             subscriber: {
@@ -181,28 +215,29 @@ describe("SettingsPage", () => {
         render(<SettingsPage />);
         await waitFor(() => expect(screen.getByDisplayValue("Mumbai")).toBeInTheDocument());
 
-        // Returning guest changes their district only.
         fillForm({ district: "Pune" });
         fireEvent.click(screen.getByRole("button", { name: "Save settings" }));
 
         await waitFor(() => {
-            expect(mockedRegisterSubscription).toHaveBeenCalledWith(
+            expect(mockedUpdateSubscription).toHaveBeenCalledWith(
                 {
                     phone: "9876543210",
                     channels: ["whatsapp"],
                     language: "en",
                     district: "Pune",
                 },
-                undefined
+                undefined,
+                "guest-token-value"
             );
         });
-        // This is the core regression check for the bug: guests must never
-        // hit the authenticated update endpoint.
-        expect(mockedUpdateSubscription).not.toHaveBeenCalled();
+        // Status was read with the token, and no re-registration happened.
+        expect(mockedGetSubscriptionStatus).toHaveBeenCalledWith(undefined, "guest-token-value");
+        expect(mockedRegisterSubscription).not.toHaveBeenCalled();
     });
 
-    it("uses the guest-friendly registration flow when a returning guest changes their phone number", async () => {
+    it("re-registers and asks a returning guest to verify when they switch to a new number", async () => {
         localStorage.setItem(GUEST_PHONE_KEY, "+919876543210");
+        localStorage.setItem(GUEST_TOKEN_KEY, "guest-token-value");
         mockedGetSubscriptionStatus.mockResolvedValue({
             registered: true,
             subscriber: {
@@ -231,6 +266,7 @@ describe("SettingsPage", () => {
             );
         });
         expect(mockedUpdateSubscription).not.toHaveBeenCalled();
+        expect(await screen.findByLabelText("Verification code")).toBeInTheDocument();
     });
 
     it("uses the authenticated update API for a logged-in user, even if a guest phone is also on file", async () => {
@@ -292,8 +328,9 @@ describe("SettingsPage", () => {
         expect(mockedRegisterSubscription).not.toHaveBeenCalled();
     });
 
-    it("opts a guest out and clears their local guest phone", async () => {
+    it("opts a verified guest out and clears their local phone and token", async () => {
         localStorage.setItem(GUEST_PHONE_KEY, "+919876543210");
+        localStorage.setItem(GUEST_TOKEN_KEY, "guest-token-value");
         mockedGetSubscriptionStatus.mockResolvedValue({
             registered: true,
             subscriber: {
@@ -305,17 +342,21 @@ describe("SettingsPage", () => {
         });
 
         render(<SettingsPage />);
-        await waitFor(() => expect(screen.getByRole("button", { name: "Opt out" })).toBeInTheDocument());
+        await waitFor(() =>
+            expect(screen.getByRole("button", { name: "Opt out" })).toBeInTheDocument()
+        );
 
         fireEvent.click(screen.getByRole("button", { name: "Opt out" }));
 
         await waitFor(() => {
             expect(mockedOptOutSubscription).toHaveBeenCalledWith(
                 { phone: "+919876543210" },
-                undefined
+                undefined,
+                "guest-token-value"
             );
         });
         expect(localStorage.getItem(GUEST_PHONE_KEY)).toBeNull();
+        expect(localStorage.getItem(GUEST_TOKEN_KEY)).toBeNull();
         expect(await screen.findByText("You have been opted out.")).toBeInTheDocument();
     });
 });
