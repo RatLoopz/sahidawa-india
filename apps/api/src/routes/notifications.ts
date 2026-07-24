@@ -2,7 +2,7 @@ import express, { Router } from "express";
 import { randomInt } from "node:crypto";
 import { z } from "zod";
 import { requireAuth, requireRole, optionalAuth, AuthenticatedRequest } from "../middleware/auth";
-import { notificationRegisterLimiter, authTargetLimiter } from "../middleware/rateLimit";
+import { notificationRegisterLimiter, authTargetLimiter, limiter } from "../middleware/rateLimit";
 import { cacheMiddleware } from "../middleware/cache";
 import { verifyTwilioSignature } from "../middleware/twilioSignature";
 import { supabase, dbConfig } from "../db/client";
@@ -33,7 +33,7 @@ const unsubscribeSchema = z
     })
     .strict();
 
-router.get("/vapid-public-key", cacheMiddleware(3600, 7200), (_req, res) => {
+router.get("/vapid-public-key", limiter, cacheMiddleware(3600, 7200), (_req, res) => {
     const publicKey = getVapidPublicKey();
     res.json({
         publicKey,
@@ -41,7 +41,7 @@ router.get("/vapid-public-key", cacheMiddleware(3600, 7200), (_req, res) => {
     });
 });
 
-router.post("/subscriptions", requireAuth, async (req: AuthenticatedRequest, res) => {
+router.post("/subscriptions", limiter, requireAuth, async (req: AuthenticatedRequest, res) => {
     const parsed = pushSubscriptionSchema.safeParse(req.body);
 
     if (!parsed.success) {
@@ -63,7 +63,7 @@ router.post("/subscriptions", requireAuth, async (req: AuthenticatedRequest, res
     });
 });
 
-router.delete("/subscriptions", requireAuth, async (req: AuthenticatedRequest, res) => {
+router.delete("/subscriptions", limiter, requireAuth, async (req: AuthenticatedRequest, res) => {
     const parsed = unsubscribeSchema.safeParse(req.body);
 
     if (!parsed.success) {
@@ -177,7 +177,7 @@ function getGuestToken(req: AuthenticatedRequest): string | undefined {
     return typeof header === "string" ? header : undefined;
 }
 
-router.get("/status", optionalAuth, async (req: AuthenticatedRequest, res) => {
+router.get("/status", limiter, optionalAuth, async (req: AuthenticatedRequest, res) => {
     try {
         // Guests have no account, so they prove ownership of the number with a
         // token minted at OTP verification. A bare ?phone= is no longer trusted,
@@ -715,7 +715,7 @@ router.patch(
     }
 );
 
-router.delete("/phone", optionalAuth, async (req: AuthenticatedRequest, res) => {
+router.delete("/phone", limiter, optionalAuth, async (req: AuthenticatedRequest, res) => {
     // Identity comes from the session or a valid guest token, never from the
     // request body. A guest can only opt out the number they proved they own.
     let guestPhone: string | undefined;

@@ -43,9 +43,7 @@ class PersistedMemorySubscriberStore {
                 for (const sub of data) {
                     this.store.set(sub.phone, sub);
                 }
-                logger.info(
-                    `Loaded ${data.length} in-memory subscribers from ${filePath}`
-                );
+                logger.info(`Loaded ${data.length} in-memory subscribers from ${filePath}`);
             } else {
                 const dir = path.dirname(filePath);
                 if (!fs.existsSync(dir)) {
@@ -117,9 +115,7 @@ class PersistedMemorySubscriberStore {
         return result;
     }
 
-    find(
-        predicate: (sub: InMemorySubscriber) => boolean
-    ): InMemorySubscriber | undefined {
+    find(predicate: (sub: InMemorySubscriber) => boolean): InMemorySubscriber | undefined {
         for (const sub of this.store.values()) {
             if (predicate(sub)) return sub;
         }
@@ -147,9 +143,7 @@ class PersistedMemorySubscriberStore {
         const subscribers = this.getAll();
         if (subscribers.length === 0) return;
 
-        logger.info(
-            `Attempting to reconcile ${subscribers.length} subscribers to Supabase...`
-        );
+        logger.info(`Attempting to reconcile ${subscribers.length} subscribers to Supabase...`);
 
         let reconciled = 0;
         let failed = 0;
@@ -210,9 +204,7 @@ class PersistedMemorySubscriberStore {
         if (reconciled > 0) {
             this.dirty = true;
             await this.save();
-            logger.info(
-                `Reconciled ${reconciled} subscribers to Supabase, ${failed} failed`
-            );
+            logger.info(`Reconciled ${reconciled} subscribers to Supabase, ${failed} failed`);
         }
     }
 

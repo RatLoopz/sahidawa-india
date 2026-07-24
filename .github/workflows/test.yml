@@ -51,6 +51,9 @@ jobs:
                       ${{ runner.os }}-turbo-main-
                       ${{ runner.os }}-turbo-
 
+            - name: 🏗️ Build Workspace Packages
+              run: npm run build --workspace=packages/shared --workspace=packages/validators --workspace=packages/types
+
             - name: 🧪 Run Tests
               run: npm run test
               env:
