@@ -10,6 +10,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { useSession } from "@/src/components/AuthProvider";
 import { createBrowserClient } from "@supabase/ssr";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
+import { motion, useScroll, useSpring } from "framer-motion";
 
 // Sub-components
 import DesktopNavLinks from "./Navbar/DesktopNavLinks";
@@ -87,6 +88,15 @@ export default function Navbar() {
         return null;
     }
 
+    /* Scroll Progress */
+    const { scrollYProgress } = useScroll();
+
+    const scaleX = useSpring(scrollYProgress, {
+        stiffness: 140,
+        damping: 28,
+        mass: 0.25,
+    });
+
     return (
         <>
             <header className="sticky top-0 z-[9999] w-full border-b border-white/30 bg-white/60 shadow-sm shadow-black/5 backdrop-blur-md transition-colors duration-300 dark:border-white/10 dark:bg-slate-900/60">
@@ -150,6 +160,24 @@ export default function Navbar() {
                         />
                     </div>
                 </div>
+                <motion.div
+                    aria-hidden="true"
+                    style={{
+                        scaleX,
+                        transformOrigin: "left center",
+                        position: "absolute",
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        height: "2px",
+                        zIndex: 9999,
+                        pointerEvents: "none",
+                        willChange: "transform",
+                        background:
+                            "linear-gradient(90deg,#10b981 0%,#22c55e 35%,#14b8a6 70%,#10b981 100%)",
+                        boxShadow: "0 0 8px rgba(16,185,129,.35), 0 0 18px rgba(20,184,166,.25)",
+                    }}
+                />
             </header>
 
             {isMenuOpen && (
