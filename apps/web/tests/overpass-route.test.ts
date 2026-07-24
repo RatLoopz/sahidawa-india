@@ -145,6 +145,6 @@ describe("POST /api/overpass", () => {
 
         expect(response.status).toBe(429);
         expect(body.error).toBe("Too many requests. Please try again in a few moments.");
-        expect(fetchMock).toHaveBeenCalledTimes(50); // 10 successful requests * 5 mirrors
+        expect(fetchMock).toHaveBeenCalledTimes(60); // 10 successful requests * 6 mirrors
     });
 });

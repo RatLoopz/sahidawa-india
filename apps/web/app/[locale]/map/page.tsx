@@ -389,6 +389,7 @@ export default function PharmacyMapPage() {
     const [radiusKm, setRadiusKm] = useState<number>(10);
     const [heatmapMode, setHeatmapMode] = useState<HeatmapMode>("none");
     const [scanHotspots, setScanHotspots] = useState<RiskHotspot[]>([]);
+    const [shouldFitBounds, setShouldFitBounds] = useState(true);
 
     // ── Offline cache state ───────────────────────────────────────────────────
     const { isOffline } = useOfflineStatus();
@@ -474,6 +475,7 @@ export default function PharmacyMapPage() {
             setIsLoading(true);
             setFetchError(null);
             setShowSearchArea(false);
+            setShouldFitBounds(true);
             try {
                 const radiusKm = Math.round(radius / 1000);
                 const cacheKey = buildNearbyCacheKey(lat, lng, radius);
@@ -591,6 +593,7 @@ export default function PharmacyMapPage() {
             setIsLoading(true);
             setFetchError(null);
             setShowSearchArea(false);
+            setShouldFitBounds(false);
             try {
                 const centerLat = bounds.center.lat;
                 const centerLng = bounds.center.lng;
@@ -1119,7 +1122,9 @@ export default function PharmacyMapPage() {
                             userLocation={userLocation}
                             onMapMoveEnd={handleMapMoveEnd}
                             onMapReady={handleMapReady}
-                            autoFitBounds={!isLoading && filteredPharmacies.length > 0}
+                            autoFitBounds={
+                                shouldFitBounds && !isLoading && filteredPharmacies.length > 0
+                            }
                             initialCenter={userLocation || DEFAULT_CENTER}
                             initialZoom={DEFAULT_ZOOM}
                             heatmapMode={heatmapMode}
