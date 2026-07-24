@@ -41,6 +41,15 @@ export default async function middleware(req: NextRequest) {
                 getOrigin(apiUrl),
                 getOrigin(mlUrl),
                 getWsOrigin(mlUrl),
+                "https://*.tile.openstreetmap.org",
+                "https://*.basemaps.cartocdn.com",
+                "https://overpass.osm.ch",
+                "https://overpass.private.coffee",
+                "https://overpass-api.de",
+                "https://overpass.kumi.systems",
+                "https://lz4.overpass-api.de",
+                "https://z.overpass-api.de",
+                "https://unpkg.com"
             ].filter(Boolean)
         ),
     ].join(" ");
@@ -49,9 +58,9 @@ export default async function middleware(req: NextRequest) {
     const csp = [
         "default-src 'self'",
         `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
-        `style-src 'self' 'nonce-${nonce}'`,
+        `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com`,
         `connect-src ${connectSrc}`,
-        "img-src 'self' blob: data: https://res.cloudinary.com",
+        "img-src 'self' blob: data: https://res.cloudinary.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://cdnjs.cloudflare.com",
         "font-src 'self'",
         "object-src 'none'",
         "base-uri 'self'",
