@@ -105,8 +105,12 @@ export async function POST(req: NextRequest) {
                 }
 
                 const data = await response.json();
-                if (!data || !data.elements) {
+                if (!data || !Array.isArray(data.elements)) {
                     throw new Error(`Mirror ${mirror} returned invalid data structure`);
+                }
+
+                if (data.elements.length === 0) {
+                    throw new Error(`Mirror ${mirror} returned 0 elements, rejecting to wait for global mirrors`);
                 }
 
                 return data;
@@ -116,7 +120,14 @@ export async function POST(req: NextRequest) {
             }
         });
 
-        const fastestData = await Promise.any(fetchPromises);
+        let fastestData;
+        try {
+            fastestData = await Promise.any(fetchPromises);
+        } catch (err) {
+            // This catches both complete network failures AND cases where all mirrors returned 0 elements
+            console.warn("[overpass] All mirrors rejected or returned 0 elements");
+            fastestData = { elements: [] };
+        }
 
         // Abort remaining in-flight requests
         for (const c of controllers) {
@@ -135,10 +146,11 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(fastestData, {
             headers: { "X-Cache": "MISS" },
         });
-    } catch {
-        return NextResponse.json(
-            { error: "All parallel Overpass mirrors failed" },
-            { status: 503 }
-        );
+    } catch (err) {
+            console.error("[overpass] Uncaught error:", err);
+            return NextResponse.json(
+                { error: "All parallel Overpass mirrors failed" },
+                { status: 503 }
+            );
     }
 }
