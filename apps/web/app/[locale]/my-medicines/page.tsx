@@ -9,6 +9,7 @@ import { RequestVerificationModal } from "@/components/RequestVerificationModal"
 import { API_BASE } from "@/lib/api";
 import { useTranslations } from "next-intl";
 import { useBookmarksStore } from "@/src/stores/useBookmarksStore";
+import { parseLocalDate } from "../expiry-tracker/components/dateUtils";
 
 interface TrackedMedicine {
     id: string;
@@ -17,8 +18,21 @@ interface TrackedMedicine {
     is_verified: boolean;
 }
 
+const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+function parseExpiryDate(expiryDate: string): Date {
+    return DATE_ONLY_PATTERN.test(expiryDate) ? parseLocalDate(expiryDate) : new Date(expiryDate);
+}
+
 function getDaysUntilExpiry(expiryDate: string): number {
-    const diff = new Date(expiryDate).getTime() - new Date().getTime();
+    const expiry = parseExpiryDate(expiryDate);
+    const today = new Date();
+
+    if (DATE_ONLY_PATTERN.test(expiryDate)) {
+        today.setHours(0, 0, 0, 0);
+    }
+
+    const diff = expiry.getTime() - today.getTime();
     return Math.ceil(diff / (1000 * 3600 * 24));
 }
 
@@ -240,7 +254,9 @@ export default function MyMedicinesPage() {
                                                 </div>
                                                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                                                     {t("table.expiry")}:{" "}
-                                                    {new Date(med.expiry_date).toLocaleDateString()}
+                                                    {parseExpiryDate(
+                                                        med.expiry_date
+                                                    ).toLocaleDateString()}
                                                 </p>
                                             </div>
                                         </div>
