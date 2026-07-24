@@ -13,6 +13,11 @@ import { redis } from "@/lib/redis";
 import { getMlServiceUrl, getMlAuthHeaders } from "@/lib/mlService";
 import Groq from "groq-sdk";
 
+// Allow up to 60 s on Vercel/serverless so Groq fallback has time to respond
+// after Gemini retries are exhausted. Without this, the default 10-s platform
+// timeout kills the request before the fallback can return a response.
+export const maxDuration = 60;
+
 const ML_TRIAGE_TIMEOUT_MS = 30_000;
 
 const DEFAULT_DISCLAIMER =
@@ -186,11 +191,11 @@ async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
             return await fn();
         } catch (error: unknown) {
             const status = isErrorWithStatus(error) ? error.status : undefined;
-            if ((status === 429 || status === 503) && attempt < maxRetries) {
-                const delay = Math.pow(2, attempt) * 1000;
-                await new Promise((resolve) => setTimeout(resolve, delay));
-                attempt++;
-                continue;
+            // 429 (Quota Exceeded) or 503 (Overloaded) means Gemini cannot serve
+            // the request right now. Retrying wastes our Groq fallback budget.
+            // Re-throw immediately so the caller can switch providers.
+            if (status === 429 || status === 503) {
+                throw error;
             }
             throw error;
         }
