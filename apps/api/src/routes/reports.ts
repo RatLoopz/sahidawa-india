@@ -497,6 +497,7 @@ reportsRouter.patch(
  */
 reportsRouter.patch(
     "/:id/snooze",
+    limiter,
     requireAuth,
     requireRole("admin", "moderator"),
     async (req, res: Response) => {

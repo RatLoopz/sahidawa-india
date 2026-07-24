@@ -9,7 +9,6 @@ import { supabase, dbConfig } from "../db/client";
 import { smsService } from "../services/sms-service";
 import { whatsappService } from "../services/whatsapp-service";
 import logger from "../utils/logger";
-import { webhookLimiter } from "../middleware/rateLimit";
 import {
     getMockRecallFeed,
     getVapidPublicKey,
