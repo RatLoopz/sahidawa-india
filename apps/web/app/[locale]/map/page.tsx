@@ -255,6 +255,60 @@ function sortPharmacies(pharmacies: Pharmacy[]): Pharmacy[] {
     });
 }
 
+function parseCoordinates(str: string): { lat: number; lng: number } | null {
+    const s = str.trim();
+    // 1. Try simple decimal comma/space separated coordinates: "26.206306, 91.728361" or "26.206306 91.728361"
+    const decRegex = /^([+-]?\d+(?:\.\d+)?)\s*[\s,]\s*([+-]?\d+(?:\.\d+)?)$/;
+    const decMatch = s.match(decRegex);
+    if (decMatch) {
+        const lat = parseFloat(decMatch[1]);
+        const lng = parseFloat(decMatch[2]);
+        if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+            return { lat, lng };
+        }
+    }
+
+    // 2. Try degree/minute/second format: "26°12'22.7\"N 91°43'42.1\"E"
+    const parseDMS = (part: string): number | null => {
+        const dmsMatch = part.match(
+            /(\d+)\s*[°d]\s*(\d+)\s*['m]\s*(\d+(?:\.\d+)?)\s*["s]?\s*([NSEWnsew])/
+        );
+        if (!dmsMatch) return null;
+        const deg = parseFloat(dmsMatch[1]);
+        const min = parseFloat(dmsMatch[2]);
+        const sec = parseFloat(dmsMatch[3]);
+        const dir = dmsMatch[4].toUpperCase();
+        let dd = deg + min / 60 + sec / 3600;
+        if (dir === "S" || dir === "W") {
+            dd = -dd;
+        }
+        return dd;
+    };
+
+    const parts = s.split(/[\s,]+/);
+    if (parts.length >= 2) {
+        const fullDMSMatch = s.match(
+            /(\d+\s*[°d]\s*\d+\s*['m]\s*\d+(?:\.\d+)?\s*["s]?\s*[NSEWnsew])[\s,]+(\d+\s*[°d]\s*\d+\s*['m]\s*\d+(?:\.\d+)?\s*["s]?\s*[NSEWnsew])/i
+        );
+        if (fullDMSMatch) {
+            const lat = parseDMS(fullDMSMatch[1]);
+            const lng = parseDMS(fullDMSMatch[2]);
+            if (
+                lat !== null &&
+                lng !== null &&
+                lat >= -90 &&
+                lat <= 90 &&
+                lng >= -180 &&
+                lng <= 180
+            ) {
+                return { lat, lng };
+            }
+        }
+    }
+
+    return null;
+}
+
 // ── Geolocation error mapping ─────────────────────────────────────────────────
 // Shared by the initial auto-locate effect and handleLocateUser so the
 // PositionError-code → translated-message mapping isn't duplicated.
@@ -415,6 +469,18 @@ export default function PharmacyMapPage() {
     useEffect(() => {
         if (!searchQuery.trim() || searchQuery.length < 3) {
             setLocationSuggestions([]);
+            return;
+        }
+
+        const parsedCoords = parseCoordinates(searchQuery);
+        if (parsedCoords) {
+            setLocationSuggestions([
+                {
+                    lat: parsedCoords.lat,
+                    lng: parsedCoords.lng,
+                    label: `📍 Go to coordinates: ${parsedCoords.lat.toFixed(6)}, ${parsedCoords.lng.toFixed(6)}`,
+                },
+            ]);
             return;
         }
 
