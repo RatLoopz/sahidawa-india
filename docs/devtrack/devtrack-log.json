@@ -1,5 +1,20 @@
 [
   {
+    "prNumber": 3872,
+    "title": "fix(web): preserve local expiry-date boundaries",
+    "author": "Shreya-nipunge",
+    "mergedAt": "2026-07-24",
+    "area": "Frontend",
+    "score": 5,
+    "docPath": "docs/devtrack/2026-07/PR-3872-fix-web-preserve-local-expiry-date-boundaries.md",
+    "linkedIssue": "#3869",
+    "labels": "level:intermediate,quality:clean,gssoc:approved,type:bug",
+    "filesChanged": [
+      "apps/web/app/[locale]/my-medicines/page.tsx"
+    ],
+    "adr": null
+  },
+  {
     "prNumber": 3858,
     "title": "feat(security): gate guest notification endpoints behind a proof-of-ownership token (Closes #3836)",
     "author": "shashank03-dev",
