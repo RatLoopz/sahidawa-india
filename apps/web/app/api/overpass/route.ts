@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded",
-                        Accept: "*/*",
+                        Accept: "application/json",
                         "User-Agent":
                             "SahiDawaApp/1.0 (https://sahidawa.org; contact@sahidawa.org)",
                     },
