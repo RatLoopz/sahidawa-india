@@ -7,7 +7,9 @@ import { Badge } from "@/components/ui/Badge";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { RequestVerificationModal } from "@/components/RequestVerificationModal";
 import { API_BASE } from "@/lib/api";
+import { fetchWithRetry } from "@/lib/apiWithRetry";
 import { useTranslations } from "next-intl";
+import { useSession } from "@/src/components/AuthProvider";
 import { useBookmarksStore } from "@/src/stores/useBookmarksStore";
 
 interface TrackedMedicine {
@@ -34,6 +36,7 @@ type FetchStatus = "loading" | "success" | "error";
 export default function MyMedicinesPage() {
     const [medicines, setMedicines] = useState<TrackedMedicine[]>([]);
     const t = useTranslations("MyMedicines");
+    const { token, isLoading: isSessionLoading } = useSession();
     const bookmarks = useBookmarksStore((state) => state.bookmarks);
     const removeBookmarkFromStore = useBookmarksStore((state) => state.removeBookmark);
 
@@ -59,12 +62,16 @@ export default function MyMedicinesPage() {
     useEffect(() => {
         let cancelled = false;
 
+        if (isSessionLoading) return;
+
         const fetchTrackedMedicines = async () => {
             setStatus("loading");
             setErrorMessage(null);
 
             try {
-                const res = await fetch(`${API_BASE}/api/v1/medicines/tracked`);
+                const res = await fetchWithRetry(`${API_BASE}/api/v1/medicines/tracked`, {
+                    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+                });
 
                 if (!res.ok) {
                     throw new Error(t("errors.statusError", { status: res.status }));
@@ -90,7 +97,7 @@ export default function MyMedicinesPage() {
         return () => {
             cancelled = true;
         };
-    }, [refreshKey]);
+    }, [isSessionLoading, refreshKey, token]);
 
     const removeBookmark = (name: string) => {
         setConfirmDialog({
