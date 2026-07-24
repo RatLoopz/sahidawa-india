@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState, KeyboardEvent } from "react";
+import { usePrivacyConsent } from "@/components/PrivacyConsentProvider";
 
 /**
  * Scroll thresholds with hysteresis to prevent rapid show/hide flickering
@@ -13,9 +14,13 @@ const SHOW_THRESHOLD = 300;
 const HIDE_THRESHOLD = 200;
 
 export default function BackToTopButton() {
+    const { hasRespondedToConsent } = usePrivacyConsent();
+    const showConsent = !hasRespondedToConsent;
+
     const [isVisible, setIsVisible] = useState(false);
     const [isScrollingBack, setIsScrollingBack] = useState(false);
     const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
     const t = useTranslations("BackToTopButton");
     const label = t("label");
 
@@ -137,13 +142,15 @@ export default function BackToTopButton() {
     const baseClasses =
         "fixed bottom-[152px] right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950 md:bottom-24 md:right-6 md:h-14 md:w-14";
 
-    const motionClasses = prefersReducedMotion
-        ? isVisible
-            ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"
-            : "opacity-0 translate-y-0 scale-100 pointer-events-none"
-        : isVisible
-          ? "opacity-100 translate-y-0 scale-100 pointer-events-auto hover:scale-108 hover:-translate-y-0.5 active:scale-92"
-          : "opacity-0 translate-y-5 scale-90 pointer-events-none";
+    const motionClasses = showConsent
+        ? "opacity-0 pointer-events-none"
+        : prefersReducedMotion
+          ? isVisible
+              ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"
+              : "opacity-0 translate-y-0 scale-100 pointer-events-none"
+          : isVisible
+            ? "opacity-100 translate-y-0 scale-100 pointer-events-auto hover:scale-108 hover:-translate-y-0.5 active:scale-92"
+            : "opacity-0 translate-y-5 scale-90 pointer-events-none";
 
     return (
         <>
@@ -160,8 +167,8 @@ export default function BackToTopButton() {
                 ref={buttonRef}
                 type="button"
                 aria-label={label}
-                aria-hidden={!isVisible}
-                tabIndex={isVisible ? 0 : -1}
+                aria-hidden={showConsent || !isVisible}
+                tabIndex={showConsent || !isVisible ? -1 : 0}
                 title={label}
                 onClick={handleScrollToTop}
                 onKeyDown={handleKeyDown}

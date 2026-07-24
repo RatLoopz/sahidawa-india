@@ -73,6 +73,7 @@
         "protobufjs": "^7.6.3",
         "js-yaml": "^4.1.2",
         "serialize-javascript": "^7.0.7",
+        "sharp": "^0.35.0",
         "node-cron": {
             "uuid": "^9.0.1"
         }

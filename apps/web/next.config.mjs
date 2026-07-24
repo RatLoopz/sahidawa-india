@@ -63,7 +63,13 @@ const nextConfig = {
     async headers() {
         const connectSrc = [
             ...new Set(
-                ["'self'", process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_API_URL, process.env.NEXT_PUBLIC_ML_SERVICE_URL]
+                [
+                    "'self'",
+                    process.env.NEXT_PUBLIC_SUPABASE_URL,
+                    process.env.NEXT_PUBLIC_API_URL,
+                    process.env.NEXT_PUBLIC_ML_SERVICE_URL,
+                    process.env.NEXT_PUBLIC_OTEL_EXPORTER_OTLP_ENDPOINT || (process.env.NODE_ENV === "development" ? "http://localhost:4318" : ""),
+                ]
                     .filter(Boolean)
                     .map((u) => {
                         if (u === "'self'") return u;

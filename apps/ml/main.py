@@ -136,10 +136,12 @@ async def compare_medicines(payload: dict):
     }
 
 @app.get("/")
+@app.head("/")
 def read_root():
     return {"message": "Welcome to SahiDawa ML API"}
 
 
 @app.get("/health")
+@app.head("/health")
 def health_check():
     return {"status": "healthy"}

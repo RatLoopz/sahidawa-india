@@ -17,6 +17,12 @@ jest.mock("next-intl", () => ({
     useTranslations: () => (key: string) => key,
 }));
 
+jest.mock("../components/PrivacyConsentProvider", () => ({
+    usePrivacyConsent: () => ({
+        hasRespondedToConsent: true,
+    }),
+}));
+
 describe("BackToTopButton", () => {
     it("keeps the mobile button high enough to stay visible above the chat launcher", () => {
         const markup = renderToStaticMarkup(<BackToTopButton />);
