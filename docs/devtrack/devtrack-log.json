@@ -1,5 +1,18 @@
 [
   {
+    "prNumber": 3840,
+    "title": "fix(api): prevent SSRF bypass via IPv6-mapped IPv4 addresses (#3829)",
+    "author": "Neverask1121",
+    "mergedAt": "2026-07-24",
+    "area": "Backend",
+    "score": 6,
+    "docPath": "docs/devtrack/2026-07/PR-3840-fix-api-prevent-ssrf-bypass-via-ipv6-mapped-ipv4-a.md",
+    "linkedIssue": "#3829",
+    "labels": "level:critical,quality:clean,gssoc:approved,type:bug,type:security",
+    "filesChanged": [
+      "apps/api/src/config/mlService.ts"
+    ],
+    "adr": null
     "prNumber": 3858,
     "title": "feat(security): gate guest notification endpoints behind a proof-of-ownership token (Closes #3836)",
     "author": "shashank03-dev",
