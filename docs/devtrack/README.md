@@ -8,6 +8,7 @@ All PR summaries are now stored in a centralized JSON log.
 
 | PR | Date | Area | Score | Author | Docs |
 |---|---|---|---|---|---|
+| [#3840](https://github.com/RatLoopz/sahidawa-india/pull/3840) | 2026-07-24 | Backend | 6 | @Neverask1121 | [View Doc](./2026-07/PR-3840-fix-api-prevent-ssrf-bypass-via-ipv6-mapped-ipv4-a.md) |
 | [#3858](https://github.com/RatLoopz/sahidawa-india/pull/3858) | 2026-07-24 | Frontend | 39 | @shashank03-dev | [View Doc](./2026-07/PR-3858-feat-security-gate-guest-notification-endpoints-be.md) / [ADR](./adr/ADR-059-feat-security-gate-guest-notification-endpoints-be.md) |
 | [#3769](https://github.com/RatLoopz/sahidawa-india/pull/3769) | 2026-07-20 | Frontend | 7 | @Avinash-sdbegin | [View Doc](./2026-07/PR-3769-feat-web-serve-stale-cached-get-responses-during-c.md) |
 | [#3761](https://github.com/RatLoopz/sahidawa-india/pull/3761) | 2026-07-20 | Backend | 52 | @Avinash-sdbegin | [View Doc](./2026-07/PR-3761-refactor-api-extract-business-logic-into-services-.md) / [ADR](./adr/ADR-058-refactor-api-extract-business-logic-into-services-.md) |

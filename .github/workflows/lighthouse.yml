@@ -37,6 +37,9 @@ jobs:
             ${{ runner.os }}-turbo-main-
             ${{ runner.os }}-turbo-
 
+      - name: 🏗️ Build Workspace Packages
+        run: npm run build --workspace=packages/shared --workspace=packages/validators --workspace=packages/types
+
       - name: 🏗️ Build Web App
         run: npx turbo run build --filter=web
         env:

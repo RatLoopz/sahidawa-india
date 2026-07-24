@@ -18,6 +18,7 @@ const createLimiter = (options: LimiterOptions) => {
         standardHeaders: true,
         legacyHeaders: false,
         store: buildStore(options.prefix || "general"),
+        validate: false,
         handler: (_req, res) => {
             res.status(429).json({
                 error: options.message,
@@ -39,6 +40,7 @@ export const createKeyLimiter = (options: KeyLimiterOptions) => {
         legacyHeaders: false,
         keyGenerator: options.keyGenerator,
         store: buildStore(options.prefix || "general_key"),
+        validate: false,
         handler: (_req, res) => {
             res.status(429).json({
                 error: options.message,
@@ -184,7 +186,7 @@ export const authTargetLimiter = createKeyLimiter({
         if (req.body?.abhaAddress) return `abha:${req.body.abhaAddress}`;
         if (req.body?.phone_number) return `phone:${req.body.phone_number}`;
         // Fallback to IP if no explicit target is found
-        return req.ip || "unknown";
+        return (req.ip || "unknown").replace(/:/g, "_");
     },
 });
 
@@ -195,6 +197,7 @@ export const notificationRegisterLimiter = rateLimit({
     max: 5,
     standardHeaders: true,
     legacyHeaders: false,
+    validate: false,
     store: buildStore("notification_register"),
     handler: (_req, res) => {
         res.status(429).json({
@@ -210,6 +213,7 @@ export const trackingLimiter = rateLimit({
     max: 60,
     standardHeaders: true,
     legacyHeaders: false,
+    validate: false,
     store: buildStore("tracking"),
     handler: (_req, res) => {
         res.status(429).json({
@@ -224,6 +228,7 @@ export const webhookLimiter = rateLimit({
     max: 10,
     standardHeaders: true,
     legacyHeaders: false,
+    validate: false,
     store: buildStore("webhook"),
     handler: (_req, res) => {
         res.status(429).json({
@@ -242,6 +247,7 @@ export const barcodeLimiter = rateLimit({
     max: process.env.NODE_ENV === "development" ? 200 : 15,
     standardHeaders: true,
     legacyHeaders: false,
+    validate: false,
     store: buildStore("barcode"),
     handler: (_req, res) => {
         res.status(429).json({
