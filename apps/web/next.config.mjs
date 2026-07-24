@@ -1,35 +1,32 @@
 import { execSync } from "node:child_process";
 import createNextIntlPlugin from "next-intl/plugin";
-// import withPWAInit, { runtimeCaching as defaultRuntimeCaching } from "@ducanh2912/next-pwa";
-// import { createWorkboxRuntimeCaching } from "./worker/workboxRuntimeCaching.mjs";
+import withPWAInit, { runtimeCaching as defaultRuntimeCaching } from "@ducanh2912/next-pwa";
+import { createWorkboxRuntimeCaching } from "./worker/workboxRuntimeCaching.mjs";
 
 const withNextIntl = createNextIntlPlugin();
-// const workboxRuntimeCaching = createWorkboxRuntimeCaching(defaultRuntimeCaching);
+const workboxRuntimeCaching = createWorkboxRuntimeCaching(defaultRuntimeCaching);
 
-// const withPWA = withPWAInit({
-//     dest: "public",
-//     cacheOnFrontEndNav: true,
-//     aggressiveFrontEndNavCaching: true,
-//     reloadOnOnline: true,
-//     swcMinify: true,
-//     workboxOptions: {
-//         disableDevLogs: true,
-//         runtimeCaching: workboxRuntimeCaching,
-//     },
-// });
+const withPWA = withPWAInit({
+    dest: "public",
+    cacheOnFrontEndNav: true,
+    aggressiveFrontEndNavCaching: true,
+    reloadOnOnline: true,
+    swcMinify: true,
+    workboxOptions: {
+        disableDevLogs: true,
+        runtimeCaching: workboxRuntimeCaching,
+    },
+});
 
 /**
  * Deterministic build ID derived from the Git commit SHA.
  * Falls back to a timestamp if git is unavailable (e.g. Docker without .git).
  */
 function getBuildId() {
-    if (process.env.VERCEL_GIT_COMMIT_SHA) {
-        return process.env.VERCEL_GIT_COMMIT_SHA.slice(0, 7);
-    }
     try {
         return execSync("git rev-parse --short HEAD", { encoding: "utf-8" }).trim();
     } catch {
-        return "static-fallback-id";
+        return Date.now().toString(36);
     }
 }
 
@@ -48,7 +45,12 @@ const nextConfig = {
         "@zxing/library",
         "@zxing/browser",
     ],
-
+    serverExternalPackages: [
+        "lightningcss",
+        "@tailwindcss/postcss",
+        "@tailwindcss/node",
+        "@tailwindcss/oxide",
+    ],
     images: {
         formats: ["image/avif", "image/webp"],
         deviceSizes: [320, 420, 640, 750, 1080],
@@ -58,14 +60,6 @@ const nextConfig = {
     compress: false, // Offloaded to Vercel/proxy
     reactStrictMode: true,
     poweredByHeader: false,
-    eslint: {
-        ignoreDuringBuilds: true,
-    },
-    experimental: {
-        memoryBasedWorkersCount: true,
-        cpus: 1,
-    },
-
     async headers() {
         const connectSrc = [
             ...new Set(
@@ -118,4 +112,4 @@ const nextConfig = {
     },
 };
 
-export default withNextIntl(nextConfig);
+export default withPWA(withNextIntl(nextConfig));

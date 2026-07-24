@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
+import { ThemeToggle } from "../../[locale]/components/ThemeToggle";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { ChatBubble, type Message } from "./components/ChatBubble";
 import { ActionCard } from "./components/ActionCard";
 import { TypingIndicator } from "./components/TypingIndicator";
-
+import { TrustBar } from "./components/TrustBar";
 import { Camera, Pill, MapPin, RotateCcw } from "lucide-react";
 import { isAbortError, readChatErrorMessage, readTextResponseStream } from "@/lib/chatStream";
 import { useTranslations } from "next-intl";
@@ -478,8 +480,8 @@ export default function ChatUI() {
             </main>
 
             {/* Input Pill */}
-            <footer className="z-50 mx-auto w-full max-w-3xl px-4 pb-6">
-                <div className="rounded-4xl border border-white/30 bg-white/60 px-4 py-3 shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/60 dark:shadow-black/50">
+            <footer className="z-20 mx-auto w-full max-w-3xl px-4 pb-6">
+                <div className="rounded-[2rem] border border-white/30 bg-white/60 px-4 py-3 shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/60 dark:shadow-black/50">
                     {isListening && (
                         <div className="mb-3 flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-400">
                             <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
@@ -492,7 +494,7 @@ export default function ChatUI() {
                             onClick={handleResetClick}
                             aria-label="Reset Chat"
                             title="Reset Chat"
-                            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/40 bg-white/50 text-slate-600 transition-all hover:bg-white/80 active:scale-95 dark:border-white/10 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-700/50"
+                            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border border-white/40 bg-white/50 text-slate-600 transition-all hover:bg-white/80 active:scale-95 dark:border-white/10 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-700/50"
                         >
                             <RotateCcw size={18} />
                         </button>
@@ -501,7 +503,7 @@ export default function ChatUI() {
                             onClick={toggleVoice}
                             aria-label={isListening ? t("stopVoice") : t("startVoice")}
                             aria-pressed={isListening}
-                            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-all ${
+                            className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
                                 isListening
                                     ? "bg-red-500 text-white shadow-md shadow-red-500/20"
                                     : "border border-white/40 bg-white/50 text-slate-600 hover:bg-white/80 dark:border-white/10 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-700/50"
@@ -529,7 +531,7 @@ export default function ChatUI() {
                             onClick={() => sendMessage(input)}
                             disabled={!input.trim() || isTyping}
                             aria-label={t("sendMessage")}
-                            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-all ${
+                            className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
                                 input.trim() && !isTyping
                                     ? "bg-linear-to-r from-emerald-500 to-teal-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)] hover:from-emerald-600 hover:to-teal-600 active:scale-95"
                                     : "cursor-not-allowed border border-white/20 bg-white/40 text-slate-400 dark:border-white/5 dark:bg-slate-800/40 dark:text-slate-500"

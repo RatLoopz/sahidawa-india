@@ -89,7 +89,7 @@ export default function Navbar() {
 
     return (
         <>
-            <nav className="fixed top-0 right-0 left-0 z-9999 border-b border-white/30 bg-white/60 backdrop-blur-md transition-all duration-300 dark:border-white/10 dark:bg-slate-900/60">
+            <header className="sticky top-0 z-[9999] w-full border-b border-white/30 bg-white/60 shadow-sm shadow-black/5 backdrop-blur-md transition-colors duration-300 dark:border-white/10 dark:bg-slate-900/60">
                 <div className="container mx-auto flex h-16 items-center justify-between gap-2 px-2 sm:gap-3 sm:px-4 md:px-6">
                     <div className="flex min-w-0 shrink-0 items-center">
                         <Link href="/" className="flex min-w-0 items-center gap-1.5 sm:gap-2">
@@ -150,11 +150,11 @@ export default function Navbar() {
                         />
                     </div>
                 </div>
-            </nav>
+            </header>
 
             {isMenuOpen && (
                 <div
-                    className="fixed inset-0 z-9998 bg-slate-900/50 backdrop-blur-sm transition-opacity sm:hidden dark:bg-black/60"
+                    className="fixed inset-0 z-[9998] bg-black/20 backdrop-blur-[1px] sm:hidden"
                     onClick={() => setIsMenuOpen(false)}
                 />
             )}

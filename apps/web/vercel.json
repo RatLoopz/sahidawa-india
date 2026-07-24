@@ -1,5 +1,5 @@
 {
-    "installCommand": "cd ../.. && npm install --legacy-peer-deps",
+    "installCommand": "cd ../.. && npm install --legacy-peer-deps --include=dev",
     "buildCommand": "cd ../.. && npx turbo run build --filter=web...",
     "crons": [
         {

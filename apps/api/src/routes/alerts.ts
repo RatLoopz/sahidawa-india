@@ -1,4 +1,4 @@
-import { Router, Request, Response } from "express";
+﻿import { Router, Request, Response } from "express";
 import { supabase } from "../db/client";
 import { z } from "zod";
 import { triggerRecallAlert } from "../services/notifications";
@@ -317,11 +317,7 @@ alertsRouter.post("/ingest", requireApiKey, limiter, async (req: ApiKeyRequest, 
                 for await (const key of redisClient.scanIterator({
                     MATCH: "alerts:list:*",
                 })) {
-                    if (Array.isArray(key)) {
-                        listKeys.push(...key);
-                    } else {
-                        listKeys.push(key as string);
-                    }
+                    listKeys.push(key);
                 }
                 if (listKeys.length > 0) {
                     await redisClient.del(listKeys);
