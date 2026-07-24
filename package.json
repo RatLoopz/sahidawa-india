@@ -4,7 +4,7 @@
     "private": true,
     "description": "SahiDawa Open Health — Medicine safety infrastructure for Bharat",
     "engines": {
-        "node": ">=22.0.0"
+        "node": "22.x"
     },
     "workspaces": [
         "apps/*",

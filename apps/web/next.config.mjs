@@ -61,6 +61,10 @@ const nextConfig = {
     typescript: {
         ignoreBuildErrors: true,
     },
+    experimental: {
+        memoryBasedWorkersCount: true,
+        cpus: 1,
+    },
 
     async headers() {
         const connectSrc = [

@@ -4,7 +4,7 @@
     "private": true,
     "scripts": {
         "dev": "next dev --turbopack -p 3000",
-        "build": "next build",
+        "build": "NODE_OPTIONS=\"--trace-uncaught --trace-warnings\" next build",
         "start": "next start",
         "lint": "eslint .",
         "test": "jest --config jest.config.cjs",

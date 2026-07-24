@@ -46,14 +46,6 @@ export function createServiceRoleSupabaseClient() {
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!serviceRoleKey) {
-        const isBuild =
-            Boolean(process.env.CI) || process.env.NEXT_PHASE === "phase-production-build";
-        if (isBuild) {
-            console.warn("Using placeholder for SUPABASE_SERVICE_ROLE_KEY during build");
-            return createClient(getSupabaseUrl(), "placeholder-service-role-key", {
-                auth: { persistSession: false, autoRefreshToken: false },
-            });
-        }
         throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for privileged server operations.");
     }
 
