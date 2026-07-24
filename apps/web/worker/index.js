@@ -63,7 +63,7 @@ const PUBLIC_API_ROUTES = [
 /** Shared service-worker caches may contain public data only. */
 function isPublicCacheableApiRequest(request, url) {
     if (request.method !== "GET" || request.credentials === "include") return false;
-
+    const authenticationHeaders = [
         "authorization",
         "proxy-authorization",
         // "cookie", // Forbidden header; not readable in service workers.

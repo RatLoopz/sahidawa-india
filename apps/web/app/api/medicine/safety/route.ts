@@ -147,8 +147,8 @@ function isRateLimited(err: unknown): boolean {
 }
 
 async function generateWithGemini(drug: string, rag: string): Promise<object> {
-    const apiKey = process.env.GEMINI_API_KEY?.trim();
-    if (!apiKey) throw new Error("GEMINI_API_KEY not set");
+    const apiKey = (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY)?.trim();
+    if (!apiKey) throw new Error("API Key not set");
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({

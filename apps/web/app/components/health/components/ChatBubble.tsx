@@ -43,7 +43,15 @@ const UserAvatar = () => (
     </div>
 );
 
-const ErrorContent = ({ onRetry, msgId }: { onRetry?: (id: string) => void; msgId: string }) => (
+const ErrorContent = ({
+    onRetry,
+    msgId,
+    errorMsg,
+}: {
+    onRetry?: (id: string) => void;
+    msgId: string;
+    errorMsg: string;
+}) => (
     <div>
         <div className="mb-3 flex items-start gap-2">
             <svg
@@ -58,11 +66,9 @@ const ErrorContent = ({ onRetry, msgId }: { onRetry?: (id: string) => void; msgI
             </svg>
             <div>
                 <p className="text-sm leading-snug font-semibold text-red-700">
-                    AI Assistant Under Development
+                    Something went wrong
                 </p>
-                <p className="mt-0.5 text-sm leading-relaxed text-slate-600">
-                    This feature is currently under development. Please check back soon!
-                </p>
+                <p className="mt-0.5 text-sm leading-relaxed text-slate-600">{errorMsg}</p>
             </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -112,7 +118,7 @@ export function ChatBubble({ msg, onRetry }: ChatBubbleProps) {
                     }`}
                 >
                     {msg.isError ? (
-                        <ErrorContent onRetry={onRetry} msgId={msg.id} />
+                        <ErrorContent onRetry={onRetry} msgId={msg.id} errorMsg={msg.content} />
                     ) : isUser ? (
                         <PlainMessageContent content={msg.content} />
                     ) : (
