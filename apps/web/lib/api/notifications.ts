@@ -21,6 +21,18 @@ function guestHeader(guestToken?: string): Record<string, string> {
     return guestToken ? { [GUEST_TOKEN_HEADER]: guestToken } : {};
 }
 
+// The notification API returns errors as either a bare `{ error: string }` or a
+// nested `{ error: { message } }`. Pull out a human-readable message from a
+// failed response, falling back to a caller-supplied default when the body is
+// missing or unparseable.
+async function readErrorMessage(res: Response, fallback: string): Promise<string> {
+    const body = (await res.json().catch(() => ({}))) as {
+        error?: string | { message?: string };
+    };
+    const errMsg = typeof body.error === "object" ? body.error?.message : body.error;
+    return errMsg ?? fallback;
+}
+
 export async function getSubscriptionStatus(
     accessToken?: string,
     guestToken?: string,
@@ -75,11 +87,7 @@ export async function registerSubscription(
     });
 
     if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as {
-            error?: string | { message?: string };
-        };
-        const errMsg = typeof body.error === "object" ? body.error?.message : body.error;
-        throw new Error(errMsg ?? "Failed to register subscription");
+        throw new Error(await readErrorMessage(res, "Failed to register subscription"));
     }
 
     return res.json() as Promise<{ success: boolean; subscriber: SubscriberData }>;
@@ -108,11 +116,7 @@ export async function verifyGuestOtp(
     });
 
     if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as {
-            error?: string | { message?: string };
-        };
-        const errMsg = typeof body.error === "object" ? body.error?.message : body.error;
-        throw new Error(errMsg ?? "Failed to verify the code");
+        throw new Error(await readErrorMessage(res, "Failed to verify the code"));
     }
 
     return res.json() as Promise<{ success: boolean; message: string; guestToken?: string }>;
@@ -146,11 +150,7 @@ export async function updateSubscription(
     });
 
     if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as {
-            error?: string | { message?: string };
-        };
-        const errMsg = typeof body.error === "object" ? body.error?.message : body.error;
-        throw new Error(errMsg ?? "Failed to update subscription settings");
+        throw new Error(await readErrorMessage(res, "Failed to update subscription settings"));
     }
 
     return res.json() as Promise<{ success: boolean; subscriber: SubscriberData }>;
@@ -177,11 +177,7 @@ export async function optOutSubscription(
     });
 
     if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as {
-            error?: string | { message?: string };
-        };
-        const errMsg = typeof body.error === "object" ? body.error?.message : body.error;
-        throw new Error(errMsg ?? "Failed to opt out of notifications");
+        throw new Error(await readErrorMessage(res, "Failed to opt out of notifications"));
     }
 
     return res.json() as Promise<{ success: boolean; message: string }>;

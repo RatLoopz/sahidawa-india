@@ -122,6 +122,13 @@ export default function SettingsPage() {
         return true;
     };
 
+    // Surface a caught error to the user, preferring its own message and falling
+    // back to the generic translated string for non-Error throws.
+    const showError = (err: unknown) => {
+        const text = err instanceof Error && err.message ? err.message : t("errorMessage");
+        setMessage({ type: "error", text });
+    };
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!validateForm()) return;
@@ -199,11 +206,7 @@ export default function SettingsPage() {
                 setMessage({ type: "success", text: t("otpSentMessage") });
             }
         } catch (err: unknown) {
-            if (err instanceof Error) {
-                setMessage({ type: "error", text: err.message || t("errorMessage") });
-            } else {
-                setMessage({ type: "error", text: t("errorMessage") });
-            }
+            showError(err);
         } finally {
             setIsSaving(false);
         }
@@ -230,11 +233,7 @@ export default function SettingsPage() {
                 setMessage({ type: "success", text: t("verifySuccess") });
             }
         } catch (err: unknown) {
-            if (err instanceof Error) {
-                setMessage({ type: "error", text: err.message || t("errorMessage") });
-            } else {
-                setMessage({ type: "error", text: t("errorMessage") });
-            }
+            showError(err);
         } finally {
             setIsVerifying(false);
         }
@@ -273,11 +272,7 @@ export default function SettingsPage() {
                 setMessage({ type: "success", text: t("optOutSuccess") });
             }
         } catch (err: unknown) {
-            if (err instanceof Error) {
-                setMessage({ type: "error", text: err.message || t("errorMessage") });
-            } else {
-                setMessage({ type: "error", text: t("errorMessage") });
-            }
+            showError(err);
         } finally {
             setIsSaving(false);
         }
