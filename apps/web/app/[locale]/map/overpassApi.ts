@@ -36,8 +36,14 @@ async function queryOverpass(query: string): Promise<any> {
                 }
 
                 const data = await response.json();
-                if (!data || !data.elements) {
+                if (!data || !Array.isArray(data.elements)) {
                     throw new Error(`Mirror ${mirror} returned invalid data structure`);
+                }
+
+                if (data.elements.length === 0) {
+                    throw new Error(
+                        `Mirror ${mirror} returned 0 elements, rejecting to wait for global mirrors`
+                    );
                 }
 
                 return { controller, data };
