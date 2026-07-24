@@ -596,6 +596,8 @@ export async function POST(req: Request) {
         const systemPrompt = BASE_PROMPT.replace("{language}", language);
 
         let responseStream: AsyncIterable<TextStreamChunk> | undefined;
+        let responseIterator: AsyncIterator<TextStreamChunk> | undefined;
+        let firstStreamResult: IteratorResult<TextStreamChunk> | undefined;
         let groqStream: any;
         let isUsingGroq = false;
 
@@ -609,6 +611,9 @@ export async function POST(req: Request) {
                     },
                 })
             )) as AsyncIterable<TextStreamChunk>;
+
+            responseIterator = responseStream[Symbol.asyncIterator]();
+            firstStreamResult = await responseIterator.next();
         } catch (geminiErr) {
             console.warn("[chat/route] Gemini stream failed, trying Groq fallback", geminiErr);
             const groqApiKey = process.env.GROQ_API_KEY?.trim();
@@ -646,18 +651,24 @@ export async function POST(req: Request) {
                                 controller.enqueue(encoder.encode(text));
                             }
                         }
-                    } else if (responseStream) {
-                        const responseIterator = responseStream[Symbol.asyncIterator]();
+                    } else if (responseIterator && firstStreamResult) {
+                        const enqueueChunk = (chunk: TextStreamChunk) => {
+                            usageMetadata = chunk.usageMetadata ?? usageMetadata;
+                            if (chunk.text) {
+                                controller.enqueue(encoder.encode(chunk.text));
+                            }
+                        };
+
+                        if (!firstStreamResult.done) {
+                            enqueueChunk(firstStreamResult.value);
+                        }
+
                         while (true) {
                             const chunkResult = await responseIterator.next();
                             if (chunkResult.done) {
                                 break;
                             }
-                            const chunk = chunkResult.value;
-                            usageMetadata = chunk.usageMetadata ?? usageMetadata;
-                            if (chunk.text) {
-                                controller.enqueue(encoder.encode(chunk.text));
-                            }
+                            enqueueChunk(chunkResult.value);
                         }
                     }
 
