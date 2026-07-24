@@ -902,6 +902,8 @@ export default function PharmacyMapPage() {
             : "Try widening the search area or using your current location to find nearby verified stores.",
         emptyStateActionLabel: "Use my location",
         onEmptyStateAction: handleLocateUser,
+        activeFilter,
+        onFilterChange: setActiveFilter as (filter: "all" | "verified" | "govt" | "named") => void,
     };
 
     return (

@@ -42,6 +42,8 @@ export interface PharmacyPanelsProps {
     emptyStateDescription?: string;
     emptyStateActionLabel?: string;
     onEmptyStateAction?: () => void;
+    activeFilter?: "all" | "verified" | "govt" | "named";
+    onFilterChange?: (filter: "all" | "verified" | "govt" | "named") => void;
 }
 
 export interface TrustBreakdown {
@@ -608,6 +610,8 @@ export default function PharmacyPanels({
     emptyStateDescription,
     emptyStateActionLabel,
     onEmptyStateAction,
+    activeFilter,
+    onFilterChange,
 }: PharmacyPanelsProps) {
     const verifiedCount = pharmacies.filter((pharmacy) => pharmacy.isVerified).length;
     const govtCount = pharmacies.filter((pharmacy) => pharmacy.type === "govt").length;
@@ -642,21 +646,33 @@ export default function PharmacyPanels({
             <div className="shrink-0 border-b border-(--color-border-muted) px-3 py-3 sm:px-5 sm:py-4">
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                     {[
-                        { label: "Verified stores", value: verifiedCount },
-                        { label: "Jan Aushadhi", value: govtCount },
-                        { label: "Live options", value: liveCount },
+                        {
+                            label: "Verified stores",
+                            value: verifiedCount,
+                            filterId: "verified" as const,
+                        },
+                        { label: "Jan Aushadhi", value: govtCount, filterId: "govt" as const },
+                        { label: "Live options", value: liveCount, filterId: "all" as const },
                     ].map((item) => (
-                        <article
+                        <button
                             key={item.label}
-                            className="rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) p-2.5 sm:p-3"
+                            type="button"
+                            onClick={() => onFilterChange?.(item.filterId)}
+                            className={`rounded-2xl border p-2.5 text-left transition-colors sm:p-3 ${
+                                activeFilter === item.filterId
+                                    ? "border-emerald-500/30 bg-emerald-50/50 dark:border-emerald-400/20 dark:bg-emerald-950/20"
+                                    : "border-(--color-border-muted) bg-(--color-surface-muted) hover:bg-(--color-border-muted)/50"
+                            } ${!onFilterChange ? "cursor-default" : ""}`}
                         >
                             <p className="text-[9px] font-semibold tracking-[0.14em] text-(--color-text-muted) uppercase sm:text-[10px] sm:tracking-[0.18em]">
                                 {item.label}
                             </p>
-                            <p className="mt-1 text-base font-black text-(--color-text-primary) sm:text-xl">
+                            <p
+                                className={`mt-1 text-base font-black sm:text-xl ${activeFilter === item.filterId ? "text-emerald-700 dark:text-emerald-400" : "text-(--color-text-primary)"}`}
+                            >
                                 {item.value}
                             </p>
-                        </article>
+                        </button>
                     ))}
                 </div>
             </div>
