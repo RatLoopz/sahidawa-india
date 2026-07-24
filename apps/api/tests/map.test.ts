@@ -3,9 +3,15 @@ import request from "supertest";
 import mapRouter from "../src/routes/map";
 import { supabase } from "../src/db/client";
 
+const mockSelect = jest.fn();
+const mockEq = jest.fn();
+const mockLimit = jest.fn();
+const mockFrom = jest.fn();
+
 jest.mock("../src/db/client", () => ({
     supabase: {
         rpc: jest.fn(),
+        from: (table: string) => mockFrom(table),
     },
 }));
 
@@ -31,6 +37,18 @@ describe("GET /api/map/nearby", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockFrom.mockReturnValue({
+            select: mockSelect,
+        });
+        mockSelect.mockReturnValue({
+            eq: mockEq,
+            limit: mockLimit,
+        });
+        mockEq.mockReturnValue({
+            eq: mockEq,
+            limit: mockLimit,
+        });
+        mockLimit.mockResolvedValue({ data: [], error: null });
     });
 
     it("should return Cache-Control header", async () => {
@@ -138,28 +156,60 @@ describe("GET /api/map/nearby", () => {
         });
     });
 
-    it("returns 500 when a Supabase RPC reports an error", async () => {
+    it("returns fallback pharmacies and ASHA workers when Supabase RPC reports an error", async () => {
         try {
             rpcMock.mockResolvedValueOnce({
                 data: null,
                 error: { message: "PostGIS function unavailable" },
+            }).mockResolvedValueOnce({
+                data: null,
+                error: { message: "PostGIS function unavailable" },
+            });
+
+            mockLimit.mockResolvedValueOnce({
+                data: [
+                    {
+                        id: "9cb1ba95-ae3c-4c8b-a6f8-c02d1b447b94",
+                        name: "Jan Aushadhi Kendra Pune",
+                        address: "Shivajinagar",
+                        district: "Pune",
+                        state: "Maharashtra",
+                        phone_number: "+912012345678",
+                        is_verified: true,
+                        location: { type: "Point", coordinates: [73.855, 18.521] },
+                        status: "approved",
+                        is_active: true,
+                    },
+                ],
+                error: null,
+            }).mockResolvedValueOnce({
+                data: [
+                    {
+                        id: "asha-worker-1",
+                        name: "Asha Worker Pune",
+                        district: "Pune",
+                        state: "Maharashtra",
+                        phone_number: "+912087654321",
+                        location: { type: "Point", coordinates: [73.855, 18.521] },
+                    },
+                ],
+                error: null,
             });
 
             const response = await request(app).get(
                 "/api/map/nearby?lat=18.5204&lng=73.8567&radius_km=5"
             );
 
-            expect(response.status).toBe(500);
-            expect(response.body).toEqual({ error: "Internal server error" });
-            expect(logger.error).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    message: "Error fetching nearby facilities",
-                    error: { message: "PostGIS function unavailable" },
-                })
-            );
+            expect(response.status).toBe(200);
+            expect(response.body.pharmacies).toHaveLength(1);
+            expect(response.body.pharmacies[0].name).toBe("Jan Aushadhi Kendra Pune");
+            expect(response.body.asha_workers).toHaveLength(1);
+            expect(response.body.asha_workers[0].name).toBe("Asha Worker Pune");
+            expect(mockFrom).toHaveBeenCalledWith("pharmacies");
+            expect(mockFrom).toHaveBeenCalledWith("asha_workers");
+            expect(logger.warn).toHaveBeenCalledTimes(2);
         } finally {
-            // No need to restore since it's a globally mocked module, but clear it
-            (logger.error as jest.Mock).mockClear();
+            (logger.warn as jest.Mock).mockClear();
         }
     });
 });
