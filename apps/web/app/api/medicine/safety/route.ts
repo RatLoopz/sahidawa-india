@@ -15,10 +15,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI, SchemaType, type Schema } from "@google/generative-ai";
 import Groq from "groq-sdk";
 import { createClient } from "@supabase/supabase-js";
-import { getClientIp } from "@/lib/getClientIp";
-import { rateLimit } from "@/lib/rateLimit";
-
-const MAX_QUERY_LENGTH = 100;
 
 // ── OpenFDA ───────────────────────────────────────────────────────────────────
 async function fetchOpenFdaContext(genericName: string): Promise<string> {
@@ -194,14 +190,6 @@ async function generateWithGroq(drug: string, rag: string): Promise<object> {
 
 // ── GET handler ───────────────────────────────────────────────────────────────
 export async function GET(request: NextRequest) {
-    const { success } = await rateLimit.limit(getClientIp(request));
-    if (!success) {
-        return NextResponse.json(
-            { error: "Too many requests. Please try again in a few moments." },
-            { status: 429 }
-        );
-    }
-
     // ── Supabase (server-side — uses service role key for cache writes) ────────────
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const supabaseKey =
@@ -219,13 +207,6 @@ export async function GET(request: NextRequest) {
     if (!q || q.length < 2) {
         return NextResponse.json(
             { error: "Query parameter 'q' is required (min 2 chars)." },
-            { status: 400 }
-        );
-    }
-
-    if (q.length > MAX_QUERY_LENGTH) {
-        return NextResponse.json(
-            { error: "Query parameter 'q' must be 100 characters or fewer." },
             { status: 400 }
         );
     }
