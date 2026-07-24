@@ -64,6 +64,16 @@ function calculateDistanceKM(lat1: number, lon1: number, lat2: number, lon2: num
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+/**
+ * Extract lat/lng from a pharmacy row returned by a plain .select() query.
+ * The location column is a PostGIS geography stored as a WKB hex string, e.g.
+ * "0101000020E61000008CB96B09F9345240DE718A8EE4223340".
+ * Handles multiple formats for safety:
+ *   1. Explicit lat/lng fields (from RPC results)
+ *   2. GeoJSON { coordinates: [lng, lat] }
+ *   3. WKT POINT(lng lat) string
+ *   4. PostGIS WKB hex (the actual DB storage format)
+ */
 function extractCoordinatesForNearby(p: any) {
     if (p.lat !== undefined && p.lng !== undefined) {
         return { lat: Number(p.lat), lng: Number(p.lng) };
@@ -72,9 +82,28 @@ function extractCoordinatesForNearby(p: any) {
         return { lat: Number(p.location.coordinates[1]), lng: Number(p.location.coordinates[0]) };
     }
     if (p.location && typeof p.location === "string") {
-        const match = p.location.match(/POINT\(([-\d.]+)\s+([-\d.]+)\)/i);
-        if (match) {
-            return { lat: parseFloat(match[2]), lng: parseFloat(match[1]) };
+        // WKT POINT format: "POINT(lng lat)"
+        const wktMatch = p.location.match(/POINT\s*\(([\-\d.]+)\s+([\-\d.]+)\)/i);
+        if (wktMatch) {
+            return { lat: parseFloat(wktMatch[2]), lng: parseFloat(wktMatch[1]) };
+        }
+        // PostGIS WKB hex format (EWKB with SRID): starts with '01' (little-endian)
+        // Structure: 1 byte order + 4 type + 4 SRID + 8 X(lng) + 8 Y(lat) = 25 bytes = 50 hex chars
+        if (/^[0-9a-fA-F]{50,}$/.test(p.location)) {
+            try {
+                const buf = Buffer.from(p.location, "hex");
+                // Check for EWKB with SRID flag (0x20000000)
+                const typeFlag = buf.readUInt32LE(1);
+                const hasSRID = (typeFlag & 0x20000000) !== 0;
+                const coordOffset = hasSRID ? 9 : 5; // skip SRID 4 bytes if present
+                const lng = buf.readDoubleLE(coordOffset);
+                const lat = buf.readDoubleLE(coordOffset + 8);
+                if (isFinite(lat) && isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+                    return { lat, lng };
+                }
+            } catch {
+                // ignore decode errors
+            }
         }
     }
     return { lat: 0, lng: 0 };
@@ -123,15 +152,15 @@ router.get(
                     : [];
             } catch (err: any) {
                 logger.warn({ message: "get_nearest_pharmacies RPC failed, falling back to db query", error: err });
+                // Note: Only select columns that are guaranteed to exist in the schema.
+                // status and is_active may not be present if migrations haven't run yet.
                 const { data: fallbackData, error: fallbackError } = await supabase
                     .from("pharmacies")
-                    .select("id, name, address, location, phone_number, is_verified, district, state, status")
-                    .eq("status", "approved")
-                    .eq("is_active", true)
+                    .select("id, name, address, location, phone_number, is_verified, district, state")
                     .limit(1000);
                 
                 if (fallbackError) {
-                    logger.error({ message: "Fallback approved pharmacies fetch failed", error: fallbackError });
+                    logger.error({ message: "Fallback pharmacies fetch failed", error: fallbackError });
                 } else if (fallbackData) {
                     pharmacies = (fallbackData as any[])
                         .map((p) => {
