@@ -139,33 +139,49 @@ router.get(
             // 1. Fetch nearest pharmacies with fallback
             let pharmacies: any[] = [];
             try {
-                const { data: rpcData, error: rpcError } = await supabase.rpc("get_nearest_pharmacies", {
-                    query_lat: lat,
-                    query_lng: lng,
-                    search_radius_km: clampedRadius,
-                });
-                
+                const { data: rpcData, error: rpcError } = await supabase.rpc(
+                    "get_nearest_pharmacies",
+                    {
+                        query_lat: lat,
+                        query_lng: lng,
+                        search_radius_km: clampedRadius,
+                    }
+                );
+
                 if (rpcError) throw rpcError;
-                
+
                 pharmacies = Array.isArray(rpcData)
                     ? (rpcData as PharmacyRpcResult[]).map(formatNearbyPharmacy)
                     : [];
             } catch (err: any) {
-                logger.warn({ message: "get_nearest_pharmacies RPC failed, falling back to db query", error: err });
+                logger.warn({
+                    message: "get_nearest_pharmacies RPC failed, falling back to db query",
+                    error: err,
+                });
                 // Note: Only select columns that are guaranteed to exist in the schema.
                 // status and is_active may not be present if migrations haven't run yet.
                 const { data: fallbackData, error: fallbackError } = await supabase
                     .from("pharmacies")
-                    .select("id, name, address, location, phone_number, is_verified, district, state")
+                    .select(
+                        "id, name, address, location, phone_number, is_verified, district, state"
+                    )
                     .limit(1000);
-                
+
                 if (fallbackError) {
-                    logger.error({ message: "Fallback pharmacies fetch failed", error: fallbackError });
+                    logger.error({
+                        message: "Fallback pharmacies fetch failed",
+                        error: fallbackError,
+                    });
                 } else if (fallbackData) {
                     pharmacies = (fallbackData as any[])
                         .map((p) => {
                             const coords = extractCoordinatesForNearby(p);
-                            const distanceKm = calculateDistanceKM(lat, lng, coords.lat, coords.lng);
+                            const distanceKm = calculateDistanceKM(
+                                lat,
+                                lng,
+                                coords.lat,
+                                coords.lng
+                            );
                             return {
                                 id: p.id,
                                 name: p.name,
@@ -191,29 +207,43 @@ router.get(
             // 2. Fetch nearest ASHA workers with fallback
             let ashaWorkers: any[] = [];
             try {
-                const { data: rpcData, error: rpcError } = await supabase.rpc("get_nearest_asha_workers", {
-                    query_lat: lat,
-                    query_lng: lng,
-                    search_radius_km: clampedRadius,
-                });
-                
+                const { data: rpcData, error: rpcError } = await supabase.rpc(
+                    "get_nearest_asha_workers",
+                    {
+                        query_lat: lat,
+                        query_lng: lng,
+                        search_radius_km: clampedRadius,
+                    }
+                );
+
                 if (rpcError) throw rpcError;
-                
+
                 ashaWorkers = Array.isArray(rpcData) ? rpcData : [];
             } catch (err: any) {
-                logger.warn({ message: "get_nearest_asha_workers RPC failed, falling back to db query", error: err });
+                logger.warn({
+                    message: "get_nearest_asha_workers RPC failed, falling back to db query",
+                    error: err,
+                });
                 const { data: fallbackData, error: fallbackError } = await supabase
                     .from("asha_workers")
                     .select("id, name, district, state, location, phone_number")
                     .limit(1000);
-                
+
                 if (fallbackError) {
-                    logger.error({ message: "Fallback ASHA workers fetch failed", error: fallbackError });
+                    logger.error({
+                        message: "Fallback ASHA workers fetch failed",
+                        error: fallbackError,
+                    });
                 } else if (fallbackData) {
                     ashaWorkers = (fallbackData as any[])
                         .map((a) => {
                             const coords = extractCoordinatesForNearby(a);
-                            const distanceKm = calculateDistanceKM(lat, lng, coords.lat, coords.lng);
+                            const distanceKm = calculateDistanceKM(
+                                lat,
+                                lng,
+                                coords.lat,
+                                coords.lng
+                            );
                             return {
                                 id: a.id,
                                 name: a.name,
@@ -237,7 +267,10 @@ router.get(
             });
         } catch (err) {
             logger.error({ message: "Error fetching nearby facilities", error: err });
-            res.status(500).json({ error: "Internal server error" });
+            res.status(500).json({
+                error: "Internal server error",
+                details: err instanceof Error ? err.stack : String(err),
+            });
         }
     }
 );

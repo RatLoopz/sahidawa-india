@@ -26,7 +26,7 @@ async function queryOverpass(query: string): Promise<any> {
                 const response = await fetch(url, {
                     method: "GET",
                     headers: {
-                        Accept: "*/*",
+                        Accept: "application/json",
                     },
                     signal: controller.signal,
                 });
