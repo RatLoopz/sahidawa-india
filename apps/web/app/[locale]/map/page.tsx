@@ -907,28 +907,23 @@ export default function PharmacyMapPage() {
     };
 
     return (
-        <div className="flex h-screen flex-col overflow-hidden bg-(--color-surface-muted) font-sans dark:bg-[#0d1117]">
+        <div className="flex h-[calc(100dvh-64px)] flex-col overflow-hidden bg-(--color-surface-muted) font-sans dark:bg-[#0d1117]">
             <h1 className="sr-only">Pharmacy Map — Find Verified Pharmacies Near You</h1>
 
-            {/* ── Header with search ── */}
-            <PageHeader
-                backHref="/"
-                variant="light"
-                contentClassName="mx-auto w-full max-w-4xl justify-start rounded-[1.65rem] border border-(--color-border-muted) bg-(--color-surface-page)/95 p-1.5 shadow-[0_18px_52px_-34px_rgba(15,23,42,0.75)] ring-1 ring-white/80 backdrop-blur-xl dark:bg-slate-950/90 dark:ring-white/5"
-                backButtonClassName="border border-transparent bg-emerald-50 text-emerald-700 shadow-sm hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/70"
-                rightActionsClassName="hidden"
-            >
+            {/* ── Unified Map Header ── */}
+            <div className="relative z-20 flex flex-col gap-3 border-b border-(--color-border-muted) bg-(--color-surface-page) px-4 py-3 shadow-[0_12px_34px_-30px_rgba(15,23,42,0.65)] md:flex-row md:items-center">
+                {/* Search Bar */}
                 <div
                     data-testid="pharmacy-map-command-bar"
-                    className="flex min-w-0 flex-1 items-center"
+                    className="flex w-full min-w-0 flex-1 items-center md:max-w-md"
                 >
                     <div
                         data-testid="pharmacy-map-search"
-                        className="flex min-w-0 flex-1 items-center rounded-[1.35rem] border border-transparent bg-(--color-surface-muted) px-3 py-2 transition-all duration-200 focus-within:border-emerald-400 focus-within:bg-(--color-surface-page) focus-within:ring-4 focus-within:ring-emerald-500/10 sm:px-4 md:max-w-[42rem]"
+                        className="flex min-w-0 flex-1 items-center rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted)/50 px-3 py-1.5 transition-all duration-200 focus-within:border-emerald-400 focus-within:bg-(--color-surface-page) focus-within:ring-4 focus-within:ring-emerald-500/10"
                         role="search"
                     >
                         <Search
-                            size={17}
+                            size={16}
                             className="shrink-0 text-(--color-text-muted)"
                             aria-hidden
                         />
@@ -937,7 +932,7 @@ export default function PharmacyMapPage() {
                             placeholder="Search verified pharmacies..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="min-w-0 flex-1 border-none bg-transparent px-3 py-1.5 text-sm font-semibold text-(--color-text-primary) outline-none placeholder:text-(--color-text-muted)"
+                            className="min-w-0 flex-1 border-none bg-transparent px-3 py-1 text-sm font-medium text-(--color-text-primary) outline-none placeholder:text-(--color-text-muted)"
                             aria-label="Search verified pharmacies"
                         />
                         {searchQuery && (
@@ -946,21 +941,19 @@ export default function PharmacyMapPage() {
                                 className="shrink-0 rounded-full p-1 text-(--color-text-muted) transition-colors hover:bg-(--color-surface-muted) hover:text-(--color-text-primary)"
                                 aria-label="Clear pharmacy search"
                             >
-                                <X size={15} />
+                                <X size={14} />
                             </button>
                         )}
                     </div>
                 </div>
-            </PageHeader>
 
-            {/* ── Filter chips ── */}
-            <div
-                data-testid="pharmacy-filter-shell"
-                className="relative z-20 border-b border-(--color-border-muted) bg-(--color-surface-page) px-4 pt-0 pb-4 shadow-[0_12px_34px_-30px_rgba(15,23,42,0.65)]"
-            >
-                <div className="mx-auto w-full max-w-4xl rounded-[1.35rem] border border-(--color-border-muted) bg-(--color-surface-page)/90 p-2 shadow-sm ring-1 ring-white/70 backdrop-blur dark:ring-white/5">
+                {/* Filters */}
+                <div
+                    data-testid="pharmacy-filter-shell"
+                    className="relative flex flex-1 flex-col gap-2 md:flex-row md:items-center md:gap-3"
+                >
                     <div
-                        className="no-scrollbar flex gap-2 overflow-x-auto p-0.5"
+                        className="no-scrollbar flex flex-1 gap-2 overflow-x-auto"
                         role="group"
                         aria-label="Filter pharmacies"
                     >
@@ -977,14 +970,14 @@ export default function PharmacyMapPage() {
                                         : activeFilter === f.id
                                 }
                                 aria-expanded={f.id === "more" ? showFilterPanel : undefined}
-                                className={`flex shrink-0 items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-bold whitespace-nowrap transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 ${
+                                className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 ${
                                     (
                                         f.id === "more"
                                             ? activeAdvancedFilterCount > 0
                                             : activeFilter === f.id
                                     )
                                         ? `border-transparent ${f.activeClass}`
-                                        : "border-(--color-border-muted) bg-(--color-surface-muted)/80 text-(--color-text-secondary) hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 hover:shadow-sm dark:hover:border-emerald-900 dark:hover:bg-emerald-950/30 dark:hover:text-emerald-300"
+                                        : "border-(--color-border-muted) bg-(--color-surface-muted)/50 text-(--color-text-secondary) hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 hover:shadow-sm dark:hover:border-emerald-900 dark:hover:bg-emerald-950/30 dark:hover:text-emerald-300"
                                 }`}
                             >
                                 {"icon" in f && f.icon}
@@ -998,8 +991,35 @@ export default function PharmacyMapPage() {
                         ))}
                     </div>
 
+                    {/* Results count text (Desktop) */}
+                    <div className="hidden shrink-0 items-center gap-2 md:flex">
+                        {isLoading ? (
+                            <MapHeaderLoadingIndicator />
+                        ) : (
+                            <p className="text-[11px] font-medium text-(--color-text-muted)">
+                                {filteredPharmacies.length} results
+                                {isShowingCached && (
+                                    <span className="ml-1 text-amber-600">• Cached</span>
+                                )}
+                            </p>
+                        )}
+                    </div>
+                    {/* Results count text (Mobile) */}
+                    <div className="flex shrink-0 items-center gap-2 md:hidden">
+                        {isLoading ? (
+                            <MapHeaderLoadingIndicator />
+                        ) : (
+                            <p className="text-[11px] font-medium text-(--color-text-muted)">
+                                {filteredPharmacies.length} pharmacies found
+                                {isShowingCached && (
+                                    <span className="ml-1 text-amber-600">• Cached</span>
+                                )}
+                            </p>
+                        )}
+                    </div>
+
                     {showFilterPanel && (
-                        <div className="absolute top-[calc(100%-0.5rem)] right-4 left-4 z-30 rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-3 shadow-xl md:right-auto md:w-80">
+                        <div className="absolute top-[calc(100%+0.5rem)] right-0 z-30 w-[calc(100vw-2rem)] rounded-2xl border border-(--color-border-muted) bg-(--color-surface-page) p-3 shadow-xl sm:w-80 md:right-0">
                             <div className="mb-2 flex items-center justify-between">
                                 <p className="text-xs font-bold text-(--color-text-primary)">
                                     Filters
@@ -1073,28 +1093,6 @@ export default function PharmacyMapPage() {
                             </div>
                         </div>
                     )}
-
-                    {/* Results count bar */}
-                    <div className="mt-2 flex min-h-10 items-center gap-2 px-1">
-                        {isLoading ? (
-                            <MapHeaderLoadingIndicator />
-                        ) : (
-                            <p className="text-[11px] font-semibold text-(--color-text-muted)">
-                                {filteredPharmacies.length} pharmacies found
-                                {searchQuery && <> for &ldquo;{searchQuery}&rdquo;</>}
-                                {pharmacyCount > 0 && (
-                                    <span className="text-emerald-600">
-                                        {pharmacies.some((p) => p.isVerified)
-                                            ? " • Verified + OSM"
-                                            : " • Live from OSM"}
-                                    </span>
-                                )}
-                                {isShowingCached && (
-                                    <span className="ml-1 text-amber-600">• Cached</span>
-                                )}
-                            </p>
-                        )}
-                    </div>
                 </div>
             </div>
 
