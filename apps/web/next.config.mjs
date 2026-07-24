@@ -69,6 +69,11 @@ const nextConfig = {
                     process.env.NEXT_PUBLIC_API_URL,
                     process.env.NEXT_PUBLIC_ML_SERVICE_URL,
                     process.env.NEXT_PUBLIC_OTEL_EXPORTER_OTLP_ENDPOINT || (process.env.NODE_ENV === "development" ? "http://localhost:4318" : ""),
+                    "https://overpass.private.coffee",
+                    "https://overpass-api.de",
+                    "https://overpass.kumi.systems",
+                    "https://lz4.overpass-api.de",
+                    "https://z.overpass-api.de",
                 ]
                     .filter(Boolean)
                     .map((u) => {
@@ -99,7 +104,7 @@ const nextConfig = {
                             "script-src 'self'",
                             "style-src 'self' 'unsafe-inline'",
                             `connect-src ${connectSrc}`,
-                            "img-src 'self' blob: data: https://res.cloudinary.com",
+                            "img-src 'self' blob: data: https://res.cloudinary.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://cdnjs.cloudflare.com",
                             "font-src 'self'",
                             "object-src 'none'",
                             "base-uri 'self'",
