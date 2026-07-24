@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
+import { ThemeToggle } from "../../[locale]/components/ThemeToggle";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { ChatBubble, type Message } from "./components/ChatBubble";
 import { ActionCard } from "./components/ActionCard";
 import { TypingIndicator } from "./components/TypingIndicator";
-
+import { TrustBar } from "./components/TrustBar";
 import { Camera, Pill, MapPin, RotateCcw } from "lucide-react";
 import { isAbortError, readChatErrorMessage, readTextResponseStream } from "@/lib/chatStream";
 import { useTranslations } from "next-intl";

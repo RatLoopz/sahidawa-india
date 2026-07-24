@@ -60,12 +60,6 @@ const nextConfig = {
     compress: false, // Offloaded to Vercel/proxy
     reactStrictMode: true,
     poweredByHeader: false,
-    typescript: {
-        ignoreBuildErrors: true,
-    },
-    eslint: {
-        ignoreDuringBuilds: true,
-    },
     async headers() {
         const connectSrc = [
             ...new Set(
@@ -118,4 +112,4 @@ const nextConfig = {
     },
 };
 
-export default withNextIntl(nextConfig);
+export default withPWA(withNextIntl(nextConfig));
