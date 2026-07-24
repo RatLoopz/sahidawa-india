@@ -5,10 +5,11 @@
  */
 
 const OVERPASS_MIRRORS = [
+    "https://overpass.osm.ch/api/interpreter",
+    "https://lz4.overpass-api.de/api/interpreter",
     "https://overpass.private.coffee/api/interpreter",
     "https://overpass-api.de/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
-    "https://lz4.overpass-api.de/api/interpreter",
     "https://z.overpass-api.de/api/interpreter",
 ];
 
@@ -25,7 +26,7 @@ async function queryOverpass(query: string): Promise<any> {
                 const response = await fetch(url, {
                     method: "GET",
                     headers: {
-                        Accept: "*/*",
+                        Accept: "application/json",
                     },
                     signal: controller.signal,
                 });
@@ -35,8 +36,14 @@ async function queryOverpass(query: string): Promise<any> {
                 }
 
                 const data = await response.json();
-                if (!data || !data.elements) {
+                if (!data || !Array.isArray(data.elements)) {
                     throw new Error(`Mirror ${mirror} returned invalid data structure`);
+                }
+
+                if (data.elements.length === 0) {
+                    throw new Error(
+                        `Mirror ${mirror} returned 0 elements, rejecting to wait for global mirrors`
+                    );
                 }
 
                 return { controller, data };
