@@ -97,7 +97,8 @@ export default function Navbar() {
 
     return (
         <>
-            <header className="sticky top-0 z-10 w-full border-b border-white/30 bg-white/60 shadow-sm shadow-black/5 backdrop-blur-md transition-colors duration-300 dark:border-white/10 dark:bg-slate-900/60">
+            <header className="relative sticky top-0 z-[9999] w-full bg-white/60 shadow-sm shadow-black/5 backdrop-blur-md transition-colors duration-300 dark:bg-slate-900/60">
+                {" "}
                 <div className="container mx-auto flex h-16 items-center justify-between gap-2 px-2 sm:gap-3 sm:px-4 md:px-6">
                     <div className="flex min-w-0 shrink-0 items-center">
                         <Link href="/" className="flex min-w-0 items-center gap-1.5 sm:gap-2">
@@ -158,24 +159,27 @@ export default function Navbar() {
                         />
                     </div>
                 </div>
-                <motion.div
-                    aria-hidden="true"
-                    style={{
-                        scaleX,
-                        transformOrigin: "left center",
-                        position: "absolute",
-                        left: 0,
-                        bottom: 0,
-                        width: "100%",
-                        height: "2px",
-                        pointerEvents: "none",
-                        zIndex: 9999,
-                        willChange: "transform",
-                        background:
-                            "linear-gradient(90deg,#10b981 0%,#22c55e 35%,#14b8a6 70%,#10b981 100%)",
-                        boxShadow: "0 0 8px rgba(16,185,129,.35), 0 0 18px rgba(20,184,166,.25)",
-                    }}
-                />
+                <div className="absolute bottom-0 left-0 h-[4px] w-full overflow-visible bg-black/[0.06] dark:bg-white/[0.08]">
+                    <motion.div
+                        aria-hidden="true"
+                        style={{ scaleX }}
+                        className="relative h-full w-full origin-left"
+                    >
+                        {/* Tonal gradient fill */}
+                        <div className="h-full w-full rounded-r-full bg-gradient-to-r from-emerald-500/80 to-emerald-500 dark:from-emerald-400/80 dark:to-emerald-400" />
+
+                        {/* Soft ambient glow */}
+                        <div className="absolute inset-0 rounded-r-full bg-emerald-500 opacity-30 blur-[5px] dark:bg-emerald-400 dark:opacity-40" />
+
+                        {/* Leading edge highlight */}
+                        <div
+                            className="absolute top-1/2 right-0 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-emerald-600 dark:bg-emerald-300"
+                            style={{
+                                boxShadow: "0 0 6px rgba(16,185,129,0.6)",
+                            }}
+                        />
+                    </motion.div>
+                </div>
             </header>
 
             {isMenuOpen && (
