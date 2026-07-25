@@ -216,52 +216,58 @@ reportsRouter.post(
 );
 
 // Must be registered BEFORE the admin-only GET '/' so Express matches /mine first.
-reportsRouter.get("/mine", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-    const userId = req.user?.id;
-    if (!userId) {
-        res.status(401).json({ error: "Unauthenticated" });
-        return;
-    }
-
-    const cursor = req.query.cursor as string | undefined;
-
-    const rawLimit = parseInt(req.query.limit as string, 10);
-    const limit = isNaN(rawLimit) || rawLimit < 1 ? 20 : Math.min(rawLimit, 100);
-
-    try {
-        let query = supabase
-            .from("counterfeit_reports")
-            .select(
-                "id, reported_brand_name, scanned_barcode, photo_url, district, status, created_at"
-            )
-            .eq("reporter_id", userId)
-            .order("created_at", { ascending: false })
-            .limit(limit);
-
-        if (cursor) {
-            query = query.lt("created_at", cursor);
-        }
-
-        const { data, error } = await query;
-
-        if (error) {
-            res.status(500).json({ error: "Failed to fetch your reports" });
+reportsRouter.get(
+    "/mine",
+    limiter,
+    requireAuth,
+    async (req: AuthenticatedRequest, res: Response) => {
+        const userId = req.user?.id;
+        if (!userId) {
+            res.status(401).json({ error: "Unauthenticated" });
             return;
         }
 
-        const reports = data ?? [];
+        const cursor = req.query.cursor as string | undefined;
 
-        const nextCursor = reports.length === limit ? reports[reports.length - 1].created_at : null;
+        const rawLimit = parseInt(req.query.limit as string, 10);
+        const limit = isNaN(rawLimit) || rawLimit < 1 ? 20 : Math.min(rawLimit, 100);
 
-        res.json({
-            reports,
-            nextCursor,
-        });
-    } catch (err) {
-        logger.error({ message: "Unexpected error in GET /api/reports/mine", error: err });
-        res.status(500).json({ error: "An unexpected error occurred" });
+        try {
+            let query = supabase
+                .from("counterfeit_reports")
+                .select(
+                    "id, reported_brand_name, scanned_barcode, photo_url, district, status, created_at"
+                )
+                .eq("reporter_id", userId)
+                .order("created_at", { ascending: false })
+                .limit(limit);
+
+            if (cursor) {
+                query = query.lt("created_at", cursor);
+            }
+
+            const { data, error } = await query;
+
+            if (error) {
+                res.status(500).json({ error: "Failed to fetch your reports" });
+                return;
+            }
+
+            const reports = data ?? [];
+
+            const nextCursor =
+                reports.length === limit ? reports[reports.length - 1].created_at : null;
+
+            res.json({
+                reports,
+                nextCursor,
+            });
+        } catch (err) {
+            logger.error({ message: "Unexpected error in GET /api/reports/mine", error: err });
+            res.status(500).json({ error: "An unexpected error occurred" });
+        }
     }
-});
+);
 
 reportsRouter.get("/", requireAuth, requireRole("admin"), async (req, res: Response) => {
     const rawLimit = req.query.limit;

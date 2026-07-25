@@ -31,7 +31,7 @@ describe("overpassApi", () => {
         const fetchMock = jest.fn((input: RequestInfo | URL, init?: RequestInit) => {
             const url = String(input);
 
-            if (url.includes("overpass.private.coffee")) {
+            if (url.includes("overpass.osm.ch") || url.includes("overpass.private.coffee")) {
                 return Promise.resolve(
                     createJsonResponse({
                         elements: [

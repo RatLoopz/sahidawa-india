@@ -71,7 +71,8 @@ const getMockUser = (): AuthenticatedUser => {
  */
 const LOCALHOST_IPS = new Set(["127.0.0.1", "::1", "::ffff:127.0.0.1"]);
 
-const isLocalhostRequest = (req: Request): boolean => LOCALHOST_IPS.has(req.socket.remoteAddress ?? "");
+const isLocalhostRequest = (req: Request): boolean =>
+    LOCALHOST_IPS.has(req.socket.remoteAddress ?? "");
 
 /**
  * Returns true only when every condition required to use the local-dev auth
