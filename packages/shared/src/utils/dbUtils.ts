@@ -14,7 +14,7 @@ export function escapeIlike(word: string): string {
  * the standard ILIKE wildcard escaping.
  */
 export function escapePostgrest(val: string): string {
-    return val.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_").replace(/"/g, '""');
+    return escapeIlike(val).replace(/"/g, '""');
 }
 
 export function buildOrConditions(fields: string[], words: string[]): string {
