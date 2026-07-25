@@ -57,8 +57,11 @@ const nextConfig = {
         minimumCacheTTL: 3600,
         dangerouslyAllowSVG: false,
     },
-    compress: false, // Offloaded to Vercel/proxy
+    compress: true, // Enabled for Lighthouse CI, Vercel will still handle it fine
     reactStrictMode: true,
+    experimental: {
+        optimizePackageImports: ['lucide-react', 'recharts'],
+    },
     poweredByHeader: false,
     async headers() {
         const connectSrc = [
