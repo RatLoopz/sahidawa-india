@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 
@@ -25,16 +25,17 @@ export default function HistoryPage() {
     const [showClearConfirmation, setShowClearConfirmation] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
-
-    useEffect(() => {
-        loadHistory();
-        void syncHistoryFromCloud();
-    }, []);
+    const [isOnline, setIsOnline] = useState<boolean>(() =>
+        typeof window !== "undefined" ? window.navigator.onLine : true
+    );
+    const [syncStatus, setSyncStatus] = useState<"synced" | "pending" | "syncing" | "error">(
+        "synced"
+    );
 
     const t = useTranslations("ScanHistory");
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
-    async function loadHistory() {
+    const loadHistory = useCallback(async () => {
         try {
             const data = await getScanHistory();
 
@@ -46,27 +47,59 @@ export default function HistoryPage() {
         } finally {
             setIsLoading(false);
         }
-    }
+    }, []);
+
+    const syncHistoryFromCloud = useCallback(async () => {
+        if (typeof window !== "undefined" && !window.navigator.onLine) {
+            setSyncStatus("pending");
+            return;
+        }
+        try {
+            setIsSyncing(true);
+            setSyncStatus("syncing");
+            setSyncMessage(null);
+            await syncScanHistoryWithCloud();
+            await loadHistory();
+            setSyncMessage(t("sync_success"));
+            setSyncStatus("synced");
+        } catch (error) {
+            console.error("History sync failed:", error);
+            setSyncMessage(t("sync_error"));
+            setSyncStatus("error");
+        } finally {
+            setIsSyncing(false);
+        }
+    }, [loadHistory, t]);
+
+    useEffect(() => {
+        loadHistory();
+    }, [loadHistory]);
+
+    useEffect(() => {
+        if (isOnline) {
+            void syncHistoryFromCloud();
+        } else {
+            setSyncStatus("pending");
+        }
+    }, [isOnline, syncHistoryFromCloud]);
+
+    useEffect(() => {
+        const handleOnline = () => setIsOnline(true);
+        const handleOffline = () => setIsOnline(false);
+
+        window.addEventListener("online", handleOnline);
+        window.addEventListener("offline", handleOffline);
+
+        return () => {
+            window.removeEventListener("online", handleOnline);
+            window.removeEventListener("offline", handleOffline);
+        };
+    }, []);
 
     async function handleDelete(id: string) {
         await deleteScanHistory(id);
 
         await loadHistory();
-    }
-
-    async function syncHistoryFromCloud() {
-        try {
-            setIsSyncing(true);
-            setSyncMessage(null);
-            await syncScanHistoryWithCloud();
-            await loadHistory();
-            setSyncMessage(t("sync_success"));
-        } catch (error) {
-            console.error("History sync failed:", error);
-            setSyncMessage(t("sync_error"));
-        } finally {
-            setIsSyncing(false);
-        }
     }
 
     const handleClearAllHistory = async () => {
@@ -141,7 +174,46 @@ export default function HistoryPage() {
     return (
         <div className="min-h-screen bg-(--color-surface-page) p-6 text-(--color-text-primary)">
             <div className="mx-auto max-w-3xl">
-                <h1 className="mb-6 text-4xl font-black">{t("title")}</h1>
+                <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+                    <h1 className="text-4xl font-black">{t("title")}</h1>
+                    {/* Connection Status Badge */}
+                    <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold shadow-md backdrop-blur-sm transition-all duration-300">
+                        {syncStatus === "synced" && (
+                            <>
+                                <span className="relative flex h-2 w-2">
+                                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                                </span>
+                                <span className="text-emerald-400">{t("sync_status_synced")}</span>
+                            </>
+                        )}
+                        {syncStatus === "pending" && (
+                            <>
+                                <span className="relative flex h-2 w-2">
+                                    <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500"></span>
+                                </span>
+                                <span className="text-amber-400">{t("sync_status_offline")}</span>
+                            </>
+                        )}
+                        {syncStatus === "syncing" && (
+                            <>
+                                <span className="relative flex h-2 w-2">
+                                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-75"></span>
+                                    <span className="relative inline-flex h-2 w-2 rounded-full bg-sky-500"></span>
+                                </span>
+                                <span className="text-sky-400">{t("sync_status_syncing")}</span>
+                            </>
+                        )}
+                        {syncStatus === "error" && (
+                            <>
+                                <span className="relative flex h-2 w-2">
+                                    <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
+                                </span>
+                                <span className="text-red-400">{t("sync_status_error")}</span>
+                            </>
+                        )}
+                    </div>
+                </div>
                 <div className="mb-6 flex flex-wrap gap-3">
                     {/* Export to CSV button */}
                     {history.length > 0 && (
@@ -156,7 +228,7 @@ export default function HistoryPage() {
                     {/* Sync to Cloud button */}
                     <button
                         onClick={() => void syncHistoryFromCloud()}
-                        disabled={isSyncing}
+                        disabled={isSyncing || !isOnline}
                         className="flex items-center gap-2 rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) px-5 py-2.5 text-sm font-bold transition hover:bg-(--color-surface-page) disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <RefreshCw size={16} className={isSyncing ? "animate-spin" : ""} />
