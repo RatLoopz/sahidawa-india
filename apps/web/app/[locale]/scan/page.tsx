@@ -408,7 +408,7 @@ export default function ScanPage() {
                     <div className="absolute right-0 bottom-0 h-12 w-12 animate-pulse rounded-br-2xl border-r-4 border-b-4 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.3)]"></div>
 
                     {isScanning && (
-                        <div className="animate-scan absolute right-4 left-4 z-20 h-[2px] bg-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.8)]"></div>
+                        <div className="animate-scan absolute right-4 left-4 z-20 h-0.5 bg-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.8)]"></div>
                     )}
 
                     {!isScanning && !showResult && (
