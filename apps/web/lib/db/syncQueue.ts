@@ -5,7 +5,7 @@ export interface QueuedScan {
     barcode: string;
     timestamp: number;
     locale: string;
-    apiUrl: string;
+    apiUrl?: string;
     deviceMetadata?: {
         userAgent: string;
         platform: string;
@@ -37,13 +37,18 @@ export async function addToSyncQueue(
     if (!dbPromise) throw new Error("IndexedDB not available");
     const db = await dbPromise;
 
-    const finalApiUrl = apiUrl || (() => {
-        const mlUrl = typeof process !== "undefined" ? process.env.NEXT_PUBLIC_ML_URL : undefined;
-        const apiBase = (typeof process !== "undefined" ? process.env.NEXT_PUBLIC_API_URL : undefined) || "http://localhost:4000";
-        return mlUrl 
-            ? `${mlUrl.replace(/\/+$/, "")}/verify/batch` 
-            : `${apiBase.replace(/\/+$/, "")}/api/verify`;
-    })();
+    const finalApiUrl =
+        apiUrl ||
+        (() => {
+            const mlUrl =
+                typeof process !== "undefined" ? process.env.NEXT_PUBLIC_ML_URL : undefined;
+            const apiBase =
+                (typeof process !== "undefined" ? process.env.NEXT_PUBLIC_API_URL : undefined) ||
+                "http://localhost:4000";
+            return mlUrl
+                ? `${mlUrl.replace(/\/+$/, "")}/verify/batch`
+                : `${apiBase.replace(/\/+$/, "")}/api/verify`;
+        })();
 
     const item: QueuedScan = {
         id: crypto.randomUUID(),
