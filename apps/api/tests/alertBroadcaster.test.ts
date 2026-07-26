@@ -36,6 +36,7 @@ jest.mock("../src/db/client", () => {
 
 import { supabase } from "../src/db/client";
 import { smsService } from "../src/services/sms-service";
+import { whatsappService } from "../src/services/whatsapp-service";
 import {
     broadcastDistrictAlerts,
     broadcastExpiryAlerts,
@@ -303,7 +304,9 @@ describe("broadcastExpiryAlerts", () => {
     function mockBatchesQuery(batches: any[], opts: { gte?: jest.Mock } = {}) {
         const gteSpy = opts.gte || jest.fn();
         return {
+            in: jest.fn().mockResolvedValue({ data: batches, error: null }),
             select: jest.fn().mockReturnValue({
+                in: jest.fn().mockResolvedValue({ data: batches, error: null }),
                 gte: jest.fn().mockImplementation((...args) => {
                     gteSpy(...args);
                     return {
@@ -398,7 +401,7 @@ describe("broadcastExpiryAlerts", () => {
         expect(fullMessage).toContain("B3");
     });
 
-    it("marks each batch as expiry_broadcasted=true before any notification is sent", async () => {
+    it("marks batches as broadcasted after successful expiry notification delivery", async () => {
         const callOrder: string[] = [];
         const batches = [
             {
@@ -416,7 +419,7 @@ describe("broadcastExpiryAlerts", () => {
                     update: jest.fn().mockImplementation(() => {
                         callOrder.push("mark_batch_broadcasted");
                         return {
-                            eq: jest.fn().mockResolvedValue({ data: null, error: null }),
+                            in: jest.fn().mockResolvedValue({ data: null, error: null }),
                         };
                     }),
                 };
@@ -434,7 +437,17 @@ describe("broadcastExpiryAlerts", () => {
                                         });
                                     }
                                     callOrder.push("fetch_subscribers");
-                                    return Promise.resolve({ data: [], error: null });
+                                    return Promise.resolve({
+                                        data: [
+                                            {
+                                                id: "sub-1",
+                                                phone: "+910000000001",
+                                                language: "en",
+                                                channels: ["sms"],
+                                            },
+                                        ],
+                                        error: null,
+                                    });
                                 }),
                             }),
                         }),
@@ -446,7 +459,85 @@ describe("broadcastExpiryAlerts", () => {
 
         await broadcastExpiryAlerts();
 
-        expect(callOrder[0]).toBe("mark_batch_broadcasted");
+        expect(callOrder).toEqual(["fetch_subscribers", "mark_batch_broadcasted"]);
+    });
+
+    it("keeps batches eligible for retry when every expiry delivery fails", async () => {
+        const markBatchSpy = jest.fn();
+        (smsService.send as jest.Mock).mockResolvedValue(false);
+
+        (mockedSupabase.from as jest.Mock).mockImplementation((table: string) => {
+            if (table === "batches") {
+                return {
+                    ...mockBatchesQuery([
+                        {
+                            id: "batch-1",
+                            batch_number: "B1",
+                            expiry_date: "2026-07-01",
+                            medicine: { brand_name: "Aspirin" },
+                        },
+                    ]),
+                    update: markBatchSpy,
+                };
+            }
+            if (table === "notification_subscribers") {
+                return mockSubscribersQuery([
+                    {
+                        id: "sub-1",
+                        phone: "+910000000001",
+                        language: "en",
+                        channels: ["sms"],
+                    },
+                ]);
+            }
+            return {};
+        });
+
+        await broadcastExpiryAlerts();
+
+        expect(smsService.send).toHaveBeenCalledTimes(1);
+        expect(markBatchSpy).not.toHaveBeenCalled();
+    });
+
+    it("marks batches as broadcasted after a partial expiry delivery success", async () => {
+        const markBatchSpy = jest.fn().mockReturnValue({
+            in: jest.fn().mockResolvedValue({ data: null, error: null }),
+        });
+        (smsService.send as jest.Mock).mockResolvedValue(true);
+        (whatsappService.send as jest.Mock).mockResolvedValue(false);
+
+        (mockedSupabase.from as jest.Mock).mockImplementation((table: string) => {
+            if (table === "batches") {
+                return {
+                    ...mockBatchesQuery([
+                        {
+                            id: "batch-1",
+                            batch_number: "B1",
+                            expiry_date: "2026-07-01",
+                            medicine: { brand_name: "Aspirin" },
+                        },
+                    ]),
+                    update: markBatchSpy,
+                };
+            }
+            if (table === "notification_subscribers") {
+                return mockSubscribersQuery([
+                    {
+                        id: "sub-1",
+                        phone: "+910000000001",
+                        language: "en",
+                        channels: ["sms", "whatsapp"],
+                    },
+                ]);
+            }
+            return {};
+        });
+
+        await broadcastExpiryAlerts();
+
+        expect(smsService.send).toHaveBeenCalledTimes(1);
+        expect(whatsappService.send).toHaveBeenCalledTimes(1);
+        expect(markBatchSpy).toHaveBeenCalledWith({ expiry_broadcasted: true });
     });
 
     it("does not re-send to a batch already marked expiry_broadcasted=true", async () => {
@@ -478,7 +569,7 @@ describe("broadcastExpiryAlerts", () => {
         expect(smsService.send).not.toHaveBeenCalled();
     });
 
-    it("skips a batch and excludes it from the consolidated message if marking it broadcasted fails", async () => {
+    it("keeps delivery behavior when marking broadcasted batches fails", async () => {
         const batches = [
             {
                 id: "batch-1",
@@ -535,7 +626,7 @@ describe("broadcastExpiryAlerts", () => {
 
         expect(smsService.send).toHaveBeenCalledTimes(1);
         const [, fullMessage] = (smsService.send as jest.Mock).mock.calls[0];
-        expect(fullMessage).not.toContain("B1");
+        expect(fullMessage).toContain("B1");
         expect(fullMessage).toContain("B2");
     });
 
