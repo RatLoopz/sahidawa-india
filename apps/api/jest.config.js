@@ -1,5 +1,4 @@
 module.exports = {
-    preset: "ts-jest",
     testEnvironment: "node",
     testTimeout: 30000,
     maxWorkers: 2,
@@ -18,17 +17,18 @@ module.exports = {
         "^@sahidawa/shared$": "<rootDir>/../../packages/shared/src",
         "^@sahidawa/validators$": "<rootDir>/../../packages/validators/src",
     },
+    // babel-jest replaces ts-jest here. It only strips TS syntax — it never
+    // calls into the TypeScript compiler API — so it's unaffected by which
+    // TypeScript major version (5.x, 7.x, ...) is installed anywhere in the
+    // monorepo. No babel.config.js needed: presets are passed inline below.
     transform: {
-        "^.+\\.tsx?$": [
-            "ts-jest",
+        "^.+\\.[tj]sx?$": [
+            "babel-jest",
             {
-                tsconfig: "<rootDir>/tsconfig.test.json",
-            },
-        ],
-        "^.+\\.jsx?$": [
-            "ts-jest",
-            {
-                tsconfig: "<rootDir>/tsconfig.test.json",
+                presets: [
+                    ["@babel/preset-env", { targets: { node: "current" } }],
+                    "@babel/preset-typescript",
+                ],
             },
         ],
     },
