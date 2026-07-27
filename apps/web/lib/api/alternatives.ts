@@ -1,4 +1,5 @@
 import { fetchWithRetry } from "../apiWithRetry";
+import { getCsrfToken, refreshCsrfToken, invalidateCsrfToken, isCsrfError, CSRF_HEADER_NAME } from "../csrf";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -41,6 +42,36 @@ export interface SchemeEligibilityResponse {
 }
 
 /**
+ * Pulls a human-readable message out of an error response body, regardless
+ * of whether the API sent `{ error: "..." }`, `{ error: { message: "..." } }`,
+ * `{ message: "..." }`, or `{ errors: [...] }`. Never returns an object, so
+ * callers can safely do `new Error(extractErrorMessage(...))` without risking
+ * it stringifying to "[object Object]".
+ */
+function extractErrorMessage(body: unknown, fallback: string): string {
+    if (body && typeof body === "object") {
+        const anyBody = body as Record<string, unknown>;
+
+        if (typeof anyBody.error === "string") return anyBody.error;
+        if (typeof anyBody.message === "string") return anyBody.message;
+
+        if (anyBody.error && typeof anyBody.error === "object") {
+            const nested = anyBody.error as { message?: unknown };
+            if (typeof nested.message === "string") return nested.message;
+        }
+
+        if (Array.isArray(anyBody.errors)) {
+            const joined = anyBody.errors
+                .map((e) => (typeof e === "string" ? e : (e as { message?: string })?.message))
+                .filter(Boolean)
+                .join(" ");
+            if (joined) return joined;
+        }
+    }
+    return fallback;
+}
+
+/**
  * Fetches generic alternatives for a medicine from the API.
  */
 export async function fetchGenericAlternatives(
@@ -61,8 +92,8 @@ export async function fetchGenericAlternatives(
     });
 
     if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(body.error ?? "Failed to fetch generic alternatives.");
+        const body = await res.json().catch(() => ({}));
+        throw new Error(extractErrorMessage(body, "Failed to fetch generic alternatives."));
     }
 
     return res.json() as Promise<GenericAlternative>;
@@ -70,24 +101,49 @@ export async function fetchGenericAlternatives(
 
 /**
  * Checks Ayushman Bharat / PMJAY eligibility based on demographics.
+ *
+ * Attaches the CSRF token as both a header and (via credentials: "include")
+ * the accompanying cookie. If the server rejects the token as invalid or
+ * expired, the token is refreshed once and the request is retried
+ * transparently before surfacing an error to the caller.
  */
 export async function checkSchemeEligibility(
     payload: SchemeEligibilityPayload,
     signal?: AbortSignal
 ): Promise<SchemeEligibilityResponse> {
-    const res = await fetchWithRetry(`${API_BASE}/api/v1/scheme-eligibility`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-        timeout: 10000,
-        signal,
-    });
+    const url = `${API_BASE}/api/v1/scheme-eligibility`;
+
+    const doRequest = (token: string) =>
+        fetchWithRetry(url, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                [CSRF_HEADER_NAME]: token,
+            },
+            body: JSON.stringify(payload),
+            timeout: 10000,
+            signal,
+        });
+
+    let token = await getCsrfToken();
+    let res = await doRequest(token);
+
+    if (!res.ok && res.status === 403) {
+        const body = await res.json().catch(() => ({}));
+        if (isCsrfError(res.status, body)) {
+            // Token was invalid/expired — refresh once and retry silently.
+            invalidateCsrfToken();
+            token = await refreshCsrfToken();
+            res = await doRequest(token);
+        } else {
+            throw new Error(extractErrorMessage(body, "Failed to check scheme eligibility."));
+        }
+    }
 
     if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(body.error ?? "Failed to check scheme eligibility.");
+        const body = await res.json().catch(() => ({}));
+        throw new Error(extractErrorMessage(body, "Failed to check scheme eligibility."));
     }
 
     return res.json() as Promise<SchemeEligibilityResponse>;
