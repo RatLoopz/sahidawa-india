@@ -28,9 +28,10 @@ def embed_query(text: str) -> Optional[list[float]]:
 
     try:
         response = requests.post(
-            f"{EMBEDDING_ENDPOINT}?key={api_key}",
+            EMBEDDING_ENDPOINT,
             headers={
                 "Content-Type": "application/json",
+                "x-goog-api-key": api_key,
             },
             json={
                 "model": f"models/{EMBEDDING_MODEL}",

@@ -8,8 +8,11 @@ All PR summaries are now stored in a centralized JSON log.
 
 | PR | Date | Area | Score | Author | Docs |
 |---|---|---|---|---|---|
-| [#3761](https://github.com/RatLoopz/sahidawa-india/pull/3761) | 2026-07-20 | Backend | 52 | @Avinash-sdbegin | [View Doc](./2026-07/PR-3761-refactor-api-extract-business-logic-into-services-.md) / [ADR](./adr/ADR-058-refactor-api-extract-business-logic-into-services-.md) |
+| [#3872](https://github.com/RatLoopz/sahidawa-india/pull/3872) | 2026-07-24 | Frontend | 5 | @Shreya-nipunge | [View Doc](./2026-07/PR-3872-fix-web-preserve-local-expiry-date-boundaries.md) |
+| [#3840](https://github.com/RatLoopz/sahidawa-india/pull/3840) | 2026-07-24 | Backend | 6 | @Neverask1121 | [View Doc](./2026-07/PR-3840-fix-api-prevent-ssrf-bypass-via-ipv6-mapped-ipv4-a.md) |
+| [#3858](https://github.com/RatLoopz/sahidawa-india/pull/3858) | 2026-07-24 | Frontend | 39 | @shashank03-dev | [View Doc](./2026-07/PR-3858-feat-security-gate-guest-notification-endpoints-be.md) / [ADR](./adr/ADR-059-feat-security-gate-guest-notification-endpoints-be.md) |
 | [#3769](https://github.com/RatLoopz/sahidawa-india/pull/3769) | 2026-07-20 | Frontend | 7 | @Avinash-sdbegin | [View Doc](./2026-07/PR-3769-feat-web-serve-stale-cached-get-responses-during-c.md) |
+| [#3761](https://github.com/RatLoopz/sahidawa-india/pull/3761) | 2026-07-20 | Backend | 52 | @Avinash-sdbegin | [View Doc](./2026-07/PR-3761-refactor-api-extract-business-logic-into-services-.md) / [ADR](./adr/ADR-058-refactor-api-extract-business-logic-into-services-.md) |
 | [#3755](https://github.com/RatLoopz/sahidawa-india/pull/3755) | 2026-07-20 | Backend | 15 | @TanCodeX | [View Doc](./2026-07/PR-3755-feat-implement-automated-sensitive-data-redaction-.md) / [ADR](./adr/ADR-057-feat-implement-automated-sensitive-data-redaction-.md) |
 | [#3749](https://github.com/RatLoopz/sahidawa-india/pull/3749) | 2026-07-20 | Backend | 13 | @hrx01-dev | [View Doc](./2026-07/PR-3749-perf-add-redis-cache-on-ml-image-analysis-proxies.md) |
 | [#3740](https://github.com/RatLoopz/sahidawa-india/pull/3740) | 2026-07-18 | Frontend | 49 | @Khanvilkarshravani27 | [View Doc](./2026-07/PR-3740-feat-ml-add-langgraph-native-redis-checkpointer-fo.md) / [ADR](./adr/ADR-056-feat-ml-add-langgraph-native-redis-checkpointer-fo.md) |

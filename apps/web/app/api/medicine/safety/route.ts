@@ -15,12 +15,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI, SchemaType, type Schema } from "@google/generative-ai";
 import Groq from "groq-sdk";
 import { createClient } from "@supabase/supabase-js";
+import { getClientIp } from "@/lib/getClientIp";
+import { rateLimit } from "@/lib/rateLimit";
 
-// ── Supabase (server-side — uses service role key for cache writes) ────────────
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const db = createClient(supabaseUrl, supabaseKey);
+const MAX_QUERY_LENGTH = 100;
 
 // ── OpenFDA ───────────────────────────────────────────────────────────────────
 async function fetchOpenFdaContext(genericName: string): Promise<string> {
@@ -153,8 +151,8 @@ function isRateLimited(err: unknown): boolean {
 }
 
 async function generateWithGemini(drug: string, rag: string): Promise<object> {
-    const apiKey = process.env.GEMINI_API_KEY?.trim();
-    if (!apiKey) throw new Error("GEMINI_API_KEY not set");
+    const apiKey = (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY)?.trim();
+    if (!apiKey) throw new Error("API Key not set");
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
@@ -196,10 +194,38 @@ async function generateWithGroq(drug: string, rag: string): Promise<object> {
 
 // ── GET handler ───────────────────────────────────────────────────────────────
 export async function GET(request: NextRequest) {
+    const { success } = await rateLimit.limit(getClientIp(request));
+    if (!success) {
+        return NextResponse.json(
+            { error: "Too many requests. Please try again in a few moments." },
+            { status: 429 }
+        );
+    }
+
+    // ── Supabase (server-side — uses service role key for cache writes) ────────────
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseKey =
+        process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+    if (!supabaseUrl || !supabaseKey) {
+        return NextResponse.json(
+            { error: "Server misconfiguration: Supabase credentials missing." },
+            { status: 500 }
+        );
+    }
+    const db = createClient(supabaseUrl, supabaseKey);
+
     const q = new URL(request.url).searchParams.get("q")?.trim();
     if (!q || q.length < 2) {
         return NextResponse.json(
             { error: "Query parameter 'q' is required (min 2 chars)." },
+            { status: 400 }
+        );
+    }
+
+    if (q.length > MAX_QUERY_LENGTH) {
+        return NextResponse.json(
+            { error: "Query parameter 'q' must be 100 characters or fewer." },
             { status: 400 }
         );
     }
@@ -261,16 +287,14 @@ export async function GET(request: NextRequest) {
 
     // ── 4. Persist to Supabase (best-effort) ──────────────────────────────────
     try {
-        await db
-            .from("medicine_safety_profiles")
-            .upsert(
-                {
-                    generic_name: genericName,
-                    profile_json: profile,
-                    updated_at: new Date().toISOString(),
-                },
-                { onConflict: "generic_name" }
-            );
+        await db.from("medicine_safety_profiles").upsert(
+            {
+                generic_name: genericName,
+                profile_json: profile,
+                updated_at: new Date().toISOString(),
+            },
+            { onConflict: "generic_name" }
+        );
     } catch {
         // non-fatal
     }

@@ -5,10 +5,11 @@
  */
 
 const OVERPASS_MIRRORS = [
+    "https://overpass.osm.ch/api/interpreter",
+    "https://lz4.overpass-api.de/api/interpreter",
     "https://overpass.private.coffee/api/interpreter",
     "https://overpass-api.de/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
-    "https://lz4.overpass-api.de/api/interpreter",
     "https://z.overpass-api.de/api/interpreter",
 ];
 
@@ -25,7 +26,7 @@ async function queryOverpass(query: string): Promise<any> {
                 const response = await fetch(url, {
                     method: "GET",
                     headers: {
-                        Accept: "*/*",
+                        Accept: "application/json",
                     },
                     signal: controller.signal,
                 });
@@ -35,8 +36,14 @@ async function queryOverpass(query: string): Promise<any> {
                 }
 
                 const data = await response.json();
-                if (!data || !data.elements) {
+                if (!data || !Array.isArray(data.elements)) {
                     throw new Error(`Mirror ${mirror} returned invalid data structure`);
+                }
+
+                if (data.elements.length === 0) {
+                    throw new Error(
+                        `Mirror ${mirror} returned 0 elements, rejecting to wait for global mirrors`
+                    );
                 }
 
                 return { controller, data };
@@ -197,43 +204,40 @@ function formatDistance(km: number): string {
     return `${km.toFixed(1)} km`;
 }
 
-/**
- * Fetch pharmacies near a given location using the Overpass API
- * @param lat Center latitude
- * @param lng Center longitude
- * @param radiusMeters Search radius in meters (default 10km)
- */
 export async function fetchPharmacies(
     lat: number,
     lng: number,
     radiusMeters: number = 10000
 ): Promise<OverpassPharmacy[]> {
-    // Overpass QL query: find all pharmacy nodes within radius
+    // Overpass QL query: find all pharmacy nodes, ways, and relations within radius
     const query = `
     [out:json][timeout:15];
     (
-      node["amenity"="pharmacy"](around:${radiusMeters},${lat},${lng});
-      node["healthcare"="pharmacy"](around:${radiusMeters},${lat},${lng});
-      node["shop"="chemist"](around:${radiusMeters},${lat},${lng});
+      nwr["amenity"="pharmacy"](around:${radiusMeters},${lat},${lng});
+      nwr["healthcare"="pharmacy"](around:${radiusMeters},${lat},${lng});
+      nwr["shop"="chemist"](around:${radiusMeters},${lat},${lng});
     );
-    out body;
+    out center;
   `;
 
     const data = await queryOverpass(query);
-    const elements: OverpassElement[] = data.elements || [];
+    const elements: Array<OverpassElement & { center?: { lat: number; lon: number } }> =
+        data.elements || [];
 
     // Transform OSM data into our pharmacy format
     const pharmacies: OverpassPharmacy[] = elements
-        .filter((el) => el.lat && el.lon)
+        .filter((el) => (el.lat && el.lon) || (el.center && el.center.lat && el.center.lon))
         .map((el) => {
             const tags = el.tags || {};
-            const distance = calculateDistance(lat, lng, el.lat, el.lon);
+            const elLat = el.lat ?? el.center?.lat ?? 0;
+            const elLon = el.lon ?? el.center?.lon ?? 0;
+            const distance = calculateDistance(lat, lng, elLat, elLon);
 
             return {
                 id: el.id,
                 name: tags.name || tags["name:en"] || tags["name:hi"] || tags.brand || "Pharmacy",
-                lat: el.lat,
-                lng: el.lon,
+                lat: elLat,
+                lng: elLon,
                 type: isGovernmentPharmacy(el) ? "govt" : "private",
                 address: buildAddress(tags),
                 phone: tags.phone || tags["contact:phone"],
@@ -251,9 +255,6 @@ export async function fetchPharmacies(
     return pharmacies;
 }
 
-/**
- * Fetch pharmacies within a bounding box (for "Search this area" feature)
- */
 export async function fetchPharmaciesInBounds(
     south: number,
     west: number,
@@ -263,30 +264,33 @@ export async function fetchPharmaciesInBounds(
     const query = `
     [out:json][timeout:15];
     (
-      node["amenity"="pharmacy"](${south},${west},${north},${east});
-      node["healthcare"="pharmacy"](${south},${west},${north},${east});
-      node["shop"="chemist"](${south},${west},${north},${east});
+      nwr["amenity"="pharmacy"](${south},${west},${north},${east});
+      nwr["healthcare"="pharmacy"](${south},${west},${north},${east});
+      nwr["shop"="chemist"](${south},${west},${north},${east});
     );
-    out body;
+    out center;
   `;
 
     const data = await queryOverpass(query);
-    const elements: OverpassElement[] = data.elements || [];
+    const elements: Array<OverpassElement & { center?: { lat: number; lon: number } }> =
+        data.elements || [];
 
     const centerLat = (south + north) / 2;
     const centerLng = (west + east) / 2;
 
     return elements
-        .filter((el) => el.lat && el.lon)
+        .filter((el) => (el.lat && el.lon) || (el.center && el.center.lat && el.center.lon))
         .map((el) => {
             const tags = el.tags || {};
-            const distance = calculateDistance(centerLat, centerLng, el.lat, el.lon);
+            const elLat = el.lat ?? el.center?.lat ?? 0;
+            const elLon = el.lon ?? el.center?.lon ?? 0;
+            const distance = calculateDistance(centerLat, centerLng, elLat, elLon);
 
             return {
                 id: el.id,
                 name: tags.name || tags["name:en"] || tags["name:hi"] || tags.brand || "Pharmacy",
-                lat: el.lat,
-                lng: el.lon,
+                lat: elLat,
+                lng: elLon,
                 type: isGovernmentPharmacy(el) ? "govt" : "private",
                 address: buildAddress(tags),
                 phone: tags.phone || tags["contact:phone"],

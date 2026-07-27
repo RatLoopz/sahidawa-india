@@ -13,6 +13,7 @@ needs no locking.
 """
 
 import asyncio
+import hashlib
 import json
 import logging
 
@@ -27,6 +28,20 @@ WS_POLICY_VIOLATION_CODE = 1008
 
 # user_id -> set of live WebSocket connections owned by THIS worker process.
 _connections: dict[str, set[WebSocket]] = {}
+
+
+def _mask_user_id(user_id: str) -> str:
+    """Return a stable, non-reversible tag for a user_id for log correlation.
+
+    Revocation events must be traceable in logs (e.g. to confirm a user's
+    sockets were torn down) without writing the raw identifier — a sensitive,
+    user-identifying value — to log aggregators. A short SHA-256 prefix groups a
+    given user's events together and can be matched against a known id during an
+    incident, but cannot be reversed back to the user_id.
+    """
+    if not user_id:
+        return "unknown"
+    return hashlib.sha256(user_id.encode()).hexdigest()[:12]
 
 
 def register_connection(user_id: str, websocket: WebSocket) -> None:
@@ -57,7 +72,11 @@ async def close_user_connections(user_id: str, *, reason: str = "API Key Revoked
             await websocket.close(code=WS_POLICY_VIOLATION_CODE, reason=reason)
             closed += 1
         except Exception as error:  # already closing / disconnected — best effort
-            logger.warning("Failed to close revoked socket for user %s: %s", user_id, error)
+            logger.warning(
+                "Failed to close revoked socket for user %s: %s",
+                _mask_user_id(user_id),
+                error,
+            )
         finally:
             unregister_connection(user_id, websocket)
     return closed
@@ -97,7 +116,9 @@ async def listen_for_revocations(redis) -> None:
             closed = await close_user_connections(user_id)
             if closed:
                 logger.info(
-                    "Force-closed %d ML WebSocket(s) for revoked user %s.", closed, user_id
+                    "Force-closed %d ML WebSocket(s) for revoked user %s.",
+                    closed,
+                    _mask_user_id(user_id),
                 )
     except asyncio.CancelledError:
         raise
