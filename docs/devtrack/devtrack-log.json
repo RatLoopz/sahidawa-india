@@ -1,5 +1,19 @@
 [
   {
+    "prNumber": 3888,
+    "title": "fix(scan): keep unprocessed offline media pending",
+    "author": "Shreya-nipunge",
+    "mergedAt": "2026-07-28",
+    "area": "Backend",
+    "score": 9,
+    "docPath": "docs/devtrack/2026-07/PR-3888-fix-scan-keep-unprocessed-offline-media-pending.md",
+    "linkedIssue": "#3882",
+    "labels": "level:intermediate,quality:clean,gssoc:approved,type:bug,type:refactor",
+    "filesChanged": [
+      "apps/api/src/routes/scan.ts",
+      "apps/api/tests/scans.sync.test.ts"
+    ],
+    "adr": null
     "prNumber": 3890,
     "title": "fix(scan): use queued endpoint during offline sync",
     "author": "Shreya-nipunge",
