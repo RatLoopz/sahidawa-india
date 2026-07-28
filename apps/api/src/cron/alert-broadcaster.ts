@@ -447,44 +447,11 @@ export async function broadcastExpiryAlerts(now: Date = new Date()): Promise<voi
             return;
         }
 
-        const successfullyMarkedIds = new Set<string>();
-
-        for (
-            let i = 0;
-            i < expiringBatches.length;
-            i += broadcastConfig.MARK_BROADCASTED_CHUNK_SIZE
-        ) {
-            const chunk = expiringBatches.slice(i, i + broadcastConfig.MARK_BROADCASTED_CHUNK_SIZE);
-            const chunkIds = chunk.map((batch) => batch.id);
-
-            const { error: markError } = await supabase
-                .from("batches")
-                .select("id")
-                .in("id", chunkIds);
-
-            if (markError) {
-                // Only this chunk is skipped for the current tick — the batches
-                // in it remain expiry_broadcasted = false and will be retried
-                // on the next scheduled run.
-                logger.error({
-                    message:
-                        "Failed to mark batch chunk as expiry_broadcasted, skipping chunk for this tick",
-                    error: markError,
-                    batchIds: chunkIds,
-                });
-                continue;
-            }
-
-            for (const id of chunkIds) successfullyMarkedIds.add(id);
-        }
-
-        const batchSummaries: ExpiringBatchSummary[] = expiringBatches
-            .filter((batch) => successfullyMarkedIds.has(batch.id))
-            .map((batch) => ({
-                medicineName: batch.medicine?.brand_name || "Unknown Medicine",
-                batchNumber: batch.batch_number,
-                expiryDate: batch.expiry_date,
-            }));
+        const batchSummaries: ExpiringBatchSummary[] = expiringBatches.map((batch) => ({
+            medicineName: batch.medicine?.brand_name || "Unknown Medicine",
+            batchNumber: batch.batch_number,
+            expiryDate: batch.expiry_date,
+        }));
 
         if (batchSummaries.length === 0) return;
 
