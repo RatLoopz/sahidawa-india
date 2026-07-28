@@ -7,7 +7,7 @@
         "start": "node dist/index.js",
         "dev": "ts-node-dev --respawn --transpile-only -r ./ws-setup.js src/index.ts",
         "build": "npm run build -w @sahidawa/types -w @sahidawa/validators -w @sahidawa/shared && tsc && cp -r assets dist/",
-        "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --forceExit --silent",
+        "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --forceExit --silent && npm run test:types",
         "test:types": "tsc --noEmit -p tsconfig.test.json"
     },
     "dependencies": {
