@@ -50,7 +50,12 @@ async function checkOtpLockout(phone: string): Promise<number | null> {
     try {
         const ttl = await redisClient.ttl(getOtpLockoutKey(phone));
         if (ttl > 0) return ttl;
-    } catch (_) {}
+    } catch (err) {
+        logger.warn({
+            message: "Redis TTL check error in OTP lockout",
+            error: String(err),
+        });
+    }
     return null;
 }
 
@@ -60,14 +65,19 @@ async function recordFailedOtpAttempt(phone: string): Promise<void> {
         const key = getOtpFailKey(phone);
         const attempts = await redisClient.incr(key);
         if (attempts === 1) {
-            await redisClient.expire(key, 600); // counter expires after 10 min of inactivity
+            await redisClient.expire(key, 600);
         }
         if (attempts >= MAX_OTP_ATTEMPTS) {
             const lockDuration = getOtpLockoutDuration(attempts);
             await redisClient.setEx(getOtpLockoutKey(phone), Math.ceil(lockDuration / 1000), "1");
             await redisClient.del(key);
         }
-    } catch (_) {}
+    } catch (err) {
+        logger.warn({
+            message: "Redis error recording failed OTP attempt",
+            error: String(err),
+        });
+    }
 }
 
 async function clearOtpAttempts(phone: string): Promise<void> {
@@ -75,7 +85,12 @@ async function clearOtpAttempts(phone: string): Promise<void> {
     try {
         await redisClient.del(getOtpFailKey(phone));
         await redisClient.del(getOtpLockoutKey(phone));
-    } catch (_) {}
+    } catch (err) {
+        logger.warn({
+            message: "Redis error clearing OTP attempts",
+            error: String(err),
+        });
+    }
 }
 
 // ── Web Push Notifications (Existing) ──────────────────────────────────────────
