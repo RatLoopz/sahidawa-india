@@ -57,7 +57,7 @@ const nextConfig = {
         minimumCacheTTL: 3600,
         dangerouslyAllowSVG: false,
     },
-    compress: true, // Enabled for Lighthouse CI, Vercel will still handle it fine
+    compress: process.env.CI === "true", // Enabled for Lighthouse CI, Vercel will still handle it fine
     reactStrictMode: true,
     experimental: {
         optimizePackageImports: ['lucide-react', 'recharts'],
