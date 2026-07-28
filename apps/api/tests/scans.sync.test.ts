@@ -113,6 +113,52 @@ describe("POST /api/v1/scan/submit — offline sync", () => {
         expect(supabase.update).toHaveBeenCalledWith({ scan_id: "new-scan-id" });
     });
 
+    it("keeps attached media pending when offline media processors are unavailable", async () => {
+        const mockKey = "media-pending-key";
+        (redisClient.get as jest.Mock).mockResolvedValue(null);
+        (supabase.insert as jest.Mock).mockReturnValueOnce(
+            Promise.resolve({ data: null, error: null })
+        );
+        (supabase.maybeSingle as jest.Mock).mockResolvedValueOnce({ data: null, error: null });
+        (supabase.single as jest.Mock).mockResolvedValueOnce({
+            data: { id: "media-pending-scan-id" },
+            error: null,
+        });
+        (supabase.eq as jest.Mock)
+            .mockReturnValueOnce(supabase)
+            .mockReturnValueOnce(Promise.resolve({ error: null }));
+        (supabase.update as jest.Mock).mockReturnValueOnce(supabase);
+
+        const res = await request(app)
+            .post("/api/v1/scan/submit")
+            .set("Idempotency-Key", mockKey)
+            .field("deviceId", "device-1")
+            .field("clientUpdatedAt", Date.now().toString())
+            .field("metadata", JSON.stringify({ name: "Paracetamol" }))
+            .attach("image", Buffer.from([0xff, 0xd8, 0xff]), {
+                filename: "medicine.jpg",
+                contentType: "image/jpeg",
+            })
+            .attach("voice", Buffer.from("audio"), {
+                filename: "recording.webm",
+                contentType: "audio/webm",
+            });
+
+        expect(res.status).toBe(200);
+        expect(res.body.parts).toEqual({
+            metadata: "synced",
+            image: "pending",
+            voice: "pending",
+        });
+        expect(supabase.upsert).toHaveBeenCalledWith(
+            expect.arrayContaining([
+                expect.objectContaining({ part_type: "image", status: "pending" }),
+                expect.objectContaining({ part_type: "voice", status: "pending" }),
+            ]),
+            { onConflict: "scan_id,part_type" }
+        );
+    });
+
     it("short-circuits with 409 when a concurrent request for the same key is still in-flight", async () => {
         const mockKey = "racing-idem-key";
         (redisClient.get as jest.Mock).mockResolvedValue(null);
