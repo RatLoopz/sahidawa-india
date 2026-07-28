@@ -112,13 +112,33 @@ describe("scanQueueSync", () => {
             },
         } as any);
 
-        const item = await addToSyncQueue("BATCH-789", "en");
+        const item = await addToSyncQueue("BATCH-789", "en", "https://queued.example/api/verify");
         const synced = await syncPendingScans();
 
         expect(synced).toBe(1);
+        expect(mockedVerify).toHaveBeenCalledWith(
+            "BATCH-789",
+            undefined,
+            "https://queued.example/api/verify"
+        );
         expect(recordScanHistory).toHaveBeenCalled();
         expect(await getSyncQueue()).toHaveLength(0);
         expect(item.barcode).toBe("BATCH-789");
+    });
+
+    it("uses the current endpoint for legacy queued scans without an apiUrl", async () => {
+        const mockedVerify = verifyMedicine as jest.MockedFunction<typeof verifyMedicine>;
+        mockedVerify.mockResolvedValue({ verified: false, message: "Medicine not found" });
+
+        const item = await addToSyncQueue("BATCH-LEGACY", "en");
+        delete item.apiUrl;
+        queueStore.set(item.id, item);
+
+        const synced = await syncPendingScans();
+
+        expect(synced).toBe(1);
+        expect(mockedVerify).toHaveBeenCalledWith("BATCH-LEGACY", undefined, undefined);
+        expect(await getSyncQueue()).toHaveLength(0);
     });
 
     it("skips syncing while offline", async () => {
