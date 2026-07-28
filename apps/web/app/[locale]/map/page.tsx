@@ -18,7 +18,6 @@ import {
     WifiOff,
     MapPin,
 } from "lucide-react";
-import { PageHeader } from "../components/PageHeader";
 import PharmacyPanels, { calculateTrustBreakdown } from "./PharmacyPanels";
 
 const PharmacyMap = dynamic(() => import("./PharmacyMap"), {
@@ -438,7 +437,7 @@ export default function PharmacyMapPage() {
     const [locationSuggestions, setLocationSuggestions] = useState<
         Array<{ lat: number; lng: number; label: string }>
     >([]);
-    const [isSearchingLocation, setIsSearchingLocation] = useState(false);
+    const [, setIsSearchingLocation] = useState(false);
 
     // Live data state (PR #147 engine)
     const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
@@ -446,7 +445,7 @@ export default function PharmacyMapPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [fetchError, setFetchError] = useState<string | null>(null);
     const [showSearchArea, setShowSearchArea] = useState(false);
-    const [pharmacyCount, setPharmacyCount] = useState(0);
+    const [, setPharmacyCount] = useState(0);
     const [radiusKm, setRadiusKm] = useState<number>(10);
     const [heatmapMode, setHeatmapMode] = useState<HeatmapMode>("none");
     const [scanHotspots, setScanHotspots] = useState<RiskHotspot[]>([]);

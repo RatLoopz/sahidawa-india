@@ -184,8 +184,6 @@ function isErrorWithStatus(error: unknown): error is ErrorWithStatus {
 }
 
 async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
-    const maxRetries = 3;
-    let attempt = 0;
     while (true) {
         try {
             return await fn();
