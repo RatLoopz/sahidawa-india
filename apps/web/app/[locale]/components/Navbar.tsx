@@ -98,7 +98,6 @@ export default function Navbar() {
     return (
         <>
             <header className="relative sticky top-0 z-[9999] w-full bg-white/60 shadow-sm shadow-black/5 backdrop-blur-md transition-colors duration-300 dark:bg-slate-900/60">
-                {" "}
                 <div className="container mx-auto flex h-16 items-center justify-between gap-2 px-2 sm:gap-3 sm:px-4 md:px-6">
                     <div className="flex min-w-0 shrink-0 items-center">
                         <Link href="/" className="flex min-w-0 items-center gap-1.5 sm:gap-2">
