@@ -40,15 +40,6 @@ export interface SchemeEligibilityResponse {
     eligible_schemes: EligibleScheme[];
 }
 
-type ApiErrorBody = { error?: string | { message?: string }; message?: string };
-
-function extractErrorMessage(body: ApiErrorBody, fallback: string): string {
-    if (typeof body.error === "string") return body.error;
-    if (body.error?.message) return body.error.message;
-    if (body.message) return body.message;
-    return fallback;
-}
-
 /**
  * Fetches generic alternatives for a medicine from the API.
  */
@@ -70,8 +61,8 @@ export async function fetchGenericAlternatives(
     });
 
     if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as ApiErrorBody;
-        throw new Error(extractErrorMessage(body, "Failed to fetch generic alternatives."));
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body.error ?? "Failed to fetch generic alternatives.");
     }
 
     return res.json() as Promise<GenericAlternative>;
@@ -95,8 +86,8 @@ export async function checkSchemeEligibility(
     });
 
     if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as ApiErrorBody;
-        throw new Error(extractErrorMessage(body, "Failed to check scheme eligibility."));
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body.error ?? "Failed to check scheme eligibility.");
     }
 
     return res.json() as Promise<SchemeEligibilityResponse>;
