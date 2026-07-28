@@ -1,5 +1,24 @@
 [
   {
+    "prNumber": 3894,
+    "title": "feat(web): implement offline-first scan history sync and connection s…",
+    "author": "jamunatg2006-sys",
+    "mergedAt": "2026-07-28",
+    "area": "i18n",
+    "score": 23,
+    "docPath": "docs/devtrack/2026-07/PR-3894-feat-web-implement-offline-first-scan-history-sync.md",
+    "linkedIssue": "#3892",
+    "labels": "level:intermediate,gssoc:approved,type:feature",
+    "filesChanged": [
+      "apps/web/app/[locale]/history/page.tsx",
+      "apps/web/messages/en.json",
+      "apps/web/messages/hi.json",
+      "apps/web/messages/kok.json",
+      "apps/web/messages/mai.json",
+      "apps/web/messages/mni.json",
+      "apps/web/messages/sd.json"
+    ],
+    "adr": "docs/devtrack/adr/ADR-060-feat-web-implement-offline-first-scan-history-sync.md"
     "prNumber": 3888,
     "title": "fix(scan): keep unprocessed offline media pending",
     "author": "Shreya-nipunge",
