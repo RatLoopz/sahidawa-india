@@ -27,6 +27,10 @@ jobs:
         working-directory: apps/etl
         run: uv sync
 
+      - name: Install Playwright browsers
+        working-directory: apps/etl
+        run: uv run playwright install --with-deps chromium
+
       - name: Run ETL pipeline
         working-directory: apps/etl
         env:

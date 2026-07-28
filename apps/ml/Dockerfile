@@ -1,7 +1,7 @@
 # ============================================================
 # Stage 1: builder — Install Python dependencies in a venv
 # ============================================================
-FROM python:3.12-slim AS builder
+FROM python:3.11-slim AS builder
 
 WORKDIR /build
 
@@ -22,7 +22,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # ============================================================
 # Stage 2: runner — Minimal production image
 # ============================================================
-FROM python:3.12-slim AS runner
+FROM python:3.11-slim AS runner
 
 WORKDIR /app
 
