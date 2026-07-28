@@ -504,14 +504,12 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
     }
 
     try {
-        const { data, error } = await supabase
+        let { data, error } = await supabase
             .from("medicines")
             .select(
                 "id, brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score"
             )
-            .or(
-                `brand_name.ilike."%${escapePostgrest(brandName)}%",generic_name.ilike."%${escapePostgrest(brandName)}%"`
-            )
+            .ilike("brand_name", `%${brandName}%`)
             .limit(1)
             .maybeSingle();
 
@@ -522,6 +520,28 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
                 message: "Database lookup failed",
             });
             return;
+        }
+
+        if (!data) {
+            const result = await supabase
+                .from("medicines")
+                .select(
+                    "id, brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score"
+                )
+                .ilike("generic_name", `%${brandName}%`)
+                .limit(1)
+                .maybeSingle();
+
+            if (result.error) {
+                logger.error(`Database lookup error for verify-brand: ${result.error.message}`);
+                res.status(500).json({
+                    verified: false,
+                    message: "Database lookup failed",
+                });
+                return;
+            }
+
+            data = result.data;
         }
 
         if (!data) {
