@@ -8,6 +8,7 @@ All PR summaries are now stored in a centralized JSON log.
 
 | PR | Date | Area | Score | Author | Docs |
 |---|---|---|---|---|---|
+| [#3889](https://github.com/RatLoopz/sahidawa-india/pull/3889) | 2026-07-28 | Backend | 6 | @Shreya-nipunge | [View Doc](./2026-07/PR-3889-fix-alerts-retry-expiry-notifications-after-delive.md) |
 | [#3894](https://github.com/RatLoopz/sahidawa-india/pull/3894) | 2026-07-28 | i18n | 23 | @jamunatg2006-sys | [View Doc](./2026-07/PR-3894-feat-web-implement-offline-first-scan-history-sync.md) / [ADR](./adr/ADR-060-feat-web-implement-offline-first-scan-history-sync.md) |
 | [#3888](https://github.com/RatLoopz/sahidawa-india/pull/3888) | 2026-07-28 | Backend | 9 | @Shreya-nipunge | [View Doc](./2026-07/PR-3888-fix-scan-keep-unprocessed-offline-media-pending.md) |
 | [#3890](https://github.com/RatLoopz/sahidawa-india/pull/3890) | 2026-07-28 | Frontend | 15 | @Shreya-nipunge | [View Doc](./2026-07/PR-3890-fix-scan-use-queued-endpoint-during-offline-sync.md) / [ADR](./adr/ADR-060-fix-scan-use-queued-endpoint-during-offline-sync.md) |
