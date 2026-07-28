@@ -22,7 +22,9 @@ jobs:
         run: pip install locust
 
       - name: 🐳 Start ML Service
-        run: docker compose up -d ml
+        run: |
+          touch .env
+          docker compose up -d ml
 
       - name: ⏳ Wait for ML Service
         run: |
