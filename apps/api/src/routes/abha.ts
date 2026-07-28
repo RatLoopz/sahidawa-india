@@ -48,7 +48,8 @@ router.post(
     "/link",
     authLimiter,
     authTargetLimiter,
-    async (req: Request, res: Response): Promise<void> => {
+    requireAuth,
+    async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         try {
             const parsed = linkSchema.safeParse(req.body);
             if (!parsed.success) {
