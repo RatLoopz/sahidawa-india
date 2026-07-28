@@ -1,7 +1,7 @@
 "use client";
 
 import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
-import { Sparkles, Heart, Mail, ExternalLink, CalendarRange } from "lucide-react";
+import { Heart, Mail, ExternalLink, CalendarRange } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";

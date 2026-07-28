@@ -53,8 +53,7 @@ export async function POST(req: NextRequest) {
             const cached = await redis.get(cacheKey);
             if (cached) {
                 try {
-                    const parsed =
-                        typeof cached === "string" ? JSON.parse(cached) : cached;
+                    const parsed = typeof cached === "string" ? JSON.parse(cached) : cached;
 
                     if (parsed && Array.isArray(parsed.elements)) {
                         return NextResponse.json(parsed, {
@@ -110,7 +109,9 @@ export async function POST(req: NextRequest) {
                 }
 
                 if (data.elements.length === 0) {
-                    throw new Error(`Mirror ${mirror} returned 0 elements, rejecting to wait for global mirrors`);
+                    throw new Error(
+                        `Mirror ${mirror} returned 0 elements, rejecting to wait for global mirrors`
+                    );
                 }
 
                 return data;
@@ -123,7 +124,7 @@ export async function POST(req: NextRequest) {
         let fastestData;
         try {
             fastestData = await Promise.any(fetchPromises);
-        } catch (err) {
+        } catch {
             // This catches both complete network failures AND cases where all mirrors returned 0 elements
             console.warn("[overpass] All mirrors rejected or returned 0 elements");
             fastestData = { elements: [] };
@@ -147,10 +148,10 @@ export async function POST(req: NextRequest) {
             headers: { "X-Cache": "MISS" },
         });
     } catch (err) {
-            console.error("[overpass] Uncaught error:", err);
-            return NextResponse.json(
-                { error: "All parallel Overpass mirrors failed" },
-                { status: 503 }
-            );
+        console.error("[overpass] Uncaught error:", err);
+        return NextResponse.json(
+            { error: "All parallel Overpass mirrors failed" },
+            { status: 503 }
+        );
     }
 }
