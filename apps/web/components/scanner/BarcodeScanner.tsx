@@ -122,9 +122,14 @@ export function BarcodeScanner({
 
     // Update refs when props change
     useEffect(() => {
-        isVerifyingRef.current = isVerifying;
-        apiErrorRef.current = apiError;
-    }, [isVerifying, apiError]);
+        if (status === "scanning" && !isVerifying && !apiError && !looksLikePackaging) {
+            resetInactivityTimer();
+        } else {
+            if (inactivityTimerRef.current) {
+                clearTimeout(inactivityTimerRef.current);
+            }
+        }
+    }, [status, isVerifying, apiError, looksLikePackaging, resetInactivityTimer]);
 
     const handleCameraRetry = () => {
         setStatus("initializing");
