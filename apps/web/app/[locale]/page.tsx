@@ -1,11 +1,16 @@
 "use client";
 
-import { MedicineSafetyPanel } from "@/components/medicine";
+import dynamic from "next/dynamic";
+const MedicineSafetyPanel = dynamic(() =>
+    import("@/components/medicine").then((mod) => mod.MedicineSafetyPanel)
+);
 import React, { useEffect, useState } from "react";
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
 import { usePendingSearchQueue } from "@/hooks/usePendingSearchQueue";
 import { addToSearchQueue } from "@/lib/db/searchQueue";
-import { PendingSearchQueue } from "@/components/SearchBar/PendingSearchQueue";
+const PendingSearchQueue = dynamic(() =>
+    import("@/components/SearchBar/PendingSearchQueue").then((m) => m.PendingSearchQueue)
+);
 import {
     Camera,
     Mic,
@@ -26,10 +31,10 @@ import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
-import SearchBar from "./components/SearchBar";
+const SearchBar = dynamic(() => import("./components/SearchBar"));
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
-import SafetyStatsBanner from "@/components/SafetyStatsBanner";
+const SafetyStatsBanner = dynamic(() => import("@/components/SafetyStatsBanner"));
 import { getVisibleAlertBatchNumber } from "@/lib/alertFormatting";
 import { usePredictivePrefetch } from "@/src/hooks/usePredictivePrefetch";
 

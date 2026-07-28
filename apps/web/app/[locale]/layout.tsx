@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import dynamic from "next/dynamic";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -17,9 +18,11 @@ import { Toaster } from "sonner";
 import Footer from "./components/Footer";
 import { AuthProvider } from "@/src/components/AuthProvider";
 import { TracingInitializer } from "@/components/TracingInitializer";
-import { InteractiveOverlays } from "./components/InteractiveOverlays";
+const InteractiveOverlays = dynamic(() =>
+    import("./components/InteractiveOverlays").then((mod) => mod.InteractiveOverlays)
+);
 import { ReactQueryProvider } from "./components/ReactQueryProvider";
-import PrivacyConsentBanner from "@/components/PrivacyConsentBanner";
+const PrivacyConsentBanner = dynamic(() => import("@/components/PrivacyConsentBanner"));
 import { PrivacyConsentProvider } from "@/components/PrivacyConsentProvider";
 
 export async function generateMetadata({
