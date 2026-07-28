@@ -218,8 +218,14 @@ app.get("/health", async (_req: Request, res: Response) => {
         const { error } = await supabase.from("medicines").select("id").limit(1);
         const uptime = process.uptime();
 
-        // Redis
-        const redisStatus = redisClient.isOpen ? "connected" : "disconnected";
+        // Redis — use PING instead of isOpen to detect half-open TCP connections
+        let redisStatus = "disconnected";
+        try {
+            await redisClient.ping();
+            redisStatus = "connected";
+        } catch {
+            redisStatus = "disconnected";
+        }
 
         // ML service — check config first, then do a lightweight reachability ping
         let mlStatus: string;
