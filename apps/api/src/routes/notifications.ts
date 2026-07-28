@@ -578,7 +578,7 @@ router.post(
             }
 
             if (dbFailed) {
-                subscriber = memorySubscribers.get(formattedPhone);
+                subscriber = memorySubscriberStore.get(formattedPhone);
             }
 
             if (!subscriber) {
@@ -622,27 +622,28 @@ router.post(
                 subscriber.updated_at = new Date().toISOString();
             }
 
-        // The OTP matched, so the caller has proven control of this number. Mint
-        // a short-lived token they can present to the guest read/write endpoints
-        // instead of a bare phone number. Only this success path issues a token —
-        // the "already active" short-circuit above never verifies an OTP, so it
-        // must not hand one out.
-        const responseBody: { success: true; message: string; guestToken?: string } = {
-            success: true,
-            message: "Phone verified successfully",
-        };
-        if (isGuestTokenConfigured()) {
-            responseBody.guestToken = signGuestToken(formattedPhone);
-        } else {
-            logger.error(
-                "JWT_SECRET is not set; a verified guest cannot be issued a session token."
-            );
-        }
+            // The OTP matched, so the caller has proven control of this number. Mint
+            // a short-lived token they can present to the guest read/write endpoints
+            // instead of a bare phone number. Only this success path issues a token —
+            // the "already active" short-circuit above never verifies an OTP, so it
+            // must not hand one out.
+            const responseBody: { success: true; message: string; guestToken?: string } = {
+                success: true,
+                message: "Phone verified successfully",
+            };
+            if (isGuestTokenConfigured()) {
+                responseBody.guestToken = signGuestToken(formattedPhone);
+            } else {
+                logger.error(
+                    "JWT_SECRET is not set; a verified guest cannot be issued a session token."
+                );
+            }
 
-        res.json(responseBody);
-    } catch (err) {
-        logger.error({ message: "Error in /verify-otp endpoint", error: err });
-        res.status(500).json({ error: "Internal server error" });
+            res.json(responseBody);
+        } catch (err) {
+            logger.error({ message: "Error in /verify-otp endpoint", error: err });
+            res.status(500).json({ error: "Internal server error" });
+        }
     }
 );
 
