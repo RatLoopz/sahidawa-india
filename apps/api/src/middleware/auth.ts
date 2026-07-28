@@ -122,20 +122,6 @@ export const createAuthMiddleware =
         }
 
         const cacheKey = `auth:user:${crypto.createHash("sha256").update(token).digest("hex")}`;
-        let cachedUser: AuthenticatedUser | null = null;
-        try {
-            if (redisClient.isOpen) {
-                const cached = await redisClient.get(cacheKey);
-                if (cached) {
-                    cachedUser = JSON.parse(cached);
-                }
-            }
-        } catch (err) {
-            logger.warn({
-                message: "Redis cache get error in auth middleware",
-                error: String(err),
-            });
-        }
 
         try {
             const { data, error } = await client.auth.getUser(token);
@@ -148,11 +134,22 @@ export const createAuthMiddleware =
                     error.message?.includes("refused");
 
                 if (isConnectionError) {
-                    if (cachedUser) {
-                        req.user = cachedUser;
-                        next();
-                        return;
+                    try {
+                        if (redisClient.isOpen) {
+                            const cached = await redisClient.get(cacheKey);
+                            if (cached) {
+                                req.user = JSON.parse(cached);
+                                next();
+                                return;
+                            }
+                        }
+                    } catch (err) {
+                        logger.warn({
+                            message: "Redis cache get error in auth middleware fallback",
+                            error: String(err),
+                        });
                     }
+
                     if (dbConfig) dbConfig.setOffline();
                     logger.warn({
                         message: "Supabase auth server returned connection error.",
@@ -248,20 +245,6 @@ export const createOptionalAuthMiddleware =
         }
 
         const cacheKey = `auth:user:${crypto.createHash("sha256").update(token).digest("hex")}`;
-        let cachedUser: AuthenticatedUser | null = null;
-        try {
-            if (redisClient.isOpen) {
-                const cached = await redisClient.get(cacheKey);
-                if (cached) {
-                    cachedUser = JSON.parse(cached);
-                }
-            }
-        } catch (err) {
-            logger.warn({
-                message: "Redis cache get error in optional auth middleware",
-                error: String(err),
-            });
-        }
 
         try {
             const { data, error } = await client.auth.getUser(token);
@@ -274,11 +257,22 @@ export const createOptionalAuthMiddleware =
                     error.message?.includes("refused");
 
                 if (isConnectionError) {
-                    if (cachedUser) {
-                        req.user = cachedUser;
-                        next();
-                        return;
+                    try {
+                        if (redisClient.isOpen) {
+                            const cached = await redisClient.get(cacheKey);
+                            if (cached) {
+                                req.user = JSON.parse(cached);
+                                next();
+                                return;
+                            }
+                        }
+                    } catch (err) {
+                        logger.warn({
+                            message: "Redis cache get error in optional auth middleware fallback",
+                            error: String(err),
+                        });
                     }
+
                     if (dbConfig) dbConfig.setOffline();
                     logger.warn({
                         message: "Supabase auth server returned connection error.",
