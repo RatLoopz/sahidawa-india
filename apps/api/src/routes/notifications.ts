@@ -10,6 +10,7 @@ import { smsService } from "../services/sms-service";
 import { whatsappService } from "../services/whatsapp-service";
 import { memorySubscriberStore, InMemorySubscriber } from "../services/memorySubscriberStore";
 import { formatPhoneNumber } from "../utils/phone";
+import { escapeIlike } from "@sahidawa/shared";
 import logger from "../utils/logger";
 import { signGuestToken, verifyGuestPhone, isGuestTokenConfigured } from "../utils/guestToken";
 import {
@@ -829,7 +830,7 @@ router.post("/broadcast", requireAuth, requireRole("admin"), async (req, res) =>
                 .range(totalProcessed, totalProcessed + BATCH_SIZE - 1);
 
             if (district && district.toLowerCase() !== "all") {
-                query = query.ilike("district", district);
+                query = query.ilike("district", escapeIlike(district));
             }
 
             const { data: subscribers, error } = await query;
