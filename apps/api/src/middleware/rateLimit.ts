@@ -122,6 +122,16 @@ export const scanQueryLimiter = createLimiter({
     message: "Too many scan queries. Please try again later.",
     prefix: "scan",
 });
+// ── Medicine comparison limiter ─────────────────────────────────────────────
+// POST /compare forwards requests to the ML service for pairwise medicine
+// similarity scoring. Authenticated but still expensive (ML inference + Redis).
+// Throttle to prevent abuse and protect the ML service from overload.
+export const compareLimiter = createLimiter({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    message: "Too many comparison requests. Please try again later.",
+    prefix: "compare",
+});
 // ── Interaction check limiter ─────────────────────────────────────────────────
 // POST /interactions/check accepts up to 20 medicines, generating up to 190
 // DB queries per request. Throttle to prevent DoS via batch interaction checks.

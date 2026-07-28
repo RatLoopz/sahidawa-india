@@ -5,7 +5,7 @@ import axios from "axios";
 import { redisClient } from "../utils/redis";
 import logger from "../utils/logger"; // Destructured template fixed based on your previous logs
 import { requireAuth } from "../middleware/auth"; // Fixed paths matching your exact structure
-import { limiter } from "../middleware/rateLimit"; // Fixed middleware import token maps
+import { compareLimiter } from "../middleware/rateLimit";
 import { getMlAuthHeaders } from "../config/mlService";
 
 const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://localhost:8000";
@@ -26,7 +26,7 @@ function getCacheKey(medA: string, medB: string): string {
 router.post(
     "/",
     requireAuth,
-    limiter,
+    compareLimiter,
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const parsed = compareRequestSchema.safeParse(req.body);
