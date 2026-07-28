@@ -1,5 +1,21 @@
 [
   {
+    "prNumber": 3889,
+    "title": "fix(alerts): retry expiry notifications after delivery failures",
+    "author": "Shreya-nipunge",
+    "mergedAt": "2026-07-28",
+    "area": "Backend",
+    "score": 6,
+    "docPath": "docs/devtrack/2026-07/PR-3889-fix-alerts-retry-expiry-notifications-after-delive.md",
+    "linkedIssue": "#3883",
+    "labels": "level:advanced,quality:clean,gssoc:approved,type:bug",
+    "filesChanged": [
+      "apps/api/src/cron/alert-broadcaster.ts",
+      "apps/api/tests/alertBroadcaster.test.ts"
+    ],
+    "adr": null
+  },
+  {
     "prNumber": 3872,
     "title": "fix(web): preserve local expiry-date boundaries",
     "author": "Shreya-nipunge",
