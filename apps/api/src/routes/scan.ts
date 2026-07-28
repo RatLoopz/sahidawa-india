@@ -290,6 +290,15 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
             const rawText = data.text || "";
             const confidence = data.confidence ?? 0;
 
+            if (rawText.trim().length === 0) {
+                logger.warn(`OCR returned empty text for "${file.originalname}" (confidence: ${confidence})`);
+                res.status(400).json({
+                    error: "No text could be extracted from the image.",
+                    code: "OCR_EMPTY_TEXT",
+                });
+                return;
+            }
+
             const {
                 parsedBatch,
                 parsedExpiry,
