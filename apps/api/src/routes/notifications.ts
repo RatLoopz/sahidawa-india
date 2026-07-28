@@ -9,6 +9,7 @@ import { supabase, dbConfig } from "../db/client";
 import { smsService } from "../services/sms-service";
 import { whatsappService } from "../services/whatsapp-service";
 import logger from "../utils/logger";
+import { redisClient } from "../utils/redis";
 import {
     getMockRecallFeed,
     getVapidPublicKey,
@@ -21,6 +22,57 @@ import {
 } from "../services/notifications";
 
 const router = Router();
+
+// ── OTP brute-force protection ─────────────────────────────────────────────────
+// Tracks failed OTP verification attempts per phone number using Redis.
+// Implements exponential backoff: lockout duration doubles with each failure.
+const MAX_OTP_ATTEMPTS = 5;
+const OTP_LOCKOUT_BASE_MS = 5 * 60 * 1000; // 5 minutes
+
+function getOtpFailKey(phone: string): string {
+    return `otp_fails:${phone}`;
+}
+
+function getOtpLockoutKey(phone: string): string {
+    return `otp_lockout:${phone}`;
+}
+
+function getOtpLockoutDuration(attempts: number): number {
+    return Math.min(OTP_LOCKOUT_BASE_MS * Math.pow(2, attempts - 1), 4 * 60 * 60 * 1000); // cap at 4 hours
+}
+
+async function checkOtpLockout(phone: string): Promise<number | null> {
+    if (!redisClient.isOpen) return null;
+    try {
+        const ttl = await redisClient.ttl(getOtpLockoutKey(phone));
+        if (ttl > 0) return ttl;
+    } catch (_) {}
+    return null;
+}
+
+async function recordFailedOtpAttempt(phone: string): Promise<void> {
+    if (!redisClient.isOpen) return;
+    try {
+        const key = getOtpFailKey(phone);
+        const attempts = await redisClient.incr(key);
+        if (attempts === 1) {
+            await redisClient.expire(key, 600); // counter expires after 10 min of inactivity
+        }
+        if (attempts >= MAX_OTP_ATTEMPTS) {
+            const lockDuration = getOtpLockoutDuration(attempts);
+            await redisClient.setEx(getOtpLockoutKey(phone), Math.ceil(lockDuration / 1000), "1");
+            await redisClient.del(key);
+        }
+    } catch (_) {}
+}
+
+async function clearOtpAttempts(phone: string): Promise<void> {
+    if (!redisClient.isOpen) return;
+    try {
+        await redisClient.del(getOtpFailKey(phone));
+        await redisClient.del(getOtpLockoutKey(phone));
+    } catch (_) {}
+}
 
 // ── Web Push Notifications (Existing) ──────────────────────────────────────────
 
@@ -442,110 +494,127 @@ router.post(
 
 const verifyOtpSchema = z
     .object({
-        phone: z.string(),
+        phone: z.string().min(10, "Phone number too short").max(20, "Phone number too long"),
         otp: z.string().length(6, "OTP must be exactly 6 digits"),
     })
     .strict();
 
-router.post("/verify-otp", authTargetLimiter, async (req, res) => {
-    const parsed = verifyOtpSchema.safeParse(req.body);
-    if (!parsed.success) {
-        res.status(400).json({ error: "Invalid payload", issues: parsed.error.issues });
-        return;
-    }
+router.post(
+    "/verify-otp",
+    authTargetLimiter,
+    optionalAuth,
+    async (req: AuthenticatedRequest, res) => {
+        const parsed = verifyOtpSchema.safeParse(req.body);
+        if (!parsed.success) {
+            res.status(400).json({ error: "Invalid payload", issues: parsed.error.issues });
+            return;
+        }
 
-    const { phone, otp } = parsed.data;
-    const formattedPhone = formatPhoneNumber(phone);
-    if (!formattedPhone) {
-        res.status(400).json({ error: "Invalid phone number format" });
-        return;
-    }
+        const { phone, otp } = parsed.data;
+        const formattedPhone = formatPhoneNumber(phone);
+        if (!formattedPhone) {
+            res.status(400).json({ error: "Invalid phone number format" });
+            return;
+        }
 
-    try {
-        let dbFailed = dbConfig?.isSupabaseOffline;
-        let subscriber = null;
+        const lockoutTtl = await checkOtpLockout(formattedPhone);
+        if (lockoutTtl !== null) {
+            res.status(429).json({
+                error: "Too many failed OTP attempts. Please try again later.",
+                retryAfterSeconds: lockoutTtl,
+            });
+            return;
+        }
 
-        if (!dbFailed) {
-            try {
-                const { data, error } = await supabase
-                    .from("notification_subscribers")
-                    .select("*")
-                    .eq("phone", formattedPhone)
-                    .maybeSingle();
+        try {
+            let dbFailed = dbConfig?.isSupabaseOffline;
+            let subscriber = null;
 
-                if (error) {
+            if (!dbFailed) {
+                try {
+                    const { data, error } = await supabase
+                        .from("notification_subscribers")
+                        .select("*")
+                        .eq("phone", formattedPhone)
+                        .maybeSingle();
+
+                    if (error) {
+                        dbFailed = true;
+                        if (
+                            error.message?.includes("fetch failed") ||
+                            error.message?.includes("refused") ||
+                            error.message?.includes("timeout")
+                        ) {
+                            if (dbConfig) dbConfig.setOffline();
+                        }
+                    } else {
+                        subscriber = data;
+                    }
+                } catch (dbError: any) {
                     dbFailed = true;
+                    const msg = dbError?.message || String(dbError);
                     if (
-                        error.message?.includes("fetch failed") ||
-                        error.message?.includes("refused") ||
-                        error.message?.includes("timeout")
+                        msg.includes("fetch failed") ||
+                        msg.includes("refused") ||
+                        msg.includes("timeout")
                     ) {
                         if (dbConfig) dbConfig.setOffline();
                     }
-                } else {
-                    subscriber = data;
-                }
-            } catch (dbError: any) {
-                dbFailed = true;
-                const msg = dbError?.message || String(dbError);
-                if (
-                    msg.includes("fetch failed") ||
-                    msg.includes("refused") ||
-                    msg.includes("timeout")
-                ) {
-                    if (dbConfig) dbConfig.setOffline();
                 }
             }
-        }
 
-        if (dbFailed) {
-            subscriber = memorySubscribers.get(formattedPhone);
-        }
+            if (dbFailed) {
+                subscriber = memorySubscribers.get(formattedPhone);
+            }
 
-        if (!subscriber) {
-            res.status(404).json({ error: "Subscriber not found" });
-            return;
-        }
-
-        if (subscriber.status === "active") {
-            res.json({ success: true, message: "Phone is already verified and active" });
-            return;
-        }
-
-        if (subscriber.verification_otp !== otp) {
-            res.status(400).json({ error: "Invalid OTP" });
-            return;
-        }
-
-        if (subscriber.otp_expires_at && new Date(subscriber.otp_expires_at) < new Date()) {
-            res.status(400).json({ error: "OTP expired" });
-            return;
-        }
-
-        if (!dbFailed) {
-            const { error: updateError } = await supabase
-                .from("notification_subscribers")
-                .update({ status: "active", verification_otp: null, otp_expires_at: null })
-                .eq("id", subscriber.id);
-
-            if (updateError) {
-                logger.error({ message: "Failed to activate subscriber", error: updateError });
-                res.status(500).json({ error: "Database error" });
+            if (!subscriber) {
+                res.status(404).json({ error: "Subscriber not found" });
                 return;
             }
-        } else {
-            subscriber.status = "active";
-            subscriber.verification_otp = null;
-            subscriber.otp_expires_at = null;
-            subscriber.updated_at = new Date().toISOString();
-        }
 
-        res.json({ success: true, message: "Phone verified successfully" });
-    } catch (err) {
-        logger.error({ message: "Error in /verify-otp endpoint", error: err });
-        res.status(500).json({ error: "Internal server error" });
+            if (subscriber.status === "active") {
+                res.json({ success: true, message: "Phone is already verified and active" });
+                return;
+            }
+
+            if (subscriber.verification_otp !== otp) {
+                await recordFailedOtpAttempt(formattedPhone);
+                res.status(400).json({ error: "Invalid OTP" });
+                return;
+            }
+
+            if (subscriber.otp_expires_at && new Date(subscriber.otp_expires_at) < new Date()) {
+                res.status(400).json({ error: "OTP expired" });
+                return;
+            }
+
+            await clearOtpAttempts(formattedPhone);
+
+            if (!dbFailed) {
+                const { error: updateError } = await supabase
+                    .from("notification_subscribers")
+                    .update({ status: "active", verification_otp: null, otp_expires_at: null })
+                    .eq("id", subscriber.id);
+
+                if (updateError) {
+                    logger.error({ message: "Failed to activate subscriber", error: updateError });
+                    res.status(500).json({ error: "Database error" });
+                    return;
+                }
+            } else {
+                subscriber.status = "active";
+                subscriber.verification_otp = null;
+                subscriber.otp_expires_at = null;
+                subscriber.updated_at = new Date().toISOString();
+            }
+
+            res.json({ success: true, message: "Phone verified successfully" });
+        } catch (err) {
+            logger.error({ message: "Error in /verify-otp endpoint", error: err });
+            res.status(500).json({ error: "Internal server error" });
+        }
     }
-});
+);
 
 router.patch(
     "/phone",
