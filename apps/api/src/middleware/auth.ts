@@ -122,13 +122,12 @@ export const createAuthMiddleware =
         }
 
         const cacheKey = `auth:user:${crypto.createHash("sha256").update(token).digest("hex")}`;
+        let cachedUser: AuthenticatedUser | null = null;
         try {
             if (redisClient.isOpen) {
                 const cached = await redisClient.get(cacheKey);
                 if (cached) {
-                    req.user = JSON.parse(cached);
-                    next();
-                    return;
+                    cachedUser = JSON.parse(cached);
                 }
             }
         } catch (err) {
@@ -149,6 +148,11 @@ export const createAuthMiddleware =
                     error.message?.includes("refused");
 
                 if (isConnectionError) {
+                    if (cachedUser) {
+                        req.user = cachedUser;
+                        next();
+                        return;
+                    }
                     if (dbConfig) dbConfig.setOffline();
                     logger.warn({
                         message: "Supabase auth server returned connection error.",
@@ -161,11 +165,21 @@ export const createAuthMiddleware =
                     }
                 }
 
+                try {
+                    if (redisClient.isOpen) {
+                        await redisClient.del(cacheKey);
+                    }
+                } catch (_) {}
                 res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
                 return;
             }
 
             if (!data.user) {
+                try {
+                    if (redisClient.isOpen) {
+                        await redisClient.del(cacheKey);
+                    }
+                } catch (_) {}
                 res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
                 return;
             }
@@ -179,7 +193,7 @@ export const createAuthMiddleware =
 
             try {
                 if (redisClient.isOpen) {
-                    await redisClient.setEx(cacheKey, 300, JSON.stringify(req.user));
+                    await redisClient.setEx(cacheKey, 30, JSON.stringify(req.user));
                 }
             } catch (err) {
                 logger.warn({
@@ -234,13 +248,12 @@ export const createOptionalAuthMiddleware =
         }
 
         const cacheKey = `auth:user:${crypto.createHash("sha256").update(token).digest("hex")}`;
+        let cachedUser: AuthenticatedUser | null = null;
         try {
             if (redisClient.isOpen) {
                 const cached = await redisClient.get(cacheKey);
                 if (cached) {
-                    req.user = JSON.parse(cached);
-                    next();
-                    return;
+                    cachedUser = JSON.parse(cached);
                 }
             }
         } catch (err) {
@@ -261,6 +274,11 @@ export const createOptionalAuthMiddleware =
                     error.message?.includes("refused");
 
                 if (isConnectionError) {
+                    if (cachedUser) {
+                        req.user = cachedUser;
+                        next();
+                        return;
+                    }
                     if (dbConfig) dbConfig.setOffline();
                     logger.warn({
                         message: "Supabase auth server returned connection error.",
@@ -273,6 +291,11 @@ export const createOptionalAuthMiddleware =
                     return;
                 }
 
+                try {
+                    if (redisClient.isOpen) {
+                        await redisClient.del(cacheKey);
+                    }
+                } catch (_) {}
                 res.status(401).json({
                     error: "Unauthorized: Invalid or expired token",
                 });
@@ -280,6 +303,11 @@ export const createOptionalAuthMiddleware =
             }
 
             if (!data.user) {
+                try {
+                    if (redisClient.isOpen) {
+                        await redisClient.del(cacheKey);
+                    }
+                } catch (_) {}
                 res.status(401).json({
                     error: "Unauthorized: Invalid or expired token",
                 });
@@ -295,7 +323,7 @@ export const createOptionalAuthMiddleware =
 
             try {
                 if (redisClient.isOpen) {
-                    await redisClient.setEx(cacheKey, 300, JSON.stringify(req.user));
+                    await redisClient.setEx(cacheKey, 30, JSON.stringify(req.user));
                 }
             } catch (err) {
                 logger.warn({
