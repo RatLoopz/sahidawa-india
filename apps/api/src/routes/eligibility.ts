@@ -4,6 +4,7 @@ import logger from "../utils/logger";
 import { anonSupabase } from "../db/supabase";
 import { dbConfig } from "../db/client";
 import { redisClient } from "../utils/redis";
+import { escapeIlike } from "@sahidawa/shared";
 import { eligibilityLimiter } from "../middleware/rateLimit";
 import {
     fetchPmjayEligibility,
@@ -288,7 +289,7 @@ router.post("/", eligibilityLimiter, async (req: Request, res: Response): Promis
                         const { data: dbData, error } = await anonSupabase
                             .from("health_schemes")
                             .select("*")
-                            .ilike("state_name", `%${userState}%`);
+                            .ilike("state_name", `%${escapeIlike(userState)}%`);
 
                         if (error) {
                             // DB error — fall back to static data.

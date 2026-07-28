@@ -108,6 +108,29 @@ export default function PharmacyMap({
     const [mapError, setMapError] = useState(false);
     const [isMapReady, setIsMapReady] = useState(false);
 
+    const isProgrammaticRef = useRef(false);
+
+    const performProgrammaticMove = (moveFn: () => void) => {
+        if (!map.current) return;
+        let started = false;
+        const onMoveStart = () => {
+            started = true;
+        };
+        map.current.once("movestart", onMoveStart);
+        isProgrammaticRef.current = true;
+
+        moveFn();
+
+        setTimeout(() => {
+            if (!started) {
+                isProgrammaticRef.current = false;
+                if (map.current) {
+                    map.current.off("movestart", onMoveStart);
+                }
+            }
+        }, 50);
+    };
+
     // Initialize the map
     useEffect(() => {
         let mounted = true;
@@ -196,6 +219,10 @@ export default function PharmacyMap({
                     };
 
                     map.current.on("moveend", () => {
+                        if (isProgrammaticRef.current) {
+                            isProgrammaticRef.current = false;
+                            return;
+                        }
                         if (moveEndDebounceRef.current) {
                             clearTimeout(moveEndDebounceRef.current);
                         }
@@ -710,9 +737,11 @@ export default function PharmacyMap({
 
         // Fit map to show all pharmacies (only if autoFitBounds is enabled)
         if (autoFitBounds && pharmacies.length > 0) {
-            map.current.fitBounds(bounds, {
-                padding: [50, 50],
-                maxZoom: 15,
+            performProgrammaticMove(() => {
+                map.current.fitBounds(bounds, {
+                    padding: [50, 50],
+                    maxZoom: 15,
+                });
             });
         }
     }, [pharmacies, isMapReady, autoFitBounds, onSelectPharmacy]);
@@ -725,8 +754,10 @@ export default function PharmacyMap({
         if (marker) {
             const pharmacy = pharmacies.find((p) => p.id === selectedPharmacyId);
             if (pharmacy) {
-                map.current.flyTo([pharmacy.coordinates.lat, pharmacy.coordinates.lng], 15, {
-                    duration: 0.8,
+                performProgrammaticMove(() => {
+                    map.current.flyTo([pharmacy.coordinates.lat, pharmacy.coordinates.lng], 15, {
+                        duration: 0.8,
+                    });
                 });
                 // Small delay to let flyTo start before opening popup safely
                 setTimeout(() => {
@@ -788,8 +819,10 @@ export default function PharmacyMap({
             userEl.setAttribute("aria-label", "Your location");
         }
 
-        map.current.flyTo([userLocation.lat, userLocation.lng], 14, {
-            duration: 1,
+        performProgrammaticMove(() => {
+            map.current.flyTo([userLocation.lat, userLocation.lng], 14, {
+                duration: 1,
+            });
         });
     }, [userLocation, isMapReady]);
 

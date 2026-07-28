@@ -1,6 +1,7 @@
 import { AlertTriangle, Download, FileSpreadsheet } from "lucide-react";
 import { exportComparisonToCSV, exportComparisonToPDF } from "@/src/lib/comparisonExport";
 import type { Medicine } from "@sahidawa/types";
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 
 export type { Medicine };
 
@@ -188,20 +189,6 @@ function getDirectComparison(medicine1: Medicine | null, medicine2: Medicine | n
     };
 }
 
-async function shareComparison(medicine1: Medicine | null, medicine2: Medicine | null) {
-    if (!medicine1 || !medicine2) return;
-
-    const url =
-        `${window.location.origin}${window.location.pathname}` +
-        `?m1=${medicine1.id}&m2=${medicine2.id}`;
-
-    try {
-        await navigator.clipboard.writeText(url);
-    } catch {
-        // Clipboard write failed — non-critical UX feature, fail silently
-    }
-}
-
 function handleExportCSV(
     medicines: Medicine[],
     rows: { label: string; getValue: (m: Medicine) => string }[]
@@ -223,6 +210,20 @@ export default function ComparisonGrid({
     medicines: (Medicine | null)[];
     labels?: ComparisonGridLabels;
 }) {
+    const [, copyShareLink] = useCopyToClipboard({
+        successMessage: "Comparison link copied!",
+        errorMessage: "Could not copy the link",
+    });
+
+    const handleShareComparison = (medicine1: Medicine | null, medicine2: Medicine | null) => {
+        if (!medicine1 || !medicine2) return;
+
+        const url =
+            `${window.location.origin}${window.location.pathname}` +
+            `?m1=${medicine1.id}&m2=${medicine2.id}`;
+
+        void copyShareLink(url);
+    };
     const validMedicines = medicines.filter((m): m is Medicine => m !== null);
 
     if (validMedicines.length === 0) {
@@ -360,7 +361,9 @@ export default function ComparisonGrid({
                         </button>
                         <button
                             type="button"
-                            onClick={() => shareComparison(validMedicines[0], validMedicines[1])}
+                            onClick={() =>
+                                handleShareComparison(validMedicines[0], validMedicines[1])
+                            }
                             className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                         >
                             Share Comparison

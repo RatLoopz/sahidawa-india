@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 
 /**
- * Tests for ExpiryTracker component — issue #2249
+ * Tests for ExpiryTracker component — issue #2249, #3612
  *
  * Covers:
  *  1. Renders the medicine name heading.
@@ -12,6 +12,9 @@
  *  6. Does NOT call the API when the component first mounts (no accidental side effects).
  *  7. Sends the correct Content-Type header.
  *  8. Handles a non-ok API response without throwing (graceful failure).
+ *  9. [#3612] Disables the submit button while the tracking request is in-flight.
+ * 10. [#3612] Re-enables the submit button after the request completes successfully.
+ * 11. [#3612] Shows an error message (and re-enables the button) when the network throws.
  */
 
 import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
@@ -243,5 +246,77 @@ describe("ExpiryTracker component", () => {
     it("works correctly with different medicine props", () => {
         render(<ExpiryTracker medicineId="med-999" medicineName="Ibuprofen 400mg" />);
         expect(screen.getByRole("heading", { name: "Ibuprofen 400mg" })).toBeInTheDocument();
+    });
+
+    // -----------------------------------------------------------------------
+    // #3612 — loading state / duplicate-submit prevention
+    // -----------------------------------------------------------------------
+
+    it("[#3612] disables the submit button while the tracking request is in-flight", async () => {
+        let resolveRequest!: (value: Response) => void;
+        mockFetchWithRetry.mockReturnValueOnce(
+            new Promise<Response>((res) => {
+                resolveRequest = res;
+            })
+        );
+
+        const { user } = setup();
+        const batchInput = screen.getByPlaceholderText("Batch Number");
+        const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+        const trackBtn = screen.getByRole("button", { name: /track expiry/i });
+
+        await user.type(batchInput, "B12345");
+        fireEvent.change(dateInput, { target: { value: "2099-12-31" } });
+
+        // Click — the request is still pending
+        await user.click(trackBtn);
+
+        // Button should be disabled while in-flight
+        await waitFor(() => {
+            expect(screen.getByRole("button")).toBeDisabled();
+        });
+
+        // Resolve the pending request
+        resolveRequest(makeJsonResponse({ tracked: true }, true));
+    });
+
+    it("[#3612] re-enables the submit button after the request completes successfully", async () => {
+        mockFetchWithRetry.mockResolvedValueOnce(makeJsonResponse({ tracked: true }, true));
+        const { user } = setup();
+
+        const batchInput = screen.getByPlaceholderText("Batch Number");
+        const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+
+        await user.type(batchInput, "B12345");
+        fireEvent.change(dateInput, { target: { value: "2099-12-31" } });
+        await user.click(screen.getByRole("button", { name: /track expiry/i }));
+
+        // After completion the button must be interactive again
+        await waitFor(() => {
+            expect(screen.getByRole("button")).not.toBeDisabled();
+        });
+    });
+
+    it("[#3612] shows an error and re-enables the button when the network throws", async () => {
+        mockFetchWithRetry.mockRejectedValueOnce(new Error("Network error"));
+        const { user } = setup();
+
+        const batchInput = screen.getByPlaceholderText("Batch Number");
+        const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+
+        await user.type(batchInput, "B12345");
+        fireEvent.change(dateInput, { target: { value: "2099-12-31" } });
+        await user.click(screen.getByRole("button", { name: /track expiry/i }));
+
+        // Error message must be visible
+        await waitFor(() => {
+            expect(screen.getByRole("alert")).toBeInTheDocument();
+        });
+
+        // Button must be re-enabled after the catch block runs
+        expect(screen.getByRole("button")).not.toBeDisabled();
+
+        // No success alert
+        expect(mockAlert).not.toHaveBeenCalled();
     });
 });

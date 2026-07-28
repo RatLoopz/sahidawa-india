@@ -2,14 +2,18 @@ import express, { Router } from "express";
 import { randomInt } from "node:crypto";
 import { z } from "zod";
 import { requireAuth, requireRole, optionalAuth, AuthenticatedRequest } from "../middleware/auth";
-import { notificationRegisterLimiter, authTargetLimiter } from "../middleware/rateLimit";
+import { notificationRegisterLimiter, authTargetLimiter, limiter } from "../middleware/rateLimit";
 import { cacheMiddleware } from "../middleware/cache";
 import { verifyTwilioSignature } from "../middleware/twilioSignature";
 import { supabase, dbConfig } from "../db/client";
 import { smsService } from "../services/sms-service";
 import { whatsappService } from "../services/whatsapp-service";
+import { memorySubscriberStore, InMemorySubscriber } from "../services/memorySubscriberStore";
+import { formatPhoneNumber } from "../utils/phone";
+import { escapeIlike } from "@sahidawa/shared";
 import logger from "../utils/logger";
 import { redisClient } from "../utils/redis";
+import { signGuestToken, verifyGuestPhone, isGuestTokenConfigured } from "../utils/guestToken";
 import {
     getMockRecallFeed,
     getVapidPublicKey,
@@ -82,7 +86,7 @@ const unsubscribeSchema = z
     })
     .strict();
 
-router.get("/vapid-public-key", cacheMiddleware(3600, 7200), (_req, res) => {
+router.get("/vapid-public-key", limiter, cacheMiddleware(3600, 7200), (_req, res) => {
     const publicKey = getVapidPublicKey();
     res.json({
         publicKey,
@@ -90,7 +94,7 @@ router.get("/vapid-public-key", cacheMiddleware(3600, 7200), (_req, res) => {
     });
 });
 
-router.post("/subscriptions", requireAuth, async (req: AuthenticatedRequest, res) => {
+router.post("/subscriptions", limiter, requireAuth, async (req: AuthenticatedRequest, res) => {
     const parsed = pushSubscriptionSchema.safeParse(req.body);
 
     if (!parsed.success) {
@@ -112,7 +116,7 @@ router.post("/subscriptions", requireAuth, async (req: AuthenticatedRequest, res
     });
 });
 
-router.delete("/subscriptions", requireAuth, async (req: AuthenticatedRequest, res) => {
+router.delete("/subscriptions", limiter, requireAuth, async (req: AuthenticatedRequest, res) => {
     const parsed = unsubscribeSchema.safeParse(req.body);
 
     if (!parsed.success) {
@@ -194,52 +198,64 @@ const twilioWebhookSchema = z.object({
     Body: z.string().optional(),
 });
 
-const deletePhoneSchema = z
-    .object({
-        phone: z.string().min(10).max(20).optional(),
-    })
-    .strict();
+// The only subscriber fields any client is allowed to receive. Everything else on
+// a row is either a secret (verification_otp, otp_expires_at) or account-linkage
+// PII (user_id) and must never be serialized into a response. Returning the raw
+// row from /status let an unauthenticated caller read another subscriber's OTP and
+// Supabase user_id just by knowing their phone number, so every subscriber we hand
+// back — from the DB or the in-memory fallback — goes through this projection.
+type PublicSubscriber = Pick<
+    InMemorySubscriber,
+    "phone" | "channels" | "language" | "district" | "is_active"
+>;
 
-import { formatPhoneNumber } from "../utils/phone"; // Local in-memory fallback store for development when Supabase is offline
-interface InMemorySubscriber {
-    id: string;
-    user_id: string | null;
-    phone: string;
-    channels: ("sms" | "whatsapp")[];
-    language: string;
-    district: string;
-    is_active: boolean;
-    status: string;
-    verification_otp: string | null;
-    otp_expires_at: string | null;
-    created_at: string;
-    updated_at: string;
+function toPublicSubscriber(sub: PublicSubscriber): PublicSubscriber {
+    return {
+        phone: sub.phone,
+        channels: sub.channels,
+        language: sub.language,
+        district: sub.district,
+        is_active: sub.is_active,
+    };
 }
 
-// Global flag to track Supabase offline status and skip connection retries instantly
-// (Live view of dbConfig.isSupabaseOffline is read directly inside request handlers)
-const memorySubscribers = new Map<string, InMemorySubscriber>();
+// Guests carry their proof-of-ownership token in a dedicated header rather than
+// Authorization: Bearer. optionalAuth runs first and validates any Bearer token
+// against Supabase, so a guest JWT in that header would be rejected with a 401
+// before the handler ever runs. A separate header keeps the two schemes apart.
+const GUEST_TOKEN_HEADER = "x-guest-token";
 
-router.get("/status", optionalAuth, async (req: AuthenticatedRequest, res) => {
+function getGuestToken(req: AuthenticatedRequest): string | undefined {
+    const header = req.headers[GUEST_TOKEN_HEADER];
+    return typeof header === "string" ? header : undefined;
+}
+
+router.get("/status", limiter, optionalAuth, async (req: AuthenticatedRequest, res) => {
     try {
-        let phone: string | undefined = undefined;
-        if (req.query.phone) {
-            const formatted = formatPhoneNumber(req.query.phone as string);
-            if (!formatted) {
-                res.status(400).json({ error: "Invalid phone number format" });
+        // Guests have no account, so they prove ownership of the number with a
+        // token minted at OTP verification. A bare ?phone= is no longer trusted,
+        // which stops one guest from reading another's subscription just by
+        // knowing their number.
+        let guestPhone: string | undefined;
+        if (!req.user) {
+            const verified = verifyGuestPhone(getGuestToken(req));
+            if (!verified) {
+                res.status(401).json({
+                    error: "A valid guest token is required to check status without signing in.",
+                });
                 return;
             }
-            phone = formatted;
+            guestPhone = verified;
         }
-        let query = supabase.from("notification_subscribers").select("*");
+
+        let query = supabase
+            .from("notification_subscribers")
+            .select("phone, channels, language, district, is_active");
 
         if (req.user) {
             query = query.eq("user_id", req.user.id);
-        } else if (phone) {
-            query = query.eq("phone", phone);
         } else {
-            res.json({ registered: false });
-            return;
+            query = query.eq("phone", guestPhone!);
         }
 
         let subscriber = null;
@@ -278,11 +294,9 @@ router.get("/status", optionalAuth, async (req: AuthenticatedRequest, res) => {
                 "Supabase database is offline. Falling back to in-memory subscription store."
             );
             if (req.user) {
-                subscriber = Array.from(memorySubscribers.values()).find(
-                    (s) => s.user_id === req.user!.id
-                );
-            } else if (phone) {
-                subscriber = memorySubscribers.get(phone);
+                subscriber = memorySubscriberStore.find((s) => s.user_id === req.user!.id);
+            } else {
+                subscriber = memorySubscriberStore.get(guestPhone!);
             }
         }
 
@@ -291,7 +305,7 @@ router.get("/status", optionalAuth, async (req: AuthenticatedRequest, res) => {
             return;
         }
 
-        res.json({ registered: true, subscriber });
+        res.json({ registered: true, subscriber: toPublicSubscriber(subscriber) });
     } catch (err) {
         logger.error({ message: "Error in /status endpoint", error: err });
         res.status(500).json({ error: "Internal server error" });
@@ -369,7 +383,7 @@ router.post(
             let result;
             if (dbFailed) {
                 logger.warn("Supabase database is offline. Registering subscriber in-memory.");
-                existing = memorySubscribers.get(formattedPhone);
+                existing = memorySubscriberStore.get(formattedPhone);
 
                 if (existing) {
                     existing.user_id = req.user?.id || existing.user_id;
@@ -401,7 +415,7 @@ router.post(
                         created_at: new Date().toISOString(),
                         updated_at: new Date().toISOString(),
                     };
-                    memorySubscribers.set(formattedPhone, result);
+                    memorySubscriberStore.set(formattedPhone, result);
                 }
             } else {
                 if (existing) {
@@ -484,7 +498,7 @@ router.post(
                 await Promise.allSettled(sends);
             }
 
-            res.status(201).json({ success: true, subscriber: result });
+            res.status(201).json({ success: true, subscriber: toPublicSubscriber(result) });
         } catch (err) {
             logger.error({ message: "Error in /register endpoint", error: err });
             res.status(500).json({ error: "Internal server error" });
@@ -608,18 +622,34 @@ router.post(
                 subscriber.updated_at = new Date().toISOString();
             }
 
-            res.json({ success: true, message: "Phone verified successfully" });
-        } catch (err) {
-            logger.error({ message: "Error in /verify-otp endpoint", error: err });
-            res.status(500).json({ error: "Internal server error" });
+        // The OTP matched, so the caller has proven control of this number. Mint
+        // a short-lived token they can present to the guest read/write endpoints
+        // instead of a bare phone number. Only this success path issues a token —
+        // the "already active" short-circuit above never verifies an OTP, so it
+        // must not hand one out.
+        const responseBody: { success: true; message: string; guestToken?: string } = {
+            success: true,
+            message: "Phone verified successfully",
+        };
+        if (isGuestTokenConfigured()) {
+            responseBody.guestToken = signGuestToken(formattedPhone);
+        } else {
+            logger.error(
+                "JWT_SECRET is not set; a verified guest cannot be issued a session token."
+            );
         }
+
+        res.json(responseBody);
+    } catch (err) {
+        logger.error({ message: "Error in /verify-otp endpoint", error: err });
+        res.status(500).json({ error: "Internal server error" });
     }
 );
 
 router.patch(
     "/phone",
     notificationRegisterLimiter,
-    requireAuth,
+    optionalAuth,
     async (req: AuthenticatedRequest, res) => {
         const parsed = updatePhoneSchema.safeParse(req.body);
         if (!parsed.success) {
@@ -643,23 +673,54 @@ router.patch(
             formattedNewPhone = fNew;
         }
 
+        // Resolve who is making the change: a signed-in user (scoped by user_id)
+        // or a guest who proved ownership of their number with a token (scoped by
+        // that number). Guests may not move their subscription to a different
+        // number here — changing the number means re-verifying it through
+        // register + OTP, so the new number's owner still has to consent.
+        let guestPhone: string | undefined;
+        if (!req.user) {
+            const verified = verifyGuestPhone(getGuestToken(req));
+            if (!verified) {
+                res.status(401).json({
+                    error: "A valid guest token is required to update settings without signing in.",
+                });
+                return;
+            }
+            if (formattedNewPhone) {
+                res.status(400).json({
+                    error: "Changing your number requires verifying the new number first.",
+                });
+                return;
+            }
+            guestPhone = verified;
+        }
+
+        // Build the set of columns to change up front. With nothing to change the
+        // request is a no-op, and issuing an empty PostgREST UPDATE is undefined
+        // behaviour, so reject it before touching the database.
+        const updateData: Record<string, unknown> = {};
+        if (formattedNewPhone !== undefined) updateData.phone = formattedNewPhone;
+        if (channels !== undefined) updateData.channels = channels;
+        if (language !== undefined) updateData.language = language;
+        if (district !== undefined) updateData.district = district;
+        if (is_active !== undefined) updateData.is_active = is_active;
+
+        if (Object.keys(updateData).length === 0) {
+            res.status(400).json({ error: "No changes were provided to update." });
+            return;
+        }
+
         try {
             let data = null;
             let dbFailed = dbConfig?.isSupabaseOffline;
 
             if (!dbFailed) {
                 try {
-                    const updateData: Record<string, unknown> = {};
-                    if (formattedNewPhone !== undefined) updateData.phone = formattedNewPhone;
-                    if (channels !== undefined) updateData.channels = channels;
-                    if (language !== undefined) updateData.language = language;
-                    if (district !== undefined) updateData.district = district;
-                    if (is_active !== undefined) updateData.is_active = is_active;
-
-                    const query = supabase
-                        .from("notification_subscribers")
-                        .update(updateData)
-                        .eq("user_id", req.user!.id);
+                    let query = supabase.from("notification_subscribers").update(updateData);
+                    query = req.user
+                        ? query.eq("user_id", req.user.id)
+                        : query.eq("phone", guestPhone!);
 
                     const { data: dbData, error } = await query.select();
                     if (error) {
@@ -689,15 +750,15 @@ router.patch(
 
             if (dbFailed) {
                 logger.warn("Supabase database is offline. Updating subscriber in-memory.");
-                let sub = Array.from(memorySubscribers.values()).find(
-                    (s) => s.user_id === req.user!.id
-                );
+                let sub = req.user
+                    ? memorySubscriberStore.find((s) => s.user_id === req.user!.id)
+                    : memorySubscriberStore.get(guestPhone!);
 
                 if (sub) {
                     if (formattedNewPhone) {
-                        memorySubscribers.delete(sub.phone);
+                        memorySubscriberStore.delete(sub.phone);
                         sub.phone = formattedNewPhone;
-                        memorySubscribers.set(formattedNewPhone, sub);
+                        memorySubscriberStore.set(formattedNewPhone, sub);
                     }
                     if (channels) sub.channels = channels;
                     if (language) sub.language = language;
@@ -715,7 +776,7 @@ router.patch(
                 return;
             }
 
-            res.json({ success: true, subscriber: data[0] });
+            res.json({ success: true, subscriber: toPublicSubscriber(data[0]) });
         } catch (err) {
             logger.error({ message: "Error in /phone update endpoint", error: err });
             res.status(500).json({ error: "Internal server error" });
@@ -723,16 +784,19 @@ router.patch(
     }
 );
 
-router.delete("/phone", optionalAuth, async (req: AuthenticatedRequest, res) => {
-    const parsed = deletePhoneSchema.safeParse(req.body);
-    let phone: string | undefined = undefined;
-    if (parsed.success && parsed.data.phone) {
-        const formatted = formatPhoneNumber(parsed.data.phone);
-        if (!formatted) {
-            res.status(400).json({ error: "Invalid phone number format" });
+router.delete("/phone", limiter, optionalAuth, async (req: AuthenticatedRequest, res) => {
+    // Identity comes from the session or a valid guest token, never from the
+    // request body. A guest can only opt out the number they proved they own.
+    let guestPhone: string | undefined;
+    if (!req.user) {
+        const verified = verifyGuestPhone(getGuestToken(req));
+        if (!verified) {
+            res.status(401).json({
+                error: "A valid guest token is required to opt out without signing in.",
+            });
             return;
         }
-        phone = formatted;
+        guestPhone = verified;
     }
 
     try {
@@ -742,15 +806,9 @@ router.delete("/phone", optionalAuth, async (req: AuthenticatedRequest, res) => 
         if (!dbFailed) {
             try {
                 let query = supabase.from("notification_subscribers").delete();
-
-                if (req.user) {
-                    query = query.eq("user_id", req.user.id);
-                } else if (phone) {
-                    query = query.eq("phone", phone);
-                } else {
-                    res.status(400).json({ error: "Phone number is required for guest opt-out" });
-                    return;
-                }
+                query = req.user
+                    ? query.eq("user_id", req.user.id)
+                    : query.eq("phone", guestPhone!);
 
                 const { data: dbData, error } = await query.select();
                 if (error) {
@@ -781,13 +839,11 @@ router.delete("/phone", optionalAuth, async (req: AuthenticatedRequest, res) => 
         if (dbFailed) {
             logger.warn("Supabase database is offline. Deleting subscriber in-memory.");
             let sub = req.user
-                ? Array.from(memorySubscribers.values()).find((s) => s.user_id === req.user!.id)
-                : phone
-                  ? memorySubscribers.get(phone)
-                  : undefined;
+                ? memorySubscriberStore.find((s) => s.user_id === req.user!.id)
+                : memorySubscriberStore.get(guestPhone!);
 
             if (sub) {
-                memorySubscribers.delete(sub.phone);
+                memorySubscriberStore.delete(sub.phone);
                 data = [sub];
             } else {
                 data = [];
@@ -842,7 +898,7 @@ router.post("/broadcast", requireAuth, requireRole("admin"), async (req, res) =>
                 .range(totalProcessed, totalProcessed + BATCH_SIZE - 1);
 
             if (district && district.toLowerCase() !== "all") {
-                query = query.ilike("district", district);
+                query = query.ilike("district", escapeIlike(district));
             }
 
             const { data: subscribers, error } = await query;

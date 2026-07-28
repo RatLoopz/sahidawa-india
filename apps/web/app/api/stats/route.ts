@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { createServiceRoleSupabaseClient } from "@/lib/rateLimitMetrics";
 
 export const revalidate = 60; // Cache for 1 minute (was 3600)
 
 export async function GET() {
     try {
+        const serviceRoleSupabase = createServiceRoleSupabaseClient();
         const [bannedRes, recalledRes, counterfeitRes, nsqRes, scansRes, pharmaciesRes] =
             await Promise.all([
                 supabase
@@ -23,7 +25,9 @@ export async function GET() {
                     .from("drug_alerts")
                     .select("*", { count: "exact", head: true })
                     .eq("alert_type", "NSQ"),
-                supabase.from("scan_history").select("*", { count: "exact", head: true }),
+                serviceRoleSupabase
+                    .from("scan_history")
+                    .select("*", { count: "exact", head: true }),
                 supabase
                     .from("pharmacies")
                     .select("*", { count: "exact", head: true })

@@ -1,7 +1,7 @@
 "use client";
 
 import { FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
-import { Sparkles, Heart, Mail, ExternalLink, CalendarRange } from "lucide-react";
+import { Heart, Mail, ExternalLink, CalendarRange } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -9,7 +9,10 @@ import { useTranslations } from "next-intl";
 export default function Footer() {
     const pathname = usePathname();
     const isHome = pathname ? /^\/[a-z]{2}$|^\/$/.test(pathname) : false;
+    const isMap = pathname ? pathname.includes("/map") : false;
     const t = useTranslations("Footer");
+
+    if (isMap) return null;
 
     const quickLinks = [
         {

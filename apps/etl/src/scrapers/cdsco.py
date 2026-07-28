@@ -140,6 +140,45 @@ class CDSCOScraper:
             raise parse_err
 
         return self._validate_records(data.get("aaData", []), page_num)
+    
+    def _fetch_sequential_until_empty(self, page_size: int) -> Path:
+        """
+        Fallback pagination strategy used when the API doesn't return a
+        reliable total-record count. Fetches pages one at a time until
+        an empty page is returned (robust exit condition).
+        """
+        all_records = []
+        page_num = 1
+        display_start = 0
+
+        while True:
+            records = self._fetch_single_page(page_num, display_start, page_size)
+
+            if not records:
+                logger.info(f"[CDSCO] Empty page {page_num} received — stopping pagination.")
+                break
+
+            all_records.extend(records)
+
+            # Exit early if the API returned fewer records than requested —
+            # a strong signal that we've reached the last page.
+            if len(records) < page_size:
+                logger.info(
+                    f"[CDSCO] Page {page_num} returned {len(records)} < {page_size} records — "
+                    "reached the last page."
+                )
+                break
+
+            page_num += 1
+            display_start += page_size
+
+        logger.info(f"[CDSCO] Sequential pagination completed. Total records fetched: {len(all_records)}")
+
+        SEEDS_DIR.mkdir(parents=True, exist_ok=True)
+        df = pd.DataFrame(all_records)
+        df.to_csv(REFERENCE_CSV, index=False)
+        logger.info(f"[CDSCO] Saved to {REFERENCE_CSV}")
+        return REFERENCE_CSV
 
     def fetch_and_save(self, force: bool = False) -> Path:
         """
@@ -176,7 +215,11 @@ class CDSCOScraper:
             total_records = probe_data.get("iTotalDisplayRecords") or probe_data.get("iTotalRecords") or 0
             
             if total_records == 0:
-                raise ValueError("Could not extract a valid total record count from CDSCO API metadata metadata fields.")
+                logger.warning(
+                    "[CDSCO] Could not extract a valid total record count from API metadata. "
+                    "Falling back to sequential fetch-until-empty mode."
+                )
+                return self._fetch_sequential_until_empty(page_size)
 
             # Step 2: Dynamically calculate exact max pages needed
             max_pages = math.ceil(total_records / page_size)

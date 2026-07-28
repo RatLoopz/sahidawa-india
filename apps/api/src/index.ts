@@ -8,6 +8,8 @@ import { connectRedis } from "./utils/redis";
 import { warmCache } from "./services/cache.service";
 import compareRouter from "./routes/compare";
 
+import { medicineNameNormalizer } from "./utils/medicineNameNormalizer";
+
 const port = process.env.PORT || 4000;
 
 // SECURITY: BYPASS_AUTH_FOR_TESTING grants the local-dev mock user (which can
@@ -63,7 +65,6 @@ if (process.env.NODE_ENV !== "test") {
         await warmCache();
 
         // Load dynamic OCR synonyms
-        const { medicineNameNormalizer } = await import("./utils/medicineNameNormalizer.js");
         await medicineNameNormalizer.loadFromDatabase();
 
         // Start cron jobs only after Redis is ready

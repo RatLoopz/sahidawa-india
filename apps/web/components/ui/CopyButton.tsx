@@ -1,10 +1,8 @@
 "use client";
-import { handleApiError } from "@/lib/apiErrorHandler";
-import React, { useState } from "react";
+import React from "react";
 import { Copy, Check } from "lucide-react";
-import { toast } from "sonner";
 import { clsx } from "clsx";
-
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 interface CopyButtonProps {
     text: string;
     className?: string;
@@ -16,23 +14,16 @@ export const CopyButton = ({
     className,
     toastMessage = "Copied to clipboard!",
 }: CopyButtonProps) => {
-    const [isCopied, setIsCopied] = useState(false);
+    const [isCopied, copy] = useCopyToClipboard({
+        successMessage: toastMessage,
+    });
 
     const handleCopy = async (e: React.MouseEvent) => {
         // Stop propagation to prevent parent card click handlers (like map centering) from triggering
         e.stopPropagation();
         e.preventDefault();
 
-        try {
-            await navigator.clipboard.writeText(text);
-            setIsCopied(true);
-            toast.success(toastMessage);
-
-            // Revert icon back to Copy after 2 seconds
-            setTimeout(() => setIsCopied(false), 2000);
-        } catch (error) {
-            await handleApiError(error, "Failed to copy");
-        }
+        await copy(text);
     };
 
     return (

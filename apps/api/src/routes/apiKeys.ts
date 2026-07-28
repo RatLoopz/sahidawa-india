@@ -6,9 +6,15 @@ import { requireAuth, AuthenticatedRequest } from "../middleware/auth";
 import { apiKeyLimiter } from "../middleware/rateLimit";
 import { supabase } from "../db/client";
 import logger from "../utils/logger";
+import { redisClient } from "../utils/redis";
 
 const router = Router();
 const pbkdf2Async = promisify(pbkdf2);
+
+// ML workers subscribe to this Redis Pub/Sub channel and force-close a user's
+// active WebSocket streams when they receive their user_id here. Must match
+// API_KEY_REVOKED_CHANNEL in apps/ml/utils/ws_registry.py.
+const API_KEY_REVOKED_CHANNEL = "api_key_revoked_channel";
 
 // The `id` column is a Postgres uuid, which rejects a non-uuid value with a
 // syntax error (22P02) that would otherwise surface as a 500. Validating the
@@ -191,6 +197,25 @@ router.post(
             }
 
             logger.info("API key revoked", { keyId: id, userId });
+
+            // Best-effort: tell the ML workers to force-close this user's active
+            // WebSocket streams. A Redis hiccup must not fail the revoke itself —
+            // re-connection is still blocked by the handshake either way.
+            if (redisClient.isOpen) {
+                try {
+                    await redisClient.publish(
+                        API_KEY_REVOKED_CHANNEL,
+                        JSON.stringify({ user_id: userId })
+                    );
+                } catch (pubErr) {
+                    logger.error("Failed to publish API key revocation signal", {
+                        error: pubErr,
+                        keyId: id,
+                        userId,
+                    });
+                }
+            }
+
             res.status(200).json({ message: "API key revoked", keyId: id });
         } catch (error) {
             logger.error("Unexpected error revoking API key", { error });

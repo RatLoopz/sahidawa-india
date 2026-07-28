@@ -30,6 +30,8 @@ from services.telemetry import (
     start_timer,
 )
 from utils.audio_upload import read_audio_upload_limited
+from utils.ws_ticket import extract_ticket_user_id
+from utils.ws_registry import register_connection, unregister_connection
 
 logger = logging.getLogger(__name__)
 telemetry_logger = get_telemetry_logger()
@@ -276,7 +278,7 @@ def _run_ner(transcript: str) -> dict:
 # Upload transcription
 # ---------------------------------------------------------------------------
 
-def transcribe_uploaded_bytes(
+async def transcribe_uploaded_bytes(
     contents: bytes,
     *,
     original_name: str,
@@ -299,7 +301,7 @@ def transcribe_uploaded_bytes(
     requested_language = normalize_requested_language(language)
     suffix = os.path.splitext(original_name)[-1].lower() or ".wav"
 
-    return _transcribe_audio_bytes(
+    return await _transcribe_audio_bytes(
         contents,
         original_name=original_name,
         suffix=suffix,
@@ -307,7 +309,7 @@ def transcribe_uploaded_bytes(
     )
 
 
-def _transcribe_audio_bytes(
+async def _transcribe_audio_bytes(
     contents: bytes,
     *,
     original_name: str,
@@ -325,19 +327,22 @@ def _transcribe_audio_bytes(
         normalized_path = tmp_path + "_norm.wav"
 
         try:
-            ffmpeg_result = subprocess.run(
-                [
-                    "ffmpeg", "-y",
-                    "-i", tmp_path,
-                    "-ar", "16000",
-                    "-ac", "1",
-                    "-f", "wav",
-                    normalized_path,
-                ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                timeout=30,
-            )
+            def _run_ffmpeg():
+                return subprocess.run(
+                    [
+                        "ffmpeg", "-y",
+                        "-i", tmp_path,
+                        "-ar", "16000",
+                        "-ac", "1",
+                        "-f", "wav",
+                        normalized_path,
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    timeout=30,
+                )
+
+            ffmpeg_result = await asyncio.to_thread(_run_ffmpeg)
         except FileNotFoundError:
             logger.error(
                 "ffmpeg not found. Install it on the ML host "
@@ -377,14 +382,18 @@ def _transcribe_audio_bytes(
         transcription_started_at = start_timer()
         memory_before_mb = get_memory_usage_mb()
 
-        segments, info = get_model().transcribe(
-            reduced_audio,
-            language=requested_language,
-            task="transcribe",
-            beam_size=WHISPER_BEAM_SIZE,
-            vad_filter=True,
-            vad_parameters=STREAM_VAD_PARAMETERS,
-        )
+        def _do_transcribe():
+            segs, inf = get_model().transcribe(
+                reduced_audio,
+                language=requested_language,
+                task="transcribe",
+                beam_size=WHISPER_BEAM_SIZE,
+                vad_filter=True,
+                vad_parameters=STREAM_VAD_PARAMETERS,
+            )
+            return list(segs), inf
+
+        segments, info = await asyncio.to_thread(_do_transcribe)
 
         transcript = " ".join(seg.text for seg in segments).strip()
 
@@ -907,7 +916,7 @@ async def transcribe_audio(
     """
     contents = await read_audio_upload_limited(file)
     original_name = file.filename or "upload"
-    return transcribe_uploaded_bytes(
+    return await transcribe_uploaded_bytes(
         contents,
         original_name=original_name,
         content_type=file.content_type,
@@ -923,6 +932,13 @@ async def transcribe_audio(
 async def stream_transcription(websocket: WebSocket):
     await websocket.accept()
     session: StreamingAsrSession | None = None
+
+    # The ticket was already authenticated by the route dependency; recover the
+    # user_id it carries (v2 tickets) so this socket can be force-closed if the
+    # user's access is revoked mid-stream. v1/legacy tickets yield None.
+    user_id = extract_ticket_user_id(websocket.query_params.get("ticket"))
+    if user_id:
+        register_connection(user_id, websocket)
 
     try:
         # ---- handshake ----
@@ -996,14 +1012,15 @@ async def stream_transcription(websocket: WebSocket):
                     return
 
                 if message.get("bytes"):
-                    partial = session.append_and_maybe_transcribe(
+                    partial = await asyncio.to_thread(
+                        session.append_and_maybe_transcribe,
                         message["bytes"],
                         mime_type=mime_type,
                         language=language,
                     )
 
                     if session.total_audio_seconds > MAX_TRANSCRIPTION_DURATION_SECONDS:
-                        final = session.finalize(mime_type=mime_type, language=language)
+                        final = await asyncio.to_thread(session.finalize, mime_type=mime_type, language=language)
                         await websocket.send_json({
                             "type": "error",
                             "error": f"Streaming session exceeded maximum duration of {MAX_TRANSCRIPTION_DURATION_SECONDS}s.",
@@ -1034,7 +1051,7 @@ async def stream_transcription(websocket: WebSocket):
                         return
 
                     if text_payload.get("type") == "stop":
-                        final = session.finalize(mime_type=mime_type, language=language)
+                        final = await asyncio.to_thread(session.finalize, mime_type=mime_type, language=language)
                         await websocket.send_json({"type": "final", **final})
                         await websocket.close()
                         return
@@ -1051,5 +1068,7 @@ async def stream_transcription(websocket: WebSocket):
     except WebSocketDisconnect:
         return
     finally:
+        if user_id:
+            unregister_connection(user_id, websocket)
         if session is not None:
             await run_in_threadpool(session.close)

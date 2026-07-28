@@ -280,6 +280,15 @@ Example:
 { "scan.button": "மருந்தை ஸ்கேன் செய்யுங்கள்", "scan.result.real": "இந்த மருந்து உண்மையானது" }
 ```
 
+> [!IMPORTANT]
+> **Adding new UI text?** Add every new key to `apps/web/messages/en.json` (the source of truth) **first**. CI runs an automated check on every PR that fails if any language file is missing a key that exists in `en.json`. Run it locally before pushing to catch gaps early:
+>
+> ```bash
+> npm run i18n:check-missing -w web
+> ```
+>
+> It prints the missing keys per language and exits non-zero if any are found. If you add English text, either add the matching keys to every locale file or coordinate with the translation contributors before merging.
+
 #### UI Components
 
 - Pick a component issue labeled `good-first-issue` + `frontend`

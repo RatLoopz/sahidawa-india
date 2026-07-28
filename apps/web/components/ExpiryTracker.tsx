@@ -16,6 +16,7 @@ export const ExpiryTracker = ({ medicineId, medicineName }: ExpiryTrackerProps) 
     const [expiryDate, setExpiryDate] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [remindMe, setRemindMe] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     // Checks if the expiry date is within 30 days
     const isExpiringWithin30Days = (dateStr: string): boolean => {
@@ -88,6 +89,7 @@ export const ExpiryTracker = ({ medicineId, medicineName }: ExpiryTrackerProps) 
             return;
         }
 
+        setIsLoading(true);
         try {
             const csrfToken = await getCsrfToken();
             const response = await fetchWithRetry(`${API_BASE}/api/v1/medicines/track`, {
@@ -124,6 +126,8 @@ export const ExpiryTracker = ({ medicineId, medicineName }: ExpiryTrackerProps) 
             }
         } catch {
             setError(t("error"));
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -170,8 +174,12 @@ export const ExpiryTracker = ({ medicineId, medicineName }: ExpiryTrackerProps) 
                     })}
                 </label>
             </div>
-            <button onClick={handleTrack} className="mt-2 w-full bg-green-600 p-2 text-white">
-                {t("trackButton")}
+            <button
+                onClick={handleTrack}
+                disabled={isLoading}
+                className="mt-2 w-full bg-green-600 p-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
+            >
+                {isLoading ? t("loadingButton", { defaultValue: "Tracking..." }) : t("trackButton")}
             </button>
             {error && (
                 <p role="alert" className="mt-2 text-sm text-red-600">

@@ -30,6 +30,13 @@ interface WishlistItem {
     created_at: string;
 }
 
+class WishlistMergeUnavailableError extends Error {
+    constructor() {
+        super("Wishlist sync is temporarily unavailable. Please try again.");
+        this.name = "WishlistMergeUnavailableError";
+    }
+}
+
 export async function mergeGuestWishlist(
     userId: string,
     guestProductIds: string[]
@@ -46,7 +53,7 @@ export async function mergeGuestWishlist(
 
         if (fetchError) {
             logger.error("Failed to fetch existing wishlist", { error: fetchError });
-            return [];
+            throw new WishlistMergeUnavailableError();
         }
 
         const existingProductIds = new Set(
@@ -58,10 +65,17 @@ export async function mergeGuestWishlist(
         if (newProductIds.length === 0) {
             return [];
         }
-        const { data: existingMedicines } = await supabase
+        const { data: existingMedicines, error: medicineLookupError } = await supabase
             .from("medicines")
             .select("id")
             .in("id", newProductIds);
+
+        if (medicineLookupError) {
+            logger.error("Failed to validate guest wishlist medicines", {
+                error: medicineLookupError,
+            });
+            throw new WishlistMergeUnavailableError();
+        }
 
         const verifiedProductIds = new Set(
             (existingMedicines || []).map((m: { id: string }) => m.id)
@@ -84,13 +98,14 @@ export async function mergeGuestWishlist(
 
         if (insertError) {
             logger.error("Failed to merge guest wishlist", { error: insertError });
-            return [];
+            throw new WishlistMergeUnavailableError();
         }
 
         return (inserted || []).map((item: Pick<WishlistItem, "product_id">) => item.product_id);
     } catch (err) {
-        logger.error("Error merging guest wishlist", { error: err });
-        return [];
+        if (err instanceof WishlistMergeUnavailableError) throw err;
+        logger.error("Unexpected error merging guest wishlist", { error: err });
+        throw new WishlistMergeUnavailableError();
     }
 }
 
@@ -271,6 +286,14 @@ router.post(
                 merged_items: mergedIds,
             });
         } catch (err) {
+            if (err instanceof WishlistMergeUnavailableError) {
+                res.status(503).json({
+                    success: false,
+                    error: err.message,
+                    code: "WISHLIST_MERGE_UNAVAILABLE",
+                });
+                return;
+            }
             next(err);
         }
     }

@@ -14,20 +14,39 @@ const BLOCKED_HOSTNAME_PATTERNS = [
     /^172\.(1[6-9]|2\d|3[01])\./,
     /^192\.168\./,
     /^169\.254\./,
-    /^::1$/,
+    /^::1$/i,
     /^fc00:/i,
     /^fe80:/i,
 ];
+
+/**
+ * Extract the embedded IPv4 address from an IPv6-mapped IPv4 address.
+ *
+ * Example:
+ *   ::ffff:127.0.0.1   -> 127.0.0.1
+ *   ::FFFF:10.0.0.5    -> 10.0.0.5
+ */
+function getMappedIpv4(hostname: string): string | null {
+    const match = hostname.match(/^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i);
+    return match ? match[1] : null;
+}
 
 /**
  * Returns true when the hostname is a safe external address, false for any
  * private, loopback, or link-local hostname.
  */
 function isAllowedHostname(hostname: string): boolean {
-    if (process.env.NODE_ENV !== "production" && /^(localhost|127\.0\.0\.1)$/i.test(hostname)) {
+    const mappedIpv4 = getMappedIpv4(hostname);
+    const normalizedHostname = mappedIpv4 ?? hostname;
+
+    if (
+        process.env.NODE_ENV !== "production" &&
+        /^(localhost|127\.0\.0\.1)$/i.test(normalizedHostname)
+    ) {
         return true;
     }
-    return !BLOCKED_HOSTNAME_PATTERNS.some((pattern) => pattern.test(hostname));
+
+    return !BLOCKED_HOSTNAME_PATTERNS.some((pattern) => pattern.test(normalizedHostname));
 }
 
 /**

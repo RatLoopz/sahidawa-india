@@ -204,7 +204,7 @@ function buildConsolidatedExpiryMessage(
 async function sendConsolidatedExpiryNotification(
     sub: NotificationSubscriber,
     batchSummaries: ExpiringBatchSummary[]
-): Promise<void> {
+): Promise<boolean> {
     const { title, body } = buildConsolidatedExpiryMessage(batchSummaries, sub.language);
     const fullMessage = `${title}\n\n${body}`;
 
@@ -216,7 +216,8 @@ async function sendConsolidatedExpiryNotification(
         sendPromises.push(whatsappService.send(sub.phone, fullMessage, sub.language));
     }
 
-    await Promise.all(sendPromises);
+    const results = await Promise.allSettled(sendPromises);
+    return results.some((result) => result.status === "fulfilled" && result.value);
 }
 
 export async function broadcastDistrictAlerts(): Promise<void> {
@@ -446,50 +447,18 @@ export async function broadcastExpiryAlerts(now: Date = new Date()): Promise<voi
             return;
         }
 
-        const successfullyMarkedIds = new Set<string>();
-
-        for (
-            let i = 0;
-            i < expiringBatches.length;
-            i += broadcastConfig.MARK_BROADCASTED_CHUNK_SIZE
-        ) {
-            const chunk = expiringBatches.slice(i, i + broadcastConfig.MARK_BROADCASTED_CHUNK_SIZE);
-            const chunkIds = chunk.map((batch) => batch.id);
-
-            const { error: markError } = await supabase
-                .from("batches")
-                .update({ expiry_broadcasted: true })
-                .in("id", chunkIds);
-
-            if (markError) {
-                // Only this chunk is skipped for the current tick — the batches
-                // in it remain expiry_broadcasted = false and will be retried
-                // on the next scheduled run.
-                logger.error({
-                    message:
-                        "Failed to mark batch chunk as expiry_broadcasted, skipping chunk for this tick",
-                    error: markError,
-                    batchIds: chunkIds,
-                });
-                continue;
-            }
-
-            for (const id of chunkIds) successfullyMarkedIds.add(id);
-        }
-
-        const batchSummaries: ExpiringBatchSummary[] = expiringBatches
-            .filter((batch) => successfullyMarkedIds.has(batch.id))
-            .map((batch) => ({
-                medicineName: batch.medicine?.brand_name || "Unknown Medicine",
-                batchNumber: batch.batch_number,
-                expiryDate: batch.expiry_date,
-            }));
+        const batchSummaries: ExpiringBatchSummary[] = expiringBatches.map((batch) => ({
+            medicineName: batch.medicine?.brand_name || "Unknown Medicine",
+            batchNumber: batch.batch_number,
+            expiryDate: batch.expiry_date,
+        }));
 
         if (batchSummaries.length === 0) return;
 
         let from = 0;
         let to = PAGE_SIZE - 1;
         let hasMore = true;
+        let hasSuccessfulDelivery = false;
 
         while (hasMore) {
             const { data: subscribers, error: subsError } = await supabase
@@ -516,7 +485,10 @@ export async function broadcastExpiryAlerts(now: Date = new Date()): Promise<voi
                 const notificationPromises = chunk.map((sub) =>
                     sendConsolidatedExpiryNotification(sub, batchSummaries)
                 );
-                await Promise.allSettled(notificationPromises);
+                const results = await Promise.allSettled(notificationPromises);
+                hasSuccessfulDelivery ||= results.some(
+                    (result) => result.status === "fulfilled" && result.value
+                );
             }
 
             if (subscribers.length < PAGE_SIZE) {
@@ -524,6 +496,35 @@ export async function broadcastExpiryAlerts(now: Date = new Date()): Promise<voi
             } else {
                 from += PAGE_SIZE;
                 to += PAGE_SIZE;
+            }
+        }
+
+        if (!hasSuccessfulDelivery) {
+            logger.warn("Expiry alert delivery failed for every eligible subscriber; will retry.", {
+                batchIds: expiringBatches.map((batch) => batch.id),
+            });
+            return;
+        }
+
+        for (
+            let i = 0;
+            i < expiringBatches.length;
+            i += broadcastConfig.MARK_BROADCASTED_CHUNK_SIZE
+        ) {
+            const chunk = expiringBatches.slice(i, i + broadcastConfig.MARK_BROADCASTED_CHUNK_SIZE);
+            const chunkIds = chunk.map((batch) => batch.id);
+
+            const { error: markError } = await supabase
+                .from("batches")
+                .update({ expiry_broadcasted: true })
+                .in("id", chunkIds);
+
+            if (markError) {
+                logger.error({
+                    message: "Failed to mark delivered expiry alert batches as broadcasted",
+                    error: markError,
+                    batchIds: chunkIds,
+                });
             }
         }
     } catch (err) {
