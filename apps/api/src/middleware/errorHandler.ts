@@ -20,9 +20,14 @@ const GENERIC_CLIENT_MESSAGES: Record<number, string> = {
 
 function getClientMessage(err: Error & { code?: string }, statusCode: number): string {
     if (statusCode >= 500) return "Internal Server Error";
-    const dbMessage = err.code ? getDbErrorMessage(err.code) : null;
-    if (dbMessage) return dbMessage;
-    return GENERIC_CLIENT_MESSAGES[statusCode] ?? "An unexpected error occurred.";
+    if (err.code) {
+        const dbMessage = getDbErrorMessage(err.code);
+        if (dbMessage) return dbMessage;
+        if (/^[0-9A-Z]{5}$/.test(err.code)) {
+            return "A database error occurred.";
+        }
+    }
+    return (err.message || GENERIC_CLIENT_MESSAGES[statusCode]) ?? "An unexpected error occurred.";
 }
 
 export function errorHandler(
