@@ -19,6 +19,36 @@
       "apps/web/messages/sd.json"
     ],
     "adr": "docs/devtrack/adr/ADR-060-feat-web-implement-offline-first-scan-history-sync.md"
+    "prNumber": 3888,
+    "title": "fix(scan): keep unprocessed offline media pending",
+    "author": "Shreya-nipunge",
+    "mergedAt": "2026-07-28",
+    "area": "Backend",
+    "score": 9,
+    "docPath": "docs/devtrack/2026-07/PR-3888-fix-scan-keep-unprocessed-offline-media-pending.md",
+    "linkedIssue": "#3882",
+    "labels": "level:intermediate,quality:clean,gssoc:approved,type:bug,type:refactor",
+    "filesChanged": [
+      "apps/api/src/routes/scan.ts",
+      "apps/api/tests/scans.sync.test.ts"
+    ],
+    "adr": null
+    "prNumber": 3890,
+    "title": "fix(scan): use queued endpoint during offline sync",
+    "author": "Shreya-nipunge",
+    "mergedAt": "2026-07-28",
+    "area": "Frontend",
+    "score": 15,
+    "docPath": "docs/devtrack/2026-07/PR-3890-fix-scan-use-queued-endpoint-during-offline-sync.md",
+    "linkedIssue": "#3884",
+    "labels": "level:intermediate,quality:clean,gssoc:approved,type:bug,type:refactor",
+    "filesChanged": [
+      "apps/web/lib/api.ts",
+      "apps/web/lib/db/syncQueue.ts",
+      "apps/web/lib/scanQueueSync.ts",
+      "apps/web/tests/scanQueueSync.test.ts"
+    ],
+    "adr": "docs/devtrack/adr/ADR-060-fix-scan-use-queued-endpoint-during-offline-sync.md"
   },
   {
     "prNumber": 3872,

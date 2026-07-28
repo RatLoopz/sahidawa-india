@@ -9,6 +9,8 @@ All PR summaries are now stored in a centralized JSON log.
 | PR | Date | Area | Score | Author | Docs |
 |---|---|---|---|---|---|
 | [#3894](https://github.com/RatLoopz/sahidawa-india/pull/3894) | 2026-07-28 | i18n | 23 | @jamunatg2006-sys | [View Doc](./2026-07/PR-3894-feat-web-implement-offline-first-scan-history-sync.md) / [ADR](./adr/ADR-060-feat-web-implement-offline-first-scan-history-sync.md) |
+| [#3888](https://github.com/RatLoopz/sahidawa-india/pull/3888) | 2026-07-28 | Backend | 9 | @Shreya-nipunge | [View Doc](./2026-07/PR-3888-fix-scan-keep-unprocessed-offline-media-pending.md) |
+| [#3890](https://github.com/RatLoopz/sahidawa-india/pull/3890) | 2026-07-28 | Frontend | 15 | @Shreya-nipunge | [View Doc](./2026-07/PR-3890-fix-scan-use-queued-endpoint-during-offline-sync.md) / [ADR](./adr/ADR-060-fix-scan-use-queued-endpoint-during-offline-sync.md) |
 | [#3872](https://github.com/RatLoopz/sahidawa-india/pull/3872) | 2026-07-24 | Frontend | 5 | @Shreya-nipunge | [View Doc](./2026-07/PR-3872-fix-web-preserve-local-expiry-date-boundaries.md) |
 | [#3858](https://github.com/RatLoopz/sahidawa-india/pull/3858) | 2026-07-24 | Frontend | 39 | @shashank03-dev | [View Doc](./2026-07/PR-3858-feat-security-gate-guest-notification-endpoints-be.md) / [ADR](./adr/ADR-059-feat-security-gate-guest-notification-endpoints-be.md) |
 | [#3769](https://github.com/RatLoopz/sahidawa-india/pull/3769) | 2026-07-20 | Frontend | 7 | @Avinash-sdbegin | [View Doc](./2026-07/PR-3769-feat-web-serve-stale-cached-get-responses-during-c.md) |
