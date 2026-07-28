@@ -1200,7 +1200,7 @@
         "no_search_results": "तुमच्या सोदा आड कसलेच वखद मेळ्ळे ना.",
         "title": "इतिहास स्कॅन करचो",
         "export_csv_button": "CSV कडेन निर्यात करप",
-        "sync_cloud_button": "मेघाक सम���्रमण करचें",
+        "sync_cloud_button": "मेघाक समक्रमण करचें",
         "clear_all_button": "सगळो इतिहास निवळ करचो",
         "clear_all_button_aria_label": "सगळो स्कॅन इतिहास निवळ करचो",
         "clear_confirm_message": "तुमकां सगळो स्कॅन इतिहास कायमचे काडून उडोवपाचो आसा हाची खात्री आसा? ही कृती फाटीं घेवंक मेळना.",
@@ -1216,7 +1216,11 @@
         "empty_description": "तुमचीं सत्यापीत केल्लीं वखदां हांगा दिसतलीं.",
         "item_status_label": "स्थिती: १.",
         "item_delete_button": "काडून उडोवप",
-        "item_copy_success": "वखदाचें नांव नकल केलें!"
+        "item_copy_success": "वखदाचें नांव नकल केलें!",
+        "sync_status_synced": "सिंक केलें",
+        "sync_status_offline": "ऑफलायन (सिंक प्रलंबित)",
+        "sync_status_syncing": "सिंक जाता...",
+        "sync_status_error": "सिंक त्रुटी"
     },
     "SchemeEligibility": {
         "validationAgeError": "कृपया वैध वय दाखल करा.",
