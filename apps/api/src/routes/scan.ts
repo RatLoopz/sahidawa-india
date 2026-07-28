@@ -639,33 +639,25 @@ router.post(
                 userId,
             });
 
-            const parts: Record<string, "synced" | "failed" | "skipped"> = {};
+            const parts: Record<string, "pending" | "synced" | "failed" | "skipped"> = {};
 
             // metadata part
             parts.metadata = metadata ? "synced" : "skipped";
 
-            // image part (stubbed for Cloudinary/external upload)
+            // Cloudinary upload is not wired into this offline submission path yet.
+            // Keep attached images pending so the client never treats them as persisted.
             const imageFile = (req.files as any)?.image?.[0];
             if (imageFile) {
-                try {
-                    // await uploadToCloudinary(imageFile.buffer, resolvedScanId);
-                    parts.image = "synced";
-                } catch {
-                    parts.image = "failed";
-                }
+                parts.image = "pending";
             } else {
                 parts.image = "skipped";
             }
 
-            // voice part (stubbed for Whisper/external transcribe)
+            // Voice transcription is not wired into this offline submission path yet.
+            // Keep attached audio pending until a transcription service handles it.
             const voiceFile = (req.files as any)?.voice?.[0];
             if (voiceFile) {
-                try {
-                    // await transcribeVoice(voiceFile.buffer, resolvedScanId);
-                    parts.voice = "synced";
-                } catch {
-                    parts.voice = "failed";
-                }
+                parts.voice = "pending";
             } else {
                 parts.voice = "skipped";
             }

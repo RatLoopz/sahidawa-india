@@ -25,7 +25,7 @@ export async function syncPendingScans(onSynced?: (count: number) => void): Prom
 
     for (const item of queue) {
         try {
-            const result = await verifyMedicine(item.barcode);
+            const result = await verifyMedicine(item.barcode, undefined, item.apiUrl);
             await recordScanHistory(result, item.barcode);
             await removeFromSyncQueue(item.id);
             synced++;
