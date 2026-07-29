@@ -1,7 +1,7 @@
 import type { Medicine } from "../components/ComparisonGrid";
 
 function mapPrice(value: unknown): number | null | undefined {
-    if (value == null) return value as null | undefined;
+    if (value === null) return value as null | undefined;
     return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
