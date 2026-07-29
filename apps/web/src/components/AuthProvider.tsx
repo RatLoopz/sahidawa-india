@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             } else {
                 localStorage.removeItem("sb-access-token");
             }
-        });
+        }).catch(err => console.error("[AuthProvider] Failed:", err));
 
         const {
             data: { subscription },
