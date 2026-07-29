@@ -373,7 +373,7 @@ export async function getCacheStats(): Promise<{
     };
 
     if (!redisClient.isOpen) {
-        sendCacheAlertDiscord().catch(() => {});
+        sendCacheAlertDiscord().catch((err) => logger.warn("Discord alert failed (Redis closed)", err));
         return defaultStats;
     }
     try {
@@ -407,7 +407,7 @@ export async function getCacheStats(): Promise<{
             results[6].status === "rejected";
 
         if (allFailed) {
-            sendCacheAlertDiscord().catch(() => {});
+            sendCacheAlertDiscord().catch((err) => logger.warn("Discord alert failed (all stats rejected)", err));
             return snapshot || defaultStats;
         }
 
@@ -471,7 +471,7 @@ export async function getCacheStats(): Promise<{
         return finalStats;
     } catch (err) {
         logger.error("Error fetching cache stats", err);
-        sendCacheAlertDiscord().catch(() => {});
+        sendCacheAlertDiscord().catch((err) => logger.warn("Discord alert failed (fetch error)", err));
         return defaultStats;
     }
 }
