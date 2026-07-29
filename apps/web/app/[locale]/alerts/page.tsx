@@ -117,7 +117,8 @@ export default function FullAlertsLogPage() {
                 .catch((err) => {
                     console.error("Clipboard copy failed:", err);
                     toast.error("Failed to copy alert details to clipboard.");
-                });
+                })
+                .catch(err => console.error("[Alerts] Failed:", err));
         };
 
         if (navigator.share) {
