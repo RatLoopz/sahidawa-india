@@ -100,6 +100,7 @@ export default function SettingsPage() {
             .catch((err) => {
                 console.error("Failed to load settings:", err);
             })
+            .catch(err => console.error("[Settings] Failed:", err))
             .finally(() => {
                 setIsLoading(false);
             });
