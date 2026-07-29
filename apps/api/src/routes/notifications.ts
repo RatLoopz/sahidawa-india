@@ -50,7 +50,9 @@ async function checkOtpLockout(phone: string): Promise<number | null> {
     try {
         const ttl = await redisClient.ttl(getOtpLockoutKey(phone));
         if (ttl > 0) return ttl;
-    } catch (_) {}
+    } catch (_) {
+      logger.warn("Redis error in OTP rate-limiting");
+    }
     return null;
 }
 
@@ -67,7 +69,9 @@ async function recordFailedOtpAttempt(phone: string): Promise<void> {
             await redisClient.setEx(getOtpLockoutKey(phone), Math.ceil(lockDuration / 1000), "1");
             await redisClient.del(key);
         }
-    } catch (_) {}
+    } catch (_) {
+      logger.warn("Redis error in OTP rate-limiting");
+    }
 }
 
 async function clearOtpAttempts(phone: string): Promise<void> {
@@ -75,7 +79,9 @@ async function clearOtpAttempts(phone: string): Promise<void> {
     try {
         await redisClient.del(getOtpFailKey(phone));
         await redisClient.del(getOtpLockoutKey(phone));
-    } catch (_) {}
+    } catch (_) {
+      logger.warn("Redis error in OTP rate-limiting");
+    }
 }
 
 // ── Web Push Notifications (Existing) ──────────────────────────────────────────
