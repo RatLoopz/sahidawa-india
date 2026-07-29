@@ -293,7 +293,7 @@ async function cacheFirstWithExpiry(request, cacheName, maxAgeMs) {
                 statusText: networkResponse.statusText,
                 headers,
             });
-            cache.put(request, cloned).catch(() => {});
+            cache.put(request, cloned).catch(() => console.warn("[SW] Failed to cache asset in cacheFirstWithExpiry"));
         }
         return networkResponse;
     } catch {
@@ -324,7 +324,7 @@ async function staleWhileRevalidate(request, cacheName) {
     const networkFetch = fetch(request)
         .then((networkResponse) => {
             if (networkResponse && networkResponse.ok) {
-                cache.put(request, networkResponse.clone()).catch(() => {});
+                cache.put(request, networkResponse.clone()).catch(() => console.warn("[SW] Failed to cache in staleWhileRevalidate"));
             }
             return networkResponse;
         })
@@ -424,7 +424,7 @@ async function networkFirstWithCache(request, cacheName) {
         }
 
         if (isPublicCacheableApiResponse(networkResponse)) {
-            cache.put(request, networkResponse.clone()).catch(() => {});
+            cache.put(request, networkResponse.clone()).catch(() => console.warn("[SW] Failed to cache API response in networkFirstWithCache"));
         }
         return networkResponse;
     } catch {
@@ -459,7 +459,7 @@ async function navigateWithOfflineFallback(request) {
     try {
         const networkResponse = await fetch(request);
         if (networkResponse.ok) {
-            cache.put(request, networkResponse.clone()).catch(() => {});
+            cache.put(request, networkResponse.clone()).catch(() => console.warn("[SW] Failed to cache page in navigateWithOfflineFallback"));
         }
         return networkResponse;
     } catch {
