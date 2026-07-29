@@ -38,7 +38,7 @@ export const requireApiKey = async (req: ApiKeyRequest, res: Response, next: Nex
     try {
         const { data, error } = await supabase
             .from("api_keys")
-            .select("id, user_id, scopes, expires_at, key_hash, key_salt")
+            .select("id, user_id, scopes, expires_at, key_hash, key_salt, is_active")
             .eq("id", keyId)
             .maybeSingle();
 
@@ -55,6 +55,15 @@ export const requireApiKey = async (req: ApiKeyRequest, res: Response, next: Nex
 
         if (data.expires_at && new Date(data.expires_at) < new Date()) {
             res.status(401).json({ error: "API key has expired" });
+            return;
+        }
+
+        // Revoked keys are rejected before the expensive hash comparison so a
+        // leaked-and-revoked key cannot be used to burn CPU either. Checked with
+        // `=== false` so a legacy row where the column is somehow null is still
+        // treated as active (the column defaults to true).
+        if (data.is_active === false) {
+            res.status(401).json({ error: "API key has been revoked" });
             return;
         }
 

@@ -10,6 +10,13 @@ let initialized = false;
 
 export const initTracing = () => {
     if (typeof window === "undefined" || initialized) return;
+
+    // Do not initialize tracing in production if an explicit endpoint is not provided.
+    // This prevents the browser from trying to connect to localhost:4318, which violates CSP.
+    if (process.env.NODE_ENV === "production" && !process.env.NEXT_PUBLIC_OTEL_EXPORTER_OTLP_ENDPOINT) {
+        return;
+    }
+
     initialized = true;
 
     const exporter = new OTLPTraceExporter({

@@ -23,6 +23,21 @@ def _reset_redis_breaker():
     yield
     triage_graph._redis_breaker.record_success()
 
+@pytest.fixture(autouse=True)
+def _isolated_breaker_state_file(tmp_path, monkeypatch):
+    """Point every test at a throwaway state file so tests never share or
+    pollute the real /tmp breaker state across test runs."""
+    state_file = tmp_path / "breaker_state.json"
+    lock_file = str(state_file) + ".lock"
+    monkeypatch.setattr(triage_graph, "_BREAKER_STATE_FILE", state_file)
+    monkeypatch.setattr(triage_graph, "_BREAKER_LOCK_FILE", lock_file)
+    monkeypatch.setattr(triage_graph, "_BREAKER_STATE_DIR", tmp_path)
+    # The module-level _redis_breaker instance captured the lock path at
+    # construction time — rebuild its FileLock to point at the new path too.
+    triage_graph._redis_breaker._file_lock = triage_graph.FileLock(
+        lock_file, timeout=triage_graph._BREAKER_LOCK_TIMEOUT_SECONDS
+    )
+    yield
 
 class FakeRedis:
     """Minimal in-memory stand-in for the async Redis client used in tests."""
@@ -73,8 +88,9 @@ def test_redis_circuit_breaker_success_resets_failure_streak():
 
 def test_redis_circuit_breaker_half_opens_after_cooldown(monkeypatch):
     clock = {"now": 1000.0}
-    monkeypatch.setattr(triage_graph.time, "monotonic", lambda: clock["now"])
+    monkeypatch.setattr(triage_graph.time, "time", lambda: clock["now"])
     breaker = triage_graph._RedisCircuitBreaker(failure_threshold=1, cooldown_seconds=60)
+    breaker._write_state(failures=0, opened_at=None)
 
     breaker.record_failure()
     assert breaker.is_open() is True  # within cooldown, stays open
@@ -490,3 +506,66 @@ def test_triage_clear_is_rate_limited():
         app.dependency_overrides.pop(get_redis, None)
 
     assert response.status_code == 429
+
+def test_circuit_breaker_state_shared_across_instances(tmp_path, monkeypatch):
+    """Simulates two separate worker processes: each gets its OWN
+    _RedisCircuitBreaker instance (as would happen in separate Uvicorn
+    workers), but both point at the same state file. One worker tripping
+    the breaker must be immediately visible to the other."""
+    state_file = tmp_path / "shared_breaker.json"
+    lock_file = str(state_file) + ".lock"
+
+    def make_breaker():
+        b = triage_graph._RedisCircuitBreaker(failure_threshold=2, cooldown_seconds=60)
+        monkeypatch.setattr(b, "_file_lock", triage_graph.FileLock(lock_file, timeout=2.0))
+        # Patch the module-level path lookups used inside _read_state/_write_state
+        monkeypatch.setattr(triage_graph, "_BREAKER_STATE_FILE", state_file)
+        monkeypatch.setattr(triage_graph, "_BREAKER_STATE_DIR", tmp_path)
+        return b
+
+    worker_a_breaker = make_breaker()
+    worker_b_breaker = make_breaker()
+
+    # Worker A independently experiences two Redis failures and trips the breaker.
+    worker_a_breaker.record_failure()
+    worker_a_breaker.record_failure()
+    assert worker_a_breaker.is_open() is True
+
+    # Worker B never called record_failure() itself, but must see the breaker
+    # as open immediately — it reads the same shared state file.
+    assert worker_b_breaker.is_open() is True
+
+
+def test_circuit_breaker_survives_concurrent_writes(tmp_path, monkeypatch):
+    """Two breaker instances (simulating two workers) both recording
+    failures concurrently must not corrupt the state file or lose updates
+    due to a race — the FileLock serializes the read-modify-write cycle."""
+    state_file = tmp_path / "concurrent_breaker.json"
+    lock_file = str(state_file) + ".lock"
+
+    def make_breaker():
+        b = triage_graph._RedisCircuitBreaker(failure_threshold=100, cooldown_seconds=60)
+        monkeypatch.setattr(b, "_file_lock", triage_graph.FileLock(lock_file, timeout=5.0))
+        monkeypatch.setattr(triage_graph, "_BREAKER_STATE_FILE", state_file)
+        monkeypatch.setattr(triage_graph, "_BREAKER_STATE_DIR", tmp_path)
+        return b
+
+    worker_a = make_breaker()
+    worker_b = make_breaker()
+
+    import threading as _threading
+
+    def hammer(breaker, count):
+        for _ in range(count):
+            breaker.record_failure()
+
+    t1 = _threading.Thread(target=hammer, args=(worker_a, 10))
+    t2 = _threading.Thread(target=hammer, args=(worker_b, 10))
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
+
+    final_state = worker_a._read_state()
+    # No writes should have been lost to a race — exactly 20 recorded.
+    assert final_state["failures"] == 20

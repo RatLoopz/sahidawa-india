@@ -14,6 +14,7 @@ import { useMedicineImageUpload } from "@/hooks/useMedicineImageUpload";
 import { Link } from "@/i18n/routing";
 import { PageHeader } from "../components/PageHeader";
 import { toast } from "sonner";
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 import { verifyMedicineByBrand, type VerifiedMedicine } from "@/lib/api";
 import LasaConfirmation from "@/components/scanner/LasaConfirmation";
 import { BarcodeScanner } from "@/components/scanner/BarcodeScanner";
@@ -39,19 +40,6 @@ function formatMedicineDetails(medicine: VerifiedMedicine) {
     ].join("\n");
 }
 
-async function copyTextToClipboard(text: string) {
-    if (!navigator.clipboard?.writeText) {
-        return false;
-    }
-
-    try {
-        await navigator.clipboard.writeText(text);
-        return true;
-    } catch {
-        return false;
-    }
-}
-
 export default function ScanPage() {
     const tScan = useTranslations("Scan");
     const { queueBarcode } = useOfflineScanner();
@@ -63,7 +51,10 @@ export default function ScanPage() {
     const abortControllerRef = useRef<AbortController | null>(null);
     const isMountedRef = useRef(true);
     const [isScanning, setIsScanning] = useState(false);
-    const [copied, setCopied] = useState(false);
+    const [copied, copyToClipboard] = useCopyToClipboard({
+        successMessage: "Medicine details copied!",
+        errorMessage: "Unable to copy medicine details",
+    });
     const [batchInput, setBatchInput] = useState("");
     const [isCameraActive, setIsCameraActive] = useState(false);
     const [cameraPermissionDenied, setCameraPermissionDenied] = useState(false);
@@ -247,20 +238,8 @@ export default function ScanPage() {
         if (!verifyResult?.verified) return;
 
         const details = formatMedicineDetails(verifyResult.medicine);
-        const showCopied = () => {
-            setCopied(true);
-            toast.success("Medicine details copied!");
-            setTimeout(() => setCopied(false), 2000);
-        };
-
-        const copiedSuccessfully = await copyTextToClipboard(details);
-
-        if (copiedSuccessfully) {
-            showCopied();
-        } else {
-            toast.error("Unable to copy medicine details");
-        }
-    }, [verifyResult]);
+        await copyToClipboard(details);
+    }, [verifyResult, copyToClipboard]);
 
     const handleBarcodeScan = useCallback(
         async (scannedText: string) => {
@@ -313,11 +292,10 @@ export default function ScanPage() {
                 await navigator.share(shareData);
                 toast.success(tScan("share.shared_success"));
             } else {
-                const copiedToClipboard = await copyTextToClipboard(shareText);
+                const copiedToClipboard = await copyToClipboard(shareText);
                 if (!copiedToClipboard) {
-                    throw new Error("Clipboard copy failed");
+                    return;
                 }
-                toast.success(tScan("share.copy_success"));
             }
         } catch (error: unknown) {
             if (error instanceof Error && error.name !== "AbortError") {

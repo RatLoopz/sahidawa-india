@@ -6,6 +6,7 @@ import { Link, useRouter } from "@/i18n/routing";
 import { User, ShieldCheck, Bell, ChevronRight, ArrowLeft, LogIn, LogOut } from "lucide-react";
 import ABHABadge from "@/components/ABHABadge";
 import { useSession } from "@/src/components/AuthProvider";
+import { clearReadCache } from "@/lib/offline/db";
 
 const ACCESS_TOKEN_KEY = "sb-access-token";
 
@@ -131,6 +132,9 @@ export default function ProfilePage() {
     };
     const handleSignOut = () => {
         localStorage.removeItem(ACCESS_TOKEN_KEY);
+        // Wipe cached schedules/summary (PHI) so the next person on a shared
+        // device can't read them offline. Fire-and-forget — never block sign-out.
+        void clearReadCache();
         setSession({ status: "guest" });
         router.push("/");
     };

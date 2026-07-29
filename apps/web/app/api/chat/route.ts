@@ -10,7 +10,13 @@ import crypto from "crypto";
 
 import { trimHistoryByTokens } from "@/lib/chatUtils";
 import { redis } from "@/lib/redis";
-import { getMlServiceUrl } from "@/lib/mlService";
+import { getMlServiceUrl, getMlAuthHeaders } from "@/lib/mlService";
+import Groq from "groq-sdk";
+
+// Allow up to 60 s on Vercel/serverless so Groq fallback has time to respond
+// after Gemini retries are exhausted. Without this, the default 10-s platform
+// timeout kills the request before the fallback can return a response.
+export const maxDuration = 60;
 
 const ML_TRIAGE_TIMEOUT_MS = 30_000;
 
@@ -99,6 +105,40 @@ function parseVoiceTriageResponse(rawText: string): VoiceTriageResponse {
     }
 }
 
+async function generateVoiceTriageWithGroq(
+    latestMessageText: string,
+    responseLanguage: string
+): Promise<VoiceTriageResponse> {
+    const apiKey = process.env.GROQ_API_KEY?.trim();
+    if (!apiKey) throw new Error("GROQ_API_KEY not set");
+    const groq = new Groq({ apiKey });
+
+    const prompt = buildVoiceTriagePrompt(
+        latestMessageText,
+        typeof responseLanguage === "string" && responseLanguage.trim().length > 0
+            ? responseLanguage.trim()
+            : "English"
+    );
+
+    const completion = await groq.chat.completions.create({
+        model: "llama-3.1-8b-instant",
+        messages: [
+            {
+                role: "system",
+                content:
+                    "You are the SahiDawa voice triage assistant for India. Help users understand possible next steps based on symptoms, but never claim certainty or replace medical professionals. Be calm, concise, practical, and safety-first. You MUST return JSON with the keys: summary (string), recommendations (array of strings, max 3), disclaimer (string), and emergency (boolean).",
+            },
+            { role: "user", content: prompt },
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.2,
+        max_tokens: 1024,
+    });
+
+    const content = completion.choices[0]?.message?.content ?? "{}";
+    return parseVoiceTriageResponse(content);
+}
+
 // Structured-output schema so Gemini always returns valid, parseable JSON
 // (no markdown fences, no trailing/mixed-language corruption).
 const VOICE_TRIAGE_SCHEMA = {
@@ -144,18 +184,16 @@ function isErrorWithStatus(error: unknown): error is ErrorWithStatus {
 }
 
 async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
-    const maxRetries = 3;
-    let attempt = 0;
     while (true) {
         try {
             return await fn();
         } catch (error: unknown) {
             const status = isErrorWithStatus(error) ? error.status : undefined;
-            if ((status === 429 || status === 503) && attempt < maxRetries) {
-                const delay = Math.pow(2, attempt) * 1000;
-                await new Promise((resolve) => setTimeout(resolve, delay));
-                attempt++;
-                continue;
+            // 429 (Quota Exceeded) or 503 (Overloaded) means Gemini cannot serve
+            // the request right now. Retrying wastes our Groq fallback budget.
+            // Re-throw immediately so the caller can switch providers.
+            if (status === 429 || status === 503) {
+                throw error;
             }
             throw error;
         }
@@ -173,8 +211,8 @@ function buildVoiceTriagePrompt(transcript: string, responseLanguage: string) {
     ].join("\n");
 }
 
-function getAiClient() {
-    return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+function getAiClient(apiKey: string) {
+    return new GoogleGenAI({ apiKey });
 }
 
 export async function POST(req: Request) {
@@ -191,7 +229,7 @@ export async function POST(req: Request) {
             );
         }
 
-        const geminiKey = process.env.GEMINI_API_KEY?.trim();
+        const geminiKey = (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY)?.trim();
 
         if (!geminiKey || geminiKey === "your_gemini_api_key") {
             structuredLog({
@@ -203,11 +241,11 @@ export async function POST(req: Request) {
             });
 
             return NextResponse.json(
-                { error: "AI services are currently unconfigured" },
+                { error: "AI services are currently unconfigured (Missing API Key on Deployment)" },
                 { status: 500 }
             );
         }
-        const ai = getAiClient();
+        const ai = getAiClient(geminiKey);
 
         let requestBody: any;
         try {
@@ -313,7 +351,7 @@ export async function POST(req: Request) {
 
                 const mlResponse = await fetch(`${mlServiceUrl}/triage/chat`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", ...getMlAuthHeaders() },
                     body: JSON.stringify({
                         messages: formattedMessages,
                         locale: locale || "en",
@@ -373,27 +411,38 @@ export async function POST(req: Request) {
                     },
                 });
 
-                // Fallback direct Gemini call
-                const response = await withRetry(() =>
-                    ai.models.generateContent({
-                        model: "gemini-3.5-flash",
-                        contents: buildVoiceTriagePrompt(
-                            latestMessageText,
-                            typeof responseLanguage === "string" &&
-                                responseLanguage.trim().length > 0
-                                ? responseLanguage.trim()
-                                : "English"
-                        ),
-                        config: {
-                            systemInstruction:
-                                "You are the SahiDawa voice triage assistant for India. Help users understand possible next steps based on symptoms, but never claim certainty or replace medical professionals. Be calm, concise, practical, and safety-first.",
-                            responseMimeType: "application/json",
-                            responseSchema: VOICE_TRIAGE_SCHEMA,
-                        },
-                    })
-                );
+                // Fallback direct Gemini call (or Groq if Gemini fails)
+                try {
+                    const response = await withRetry(() =>
+                        ai.models.generateContent({
+                            model: "gemini-3.5-flash",
+                            contents: buildVoiceTriagePrompt(
+                                latestMessageText,
+                                typeof responseLanguage === "string" &&
+                                    responseLanguage.trim().length > 0
+                                    ? responseLanguage.trim()
+                                    : "English"
+                            ),
+                            config: {
+                                systemInstruction:
+                                    "You are the SahiDawa voice triage assistant for India. Help users understand possible next steps based on symptoms, but never claim certainty or replace medical professionals. Be calm, concise, practical, and safety-first.",
+                                responseMimeType: "application/json",
+                                responseSchema: VOICE_TRIAGE_SCHEMA,
+                            },
+                        })
+                    );
 
-                parsedResponse = parseVoiceTriageResponse(response.text ?? "");
+                    parsedResponse = parseVoiceTriageResponse(response.text ?? "");
+                } catch (geminiErr) {
+                    console.warn(
+                        "[chat/route] Gemini voice triage failed. Falling back to Groq:",
+                        geminiErr
+                    );
+                    parsedResponse = await generateVoiceTriageWithGroq(
+                        latestMessageText,
+                        responseLanguage
+                    );
+                }
                 emergencyFromML = parsedResponse.emergency;
             }
 
@@ -428,14 +477,39 @@ export async function POST(req: Request) {
 
                 if (!summary) {
                     const summaryPrompt = `Summarize the following conversation history briefly to retain key context for the ongoing chat. Keep it concise.\n\n${droppedText}`;
-                    const summaryResponse = await withRetry(() =>
-                        ai.models.generateContent({
-                            model: "gemini-3.5-flash",
-                            contents: summaryPrompt,
-                        })
-                    );
+                    try {
+                        const summaryResponse = await withRetry(() =>
+                            ai.models.generateContent({
+                                model: "gemini-3.5-flash",
+                                contents: summaryPrompt,
+                            })
+                        );
 
-                    summary = summaryResponse.text || "";
+                        summary = summaryResponse.text || "";
+                    } catch (geminiErr) {
+                        console.warn(
+                            "[chat/route] Gemini history summarization failed. Falling back to Groq:",
+                            geminiErr
+                        );
+                        try {
+                            const groqApiKey = process.env.GROQ_API_KEY?.trim();
+                            if (groqApiKey) {
+                                const groq = new Groq({ apiKey: groqApiKey });
+                                const completion = await groq.chat.completions.create({
+                                    model: "llama-3.1-8b-instant",
+                                    messages: [{ role: "user", content: summaryPrompt }],
+                                    temperature: 0.2,
+                                    max_tokens: 256,
+                                });
+                                summary = completion.choices[0]?.message?.content || "";
+                            }
+                        } catch (groqErr) {
+                            console.error(
+                                "[chat/route] Groq history summarization failed:",
+                                groqErr
+                            );
+                        }
+                    }
                     if (summary) {
                         try {
                             await redis.set(cacheKey, summary, {
@@ -519,17 +593,48 @@ export async function POST(req: Request) {
         const language = localeMap[finalLocale as keyof typeof localeMap] || "English";
         const systemPrompt = BASE_PROMPT.replace("{language}", language);
 
-        const responseStream = (await withRetry(() =>
-            ai.models.generateContentStream({
-                model: "gemini-3.5-flash",
-                contents: formattedContents,
-                config: {
-                    systemInstruction: systemPrompt,
-                },
-            })
-        )) as AsyncIterable<TextStreamChunk>;
-        const responseIterator = responseStream[Symbol.asyncIterator]();
-        const firstStreamResult = await responseIterator.next();
+        let responseStream: AsyncIterable<TextStreamChunk> | undefined;
+        let responseIterator: AsyncIterator<TextStreamChunk> | undefined;
+        let firstStreamResult: IteratorResult<TextStreamChunk> | undefined;
+        let groqStream: any;
+        let isUsingGroq = false;
+
+        try {
+            responseStream = (await withRetry(() =>
+                ai.models.generateContentStream({
+                    model: "gemini-3.5-flash",
+                    contents: formattedContents,
+                    config: {
+                        systemInstruction: systemPrompt,
+                    },
+                })
+            )) as AsyncIterable<TextStreamChunk>;
+
+            responseIterator = responseStream[Symbol.asyncIterator]();
+            firstStreamResult = await responseIterator.next();
+        } catch (geminiErr) {
+            console.warn("[chat/route] Gemini stream failed, trying Groq fallback", geminiErr);
+            const groqApiKey = process.env.GROQ_API_KEY?.trim();
+            if (!groqApiKey) {
+                throw geminiErr;
+            }
+            isUsingGroq = true;
+            const groq = new Groq({ apiKey: groqApiKey });
+            const groqMessages = [
+                { role: "system", content: systemPrompt },
+                ...trimmedMessages.map((m) => ({
+                    role: m.role === ChatRoles.ASSISTANT ? "assistant" : "user",
+                    content: m.text || m.content || "",
+                })),
+            ];
+            groqStream = await groq.chat.completions.create({
+                model: "llama-3.1-8b-instant",
+                messages: groqMessages as any,
+                stream: true,
+                temperature: 0.2,
+                max_tokens: 1024,
+            });
+        }
 
         const encoder = new TextEncoder();
         const stream = new ReadableStream<Uint8Array>({
@@ -537,24 +642,32 @@ export async function POST(req: Request) {
                 let usageMetadata: TextStreamChunk["usageMetadata"];
 
                 try {
-                    const enqueueChunk = (chunk: TextStreamChunk) => {
-                        usageMetadata = chunk.usageMetadata ?? usageMetadata;
-
-                        if (chunk.text) {
-                            controller.enqueue(encoder.encode(chunk.text));
+                    if (isUsingGroq && groqStream) {
+                        for await (const chunk of groqStream) {
+                            const text = chunk.choices[0]?.delta?.content || "";
+                            if (text) {
+                                controller.enqueue(encoder.encode(text));
+                            }
                         }
-                    };
+                    } else if (responseIterator && firstStreamResult) {
+                        const enqueueChunk = (chunk: TextStreamChunk) => {
+                            usageMetadata = chunk.usageMetadata ?? usageMetadata;
+                            if (chunk.text) {
+                                controller.enqueue(encoder.encode(chunk.text));
+                            }
+                        };
 
-                    if (!firstStreamResult.done) {
-                        enqueueChunk(firstStreamResult.value);
-                    }
-
-                    while (true) {
-                        const chunkResult = await responseIterator.next();
-                        if (chunkResult.done) {
-                            break;
+                        if (!firstStreamResult.done) {
+                            enqueueChunk(firstStreamResult.value);
                         }
-                        enqueueChunk(chunkResult.value);
+
+                        while (true) {
+                            const chunkResult = await responseIterator.next();
+                            if (chunkResult.done) {
+                                break;
+                            }
+                            enqueueChunk(chunkResult.value);
+                        }
                     }
 
                     const latency_ms = Date.now() - startTime;
@@ -562,11 +675,17 @@ export async function POST(req: Request) {
                         log_level: "info",
                         route: ROUTE,
                         latency_ms,
-                        metrics: {
-                            input_tokens: usageMetadata?.promptTokenCount,
-                            output_tokens: usageMetadata?.candidatesTokenCount,
+                        metrics: isUsingGroq
+                            ? undefined
+                            : {
+                                  input_tokens: usageMetadata?.promptTokenCount,
+                                  output_tokens: usageMetadata?.candidatesTokenCount,
+                              },
+                        meta: {
+                            mode: "chat",
+                            messageCount: trimmedMessages.length,
+                            provider: isUsingGroq ? "groq" : "gemini",
                         },
-                        meta: { mode: "chat", messageCount: trimmedMessages.length },
                     });
                     controller.close();
                 } catch (streamError) {
@@ -576,7 +695,7 @@ export async function POST(req: Request) {
                         route: ROUTE,
                         latency_ms,
                         error: {
-                            message: "AI chat stream failed",
+                            message: `AI chat stream failed (${isUsingGroq ? "Groq" : "Gemini"})`,
                             code: 500,
                             stack: streamError instanceof Error ? streamError.stack : undefined,
                         },
@@ -586,7 +705,7 @@ export async function POST(req: Request) {
                 }
             },
             async cancel() {
-                await responseIterator.return?.();
+                // Garbage collector handles stream closure safely
             },
         });
 

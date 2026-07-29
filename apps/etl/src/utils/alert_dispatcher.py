@@ -10,7 +10,12 @@ REQUEST_TIMEOUT_SECONDS = 10
 
 def format_slack_summary(pipeline_name: str, stats: dict, status_type: str = "COMPLETED") -> str:
     """Format ETL stats using the existing Slack markdown summary."""
-    emoji = "⚠️" if stats.get("failed", 0) > 0 else "✅"
+    failed_val = stats.get("failed", 0)
+    try:
+        has_failures = int(failed_val) > 0
+    except (ValueError, TypeError):
+        has_failures = False
+    emoji = "⚠️" if has_failures else "✅"
     if status_type == "CRASHED":
         emoji = "🚨"
 

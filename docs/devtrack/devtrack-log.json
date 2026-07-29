@@ -1,5 +1,109 @@
 [
   {
+    "prNumber": 3889,
+    "title": "fix(alerts): retry expiry notifications after delivery failures",
+    "author": "Shreya-nipunge",
+    "mergedAt": "2026-07-28",
+    "area": "Backend",
+    "score": 6,
+    "docPath": "docs/devtrack/2026-07/PR-3889-fix-alerts-retry-expiry-notifications-after-delive.md",
+    "linkedIssue": "#3883",
+    "labels": "level:advanced,quality:clean,gssoc:approved,type:bug",
+    "filesChanged": [
+      "apps/api/src/cron/alert-broadcaster.ts",
+      "apps/api/tests/alertBroadcaster.test.ts"
+    ],
+    "adr": null
+    "prNumber": 3894,
+    "title": "feat(web): implement offline-first scan history sync and connection s…",
+    "author": "jamunatg2006-sys",
+    "mergedAt": "2026-07-28",
+    "area": "i18n",
+    "score": 23,
+    "docPath": "docs/devtrack/2026-07/PR-3894-feat-web-implement-offline-first-scan-history-sync.md",
+    "linkedIssue": "#3892",
+    "labels": "level:intermediate,gssoc:approved,type:feature",
+    "filesChanged": [
+      "apps/web/app/[locale]/history/page.tsx",
+      "apps/web/messages/en.json",
+      "apps/web/messages/hi.json",
+      "apps/web/messages/kok.json",
+      "apps/web/messages/mai.json",
+      "apps/web/messages/mni.json",
+      "apps/web/messages/sd.json"
+    ],
+    "adr": "docs/devtrack/adr/ADR-060-feat-web-implement-offline-first-scan-history-sync.md"
+    "prNumber": 3888,
+    "title": "fix(scan): keep unprocessed offline media pending",
+    "author": "Shreya-nipunge",
+    "mergedAt": "2026-07-28",
+    "area": "Backend",
+    "score": 9,
+    "docPath": "docs/devtrack/2026-07/PR-3888-fix-scan-keep-unprocessed-offline-media-pending.md",
+    "linkedIssue": "#3882",
+    "labels": "level:intermediate,quality:clean,gssoc:approved,type:bug,type:refactor",
+    "filesChanged": [
+      "apps/api/src/routes/scan.ts",
+      "apps/api/tests/scans.sync.test.ts"
+    ],
+    "adr": null
+    "prNumber": 3890,
+    "title": "fix(scan): use queued endpoint during offline sync",
+    "author": "Shreya-nipunge",
+    "mergedAt": "2026-07-28",
+    "area": "Frontend",
+    "score": 15,
+    "docPath": "docs/devtrack/2026-07/PR-3890-fix-scan-use-queued-endpoint-during-offline-sync.md",
+    "linkedIssue": "#3884",
+    "labels": "level:intermediate,quality:clean,gssoc:approved,type:bug,type:refactor",
+    "filesChanged": [
+      "apps/web/lib/api.ts",
+      "apps/web/lib/db/syncQueue.ts",
+      "apps/web/lib/scanQueueSync.ts",
+      "apps/web/tests/scanQueueSync.test.ts"
+    ],
+    "adr": "docs/devtrack/adr/ADR-060-fix-scan-use-queued-endpoint-during-offline-sync.md"
+  },
+  {
+    "prNumber": 3872,
+    "title": "fix(web): preserve local expiry-date boundaries",
+    "author": "Shreya-nipunge",
+    "mergedAt": "2026-07-24",
+    "area": "Frontend",
+    "score": 5,
+    "docPath": "docs/devtrack/2026-07/PR-3872-fix-web-preserve-local-expiry-date-boundaries.md",
+    "linkedIssue": "#3869",
+    "labels": "level:intermediate,quality:clean,gssoc:approved,type:bug",
+    "filesChanged": [
+      "apps/web/app/[locale]/my-medicines/page.tsx"
+    ],
+    "adr": null
+  },
+  {
+    "prNumber": 3858,
+    "title": "feat(security): gate guest notification endpoints behind a proof-of-ownership token (Closes #3836)",
+    "author": "shashank03-dev",
+    "mergedAt": "2026-07-24",
+    "area": "Frontend",
+    "score": 39,
+    "docPath": "docs/devtrack/2026-07/PR-3858-feat-security-gate-guest-notification-endpoints-be.md",
+    "linkedIssue": "#3836",
+    "labels": "level:advanced,quality:exceptional,gssoc:approved,type:feature,type:testing,type:security,type:refactor,type:devops",
+    "filesChanged": [
+      "apps/api/package.json",
+      "apps/api/src/routes/notifications.ts",
+      "apps/api/src/utils/guestToken.ts",
+      "apps/api/tests/guestToken.test.ts",
+      "apps/api/tests/notifications.test.ts",
+      "apps/web/app/[locale]/settings/page.tsx",
+      "apps/web/lib/api/notifications.ts",
+      "apps/web/messages/en.json",
+      "apps/web/tests/Settings-page.test.tsx",
+      "package-lock.json"
+    ],
+    "adr": "docs/devtrack/adr/ADR-059-feat-security-gate-guest-notification-endpoints-be.md"
+  },
+  {
     "prNumber": 3769,
     "title": "feat(web): serve stale cached GET responses during CSRF refresh",
     "author": "Avinash-sdbegin",
@@ -14,6 +118,27 @@
       "apps/web/worker/index.js"
     ],
     "adr": null
+  },
+  {
+    "prNumber": 3761,
+    "title": "refactor(api): extract business logic into services and repositories",
+    "author": "Avinash-sdbegin",
+    "mergedAt": "2026-07-20",
+    "area": "Backend",
+    "score": 52,
+    "docPath": "docs/devtrack/2026-07/PR-3761-refactor-api-extract-business-logic-into-services-.md",
+    "linkedIssue": "#3681",
+    "labels": "level:advanced,quality:exceptional,gssoc:approved,type:refactor",
+    "filesChanged": [
+      "apps/api/src/repositories/pharmacy.repository.ts",
+      "apps/api/src/repositories/redis.repository.ts",
+      "apps/api/src/repositories/scan.repository.ts",
+      "apps/api/src/routes/pharmacies.ts",
+      "apps/api/src/routes/scan.ts",
+      "apps/api/src/services/pharmacy.service.ts",
+      "apps/api/src/services/scan.service.ts"
+    ],
+    "adr": "docs/devtrack/adr/ADR-058-refactor-api-extract-business-logic-into-services-.md"
   },
   {
     "prNumber": 3755,

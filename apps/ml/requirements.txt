@@ -6,6 +6,7 @@ python-dotenv>=1.2.2
 pytesseract>=0.3.10
 Pillow>=12.3.0
 python-multipart>=0.0.31
+filelock>=3.20.3
 
 # Scraping
 playwright>=1.49.0          # Headless browser - needed for JS-rendered sites like Jan Aushadhi

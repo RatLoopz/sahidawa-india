@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-
-// Helper for ILIKE escaping
-function escapeIlike(str: string) {
-    return str.replace(/[%_]/g, "\\$&");
-}
+import { escapeIlike } from "@sahidawa/shared";
+// Escape PostgreSQL LIKE/ILIKE special characters in user input. The backslash
+// (the LIKE escape character) is escaped first so a user-supplied "\" can't
+// alter the pattern, then the "%" and "_" wildcards. The Supabase SDK forwards
+// the pattern to PostgREST verbatim, so the escaping has to happen here.
 
 export async function GET(request: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;

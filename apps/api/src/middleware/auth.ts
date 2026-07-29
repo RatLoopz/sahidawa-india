@@ -66,12 +66,13 @@ const getMockUser = (): AuthenticatedUser => {
  * SECURITY: The auth bypass (BYPASS_AUTH_FOR_TESTING) exists only to let a
  * developer keep working against a local API when their local Supabase is
  * offline. It must never be reachable from anywhere but the developer's own
- * machine — env vars can leak into a deploy, but request origin can't be
- * spoofed by a misconfigured .env alone.
+ * machine — env vars can leak into a deploy, but the actual TCP connection
+ * address (req.socket.remoteAddress) can't be spoofed by HTTP headers.
  */
 const LOCALHOST_IPS = new Set(["127.0.0.1", "::1", "::ffff:127.0.0.1"]);
 
-const isLocalhostRequest = (req: Request): boolean => LOCALHOST_IPS.has(req.ip ?? "");
+const isLocalhostRequest = (req: Request): boolean =>
+    LOCALHOST_IPS.has(req.socket.remoteAddress ?? "");
 
 /**
  * Returns true only when every condition required to use the local-dev auth
@@ -88,7 +89,8 @@ const canUseAuthBypass = (req: Request): boolean => {
         logger.warn({
             message:
                 "Auth bypass env vars are set but request did not originate from localhost — bypass denied.",
-            ip: req.ip,
+            ip: req.socket.remoteAddress,
+            forwardedFor: req.ip,
         });
         return false;
     }
@@ -120,21 +122,6 @@ export const createAuthMiddleware =
         }
 
         const cacheKey = `auth:user:${crypto.createHash("sha256").update(token).digest("hex")}`;
-        try {
-            if (redisClient.isOpen) {
-                const cached = await redisClient.get(cacheKey);
-                if (cached) {
-                    req.user = JSON.parse(cached);
-                    next();
-                    return;
-                }
-            }
-        } catch (err) {
-            logger.warn({
-                message: "Redis cache get error in auth middleware",
-                error: String(err),
-            });
-        }
 
         try {
             const { data, error } = await client.auth.getUser(token);
@@ -147,6 +134,22 @@ export const createAuthMiddleware =
                     error.message?.includes("refused");
 
                 if (isConnectionError) {
+                    try {
+                        if (redisClient.isOpen) {
+                            const cached = await redisClient.get(cacheKey);
+                            if (cached) {
+                                req.user = JSON.parse(cached);
+                                next();
+                                return;
+                            }
+                        }
+                    } catch (err) {
+                        logger.warn({
+                            message: "Redis cache get error in auth middleware fallback",
+                            error: String(err),
+                        });
+                    }
+
                     if (dbConfig) dbConfig.setOffline();
                     logger.warn({
                         message: "Supabase auth server returned connection error.",
@@ -159,11 +162,21 @@ export const createAuthMiddleware =
                     }
                 }
 
+                try {
+                    if (redisClient.isOpen) {
+                        await redisClient.del(cacheKey);
+                    }
+                } catch (_) {}
                 res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
                 return;
             }
 
             if (!data.user) {
+                try {
+                    if (redisClient.isOpen) {
+                        await redisClient.del(cacheKey);
+                    }
+                } catch (_) {}
                 res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
                 return;
             }
@@ -177,7 +190,7 @@ export const createAuthMiddleware =
 
             try {
                 if (redisClient.isOpen) {
-                    await redisClient.setEx(cacheKey, 300, JSON.stringify(req.user));
+                    await redisClient.setEx(cacheKey, 30, JSON.stringify(req.user));
                 }
             } catch (err) {
                 logger.warn({
@@ -232,21 +245,6 @@ export const createOptionalAuthMiddleware =
         }
 
         const cacheKey = `auth:user:${crypto.createHash("sha256").update(token).digest("hex")}`;
-        try {
-            if (redisClient.isOpen) {
-                const cached = await redisClient.get(cacheKey);
-                if (cached) {
-                    req.user = JSON.parse(cached);
-                    next();
-                    return;
-                }
-            }
-        } catch (err) {
-            logger.warn({
-                message: "Redis cache get error in optional auth middleware",
-                error: String(err),
-            });
-        }
 
         try {
             const { data, error } = await client.auth.getUser(token);
@@ -259,6 +257,22 @@ export const createOptionalAuthMiddleware =
                     error.message?.includes("refused");
 
                 if (isConnectionError) {
+                    try {
+                        if (redisClient.isOpen) {
+                            const cached = await redisClient.get(cacheKey);
+                            if (cached) {
+                                req.user = JSON.parse(cached);
+                                next();
+                                return;
+                            }
+                        }
+                    } catch (err) {
+                        logger.warn({
+                            message: "Redis cache get error in optional auth middleware fallback",
+                            error: String(err),
+                        });
+                    }
+
                     if (dbConfig) dbConfig.setOffline();
                     logger.warn({
                         message: "Supabase auth server returned connection error.",
@@ -271,6 +285,11 @@ export const createOptionalAuthMiddleware =
                     return;
                 }
 
+                try {
+                    if (redisClient.isOpen) {
+                        await redisClient.del(cacheKey);
+                    }
+                } catch (_) {}
                 res.status(401).json({
                     error: "Unauthorized: Invalid or expired token",
                 });
@@ -278,6 +297,11 @@ export const createOptionalAuthMiddleware =
             }
 
             if (!data.user) {
+                try {
+                    if (redisClient.isOpen) {
+                        await redisClient.del(cacheKey);
+                    }
+                } catch (_) {}
                 res.status(401).json({
                     error: "Unauthorized: Invalid or expired token",
                 });
@@ -293,7 +317,7 @@ export const createOptionalAuthMiddleware =
 
             try {
                 if (redisClient.isOpen) {
-                    await redisClient.setEx(cacheKey, 300, JSON.stringify(req.user));
+                    await redisClient.setEx(cacheKey, 30, JSON.stringify(req.user));
                 }
             } catch (err) {
                 logger.warn({

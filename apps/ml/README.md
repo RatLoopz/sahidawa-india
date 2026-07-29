@@ -154,6 +154,33 @@ Open Swagger UI for endpoint testing:
 ```text
 http://localhost:8000/docs
 ```
+
+## Authentication
+
+Every route except `/` and `/health` requires the `x-api-key` header. The API
+gateway sends it on each ML call, and both services read the same secret from
+`ML_API_KEY`, so the two values must match:
+
+```env
+# Generate with: openssl rand -hex 32
+ML_API_KEY=change_me_to_a_long_random_string
+```
+
+Requests without the header (or with the wrong one) get a `401`. `/health`
+stays open so container health checks and load balancers keep working.
+
+When the service runs behind a reverse proxy you control, point the rate
+limiter at the real client IP instead of the proxy's address:
+
+```env
+# Only turn this on behind a trusted proxy — otherwise callers can forge it.
+TRUST_PROXY_HEADERS=false
+# How many proxies sit in front of this service. The limiter reads the IP this
+# many hops from the right of X-Forwarded-For and ignores anything further left.
+# 1 matches a single load balancer or nginx.
+TRUSTED_PROXY_HOPS=1
+```
+
 ## TTS Cache Storage
 
 The ML service can use Supabase Storage as a shared cache for generated TTS audio.

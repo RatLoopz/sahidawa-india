@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Bell, Loader2, Save, Trash2, CheckCircle, AlertTriangle } from "lucide-react";
+import { Bell, Loader2, Save, Trash2, CheckCircle, AlertTriangle, ShieldCheck } from "lucide-react";
 import {
     getSubscriptionStatus,
     registerSubscription,
+    verifyGuestOtp,
     updateSubscription,
     optOutSubscription,
 } from "@/lib/api/notifications";
@@ -13,6 +14,10 @@ import { useSession } from "@/src/components/AuthProvider";
 import { PageHeader } from "../components/PageHeader";
 
 const GUEST_PHONE_KEY = "sahidawa-sms-phone";
+// Token proving a guest owns their number, issued after OTP verification.
+const GUEST_TOKEN_KEY = "sahidawa-guest-token";
+
+const withCountryCode = (localPhone: string) => `+91${localPhone}`;
 
 type FormState = {
     phone: string;
@@ -44,7 +49,12 @@ export default function SettingsPage() {
 
     const [validationError, setValidationError] = useState<string | null>(null);
 
-    // Decode JWT token loosely to verify authenticated status
+    // OTP verification step: shown after a guest registers a new number so they
+    // can confirm ownership and receive their guest token.
+    const [otpStep, setOtpStep] = useState(false);
+    const [otpCode, setOtpCode] = useState("");
+    const [isVerifying, setIsVerifying] = useState(false);
+
     useEffect(() => {
         if (authLoading) return;
 
@@ -53,10 +63,19 @@ export default function SettingsPage() {
             setIsAuthenticated(true);
         }
 
-        // Fetch subscription status on load
         const guestPhone = localStorage.getItem(GUEST_PHONE_KEY) || undefined;
+        const guestToken = localStorage.getItem(GUEST_TOKEN_KEY) || undefined;
 
-        getSubscriptionStatus(guestPhone, sessionToken || undefined)
+        // A guest can only read their status with a valid token now, so only ask
+        // the server when we have some credential. Otherwise fall back to the
+        // phone we have stored locally, if any.
+        const statusPromise = sessionToken
+            ? getSubscriptionStatus(sessionToken, undefined)
+            : guestToken
+              ? getSubscriptionStatus(undefined, guestToken)
+              : Promise.resolve({ registered: false } as const);
+
+        statusPromise
             .then((res) => {
                 if (res.registered) {
                     setForm({
@@ -66,6 +85,16 @@ export default function SettingsPage() {
                         language: res.subscriber.language,
                         district: res.subscriber.district || "",
                     });
+                    return;
+                }
+
+                // Guest token was rejected (expired/invalid) — drop it so the
+                // next save re-verifies, but keep the number to prefill.
+                if (!sessionToken && guestToken) {
+                    localStorage.removeItem(GUEST_TOKEN_KEY);
+                }
+                if (guestPhone) {
+                    setForm((prev) => ({ ...prev, phone: guestPhone.replace("+91", "") }));
                 }
             })
             .catch((err) => {
@@ -93,6 +122,13 @@ export default function SettingsPage() {
         return true;
     };
 
+    // Surface a caught error to the user, preferring its own message and falling
+    // back to the generic translated string for non-Error throws.
+    const showError = (err: unknown) => {
+        const text = err instanceof Error && err.message ? err.message : t("errorMessage");
+        setMessage({ type: "error", text });
+    };
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!validateForm()) return;
@@ -113,13 +149,13 @@ export default function SettingsPage() {
 
         try {
             const guestPhone = localStorage.getItem(GUEST_PHONE_KEY);
-            let response;
+            const guestToken = localStorage.getItem(GUEST_TOKEN_KEY);
 
             if (isAuthenticated) {
                 // Logged-in users are identified by their session token, so the
                 // authenticated update endpoint is the right one regardless of
                 // whether they also happen to have a guest phone on file.
-                response = await updateSubscription(
+                const response = await updateSubscription(
                     {
                         phone: guestPhone || payload.phone,
                         newPhone: payload.phone,
@@ -129,33 +165,85 @@ export default function SettingsPage() {
                     },
                     token || undefined
                 );
-            } else {
-                // Guest users — whether this is their first save or they're
-                // returning to change their district, phone, or channels later —
-                // always go through the guest-friendly registration flow. That
-                // endpoint upserts by phone number and never requires login, so
-                // it also handles updates for guests who already registered once.
-                response = await registerSubscription(payload, undefined);
+                if (response.success) {
+                    localStorage.setItem(GUEST_PHONE_KEY, response.subscriber.phone);
+                    setMessage({ type: "success", text: t("successMessage") });
+                }
+                return;
             }
 
+            const phoneUnchanged = guestPhone === withCountryCode(payload.phone);
+
+            if (guestToken && phoneUnchanged) {
+                // A verified guest changing settings on the same number updates in
+                // place with their token — no need to re-verify.
+                const response = await updateSubscription(
+                    {
+                        phone: payload.phone,
+                        channels: payload.channels,
+                        language: payload.language,
+                        district: payload.district,
+                    },
+                    undefined,
+                    guestToken
+                );
+                if (response.success) {
+                    localStorage.setItem(GUEST_PHONE_KEY, response.subscriber.phone);
+                    setMessage({ type: "success", text: t("successMessage") });
+                }
+                return;
+            }
+
+            // First-time guest, or one subscribing a new number: register (which
+            // sends an OTP) and then ask them to verify. Any token for an old
+            // number is now stale.
+            const response = await registerSubscription(payload, undefined);
             if (response.success) {
                 localStorage.setItem(GUEST_PHONE_KEY, response.subscriber.phone);
-                setMessage({ type: "success", text: t("successMessage") });
+                localStorage.removeItem(GUEST_TOKEN_KEY);
+                setOtpCode("");
+                setOtpStep(true);
+                setMessage({ type: "success", text: t("otpSentMessage") });
             }
         } catch (err: unknown) {
-            if (err instanceof Error) {
-                setMessage({ type: "error", text: err.message || t("errorMessage") });
-            } else {
-                setMessage({ type: "error", text: t("errorMessage") });
-            }
+            showError(err);
         } finally {
             setIsSaving(false);
         }
     };
 
+    const handleVerifyOtp = async () => {
+        if (!/^\d{6}$/.test(otpCode.trim())) {
+            setValidationError(t("otpInvalid"));
+            return;
+        }
+        setValidationError(null);
+        setIsVerifying(true);
+        setMessage(null);
+
+        try {
+            const res = await verifyGuestOtp({ phone: form.phone.trim(), otp: otpCode.trim() });
+            if (res.success) {
+                if (res.guestToken) {
+                    localStorage.setItem(GUEST_TOKEN_KEY, res.guestToken);
+                }
+                localStorage.setItem(GUEST_PHONE_KEY, withCountryCode(form.phone.trim()));
+                setOtpStep(false);
+                setOtpCode("");
+                setMessage({ type: "success", text: t("verifySuccess") });
+            }
+        } catch (err: unknown) {
+            showError(err);
+        } finally {
+            setIsVerifying(false);
+        }
+    };
+
     const handleOptOut = async () => {
         const guestPhone = localStorage.getItem(GUEST_PHONE_KEY);
-        if (!guestPhone && !isAuthenticated) return;
+        const guestToken = localStorage.getItem(GUEST_TOKEN_KEY);
+        // Guests can only opt out once they've verified (and hold a token).
+        if (!isAuthenticated && !guestToken) return;
 
         if (!confirm(t("optOutConfirm"))) {
             return;
@@ -167,10 +255,13 @@ export default function SettingsPage() {
         try {
             const response = await optOutSubscription(
                 { phone: guestPhone || undefined },
-                token || undefined
+                token || undefined,
+                guestToken || undefined
             );
             if (response.success) {
                 localStorage.removeItem(GUEST_PHONE_KEY);
+                localStorage.removeItem(GUEST_TOKEN_KEY);
+                setOtpStep(false);
                 setForm({
                     phone: "",
                     sms: false,
@@ -181,11 +272,7 @@ export default function SettingsPage() {
                 setMessage({ type: "success", text: t("optOutSuccess") });
             }
         } catch (err: unknown) {
-            if (err instanceof Error) {
-                setMessage({ type: "error", text: err.message || t("errorMessage") });
-            } else {
-                setMessage({ type: "error", text: t("errorMessage") });
-            }
+            showError(err);
         } finally {
             setIsSaving(false);
         }
@@ -254,6 +341,56 @@ export default function SettingsPage() {
                             size={20}
                         />
                         <span className="text-sm font-semibold">{validationError}</span>
+                    </div>
+                )}
+
+                {/* OTP verification step */}
+                {otpStep && (
+                    <div className="mb-6 rounded-3xl border border-emerald-200 bg-emerald-50/40 p-6 shadow-sm sm:p-8 dark:border-emerald-900/30 dark:bg-emerald-950/10">
+                        <div className="mb-4 flex items-center gap-3">
+                            <ShieldCheck
+                                className="shrink-0 text-emerald-600 dark:text-emerald-400"
+                                size={22}
+                            />
+                            <h3 className="text-base font-bold text-(--color-text-primary)">
+                                {t("otpSentTitle")}
+                            </h3>
+                        </div>
+                        <p className="mb-4 text-sm text-(--color-text-secondary)">
+                            {t("otpSentDesc")}
+                        </p>
+                        <label
+                            htmlFor="otp"
+                            className="mb-2 block text-sm font-bold text-(--color-text-primary)"
+                        >
+                            {t("otpLabel")}
+                        </label>
+                        <div className="flex flex-col gap-3 sm:flex-row">
+                            <input
+                                id="otp"
+                                type="text"
+                                inputMode="numeric"
+                                value={otpCode}
+                                onChange={(e) =>
+                                    setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                                }
+                                placeholder={t("otpPlaceholder")}
+                                className="w-full rounded-xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 font-semibold tracking-widest text-(--color-text-primary) placeholder-(--color-text-muted) shadow-inner focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleVerifyOtp}
+                                disabled={isVerifying}
+                                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3.5 font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
+                            >
+                                {isVerifying ? (
+                                    <Loader2 className="animate-spin" size={18} />
+                                ) : (
+                                    <CheckCircle size={18} />
+                                )}
+                                {isVerifying ? t("verifying") : t("verifyButton")}
+                            </button>
+                        </div>
                     </div>
                 )}
 
@@ -411,7 +548,7 @@ export default function SettingsPage() {
                             </button>
 
                             {((typeof window !== "undefined" &&
-                                localStorage.getItem(GUEST_PHONE_KEY)) ||
+                                localStorage.getItem(GUEST_TOKEN_KEY)) ||
                                 isAuthenticated) && (
                                 <button
                                     type="button"

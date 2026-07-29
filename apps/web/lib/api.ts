@@ -330,12 +330,18 @@ export async function fetchNearbyAshaWorkers(
 
 export async function verifyMedicine(
     batchNumber: string,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    endpoint?: string
 ): Promise<VerifyResult> {
-    const mlUrl = process.env.NEXT_PUBLIC_ML_URL;
+    const mlUrl = endpoint
+        ? /\/verify\/batch\/?$/.test(endpoint)
+            ? endpoint
+            : undefined
+        : process.env.NEXT_PUBLIC_ML_URL;
     if (mlUrl) {
         try {
-            const mlRes = await fetchWithRetry(`${mlUrl.replace(/\/+$/, "")}/verify/batch`, {
+            const mlEndpoint = endpoint ?? `${mlUrl.replace(/\/+$/, "")}/verify/batch`;
+            const mlRes = await fetchWithRetry(mlEndpoint, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -375,12 +381,18 @@ export async function verifyMedicine(
                     },
                 };
             }
-        } catch {
+            if (endpoint) {
+                throw new Error(
+                    "Stored ML verification endpoint returned an unsuccessful response"
+                );
+            }
+        } catch (error) {
+            if (endpoint) throw error;
             console.warn("ML service unavailable, falling back to Node API");
         }
     }
     return fetchWithCsrf<VerifyResult>(
-        `${API_BASE}/api/verify`,
+        endpoint ?? `${API_BASE}/api/verify`,
         {
             method: "POST",
             body: JSON.stringify({ batchNumber }),

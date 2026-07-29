@@ -2,8 +2,11 @@ process.env.SUPABASE_URL = process.env.SUPABASE_URL || "http://localhost:54321";
 process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "test-anon-key";
 process.env.TWILIO_AUTH_TOKEN = "test-auth-token";
 process.env.TWILIO_WEBHOOK_PUBLIC_URL = "http://localhost";
+process.env.JWT_SECRET = "test-jwt-secret";
 
-// Mock subscriber data
+// Mock subscriber data. Deliberately includes the sensitive columns
+// (user_id, verification_otp, otp_expires_at) so the tests below can assert the
+// route never leaks them into a response.
 const mockSubscriber = {
     id: "sub-123-uuid",
     user_id: "test-user-uuid",
@@ -13,7 +16,13 @@ const mockSubscriber = {
     language: "en",
     district: "South West Delhi",
     is_active: true,
+    status: "active",
+    verification_otp: "123456",
+    otp_expires_at: "2999-01-01T00:00:00.000Z",
 };
+
+// Fields that must never appear on a subscriber object in any HTTP response.
+const SENSITIVE_SUBSCRIBER_FIELDS = ["user_id", "verification_otp", "otp_expires_at"];
 
 let mockAuthenticatedUser: any = {
     id: "test-user-uuid",
@@ -106,8 +115,8 @@ import express from "express";
 import request from "supertest";
 import notificationsRouter from "../src/routes/notifications";
 import { computeTwilioSignature } from "../src/middleware/twilioSignature";
+import { signGuestToken, verifyGuestPhone } from "../src/utils/guestToken";
 import { Request, Response, NextFunction } from "express";
-
 
 describe("notifications routes", () => {
     let app: express.Express;
@@ -154,6 +163,48 @@ describe("notifications routes", () => {
         expect(response.body.subscriber.phone).toBe("+919876543210");
     });
 
+    it("never leaks OTP or user_id from /status for an authenticated user", async () => {
+        const response = await request(app)
+            .get("/api/notifications/status")
+            .query({ phone: "9876543210" });
+
+        expect(response.status).toBe(200);
+        expect(response.body.registered).toBe(true);
+        for (const field of SENSITIVE_SUBSCRIBER_FIELDS) {
+            expect(response.body.subscriber).not.toHaveProperty(field);
+        }
+    });
+
+    it("rejects a guest /status call that has no guest token", async () => {
+        mockAuthenticatedUser = null;
+
+        const response = await request(app)
+            .get("/api/notifications/status")
+            .query({ phone: "9876543210" });
+
+        expect(response.status).toBe(401);
+        expect(mockQueryBuilder.eq).not.toHaveBeenCalled();
+    });
+
+    it("scopes a guest /status lookup to the token's phone, ignoring any query phone", async () => {
+        mockAuthenticatedUser = null;
+        const token = signGuestToken("+919876543210");
+
+        const response = await request(app)
+            .get("/api/notifications/status")
+            .set("X-Guest-Token", token)
+            .query({ phone: "+910000000000" }); // attacker-supplied, must be ignored
+
+        expect(response.status).toBe(200);
+        expect(response.body.registered).toBe(true);
+        // The lookup is driven by the token, not the query string.
+        expect(mockQueryBuilder.eq).toHaveBeenCalledWith("phone", "+919876543210");
+        expect(mockQueryBuilder.eq).not.toHaveBeenCalledWith("phone", "+910000000000");
+        for (const field of SENSITIVE_SUBSCRIBER_FIELDS) {
+            expect(response.body.subscriber).not.toHaveProperty(field);
+        }
+    });
+
     it("registers a subscriber successfully", async () => {
         const payload = {
             phone: "9876543210",
@@ -167,6 +218,9 @@ describe("notifications routes", () => {
         expect(response.status).toBe(201);
         expect(response.body.success).toBe(true);
         expect(response.body.subscriber).toBeDefined();
+        for (const field of SENSITIVE_SUBSCRIBER_FIELDS) {
+            expect(response.body.subscriber).not.toHaveProperty(field);
+        }
     });
 
     it("fails registration with invalid payload", async () => {
@@ -192,6 +246,9 @@ describe("notifications routes", () => {
 
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
+        for (const field of SENSITIVE_SUBSCRIBER_FIELDS) {
+            expect(response.body.subscriber).not.toHaveProperty(field);
+        }
         expect(mockQueryBuilder.update).toHaveBeenCalledWith({
             channels: ["whatsapp"],
             district: "South Delhi",
@@ -209,7 +266,9 @@ describe("notifications routes", () => {
         });
 
         expect(response.status).toBe(401);
-        expect(response.body.error).toBe("Authentication required");
+        expect(response.body.error).toBe(
+            "A valid guest token is required to update settings without signing in."
+        );
         expect(mockQueryBuilder.update).not.toHaveBeenCalled();
         expect(mockQueryBuilder.eq).not.toHaveBeenCalledWith("phone", "+919876543210");
     });
@@ -300,14 +359,6 @@ describe("notifications routes", () => {
         expect(response.body.error).toBe("Invalid phone number format");
     });
 
-    it("returns 400 for /status with invalid phone number format", async () => {
-        const response = await request(app)
-            .get("/api/notifications/status")
-            .query({ phone: "invalid-phone" });
-        expect(response.status).toBe(400);
-        expect(response.body.error).toBe("Invalid phone number format");
-    });
-
     it("returns 400 for /phone PATCH with invalid phone format", async () => {
         const payload = {
             phone: "123", // too short
@@ -327,12 +378,123 @@ describe("notifications routes", () => {
         expect(response.body.error).toBe("Invalid phone number format");
     });
 
-    it("returns 400 for /phone DELETE with invalid phone format", async () => {
-        const payload = {
-            phone: "garbagephn",
-        };
-        const response = await request(app).delete("/api/notifications/phone").send(payload);
-        expect(response.status).toBe(400);
-        expect(response.body.error).toBe("Invalid phone number format");
+    describe("guest token flow", () => {
+        it("issues a guest token when a guest verifies a valid OTP", async () => {
+            const pending = {
+                ...mockSubscriber,
+                status: "pending",
+                verification_otp: "654321",
+                otp_expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+            };
+            mockQueryBuilder.maybeSingle.mockResolvedValueOnce({ data: pending, error: null });
+
+            const response = await request(app)
+                .post("/api/notifications/verify-otp")
+                .send({ phone: "9876543210", otp: "654321" });
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(typeof response.body.guestToken).toBe("string");
+            // The token must resolve back to the number that was just verified.
+            expect(verifyGuestPhone(response.body.guestToken)).toBe("+919876543210");
+        });
+
+        it("does not issue a token on the already-verified short-circuit", async () => {
+            // mockSubscriber.status is already "active", so no OTP is checked.
+            const response = await request(app)
+                .post("/api/notifications/verify-otp")
+                .send({ phone: "9876543210", otp: "000000" });
+
+            expect(response.status).toBe(200);
+            expect(response.body.guestToken).toBeUndefined();
+        });
+
+        it("rejects a guest opt-out that has no token", async () => {
+            mockAuthenticatedUser = null;
+
+            const response = await request(app)
+                .delete("/api/notifications/phone")
+                .send({ phone: "9876543210" });
+
+            expect(response.status).toBe(401);
+            expect(mockQueryBuilder.delete).not.toHaveBeenCalled();
+        });
+
+        it("opts a guest out scoped to the token's phone", async () => {
+            mockAuthenticatedUser = null;
+            const token = signGuestToken("+919876543210");
+
+            const response = await request(app)
+                .delete("/api/notifications/phone")
+                .set("X-Guest-Token", token)
+                .send({ phone: "+910000000000" }); // body is ignored
+
+            expect(response.status).toBe(200);
+            expect(mockQueryBuilder.eq).toHaveBeenCalledWith("phone", "+919876543210");
+            expect(mockQueryBuilder.eq).not.toHaveBeenCalledWith("phone", "+910000000000");
+        });
+
+        it("rejects a guest settings update that has no token", async () => {
+            mockAuthenticatedUser = null;
+
+            const response = await request(app)
+                .patch("/api/notifications/phone")
+                .send({ phone: "9876543210", district: "South Delhi" });
+
+            expect(response.status).toBe(401);
+            expect(mockQueryBuilder.update).not.toHaveBeenCalled();
+        });
+
+        it("lets a guest with a valid token update their own settings", async () => {
+            mockAuthenticatedUser = null;
+            const token = signGuestToken("+919876543210");
+
+            const response = await request(app)
+                .patch("/api/notifications/phone")
+                .set("X-Guest-Token", token)
+                .send({ phone: "9876543210", district: "South Delhi", channels: ["sms"] });
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(mockQueryBuilder.eq).toHaveBeenCalledWith("phone", "+919876543210");
+            expect(mockQueryBuilder.eq).not.toHaveBeenCalledWith("user_id", expect.anything());
+        });
+
+        it("stops a guest from moving their subscription to a new number", async () => {
+            mockAuthenticatedUser = null;
+            const token = signGuestToken("+919876543210");
+
+            const response = await request(app)
+                .patch("/api/notifications/phone")
+                .set("X-Guest-Token", token)
+                .send({ phone: "9876543210", newPhone: "9123456789" });
+
+            expect(response.status).toBe(400);
+            expect(mockQueryBuilder.update).not.toHaveBeenCalled();
+        });
+
+        it("rejects a guest update that carries no changed fields", async () => {
+            mockAuthenticatedUser = null;
+            const token = signGuestToken("+919876543210");
+
+            const response = await request(app)
+                .patch("/api/notifications/phone")
+                .set("X-Guest-Token", token)
+                .send({ phone: "9876543210" });
+
+            expect(response.status).toBe(400);
+            expect(mockQueryBuilder.update).not.toHaveBeenCalled();
+        });
+
+        it("rejects a tampered or unsigned guest token", async () => {
+            mockAuthenticatedUser = null;
+
+            const response = await request(app)
+                .get("/api/notifications/status")
+                .set("X-Guest-Token", "not.a.real.token");
+
+            expect(response.status).toBe(401);
+            expect(mockQueryBuilder.eq).not.toHaveBeenCalled();
+        });
     });
 });

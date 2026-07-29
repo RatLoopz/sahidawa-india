@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Mic } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 import { PageHeader } from "../components/PageHeader";
 import {
     getSpeechRecognitionConstructor,
@@ -38,7 +39,7 @@ import {
     transcribeRecordedAudio,
     type VoiceTranscriptionPayload,
 } from "./lib/transcription";
-import { createVoiceStreamingSession } from "./lib/streaming";
+import { createVoiceStreamingSession, fetchVoiceStreamTicket } from "./lib/streaming";
 import {
     VoiceErrorPanel,
     VoiceIntroPanel,
@@ -160,6 +161,10 @@ export default function VoiceTriagePage() {
     const router = useRouter();
     const locale = useLocale();
     const t = useTranslations("VoicePage");
+    const [, copyToClipboard] = useCopyToClipboard({
+        successMessage: t("copy_success"),
+        errorMessage: t("share_failure"),
+    });
     const [mode, setMode] = useState<"triage" | "verify">("triage");
     const [step, setStep] = useState<VoiceStep>("initial");
     const [selectedLanguage, setSelectedLanguage] = useState(getVoiceLanguageForLocale(locale));
@@ -822,19 +827,13 @@ export default function VoiceTriagePage() {
                 return;
             }
 
-            await navigator.clipboard.writeText(`${reportText}\n\n${window.location.href}`);
-            toast.success(t("copy_success"));
+            await copyToClipboard(`${reportText}\n\n${window.location.href}`);
         } catch (shareError) {
             if (shareError instanceof Error && shareError.name === "AbortError") {
                 return;
             }
 
-            try {
-                await navigator.clipboard.writeText(`${reportText}\n\n${window.location.href}`);
-                toast.success(t("copy_success"));
-            } catch {
-                toast.error(t("share_failure"));
-            }
+            await copyToClipboard(`${reportText}\n\n${window.location.href}`);
         }
     }
 
@@ -1075,9 +1074,15 @@ export default function VoiceTriagePage() {
         setActiveAudioStream(nextAudioStream);
         setStep("listening");
 
-        if (typeof window.WebSocket === "function") {
+        // The ML socket needs a short-lived ticket from the API. Without one we
+        // skip straight to recorded upload rather than opening a socket that
+        // the ML service will just close.
+        const streamTicket = await fetchVoiceStreamTicket();
+
+        if (typeof window.WebSocket === "function" && streamTicket) {
             try {
                 streamingSessionRef.current = createVoiceStreamingSession({
+                    ticket: streamTicket,
                     language: selectedLanguage,
                     mimeType: mediaRecorderInstance.mimeType || "audio/webm",
                     onPartial: (payload) => {

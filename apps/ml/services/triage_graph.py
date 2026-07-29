@@ -2,11 +2,15 @@ import os
 import json
 import time
 import logging
+import tempfile
+import threading
+from pathlib import Path
 from typing import List, Dict, Any, Optional, TypedDict
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 from services.retrieval import retrieve_relevant_medicines
 from utils.database import redis_client, REDIS_URL
+from filelock import FileLock
 
 load_dotenv()
 
@@ -41,38 +45,95 @@ _PERSISTED_STATE_FIELDS = (
 # `cooldown_seconds` it half-opens to let the next call test whether Redis has
 # recovered.
 
+# ── Shared cross-process state file ──────────────────────────────────────────
+# time.monotonic() cannot be shared across processes (it's per-process), so
+# the persisted state uses time.time() (wall-clock) instead. A FileLock
+# guards every read-modify-write cycle so concurrent Uvicorn/Gunicorn workers
+# never race on the same file.
+_BREAKER_STATE_DIR = Path(os.getenv("TRIAGE_BREAKER_STATE_DIR", tempfile.gettempdir()))
+_BREAKER_STATE_FILE = _BREAKER_STATE_DIR / "sahidawa_redis_breaker_state.json"
+_BREAKER_LOCK_FILE = str(_BREAKER_STATE_FILE) + ".lock"
+_BREAKER_LOCK_TIMEOUT_SECONDS = 2.0
+
 
 class _RedisCircuitBreaker:
+    """Circuit breaker whose open/closed state is shared across every worker
+    process via a lock-guarded JSON file on disk (Redis itself can't be used
+    for this state — it's precisely what we're tracking the health of).
+
+    Semantics (closed → open → half-open → closed) are unchanged from the
+    original in-memory version; only the storage backend changed.
+    """
+
     def __init__(self, failure_threshold: int = 3, cooldown_seconds: float = 60.0) -> None:
-        self._failures = 0
-        self._opened_at: Optional[float] = None
         self._threshold = max(1, failure_threshold)
         self._cooldown = cooldown_seconds
+        # Thread-safety within a single process; FileLock below handles
+        # process-safety across workers.
+        self._thread_lock = threading.Lock()
+        self._file_lock = FileLock(_BREAKER_LOCK_FILE, timeout=_BREAKER_LOCK_TIMEOUT_SECONDS)
+
+    def _read_state(self) -> Dict[str, Any]:
+        try:
+            raw = _BREAKER_STATE_FILE.read_text()
+            data = json.loads(raw)
+            return {
+                "failures": int(data.get("failures", 0)),
+                "opened_at": data.get("opened_at"),
+            }
+        except (FileNotFoundError, ValueError, TypeError, json.JSONDecodeError):
+            return {"failures": 0, "opened_at": None}
+
+    def _write_state(self, failures: int, opened_at: Optional[float]) -> None:
+        # Atomic write: write to a temp file in the same dir, then os.replace
+        # so concurrent readers never see a partially-written file.
+        _BREAKER_STATE_DIR.mkdir(parents=True, exist_ok=True)
+        tmp_fd, tmp_path = tempfile.mkstemp(dir=_BREAKER_STATE_DIR, suffix=".tmp")
+        try:
+            with os.fdopen(tmp_fd, "w") as f:
+                json.dump({"failures": failures, "opened_at": opened_at}, f)
+            os.replace(tmp_path, _BREAKER_STATE_FILE)
+        except Exception:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+            raise
 
     def is_open(self) -> bool:
         """Whether Redis calls should currently be skipped.
 
         Half-opens automatically once the cooldown has elapsed, so the next
-        call is allowed through to probe whether Redis has recovered.
+        call across ANY worker is allowed through to probe recovery.
         """
-        if self._opened_at is None:
-            return False
-        if time.monotonic() - self._opened_at >= self._cooldown:
-            self._opened_at = None
-            self._failures = 0
-            return False
-        return True
+        with self._thread_lock, self._file_lock:
+            state = self._read_state()
+            opened_at = state["opened_at"]
+
+            if opened_at is None:
+                return False
+
+            if time.time() - opened_at >= self._cooldown:
+                self._write_state(failures=0, opened_at=None)
+                return False
+
+            return True
 
     def record_success(self) -> None:
-        self._failures = 0
-        self._opened_at = None
+        with self._thread_lock, self._file_lock:
+            self._write_state(failures=0, opened_at=None)
 
     def record_failure(self) -> None:
-        self._failures += 1
-        if self._failures >= self._threshold:
-            self._opened_at = time.monotonic()
+        with self._thread_lock, self._file_lock:
+            state = self._read_state()
+            failures = state["failures"] + 1
+            opened_at = state["opened_at"]
 
+            if failures >= self._threshold and opened_at is None:
+                opened_at = time.time()
 
+            self._write_state(failures=failures, opened_at=opened_at)
+            
 def _breaker_int_env(name: str, default: int) -> int:
     try:
         return int(os.getenv(name, default))

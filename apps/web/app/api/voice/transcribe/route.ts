@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { structuredLog } from "@/lib/structuredLogger";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/getClientIp";
-import { getMlServiceUrl } from "@/lib/mlService";
+import { getMlServiceUrl, getMlAuthHeaders } from "@/lib/mlService";
 
 const ROUTE = "/api/voice/transcribe";
 const ML_TRANSCRIBE_TIMEOUT_MS = 45_000;
@@ -89,6 +89,7 @@ export async function POST(req: Request) {
     try {
         const upstreamResponse = await fetch(`${mlServiceUrl}/asr/transcribe`, {
             method: "POST",
+            headers: getMlAuthHeaders(),
             body: upstreamBody,
             signal: abortController.signal,
         });

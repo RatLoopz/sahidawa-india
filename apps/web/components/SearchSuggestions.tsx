@@ -88,7 +88,10 @@ function SearchSuggestions({
 
     if (isLoading) {
         return (
-            <div className="absolute top-full right-0 left-0 z-50 mt-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl">
+            <div
+                role="status"
+                className="absolute top-full right-0 left-0 z-50 mt-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl"
+            >
                 <div className="flex items-center gap-2 text-sm text-slate-600">
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
                     Searching medicines...
@@ -99,7 +102,10 @@ function SearchSuggestions({
 
     if (error) {
         return (
-            <div className="absolute top-full right-0 left-0 z-50 mt-2 rounded-2xl border border-red-200 bg-white p-4 shadow-xl">
+            <div
+                role="alert"
+                className="absolute top-full right-0 left-0 z-50 mt-2 rounded-2xl border border-red-200 bg-white p-4 shadow-xl"
+            >
                 <p className="mb-3 text-sm text-red-600">{error}</p>
                 {onRetry && (
                     <button
@@ -116,7 +122,10 @@ function SearchSuggestions({
 
     if (noResults) {
         return (
-            <div className="absolute top-full right-0 left-0 z-50 mt-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl">
+            <div
+                role="status"
+                className="absolute top-full right-0 left-0 z-50 mt-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl"
+            >
                 <p className="text-sm text-slate-600">
                     No medicines found. Try another medicine name or batch number.
                 </p>

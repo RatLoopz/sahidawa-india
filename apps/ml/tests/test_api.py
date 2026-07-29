@@ -43,7 +43,7 @@ def test_models_current_endpoint():
     data = response.json()
     
     # Assert top-level keys exist
-    for key in ["asr", "tts", "ner", "embedding", "triage", "tflite_models"]:
+    for key in ["asr", "tts", "ner", "embedding", "triage", "tflite"]:
         assert key in data
         
     # Assert ASR details
@@ -65,19 +65,38 @@ def test_models_current_endpoint():
     assert embedding_data["model_name"] == "gemini-embedding-2"
     assert embedding_data["dimensions"] == 768
 
-    # Assert TFLite models
-    assert isinstance(data["tflite_models"], list)
-    assert len(data["tflite_models"]) > 0
-    tflite_model = data["tflite_models"][0]
+    # Assert TFLite models (nested under the "tflite" section)
+    tflite_data = data["tflite"]
+    assert "is_loaded" in tflite_data
+    assert isinstance(tflite_data["models"], list)
+    assert len(tflite_data["models"]) > 0
+    tflite_model = tflite_data["models"][0]
     assert tflite_model["filename"] == "mobilenetv3_large_int8.tflite"
     assert tflite_model["exists"] is True
 
 def test_models_current_endpoint_no_api_key():
     response = client.get("/models/current")
 
-    assert response.status_code in (401, 403)
-    
+    assert response.status_code == 401
+
+
 def test_transcribe_missing_file():
-    response = client.post("/asr/transcribe")
+    # Authenticated, so this exercises request validation rather than auth.
+    response = client.post(
+        "/asr/transcribe",
+        headers={"x-api-key": "test-secret-123"},
+    )
 
     assert response.status_code == 422
+
+
+def test_transcribe_requires_api_key():
+    response = client.post("/asr/transcribe")
+
+    assert response.status_code == 401
+
+
+def test_wrong_api_key_is_rejected():
+    response = client.get("/models/current", headers={"x-api-key": "wrong-key"})
+
+    assert response.status_code == 401

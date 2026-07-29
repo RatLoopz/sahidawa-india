@@ -9,6 +9,13 @@ const hasCredentials =
 class MockRateLimit {
     async limit() {
         if (!hasCredentials && process.env.NODE_ENV === "production") {
+            if (process.env.BYPASS_RATE_LIMIT === "true") {
+                console.warn(
+                    "Missing Upstash Redis rate limit configuration in production. " +
+                        "Bypassing rate limiter because BYPASS_RATE_LIMIT=true is configured."
+                );
+                return { success: true, limit: 30, remaining: 29, reset: 0 };
+            }
             throw new Error(
                 "Missing Upstash Redis rate limit configuration in production. " +
                     "Please set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN."

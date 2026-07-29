@@ -66,6 +66,7 @@ export async function resolveConflict(input: {
                   .from("user_scan_history")
                   .select("*")
                   .eq("id", input.scanId)
+                  .eq("user_id", input.userId)
                   .maybeSingle()
           ).data
         : null;
@@ -89,8 +90,7 @@ export async function resolveConflict(input: {
         return data!.id;
     }
 
-    const incomingIsNewer =
-        new Date(clientUpdatedAtMs) > new Date(existing.client_updated_at || 0);
+    const incomingIsNewer = new Date(clientUpdatedAtMs) > new Date(existing.client_updated_at || 0);
 
     if (incomingIsNewer) {
         const { error: updateError } = await supabase
@@ -100,7 +100,8 @@ export async function resolveConflict(input: {
                 device_id: input.deviceId,
                 client_updated_at: new Date(clientUpdatedAtMs).toISOString(),
             })
-            .eq("id", input.scanId);
+            .eq("id", input.scanId)
+            .eq("user_id", input.userId);
 
         await supabase.from("scan_conflict_log").insert({
             scan_id: existing.id,

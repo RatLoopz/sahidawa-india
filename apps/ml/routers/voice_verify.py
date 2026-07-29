@@ -1,6 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 import whisper
+import asyncio
 import tempfile
 import os
 from utils.audio_upload import read_audio_upload_limited
@@ -54,7 +55,7 @@ async def verify_medicine_voice(audio: UploadFile = File(...)):
 
     try:
         # Transcribe with Whisper (auto-detects language)
-        result = get_whisper_model().transcribe(tmp_path, task="transcribe")
+        result = await asyncio.to_thread(get_whisper_model().transcribe, tmp_path, task="transcribe")
         transcribed_text = result.get("text", "").strip()
         detected_lang = result.get("language", "en")
 

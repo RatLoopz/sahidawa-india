@@ -48,3 +48,15 @@ export function getMlServiceUrl(): string | null {
 
     return valid ? trimmed : null;
 }
+
+/**
+ * Auth header for server-side calls to the ML service.
+ *
+ * Server-only. ML_API_KEY deliberately has no NEXT_PUBLIC_ prefix so it is
+ * never bundled into the browser. Browser code reaches the ML socket with a
+ * short-lived ticket from the API instead (see voice/lib/streaming.ts).
+ */
+export function getMlAuthHeaders(): Record<string, string> {
+    const apiKey = process.env.ML_API_KEY?.trim();
+    return apiKey ? { "x-api-key": apiKey } : {};
+}

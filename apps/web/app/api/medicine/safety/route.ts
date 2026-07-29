@@ -14,13 +14,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI, SchemaType, type Schema } from "@google/generative-ai";
 import Groq from "groq-sdk";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { getClientIp } from "@/lib/getClientIp";
+import { rateLimit } from "@/lib/rateLimit";
 
-// ── Supabase (server-side — uses service role key for cache writes) ────────────
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const db = createClient(supabaseUrl, supabaseKey);
+// Force this route to always run at request time. Without this, Next.js can
+// attempt to statically analyze/prerender the route during `next build`,
+// which runs code paths before any real request (and real env vars) exist.
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+const MAX_QUERY_LENGTH = 100;
 
 // ── OpenFDA ───────────────────────────────────────────────────────────────────
 async function fetchOpenFdaContext(genericName: string): Promise<string> {
@@ -153,8 +157,8 @@ function isRateLimited(err: unknown): boolean {
 }
 
 async function generateWithGemini(drug: string, rag: string): Promise<object> {
-    const apiKey = process.env.GEMINI_API_KEY?.trim();
-    if (!apiKey) throw new Error("GEMINI_API_KEY not set");
+    const apiKey = (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY)?.trim();
+    if (!apiKey) throw new Error("API Key not set");
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
@@ -194,8 +198,38 @@ async function generateWithGroq(drug: string, rag: string): Promise<object> {
     return JSON.parse(completion.choices[0]?.message?.content ?? "{}");
 }
 
+// ── Lazy Supabase client (never constructed at module scope) ─────────────────
+function getSupabaseClient(): SupabaseClient | null {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey =
+        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) return null;
+
+    try {
+        return createClient(supabaseUrl, supabaseKey);
+    } catch {
+        // Malformed URL/key — treat as "not configured" rather than crashing.
+        return null;
+    }
+}
+
 // ── GET handler ───────────────────────────────────────────────────────────────
 export async function GET(request: NextRequest) {
+    // Rate limiting is wrapped defensively — a misconfigured limiter should
+    // degrade gracefully rather than take down the whole route.
+    try {
+        const { success } = await rateLimit.limit(getClientIp(request));
+        if (!success) {
+            return NextResponse.json(
+                { error: "Too many requests. Please try again in a few moments." },
+                { status: 429 }
+            );
+        }
+    } catch (err) {
+        console.warn("[medicine/safety] rate limiter unavailable, skipping:", err);
+    }
+
     const q = new URL(request.url).searchParams.get("q")?.trim();
     if (!q || q.length < 2) {
         return NextResponse.json(
@@ -204,27 +238,40 @@ export async function GET(request: NextRequest) {
         );
     }
 
+    if (q.length > MAX_QUERY_LENGTH) {
+        return NextResponse.json(
+            { error: "Query parameter 'q' must be 100 characters or fewer." },
+            { status: 400 }
+        );
+    }
+
     const genericName = q.toLowerCase();
 
-    // ── 1. Supabase cache ─────────────────────────────────────────────────────
-    try {
-        const { data } = await db
-            .from("medicine_safety_profiles")
-            .select("profile_json")
-            .eq("generic_name", genericName)
-            .maybeSingle();
+    // Supabase is optional at runtime: if it's not configured, we skip
+    // caching entirely rather than failing the request.
+    const db = getSupabaseClient();
 
-        if (data?.profile_json) {
-            return NextResponse.json(data.profile_json, {
-                headers: {
-                    "X-Cache": "HIT",
-                    "X-Cache-Source": "supabase",
-                    "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
-                },
-            });
+    // ── 1. Supabase cache ─────────────────────────────────────────────────────
+    if (db) {
+        try {
+            const { data } = await db
+                .from("medicine_safety_profiles")
+                .select("profile_json")
+                .eq("generic_name", genericName)
+                .maybeSingle();
+
+            if (data?.profile_json) {
+                return NextResponse.json(data.profile_json, {
+                    headers: {
+                        "X-Cache": "HIT",
+                        "X-Cache-Source": "supabase",
+                        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+                    },
+                });
+            }
+        } catch {
+            // non-fatal — proceed to LLM
         }
-    } catch {
-        // non-fatal — proceed to LLM
     }
 
     // ── 2. OpenFDA RAG context ────────────────────────────────────────────────
@@ -259,11 +306,10 @@ export async function GET(request: NextRequest) {
         }
     }
 
-    // ── 4. Persist to Supabase (best-effort) ──────────────────────────────────
-    try {
-        await db
-            .from("medicine_safety_profiles")
-            .upsert(
+    // ── 4. Persist to Supabase (best-effort, optional) ────────────────────────
+    if (db) {
+        try {
+            await db.from("medicine_safety_profiles").upsert(
                 {
                     generic_name: genericName,
                     profile_json: profile,
@@ -271,8 +317,9 @@ export async function GET(request: NextRequest) {
                 },
                 { onConflict: "generic_name" }
             );
-    } catch {
-        // non-fatal
+        } catch {
+            // non-fatal
+        }
     }
 
     return NextResponse.json(profile, {

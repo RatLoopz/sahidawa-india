@@ -106,9 +106,10 @@ def scrape_cdsco_alerts():
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
     }
     try:
-        # TLS verification enabled for security as requested by the review.
-        # If CDSCO presents a known CA issue, pin it explicitly.
-        response = requests.get(CDSCO_ALERTS_URL, headers=headers, verify=False, timeout=15)
+        # TLS verification stays on. Alerts scraped here are written to
+        # drug_alerts with the service role key and pushed to users, so an
+        # unverified connection lets a network attacker fabricate recalls.
+        response = requests.get(CDSCO_ALERTS_URL, headers=headers, timeout=15)
         response.raise_for_status()
     except requests.RequestException as e:
         logging.error(f"Failed to fetch CDSCO alerts page: {e}")
@@ -141,7 +142,7 @@ def process_alert_pdf(pdf_url: str):
     }
     try:
         logging.info(f"Downloading PDF (or wrapper): {pdf_url}")
-        response = requests.get(pdf_url, headers=headers, verify=False, timeout=30)
+        response = requests.get(pdf_url, headers=headers, timeout=30)
         response.raise_for_status()
         
         content = response.content
@@ -157,7 +158,7 @@ def process_alert_pdf(pdf_url: str):
                 real_pdf_url = urljoin(CDSCO_ALERTS_URL, real_pdf_path)
                 real_pdf_url = real_pdf_url.replace(" ", "%20")
                 logging.info(f"Downloading real PDF: {real_pdf_url}")
-                response = requests.get(real_pdf_url, headers=headers, verify=False, timeout=30)
+                response = requests.get(real_pdf_url, headers=headers, timeout=30)
                 response.raise_for_status()
                 content = response.content
     except requests.RequestException as e:

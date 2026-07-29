@@ -18,6 +18,7 @@ const createLimiter = (options: LimiterOptions) => {
         standardHeaders: true,
         legacyHeaders: false,
         store: buildStore(options.prefix || "general"),
+        validate: false,
         handler: (_req, res) => {
             res.status(429).json({
                 error: options.message,
@@ -39,6 +40,7 @@ export const createKeyLimiter = (options: KeyLimiterOptions) => {
         legacyHeaders: false,
         keyGenerator: options.keyGenerator,
         store: buildStore(options.prefix || "general_key"),
+        validate: false,
         handler: (_req, res) => {
             res.status(429).json({
                 error: options.message,
@@ -120,6 +122,16 @@ export const scanQueryLimiter = createLimiter({
     message: "Too many scan queries. Please try again later.",
     prefix: "scan",
 });
+// ── Medicine comparison limiter ─────────────────────────────────────────────
+// POST /compare forwards requests to the ML service for pairwise medicine
+// similarity scoring. Authenticated but still expensive (ML inference + Redis).
+// Throttle to prevent abuse and protect the ML service from overload.
+export const compareLimiter = createLimiter({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    message: "Too many comparison requests. Please try again later.",
+    prefix: "compare",
+});
 // ── Interaction check limiter ─────────────────────────────────────────────────
 // POST /interactions/check accepts up to 20 medicines, generating up to 190
 // DB queries per request. Throttle to prevent DoS via batch interaction checks.
@@ -184,7 +196,7 @@ export const authTargetLimiter = createKeyLimiter({
         if (req.body?.abhaAddress) return `abha:${req.body.abhaAddress}`;
         if (req.body?.phone_number) return `phone:${req.body.phone_number}`;
         // Fallback to IP if no explicit target is found
-        return req.ip || "unknown";
+        return (req.ip || "unknown").replace(/:/g, "_");
     },
 });
 
@@ -195,6 +207,7 @@ export const notificationRegisterLimiter = rateLimit({
     max: 5,
     standardHeaders: true,
     legacyHeaders: false,
+    validate: false,
     store: buildStore("notification_register"),
     handler: (_req, res) => {
         res.status(429).json({
@@ -210,6 +223,7 @@ export const trackingLimiter = rateLimit({
     max: 60,
     standardHeaders: true,
     legacyHeaders: false,
+    validate: false,
     store: buildStore("tracking"),
     handler: (_req, res) => {
         res.status(429).json({
@@ -224,6 +238,7 @@ export const webhookLimiter = rateLimit({
     max: 10,
     standardHeaders: true,
     legacyHeaders: false,
+    validate: false,
     store: buildStore("webhook"),
     handler: (_req, res) => {
         res.status(429).json({
@@ -242,6 +257,7 @@ export const barcodeLimiter = rateLimit({
     max: process.env.NODE_ENV === "development" ? 200 : 15,
     standardHeaders: true,
     legacyHeaders: false,
+    validate: false,
     store: buildStore("barcode"),
     handler: (_req, res) => {
         res.status(429).json({
@@ -266,4 +282,15 @@ export const alertsReadLimiter = createLimiter({
     max: 60,
     message: "Too many alerts requests. Please try again later.",
     prefix: "alerts_read",
+});
+
+// ── API key management limiter ──────────────────────────────────────────────
+// /api/keys list/revoke/delete/rotate are sensitive, low-frequency operations.
+// A stricter cap curbs revoke/delete probing against guessed ids and throttles
+// rotate, which runs a pbkdf2 hash per call.
+export const apiKeyLimiter = createLimiter({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    message: "Too many API key requests. Please try again later.",
+    prefix: "api_keys",
 });
