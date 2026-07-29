@@ -95,7 +95,7 @@ self.addEventListener("install", (event) => {
     event.waitUntil(
         caches.open(STATIC_CACHE_NAME).then((cache) =>
             cache.addAll(PRECACHE_PAGES).catch(() => {
-                console.log(
+                console.info(
                     "[SW] Some shell pages could not be precached; they will be cached on first visit."
                 );
             })
@@ -130,7 +130,7 @@ self.addEventListener("activate", (event) => {
                             (name.startsWith("sahidawa-") && !validCaches.has(name))
                     )
                     .map((name) => {
-                        console.log(`[SW] Deleting stale cache: ${name}`);
+                        console.info(`[SW] Deleting stale cache: ${name}`);
                         return caches.delete(name);
                     })
             )
