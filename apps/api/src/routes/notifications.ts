@@ -14,6 +14,7 @@ import { escapeIlike } from "@sahidawa/shared";
 import logger from "../utils/logger";
 import { redisClient } from "../utils/redis";
 import { signGuestToken, verifyGuestPhone, isGuestTokenConfigured } from "../utils/guestToken";
+import { safeCompare } from "../utils/cryptoUtils";
 import {
     getMockRecallFeed,
     getVapidPublicKey,
@@ -591,7 +592,7 @@ router.post(
                 return;
             }
 
-            if (subscriber.verification_otp !== otp) {
+            if (!subscriber.verification_otp || !safeCompare(otp, subscriber.verification_otp)) {
                 await recordFailedOtpAttempt(formattedPhone);
                 res.status(400).json({ error: "Invalid OTP" });
                 return;
