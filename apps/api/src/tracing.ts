@@ -1,6 +1,7 @@
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
+import logger from "./utils/logger";
 
 if (process.env.NODE_ENV !== "production" || process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
     const traceExporter = new OTLPTraceExporter({
@@ -19,8 +20,8 @@ if (process.env.NODE_ENV !== "production" || process.env.OTEL_EXPORTER_OTLP_ENDP
 
     process.on("SIGTERM", () => {
         sdk.shutdown()
-            .then(() => console.log("Tracing terminated"))
-            .catch((error) => console.log("Error terminating tracing", error))
+            .then(() => logger.info("Tracing terminated"))
+            .catch((error) => logger.error("Error terminating tracing", error))
             .finally(() => process.exit(0));
     });
 }
