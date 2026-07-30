@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { RedisStore } from "rate-limit-redis";
 import { redisClient } from "../utils/redis";
 import logger from "../utils/logger";
+import { formatPhoneNumber } from "../utils/phone";
 interface LimiterOptions {
     windowMs: number;
     max: number;
@@ -185,19 +186,47 @@ export const authLimiter = createLimiter({
     prefix: "auth",
 });
 
+/**
+ * Builds the bucket key for {@link authTargetLimiter}.
+ *
+ * Exported so the key derivation can be unit-tested on its own - a mismatch
+ * here silently degrades the limiter to per-IP instead of failing loudly.
+ *
+ * Both target values are normalised before they reach the key. Two spellings of
+ * one number ("9876543210" and "+91 98765 43210") or one ABHA address
+ * ("Ravi@sbx" and "ravi@sbx") would otherwise land in separate buckets and hand
+ * the caller a multiple of the cap.
+ */
+export const authTargetKeyGenerator = (req: Request): string => {
+    // Look for common identity keys in the request body
+    const abhaAddress = req.body?.abhaAddress;
+    if (typeof abhaAddress === "string" && abhaAddress.trim()) {
+        // ABHA addresses are case-insensitive (ABDM lowercases them on issue).
+        return `abha:${abhaAddress.trim().toLowerCase()}`;
+    }
+
+    // The notification routes send `phone`; `phone_number` is kept for any
+    // caller still using the field this limiter originally shipped with.
+    const phone = req.body?.phone ?? req.body?.phone_number;
+    if (typeof phone === "string") {
+        const formatted = formatPhoneNumber(phone);
+        // An unparseable number is rejected by the route before any OTP goes
+        // out, so there is no target to throttle - and keying on the raw value
+        // would let junk input mint a fresh bucket on every request.
+        if (formatted) return `phone:${formatted}`;
+    }
+
+    // Fallback to IP if no explicit target is found
+    return (req.ip || "unknown").replace(/:/g, "_");
+};
+
 /** Target-based limiter to prevent OTP bombing against a specific user/target irrespective of IP */
 export const authTargetLimiter = createKeyLimiter({
     windowMs: 10 * 60 * 1000, // 10 minutes
     max: 5, // Max 5 requests per 10 minutes per target
     message: "Too many requests for this target. Please try again later.",
     prefix: "auth_target",
-    keyGenerator: (req: Request) => {
-        // Look for common identity keys in the request body
-        if (req.body?.abhaAddress) return `abha:${req.body.abhaAddress}`;
-        if (req.body?.phone_number) return `phone:${req.body.phone_number}`;
-        // Fallback to IP if no explicit target is found
-        return (req.ip || "unknown").replace(/:/g, "_");
-    },
+    keyGenerator: authTargetKeyGenerator,
 });
 
 // ── Notification registration limiter ──────────────────────────────────────────
