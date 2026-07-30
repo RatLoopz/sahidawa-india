@@ -447,90 +447,88 @@ router.post(
                     };
                     memorySubscriberStore.set(formattedPhone, result);
                 }
-            } else {
-                if (existing && !mayEditExisting(existing)) {
-                    // Hold the requested settings back. The row keeps its status,
-                    // district, language, channels and user_id, so the subscriber
-                    // stays in the broadcast audience for their own district while
-                    // the challenge is outstanding.
-                    const { error: challengeError } = await supabase
-                        .from("notification_subscribers")
-                        .update({ verification_otp: otp, otp_expires_at: otpExpires })
-                        .eq("id", existing.id);
+            } else if (existing && !mayEditExisting(existing)) {
+                // Hold the requested settings back. The row keeps its status,
+                // district, language, channels and user_id, so the subscriber
+                // stays in the broadcast audience for their own district while
+                // the challenge is outstanding.
+                const { error: challengeError } = await supabase
+                    .from("notification_subscribers")
+                    .update({ verification_otp: otp, otp_expires_at: otpExpires })
+                    .eq("id", existing.id);
 
-                    if (challengeError) {
-                        logger.error({
-                            message: "Failed to issue verification challenge",
-                            error: challengeError,
-                        });
-                        res.status(500).json({ error: "Database error" });
-                        return;
-                    }
-                    heldForVerification = true;
-                } else if (existing) {
-                    // user_id only moves for a caller who proved this number is
-                    // theirs, which is what linking an existing number to an
-                    // account is supposed to require.
-                    const updatePayload: any = {
-                        user_id: req.user?.id || existing.user_id,
+                if (challengeError) {
+                    logger.error({
+                        message: "Failed to issue verification challenge",
+                        error: challengeError,
+                    });
+                    res.status(500).json({ error: "Database error" });
+                    return;
+                }
+                heldForVerification = true;
+            } else if (existing) {
+                // user_id only moves for a caller who proved this number is
+                // theirs, which is what linking an existing number to an
+                // account is supposed to require.
+                const updatePayload: any = {
+                    user_id: req.user?.id || existing.user_id,
+                    channels,
+                    language,
+                    district,
+                    is_active: true,
+                };
+                if (!isOwner) {
+                    updatePayload.status = "pending";
+                    updatePayload.verification_otp = otp;
+                    updatePayload.otp_expires_at = otpExpires;
+                } else {
+                    updatePayload.status = "active";
+                    updatePayload.verification_otp = null;
+                    updatePayload.otp_expires_at = null;
+                }
+
+                const { data: updated, error: updateError } = await supabase
+                    .from("notification_subscribers")
+                    .update(updatePayload)
+                    .eq("id", existing.id)
+                    .select()
+                    .single();
+
+                if (updateError) {
+                    logger.error({
+                        message: "Failed to update subscriber",
+                        error: updateError,
+                    });
+                    res.status(500).json({ error: "Database error" });
+                    return;
+                }
+                result = updated;
+            } else {
+                const { data: created, error: insertError } = await supabase
+                    .from("notification_subscribers")
+                    .insert({
+                        user_id: req.user?.id || null,
+                        phone: formattedPhone,
                         channels,
                         language,
                         district,
                         is_active: true,
-                    };
-                    if (!isOwner) {
-                        updatePayload.status = "pending";
-                        updatePayload.verification_otp = otp;
-                        updatePayload.otp_expires_at = otpExpires;
-                    } else {
-                        updatePayload.status = "active";
-                        updatePayload.verification_otp = null;
-                        updatePayload.otp_expires_at = null;
-                    }
+                        status: targetStatus,
+                        verification_otp: otp,
+                        otp_expires_at: otpExpires,
+                    })
+                    .select()
+                    .single();
 
-                    const { data: updated, error: updateError } = await supabase
-                        .from("notification_subscribers")
-                        .update(updatePayload)
-                        .eq("id", existing.id)
-                        .select()
-                        .single();
-
-                    if (updateError) {
-                        logger.error({
-                            message: "Failed to update subscriber",
-                            error: updateError,
-                        });
-                        res.status(500).json({ error: "Database error" });
-                        return;
-                    }
-                    result = updated;
-                } else {
-                    const { data: created, error: insertError } = await supabase
-                        .from("notification_subscribers")
-                        .insert({
-                            user_id: req.user?.id || null,
-                            phone: formattedPhone,
-                            channels,
-                            language,
-                            district,
-                            is_active: true,
-                            status: targetStatus,
-                            verification_otp: otp,
-                            otp_expires_at: otpExpires,
-                        })
-                        .select()
-                        .single();
-
-                    if (insertError) {
-                        logger.error({
-                            message: "Failed to insert subscriber",
-                            error: insertError,
-                        });
-                        res.status(500).json({ error: "Database error" });
-                        return;
-                    }
-                    result = created;
+                if (insertError) {
+                    logger.error({
+                        message: "Failed to insert subscriber",
+                        error: insertError,
+                    });
+                    res.status(500).json({ error: "Database error" });
+                    return;
                 }
+                result = created;
             }
 
             if (!isOwner && otp) {

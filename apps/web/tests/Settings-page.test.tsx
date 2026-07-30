@@ -209,7 +209,7 @@ describe("SettingsPage", () => {
         });
 
         render(<SettingsPage />);
-        await waitFor(() => expect(screen.getByLabelText("Phone number")).toBeInTheDocument());
+        expect(await screen.findByLabelText("Phone number")).toBeInTheDocument();
 
         fillForm({ phone: "9876543210", district: "Pune" });
         fireEvent.click(screen.getByRole("button", { name: "Save settings" }));
