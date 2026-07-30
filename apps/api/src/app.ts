@@ -75,6 +75,8 @@ import * as Sentry from "@sentry/node";
 import { createCorsOptions } from "./config/cors";
 import { errorHandler } from "./middleware/errorHandler";
 import { sentryEnabled } from "./instrument";
+import { aggregateRateLimit } from "./middleware/aggregateRateLimit";
+import { botDetection } from "./middleware/botDetection";
 // ── Application Initialization ─────────────────────────────────────────────
 const app: Express = express();
 app.set("trust proxy", 1); // Trust first proxy (Nginx) — fixes req.ip for rate limiters
@@ -83,6 +85,12 @@ app.set("trust proxy", 1); // Trust first proxy (Nginx) — fixes req.ip for rat
 // Must be the first middleware so every downstream handler and log entry
 // can access the x-request-id via AsyncLocalStorage.
 app.use(requestIdMiddleware);
+
+// ── Bot detection (lightweight, runs on every request) ─────────────────────
+app.use(botDetection());
+
+// ── Global aggregate rate limit (safety net across all endpoints) ──────────
+app.use(aggregateRateLimit);
 
 // ── Security: Enforce HTTPS in production ──────────────────────────────────
 // Redirects all HTTP requests to HTTPS (301) to protect sensitive healthcare data

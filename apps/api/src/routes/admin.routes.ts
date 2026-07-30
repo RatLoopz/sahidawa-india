@@ -28,6 +28,7 @@ import { getPushNotificationAnalytics } from "./analytics";
 import { limiter } from "../middleware/rateLimit";
 import { logAdminAction } from "../services/audit.service";
 import { AuthenticatedRequest } from "../middleware/auth";
+import { getAllLimits, patchLimits, resetLimits } from "../config/rateLimitConfig";
 
 const router = Router();
 
@@ -316,6 +317,92 @@ router.post(
                 success: true,
                 message: "Synonyms added successfully",
                 inserted: rows.length,
+            });
+        } catch (err) {
+            res.status(500).json({
+                success: false,
+                error: (err as Error).message,
+            });
+        }
+    }
+);
+
+// ── Rate Limit Management ─────────────────────────────────────────────────────
+
+const RateLimitPatchSchema = z.record(
+    z.string(),
+    z.object({
+        windowMs: z.number().int().min(1000).optional(),
+        maxRequests: z.number().int().min(1).optional(),
+    })
+);
+
+router.get(
+    "/rate-limits",
+    requireAuth,
+    requireRole("admin"),
+    (_req: Request, res: Response) => {
+        res.status(200).json({
+            success: true,
+            limits: getAllLimits(),
+        });
+    }
+);
+
+router.patch(
+    "/rate-limits",
+    requireAuth,
+    requireRole("admin"),
+    async (req: AuthenticatedRequest, res: Response) => {
+        try {
+            const parsed = RateLimitPatchSchema.safeParse(req.body);
+
+            if (!parsed.success) {
+                res.status(400).json({
+                    success: false,
+                    error: "Invalid payload",
+                    details: parsed.error.issues,
+                });
+                return;
+            }
+
+            const updated = patchLimits(parsed.data);
+
+            await logAdminAction(req.user!.id, "RATE_LIMIT_PATCH", "SYSTEM", "rate-limit", {
+                patched_endpoints: Object.keys(updated),
+                timestamp: new Date().toISOString(),
+            });
+
+            res.status(200).json({
+                success: true,
+                message: "Rate limits updated",
+                updated,
+            });
+        } catch (err) {
+            res.status(500).json({
+                success: false,
+                error: (err as Error).message,
+            });
+        }
+    }
+);
+
+router.post(
+    "/rate-limits/reset",
+    requireAuth,
+    requireRole("admin"),
+    async (req: AuthenticatedRequest, res: Response) => {
+        try {
+            resetLimits();
+
+            await logAdminAction(req.user!.id, "RATE_LIMIT_RESET", "SYSTEM", "rate-limit", {
+                timestamp: new Date().toISOString(),
+            });
+
+            res.status(200).json({
+                success: true,
+                message: "Rate limits reset to defaults",
+                limits: getAllLimits(),
             });
         } catch (err) {
             res.status(500).json({
