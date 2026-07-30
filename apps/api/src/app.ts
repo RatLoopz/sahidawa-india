@@ -75,6 +75,7 @@ import * as Sentry from "@sentry/node";
 import { createCorsOptions } from "./config/cors";
 import { errorHandler } from "./middleware/errorHandler";
 import { sentryEnabled } from "./instrument";
+import { queryMetricsMiddleware } from "./middleware/queryMetrics";
 // ── Application Initialization ─────────────────────────────────────────────
 const app: Express = express();
 app.set("trust proxy", 1); // Trust first proxy (Nginx) — fixes req.ip for rate limiters
@@ -83,6 +84,10 @@ app.set("trust proxy", 1); // Trust first proxy (Nginx) — fixes req.ip for rat
 // Must be the first middleware so every downstream handler and log entry
 // can access the x-request-id via AsyncLocalStorage.
 app.use(requestIdMiddleware);
+
+// ── Query Metrics & Slow Query Detection ───────────────────────────────────
+// Logs slow queries (>500ms warn, >2000ms error) for performance monitoring.
+app.use(queryMetricsMiddleware);
 
 // ── Security: Enforce HTTPS in production ──────────────────────────────────
 // Redirects all HTTP requests to HTTPS (301) to protect sensitive healthcare data
