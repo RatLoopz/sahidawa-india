@@ -33,12 +33,7 @@ export function errorMetricsMiddleware(req: Request, res: Response, next: NextFu
                 await redisClient.incr(globalKey);
                 await redisClient.expire(globalKey, METRICS_WINDOW_SECONDS);
                 
-                // Store in hourly set for time-series analysis
-                const hourBucket = Math.floor(Date.now() / (60 * 60 * 1000));
-                await redisClient.zAdd(`${METRICS_PREFIX}timeline`, {
-                    score: hourBucket,
-                    value: `${method}:${route}:${statusCode}:${Date.now()}`,
-                });
+
             }
         } catch (err) {
             // Don't let metrics failures affect request handling
@@ -64,60 +59,3 @@ function normalizeRoute(path: string): string {
         .replace(/\/[A-Za-z0-9_-]{20,}/g, '/:id');
 }
 
-/**
- * Get error metrics summary for a given time window.
- */
-export async function getErrorMetrics(): Promise<{
-    total: number;
-    byStatusCode: Record<string, number>;
-    byRoute: Record<string, number>;
-}> {
-    const result = {
-        total: 0,
-        byStatusCode: {} as Record<string, number>,
-        byRoute: {} as Record<string, number>,
-    };
-    
-    try {
-        if (!redisClient.isOpen) return result;
-        
-        // Get all error metric keys
-        const keys: string[] = [];
-        let cursor = 0;
-        
-        do {
-            const [newCursor, foundKeys] = await redisClient.scan(cursor, {
-                MATCH: `${METRICS_PREFIX}*`,
-                COUNT: 100,
-            });
-            cursor = newCursor;
-            keys.push(...foundKeys);
-        } while (cursor !== 0);
-        
-        // Aggregate metrics
-        for (const key of keys) {
-            const value = await redisClient.get(key);
-            if (!value) continue;
-            
-            const count = parseInt(value, 10);
-            if (isNaN(count)) continue;
-            
-            result.total += count;
-            
-            // Parse key to extract route and status code
-            const parts = key.replace(METRICS_PREFIX, '').split(':');
-            if (parts.length >= 3) {
-                const [method, ...rest] = parts;
-                const statusCode = rest.pop() || 'unknown';
-                const route = rest.join(':');
-                
-                result.byStatusCode[statusCode] = (result.byStatusCode[statusCode] || 0) + count;
-                result.byRoute[`${method}:${route}`] = (result.byRoute[`${method}:${route}`] || 0) + count;
-            }
-        }
-    } catch (err) {
-        logger.warn('Failed to fetch error metrics', { error: String(err) });
-    }
-    
-    return result;
-}

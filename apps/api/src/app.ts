@@ -273,6 +273,7 @@ app.get("/health", async (_req: Request, res: Response) => {
             version: process.env.npm_package_version || "unknown",
             environment: process.env.NODE_ENV || "development",
             uptime: `${Math.floor(uptime)}s`,
+            // New structured dependencies format
             dependencies: {
                 database: {
                     status: error ? "down" : "up",
@@ -288,6 +289,13 @@ app.get("/health", async (_req: Request, res: Response) => {
                     latencyMs: mlLatencyMs,
                     ...(mlUrl && { url: mlUrl }),
                 },
+            },
+            // Backwards-compatible flat format for existing monitoring
+            database: { status: error ? "unreachable" : "connected" },
+            services: {
+                api: "healthy",
+                redis: redisStatus,
+                mlService: mlStatus,
             },
             system: {
                 nodeVersion: process.version,
