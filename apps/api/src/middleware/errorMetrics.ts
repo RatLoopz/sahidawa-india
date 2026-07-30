@@ -5,12 +5,6 @@ import logger from '../utils/logger';
 const METRICS_PREFIX = 'metrics:errors:';
 const METRICS_WINDOW_SECONDS = 3600; // 1 hour window
 
-interface ErrorMetric {
-    route: string;
-    statusCode: number;
-    timestamp: number;
-}
-
 /**
  * Middleware to track error rates by route and status code.
  * Stores metrics in Redis with automatic expiration.
@@ -28,7 +22,6 @@ export function errorMetricsMiddleware(req: Request, res: Response, next: NextFu
         const method = req.method;
         const metricKey = `${METRICS_PREFIX}${method}:${route}:${statusCode}`;
         const globalKey = `${METRICS_PREFIX}global:${statusCode}`;
-        const hourlyKey = `${METRICS_PREFIX}hourly:${Date.now()}`;
         
         try {
             if (redisClient.isOpen) {
@@ -74,7 +67,7 @@ function normalizeRoute(path: string): string {
 /**
  * Get error metrics summary for a given time window.
  */
-export async function getErrorMetrics(windowSeconds = 3600): Promise<{
+export async function getErrorMetrics(): Promise<{
     total: number;
     byStatusCode: Record<string, number>;
     byRoute: Record<string, number>;
@@ -89,7 +82,7 @@ export async function getErrorMetrics(windowSeconds = 3600): Promise<{
         if (!redisClient.isOpen) return result;
         
         // Get all error metric keys
-        const keys = [];
+        const keys: string[] = [];
         let cursor = 0;
         
         do {
