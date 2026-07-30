@@ -77,7 +77,7 @@ export interface BotDetectionOptions {
 }
 
 export function botDetection(options: BotDetectionOptions = {}) {
-    return (req: Request, _res: Response, next: NextFunction): void => {
+    return (req: Request, res: Response, next: NextFunction): void => {
         if (process.env.NODE_ENV === "test") return next();
 
         const ua = req.headers["user-agent"] ?? "";
@@ -119,24 +119,19 @@ export function botDetection(options: BotDetectionOptions = {}) {
             timingStore.set(ip, { deltas: [], lastRequest: now });
         }
 
-        // 3. Fingerprint consistency (same fingerprint from same IP = bot)
+        // 3. Fingerprint consistency (synchronous check for accurate scoring)
         const fp = fingerprint(req);
+        const fpKey = `bot:fp:${ip}`;
         if (redisClient.isOpen) {
-            // Fire-and-forget — don't block the request for this
-            const fpKey = `bot:fp:${ip}`;
-            redisClient
-                .get(fpKey)
-                .then((cached) => {
-                    if (cached && cached !== fp) {
-                        // Fingerprint changed — likely a different client behind same IP
-                        // (NAT / shared proxy).  Not inherently suspicious.
-                    } else if (cached === fp) {
-                        // Same fingerprint repeatedly — slightly bot-like
-                        score.fingerprint += 10;
-                    }
-                    redisClient.setEx(fpKey, 3600, fp).catch(() => {});
-                })
-                .catch(() => {});
+            // Use cached fingerprint from prior request for synchronous comparison
+            const prevFp = (req as any)._prevFingerprint as string | undefined;
+            if (prevFp !== undefined) {
+                if (prevFp === fp) {
+                    score.fingerprint += 10; // same fingerprint = slightly bot-like
+                }
+            }
+            // Store current fingerprint for next request comparison (fire-and-forget)
+            redisClient.setEx(fpKey, 3600, fp).catch(() => {});
         }
 
         // Aggregate
@@ -157,7 +152,7 @@ export function botDetection(options: BotDetectionOptions = {}) {
         }
 
         if (isBot && options.blockBots) {
-            _res.status(403).json({
+            res.status(403).json({
                 error: "Access denied. Automated requests are not allowed.",
             });
             return;
@@ -165,15 +160,4 @@ export function botDetection(options: BotDetectionOptions = {}) {
 
         next();
     };
-}
-
-/**
- * Get the effective max requests for an endpoint, adjusted for bot score.
- * If the request is flagged as a bot, the limit is halved.
- */
-export function getEffectiveMax(baseMax: number, req: Request): number {
-    if ((req as any).isLikelyBot) {
-        return Math.max(1, Math.floor(baseMax / 2));
-    }
-    return baseMax;
 }

@@ -12,9 +12,9 @@
 
 import { Request, Response, NextFunction } from "express";
 import { redisClient } from "../utils/redis";
-import { getEndpointLimit, type EndpointLimit } from "../config/rateLimitConfig";
+import { getEndpointLimit } from "../config/rateLimitConfig";
 import { resolveTier, getTierMultiplier } from "../config/rateLimitTiers";
-import { isBlocked } from "./aggregateRateLimit";
+import { recordViolation as aggregateRecordViolation, isBlocked } from "./aggregateRateLimit";
 import logger from "../utils/logger";
 
 // ── In-process fallback store (used when Redis is down) ──────────────────────
@@ -55,16 +55,6 @@ else
 end
 `;
 
-// ── Progress penalty check (Redis) ───────────────────────────────────────────
-const LUA_CHECK_BLOCK = `
-local blockKey = KEYS[1]
-local blocked  = redis.call("GET", blockKey)
-if blocked then
-    return {1, tonumber(redis.call("PTTL", blockKey))}
-end
-return {0, 0}
-`;
-
 export interface SlidingWindowOptions {
     /** Key in rateLimitConfig defaults, e.g. "verify", "batch" */
     endpoint: string;
@@ -100,27 +90,16 @@ export function slidingWindowRateLimit(options: SlidingWindowOptions) {
         const key = `sw:${config.prefix}:${ip}`;
 
         // 1. Check if IP is blocked due to progressive penalties
-        if (redisClient.isOpen) {
-            const blockKey = `rl:block:${ip}`;
-            try {
-                const result = (await redisClient.eval(LUA_CHECK_BLOCK, {
-                    keys: [blockKey],
-                    arguments: [],
-                })) as number[];
-                if (result[0] === 1) {
-                    const retryMs = result[1];
-                    const retrySec = Math.ceil(retryMs / 1000);
-                    res.setHeader("Retry-After", String(retrySec));
-                    res.setHeader("X-RateLimit-RetryAfter", String(retrySec));
-                    res.status(429).json({
-                        error: "Too many requests. You are temporarily blocked due to repeated violations.",
-                        retryAfter: retrySec,
-                    });
-                    return;
-                }
-            } catch {
-                // Redis error — skip block check, continue to sliding window
-            }
+        const blockMs = await isBlocked(ip);
+        if (blockMs > 0) {
+            const retrySec = Math.ceil(blockMs / 1000);
+            res.setHeader("Retry-After", String(retrySec));
+            res.setHeader("X-RateLimit-RetryAfter", String(retrySec));
+            res.status(429).json({
+                error: "Too many requests. You are temporarily blocked due to repeated violations.",
+                retryAfter: retrySec,
+            });
+            return;
         }
 
         // 2. Sliding window check
@@ -177,7 +156,7 @@ export function slidingWindowRateLimit(options: SlidingWindowOptions) {
             res.setHeader("X-RateLimit-RetryAfter", String(retrySec));
 
             // Track violation for progressive penalties
-            await recordViolation(ip, tier);
+            await aggregateRecordViolation(ip);
 
             res.status(429).json({
                 error: config.label
@@ -192,33 +171,4 @@ export function slidingWindowRateLimit(options: SlidingWindowOptions) {
     };
 }
 
-// ── Violation tracking + progressive penalties ────────────────────────────────
-import { PENALTY_THRESHOLDS } from "../config/rateLimitConfig";
 
-async function recordViolation(ip: string, tier: string): Promise<void> {
-    if (!redisClient.isOpen) return;
-
-    const key = `rl:violations:${ip}`;
-    try {
-        const count = await redisClient.incr(key);
-        await redisClient.expire(key, 3600); // expire after 1 hour of quiet
-
-        // Find matching penalty tier (escalating)
-        for (const threshold of [...PENALTY_THRESHOLDS].reverse()) {
-            if (count >= threshold.violations) {
-                const blockKey = `rl:block:${ip}`;
-                const blockMs = threshold.blockMinutes * 60 * 1000;
-                await redisClient.setEx(blockKey, Math.ceil(blockMs / 1000), "1");
-                logger.warn("[slidingWindow] IP blocked", {
-                    ip,
-                    tier,
-                    violations: count,
-                    blockMinutes: threshold.blockMinutes,
-                });
-                break;
-            }
-        }
-    } catch (err) {
-        logger.error("[slidingWindow] Failed to record violation", { error: String(err) });
-    }
-}
