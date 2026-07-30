@@ -86,6 +86,11 @@ jest.mock("../src/middleware/auth", () => {
 jest.mock("../src/middleware/rateLimit", () => ({
     notificationRegisterLimiter: (_req: Request, _res: Response, next: NextFunction) => next(),
     authTargetLimiter: (_req: Request, _res: Response, next: NextFunction) => next(),
+    // /status and DELETE /phone were put behind the shared `limiter` in
+    // 35cf49f4. It was missing here, so the router got `undefined` as a handler
+    // and the whole suite died on import with "argument handler must be a
+    // function" before a single test ran.
+    limiter: (_req: Request, _res: Response, next: NextFunction) => next(),
 }));
 
 jest.mock("../src/utils/phone", () => ({
@@ -378,6 +383,171 @@ describe("notifications routes", () => {
         expect(response.body.error).toBe("Invalid phone number format");
     });
 
+    // #3956: POST /register looked an existing subscriber up by phone number
+    // alone and then rewrote the row. A caller who knew the number could flip a
+    // verified subscriber back to "pending" (which drops them out of the admin
+    // broadcast, filtered on status = "active"), replace their district, and,
+    // if signed in, take over the row through user_id.
+    describe("register against an existing subscriber (#3956)", () => {
+        // A verified subscriber that belongs to somebody else.
+        const activeVictimRow = {
+            ...mockSubscriber,
+            user_id: "victim-user-uuid",
+            district: "South West Delhi",
+            channels: ["sms", "whatsapp"],
+            language: "en",
+            status: "active",
+        };
+
+        const attackerPayload = {
+            phone: "9876543210",
+            channels: ["sms"] as const,
+            language: "ta",
+            district: "Attacker Chosen District",
+        };
+
+        /** The single object handed to Supabase .update() by the route. */
+        function updatePayload() {
+            expect(mockQueryBuilder.update).toHaveBeenCalledTimes(1);
+            return mockQueryBuilder.update.mock.calls[0][0];
+        }
+
+        it("only writes the OTP columns for a caller who has proven nothing", async () => {
+            mockAuthenticatedUser = null;
+            mockQueryBuilder.maybeSingle.mockResolvedValueOnce({
+                data: activeVictimRow,
+                error: null,
+            });
+
+            const response = await request(app)
+                .post("/api/notifications/register")
+                .send(attackerPayload);
+
+            // The OTP challenge is the only thing that lands on the row.
+            expect(Object.keys(updatePayload()).sort()).toEqual([
+                "otp_expires_at",
+                "verification_otp",
+            ]);
+            expect(updatePayload().verification_otp).toMatch(/^\d{6}$/);
+
+            // Nothing the victim depends on moves.
+            expect(response.status).toBe(202);
+            expect(response.body.success).toBe(true);
+            expect(response.body.preferencesApplied).toBe(false);
+            // And the response must not read the victim's row back to the caller.
+            expect(response.body.subscriber).toBeUndefined();
+            expect(JSON.stringify(response.body)).not.toContain("South West Delhi");
+        });
+
+        it("does not reassign user_id to a signed-in caller who does not own the row", async () => {
+            mockAuthenticatedUser = {
+                id: "attacker-user-uuid",
+                role: "user",
+                email: "attacker@example.com",
+            };
+            mockQueryBuilder.maybeSingle.mockResolvedValueOnce({
+                data: activeVictimRow,
+                error: null,
+            });
+
+            const response = await request(app)
+                .post("/api/notifications/register")
+                .send(attackerPayload);
+
+            expect(response.status).toBe(202);
+            expect(updatePayload()).not.toHaveProperty("user_id");
+            expect(updatePayload()).not.toHaveProperty("status");
+        });
+
+        it("still registers a brand-new number exactly as before", async () => {
+            mockAuthenticatedUser = null;
+            mockQueryBuilder.maybeSingle.mockResolvedValueOnce({ data: null, error: null });
+
+            const response = await request(app)
+                .post("/api/notifications/register")
+                .send(attackerPayload);
+
+            expect(response.status).toBe(201);
+            expect(response.body.success).toBe(true);
+            expect(mockQueryBuilder.update).not.toHaveBeenCalled();
+            expect(mockQueryBuilder.insert).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    phone: "+919876543210",
+                    district: "Attacker Chosen District",
+                    status: "pending",
+                    is_active: true,
+                })
+            );
+            for (const field of SENSITIVE_SUBSCRIBER_FIELDS) {
+                expect(response.body.subscriber).not.toHaveProperty(field);
+            }
+        });
+
+        it("lets a guest holding a token for that number change its settings", async () => {
+            mockAuthenticatedUser = null;
+            mockQueryBuilder.maybeSingle.mockResolvedValueOnce({
+                data: activeVictimRow,
+                error: null,
+            });
+
+            const response = await request(app)
+                .post("/api/notifications/register")
+                .set("X-Guest-Token", signGuestToken("+919876543210"))
+                .send(attackerPayload);
+
+            expect(response.status).toBe(201);
+            expect(updatePayload()).toMatchObject({
+                channels: ["sms"],
+                language: "ta",
+                district: "Attacker Chosen District",
+                is_active: true,
+            });
+            // A guest token proves the number, not the account behind the row.
+            expect(updatePayload().user_id).toBe("victim-user-uuid");
+        });
+
+        it("lets the signed-in owner of the row change its settings", async () => {
+            mockAuthenticatedUser = {
+                id: "victim-user-uuid",
+                role: "user",
+                email: "owner@example.com",
+            };
+            mockQueryBuilder.maybeSingle.mockResolvedValueOnce({
+                data: activeVictimRow,
+                error: null,
+            });
+
+            const response = await request(app)
+                .post("/api/notifications/register")
+                .send(attackerPayload);
+
+            expect(response.status).toBe(201);
+            expect(updatePayload()).toMatchObject({
+                user_id: "victim-user-uuid",
+                district: "Attacker Chosen District",
+            });
+        });
+
+        it("ignores a guest token that was minted for a different number", async () => {
+            mockAuthenticatedUser = null;
+            mockQueryBuilder.maybeSingle.mockResolvedValueOnce({
+                data: activeVictimRow,
+                error: null,
+            });
+
+            const response = await request(app)
+                .post("/api/notifications/register")
+                .set("X-Guest-Token", signGuestToken("+910000000000"))
+                .send(attackerPayload);
+
+            expect(response.status).toBe(202);
+            expect(Object.keys(updatePayload()).sort()).toEqual([
+                "otp_expires_at",
+                "verification_otp",
+            ]);
+        });
+    });
+
     describe("guest token flow", () => {
         it("issues a guest token when a guest verifies a valid OTP", async () => {
             const pending = {
@@ -399,13 +569,62 @@ describe("notifications routes", () => {
             expect(verifyGuestPhone(response.body.guestToken)).toBe("+919876543210");
         });
 
-        it("does not issue a token on the already-verified short-circuit", async () => {
-            // mockSubscriber.status is already "active", so no OTP is checked.
+        it("does not issue a token when an active row has no OTP challenge pending", async () => {
+            // Active and nothing outstanding to prove: there is no challenge to
+            // answer, so the caller gets a plain acknowledgement and no token.
+            mockQueryBuilder.maybeSingle.mockResolvedValueOnce({
+                data: { ...mockSubscriber, verification_otp: null, otp_expires_at: null },
+                error: null,
+            });
+
             const response = await request(app)
                 .post("/api/notifications/verify-otp")
                 .send({ phone: "9876543210", otp: "000000" });
 
             expect(response.status).toBe(200);
+            expect(response.body.guestToken).toBeUndefined();
+        });
+
+        it("mints a token when an active row's outstanding OTP is answered correctly", async () => {
+            // A guest re-registering a number that is already active gets an OTP
+            // but the row stays active (see #3956). Answering that OTP is how
+            // they prove the number is theirs, so it has to mint a token,
+            // otherwise they can never reach PATCH /phone to change anything.
+            mockQueryBuilder.maybeSingle.mockResolvedValueOnce({
+                data: {
+                    ...mockSubscriber,
+                    status: "active",
+                    verification_otp: "654321",
+                    otp_expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+                },
+                error: null,
+            });
+
+            const response = await request(app)
+                .post("/api/notifications/verify-otp")
+                .send({ phone: "9876543210", otp: "654321" });
+
+            expect(response.status).toBe(200);
+            expect(verifyGuestPhone(response.body.guestToken)).toBe("+919876543210");
+        });
+
+        it("rejects a wrong OTP against an active row instead of reporting success", async () => {
+            mockQueryBuilder.maybeSingle.mockResolvedValueOnce({
+                data: {
+                    ...mockSubscriber,
+                    status: "active",
+                    verification_otp: "654321",
+                    otp_expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+                },
+                error: null,
+            });
+
+            const response = await request(app)
+                .post("/api/notifications/verify-otp")
+                .send({ phone: "9876543210", otp: "000000" });
+
+            expect(response.status).toBe(400);
+            expect(response.body.error).toBe("Invalid OTP");
             expect(response.body.guestToken).toBeUndefined();
         });
 
