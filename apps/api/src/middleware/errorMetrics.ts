@@ -32,8 +32,6 @@ export function errorMetricsMiddleware(req: Request, res: Response, next: NextFu
                 // Increment global status code counter
                 await redisClient.incr(globalKey);
                 await redisClient.expire(globalKey, METRICS_WINDOW_SECONDS);
-                
-
             }
         } catch (err) {
             // Don't let metrics failures affect request handling
