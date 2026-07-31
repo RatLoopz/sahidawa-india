@@ -4,6 +4,7 @@ import dns from "dns/promises";
 import {
     validateOutboundUrl,
     BLOCKED_OUTBOUND_URL_PATTERNS,
+    isBlockedOutboundHost,
 } from "../src/utils/security/urlValidator";
 
 jest.mock("dns/promises", () => ({
@@ -38,15 +39,43 @@ describe("validateOutboundUrl", () => {
 
     it.each([
         "http://localhost/x",
+        "http://0.0.0.0/x",
         "http://127.0.0.1/x",
         "http://10.0.0.5/x",
         "http://172.16.0.1/x",
         "http://192.168.1.1/x",
         "http://169.254.169.254/latest/meta-data",
+        "http://100.64.0.1/x",
+        "http://100.127.255.254/x",
+        "http://[::]/x",
         "http://[::1]/x",
+        "http://[::ffff:7f00:1]/x",
+        "http://[::ffff:127.0.0.1]/x",
+        "http://[::7f00:1]/x",
+        "http://[::127.0.0.1]/x",
+        "http://[fc00::1]/x",
+        "http://[fc01::1]/x",
+        "http://[fd00::1]/x",
+        "http://[fe80::1]/x",
+        "http://[fe81::1]/x",
+        "http://[fea0::1]/x",
+        "http://[febf::1]/x",
     ])("rejects blocked literal host %s before lookup", async (url) => {
         await expect(validateOutboundUrl(url)).resolves.toBe(false);
         expect(mockedLookup).not.toHaveBeenCalled();
+    });
+
+    it("rejects an IPv6 literal that embeds a private IPv4 (e.g. ::10.0.0.1)", async () => {
+        expect(isBlockedOutboundHost("::a00:1")).toBe(true);
+        expect(isBlockedOutboundHost("::ffff:7f00:1")).toBe(true);
+    });
+
+    it("accepts boundary addresses just outside the blocked ranges", async () => {
+        await expect(validateOutboundUrl("http://100.63.255.255/x")).resolves.toBe(true);
+        await expect(validateOutboundUrl("http://100.128.0.1/x")).resolves.toBe(true);
+        await expect(validateOutboundUrl("http://8.8.8.8/x")).resolves.toBe(true);
+        await expect(validateOutboundUrl("http://[2001:4860:4860::8888]/x")).resolves.toBe(true);
+        await expect(validateOutboundUrl("http://[fec0::1]/x")).resolves.toBe(true);
     });
 
     it("rejects a public hostname that resolves to a private address", async () => {
@@ -68,5 +97,10 @@ describe("validateOutboundUrl", () => {
     it("exposes the blocked-pattern list for reuse", () => {
         expect(BLOCKED_OUTBOUND_URL_PATTERNS.some((p) => p.test("127.0.0.1"))).toBe(true);
         expect(BLOCKED_OUTBOUND_URL_PATTERNS.some((p) => p.test("8.8.8.8"))).toBe(false);
+        expect(BLOCKED_OUTBOUND_URL_PATTERNS.some((p) => p.test("100.64.0.1"))).toBe(true);
+        expect(BLOCKED_OUTBOUND_URL_PATTERNS.some((p) => p.test("100.63.255.255"))).toBe(false);
+        expect(BLOCKED_OUTBOUND_URL_PATTERNS.some((p) => p.test("fd00::1"))).toBe(true);
+        expect(BLOCKED_OUTBOUND_URL_PATTERNS.some((p) => p.test("fe81::1"))).toBe(true);
+        expect(BLOCKED_OUTBOUND_URL_PATTERNS.some((p) => p.test("fec0::1"))).toBe(false);
     });
 });
