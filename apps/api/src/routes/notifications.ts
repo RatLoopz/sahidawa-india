@@ -15,6 +15,7 @@ import { escapeIlike } from "@sahidawa/shared";
 import logger from "../utils/logger";
 import { redisClient } from "../utils/redis";
 import { signGuestToken, verifyGuestPhone, isGuestTokenConfigured } from "../utils/guestToken";
+import { safeCompare } from "../utils/cryptoUtils";
 import {
     getMockRecallFeed,
     getVapidPublicKey,
