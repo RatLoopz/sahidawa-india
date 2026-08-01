@@ -76,6 +76,8 @@ import { createCorsOptions } from "./config/cors";
 import { errorHandler } from "./middleware/errorHandler";
 import { sentryEnabled } from "./instrument";
 import { errorMetricsMiddleware } from "./middleware/errorMetrics";
+import { sanitizeQueryMiddleware } from "./middleware/sanitizeQuery";
+import { requestTimeout } from "./middleware/requestTimeout";
 // ── Application Initialization ─────────────────────────────────────────────
 const app: Express = express();
 app.set("trust proxy", 1); // Trust first proxy (Nginx) — fixes req.ip for rate limiters
@@ -200,6 +202,15 @@ app.use(
 // Security: restrict CORS to known origins and allow credentials for secure cookies
 
 app.use(express.json({ limit: "1mb" }));
+
+// ── Request Timeout (30s) ──────────────────────────────────────────────────
+// Prevents clients from holding connections open indefinitely.
+app.use(requestTimeout(30_000));
+
+// ── Query Sanitization ─────────────────────────────────────────────────────
+// Auto-applies escapePostgrest() + escapeIlike() to all string query values
+// as a defense-in-depth measure against PostgREST injection (Issue #3924).
+app.use(sanitizeQueryMiddleware);
 
 app.use(
     morgan((tokens, req: Request, res: Response) => {
