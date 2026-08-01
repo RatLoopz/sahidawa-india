@@ -90,7 +90,7 @@ const LEVENSHTEIN_THRESHOLD = 2;
 
 function phoneticFallback(targetName: string, vocabulary: string[]): LasaMatch[] {
     const targetLower = targetName.toLowerCase();
-    const [targetPrimary, targetAlt] = natural.DoubleMetaphone.process(targetName);
+    const [targetPrimary, targetAlt] = (natural.DoubleMetaphone as any).process(targetName);
 
     const matches: LasaMatch[] = [];
 
@@ -98,7 +98,7 @@ function phoneticFallback(targetName: string, vocabulary: string[]): LasaMatch[]
         if (candidate.toLowerCase() === targetLower) continue;
 
         const distance = natural.LevenshteinDistance(targetLower, candidate.toLowerCase());
-        const [candPrimary, candAlt] = natural.DoubleMetaphone.process(candidate);
+        const [candPrimary, candAlt] = (natural.DoubleMetaphone as any).process(candidate);
         const soundsAlike =
             candPrimary === targetPrimary || candPrimary === targetAlt || candAlt === targetPrimary;
 
