@@ -78,6 +78,8 @@ import { sentryEnabled } from "./instrument";
 import { errorMetricsMiddleware } from "./middleware/errorMetrics";
 import { sanitizeQueryMiddleware } from "./middleware/sanitizeQuery";
 import { requestTimeout } from "./middleware/requestTimeout";
+import { aggregateRateLimit } from "./middleware/aggregateRateLimit";
+import { botDetection } from "./middleware/botDetection";
 // ── Application Initialization ─────────────────────────────────────────────
 const app: Express = express();
 app.set("trust proxy", 1); // Trust first proxy (Nginx) — fixes req.ip for rate limiters
@@ -90,6 +92,12 @@ app.use(requestIdMiddleware);
 // ── Error Metrics Tracking ─────────────────────────────────────────────────
 // Tracks error rates by route and status code in Redis for monitoring.
 app.use(errorMetricsMiddleware);
+
+// ── Bot detection (lightweight, runs on every request) ─────────────────────
+app.use(botDetection());
+
+// ── Global aggregate rate limit (safety net across all endpoints) ──────────
+app.use(aggregateRateLimit);
 
 // ── Security: Enforce HTTPS in production ──────────────────────────────────
 // Redirects all HTTP requests to HTTPS (301) to protect sensitive healthcare data
