@@ -146,7 +146,7 @@ class CompareMedicinesResponse(BaseModel):
 
 
 @router.post("/compare", response_model=CompareMedicinesResponse)
-async def compare_medicines(payload: CompareMedicinesRequest) -> CompareMedicinesResponse:
+def compare_medicines(payload: CompareMedicinesRequest) -> CompareMedicinesResponse:
     if not payload.medicine_a.strip() or not payload.medicine_b.strip():
         raise HTTPException(
             status_code=400,

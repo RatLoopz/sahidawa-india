@@ -1,5 +1,3 @@
-import os
-
 from dependencies import verify_api_key
 from fastapi.testclient import TestClient
 from main import app
@@ -7,9 +5,9 @@ from main import app
 client = TestClient(app)
 
 
-def test_compare_requires_api_key():
+def test_compare_requires_api_key(monkeypatch):
     app.dependency_overrides.pop(verify_api_key, None)
-    os.environ["ML_API_KEY"] = "test-secret-123"
+    monkeypatch.setenv("ML_API_KEY", "test-secret-123")
     try:
         res = client.post("/verify/compare", json={
             "medicine_a": "Dolo 650",
@@ -103,8 +101,10 @@ def test_compare_handles_embedding_failure(monkeypatch):
 
 
 def test_compare_no_mutation_of_vectors(monkeypatch):
+    vectors = {"A": [0.5, 0.5], "B": [0.25, 0.75]}
+
     def fake_embed_query(text: str):
-        return [0.5, 0.5]
+        return vectors[text]
 
     monkeypatch.setattr("services.embedding.embed_query", fake_embed_query)
 
@@ -113,3 +113,5 @@ def test_compare_no_mutation_of_vectors(monkeypatch):
         "medicine_b": "B",
     })
     assert res.status_code == 200
+    assert vectors["A"] == [0.5, 0.5]
+    assert vectors["B"] == [0.25, 0.75]
