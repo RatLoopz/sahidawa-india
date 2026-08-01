@@ -12,7 +12,12 @@ const trackSchema = z.object({
     medicine_id: uuidSchema,
     medicine_name: z.string().min(1).max(200),
     batch_number: z.string().max(100).optional(),
-    expiry_date: z.string().date(),
+    expiry_date: z
+        .string()
+        .date()
+        .refine((date) => new Date(date) > new Date(), {
+            message: "Expiry date must be in the future",
+        }),
 });
 router.get(
     "/tracked",
