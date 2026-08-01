@@ -272,6 +272,7 @@ export async function broadcastDistrictAlerts(): Promise<void> {
                     .from("notification_subscribers")
                     .select("*")
                     .eq("is_active", true)
+                    .eq("status", "active")
                     .ilike("district", alert.district)
                     .range(from, to);
 
@@ -357,7 +358,8 @@ export async function broadcastDrugAlerts(): Promise<void> {
                 let query = supabase
                     .from("notification_subscribers")
                     .select("*")
-                    .eq("is_active", true);
+                    .eq("is_active", true)
+                    .eq("status", "active");
 
                 if (alert.district) {
                     query = query.ilike("district", alert.district);

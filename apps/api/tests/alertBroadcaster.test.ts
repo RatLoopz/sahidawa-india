@@ -39,6 +39,7 @@ import { smsService } from "../src/services/sms-service";
 import { whatsappService } from "../src/services/whatsapp-service";
 import {
     broadcastDistrictAlerts,
+    broadcastDrugAlerts,
     broadcastExpiryAlerts,
     shouldSendForFrequency,
     broadcastConfig,
@@ -48,6 +49,65 @@ const mockedSupabase = supabase as jest.Mocked<typeof supabase>;
 
 function getChain() {
     return mockedSupabase.from() as jest.Mocked<any>;
+}
+
+interface SubscriberTableHooks {
+    onIlike?: (...args: unknown[]) => void;
+    onRange?: () => void;
+}
+
+/**
+ * Stand-in for the notification_subscribers query builder that actually
+ * applies the filters to the seeded rows instead of only recording them.
+ * That way a test can seed a mix of rows and assert on who survives the
+ * query, rather than asserting that some particular .eq() was called.
+ */
+function createSubscriberTable(rows: Record<string, unknown>[], hooks: SubscriberTableHooks = {}) {
+    const select = () => {
+        const predicates: ((row: Record<string, unknown>) => boolean)[] = [];
+        const builder: Record<string, unknown> = {
+            eq: (column: string, value: unknown) => {
+                predicates.push((row) => row[column] === value);
+                return builder;
+            },
+            ilike: (column: string, value: string) => {
+                hooks.onIlike?.(column, value);
+                predicates.push(
+                    (row) => String(row[column] ?? "").toLowerCase() === value.toLowerCase()
+                );
+                return builder;
+            },
+            in: (column: string, values: unknown[]) => {
+                predicates.push((row) => values.includes(row[column]));
+                return builder;
+            },
+            range: (from: number, to: number) => {
+                hooks.onRange?.();
+                const matched = rows.filter((row) => predicates.every((match) => match(row)));
+                return Promise.resolve({ data: matched.slice(from, to + 1), error: null });
+            },
+        };
+        return builder;
+    };
+
+    return { select: jest.fn(select) };
+}
+
+/**
+ * district_alerts resolves its fetch after .eq().eq() and drug_alerts after a
+ * single .eq(), so the chain is made thenable to satisfy both without the
+ * test having to care how many filters the caller stacks.
+ */
+function createAlertTable(alerts: Record<string, unknown>[]) {
+    const chain: Record<string, unknown> = {
+        eq: jest.fn(() => chain),
+        then: (resolve: (value: unknown) => void) => resolve({ data: alerts, error: null }),
+    };
+
+    return {
+        select: jest.fn(() => chain),
+        update: jest.fn(() => ({ eq: jest.fn().mockResolvedValue({ data: null, error: null }) })),
+    };
 }
 
 // ---------------------------------------------------------------------------
@@ -130,18 +190,9 @@ describe("broadcastDistrictAlerts", () => {
             }
             if (table === "notification_subscribers") {
                 selectCallCount += 1;
-                return {
-                    select: jest.fn().mockReturnValue({
-                        eq: jest.fn().mockReturnValue({
-                            ilike: jest.fn().mockReturnValue({
-                                range: jest.fn().mockImplementation(() => {
-                                    callOrder.push("fetch_subscribers");
-                                    return Promise.resolve({ data: [], error: null });
-                                }),
-                            }),
-                        }),
-                    }),
-                };
+                return createSubscriberTable([], {
+                    onRange: () => callOrder.push("fetch_subscribers"),
+                });
             }
             return chain;
         });
@@ -260,30 +311,24 @@ describe("broadcastDistrictAlerts", () => {
                 };
             }
             if (table === "notification_subscribers") {
-                return {
-                    select: jest.fn().mockReturnValue({
-                        eq: jest.fn().mockReturnValue({
-                            ilike: jest.fn().mockImplementation((...args) => {
-                                ilikeArgs = args;
-                                return {
-                                    range: jest.fn().mockResolvedValue({
-                                        data: [
-                                            {
-                                                id: "sub-1",
-                                                phone: "+910000000001",
-                                                language: "en",
-                                                channels: ["sms"],
-                                                district: "Pune District",
-                                                is_active: true,
-                                            },
-                                        ],
-                                        error: null,
-                                    }),
-                                };
-                            }),
-                        }),
-                    }),
-                };
+                return createSubscriberTable(
+                    [
+                        {
+                            id: "sub-1",
+                            phone: "+910000000001",
+                            language: "en",
+                            channels: ["sms"],
+                            district: "Pune District",
+                            is_active: true,
+                            status: "active",
+                        },
+                    ],
+                    {
+                        onIlike: (...args) => {
+                            ilikeArgs = args;
+                        },
+                    }
+                );
             }
             return {};
         });
@@ -292,6 +337,109 @@ describe("broadcastDistrictAlerts", () => {
 
         expect(ilikeArgs).toEqual(["district", "Pune District"]);
         expect(smsService.send).toHaveBeenCalledTimes(1);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// Verification gating (#3957)
+// ---------------------------------------------------------------------------
+
+describe("broadcast verification gating", () => {
+    const VERIFIED_PHONE = "+919000000001";
+    const UNVERIFIED_PHONE = "+919000000002";
+
+    const DISTRICT_ALERT = {
+        id: "alert-1",
+        district: "Delhi",
+        medicine_name: "Aspirin 500mg",
+        alert_level: "high",
+        is_active: true,
+        broadcasted: false,
+    };
+
+    const DRUG_ALERT = {
+        id: "drug-alert-1",
+        district: "Delhi",
+        reported_brand_name: "Paracetamol",
+        batch_number: "B1",
+        broadcasted: false,
+    };
+
+    /**
+     * Two subscribers in the same district: one that completed OTP
+     * verification and one that stopped at the pending step. The second
+     * row's status is what each test varies.
+     */
+    function seedSubscribers(secondStatus: "pending" | "active") {
+        return [
+            {
+                id: "sub-verified",
+                phone: VERIFIED_PHONE,
+                language: "en",
+                channels: ["sms"],
+                district: "Delhi",
+                is_active: true,
+                status: "active",
+            },
+            {
+                id: "sub-unverified",
+                phone: UNVERIFIED_PHONE,
+                language: "en",
+                channels: ["sms"],
+                district: "Delhi",
+                is_active: true,
+                status: secondStatus,
+            },
+        ];
+    }
+
+    function mockTables(alertTable: string, alerts: Record<string, unknown>[], subscribers: any[]) {
+        (mockedSupabase.from as jest.Mock).mockImplementation((table: string) => {
+            if (table === alertTable) return createAlertTable(alerts);
+            if (table === "notification_subscribers") return createSubscriberTable(subscribers);
+            return {};
+        });
+    }
+
+    function notifiedPhones() {
+        return (smsService.send as jest.Mock).mock.calls.map((call) => call[0]);
+    }
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        (smsService.send as jest.Mock).mockResolvedValue(true);
+    });
+
+    it("skips pending subscribers when broadcasting a district alert", async () => {
+        mockTables("district_alerts", [DISTRICT_ALERT], seedSubscribers("pending"));
+
+        await broadcastDistrictAlerts();
+
+        expect(notifiedPhones()).toEqual([VERIFIED_PHONE]);
+    });
+
+    it("starts sending district alerts once a pending subscriber verifies", async () => {
+        mockTables("district_alerts", [DISTRICT_ALERT], seedSubscribers("active"));
+
+        await broadcastDistrictAlerts();
+
+        expect(notifiedPhones()).toEqual([VERIFIED_PHONE, UNVERIFIED_PHONE]);
+    });
+
+    it("skips pending subscribers when broadcasting a drug recall", async () => {
+        mockTables("drug_alerts", [DRUG_ALERT], seedSubscribers("pending"));
+
+        await broadcastDrugAlerts();
+
+        expect(notifiedPhones()).toEqual([VERIFIED_PHONE]);
+    });
+
+    it("starts sending drug recalls once a pending subscriber verifies", async () => {
+        mockTables("drug_alerts", [DRUG_ALERT], seedSubscribers("active"));
+
+        await broadcastDrugAlerts();
+
+        expect(notifiedPhones()).toEqual([VERIFIED_PHONE, UNVERIFIED_PHONE]);
     });
 });
 
