@@ -9,6 +9,7 @@ import { supabase, dbConfig } from "../db/client";
 import { smsService } from "../services/sms-service";
 import { whatsappService } from "../services/whatsapp-service";
 import { memorySubscriberStore, InMemorySubscriber } from "../services/memorySubscriberStore";
+import { otpStore } from "../services/otpStore";
 import { formatPhoneNumber } from "../utils/phone";
 import { escapeIlike } from "@sahidawa/shared";
 import logger from "../utils/logger";
@@ -214,7 +215,7 @@ const twilioWebhookSchema = z.object({
 });
 
 // The only subscriber fields any client is allowed to receive. Everything else on
-// a row is either a secret (verification_otp, otp_expires_at) or account-linkage
+// a row is either a secret (otp_store) or account-linkage
 // PII (user_id) and must never be serialized into a response. Returning the raw
 // row from /status let an unauthenticated caller read another subscriber's OTP and
 // Supabase user_id just by knowing their phone number, so every subscriber we hand
@@ -406,16 +407,18 @@ router.post(
                     existing.language = language;
                     existing.district = district;
                     existing.is_active = true;
-                    if (!isOwner) {
+                    if (!isOwner && otp && otpExpires) {
                         existing.status = "pending";
-                        existing.verification_otp = otp;
-                        existing.otp_expires_at = otpExpires;
+                        await otpStore.store(formattedPhone, otp, otpExpires);
                     } else {
                         existing.status = "active";
                     }
                     existing.updated_at = new Date().toISOString();
                     result = existing;
                 } else {
+                    if (!isOwner && otp && otpExpires) {
+                        await otpStore.store(formattedPhone, otp, otpExpires);
+                    }
                     result = {
                         id: `mem-${Date.now()}`,
                         user_id: req.user?.id || null,
@@ -425,8 +428,6 @@ router.post(
                         district,
                         is_active: true,
                         status: targetStatus,
-                        verification_otp: otp,
-                        otp_expires_at: otpExpires,
                         created_at: new Date().toISOString(),
                         updated_at: new Date().toISOString(),
                     };
@@ -441,10 +442,9 @@ router.post(
                         district,
                         is_active: true,
                     };
-                    if (!isOwner) {
+                    if (!isOwner && otp && otpExpires) {
                         updatePayload.status = "pending";
-                        updatePayload.verification_otp = otp;
-                        updatePayload.otp_expires_at = otpExpires;
+                        await otpStore.store(formattedPhone, otp, otpExpires);
                     } else {
                         updatePayload.status = "active";
                     }
@@ -466,6 +466,9 @@ router.post(
                     }
                     result = updated;
                 } else {
+                    if (!isOwner && otp && otpExpires) {
+                        await otpStore.store(formattedPhone, otp, otpExpires);
+                    }
                     const { data: created, error: insertError } = await supabase
                         .from("notification_subscribers")
                         .insert({
@@ -476,8 +479,6 @@ router.post(
                             district,
                             is_active: true,
                             status: targetStatus,
-                            verification_otp: otp,
-                            otp_expires_at: otpExpires,
                         })
                         .select()
                         .single();
@@ -606,23 +607,20 @@ router.post(
                 return;
             }
 
-            if (subscriber.verification_otp !== otp) {
+            const isValid = await otpStore.verify(formattedPhone, otp);
+            if (!isValid) {
                 await recordFailedOtpAttempt(formattedPhone);
-                res.status(400).json({ error: "Invalid OTP" });
-                return;
-            }
-
-            if (subscriber.otp_expires_at && new Date(subscriber.otp_expires_at) < new Date()) {
-                res.status(400).json({ error: "OTP expired" });
+                res.status(400).json({ error: "Invalid or expired OTP" });
                 return;
             }
 
             await clearOtpAttempts(formattedPhone);
+            await otpStore.clear(formattedPhone);
 
             if (!dbFailed) {
                 const { error: updateError } = await supabase
                     .from("notification_subscribers")
-                    .update({ status: "active", verification_otp: null, otp_expires_at: null })
+                    .update({ status: "active" })
                     .eq("id", subscriber.id);
 
                 if (updateError) {
@@ -632,8 +630,6 @@ router.post(
                 }
             } else {
                 subscriber.status = "active";
-                subscriber.verification_otp = null;
-                subscriber.otp_expires_at = null;
                 subscriber.updated_at = new Date().toISOString();
             }
 
