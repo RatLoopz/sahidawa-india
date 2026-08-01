@@ -1,6 +1,7 @@
 import { scanRepository } from "../repositories/scan.repository";
 import { redisRepository } from "../repositories/redis.repository";
 import { getMlAuthHeaders } from "../config/mlService";
+import { computeVerifiedStatus } from "../utils/verification";
 import logger from "../utils/logger";
 
 function calculateAdvancedMatchScore(ocrText: string, candidate: string): number {
@@ -318,7 +319,7 @@ export const scanService = {
         }
 
         const responseData = {
-            verified: true,
+            verified: computeVerifiedStatus(data),
             medicine: {
                 id: data.id,
                 brand_name: data.brand_name,

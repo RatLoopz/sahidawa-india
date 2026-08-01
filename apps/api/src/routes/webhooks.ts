@@ -107,6 +107,7 @@ router.post(
 
             const payload = req.body;
             const record = payload.record || payload.old_record || {};
+            const oldRecord = payload.old_record || {};
             const batchNumber = record.batch_number;
             const brandName = record.brand_name;
             const genericName = record.generic_name;
@@ -128,7 +129,25 @@ router.post(
                 keysToDelete.push(`medicine:voice:${normalizedGeneric}`);
             }
 
-            // 3. Perform deletion if keys exist
+            // 3. Invalidate verify-brand cache for matching brand and generic names
+            if (brandName) {
+                keysToDelete.push(`brand_cache:${brandName.trim().toLowerCase()}`);
+            }
+            if (genericName) {
+                keysToDelete.push(`brand_cache:${genericName.trim().toLowerCase()}`);
+            }
+
+            // Counterfeit-flag transitions can stale verify-brand cache entries keyed
+            // by any user-supplied substring (e.g. "dolo"), which exact-name deletion
+            // above cannot enumerate — sweep the whole namespace on that rare event.
+            if (
+                oldRecord.is_counterfeit_alert !== undefined &&
+                Boolean(oldRecord.is_counterfeit_alert) !== Boolean(record.is_counterfeit_alert)
+            ) {
+                await invalidateCacheByPattern("brand_cache:*");
+            }
+
+            // 4. Perform deletion if keys exist
             const uniqueKeys = Array.from(new Set(keysToDelete));
             if (uniqueKeys.length > 0) {
                 await redisClient.del(uniqueKeys);

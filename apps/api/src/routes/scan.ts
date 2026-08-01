@@ -21,6 +21,7 @@ import { supabase } from "../db/client";
 
 import { optionalAuth } from "../middleware/auth";
 import { escapeIlike, escapePostgrest, buildOrConditions } from "../utils/db";
+import { computeVerifiedStatus } from "../utils/verification";
 import { scanService } from "../services/scan.service";
 
 const router = Router();
@@ -559,7 +560,7 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
         }
 
         const responseData = {
-            verified: true,
+            verified: computeVerifiedStatus(data),
             medicine: {
                 id: data.id,
                 brand_name: data.brand_name,

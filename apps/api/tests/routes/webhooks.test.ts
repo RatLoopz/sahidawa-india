@@ -150,6 +150,73 @@ describe("Webhooks Routes", () => {
             expect(deletedKeys).toContain("medicine:voice:aspirin");
             expect(deletedKeys).not.toContain("drug:batch:B123:data");
         });
+
+        it("invalidates verify-brand cache for brand and generic names", async () => {
+            (invalidateCacheByPattern as jest.Mock).mockResolvedValue([]);
+
+            const res = await request(app)
+                .post("/api/webhooks/supabase/medicines")
+                .set("Authorization", "Bearer test-secret")
+                .send({
+                    record: {
+                        batch_number: "B123",
+                        brand_name: "Aspirin Plus",
+                        generic_name: "Aspirin",
+                    },
+                });
+
+            expect(res.status).toBe(200);
+
+            const deletedKeys = (redisClient.del as jest.Mock).mock.calls[0][0];
+            expect(deletedKeys).toContain("brand_cache:aspirin plus");
+            expect(deletedKeys).toContain("brand_cache:aspirin");
+        });
+
+        it("sweeps all verify-brand cache keys when the counterfeit alert flag changes", async () => {
+            (invalidateCacheByPattern as jest.Mock).mockResolvedValue([]);
+
+            const res = await request(app)
+                .post("/api/webhooks/supabase/medicines")
+                .set("Authorization", "Bearer test-secret")
+                .send({
+                    record: {
+                        batch_number: "B123",
+                        brand_name: "Aspirin Plus",
+                        is_counterfeit_alert: true,
+                    },
+                    old_record: {
+                        batch_number: "B123",
+                        brand_name: "Aspirin Plus",
+                        is_counterfeit_alert: false,
+                    },
+                });
+
+            expect(res.status).toBe(200);
+            expect(invalidateCacheByPattern).toHaveBeenCalledWith("brand_cache:*");
+        });
+
+        it("does not sweep brand cache when the counterfeit alert flag is unchanged", async () => {
+            (invalidateCacheByPattern as jest.Mock).mockResolvedValue([]);
+
+            const res = await request(app)
+                .post("/api/webhooks/supabase/medicines")
+                .set("Authorization", "Bearer test-secret")
+                .send({
+                    record: {
+                        batch_number: "B123",
+                        brand_name: "Aspirin Plus",
+                        is_counterfeit_alert: false,
+                    },
+                    old_record: {
+                        batch_number: "B123",
+                        brand_name: "Aspirin Plus",
+                        is_counterfeit_alert: false,
+                    },
+                });
+
+            expect(res.status).toBe(200);
+            expect(invalidateCacheByPattern).not.toHaveBeenCalledWith("brand_cache:*");
+        });
     });
 
     describe("POST /api/webhooks/supabase/pharmacies (Async Invalidation)", () => {
