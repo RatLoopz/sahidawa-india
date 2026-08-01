@@ -53,8 +53,13 @@ export function sanitizeQueryMiddleware(req: Request, res: Response, next: NextF
     // Silence unused param lint — res is required by Express middleware signature
     void res;
     if (req.query && typeof req.query === "object") {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (req as any).query = sanitizeRecursively(req.query) as Record<string, unknown>;
+        const sanitized = sanitizeRecursively(req.query) as Record<string, unknown>;
+        Object.defineProperty(req, "query", {
+            value: sanitized,
+            writable: true,
+            configurable: true,
+            enumerable: true,
+        });
     }
     next();
 }
