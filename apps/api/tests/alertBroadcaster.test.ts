@@ -53,7 +53,7 @@ function getChain() {
 
 interface SubscriberTableHooks {
     onIlike?: (...args: unknown[]) => void;
-    onRange?: () => void;
+    onRange?: (from: number, to: number) => void;
 }
 
 /**
@@ -82,7 +82,7 @@ function createSubscriberTable(rows: Record<string, unknown>[], hooks: Subscribe
                 return builder;
             },
             range: (from: number, to: number) => {
-                hooks.onRange?.();
+                hooks.onRange?.(from, to);
                 const matched = rows.filter((row) => predicates.every((match) => match(row)));
                 return Promise.resolve({ data: matched.slice(from, to + 1), error: null });
             },
@@ -91,6 +91,21 @@ function createSubscriberTable(rows: Record<string, unknown>[], hooks: Subscribe
     };
 
     return { select: jest.fn(select) };
+}
+
+function createSubscriberQueryMock(capturedEqArgs: string[]) {
+    const builder: any = {
+        eq: jest.fn().mockImplementation((col: string, value: any) => {
+            if (col === "preference_frequency") {
+                capturedEqArgs.push(value);
+            }
+            return builder;
+        }),
+        range: jest.fn().mockResolvedValue({ data: [], error: null }),
+    };
+    return {
+        select: jest.fn(() => builder),
+    };
 }
 
 /**
@@ -108,6 +123,92 @@ function createAlertTable(alerts: Record<string, unknown>[]) {
         select: jest.fn(() => chain),
         update: jest.fn(() => ({ eq: jest.fn().mockResolvedValue({ data: null, error: null }) })),
     };
+}
+
+/**
+ * Mocks a `batches` query that supports the immediate chain
+ * (.select().gte().lte().eq("expiry_broadcasted", false)) and the digest
+ * chains (.select().gte().lte() with optional .not("id","in",delivered)).
+ * The terminal .lte() value is a thenable that also exposes .eq/.not so
+ * both query shapes resolve to the same "rows" result.
+ */
+function mockBatchesQuery(batches: any[], opts: { gte?: jest.Mock } = {}) {
+    const gteSpy = opts.gte || jest.fn();
+    const result = (rows: any[]) => ({ data: rows, error: null });
+    const thenable = {
+        then: (resolve: (value: unknown) => void) => resolve(result(batches)),
+        eq: jest.fn().mockImplementation((col: string, value: boolean) => {
+            if (col === "expiry_broadcasted") {
+                return Promise.resolve(
+                    result(
+                        value
+                            ? batches.filter((b) => b.expiry_broadcasted === true)
+                            : batches.filter((b) => b.expiry_broadcasted !== true)
+                    )
+                );
+            }
+            return Promise.resolve(result(batches));
+        }),
+        not: jest
+            .fn()
+            .mockImplementation((_col: string, _op: string, ids: string[]) =>
+                Promise.resolve(result(batches.filter((b) => !ids.includes(b.id))))
+            ),
+    };
+    return {
+        in: jest.fn().mockResolvedValue(result(batches)),
+        select: jest.fn().mockReturnValue({
+            in: jest.fn().mockResolvedValue(result(batches)),
+            gte: jest.fn().mockImplementation((...args: unknown[]) => {
+                gteSpy(...args);
+                return {
+                    lte: jest.fn().mockReturnValue(thenable),
+                };
+            }),
+        }),
+    };
+}
+
+/**
+ * Build a notification_subscribers mock that supports the
+ * .eq("is_active", true).eq("status", "active").eq("preference_frequency", [...]).range() chain.
+ */
+function mockSubscribersQuery(subscribers: any[]) {
+    const mapped = subscribers.map((s) => ({
+        status: "active",
+        is_active: true,
+        preference_frequency: s.preference_frequency ?? "immediate",
+        ...s,
+    }));
+    return createSubscriberTable(mapped);
+}
+
+/** Mocks expiry_digest_deliveries reads (and optionally the upsert). */
+function mockDeliveredQuery(delivered: any[] = [], opts: { upsert?: jest.Mock } = {}) {
+    return {
+        select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+                gte: jest.fn().mockResolvedValue({ data: delivered, error: null }),
+            }),
+        }),
+        upsert: opts.upsert || jest.fn().mockResolvedValue({ data: null, error: null }),
+    };
+}
+
+/**
+ * Subscriber mock that returns a different page per preference_frequency,
+ * mirroring the real query filter.
+ */
+function mockSubscribersByFrequency(subscribersByFreq: Record<string, any[]>) {
+    const allSubs = Object.entries(subscribersByFreq).flatMap(([freq, subs]) =>
+        subs.map((s) => ({
+            status: "active",
+            is_active: true,
+            ...s,
+            preference_frequency: freq,
+        }))
+    );
+    return createSubscriberTable(allSubs);
 }
 
 // ---------------------------------------------------------------------------
@@ -441,6 +542,74 @@ describe("broadcast verification gating", () => {
 
         expect(notifiedPhones()).toEqual([VERIFIED_PHONE, UNVERIFIED_PHONE]);
     });
+
+    it("skips pending subscribers when broadcasting an expiry alert", async () => {
+        const batches = [
+            {
+                id: "batch-1",
+                batch_number: "B1",
+                expiry_date: "2026-07-01",
+                medicine: { brand_name: "Aspirin" },
+            },
+        ];
+
+        (mockedSupabase.from as jest.Mock).mockImplementation((table: string) => {
+            if (table === "batches") {
+                return {
+                    ...mockBatchesQuery(batches),
+                    update: jest.fn().mockReturnValue({
+                        in: jest.fn().mockResolvedValue({ data: null, error: null }),
+                    }),
+                };
+            }
+            if (table === "notification_subscribers") {
+                const subs = seedSubscribers("pending").map((s) => ({
+                    ...s,
+                    preference_frequency: "immediate",
+                }));
+                return createSubscriberTable(subs);
+            }
+            return {};
+        });
+
+        await broadcastExpiryAlerts(new Date(2026, 5, 25, 15, 0, 0));
+
+        expect(notifiedPhones()).toEqual([VERIFIED_PHONE]);
+    });
+
+    it("starts sending expiry alerts once a pending subscriber verifies", async () => {
+        const batches = [
+            {
+                id: "batch-1",
+                batch_number: "B1",
+                expiry_date: "2026-07-01",
+                medicine: { brand_name: "Aspirin" },
+            },
+        ];
+
+        (mockedSupabase.from as jest.Mock).mockImplementation((table: string) => {
+            if (table === "batches") {
+                return {
+                    ...mockBatchesQuery(batches),
+                    update: jest.fn().mockReturnValue({
+                        in: jest.fn().mockResolvedValue({ data: null, error: null }),
+                    }),
+                };
+            }
+            if (table === "notification_subscribers") {
+                const subs = seedSubscribers("active").map((s) => ({
+                    ...s,
+                    preference_frequency: "immediate",
+                }));
+                return createSubscriberTable(subs);
+            }
+            return {};
+        });
+
+        await broadcastExpiryAlerts(new Date(2026, 5, 25, 15, 0, 0));
+
+        expect(notifiedPhones()).toEqual([VERIFIED_PHONE, UNVERIFIED_PHONE]);
+    });
 });
 
 // ---------------------------------------------------------------------------
@@ -451,100 +620,6 @@ describe("broadcastExpiryAlerts", () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
-
-    /**
-     * Mocks a `batches` query that supports the immediate chain
-     * (.select().gte().lte().eq("expiry_broadcasted", false)) and the digest
-     * chains (.select().gte().lte() with optional .not("id","in",delivered)).
-     * The terminal .lte() value is a thenable that also exposes .eq/.not so
-     * both query shapes resolve to the same "rows" result.
-     */
-    function mockBatchesQuery(batches: any[], opts: { gte?: jest.Mock } = {}) {
-        const gteSpy = opts.gte || jest.fn();
-        const result = (rows: any[]) => ({ data: rows, error: null });
-        const thenable = {
-            then: (resolve: (value: unknown) => void) => resolve(result(batches)),
-            eq: jest.fn().mockImplementation((col: string, value: boolean) => {
-                if (col === "expiry_broadcasted") {
-                    return Promise.resolve(
-                        result(
-                            value
-                                ? batches.filter((b) => b.expiry_broadcasted === true)
-                                : batches.filter((b) => b.expiry_broadcasted !== true)
-                        )
-                    );
-                }
-                return Promise.resolve(result(batches));
-            }),
-            not: jest
-                .fn()
-                .mockImplementation((_col: string, _op: string, ids: string[]) =>
-                    Promise.resolve(result(batches.filter((b) => !ids.includes(b.id))))
-                ),
-        };
-        return {
-            in: jest.fn().mockResolvedValue(result(batches)),
-            select: jest.fn().mockReturnValue({
-                in: jest.fn().mockResolvedValue(result(batches)),
-                gte: jest.fn().mockImplementation((...args: unknown[]) => {
-                    gteSpy(...args);
-                    return {
-                        lte: jest.fn().mockReturnValue(thenable),
-                    };
-                }),
-            }),
-        };
-    }
-
-    /**
-     * Build a notification_subscribers mock that supports the
-     * .eq("is_active", true).eq("preference_frequency", [...]).range() chain.
-     */
-    function mockSubscribersQuery(subscribers: any[]) {
-        return {
-            select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                    eq: jest.fn().mockReturnValue({
-                        range: jest.fn().mockResolvedValue({ data: subscribers, error: null }),
-                    }),
-                }),
-            }),
-        };
-    }
-
-    /** Mocks expiry_digest_deliveries reads (and optionally the upsert). */
-    function mockDeliveredQuery(delivered: any[] = [], opts: { upsert?: jest.Mock } = {}) {
-        return {
-            select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                    gte: jest.fn().mockResolvedValue({ data: delivered, error: null }),
-                }),
-            }),
-            upsert: opts.upsert || jest.fn().mockResolvedValue({ data: null, error: null }),
-        };
-    }
-
-    /**
-     * Subscriber mock that returns a different page per preference_frequency,
-     * mirroring the real query filter.
-     */
-    function mockSubscribersByFrequency(subscribersByFreq: Record<string, any[]>) {
-        return {
-            select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                    eq: jest.fn().mockImplementation((col: string, value: string) => ({
-                        range: jest.fn().mockResolvedValue({
-                            data:
-                                col === "preference_frequency"
-                                    ? (subscribersByFreq[value] ?? [])
-                                    : [],
-                            error: null,
-                        }),
-                    })),
-                }),
-            }),
-        };
-    }
 
     it("sends exactly one consolidated notification per subscriber, not one per batch", async () => {
         const batches = [
@@ -637,34 +712,24 @@ describe("broadcastExpiryAlerts", () => {
                 };
             }
             if (table === "notification_subscribers") {
-                return {
-                    select: jest.fn().mockReturnValue({
-                        eq: jest.fn().mockReturnValue({
-                            eq: jest.fn().mockReturnValue({
-                                range: jest.fn().mockImplementation((from: number, to: number) => {
-                                    if (from === 0 && to === 0) {
-                                        return Promise.resolve({
-                                            data: [{ id: "mock" }],
-                                            error: null,
-                                        });
-                                    }
-                                    callOrder.push("fetch_subscribers");
-                                    return Promise.resolve({
-                                        data: [
-                                            {
-                                                id: "sub-1",
-                                                phone: "+910000000001",
-                                                language: "en",
-                                                channels: ["sms"],
-                                            },
-                                        ],
-                                        error: null,
-                                    });
-                                }),
-                            }),
-                        }),
-                    }),
-                };
+                return createSubscriberTable(
+                    [
+                        {
+                            id: "sub-1",
+                            phone: "+910000000001",
+                            language: "en",
+                            channels: ["sms"],
+                            is_active: true,
+                            status: "active",
+                            preference_frequency: "immediate",
+                        },
+                    ],
+                    {
+                        onRange: (from, to) => {
+                            if (to > 0) callOrder.push("fetch_subscribers");
+                        },
+                    }
+                );
             }
             return {};
         });
@@ -877,18 +942,7 @@ describe("broadcastExpiryAlerts", () => {
             }
             if (table === "expiry_digest_deliveries") return mockDeliveredQuery([]);
             if (table === "notification_subscribers") {
-                return {
-                    select: jest.fn().mockReturnValue({
-                        eq: jest.fn().mockReturnValue({
-                            eq: jest.fn().mockImplementation((col: string, value: string) => {
-                                if (col === "preference_frequency") capturedEqArgs.push(value);
-                                return {
-                                    range: jest.fn().mockResolvedValue({ data: [], error: null }),
-                                };
-                            }),
-                        }),
-                    }),
-                };
+                return createSubscriberQueryMock(capturedEqArgs);
             }
             return {};
         });
@@ -923,18 +977,7 @@ describe("broadcastExpiryAlerts", () => {
             }
             if (table === "expiry_digest_deliveries") return mockDeliveredQuery([]);
             if (table === "notification_subscribers") {
-                return {
-                    select: jest.fn().mockReturnValue({
-                        eq: jest.fn().mockReturnValue({
-                            eq: jest.fn().mockImplementation((col: string, value: string) => {
-                                if (col === "preference_frequency") capturedEqArgs.push(value);
-                                return {
-                                    range: jest.fn().mockResolvedValue({ data: [], error: null }),
-                                };
-                            }),
-                        }),
-                    }),
-                };
+                return createSubscriberQueryMock(capturedEqArgs);
             }
             return {};
         });
@@ -968,18 +1011,7 @@ describe("broadcastExpiryAlerts", () => {
             }
             if (table === "expiry_digest_deliveries") return mockDeliveredQuery([]);
             if (table === "notification_subscribers") {
-                return {
-                    select: jest.fn().mockReturnValue({
-                        eq: jest.fn().mockReturnValue({
-                            eq: jest.fn().mockImplementation((col: string, value: string) => {
-                                if (col === "preference_frequency") capturedEqArgs.push(value);
-                                return {
-                                    range: jest.fn().mockResolvedValue({ data: [], error: null }),
-                                };
-                            }),
-                        }),
-                    }),
-                };
+                return createSubscriberQueryMock(capturedEqArgs);
             }
             return {};
         });

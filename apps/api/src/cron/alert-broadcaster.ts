@@ -510,6 +510,7 @@ async function subscriberExistsForFrequency(frequency: AlertFrequency): Promise<
         .from("notification_subscribers")
         .select("id")
         .eq("is_active", true)
+        .eq("status", "active")
         .eq("preference_frequency", frequency)
         .range(0, 0);
 
@@ -589,6 +590,7 @@ async function broadcastExpiryToFrequency(
             .from("notification_subscribers")
             .select("*")
             .eq("is_active", true)
+            .eq("status", "active")
             .eq("preference_frequency", frequency)
             .range(from, to);
 
