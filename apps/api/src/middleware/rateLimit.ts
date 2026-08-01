@@ -194,7 +194,9 @@ export const authTargetLimiter = createKeyLimiter({
     keyGenerator: (req: Request) => {
         // Look for common identity keys in the request body
         if (req.body?.abhaAddress) return `abha:${req.body.abhaAddress}`;
-        if (req.body?.phone_number) return `phone:${req.body.phone_number}`;
+        // The register and verify-otp routes send the phone as `phone`, not `phone_number`.
+        // Reading `phone_number` made per-target OTP throttling a no-op.
+        if (req.body?.phone) return `phone:${req.body.phone}`;
         // Fallback to IP if no explicit target is found
         return (req.ip || "unknown").replace(/:/g, "_");
     },
