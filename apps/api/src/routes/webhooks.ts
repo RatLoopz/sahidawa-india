@@ -45,20 +45,9 @@ router.post(
                 return;
             }
 
-            const keysToDelete: string[] = [];
-            let cursor: any = 0;
-
-            do {
-                const result = await redisClient.scan(cursor, {
-                    MATCH: "schemes:state:*",
-                    COUNT: 100,
-                });
-                cursor = result.cursor;
-                keysToDelete.push(...result.keys);
-            } while (cursor !== 0);
+            const keysToDelete = await invalidateCacheByPattern("schemes:state:*");
 
             if (keysToDelete.length > 0) {
-                await redisClient.del(keysToDelete);
                 logger.info(
                     `Health schemes cache invalidated — deleted ${keysToDelete.length} key(s)`,
                     { keys: keysToDelete }
@@ -124,17 +113,9 @@ router.post(
 
             const keysToDelete: string[] = [];
 
-            // 1. Invalidate drug lookup cache by scanning for keys starting with the batch number
+            // 1. Invalidate drug lookup cache (helper scans and deletes matching keys)
             if (batchNumber) {
-                let cursor: any = 0;
-                do {
-                    const result = await redisClient.scan(cursor, {
-                        MATCH: `drug:batch:${batchNumber}*`,
-                        COUNT: 100,
-                    });
-                    cursor = result.cursor;
-                    keysToDelete.push(...result.keys);
-                } while (cursor !== 0);
+                await invalidateCacheByPattern(`drug:batch:${batchNumber}*`);
             }
 
             // 2. Invalidate voice search cache for matching brand and generic names
@@ -182,20 +163,9 @@ function handleAsyncInvalidation(table: string, pattern: string, res: Response) 
                 return;
             }
 
-            let cursor: any = 0;
-            const keysToDelete: string[] = [];
-
-            do {
-                const result = await redisClient.scan(cursor, {
-                    MATCH: pattern,
-                    COUNT: 100,
-                });
-                cursor = result.cursor;
-                keysToDelete.push(...result.keys);
-            } while (cursor !== 0);
+            const keysToDelete = await invalidateCacheByPattern(pattern);
 
             if (keysToDelete.length > 0) {
-                await redisClient.del(keysToDelete);
                 logger.info(
                     `Cache invalidated for ${table} — deleted ${keysToDelete.length} key(s)`,
                     { keys: keysToDelete }
