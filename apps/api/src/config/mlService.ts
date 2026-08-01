@@ -1,23 +1,8 @@
 import logger from "../utils/logger";
+import { isBlockedOutboundHost } from "../utils/security/urlValidator";
 
 const MISSING_ML_SERVICE_URL_MESSAGE =
     "ML_SERVICE_URL is not configured. Set it to the ML service origin before using ML-backed routes.";
-
-// RFC-1918 private address ranges, loopback, and link-local prefixes that must
-// never be used as ML service endpoints. A misconfigured or injected value
-// pointing at these addresses would allow the API server to reach cloud instance
-// metadata services or internal network resources (SSRF).
-const BLOCKED_HOSTNAME_PATTERNS = [
-    /^localhost$/i,
-    /^127\./,
-    /^10\./,
-    /^172\.(1[6-9]|2\d|3[01])\./,
-    /^192\.168\./,
-    /^169\.254\./,
-    /^::1$/i,
-    /^fc00:/i,
-    /^fe80:/i,
-];
 
 /**
  * Extract the embedded IPv4 address from an IPv6-mapped IPv4 address.
@@ -34,10 +19,15 @@ function getMappedIpv4(hostname: string): string | null {
 /**
  * Returns true when the hostname is a safe external address, false for any
  * private, loopback, or link-local hostname.
+ *
+ * IPv6 literals arrive from `URL.hostname` with their brackets intact (e.g.
+ * "[fd00::1]"), so they are stripped before matching against the shared
+ * blocked-pattern list used by `validateOutboundUrl`.
  */
 function isAllowedHostname(hostname: string): boolean {
-    const mappedIpv4 = getMappedIpv4(hostname);
-    const normalizedHostname = mappedIpv4 ?? hostname;
+    const strippedHostname = hostname.replace(/^\[|\]$/g, "");
+    const mappedIpv4 = getMappedIpv4(strippedHostname);
+    const normalizedHostname = mappedIpv4 ?? strippedHostname;
 
     if (
         process.env.NODE_ENV !== "production" &&
@@ -46,7 +36,7 @@ function isAllowedHostname(hostname: string): boolean {
         return true;
     }
 
-    return !BLOCKED_HOSTNAME_PATTERNS.some((pattern) => pattern.test(normalizedHostname));
+    return !isBlockedOutboundHost(normalizedHostname);
 }
 
 /**
