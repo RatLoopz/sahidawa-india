@@ -80,6 +80,7 @@ import { sanitizeQueryMiddleware } from "./middleware/sanitizeQuery";
 import { requestTimeout } from "./middleware/requestTimeout";
 import { aggregateRateLimit } from "./middleware/aggregateRateLimit";
 import { botDetection } from "./middleware/botDetection";
+import { queryMetricsMiddleware } from "./middleware/queryMetrics";
 // ── Application Initialization ─────────────────────────────────────────────
 const app: Express = express();
 app.set("trust proxy", 1); // Trust first proxy (Nginx) — fixes req.ip for rate limiters
@@ -98,6 +99,10 @@ app.use(botDetection());
 
 // ── Global aggregate rate limit (safety net across all endpoints) ──────────
 app.use(aggregateRateLimit);
+
+// ── Query Metrics & Slow Query Detection ───────────────────────────────────
+// Logs slow queries (>500ms warn, >2000ms error) for performance monitoring.
+app.use(queryMetricsMiddleware);
 
 // ── Security: Enforce HTTPS in production ──────────────────────────────────
 // Redirects all HTTP requests to HTTPS (301) to protect sensitive healthcare data
