@@ -363,10 +363,16 @@ router.patch(
 
             const updated = patchLimits(parsed.data);
 
-            await logAdminAction(req.user!.id, "RATE_LIMIT_PATCH", "SYSTEM", "rate-limit", {
-                patched_endpoints: Object.keys(updated),
-                timestamp: new Date().toISOString(),
-            });
+            await logAdminAction(
+                req.user!.id,
+                "RATE_LIMIT_PATCH",
+                "SYSTEM",
+                "00000000-0000-0000-0000-000000000000",
+                {
+                    patched_endpoints: Object.keys(updated),
+                    timestamp: new Date().toISOString(),
+                }
+            );
 
             res.status(200).json({
                 success: true,
@@ -390,9 +396,15 @@ router.post(
         try {
             resetLimits();
 
-            await logAdminAction(req.user!.id, "RATE_LIMIT_RESET", "SYSTEM", "rate-limit", {
-                timestamp: new Date().toISOString(),
-            });
+            await logAdminAction(
+                req.user!.id,
+                "RATE_LIMIT_RESET",
+                "SYSTEM",
+                "00000000-0000-0000-0000-000000000000",
+                {
+                    timestamp: new Date().toISOString(),
+                }
+            );
 
             res.status(200).json({
                 success: true,

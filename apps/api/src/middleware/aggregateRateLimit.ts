@@ -129,7 +129,7 @@ export async function isBlocked(ip: string): Promise<number> {
     if (!redisClient.isOpen) return 0;
     try {
         const blockKey = `rl:block:${ip}`;
-        const ttl = await redisClient.pttl(blockKey);
+        const ttl = await redisClient.pTTL(blockKey);
         return ttl > 0 ? ttl : 0;
     } catch {
         return 0;

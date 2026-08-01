@@ -4,7 +4,7 @@ import logger from "../utils/logger";
 export const logAdminAction = async (
     adminId: string,
     action: string,
-    targetType: "REPORT" | "MEDICINE" | "PHARMACY",
+    targetType: "REPORT" | "MEDICINE" | "PHARMACY" | "SYSTEM",
     targetId: string,
     details: Record<string, unknown>
 ) => {

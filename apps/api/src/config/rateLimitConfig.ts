@@ -139,12 +139,12 @@ export function getAllLimits(): Record<string, EndpointLimit> {
  * Returns the updated config for the patched endpoints.
  */
 export function patchLimits(
-    patches: Partial<Record<string, Pick<EndpointLimit, "windowMs" | "maxRequests">>>
+    patches: Record<string, { windowMs?: number; maxRequests?: number }>
 ): Record<string, EndpointLimit> {
     const updated: Record<string, EndpointLimit> = {};
     for (const [endpoint, patch] of Object.entries(patches)) {
         const existing = runtimeLimits.get(endpoint);
-        if (!existing) continue;
+        if (!existing || !patch) continue;
         if (patch.windowMs !== undefined) existing.windowMs = patch.windowMs;
         if (patch.maxRequests !== undefined) existing.maxRequests = patch.maxRequests;
         runtimeLimits.set(endpoint, existing);
