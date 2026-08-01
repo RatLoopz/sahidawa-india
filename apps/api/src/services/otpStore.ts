@@ -9,6 +9,25 @@ interface StoredOtp {
 
 class OtpStore {
     private fallbackStore = new Map<string, StoredOtp>();
+    private cleanupInterval: NodeJS.Timeout;
+
+    constructor() {
+        this.cleanupInterval = setInterval(
+            () => {
+                const now = new Date();
+                for (const [phone, data] of this.fallbackStore.entries()) {
+                    if (new Date(data.expiresAt) < now) {
+                        this.fallbackStore.delete(phone);
+                    }
+                }
+            },
+            5 * 60 * 1000
+        ); // Clean up every 5 minutes
+
+        if (this.cleanupInterval.unref) {
+            this.cleanupInterval.unref();
+        }
+    }
 
     private getRedisKey(phone: string): string {
         return `otp:${phone}`;
