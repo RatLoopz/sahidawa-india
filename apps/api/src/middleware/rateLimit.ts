@@ -1,4 +1,4 @@
-import rateLimit, { Store } from "express-rate-limit";
+import rateLimit, { MemoryStore, Store, Options, IncrementResponse } from "express-rate-limit";
 import { Request, Response } from "express";
 import { RedisStore } from "rate-limit-redis";
 import { redisClient } from "../utils/redis";
@@ -54,20 +54,68 @@ export const createKeyLimiter = (options: KeyLimiterOptions) => {
 // shared across every API replica (critical for horizontal scaling and Cloud Run).
 // Falls back to the in-process MemoryStore when Redis is unavailable, so the
 // service continues to function in local development without a Redis instance.
+//
+// Resolution is deliberately lazy: limiters are constructed at module load time,
+// before `connectRedis()` runs in the server listen callback, so checking
+// `redisClient.isOpen` up-front would always pick MemoryStore. Instead the real
+// store is resolved on first use (the first request), by which time the Redis
+// connection is established.
 
-function buildStore(prefix: string): Store | undefined {
-    if (redisClient.isOpen) {
-        return new RedisStore({
-            // Adapts the node-redis v4 client to the interface expected by rate-limit-redis
-            sendCommand: (...args: string[]) => redisClient.sendCommand(args),
-            prefix: `rl:${prefix}:`,
-        });
+class LazyStore implements Store {
+    private readonly keyPrefix: string;
+    private store: Store | undefined;
+    private initOptions: Options | undefined;
+
+    constructor(prefix: string) {
+        this.keyPrefix = prefix;
     }
-    logger.warn(
-        `[rateLimit] Redis not connected — ${prefix} limiter falling back to MemoryStore. ` +
-            "Rate limiting will NOT be shared across replicas."
-    );
-    return undefined; // undefined → express-rate-limit uses its default MemoryStore
+
+    init(options: Options): void {
+        this.initOptions = options;
+    }
+
+    private resolve(): Store {
+        if (!this.store) {
+            if (redisClient.isOpen) {
+                this.store = new RedisStore({
+                    // Adapts the node-redis v4 client to the interface expected by rate-limit-redis
+                    sendCommand: (...args: string[]) => redisClient.sendCommand(args),
+                    prefix: `rl:${this.keyPrefix}:`,
+                });
+                logger.info(`[rateLimit] Redis store active for prefix '${this.keyPrefix}'`);
+            } else {
+                this.store = new MemoryStore();
+                logger.warn(
+                    `[rateLimit] Redis not connected — ${this.keyPrefix} limiter falling back to MemoryStore. ` +
+                        "Rate limiting will NOT be shared across replicas."
+                );
+            }
+            if (this.initOptions && this.store.init) {
+                void this.store.init(this.initOptions);
+            }
+        }
+        return this.store;
+    }
+
+    increment(key: string): Promise<IncrementResponse> | IncrementResponse {
+        return this.resolve().increment(key);
+    }
+
+    decrement(key: string): Promise<void> | void {
+        return this.resolve().decrement(key);
+    }
+
+    resetKey(key: string): Promise<void> | void {
+        return this.resolve().resetKey(key);
+    }
+
+    resetAll(): Promise<void> | void {
+        return this.resolve().resetAll?.();
+    }
+}
+
+function buildStore(prefix: string): Store {
+    return new LazyStore(prefix);
 }
 
 // ── Limiters ───────────────────────────────────────────────────────────────────
