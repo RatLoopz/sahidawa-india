@@ -26,7 +26,7 @@ export const CacheInvalidation = {
         }
 
         let totalDeleted = 0;
-        let cursor = 0;
+        let cursor = "0";
 
         try {
             do {
@@ -34,7 +34,7 @@ export const CacheInvalidation = {
                     MATCH: `${prefix}*`,
                     COUNT: batchSize,
                 });
-                cursor = typeof nextCursor === "string" ? parseInt(nextCursor, 10) : nextCursor;
+                cursor = String(nextCursor);
 
                 if (keys.length > 0) {
                     // Delete in chunks to avoid blocking the event loop
@@ -44,7 +44,7 @@ export const CacheInvalidation = {
                         totalDeleted += chunk.length;
                     }
                 }
-            } while (cursor !== 0);
+            } while (cursor !== "0");
 
             if (totalDeleted > 0) {
                 logger.info(
