@@ -145,7 +145,23 @@ const { doubleCsrfProtection, generateCsrfToken: generateToken } = doubleCsrf({
 // Registered in every environment so CodeQL sees CSRF middleware on every route
 // (resolves Alert 136) and development mirrors production, surfacing CSRF
 // integration issues locally instead of only after deploy.
-app.use(doubleCsrfProtection);
+//
+// Webhook endpoints are exempt from CSRF validation because external callers
+// (Supabase Database Webhooks, Twilio, ETL pipeline) cannot participate in the
+// CSRF token handshake — they authenticate via their own mechanisms (shared
+// HMAC secret, Twilio signature) which already prevent cross-site forgery.
+const WEBHOOK_EXEMPT_PREFIXES = ["/api/webhooks"];
+const WEBHOOK_EXEMPT_PATHS = ["/api/notifications/twilio-webhook"];
+
+app.use((req, res, next) => {
+    if (
+        WEBHOOK_EXEMPT_PREFIXES.some((p) => req.path.startsWith(p)) ||
+        WEBHOOK_EXEMPT_PATHS.includes(req.path)
+    ) {
+        return next();
+    }
+    return doubleCsrfProtection(req, res, next);
+});
 
 // ── CSRF token endpoint — frontend fetches this once on load ───────────────
 app.get("/api/csrf-token", (req: Request, res: Response) => {
