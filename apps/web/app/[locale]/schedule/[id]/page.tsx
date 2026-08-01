@@ -81,7 +81,7 @@ export default function ScheduleDetailPage() {
             });
             setState({ ...state, schedule: updated });
         } catch {
-            // silently fail
+            toast.error("Failed to update schedule. Please try again.");
         }
     };
 
