@@ -166,7 +166,12 @@ export const createAuthMiddleware =
                     if (redisClient.isOpen) {
                         await redisClient.del(cacheKey);
                     }
-                } catch (_) {}
+                } catch (err) {
+                    logger.warn({
+                        message: "Redis cache del error in requireAuth (token error)",
+                        error: String(err),
+                    });
+                }
                 res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
                 return;
             }
@@ -176,7 +181,12 @@ export const createAuthMiddleware =
                     if (redisClient.isOpen) {
                         await redisClient.del(cacheKey);
                     }
-                } catch (_) {}
+                } catch (err) {
+                    logger.warn({
+                        message: "Redis cache del error in requireAuth (no user)",
+                        error: String(err),
+                    });
+                }
                 res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
                 return;
             }
@@ -289,7 +299,12 @@ export const createOptionalAuthMiddleware =
                     if (redisClient.isOpen) {
                         await redisClient.del(cacheKey);
                     }
-                } catch (_) {}
+                } catch (err) {
+                    logger.warn({
+                        message: "Redis cache del error in optionalAuth (token error)",
+                        error: String(err),
+                    });
+                }
                 res.status(401).json({
                     error: "Unauthorized: Invalid or expired token",
                 });
@@ -301,7 +316,12 @@ export const createOptionalAuthMiddleware =
                     if (redisClient.isOpen) {
                         await redisClient.del(cacheKey);
                     }
-                } catch (_) {}
+                } catch (err) {
+                    logger.warn({
+                        message: "Redis cache del error in optionalAuth (no user)",
+                        error: String(err),
+                    });
+                }
                 res.status(401).json({
                     error: "Unauthorized: Invalid or expired token",
                 });
