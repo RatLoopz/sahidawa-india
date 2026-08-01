@@ -422,12 +422,9 @@ router.post(
                 existing = memorySubscriberStore.get(formattedPhone);
 
                 if (existing && !mayEditExisting(existing)) {
-                    existing.verification_otp = otp;
-                    existing.otp_expires_at = otpExpires;
-                    existing.updated_at = new Date().toISOString();
-                    // Re-storing the same object is what marks the store dirty,
-                    // so the challenge survives a restart.
-                    memorySubscriberStore.set(formattedPhone, existing);
+                    if (otp && otpExpires) {
+                        await otpStore.store(formattedPhone, otp, otpExpires);
+                    }
                     heldForVerification = true;
                 } else if (existing) {
                     existing.user_id = req.user?.id || existing.user_id;
@@ -440,8 +437,6 @@ router.post(
                         await otpStore.store(formattedPhone, otp, otpExpires);
                     } else {
                         existing.status = "active";
-                        existing.verification_otp = null;
-                        existing.otp_expires_at = null;
                     }
                     existing.updated_at = new Date().toISOString();
                     result = existing;

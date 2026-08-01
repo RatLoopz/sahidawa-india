@@ -79,7 +79,12 @@ class OtpStore {
             .createHash("sha256")
             .update(otp + stored.salt)
             .digest("hex");
-        return computedHash === stored.hash;
+        const computedBuf = Buffer.from(computedHash, "hex");
+        const storedBuf = Buffer.from(stored.hash, "hex");
+        if (computedBuf.length !== storedBuf.length) {
+            return false;
+        }
+        return crypto.timingSafeEqual(computedBuf, storedBuf);
     }
 
     async clear(phone: string): Promise<void> {
