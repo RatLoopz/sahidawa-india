@@ -75,6 +75,7 @@ import * as Sentry from "@sentry/node";
 import { createCorsOptions } from "./config/cors";
 import { errorHandler } from "./middleware/errorHandler";
 import { sentryEnabled } from "./instrument";
+import { errorMetricsMiddleware } from "./middleware/errorMetrics";
 // ── Application Initialization ─────────────────────────────────────────────
 const app: Express = express();
 app.set("trust proxy", 1); // Trust first proxy (Nginx) — fixes req.ip for rate limiters
@@ -83,6 +84,10 @@ app.set("trust proxy", 1); // Trust first proxy (Nginx) — fixes req.ip for rat
 // Must be the first middleware so every downstream handler and log entry
 // can access the x-request-id via AsyncLocalStorage.
 app.use(requestIdMiddleware);
+
+// ── Error Metrics Tracking ─────────────────────────────────────────────────
+// Tracks error rates by route and status code in Redis for monitoring.
+app.use(errorMetricsMiddleware);
 
 // ── Security: Enforce HTTPS in production ──────────────────────────────────
 // Redirects all HTTP requests to HTTPS (301) to protect sensitive healthcare data
@@ -229,44 +234,79 @@ app.get("/", (_req: Request, res: Response) => {
 app.use("/api/v1/admin", requireAuth, requireRole("admin", "moderator"), adminRoutes);
 
 app.get("/health", async (_req: Request, res: Response) => {
-    const start = Date.now();
+    const overallStart = Date.now();
     try {
+        // Database check with latency measurement
+        const dbStart = Date.now();
         const { error } = await supabase.from("medicines").select("id").limit(1);
+        const dbLatencyMs = Date.now() - dbStart;
         const uptime = process.uptime();
 
-        // Redis
-        const redisStatus = redisClient.isOpen ? "connected" : "disconnected";
+        // Redis check with latency measurement
+        let redisLatencyMs: number | null = null;
+        let redisStatus = redisClient.isOpen ? "connected" : "disconnected";
+        if (redisClient.isOpen) {
+            const redisStart = Date.now();
+            try {
+                await redisClient.ping();
+                redisStatus = "connected";
+            } catch {
+                redisStatus = "unhealthy";
+            }
+            redisLatencyMs = Date.now() - redisStart;
+        }
 
         // ML service — check config first, then do a lightweight reachability ping
         let mlStatus: string;
+        let mlLatencyMs = 0;
         const mlUrl = getMlServiceUrl();
         if (!mlUrl) {
             mlStatus = "not-configured";
         } else {
+            const mlStart = Date.now();
             try {
                 const controller = new AbortController();
                 const timeout = setTimeout(() => controller.abort(), 3000);
-                const res = await fetch(mlUrl, { method: "HEAD", signal: controller.signal });
+                const mlRes = await fetch(mlUrl, { method: "HEAD", signal: controller.signal });
                 clearTimeout(timeout);
-                mlStatus = res.ok ? "healthy" : "unreachable";
+                mlStatus = mlRes.ok ? "healthy" : "unreachable";
             } catch {
                 mlStatus = "unreachable";
             }
+            mlLatencyMs = Date.now() - mlStart;
         }
 
         // Overall status
         // ML service is optional — "not-configured" does not degrade overallStatus.
         const overallStatus =
-            redisStatus === "connected" && (mlUrl === null || mlStatus === "healthy")
+            !error && redisStatus === "connected" && (mlUrl === null || mlStatus === "healthy")
                 ? "healthy"
                 : "degraded";
 
         const healthData = {
-            status: error ? "degraded" : overallStatus,
+            status: overallStatus,
             service: "sahidawa-api",
             version: process.env.npm_package_version || "unknown",
             environment: process.env.NODE_ENV || "development",
             uptime: `${Math.floor(uptime)}s`,
+            // New structured dependencies format
+            dependencies: {
+                database: {
+                    status: error ? "down" : "up",
+                    latencyMs: dbLatencyMs,
+                    ...(error && { error: "Database connection failed" }),
+                },
+                redis: {
+                    status: redisStatus === "connected" ? "up" : redisStatus,
+                    latencyMs: redisLatencyMs,
+                },
+                mlService: {
+                    status: mlStatus === "healthy" ? "up" : mlStatus,
+                    latencyMs: mlLatencyMs,
+                    ...(mlUrl && { url: mlUrl }),
+                },
+            },
+            // Backwards-compatible flat format for existing monitoring
             database: { status: error ? "unreachable" : "connected" },
             services: {
                 api: "healthy",
@@ -281,19 +321,13 @@ app.get("/health", async (_req: Request, res: Response) => {
                     heapUsed: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB`,
                 },
             },
-            responseTime: `${Date.now() - start}ms`,
+            responseTimeMs: Date.now() - overallStart,
             timestamp: new Date().toISOString(),
         };
 
         if (error) {
             logger.error("Health check database failure", { error });
-            return res.status(503).json({
-                ...healthData,
-                database: {
-                    status: "unreachable",
-                    error: "Database connection failed",
-                },
-            });
+            return res.status(503).json(healthData);
         }
 
         return res.status(200).json(healthData);
@@ -304,6 +338,7 @@ app.get("/health", async (_req: Request, res: Response) => {
             status: "error",
             service: "sahidawa-api",
             error: "Service health check failed",
+            responseTimeMs: Date.now() - overallStart,
             timestamp: new Date().toISOString(),
         });
     }

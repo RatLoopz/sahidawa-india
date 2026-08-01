@@ -80,11 +80,11 @@ export function createGracefulShutdown(server: Server, options: ShutdownOptions 
         }
 
         isShuttingDown = true;
-        console.error("Unhandled Rejection Reason (SYNC):", reason);
-        console.error("Unhandled Rejection Error:", error);
-        if (error instanceof Error) {
-            console.error(error.stack);
-        }
+        logger.error("Unhandled Rejection detected", {
+            reason,
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+        });
         logger.error(`${reason} detected. Starting graceful shutdown. Reason:`, {
             reason,
             error,
