@@ -415,7 +415,10 @@ router.post("/match", scanQueryLimiter, async (req: Request, res: Response) => {
                                 EX: 3600,
                             });
                     } catch (err) {
-                        /* ignore */
+                        logger.warn({
+                            message: "Redis cache set error in match fallback",
+                            error: String(err),
+                        });
                     }
 
                     res.status(200).json(fallbackResult);
@@ -442,7 +445,10 @@ router.post("/match", scanQueryLimiter, async (req: Request, res: Response) => {
             if (redisClient.isOpen)
                 await redisClient.set(cacheKey, JSON.stringify(matches), { EX: 3600 });
         } catch (err) {
-            /* ignore */
+            logger.warn({
+                message: "Redis cache set error in match route",
+                error: String(err),
+            });
         }
 
         res.status(200).json(matches);
@@ -556,7 +562,10 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
             if (redisClient.isOpen)
                 await redisClient.set(cacheKey, JSON.stringify(responseData), { EX: 86400 }); // 24 hours
         } catch (err) {
-            /* ignore */
+            logger.warn({
+                message: "Redis cache set error in verify-brand route",
+                error: String(err),
+            });
         }
 
         res.status(200).json(responseData);
