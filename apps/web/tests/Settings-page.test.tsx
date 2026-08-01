@@ -199,6 +199,43 @@ describe("SettingsPage", () => {
         });
     });
 
+    it("re-applies preferences the API withheld once the OTP proves the number", async () => {
+        // The number is already a subscriber, so /register keeps the stored
+        // settings and only sends an OTP (#3956). The requested settings have to
+        // land after verification, not before, or the guest silently loses them.
+        mockedRegisterSubscription.mockResolvedValue({
+            success: true,
+            preferencesApplied: false,
+        });
+
+        render(<SettingsPage />);
+        expect(await screen.findByLabelText("Phone number")).toBeInTheDocument();
+
+        fillForm({ phone: "9876543210", district: "Pune" });
+        fireEvent.click(screen.getByRole("button", { name: "Save settings" }));
+
+        const otpInput = await screen.findByLabelText("Verification code");
+        // Nothing is applied while the challenge is outstanding.
+        expect(mockedUpdateSubscription).not.toHaveBeenCalled();
+        expect(localStorage.getItem(GUEST_PHONE_KEY)).toBe("+919876543210");
+
+        fireEvent.change(otpInput, { target: { value: "123456" } });
+        fireEvent.click(screen.getByRole("button", { name: "Verify" }));
+
+        await waitFor(() => {
+            expect(mockedUpdateSubscription).toHaveBeenCalledWith(
+                {
+                    phone: "9876543210",
+                    channels: ["whatsapp"],
+                    language: "en",
+                    district: "Pune",
+                },
+                undefined,
+                "guest-token-value"
+            );
+        });
+    });
+
     it("lets a verified returning guest update settings with their token instead of re-registering", async () => {
         localStorage.setItem(GUEST_PHONE_KEY, "+919876543210");
         localStorage.setItem(GUEST_TOKEN_KEY, "guest-token-value");

@@ -27,6 +27,13 @@ type FormState = {
     district: string;
 };
 
+type SubscriptionPayload = {
+    phone: string;
+    channels: ("sms" | "whatsapp")[];
+    language: string;
+    district: string;
+};
+
 export default function SettingsPage() {
     const t = useTranslations("Settings");
     const { token: sessionToken, isLoading: authLoading } = useSession();
@@ -54,6 +61,10 @@ export default function SettingsPage() {
     const [otpStep, setOtpStep] = useState(false);
     const [otpCode, setOtpCode] = useState("");
     const [isVerifying, setIsVerifying] = useState(false);
+    // Settings the API refused to apply because the number was already
+    // registered to somebody we could not prove was this visitor. They are
+    // re-sent with the guest token as soon as the OTP checks out.
+    const [pendingPreferences, setPendingPreferences] = useState<SubscriptionPayload | null>(null);
 
     useEffect(() => {
         if (authLoading) return;
@@ -140,7 +151,7 @@ export default function SettingsPage() {
         if (form.sms) channels.push("sms");
         if (form.whatsapp) channels.push("whatsapp");
 
-        const payload = {
+        const payload: SubscriptionPayload = {
             phone: form.phone.trim(),
             channels,
             language: form.language,
@@ -199,8 +210,15 @@ export default function SettingsPage() {
             // number is now stale.
             const response = await registerSubscription(payload, undefined);
             if (response.success) {
-                localStorage.setItem(GUEST_PHONE_KEY, response.subscriber.phone);
+                localStorage.setItem(
+                    GUEST_PHONE_KEY,
+                    response.subscriber?.phone ?? withCountryCode(payload.phone)
+                );
                 localStorage.removeItem(GUEST_TOKEN_KEY);
+                // The number already had a subscriber, so these settings were
+                // held back rather than written over it. Replay them after the
+                // OTP proves the number belongs to whoever is at this screen.
+                setPendingPreferences(response.preferencesApplied === false ? payload : null);
                 setOtpCode("");
                 setOtpStep(true);
                 setMessage({ type: "success", text: t("otpSentMessage") });
@@ -228,6 +246,19 @@ export default function SettingsPage() {
                     localStorage.setItem(GUEST_TOKEN_KEY, res.guestToken);
                 }
                 localStorage.setItem(GUEST_PHONE_KEY, withCountryCode(form.phone.trim()));
+                if (res.guestToken && pendingPreferences) {
+                    await updateSubscription(
+                        {
+                            phone: pendingPreferences.phone,
+                            channels: pendingPreferences.channels,
+                            language: pendingPreferences.language,
+                            district: pendingPreferences.district,
+                        },
+                        undefined,
+                        res.guestToken
+                    );
+                    setPendingPreferences(null);
+                }
                 setOtpStep(false);
                 setOtpCode("");
                 setMessage({ type: "success", text: t("verifySuccess") });
