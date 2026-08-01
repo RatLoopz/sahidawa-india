@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/node";
 import { sanitize } from "./utils/security/sanitize";
+import logger from "./utils/logger";
 
 const isEnabled = Boolean(process.env.SENTRY_DSN) && process.env.NODE_ENV === "production";
 
@@ -19,9 +20,9 @@ if (isEnabled) {
             return event;
         },
     });
-    console.log("Sentry initialized for sahidawa-api");
+    logger.info("Sentry initialized for sahidawa-api");
 } else {
-    console.log("Sentry disabled (SENTRY_DSN not set or not in production)");
+    logger.info("Sentry disabled (SENTRY_DSN not set or not in production)");
 }
 
 export { isEnabled as sentryEnabled };
