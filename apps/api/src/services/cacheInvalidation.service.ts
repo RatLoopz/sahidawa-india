@@ -30,11 +30,11 @@ export const CacheInvalidation = {
 
         try {
             do {
-                const [newCursor, keys] = await redisClient.scan(cursor, {
+                const { cursor: nextCursor, keys } = await redisClient.scan(cursor, {
                     MATCH: `${prefix}*`,
                     COUNT: batchSize,
                 });
-                cursor = newCursor;
+                cursor = typeof nextCursor === "string" ? parseInt(nextCursor, 10) : nextCursor;
 
                 if (keys.length > 0) {
                     // Delete in chunks to avoid blocking the event loop

@@ -23,9 +23,6 @@ export function queryMetricsMiddleware(req: Request, res: Response, next: NextFu
         const method = req.method;
         const path = req.route?.path || req.path;
 
-        // Always set timing header for debugging
-        res.setHeader("X-Response-Time", `${durationMs}ms`);
-
         // Only log slow or error responses
         if (durationMs > SLOW_QUERY_THRESHOLD_MS || statusCode >= 400) {
             const level = durationMs > CRITICAL_QUERY_THRESHOLD_MS ? "error" : "warn";
