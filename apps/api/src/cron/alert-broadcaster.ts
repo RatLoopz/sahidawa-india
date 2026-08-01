@@ -19,27 +19,34 @@ export const broadcastConfig = {
 
 export type AlertFrequency = "immediate" | "daily" | "weekly" | "monthly";
 
+const FREQUENCIES: AlertFrequency[] = ["immediate", "daily", "weekly", "monthly"];
+
+// Daily digests are only attempted during this hour (server-local time), so a
+// daily subscriber receives at most one consolidated message per calendar day.
+const DAILY_DIGEST_HOUR = 8;
+
 /**
  * Returns true when the current broadcast run falls within the timeframe
  * that the subscriber's preferred frequency covers.
  *
  * - immediate: always matches (legacy behaviour, send on every run)
- * - daily:     matches once per calendar day  (script run hour = 0–23)
+ * - daily:     matches once per calendar day, during the daily digest hour
  * - weekly:    matches once per ISO week      (script run on Monday)
  * - monthly:   matches once per calendar month (script run on 1st)
  *
  * The broadcaster runs every 30 s, so for digest frequencies we rely on
  * the OS/cron scheduling the process at the right clock time rather than
- * implementing an internal counter — simple and robust.
+ * implementing an internal counter — simple and robust. Delivery cadence is
+ * additionally enforced by the expiry_digest_deliveries table, so a digest is
+ * never sent more than once per window even if the process restarts.
  */
 export function shouldSendForFrequency(frequency: AlertFrequency, now: Date = new Date()): boolean {
     switch (frequency) {
         case "immediate":
             return true;
         case "daily":
-            // Send once a day — caller is expected to invoke this during the
-            // daily digest window (e.g. a dedicated cron at 08:00).
-            return true;
+            // Send once a day during the configured digest hour (server-local time).
+            return now.getHours() === DAILY_DIGEST_HOUR;
         case "weekly":
             // Send on Monday (getDay() === 1)
             return now.getDay() === 1;
@@ -265,6 +272,7 @@ export async function broadcastDistrictAlerts(): Promise<void> {
                     .from("notification_subscribers")
                     .select("*")
                     .eq("is_active", true)
+                    .eq("status", "active")
                     .ilike("district", alert.district)
                     .range(from, to);
 
@@ -350,7 +358,8 @@ export async function broadcastDrugAlerts(): Promise<void> {
                 let query = supabase
                     .from("notification_subscribers")
                     .select("*")
-                    .eq("is_active", true);
+                    .eq("is_active", true)
+                    .eq("status", "active");
 
                 if (alert.district) {
                     query = query.ilike("district", alert.district);
@@ -394,6 +403,243 @@ export async function broadcastDrugAlerts(): Promise<void> {
     }
 }
 
+interface ExpiringBatchRow {
+    id: string;
+    batch_number: string;
+    expiry_date: string;
+    medicine?: { brand_name: string } | null;
+}
+
+/**
+ * Start of the window that a digest delivery's sent_at must fall inside for a
+ * batch to count as already delivered at the given frequency. Only used for
+ * daily/weekly/monthly — immediate deliveries are tracked on
+ * batches.expiry_broadcasted. Aligned with shouldSendForFrequency() so a digest
+ * is delivered at most once per calendar day / ISO week / calendar month.
+ */
+function getDigestWindowStart(frequency: AlertFrequency, now: Date): Date {
+    const start = new Date(now);
+    switch (frequency) {
+        case "daily":
+            start.setHours(0, 0, 0, 0);
+            return start;
+        case "weekly": {
+            // Monday-aligned week start (getDay(): 0=Sun … 6=Sat)
+            const daysSinceMonday = (start.getDay() + 6) % 7;
+            start.setDate(start.getDate() - daysSinceMonday);
+            start.setHours(0, 0, 0, 0);
+            return start;
+        }
+        case "monthly":
+            start.setDate(1);
+            start.setHours(0, 0, 0, 0);
+            return start;
+        case "immediate":
+        default:
+            return new Date(0);
+    }
+}
+
+/**
+ * Fetches the batches that still need to be broadcast for the given frequency
+ * in this run. Immediate batches are those never delivered
+ * (expiry_broadcasted = false); digest batches are those with no delivery
+ * recorded inside the frequency's current window.
+ */
+async function fetchPendingExpiryBatches(
+    frequency: AlertFrequency,
+    now: Date,
+    todayStr: string,
+    thirtyDaysFromNow: string
+): Promise<ExpiringBatchRow[]> {
+    if (frequency === "immediate") {
+        const { data: expiringBatches, error } = await supabase
+            .from("batches")
+            .select("*, medicine:medicines(brand_name)")
+            .gte("expiry_date", todayStr)
+            .lte("expiry_date", thirtyDaysFromNow)
+            .eq("expiry_broadcasted", false);
+
+        if (error) {
+            logger.error({ message: "Failed to fetch expiring batches", error });
+            return [];
+        }
+        return (expiringBatches as ExpiringBatchRow[]) ?? [];
+    }
+
+    const windowStart = getDigestWindowStart(frequency, now).toISOString();
+
+    const { data: delivered, error: deliveredError } = await supabase
+        .from("expiry_digest_deliveries")
+        .select("batch_id")
+        .eq("frequency", frequency)
+        .gte("sent_at", windowStart);
+
+    if (deliveredError) {
+        logger.error({
+            message: "Failed to fetch already delivered expiry digest batches",
+            error: deliveredError,
+            frequency,
+        });
+        return [];
+    }
+
+    const deliveredIds = (delivered ?? []).map((row) => row.batch_id);
+
+    let query = supabase
+        .from("batches")
+        .select("*, medicine:medicines(brand_name)")
+        .gte("expiry_date", todayStr)
+        .lte("expiry_date", thirtyDaysFromNow);
+
+    if (deliveredIds.length > 0) {
+        query = query.not("id", "in", deliveredIds);
+    }
+
+    const { data: expiringBatches, error } = await query;
+
+    if (error) {
+        logger.error({ message: "Failed to fetch expiring batches", error });
+        return [];
+    }
+    return (expiringBatches as ExpiringBatchRow[]) ?? [];
+}
+
+async function subscriberExistsForFrequency(frequency: AlertFrequency): Promise<boolean> {
+    const { data, error } = await supabase
+        .from("notification_subscribers")
+        .select("id")
+        .eq("is_active", true)
+        .eq("preference_frequency", frequency)
+        .range(0, 0);
+
+    if (error) {
+        logger.error({
+            message: "Failed to check eligible subscribers",
+            error,
+            frequency,
+        });
+        return false;
+    }
+    return Boolean(data && data.length > 0);
+}
+
+async function markImmediateBatchesBroadcasted(batchIds: string[]): Promise<void> {
+    for (let i = 0; i < batchIds.length; i += broadcastConfig.MARK_BROADCASTED_CHUNK_SIZE) {
+        const chunk = batchIds.slice(i, i + broadcastConfig.MARK_BROADCASTED_CHUNK_SIZE);
+
+        const { error: markError } = await supabase
+            .from("batches")
+            .update({ expiry_broadcasted: true })
+            .in("id", chunk);
+
+        if (markError) {
+            logger.error({
+                message: "Failed to mark delivered expiry alert batches as broadcasted",
+                error: markError,
+                batchIds: chunk,
+            });
+        }
+    }
+}
+
+async function recordDigestDeliveries(
+    batchIds: string[],
+    frequency: AlertFrequency,
+    now: Date
+): Promise<void> {
+    const sentAt = now.toISOString();
+    for (let i = 0; i < batchIds.length; i += broadcastConfig.MARK_BROADCASTED_CHUNK_SIZE) {
+        const chunk = batchIds.slice(i, i + broadcastConfig.MARK_BROADCASTED_CHUNK_SIZE);
+        const rows = chunk.map((batchId) => ({ batch_id: batchId, frequency, sent_at: sentAt }));
+
+        const { error } = await supabase
+            .from("expiry_digest_deliveries")
+            .upsert(rows, { onConflict: "batch_id,frequency" });
+
+        if (error) {
+            logger.error({
+                message: "Failed to record expiry digest delivery",
+                error,
+                frequency,
+                batchIds: chunk,
+            });
+        }
+    }
+}
+
+async function broadcastExpiryToFrequency(
+    frequency: AlertFrequency,
+    pendingBatches: ExpiringBatchRow[],
+    now: Date
+): Promise<void> {
+    const batchSummaries: ExpiringBatchSummary[] = pendingBatches.map((batch) => ({
+        medicineName: batch.medicine?.brand_name || "Unknown Medicine",
+        batchNumber: batch.batch_number,
+        expiryDate: batch.expiry_date,
+    }));
+
+    let from = 0;
+    let to = PAGE_SIZE - 1;
+    let hasMore = true;
+    let hasSuccessfulDelivery = false;
+
+    while (hasMore) {
+        const { data: subscribers, error: subsError } = await supabase
+            .from("notification_subscribers")
+            .select("*")
+            .eq("is_active", true)
+            .eq("preference_frequency", frequency)
+            .range(from, to);
+
+        if (subsError) {
+            logger.error({
+                message: "Failed to fetch subscribers for expiry alerts",
+                error: subsError,
+                frequency,
+            });
+            return;
+        }
+
+        if (!subscribers || subscribers.length === 0) {
+            break;
+        }
+
+        for (let i = 0; i < subscribers.length; i += NOTIFICATION_CHUNK_SIZE) {
+            const chunk = subscribers.slice(i, i + NOTIFICATION_CHUNK_SIZE);
+            const notificationPromises = chunk.map((sub) =>
+                sendConsolidatedExpiryNotification(sub, batchSummaries)
+            );
+            const results = await Promise.allSettled(notificationPromises);
+            hasSuccessfulDelivery ||= results.some(
+                (result) => result.status === "fulfilled" && result.value
+            );
+        }
+
+        if (subscribers.length < PAGE_SIZE) {
+            hasMore = false;
+        } else {
+            from += PAGE_SIZE;
+            to += PAGE_SIZE;
+        }
+    }
+
+    if (!hasSuccessfulDelivery) {
+        logger.warn("Expiry alert delivery failed for every eligible subscriber; will retry.", {
+            frequency,
+            batchIds: pendingBatches.map((batch) => batch.id),
+        });
+        return;
+    }
+
+    const deliveredBatchIds = pendingBatches.map((batch) => batch.id);
+    if (frequency === "immediate") {
+        await markImmediateBatchesBroadcasted(deliveredBatchIds);
+    } else {
+        await recordDigestDeliveries(deliveredBatchIds, frequency, now);
+    }
+}
+
 export async function broadcastExpiryAlerts(now: Date = new Date()): Promise<void> {
     try {
         const todayStr = now.toISOString().split("T")[0];
@@ -401,131 +647,36 @@ export async function broadcastExpiryAlerts(now: Date = new Date()): Promise<voi
             .toISOString()
             .split("T")[0];
 
-        // Determine which frequency buckets are active for this run FIRST,
-        // before fetching batches — so we only fetch & mark batches that will
-        // actually be sent in this run.
-        const activeFrequencies = (
-            ["immediate", "daily", "weekly", "monthly"] as AlertFrequency[]
-        ).filter((freq) => shouldSendForFrequency(freq, now));
+        // Each frequency bucket is processed independently, so one subscriber
+        // receiving an alert never prevents another subscriber with a different
+        // configured frequency from receiving their scheduled digest.
+        const activeFrequencies = FREQUENCIES.filter((freq) => shouldSendForFrequency(freq, now));
 
-        const { data: expiringBatches, error: batchesError } = await supabase
-            .from("batches")
-            .select("*, medicine:medicines(brand_name)")
-            .gte("expiry_date", todayStr)
-            .lte("expiry_date", thirtyDaysFromNow)
-            .eq("expiry_broadcasted", false);
+        for (const frequency of activeFrequencies) {
+            const pendingBatches = await fetchPendingExpiryBatches(
+                frequency,
+                now,
+                todayStr,
+                thirtyDaysFromNow
+            );
 
-        if (batchesError) {
-            logger.error({ message: "Failed to fetch expiring batches", error: batchesError });
-            return;
-        }
+            if (pendingBatches.length === 0) continue;
 
-        if (!expiringBatches || expiringBatches.length === 0) return;
-
-        logger.info(`Broadcasting medicine expiry warnings for ${expiringBatches.length} batches`);
-
-        // Check whether any subscribers exist for the active frequencies
-        // before marking batches as broadcasted — so we only mark a batch
-        // as sent once it has actually been delivered per the user's schedule.
-        const { data: eligibleSubscribers, error: checkError } = await supabase
-            .from("notification_subscribers")
-            .select("id")
-            .eq("is_active", true)
-            .in("preference_frequency", activeFrequencies)
-            .range(0, 0);
-
-        if (checkError) {
-            logger.error({ message: "Failed to check eligible subscribers", error: checkError });
-            return;
-        }
-
-        // No subscribers match the current frequency window — skip marking
-        // batches as broadcasted so they remain available for the next
-        // scheduled digest run (e.g. weekly subscribers get it on Monday).
-        if (!eligibleSubscribers || eligibleSubscribers.length === 0) {
-            logger.info("No subscribers match active frequencies for this run — skipping.");
-            return;
-        }
-
-        const batchSummaries: ExpiringBatchSummary[] = expiringBatches.map((batch) => ({
-            medicineName: batch.medicine?.brand_name || "Unknown Medicine",
-            batchNumber: batch.batch_number,
-            expiryDate: batch.expiry_date,
-        }));
-
-        if (batchSummaries.length === 0) return;
-
-        let from = 0;
-        let to = PAGE_SIZE - 1;
-        let hasMore = true;
-        let hasSuccessfulDelivery = false;
-
-        while (hasMore) {
-            const { data: subscribers, error: subsError } = await supabase
-                .from("notification_subscribers")
-                .select("*")
-                .eq("is_active", true)
-                .in("preference_frequency", activeFrequencies)
-                .range(from, to);
-
-            if (subsError) {
-                logger.error({
-                    message: "Failed to fetch subscribers for expiry alerts",
-                    error: subsError,
-                });
-                break;
-            }
-
-            if (!subscribers || subscribers.length === 0) {
-                break;
-            }
-
-            for (let i = 0; i < subscribers.length; i += NOTIFICATION_CHUNK_SIZE) {
-                const chunk = subscribers.slice(i, i + NOTIFICATION_CHUNK_SIZE);
-                const notificationPromises = chunk.map((sub) =>
-                    sendConsolidatedExpiryNotification(sub, batchSummaries)
+            // Skip marking anything as delivered when no subscriber is eligible
+            // for this run's window, so the batches remain available for the
+            // next scheduled digest run (e.g. weekly subscribers get it Monday).
+            if (!(await subscriberExistsForFrequency(frequency))) {
+                logger.info(
+                    `No subscribers match frequency "${frequency}" for this run — skipping.`
                 );
-                const results = await Promise.allSettled(notificationPromises);
-                hasSuccessfulDelivery ||= results.some(
-                    (result) => result.status === "fulfilled" && result.value
-                );
+                continue;
             }
 
-            if (subscribers.length < PAGE_SIZE) {
-                hasMore = false;
-            } else {
-                from += PAGE_SIZE;
-                to += PAGE_SIZE;
-            }
-        }
+            logger.info(
+                `Broadcasting medicine expiry warnings for ${pendingBatches.length} batches (frequency: ${frequency})`
+            );
 
-        if (!hasSuccessfulDelivery) {
-            logger.warn("Expiry alert delivery failed for every eligible subscriber; will retry.", {
-                batchIds: expiringBatches.map((batch) => batch.id),
-            });
-            return;
-        }
-
-        for (
-            let i = 0;
-            i < expiringBatches.length;
-            i += broadcastConfig.MARK_BROADCASTED_CHUNK_SIZE
-        ) {
-            const chunk = expiringBatches.slice(i, i + broadcastConfig.MARK_BROADCASTED_CHUNK_SIZE);
-            const chunkIds = chunk.map((batch) => batch.id);
-
-            const { error: markError } = await supabase
-                .from("batches")
-                .update({ expiry_broadcasted: true })
-                .in("id", chunkIds);
-
-            if (markError) {
-                logger.error({
-                    message: "Failed to mark delivered expiry alert batches as broadcasted",
-                    error: markError,
-                    batchIds: chunkIds,
-                });
-            }
+            await broadcastExpiryToFrequency(frequency, pendingBatches, now);
         }
     } catch (err) {
         logger.error({ message: "Error in broadcastExpiryAlerts", error: err });

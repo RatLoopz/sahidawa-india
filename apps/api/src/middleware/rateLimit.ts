@@ -1,8 +1,9 @@
-import rateLimit, { Store } from "express-rate-limit";
+import rateLimit, { MemoryStore, Store, Options, IncrementResponse } from "express-rate-limit";
 import { Request, Response } from "express";
 import { RedisStore } from "rate-limit-redis";
 import { redisClient } from "../utils/redis";
 import logger from "../utils/logger";
+import { formatPhoneNumber } from "../utils/phone";
 interface LimiterOptions {
     windowMs: number;
     max: number;
@@ -54,20 +55,68 @@ export const createKeyLimiter = (options: KeyLimiterOptions) => {
 // shared across every API replica (critical for horizontal scaling and Cloud Run).
 // Falls back to the in-process MemoryStore when Redis is unavailable, so the
 // service continues to function in local development without a Redis instance.
+//
+// Resolution is deliberately lazy: limiters are constructed at module load time,
+// before `connectRedis()` runs in the server listen callback, so checking
+// `redisClient.isOpen` up-front would always pick MemoryStore. Instead the real
+// store is resolved on first use (the first request), by which time the Redis
+// connection is established.
 
-function buildStore(prefix: string): Store | undefined {
-    if (redisClient.isOpen) {
-        return new RedisStore({
-            // Adapts the node-redis v4 client to the interface expected by rate-limit-redis
-            sendCommand: (...args: string[]) => redisClient.sendCommand(args),
-            prefix: `rl:${prefix}:`,
-        });
+class LazyStore implements Store {
+    private readonly keyPrefix: string;
+    private store: Store | undefined;
+    private initOptions: Options | undefined;
+
+    constructor(prefix: string) {
+        this.keyPrefix = prefix;
     }
-    logger.warn(
-        `[rateLimit] Redis not connected — ${prefix} limiter falling back to MemoryStore. ` +
-            "Rate limiting will NOT be shared across replicas."
-    );
-    return undefined; // undefined → express-rate-limit uses its default MemoryStore
+
+    init(options: Options): void {
+        this.initOptions = options;
+    }
+
+    private resolve(): Store {
+        if (!this.store) {
+            if (redisClient.isOpen) {
+                this.store = new RedisStore({
+                    // Adapts the node-redis v4 client to the interface expected by rate-limit-redis
+                    sendCommand: (...args: string[]) => redisClient.sendCommand(args),
+                    prefix: `rl:${this.keyPrefix}:`,
+                });
+                logger.info(`[rateLimit] Redis store active for prefix '${this.keyPrefix}'`);
+            } else {
+                this.store = new MemoryStore();
+                logger.warn(
+                    `[rateLimit] Redis not connected — ${this.keyPrefix} limiter falling back to MemoryStore. ` +
+                        "Rate limiting will NOT be shared across replicas."
+                );
+            }
+            if (this.initOptions && this.store.init) {
+                void this.store.init(this.initOptions);
+            }
+        }
+        return this.store;
+    }
+
+    increment(key: string): Promise<IncrementResponse> | IncrementResponse {
+        return this.resolve().increment(key);
+    }
+
+    decrement(key: string): Promise<void> | void {
+        return this.resolve().decrement(key);
+    }
+
+    resetKey(key: string): Promise<void> | void {
+        return this.resolve().resetKey(key);
+    }
+
+    resetAll(): Promise<void> | void {
+        return this.resolve().resetAll?.();
+    }
+}
+
+function buildStore(prefix: string): Store {
+    return new LazyStore(prefix);
 }
 
 // ── Limiters ───────────────────────────────────────────────────────────────────
@@ -185,19 +234,47 @@ export const authLimiter = createLimiter({
     prefix: "auth",
 });
 
+/**
+ * Builds the bucket key for {@link authTargetLimiter}.
+ *
+ * Exported so the key derivation can be unit-tested on its own - a mismatch
+ * here silently degrades the limiter to per-IP instead of failing loudly.
+ *
+ * Both target values are normalised before they reach the key. Two spellings of
+ * one number ("9876543210" and "+91 98765 43210") or one ABHA address
+ * ("Ravi@sbx" and "ravi@sbx") would otherwise land in separate buckets and hand
+ * the caller a multiple of the cap.
+ */
+export const authTargetKeyGenerator = (req: Request): string => {
+    // Look for common identity keys in the request body
+    const abhaAddress = req.body?.abhaAddress;
+    if (typeof abhaAddress === "string" && abhaAddress.trim()) {
+        // ABHA addresses are case-insensitive (ABDM lowercases them on issue).
+        return `abha:${abhaAddress.trim().toLowerCase()}`;
+    }
+
+    // The notification routes send `phone`; `phone_number` is kept for any
+    // caller still using the field this limiter originally shipped with.
+    const phone = req.body?.phone ?? req.body?.phone_number;
+    if (typeof phone === "string") {
+        const formatted = formatPhoneNumber(phone);
+        // An unparseable number is rejected by the route before any OTP goes
+        // out, so there is no target to throttle - and keying on the raw value
+        // would let junk input mint a fresh bucket on every request.
+        if (formatted) return `phone:${formatted}`;
+    }
+
+    // Fallback to IP if no explicit target is found
+    return (req.ip || "unknown").replace(/:/g, "_");
+};
+
 /** Target-based limiter to prevent OTP bombing against a specific user/target irrespective of IP */
 export const authTargetLimiter = createKeyLimiter({
     windowMs: 10 * 60 * 1000, // 10 minutes
     max: 5, // Max 5 requests per 10 minutes per target
     message: "Too many requests for this target. Please try again later.",
     prefix: "auth_target",
-    keyGenerator: (req: Request) => {
-        // Look for common identity keys in the request body
-        if (req.body?.abhaAddress) return `abha:${req.body.abhaAddress}`;
-        if (req.body?.phone_number) return `phone:${req.body.phone_number}`;
-        // Fallback to IP if no explicit target is found
-        return (req.ip || "unknown").replace(/:/g, "_");
-    },
+    keyGenerator: authTargetKeyGenerator,
 });
 
 // ── Notification registration limiter ──────────────────────────────────────────

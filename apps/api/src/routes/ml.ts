@@ -11,6 +11,7 @@ import { requireAuth, AuthenticatedRequest } from "../middleware/auth";
 import logger from "../utils/logger";
 import { limiter } from "../middleware/rateLimit";
 import { redisClient } from "../utils/redis";
+import { isBlockedOutboundHost } from "../utils/security/urlValidator";
 
 const router = Router();
 
@@ -25,13 +26,7 @@ const analyzeResponseSchema = z.object({
     details: z.string(),
 });
 
-const PRIVATE_IP_RE =
-    /^(127\.\d{1,3}\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|169\.254\.\d{1,3}\.\d{1,3}|::1|::ffff:127\.\d{1,3}\.\d{1,3}\.\d{1,3}|0\.0\.0\.0)$/;
-
 const LINK_LOCAL_HOSTNAMES = [".local", ".internal", ".nip.io", ".localtest.me"];
-
-const PRIVATE_HOSTNAME_RE =
-    /^(localhost|127\.\d{1,3}\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|169\.254\.\d{1,3}\.\d{1,3}|::1|::ffff:127\.\d{1,3}\.\d{1,3}\.\d{1,3}|0\.0\.0\.0)$/;
 
 const ML_ANALYSIS_CACHE_TTL_SECONDS = 3600; // 1 hour
 const ML_ANALYSIS_TIMEOUT_MS = 8000;
@@ -41,18 +36,14 @@ function buildCacheKey(imageUrl: string): string {
     return `ml:analyze:${hash}`;
 }
 
-function isPrivateIp(ip: string): boolean {
-    return PRIVATE_IP_RE.test(ip);
-}
-
 async function isPrivateHostname(urlStr: string): Promise<boolean> {
     try {
-        const hostname = new URL(urlStr).hostname;
-        if (PRIVATE_HOSTNAME_RE.test(hostname)) return true;
+        const hostname = new URL(urlStr).hostname.replace(/^\[|\]$/g, "");
+        if (isBlockedOutboundHost(hostname)) return true;
         if (LINK_LOCAL_HOSTNAMES.some((s) => hostname.endsWith(s))) return true;
 
         const addresses = await dns.resolve4(hostname);
-        return addresses.some((addr) => isPrivateIp(addr));
+        return addresses.some((addr) => isBlockedOutboundHost(addr));
     } catch {
         return true;
     }

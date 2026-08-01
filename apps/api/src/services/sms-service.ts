@@ -1,5 +1,6 @@
 import logger from "../utils/logger";
 import { smsQueue } from "../queues/smsQueue";
+import { isLocalDevelopment } from "../utils/env";
 export interface SMSProvider {
     send(phone: string, message: string, language: string): Promise<boolean>;
     sendOtp(phone: string, otp: string, language: string): Promise<boolean>;
@@ -8,6 +9,21 @@ export interface SMSProvider {
 export class TwilioSMSService implements SMSProvider {
     async send(phone: string, message: string, language: string): Promise<boolean> {
         logger.info(`[SMS][${language}] Queueing SMS for ${phone}`);
+
+        // Never treat a queued job as delivered when Twilio is not configured:
+        // the worker would have no credentials to deliver it, so the alert must
+        // remain pending instead of being reported as sent. Local development
+        // still enqueues, where the SMS worker mocks the delivery.
+        const hasTwilioCredentials = Boolean(
+            process.env.TWILIO_ACCOUNT_SID &&
+            process.env.TWILIO_AUTH_TOKEN &&
+            process.env.TWILIO_PHONE_NUMBER
+        );
+
+        if (!hasTwilioCredentials && !isLocalDevelopment()) {
+            logger.error(`Twilio credentials missing. SMS delivery to ${phone} failed.`);
+            return false;
+        }
 
         try {
             await smsQueue.add(
