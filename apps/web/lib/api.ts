@@ -493,7 +493,7 @@ export async function checkLasaConflicts(
         // Stale-While-Revalidate: return cached data instantly
         // and let the in-flight revalidation promise run in the background.
         // Catch errors silently to prevent unhandled promise rejections.
-        promise.catch(() => {});
+        promise.catch(() => console.warn("LASA revalidation promise rejected"));
         return cached;
     }
 
