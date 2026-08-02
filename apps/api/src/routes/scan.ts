@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import type { AuthenticatedRequest } from "../middleware/auth";
 import { z } from "zod";
 import multer from "multer";
 import fs from "fs";
@@ -609,7 +610,7 @@ router.post(
     validateUploadSize,
     upload.fields([{ name: "image" }, { name: "voice" }]),
     idempotencyMiddleware,
-    async (req: Request, res: Response) => {
+    async (req: AuthenticatedRequest, res: Response) => {
         const idempotencyKey = (req as any).idempotencyKey;
         const submitSchema = z
             .object({
@@ -655,7 +656,7 @@ router.post(
 
         try {
             // Note: we require a user to be authenticated in a real app, assuming auth.uid() is available
-            const userId = (req as any).user?.id || (req as any).session?.user?.id;
+            const userId = req.user?.id || (req as any).session?.user?.id;
             if (!userId && process.env.NODE_ENV === "production") {
                 res.status(401).json({ error: "Authentication is required to submit scan data" });
                 return;
