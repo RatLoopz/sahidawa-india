@@ -91,7 +91,7 @@ export async function registerPeriodicExpiryCheck() {
                 await registration.periodicSync.register("check-expiry", {
                     minInterval: 24 * 60 * 60 * 1000,
                 });
-                console.warn("[Expiry Notifications] Registered periodic sync tag: check-expiry");
+                console.info("[Expiry Notifications] Registered periodic sync tag: check-expiry");
             }
         }
     } catch (err) {
