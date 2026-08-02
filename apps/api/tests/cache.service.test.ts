@@ -30,10 +30,6 @@ jest.mock("../src/utils/redis", () => ({
 
 import { supabase } from "../src/db/client";
 import { redisClient } from "../src/utils/redis";
-
-const mockSupabase = supabase as any;
-const mockRedis = redisClient as any;
-
 import {
     warmCache,
     getTTLForDrug,
@@ -47,6 +43,9 @@ import {
     HIT_THRESHOLDS,
 } from "../src/services/cache.service";
 import { lookupDrugByBatch } from "../src/services/drugLookup.service";
+
+const mockSupabase = supabase as any;
+const mockRedis = redisClient as any;
 
 describe("Redis Caching and Drug Lookup Services", () => {
     beforeEach(() => {

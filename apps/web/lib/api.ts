@@ -483,7 +483,10 @@ export async function checkLasaConflicts(
                 setCachedLasa(cacheKey, data);
                 return data;
             })
-            .catch(err => console.error("[API] Request failed:", err))
+            .catch((err) => {
+                console.error("[API] Request failed:", err);
+                throw err;
+            })
             .finally(() => {
                 inFlightRequests.delete(cacheKey);
             });

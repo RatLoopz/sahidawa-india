@@ -1,5 +1,5 @@
 import request from "supertest";
-import express, { type NextFunction, type Request, type Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import app from "../src/app";
 import {
     MAX_SCAN_FILE_SIZE_BYTES,

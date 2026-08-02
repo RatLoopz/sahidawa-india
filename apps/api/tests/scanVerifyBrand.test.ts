@@ -24,7 +24,7 @@ jest.mock("../src/utils/redis", () => ({
 import { supabase } from "../src/db/client";
 import { redisClient } from "../src/utils/redis";
 
-const medicineFixture = (overrides: Record<string, unknown> = {}) => ({
+const medicineFixture = (overrides: { [key: string]: any } = {}) => ({
     id: "11111111-1111-1111-1111-111111111111",
     brand_name: "Dolo 650",
     generic_name: "Paracetamol",

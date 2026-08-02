@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { useEffect, useState } from "react";
 import { PageHeader } from "../components/PageHeader";
 import {
@@ -117,8 +117,7 @@ export default function FullAlertsLogPage() {
                 .catch((err) => {
                     console.error("Clipboard copy failed:", err);
                     toast.error("Failed to copy alert details to clipboard.");
-                })
-                .catch(err => console.error("[Alerts] Failed:", err));
+                });
         };
 
         if (navigator.share) {
