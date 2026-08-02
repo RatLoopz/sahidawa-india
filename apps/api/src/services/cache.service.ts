@@ -225,7 +225,7 @@ export async function incrementMissCount(): Promise<number> {
 /**
  * Invalidates cache entries for specified drug IDs (resolves to batch numbers and deletes).
  * Supabase query is capped at 1000 rows as a safety limit.
- * Redis DEL commands are chunked at 100 keys each to avoid blocking the event loop.
+ * Uses SCAN with pattern matching to delete both batch-only and composite keys.
  * Returns the list of deleted cache keys for audit logging.
  */
 export async function invalidateDrugCache(drugIds: string[]): Promise<string[]> {
@@ -246,22 +246,25 @@ export async function invalidateDrugCache(drugIds: string[]): Promise<string[]> 
         }
 
         if (data && data.length > 0) {
-            const keysToDelete = data
+            const batchNumbers = data
                 .map((row: any) => row.batch_number)
-                .filter(Boolean)
-                .map((batch: string) => `${KEY_PREFIXES.DRUG_CACHE}${batch}`);
+                .filter(Boolean) as string[];
 
-            if (keysToDelete.length > 0) {
-                // Chunk DEL to avoid blocking the Redis event loop
-                for (let i = 0; i < keysToDelete.length; i += CACHE_INVALIDATION_CHUNK_SIZE) {
-                    const chunk = keysToDelete.slice(i, i + CACHE_INVALIDATION_CHUNK_SIZE);
-                    await redisClient.del(chunk);
-                }
-                logger.info(
-                    `Invalidated cache keys: ${keysToDelete.join(", ").replace(/[\r\n]/g, "")}`
-                );
-                return keysToDelete;
+            const allDeletedKeys: string[] = [];
+
+            // Use pattern-based invalidation to delete both batch-only and composite keys
+            for (const batch of batchNumbers) {
+                const pattern = `${KEY_PREFIXES.DRUG_CACHE}${batch}*`;
+                const deletedKeys = await invalidateCacheByPattern(pattern);
+                allDeletedKeys.push(...deletedKeys);
             }
+
+            if (allDeletedKeys.length > 0) {
+                logger.info(
+                    `Invalidated cache keys: ${allDeletedKeys.join(", ").replace(/[\r\n]/g, "")}`
+                );
+            }
+            return allDeletedKeys;
         }
         return [];
     } catch (err) {
