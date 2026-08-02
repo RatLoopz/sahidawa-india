@@ -7,6 +7,9 @@ import { apiKeyLimiter } from "../middleware/rateLimit";
 import { supabase } from "../db/client";
 import logger from "../utils/logger";
 import { redisClient } from "../utils/redis";
+import { sendNotificationToUser } from "../services/notifications";
+import { smsService } from "../services/sms-service";
+import { subscriberRepository } from "../repositories/subscriber.repository";
 
 const router = Router();
 const pbkdf2Async = promisify(pbkdf2);
@@ -23,70 +26,126 @@ const API_REVOCATION_CHANNEL = "api_revocation_channel";
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
+ * Best-effort alert so the key owner can detect an unauthorized rotation.
+ * Delivery failures are logged but must never fail the rotation itself — the
+ * security fix that matters is the session requirement on the endpoint.
+ */
+async function notifyApiKeyRotation(userId: string, keyId: string): Promise<void> {
+    try {
+        const message =
+            "Your SahiDawa API key was rotated. If you did not do this, sign in and revoke the key immediately.";
+
+        await sendNotificationToUser(userId, {
+            title: "API key rotated",
+            body: message,
+            url: "/settings",
+        });
+
+        const subscriber = await subscriberRepository.findByUserId(userId);
+        if (subscriber?.phone && subscriber?.channels?.includes("sms")) {
+            await smsService.send(
+                subscriber.phone,
+                `SahiDawa alert: ${message}`,
+                subscriber.language || "en"
+            );
+        }
+    } catch (error) {
+        logger.error("Failed to notify user of API key rotation", { error, userId, keyId });
+    }
+}
+
+/**
  * @swagger
  * /api/keys/rotate:
  *   post:
  *     summary: Rotate API key
- *     description: Rotates the current API key by generating a new secret, updating the hash in the database, and returning the new secret. The existing key ID remains the same. Requires the current API key to be passed in the `x-api-secret` header.
+ *     description: Rotates the current API key by generating a new secret, updating the hash in the database, and returning the new secret. The existing key ID remains the same. Requires both the current API key in the `x-api-secret` header and a valid user session, so only the key's legitimate owner can rotate it — possession of the secret alone is not enough. The owner is notified (web push/SMS) of the rotation.
  *     security:
  *       - ApiKeyAuth: []
+ *         BearerAuth: []
  *     responses:
  *       200:
  *         description: Successfully rotated API key
  *       401:
  *         description: Unauthorized
+ *       403:
+ *         description: The authenticated user does not own the presented API key
  *       500:
  *         description: Internal server error
  */
-router.post("/rotate", apiKeyLimiter, requireApiKey, async (req: ApiKeyRequest, res: Response) => {
-    try {
-        const keyId = req.apiKey?.keyId;
-        if (!keyId) {
-            res.status(401).json({ error: "Unauthorized" });
-            return;
-        }
+router.post(
+    "/rotate",
+    apiKeyLimiter,
+    requireAuth,
+    requireApiKey,
+    async (req: ApiKeyRequest & AuthenticatedRequest, res: Response) => {
+        try {
+            const keyId = req.apiKey?.keyId;
+            const keyOwnerId = req.apiKey?.userId;
+            const sessionUserId = req.user?.id;
 
-        // Generate a new secret and salt
-        const newSecret = crypto.randomBytes(32).toString("base64url");
-        const newSalt = crypto.randomBytes(16).toString("hex");
+            if (!keyId || !keyOwnerId || !sessionUserId) {
+                res.status(401).json({ error: "Unauthorized" });
+                return;
+            }
 
-        // Hash the new secret
-        const hashBuffer = await pbkdf2Async(newSecret, newSalt, 100000, 64, "sha512");
-        const newHash = hashBuffer.toString("hex");
+            // A valid API key proves only that the caller possesses the secret.
+            // Authenticating rotation with the key alone would let an attacker
+            // who stole the key rotate it into a secret only they know. The
+            // session must belong to the key's owner, mirroring the revoke
+            // endpoint's security model.
+            if (keyOwnerId !== sessionUserId) {
+                res.status(403).json({ error: "You do not own this API key" });
+                return;
+            }
 
-        // Calculate new expiry (30 days from now)
-        const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + 30);
+            // Generate a new secret and salt
+            const newSecret = crypto.randomBytes(32).toString("base64url");
+            const newSalt = crypto.randomBytes(16).toString("hex");
 
-        // Update the key in the database
-        const { error } = await supabase
-            .from("api_keys")
-            .update({
-                key_hash: newHash,
-                key_salt: newSalt,
-                expires_at: expiresAt.toISOString(),
-            })
-            .eq("id", keyId);
+            // Hash the new secret
+            const hashBuffer = await pbkdf2Async(newSecret, newSalt, 100000, 64, "sha512");
+            const newHash = hashBuffer.toString("hex");
 
-        if (error) {
-            logger.error("Failed to update API key during rotation", { error, keyId });
+            // Calculate new expiry (30 days from now)
+            const expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + 30);
+
+            // Update the key in the database. The update is additionally scoped
+            // to the session owner so a stale or buggy key row can never be
+            // rotated across users.
+            const { error } = await supabase
+                .from("api_keys")
+                .update({
+                    key_hash: newHash,
+                    key_salt: newSalt,
+                    expires_at: expiresAt.toISOString(),
+                })
+                .eq("id", keyId)
+                .eq("user_id", sessionUserId);
+
+            if (error) {
+                logger.error("Failed to update API key during rotation", { error, keyId });
+                res.status(500).json({ error: "Internal server error" });
+                return;
+            }
+
+            logger.info("API key rotated successfully", { keyId, userId: sessionUserId });
+
+            await notifyApiKeyRotation(sessionUserId, keyId);
+
+            res.status(200).json({
+                message: "API key rotated successfully",
+                keyId: keyId,
+                newSecret: newSecret,
+                expiresAt: expiresAt.toISOString(),
+            });
+        } catch (error) {
+            logger.error("Unexpected error during API key rotation", { error });
             res.status(500).json({ error: "Internal server error" });
-            return;
         }
-
-        logger.info("API key rotated successfully", { keyId });
-
-        res.status(200).json({
-            message: "API key rotated successfully",
-            keyId: keyId,
-            newSecret: newSecret,
-            expiresAt: expiresAt.toISOString(),
-        });
-    } catch (error) {
-        logger.error("Unexpected error during API key rotation", { error });
-        res.status(500).json({ error: "Internal server error" });
     }
-});
+);
 
 /**
  * @swagger
