@@ -24,6 +24,9 @@ const InteractiveOverlays = dynamic(() =>
 import { ReactQueryProvider } from "./components/ReactQueryProvider";
 const PrivacyConsentBanner = dynamic(() => import("@/components/PrivacyConsentBanner"));
 import { PrivacyConsentProvider } from "@/components/PrivacyConsentProvider";
+const VoiceVisualizer = dynamic(() =>
+    import("@/components/VoiceVisualizer").then((mod) => mod.VoiceVisualizer)
+);
 
 export async function generateMetadata({
     params,
@@ -111,6 +114,7 @@ export default async function LocaleLayout({
                                             </main>
                                             <Footer />
                                             <InteractiveOverlays />
+                                            <VoiceVisualizer />
                                             <PrivacyConsentBanner />
                                         </AuthProvider>
                                     </PrivacyConsentProvider>
