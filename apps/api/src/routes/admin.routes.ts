@@ -21,6 +21,7 @@ import {
 import {
     invalidateDrugCache,
     flushInteractionCache,
+    invalidateCacheByPattern,
     KEY_PREFIXES,
 } from "../services/cache.service";
 import { redisClient } from "../utils/redis";
@@ -44,7 +45,6 @@ const validateIdParam = (req: Request, res: Response, next: NextFunction): void 
 router.use(limiter);
 
 router.get("/reports", requireAuth, requireRole("admin", "moderator"), getPendingReports);
-const CACHE_INVALIDATION_CHUNK_SIZE = 100;
 router.get("/medicines", requireAuth, requireRole("admin", "moderator"), getAllMedicines);
 router.get(
     "/pharmacies/pending",
@@ -172,15 +172,19 @@ router.post(
 
             // --- batchNumbers path ---
             if (batchNumbers.length > 0 && redisClient.isOpen) {
-                const keys = batchNumbers.map((batch) => `${KEY_PREFIXES.DRUG_CACHE}${batch}`);
+                let batchKeysInvalidated = 0;
 
-                // Chunked DEL — never fire one command with 500 keys
-                for (let i = 0; i < keys.length; i += CACHE_INVALIDATION_CHUNK_SIZE) {
-                    const chunk = keys.slice(i, i + CACHE_INVALIDATION_CHUNK_SIZE);
-                    await redisClient.del(chunk);
+                for (const batch of batchNumbers) {
+                    // Use pattern-based invalidation (drug:batch:<batch>*) to delete both
+                    // batch-only and composite keys. This ensures stale counterfeit/recall
+                    // data is never served from cache after admin invalidation.
+                    const deletedKeys = await invalidateCacheByPattern(
+                        `${KEY_PREFIXES.DRUG_CACHE}${batch}*`
+                    );
+                    batchKeysInvalidated += deletedKeys.length;
                 }
 
-                totalKeysInvalidated += keys.length;
+                totalKeysInvalidated += batchKeysInvalidated;
             }
 
             // --- Audit log ---
