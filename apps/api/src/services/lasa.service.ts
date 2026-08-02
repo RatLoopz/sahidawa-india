@@ -1,8 +1,9 @@
 import { supabase } from "../db/client";
 import type { LasaMatch, LasaMatchType } from "@sahidawa/types";
-import DoubleMetaphone from "natural/lib/natural/phonetics/double_metaphone";
-import { LevenshteinDistance } from "natural/lib/natural/distance/levenshtein_distance";
 import logger from "../utils/logger";
+
+const DoubleMetaphone = require("natural/lib/natural/phonetics/double_metaphone");
+const { LevenshteinDistance } = require("natural/lib/natural/distance/levenshtein_distance");
 
 const doubleMetaphone = new DoubleMetaphone();
 
