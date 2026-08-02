@@ -292,6 +292,9 @@ alertsRouter.post("/ingest", requireApiKey, limiter, async (req: ApiKeyRequest, 
         await Promise.all(batchUpdatePromises);
 
         // 3.5 Invalidate the cache for the updated batch numbers
+        // Use pattern-based invalidation (drug:batch:<batch>*) to delete both batch-only
+        // and composite keys (drug:batch:<batch>|<barcode>|<brand>). This prevents stale
+        // counterfeit/recall data from being served from cache after an alert is ingested.
         const batchNumbersToInvalidate = validatedAlerts
             .map((alert) => alert.batch_number)
             .filter(Boolean) as string[];

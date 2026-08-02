@@ -175,6 +175,9 @@ router.post(
                 let batchKeysInvalidated = 0;
 
                 for (const batch of batchNumbers) {
+                    // Use pattern-based invalidation (drug:batch:<batch>*) to delete both
+                    // batch-only and composite keys. This ensures stale counterfeit/recall
+                    // data is never served from cache after admin invalidation.
                     const deletedKeys = await invalidateCacheByPattern(
                         `${KEY_PREFIXES.DRUG_CACHE}${batch}*`
                     );

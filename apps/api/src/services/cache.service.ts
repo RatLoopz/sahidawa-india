@@ -226,6 +226,11 @@ export async function incrementMissCount(): Promise<number> {
  * Invalidates cache entries for specified drug IDs (resolves to batch numbers and deletes).
  * Supabase query is capped at 1000 rows as a safety limit.
  * Uses SCAN with pattern matching to delete both batch-only and composite keys.
+ *
+ * IMPORTANT: This uses pattern-based deletion (drug:batch:<batch>*) instead of exact
+ * key deletion to ensure composite keys (drug:batch:<batch>|<barcode>|<brand>) are also
+ * invalidated. This fixes the bug where counterfeit/recall alerts would leave stale
+ * composite cache keys, causing the verification endpoint to serve pre-alert data.
  * Returns the list of deleted cache keys for audit logging.
  */
 export async function invalidateDrugCache(drugIds: string[]): Promise<string[]> {
