@@ -132,8 +132,8 @@ export default function AdminDashboard() {
                 const data = await res.json();
                 setMedicines(data.medicines ?? []);
             }
-        } catch {
-            /* silently fail, table will be empty */
+        } catch (err) {
+            console.warn("Failed to fetch medicines for admin dashboard:", err);
         }
     }, []);
 
@@ -145,8 +145,8 @@ export default function AdminDashboard() {
                 const data = await res.json();
                 setAuditLogs(data.logs ?? []);
             }
-        } catch {
-            /* silently fail, list will be empty */
+        } catch (err) {
+            console.warn("Failed to fetch audit logs for admin dashboard:", err);
         } finally {
             setLogsLoading(false);
         }
@@ -196,7 +196,8 @@ export default function AdminDashboard() {
                 ),
                 status !== "verified_fake"
             );
-        } catch {
+        } catch (err) {
+            console.warn("Failed to update report status:", err);
             notify(
                 <>
                     <XCircle className="mr-1 inline h-4 w-4" /> {t("toasts.reportUpdateFailed")}
@@ -233,7 +234,8 @@ export default function AdminDashboard() {
                     <CheckCircle className="mr-1 inline h-4 w-4" /> {t("toasts.medicineAdded")}
                 </>
             );
-        } catch {
+        } catch (err) {
+            console.warn("Failed to add medicine:", err);
             notify(
                 <>
                     <XCircle className="mr-1 inline h-4 w-4" /> {t("toasts.medicineAddFailed")}
