@@ -15,9 +15,17 @@ const trackSchema = z.object({
     expiry_date: z
         .string()
         .date()
-        .refine((date) => new Date(date) > new Date(), {
-            message: "Expiry date must be in the future",
-        }),
+        .refine(
+            (date) => {
+                const expiry = new Date(date);
+                const today = new Date();
+                today.setUTCHours(0, 0, 0, 0);
+                return expiry >= today;
+            },
+            {
+                message: "Expiry date must be in the future",
+            }
+        ),
 });
 router.get(
     "/tracked",
