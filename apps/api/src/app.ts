@@ -12,7 +12,7 @@ import { httpsRedirect } from "./middleware/httpsRedirect";
 import { requestIdMiddleware, getRequestId } from "./middleware/requestId";
 import mapRouter from "./routes/map";
 import medicineSchedulesRouter from "./routes/medicineSchedules";
-import { limiter } from "./middleware/rateLimit";
+import { limiter, healthLimiter } from "./middleware/rateLimit";
 
 import abhaRoutes from "./routes/abha";
 import trackingRouter from "./routes/tracking";
@@ -174,6 +174,10 @@ const { doubleCsrfProtection, generateCsrfToken: generateToken } = doubleCsrf({
 // integration issues locally instead of only after deploy.
 app.use(doubleCsrfProtection);
 
+// ── General API Rate Limiting ──────────────────────────────────────────────
+// Centralized rate limiting policy applied to all /api routes.
+app.use("/api", limiter);
+
 // ── CSRF token endpoint — frontend fetches this once on load ───────────────
 app.get("/api/csrf-token", (req: Request, res: Response) => {
     if (!req.cookies?.[ANON_SESSION_COOKIE] && !req.cookies?.access_token) {
@@ -216,10 +220,6 @@ app.use(requestTimeout(30_000));
 // as a defense-in-depth measure against PostgREST injection (Issue #3924).
 app.use(sanitizeQueryMiddleware);
 
-// ── General API Rate Limiting ──────────────────────────────────────────────
-// Centralized rate limiting policy applied to all /api routes.
-app.use("/api", limiter);
-
 app.use(
     morgan((tokens, req: Request, res: Response) => {
         const status = res.statusCode;
@@ -235,7 +235,7 @@ app.use(
 );
 
 // ── Core Routes ────────────────────────────────────────────────────────────
-app.get("/", (_req: Request, res: Response) => {
+app.get("/", limiter, (_req: Request, res: Response) => {
     logger.info("Root route accessed");
     res.status(200).json({
         name: "SahiDawa API",
@@ -252,7 +252,7 @@ app.get("/", (_req: Request, res: Response) => {
 // Admin Routes — protected: must be authenticated + have admin or moderator role
 app.use("/api/v1/admin", requireAuth, requireRole("admin", "moderator"), adminRoutes);
 
-app.get("/health", async (_req: Request, res: Response) => {
+app.get("/health", healthLimiter, async (_req: Request, res: Response) => {
     const overallStart = Date.now();
     try {
         // Database check with latency measurement
