@@ -79,3 +79,6 @@ redis>=5.0.0
 supabase>=2.5.0
 dotenv
 requests
+
+# OpenCV for Image Preprocessing
+opencv-python-headless>=4.8.0.76
