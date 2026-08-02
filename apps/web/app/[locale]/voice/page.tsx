@@ -644,12 +644,13 @@ export default function VoiceTriagePage() {
         setError(null);
 
         try {
-            const response = await fetch("/api/triage", {
+            const response = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    transcript: nextTranscript,
-                    language: activeLanguageOption.responseLanguage,
+                    mode: "voice-triage",
+                    responseLanguage: activeLanguageOption.responseLanguage,
+                    messages: [{ text: nextTranscript }],
                 }),
             });
 
