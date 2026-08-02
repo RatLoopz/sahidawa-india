@@ -14,7 +14,7 @@ const pbkdf2Async = promisify(pbkdf2);
 // ML workers subscribe to this Redis Pub/Sub channel and force-close a user's
 // active WebSocket streams when they receive their user_id here. Must match
 // API_KEY_REVOKED_CHANNEL in apps/ml/utils/ws_registry.py.
-const API_KEY_REVOKED_CHANNEL = "api_key_revoked_channel";
+const API_REVOCATION_CHANNEL = "api_revocation_channel";
 
 // The `id` column is a Postgres uuid, which rejects a non-uuid value with a
 // syntax error (22P02) that would otherwise surface as a 500. Validating the
@@ -204,7 +204,7 @@ router.post(
             if (redisClient.isOpen) {
                 try {
                     await redisClient.publish(
-                        API_KEY_REVOKED_CHANNEL,
+                        API_REVOCATION_CHANNEL,
                         JSON.stringify({ user_id: userId })
                     );
                 } catch (pubErr) {

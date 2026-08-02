@@ -12,6 +12,7 @@ import { httpsRedirect } from "./middleware/httpsRedirect";
 import { requestIdMiddleware, getRequestId } from "./middleware/requestId";
 import mapRouter from "./routes/map";
 import medicineSchedulesRouter from "./routes/medicineSchedules";
+import { limiter } from "./middleware/rateLimit";
 
 import abhaRoutes from "./routes/abha";
 import trackingRouter from "./routes/tracking";
@@ -159,29 +160,19 @@ const { doubleCsrfProtection, generateCsrfToken: generateToken } = doubleCsrf({
     // middleware from the app. The supertest suites don't run the token handshake.
     // Captured once at load (like the previous env gate) so tests that flip
     // NODE_ENV mid-run to exercise prod branches don't suddenly hit CSRF.
-    skipCsrfProtection: () => SKIP_CSRF_VALIDATION,
+    skipCsrfProtection: (req: Request) => {
+        if (SKIP_CSRF_VALIDATION) return true;
+        const path = req.path;
+        const exemptPrefixes = ["/api/webhooks"];
+        const exemptPaths = ["/api/notifications/twilio-webhook"];
+        return exemptPrefixes.some((p) => path.startsWith(p)) || exemptPaths.includes(path);
+    },
 });
 
 // Registered in every environment so CodeQL sees CSRF middleware on every route
 // (resolves Alert 136) and development mirrors production, surfacing CSRF
 // integration issues locally instead of only after deploy.
-//
-// Webhook endpoints are exempt from CSRF validation because external callers
-// (Supabase Database Webhooks, Twilio, ETL pipeline) cannot participate in the
-// CSRF token handshake — they authenticate via their own mechanisms (shared
-// HMAC secret, Twilio signature) which already prevent cross-site forgery.
-const WEBHOOK_EXEMPT_PREFIXES = ["/api/webhooks"];
-const WEBHOOK_EXEMPT_PATHS = ["/api/notifications/twilio-webhook"];
-
-app.use((req, res, next) => {
-    if (
-        WEBHOOK_EXEMPT_PREFIXES.some((p) => req.path.startsWith(p)) ||
-        WEBHOOK_EXEMPT_PATHS.includes(req.path)
-    ) {
-        return next();
-    }
-    return doubleCsrfProtection(req, res, next);
-});
+app.use(doubleCsrfProtection);
 
 // ── CSRF token endpoint — frontend fetches this once on load ───────────────
 app.get("/api/csrf-token", (req: Request, res: Response) => {
@@ -224,6 +215,10 @@ app.use(requestTimeout(30_000));
 // Auto-applies escapePostgrest() + escapeIlike() to all string query values
 // as a defense-in-depth measure against PostgREST injection (Issue #3924).
 app.use(sanitizeQueryMiddleware);
+
+// ── General API Rate Limiting ──────────────────────────────────────────────
+// Centralized rate limiting policy applied to all /api routes.
+app.use("/api", limiter);
 
 app.use(
     morgan((tokens, req: Request, res: Response) => {

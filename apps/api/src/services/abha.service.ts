@@ -17,6 +17,10 @@ const ABDM_PUBLIC_CERTIFICATE_PATH = "/v3/profile/public/certificate";
 // have rotated its key.
 let cachedAbdmPublicKey: string | null = null;
 
+export const resetAbdmPublicKeyCache = (): void => {
+    cachedAbdmPublicKey = null;
+};
+
 interface AbdmSessionResponse {
     accessToken?: string;
 }

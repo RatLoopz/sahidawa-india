@@ -81,10 +81,11 @@ describe("POST /api/v1/scan/submit — offline sync", () => {
             error: null,
         });
 
-        // .eq() is called twice: once inside resolveConflict's existence check
-        // (chained into .maybeSingle(), so it must stay chainable), and once as
-        // the terminal call of the final reservation UPDATE.
+        // .eq() is called three times: twice inside resolveConflict's existence check
+        // (both must return the builder so they chain into .maybeSingle()), and once
+        // as the terminal call of the final reservation UPDATE.
         (supabase.eq as jest.Mock)
+            .mockReturnValueOnce(supabase)
             .mockReturnValueOnce(supabase)
             .mockReturnValueOnce(Promise.resolve({ error: null }));
         (supabase.update as jest.Mock).mockReturnValueOnce(supabase);
@@ -125,6 +126,7 @@ describe("POST /api/v1/scan/submit — offline sync", () => {
             error: null,
         });
         (supabase.eq as jest.Mock)
+            .mockReturnValueOnce(supabase)
             .mockReturnValueOnce(supabase)
             .mockReturnValueOnce(Promise.resolve({ error: null }));
         (supabase.update as jest.Mock).mockReturnValueOnce(supabase);

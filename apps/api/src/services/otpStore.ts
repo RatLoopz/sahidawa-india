@@ -54,6 +54,22 @@ class OtpStore {
         this.fallbackStore.set(phone, data);
     }
 
+    async hasPending(phone: string): Promise<boolean> {
+        if (redisClient.isOpen) {
+            try {
+                const raw = await redisClient.get(this.getRedisKey(phone));
+                if (raw) {
+                    const stored: StoredOtp = JSON.parse(raw);
+                    return new Date(stored.expiresAt) >= new Date();
+                }
+            } catch {}
+        }
+
+        const stored = this.fallbackStore.get(phone);
+        if (!stored) return false;
+        return new Date(stored.expiresAt) >= new Date();
+    }
+
     async verify(phone: string, otp: string): Promise<boolean> {
         let stored: StoredOtp | undefined;
 

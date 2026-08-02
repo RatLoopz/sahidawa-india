@@ -30,20 +30,38 @@ const mockSupabaseChain = {
     data: null,
 };
 
-jest.mock("../src/db/client", () => ({
-    supabase: mockSupabaseChain,
-}));
-
-const mockRedisClient = {
-    isOpen: false,
-    get: jest.fn(),
-    set: jest.fn(),
-    del: jest.fn(),
-    scanIterator: jest.fn(() => (async function* () {})()),
-};
+jest.mock("../src/db/client", () => {
+    const mockClient = {
+        from: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        insert: jest.fn().mockReturnThis(),
+        update: jest.fn().mockReturnThis(),
+        delete: jest.fn().mockReturnThis(),
+        upsert: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        order: jest.fn().mockReturnThis(),
+        gte: jest.fn().mockReturnThis(),
+        lte: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        range: jest.fn().mockReturnThis(),
+        single: jest.fn(),
+        maybeSingle: jest.fn(),
+        or: jest.fn().mockReturnThis(),
+        in: jest.fn().mockReturnThis(),
+        error: null,
+        data: null,
+    };
+    return { supabase: mockClient };
+});
 
 jest.mock("../src/utils/redis", () => ({
-    redisClient: mockRedisClient,
+    redisClient: {
+        isOpen: false,
+        get: jest.fn(),
+        set: jest.fn(),
+        del: jest.fn(),
+        scanIterator: jest.fn(() => (async function* () {})()),
+    },
 }));
 
 jest.mock("../src/middleware/auth", () => ({
@@ -64,6 +82,10 @@ import express from "express";
 import medicineSchedulesRouter from "../src/routes/medicineSchedules";
 import { redisClient } from "../src/utils/redis";
 import { Request, Response, NextFunction } from "express";
+import { supabase } from "../src/db/client";
+
+const mockSupabaseChain = supabase as any;
+const mockRedisClient = redisClient as any;
 
 const app = express();
 app.use(express.json());

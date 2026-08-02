@@ -30,6 +30,7 @@ let mockAuthenticatedUser: any = {
     email: "user@example.com",
 };
 let mockQueryResult = [mockSubscriber];
+const updatePayload = () => mockQueryBuilder.update.mock.calls[0]?.[0];
 
 // Generic Supabase mock query builder that supports all chaining operations
 const mockQueryBuilder = {
@@ -116,12 +117,24 @@ jest.mock("../src/services/whatsapp-service", () => ({
     },
 }));
 
+jest.mock("../src/services/otpStore", () => ({
+    otpStore: {
+        store: jest.fn().mockResolvedValue(undefined),
+        verify: jest.fn().mockResolvedValue(false),
+        hasPending: jest.fn().mockResolvedValue(false),
+        clear: jest.fn().mockResolvedValue(undefined),
+    },
+}));
+
 import express from "express";
 import request from "supertest";
 import notificationsRouter from "../src/routes/notifications";
 import { computeTwilioSignature } from "../src/middleware/twilioSignature";
 import { signGuestToken, verifyGuestPhone } from "../src/utils/guestToken";
 import { Request, Response, NextFunction } from "express";
+import { otpStore } from "../src/services/otpStore";
+
+const mockOtpStore = otpStore as any;
 
 describe("notifications routes", () => {
     let app: express.Express;
@@ -140,6 +153,11 @@ describe("notifications routes", () => {
             email: "user@example.com",
         };
         mockQueryResult = [mockSubscriber];
+        // Reset otpStore mocks to safe defaults
+        mockOtpStore.store.mockResolvedValue(undefined);
+        mockOtpStore.verify.mockResolvedValue(false);
+        mockOtpStore.hasPending.mockResolvedValue(false);
+        mockOtpStore.clear.mockResolvedValue(undefined);
     });
 
     it("returns vapid public key payload", async () => {
@@ -406,13 +424,10 @@ describe("notifications routes", () => {
             district: "Attacker Chosen District",
         };
 
-        /** The single object handed to Supabase .update() by the route. */
-        function updatePayload() {
-            expect(mockQueryBuilder.update).toHaveBeenCalledTimes(1);
-            return mockQueryBuilder.update.mock.calls[0][0];
-        }
-
-        it("only writes the OTP columns for a caller who has proven nothing", async () => {
+        it("does NOT write OTP columns into the DB for a caller who has proven nothing (OTP goes to otpStore)", async () => {
+            // Since PR #3928 OTPs are stored in an isolated otpStore (Redis / in-memory)
+            // rather than written as plaintext columns on the subscriber row.
+            // The heldForVerification path therefore makes NO supabase.update() call.
             mockAuthenticatedUser = null;
             mockQueryBuilder.maybeSingle.mockResolvedValueOnce({
                 data: activeVictimRow,
@@ -423,14 +438,10 @@ describe("notifications routes", () => {
                 .post("/api/notifications/register")
                 .send(attackerPayload);
 
-            // The OTP challenge is the only thing that lands on the row.
-            expect(Object.keys(updatePayload()).sort()).toEqual([
-                "otp_expires_at",
-                "verification_otp",
-            ]);
-            expect(updatePayload().verification_otp).toMatch(/^\d{6}$/);
+            // Nothing is written to the DB row — the victim's settings stay intact.
+            expect(mockQueryBuilder.update).not.toHaveBeenCalled();
 
-            // Nothing the victim depends on moves.
+            // The caller gets a 202 challenge, no subscriber data.
             expect(response.status).toBe(202);
             expect(response.body.success).toBe(true);
             expect(response.body.preferencesApplied).toBe(false);
@@ -454,9 +465,10 @@ describe("notifications routes", () => {
                 .post("/api/notifications/register")
                 .send(attackerPayload);
 
+            // Since the caller doesn't own the row, no DB update happens at all
+            // (OTP goes to otpStore, not to the subscriber row).
             expect(response.status).toBe(202);
-            expect(updatePayload()).not.toHaveProperty("user_id");
-            expect(updatePayload()).not.toHaveProperty("status");
+            expect(mockQueryBuilder.update).not.toHaveBeenCalled();
         });
 
         it("still registers a brand-new number exactly as before", async () => {
@@ -541,22 +553,24 @@ describe("notifications routes", () => {
                 .send(attackerPayload);
 
             expect(response.status).toBe(202);
-            expect(Object.keys(updatePayload()).sort()).toEqual([
-                "otp_expires_at",
-                "verification_otp",
-            ]);
+            // Token doesn't match: treated as unproven caller — no DB update
+            // (OTP stored in otpStore, not DB columns).
+            expect(mockQueryBuilder.update).not.toHaveBeenCalled();
         });
     });
 
     describe("guest token flow", () => {
         it("issues a guest token when a guest verifies a valid OTP", async () => {
+            // OTP is now in otpStore (Redis/memory), not in the subscriber row (#3928).
             const pending = {
                 ...mockSubscriber,
                 status: "pending",
-                verification_otp: "654321",
-                otp_expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+                verification_otp: null,
+                otp_expires_at: null,
             };
             mockQueryBuilder.maybeSingle.mockResolvedValueOnce({ data: pending, error: null });
+            mockOtpStore.hasPending.mockResolvedValueOnce(true);
+            mockOtpStore.verify.mockResolvedValueOnce(true);
 
             const response = await request(app)
                 .post("/api/notifications/verify-otp")
@@ -570,8 +584,8 @@ describe("notifications routes", () => {
         });
 
         it("does not issue a token when an active row has no OTP challenge pending", async () => {
-            // Active and nothing outstanding to prove: there is no challenge to
-            // answer, so the caller gets a plain acknowledgement and no token.
+            // Active and nothing outstanding in otpStore: short-circuit to plain ack.
+            // mockOtpStore.hasPending defaults to false in beforeEach.
             mockQueryBuilder.maybeSingle.mockResolvedValueOnce({
                 data: { ...mockSubscriber, verification_otp: null, otp_expires_at: null },
                 error: null,
@@ -587,18 +601,14 @@ describe("notifications routes", () => {
 
         it("mints a token when an active row's outstanding OTP is answered correctly", async () => {
             // A guest re-registering a number that is already active gets an OTP
-            // but the row stays active (see #3956). Answering that OTP is how
-            // they prove the number is theirs, so it has to mint a token,
-            // otherwise they can never reach PATCH /phone to change anything.
+            // stored in otpStore (#3928). The row stays active (#3956). Answering
+            // that OTP is how they prove the number is theirs; it must mint a token.
             mockQueryBuilder.maybeSingle.mockResolvedValueOnce({
-                data: {
-                    ...mockSubscriber,
-                    status: "active",
-                    verification_otp: "654321",
-                    otp_expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-                },
+                data: { ...mockSubscriber, status: "active", verification_otp: null },
                 error: null,
             });
+            mockOtpStore.hasPending.mockResolvedValueOnce(true);
+            mockOtpStore.verify.mockResolvedValueOnce(true);
 
             const response = await request(app)
                 .post("/api/notifications/verify-otp")
@@ -609,22 +619,22 @@ describe("notifications routes", () => {
         });
 
         it("rejects a wrong OTP against an active row instead of reporting success", async () => {
+            // Active row has a pending OTP challenge in otpStore but the client
+            // sends the wrong code — must reject, never short-circuit to success.
             mockQueryBuilder.maybeSingle.mockResolvedValueOnce({
-                data: {
-                    ...mockSubscriber,
-                    status: "active",
-                    verification_otp: "654321",
-                    otp_expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-                },
+                data: { ...mockSubscriber, status: "active", verification_otp: null },
                 error: null,
             });
+            // hasPending = true → does NOT short-circuit; verify = false → reject
+            mockOtpStore.hasPending.mockResolvedValueOnce(true);
+            mockOtpStore.verify.mockResolvedValueOnce(false);
 
             const response = await request(app)
                 .post("/api/notifications/verify-otp")
                 .send({ phone: "9876543210", otp: "000000" });
 
             expect(response.status).toBe(400);
-            expect(response.body.error).toBe("Invalid OTP");
+            expect(response.body.error).toBe("Invalid or expired OTP");
             expect(response.body.guestToken).toBeUndefined();
         });
 

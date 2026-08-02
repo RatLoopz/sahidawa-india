@@ -81,18 +81,21 @@ function formatPharmacy(p: PharmacyRow, distanceKm: number): FormattedPharmacy {
     };
 }
 
-// Common CSV parsing used by both bulk-upload and inventory/upload
 function parseInventoryCsv(fileContent: string, pharmacyId: string) {
-    const lines = fileContent
-        .split(/\r?\n/)
-        .map((l) => l.trim())
-        .filter(Boolean);
-    if (lines.length <= 1) {
+    const rawLines = fileContent.split(/\r?\n/).map((l) => l.trim());
+    if (rawLines.length === 0 || (rawLines.length === 1 && rawLines[0] === "")) {
         const err: any = new Error("The file appears empty or is missing rows.");
         err.status = 400;
         throw err;
     }
-    if (lines.length > 501) {
+
+    const nonEmptyLinesCount = rawLines.filter(Boolean).length;
+    if (nonEmptyLinesCount <= 1) {
+        const err: any = new Error("The file appears empty or is missing rows.");
+        err.status = 400;
+        throw err;
+    }
+    if (nonEmptyLinesCount > 501) {
         const err: any = new Error(
             "Bulk upload exceeds the maximum limit of 500 items per request."
         );
@@ -100,12 +103,18 @@ function parseInventoryCsv(fileContent: string, pharmacyId: string) {
         throw err;
     }
 
-    const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+    const headers = rawLines[0].split(",").map((h) => h.trim().toLowerCase());
     const rowsToInsert: any[] = [];
     const failedRows: Array<{ row: number; reason: string }> = [];
+    let totalRows = 0;
 
-    for (let i = 1; i < lines.length; i++) {
-        const values = lines[i]
+    for (let i = 1; i < rawLines.length; i++) {
+        const line = rawLines[i];
+        if (line === "") {
+            continue;
+        }
+        totalRows++;
+        const values = line
             .split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)
             .map((v) => v.replace(/^"|"$/g, "").trim());
         const rowData: Record<string, any> = {};
@@ -124,7 +133,7 @@ function parseInventoryCsv(fileContent: string, pharmacyId: string) {
         }
         rowsToInsert.push({ pharmacy_id: pharmacyId, ...result.data });
     }
-    return { rowsToInsert, failedRows, totalRows: lines.length - 1 };
+    return { rowsToInsert, failedRows, totalRows };
 }
 
 export const pharmacyService = {

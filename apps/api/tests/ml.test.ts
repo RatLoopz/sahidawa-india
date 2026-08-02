@@ -68,7 +68,7 @@ describe("ml routes", () => {
 
     it("proxies valid Cloudinary URLs to the ML service", async () => {
         global.fetch = async () =>
-            new Response(
+            new globalThis.Response(
                 JSON.stringify({
                     isFake: false,
                     confidence: 0.81,
@@ -226,7 +226,7 @@ describe("ml routes", () => {
         (dnsMock.resolve4 as jest.Mock).mockResolvedValueOnce(["203.0.113.42"]);
 
         global.fetch = async () =>
-            new Response(
+            new globalThis.Response(
                 JSON.stringify({
                     isFake: false,
                     confidence: 0.81,

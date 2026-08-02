@@ -12,17 +12,18 @@ const mockState = {
     maybeSingleResult: { data: null as unknown, error: null as unknown },
 };
 
-const mockSupabase = {
-    from: jest.fn(() => mockSupabase),
-    select: jest.fn(() => mockSupabase),
-    update: jest.fn(() => mockSupabase),
-    delete: jest.fn(() => mockSupabase),
-    eq: jest.fn(() => mockSupabase),
-    order: jest.fn(() => Promise.resolve(mockState.orderResult)),
-    maybeSingle: jest.fn(() => Promise.resolve(mockState.maybeSingleResult)),
-};
-
-jest.mock("../src/db/client", () => ({ supabase: mockSupabase }));
+jest.mock("../src/db/client", () => {
+    const mockClient = {
+        from: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        update: jest.fn().mockReturnThis(),
+        delete: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        order: jest.fn(),
+        maybeSingle: jest.fn(),
+    };
+    return { supabase: mockClient };
+});
 
 // requireAuth is exercised elsewhere; here it just reflects the x-test-user
 // header into req.user so the route handlers can be tested in isolation.
@@ -48,6 +49,9 @@ jest.mock("../src/utils/logger", () => ({
 import apiKeysRouter from "../src/routes/apiKeys";
 import { requireApiKey, ApiKeyRequest } from "../src/middleware/apiKeyAuth";
 import type { Response } from "express";
+import { supabase } from "../src/db/client";
+
+const mockSupabase = supabase as any;
 
 const app = express();
 app.use(express.json());
@@ -61,6 +65,8 @@ beforeEach(() => {
     jest.clearAllMocks();
     mockState.orderResult = { data: [], error: null };
     mockState.maybeSingleResult = { data: null, error: null };
+    mockSupabase.order.mockImplementation(() => Promise.resolve(mockState.orderResult));
+    mockSupabase.maybeSingle.mockImplementation(() => Promise.resolve(mockState.maybeSingleResult));
 });
 
 describe("GET /api/keys", () => {

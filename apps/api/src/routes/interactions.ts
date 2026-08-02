@@ -342,6 +342,7 @@ async function loadInteractionsForGenerics(genericNames: string[]): Promise<Inte
 router.get(
     "/",
     interactionIdsLimiter,
+    cacheMiddleware(120, 300),
     redisCache(60, (req) => `interactions:ids:${(req.query.ids as string) ?? ""}`),
     async (req: Request, res: Response) => {
         const parsedIds = parseIdsParam(req.query.ids);

@@ -10,7 +10,7 @@ import { smsService } from "../services/sms-service";
 import { whatsappService } from "../services/whatsapp-service";
 import { memorySubscriberStore, InMemorySubscriber } from "../services/memorySubscriberStore";
 import { otpStore } from "../services/otpStore";
-import { formatPhoneNumber } from "../utils/phone";
+import { formatPhoneNumber, maskPhone } from "../utils/phone";
 import { escapeIlike } from "@sahidawa/shared";
 import logger from "../utils/logger";
 import { redisClient } from "../utils/redis";
@@ -661,10 +661,13 @@ router.post(
 
             // An active row can still carry an outstanding challenge: /register
             // now issues one without demoting the row when the caller hasn't
-            // proven the number (#3956). Answering it is the only way that
-            // caller can earn a guest token, so "active" alone can no longer
-            // short-circuit the OTP check; only the absence of a challenge can.
-            if (subscriber.status === "active" && !subscriber.verification_otp) {
+            // proven the number (#3956). Since PR #3928 OTPs are stored in
+            // otpStore (Redis/in-memory), not in the subscriber DB row. We ask
+            // otpStore whether a challenge is outstanding for this number; if
+            // there is none AND the subscriber is already active, the caller
+            // has nothing to prove and we return early without consuming a token.
+            const hasPendingChallenge = await otpStore.hasPending(formattedPhone);
+            if (subscriber.status === "active" && !hasPendingChallenge) {
                 res.json({ success: true, message: "Phone is already verified and active" });
                 return;
             }
@@ -1066,7 +1069,7 @@ router.post(
                     logger.error({
                         message: "Failed to opt-out via Twilio STOP",
                         error,
-                        phone: formattedFrom,
+                        phone: maskPhone(formattedFrom),
                     });
                     res.status(500).send("Database error");
                     return;
@@ -1084,7 +1087,7 @@ router.post(
                     logger.error({
                         message: "Failed to opt-in via Twilio START",
                         error,
-                        phone: formattedFrom,
+                        phone: maskPhone(formattedFrom),
                     });
                     res.status(500).send("Database error");
                     return;

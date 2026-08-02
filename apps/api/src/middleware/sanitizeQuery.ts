@@ -7,6 +7,11 @@ import { escapePostgrest } from "../utils/db";
  * so there is no need to call escapeIlike separately (avoiding double-escaping).
  */
 function sanitizeStringValue(value: string): string {
+    // If it's a numeric string (integer or decimal float), do not escape it.
+    // Escaping decimal dots to \. corrupts coordinate parameters.
+    if (/^-?\d+(\.\d+)?$/.test(value)) {
+        return value;
+    }
     return escapePostgrest(value);
 }
 

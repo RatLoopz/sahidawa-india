@@ -133,10 +133,10 @@ describe("GET /api/v1/alternatives/:medicine_id", () => {
     });
 
     it("keeps the existing 404 response when no generic alternative exists", async () => {
-        ((supabase.from as jest.Mock)().maybeSingle as jest.Mock)
-            .mockResolvedValueOnce({ data: null, error: null })
-            .mockResolvedValueOnce({ data: null, error: null })
-            .mockResolvedValueOnce({ data: null, error: null });
+        ((supabase.from as jest.Mock)().maybeSingle as jest.Mock).mockResolvedValue({
+            data: null,
+            error: null,
+        });
 
         const res = await request(app).get("/api/v1/alternatives/UnknownMedicine");
 

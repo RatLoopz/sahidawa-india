@@ -866,10 +866,6 @@ router.get(
             }
 
             const data = await pharmacyService.getInBounds(result.data);
-            res.setHeader(
-                "Cache-Control",
-                "public, max-age=60, s-maxage=300, stale-while-revalidate=86400"
-            );
             res.json(data);
         } catch (err) {
             next(err);
@@ -888,21 +884,105 @@ router.post(
                 return;
             }
 
-            const { fileContent } = req.body;
-            if (!fileContent || typeof fileContent !== "string") {
+            const { fileContent: rawFileContent } = req.body;
+            if (!rawFileContent || typeof rawFileContent !== "string") {
                 res.status(400).json({ error: "No valid file data content provided." });
                 return;
             }
 
-            const result = await pharmacyService.bulkUploadByUser(req.user.id, fileContent);
-            res.status(200).json(result);
-        } catch (err: any) {
-            if (err.status) {
-                res.status(err.status).json({ error: err.message });
+            // Strip UTF-8 BOM if present
+            const fileContent = rawFileContent.replace(/^\uFEFF/, "");
+
+            const pharmacyId = req.body.pharmacyId || req.query.pharmacyId;
+
+            let query = supabase.from("pharmacies").select("id").eq("created_by", req.user.id);
+
+            if (pharmacyId) {
+                query = query.eq("id", pharmacyId);
+            } else {
+                query = query.order("created_at", { ascending: false });
+            }
+
+            const { data: pharmacies, error: pharmError } = await query;
+
+            if (pharmError || !pharmacies || pharmacies.length === 0) {
+                res.status(404).json({
+                    error: "No registered pharmacy found for this authorized user.",
+                });
                 return;
             }
-            logger.error(`Exception in bulk operations handler: ${err.message}`);
-            next(err);
+
+            const pharmacy = pharmacies[0];
+
+            res.setHeader("Content-Type", "text/event-stream");
+            res.setHeader("Cache-Control", "no-cache");
+            res.setHeader("Connection", "keep-alive");
+            res.flushHeaders();
+
+            let clientDisconnected = false;
+            req.on("close", () => {
+                clientDisconnected = true;
+            });
+
+            // Incremental parsing using the reusable helper (pharmacyId is already known)
+            const { successfulInserts, failedRows, totalRows, error } = await parseCsvIncremental(
+                fileContent,
+                pharmacy.id,
+                (stats) => {
+                    if (!clientDisconnected) {
+                        res.write(
+                            `data: ${JSON.stringify({
+                                processed: stats.successfulInserts,
+                                total: stats.totalRows,
+                                errors: stats.failedRows,
+                            })}\n\n`
+                        );
+                    }
+                }
+            );
+
+            if (error) {
+                if (!clientDisconnected) {
+                    res.write(`data: ${JSON.stringify({ error })}\n\n`);
+                    res.end();
+                }
+                return;
+            }
+            if (totalRows === 0) {
+                if (!clientDisconnected) {
+                    res.write(
+                        `data: ${JSON.stringify({
+                            error: "The file appears empty or is missing rows.",
+                        })}\n\n`
+                    );
+                    res.end();
+                }
+                return;
+            }
+
+            if (!clientDisconnected) {
+                res.write(
+                    `data: ${JSON.stringify({
+                        done: true,
+                        totalRows,
+                        successCount: successfulInserts,
+                        failedCount: failedRows.length,
+                        errors: failedRows,
+                    })}\n\n`
+                );
+                res.end();
+            }
+        } catch (err: any) {
+            const message = err instanceof Error ? err.message : "Unknown error";
+            logger.error(`Exception in bulk operations handler: ${message}`);
+            if (!res.headersSent) {
+                res.status(500).json({ error: message });
+            } else {
+                res.write(
+                    `data: ${JSON.stringify({ error: "Server error during processing." })}\n\n`
+                );
+                res.end();
+            }
         }
     }
 );

@@ -1,11 +1,13 @@
-const mockRedisClient = {
-    set: jest.fn(),
-    getDel: jest.fn(),
-};
+jest.mock("../src/utils/redis", () => {
+    const rc = {
+        set: jest.fn(),
+        getDel: jest.fn(),
+    };
+    return { redisClient: rc };
+});
 
-jest.mock("../src/utils/redis", () => ({
-    redisClient: mockRedisClient,
-}));
+import { redisClient } from "../src/utils/redis";
+const mockRedisClient = redisClient as any;
 
 import {
     ABHA_PKCE_SESSION_TTL_SECONDS,

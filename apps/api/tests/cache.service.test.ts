@@ -1,35 +1,37 @@
-const mockSupabase = {
-    from: jest.fn().mockReturnThis(),
-    select: jest.fn().mockReturnThis(),
-    or: jest.fn().mockReturnThis(),
-    in: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockReturnThis(),
-    limit: jest.fn().mockReturnThis(),
-    ilike: jest.fn().mockReturnThis(),
-    maybeSingle: jest.fn(),
-};
-
-const mockRedis = {
-    isOpen: true,
-    get: jest.fn(),
-    set: jest.fn().mockResolvedValue("OK"),
-    del: jest.fn().mockResolvedValue(1),
-    incr: jest.fn().mockResolvedValue(1),
-    zIncrBy: jest.fn().mockResolvedValue(1),
-    zRangeWithScores: jest.fn(),
-    expire: jest.fn().mockResolvedValue(true),
-    connect: jest.fn().mockResolvedValue(true),
-    on: jest.fn(),
-};
-
 jest.mock("../src/db/client", () => ({
-    supabase: mockSupabase,
+    supabase: {
+        from: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        or: jest.fn().mockReturnThis(),
+        in: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        ilike: jest.fn().mockReturnThis(),
+        maybeSingle: jest.fn(),
+    },
 }));
 
 jest.mock("../src/utils/redis", () => ({
-    redisClient: mockRedis,
+    redisClient: {
+        isOpen: true,
+        get: jest.fn(),
+        set: jest.fn().mockResolvedValue("OK"),
+        del: jest.fn().mockResolvedValue(1),
+        incr: jest.fn().mockResolvedValue(1),
+        zIncrBy: jest.fn().mockResolvedValue(1),
+        zRangeWithScores: jest.fn(),
+        expire: jest.fn().mockResolvedValue(true),
+        connect: jest.fn().mockResolvedValue(true),
+        on: jest.fn(),
+    },
     connectRedis: jest.fn(),
 }));
+
+import { supabase } from "../src/db/client";
+import { redisClient } from "../src/utils/redis";
+
+const mockSupabase = supabase as any;
+const mockRedis = redisClient as any;
 
 import {
     warmCache,
