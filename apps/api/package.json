@@ -15,6 +15,7 @@
         "@opentelemetry/api": "^1.9.1",
         "@opentelemetry/auto-instrumentations-node": "^0.77.0",
         "@opentelemetry/exporter-trace-otlp-http": "^0.219.0",
+        "@opentelemetry/propagator-jaeger": "^2.9.0",
         "@opentelemetry/sdk-node": "^0.219.0",
         "@sahidawa/shared": "^1.0.0",
         "@sahidawa/types": "*",
