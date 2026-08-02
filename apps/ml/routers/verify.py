@@ -133,6 +133,48 @@ class BatchVerifyResponse(BaseModel):
     source: str = "database"
 
 
+class CompareMedicinesRequest(BaseModel):
+    medicine_a: str
+    medicine_b: str
+
+
+class CompareMedicinesResponse(BaseModel):
+    medicine_a: str
+    medicine_b: str
+    similarity_score: float
+    verdict: str
+
+
+@router.post("/compare", response_model=CompareMedicinesResponse)
+def compare_medicines(payload: CompareMedicinesRequest) -> CompareMedicinesResponse:
+    if not payload.medicine_a.strip() or not payload.medicine_b.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Both medicine names are required",
+        )
+
+    from services.embedding import embed_query
+    from services.similarity import cosine_similarity
+
+    emb_a = embed_query(payload.medicine_a)
+    emb_b = embed_query(payload.medicine_b)
+
+    if emb_a is None or emb_b is None:
+        raise HTTPException(
+            status_code=502,
+            detail="Failed to generate embeddings for one or both medicines",
+        )
+
+    score = cosine_similarity(emb_a, emb_b)
+
+    return CompareMedicinesResponse(
+        medicine_a=payload.medicine_a,
+        medicine_b=payload.medicine_b,
+        similarity_score=score,
+        verdict="highly_similar" if score >= 0.92 else "different",
+    )
+
+
 @router.post("/batch", response_model=BatchVerifyResponse)
 async def verify_batch(request: BatchVerifyRequest):
     if df.empty:
