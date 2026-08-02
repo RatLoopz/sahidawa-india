@@ -505,6 +505,11 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
     }
     const { brandName } = parsed.data;
     const normalizedBrand = brandName.trim().toLowerCase();
+    // Escape ILIKE wildcards so % / _ / \ in user input are treated literally.
+    // Without this, brandName: "%" matches every medicine (arbitrary first-row
+    // returned as verified: true), _ matches any single char, and \ breaks out of
+    // the pattern — enabling data probing and false positives on verify-brand.
+    const escapedBrand = escapeIlike(normalizedBrand);
     const cacheKey = `brand_cache:${normalizedBrand}`;
 
     try {
@@ -526,7 +531,7 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
             .select(
                 "id, brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score"
             )
-            .ilike("brand_name", `%${brandName}%`)
+            .ilike("brand_name", `%${escapedBrand}%`)
             .limit(1)
             .maybeSingle();
 
@@ -545,7 +550,7 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
                 .select(
                     "id, brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score"
                 )
-                .ilike("generic_name", `%${brandName}%`)
+                .ilike("generic_name", `%${escapedBrand}%`)
                 .limit(1)
                 .maybeSingle();
 
