@@ -78,7 +78,8 @@
         "sharp": "^0.35.0",
         "node-cron": {
             "uuid": "^9.0.1"
-        }
+        },
+        "@opentelemetry/propagator-jaeger": "2.10.0"
     },
     "lint-staged": {
         "*.{ts,tsx,js,jsx,md,json}": "prettier --write"
