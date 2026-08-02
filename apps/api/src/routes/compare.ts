@@ -25,8 +25,8 @@ function getCacheKey(medA: string, medB: string): string {
 
 router.post(
     "/",
-    requireAuth,
     compareLimiter,
+    requireAuth,
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const parsed = compareRequestSchema.safeParse(req.body);

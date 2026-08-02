@@ -9,11 +9,13 @@ import { supabase, dbConfig } from "../db/client";
 import { smsService } from "../services/sms-service";
 import { whatsappService } from "../services/whatsapp-service";
 import { memorySubscriberStore, InMemorySubscriber } from "../services/memorySubscriberStore";
-import { formatPhoneNumber } from "../utils/phone";
+import { otpStore } from "../services/otpStore";
+import { formatPhoneNumber, maskPhone } from "../utils/phone";
 import { escapeIlike } from "@sahidawa/shared";
 import logger from "../utils/logger";
 import { redisClient } from "../utils/redis";
 import { signGuestToken, verifyGuestPhone, isGuestTokenConfigured } from "../utils/guestToken";
+import { safeCompare } from "../utils/cryptoUtils";
 import {
     getMockRecallFeed,
     getVapidPublicKey,
@@ -50,7 +52,12 @@ async function checkOtpLockout(phone: string): Promise<number | null> {
     try {
         const ttl = await redisClient.ttl(getOtpLockoutKey(phone));
         if (ttl > 0) return ttl;
-    } catch (_) {}
+    } catch (err) {
+        logger.warn({
+            message: "Redis TTL check error in OTP lockout",
+            error: String(err),
+        });
+    }
     return null;
 }
 
@@ -60,14 +67,19 @@ async function recordFailedOtpAttempt(phone: string): Promise<void> {
         const key = getOtpFailKey(phone);
         const attempts = await redisClient.incr(key);
         if (attempts === 1) {
-            await redisClient.expire(key, 600); // counter expires after 10 min of inactivity
+            await redisClient.expire(key, 600);
         }
         if (attempts >= MAX_OTP_ATTEMPTS) {
             const lockDuration = getOtpLockoutDuration(attempts);
             await redisClient.setEx(getOtpLockoutKey(phone), Math.ceil(lockDuration / 1000), "1");
             await redisClient.del(key);
         }
-    } catch (_) {}
+    } catch (err) {
+        logger.warn({
+            message: "Redis error recording failed OTP attempt",
+            error: String(err),
+        });
+    }
 }
 
 async function clearOtpAttempts(phone: string): Promise<void> {
@@ -75,7 +87,12 @@ async function clearOtpAttempts(phone: string): Promise<void> {
     try {
         await redisClient.del(getOtpFailKey(phone));
         await redisClient.del(getOtpLockoutKey(phone));
-    } catch (_) {}
+    } catch (err) {
+        logger.warn({
+            message: "Redis error clearing OTP attempts",
+            error: String(err),
+        });
+    }
 }
 
 // ── Web Push Notifications (Existing) ──────────────────────────────────────────
@@ -199,7 +216,7 @@ const twilioWebhookSchema = z.object({
 });
 
 // The only subscriber fields any client is allowed to receive. Everything else on
-// a row is either a secret (verification_otp, otp_expires_at) or account-linkage
+// a row is either a secret (otp_store) or account-linkage
 // PII (user_id) and must never be serialized into a response. Returning the raw
 // row from /status let an unauthenticated caller read another subscriber's OTP and
 // Supabase user_id just by knowing their phone number, so every subscriber we hand
@@ -339,6 +356,20 @@ router.post(
             (req.user.raw?.phone === formattedPhone ||
                 req.user.raw?.user_metadata?.phone === formattedPhone);
 
+        // /register runs under optionalAuth and finds the row by phone number
+        // alone, so "this number already exists" tells us nothing about who is
+        // asking. Rewriting the row is only allowed for a caller who has proven
+        // a claim to it: a session whose own verified number this is, a guest
+        // holding a token minted for this number, or a session the row is
+        // already linked to (that account can already read and edit it through
+        // /status and PATCH /phone). Everyone else gets an OTP and nothing
+        // more. See #3956, where an unauthenticated caller could knock a
+        // verified subscriber back to "pending" and out of the admin broadcast.
+        const guestTokenPhone = verifyGuestPhone(getGuestToken(req));
+        const provedThisNumber = Boolean(isOwner) || guestTokenPhone === formattedPhone;
+        const mayEditExisting = (row: { user_id?: string | null }): boolean =>
+            provedThisNumber || (req.user != null && row.user_id === req.user.id);
+
         const targetStatus = isOwner ? "active" : "pending";
         const otp = isOwner ? null : randomInt(100000, 1000000).toString();
         const otpExpires = isOwner ? null : new Date(Date.now() + 10 * 60 * 1000).toISOString();
@@ -380,27 +411,40 @@ router.post(
                 }
             }
 
+            // True when the requested settings were withheld pending verification,
+            // which changes the response the client gets. The only thing written
+            // to the row in that case is the OTP challenge that lets whoever
+            // actually holds the number claim it.
+            let heldForVerification = false;
+
             let result;
             if (dbFailed) {
                 logger.warn("Supabase database is offline. Registering subscriber in-memory.");
                 existing = memorySubscriberStore.get(formattedPhone);
 
-                if (existing) {
+                if (existing && !mayEditExisting(existing)) {
+                    if (otp && otpExpires) {
+                        await otpStore.store(formattedPhone, otp, otpExpires);
+                    }
+                    heldForVerification = true;
+                } else if (existing) {
                     existing.user_id = req.user?.id || existing.user_id;
                     existing.channels = channels;
                     existing.language = language;
                     existing.district = district;
                     existing.is_active = true;
-                    if (!isOwner) {
+                    if (!isOwner && otp && otpExpires) {
                         existing.status = "pending";
-                        existing.verification_otp = otp;
-                        existing.otp_expires_at = otpExpires;
+                        await otpStore.store(formattedPhone, otp, otpExpires);
                     } else {
                         existing.status = "active";
                     }
                     existing.updated_at = new Date().toISOString();
                     result = existing;
                 } else {
+                    if (!isOwner && otp && otpExpires) {
+                        await otpStore.store(formattedPhone, otp, otpExpires);
+                    }
                     result = {
                         id: `mem-${Date.now()}`,
                         user_id: req.user?.id || null,
@@ -410,73 +454,83 @@ router.post(
                         district,
                         is_active: true,
                         status: targetStatus,
-                        verification_otp: otp,
-                        otp_expires_at: otpExpires,
                         created_at: new Date().toISOString(),
                         updated_at: new Date().toISOString(),
                     };
                     memorySubscriberStore.set(formattedPhone, result);
                 }
+            } else if (existing && !mayEditExisting(existing)) {
+                // Hold the requested settings back. The row keeps its status,
+                // district, language, channels and user_id, so the subscriber
+                // stays in the broadcast audience for their own district while
+                // the challenge is outstanding.
+                if (!isOwner && otp && otpExpires) {
+                    await otpStore.store(formattedPhone, otp, otpExpires);
+                }
+                heldForVerification = true;
+            } else if (existing) {
+                // user_id only moves for a caller who proved this number is
+                // theirs, which is what linking an existing number to an
+                // account is supposed to require.
+                const updatePayload: any = {
+                    user_id: req.user?.id || existing.user_id,
+                    channels,
+                    language,
+                    district,
+                    is_active: true,
+                };
+                if (!isOwner) {
+                    updatePayload.status = "pending";
+                    if (otp && otpExpires) {
+                        await otpStore.store(formattedPhone, otp, otpExpires);
+                    }
+                } else {
+                    updatePayload.status = "active";
+                }
+
+                const { data: updated, error: updateError } = await supabase
+                    .from("notification_subscribers")
+                    .update(updatePayload)
+                    .eq("id", existing.id)
+                    .select()
+                    .single();
+
+                if (updateError) {
+                    logger.error({
+                        message: "Failed to update subscriber",
+                        error: updateError,
+                    });
+                    res.status(500).json({ error: "Database error" });
+                    return;
+                }
+                result = updated;
             } else {
-                if (existing) {
-                    const updatePayload: any = {
-                        user_id: req.user?.id || existing.user_id,
+                if (!isOwner && otp && otpExpires) {
+                    await otpStore.store(formattedPhone, otp, otpExpires);
+                }
+                const { data: created, error: insertError } = await supabase
+                    .from("notification_subscribers")
+                    .insert({
+                        user_id: req.user?.id || null,
+                        phone: formattedPhone,
                         channels,
                         language,
                         district,
                         is_active: true,
-                    };
-                    if (!isOwner) {
-                        updatePayload.status = "pending";
-                        updatePayload.verification_otp = otp;
-                        updatePayload.otp_expires_at = otpExpires;
-                    } else {
-                        updatePayload.status = "active";
-                    }
+                        status: targetStatus,
+                    })
+                    .select()
+                    .single();
 
-                    const { data: updated, error: updateError } = await supabase
-                        .from("notification_subscribers")
-                        .update(updatePayload)
-                        .eq("id", existing.id)
-                        .select()
-                        .single();
-
-                    if (updateError) {
-                        logger.error({
-                            message: "Failed to update subscriber",
-                            error: updateError,
-                        });
-                        res.status(500).json({ error: "Database error" });
-                        return;
-                    }
-                    result = updated;
-                } else {
-                    const { data: created, error: insertError } = await supabase
-                        .from("notification_subscribers")
-                        .insert({
-                            user_id: req.user?.id || null,
-                            phone: formattedPhone,
-                            channels,
-                            language,
-                            district,
-                            is_active: true,
-                            status: targetStatus,
-                            verification_otp: otp,
-                            otp_expires_at: otpExpires,
-                        })
-                        .select()
-                        .single();
-
-                    if (insertError) {
-                        logger.error({
-                            message: "Failed to insert subscriber",
-                            error: insertError,
-                        });
-                        res.status(500).json({ error: "Database error" });
-                        return;
-                    }
-                    result = created;
+                if (insertError) {
+                    logger.error({
+                        message: "Failed to insert subscriber",
+                        error: insertError,
+                    });
+                    res.status(500).json({ error: "Database error" });
+                    return;
                 }
+                result = created;
             }
 
             if (!isOwner && otp) {
@@ -498,7 +552,26 @@ router.post(
                 await Promise.allSettled(sends);
             }
 
-            res.status(201).json({ success: true, subscriber: toPublicSubscriber(result) });
+            if (heldForVerification) {
+                // No subscriber object here: the caller hasn't proven the number,
+                // so reading the stored row back to them would hand out the very
+                // settings this branch exists to protect.
+                res.status(202).json({
+                    success: true,
+                    preferencesApplied: false,
+                    verificationRequired: true,
+                    phone: formattedPhone,
+                    message:
+                        "Verify the code sent to this number, then apply your alert preferences with PATCH /api/notifications/phone.",
+                });
+                return;
+            }
+
+            res.status(201).json({
+                success: true,
+                preferencesApplied: true,
+                subscriber: toPublicSubscriber(result),
+            });
         } catch (err) {
             logger.error({ message: "Error in /register endpoint", error: err });
             res.status(500).json({ error: "Internal server error" });
@@ -586,28 +659,33 @@ router.post(
                 return;
             }
 
-            if (subscriber.status === "active") {
+            // An active row can still carry an outstanding challenge: /register
+            // now issues one without demoting the row when the caller hasn't
+            // proven the number (#3956). Since PR #3928 OTPs are stored in
+            // otpStore (Redis/in-memory), not in the subscriber DB row. We ask
+            // otpStore whether a challenge is outstanding for this number; if
+            // there is none AND the subscriber is already active, the caller
+            // has nothing to prove and we return early without consuming a token.
+            const hasPendingChallenge = await otpStore.hasPending(formattedPhone);
+            if (subscriber.status === "active" && !hasPendingChallenge) {
                 res.json({ success: true, message: "Phone is already verified and active" });
                 return;
             }
 
-            if (subscriber.verification_otp !== otp) {
+            const isValid = await otpStore.verify(formattedPhone, otp);
+            if (!isValid) {
                 await recordFailedOtpAttempt(formattedPhone);
-                res.status(400).json({ error: "Invalid OTP" });
-                return;
-            }
-
-            if (subscriber.otp_expires_at && new Date(subscriber.otp_expires_at) < new Date()) {
-                res.status(400).json({ error: "OTP expired" });
+                res.status(400).json({ error: "Invalid or expired OTP" });
                 return;
             }
 
             await clearOtpAttempts(formattedPhone);
+            await otpStore.clear(formattedPhone);
 
             if (!dbFailed) {
                 const { error: updateError } = await supabase
                     .from("notification_subscribers")
-                    .update({ status: "active", verification_otp: null, otp_expires_at: null })
+                    .update({ status: "active" })
                     .eq("id", subscriber.id);
 
                 if (updateError) {
@@ -617,8 +695,6 @@ router.post(
                 }
             } else {
                 subscriber.status = "active";
-                subscriber.verification_otp = null;
-                subscriber.otp_expires_at = null;
                 subscriber.updated_at = new Date().toISOString();
             }
 
@@ -993,7 +1069,7 @@ router.post(
                     logger.error({
                         message: "Failed to opt-out via Twilio STOP",
                         error,
-                        phone: formattedFrom,
+                        phone: maskPhone(formattedFrom),
                     });
                     res.status(500).send("Database error");
                     return;
@@ -1011,7 +1087,7 @@ router.post(
                     logger.error({
                         message: "Failed to opt-in via Twilio START",
                         error,
-                        phone: formattedFrom,
+                        phone: maskPhone(formattedFrom),
                     });
                     res.status(500).send("Database error");
                     return;

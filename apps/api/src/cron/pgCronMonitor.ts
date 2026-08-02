@@ -2,11 +2,12 @@ import logger from "../utils/logger";
 import { serviceRoleSupabase } from "../db/client";
 
 // Polling interval in ms (default to 1 hour if not specified)
-const CHECK_INTERVAL_MS = process.env.PG_CRON_MONITOR_INTERVAL_MS
-    ? parseInt(process.env.PG_CRON_MONITOR_INTERVAL_MS, 10)
-    : process.env.NODE_ENV === "test"
+const parsedInterval = parseInt(process.env.PG_CRON_MONITOR_INTERVAL_MS ?? "", 10);
+const CHECK_INTERVAL_MS = isNaN(parsedInterval)
+    ? process.env.NODE_ENV === "test"
       ? 1000
-      : 60 * 60 * 1000;
+      : 60 * 60 * 1000
+    : parsedInterval;
 
 const WEBHOOK_URL = process.env.PG_CRON_MONITOR_WEBHOOK_URL;
 

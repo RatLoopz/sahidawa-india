@@ -148,12 +148,17 @@ jobs:
 
       - name: Build Next.js
         run: npx turbo run build --filter=web
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: e2e-local-anon-key
 
       - name: Run Playwright Tests
         run: npx playwright test
         working-directory: apps/web
         env:
           CI: true
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: e2e-local-anon-key
 
       - name: Upload Playwright Artifacts
         if: failure()

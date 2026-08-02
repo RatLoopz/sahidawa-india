@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback, useId } from "react";
 import { Camera, AlertCircle, VideoOff } from "lucide-react";
+import { usePackagingHint } from "./usePackagingHint";
 
 type ScannerStatus = "initializing" | "scanning" | "permission-denied" | "unavailable" | "error";
 
@@ -97,6 +98,13 @@ export function BarcodeScanner({
     const [retryCount, setRetryCount] = useState(0);
     const [showInactivity, setShowInactivity] = useState(false);
 
+    // Lightweight client-side geometry check (OpenCV.js) — only runs while
+    // actively scanning, so it doesn't fire during errors/loading/permission screens.
+    const looksLikePackaging = usePackagingHint(
+        videoRef,
+        status === "scanning" && !isVerifying && !apiError
+    );
+
     const resetInactivityTimer = useCallback(() => {
         if (inactivityTimerRef.current) {
             clearTimeout(inactivityTimerRef.current);
@@ -114,9 +122,14 @@ export function BarcodeScanner({
 
     // Update refs when props change
     useEffect(() => {
-        isVerifyingRef.current = isVerifying;
-        apiErrorRef.current = apiError;
-    }, [isVerifying, apiError]);
+        if (status === "scanning" && !isVerifying && !apiError && !looksLikePackaging) {
+            resetInactivityTimer();
+        } else {
+            if (inactivityTimerRef.current) {
+                clearTimeout(inactivityTimerRef.current);
+            }
+        }
+    }, [status, isVerifying, apiError, looksLikePackaging, resetInactivityTimer]);
 
     const handleCameraRetry = () => {
         setStatus("initializing");
@@ -464,47 +477,64 @@ export function BarcodeScanner({
                     )}
 
                     {status === "scanning" && (
-                        <div className="absolute right-3 bottom-3 z-30 flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-md">
-                            <Camera size={14} className="text-emerald-400" />
-                            <span className="text-xs font-medium text-emerald-400">Scanning</span>
+                        <>
+                            <div className="absolute top-3 left-1/2 z-30 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-md">
+                                <span
+                                    className={`text-xs font-medium ${
+                                        looksLikePackaging ? "text-emerald-400" : "text-slate-300"
+                                    }`}
+                                >
+                                    {looksLikePackaging
+                                        ? "Packaging detected — hold steady"
+                                        : "Center the packaging in frame"}
+                                </span>
+                            </div>
+                            <div className="absolute right-3 bottom-3 z-30 flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-md">
+                                <Camera size={14} className="text-emerald-400" />
+                                <span className="text-xs font-medium text-emerald-400">
+                                    Scanning
+                                </span>
+                            </div>
+                        </>
+                    )}
+
+                    {/* 5. INACTIVITY OVERLAY */}
+                    {showInactivity && status === "scanning" && !apiError && !isVerifying && (
+                        <div
+                            className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-4 bg-slate-900/95 p-6 text-center backdrop-blur-sm"
+                            role="alert"
+                            aria-live="polite"
+                        >
+                            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/20">
+                                <AlertCircle size={32} className="text-amber-400" />
+                            </div>
+                            <h3 className="text-lg font-bold text-white">
+                                Having trouble scanning?
+                            </h3>
+                            <p className="max-w-xs text-sm text-slate-400">
+                                We haven't detected a barcode in a while. Make sure there is enough
+                                light and the barcode is in focus.
+                            </p>
+                            <div className="mt-2 flex w-full max-w-xs flex-col gap-3">
+                                <button
+                                    onClick={() => resetInactivityTimer()}
+                                    className="w-full rounded-xl bg-emerald-500 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-600"
+                                >
+                                    Keep Scanning
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        const input = document.getElementById("medicine-upload");
+                                        input?.click();
+                                    }}
+                                    className="w-full rounded-xl border border-slate-700 bg-slate-800 py-3 text-sm font-semibold text-slate-300 transition-colors hover:bg-slate-700"
+                                >
+                                    📷 Upload Photo Instead
+                                </button>
+                            </div>
                         </div>
                     )}
                 </>
-            )}
-
-            {/* 5. INACTIVITY OVERLAY */}
-            {showInactivity && status === "scanning" && !apiError && !isVerifying && (
-                <div
-                    className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-4 bg-slate-900/95 p-6 text-center backdrop-blur-sm"
-                    role="alert"
-                    aria-live="polite"
-                >
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/20">
-                        <AlertCircle size={32} className="text-amber-400" />
-                    </div>
-                    <h3 className="text-lg font-bold text-white">Having trouble scanning?</h3>
-                    <p className="max-w-xs text-sm text-slate-400">
-                        We haven't detected a barcode in a while. Make sure there is enough light
-                        and the barcode is in focus.
-                    </p>
-                    <div className="mt-2 flex w-full max-w-xs flex-col gap-3">
-                        <button
-                            onClick={() => resetInactivityTimer()}
-                            className="w-full rounded-xl bg-emerald-500 py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-emerald-600"
-                        >
-                            Keep Scanning
-                        </button>
-                        <button
-                            onClick={() => {
-                                const input = document.getElementById("medicine-upload");
-                                input?.click();
-                            }}
-                            className="w-full rounded-xl border border-slate-700 bg-slate-800 py-3 text-sm font-semibold text-slate-300 transition-colors hover:bg-slate-700"
-                        >
-                            📷 Upload Photo Instead
-                        </button>
-                    </div>
-                </div>
             )}
         </div>
     );

@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import type { AuthenticatedRequest } from "../middleware/auth";
 import { z } from "zod";
 import multer from "multer";
 import fs from "fs";
@@ -21,6 +22,7 @@ import { supabase } from "../db/client";
 
 import { optionalAuth } from "../middleware/auth";
 import { escapeIlike, escapePostgrest, buildOrConditions } from "../utils/db";
+import { computeVerifiedStatus } from "../utils/verification";
 import { scanService } from "../services/scan.service";
 
 const router = Router();
@@ -290,6 +292,15 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
             const rawText = data.text || "";
             const confidence = data.confidence ?? 0;
 
+            if (rawText.trim().length === 0) {
+                logger.warn(`OCR returned empty text for "${file.originalname}" (confidence: ${confidence})`);
+                res.status(400).json({
+                    error: "No text could be extracted from the image.",
+                    code: "OCR_EMPTY_TEXT",
+                });
+                return;
+            }
+
             const {
                 parsedBatch,
                 parsedExpiry,
@@ -415,7 +426,10 @@ router.post("/match", scanQueryLimiter, async (req: Request, res: Response) => {
                                 EX: 3600,
                             });
                     } catch (err) {
-                        /* ignore */
+                        logger.warn({
+                            message: "Redis cache set error in match fallback",
+                            error: String(err),
+                        });
                     }
 
                     res.status(200).json(fallbackResult);
@@ -442,7 +456,10 @@ router.post("/match", scanQueryLimiter, async (req: Request, res: Response) => {
             if (redisClient.isOpen)
                 await redisClient.set(cacheKey, JSON.stringify(matches), { EX: 3600 });
         } catch (err) {
-            /* ignore */
+            logger.warn({
+                message: "Redis cache set error in match route",
+                error: String(err),
+            });
         }
 
         res.status(200).json(matches);
@@ -504,14 +521,12 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
     }
 
     try {
-        const { data, error } = await supabase
+        let { data, error } = await supabase
             .from("medicines")
             .select(
                 "id, brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score"
             )
-            .or(
-                `brand_name.ilike."%${escapePostgrest(brandName)}%",generic_name.ilike."%${escapePostgrest(brandName)}%"`
-            )
+            .ilike("brand_name", `%${brandName}%`)
             .limit(1)
             .maybeSingle();
 
@@ -525,6 +540,28 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
         }
 
         if (!data) {
+            const result = await supabase
+                .from("medicines")
+                .select(
+                    "id, brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score"
+                )
+                .ilike("generic_name", `%${brandName}%`)
+                .limit(1)
+                .maybeSingle();
+
+            if (result.error) {
+                logger.error(`Database lookup error for verify-brand: ${result.error.message}`);
+                res.status(500).json({
+                    verified: false,
+                    message: "Database lookup failed",
+                });
+                return;
+            }
+
+            data = result.data;
+        }
+
+        if (!data) {
             res.status(404).json({
                 verified: false,
                 message: "Medicine not found",
@@ -533,7 +570,7 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
         }
 
         const responseData = {
-            verified: true,
+            verified: computeVerifiedStatus(data),
             medicine: {
                 id: data.id,
                 brand_name: data.brand_name,
@@ -556,7 +593,10 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
             if (redisClient.isOpen)
                 await redisClient.set(cacheKey, JSON.stringify(responseData), { EX: 86400 }); // 24 hours
         } catch (err) {
-            /* ignore */
+            logger.warn({
+                message: "Redis cache set error in verify-brand route",
+                error: String(err),
+            });
         }
 
         res.status(200).json(responseData);
@@ -579,7 +619,7 @@ router.post(
     validateUploadSize,
     upload.fields([{ name: "image" }, { name: "voice" }]),
     idempotencyMiddleware,
-    async (req: Request, res: Response) => {
+    async (req: AuthenticatedRequest, res: Response) => {
         const idempotencyKey = (req as any).idempotencyKey;
         const submitSchema = z
             .object({
@@ -625,7 +665,7 @@ router.post(
 
         try {
             // Note: we require a user to be authenticated in a real app, assuming auth.uid() is available
-            const userId = (req as any).user?.id || (req as any).session?.user?.id;
+            const userId = req.user?.id || (req as any).session?.user?.id;
             if (!userId && process.env.NODE_ENV === "production") {
                 res.status(401).json({ error: "Authentication is required to submit scan data" });
                 return;

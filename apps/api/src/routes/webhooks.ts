@@ -45,20 +45,9 @@ router.post(
                 return;
             }
 
-            const keysToDelete: string[] = [];
-            let cursor: any = 0;
-
-            do {
-                const result = await redisClient.scan(cursor, {
-                    MATCH: "schemes:state:*",
-                    COUNT: 100,
-                });
-                cursor = result.cursor;
-                keysToDelete.push(...result.keys);
-            } while (cursor !== 0);
+            const keysToDelete = await invalidateCacheByPattern("schemes:state:*");
 
             if (keysToDelete.length > 0) {
-                await redisClient.del(keysToDelete);
                 logger.info(
                     `Health schemes cache invalidated — deleted ${keysToDelete.length} key(s)`,
                     { keys: keysToDelete }
@@ -118,23 +107,18 @@ router.post(
 
             const payload = req.body;
             const record = payload.record || payload.old_record || {};
+            const oldRecord = payload.old_record || {};
             const batchNumber = record.batch_number;
             const brandName = record.brand_name;
             const genericName = record.generic_name;
+            const oldBrandName = oldRecord.brand_name;
+            const oldGenericName = oldRecord.generic_name;
 
             const keysToDelete: string[] = [];
 
-            // 1. Invalidate drug lookup cache by scanning for keys starting with the batch number
+            // 1. Invalidate drug lookup cache (helper scans and deletes matching keys)
             if (batchNumber) {
-                let cursor: any = 0;
-                do {
-                    const result = await redisClient.scan(cursor, {
-                        MATCH: `drug:batch:${batchNumber}*`,
-                        COUNT: 100,
-                    });
-                    cursor = result.cursor;
-                    keysToDelete.push(...result.keys);
-                } while (cursor !== 0);
+                await invalidateCacheByPattern(`drug:batch:${batchNumber}*`);
             }
 
             // 2. Invalidate voice search cache for matching brand and generic names
@@ -147,7 +131,28 @@ router.post(
                 keysToDelete.push(`medicine:voice:${normalizedGeneric}`);
             }
 
-            // 3. Perform deletion if keys exist
+            // 3. Invalidate verify-brand cache for the old and new brand names and the
+            //    old and new generic names (renames leave old-name keys behind).
+            for (const name of [brandName, oldBrandName]) {
+                if (name) {
+                    keysToDelete.push(`brand_cache:${name.trim().toLowerCase()}`);
+                }
+            }
+            for (const name of [genericName, oldGenericName]) {
+                if (name) {
+                    keysToDelete.push(`brand_cache:${name.trim().toLowerCase()}`);
+                }
+            }
+
+            // Transitions in either field that feeds the computed `verified` verdict
+            // (is_cdsco_verified && !is_counterfeit_alert) can stale verify-brand cache
+            // entries keyed by any user-supplied substring (e.g. "dolo"), which exact-name
+            // deletion above cannot enumerate — sweep the whole namespace on that rare event.
+            if (verificationStatusChanged(oldRecord, record)) {
+                await invalidateCacheByPattern("brand_cache:*");
+            }
+
+            // 4. Perform deletion if keys exist
             const uniqueKeys = Array.from(new Set(keysToDelete));
             if (uniqueKeys.length > 0) {
                 await redisClient.del(uniqueKeys);
@@ -171,6 +176,24 @@ router.post(
 );
 
 /**
+ * Whether the computed `verified` verdict could have changed between the old and
+ * new medicine records. The verdict derives from both `is_cdsco_verified` and
+ * `is_counterfeit_alert`, so a transition in either field can flip it for any
+ * user-supplied substring cache key that exact-name deletion cannot enumerate.
+ */
+function verificationStatusChanged(
+    oldRecord: Record<string, unknown>,
+    record: Record<string, unknown>
+): boolean {
+    const flipped = (before: unknown, after: unknown): boolean =>
+        before !== undefined && after !== undefined && Boolean(before) !== Boolean(after);
+    return (
+        flipped(oldRecord.is_counterfeit_alert, record.is_counterfeit_alert) ||
+        flipped(oldRecord.is_cdsco_verified, record.is_cdsco_verified)
+    );
+}
+
+/**
  * Helper to execute cache invalidation out-of-band/non-blocking
  */
 function handleAsyncInvalidation(table: string, pattern: string, res: Response) {
@@ -182,20 +205,9 @@ function handleAsyncInvalidation(table: string, pattern: string, res: Response) 
                 return;
             }
 
-            let cursor: any = 0;
-            const keysToDelete: string[] = [];
-
-            do {
-                const result = await redisClient.scan(cursor, {
-                    MATCH: pattern,
-                    COUNT: 100,
-                });
-                cursor = result.cursor;
-                keysToDelete.push(...result.keys);
-            } while (cursor !== 0);
+            const keysToDelete = await invalidateCacheByPattern(pattern);
 
             if (keysToDelete.length > 0) {
-                await redisClient.del(keysToDelete);
                 logger.info(
                     `Cache invalidated for ${table} — deleted ${keysToDelete.length} key(s)`,
                     { keys: keysToDelete }

@@ -9,10 +9,11 @@ export function escapeIlike(word: string): string {
 }
 /**
  * Escapes a value for safe use in PostgREST .or() filters.
- * Prevents comma injection by escaping special characters.
+ * Prevents filter injection by escaping all characters with special
+ * meaning in PostgREST filter syntax.
  */
 export function escapePostgrest(val: string): string {
-    return val.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_").replace(/"/g, '""');
+    return val.replace(/\\/g, "\\\\").replace(/"/g, '""').replace(/%/g, "\\%").replace(/_/g, "\\_");
 }
 
 export function buildOrConditions(fields: string[], words: string[]): string {

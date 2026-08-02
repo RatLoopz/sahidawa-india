@@ -293,7 +293,9 @@ async function cacheFirstWithExpiry(request, cacheName, maxAgeMs) {
                 statusText: networkResponse.statusText,
                 headers,
             });
-            cache.put(request, cloned).catch(() => {});
+            cache
+                .put(request, cloned)
+                .catch(() => console.warn("[SW] Failed to cache asset in cacheFirstWithExpiry"));
         }
         return networkResponse;
     } catch {
@@ -324,7 +326,9 @@ async function staleWhileRevalidate(request, cacheName) {
     const networkFetch = fetch(request)
         .then((networkResponse) => {
             if (networkResponse && networkResponse.ok) {
-                cache.put(request, networkResponse.clone()).catch(() => {});
+                cache
+                    .put(request, networkResponse.clone())
+                    .catch(() => console.warn("[SW] Failed to cache in staleWhileRevalidate"));
             }
             return networkResponse;
         })
@@ -366,9 +370,26 @@ async function handleApiRequest(request, url, cacheName) {
 }
 
 async function fetchWithoutCache(request) {
+    const clonedRequest = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method) ? request.clone() : null;
+
     try {
         return await fetchWithTimeout(request);
     } catch {
+        if (clonedRequest) {
+            await saveFailedRequest(clonedRequest);
+            if ('sync' in self.registration) {
+                try {
+                    await self.registration.sync.register('sahidawa-sync-mutations');
+                } catch (e) {
+                    console.warn('[SW] Sync registration failed', e);
+                }
+            }
+            return new Response(JSON.stringify({ 
+                error: "You are offline. Request queued for sync.", 
+                offline: true,
+                queued: true 
+            }), { status: 503, headers: { "Content-Type": "application/json" } });
+        }
         return createOfflineApiResponse();
     }
 }
@@ -424,7 +445,11 @@ async function networkFirstWithCache(request, cacheName) {
         }
 
         if (isPublicCacheableApiResponse(networkResponse)) {
-            cache.put(request, networkResponse.clone()).catch(() => {});
+            cache
+                .put(request, networkResponse.clone())
+                .catch(() =>
+                    console.warn("[SW] Failed to cache API response in networkFirstWithCache")
+                );
         }
         return networkResponse;
     } catch {
@@ -459,7 +484,11 @@ async function navigateWithOfflineFallback(request) {
     try {
         const networkResponse = await fetch(request);
         if (networkResponse.ok) {
-            cache.put(request, networkResponse.clone()).catch(() => {});
+            cache
+                .put(request, networkResponse.clone())
+                .catch(() =>
+                    console.warn("[SW] Failed to cache page in navigateWithOfflineFallback")
+                );
         }
         return networkResponse;
     } catch {
@@ -689,6 +718,9 @@ self.addEventListener("sync", (event) => {
     if (event.tag === "sahidawa-sync-scans") {
         event.waitUntil(notifyClientsToFlush());
     }
+    if (event.tag === "sahidawa-sync-mutations") {
+        event.waitUntil(flushMutationsQueue());
+    }
 });
 
 async function notifyClientsToFlush() {
@@ -697,3 +729,94 @@ async function notifyClientsToFlush() {
         client.postMessage({ type: "FLUSH_SYNC_QUEUE" });
     }
 }
+
+// ---------------------------------------------------------------------------
+// SYNC QUEUE HELPERS FOR MUTATING REQUESTS
+// ---------------------------------------------------------------------------
+function openSyncDb() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open('sahidawa-sync-db', 1);
+        req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('requests')) {
+                db.createObjectStore('requests', { keyPath: 'id', autoIncrement: true });
+            }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = () => reject('Failed to open sync DB');
+    });
+}
+
+async function saveFailedRequest(request) {
+    try {
+        const db = await openSyncDb();
+        const headers = {};
+        for (const [key, value] of request.headers.entries()) {
+            headers[key] = value;
+        }
+        const bodyText = await request.text();
+        const serialized = {
+            url: request.url,
+            method: request.method,
+            headers,
+            body: bodyText,
+            timestamp: Date.now()
+        };
+        
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction('requests', 'readwrite');
+            tx.objectStore('requests').add(serialized);
+            tx.oncomplete = () => { db.close(); resolve(); };
+            tx.onerror = () => { db.close(); reject(); };
+        });
+    } catch (e) {
+        console.error('[SW] Failed to save request to sync queue', e);
+    }
+}
+
+async function flushMutationsQueue() {
+    try {
+        const db = await openSyncDb();
+        const requests = await new Promise((resolve, reject) => {
+            const tx = db.transaction('requests', 'readonly');
+            const req = tx.objectStore('requests').getAll();
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject();
+        });
+        
+        if (!requests || requests.length === 0) {
+            db.close();
+            return;
+        }
+        
+        for (const reqData of requests) {
+            try {
+                const response = await fetch(reqData.url, {
+                    method: reqData.method,
+                    headers: reqData.headers,
+                    body: reqData.method !== 'GET' && reqData.method !== 'HEAD' ? reqData.body : undefined
+                });
+                
+                if (response.ok || response.status >= 400) { 
+                    await new Promise((resolve) => {
+                        const tx = db.transaction('requests', 'readwrite');
+                        tx.objectStore('requests').delete(reqData.id);
+                        tx.oncomplete = resolve;
+                    });
+                }
+            } catch (e) {
+                console.warn('[SW] Sync flush fetch failed (still offline?)', e);
+                break;
+            }
+        }
+        db.close();
+        
+        const clients = await self.clients.matchAll({ type: "window" });
+        for (const client of clients) {
+            client.postMessage({ type: "SYNC_QUEUE_FLUSHED" });
+        }
+    } catch (e) {
+        console.error('[SW] Sync flush error', e);
+    }
+}
+

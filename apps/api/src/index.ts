@@ -65,7 +65,11 @@ if (process.env.NODE_ENV !== "test") {
         await warmCache();
 
         // Load dynamic OCR synonyms
-        await medicineNameNormalizer.loadFromDatabase();
+        try {
+            await medicineNameNormalizer.loadFromDatabase();
+        } catch (err) {
+            logger.error("Failed to load OCR synonyms from database, continuing without normalizer", err);
+        }
 
         // Start cron jobs only after Redis is ready
         jobScheduler.start();

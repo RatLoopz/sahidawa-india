@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { WifiOff, Wifi, X } from "lucide-react";
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
+import { useSyncQueue } from "@/hooks/useSyncQueue";
 import { useTranslations } from "next-intl";
 
 /**
@@ -18,6 +19,7 @@ import { useTranslations } from "next-intl";
 export function OfflineBanner() {
     const t = useTranslations("offline");
     const { isOffline, isStatusDirty, isTestMode } = useOfflineStatus();
+    const { pendingCount } = useSyncQueue();
     const [isDismissed, setIsDismissed] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
 
@@ -92,6 +94,11 @@ export function OfflineBanner() {
                                 {isCurrentlyOffline
                                     ? t("descriptionOffline") + (isTestMode ? " · Test mode" : "")
                                     : t("descriptionOnline")}
+                                {pendingCount > 0 && isCurrentlyOffline && (
+                                    <span className="ml-2 rounded bg-amber-700/50 px-2 py-0.5 font-semibold">
+                                        {pendingCount} action(s) pending sync
+                                    </span>
+                                )}
                             </p>
                         </div>
                     </div>

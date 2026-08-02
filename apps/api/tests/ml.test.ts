@@ -24,7 +24,6 @@ jest.mock("node:dns", () => ({
 import { promises as dnsMock } from "node:dns";
 import { Request, Response, NextFunction } from "express";
 
-
 function buildApp() {
     const app = express();
     app.use(express.json());
@@ -69,7 +68,7 @@ describe("ml routes", () => {
 
     it("proxies valid Cloudinary URLs to the ML service", async () => {
         global.fetch = async () =>
-            new Response(
+            new globalThis.Response(
                 JSON.stringify({
                     isFake: false,
                     confidence: 0.81,
@@ -167,6 +166,42 @@ describe("ml routes", () => {
         assert.equal(response.status, 400);
     });
 
+    it("rejects requests to 0.0.0.0 (SSRF protection)", async () => {
+        const response = await request(buildApp())
+            .post("/api/ml/analyze")
+            .set("Authorization", VALID_TOKEN)
+            .send({ imageUrl: "https://0.0.0.0/admin" });
+
+        assert.equal(response.status, 400);
+    });
+
+    it("rejects requests to carrier-grade NAT ranges (SSRF protection)", async () => {
+        const response = await request(buildApp())
+            .post("/api/ml/analyze")
+            .set("Authorization", VALID_TOKEN)
+            .send({ imageUrl: "https://100.64.0.1/internal" });
+
+        assert.equal(response.status, 400);
+    });
+
+    it("rejects requests to IPv6 ULA and unspecified addresses (SSRF protection)", async () => {
+        const response = await request(buildApp())
+            .post("/api/ml/analyze")
+            .set("Authorization", VALID_TOKEN)
+            .send({ imageUrl: "https://[fd00::1]/internal" });
+
+        assert.equal(response.status, 400);
+    });
+
+    it("rejects requests to IPv6-mapped IPv4 literals (SSRF protection)", async () => {
+        const response = await request(buildApp())
+            .post("/api/ml/analyze")
+            .set("Authorization", VALID_TOKEN)
+            .send({ imageUrl: "https://[::ffff:7f00:1]/internal" });
+
+        assert.equal(response.status, 400);
+    });
+
     it("rejects .nip.io DNS rebinding domains (SSRF protection)", async () => {
         const response = await request(buildApp())
             .post("/api/ml/analyze")
@@ -191,7 +226,7 @@ describe("ml routes", () => {
         (dnsMock.resolve4 as jest.Mock).mockResolvedValueOnce(["203.0.113.42"]);
 
         global.fetch = async () =>
-            new Response(
+            new globalThis.Response(
                 JSON.stringify({
                     isFake: false,
                     confidence: 0.81,

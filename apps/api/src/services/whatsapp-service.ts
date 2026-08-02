@@ -1,4 +1,5 @@
 import logger from "../utils/logger";
+import { isLocalDevelopment } from "../utils/env";
 
 export interface WhatsAppProvider {
     send(phone: string, message: string, language: string): Promise<boolean>;
@@ -13,8 +14,12 @@ export class GupshupWhatsAppService implements WhatsAppProvider {
         logger.info(`[WhatsApp][${language}] Preparing to send to ${phone}: "${message}"`);
 
         if (!this.apiKey || !this.sourceNumber) {
-            logger.warn(`Gupshup credentials missing. MOCKING WhatsApp delivery to ${phone}.`);
-            return true;
+            if (isLocalDevelopment()) {
+                logger.warn(`Gupshup credentials missing. MOCKING WhatsApp delivery to ${phone}.`);
+                return true;
+            }
+            logger.error(`Gupshup credentials missing. WhatsApp delivery to ${phone} failed.`);
+            return false;
         }
 
         try {
