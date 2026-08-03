@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import type { AuthenticatedRequest } from "../middleware/auth";
 import { z } from "zod";
 import multer from "multer";
 import fs from "fs";
@@ -291,6 +292,15 @@ router.post("/extract", uploadRateLimiter, validateUploadSize, (req: Request, re
             const rawText = data.text || "";
             const confidence = data.confidence ?? 0;
 
+            if (rawText.trim().length === 0) {
+                logger.warn(`OCR returned empty text for "${file.originalname}" (confidence: ${confidence})`);
+                res.status(400).json({
+                    error: "No text could be extracted from the image.",
+                    code: "OCR_EMPTY_TEXT",
+                });
+                return;
+            }
+
             const {
                 parsedBatch,
                 parsedExpiry,
@@ -495,6 +505,11 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
     }
     const { brandName } = parsed.data;
     const normalizedBrand = brandName.trim().toLowerCase();
+    // Escape ILIKE wildcards so % / _ / \ in user input are treated literally.
+    // Without this, brandName: "%" matches every medicine (arbitrary first-row
+    // returned as verified: true), _ matches any single char, and \ breaks out of
+    // the pattern — enabling data probing and false positives on verify-brand.
+    const escapedBrand = escapeIlike(normalizedBrand);
     const cacheKey = `brand_cache:${normalizedBrand}`;
 
     try {
@@ -516,7 +531,7 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
             .select(
                 "id, brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score"
             )
-            .ilike("brand_name", `%${brandName}%`)
+            .ilike("brand_name", `%${escapedBrand}%`)
             .limit(1)
             .maybeSingle();
 
@@ -535,7 +550,7 @@ router.post("/verify-brand", scanQueryLimiter, async (req: Request, res: Respons
                 .select(
                     "id, brand_name, generic_name, manufacturer, batch_number, expiry_date, cdsco_approval_status, is_counterfeit_alert, is_cdsco_verified, cdsco_match_score, matched_cdsco_product, matched_cdsco_manufacturer, product_match_score, manufacturer_match_score"
                 )
-                .ilike("generic_name", `%${brandName}%`)
+                .ilike("generic_name", `%${escapedBrand}%`)
                 .limit(1)
                 .maybeSingle();
 
@@ -609,7 +624,7 @@ router.post(
     validateUploadSize,
     upload.fields([{ name: "image" }, { name: "voice" }]),
     idempotencyMiddleware,
-    async (req: Request, res: Response) => {
+    async (req: AuthenticatedRequest, res: Response) => {
         const idempotencyKey = (req as any).idempotencyKey;
         const submitSchema = z
             .object({
@@ -655,7 +670,7 @@ router.post(
 
         try {
             // Note: we require a user to be authenticated in a real app, assuming auth.uid() is available
-            const userId = (req as any).user?.id || (req as any).session?.user?.id;
+            const userId = req.user?.id || (req as any).session?.user?.id;
             if (!userId && process.env.NODE_ENV === "production") {
                 res.status(401).json({ error: "Authentication is required to submit scan data" });
                 return;

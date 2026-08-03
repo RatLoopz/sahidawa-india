@@ -24,7 +24,7 @@ jest.mock("../src/utils/redis", () => ({
 import { supabase } from "../src/db/client";
 import { redisClient } from "../src/utils/redis";
 
-const medicineFixture = (overrides: Record<string, unknown> = {}) => ({
+const medicineFixture = (overrides: { [key: string]: any } = {}) => ({
     id: "11111111-1111-1111-1111-111111111111",
     brand_name: "Dolo 650",
     generic_name: "Paracetamol",
@@ -148,6 +148,20 @@ describe("POST /api/v1/scan/verify-brand", () => {
             .post("/api/v1/scan/verify-brand")
             .send({ brandName: "Unknown Medicine" });
 
+        expect(res.status).toBe(404);
+        expect(res.body.verified).toBe(false);
+    });
+
+    it("escapes ILIKE wildcards (% _ \\) in the brandName before building the query", async () => {
+        ((supabase as any).maybeSingle as jest.Mock)
+            .mockResolvedValueOnce({ data: null, error: null })
+            .mockResolvedValueOnce({ data: null, error: null });
+
+        const res = await request(app).post("/api/v1/scan/verify-brand").send({ brandName: "%" });
+
+        // '%' must never match every medicine — escapeIlike turns it into \% so the
+        // pattern is "%\%%" (a literal % surrounded by any-match wildcards).
+        expect((supabase as any).ilike).toHaveBeenCalledWith("brand_name", "%\\%%");
         expect(res.status).toBe(404);
         expect(res.body.verified).toBe(false);
     });
