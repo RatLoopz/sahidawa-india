@@ -72,6 +72,7 @@ import wishlistRouter from "./routes/wishlist";
 import webhooksRouter from "./routes/webhooks";
 import apiKeysRouter from "./routes/apiKeys";
 import safetyRouter from "./routes/safety";
+import ashaRouter from "./routes/asha";
 import { supabase } from "./db/client";
 import * as Sentry from "@sentry/node";
 import { createCorsOptions } from "./config/cors";
@@ -293,8 +294,6 @@ app.use(doubleCsrfProtection);
 // Mount CodeQL recognized CSRF middleware helper (our no-op csurf mock)
 app.use(csurf());
 
-
-
 // ── CSRF token endpoint — frontend fetches this once on load ───────────────
 app.get("/api/csrf-token", (req: Request, res: Response) => {
     if (!req.cookies?.[ANON_SESSION_COOKIE] && !req.cookies?.access_token) {
@@ -393,6 +392,7 @@ app.use("/api/v1/scheme-eligibility", eligibilityRouter);
 app.use("/api/webhooks", webhooksRouter);
 app.use("/api/v1/medicines", trackingRouter);
 app.use("/api/v1/wishlist", wishlistRouter);
+app.use("/api/v1/asha", ashaRouter);
 app.use("/api/keys", apiKeysRouter);
 app.use("/api/medicine/safety", safetyRouter);
 
