@@ -242,7 +242,8 @@ export const updateReportStatus = async (
                         });
 
                         // Broadcast to active WebSocket clients via Supabase Realtime
-                        const channel = supabase.channel('public:outbreaks');
+                        // Safely handle tests where channel might not be mocked
+                        const channel = supabase.channel?.('public:outbreaks');
                         
                         // Safely parse lat/lng from report_location if it's a WKT POINT string
                         // Supabase typically returns PostGIS points as strings like "POINT(lng lat)" or as GeoJSON.
@@ -260,19 +261,21 @@ export const updateReportStatus = async (
                             lat = anyData.report_location.coordinates[1];
                         }
 
-                        await channel.send({
-                            type: 'broadcast',
-                            event: 'outbreak',
-                            payload: {
-                                medicine_name: anyData.reported_brand_name || "Unknown",
-                                batch_number: anyData.scanned_barcode || "Unknown",
-                                district: anyData.district || "Unknown",
-                                alert_level: alertLevel,
-                                lat,
-                                lng
-                            }
-                        });
-                        await supabase.removeChannel(channel);
+                        if (channel) {
+                            await channel.send({
+                                type: 'broadcast',
+                                event: 'outbreak',
+                                payload: {
+                                    medicine_name: anyData.reported_brand_name || "Unknown",
+                                    batch_number: anyData.scanned_barcode || "Unknown",
+                                    district: anyData.district || "Unknown",
+                                    alert_level: alertLevel,
+                                    lat,
+                                    lng
+                                }
+                            });
+                            await supabase.removeChannel?.(channel);
+                        }
                     } catch (pushErr) {
                         logger.error({
                             message: "Failed to trigger push notification for district alert",
