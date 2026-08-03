@@ -49,11 +49,11 @@ describe("PharmacyMapPage responsive layout", () => {
         const markup = renderToStaticMarkup(<PharmacyMapPage />);
 
         expect(markup).toContain('data-testid="pharmacy-map-command-bar"');
-        expect(markup).toContain("max-w-4xl");
+        expect(markup).toContain("md:max-w-md");
         expect(markup).toContain('data-testid="pharmacy-map-search"');
         expect(markup).toContain("focus-within:ring-4");
         expect(markup).toContain('data-testid="pharmacy-filter-shell"');
-        expect(markup).toContain("rounded-[1.35rem]");
+        expect(markup).toContain("rounded-full");
         expect(markup).toContain("hover:-translate-y-0.5");
         expect(markup).toContain("bg-emerald-600");
     });

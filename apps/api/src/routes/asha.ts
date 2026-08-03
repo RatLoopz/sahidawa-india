@@ -13,10 +13,7 @@ ashaRouter.get(
     requireAuth,
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
         try {
-            const userId = req.user?.id;
-            if (!userId) {
-                return res.status(401).json({ error: "Unauthorized" });
-            }
+            const userId = req.user!.id;
 
             // Get or create user profile
             let { data: userProfile, error: fetchError } = await supabase
@@ -72,10 +69,7 @@ ashaRouter.post(
     limiter,
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
         try {
-            const userId = req.user?.id;
-            if (!userId) {
-                return res.status(401).json({ error: "Unauthorized" });
-            }
+            const userId = req.user!.id;
 
             const parsed = awardPointsSchema.safeParse(req.body);
             if (!parsed.success) {

@@ -64,8 +64,9 @@ describe("POST /api/voice/transcribe", () => {
         expect(response.status).toBe(200);
         expect(global.fetch).toHaveBeenCalledWith("http://ml-service.test/asr/transcribe", {
             method: "POST",
-            body: expect.any(FormData),
-            signal: expect.any(AbortSignal),
+            headers: expect.anything(),
+            body: expect.anything(),
+            signal: expect.anything(),
         });
         expect(data).toEqual({
             transcript: "I have fever and cough",

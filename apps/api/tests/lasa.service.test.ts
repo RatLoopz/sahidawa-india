@@ -5,6 +5,9 @@ import { supabase } from "../src/db/client";
 jest.mock("../src/db/client", () => ({
     supabase: {
         rpc: jest.fn(),
+        from: jest.fn().mockReturnValue({
+            select: jest.fn().mockResolvedValue({ data: [], error: null }),
+        }),
     },
 }));
 

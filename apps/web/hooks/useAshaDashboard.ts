@@ -27,17 +27,12 @@ export function useAshaDashboard() {
         setLoading(true);
         setError(null);
         try {
-            const [statsRes, leaderboardRes] = await Promise.all([
-                fetchWithCsrf("/api/v1/asha/dashboard/stats"),
-                fetchWithCsrf("/api/v1/asha/leaderboard"),
+            const [statsData, leaderboardData] = await Promise.all([
+                fetchWithCsrf<AshaStats>("/api/v1/asha/dashboard/stats", { method: "GET" }),
+                fetchWithCsrf<{ leaderboard: LeaderboardEntry[] }>("/api/v1/asha/leaderboard", {
+                    method: "GET",
+                }),
             ]);
-
-            if (!statsRes.ok || !leaderboardRes.ok) {
-                throw new Error("Failed to fetch dashboard data");
-            }
-
-            const statsData = await statsRes.json();
-            const leaderboardData = await leaderboardRes.json();
 
             setStats(statsData);
             setLeaderboard(leaderboardData.leaderboard);
@@ -50,17 +45,11 @@ export function useAshaDashboard() {
 
     const awardPoints = useCallback(async (points: number, reason: string) => {
         try {
-            const res = await fetchWithCsrf("/api/v1/asha/award-points", {
+            const data = await fetchWithCsrf<any>("/api/v1/asha/award-points", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ points, reason }),
             });
 
-            if (!res.ok) {
-                throw new Error("Failed to award points");
-            }
-
-            const data = await res.json();
             setStats((prev) =>
                 prev ? { ...prev, points: data.points, badges: data.badges } : null
             );
@@ -70,11 +59,11 @@ export function useAshaDashboard() {
             }
 
             // Refresh leaderboard
-            const leaderboardRes = await fetchWithCsrf("/api/v1/asha/leaderboard");
-            if (leaderboardRes.ok) {
-                const leaderboardData = await leaderboardRes.json();
-                setLeaderboard(leaderboardData.leaderboard);
-            }
+            const leaderboardData = await fetchWithCsrf<{ leaderboard: LeaderboardEntry[] }>(
+                "/api/v1/asha/leaderboard",
+                { method: "GET" }
+            );
+            setLeaderboard(leaderboardData.leaderboard);
 
             return data;
         } catch (err: any) {
