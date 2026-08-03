@@ -385,7 +385,7 @@ router.get(
             const interactionByPair = indexInteractions(
                 await loadInteractionsForGenerics(selectedGenerics)
             );
-            const isFallback = dbConfig?.isSupabaseOffline ?? true;
+            const isFallback = dbConfig?.isSupabaseOffline ?? false;
             const interactions = [];
 
             for (let i = 0; i < medicines.length; i++) {
@@ -637,7 +637,7 @@ router.post("/check", interactionCheckLimiter, async (req: Request, res: Respons
         // 2. Fetch all potential interactions in one batched query
         const allInteractions = await loadInteractionsForGenerics(resolvedGenerics);
         const interactionByPair = indexInteractions(allInteractions);
-        const isFallback = dbConfig?.isSupabaseOffline ?? true;
+        const isFallback = dbConfig?.isSupabaseOffline ?? false;
 
         const matchedInteractions: MatchedInteraction[] = [];
 
