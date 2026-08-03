@@ -240,6 +240,22 @@ export const updateReportStatus = async (
                             source: "SahiDawa Citizen Reports",
                             recalledAt: new Date().toISOString(),
                         });
+
+                        // Broadcast to active WebSocket clients via Supabase Realtime
+                        const channel = supabase.channel('public:outbreaks');
+                        await channel.send({
+                            type: 'broadcast',
+                            event: 'outbreak',
+                            payload: {
+                                medicine_name: data.reported_brand_name,
+                                batch_number: data.batch_number || "Unknown",
+                                district: data.district,
+                                alert_level: alertLevel,
+                                lat: data.latitude,
+                                lng: data.longitude
+                            }
+                        });
+                        await supabase.removeChannel(channel);
                     } catch (pushErr) {
                         logger.error({
                             message: "Failed to trigger push notification for district alert",
