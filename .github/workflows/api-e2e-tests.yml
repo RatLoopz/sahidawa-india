@@ -1,0 +1,52 @@
+name: API E2E Tests
+
+# Runs API E2E tests including webhook delivery verification
+# Addresses issue #4053: API E2E tests were not integrated in CI
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+    paths:
+      - 'apps/api/**'
+      - '.github/workflows/api-e2e-tests.yml'
+
+jobs:
+  api-e2e:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v7
+
+    - uses: actions/setup-node@v7
+      with:
+        node-version-file: .nvmrc
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm install --legacy-peer-deps
+
+    - name: Install Supabase CLI
+      run: |
+        npm install -g supabase
+        supabase start
+
+    - name: Wait for Supabase to be ready
+      run: sleep 10
+
+    - name: Run API E2E tests
+      run: npm run test --workspace=apps/api
+      working-directory: apps/api
+      env:
+        SUPABASE_URL: http://127.0.0.1:54321
+        SUPABASE_SERVICE_ROLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgzMzk5OX0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+        # This is the default service role key for local Supabase
+
+    - uses: actions/upload-artifact@v7
+      if: always()
+      with:
+        name: api-test-results
+        path: apps/api/tests/**/*.xml
+        retention-days: 7
