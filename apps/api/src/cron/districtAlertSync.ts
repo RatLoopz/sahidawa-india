@@ -134,10 +134,21 @@ export async function syncDistrictAlertTallies(): Promise<void> {
                 .in("id", staleIds);
 
             if (updateError) {
-                logger.error("District alert sync: bulk deactivate failed", {
+                logger.error("District alert sync: bulk deactivate failed, retrying", {
                     error: updateError.message,
                 });
-                errors += 1;
+                const { error: retryError } = await supabase
+                    .from("district_alerts")
+                    .update({ is_active: false, updated_at: timestamp })
+                    .in("id", staleIds);
+                if (retryError) {
+                    logger.error("District alert sync: bulk deactivate retry failed", {
+                        error: retryError.message,
+                    });
+                    throw new Error(
+                        `Failed to deactivate stale district alerts: ${retryError.message}`
+                    );
+                }
             }
         }
 
