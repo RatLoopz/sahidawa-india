@@ -360,6 +360,15 @@
         "description": "تُہنٛد اِنٹرنیٹ رابطہِ چُھنہِ وَعکِے چَلان۔",
         "subtitle": "آف لائن مَنٛز چِھ کینٛہ خُصوصِیَت بَنٛد۔ اِنٹرنیٹ سٲتؠ جوڑِیو یا کَیش مَواد وُچھِیو۔",
         "tryAgain": "دوبارہ کوشِش کَریو",
+
+        "syncFailedTitle": "Queued actions were rejected",
+
+        "syncFailedDescription": "Some queued actions were rejected by the server. Retry after reconnecting or discard them.",
+
+        "syncRetry": "Retry all",
+
+        "syncDiscard": "Discard",
+
         "goHome": "ہوم پؠٹھ گَژھیو",
         "footer": "صحیح دَوا کَری اِنٹرنیٹ واپس یِنہِ پَتہِ خودکار ہَم آہَنٛگ۔",
         "cachedContent": "تُہؠ ہیکِیو پُرون لوڈ کَردَہ مَواد وُچھِتھ",

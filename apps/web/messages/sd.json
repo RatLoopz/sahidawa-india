@@ -359,6 +359,15 @@
         "description": "هن وقت توهان وٽ انٽرنيٽ ڪنيڪشن موجود ناهي.",
         "subtitle": "آف لائن هجڻ دوران ڪجهه فيچرز دستياب نه هوندا. انٽرنيٽ سان ڳنڍجڻ جي ڪوشش ڪريو يا محفوظ ٿيل مواد ڏسو.",
         "tryAgain": "ٻيهر ڪوشش ڪريو",
+
+        "syncFailedTitle": "Queued actions were rejected",
+
+        "syncFailedDescription": "Some queued actions were rejected by the server. Retry after reconnecting or discard them.",
+
+        "syncRetry": "Retry all",
+
+        "syncDiscard": "Discard",
+
         "goHome": "گهر واري صفحي ڏانهن وڃو",
         "footer": "ڪنيڪشن بحال ٿيڻ تي SahiDawa پاڻمرادو هم وقت ساز ٿيندو.",
         "cachedContent": "توهان اڳ ۾ لوڊ ٿيل مواد تائين اڃا به رسائي حاصل ڪري سگهو ٿا",
