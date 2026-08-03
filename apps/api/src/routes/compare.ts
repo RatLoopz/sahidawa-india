@@ -38,15 +38,21 @@ router.post(
             const { medicine_a, medicine_b } = parsed.data;
             const cacheKey = getCacheKey(medicine_a, medicine_b);
 
-            // 1. Check Redis Cache for pre-computed similarity
-            if (redisClient) {
-                const cachedResult = await redisClient.get(cacheKey);
-                if (cachedResult) {
-                    logger.info(
-                        `Cache hit for medicine comparison: ${medicine_a} vs ${medicine_b}`
+            // 1. Check Redis Cache for pre-computed similarity (skip when Redis unavailable)
+            if (redisClient.isOpen) {
+                try {
+                    const cachedResult = await redisClient.get(cacheKey);
+                    if (cachedResult) {
+                        logger.info(
+                            `Cache hit for medicine comparison: ${medicine_a} vs ${medicine_b}`
+                        );
+                        res.status(200).json(JSON.parse(cachedResult));
+                        return;
+                    }
+                } catch (cacheErr) {
+                    logger.warn(
+                        `Redis cache read error in compare route: ${cacheErr instanceof Error ? cacheErr.message : cacheErr}`
                     );
-                    res.status(200).json(JSON.parse(cachedResult));
-                    return;
                 }
             }
 
@@ -65,10 +71,16 @@ router.post(
                 const resultData = mlResponse.data;
 
                 // 3. Save result to Redis with 24 hours TTL (86400 seconds)
-                if (redisClient) {
-                    await redisClient.set(cacheKey, JSON.stringify(resultData), {
-                        EX: 86400,
-                    });
+                if (redisClient.isOpen) {
+                    try {
+                        await redisClient.set(cacheKey, JSON.stringify(resultData), {
+                            EX: 86400,
+                        });
+                    } catch (cacheErr) {
+                        logger.warn(
+                            `Redis cache write error in compare route: ${cacheErr instanceof Error ? cacheErr.message : cacheErr}`
+                        );
+                    }
                 }
 
                 res.status(200).json(resultData);
