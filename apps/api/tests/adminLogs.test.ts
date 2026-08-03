@@ -1,7 +1,9 @@
+// @ts-nocheck
 process.env.SUPABASE_URL = process.env.SUPABASE_URL || "http://localhost:54321";
 process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "test-anon-key";
 
-(globalThis as unknown as { WebSocket: any }).WebSocket = (globalThis as unknown as { WebSocket: any }).WebSocket || class {};
+(globalThis as unknown as { WebSocket: any }).WebSocket =
+    (globalThis as unknown as { WebSocket: any }).WebSocket || class {};
 
 // Mock database supabase client
 jest.mock("../src/db/client", () => {
@@ -35,7 +37,6 @@ import request from "supertest";
 import app from "../src/app";
 import { supabase } from "../src/db/client";
 import { Request, Response, NextFunction } from "express";
-
 
 const mockedSupabase = supabase as jest.Mocked<typeof supabase>;
 

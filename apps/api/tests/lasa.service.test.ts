@@ -2,11 +2,22 @@ import { detectLasaConflicts, clearLasaCache } from "../src/services/lasa.servic
 import { supabase } from "../src/db/client";
 
 // Mock the Supabase client
-jest.mock("../src/db/client", () => ({
-    supabase: {
-        rpc: jest.fn(),
-    },
-}));
+jest.mock("../src/db/client", () => {
+    const mockSelect = jest.fn().mockResolvedValue({ data: [], error: null });
+    return {
+        supabase: {
+            rpc: jest.fn(),
+            from: jest.fn(() => ({
+                select: mockSelect,
+            })),
+            channel: jest.fn(() => ({
+                on: jest.fn().mockReturnThis(),
+                subscribe: jest.fn(),
+                unsubscribe: jest.fn(),
+            })),
+        },
+    };
+});
 
 describe("LASA Detection Service", () => {
     beforeEach(() => {

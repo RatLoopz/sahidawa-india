@@ -1,6 +1,7 @@
 {
     "extends": "./tsconfig.json",
     "compilerOptions": {
+        "rootDir": "../../",
         "outDir": "./.tmp/test-dist",
         "allowJs": true,
         "types": ["node", "jest", "supertest"]

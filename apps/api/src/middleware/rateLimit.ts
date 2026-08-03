@@ -71,7 +71,7 @@ class LazyStore implements Store {
     }
 }
 
-function buildStore(prefix: string): Store {
+export function buildStore(prefix: string): Store {
     return new LazyStore(prefix);
 }
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import request from "supertest";
 import app from "../src/app"; // Assuming the express app is exported from src/app
 import { supabase } from "../src/db/client";
