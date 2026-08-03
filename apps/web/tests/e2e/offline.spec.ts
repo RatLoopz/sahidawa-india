@@ -1,5 +1,11 @@
 import { expect, test } from "@playwright/test";
 
+/**
+ * E2E test for offline scanner sync queue functionality.
+ * Tests that barcode scans are queued when offline and synced when back online.
+ *
+ * Related issue: #4052 - Offline Sync Test is Skipped - Critical PWA Feature Untested
+ */
 test.describe("Offline Scanner and Sync Queue", () => {
     const testBarcode = "OFFLINE-TEST-BATCH-001";
 
@@ -18,7 +24,7 @@ test.describe("Offline Scanner and Sync Queue", () => {
         await page.reload();
     });
 
-    test.skip("intercepts scan when offline, queues it in IndexedDB, and flushes on reconnect", async ({
+    test("intercepts scan when offline, queues it in IndexedDB, and flushes on reconnect", async ({
         page,
         context,
     }) => {
