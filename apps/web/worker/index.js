@@ -752,14 +752,20 @@ async function saveFailedRequest(request) {
         const db = await openSyncDb();
         const headers = {};
         for (const [key, value] of request.headers.entries()) {
+            // content-length is recomputed by fetch when the body is replayed,
+            // so drop it here to avoid desyncing from the reconstructed body.
+            if (key.toLowerCase() === 'content-length') continue;
             headers[key] = value;
         }
-        const bodyText = await request.text();
+        // Persist the raw bytes (ArrayBuffer) instead of request.text(), which
+        // UTF-8-decodes the body and silently corrupts multipart uploads
+        // (medicine photos, voice recordings) so the evidence is lost on replay.
+        const body = await request.arrayBuffer();
         const serialized = {
             url: request.url,
             method: request.method,
             headers,
-            body: bodyText,
+            body,
             timestamp: Date.now()
         };
         
@@ -797,7 +803,12 @@ async function flushMutationsQueue() {
                     body: reqData.method !== 'GET' && reqData.method !== 'HEAD' ? reqData.body : undefined
                 });
                 
-                if (response.ok || response.status >= 400) { 
+                // Only remove a queued action once the server confirms it was
+                // processed successfully (2xx). Keeping the entry on any other
+                // status (4xx/5xx) preserves the request — and the photo/audio
+                // evidence it carries — for a later retry instead of silently
+                // dropping it.
+                if (response.ok) { 
                     await new Promise((resolve) => {
                         const tx = db.transaction('requests', 'readwrite');
                         tx.objectStore('requests').delete(reqData.id);
@@ -819,4 +830,3 @@ async function flushMutationsQueue() {
         console.error('[SW] Sync flush error', e);
     }
 }
-
