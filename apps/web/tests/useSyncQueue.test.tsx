@@ -15,11 +15,14 @@ async function deleteQueueDb(): Promise<void> {
 
 async function openQueueDb(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
-        const req = indexedDB.open(QUEUE_DB, 1);
+        const req = indexedDB.open(QUEUE_DB, 2);
         req.onupgradeneeded = () => {
             const db = req.result;
             if (!db.objectStoreNames.contains("requests")) {
                 db.createObjectStore("requests", { keyPath: "id", autoIncrement: true });
+            }
+            if (!db.objectStoreNames.contains("meta")) {
+                db.createObjectStore("meta", { keyPath: "key" });
             }
         };
         req.onsuccess = () => resolve(req.result);
