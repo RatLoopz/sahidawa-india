@@ -183,7 +183,15 @@ describe("logDose offline queue", () => {
         globalThis.fetch = fetchMock as any;
         global.fetch = fetchMock as any;
         fetchMock.mockReset();
-        fetchMock.mockRejectedValue(new TypeError("Failed to fetch"));
+        fetchMock.mockImplementation((url: string) => {
+            if (url.includes("/csrf-token")) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => ({ csrfToken: "mock-csrf-token" }),
+                });
+            }
+            return Promise.reject(new TypeError("Failed to fetch"));
+        });
         Object.defineProperty(window.navigator, "onLine", {
             value: false,
             configurable: true,
