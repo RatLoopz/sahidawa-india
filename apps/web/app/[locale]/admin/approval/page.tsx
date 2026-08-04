@@ -227,6 +227,7 @@ export default function ApprovalQueuePage() {
                         className="rounded-full bg-slate-100 p-2 text-slate-500 transition hover:bg-slate-200"
                         title="Refresh queue"
                         id="refresh-verifications-btn"
+                        aria-label="Refresh queue"
                     >
                         <RefreshCw className="h-4 w-4" />
                     </button>

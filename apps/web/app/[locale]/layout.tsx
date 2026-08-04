@@ -27,6 +27,9 @@ import { PrivacyConsentProvider } from "@/components/PrivacyConsentProvider";
 const VoiceVisualizer = dynamic(() =>
     import("@/components/VoiceVisualizer").then((mod) => mod.VoiceVisualizer)
 );
+const OutbreakListener = dynamic(() =>
+    import("@/components/OutbreakListener").then((mod) => mod.OutbreakListener)
+);
 
 export async function generateMetadata({
     params,
@@ -115,6 +118,7 @@ export default async function LocaleLayout({
                                             <Footer />
                                             <InteractiveOverlays />
                                             <VoiceVisualizer />
+                                            <OutbreakListener />
                                             <PrivacyConsentBanner />
                                         </AuthProvider>
                                     </PrivacyConsentProvider>

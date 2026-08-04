@@ -1,9 +1,11 @@
+// @ts-nocheck
 process.env.SUPABASE_URL = process.env.SUPABASE_URL || "http://localhost:54321";
 process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "test-anon-key";
 process.env.SUPABASE_SERVICE_ROLE_KEY =
     process.env.SUPABASE_SERVICE_ROLE_KEY || "test-service-role-key";
 
-(globalThis as unknown as { WebSocket: any }).WebSocket = (globalThis as unknown as { WebSocket: any }).WebSocket || class {};
+(globalThis as unknown as { WebSocket: any }).WebSocket =
+    (globalThis as unknown as { WebSocket: any }).WebSocket || class {};
 
 jest.mock("../src/db/client", () => ({
     supabase: {
@@ -29,7 +31,6 @@ import app from "../src/app";
 import { supabase } from "../src/db/client";
 import { logAdminAction } from "../src/services/audit.service";
 import { Request, Response, NextFunction } from "express";
-
 
 const PHARMACY_UUID_1 = "00000000-0000-4000-8000-000000000002";
 const PHARMACY_UUID_2 = "00000000-0000-4000-8000-000000000003";

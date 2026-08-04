@@ -377,6 +377,7 @@ export default function AnalyticsDashboard() {
                             onClick={fetchData}
                             className="rounded-full bg-slate-100 p-2 text-slate-500 transition hover:bg-slate-200"
                             title="Refresh"
+                            aria-label="Refresh analytics data"
                         >
                             <RefreshCw className="h-4 w-4" />
                         </button>

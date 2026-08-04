@@ -21,6 +21,7 @@ export function VoiceVisualizer() {
             <button 
               onClick={cancelListening}
               className="absolute top-3 right-3 text-slate-400 hover:text-white"
+              aria-label="Cancel voice listening"
             >
               <X size={20} />
             </button>

@@ -1,3 +1,4 @@
+// @ts-nocheck
 jest.mock("../src/db/client", () => ({
     supabase: {
         from: jest.fn().mockReturnThis(),

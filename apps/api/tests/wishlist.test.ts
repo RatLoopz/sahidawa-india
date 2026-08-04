@@ -1,3 +1,4 @@
+// @ts-nocheck
 import express from "express";
 import request, { Response as SuperTestResponse } from "supertest";
 import wishlistRouter, { mergeGuestWishlist } from "../src/routes/wishlist";

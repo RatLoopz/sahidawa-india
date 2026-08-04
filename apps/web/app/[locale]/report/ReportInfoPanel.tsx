@@ -27,7 +27,10 @@ export default function ReportInfoPanel() {
                         placeholder={t("infoPanel.quickVerify.placeholder")}
                         className="w-full rounded-2xl border border-(--color-border-muted) bg-(--color-surface-muted) px-4 py-3 text-sm font-medium text-(--color-text-primary) placeholder-(--color-text-muted) transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
                     />
-                    <button className="absolute top-2 right-2 bottom-2 flex items-center justify-center rounded-xl bg-slate-900 px-3 text-white transition-colors hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200">
+                    <button 
+                        className="absolute top-2 right-2 bottom-2 flex items-center justify-center rounded-xl bg-slate-900 px-3 text-white transition-colors hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+                        aria-label={t("infoPanel.quickVerify.title")}
+                    >
                         <ChevronRight size={16} />
                     </button>
                 </div>

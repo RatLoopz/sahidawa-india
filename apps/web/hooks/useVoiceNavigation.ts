@@ -112,7 +112,9 @@ export function useVoiceNavigation() {
                     oscillator.connect(audioCtx.destination);
                     oscillator.start();
                     oscillator.stop(audioCtx.currentTime + 0.1);
-                } catch {}
+                } catch {
+                    // Ignore audio context errors (e.g. user hasn't interacted with page yet)
+                }
             }
 
             // Intent detection
@@ -128,8 +130,12 @@ export function useVoiceNavigation() {
             if (isWakeWordActive) {
                 try {
                     recognition.start();
-                } catch {
-                    // ignore already started errors
+                } catch (err) {
+                    if (err instanceof DOMException && err.name === "InvalidStateError") {
+                        // ignore already started errors
+                    } else {
+                        console.warn("Speech recognition auto-restart failed", err);
+                    }
                 }
             }
         };
@@ -144,7 +150,13 @@ export function useVoiceNavigation() {
         if (isWakeWordActive) {
             try {
                 recognition.start();
-            } catch {}
+            } catch (err) {
+                if (err instanceof DOMException && err.name === "InvalidStateError") {
+                    // Ignore already-started errors
+                } else {
+                    console.warn("Speech recognition start failed", err);
+                }
+            }
         }
 
         return () => {
