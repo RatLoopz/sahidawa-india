@@ -2,18 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { redis } from "@/lib/redis";
 import { rateLimit } from "@/lib/rateLimit";
+import { escapePostgrest } from "@sahidawa/shared";
 
 const CACHE_TTL = 24 * 60 * 60;
 const MAX_QUERY_LENGTH = 100;
-
-function escapePostgrest(val: string) {
-    // Escape backslash first (must be first to avoid double-escaping),
-    // then LIKE wildcards, then PostgREST .or() syntax characters
-    return val
-        .replace(/\\/g, "\\\\")
-        .replace(/[%_]/g, "\\$&")
-        .replace(/[,"'()]/g, "\\$&");
-}
 
 function getClientIp(request: NextRequest): string {
     return (
