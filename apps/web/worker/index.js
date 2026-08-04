@@ -757,14 +757,20 @@ async function saveFailedRequest(request) {
         const db = await openSyncDb();
         const headers = {};
         for (const [key, value] of request.headers.entries()) {
+            // content-length is recomputed by fetch when the body is replayed,
+            // so drop it here to avoid desyncing from the reconstructed body.
+            if (key.toLowerCase() === "content-length") continue;
             headers[key] = value;
         }
-        const bodyText = await request.text();
+        // Persist the raw bytes (ArrayBuffer) instead of request.text(), which
+        // UTF-8-decodes the body and silently corrupts multipart uploads
+        // (medicine photos, voice recordings) so the evidence is lost on replay.
+        const body = await request.arrayBuffer();
         const serialized = {
             url: request.url,
             method: request.method,
             headers,
-            body: bodyText,
+            body,
             timestamp: Date.now(),
         };
 
