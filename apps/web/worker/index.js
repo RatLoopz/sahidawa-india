@@ -708,11 +708,20 @@ function checkExpiryAndNotify() {
 }
 
 // ---------------------------------------------------------------------------
-// MESSAGE — allow pages to communicate with the SW (e.g. skip waiting)
+// MESSAGE — allow pages to communicate with the SW
+//   - SKIP_WAITING: activate a newly installed worker immediately
+//   - SET_CURRENT_USER: record which user is signed in (for queue scoping)
+//   - CLEAR_SYNC_QUEUE: drop queued mutations (on sign-out)
 // ---------------------------------------------------------------------------
 self.addEventListener("message", (event) => {
     if (event.data?.type === "SKIP_WAITING") {
         self.skipWaiting();
+    }
+    if (event.data?.type === "SET_CURRENT_USER") {
+        event.waitUntil?.(setMetaValue("current-user-id", event.data.userId ?? null));
+    }
+    if (event.data?.type === "CLEAR_SYNC_QUEUE") {
+        event.waitUntil?.(clearQueuedRequests());
     }
 });
 
@@ -740,16 +749,94 @@ async function notifyClientsToFlush() {
 // ---------------------------------------------------------------------------
 function openSyncDb() {
     return new Promise((resolve, reject) => {
-        const req = indexedDB.open("sahidawa-sync-db", 1);
+        const req = indexedDB.open("sahidawa-sync-db", 2);
         req.onupgradeneeded = (e) => {
             const db = e.target.result;
             if (!db.objectStoreNames.contains("requests")) {
                 db.createObjectStore("requests", { keyPath: "id", autoIncrement: true });
             }
+            if (!db.objectStoreNames.contains("meta")) {
+                db.createObjectStore("meta", { keyPath: "key" });
+            }
         };
         req.onsuccess = (e) => resolve(e.target.result);
         req.onerror = () => reject("Failed to open sync DB");
     });
+}
+
+function setMetaValue(key, value) {
+    return openSyncDb()
+        .then((db) => {
+            return new Promise((resolve, reject) => {
+                if (!db.objectStoreNames.contains("meta")) {
+                    db.close();
+                    return resolve();
+                }
+                const tx = db.transaction("meta", "readwrite");
+                tx.objectStore("meta").put({ key, value });
+                tx.oncomplete = () => {
+                    db.close();
+                    resolve();
+                };
+                tx.onerror = () => {
+                    db.close();
+                    reject("Failed to write sync DB meta");
+                };
+            });
+        })
+        .catch((e) => console.error("[SW] Failed to write sync DB meta", e));
+}
+
+function getMetaValue(key) {
+    return openSyncDb()
+        .then((db) => {
+            return new Promise((resolve, reject) => {
+                if (!db.objectStoreNames.contains("meta")) {
+                    db.close();
+                    return resolve(null);
+                }
+                const tx = db.transaction("meta", "readonly");
+                const req = tx.objectStore("meta").get(key);
+                req.onsuccess = () => {
+                    db.close();
+                    resolve(req.result ? req.result.value : null);
+                };
+                req.onerror = () => {
+                    db.close();
+                    reject("Failed to read sync DB meta");
+                };
+            });
+        })
+        .catch(() => null);
+}
+
+/** The user id the page has most recently told us is signed in (or null). */
+function getCurrentUserId() {
+    return getMetaValue("current-user-id");
+}
+
+/**
+ * Derive the owning user id for a queued mutation from its Authorization
+ * bearer token (a Supabase JWT whose `sub` claim is the user id). When we
+ * later replay the stored headers verbatim, we must only do so while the same
+ * user is signed in — replaying with a stored token under a different session
+ * would submit an action as the wrong user.
+ */
+function extractUserIdFromRequest(request) {
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader) return null;
+    const match = /^Bearer\s+(.+)$/i.exec(authHeader);
+    if (!match) return null;
+    try {
+        const encodedPayload = match[1].split(".")[1];
+        if (!encodedPayload) return null;
+        const base64 = encodedPayload.replace(/-/g, "+").replace(/_/g, "/");
+        const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+        const payload = JSON.parse(atob(padded));
+        return payload?.sub || payload?.user_id || payload?.user?.id || null;
+    } catch {
+        return null;
+    }
 }
 
 async function saveFailedRequest(request) {
@@ -772,6 +859,10 @@ async function saveFailedRequest(request) {
             headers,
             body,
             timestamp: Date.now(),
+            // Bind this entry to the user who created it so it is never
+            // replayed under a different session. Prefer the explicit token in
+            // the request; fall back to the currently registered session user.
+            userId: extractUserIdFromRequest(request) || (await getCurrentUserId()) || null,
         };
 
         return new Promise((resolve, reject) => {
@@ -875,7 +966,19 @@ async function flushMutationsQueue() {
         let flushedAny = false;
         let authFailure = false;
 
+        // User-scoping guard: a mutation bound to a specific user must only be
+        // replayed while that same user is authenticated. Never replay queued
+        // actions under a different session (or under login as another user),
+        // because the stored headers carry credentials for the original owner.
+        const currentUserId = await getCurrentUserId();
+
         for (const reqData of requests) {
+            if (reqData.userId && currentUserId !== reqData.userId) {
+                console.warn(
+                    "[SW] Skipping queued mutation owned by a different user (current session mismatch)"
+                );
+                continue;
+            }
             try {
                 const response = await fetch(reqData.url, {
                     method: reqData.method,
@@ -939,7 +1042,6 @@ async function flushMutationsQueue() {
         if (authFailure) {
             notifyClientsCsrfRefresh();
         }
-
         const clients = await self.clients.matchAll({ type: "window" });
         for (const client of clients) {
             if (flushedAny) {
@@ -949,5 +1051,26 @@ async function flushMutationsQueue() {
         }
     } catch (e) {
         console.error("[SW] Sync flush error", e);
+    }
+}
+
+/** Drop every queued mutation (used when the user signs out). */
+async function clearQueuedRequests() {
+    try {
+        const db = await openSyncDb();
+        if (!db.objectStoreNames.contains("requests")) {
+            db.close();
+            return;
+        }
+        await new Promise((resolve) => {
+            const tx = db.transaction("requests", "readwrite");
+            tx.objectStore("requests").clear();
+            tx.oncomplete = resolve;
+            tx.onerror = resolve;
+        });
+        db.close();
+        console.log("[SW] Cleared queued mutations after sign-out");
+    } catch (e) {
+        console.error("[SW] Failed to clear queued mutations", e);
     }
 }

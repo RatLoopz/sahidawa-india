@@ -4,6 +4,7 @@ import { createBrowserClient } from "@supabase/ssr";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/env";
 import { createContext, useContext, useEffect, useState, useMemo, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
+import { clearSyncQueueForLogout, registerCurrentUser } from "@/lib/syncUserScoping";
 
 interface AuthContextValue {
     session: Session | null;
@@ -28,16 +29,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const supabase = useMemo(() => createBrowserClient(getSupabaseUrl(), getSupabaseAnonKey()), []);
 
     useEffect(() => {
-        supabase.auth.getSession().then(({ data }) => {
-            const s = data.session ?? null;
-            setSession(s);
-            setIsLoading(false);
-            if (s?.access_token) {
-                localStorage.setItem("sb-access-token", s.access_token);
-            } else {
-                localStorage.removeItem("sb-access-token");
-            }
-        }).catch(err => console.error("[AuthProvider] Failed:", err));
+        supabase.auth
+            .getSession()
+            .then(({ data }) => {
+                const s = data.session ?? null;
+                setSession(s);
+                setIsLoading(false);
+                if (s?.access_token) {
+                    localStorage.setItem("sb-access-token", s.access_token);
+                } else {
+                    localStorage.removeItem("sb-access-token");
+                }
+                syncServiceWorkerSession(s);
+            })
+            .catch((err) => console.error("[AuthProvider] Failed:", err));
 
         const {
             data: { subscription },
@@ -48,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             } else {
                 localStorage.removeItem("sb-access-token");
             }
+            syncServiceWorkerSession(session);
         });
 
         return () => subscription.unsubscribe();
@@ -58,4 +64,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             {children}
         </AuthContext.Provider>
     );
+}
+
+/**
+ * Keep the service worker's notion of the signed-in user in step with the
+ * auth session so queued offline mutations are scoped/bound to the user who
+ * created them. On sign-out the queue is cleared so an old offline action can
+ * never be submitted as a different user.
+ */
+function syncServiceWorkerSession(session: Session | null): void {
+    const userId = session?.user?.id ?? null;
+    if (userId) {
+        registerCurrentUser(userId);
+    } else {
+        clearSyncQueueForLogout();
+    }
 }
