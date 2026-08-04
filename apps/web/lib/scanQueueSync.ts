@@ -1,6 +1,6 @@
 import { verifyMedicine } from "@/lib/api";
 import { getSyncQueue, removeFromSyncQueue } from "@/lib/db/syncQueue";
-import { recordScanHistory } from "@/lib/scanHistoryUtils";
+import { recordSyncScanHistory } from "@/lib/scanHistoryUtils";
 import { toast } from "sonner";
 
 export function isNetworkFailure(error: unknown): boolean {
@@ -18,64 +18,84 @@ export function isNetworkFailure(error: unknown): boolean {
 export async function syncPendingScans(onSynced?: (count: number) => void): Promise<number> {
     if (typeof window === "undefined" || !navigator.onLine) return 0;
 
-    const queue = await getSyncQueue();
-    if (queue.length === 0) return 0;
+    // Guard against overlapping flushes (e.g. the window's "online" event and the
+    // service worker's FLUSH_SYNC_QUEUE message firing at the same time). Two
+    // concurrent loops would verify and remove entries twice and race on the
+    // history rows. Only one sync may run at a time. The lock is claimed BEFORE
+    // any await so two calls racing on the same tick can't both acquire it.
+    if (syncInProgress) return 0;
+    syncInProgress = true;
 
     let synced = 0;
 
-    for (const item of queue) {
-        try {
-            const result = await verifyMedicine(item.barcode, undefined, item.apiUrl);
-            await recordScanHistory(result, item.barcode);
-            await removeFromSyncQueue(item.id);
-            synced++;
+    try {
+        const queue = await getSyncQueue();
+        if (queue.length === 0) return 0;
 
-            // Notify user of result
-            const medicineName = (result.verified && result.medicine.brand_name) || item.barcode;
-            let body = "";
-            let isCounterfeit = false;
+        // getSyncQueue() returns items sorted oldest-first by timestamp, so queued
+        // scans are processed deterministically in the order they were scanned.
+        for (const item of queue) {
+            try {
+                const result = await verifyMedicine(item.barcode, undefined, item.apiUrl);
+                // Update the linked PENDING history row in place, preserving the
+                // original scan timestamp, so an older scan can never overwrite a
+                // newer verification and each medicine keeps its correct result.
+                await recordSyncScanHistory(item.id, item.timestamp, result, item.barcode);
+                await removeFromSyncQueue(item.id);
+                synced++;
 
-            if (result.verified) {
-                isCounterfeit = result.medicine.is_counterfeit_alert;
-                if (isCounterfeit) {
-                    body = `Counterfeit Alert: "${medicineName}" (Batch: ${result.medicine.batch_number}) is flagged as counterfeit!`;
-                    toast.error(body, { duration: 6000 });
-                } else {
-                    body = `Verified: "${medicineName}" (Batch: ${result.medicine.batch_number}) is genuine.`;
-                    toast.success(body);
-                }
-            } else {
-                body = `Verification failed: Batch "${item.barcode}" could not be verified.`;
-                toast.error(body);
-            }
+                // Notify user of result
+                const medicineName =
+                    (result.verified && result.medicine.brand_name) || item.barcode;
+                let body = "";
+                let isCounterfeit = false;
 
-            // Web Notification if tab is hidden
-            if (
-                typeof window !== "undefined" &&
-                "Notification" in window &&
-                Notification.permission === "granted" &&
-                document.hidden
-            ) {
-                new Notification(
-                    isCounterfeit ? "⚠️ Counterfeit Alert!" : "✅ SahiDawa Verification",
-                    {
-                        body,
-                        icon: "/icons/icon-192.png",
+                if (result.verified) {
+                    isCounterfeit = result.medicine.is_counterfeit_alert;
+                    if (isCounterfeit) {
+                        body = `Counterfeit Alert: "${medicineName}" (Batch: ${result.medicine.batch_number}) is flagged as counterfeit!`;
+                        toast.error(body, { duration: 6000 });
+                    } else {
+                        body = `Verified: "${medicineName}" (Batch: ${result.medicine.batch_number}) is genuine.`;
+                        toast.success(body);
                     }
-                );
+                } else {
+                    body = `Verification failed: Batch "${item.barcode}" could not be verified.`;
+                    toast.error(body);
+                }
+
+                // Web Notification if tab is hidden
+                if (
+                    typeof window !== "undefined" &&
+                    "Notification" in window &&
+                    Notification.permission === "granted" &&
+                    document.hidden
+                ) {
+                    new Notification(
+                        isCounterfeit ? "⚠️ Counterfeit Alert!" : "✅ SahiDawa Verification",
+                        {
+                            body,
+                            icon: "/icons/icon-192.png",
+                        }
+                    );
+                }
+            } catch (error) {
+                if (!navigator.onLine || isNetworkFailure(error)) {
+                    break;
+                }
+                await removeFromSyncQueue(item.id);
             }
-        } catch (error) {
-            if (!navigator.onLine || isNetworkFailure(error)) {
-                break;
-            }
-            await removeFromSyncQueue(item.id);
         }
+    } finally {
+        // Always release the lock so subsequent online events can retry.
+        syncInProgress = false;
     }
 
     if (synced > 0 && onSynced) onSynced(synced);
     return synced;
 }
 
+let syncInProgress = false;
 let cleanupFn: (() => void) | null = null;
 
 export function initScanQueueSync(onSynced?: (count: number) => void, onQueueChange?: () => void) {
